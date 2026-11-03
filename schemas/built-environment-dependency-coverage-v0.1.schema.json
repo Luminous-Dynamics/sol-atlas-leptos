@@ -411,7 +411,47 @@
               }
             }
           }
-        }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "rights_state": {
+                  "const": "verified"
+                }
+              },
+              "required": [
+                "rights_state"
+              ]
+            },
+            "then": {
+              "properties": {
+                "permitted_uses": {
+                  "minItems": 1
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "rights_state": {
+                  "const": "unknown"
+                }
+              },
+              "required": [
+                "rights_state"
+              ]
+            },
+            "then": {
+              "properties": {
+                "permitted_uses": {
+                  "maxItems": 0
+                }
+              }
+            }
+          }
+        ]
       }
     },
     "relationship_coverage": {
