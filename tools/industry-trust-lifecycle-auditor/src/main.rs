@@ -1361,12 +1361,15 @@ mod tests {
         let descendant_digest =
             "abababababababababababababababababababababababababababababababab";
         let descendant_id = format!("issuer_key:sha256:{descendant_digest}");
-        graph["nodes"].as_array_mut().unwrap().push(json!({
-            "node_id": descendant_id,
-            "node_type": "issuer_key",
-            "artifact_sha256": descendant_digest,
-            "scope": inherited_scope
-        }));
+        let mut descendant_node = graph["nodes"][0].clone();
+        descendant_node["node_id"] = json!(descendant_id);
+        descendant_node["artifact_sha256"] = json!(descendant_digest);
+        descendant_node["issuer_id"] = json!("urn:example:issuer:descendant-key");
+        descendant_node["scope"] = inherited_scope;
+        graph["nodes"]
+            .as_array_mut()
+            .unwrap()
+            .push(descendant_node);
         graph["edges"].as_array_mut().unwrap().push(json!({
             "edge_id": "edge-direct-key-to-descendant-key",
             "from_node_id": direct_key_id,
