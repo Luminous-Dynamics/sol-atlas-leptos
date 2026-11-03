@@ -715,7 +715,6 @@ pub(crate) fn build_forward_adjacency(
 /// This is shared by the full report and sparse-delta paths so impact
 /// classification semantics do not fork between the two execution modes.
 pub(crate) fn build_impacted_results_with_adjacency(
-    graph: &Value,
     event: &Value,
     evaluated_at: &str,
     nodes: &BTreeMap<String, Value>,
@@ -862,7 +861,7 @@ pub(crate) fn build_impacted_results_with_adjacency(
     Ok(results)
 }
 
-fn build_impact_report(
+pub(crate) fn build_impact_report(
     graph: &Value,
     event: &Value,
     expected_metadata: &Value,
@@ -904,7 +903,6 @@ fn build_impact_report(
 
     let adjacency = build_forward_adjacency(graph)?;
     let impacted_results = build_impacted_results_with_adjacency(
-        graph,
         event,
         evaluated_at,
         nodes,
