@@ -1373,11 +1373,12 @@ pub fn compute_revalidation_frontier(
             .filter_map(|receipt_id| affected_receipt_paths.get(receipt_id))
             .min()
             .cloned();
-        if let Some(path) = target_path.or(receipt_path.clone()) {
+        let target_is_affected = target_path.is_some();
+        if let Some(path) = target_path.or(receipt_path) {
             impacts.push(ImpactRecord {
                 node_kind: ImpactNodeKind::Decision,
                 node_id: decision.event_id.clone(),
-                reason: if target_path.is_some() {
+                reason: if target_is_affected {
                     ImpactReason::DecisionTargetArtifactAffected
                 } else {
                     ImpactReason::DecisionDependsOnAffectedReceipt
