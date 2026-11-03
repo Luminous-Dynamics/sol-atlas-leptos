@@ -33,7 +33,8 @@
       "snapshot_sha256": "ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss",
       "source_watermark": "watermark-100",
       "response_at": "2026-11-03T10:01:00Z",
-      "terminal": false
+      "terminal": false,
+      "tombstone_identity_sha256s": []
     },
     {
       "inventory_id": "inventory-synthetic-001",
@@ -50,7 +51,8 @@
       "snapshot_sha256": "ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss",
       "source_watermark": "watermark-100",
       "response_at": "2026-11-03T10:02:00Z",
-      "terminal": true
+      "terminal": true,
+      "tombstone_identity_sha256s": []
     }
   ],
   "reported_total_count": 3,
@@ -68,5 +70,6 @@
   "issuer_key_id": "urn:synthetic:key:001",
   "limitations": [
     "synthetic-only; authentication is not performed"
-  ]
+  ],
+  "reported_total_count_semantics": "unique_native_records"
 }
