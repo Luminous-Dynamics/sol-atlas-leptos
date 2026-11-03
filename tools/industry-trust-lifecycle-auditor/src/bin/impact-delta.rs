@@ -990,6 +990,34 @@ mod tests {
     }
 
     #[test]
+    fn event_recorded_or_trusted_time_cannot_roll_back_behind_the_state_pin() {
+        let (_graph, base_report, base_pin, _, index) = setup();
+        let event = source_correction_event(&base_pin);
+        let metadata = metadata_for_next_event(&base_report);
+
+        let mut backdated = event.clone();
+        backdated["system_time"]["recorded_at"] = json!("2026-11-01T09:59:00Z");
+        backdated["system_time"]["trusted_at"] = json!("2026-11-01T10:00:00Z");
+        assert!(
+            compute_transition(&index, &base_report, &base_pin, &backdated, &metadata).is_err()
+        );
+
+        let mut trusted_backdated = event;
+        trusted_backdated["system_time"]["recorded_at"] = json!("2026-11-02T11:00:00Z");
+        trusted_backdated["system_time"]["trusted_at"] = json!("2026-11-01T10:00:59Z");
+        assert!(
+            compute_transition(
+                &index,
+                &base_report,
+                &base_pin,
+                &trusted_backdated,
+                &metadata
+            )
+            .is_err()
+        );
+    }
+
+    #[test]
     fn delta_tampering_is_rejected_even_when_payload_digest_is_resealed() {
         let (graph, base_report, base_pin, _, index) = setup();
         let event = source_correction_event(&base_pin);
