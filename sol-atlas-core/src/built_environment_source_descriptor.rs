@@ -53,6 +53,17 @@ pub enum PayloadDigestBasis {
     Unavailable,
 }
 
+impl PayloadDigestBasis {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::LocallyRetrievedAndHashed => "locally_retrieved_and_hashed",
+            Self::SourceOwnerAttested => "source_owner_attested",
+            Self::ExternalReference => "external_reference",
+            Self::Unavailable => "unavailable",
+        }
+    }
+}
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum SourceRightsState {
