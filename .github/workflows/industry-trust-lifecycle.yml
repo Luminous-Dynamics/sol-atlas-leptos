@@ -275,7 +275,7 @@ jobs:
             .claim_ceiling == "incomplete_or_indeterminate"
           ' "$RUNNER_TEMP/impact-delta-result-report.json"
 
-      - name: Verify the emitted multi-event delta batch as a consumer
+      - name: Verify the emitted sparse delta batch as a consumer
         shell: bash
         run: |
           set -euo pipefail
