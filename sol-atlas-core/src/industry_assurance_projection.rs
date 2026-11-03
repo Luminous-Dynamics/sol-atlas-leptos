@@ -1609,10 +1609,18 @@ pub fn project_built_environment_case(
                 "version": env!("CARGO_PKG_VERSION"),
                 "build_sha256": context.projector_build_sha256,
                 "mapping_profile_sha256": context.mapping_profile_sha256,
-                "identity_namespace": IDENTITY_NAMESPACE,
-                "identity_namespace_basis": "caller_supplied_per_record_namespace_map_not_authenticated",
+                "adapter_fallback_identity_namespace": IDENTITY_NAMESPACE,
+                "identity_namespace_basis": if all_native_identity_namespaces_supplied {
+                    "caller_supplied_per_record_namespace_map_not_authenticated"
+                } else {
+                    "caller_supplied_map_with_adapter_fallback"
+                },
                 "native_identity_namespaces": context.native_identity_namespaces,
-                "native_identity_namespace_map_sha256": namespace_map_digest(&context.native_identity_namespaces).unwrap_or_default()
+                "native_identity_namespace_map_sha256": namespace_map_digest(&context.native_identity_namespaces).unwrap_or_default(),
+                "native_identity_namespace_entries_supplied": supplied_native_identity_namespace_count,
+                "native_identity_namespace_entries_expected": expected_namespace_keys.len(),
+                "source_owner_namespace_entries_supplied_for_all_records": all_native_identity_namespaces_supplied,
+                "source_owner_namespace_authenticated": false
             },
             "projected_graph": null,
             "node_mappings": node_mappings.into_values().collect::<Vec<_>>(),
