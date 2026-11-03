@@ -3,6 +3,8 @@ use sol_atlas_core::built_environment_case::{
     EngineeringConclusion, EngineeringDiscipline, EngineeringReceipt, EvidenceRecord,
     EvidenceState, ReviewLevel, SolverRunStatus,
 };
+use std::collections::BTreeMap;
+
 use sol_atlas_core::industry_assurance_projection::{
     ProjectionContext, ProjectionDisposition, project_built_environment_case,
 };
@@ -83,6 +85,12 @@ fn context() -> ProjectionContext {
         captured_at_utc: "2026-11-03T12:00:00Z".into(),
         projector_build_sha256: Some(digest(b'd')),
         mapping_profile_sha256: digest(b'e'),
+        native_identity_namespaces: BTreeMap::from([
+            ("evidence:evidence-001".into(), "urn:fixture:source-registry".into()),
+            ("artifact:artifact-001".into(), "urn:fixture:design-repository".into()),
+            ("engineering_receipt:receipt-001".into(), "urn:fixture:solver-registry".into()),
+            ("decision:decision-001".into(), "urn:fixture:authority-registry".into()),
+        ]),
     }
 }
 
@@ -182,7 +190,7 @@ fn missing_source_payload_digest_is_preserved_but_not_projected_as_evidence_node
     assert_eq!(output.disposition, ProjectionDisposition::ProjectedWithKnownLoss);
     assert_eq!(
         output.graph["claim_ceiling"],
-        "projected_with_known_loss"
+        "incomplete_or_indeterminate"
     );
     assert!(output.projection_receipt["projected_payloads"]
         .as_array()
