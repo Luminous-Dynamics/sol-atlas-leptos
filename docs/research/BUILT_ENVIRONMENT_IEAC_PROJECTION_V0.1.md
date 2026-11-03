@@ -8,15 +8,15 @@
 
 The projector is a read-only adapter from the typed `BuiltEnvironmentCase` model into an IEAC v0.2 graph. It is not a second source graph, coverage engine, impact traversal, trust verifier, engineering solver, approval workflow, or action-authority issuer.
 
-**Known input-model limitation:** `BuiltEnvironmentCase` has source IDs but no distinct owner-native namespace field. The graph therefore uses a stable Sol-Atlas adapter namespace, and the projection receipt marks `source_owner_namespace_modelled=false`. This is an explicit loss, not a source identity assertion. Consequently, a normal case containing source evidence or artifacts is `projected_with_known_loss` even when every currently represented record and edge maps. The follow-on data-contract task must add source-native namespace and source descriptor fields before this loss can be removed.
+**Known input-model limitation:** `BuiltEnvironmentCase` has source IDs but no distinct owner-native namespace, media type, or source schema fields. The projector therefore accepts a caller-supplied per-record `native_identity_namespaces` map in `ProjectionContext`. These namespace values are included in identity hashing and bound by a deterministic map digest in the receipt, but the projector cannot authenticate who supplied them. Missing entries use an adapter-scoped fallback and emit `NATIVE_IDENTITY_NAMESPACE_NOT_SUPPLIED`; blank, padded, or overlong values are invalid. Even when namespaces are supplied, ordinary evidence/artifact cases remain `projected_with_known_loss` because their source media types and schema identities are not represented by the current case model. [#492](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/492) proposes a durable descriptor sidecar.
 
 Its disposition vocabulary is deliberately distinct from coverage:
 
-- `projected_without_known_loss` (available only when no source-owner namespace loss is present): every record and relationship represented by the typed case was mapped under this profile, without a detected projection loss.
+- `projected_without_known_loss`: every record and relationship represented by the typed case was mapped under this profile, without a detected projection loss.
 - `projected_with_known_loss`: one or more records/relationships were unavailable, unresolved, unsupported, or not representable.
 - `invalid_input`: the input or projected graph contains a contradiction or structural violation.
 
-Even `projected_without_known_loss` (available only when no source-owner namespace loss is present) is only an assertion about the provided typed case representation. It does **not** assert that the case contains all relevant source systems, that the source records are authentic, or that the selected profile is adequate for an engineering decision. It never authorizes `NoImpact`, release, construction, or actuation.
+Even `projected_without_known_loss` is only an assertion about the provided typed case representation. It does **not** assert that the case contains all relevant source systems, that the source records are authentic, or that the selected profile is adequate for an engineering decision. It never authorizes `NoImpact`, release, construction, or actuation.
 
 ## Mapping table
 
@@ -27,7 +27,7 @@ Even `projected_without_known_loss` (available only when no source-owner namespa
 | `EngineeringReceipt` | `engineering_receipt` | SHA-256 of the exact typed Rust struct serialization; explicitly not a source-native payload digest | Artifact-to-receipt `verified_by`; assumption evidence-to-receipt |
 | `DecisionRecord` | `decision` | SHA-256 of the exact typed Rust struct serialization; explicitly not a source-native payload digest | Artifact target, receipt, authority evidence, and superseded-decision relationships |
 
-Native identity uses the same v0.2 domain separator and length-prefixed, sorted identity components as #487. Identity and content digests remain distinct. Every identity contains the case and source identifiers plus a record/revision discriminator. Because the owner-native namespace is not present, the graph identity is adapter-scoped; the source identifiers are retained as components and in the receipt, but the graph does not assert that the adapter is the source owner.
+Native identity uses the same v0.2 domain separator and length-prefixed, sorted identity components as #487. Identity and content digests remain distinct. Every identity contains the case and source identifiers plus a record/revision discriminator. The identity namespace comes from the caller-supplied per-record map when present; missing keys use the adapter-scoped fallback. The receipt binds the complete map digest and records `source_owner_namespace_authenticated=false`. This preserves the owner-provided namespace value without claiming to authenticate it.
 
 For evidence records, the identity includes source ID, evidence ID, subject, field path and jurisdiction. Artifact identities include design ID, artifact ID, revision, family and jurisdiction. Receipt and decision identities include design ID and their native receipt/event ID.
 
@@ -47,7 +47,7 @@ The projection receipt preserves:
 
 A missing evidence source digest does not get replaced with a digest of a display object or projected JSON. The evidence record is preserved in the receipt, but no source-payload-addressed graph node is created; all relationships depending on that node remain unmapped.
 
-The original source payload bytes are not present in the current `BuiltEnvironmentCase` model. The model also lacks a distinct owner namespace; this omission is reported as `SOURCE_OWNER_NAMESPACE_NOT_MODELED` and makes ordinary source-evidence/artifact projections incomplete until the sidecar descriptor from #492 is supplied. A digest is therefore a reference to source bytes, not proof that the projector fetched or independently hashed those bytes. Likewise, artifact media types and source payload schema identifiers are not present in the model and remain explicitly unknown.
+The original source payload bytes are not present in the current `BuiltEnvironmentCase` model. The model lacks first-class owner namespace, media type, and source schema fields. Caller-provided namespaces partially close the identity gap; unauthenticated provenance is explicit, and media type/schema absence is reported as `SOURCE_EVIDENCE_MEDIA_TYPE_SCHEMA_NOT_MODELED` or `ENGINEERING_ARTIFACT_MEDIA_TYPE_SCHEMA_NOT_MODELED`. A digest is therefore a reference to source bytes, not proof that the projector fetched or independently hashed those bytes. Likewise, artifact media types and source payload schema identifiers are not present in the model and remain explicitly unknown.
 
 ## Structural invariants
 
