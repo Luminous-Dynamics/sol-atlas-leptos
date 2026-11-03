@@ -784,14 +784,14 @@ fn project_built_environment_case_inner(
 ) -> ProjectionOutput {
     let mut findings = Findings::default();
     let mut unmapped: BTreeMap<String, Value> = BTreeMap::new();
-    if let Some(overrides) = descriptor_overrides {
-        if overrides.validation.disposition == DescriptorDisposition::IncompleteOrIndeterminate {
-            findings.incomplete(
-                "SOURCE_DESCRIPTOR_CATALOG_INCOMPLETE",
-                "source_descriptor_catalog",
-                "descriptor validation found missing or unverified source metadata; supplied mappings remain bounded by its incomplete disposition",
-            );
-        }
+    if let Some(overrides) = descriptor_overrides
+        && overrides.validation.disposition == DescriptorDisposition::IncompleteOrIndeterminate
+    {
+        findings.incomplete(
+            "SOURCE_DESCRIPTOR_CATALOG_INCOMPLETE",
+            "source_descriptor_catalog",
+            "descriptor validation found missing or unverified source metadata; supplied mappings remain bounded by its incomplete disposition",
+        );
     }
 
     if case.case_id.trim().is_empty() {
