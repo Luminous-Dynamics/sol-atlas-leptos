@@ -1,0 +1,54 @@
+name: Export rustfmt-normalized descriptor branch files
+
+on:
+  push:
+    branches:
+      - research/built-environment-source-descriptors-v0-1-rebased
+    paths:
+      - "sol-atlas-core/src/industry_assurance_projection.rs"
+      - "sol-atlas-core/src/built_environment_source_descriptor.rs"
+      - "sol-atlas-core/src/lib.rs"
+      - "tests/industry_assurance_projection.rs"
+      - "examples/built_environment_ieac_projection_fixture.rs"
+      - "examples/built_environment_ieac_descriptor_projection_fixture.rs"
+
+permissions:
+  contents: read
+
+jobs:
+  normalize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - name: Normalize Rust formatting
+        run: |
+          set -euo pipefail
+          cargo fmt --manifest-path Cargo.toml
+          cargo fmt --manifest-path sol-atlas-core/Cargo.toml
+      - name: Package normalized Rust sources
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/rustfmt-normalized"
+          for path in \
+            sol-atlas-core/src/industry_assurance_projection.rs \
+            sol-atlas-core/src/built_environment_source_descriptor.rs \
+            sol-atlas-core/src/lib.rs \
+            tests/industry_assurance_projection.rs \
+            examples/built_environment_ieac_projection_fixture.rs \
+            examples/built_environment_ieac_descriptor_projection_fixture.rs; do
+            mkdir -p "$RUNNER_TEMP/rustfmt-normalized/$(dirname "$path")"
+            cp "$path" "$RUNNER_TEMP/rustfmt-normalized/$path"
+          done
+          cd "$RUNNER_TEMP"
+          zip -qr rustfmt-normalized.zip rustfmt-normalized
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rustfmt-normalized-descriptor-sources
+          path: ${{ runner.temp }}/rustfmt-normalized.zip
+          if-no-files-found: error
+          retention-days: 1
