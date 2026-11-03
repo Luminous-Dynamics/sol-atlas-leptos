@@ -1471,7 +1471,10 @@ pub fn project_built_environment_case(
                 "version": env!("CARGO_PKG_VERSION"),
                 "build_sha256": context.projector_build_sha256,
                 "mapping_profile_sha256": context.mapping_profile_sha256,
-                "identity_namespace": IDENTITY_NAMESPACE
+                "identity_namespace": IDENTITY_NAMESPACE,
+                "identity_namespace_basis": "per_record_source_owner_namespace_when_supplied",
+                "native_identity_namespaces": context.native_identity_namespaces,
+                "native_identity_namespace_map_sha256": namespace_map_digest(&context.native_identity_namespaces).unwrap_or_default()
             },
             "projected_graph": null,
             "node_mappings": node_mappings.into_values().collect::<Vec<_>>(),
@@ -1723,9 +1726,80 @@ mod tests {
     }
 
     #[test]
+    fn source_owner_namespace_is_part_of_native_identity_and_receipt() {
+        let result = project_built_environment_case(&sample_case(), &context());
+        let evidence_mapping = result.projection_receipt["node_mappings"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|row| row["record_kind"] == "evidence")
+            .unwrap();
+        let expected_namespace = "urn:source-owner:survey-registry";
+        assert_eq!(evidence_mapping["native_identity_namespace"], expected_namespace);
+        let evidence_node = result.graph["nodes"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|node| node["node_type"] == "source_evidence"
+                && node["identity"]["identity_namespace"] == expected_namespace)
+            .unwrap();
+        assert_eq!(evidence_node["identity"]["identity_namespace"], expected_namespace);
+        assert!(valid_sha256(
+            result.projection_receipt["projector"]["native_identity_namespace_map_sha256"]
+                .as_str()
+                .unwrap()
+        ));
+        assert!(!result.projection_receipt["findings"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|finding| finding["code"] == "NATIVE_IDENTITY_NAMESPACE_NOT_SUPPLIED"));
+    }
+
+    #[test]
+    fn missing_source_owner_namespace_uses_visible_fallback_and_downgrades() {
+        let mut projection_context = context();
+        projection_context
+            .native_identity_namespaces
+            .remove("evidence:evidence-design-source");
+        let result = project_built_environment_case(&sample_case(), &projection_context);
+        assert_eq!(result.disposition, ProjectionDisposition::ProjectedWithKnownLoss);
+        assert!(result.projection_receipt["findings"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|finding| finding["code"] == "NATIVE_IDENTITY_NAMESPACE_NOT_SUPPLIED"));
+        let node = result.graph["nodes"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|node| node["identity"]["components"].as_array().unwrap().iter()
+                .any(|component| component["name"] == "native_record_id"
+                    && component["value"] == "evidence-design-source"))
+            .unwrap();
+        assert_eq!(node["identity"]["identity_namespace"], IDENTITY_NAMESPACE);
+    }
+
+    #[test]
+    fn empty_source_owner_namespace_is_invalid_not_silently_normalized() {
+        let mut projection_context = context();
+        projection_context.native_identity_namespaces.insert(
+            "evidence:evidence-design-source".into(),
+            "   ".into(),
+        );
+        let result = project_built_environment_case(&sample_case(), &projection_context);
+        assert_eq!(result.disposition, ProjectionDisposition::InvalidInput);
+        assert!(result.projection_receipt["findings"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|finding| finding["code"] == "INVALID_NATIVE_IDENTITY_NAMESPACE"));
+    }
+
+    #[test]
     fn same_payload_does_not_collapse_distinct_source_evidence_identities() {
         let result = project_built_environment_case(&sample_case(), &context());
-        assert_eq!(result.disposition, ProjectionDisposition::ProjectedWithKnownLoss);
+        assert_eq!(result.disposition, ProjectionDisposition::ProjectedWithoutKnownLoss);
         let evidence_nodes = result.graph["nodes"]
             .as_array()
             .unwrap()
@@ -1744,7 +1818,7 @@ mod tests {
     #[test]
     fn projector_retains_parent_evidence_receipt_authority_and_decision_edges() {
         let result = project_built_environment_case(&sample_case(), &context());
-        assert_eq!(result.disposition, ProjectionDisposition::ProjectedWithKnownLoss);
+        assert_eq!(result.disposition, ProjectionDisposition::ProjectedWithoutKnownLoss);
         let edges = result.graph["edges"].as_array().unwrap();
         for relation in [
             "derived_from",
