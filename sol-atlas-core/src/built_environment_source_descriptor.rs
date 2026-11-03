@@ -1119,8 +1119,7 @@ pub fn validate_source_descriptor_catalog(
                 "descriptor catalogue must not claim to authenticate signatures or trust roots",
             );
         }
-        if descriptor.attestation.statement_ref.is_some()
-            && descriptor.attestation.key_id.is_none()
+        if descriptor.attestation.statement_ref.is_some() && descriptor.attestation.key_id.is_none()
         {
             findings.incomplete(
                 "ATTESTATION_KEY_ID_MISSING",
