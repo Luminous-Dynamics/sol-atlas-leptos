@@ -24,17 +24,17 @@ const SOURCE_SCHEMA_UNKNOWN: &str = "unknown-source-payload-schema";
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum ProjectionDisposition {
-    CompleteForDeclaredScope,
-    IncompleteOrIndeterminate,
-    Invalid,
+    ProjectedWithoutKnownLoss,
+    ProjectedWithKnownLoss,
+    InvalidInput,
 }
 
 impl ProjectionDisposition {
     pub fn as_str(&self) -> &'static str {
         match self {
-            Self::CompleteForDeclaredScope => "complete_for_declared_scope",
-            Self::IncompleteOrIndeterminate => "incomplete_or_indeterminate",
-            Self::Invalid => "invalid",
+            Self::ProjectedWithoutKnownLoss => "projected_without_known_loss",
+            Self::ProjectedWithKnownLoss => "projected_with_known_loss",
+            Self::InvalidInput => "invalid_input",
         }
     }
 }
@@ -85,7 +85,7 @@ impl Findings {
 
     fn invalid(&mut self, code: &'static str, native_key: impl Into<String>, detail: impl Into<String>) {
         self.rows.insert(Finding {
-            severity: "invalid",
+            severity: "invalid_input",
             code,
             native_key: native_key.into(),
             detail: detail.into(),
@@ -93,12 +93,12 @@ impl Findings {
     }
 
     fn disposition(&self) -> ProjectionDisposition {
-        if self.rows.iter().any(|row| row.severity == "invalid") {
-            ProjectionDisposition::Invalid
+        if self.rows.iter().any(|row| row.severity == "invalid_input") {
+            ProjectionDisposition::InvalidInput
         } else if !self.rows.is_empty() {
-            ProjectionDisposition::IncompleteOrIndeterminate
+            ProjectionDisposition::ProjectedWithKnownLoss
         } else {
-            ProjectionDisposition::CompleteForDeclaredScope
+            ProjectionDisposition::ProjectedWithoutKnownLoss
         }
     }
 
@@ -509,7 +509,7 @@ pub fn project_built_environment_case(
         }
     };
     let case_sha256 = sha256_hex(&case_bytes);
-    if case.case_id.trim().is_empty() || !valid_utc_timestamp(&context.captured_at_utc) {
+    if findings.disposition() == ProjectionDisposition::InvalidInput {
         let disposition = findings.disposition();
         let receipt = json!({
             "schema_version": PROJECTION_SCHEMA_V01,
@@ -1277,10 +1277,10 @@ pub fn project_built_environment_case(
     });
 
     let disposition = findings.disposition();
-    let claim_ceiling = if disposition == ProjectionDisposition::CompleteForDeclaredScope {
+    let claim_ceiling = if disposition == ProjectionDisposition::ProjectedWithoutKnownLoss {
         "record_only"
     } else {
-        "incomplete_or_indeterminate"
+        "projected_with_known_loss"
     };
     let graph_id = format!("built-environment-case-{}", &case_sha256[..24]);
     let mut graph = json!({
@@ -1345,10 +1345,10 @@ pub fn project_built_environment_case(
         "unmapped_relationships": unmapped_rows,
         "findings": findings.json(),
         "disposition": final_disposition.as_str(),
-        "claim_ceiling": if final_disposition == ProjectionDisposition::CompleteForDeclaredScope {
+        "claim_ceiling": if final_disposition == ProjectionDisposition::ProjectedWithoutKnownLoss {
             "record_only"
         } else {
-            "incomplete_or_indeterminate"
+            "projected_with_known_loss"
         },
         "action_authority": "none",
         "verification_claim": "none",
@@ -1485,7 +1485,7 @@ mod tests {
     #[test]
     fn same_payload_does_not_collapse_distinct_source_evidence_identities() {
         let result = project_built_environment_case(&sample_case(), &context());
-        assert_eq!(result.disposition, ProjectionDisposition::CompleteForDeclaredScope);
+        assert_eq!(result.disposition, ProjectionDisposition::ProjectedWithoutKnownLoss);
         let evidence_nodes = result.graph["nodes"]
             .as_array()
             .unwrap()
@@ -1504,7 +1504,7 @@ mod tests {
     #[test]
     fn projector_retains_parent_evidence_receipt_authority_and_decision_edges() {
         let result = project_built_environment_case(&sample_case(), &context());
-        assert_eq!(result.disposition, ProjectionDisposition::CompleteForDeclaredScope);
+        assert_eq!(result.disposition, ProjectionDisposition::ProjectedWithoutKnownLoss);
         let edges = result.graph["edges"].as_array().unwrap();
         for relation in [
             "derived_from",
@@ -1527,7 +1527,7 @@ mod tests {
         let mut case = sample_case();
         case.evidence[0].source_payload_sha256 = None;
         let result = project_built_environment_case(&case, &context());
-        assert_eq!(result.disposition, ProjectionDisposition::IncompleteOrIndeterminate);
+        assert_eq!(result.disposition, ProjectionDisposition::ProjectedWithKnownLoss);
         assert!(
             result.projection_receipt["unmapped_relationships"]
                 .as_array()
@@ -1537,7 +1537,7 @@ mod tests {
         );
         assert_eq!(
             result.graph["claim_ceiling"],
-            "incomplete_or_indeterminate"
+            "projected_with_known_loss"
         );
     }
 
@@ -1547,7 +1547,7 @@ mod tests {
         case.artifacts[1].parent_artifacts[0].content_sha256 = digest('f');
         case.engineering_receipts[0].input_artifact_sha256 = digest('f');
         let result = project_built_environment_case(&case, &context());
-        assert_eq!(result.disposition, ProjectionDisposition::IncompleteOrIndeterminate);
+        assert_eq!(result.disposition, ProjectionDisposition::ProjectedWithKnownLoss);
         let unmapped = result.projection_receipt["unmapped_relationships"]
             .as_array()
             .unwrap();
@@ -1646,7 +1646,7 @@ mod tests {
             decisions: vec![],
         };
         let result = project_built_environment_case(&case, &context());
-        assert_eq!(result.disposition, ProjectionDisposition::Invalid);
+        assert_eq!(result.disposition, ProjectionDisposition::InvalidInput);
         assert_eq!(result.graph, Value::Null);
         assert!(result.projection_receipt["findings"]
             .as_array()
@@ -1660,7 +1660,7 @@ mod tests {
         let mut case = sample_case();
         case.decisions[0].authority_evidence_id = None;
         let result = project_built_environment_case(&case, &context());
-        assert_eq!(result.disposition, ProjectionDisposition::IncompleteOrIndeterminate);
+        assert_eq!(result.disposition, ProjectionDisposition::ProjectedWithKnownLoss);
         assert!(result.projection_receipt["unmapped_relationships"]
             .as_array()
             .unwrap()
