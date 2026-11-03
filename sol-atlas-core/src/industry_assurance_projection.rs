@@ -1978,7 +1978,12 @@ fn project_built_environment_case_inner(
     } else {
         "incomplete_or_indeterminate"
     };
-    let graph_id = format!("built-environment-case-{}", &case_sha256[..24]);
+    // Stable case-stream identity is independent of record-vector ordering;
+    // graph_snapshot_sha256 carries the actual content/version identity.
+    let graph_id = format!(
+        "built-environment-case-{}",
+        &sha256_hex(case.case_id.as_bytes())[..24]
+    );
     let mut graph = json!({
         "schema_version": GRAPH_SCHEMA_V02,
         "graph_id": graph_id,
