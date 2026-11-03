@@ -6,6 +6,7 @@ use sol_atlas_core::built_environment_case::{
 use sol_atlas_core::industry_assurance_projection::{
     ProjectionContext, ProjectionDisposition, project_built_environment_case,
 };
+use std::collections::BTreeMap;
 use std::error::Error;
 
 fn digest(byte: u8) -> String {
@@ -77,6 +78,12 @@ fn main() -> Result<(), Box<dyn Error>> {
         captured_at_utc: "2026-11-03T12:00:00Z".into(),
         projector_build_sha256: Some(digest(b'd')),
         mapping_profile_sha256: digest(b'e'),
+        native_identity_namespaces: BTreeMap::from([
+            ("evidence:evidence-fixture-001".into(), "urn:fixture:evidence-registry".into()),
+            ("artifact:artifact-fixture-001".into(), "urn:fixture:design-repository".into()),
+            ("engineering_receipt:receipt-fixture-001".into(), "urn:fixture:solver-registry".into()),
+            ("decision:decision-fixture-001".into(), "urn:fixture:authority-registry".into()),
+        ]),
     };
 
     let output = project_built_environment_case(&case, &context);
