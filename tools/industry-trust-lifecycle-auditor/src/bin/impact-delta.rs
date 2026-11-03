@@ -885,6 +885,62 @@ fn bootstrap_pin(
 
 fn main() -> ExitCode {
     let args: Vec<String> = env::args().skip(1).collect();
+    if args.first().is_some_and(|item| item == "apply") {
+        if args.len() != 8 {
+            eprintln!("usage: industry-impact-delta apply <graph.json> <base-report.json> <base-pin.json> <event.json> <metadata.json> <delta.json> <new-apply-result.json>");
+            return ExitCode::from(4);
+        }
+        let result = (|| {
+            let graph = parse_strict(Path::new(&args[1]))?;
+            let base_report = parse_strict(Path::new(&args[2]))?;
+            let base_pin = parse_strict(Path::new(&args[3]))?;
+            let event = parse_strict(Path::new(&args[4]))?;
+            let metadata = parse_strict(Path::new(&args[5]))?;
+            let delta = parse_strict(Path::new(&args[6]))?;
+            let index = GraphIndex::build(&graph)?;
+            let applied = apply_delta(
+                &index,
+                &base_report,
+                &base_pin,
+                &event,
+                &metadata,
+                &delta,
+            )?;
+            let report_sha256 = canonical_json_digest(&applied.report)?;
+            let result = json!({
+                "schema_version": BATCH_SCHEMA,
+                "graph_snapshot_sha256": index.graph_snapshot_sha256,
+                "graph_index_sha256": index.index_sha256,
+                "graph_index_build_count": 1,
+                "graph_index_reused_for_events": 1,
+                "state_row_map_initializations": 1,
+                "state_row_map_reused_for_events": 1,
+                "full_report_materializations": 1,
+                "graph_node_count": index.nodes.len(),
+                "graph_edge_count": index.edge_count,
+                "event_count": 1,
+                "delta_count": 1,
+                "deltas": [applied.delta],
+                "resulting_impact_report_sha256": report_sha256,
+                "resulting_event_sequence": applied.state_pin["last_event_sequence"],
+                "resulting_event_chain_head_sha256": applied.state_pin["event_chain_head_sha256"],
+                "resulting_impact_report": applied.report,
+                "next_state_pin": applied.state_pin,
+                "complete": true,
+                "claim_ceiling": "incomplete_or_indeterminate",
+                "action_authority": "none"
+            });
+            write_new(Path::new(&args[7]), &result)
+        })();
+        return match result {
+            Ok(()) => ExitCode::SUCCESS,
+            Err(error) => {
+                eprintln!("sparse impact delta application failed closed: {error}");
+                ExitCode::from(2)
+            }
+        };
+    }
+
     if args.first().is_some_and(|item| item == "pin") {
         if args.len() != 8 {
             eprintln!("usage: industry-impact-delta pin <graph.json> <base-report.json> <last-sequence> <event-chain-head-sha256> <last-recorded-at> <last-trusted-at> <new-pin.json>");
@@ -916,7 +972,7 @@ fn main() -> ExitCode {
     }
 
     if args.len() != 5 {
-        eprintln!("usage: industry-impact-delta <graph.json> <base-report.json> <base-pin.json> <delta-input.json> <new-batch-result.json>");
+        eprintln!("usage: industry-impact-delta <graph.json> <base-report.json> <base-pin.json> <delta-input.json> <new-batch-result.json> (or subcommands: apply, pin)");
         return ExitCode::from(4);
     }
     let result = (|| {
