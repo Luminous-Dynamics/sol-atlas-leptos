@@ -865,6 +865,15 @@ pub(crate) fn build_impacted_results_with_adjacency(
         };
         let direct_evidence_dispute =
             direct_target_ids.contains(&node_id) && cause == "evidence_disputed";
+        let path_starts_at_compromised_key = path.first().is_some_and(|root_id| {
+            direct_target_ids.contains(root_id)
+                && nodes.get(root_id).is_some_and(|root| {
+                    matches!(
+                        root.get("node_type").and_then(Value::as_str),
+                        Some("issuer_key" | "transparency_service_key")
+                    )
+                })
+        });
         let (impact_class, historical, current, reasons): (&str, &str, &str, Vec<&str>) =
             if let Some((direct_reason, reliance_reason)) = direct_invalidation {
                 (
@@ -884,6 +893,7 @@ pub(crate) fn build_impacted_results_with_adjacency(
                     ],
                 )
             } else if key_compromise_semantics
+                && path_starts_at_compromised_key
                 && signed_statement_precedes_compromise(&path, nodes, effective_at, evaluated_at)
             {
                 (
