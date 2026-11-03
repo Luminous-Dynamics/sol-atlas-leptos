@@ -1341,6 +1341,47 @@ pub fn project_built_environment_case(
         );
     }
 
+    // A JSON Schema-valid IEAC graph requires at least one node. Preserve
+    // the projection payloads and findings, but do not emit an empty graph.
+    if nodes.is_empty() {
+        findings.incomplete(
+            "NO_GRAPH_NODES_PROJECTABLE",
+            "projected_graph",
+            "no source-addressed graph node could be projected from the case",
+        );
+        let final_disposition = findings.disposition();
+        let mut receipt = json!({
+            "schema_version": PROJECTION_SCHEMA_V01,
+            "case_id": case.case_id,
+            "source_case_representation": {
+                "media_type": "application/json",
+                "serialization_profile": "serde_json_struct_field_order_v1",
+                "sha256": case_sha256
+            },
+            "projector": {
+                "id": "sol-atlas-built-environment-ieac-projector",
+                "version": env!("CARGO_PKG_VERSION"),
+                "build_sha256": context.projector_build_sha256,
+                "mapping_profile_sha256": context.mapping_profile_sha256,
+                "identity_namespace": IDENTITY_NAMESPACE
+            },
+            "projected_graph": null,
+            "node_mappings": node_mappings.into_values().collect::<Vec<_>>(),
+            "edge_mappings": edge_mappings.into_values().collect::<Vec<_>>(),
+            "projected_payloads": projected_payloads.into_values().collect::<Vec<_>>(),
+            "unmapped_relationships": unmapped.into_values().collect::<Vec<_>>(),
+            "findings": findings.json(),
+            "disposition": final_disposition.as_str(),
+            "claim_ceiling": "incomplete_or_indeterminate",
+            "action_authority": "none",
+            "verification_claim": "none"
+        });
+        if let Ok(receipt_digest) = canonical_json_sha256(&receipt) {
+            receipt["projection_receipt_sha256"] = json!(receipt_digest);
+        }
+        return projection_output(Value::Null, receipt, final_disposition);
+    }
+
     // Source maps are deterministic and preserve every native record key.
     let mut node_rows = nodes.into_values().collect::<Vec<_>>();
     node_rows.sort_by(|left, right| {
@@ -1712,6 +1753,30 @@ mod tests {
                     .as_str()
                     .is_some_and(|bytes| bytes.contains("evidence-design-source"))
         }));
+    }
+
+    #[test]
+    fn case_with_only_undigestible_evidence_has_receipt_but_no_empty_graph() {
+        let mut case = sample_case();
+        case.artifacts.clear();
+        case.engineering_receipts.clear();
+        case.decisions.clear();
+        for evidence in &mut case.evidence {
+            evidence.source_payload_sha256 = None;
+        }
+        let result = project_built_environment_case(&case, &context());
+        assert_eq!(result.disposition, ProjectionDisposition::ProjectedWithKnownLoss);
+        assert_eq!(result.graph, Value::Null);
+        assert!(result.projection_receipt["projected_graph"].is_null());
+        assert_eq!(
+            result.projection_receipt["projected_payloads"].as_array().unwrap().len(),
+            2
+        );
+        assert!(result.projection_receipt["findings"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|finding| finding["code"] == "NO_GRAPH_NODES_PROJECTABLE"));
     }
 
     #[test]
