@@ -668,11 +668,16 @@ pub fn project_built_environment_case_with_inventory(
     let inventory_validation_sha256 = sha256_hex(&inventory_validation_bytes);
     let inventory_disposition = inventory_validation.disposition.as_str();
 
-    if inventory_validation.disposition
-        != InventoryClosureDisposition::CompleteWithinDeclaredOwnerSet
-        || descriptor_inventory_binding.disposition
-            != "internally_consistent_for_declared_descriptors"
-    {
+    let inventory_qualified = inventory_validation.disposition
+        == InventoryClosureDisposition::CompleteWithinDeclaredOwnerSet
+        && descriptor_inventory_binding.disposition
+            == "internally_consistent_for_declared_descriptors";
+    if !inventory_qualified {
+        if projection.disposition != ProjectionDisposition::InvalidInput {
+            projection.disposition = ProjectionDisposition::ProjectedWithKnownLoss;
+            projection.projection_receipt["disposition"] =
+                json!(ProjectionDisposition::ProjectedWithKnownLoss.as_str());
+        }
         if !projection.graph.is_null() {
             projection.graph["claim_ceiling"] = json!("incomplete_or_indeterminate");
             let mut graph_digest_input = projection.graph.clone();
@@ -693,6 +698,11 @@ pub fn project_built_environment_case_with_inventory(
         }
         projection.projection_receipt["claim_ceiling"] =
             json!("incomplete_or_indeterminate");
+        if let Some(limitations) = projection.projection_receipt["limitations"].as_array_mut() {
+            limitations.push(json!(
+                "The source inventory closure or descriptor-to-inventory binding is incomplete, excluded, incomparable, or invalid; the projected graph cannot support a negative impact claim."
+            ));
+        }
     }
 
     projection.projection_receipt["projector"]["source_inventory_closure"] = json!({
