@@ -10,6 +10,7 @@ use std::io::Read;
 use std::process::ExitCode;
 
 const GRAPH_SCHEMA: &str = "luminous.ieac-assurance-dependency-graph.v0.1";
+const GRAPH_SCHEMA_V02: &str = "luminous.ieac-assurance-dependency-graph.v0.2";
 const EVENT_SCHEMA: &str = "luminous.ieac-assurance-invalidation-event.v0.1";
 const REPORT_SCHEMA: &str = "luminous.ieac-assurance-impact-report.v0.1";
 const MAX_INPUT_BYTES: u64 = 128 * 1024 * 1024;
@@ -164,6 +165,76 @@ fn canonical_json_digest(value: &Value) -> Result<String, String> {
     Ok(sha256_hex(&bytes))
 }
 
+fn append_identity_field(encoded: &mut Vec<u8>, value: &str) -> Result<(), String> {
+    let length = u64::try_from(value.len())
+        .map_err(|_| "identity field length exceeds u64".to_owned())?;
+    encoded.extend_from_slice(&length.to_be_bytes());
+    encoded.extend_from_slice(value.as_bytes());
+    Ok(())
+}
+
+/// Compute the v0.2 native identity digest independently from payload content.
+///
+/// The domain separator and length-prefixed fields make the byte encoding
+/// unambiguous. Component order is canonicalized by ASCII name; values are
+/// preserved byte-for-byte as UTF-8, without normalization or trimming.
+fn node_identity_sha256(node_type: &str, identity: &Value) -> Result<String, String> {
+    let namespace = required_string(identity, "identity_namespace", "node identity")?;
+    let components = identity
+        .get("components")
+        .and_then(Value::as_array)
+        .ok_or_else(|| "node identity components must be an array".to_owned())?;
+
+    let mut pairs = Vec::<(&str, &str)>::with_capacity(components.len());
+    let mut names = BTreeSet::new();
+    for (index, component) in components.iter().enumerate() {
+        let context = format!("node identity components[{index}]");
+        let name = required_string(component, "name", &context)?;
+        let value = required_string(component, "value", &context)?;
+        let mut bytes = name.bytes();
+        if !bytes.next().is_some_and(|byte| byte.is_ascii_lowercase())
+            || !bytes.all(|byte| {
+                byte.is_ascii_lowercase()
+                    || byte.is_ascii_digit()
+                    || matches!(byte, b'_' | b'.' | b'-')
+            })
+        {
+            return Err(format!("{context}: component name is not a canonical ASCII identifier"));
+        }
+        if !names.insert(name) {
+            return Err(format!("duplicate native identity component name: {name}"));
+        }
+        pairs.push((name, value));
+    }
+    if !names.contains("native_id") {
+        return Err("node identity requires a native_id component".into());
+    }
+    if ![
+        "native_record_id",
+        "native_revision",
+        "native_sequence",
+        "native_observation_id",
+    ]
+    .iter()
+    .any(|required_discriminator| names.contains(required_discriminator))
+    {
+        return Err(
+            "node identity requires a native record, revision, sequence, or observation discriminator"
+                .into(),
+        );
+    }
+    pairs.sort_by(|left, right| left.0.cmp(right.0));
+
+    let mut encoded = b"LUMINOUS-IEAC-NODE-IDENTITY-V0.2\0".to_vec();
+    append_identity_field(&mut encoded, node_type)?;
+    append_identity_field(&mut encoded, namespace)?;
+    for (name, value) in pairs {
+        append_identity_field(&mut encoded, name)?;
+        append_identity_field(&mut encoded, value)?;
+    }
+    Ok(sha256_hex(&encoded))
+}
+
 fn required_string<'a>(value: &'a Value, key: &str, context: &str) -> Result<&'a str, String> {
     value
         .get(key)
@@ -290,7 +361,9 @@ fn scope_matches(node: &Value, event_scope: &Value) -> bool {
 }
 
 fn validate_graph(graph: &Value) -> Result<BTreeMap<String, Value>, String> {
-    if graph.get("schema_version").and_then(Value::as_str) != Some(GRAPH_SCHEMA) {
+    let graph_schema = required_string(graph, "schema_version", "graph")?;
+    let identity_v02 = graph_schema == GRAPH_SCHEMA_V02;
+    if graph_schema != GRAPH_SCHEMA && !identity_v02 {
         return Err("unsupported dependency graph schema".into());
     }
 
@@ -341,10 +414,22 @@ fn validate_graph(graph: &Value) -> Result<BTreeMap<String, Value>, String> {
         if !valid_sha256(artifact_digest) {
             return Err(format!("{context}: artifact_sha256 is invalid"));
         }
-        let expected_id = format!("{node_type}:sha256:{artifact_digest}");
+        let expected_id = if identity_v02 {
+            let identity = node
+                .get("identity")
+                .ok_or_else(|| format!("{context}: v0.2 node identity envelope is missing"))?;
+            let computed_identity = node_identity_sha256(node_type, identity)?;
+            let declared_identity = required_string(node, "identity_sha256", &context)?;
+            if !valid_sha256(declared_identity) || declared_identity != computed_identity {
+                return Err(format!("{context}: native identity digest mismatch"));
+            }
+            format!("{node_type}:identity-sha256:{computed_identity}")
+        } else {
+            format!("{node_type}:sha256:{artifact_digest}")
+        };
         if node_id != expected_id {
             return Err(format!(
-                "{context}: typed node ID does not match node type and artifact digest"
+                "{context}: typed node ID does not match the schema-version identity contract"
             ));
         }
         if nodes.insert(node_id.to_owned(), node.clone()).is_some() {
@@ -419,14 +504,23 @@ fn cause_allows(cause: &str, node_type: &str) -> bool {
         "issuer_key_compromised" | "issuer_key_revoked_or_rotated" => node_type == "issuer_key",
         "transparency_service_key_compromised" => node_type == "transparency_service_key",
         "trust_root_changed" => node_type == "trust_bundle",
-        "source_corrected" => node_type == "source_measurement",
+        "source_corrected" => {
+            matches!(node_type, "source_measurement" | "source_evidence")
+        }
         "rights_revoked_or_expired" => {
             matches!(
                 node_type,
-                "source_measurement" | "authority_grant" | "signed_statement"
+                "source_measurement"
+                    | "source_evidence"
+                    | "authority_grant"
+                    | "signed_statement"
+                    | "engineering_artifact"
+                    | "engineering_receipt"
             )
         }
-        "model_superseded" => node_type == "model",
+        "model_superseded" => matches!(node_type, "model" | "engineering_artifact"),
+        "engineering_artifact_superseded" => node_type == "engineering_artifact",
+        "engineering_receipt_corrected" => node_type == "engineering_receipt",
         "schema_superseded" => node_type == "schema",
         "verifier_vulnerable" => node_type == "verifier_build",
         "policy_changed" => node_type == "policy",
@@ -1017,6 +1111,150 @@ fn main() -> ExitCode {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn refresh_graph_snapshot_digest(graph: &mut Value) {
+        let mut digest_input = graph.clone();
+        digest_input
+            .as_object_mut()
+            .expect("graph object")
+            .remove("graph_snapshot_sha256");
+        graph["graph_snapshot_sha256"] =
+            json!(canonical_json_digest(&digest_input).expect("canonical graph digest"));
+    }
+
+    #[test]
+    fn v02_native_identity_keeps_equal_payload_records_distinct() {
+        let fixture: Value = serde_json::from_str(include_str!(
+            "../../../schemas/examples/ieac-node-identity-collision-synthetic-v0.2.json"
+        ))
+        .expect("valid v0.2 identity fixture");
+        let nodes = validate_graph(&fixture["graph"]).expect("v0.2 identity graph validates");
+        assert_eq!(nodes.len(), 4);
+        let content_digests = nodes
+            .values()
+            .map(|node| node["artifact_sha256"].as_str().expect("content digest"))
+            .collect::<BTreeSet<_>>();
+        assert_eq!(content_digests.len(), 1);
+        assert_eq!(nodes.keys().collect::<BTreeSet<_>>().len(), 4);
+    }
+
+    #[test]
+    fn v02_identity_without_native_record_discriminator_is_rejected() {
+        let identity = json!({
+            "identity_namespace": "urn:opcua:plant-7",
+            "components": [
+                {"name": "native_id", "value": "Pump-07"}
+            ]
+        });
+        assert!(
+            node_identity_sha256("source_measurement", &identity)
+                .unwrap_err()
+                .contains("requires a native record, revision, sequence, or observation discriminator")
+        );
+    }
+
+    #[test]
+    fn v02_identity_component_order_is_canonical() {
+        let fixture: Value = serde_json::from_str(include_str!(
+            "../../../schemas/examples/ieac-node-identity-collision-synthetic-v0.2.json"
+        ))
+        .expect("valid v0.2 identity fixture");
+        let mut graph = fixture["graph"].clone();
+        graph["nodes"][0]["identity"]["components"]
+            .as_array_mut()
+            .expect("identity components")
+            .reverse();
+        refresh_graph_snapshot_digest(&mut graph);
+        assert_eq!(validate_graph(&graph).unwrap().len(), 4);
+    }
+
+    #[test]
+    fn v02_identity_mutation_and_duplicate_native_identity_fail_closed() {
+        let fixture: Value = serde_json::from_str(include_str!(
+            "../../../schemas/examples/ieac-node-identity-collision-synthetic-v0.2.json"
+        ))
+        .expect("valid v0.2 identity fixture");
+
+        let mut tampered = fixture["graph"].clone();
+        tampered["nodes"][0]["identity"]["components"][0]["value"] =
+            json!("different-observation");
+        refresh_graph_snapshot_digest(&mut tampered);
+        assert!(
+            validate_graph(&tampered)
+                .unwrap_err()
+                .contains("native identity digest mismatch")
+        );
+
+        let mut duplicate = fixture["graph"].clone();
+        let mut conflicting = duplicate["nodes"][0].clone();
+        conflicting["artifact_sha256"] =
+            json!("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+        duplicate["nodes"]
+            .as_array_mut()
+            .expect("graph nodes")
+            .push(conflicting);
+        refresh_graph_snapshot_digest(&mut duplicate);
+        assert!(
+            validate_graph(&duplicate)
+                .unwrap_err()
+                .contains("duplicate dependency node ID")
+        );
+    }
+
+    #[test]
+    fn v02_identity_nodes_are_valid_edge_endpoints() {
+        let fixture: Value = serde_json::from_str(include_str!(
+            "../../../schemas/examples/ieac-node-identity-collision-synthetic-v0.2.json"
+        ))
+        .expect("valid v0.2 identity fixture");
+        let mut graph = fixture["graph"].clone();
+
+        let mut transformation = graph["nodes"][0].clone();
+        transformation["node_type"] = json!("transformation");
+        transformation["identity"] = json!({
+            "identity_namespace": "urn:synthetic:sol-atlas-projector",
+            "components": [
+                {"name": "native_id", "value": "projector-run-001"},
+                {"name": "native_revision", "value": "projection-v1"}
+            ]
+        });
+        transformation["artifact_sha256"] =
+            json!("eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee");
+        transformation["artifact_media_type"] = json!("application/json");
+        transformation["schema_version"] = json!("urn:synthetic:projection-receipt:v1");
+        transformation["issuer_id"] = json!("urn:synthetic:sol-atlas");
+        let identity_sha256 = node_identity_sha256(
+            "transformation",
+            &transformation["identity"],
+        )
+        .expect("valid transformation native identity");
+        let transformation_node_id =
+            format!("transformation:identity-sha256:{identity_sha256}");
+        transformation["identity_sha256"] = json!(identity_sha256);
+        transformation["node_id"] = json!(transformation_node_id);
+
+        graph["nodes"].as_array_mut().unwrap().push(transformation);
+        graph["edges"] = json!([{
+            "edge_id": "edge-measurement-transformed-by-projection",
+            "from_node_id": graph["nodes"][0]["node_id"],
+            "to_node_id": transformation_node_id,
+            "relation": "transformed_by"
+        }]);
+        refresh_graph_snapshot_digest(&mut graph);
+
+        let nodes = validate_graph(&graph)
+            .expect("v0.2 native identity IDs must resolve as edge endpoints");
+        assert_eq!(nodes.len(), 5);
+    }
+
+    #[test]
+    fn built_environment_node_types_have_specific_invalidation_causes() {
+        assert!(cause_allows("source_corrected", "source_evidence"));
+        assert!(cause_allows("rights_revoked_or_expired", "source_evidence"));
+        assert!(cause_allows("engineering_artifact_superseded", "engineering_artifact"));
+        assert!(cause_allows("engineering_receipt_corrected", "engineering_receipt"));
+        assert!(!cause_allows("engineering_receipt_corrected", "decision"));
+    }
 
     fn fixture() -> Value {
         serde_json::from_str(include_str!(

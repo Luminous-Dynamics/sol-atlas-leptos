@@ -5,6 +5,9 @@ on:
     paths:
       - "tools/industry-trust-lifecycle-auditor/**"
       - "schemas/industry-assurance-dependency-graph-v0.1.schema.json"
+      - "schemas/industry-assurance-dependency-graph-v0.2.schema.json"
+      - "schemas/examples/ieac-node-identity-collision-synthetic-v0.2.json"
+      - "docs/industry/IEAC_NODE_IDENTITY_V0.2.md"
       - "schemas/industry-assurance-invalidation-event-v0.1.schema.json"
       - "schemas/industry-assurance-impact-report-v0.1.schema.json"
       - "schemas/examples/ieac-trust-lifecycle-key-compromise-synthetic-v0.1.json"
@@ -17,6 +20,9 @@ on:
     paths:
       - "tools/industry-trust-lifecycle-auditor/**"
       - "schemas/industry-assurance-dependency-graph-v0.1.schema.json"
+      - "schemas/industry-assurance-dependency-graph-v0.2.schema.json"
+      - "schemas/examples/ieac-node-identity-collision-synthetic-v0.2.json"
+      - "docs/industry/IEAC_NODE_IDENTITY_V0.2.md"
       - "schemas/industry-assurance-invalidation-event-v0.1.schema.json"
       - "schemas/industry-assurance-impact-report-v0.1.schema.json"
       - "schemas/examples/ieac-trust-lifecycle-key-compromise-synthetic-v0.1.json"
@@ -92,6 +98,138 @@ jobs:
           set -euo pipefail
           meta=https://json-schema.org/draft/2020-12/schema
           jsonschema-cli validate --draft 2020 --assert-format "$meta" -i schemas/industry-assurance-dependency-graph-v0.1.schema.json
+          jsonschema-cli validate --draft 2020 --assert-format "$meta" -i schemas/industry-assurance-dependency-graph-v0.2.schema.json
+          jq -e '.graph' schemas/examples/ieac-node-identity-collision-synthetic-v0.2.json > "$RUNNER_TEMP/ieac-node-identity-v0.2-graph.json"
+          jsonschema-cli validate --draft 2020 --assert-format --offline schemas/industry-assurance-dependency-graph-v0.2.schema.json -i "$RUNNER_TEMP/ieac-node-identity-v0.2-graph.json"
+          # Schema-only edge-shape control: v0.2 identity node IDs must be legal
+          # edge endpoints. The Rust test separately recomputes identity and graph digests.
+          jq '
+            .graph.nodes += [{
+              "node_id": "transformation:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+              "node_type": "transformation",
+              "identity": {
+                "identity_namespace": "urn:synthetic:sol-atlas-projector",
+                "components": [
+                  {"name": "native_id", "value": "projector-run-001"},
+                  {"name": "native_revision", "value": "projection-v1"}
+                ]
+              },
+              "identity_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+              "artifact_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+              "artifact_media_type": "application/json",
+              "schema_version": "urn:synthetic:projection-receipt:v1",
+              "issuer_id": "urn:synthetic:sol-atlas",
+              "scope": {
+                "domain": "built_environment",
+                "subject_pseudonyms": ["case:synthetic"],
+                "purposes": ["benchmarking"]
+              },
+              "valid_time": {"valid_from": null, "valid_until": null},
+              "observation_time": {
+                "artifact_created_at": null,
+                "recorded_at": "2026-11-03T00:00:01Z",
+                "trusted_at": null
+              },
+              "verification": {
+                "result": "unknown",
+                "policy_sha256": null,
+                "verifier_build_sha256": null,
+                "trust_bundle_sha256": null,
+                "checked_at": null,
+                "fresh_until": null
+              }
+            }] |
+            .graph.edges = [{
+              "edge_id": "edge-schema-v0-2-identity-endpoint",
+              "from_node_id": .graph.nodes[0].node_id,
+              "to_node_id": .graph.nodes[-1].node_id,
+              "relation": "transformed_by"
+            }] |
+            .graph
+          ' schemas/examples/ieac-node-identity-collision-synthetic-v0.2.json > "$RUNNER_TEMP/ieac-node-identity-v0.2-edge-schema-control.json"
+          jsonschema-cli validate --draft 2020 --assert-format --offline schemas/industry-assurance-dependency-graph-v0.2.schema.json -i "$RUNNER_TEMP/ieac-node-identity-v0.2-edge-schema-control.json"
+          # Schema-only type vocabulary control for built-environment projection.
+          jq '
+            .graph.nodes += [
+              {
+                "node_id": "source_evidence:identity-sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "node_type": "source_evidence",
+                "identity": {
+                  "identity_namespace": "urn:synthetic:sol-atlas",
+                  "components": [
+                    {"name": "native_id", "value": "registry-1"},
+                    {"name": "native_record_id", "value": "evidence-1"}
+                  ]
+                },
+                "identity_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "artifact_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+                "artifact_media_type": "application/json",
+                "schema_version": "luminous.built-environment-evidence.v0.1",
+                "issuer_id": "urn:synthetic:source",
+                "scope": {"domain": "built_environment", "subject_pseudonyms": ["case:synthetic"], "purposes": ["engineering_change_impact"]},
+                "valid_time": {"valid_from": null, "valid_until": null},
+                "observation_time": {"artifact_created_at": null, "recorded_at": "2026-11-03T00:00:01Z", "trusted_at": null},
+                "verification": {"result": "unknown", "policy_sha256": null, "verifier_build_sha256": null, "trust_bundle_sha256": null, "checked_at": null, "fresh_until": null}
+              },
+              {
+                "node_id": "engineering_artifact:identity-sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "node_type": "engineering_artifact",
+                "identity": {
+                  "identity_namespace": "urn:synthetic:sol-atlas",
+                  "components": [
+                    {"name": "native_id", "value": "design-1"},
+                    {"name": "native_record_id", "value": "artifact-1"},
+                    {"name": "native_revision", "value": "1"}
+                  ]
+                },
+                "identity_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "artifact_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+                "artifact_media_type": "application/ifc",
+                "schema_version": "luminous.built-environment-artifact.v0.1",
+                "issuer_id": "urn:synthetic:sol-atlas",
+                "scope": {"domain": "built_environment", "subject_pseudonyms": ["case:synthetic"], "purposes": ["engineering_change_impact"]},
+                "valid_time": {"valid_from": null, "valid_until": null},
+                "observation_time": {"artifact_created_at": null, "recorded_at": "2026-11-03T00:00:01Z", "trusted_at": null},
+                "verification": {"result": "unknown", "policy_sha256": null, "verifier_build_sha256": null, "trust_bundle_sha256": null, "checked_at": null, "fresh_until": null}
+              },
+              {
+                "node_id": "engineering_receipt:identity-sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+                "node_type": "engineering_receipt",
+                "identity": {
+                  "identity_namespace": "urn:synthetic:sol-atlas",
+                  "components": [
+                    {"name": "native_id", "value": "design-1"},
+                    {"name": "native_record_id", "value": "receipt-1"}
+                  ]
+                },
+                "identity_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+                "artifact_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+                "artifact_media_type": "application/vnd.luminous.engineering-receipt+json",
+                "schema_version": "luminous.engineering-receipt.v0.1",
+                "issuer_id": "urn:synthetic:solver",
+                "scope": {"domain": "built_environment", "subject_pseudonyms": ["case:synthetic"], "purposes": ["engineering_change_impact"]},
+                "valid_time": {"valid_from": null, "valid_until": null},
+                "observation_time": {"artifact_created_at": null, "recorded_at": "2026-11-03T00:00:01Z", "trusted_at": null},
+                "verification": {"result": "unknown", "policy_sha256": null, "verifier_build_sha256": null, "trust_bundle_sha256": null, "checked_at": null, "fresh_until": null}
+              }
+            ] |
+            .graph.edges = [
+              {
+                "edge_id": "edge-source-evidence-to-engineering-artifact",
+                "from_node_id": "source_evidence:identity-sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "to_node_id": "engineering_artifact:identity-sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "relation": "evidence_for"
+              },
+              {
+                "edge_id": "edge-engineering-artifact-to-receipt",
+                "from_node_id": "engineering_artifact:identity-sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "to_node_id": "engineering_receipt:identity-sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+                "relation": "transformed_by"
+              }
+            ] |
+            .graph
+          ' schemas/examples/ieac-node-identity-collision-synthetic-v0.2.json > "$RUNNER_TEMP/ieac-built-environment-types-v0.2-schema-control.json"
+          jsonschema-cli validate --draft 2020 --assert-format --offline schemas/industry-assurance-dependency-graph-v0.2.schema.json -i "$RUNNER_TEMP/ieac-built-environment-types-v0.2-schema-control.json"
           jsonschema-cli validate --draft 2020 --assert-format "$meta" -i schemas/industry-assurance-invalidation-event-v0.1.schema.json
           jsonschema-cli validate --draft 2020 --assert-format "$meta" -i schemas/industry-assurance-impact-report-v0.1.schema.json
 

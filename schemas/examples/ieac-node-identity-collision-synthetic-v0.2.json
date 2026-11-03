@@ -1,0 +1,214 @@
+{
+  "fixture_version": "luminous.ieac-node-identity-collision-fixture.v0.2",
+  "fixture_purpose": "Four distinct native record identities intentionally reference one identical payload digest. Distinct identity envelopes must remain distinct graph nodes.",
+  "graph": {
+    "schema_version": "luminous.ieac-assurance-dependency-graph.v0.2",
+    "graph_id": "synthetic-identity-collision-corpus-v0.2",
+    "captured_at": "2026-11-03T00:00:02Z",
+    "graph_snapshot_sha256": "9cbf9725eb129382999f900fc9bf360b4ed624daf2b4c262b6d21e09538a3687",
+    "nodes": [
+      {
+        "node_id": "source_measurement:identity-sha256:9d44bfea0695d452eccf7e1b5239ae1d58fa4875240aa4f480ce7225f874abaa",
+        "node_type": "source_measurement",
+        "identity": {
+          "identity_namespace": "urn:opcua:plant-7",
+          "components": [
+            {
+              "name": "native_id",
+              "value": "Pump-07"
+            },
+            {
+              "name": "observation_id",
+              "value": "obs-0001"
+            }
+          ]
+        },
+        "identity_sha256": "9d44bfea0695d452eccf7e1b5239ae1d58fa4875240aa4f480ce7225f874abaa",
+        "artifact_sha256": "fd13299c4fabd771337218a8450a88319f6423cf998b92922742132dbefe4bdd",
+        "artifact_media_type": "application/octet-stream",
+        "schema_version": "urn:synthetic:pump-vibration:v1",
+        "issuer_id": "urn:synthetic:operator:plant-7",
+        "scope": {
+          "domain": "industrial-maintenance",
+          "subject_pseudonyms": [
+            "asset:pump-07"
+          ],
+          "purposes": [
+            "benchmarking"
+          ]
+        },
+        "valid_time": {
+          "valid_from": "2026-11-03T00:00:00Z",
+          "valid_until": null
+        },
+        "observation_time": {
+          "artifact_created_at": "2026-11-03T00:00:00Z",
+          "recorded_at": "2026-11-03T00:00:01Z",
+          "trusted_at": null
+        },
+        "verification": {
+          "result": "unknown",
+          "policy_sha256": null,
+          "verifier_build_sha256": null,
+          "trust_bundle_sha256": null,
+          "checked_at": null,
+          "fresh_until": null
+        }
+      },
+      {
+        "node_id": "source_measurement:identity-sha256:7cdc37da553790c14dd409615925ef6af3322e249f4c0c3a31ecce8ba1c61ec5",
+        "node_type": "source_measurement",
+        "identity": {
+          "identity_namespace": "urn:opcua:plant-7",
+          "components": [
+            {
+              "name": "native_id",
+              "value": "Pump-07"
+            },
+            {
+              "name": "observation_id",
+              "value": "obs-0002"
+            }
+          ]
+        },
+        "identity_sha256": "7cdc37da553790c14dd409615925ef6af3322e249f4c0c3a31ecce8ba1c61ec5",
+        "artifact_sha256": "fd13299c4fabd771337218a8450a88319f6423cf998b92922742132dbefe4bdd",
+        "artifact_media_type": "application/octet-stream",
+        "schema_version": "urn:synthetic:pump-vibration:v1",
+        "issuer_id": "urn:synthetic:operator:plant-7",
+        "scope": {
+          "domain": "industrial-maintenance",
+          "subject_pseudonyms": [
+            "asset:pump-07"
+          ],
+          "purposes": [
+            "benchmarking"
+          ]
+        },
+        "valid_time": {
+          "valid_from": "2026-11-03T00:00:00Z",
+          "valid_until": null
+        },
+        "observation_time": {
+          "artifact_created_at": "2026-11-03T00:00:00Z",
+          "recorded_at": "2026-11-03T00:00:01Z",
+          "trusted_at": null
+        },
+        "verification": {
+          "result": "unknown",
+          "policy_sha256": null,
+          "verifier_build_sha256": null,
+          "trust_bundle_sha256": null,
+          "checked_at": null,
+          "fresh_until": null
+        }
+      },
+      {
+        "node_id": "source_measurement:identity-sha256:57c7ded6d8f7b3a3483d1c1196d72ebbcfb4f174bac4d3710931a3166472e80c",
+        "node_type": "source_measurement",
+        "identity": {
+          "identity_namespace": "urn:opcua:plant-7",
+          "components": [
+            {
+              "name": "native_id",
+              "value": "Pump-07"
+            },
+            {
+              "name": "native_revision",
+              "value": "rev-2"
+            }
+          ]
+        },
+        "identity_sha256": "57c7ded6d8f7b3a3483d1c1196d72ebbcfb4f174bac4d3710931a3166472e80c",
+        "artifact_sha256": "fd13299c4fabd771337218a8450a88319f6423cf998b92922742132dbefe4bdd",
+        "artifact_media_type": "application/octet-stream",
+        "schema_version": "urn:synthetic:pump-vibration:v1",
+        "issuer_id": "urn:synthetic:operator:plant-7",
+        "scope": {
+          "domain": "industrial-maintenance",
+          "subject_pseudonyms": [
+            "asset:pump-07"
+          ],
+          "purposes": [
+            "benchmarking"
+          ]
+        },
+        "valid_time": {
+          "valid_from": "2026-11-03T00:00:00Z",
+          "valid_until": null
+        },
+        "observation_time": {
+          "artifact_created_at": "2026-11-03T00:00:00Z",
+          "recorded_at": "2026-11-03T00:00:01Z",
+          "trusted_at": null
+        },
+        "verification": {
+          "result": "unknown",
+          "policy_sha256": null,
+          "verifier_build_sha256": null,
+          "trust_bundle_sha256": null,
+          "checked_at": null,
+          "fresh_until": null
+        }
+      },
+      {
+        "node_id": "source_measurement:identity-sha256:a924e68868576ff9a42678352274c3d29019a65164191c20daadaf40babe0136",
+        "node_type": "source_measurement",
+        "identity": {
+          "identity_namespace": "urn:opcua:plant-8",
+          "components": [
+            {
+              "name": "native_id",
+              "value": "Pump-07"
+            },
+            {
+              "name": "observation_id",
+              "value": "obs-0001"
+            }
+          ]
+        },
+        "identity_sha256": "a924e68868576ff9a42678352274c3d29019a65164191c20daadaf40babe0136",
+        "artifact_sha256": "fd13299c4fabd771337218a8450a88319f6423cf998b92922742132dbefe4bdd",
+        "artifact_media_type": "application/octet-stream",
+        "schema_version": "urn:synthetic:pump-vibration:v1",
+        "issuer_id": "urn:synthetic:operator:plant-8",
+        "scope": {
+          "domain": "industrial-maintenance",
+          "subject_pseudonyms": [
+            "asset:pump-07-plant-8"
+          ],
+          "purposes": [
+            "benchmarking"
+          ]
+        },
+        "valid_time": {
+          "valid_from": "2026-11-03T00:00:00Z",
+          "valid_until": null
+        },
+        "observation_time": {
+          "artifact_created_at": "2026-11-03T00:00:00Z",
+          "recorded_at": "2026-11-03T00:00:01Z",
+          "trusted_at": null
+        },
+        "verification": {
+          "result": "unknown",
+          "policy_sha256": null,
+          "verifier_build_sha256": null,
+          "trust_bundle_sha256": null,
+          "checked_at": null,
+          "fresh_until": null
+        }
+      }
+    ],
+    "edges": [],
+    "claim_ceiling": "incomplete_or_indeterminate",
+    "action_authority": "none"
+  },
+  "expected": {
+    "node_count": 4,
+    "unique_node_id_count": 4,
+    "unique_content_digest_count": 1,
+    "same_payload_distinct_identities": true,
+    "action_authority": "none"
+  }
+}
