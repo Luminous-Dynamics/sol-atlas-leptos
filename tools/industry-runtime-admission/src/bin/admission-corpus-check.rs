@@ -717,7 +717,37 @@ fn verify(cases_path: &Path, report_path: &Path) -> Result<Counts, String> {
             })
         });
     if !summary_matches {
-        return Err("benchmark report per-family and overall aggregates do not reconstruct from the case ledger".to_owned());
+        // Keep the acceptance gate fail-closed, but report the exact reconciliation
+        // boundary so a drift in either the producer or verifier is diagnosable.
+        // The evidence ledger and per-case replay are already verified above.
+        return Err(format!(
+            "benchmark report per-family and overall aggregates do not reconstruct from the case ledger; expected family_count={}, negative_trials={}, false_admissions={}, negative_rejects={}, negative_abstentions={}, positive_trials={}, positive_admissions={}, positive_abstentions={}, positive_rejections={}, checker_disagreements={}, disposition_mismatches={}, reason_code_misses={}, tamper_checks={}, tamper_detected={}, replay_checks={}, replay_mismatches={}, static_counterfactual_acceptances={}, family_macro_rate={:.15}, family_macro_upper={:.15}, overall_p50={:?}, overall_p95={:?}, overall_p99={:?}; observed summary={}; strata_count={}, verifier_family_count={}",
+            family_count,
+            counts.negative_trials,
+            counts.false_admissions,
+            counts.negative_rejects,
+            counts.negative_abstentions,
+            counts.positive_trials,
+            counts.positive_admissions,
+            counts.positive_abstentions,
+            counts.positive_rejections,
+            counts.checker_disagreements,
+            counts.expected_disposition_mismatches,
+            counts.expected_reason_code_misses,
+            counts.report_tamper_checks,
+            counts.report_tamper_detected,
+            counts.deterministic_replay_checks,
+            counts.deterministic_replay_mismatches,
+            counts.static_baseline_counterfactual_acceptances,
+            family_macro_rate,
+            family_macro_upper,
+            percentile(&counts.latencies_ms, 0.50),
+            percentile(&counts.latencies_ms, 0.95),
+            percentile(&counts.latencies_ms, 0.99),
+            summary,
+            report["strata"].as_array().map_or(0, Vec::len),
+            family_metrics.len(),
+        ));
     }
 
     if counts.false_admissions != 0
