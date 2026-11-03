@@ -1518,9 +1518,7 @@ mod tests {
                 required: true,
             });
             manifests.push(inventory_manifest_for_descriptor(
-                descriptor,
-                identity,
-                payload,
+                descriptor, identity, payload,
             ));
         }
         (expected_owners, manifests)
@@ -1638,7 +1636,8 @@ mod tests {
         assert!(!composed.descriptor_inventory_binding.no_impact_eligible);
         assert!(!composed.inventory_validation.no_impact_eligible);
         assert_eq!(
-            composed.projection.projection_receipt["projector"]["source_inventory_closure"]["descriptor_inventory_binding"]["bound_record_count"],
+            composed.projection.projection_receipt["projector"]["source_inventory_closure"]["descriptor_inventory_binding"]
+                ["bound_record_count"],
             4
         );
     }
@@ -1678,7 +1677,9 @@ mod tests {
             "invalid_input"
         );
         assert_eq!(
-            composed.descriptor_inventory_binding.payload_digest_mismatch_count,
+            composed
+                .descriptor_inventory_binding
+                .payload_digest_mismatch_count,
             1
         );
         assert_eq!(
