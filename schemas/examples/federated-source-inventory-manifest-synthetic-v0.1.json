@@ -34,7 +34,11 @@
       "source_watermark": "watermark-100",
       "response_at": "2026-11-03T10:01:00Z",
       "terminal": false,
-      "tombstone_identity_sha256s": []
+      "tombstone_identity_sha256s": [],
+      "native_record_payload_sha256s": [
+        "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+      ]
     },
     {
       "inventory_id": "inventory-synthetic-001",
@@ -52,7 +56,10 @@
       "source_watermark": "watermark-100",
       "response_at": "2026-11-03T10:02:00Z",
       "terminal": true,
-      "tombstone_identity_sha256s": []
+      "tombstone_identity_sha256s": [],
+      "native_record_payload_sha256s": [
+        "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+      ]
     }
   ],
   "reported_total_count": 3,
