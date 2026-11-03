@@ -227,6 +227,82 @@ pub enum ValidationCode {
     InvalidCasePolicy,
 }
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum RevalidationStatus {
+    NoImpact,
+    RevalidationRequired,
+    GraphInvalid,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ImpactNodeKind {
+    Artifact,
+    EngineeringReceipt,
+    Decision,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ImpactReason {
+    SourceArtifactDigestChanged,
+    DescendantArtifactDependsOnChangedAncestor,
+    EngineeringReceiptInputArtifactChanged,
+    EngineeringReceiptAssumptionEvidenceAffected,
+    DecisionTargetArtifactAffected,
+    DecisionDependsOnAffectedReceipt,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ImpactGraphErrorCode {
+    EmptyChangedArtifactId,
+    InvalidProposedDigest,
+    ChangedArtifactMissing,
+    DuplicateArtifactId,
+    InvalidArtifactIdentity,
+    InvalidArtifactDigest,
+    MissingParentArtifact,
+    StaleParentArtifactDigest,
+    ArtifactDependencyCycle,
+    DuplicateEvidenceId,
+    MissingArtifactEvidence,
+    DuplicateEngineeringReceiptId,
+    MissingReceiptInputArtifact,
+    MissingReceiptAssumptionEvidence,
+    DuplicateDecisionId,
+    MissingDecisionTargetArtifact,
+    MissingDecisionEngineeringReceipt,
+    MissingDecisionAuthorityEvidence,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct ImpactGraphIssue {
+    pub code: ImpactGraphErrorCode,
+    pub item_id: String,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct ImpactRecord {
+    pub node_kind: ImpactNodeKind,
+    pub node_id: String,
+    pub reason: ImpactReason,
+    /// Canonical shortest artifact path from the changed source to this node.
+    /// For receipts/decisions, the path terminates at the artifact/receipt they consume.
+    pub via_artifact_ids: Vec<String>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct RevalidationFrontier {
+    pub status: RevalidationStatus,
+    pub changed_artifact_id: String,
+    pub previous_content_sha256: Option<String>,
+    pub proposed_content_sha256: String,
+    pub impacts: Vec<ImpactRecord>,
+    pub graph_issues: Vec<ImpactGraphIssue>,
+}
+
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct ValidationIssue {
     pub code: ValidationCode,
@@ -1011,6 +1087,343 @@ pub fn validate_case(
             .then_with(|| a.message.cmp(&b.message))
     });
     Ok(issues)
+}
+
+
+/// Compute the exact downstream revalidation frontier for a proposed artifact digest change.
+///
+/// This is an advisory graph query. It never mutates the case, rewrites historical
+/// receipts, or turns any result into an approval. A malformed or incomplete
+/// dependency graph returns GraphInvalid rather than a partial frontier.
+pub fn compute_revalidation_frontier(
+    case: &BuiltEnvironmentCase,
+    changed_artifact_id: &str,
+    proposed_content_sha256: &str,
+) -> RevalidationFrontier {
+    let mut graph_issues = Vec::new();
+    let mut add_issue = |code, item_id: String| {
+        graph_issues.push(ImpactGraphIssue { code, item_id });
+    };
+
+    if !nonempty(changed_artifact_id) {
+        add_issue(
+            ImpactGraphErrorCode::EmptyChangedArtifactId,
+            changed_artifact_id.to_owned(),
+        );
+    }
+    if !valid_sha256(proposed_content_sha256) {
+        add_issue(
+            ImpactGraphErrorCode::InvalidProposedDigest,
+            changed_artifact_id.to_owned(),
+        );
+    }
+
+    let duplicate_artifacts = duplicates(case.artifacts.iter().map(|item| item.artifact_id.as_str()));
+    for id in duplicate_artifacts {
+        add_issue(ImpactGraphErrorCode::DuplicateArtifactId, id);
+    }
+    let duplicate_evidence = duplicates(case.evidence.iter().map(|item| item.evidence_id.as_str()));
+    for id in duplicate_evidence {
+        add_issue(ImpactGraphErrorCode::DuplicateEvidenceId, id);
+    }
+    let duplicate_receipts = duplicates(
+        case.engineering_receipts.iter().map(|item| item.receipt_id.as_str()),
+    );
+    for id in duplicate_receipts {
+        add_issue(ImpactGraphErrorCode::DuplicateEngineeringReceiptId, id);
+    }
+    let duplicate_decisions = duplicates(case.decisions.iter().map(|item| item.event_id.as_str()));
+    for id in duplicate_decisions {
+        add_issue(ImpactGraphErrorCode::DuplicateDecisionId, id);
+    }
+
+    let artifacts_by_id: BTreeMap<&str, &ArtifactRecord> = case
+        .artifacts
+        .iter()
+        .map(|item| (item.artifact_id.as_str(), item))
+        .collect();
+    let evidence_ids: BTreeSet<&str> = case
+        .evidence
+        .iter()
+        .map(|item| item.evidence_id.as_str())
+        .collect();
+    let receipt_ids: BTreeSet<&str> = case
+        .engineering_receipts
+        .iter()
+        .map(|item| item.receipt_id.as_str())
+        .collect();
+
+    let changed_artifact = artifacts_by_id.get(changed_artifact_id).copied();
+    if changed_artifact.is_none() {
+        add_issue(
+            ImpactGraphErrorCode::ChangedArtifactMissing,
+            changed_artifact_id.to_owned(),
+        );
+    }
+
+    for artifact in &case.artifacts {
+        if !nonempty(&artifact.artifact_id)
+            || !nonempty(&artifact.design_id)
+            || !nonempty(&artifact.family_id)
+        {
+            add_issue(
+                ImpactGraphErrorCode::InvalidArtifactIdentity,
+                artifact.artifact_id.clone(),
+            );
+        }
+        if !valid_sha256(&artifact.content_sha256) {
+            add_issue(
+                ImpactGraphErrorCode::InvalidArtifactDigest,
+                artifact.artifact_id.clone(),
+            );
+        }
+        for evidence_id in &artifact.evidence_ids {
+            if !evidence_ids.contains(evidence_id.as_str()) {
+                add_issue(
+                    ImpactGraphErrorCode::MissingArtifactEvidence,
+                    artifact.artifact_id.clone(),
+                );
+            }
+        }
+        for parent in &artifact.parent_artifacts {
+            match artifacts_by_id.get(parent.artifact_id.as_str()).copied() {
+                None => add_issue(
+                    ImpactGraphErrorCode::MissingParentArtifact,
+                    artifact.artifact_id.clone(),
+                ),
+                Some(parent_record) if parent_record.content_sha256 != parent.content_sha256 => {
+                    add_issue(
+                        ImpactGraphErrorCode::StaleParentArtifactDigest,
+                        artifact.artifact_id.clone(),
+                    );
+                }
+                Some(_) => {}
+            }
+            if !valid_sha256(&parent.content_sha256) {
+                add_issue(
+                    ImpactGraphErrorCode::InvalidArtifactDigest,
+                    artifact.artifact_id.clone(),
+                );
+            }
+        }
+    }
+
+    let artifact_map: BTreeMap<String, &ArtifactRecord> = case
+        .artifacts
+        .iter()
+        .map(|item| (item.artifact_id.clone(), item))
+        .collect();
+    if has_dependency_cycle(&artifact_map) {
+        add_issue(
+            ImpactGraphErrorCode::ArtifactDependencyCycle,
+            case.case_id.clone(),
+        );
+    }
+
+    for receipt in &case.engineering_receipts {
+        if !artifacts_by_id.contains_key(receipt.input_artifact_id.as_str()) {
+            add_issue(
+                ImpactGraphErrorCode::MissingReceiptInputArtifact,
+                receipt.receipt_id.clone(),
+            );
+        }
+        for evidence_id in &receipt.assumption_evidence_ids {
+            if !evidence_ids.contains(evidence_id.as_str()) {
+                add_issue(
+                    ImpactGraphErrorCode::MissingReceiptAssumptionEvidence,
+                    receipt.receipt_id.clone(),
+                );
+            }
+        }
+    }
+
+    for decision in &case.decisions {
+        if !artifacts_by_id.contains_key(decision.target_artifact_id.as_str()) {
+            add_issue(
+                ImpactGraphErrorCode::MissingDecisionTargetArtifact,
+                decision.event_id.clone(),
+            );
+        }
+        for receipt_id in &decision.engineering_receipt_ids {
+            if !receipt_ids.contains(receipt_id.as_str()) {
+                add_issue(
+                    ImpactGraphErrorCode::MissingDecisionEngineeringReceipt,
+                    decision.event_id.clone(),
+                );
+            }
+        }
+        if decision
+            .authority_evidence_id
+            .as_ref()
+            .is_some_and(|id| !evidence_ids.contains(id.as_str()))
+        {
+            add_issue(
+                ImpactGraphErrorCode::MissingDecisionAuthorityEvidence,
+                decision.event_id.clone(),
+            );
+        }
+    }
+
+    graph_issues.sort_by(|left, right| {
+        left.item_id
+            .cmp(&right.item_id)
+            .then_with(|| left.code.cmp(&right.code))
+    });
+    graph_issues.dedup();
+    let previous_content_sha256 = changed_artifact.map(|item| item.content_sha256.clone());
+
+    let mut frontier = RevalidationFrontier {
+        status: RevalidationStatus::GraphInvalid,
+        changed_artifact_id: changed_artifact_id.to_owned(),
+        previous_content_sha256: previous_content_sha256.clone(),
+        proposed_content_sha256: proposed_content_sha256.to_owned(),
+        impacts: Vec::new(),
+        graph_issues,
+    };
+    if !frontier.graph_issues.is_empty() {
+        return frontier;
+    }
+
+    let Some(source) = changed_artifact else {
+        return frontier;
+    };
+    if source.content_sha256 == proposed_content_sha256 {
+        frontier.status = RevalidationStatus::NoImpact;
+        return frontier;
+    }
+
+    // Build parent -> child adjacency. Sorting makes the chosen shortest path
+    // stable even when the case's artifact vector is permuted.
+    let mut children_by_parent: BTreeMap<String, Vec<String>> = BTreeMap::new();
+    for artifact in &case.artifacts {
+        for parent in &artifact.parent_artifacts {
+            children_by_parent
+                .entry(parent.artifact_id.clone())
+                .or_default()
+                .push(artifact.artifact_id.clone());
+        }
+    }
+    for children in children_by_parent.values_mut() {
+        children.sort();
+        children.dedup();
+    }
+
+    let mut affected_paths = BTreeMap::<String, Vec<String>>::new();
+    let mut queue = vec![changed_artifact_id.to_owned()];
+    affected_paths.insert(
+        changed_artifact_id.to_owned(),
+        vec![changed_artifact_id.to_owned()],
+    );
+    let mut queue_index = 0usize;
+    while queue_index < queue.len() {
+        let parent_id = queue[queue_index].clone();
+        queue_index += 1;
+        let Some(children) = children_by_parent.get(&parent_id) else {
+            continue;
+        };
+        let parent_path = affected_paths
+            .get(&parent_id)
+            .cloned()
+            .unwrap_or_else(|| vec![parent_id.clone()]);
+        for child_id in children {
+            if affected_paths.contains_key(child_id) {
+                continue;
+            }
+            let mut path = parent_path.clone();
+            path.push(child_id.clone());
+            affected_paths.insert(child_id.clone(), path);
+            queue.push(child_id.clone());
+        }
+    }
+
+    let mut impacts = Vec::new();
+    let mut affected_evidence_ids = BTreeSet::new();
+    for (artifact_id, path) in &affected_paths {
+        if let Some(artifact) = artifacts_by_id.get(artifact_id.as_str()) {
+            affected_evidence_ids.extend(artifact.evidence_ids.iter().cloned());
+        }
+        impacts.push(ImpactRecord {
+            node_kind: ImpactNodeKind::Artifact,
+            node_id: artifact_id.clone(),
+            reason: if artifact_id == changed_artifact_id {
+                ImpactReason::SourceArtifactDigestChanged
+            } else {
+                ImpactReason::DescendantArtifactDependsOnChangedAncestor
+            },
+            via_artifact_ids: path.clone(),
+        });
+    }
+
+    let mut affected_receipt_paths = BTreeMap::<String, Vec<String>>::new();
+    for receipt in &case.engineering_receipts {
+        let input_path = affected_paths.get(&receipt.input_artifact_id).cloned();
+        let evidence_path = if input_path.is_none() {
+            affected_paths.iter().find_map(|(artifact_id, path)| {
+                artifacts_by_id
+                    .get(artifact_id.as_str())
+                    .filter(|artifact| {
+                        artifact.evidence_ids.iter().any(|evidence_id| {
+                            receipt.assumption_evidence_ids.contains(evidence_id)
+                        })
+                    })
+                    .map(|_| path.clone())
+            })
+        } else {
+            None
+        };
+        if let Some(path) = input_path.or(evidence_path.clone()) {
+            let reason = if evidence_path.is_some() {
+                ImpactReason::EngineeringReceiptAssumptionEvidenceAffected
+            } else {
+                ImpactReason::EngineeringReceiptInputArtifactChanged
+            };
+            affected_receipt_paths.insert(receipt.receipt_id.clone(), path.clone());
+            impacts.push(ImpactRecord {
+                node_kind: ImpactNodeKind::EngineeringReceipt,
+                node_id: receipt.receipt_id.clone(),
+                reason,
+                via_artifact_ids: path,
+            });
+        }
+    }
+
+    for decision in &case.decisions {
+        let target_path = affected_paths.get(&decision.target_artifact_id).cloned();
+        let receipt_path = decision
+            .engineering_receipt_ids
+            .iter()
+            .filter_map(|receipt_id| affected_receipt_paths.get(receipt_id))
+            .min()
+            .cloned();
+        if let Some(path) = target_path.or(receipt_path.clone()) {
+            impacts.push(ImpactRecord {
+                node_kind: ImpactNodeKind::Decision,
+                node_id: decision.event_id.clone(),
+                reason: if target_path.is_some() {
+                    ImpactReason::DecisionTargetArtifactAffected
+                } else {
+                    ImpactReason::DecisionDependsOnAffectedReceipt
+                },
+                via_artifact_ids: path,
+            });
+        }
+    }
+
+    impacts.sort_by(|left, right| {
+        left.node_kind
+            .cmp(&right.node_kind)
+            .then_with(|| left.node_id.cmp(&right.node_id))
+            .then_with(|| left.reason.cmp(&right.reason))
+            .then_with(|| left.via_artifact_ids.cmp(&right.via_artifact_ids))
+    });
+    impacts.dedup();
+    frontier.status = if impacts.is_empty() {
+        RevalidationStatus::NoImpact
+    } else {
+        RevalidationStatus::RevalidationRequired
+    };
+    frontier.impacts = impacts;
+    frontier
 }
 
 #[cfg(test)]
