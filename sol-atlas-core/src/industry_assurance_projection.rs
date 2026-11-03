@@ -611,10 +611,32 @@ pub fn project_built_environment_case(
         }
     }
 
-    // Evidence nodes retain their source payload digest. No digest is invented
-    // when the source record does not provide one.
+    // Preserve every typed evidence record as a separate projection payload,
+    // including records that cannot become source-payload-addressed graph nodes.
     for evidence in &case.evidence {
         let native_key = format!("evidence:{}", evidence.evidence_id);
+        let (record_sha256, record_bytes) = match record_payload(evidence) {
+            Ok(payload) => payload,
+            Err(error) => {
+                findings.invalid("EVIDENCE_RECORD_SERIALIZATION_FAILED", &native_key, error);
+                continue;
+            }
+        };
+        let record_payload_key = format!("case-record:{native_key}");
+        let source_payload_sha256 = evidence.source_payload_sha256.clone();
+        projected_payloads.insert(
+            record_payload_key.clone(),
+            json!({
+                "record_key": native_key,
+                "node_id": null,
+                "media_type": "application/json",
+                "payload_sha256": record_sha256,
+                "payload_digest_basis": "sha256_of_typed_case_record_representation",
+                "payload_bytes_utf8": record_bytes,
+                "source_payload_sha256": source_payload_sha256,
+                "source_payload_bytes_included": false
+            }),
+        );
         let Some(payload_sha) = evidence.source_payload_sha256.as_deref() else {
             add_unmapped(
                 &mut findings,
@@ -624,7 +646,7 @@ pub fn project_built_environment_case(
                 &evidence.evidence_id,
                 "source_payload",
                 &evidence.source_id,
-                "source evidence has no source_payload_sha256; no substitute digest is fabricated",
+                "source evidence has no source_payload_sha256; the typed case record is preserved separately but cannot be represented as a source-payload-addressed graph node",
             );
             continue;
         };
@@ -691,9 +713,20 @@ pub fn project_built_environment_case(
                 "source_payload_sha256": payload_sha,
                 "projected_payload_sha256": payload_sha,
                 "payload_digest_basis": "source_payload_sha256",
+                "case_record_representation_sha256": record_sha256,
+                "source_subject_id": evidence.subject_id,
+                "source_field_path": evidence.field_path,
+                "source_jurisdiction": evidence.jurisdiction,
+                "source_evidence_state": serde_json::to_value(evidence.evidence_state).unwrap_or(Value::Null),
+                "source_data_rights": serde_json::to_value(evidence.data_rights).unwrap_or(Value::Null),
+                "source_license_id": evidence.license_id,
+                "source_observed_at_unix_seconds": evidence.observed_at_unix_seconds,
                 "schema_version_claim": "unknown"
             }),
         );
+        if let Some(payload) = projected_payloads.get_mut(&record_payload_key) {
+            payload["node_id"] = json!(node_id);
+        }
     }
 
     // Artifact nodes use the source artifact content digest unchanged.
@@ -762,6 +795,14 @@ pub fn project_built_environment_case(
                 "native_record_id": artifact.artifact_id,
                 "native_family_id": artifact.family_id,
                 "native_revision": artifact.revision,
+                "source_artifact_kind": serde_json::to_value(artifact.kind).unwrap_or(Value::Null),
+                "source_jurisdiction": artifact.jurisdiction,
+                "source_created_at_unix_seconds": artifact.created_at_unix_seconds,
+                "source_evidence_ids": artifact.evidence_ids,
+                "source_parent_artifacts": artifact.parent_artifacts.iter().map(|parent| json!({
+                    "artifact_id": parent.artifact_id,
+                    "content_sha256": parent.content_sha256
+                })).collect::<Vec<_>>(),
                 "node_type": "engineering_artifact",
                 "node_id": node_id,
                 "identity_sha256": identity_sha,
@@ -1016,7 +1057,7 @@ pub fn project_built_environment_case(
                     &mut findings,
                     &artifact_nodes[&receipt.input_artifact_id],
                     receipt_node,
-                    "transformed_by",
+                    "verified_by",
                     &format!("receipt:{}:input:{}", receipt.receipt_id, receipt.input_artifact_id),
                     "solver_inputs",
                 );
@@ -1159,6 +1200,17 @@ pub fn project_built_environment_case(
                     "authority evidence is missing or lacks a source payload digest",
                 ),
             }
+        } else {
+            add_unmapped(
+                &mut findings,
+                &mut unmapped,
+                "DECISION_AUTHORITY_EVIDENCE_NOT_DECLARED",
+                "decision",
+                &decision.event_id,
+                "decision_authority",
+                "missing",
+                "decision record has no authority_evidence_id; the projector cannot infer an authority relationship",
+            );
         }
 
         if let Some(superseded_id) = &decision.supersedes_event_id {
@@ -1499,9 +1551,78 @@ mod tests {
             second.graph["graph_snapshot_sha256"]
         );
         assert_eq!(
-            first.projection_receipt["projection_receipt_sha256"],
-            second.projection_receipt["projection_receipt_sha256"]
+            first.projection_receipt["projected_graph"]["graph_snapshot_sha256"],
+            second.projection_receipt["projected_graph"]["graph_snapshot_sha256"]
         );
+        assert_ne!(
+            first.projection_receipt["source_case_representation"]["sha256"],
+            second.projection_receipt["source_case_representation"]["sha256"],
+            "the receipt binds exact typed input bytes, including input vector order"
+        );
+        assert_ne!(
+            first.projection_receipt["projection_receipt_sha256"],
+            second.projection_receipt["projection_receipt_sha256"],
+            "reordered source input has a different exact-input receipt"
+        );
+    }
+
+    #[test]
+    fn evidence_mapping_preserves_status_rights_license_and_case_record_bytes() {
+        let result = project_built_environment_case(&sample_case(), &context());
+        let mappings = result.projection_receipt["node_mappings"]
+            .as_array()
+            .unwrap();
+        let evidence_mapping = mappings
+            .iter()
+            .find(|row| row["record_kind"] == "evidence")
+            .unwrap();
+        assert_eq!(evidence_mapping["source_evidence_state"], "verified");
+        assert_eq!(evidence_mapping["source_data_rights"], "public_domain");
+        assert_eq!(evidence_mapping["source_license_id"], "CC0-1.0");
+        assert!(valid_sha256(
+            evidence_mapping["case_record_representation_sha256"]
+                .as_str()
+                .unwrap()
+        ));
+        let payloads = result.projection_receipt["projected_payloads"]
+            .as_array()
+            .unwrap();
+        assert!(payloads.iter().any(|row| {
+            row["record_key"] == "evidence:evidence-design-source"
+                && row["payload_digest_basis"] == "sha256_of_typed_case_record_representation"
+                && row["source_payload_bytes_included"] == false
+        }));
+    }
+
+    #[test]
+    fn missing_evidence_digest_still_preserves_the_typed_record_representation() {
+        let mut case = sample_case();
+        case.evidence[0].source_payload_sha256 = None;
+        let result = project_built_environment_case(&case, &context());
+        let payloads = result.projection_receipt["projected_payloads"]
+            .as_array()
+            .unwrap();
+        assert!(payloads.iter().any(|row| {
+            row["record_key"] == "evidence:evidence-design-source"
+                && row["node_id"].is_null()
+                && row["source_payload_sha256"].is_null()
+                && row["payload_bytes_utf8"]
+                    .as_str()
+                    .is_some_and(|bytes| bytes.contains("evidence-design-source"))
+        }));
+    }
+
+    #[test]
+    fn missing_decision_authority_is_explicitly_incomplete() {
+        let mut case = sample_case();
+        case.decisions[0].authority_evidence_id = None;
+        let result = project_built_environment_case(&case, &context());
+        assert_eq!(result.disposition, ProjectionDisposition::IncompleteOrIndeterminate);
+        assert!(result.projection_receipt["unmapped_relationships"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|row| row["reason_code"] == "DECISION_AUTHORITY_EVIDENCE_NOT_DECLARED"));
     }
 
     #[test]
