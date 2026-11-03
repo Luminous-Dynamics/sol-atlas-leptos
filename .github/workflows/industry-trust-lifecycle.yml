@@ -5,6 +5,9 @@ on:
     paths:
       - "tools/industry-trust-lifecycle-auditor/**"
       - "schemas/industry-assurance-dependency-graph-v0.1.schema.json"
+      - "schemas/industry-assurance-dependency-graph-v0.2.schema.json"
+      - "schemas/examples/ieac-node-identity-collision-synthetic-v0.2.json"
+      - "docs/industry/IEAC_NODE_IDENTITY_V0.2.md"
       - "schemas/industry-assurance-invalidation-event-v0.1.schema.json"
       - "schemas/industry-assurance-impact-report-v0.1.schema.json"
       - "schemas/examples/ieac-trust-lifecycle-key-compromise-synthetic-v0.1.json"
@@ -17,6 +20,9 @@ on:
     paths:
       - "tools/industry-trust-lifecycle-auditor/**"
       - "schemas/industry-assurance-dependency-graph-v0.1.schema.json"
+      - "schemas/industry-assurance-dependency-graph-v0.2.schema.json"
+      - "schemas/examples/ieac-node-identity-collision-synthetic-v0.2.json"
+      - "docs/industry/IEAC_NODE_IDENTITY_V0.2.md"
       - "schemas/industry-assurance-invalidation-event-v0.1.schema.json"
       - "schemas/industry-assurance-impact-report-v0.1.schema.json"
       - "schemas/examples/ieac-trust-lifecycle-key-compromise-synthetic-v0.1.json"
@@ -92,6 +98,9 @@ jobs:
           set -euo pipefail
           meta=https://json-schema.org/draft/2020-12/schema
           jsonschema-cli validate --draft 2020 --assert-format "$meta" -i schemas/industry-assurance-dependency-graph-v0.1.schema.json
+          jsonschema-cli validate --draft 2020 --assert-format "$meta" -i schemas/industry-assurance-dependency-graph-v0.2.schema.json
+          jq -e '.graph' schemas/examples/ieac-node-identity-collision-synthetic-v0.2.json > "$RUNNER_TEMP/ieac-node-identity-v0.2-graph.json"
+          jsonschema-cli validate --draft 2020 --assert-format --offline schemas/industry-assurance-dependency-graph-v0.2.schema.json -i "$RUNNER_TEMP/ieac-node-identity-v0.2-graph.json"
           jsonschema-cli validate --draft 2020 --assert-format "$meta" -i schemas/industry-assurance-invalidation-event-v0.1.schema.json
           jsonschema-cli validate --draft 2020 --assert-format "$meta" -i schemas/industry-assurance-impact-report-v0.1.schema.json
 
