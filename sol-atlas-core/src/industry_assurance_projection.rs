@@ -235,7 +235,7 @@ fn valid_utc_timestamp(value: &str) -> bool {
     if year == 0 || !(1..=12).contains(&month) || hour > 23 || minute > 59 || second > 59 {
         return false;
     }
-    let leap = year % 4 == 0 && (year % 100 != 0 || year % 400 == 0);
+    let leap = year.is_multiple_of(4) && (!year.is_multiple_of(100) || year.is_multiple_of(400));
     let days = match month {
         1 | 3 | 5 | 7 | 8 | 10 | 12 => 31,
         4 | 6 | 9 | 11 => 30,
@@ -355,10 +355,8 @@ fn make_node(spec: NodeProjection<'_>) -> Result<Value, String> {
 
     let mut subjects = BTreeSet::new();
     subjects.insert(spec.case_id.to_owned());
-    if let Some(design_id) = spec.design_id {
-        if !design_id.is_empty() {
-            subjects.insert(design_id.to_owned());
-        }
+    if let Some(design_id) = spec.design_id.filter(|value| !value.is_empty()) {
+        subjects.insert(design_id.to_owned());
     }
 
     let identity_components = components
