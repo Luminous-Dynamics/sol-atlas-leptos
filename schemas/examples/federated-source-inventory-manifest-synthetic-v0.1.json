@@ -51,7 +51,7 @@
       ],
       "cursor_before_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
       "cursor_after_sha256": null,
-      "predecessor_page_receipt_sha256": "29f433b5487ded6faa5590565a4c6ba83b678f919dff19cdbeb0959ea4865dd6",
+      "predecessor_page_receipt_sha256": "61fcf23148dca12c2986e9b308adb2ad9a18d7a7a7914abbcb4478991df5227b",
       "snapshot_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
       "source_watermark": "watermark-100",
       "response_at": "2026-11-03T10:02:00Z",
