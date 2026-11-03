@@ -13,7 +13,9 @@
       "type": "array",
       "minItems": 1,
       "maxItems": 10000,
-      "items": { "type": "object" }
+      "items": {
+        "$ref": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/schemas/industry-assurance-invalidation-event-v0.1.schema.json"
+      }
     },
     "metadata": {
       "type": "object",
