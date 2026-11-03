@@ -1581,7 +1581,7 @@ mod tests {
 
         for index in 0..node_count {
             let id = format!("generated-{index:04}");
-            let sha = char::from_u32(u32::from(b'c') + (index % 20) as u32).unwrap();
+            let sha = b"cdef0123456789ab"[index % 16] as char;
             let mut item = artifact(&id, 1, sha);
             item.family_id = format!("generated-family-{index:04}");
 
@@ -1722,7 +1722,7 @@ mod tests {
     fn production_frontier_matches_independent_full_scan_oracle_on_generated_dags() {
         let case = generated_dependency_case(128);
         for source_id in ["model-1", "generated-0000", "generated-0035", "generated-0100"] {
-            let frontier = compute_revalidation_frontier(&case, source_id, &digest('z'));
+            let frontier = compute_revalidation_frontier(&case, source_id, &digest('9'));
             assert_eq!(
                 frontier.status,
                 RevalidationStatus::RevalidationRequired,
