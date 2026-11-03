@@ -1110,6 +1110,173 @@ pub fn validate_source_universe_coverage(
     }
 }
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum InventoryClosureDisposition {
+    CompleteWithinDeclaredOwnerSet,
+    CompleteWithDeclaredExclusions,
+    IncompleteOrIndeterminate,
+    InvalidInput,
+}
+
+impl InventoryClosureDisposition {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::CompleteWithinDeclaredOwnerSet => "complete_within_declared_owner_set",
+            Self::CompleteWithDeclaredExclusions => "complete_with_declared_exclusions",
+            Self::IncompleteOrIndeterminate => "incomplete_or_indeterminate",
+            Self::InvalidInput => "invalid_input",
+        }
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct InventoryClosureValidation {
+    pub disposition: InventoryClosureDisposition,
+    pub expected_owner_count: usize,
+    pub required_owner_count: usize,
+    pub present_required_owner_count: usize,
+    pub complete_inventory_count: usize,
+    pub complete_with_exclusions_count: usize,
+    pub incomplete_inventory_count: usize,
+    pub invalid_inventory_count: usize,
+    pub not_comparable_inventory_count: usize,
+    pub owner_presence: SourceUniverseValidation,
+    pub per_manifest_validations: Vec<InventoryValidation>,
+    /// The caller-supplied owner register and exact query/snapshot manifests;
+    /// never a claim that all real-world source owners are known.
+    pub claim_scope: String,
+    pub findings: Vec<InventoryFinding>,
+}
+
+/// Validate a declared source inventory closure by composing owner-manifest
+/// presence with each manifest's independent record-set disposition.
+///
+/// This result is only as complete as the independently maintained expected
+/// owner register supplied by the caller. It does not prove that the register
+/// contains every real-world owner or that any source statement is authentic.
+pub fn validate_source_inventory_closure(
+    expected_owners: &[ExpectedSourceOwner],
+    manifests: &[SourceInventoryManifest],
+) -> InventoryClosureValidation {
+    let owner_presence = validate_source_universe_coverage(expected_owners, manifests);
+    let mut findings = Findings::default();
+    for finding in &owner_presence.findings {
+        match finding.severity {
+            InventoryFindingSeverity::Invalid => findings.invalid(
+                &finding.code,
+                finding.subject.clone(),
+                finding.detail.clone(),
+            ),
+            InventoryFindingSeverity::Incomplete => findings.incomplete(
+                &finding.code,
+                finding.subject.clone(),
+                finding.detail.clone(),
+            ),
+        }
+    }
+
+    let required_keys = expected_owners
+        .iter()
+        .filter(|owner| owner.required)
+        .map(|owner| {
+            (
+                owner.owner_namespace.clone(),
+                owner.source_system_id.clone(),
+            )
+        })
+        .collect::<BTreeSet<_>>();
+    let present_keys = manifests
+        .iter()
+        .map(|manifest| {
+            (
+                manifest.source_owner_namespace.clone(),
+                manifest.source_system_id.clone(),
+            )
+        })
+        .collect::<BTreeSet<_>>();
+    let present_required_owner_count = required_keys.intersection(&present_keys).count();
+
+    let mut per_manifest_validations = Vec::with_capacity(manifests.len());
+    let mut complete_inventory_count = 0usize;
+    let mut complete_with_exclusions_count = 0usize;
+    let mut incomplete_inventory_count = 0usize;
+    let mut invalid_inventory_count = 0usize;
+    let mut not_comparable_inventory_count = 0usize;
+
+    for manifest in manifests {
+        let validation = validate_source_inventory_manifest(manifest);
+        let subject = format!(
+            "{}:{}",
+            manifest.source_owner_namespace, manifest.source_system_id
+        );
+        match validation.disposition {
+            InventoryDisposition::CompleteWithinDeclaredQuery => {
+                complete_inventory_count += 1;
+            }
+            InventoryDisposition::CompleteWithDeclaredExclusions => {
+                complete_with_exclusions_count += 1;
+            }
+            InventoryDisposition::IncompleteOrIndeterminate => {
+                incomplete_inventory_count += 1;
+                findings.incomplete(
+                    "REQUIRED_SOURCE_INVENTORY_INCOMPLETE",
+                    &subject,
+                    "source manifest exists but does not establish complete enumeration within its declared query",
+                );
+            }
+            InventoryDisposition::InvalidInput => {
+                invalid_inventory_count += 1;
+                findings.invalid(
+                    "SOURCE_INVENTORY_MANIFEST_INVALID",
+                    &subject,
+                    "source inventory manifest failed internal consistency validation",
+                );
+            }
+            InventoryDisposition::NotComparable => {
+                not_comparable_inventory_count += 1;
+                findings.incomplete(
+                    "SOURCE_INVENTORY_NOT_COMPARABLE",
+                    &subject,
+                    "source cannot establish comparable snapshot or enumeration semantics",
+                );
+            }
+        }
+        per_manifest_validations.push(validation);
+    }
+
+    let disposition = if findings
+        .rows
+        .iter()
+        .any(|finding| finding.severity == InventoryFindingSeverity::Invalid)
+    {
+        InventoryClosureDisposition::InvalidInput
+    } else if !findings.rows.is_empty() {
+        InventoryClosureDisposition::IncompleteOrIndeterminate
+    } else if complete_with_exclusions_count > 0 {
+        InventoryClosureDisposition::CompleteWithDeclaredExclusions
+    } else {
+        InventoryClosureDisposition::CompleteWithinDeclaredOwnerSet
+    };
+
+    InventoryClosureValidation {
+        disposition,
+        expected_owner_count: expected_owners.len(),
+        required_owner_count: required_keys.len(),
+        present_required_owner_count,
+        complete_inventory_count,
+        complete_with_exclusions_count,
+        incomplete_inventory_count,
+        invalid_inventory_count,
+        not_comparable_inventory_count,
+        owner_presence,
+        per_manifest_validations,
+        claim_scope: "caller_supplied_required_owner_set_and_declared_query_snapshots_only"
+            .into(),
+        findings: findings.rows(),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1360,6 +1527,98 @@ mod tests {
                 .iter()
                 .any(|finding| { finding.code == "INVENTORY_TOMBSTONE_IDENTITY_COUNT_MISMATCH" })
         );
+    }
+
+    #[test]
+    fn closure_requires_owner_manifest_presence_and_complete_inventory_dispositions() {
+        let manifest = valid_manifest();
+        let expected = vec![ExpectedSourceOwner {
+            owner_namespace: manifest.source_owner_namespace.clone(),
+            source_system_id: manifest.source_system_id.clone(),
+            required: true,
+        }];
+        let closure = validate_source_inventory_closure(&expected, &[manifest]);
+        assert_eq!(
+            closure.disposition,
+            InventoryClosureDisposition::CompleteWithinDeclaredOwnerSet
+        );
+        assert_eq!(closure.present_required_owner_count, 1);
+        assert_eq!(closure.complete_inventory_count, 1);
+        assert_eq!(
+            closure.claim_scope,
+            "caller_supplied_required_owner_set_and_declared_query_snapshots_only"
+        );
+    }
+
+    #[test]
+    fn closure_does_not_treat_present_but_incomplete_manifest_as_complete() {
+        let mut manifest = valid_manifest();
+        manifest.snapshot_semantics = SnapshotSemantics::BestEffort;
+        manifest.snapshot_token = None;
+        manifest.snapshot_sha256 = None;
+        for page in &mut manifest.page_receipts {
+            page.snapshot_sha256 = None;
+        }
+        manifest.page_receipts[1].predecessor_page_receipt_sha256 =
+            Some(manifest.page_receipts[0].receipt_sha256().unwrap());
+        let expected = vec![ExpectedSourceOwner {
+            owner_namespace: manifest.source_owner_namespace.clone(),
+            source_system_id: manifest.source_system_id.clone(),
+            required: true,
+        }];
+        let closure = validate_source_inventory_closure(&expected, &[manifest]);
+        assert_eq!(
+            closure.disposition,
+            InventoryClosureDisposition::IncompleteOrIndeterminate
+        );
+        assert_eq!(closure.present_required_owner_count, 1);
+        assert_eq!(closure.incomplete_inventory_count, 1);
+    }
+
+    #[test]
+    fn closure_requires_every_required_owner_manifest() {
+        let manifest = valid_manifest();
+        let expected = vec![
+            ExpectedSourceOwner {
+                owner_namespace: manifest.source_owner_namespace.clone(),
+                source_system_id: manifest.source_system_id.clone(),
+                required: true,
+            },
+            ExpectedSourceOwner {
+                owner_namespace: "urn:synthetic:missing-owner".into(),
+                source_system_id: "urn:synthetic:missing-system".into(),
+                required: true,
+            },
+        ];
+        let closure = validate_source_inventory_closure(&expected, &[manifest]);
+        assert_eq!(
+            closure.disposition,
+            InventoryClosureDisposition::IncompleteOrIndeterminate
+        );
+        assert_eq!(closure.present_required_owner_count, 1);
+    }
+
+    #[test]
+    fn closure_preserves_declared_exclusion_status_without_promoting_it_to_unfiltered() {
+        let mut manifest = valid_manifest();
+        manifest.excluded_count = 1;
+        manifest.exclusions = vec![InventoryExclusion {
+            exclusion_code: "restricted_record".into(),
+            item_count: 1,
+            native_record_identity_sha256s: vec![digest('1')],
+            policy_ref: "policy:restricted-records:v1".into(),
+        }];
+        let expected = vec![ExpectedSourceOwner {
+            owner_namespace: manifest.source_owner_namespace.clone(),
+            source_system_id: manifest.source_system_id.clone(),
+            required: true,
+        }];
+        let closure = validate_source_inventory_closure(&expected, &[manifest]);
+        assert_eq!(
+            closure.disposition,
+            InventoryClosureDisposition::CompleteWithDeclaredExclusions
+        );
+        assert_eq!(closure.complete_with_exclusions_count, 1);
     }
 
     #[test]
