@@ -974,6 +974,35 @@ fn bootstrap_pin(
 
 fn main() -> ExitCode {
     let args: Vec<String> = env::args().skip(1).collect();
+    if args.first().is_some_and(|item| item == "verify-batch") {
+        if args.len() != 7 {
+            eprintln!("usage: industry-impact-delta verify-batch <graph.json> <base-report.json> <base-pin.json> <delta-input.json> <received-batch.json> <new-verified-result.json>");
+            return ExitCode::from(4);
+        }
+        let result = (|| {
+            let graph = parse_strict(Path::new(&args[1]))?;
+            let base_report = parse_strict(Path::new(&args[2]))?;
+            let base_pin = parse_strict(Path::new(&args[3]))?;
+            let delta_input = parse_strict(Path::new(&args[4]))?;
+            let received_batch = parse_strict(Path::new(&args[5]))?;
+            let verified = verify_batch(
+                &graph,
+                &base_report,
+                &base_pin,
+                &delta_input,
+                &received_batch,
+            )?;
+            write_new(Path::new(&args[6]), &verified)
+        })();
+        return match result {
+            Ok(()) => ExitCode::SUCCESS,
+            Err(error) => {
+                eprintln!("sparse impact delta batch verification failed closed: {error}");
+                ExitCode::from(2)
+            }
+        };
+    }
+
     if args.first().is_some_and(|item| item == "apply") {
         if args.len() != 8 {
             eprintln!("usage: industry-impact-delta apply <graph.json> <base-report.json> <base-pin.json> <event.json> <metadata.json> <delta.json> <new-apply-result.json>");
@@ -1062,7 +1091,7 @@ fn main() -> ExitCode {
     }
 
     if args.len() != 5 {
-        eprintln!("usage: industry-impact-delta <graph.json> <base-report.json> <base-pin.json> <delta-input.json> <new-batch-result.json> (or subcommands: apply, pin)");
+        eprintln!("usage: industry-impact-delta <graph.json> <base-report.json> <base-pin.json> <delta-input.json> <new-batch-result.json> (or subcommands: verify-batch, apply, pin)");
         return ExitCode::from(4);
     }
     let result = (|| {
