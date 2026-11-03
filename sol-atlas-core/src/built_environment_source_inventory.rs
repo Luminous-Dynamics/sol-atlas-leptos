@@ -97,6 +97,8 @@ pub struct InventoryFinding {
 pub struct InventoryExclusion {
     pub exclusion_code: String,
     pub item_count: u64,
+    /// Every excluded row must be bound to an enumerated owner-native identity.
+    pub native_record_identity_sha256s: Vec<String>,
     pub policy_ref: String,
 }
 
@@ -905,15 +907,48 @@ pub fn validate_source_inventory_manifest(
             "exclusion reason counts do not reconcile to excluded_count",
         );
     }
-    if manifest.exclusions.iter().any(|exclusion| {
-        exclusion.exclusion_code.trim().is_empty()
+    let mut excluded_identities = BTreeSet::new();
+    for exclusion in &manifest.exclusions {
+        if exclusion.exclusion_code.trim().is_empty()
             || exclusion.policy_ref.trim().is_empty()
             || exclusion.item_count == 0
-    }) {
+        {
+            findings.invalid(
+                "INVENTORY_EXCLUSION_REASON_INVALID",
+                "manifest",
+                "each exclusion requires a non-empty reason, policy reference and positive item count",
+            );
+        }
+        if u64::try_from(exclusion.native_record_identity_sha256s.len()).unwrap_or(u64::MAX)
+            != exclusion.item_count
+        {
+            findings.invalid(
+                "INVENTORY_EXCLUSION_IDENTITY_COUNT_MISMATCH",
+                &exclusion.exclusion_code,
+                "exclusion identity digest count must equal the declared excluded item count",
+            );
+        }
+        for identity in &exclusion.native_record_identity_sha256s {
+            if !valid_sha256(identity) || !all_identity_digests.contains(identity) {
+                findings.invalid(
+                    "INVENTORY_EXCLUSION_IDENTITY_NOT_ENUMERATED",
+                    &exclusion.exclusion_code,
+                    "excluded native identity digest must be valid and present in the enumerated source identity set",
+                );
+            } else if !excluded_identities.insert(identity.clone()) {
+                findings.invalid(
+                    "DUPLICATE_INVENTORY_EXCLUSION_IDENTITY",
+                    &exclusion.exclusion_code,
+                    "an enumerated native identity may be assigned to at most one exclusion reason",
+                );
+            }
+        }
+    }
+    if u64::try_from(excluded_identities.len()).unwrap_or(u64::MAX) != manifest.excluded_count {
         findings.invalid(
-            "INVENTORY_EXCLUSION_REASON_INVALID",
+            "INVENTORY_EXCLUDED_IDENTITY_COUNT_MISMATCH",
             "manifest",
-            "each exclusion requires a non-empty reason, policy reference and positive item count",
+            "unique excluded identity digests do not reconcile to excluded_count",
         );
     }
     if manifest.excluded_count > 0 && manifest.exclusions.is_empty() {
@@ -1449,6 +1484,7 @@ mod tests {
         manifest.exclusions = vec![InventoryExclusion {
             exclusion_code: "restricted_record".into(),
             item_count: 2,
+            native_record_identity_sha256s: vec![digest('1'), digest('2')],
             policy_ref: "policy:restricted-records:v1".into(),
         }];
         let result = validate_source_inventory_manifest(&manifest);
@@ -1456,6 +1492,48 @@ mod tests {
             result.disposition,
             InventoryDisposition::CompleteWithDeclaredExclusions
         );
+    }
+
+    #[test]
+    fn declared_exclusion_must_reference_an_enumerated_native_identity() {
+        let mut manifest = valid_manifest();
+        manifest.excluded_count = 1;
+        manifest.exclusions = vec![InventoryExclusion {
+            exclusion_code: "restricted_record".into(),
+            item_count: 1,
+            native_record_identity_sha256s: vec![digest('9')],
+            policy_ref: "policy:restricted-records:v1".into(),
+        }];
+        let result = validate_source_inventory_manifest(&manifest);
+        assert_eq!(result.disposition, InventoryDisposition::InvalidInput);
+        assert!(result.findings.iter().any(|finding| {
+            finding.code == "INVENTORY_EXCLUSION_IDENTITY_NOT_ENUMERATED"
+        }));
+    }
+
+    #[test]
+    fn excluded_identity_cannot_be_assigned_to_two_policy_reasons() {
+        let mut manifest = valid_manifest();
+        manifest.excluded_count = 2;
+        manifest.exclusions = vec![
+            InventoryExclusion {
+                exclusion_code: "restricted_record".into(),
+                item_count: 1,
+                native_record_identity_sha256s: vec![digest('1')],
+                policy_ref: "policy:restricted-records:v1".into(),
+            },
+            InventoryExclusion {
+                exclusion_code: "jurisdiction_hold".into(),
+                item_count: 1,
+                native_record_identity_sha256s: vec![digest('1')],
+                policy_ref: "policy:jurisdiction-hold:v1".into(),
+            },
+        ];
+        let result = validate_source_inventory_manifest(&manifest);
+        assert_eq!(result.disposition, InventoryDisposition::InvalidInput);
+        assert!(result.findings.iter().any(|finding| {
+            finding.code == "DUPLICATE_INVENTORY_EXCLUSION_IDENTITY"
+        }));
     }
 
     #[test]
