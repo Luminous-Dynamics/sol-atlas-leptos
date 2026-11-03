@@ -47,7 +47,7 @@
       ],
       "cursor_before_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
       "cursor_after_sha256": null,
-      "predecessor_page_receipt_sha256": "bcbdedbca20244f41e8a2d0b60ef252af9f8f88bc67da18b7301308d91dde055",
+      "predecessor_page_receipt_sha256": "29f433b5487ded6faa5590565a4c6ba83b678f919dff19cdbeb0959ea4865dd6",
       "snapshot_sha256": "ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss",
       "source_watermark": "watermark-100",
       "response_at": "2026-11-03T10:02:00Z",
