@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/schemas/industry-assurance-impact-delta-batch-v0.1.schema.json",
+  "title": "IEAC Impact Delta Batch Result v0.1",
+  "description": "Single-file result envelope containing nested deltas, resulting full report and next state pin. The companion delta, report and state-pin schemas must be applied to each extracted nested artifact; the caller owns durable transaction and high-water advancement.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "graph_snapshot_sha256", "graph_index_sha256",
+    "graph_index_build_count", "graph_index_reused_for_events",
+    "state_row_map_initializations", "state_row_map_reused_for_events",
+    "full_report_materializations", "total_closure_node_memberships", "graph_node_count", "graph_edge_count", "event_count", "delta_count",
+    "deltas", "resulting_impact_report_sha256", "resulting_event_sequence",
+    "resulting_event_chain_head_sha256", "resulting_impact_report",
+    "next_state_pin", "complete", "claim_ceiling", "action_authority"
+  ],
+  "properties": {
+    "schema_version": { "const": "luminous.ieac-assurance-impact-delta-batch.v0.1" },
+    "graph_snapshot_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "graph_index_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "graph_index_build_count": { "const": 1 },
+    "graph_index_reused_for_events": { "type": "integer", "minimum": 1, "maximum": 10000 },
+    "state_row_map_initializations": { "const": 1 },
+    "state_row_map_reused_for_events": { "type": "integer", "minimum": 1, "maximum": 10000 },
+    "full_report_materializations": { "const": 1 },
+    "total_closure_node_memberships": { "type": "integer", "minimum": 1, "maximum": 2000000 },
+    "graph_node_count": { "type": "integer", "minimum": 1, "maximum": 100000 },
+    "graph_edge_count": { "type": "integer", "minimum": 0, "maximum": 500000 },
+    "event_count": { "type": "integer", "minimum": 1, "maximum": 10000 },
+    "delta_count": { "type": "integer", "minimum": 1, "maximum": 10000 },
+    "deltas": { "type": "array", "minItems": 1, "maxItems": 10000, "items": {
+        "type": "object"
+      } },
+    "resulting_impact_report_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "resulting_event_sequence": { "type": "integer", "minimum": 1 },
+    "resulting_event_chain_head_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "resulting_impact_report": {
+      "type": "object"
+    },
+    "next_state_pin": {
+      "type": "object"
+    },
+    "complete": { "const": true },
+    "claim_ceiling": { "const": "incomplete_or_indeterminate" },
+    "action_authority": { "const": "none" }
+  }
+}

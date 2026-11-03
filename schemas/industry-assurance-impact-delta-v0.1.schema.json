@@ -1,0 +1,135 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/schemas/industry-assurance-impact-delta-v0.1.schema.json",
+  "title": "IEAC Sparse Assurance Impact Delta v0.1",
+  "description": "A base-bound sparse update over a previously verified full impact report. It is not an authorization or signature-verification object.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "delta_id",
+    "graph_snapshot_sha256",
+    "graph_index_sha256",
+    "base_impact_report_sha256",
+    "base_state_sha256",
+    "resulting_state_sha256",
+    "base_event_sequence",
+    "base_event_chain_head_sha256",
+    "event_id",
+    "event_sequence",
+    "event_sha256",
+    "previous_event_sha256",
+    "impact_policy_sha256",
+    "impact_engine_build_sha256",
+    "evaluated_at",
+    "impact_merge_policy",
+    "direct_target_node_ids",
+    "affected_node_ids",
+    "affected_node_count",
+    "updates",
+    "update_count",
+    "closure_verifier",
+    "closure_complete",
+    "resulting_event_sequence",
+    "resulting_event_chain_head_sha256",
+    "claim_ceiling",
+    "action_authority",
+    "delta_sha256"
+  ],
+  "properties": {
+    "schema_version": { "const": "luminous.ieac-assurance-impact-delta.v0.1" },
+    "delta_id": { "type": "string", "minLength": 8, "maxLength": 256 },
+    "graph_snapshot_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "graph_index_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "base_impact_report_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "base_state_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "resulting_state_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "base_event_sequence": { "type": "integer", "minimum": 1 },
+    "base_event_chain_head_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "event_id": { "type": "string", "minLength": 1, "maxLength": 256 },
+    "event_sequence": { "type": "integer", "minimum": 2 },
+    "event_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "previous_event_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "impact_policy_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "impact_engine_build_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "evaluated_at": { "type": "string", "format": "date-time" },
+    "impact_merge_policy": { "const": "monotonic_conservative_join_v0.1" },
+    "direct_target_node_ids": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 10000,
+      "uniqueItems": true,
+      "items": { "type": "string", "pattern": "^[a-z][a-z0-9_-]*:sha256:[0-9a-f]{64}$" }
+    },
+    "affected_node_ids": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 100000,
+      "uniqueItems": true,
+      "items": { "type": "string", "pattern": "^[a-z][a-z0-9_-]*:sha256:[0-9a-f]{64}$" },
+      "description": "Lexicographically ordered exact descendant closure, including direct targets."
+    },
+    "affected_node_count": { "type": "integer", "minimum": 1 },
+    "updates": {
+      "type": "array",
+      "maxItems": 100000,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "node_id",
+          "node_type",
+          "artifact_sha256",
+          "impact_class",
+          "historical_authenticity",
+          "current_reliance",
+          "dependency_path",
+          "reason_codes"
+        ],
+        "properties": {
+          "node_id": { "type": "string", "pattern": "^[a-z][a-z0-9_-]*:sha256:[0-9a-f]{64}$" },
+          "node_type": {
+            "enum": [
+              "source_measurement", "signed_statement", "transparency_receipt",
+              "issuer_key", "transparency_service_key", "schema", "transformation",
+              "model", "policy", "authority_grant", "decision", "action_authorization",
+              "execution", "outcome", "verifier_build", "trust_bundle"
+            ]
+          },
+          "artifact_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+          "impact_class": {
+            "enum": [
+              "no_impact", "historical_record_only", "reverify_required",
+              "claim_invalidated", "quarantined_pending_review"
+            ]
+          },
+          "historical_authenticity": {
+            "enum": ["valid_at_time", "invalid_at_time", "unknown", "not_applicable"]
+          },
+          "current_reliance": {
+            "enum": ["eligible", "reverify_required", "ineligible", "quarantined", "not_applicable"]
+          },
+          "dependency_path": {
+            "type": "array",
+            "maxItems": 10000,
+            "items": { "type": "string", "minLength": 1, "maxLength": 128 }
+          },
+          "reason_codes": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": { "type": "string", "minLength": 1, "maxLength": 128 }
+          }
+        }
+      }
+    },
+    "update_count": { "type": "integer", "minimum": 0 },
+    "closure_verifier": { "const": "independent_iterative_dfs_v0.1" },
+    "closure_complete": { "const": true },
+    "resulting_event_sequence": { "type": "integer", "minimum": 2 },
+    "resulting_event_chain_head_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "claim_ceiling": { "const": "incomplete_or_indeterminate" },
+    "action_authority": { "const": "none" },
+    "delta_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+  }
+}

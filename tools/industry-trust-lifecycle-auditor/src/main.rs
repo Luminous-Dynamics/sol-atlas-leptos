@@ -9,9 +9,9 @@ use std::fs;
 use std::io::Read;
 use std::process::ExitCode;
 
-const GRAPH_SCHEMA: &str = "luminous.ieac-assurance-dependency-graph.v0.1";
-const EVENT_SCHEMA: &str = "luminous.ieac-assurance-invalidation-event.v0.1";
-const REPORT_SCHEMA: &str = "luminous.ieac-assurance-impact-report.v0.1";
+pub(crate) const GRAPH_SCHEMA: &str = "luminous.ieac-assurance-dependency-graph.v0.1";
+pub(crate) const EVENT_SCHEMA: &str = "luminous.ieac-assurance-invalidation-event.v0.1";
+pub(crate) const REPORT_SCHEMA: &str = "luminous.ieac-assurance-impact-report.v0.1";
 const MAX_INPUT_BYTES: u64 = 128 * 1024 * 1024;
 const MAX_GRAPH_NODES: usize = 100_000;
 const MAX_GRAPH_EDGES: usize = 500_000;
@@ -19,7 +19,7 @@ const MAX_EVENT_TARGETS: usize = 10_000;
 const MAX_AUTHORITY_EVENTS_PER_BATCH: usize = 10_000;
 
 #[derive(Debug)]
-enum StrictJson {
+pub(crate) enum StrictJson {
     Null,
     Bool(bool),
     Number(Number),
@@ -29,7 +29,7 @@ enum StrictJson {
 }
 
 impl StrictJson {
-    fn into_value(self) -> Value {
+    pub(crate) fn into_value(self) -> Value {
         match self {
             Self::Null => Value::Null,
             Self::Bool(value) => Value::Bool(value),
@@ -158,13 +158,13 @@ fn sha256_hex(bytes: &[u8]) -> String {
         .collect()
 }
 
-fn canonical_json_digest(value: &Value) -> Result<String, String> {
+pub(crate) fn canonical_json_digest(value: &Value) -> Result<String, String> {
     let bytes = serde_json::to_vec(value)
         .map_err(|error| format!("cannot serialize canonical JSON: {error}"))?;
     Ok(sha256_hex(&bytes))
 }
 
-fn required_string<'a>(value: &'a Value, key: &str, context: &str) -> Result<&'a str, String> {
+pub(crate) fn required_string<'a>(value: &'a Value, key: &str, context: &str) -> Result<&'a str, String> {
     value
         .get(key)
         .and_then(Value::as_str)
@@ -172,7 +172,7 @@ fn required_string<'a>(value: &'a Value, key: &str, context: &str) -> Result<&'a
         .ok_or_else(|| format!("{context}: required non-empty string '{key}' is missing"))
 }
 
-fn valid_sha256(value: &str) -> bool {
+pub(crate) fn valid_sha256(value: &str) -> bool {
     value.len() == 64
         && value
             .bytes()
@@ -181,7 +181,7 @@ fn valid_sha256(value: &str) -> bool {
 
 /// Accept only canonical UTC whole-second timestamps (YYYY-MM-DDTHH:MM:SSZ).
 /// Lexicographic ordering is chronological only after this normalization.
-fn valid_utc_timestamp(value: &str) -> bool {
+pub(crate) fn valid_utc_timestamp(value: &str) -> bool {
     let bytes = value.as_bytes();
     if bytes.len() != 20
         || bytes[4] != b'-'
@@ -289,7 +289,7 @@ fn scope_matches(node: &Value, event_scope: &Value) -> bool {
             .any(|item| event_purposes.contains(item))
 }
 
-fn validate_graph(graph: &Value) -> Result<BTreeMap<String, Value>, String> {
+pub(crate) fn validate_graph(graph: &Value) -> Result<BTreeMap<String, Value>, String> {
     if graph.get("schema_version").and_then(Value::as_str) != Some(GRAPH_SCHEMA) {
         return Err("unsupported dependency graph schema".into());
     }
@@ -438,7 +438,7 @@ fn cause_allows(cause: &str, node_type: &str) -> bool {
     }
 }
 
-fn validate_event(event: &Value, nodes: &BTreeMap<String, Value>) -> Result<(), String> {
+pub(crate) fn validate_event(event: &Value, nodes: &BTreeMap<String, Value>) -> Result<(), String> {
     if event.get("schema_version").and_then(Value::as_str) != Some(EVENT_SCHEMA) {
         return Err("unsupported invalidation event schema".into());
     }
@@ -650,7 +650,7 @@ fn validate_event_chain(
     Ok(ordered)
 }
 
-fn signed_statement_precedes_compromise(
+pub(crate) fn signed_statement_precedes_compromise(
     path: &[String],
     nodes: &BTreeMap<String, Value>,
     effective_at: &str,
@@ -688,46 +688,9 @@ fn signed_statement_precedes_compromise(
     })
 }
 
-fn build_impact_report(
+pub(crate) fn build_forward_adjacency(
     graph: &Value,
-    event: &Value,
-    expected_metadata: &Value,
-    nodes: &BTreeMap<String, Value>,
-) -> Result<Value, String> {
-    let graph_digest = required_string(graph, "graph_snapshot_sha256", "graph")?;
-    let event_digest = canonical_json_digest(event)?;
-    let effective_at = required_string(
-        event.get("valid_time").ok_or("event valid_time missing")?,
-        "effective_at",
-        "event.valid_time",
-    )?;
-    let evaluated_at = required_string(
-        expected_metadata,
-        "evaluated_at",
-        "expected report metadata",
-    )?;
-    if !valid_utc_timestamp(evaluated_at) {
-        return Err("impact evaluation time must be normalized UTC whole-second RFC 3339".into());
-    }
-    let system_time = event
-        .get("system_time")
-        .ok_or("event system_time missing")?;
-    let trusted_at = required_string(system_time, "trusted_at", "event.system_time")?;
-    if !valid_utc_timestamp(trusted_at)
-        || !valid_utc_timestamp(effective_at)
-        || trusted_at > evaluated_at
-        || effective_at > evaluated_at
-    {
-        return Err(
-            "invalidation event was not trusted/effective at the requested evaluation time".into(),
-        );
-    }
-    let event_scope = event.get("scope").ok_or("event scope missing")?;
-    let targets = event
-        .get("targets")
-        .and_then(Value::as_array)
-        .ok_or_else(|| "event.targets must be an array".to_owned())?;
-
+) -> Result<BTreeMap<String, Vec<String>>, String> {
     let mut adjacency: BTreeMap<String, Vec<String>> = BTreeMap::new();
     for edge in graph
         .get("edges")
@@ -745,16 +708,66 @@ fn build_impact_report(
         destinations.sort();
         destinations.dedup();
     }
+    Ok(adjacency)
+}
 
+/// Compute only the nodes reachable from the authorized event targets.
+/// This is shared by the full report and sparse-delta paths so impact
+/// classification semantics do not fork between the two execution modes.
+pub(crate) fn build_impacted_results_with_adjacency(
+    event: &Value,
+    evaluated_at: &str,
+    nodes: &BTreeMap<String, Value>,
+    adjacency: &BTreeMap<String, Vec<String>>,
+) -> Result<BTreeMap<String, Value>, String> {
+    let effective_at = required_string(
+        event.get("valid_time").ok_or("event valid_time missing")?,
+        "effective_at",
+        "event.valid_time",
+    )?;
+    let system_time = event
+        .get("system_time")
+        .ok_or("event system_time missing")?;
+    let trusted_at = required_string(system_time, "trusted_at", "event.system_time")?;
+    if !valid_utc_timestamp(evaluated_at)
+        || !valid_utc_timestamp(trusted_at)
+        || !valid_utc_timestamp(effective_at)
+        || trusted_at > evaluated_at
+        || effective_at > evaluated_at
+    {
+        return Err(
+            "invalidation event was not trusted/effective at the requested evaluation time".into(),
+        );
+    }
+
+    let targets = event
+        .get("targets")
+        .and_then(Value::as_array)
+        .ok_or_else(|| "event.targets must be an array".to_owned())?;
+    let cause = required_string(event, "cause_class", "event")?;
+    let direct_target_ids: BTreeSet<String> = targets
+        .iter()
+        .map(|target| required_string(target, "node_id", "event target").map(str::to_owned))
+        .collect::<Result<_, _>>()?;
+    let key_compromise_semantics = matches!(
+        cause,
+        "issuer_key_compromised"
+            | "issuer_key_revoked_or_rotated"
+            | "transparency_service_key_compromised"
+    );
     let mut paths: BTreeMap<String, Vec<String>> = BTreeMap::new();
     let mut queue = VecDeque::new();
     for target in targets {
         let node_id = required_string(target, "node_id", "event target")?;
-        paths
-            .entry(node_id.to_owned())
-            .or_insert_with(|| vec![node_id.to_owned()]);
-        queue.push_back(node_id.to_owned());
+        if !nodes.contains_key(node_id) {
+            return Err(format!("event target {node_id} is absent from validated graph index"));
+        }
+        if !paths.contains_key(node_id) {
+            paths.insert(node_id.to_owned(), vec![node_id.to_owned()]);
+            queue.push_back(node_id.to_owned());
+        }
     }
+
     while let Some(current) = queue.pop_front() {
         let current_path = paths
             .get(&current)
@@ -762,15 +775,9 @@ fn build_impact_report(
             .ok_or_else(|| "impact traversal lost its current path".to_owned())?;
         if let Some(destinations) = adjacency.get(&current) {
             for destination in destinations {
-                let node = nodes
-                    .get(destination)
-                    .ok_or_else(|| "impact traversal found an unknown node".to_owned())?;
-                // Authority scope constrains the event's direct targets, which
-                // were checked by validate_event. Once a valid target is selected,
-                // dependency impact follows exact graph edges across domain
-                // boundaries: a water decision can still consume an energy
-                // statement. Propagation only triggers re-verification/quarantine
-                // for descendants; it does not grant the revoker authority over them.
+                if !nodes.contains_key(destination) {
+                    return Err(format!("impact traversal found unknown node {destination}"));
+                }
                 if paths.contains_key(destination) {
                     continue;
                 }
@@ -782,44 +789,112 @@ fn build_impact_report(
         }
     }
 
-    let rows = graph
-        .get("nodes")
-        .and_then(Value::as_array)
-        .ok_or("graph.nodes missing")?;
-    let mut results = Vec::with_capacity(rows.len());
-
-    for node in rows {
-        let node_id = required_string(node, "node_id", "graph node")?;
+    let mut results = BTreeMap::new();
+    for (node_id, path) in paths {
+        let node = nodes
+            .get(&node_id)
+            .ok_or_else(|| format!("impact traversal lost graph node {node_id}"))?;
         let node_type = required_string(node, "node_type", "graph node")?;
         let artifact_digest = required_string(node, "artifact_sha256", "graph node")?;
-        let Some(path) = paths.get(node_id) else {
-            let reason = if scope_matches(node, event_scope) {
-                "NO_DEPENDENCY_PATH"
-            } else {
-                "OUTSIDE_INVALIDATION_SCOPE"
-            };
-            results.push(json!({
-                "node_id": node_id,
-                "node_type": node_type,
-                "artifact_sha256": artifact_digest,
-                "impact_class": "no_impact",
-                "historical_authenticity": "valid_at_time",
-                "current_reliance": "eligible",
-                "dependency_path": [],
-                "reason_codes": [reason]
-            }));
-            continue;
+        let direct_invalidation = if direct_target_ids.contains(&node_id) {
+            match (node_type, cause) {
+                ("issuer_key", "issuer_key_compromised") => Some((
+                    "ISSUER_KEY_COMPROMISED",
+                    "CURRENT_KEY_TRUST_WITHDRAWN",
+                )),
+                ("issuer_key", "issuer_key_revoked_or_rotated") => Some((
+                    "ISSUER_KEY_REVOKED_OR_ROTATED",
+                    "CURRENT_KEY_TRUST_WITHDRAWN",
+                )),
+                ("transparency_service_key", "transparency_service_key_compromised") => Some((
+                    "TRANSPARENCY_SERVICE_KEY_COMPROMISED",
+                    "CURRENT_TS_KEY_TRUST_WITHDRAWN",
+                )),
+                ("trust_bundle", "trust_root_changed") => Some((
+                    "TRUST_ROOT_CHANGED",
+                    "CURRENT_TRUST_BUNDLE_REQUIRES_REPLACEMENT",
+                )),
+                ("authority_grant", "authority_revoked") => Some((
+                    "AUTHORITY_GRANT_REVOKED",
+                    "CURRENT_AUTHORITY_WITHDRAWN",
+                )),
+                ("source_measurement", "source_corrected") => Some((
+                    "SOURCE_MEASUREMENT_CORRECTED",
+                    "CURRENT_SOURCE_ASSERTION_WITHDRAWN",
+                )),
+                ("source_measurement", "rights_revoked_or_expired") => Some((
+                    "SOURCE_RIGHTS_REVOKED_OR_EXPIRED",
+                    "CURRENT_EVIDENCE_USE_WITHDRAWN",
+                )),
+                ("signed_statement", "rights_revoked_or_expired") => Some((
+                    "STATEMENT_RIGHTS_REVOKED_OR_EXPIRED",
+                    "CURRENT_EVIDENCE_USE_WITHDRAWN",
+                )),
+                ("authority_grant", "rights_revoked_or_expired") => Some((
+                    "AUTHORITY_GRANT_RIGHTS_REVOKED_OR_EXPIRED",
+                    "CURRENT_AUTHORITY_EVIDENCE_WITHDRAWN",
+                )),
+                ("model", "model_superseded") => Some((
+                    "MODEL_SUPERSEDED",
+                    "CURRENT_MODEL_RELIANCE_WITHDRAWN",
+                )),
+                ("schema", "schema_superseded") => Some((
+                    "SCHEMA_SUPERSEDED",
+                    "CURRENT_SCHEMA_RELIANCE_WITHDRAWN",
+                )),
+                ("verifier_build", "verifier_vulnerable") => Some((
+                    "VERIFIER_BUILD_VULNERABLE",
+                    "CURRENT_VERIFIER_RELIANCE_WITHDRAWN",
+                )),
+                ("policy", "policy_changed") => Some((
+                    "POLICY_SUPERSEDED",
+                    "CURRENT_POLICY_RELIANCE_WITHDRAWN",
+                )),
+                ("execution", "execution_corrected") => Some((
+                    "EXECUTION_RECORD_CORRECTED",
+                    "CURRENT_EXECUTION_RELIANCE_WITHDRAWN",
+                )),
+                ("outcome", "outcome_corrected") => Some((
+                    "OUTCOME_RECORD_CORRECTED",
+                    "CURRENT_OUTCOME_RELIANCE_WITHDRAWN",
+                )),
+                _ => None,
+            }
+        } else {
+            None
         };
-
+        let direct_evidence_dispute =
+            direct_target_ids.contains(&node_id) && cause == "evidence_disputed";
+        let path_starts_at_compromised_key = path.first().is_some_and(|root_id| {
+            direct_target_ids.contains(root_id)
+                && nodes.get(root_id).is_some_and(|root| {
+                    matches!(
+                        root.get("node_type").and_then(Value::as_str),
+                        Some("issuer_key" | "transparency_service_key")
+                    )
+                })
+        });
         let (impact_class, historical, current, reasons): (&str, &str, &str, Vec<&str>) =
-            if node_type == "issuer_key" {
+            if let Some((direct_reason, reliance_reason)) = direct_invalidation {
                 (
                     "claim_invalidated",
                     "unknown",
                     "ineligible",
-                    vec!["ISSUER_KEY_COMPROMISED", "CURRENT_KEY_TRUST_WITHDRAWN"],
+                    vec![direct_reason, reliance_reason],
                 )
-            } else if signed_statement_precedes_compromise(path, nodes, effective_at, evaluated_at)
+            } else if direct_evidence_dispute {
+                (
+                    "quarantined_pending_review",
+                    "unknown",
+                    "quarantined",
+                    vec![
+                        "DIRECT_EVIDENCE_DISPUTED",
+                        "QUARANTINE_UNTIL_DISPUTE_RESOLVED",
+                    ],
+                )
+            } else if key_compromise_semantics
+                && path_starts_at_compromised_key
+                && signed_statement_precedes_compromise(&path, nodes, effective_at, evaluated_at)
             {
                 (
                     "historical_record_only",
@@ -870,15 +945,94 @@ fn build_impact_report(
                 )
             };
 
+        results.insert(
+            node_id.clone(),
+            json!({
+                "node_id": node_id,
+                "node_type": node_type,
+                "artifact_sha256": artifact_digest,
+                "impact_class": impact_class,
+                "historical_authenticity": historical,
+                "current_reliance": current,
+                "dependency_path": path,
+                "reason_codes": reasons
+            }),
+        );
+    }
+    Ok(results)
+}
+
+pub(crate) fn build_impact_report(
+    graph: &Value,
+    event: &Value,
+    expected_metadata: &Value,
+    nodes: &BTreeMap<String, Value>,
+) -> Result<Value, String> {
+    let graph_digest = required_string(graph, "graph_snapshot_sha256", "graph")?;
+    let event_digest = canonical_json_digest(event)?;
+    let effective_at = required_string(
+        event.get("valid_time").ok_or("event valid_time missing")?,
+        "effective_at",
+        "event.valid_time",
+    )?;
+    let evaluated_at = required_string(
+        expected_metadata,
+        "evaluated_at",
+        "expected report metadata",
+    )?;
+    if !valid_utc_timestamp(evaluated_at) {
+        return Err("impact evaluation time must be normalized UTC whole-second RFC 3339".into());
+    }
+    let system_time = event
+        .get("system_time")
+        .ok_or("event system_time missing")?;
+    let trusted_at = required_string(system_time, "trusted_at", "event.system_time")?;
+    if !valid_utc_timestamp(trusted_at)
+        || !valid_utc_timestamp(effective_at)
+        || trusted_at > evaluated_at
+        || effective_at > evaluated_at
+    {
+        return Err(
+            "invalidation event was not trusted/effective at the requested evaluation time".into(),
+        );
+    }
+    let event_scope = event.get("scope").ok_or("event scope missing")?;
+    let adjacency = build_forward_adjacency(graph)?;
+    let impacted_results = build_impacted_results_with_adjacency(
+        event,
+        evaluated_at,
+        nodes,
+        &adjacency,
+    )?;
+
+    let rows = graph
+        .get("nodes")
+        .and_then(Value::as_array)
+        .ok_or("graph.nodes missing")?;
+    let mut results = Vec::with_capacity(rows.len());
+
+    for node in rows {
+        let node_id = required_string(node, "node_id", "graph node")?;
+        if let Some(impact) = impacted_results.get(node_id) {
+            results.push(impact.clone());
+            continue;
+        }
+        let node_type = required_string(node, "node_type", "graph node")?;
+        let artifact_digest = required_string(node, "artifact_sha256", "graph node")?;
+        let reason = if scope_matches(node, event_scope) {
+            "NO_DEPENDENCY_PATH"
+        } else {
+            "OUTSIDE_INVALIDATION_SCOPE"
+        };
         results.push(json!({
             "node_id": node_id,
             "node_type": node_type,
             "artifact_sha256": artifact_digest,
-            "impact_class": impact_class,
-            "historical_authenticity": historical,
-            "current_reliance": current,
-            "dependency_path": path,
-            "reason_codes": reasons
+            "impact_class": "no_impact",
+            "historical_authenticity": "valid_at_time",
+            "current_reliance": "eligible",
+            "dependency_path": [],
+            "reason_codes": [reason]
         }));
     }
 
@@ -1265,6 +1419,110 @@ mod tests {
             .remove("graph_snapshot_sha256");
         fixture["graph"]["graph_snapshot_sha256"] = json!(canonical_json_digest(&core).unwrap());
         assert!(evaluate_fixture(&fixture).is_err());
+    }
+
+    #[test]
+    fn reachable_but_untargeted_issuer_key_is_not_directly_invalidated() {
+        let mut fixture = fixture();
+        let graph = &mut fixture["graph"];
+        let direct_key_id = graph["nodes"][0]["node_id"].clone();
+        let inherited_scope = graph["nodes"][0]["scope"].clone();
+        let descendant_digest =
+            "abababababababababababababababababababababababababababababababab";
+        let descendant_id = format!("issuer_key:sha256:{descendant_digest}");
+        let mut descendant_node = graph["nodes"][0].clone();
+        descendant_node["node_id"] = json!(descendant_id);
+        descendant_node["artifact_sha256"] = json!(descendant_digest);
+        descendant_node["issuer_id"] = json!("urn:example:issuer:descendant-key");
+        descendant_node["scope"] = inherited_scope;
+        graph["nodes"]
+            .as_array_mut()
+            .unwrap()
+            .push(descendant_node);
+        graph["edges"].as_array_mut().unwrap().push(json!({
+            "edge_id": "edge-direct-key-to-descendant-key",
+            "from_node_id": direct_key_id,
+            "to_node_id": descendant_id,
+            "relation": "derived_from"
+        }));
+
+        let mut digest_input = graph.clone();
+        digest_input
+            .as_object_mut()
+            .unwrap()
+            .remove("graph_snapshot_sha256");
+        graph["graph_snapshot_sha256"] = json!(canonical_json_digest(&digest_input).unwrap());
+
+        let event = fixture["invalidation_event"].clone();
+        let nodes = validate_graph(graph).unwrap();
+        validate_event(&event, &nodes).unwrap();
+        let report = build_impact_report(
+            graph,
+            &event,
+            &fixture["expected_impact_report"],
+            &nodes,
+        )
+        .unwrap();
+        let rows = report["results"].as_array().unwrap();
+        let direct = rows
+            .iter()
+            .find(|row| row["node_id"] == direct_key_id)
+            .unwrap();
+        let descendant = rows
+            .iter()
+            .find(|row| row["node_id"] == descendant_id)
+            .unwrap();
+        assert_eq!(direct["impact_class"], "claim_invalidated");
+        assert_eq!(descendant["impact_class"], "reverify_required");
+    }
+
+    #[test]
+    fn source_correction_does_not_apply_key_compromise_historical_exception() {
+        let mut fixture = fixture();
+        let previous_event_digest =
+            fixture["expected_impact_report"]["invalidation_event_sha256"].clone();
+        {
+            let event = &mut fixture["invalidation_event"];
+            event["event_id"] = json!("evt-source-correction-regression-002");
+            event["authority_sequence"] = json!(2);
+            event["previous_event_sha256"] = previous_event_digest;
+            event["cause_class"] = json!("source_corrected");
+            event["invalidation_semantics"] = json!("reverify_required");
+            event["valid_time"]["effective_at"] = json!("2026-11-02T10:30:00Z");
+            event["system_time"]["recorded_at"] = json!("2026-11-02T11:00:00Z");
+            event["system_time"]["trusted_at"] = json!("2026-11-02T11:01:00Z");
+            event["targets"] = json!([{
+                "node_id": "source_measurement:sha256:0202020202020202020202020202020202020202020202020202020202020202",
+                "node_type": "source_measurement",
+                "artifact_sha256": "0202020202020202020202020202020202020202020202020202020202020202"
+            }]);
+        }
+        fixture["expected_impact_report"]["evaluated_at"] = json!("2026-11-03T07:00:00Z");
+        let event = fixture["invalidation_event"].clone();
+        let expected = fixture["expected_impact_report"].clone();
+        let nodes = validate_graph(&fixture["graph"]).unwrap();
+        validate_event(&event, &nodes).unwrap();
+        let report = build_impact_report(
+            &fixture["graph"],
+            &event,
+            &expected,
+            &nodes,
+        )
+        .unwrap();
+        let rows = report["results"].as_array().unwrap();
+        let source = rows
+            .iter()
+            .find(|row| row["node_type"] == "source_measurement"
+                && row["artifact_sha256"] == "0202020202020202020202020202020202020202020202020202020202020202")
+            .unwrap();
+        let statement = rows
+            .iter()
+            .find(|row| row["node_type"] == "signed_statement"
+                && row["artifact_sha256"] == "0303030303030303030303030303030303030303030303030303030303030303")
+            .unwrap();
+        assert_eq!(source["impact_class"], "claim_invalidated");
+        assert_eq!(statement["impact_class"], "quarantined_pending_review");
+        assert!(statement["impact_class"] != "historical_record_only");
     }
 
     #[test]

@@ -7,6 +7,13 @@ on:
       - "schemas/industry-assurance-dependency-graph-v0.1.schema.json"
       - "schemas/industry-assurance-invalidation-event-v0.1.schema.json"
       - "schemas/industry-assurance-impact-report-v0.1.schema.json"
+      - "docs/industry/IEAC_IMPACT_DELTA_V0.1.md"
+      - "schemas/examples/ieac-impact-delta-source-correction-synthetic-v0.1.json"
+      - "schemas/industry-assurance-impact-delta-input-v0.1.schema.json"
+      - "schemas/industry-assurance-impact-delta-batch-v0.1.schema.json"
+      - "schemas/industry-assurance-impact-state-pin-v0.1.schema.json"
+      - "schemas/industry-assurance-impact-delta-v0.1.schema.json"
+      - "schemas/industry-assurance-impact-delta-benchmark-v0.1.schema.json"
       - "schemas/examples/ieac-trust-lifecycle-key-compromise-synthetic-v0.1.json"
       - "docs/industry/IEAC_TRUST_LIFECYCLE_V0.1.md"
       - ".github/workflows/industry-trust-lifecycle.yml"
@@ -19,6 +26,13 @@ on:
       - "schemas/industry-assurance-dependency-graph-v0.1.schema.json"
       - "schemas/industry-assurance-invalidation-event-v0.1.schema.json"
       - "schemas/industry-assurance-impact-report-v0.1.schema.json"
+      - "schemas/industry-assurance-impact-delta-v0.1.schema.json"
+      - "schemas/industry-assurance-impact-state-pin-v0.1.schema.json"
+      - "schemas/industry-assurance-impact-delta-batch-v0.1.schema.json"
+      - "schemas/industry-assurance-impact-delta-input-v0.1.schema.json"
+      - "schemas/industry-assurance-impact-delta-benchmark-v0.1.schema.json"
+      - "schemas/examples/ieac-impact-delta-source-correction-synthetic-v0.1.json"
+      - "docs/industry/IEAC_IMPACT_DELTA_V0.1.md"
       - "schemas/examples/ieac-trust-lifecycle-key-compromise-synthetic-v0.1.json"
       - "docs/industry/IEAC_TRUST_LIFECYCLE_V0.1.md"
       - ".github/workflows/industry-trust-lifecycle.yml"
@@ -41,6 +55,11 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Assert exact checked-out head
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
 
       - name: Install stable Rust
         uses: dtolnay/rust-toolchain@stable
@@ -170,5 +189,170 @@ jobs:
           printf '%s\n' '{"fixture_status":"synthetic_only","fixture_status":"synthetic_only"}' > "$RUNNER_TEMP/duplicate-members.json"
           if cargo run --quiet --locked --manifest-path tools/industry-trust-lifecycle-auditor/Cargo.toml --bin industry-trust-lifecycle-audit -- "$RUNNER_TEMP/duplicate-members.json" "$RUNNER_TEMP/duplicate-members-report.json"; then
             echo "ERROR: auditor accepted duplicate JSON object member names"
+            exit 1
+          fi
+
+      - name: Validate sparse impact-delta contracts and source-correction fixture
+        shell: bash
+        run: |
+          set -euo pipefail
+          meta=https://json-schema.org/draft/2020-12/schema
+          schema_graph=schemas/industry-assurance-dependency-graph-v0.1.schema.json
+          schema_event=schemas/industry-assurance-invalidation-event-v0.1.schema.json
+          schema_report=schemas/industry-assurance-impact-report-v0.1.schema.json
+          schema_delta=schemas/industry-assurance-impact-delta-v0.1.schema.json
+          schema_pin=schemas/industry-assurance-impact-state-pin-v0.1.schema.json
+          schema_batch=schemas/industry-assurance-impact-delta-batch-v0.1.schema.json
+          schema_input=schemas/industry-assurance-impact-delta-input-v0.1.schema.json
+          fixture=schemas/examples/ieac-impact-delta-source-correction-synthetic-v0.1.json
+
+          for schema in "$schema_delta" "$schema_pin" "$schema_batch" "$schema_input"; do
+            jsonschema-cli validate --draft 2020 --assert-format "$meta" -i "$schema"
+          done
+          jsonschema-cli validate --draft 2020 --assert-format --offline "$schema_input" -i "$fixture"
+          jq -e '.events | length == 1' "$fixture"
+          jq -e '.events[0]' "$fixture" > "$RUNNER_TEMP/delta-source-correction-event.json"
+          jsonschema-cli validate --draft 2020 --assert-format --offline "$schema_event" -i "$RUNNER_TEMP/delta-source-correction-event.json"
+
+      - name: Bootstrap exact full-report base and run sparse impact delta
+        shell: bash
+        run: |
+          set -euo pipefail
+          base_fixture=schemas/examples/ieac-trust-lifecycle-key-compromise-synthetic-v0.1.json
+          delta_input=schemas/examples/ieac-impact-delta-source-correction-synthetic-v0.1.json
+          graph="$RUNNER_TEMP/delta-graph.json"
+          base_report="$RUNNER_TEMP/delta-base-report.json"
+          base_pin="$RUNNER_TEMP/delta-base-state-pin.json"
+          batch="$RUNNER_TEMP/impact-delta-batch.json"
+          jq -e '.graph' "$base_fixture" > "$graph"
+          jq -e '.expected_impact_report' "$base_fixture" > "$base_report"
+
+          event_head="$(jq -r '.expected_impact_report.invalidation_event_sha256' "$base_fixture")"
+          recorded_at="$(jq -r '.invalidation_event.system_time.recorded_at' "$base_fixture")"
+          trusted_at="$(jq -r '.invalidation_event.system_time.trusted_at' "$base_fixture")"
+          cargo run --locked --manifest-path tools/industry-trust-lifecycle-auditor/Cargo.toml --bin industry-impact-delta --             pin "$graph" "$base_report" 1 "$event_head" "$recorded_at" "$trusted_at" "$base_pin"
+          jsonschema-cli validate --draft 2020 --assert-format --offline schemas/industry-assurance-impact-state-pin-v0.1.schema.json -i "$base_pin"
+
+          cargo run --locked --manifest-path tools/industry-trust-lifecycle-auditor/Cargo.toml --bin industry-impact-delta --             "$graph" "$base_report" "$base_pin" "$delta_input" "$batch"
+          jsonschema-cli validate --draft 2020 --assert-format --offline schemas/industry-assurance-impact-delta-batch-v0.1.schema.json -i "$batch"
+
+          jq -e '.deltas | length == 1' "$batch"
+          jq -e '.deltas[0]' "$batch" > "$RUNNER_TEMP/impact-delta.json"
+          jq -e '.resulting_impact_report' "$batch" > "$RUNNER_TEMP/impact-delta-result-report.json"
+          jq -e '.next_state_pin' "$batch" > "$RUNNER_TEMP/impact-delta-next-pin.json"
+          jsonschema-cli validate --draft 2020 --assert-format --offline schemas/industry-assurance-impact-delta-v0.1.schema.json -i "$RUNNER_TEMP/impact-delta.json"
+          jsonschema-cli validate --draft 2020 --assert-format --offline schemas/industry-assurance-impact-report-v0.1.schema.json -i "$RUNNER_TEMP/impact-delta-result-report.json"
+          jsonschema-cli validate --draft 2020 --assert-format --offline schemas/industry-assurance-impact-state-pin-v0.1.schema.json -i "$RUNNER_TEMP/impact-delta-next-pin.json"
+
+          jq -e '
+            .schema_version == "luminous.ieac-assurance-impact-delta-batch.v0.1" and
+            .complete == true and
+            .graph_index_build_count == 1 and
+            .graph_index_reused_for_events == 1 and
+            .state_row_map_initializations == 1 and
+            .state_row_map_reused_for_events == 1 and
+            .full_report_materializations == 1 and
+            .total_closure_node_memberships > 0 and
+            .total_closure_node_memberships <= 2000000 and
+            .event_count == 1 and
+            .delta_count == 1 and
+            .resulting_event_sequence == 2 and
+            .resulting_impact_report_sha256 == .next_state_pin.impact_report_sha256 and
+            .next_state_pin.impact_state_sha256 == .deltas[0].resulting_state_sha256 and
+            (.deltas[0].base_state_sha256 | test("^[0-9a-f]{64}$")) and
+            (.deltas[0].resulting_state_sha256 | test("^[0-9a-f]{64}$")) and
+            .resulting_event_chain_head_sha256 == .next_state_pin.event_chain_head_sha256 and
+            .deltas[0].closure_complete == true and
+            .deltas[0].affected_node_count > 0 and
+            .deltas[0].update_count <= .deltas[0].affected_node_count and
+            (.deltas[0].direct_target_node_ids | length == 1) and
+            (.deltas[0].affected_node_ids | length >= 1) and
+            ([.deltas[0].updates[] | select(.impact_class == "no_impact")] | length == 0) and
+            (([.deltas[0].updates[] | select(.impact_class == "claim_invalidated") | .node_id] - .deltas[0].direct_target_node_ids) | length == 0)
+          ' "$batch"
+          jq -e '
+            .summary.node_count == 17 and
+            .historical_record_preserved == true and
+            .action_authority == "none" and
+            .claim_ceiling == "incomplete_or_indeterminate"
+          ' "$RUNNER_TEMP/impact-delta-result-report.json"
+
+      - name: Verify the emitted sparse delta batch as a consumer
+        shell: bash
+        run: |
+          set -euo pipefail
+          base_fixture=schemas/examples/ieac-trust-lifecycle-key-compromise-synthetic-v0.1.json
+          delta_input=schemas/examples/ieac-impact-delta-source-correction-synthetic-v0.1.json
+          graph="$RUNNER_TEMP/verify-batch-graph.json"
+          base_report="$RUNNER_TEMP/verify-batch-base-report.json"
+          base_pin="$RUNNER_TEMP/verify-batch-base-pin.json"
+          jq -e '.graph' "$base_fixture" > "$graph"
+          jq -e '.expected_impact_report' "$base_fixture" > "$base_report"
+          event_head="$(jq -r '.expected_impact_report.invalidation_event_sha256' "$base_fixture")"
+          recorded_at="$(jq -r '.invalidation_event.system_time.recorded_at' "$base_fixture")"
+          trusted_at="$(jq -r '.invalidation_event.system_time.trusted_at' "$base_fixture")"
+          cargo run --quiet --locked --manifest-path tools/industry-trust-lifecycle-auditor/Cargo.toml --bin industry-impact-delta -- \
+            pin "$graph" "$base_report" 1 "$event_head" "$recorded_at" "$trusted_at" "$base_pin"
+          cargo run --locked --manifest-path tools/industry-trust-lifecycle-auditor/Cargo.toml --bin industry-impact-delta -- \
+            verify-batch "$graph" "$base_report" "$base_pin" "$delta_input" "$RUNNER_TEMP/impact-delta-batch.json" "$RUNNER_TEMP/verified-delta-batch.json"
+          jsonschema-cli validate --draft 2020 --assert-format --offline schemas/industry-assurance-impact-delta-batch-v0.1.schema.json -i "$RUNNER_TEMP/verified-delta-batch.json"
+          jq -e --slurpfile generated "$RUNNER_TEMP/impact-delta-batch.json" '
+            .resulting_impact_report_sha256 == $generated[0].resulting_impact_report_sha256 and
+            .next_state_pin.impact_report_sha256 == $generated[0].next_state_pin.impact_report_sha256 and
+            .next_state_pin.impact_state_sha256 == $generated[0].next_state_pin.impact_state_sha256 and
+            .deltas == $generated[0].deltas
+          ' "$RUNNER_TEMP/verified-delta-batch.json"
+
+      - name: Run matched full-recompute versus sparse-delta smoke benchmark
+        shell: bash
+        run: |
+          set -euo pipefail
+          report="$RUNNER_TEMP/impact-delta-benchmark-smoke.json"
+          cargo run --locked --manifest-path tools/industry-trust-lifecycle-auditor/Cargo.toml --bin industry-impact-delta -- benchmark --smoke "$report"
+          jsonschema-cli validate --draft 2020 --assert-format --offline schemas/industry-assurance-impact-delta-benchmark-v0.1.schema.json -i "$report"
+          jq -e '
+            .classification == "synthetic_only" and
+            .benchmark_mode == "smoke_100_to_10000_nodes" and
+            .case_count == 15 and
+            ([.cases[].graph_node_count] | unique) == [100, 1000, 10000] and
+            ([.cases[].impact_fraction_basis_points] | unique) == [10, 100, 1000, 5000, 8000] and
+            all(.cases[]; .exact_report_digest_agreement == true and .graph_index_build_count == 1 and .state_row_map_initializations == 1 and .full_report_materializations == 1 and .total_closure_node_memberships <= 2000000 and .full_recompute_p50_ns > 0 and .sparse_batch_p50_ns > 0)
+          ' "$report"
+
+      - name: Retain delta benchmark report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ieac-impact-delta-benchmark-${{ github.event.pull_request.head.sha || github.sha }}
+          path: ${{ runner.temp }}/impact-delta-benchmark-smoke.json
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Reject stale-base and backdated-event delta inputs
+        shell: bash
+        run: |
+          set -euo pipefail
+          base_fixture=schemas/examples/ieac-trust-lifecycle-key-compromise-synthetic-v0.1.json
+          delta_input=schemas/examples/ieac-impact-delta-source-correction-synthetic-v0.1.json
+          graph="$RUNNER_TEMP/negative-delta-graph.json"
+          base_report="$RUNNER_TEMP/negative-delta-base-report.json"
+          base_pin="$RUNNER_TEMP/negative-delta-base-pin.json"
+          jq -e '.graph' "$base_fixture" > "$graph"
+          jq -e '.expected_impact_report' "$base_fixture" > "$base_report"
+          event_head="$(jq -r '.expected_impact_report.invalidation_event_sha256' "$base_fixture")"
+          recorded_at="$(jq -r '.invalidation_event.system_time.recorded_at' "$base_fixture")"
+          trusted_at="$(jq -r '.invalidation_event.system_time.trusted_at' "$base_fixture")"
+          cargo run --quiet --locked --manifest-path tools/industry-trust-lifecycle-auditor/Cargo.toml --bin industry-impact-delta --             pin "$graph" "$base_report" 1 "$event_head" "$recorded_at" "$trusted_at" "$base_pin"
+
+          jq '.report_id = "tampered-base-report"' "$base_report" > "$RUNNER_TEMP/stale-base-report.json"
+          if cargo run --quiet --locked --manifest-path tools/industry-trust-lifecycle-auditor/Cargo.toml --bin industry-impact-delta --             "$graph" "$RUNNER_TEMP/stale-base-report.json" "$base_pin" "$delta_input" "$RUNNER_TEMP/stale-base-output.json"; then
+            echo "ERROR: delta processor accepted a state pin for a different base report"
+            exit 1
+          fi
+
+          jq '.events[0].system_time.recorded_at = "2026-10-31T09:59:00Z" |
+              .events[0].system_time.trusted_at = "2026-10-31T10:00:00Z"'               "$delta_input" > "$RUNNER_TEMP/backdated-delta-input.json"
+          if cargo run --quiet --locked --manifest-path tools/industry-trust-lifecycle-auditor/Cargo.toml --bin industry-impact-delta --             "$graph" "$base_report" "$base_pin" "$RUNNER_TEMP/backdated-delta-input.json" "$RUNNER_TEMP/backdated-output.json"; then
+            echo "ERROR: delta processor accepted recorded/trusted time rollback"
             exit 1
           fi

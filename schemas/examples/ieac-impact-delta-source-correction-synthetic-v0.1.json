@@ -1,0 +1,66 @@
+{
+  "schema_version": "luminous.ieac-assurance-impact-delta-input.v0.1",
+  "note": "Synthetic second event for sparse impact-delta replay. Authority and timestamp values are fixture claims; the delta tool does not authenticate them.",
+  "events": [
+    {
+      "schema_version": "luminous.ieac-assurance-invalidation-event.v0.1",
+      "event_id": "evt-source-correction-002",
+      "issuer_id": "urn:example:security-authority:site-gateway",
+      "authority_sequence": 2,
+      "previous_event_sha256": "d23d44e7b6b5d2b26c2824d2d336f5f4154ee91e5866520703a496ede96a76ee",
+      "statement_sha256": "1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f",
+      "cause_class": "source_corrected",
+      "targets": [
+        {
+          "node_id": "source_measurement:sha256:0202020202020202020202020202020202020202020202020202020202020202",
+          "node_type": "source_measurement",
+          "artifact_sha256": "0202020202020202020202020202020202020202020202020202020202020202"
+        }
+      ],
+      "scope": {
+        "domains": [
+          "energy"
+        ],
+        "subject_pseudonyms": [
+          "case:site-001:asset:alpha"
+        ],
+        "purposes": [
+          "runtime_admission_descriptive",
+          "outcome_reconciliation"
+        ]
+      },
+      "valid_time": {
+        "effective_at": "2026-11-02T10:30:00Z",
+        "effective_until": null,
+        "effective_time_confidence": "verified"
+      },
+      "system_time": {
+        "recorded_at": "2026-11-02T11:00:00Z",
+        "trusted_at": "2026-11-02T11:01:00Z",
+        "trusted_timestamp_receipt_sha256": "2020202020202020202020202020202020202020202020202020202020202020"
+      },
+      "invalidation_semantics": "reverify_required",
+      "evidence_references": [
+        {
+          "evidence_id": "incident-report-2026-10-30-001",
+          "artifact_sha256": "2121212121212121212121212121212121212121212121212121212121212121",
+          "media_type": "application/vnd.example.security-incident.v1+json"
+        }
+      ],
+      "authority": {
+        "authority_id": "urn:example:security-authority:site-gateway",
+        "key_id": "security-root-2026-01",
+        "scope_policy_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+        "authorization_receipt_sha256": "2323232323232323232323232323232323232323232323232323232323232323",
+        "independent_review": "approved"
+      },
+      "dispute_state": "undisputed",
+      "action_authority": "none"
+    }
+  ],
+  "metadata": {
+    "evaluated_at": "2026-11-03T07:00:00Z",
+    "impact_policy_sha256": "2424242424242424242424242424242424242424242424242424242424242424",
+    "impact_engine_build_sha256": "2525252525252525252525252525252525252525252525252525252525252525"
+  }
+}
