@@ -76,6 +76,9 @@
               "action_authorization",
               "execution",
               "outcome",
+              "source_evidence",
+              "engineering_artifact",
+              "engineering_receipt",
               "verifier_build",
               "trust_bundle"
             ]
