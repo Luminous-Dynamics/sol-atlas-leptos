@@ -1107,6 +1107,17 @@ fn audit_manifest(manifest: &Value, input_sha256: &str) -> Value {
                         "absence assertion expires before it was checked",
                     );
                 }
+                if let Some(source_id) = source_id {
+                    if let Some(source) = sources.get(source_id) {
+                        if get_str(source, "captured_at").is_some_and(|captured| captured > checked) {
+                            audit.invalid(
+                                "ABSENCE_CHECK_PRECEDES_SOURCE_SNAPSHOT",
+                                format!("manifest/absence_assertions/{assertion_id}"),
+                                "absence query time precedes the captured source snapshot it claims to query",
+                            );
+                        }
+                    }
+                }
                 if let Some(evaluated_at) = &evaluated_at {
                     if checked > evaluated_at {
                         audit.invalid(
