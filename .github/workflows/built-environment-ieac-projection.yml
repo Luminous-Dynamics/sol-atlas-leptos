@@ -10,6 +10,7 @@ on:
       - "tests/industry_assurance_projection.rs"
       - "examples/built_environment_ieac_projection_fixture.rs"
       - "schemas/industry-assurance-dependency-graph-v0.2.schema.json"
+      - "schemas/built-environment-ieac-projection-receipt-v0.1.schema.json"
       - ".github/workflows/built-environment-ieac-projection.yml"
   push:
     branches:
@@ -23,6 +24,7 @@ on:
       - "tests/industry_assurance_projection.rs"
       - "examples/built_environment_ieac_projection_fixture.rs"
       - "schemas/industry-assurance-dependency-graph-v0.2.schema.json"
+      - "schemas/built-environment-ieac-projection-receipt-v0.1.schema.json"
       - ".github/workflows/built-environment-ieac-projection.yml"
   workflow_dispatch:
 
@@ -88,7 +90,8 @@ jobs:
           meta=https://json-schema.org/draft/2020-12/schema
           meta_schema="$RUNNER_TEMP/draft-2020-12-meta-schema.json"
           curl --fail --location --retry 5 --retry-connrefused "$meta" -o "$meta_schema"
-          jsonschema-cli validate --draft 2020 --assert-format "$meta" -i "$schema"
+          jsonschema-cli validate --draft 2020 --assert-format "$meta_schema" -i "$graph_schema"
+          jsonschema-cli validate --draft 2020 --assert-format "$meta_schema" -i "$receipt_schema"
           jsonschema-cli validate --draft 2020 --assert-format --offline "$graph_schema" \
             -i "$RUNNER_TEMP/built-environment-projection-graph.json"
           jsonschema-cli validate --draft 2020 --assert-format --offline "$receipt_schema" \
