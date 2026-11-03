@@ -250,8 +250,8 @@ jobs:
             .state_row_map_initializations == 1 and
             .state_row_map_reused_for_events == 1 and
             .full_report_materializations == 1 and
-            .total_affected_node_visits > 0 and
-            .total_affected_node_visits <= 2000000 and
+            .total_closure_node_memberships > 0 and
+            .total_closure_node_memberships <= 2000000 and
             .event_count == 1 and
             .delta_count == 1 and
             .resulting_event_sequence == 2 and
