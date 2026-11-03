@@ -782,11 +782,12 @@ fn apply_delta(
     Ok(expected)
 }
 
-fn run_batch(
+fn process_batch(
     graph: &Value,
     base_report: &Value,
     base_pin: &Value,
     delta_input: &Value,
+    received_batch: Option<&Value>,
 ) -> Result<Value, String> {
     if delta_input.get("schema_version").and_then(Value::as_str)
         != Some(DELTA_INPUT_SCHEMA)
@@ -802,8 +803,6 @@ fn run_batch(
         return Err(format!("event batch must contain 1..={MAX_BATCH_EVENTS} events"));
     }
 
-    // One graph index and one validated mutable row map are reused for the
-    // entire batch. The per-event loop visits only the affected closure.
     let index = GraphIndex::build(graph)?;
     let mut rows = validate_state_pin(&index, base_report, base_pin)?;
     let mut cursor = cursor_from_pin(base_pin)?;
@@ -811,7 +810,7 @@ fn run_batch(
     let mut deltas = Vec::with_capacity(events.len());
     let mut total_closure_node_memberships = 0usize;
 
-    for event in events {
+    for (event_index, event) in events.iter().enumerate() {
         let (delta, next_cursor) = advance_state(
             &index,
             &mut rows,
@@ -821,20 +820,55 @@ fn run_batch(
             event,
             metadata,
         )?;
+
+        if let Some(received) = received_batch {
+            let received_deltas = received
+                .get("deltas")
+                .and_then(Value::as_array)
+                .ok_or("received delta batch has no deltas array")?;
+            let received_delta = received_deltas
+                .get(event_index)
+                .ok_or_else(|| format!("received delta batch is missing event {event_index}"))?;
+            if received_delta != &delta {
+                return Err(format!(
+                    "received sparse delta {event_index} does not match the exact base-bound transition"
+                ));
+            }
+        }
+
         let affected = delta["affected_node_count"]
             .as_u64()
             .and_then(|value| usize::try_from(value).ok())
             .ok_or("delta affected-node count is invalid")?;
         total_closure_node_memberships = total_closure_node_memberships
             .checked_add(affected)
-            .ok_or("batch affected-node visit counter overflow")?;
+            .ok_or("batch closure-membership counter overflow")?;
         if total_closure_node_memberships > MAX_BATCH_CLOSURE_NODE_MEMBERSHIPS {
             return Err(format!(
-                "batch affected-node visit budget exceeded: {total_closure_node_memberships} > {MAX_BATCH_CLOSURE_NODE_MEMBERSHIPS}"
+                "batch closure-membership budget exceeded: {total_closure_node_memberships} > {MAX_BATCH_CLOSURE_NODE_MEMBERSHIPS}"
             ));
         }
         deltas.push(delta);
         cursor = next_cursor;
+    }
+
+    if let Some(received) = received_batch {
+        if received.get("schema_version").and_then(Value::as_str) != Some(BATCH_SCHEMA)
+            || received.get("complete").and_then(Value::as_bool) != Some(true)
+            || received.get("graph_index_build_count").and_then(Value::as_u64) != Some(1)
+            || received.get("graph_index_reused_for_events").and_then(Value::as_u64)
+                != u64::try_from(events.len()).ok()
+            || received.get("state_row_map_initializations").and_then(Value::as_u64) != Some(1)
+            || received.get("state_row_map_reused_for_events").and_then(Value::as_u64)
+                != u64::try_from(events.len()).ok()
+            || received.get("full_report_materializations").and_then(Value::as_u64) != Some(1)
+            || received.get("event_count").and_then(Value::as_u64)
+                != u64::try_from(events.len()).ok()
+            || received.get("delta_count").and_then(Value::as_u64)
+                != u64::try_from(events.len()).ok()
+        {
+            return Err("received delta batch has invalid completeness or work-shape metadata".into());
+        }
     }
 
     // Materialize and hash the full reconciliation representation once, at
@@ -853,7 +887,7 @@ fn run_batch(
         &cursor.state_sha256,
     )?;
 
-    let batch = json!({
+    let expected_batch = json!({
         "schema_version": BATCH_SCHEMA,
         "graph_snapshot_sha256": index.graph_snapshot_sha256,
         "graph_index_sha256": index.index_sha256,
@@ -877,7 +911,41 @@ fn run_batch(
         "claim_ceiling": "incomplete_or_indeterminate",
         "action_authority": "none"
     });
-    Ok(batch)
+
+    if let Some(received) = received_batch {
+        if received != &expected_batch {
+            return Err(
+                "received delta batch does not match the exact base, event chain, sparse state and final report"
+                    .into(),
+            );
+        }
+    }
+    Ok(expected_batch)
+}
+
+fn run_batch(
+    graph: &Value,
+    base_report: &Value,
+    base_pin: &Value,
+    delta_input: &Value,
+) -> Result<Value, String> {
+    process_batch(graph, base_report, base_pin, delta_input, None)
+}
+
+fn verify_batch(
+    graph: &Value,
+    base_report: &Value,
+    base_pin: &Value,
+    delta_input: &Value,
+    received_batch: &Value,
+) -> Result<Value, String> {
+    process_batch(
+        graph,
+        base_report,
+        base_pin,
+        delta_input,
+        Some(received_batch),
+    )
 }
 
 fn bootstrap_pin(
