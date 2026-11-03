@@ -1434,7 +1434,10 @@ mod tests {
                 .iter()
                 .find(|row| row["native_key"].as_str() == Some(record_key.as_str()))
                 .unwrap();
-            assert_eq!(mapping["identity_sha256"].as_str(), Some(expected_identity.as_str()));
+            assert_eq!(
+                mapping["identity_sha256"].as_str(),
+                Some(expected_identity.as_str())
+            );
 
             let node = composed.projection.graph["nodes"]
                 .as_array()
