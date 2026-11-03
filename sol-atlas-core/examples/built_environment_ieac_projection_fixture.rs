@@ -6,7 +6,7 @@
 
 use serde_json::json;
 use sol_atlas_core::built_environment_case::{
-    ArtifactKind, ArtifactReference, BuiltEnvironmentCase, DataRights, DecisionDisposition,
+    ArtifactKind, ArtifactRecord, ArtifactReference, BuiltEnvironmentCase, DataRights, DecisionDisposition,
     DecisionRecord, EngineeringConclusion, EngineeringDiscipline, EngineeringReceipt,
     EvidenceRecord, EvidenceState, ReviewLevel, SolverRunStatus,
 };
