@@ -219,7 +219,8 @@ fn main() -> Result<(), Box<dyn Error>> {
         limitations: vec![
             "Synthetic-only descriptor inputs.".into(),
             "The fixture does not retrieve or independently hash source bytes.".into(),
-            "Owner namespaces, rights evidence, and attestations are not authenticated here.".into(),
+            "Owner namespaces, rights evidence, and attestations are not authenticated here."
+                .into(),
             "No engineering result, approval, or actuation authority is established.".into(),
         ],
     };

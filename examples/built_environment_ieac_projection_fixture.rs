@@ -79,10 +79,22 @@ fn main() -> Result<(), Box<dyn Error>> {
         projector_build_sha256: Some(digest(b'd')),
         mapping_profile_sha256: digest(b'e'),
         native_identity_namespaces: BTreeMap::from([
-            ("evidence:evidence-fixture-001".into(), "urn:fixture:evidence-registry".into()),
-            ("artifact:artifact-fixture-001".into(), "urn:fixture:design-repository".into()),
-            ("engineering_receipt:receipt-fixture-001".into(), "urn:fixture:solver-registry".into()),
-            ("decision:decision-fixture-001".into(), "urn:fixture:authority-registry".into()),
+            (
+                "evidence:evidence-fixture-001".into(),
+                "urn:fixture:evidence-registry".into(),
+            ),
+            (
+                "artifact:artifact-fixture-001".into(),
+                "urn:fixture:design-repository".into(),
+            ),
+            (
+                "engineering_receipt:receipt-fixture-001".into(),
+                "urn:fixture:solver-registry".into(),
+            ),
+            (
+                "decision:decision-fixture-001".into(),
+                "urn:fixture:authority-registry".into(),
+            ),
         ]),
     };
 

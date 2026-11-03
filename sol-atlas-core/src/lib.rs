@@ -11,13 +11,13 @@
 pub mod aesthetics;
 pub mod built_environment_case;
 pub mod built_environment_source_descriptor;
-pub mod industry_assurance_projection;
 pub mod confluence;
 pub mod constants;
 pub mod data;
 pub mod economics;
 pub mod energy_trading;
 pub mod geo;
+pub mod industry_assurance_projection;
 pub mod lod;
 pub mod mycelix_flows;
 // pub mod relativity_viz;

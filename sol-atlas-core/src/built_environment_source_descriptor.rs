@@ -269,9 +269,7 @@ fn valid_component_name(name: &str) -> bool {
     let mut bytes = name.bytes();
     bytes.next().is_some_and(|byte| byte.is_ascii_lowercase())
         && bytes.all(|byte| {
-            byte.is_ascii_lowercase()
-                || byte.is_ascii_digit()
-                || matches!(byte, b'_' | b'.' | b'-')
+            byte.is_ascii_lowercase() || byte.is_ascii_digit() || matches!(byte, b'_' | b'.' | b'-')
         })
 }
 
@@ -331,22 +329,33 @@ fn identity_digest(descriptor: &SourceRecordDescriptor) -> Result<String, String
         || descriptor.owner_namespace.len() > 1024
         || descriptor.owner_namespace.as_str() != descriptor.owner_namespace.trim()
     {
-        return Err("owner namespace must be non-empty, trimmed, and at most 1024 UTF-8 bytes".into());
+        return Err(
+            "owner namespace must be non-empty, trimmed, and at most 1024 UTF-8 bytes".into(),
+        );
     }
 
     let mut components = BTreeMap::new();
     for component in &descriptor.native_identity_components {
         if !valid_component_name(&component.name) {
-            return Err(format!("invalid native identity component name: {}", component.name));
+            return Err(format!(
+                "invalid native identity component name: {}",
+                component.name
+            ));
         }
         if component.value.is_empty() {
-            return Err(format!("native identity component {} is empty", component.name));
+            return Err(format!(
+                "native identity component {} is empty",
+                component.name
+            ));
         }
         if components
             .insert(component.name.clone(), component.value.clone())
             .is_some()
         {
-            return Err(format!("duplicate native identity component: {}", component.name));
+            return Err(format!(
+                "duplicate native identity component: {}",
+                component.name
+            ));
         }
     }
     if !components.contains_key("native_id") {
@@ -361,11 +370,16 @@ fn identity_digest(descriptor: &SourceRecordDescriptor) -> Result<String, String
     .iter()
     .any(|name| components.contains_key(*name))
     {
-        return Err("native identity requires a record, revision, sequence, or observation discriminator".into());
+        return Err(
+            "native identity requires a record, revision, sequence, or observation discriminator"
+                .into(),
+        );
     }
 
     if components.contains_key("case_id") {
-        return Err("case_id is graph membership scope, not a source-native identity component".into());
+        return Err(
+            "case_id is graph membership scope, not a source-native identity component".into(),
+        );
     }
     let mut encoded = IDENTITY_DOMAIN.to_vec();
     append_identity_field(&mut encoded, descriptor.record_kind.node_type());
@@ -386,11 +400,12 @@ fn expected_case_records(case: &BuiltEnvironmentCase) -> BTreeSet<(SourceRecordK
                 .iter()
                 .map(|record| (SourceRecordKind::Artifact, record.artifact_id.clone())),
         )
-        .chain(
-            case.engineering_receipts
-                .iter()
-                .map(|record| (SourceRecordKind::EngineeringReceipt, record.receipt_id.clone())),
-        )
+        .chain(case.engineering_receipts.iter().map(|record| {
+            (
+                SourceRecordKind::EngineeringReceipt,
+                record.receipt_id.clone(),
+            )
+        }))
         .chain(
             case.decisions
                 .iter()
@@ -407,7 +422,10 @@ fn expected_identity_components(
     let mut components = BTreeMap::new();
     match kind {
         SourceRecordKind::Evidence => {
-            let record = case.evidence.iter().find(|row| row.evidence_id == record_id)?;
+            let record = case
+                .evidence
+                .iter()
+                .find(|row| row.evidence_id == record_id)?;
             components.insert("native_id".into(), record.source_id.clone());
             components.insert("native_record_id".into(), record.evidence_id.clone());
             components.insert("field_path".into(), record.field_path.clone());
@@ -415,7 +433,10 @@ fn expected_identity_components(
             components.insert("jurisdiction".into(), record.jurisdiction.clone());
         }
         SourceRecordKind::Artifact => {
-            let record = case.artifacts.iter().find(|row| row.artifact_id == record_id)?;
+            let record = case
+                .artifacts
+                .iter()
+                .find(|row| row.artifact_id == record_id)?;
             components.insert("native_id".into(), record.design_id.clone());
             components.insert("native_record_id".into(), record.artifact_id.clone());
             components.insert("native_revision".into(), record.revision.to_string());
@@ -423,12 +444,18 @@ fn expected_identity_components(
             components.insert("jurisdiction".into(), record.jurisdiction.clone());
         }
         SourceRecordKind::EngineeringReceipt => {
-            let record = case.engineering_receipts.iter().find(|row| row.receipt_id == record_id)?;
+            let record = case
+                .engineering_receipts
+                .iter()
+                .find(|row| row.receipt_id == record_id)?;
             components.insert("native_id".into(), record.design_id.clone());
             components.insert("native_record_id".into(), record.receipt_id.clone());
         }
         SourceRecordKind::Decision => {
-            let record = case.decisions.iter().find(|row| row.event_id == record_id)?;
+            let record = case
+                .decisions
+                .iter()
+                .find(|row| row.event_id == record_id)?;
             components.insert("native_id".into(), record.design_id.clone());
             components.insert("native_record_id".into(), record.event_id.clone());
         }
@@ -478,7 +505,11 @@ fn validate_payload(
     let payload = &descriptor.source_payload;
     if let Some(digest) = payload.sha256.as_deref() {
         if !valid_sha256(digest) {
-            findings.invalid("INVALID_SOURCE_PAYLOAD_DIGEST", key, "source payload digest is not lowercase SHA-256");
+            findings.invalid(
+                "INVALID_SOURCE_PAYLOAD_DIGEST",
+                key,
+                "source payload digest is not lowercase SHA-256",
+            );
         }
     }
 
@@ -487,7 +518,10 @@ fn validate_payload(
             if !payload.bytes_retrieved
                 || payload.sha256.is_none()
                 || payload.byte_length.is_none()
-                || payload.payload_object_ref.as_deref().is_none_or(str::is_empty)
+                || payload
+                    .payload_object_ref
+                    .as_deref()
+                    .is_none_or(str::is_empty)
             {
                 findings.invalid(
                     "LOCAL_PAYLOAD_DIGEST_BASIS_INCONSISTENT",
@@ -495,9 +529,10 @@ fn validate_payload(
                     "locally retrieved and hashed payload requires digest, byte retrieval, byte length, and content-addressed object reference",
                 );
             }
-            if let (Some(digest), Some(object_ref)) =
-                (payload.sha256.as_deref(), payload.payload_object_ref.as_deref())
-            {
+            if let (Some(digest), Some(object_ref)) = (
+                payload.sha256.as_deref(),
+                payload.payload_object_ref.as_deref(),
+            ) {
                 if object_ref != expected_cas_reference(digest) {
                     findings.invalid(
                         "PAYLOAD_OBJECT_REFERENCE_DIGEST_MISMATCH",
@@ -515,7 +550,12 @@ fn validate_payload(
                     "source-owner-attested digest requires a digest and must not claim local byte retrieval",
                 );
             }
-            if descriptor.attestation.statement_ref.as_deref().is_none_or(str::is_empty) {
+            if descriptor
+                .attestation
+                .statement_ref
+                .as_deref()
+                .is_none_or(str::is_empty)
+            {
                 findings.incomplete(
                     "SOURCE_PAYLOAD_ATTESTATION_REFERENCE_MISSING",
                     key,
@@ -531,7 +571,10 @@ fn validate_payload(
         PayloadDigestBasis::ExternalReference => {
             if payload.bytes_retrieved
                 || payload.sha256.is_none()
-                || payload.payload_object_ref.as_deref().is_none_or(str::is_empty)
+                || payload
+                    .payload_object_ref
+                    .as_deref()
+                    .is_none_or(str::is_empty)
             {
                 findings.invalid(
                     "EXTERNAL_PAYLOAD_REFERENCE_INCONSISTENT",
@@ -539,9 +582,10 @@ fn validate_payload(
                     "external reference requires a digest and object reference and cannot claim local byte retrieval",
                 );
             }
-            if let (Some(digest), Some(object_ref)) =
-                (payload.sha256.as_deref(), payload.payload_object_ref.as_deref())
-            {
+            if let (Some(digest), Some(object_ref)) = (
+                payload.sha256.as_deref(),
+                payload.payload_object_ref.as_deref(),
+            ) {
                 if object_ref != expected_cas_reference(digest) {
                     findings.invalid(
                         "PAYLOAD_OBJECT_REFERENCE_DIGEST_MISMATCH",
@@ -606,7 +650,12 @@ fn validate_payload(
             "source schema ID or version is not represented by this descriptor",
         );
     }
-    if payload.schema_id.is_some() && payload.schema_sha256.as_deref().is_none_or(|v| !valid_sha256(v)) {
+    if payload.schema_id.is_some()
+        && payload
+            .schema_sha256
+            .as_deref()
+            .is_none_or(|v| !valid_sha256(v))
+    {
         findings.incomplete(
             "SOURCE_SCHEMA_DIGEST_UNAVAILABLE",
             key,
@@ -636,7 +685,11 @@ fn validate_rights(descriptor: &SourceRecordDescriptor, findings: &mut Findings,
     match descriptor.rights.state {
         SourceRightsState::Verified => {
             if descriptor.rights.permitted_uses.is_empty()
-                || descriptor.rights.rights_evidence_ref.as_deref().is_none_or(str::is_empty)
+                || descriptor
+                    .rights
+                    .rights_evidence_ref
+                    .as_deref()
+                    .is_none_or(str::is_empty)
             {
                 findings.incomplete(
                     "VERIFIED_RIGHTS_LACK_SCOPE_EVIDENCE",
@@ -653,11 +706,7 @@ fn validate_rights(descriptor: &SourceRecordDescriptor, findings: &mut Findings,
                     "unknown rights cannot carry permitted uses",
                 );
             }
-            findings.incomplete(
-                "SOURCE_RIGHTS_UNKNOWN",
-                key,
-                "source rights are unknown",
-            );
+            findings.incomplete("SOURCE_RIGHTS_UNKNOWN", key, "source rights are unknown");
         }
         SourceRightsState::Restricted => findings.incomplete(
             "SOURCE_RIGHTS_RESTRICTED",
@@ -668,7 +717,12 @@ fn validate_rights(descriptor: &SourceRecordDescriptor, findings: &mut Findings,
     }
 }
 
-fn validate_time(descriptor: &SourceRecordDescriptor, catalog: &SourceDescriptorCatalog, findings: &mut Findings, key: &str) {
+fn validate_time(
+    descriptor: &SourceRecordDescriptor,
+    catalog: &SourceDescriptorCatalog,
+    findings: &mut Findings,
+    key: &str,
+) {
     let snapshot = &descriptor.source_snapshot;
     if snapshot.source_id.trim().is_empty() || snapshot.snapshot_id.trim().is_empty() {
         findings.invalid(
@@ -678,20 +732,35 @@ fn validate_time(descriptor: &SourceRecordDescriptor, catalog: &SourceDescriptor
         );
     }
     if !valid_sha256(&snapshot.snapshot_sha256) {
-        findings.invalid("INVALID_SOURCE_SNAPSHOT_DIGEST", key, "source snapshot digest is invalid");
+        findings.invalid(
+            "INVALID_SOURCE_SNAPSHOT_DIGEST",
+            key,
+            "source snapshot digest is invalid",
+        );
     }
     for (name, time) in [
         ("snapshot.captured_at", snapshot.captured_at.as_str()),
         ("snapshot.retrieved_at", snapshot.retrieved_at.as_str()),
-        ("observation.recorded_at", descriptor.observation_time.recorded_at.as_str()),
+        (
+            "observation.recorded_at",
+            descriptor.observation_time.recorded_at.as_str(),
+        ),
     ] {
         if !valid_utc_timestamp(time) {
-            findings.invalid("INVALID_SOURCE_TIME", key, format!("{name} is not canonical UTC whole-second time"));
+            findings.invalid(
+                "INVALID_SOURCE_TIME",
+                key,
+                format!("{name} is not canonical UTC whole-second time"),
+            );
         }
     }
     if let Some(observed_at) = descriptor.observation_time.observed_at.as_deref() {
         if !valid_utc_timestamp(observed_at) {
-            findings.invalid("INVALID_SOURCE_TIME", key, "observed_at is not canonical UTC whole-second time");
+            findings.invalid(
+                "INVALID_SOURCE_TIME",
+                key,
+                "observed_at is not canonical UTC whole-second time",
+            );
         } else if observed_at > descriptor.observation_time.recorded_at.as_str() {
             findings.incomplete(
                 "OBSERVATION_TIME_AFTER_RECORDING_TIME",
@@ -701,7 +770,11 @@ fn validate_time(descriptor: &SourceRecordDescriptor, catalog: &SourceDescriptor
         }
     }
     if snapshot.captured_at > snapshot.retrieved_at {
-        findings.invalid("SOURCE_SNAPSHOT_TIME_REVERSAL", key, "source retrieval precedes snapshot capture");
+        findings.invalid(
+            "SOURCE_SNAPSHOT_TIME_REVERSAL",
+            key,
+            "source retrieval precedes snapshot capture",
+        );
     }
     if snapshot.retrieved_at > catalog.captured_at {
         findings.incomplete(
@@ -751,8 +824,7 @@ pub fn validate_source_descriptor_catalog_set(
     }
 
     let mut seen_catalog_cases = BTreeSet::new();
-    let mut native_identities =
-        BTreeMap::<String, (String, Option<String>)>::new();
+    let mut native_identities = BTreeMap::<String, (String, Option<String>)>::new();
     let mut shared_native_identity_reference_count = 0usize;
     let mut conflicting_native_identity_count = 0usize;
 
@@ -783,23 +855,16 @@ pub fn validate_source_descriptor_catalog_set(
             }
         }
 
-        for (record_key, identity_sha256) in
-            &validation.identity_sha256_by_case_record
-        {
+        for (record_key, identity_sha256) in &validation.identity_sha256_by_case_record {
             let payload_sha256 = catalog
                 .descriptors
                 .iter()
                 .find(|descriptor| {
-                    descriptor
-                        .record_kind
-                        .case_key(&descriptor.case_record_id)
-                        == *record_key
+                    descriptor.record_kind.case_key(&descriptor.case_record_id) == *record_key
                 })
                 .and_then(|descriptor| descriptor.source_payload.sha256.clone());
 
-            if let Some((first_case_key, first_digest)) =
-                native_identities.get(identity_sha256)
-            {
+            if let Some((first_case_key, first_digest)) = native_identities.get(identity_sha256) {
                 shared_native_identity_reference_count += 1;
                 match (first_digest.as_deref(), payload_sha256.as_deref()) {
                     (Some(first), Some(current)) if first != current => {
@@ -826,10 +891,7 @@ pub fn validate_source_descriptor_catalog_set(
             } else {
                 native_identities.insert(
                     identity_sha256.clone(),
-                    (
-                        format!("{}:{record_key}", catalog.case_id),
-                        payload_sha256,
-                    ),
+                    (format!("{}:{record_key}", catalog.case_id), payload_sha256),
                 );
             }
         }
@@ -870,25 +932,53 @@ pub fn validate_source_descriptor_catalog(
 ) -> DescriptorValidation {
     let mut findings = Findings::default();
     if catalog.schema_version != CATALOG_SCHEMA {
-        findings.invalid("UNSUPPORTED_DESCRIPTOR_SCHEMA", "catalog", "unsupported source descriptor schema version");
+        findings.invalid(
+            "UNSUPPORTED_DESCRIPTOR_SCHEMA",
+            "catalog",
+            "unsupported source descriptor schema version",
+        );
     }
     if catalog.case_id != case.case_id {
-        findings.invalid("CATALOG_CASE_ID_MISMATCH", "catalog", "catalogue case ID differs from BuiltEnvironmentCase");
+        findings.invalid(
+            "CATALOG_CASE_ID_MISMATCH",
+            "catalog",
+            "catalogue case ID differs from BuiltEnvironmentCase",
+        );
     }
     if catalog.claim_ceiling != "descriptor_integrity_only" {
-        findings.invalid("DESCRIPTOR_CLAIM_CEILING_ESCALATION", "catalog", "catalogue claim ceiling must be descriptor_integrity_only");
+        findings.invalid(
+            "DESCRIPTOR_CLAIM_CEILING_ESCALATION",
+            "catalog",
+            "catalogue claim ceiling must be descriptor_integrity_only",
+        );
     }
     if catalog.action_authority != "none" {
-        findings.invalid("DESCRIPTOR_ACTION_AUTHORITY_ESCALATION", "catalog", "descriptor catalogue grants no action authority");
+        findings.invalid(
+            "DESCRIPTOR_ACTION_AUTHORITY_ESCALATION",
+            "catalog",
+            "descriptor catalogue grants no action authority",
+        );
     }
     if !valid_utc_timestamp(&catalog.captured_at) {
-        findings.invalid("INVALID_CATALOG_CAPTURE_TIME", "catalog", "catalog captured_at must be canonical UTC whole-second time");
+        findings.invalid(
+            "INVALID_CATALOG_CAPTURE_TIME",
+            "catalog",
+            "catalog captured_at must be canonical UTC whole-second time",
+        );
     }
     if !valid_sha256(&catalog.case_representation_sha256) {
-        findings.invalid("INVALID_CASE_REPRESENTATION_DIGEST", "catalog", "case representation digest must be lowercase SHA-256");
+        findings.invalid(
+            "INVALID_CASE_REPRESENTATION_DIGEST",
+            "catalog",
+            "case representation digest must be lowercase SHA-256",
+        );
     }
     if catalog.limitations.is_empty() {
-        findings.invalid("DESCRIPTOR_LIMITATIONS_MISSING", "catalog", "descriptor catalogue must state its limitations");
+        findings.invalid(
+            "DESCRIPTOR_LIMITATIONS_MISSING",
+            "catalog",
+            "descriptor catalogue must state its limitations",
+        );
     }
 
     match serde_json::to_vec(case) {
@@ -924,18 +1014,28 @@ pub fn validate_source_descriptor_catalog(
     let mut native_identity_components = BTreeMap::new();
 
     for descriptor in &catalog.descriptors {
-        let key = descriptor
-            .record_kind
-            .case_key(&descriptor.case_record_id);
+        let key = descriptor.record_kind.case_key(&descriptor.case_record_id);
         let record_key = (descriptor.record_kind, descriptor.case_record_id.clone());
         if descriptor.case_record_id.trim().is_empty() {
-            findings.invalid("EMPTY_CASE_RECORD_ID", &key, "case_record_id must be non-empty");
+            findings.invalid(
+                "EMPTY_CASE_RECORD_ID",
+                &key,
+                "case_record_id must be non-empty",
+            );
         }
         if !expected.contains(&record_key) {
-            findings.invalid("DESCRIPTOR_WITHOUT_CASE_RECORD", &key, "descriptor has no matching typed case record");
+            findings.invalid(
+                "DESCRIPTOR_WITHOUT_CASE_RECORD",
+                &key,
+                "descriptor has no matching typed case record",
+            );
         }
         if !seen.insert(record_key.clone()) {
-            findings.invalid("DUPLICATE_CASE_RECORD_DESCRIPTOR", &key, "each typed case record may have only one descriptor");
+            findings.invalid(
+                "DUPLICATE_CASE_RECORD_DESCRIPTOR",
+                &key,
+                "each typed case record may have only one descriptor",
+            );
         }
 
         let expected_components =
@@ -951,14 +1051,17 @@ pub fn validate_source_descriptor_catalog(
                     findings.invalid(
                         "NATIVE_IDENTITY_COMPONENT_CASE_DISAGREEMENT",
                         &key,
-                        format!("native identity component {name} disagrees with the typed case record"),
+                        format!(
+                            "native identity component {name} disagrees with the typed case record"
+                        ),
                     );
                 }
             }
         }
         match identity_digest(descriptor) {
             Ok(identity_sha256) => {
-                if let Some((other_key, previous_digest)) = native_identities.get(&identity_sha256) {
+                if let Some((other_key, previous_digest)) = native_identities.get(&identity_sha256)
+                {
                     if other_key != &key {
                         findings.invalid(
                             "DUPLICATE_NATIVE_IDENTITY",
@@ -996,11 +1099,16 @@ pub fn validate_source_descriptor_catalog(
             || descriptor.owner_namespace.len() > 1024
             || descriptor.owner_namespace.as_str() != descriptor.owner_namespace.trim()
         {
-            findings.invalid("INVALID_OWNER_NAMESPACE", &key, "owner namespace must be non-empty, trimmed, and at most 1024 UTF-8 bytes");
+            findings.invalid(
+                "INVALID_OWNER_NAMESPACE",
+                &key,
+                "owner namespace must be non-empty, trimmed, and at most 1024 UTF-8 bytes",
+            );
         }
         validate_payload(
             descriptor,
-            case_payload_digest(case, descriptor.record_kind, &descriptor.case_record_id).as_deref(),
+            case_payload_digest(case, descriptor.record_kind, &descriptor.case_record_id)
+                .as_deref(),
             &mut findings,
             &key,
         );
@@ -1013,7 +1121,8 @@ pub fn validate_source_descriptor_catalog(
                 "descriptor catalogue must not claim to authenticate signatures or trust roots",
             );
         }
-        if descriptor.attestation.statement_ref.is_some() && descriptor.attestation.key_id.is_none() {
+        if descriptor.attestation.statement_ref.is_some() && descriptor.attestation.key_id.is_none()
+        {
             findings.incomplete(
                 "ATTESTATION_KEY_ID_MISSING",
                 &key,
@@ -1036,7 +1145,11 @@ pub fn validate_source_descriptor_catalog(
         .collect::<Vec<_>>();
 
     if catalog.descriptors.is_empty() {
-        findings.invalid("EMPTY_SOURCE_DESCRIPTOR_CATALOG", "catalog", "empty descriptor catalogue is not meaningful");
+        findings.invalid(
+            "EMPTY_SOURCE_DESCRIPTOR_CATALOG",
+            "catalog",
+            "empty descriptor catalogue is not meaningful",
+        );
     }
 
     let disposition = findings.disposition();
@@ -1154,7 +1267,12 @@ mod tests {
             },
             NativeIdentityComponent {
                 name: "native_revision".into(),
-                value: if kind == SourceRecordKind::Artifact { "2" } else { "1" }.into(),
+                value: if kind == SourceRecordKind::Artifact {
+                    "2"
+                } else {
+                    "1"
+                }
+                .into(),
             },
         ];
         match kind {
@@ -1276,7 +1394,9 @@ mod tests {
             ],
             claim_ceiling: "descriptor_integrity_only".into(),
             action_authority: "none".into(),
-            limitations: vec!["Synthetic descriptor data; trust and byte checks are separate.".into()],
+            limitations: vec![
+                "Synthetic descriptor data; trust and byte checks are separate.".into(),
+            ],
         }
     }
 
@@ -1294,8 +1414,7 @@ mod tests {
             mapping_profile_sha256: digest('e'),
             native_identity_namespaces: BTreeMap::new(),
         };
-        let composed =
-            project_built_environment_case_with_descriptors(&case, &context, &catalog);
+        let composed = project_built_environment_case_with_descriptors(&case, &context, &catalog);
 
         assert_eq!(
             composed.descriptor_validation.disposition,
@@ -1305,8 +1424,9 @@ mod tests {
             composed.projection.disposition,
             crate::industry_assurance_projection::ProjectionDisposition::ProjectedWithoutKnownLoss
         );
-        for (record_key, expected_identity) in
-            &composed.descriptor_validation.identity_sha256_by_case_record
+        for (record_key, expected_identity) in &composed
+            .descriptor_validation
+            .identity_sha256_by_case_record
         {
             let mapping = composed.projection.projection_receipt["node_mappings"]
                 .as_array()
@@ -1322,9 +1442,13 @@ mod tests {
                 .iter()
                 .find(|node| node["identity_sha256"] == expected_identity)
                 .unwrap();
-            let descriptor = catalog.descriptors.iter().find(|descriptor| {
-                descriptor.record_kind.case_key(&descriptor.case_record_id) == *record_key
-            }).unwrap();
+            let descriptor = catalog
+                .descriptors
+                .iter()
+                .find(|descriptor| {
+                    descriptor.record_kind.case_key(&descriptor.case_record_id) == *record_key
+                })
+                .unwrap();
             assert_eq!(
                 node["identity"]["identity_namespace"],
                 descriptor.owner_namespace
@@ -1379,8 +1503,9 @@ mod tests {
         let first_catalog = catalog(&first_case);
         let mut second_catalog = catalog(&second_case);
         second_catalog.descriptors[0].source_payload.sha256 = Some(digest('f'));
-        second_catalog.descriptors[0].source_payload.payload_object_ref =
-            Some(format!("cas:sha256:{}", digest('f')));
+        second_catalog.descriptors[0]
+            .source_payload
+            .payload_object_ref = Some(format!("cas:sha256:{}", digest('f')));
         second_catalog.case_representation_sha256 =
             sha256_hex(&serde_json::to_vec(&second_case).unwrap());
 
@@ -1390,9 +1515,12 @@ mod tests {
         );
         assert_eq!(result.disposition, DescriptorDisposition::InvalidInput);
         assert_eq!(result.conflicting_native_identity_count, 1);
-        assert!(result.findings.iter().any(|finding| {
-            finding.code == "CROSS_CASE_NATIVE_IDENTITY_DIGEST_CONFLICT"
-        }));
+        assert!(
+            result
+                .findings
+                .iter()
+                .any(|finding| { finding.code == "CROSS_CASE_NATIVE_IDENTITY_DIGEST_CONFLICT" })
+        );
     }
 
     #[test]
@@ -1418,11 +1546,8 @@ mod tests {
             mapping_profile_sha256: digest('e'),
             native_identity_namespaces: BTreeMap::new(),
         };
-        let first = project_built_environment_case_with_descriptors(
-            &first_case,
-            &context,
-            &first_catalog,
-        );
+        let first =
+            project_built_environment_case_with_descriptors(&first_case, &context, &first_catalog);
         let second = project_built_environment_case_with_descriptors(
             &second_case,
             &context,
@@ -1442,23 +1567,22 @@ mod tests {
             second.descriptor_validation.identity_sha256_by_case_record
         );
 
-        for node_id in first
-            .projection
-            .graph["nodes"]
+        for node_id in first.projection.graph["nodes"]
             .as_array()
             .unwrap()
             .iter()
             .map(|node| node["node_id"].as_str().unwrap())
         {
-            assert!(second.projection.graph["nodes"]
-                .as_array()
-                .unwrap()
-                .iter()
-                .any(|node| node["node_id"] == node_id));
+            assert!(
+                second.projection.graph["nodes"]
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .any(|node| node["node_id"] == node_id)
+            );
         }
         assert_ne!(
-            first.projection.graph["graph_id"],
-            second.projection.graph["graph_id"],
+            first.projection.graph["graph_id"], second.projection.graph["graph_id"],
             "case graph identity remains case-specific even when native node identity is stable"
         );
         let first_node = first.projection.graph["nodes"].as_array().unwrap()[0].clone();
@@ -1469,17 +1593,20 @@ mod tests {
             .filter_map(|component| component["name"].as_str())
             .collect::<Vec<_>>();
         assert!(!identity_names.contains(&"case_id"));
-        assert!(first_node["scope"]["subject_pseudonyms"]
-            .as_array()
-            .unwrap()
-            .iter()
-            .any(|subject| subject.as_str() == Some("case-descriptor-001")));
+        assert!(
+            first_node["scope"]["subject_pseudonyms"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|subject| subject.as_str() == Some("case-descriptor-001"))
+        );
     }
 
     #[test]
     fn invalid_descriptor_catalog_never_emits_an_ieac_graph() {
         use crate::industry_assurance_projection::{
-            ProjectionContext, ProjectionDisposition, project_built_environment_case_with_descriptors,
+            ProjectionContext, ProjectionDisposition,
+            project_built_environment_case_with_descriptors,
         };
 
         let case = case();
@@ -1491,9 +1618,11 @@ mod tests {
             mapping_profile_sha256: digest('e'),
             native_identity_namespaces: BTreeMap::new(),
         };
-        let composed =
-            project_built_environment_case_with_descriptors(&case, &context, &catalog);
-        assert_eq!(composed.projection.disposition, ProjectionDisposition::InvalidInput);
+        let composed = project_built_environment_case_with_descriptors(&case, &context, &catalog);
+        assert_eq!(
+            composed.projection.disposition,
+            ProjectionDisposition::InvalidInput
+        );
         assert_eq!(composed.projection.graph, serde_json::Value::Null);
         assert_eq!(
             composed.projection.projection_receipt["projector"]["source_descriptor_catalog"]["validation_disposition"],
@@ -1503,13 +1632,20 @@ mod tests {
             composed.projection.projection_receipt["action_authority"],
             "none"
         );
-        assert!(composed.projection.projection_receipt.get("projection_receipt_sha256").is_some());
+        assert!(
+            composed
+                .projection
+                .projection_receipt
+                .get("projection_receipt_sha256")
+                .is_some()
+        );
     }
 
     #[test]
     fn incomplete_descriptor_catalog_can_only_produce_loss_accounted_projection() {
         use crate::industry_assurance_projection::{
-            ProjectionContext, ProjectionDisposition, project_built_environment_case_with_descriptors,
+            ProjectionContext, ProjectionDisposition,
+            project_built_environment_case_with_descriptors,
         };
 
         let case = case();
@@ -1521,8 +1657,7 @@ mod tests {
             mapping_profile_sha256: digest('e'),
             native_identity_namespaces: BTreeMap::new(),
         };
-        let composed =
-            project_built_environment_case_with_descriptors(&case, &context, &catalog);
+        let composed = project_built_environment_case_with_descriptors(&case, &context, &catalog);
         assert_eq!(
             composed.descriptor_validation.disposition,
             DescriptorDisposition::IncompleteOrIndeterminate
@@ -1535,18 +1670,23 @@ mod tests {
             composed.projection.graph["claim_ceiling"],
             "incomplete_or_indeterminate"
         );
-        assert!(composed.projection.projection_receipt["findings"]
-            .as_array()
-            .unwrap()
-            .iter()
-            .any(|finding| finding["code"] == "SOURCE_DESCRIPTOR_CATALOG_INCOMPLETE"));
+        assert!(
+            composed.projection.projection_receipt["findings"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|finding| finding["code"] == "SOURCE_DESCRIPTOR_CATALOG_INCOMPLETE")
+        );
         let evidence_node = composed.projection.graph["nodes"]
             .as_array()
             .unwrap()
             .iter()
             .find(|node| node["node_type"] == "source_evidence")
             .unwrap();
-        assert_eq!(evidence_node["artifact_media_type"], "application/octet-stream");
+        assert_eq!(
+            evidence_node["artifact_media_type"],
+            "application/octet-stream"
+        );
     }
 
     #[test]
@@ -1611,7 +1751,10 @@ mod tests {
             None,
         );
         let replay = original.clone();
-        assert_eq!(identity_digest(&original).unwrap(), identity_digest(&replay).unwrap());
+        assert_eq!(
+            identity_digest(&original).unwrap(),
+            identity_digest(&replay).unwrap()
+        );
 
         let mut revised = original.clone();
         let component = revised
@@ -1620,7 +1763,10 @@ mod tests {
             .find(|component| component.name == "native_revision")
             .unwrap();
         component.value = "3".into();
-        assert_ne!(identity_digest(&original).unwrap(), identity_digest(&revised).unwrap());
+        assert_ne!(
+            identity_digest(&original).unwrap(),
+            identity_digest(&revised).unwrap()
+        );
     }
 
     #[test]
@@ -1640,9 +1786,12 @@ mod tests {
 
         let result = validate_source_descriptor_catalog(&case, &catalog);
         assert_eq!(result.disposition, DescriptorDisposition::InvalidInput);
-        assert!(result.findings.iter().any(|finding| {
-            finding.code == "DUPLICATE_NATIVE_IDENTITY_CONFLICTING_DIGEST"
-        }));
+        assert!(
+            result
+                .findings
+                .iter()
+                .any(|finding| { finding.code == "DUPLICATE_NATIVE_IDENTITY_CONFLICTING_DIGEST" })
+        );
     }
 
     #[test]
@@ -1652,9 +1801,12 @@ mod tests {
         let catalog = catalog(&case);
         let result = validate_source_descriptor_catalog(&case, &catalog);
         assert_eq!(result.disposition, DescriptorDisposition::InvalidInput);
-        assert!(result.findings.iter().any(|finding| {
-            finding.code == "DUPLICATE_CASE_RECORD_KEY"
-        }));
+        assert!(
+            result
+                .findings
+                .iter()
+                .any(|finding| { finding.code == "DUPLICATE_CASE_RECORD_KEY" })
+        );
     }
 
     #[test]
@@ -1671,7 +1823,12 @@ mod tests {
             DescriptorDisposition::IncompleteOrIndeterminate
         );
         assert_eq!(result.missing_descriptor_count, 1);
-        assert!(result.findings.iter().any(|finding| finding.code == "SOURCE_DESCRIPTOR_MISSING"));
+        assert!(
+            result
+                .findings
+                .iter()
+                .any(|finding| finding.code == "SOURCE_DESCRIPTOR_MISSING")
+        );
     }
 
     #[test]
@@ -1681,7 +1838,12 @@ mod tests {
         catalog.descriptors[0].source_payload.sha256 = Some(digest('f'));
         let result = validate_source_descriptor_catalog(&case, &catalog);
         assert_eq!(result.disposition, DescriptorDisposition::InvalidInput);
-        assert!(result.findings.iter().any(|finding| finding.code == "CASE_SOURCE_DIGEST_DISAGREEMENT"));
+        assert!(
+            result
+                .findings
+                .iter()
+                .any(|finding| finding.code == "CASE_SOURCE_DIGEST_DISAGREEMENT")
+        );
     }
 
     #[test]
@@ -1698,7 +1860,12 @@ mod tests {
 
         let result = validate_source_descriptor_catalog(&case, &catalog);
         assert_eq!(result.disposition, DescriptorDisposition::InvalidInput);
-        assert!(result.findings.iter().any(|finding| finding.code == "DUPLICATE_NATIVE_IDENTITY"));
+        assert!(
+            result
+                .findings
+                .iter()
+                .any(|finding| finding.code == "DUPLICATE_NATIVE_IDENTITY")
+        );
     }
 
     #[test]
@@ -1708,7 +1875,12 @@ mod tests {
         catalog.descriptors[0].rights.state = SourceRightsState::Unknown;
         let result = validate_source_descriptor_catalog(&case, &catalog);
         assert_eq!(result.disposition, DescriptorDisposition::InvalidInput);
-        assert!(result.findings.iter().any(|finding| finding.code == "UNKNOWN_RIGHTS_WITH_PERMITTED_USES"));
+        assert!(
+            result
+                .findings
+                .iter()
+                .any(|finding| finding.code == "UNKNOWN_RIGHTS_WITH_PERMITTED_USES")
+        );
     }
 
     #[test]
@@ -1719,9 +1891,12 @@ mod tests {
             Some(format!("cas:sha256:{}", digest('f')));
         let result = validate_source_descriptor_catalog(&case, &catalog);
         assert_eq!(result.disposition, DescriptorDisposition::InvalidInput);
-        assert!(result.findings.iter().any(|finding| {
-            finding.code == "PAYLOAD_OBJECT_REFERENCE_DIGEST_MISMATCH"
-        }));
+        assert!(
+            result
+                .findings
+                .iter()
+                .any(|finding| { finding.code == "PAYLOAD_OBJECT_REFERENCE_DIGEST_MISMATCH" })
+        );
     }
 
     #[test]
@@ -1734,27 +1909,31 @@ mod tests {
             .push("automatic_construction_release".into());
         let result = validate_source_descriptor_catalog(&case, &catalog);
         assert_eq!(result.disposition, DescriptorDisposition::InvalidInput);
-        assert!(result.findings.iter().any(|finding| {
-            finding.code == "UNSUPPORTED_PERMITTED_USE"
-        }));
+        assert!(
+            result
+                .findings
+                .iter()
+                .any(|finding| { finding.code == "UNSUPPORTED_PERMITTED_USE" })
+        );
     }
 
     #[test]
     fn observation_after_recording_is_loss_accounted() {
         let case = case();
         let mut catalog = catalog(&case);
-        catalog.descriptors[0].observation_time.observed_at =
-            Some("2026-11-03T10:01:00Z".into());
-        catalog.descriptors[0].observation_time.recorded_at =
-            "2026-11-03T10:00:00Z".into();
+        catalog.descriptors[0].observation_time.observed_at = Some("2026-11-03T10:01:00Z".into());
+        catalog.descriptors[0].observation_time.recorded_at = "2026-11-03T10:00:00Z".into();
         let result = validate_source_descriptor_catalog(&case, &catalog);
         assert_eq!(
             result.disposition,
             DescriptorDisposition::IncompleteOrIndeterminate
         );
-        assert!(result.findings.iter().any(|finding| {
-            finding.code == "OBSERVATION_TIME_AFTER_RECORDING_TIME"
-        }));
+        assert!(
+            result
+                .findings
+                .iter()
+                .any(|finding| { finding.code == "OBSERVATION_TIME_AFTER_RECORDING_TIME" })
+        );
     }
 
     #[test]
@@ -1769,7 +1948,17 @@ mod tests {
             result.disposition,
             DescriptorDisposition::IncompleteOrIndeterminate
         );
-        assert!(result.findings.iter().any(|finding| finding.code == "SOURCE_MEDIA_TYPE_UNAVAILABLE"));
-        assert!(result.findings.iter().any(|finding| finding.code == "SOURCE_SCHEMA_IDENTITY_UNAVAILABLE"));
+        assert!(
+            result
+                .findings
+                .iter()
+                .any(|finding| finding.code == "SOURCE_MEDIA_TYPE_UNAVAILABLE")
+        );
+        assert!(
+            result
+                .findings
+                .iter()
+                .any(|finding| finding.code == "SOURCE_SCHEMA_IDENTITY_UNAVAILABLE")
+        );
     }
 }

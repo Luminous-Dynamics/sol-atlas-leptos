@@ -11,8 +11,8 @@ use crate::built_environment_case::{
     ArtifactRecord, BuiltEnvironmentCase, DecisionRecord, EngineeringReceipt, EvidenceRecord,
 };
 use crate::built_environment_source_descriptor::{
-    validate_source_descriptor_catalog, DescriptorDisposition, DescriptorValidation,
-    SourceDescriptorCatalog,
+    DescriptorDisposition, DescriptorValidation, SourceDescriptorCatalog,
+    validate_source_descriptor_catalog,
 };
 use serde::Serialize;
 use serde_json::{Value, json};
@@ -106,7 +106,12 @@ struct Findings {
 }
 
 impl Findings {
-    fn incomplete(&mut self, code: &'static str, native_key: impl Into<String>, detail: impl Into<String>) {
+    fn incomplete(
+        &mut self,
+        code: &'static str,
+        native_key: impl Into<String>,
+        detail: impl Into<String>,
+    ) {
         self.rows.insert(Finding {
             severity: "incomplete",
             code,
@@ -115,7 +120,12 @@ impl Findings {
         });
     }
 
-    fn invalid(&mut self, code: &'static str, native_key: impl Into<String>, detail: impl Into<String>) {
+    fn invalid(
+        &mut self,
+        code: &'static str,
+        native_key: impl Into<String>,
+        detail: impl Into<String>,
+    ) {
         self.rows.insert(Finding {
             severity: "invalid",
             code,
@@ -173,8 +183,8 @@ fn canonical_json_sha256(value: &Value) -> Result<String, String> {
 }
 
 fn append_identity_field(buffer: &mut Vec<u8>, value: &str) -> Result<(), String> {
-    let length =
-        u64::try_from(value.len()).map_err(|_| "identity component length exceeds u64".to_owned())?;
+    let length = u64::try_from(value.len())
+        .map_err(|_| "identity component length exceeds u64".to_owned())?;
     buffer.extend_from_slice(&length.to_be_bytes());
     buffer.extend_from_slice(value.as_bytes());
     Ok(())
@@ -184,9 +194,7 @@ fn valid_component_name(name: &str) -> bool {
     let mut bytes = name.bytes();
     bytes.next().is_some_and(|byte| byte.is_ascii_lowercase())
         && bytes.all(|byte| {
-            byte.is_ascii_lowercase()
-                || byte.is_ascii_digit()
-                || matches!(byte, b'_' | b'.' | b'-')
+            byte.is_ascii_lowercase() || byte.is_ascii_digit() || matches!(byte, b'_' | b'.' | b'-')
         })
 }
 
@@ -196,7 +204,9 @@ fn native_identity_sha256(
     components: &BTreeMap<String, String>,
 ) -> Result<String, String> {
     if components.len() < 2 {
-        return Err("native identity requires native_id and a record/revision discriminator".into());
+        return Err(
+            "native identity requires native_id and a record/revision discriminator".into(),
+        );
     }
     if !components.contains_key("native_id") {
         return Err("native identity requires native_id".into());
@@ -217,7 +227,9 @@ fn native_identity_sha256(
     }
 
     if identity_namespace.trim().is_empty() || identity_namespace.len() > 1024 {
-        return Err("native identity namespace must be non-empty and at most 1024 UTF-8 bytes".into());
+        return Err(
+            "native identity namespace must be non-empty and at most 1024 UTF-8 bytes".into(),
+        );
     }
     let mut encoded = IDENTITY_DOMAIN.to_vec();
     append_identity_field(&mut encoded, node_type)?;
@@ -281,8 +293,7 @@ fn civil_from_days(days_since_epoch: i64) -> (i64, u32, u32) {
     let year_of_era =
         (day_of_era - day_of_era / 1_460 + day_of_era / 36_524 - day_of_era / 146_096) / 365;
     let mut year = year_of_era + era * 400;
-    let day_of_year = day_of_era
-        - (365 * year_of_era + year_of_era / 4 - year_of_era / 100);
+    let day_of_year = day_of_era - (365 * year_of_era + year_of_era / 4 - year_of_era / 100);
     let month_prime = (5 * day_of_year + 2) / 153;
     let day = day_of_year - (153 * month_prime + 2) / 5 + 1;
     let month = if month_prime < 10 {
@@ -315,18 +326,14 @@ fn string_component(components: &mut BTreeMap<String, String>, name: &str, value
     components.insert(name.to_owned(), value.to_owned());
 }
 
-fn namespace_map_digest(
-    namespaces: &BTreeMap<String, String>,
-) -> Result<String, String> {
+fn namespace_map_digest(namespaces: &BTreeMap<String, String>) -> Result<String, String> {
     let bytes = serde_json::to_vec(namespaces)
         .map_err(|error| format!("namespace map serialization failed: {error}"))?;
     Ok(sha256_hex(&bytes))
 }
 
 fn valid_native_identity_namespace(namespace: &str) -> bool {
-    !namespace.trim().is_empty()
-        && namespace == namespace.trim()
-        && namespace.len() <= 1_024
+    !namespace.trim().is_empty() && namespace == namespace.trim() && namespace.len() <= 1_024
 }
 
 fn resolve_native_identity_namespace(
@@ -373,11 +380,8 @@ fn make_node(spec: NodeProjection<'_>) -> Result<Value, String> {
         return Err("artifact payload digest is not lowercase SHA-256".into());
     }
     let components = spec.components;
-    let identity_sha = native_identity_sha256(
-        spec.node_type,
-        spec.identity_namespace,
-        &components,
-    )?;
+    let identity_sha =
+        native_identity_sha256(spec.node_type, spec.identity_namespace, &components)?;
     let node_id = format!("{}:identity-sha256:{identity_sha}", spec.node_type);
 
     let mut subjects = BTreeSet::new();
@@ -520,10 +524,7 @@ fn add_edge(
     );
 }
 
-fn has_dependency_cycle(
-    nodes: &BTreeMap<String, Value>,
-    edges: &BTreeMap<String, Value>,
-) -> bool {
+fn has_dependency_cycle(nodes: &BTreeMap<String, Value>, edges: &BTreeMap<String, Value>) -> bool {
     let mut indegree: BTreeMap<String, usize> =
         nodes.keys().map(|node_id| (node_id.clone(), 0)).collect();
     let mut adjacency: BTreeMap<String, Vec<String>> = BTreeMap::new();
@@ -538,7 +539,10 @@ fn has_dependency_cycle(
         if !nodes.contains_key(from) || !nodes.contains_key(to) {
             return true;
         }
-        adjacency.entry(from.to_owned()).or_default().push(to.to_owned());
+        adjacency
+            .entry(from.to_owned())
+            .or_default()
+            .push(to.to_owned());
         let Some(degree) = indegree.get_mut(to) else {
             return true;
         };
@@ -572,8 +576,8 @@ fn has_dependency_cycle(
 }
 
 fn record_payload<T: Serialize>(value: &T) -> Result<(String, String), String> {
-    let bytes =
-        serde_json::to_vec(value).map_err(|error| format!("record serialization failed: {error}"))?;
+    let bytes = serde_json::to_vec(value)
+        .map_err(|error| format!("record serialization failed: {error}"))?;
     let text = String::from_utf8(bytes.clone())
         .map_err(|error| format!("record serialization was not UTF-8: {error}"))?;
     Ok((sha256_hex(&bytes), text))
@@ -712,9 +716,7 @@ pub fn project_built_environment_case_with_descriptors(
         .descriptors
         .iter()
         .map(|descriptor| {
-            let key = descriptor
-                .record_kind
-                .case_key(&descriptor.case_record_id);
+            let key = descriptor.record_kind.case_key(&descriptor.case_record_id);
             (
                 key,
                 SourceRecordProjectionMetadata {
@@ -723,7 +725,11 @@ pub fn project_built_environment_case_with_descriptors(
                     schema_version: descriptor.source_payload.schema_version.clone(),
                     schema_sha256: descriptor.source_payload.schema_sha256.clone(),
                     source_payload_sha256: descriptor.source_payload.sha256.clone(),
-                    source_payload_digest_basis: descriptor.source_payload.digest_basis.as_str().into(),
+                    source_payload_digest_basis: descriptor
+                        .source_payload
+                        .digest_basis
+                        .as_str()
+                        .into(),
                     source_payload_bytes_retrieved: descriptor.source_payload.bytes_retrieved,
                 },
             )
@@ -783,15 +789,31 @@ fn project_built_environment_case_inner(
         findings.invalid("EMPTY_CASE_ID", "case", "case_id is required");
     }
     if case.jurisdiction.trim().is_empty() {
-        findings.invalid("EMPTY_CASE_JURISDICTION", "case", "case jurisdiction is required");
+        findings.invalid(
+            "EMPTY_CASE_JURISDICTION",
+            "case",
+            "case jurisdiction is required",
+        );
     }
     let expected_namespace_keys = case
         .evidence
         .iter()
         .map(|record| format!("evidence:{}", record.evidence_id))
-        .chain(case.artifacts.iter().map(|record| format!("artifact:{}", record.artifact_id)))
-        .chain(case.engineering_receipts.iter().map(|record| format!("engineering_receipt:{}", record.receipt_id)))
-        .chain(case.decisions.iter().map(|record| format!("decision:{}", record.event_id)))
+        .chain(
+            case.artifacts
+                .iter()
+                .map(|record| format!("artifact:{}", record.artifact_id)),
+        )
+        .chain(
+            case.engineering_receipts
+                .iter()
+                .map(|record| format!("engineering_receipt:{}", record.receipt_id)),
+        )
+        .chain(
+            case.decisions
+                .iter()
+                .map(|record| format!("decision:{}", record.event_id)),
+        )
         .collect::<BTreeSet<_>>();
     for supplied_key in context.native_identity_namespaces.keys() {
         if !expected_namespace_keys.contains(supplied_key) {
@@ -821,7 +843,11 @@ fn project_built_environment_case_inner(
         && case.engineering_receipts.is_empty()
         && case.decisions.is_empty()
     {
-        findings.invalid("EMPTY_CASE_GRAPH", "case", "an empty case cannot produce a dependency graph");
+        findings.invalid(
+            "EMPTY_CASE_GRAPH",
+            "case",
+            "an empty case cannot produce a dependency graph",
+        );
     }
     if !valid_utc_timestamp(&context.captured_at_utc) {
         findings.invalid(
@@ -924,11 +950,7 @@ fn project_built_environment_case_inner(
     let mut evidence_by_id: BTreeMap<String, &EvidenceRecord> = BTreeMap::new();
     for evidence in &case.evidence {
         if evidence.evidence_id.trim().is_empty() {
-            findings.invalid(
-                "EMPTY_EVIDENCE_ID",
-                "evidence",
-                "evidence_id is required",
-            );
+            findings.invalid("EMPTY_EVIDENCE_ID", "evidence", "evidence_id is required");
             continue;
         }
         if evidence_by_id
@@ -946,11 +968,7 @@ fn project_built_environment_case_inner(
     let mut artifacts_by_id: BTreeMap<String, &ArtifactRecord> = BTreeMap::new();
     for artifact in &case.artifacts {
         if artifact.artifact_id.trim().is_empty() {
-            findings.invalid(
-                "EMPTY_ARTIFACT_ID",
-                "artifact",
-                "artifact_id is required",
-            );
+            findings.invalid("EMPTY_ARTIFACT_ID", "artifact", "artifact_id is required");
             continue;
         }
         if artifacts_by_id
@@ -990,11 +1008,7 @@ fn project_built_environment_case_inner(
     let mut decisions_by_id: BTreeMap<String, &DecisionRecord> = BTreeMap::new();
     for decision in &case.decisions {
         if decision.event_id.trim().is_empty() {
-            findings.invalid(
-                "EMPTY_DECISION_ID",
-                "decision",
-                "event_id is required",
-            );
+            findings.invalid("EMPTY_DECISION_ID", "decision", "event_id is required");
             continue;
         }
         if decisions_by_id
@@ -1015,9 +1029,18 @@ fn project_built_environment_case_inner(
         let native_key = format!("evidence:{}", evidence.evidence_id);
         let source_metadata = source_metadata_for_record(&native_key, descriptor_overrides);
         let metadata_complete = source_metadata.is_some_and(|metadata| {
-            metadata.media_type.as_deref().is_some_and(|value| !value.trim().is_empty())
-                && metadata.schema_id.as_deref().is_some_and(|value| !value.trim().is_empty())
-                && metadata.schema_version.as_deref().is_some_and(|value| !value.trim().is_empty())
+            metadata
+                .media_type
+                .as_deref()
+                .is_some_and(|value| !value.trim().is_empty())
+                && metadata
+                    .schema_id
+                    .as_deref()
+                    .is_some_and(|value| !value.trim().is_empty())
+                && metadata
+                    .schema_version
+                    .as_deref()
+                    .is_some_and(|value| !value.trim().is_empty())
                 && metadata.schema_sha256.as_deref().is_some_and(valid_sha256)
         });
         if !metadata_complete {
@@ -1087,7 +1110,9 @@ fn project_built_environment_case_inner(
         string_component(&mut components, "jurisdiction", &evidence.jurisdiction);
         let components =
             identity_components_for_record(&native_key, components, descriptor_overrides);
-        let observed = evidence.observed_at_unix_seconds.and_then(unix_seconds_to_utc);
+        let observed = evidence
+            .observed_at_unix_seconds
+            .and_then(unix_seconds_to_utc);
         if evidence.observed_at_unix_seconds.is_some() && observed.is_none() {
             findings.incomplete(
                 "EVIDENCE_OBSERVATION_TIME_UNREPRESENTABLE",
@@ -1095,11 +1120,8 @@ fn project_built_environment_case_inner(
                 "source observation time is outside the supported UTC timestamp range",
             );
         }
-        let identity_namespace = resolve_native_identity_namespace(
-            &native_key,
-            context,
-            &mut findings,
-        );
+        let identity_namespace =
+            resolve_native_identity_namespace(&native_key, context, &mut findings);
         let identity_namespace_basis = if context
             .native_identity_namespaces
             .get(&native_key)
@@ -1134,7 +1156,10 @@ fn project_built_environment_case_inner(
             }
         };
         let node_id = node["node_id"].as_str().unwrap_or_default().to_owned();
-        let identity_sha = node["identity_sha256"].as_str().unwrap_or_default().to_owned();
+        let identity_sha = node["identity_sha256"]
+            .as_str()
+            .unwrap_or_default()
+            .to_owned();
         if nodes.insert(node_id.clone(), node).is_some() {
             findings.invalid(
                 "PROJECTED_NODE_ID_COLLISION",
@@ -1190,9 +1215,18 @@ fn project_built_environment_case_inner(
         let native_key = format!("artifact:{}", artifact.artifact_id);
         let source_metadata = source_metadata_for_record(&native_key, descriptor_overrides);
         let metadata_complete = source_metadata.is_some_and(|metadata| {
-            metadata.media_type.as_deref().is_some_and(|value| !value.trim().is_empty())
-                && metadata.schema_id.as_deref().is_some_and(|value| !value.trim().is_empty())
-                && metadata.schema_version.as_deref().is_some_and(|value| !value.trim().is_empty())
+            metadata
+                .media_type
+                .as_deref()
+                .is_some_and(|value| !value.trim().is_empty())
+                && metadata
+                    .schema_id
+                    .as_deref()
+                    .is_some_and(|value| !value.trim().is_empty())
+                && metadata
+                    .schema_version
+                    .as_deref()
+                    .is_some_and(|value| !value.trim().is_empty())
                 && metadata.schema_sha256.as_deref().is_some_and(valid_sha256)
         });
         if !metadata_complete {
@@ -1237,11 +1271,8 @@ fn project_built_environment_case_inner(
                 "artifact creation time is outside the supported UTC timestamp range",
             );
         }
-        let identity_namespace = resolve_native_identity_namespace(
-            &native_key,
-            context,
-            &mut findings,
-        );
+        let identity_namespace =
+            resolve_native_identity_namespace(&native_key, context, &mut findings);
         let identity_namespace_basis = if context
             .native_identity_namespaces
             .get(&native_key)
@@ -1276,7 +1307,10 @@ fn project_built_environment_case_inner(
             }
         };
         let node_id = node["node_id"].as_str().unwrap_or_default().to_owned();
-        let identity_sha = node["identity_sha256"].as_str().unwrap_or_default().to_owned();
+        let identity_sha = node["identity_sha256"]
+            .as_str()
+            .unwrap_or_default()
+            .to_owned();
         if nodes.insert(node_id.clone(), node).is_some() {
             findings.invalid(
                 "PROJECTED_NODE_ID_COLLISION",
@@ -1337,18 +1371,11 @@ fn project_built_environment_case_inner(
         };
         let mut components = BTreeMap::new();
         string_component(&mut components, "native_id", &receipt.design_id);
-        string_component(
-            &mut components,
-            "native_record_id",
-            &receipt.receipt_id,
-        );
+        string_component(&mut components, "native_record_id", &receipt.receipt_id);
         let components =
             identity_components_for_record(&native_key, components, descriptor_overrides);
-        let identity_namespace = resolve_native_identity_namespace(
-            &native_key,
-            context,
-            &mut findings,
-        );
+        let identity_namespace =
+            resolve_native_identity_namespace(&native_key, context, &mut findings);
         let identity_namespace_basis = if context
             .native_identity_namespaces
             .get(&native_key)
@@ -1377,7 +1404,10 @@ fn project_built_environment_case_inner(
             }
         };
         let node_id = node["node_id"].as_str().unwrap_or_default().to_owned();
-        let identity_sha = node["identity_sha256"].as_str().unwrap_or_default().to_owned();
+        let identity_sha = node["identity_sha256"]
+            .as_str()
+            .unwrap_or_default()
+            .to_owned();
         if nodes.insert(node_id.clone(), node).is_some() {
             findings.invalid(
                 "PROJECTED_NODE_ID_COLLISION",
@@ -1433,11 +1463,7 @@ fn project_built_environment_case_inner(
         };
         let mut components = BTreeMap::new();
         string_component(&mut components, "native_id", &decision.design_id);
-        string_component(
-            &mut components,
-            "native_record_id",
-            &decision.event_id,
-        );
+        string_component(&mut components, "native_record_id", &decision.event_id);
         let components =
             identity_components_for_record(&native_key, components, descriptor_overrides);
         let created = unix_seconds_to_utc(decision.decided_at_unix_seconds);
@@ -1448,11 +1474,8 @@ fn project_built_environment_case_inner(
                 "decision timestamp is outside the supported UTC timestamp range",
             );
         }
-        let identity_namespace = resolve_native_identity_namespace(
-            &native_key,
-            context,
-            &mut findings,
-        );
+        let identity_namespace =
+            resolve_native_identity_namespace(&native_key, context, &mut findings);
         let identity_namespace_basis = if context
             .native_identity_namespaces
             .get(&native_key)
@@ -1481,7 +1504,10 @@ fn project_built_environment_case_inner(
             }
         };
         let node_id = node["node_id"].as_str().unwrap_or_default().to_owned();
-        let identity_sha = node["identity_sha256"].as_str().unwrap_or_default().to_owned();
+        let identity_sha = node["identity_sha256"]
+            .as_str()
+            .unwrap_or_default()
+            .to_owned();
         if nodes.insert(node_id.clone(), node).is_some() {
             findings.invalid(
                 "PROJECTED_NODE_ID_COLLISION",
@@ -1536,43 +1562,46 @@ fn project_built_environment_case_inner(
                 {
                     let parent_node = &artifact_nodes[&parent.artifact_id];
                     add_edge(
-                    &mut edges,
-                    &mut edge_mappings,
-                    &mut edge_pairs,
-                    &mut findings,
-                    EdgeProjection {
-                        from_node: parent_node,
-                        to_node: child_node,
-                        relation: "derived_from",
-                        native_relationship_key: &format!("artifact:{}:parent:{}", artifact.artifact_id, parent.artifact_id),
-                        mapping_family: "artifact_lineage",
-                    },
-                );
+                        &mut edges,
+                        &mut edge_mappings,
+                        &mut edge_pairs,
+                        &mut findings,
+                        EdgeProjection {
+                            from_node: parent_node,
+                            to_node: child_node,
+                            relation: "derived_from",
+                            native_relationship_key: &format!(
+                                "artifact:{}:parent:{}",
+                                artifact.artifact_id, parent.artifact_id
+                            ),
+                            mapping_family: "artifact_lineage",
+                        },
+                    );
                 }
                 Some(_) => add_unmapped(
-                &mut findings,
-                &mut unmapped,
-                UnmappedRelation {
-                    code: "PARENT_ARTIFACT_DIGEST_OR_PROJECTION_MISMATCH",
-                    source_kind: "artifact",
-                    source_id: &artifact.artifact_id,
-                    relation: "artifact_lineage",
-                    referenced_id: &parent.artifact_id,
-                    detail: "parent reference digest does not match the source artifact or its node was not projected",
-                },
-            ),
+                    &mut findings,
+                    &mut unmapped,
+                    UnmappedRelation {
+                        code: "PARENT_ARTIFACT_DIGEST_OR_PROJECTION_MISMATCH",
+                        source_kind: "artifact",
+                        source_id: &artifact.artifact_id,
+                        relation: "artifact_lineage",
+                        referenced_id: &parent.artifact_id,
+                        detail: "parent reference digest does not match the source artifact or its node was not projected",
+                    },
+                ),
                 None => add_unmapped(
-                &mut findings,
-                &mut unmapped,
-                UnmappedRelation {
-                    code: "PARENT_ARTIFACT_NOT_FOUND",
-                    source_kind: "artifact",
-                    source_id: &artifact.artifact_id,
-                    relation: "artifact_lineage",
-                    referenced_id: &parent.artifact_id,
-                    detail: "parent artifact reference does not resolve in the case",
-                },
-            ),
+                    &mut findings,
+                    &mut unmapped,
+                    UnmappedRelation {
+                        code: "PARENT_ARTIFACT_NOT_FOUND",
+                        source_kind: "artifact",
+                        source_id: &artifact.artifact_id,
+                        relation: "artifact_lineage",
+                        referenced_id: &parent.artifact_id,
+                        detail: "parent artifact reference does not resolve in the case",
+                    },
+                ),
             }
         }
 
@@ -1587,22 +1616,25 @@ fn project_built_environment_case_inner(
                         from_node: evidence_node,
                         to_node: child_node,
                         relation: "evidence_for",
-                        native_relationship_key: &format!("artifact:{}:evidence:{}", artifact.artifact_id, evidence_id),
+                        native_relationship_key: &format!(
+                            "artifact:{}:evidence:{}",
+                            artifact.artifact_id, evidence_id
+                        ),
                         mapping_family: "source_evidence",
                     },
                 ),
                 None => add_unmapped(
-                &mut findings,
-                &mut unmapped,
-                UnmappedRelation {
-                    code: "ARTIFACT_EVIDENCE_NOT_PROJECTED",
-                    source_kind: "artifact",
-                    source_id: &artifact.artifact_id,
-                    relation: "source_evidence",
-                    referenced_id: evidence_id,
-                    detail: "referenced evidence is missing or lacks a source payload digest",
-                },
-            ),
+                    &mut findings,
+                    &mut unmapped,
+                    UnmappedRelation {
+                        code: "ARTIFACT_EVIDENCE_NOT_PROJECTED",
+                        source_kind: "artifact",
+                        source_id: &artifact.artifact_id,
+                        relation: "source_evidence",
+                        referenced_id: evidence_id,
+                        detail: "referenced evidence is missing or lacks a source payload digest",
+                    },
+                ),
             }
         }
     }
@@ -1625,7 +1657,10 @@ fn project_built_environment_case_inner(
                         from_node: &artifact_nodes[&receipt.input_artifact_id],
                         to_node: receipt_node,
                         relation: "verified_by",
-                        native_relationship_key: &format!("receipt:{}:input:{}", receipt.receipt_id, receipt.input_artifact_id),
+                        native_relationship_key: &format!(
+                            "receipt:{}:input:{}",
+                            receipt.receipt_id, receipt.input_artifact_id
+                        ),
                         mapping_family: "solver_inputs",
                     },
                 );
@@ -1667,22 +1702,25 @@ fn project_built_environment_case_inner(
                         from_node: evidence_node,
                         to_node: receipt_node,
                         relation: "evidence_for",
-                        native_relationship_key: &format!("receipt:{}:assumption:{}", receipt.receipt_id, evidence_id),
+                        native_relationship_key: &format!(
+                            "receipt:{}:assumption:{}",
+                            receipt.receipt_id, evidence_id
+                        ),
                         mapping_family: "solver_assumptions",
                     },
                 ),
                 None => add_unmapped(
-                &mut findings,
-                &mut unmapped,
-                UnmappedRelation {
-                    code: "RECEIPT_ASSUMPTION_EVIDENCE_NOT_PROJECTED",
-                    source_kind: "engineering_receipt",
-                    source_id: &receipt.receipt_id,
-                    relation: "solver_assumptions",
-                    referenced_id: evidence_id,
-                    detail: "assumption evidence is missing or lacks a source payload digest",
-                },
-            ),
+                    &mut findings,
+                    &mut unmapped,
+                    UnmappedRelation {
+                        code: "RECEIPT_ASSUMPTION_EVIDENCE_NOT_PROJECTED",
+                        source_kind: "engineering_receipt",
+                        source_id: &receipt.receipt_id,
+                        relation: "solver_assumptions",
+                        referenced_id: evidence_id,
+                        detail: "assumption evidence is missing or lacks a source payload digest",
+                    },
+                ),
             }
         }
     }
@@ -1705,7 +1743,10 @@ fn project_built_environment_case_inner(
                         from_node: &artifact_nodes[&decision.target_artifact_id],
                         to_node: decision_node,
                         relation: "evidence_for",
-                        native_relationship_key: &format!("decision:{}:target:{}", decision.event_id, decision.target_artifact_id),
+                        native_relationship_key: &format!(
+                            "decision:{}:target:{}",
+                            decision.event_id, decision.target_artifact_id
+                        ),
                         mapping_family: "decision_target",
                     },
                 );
@@ -1747,22 +1788,25 @@ fn project_built_environment_case_inner(
                         from_node: receipt_node,
                         to_node: decision_node,
                         relation: "evidence_for",
-                        native_relationship_key: &format!("decision:{}:receipt:{}", decision.event_id, receipt_id),
+                        native_relationship_key: &format!(
+                            "decision:{}:receipt:{}",
+                            decision.event_id, receipt_id
+                        ),
                         mapping_family: "decision_receipt",
                     },
                 ),
                 None => add_unmapped(
-                &mut findings,
-                &mut unmapped,
-                UnmappedRelation {
-                    code: "DECISION_RECEIPT_NOT_FOUND",
-                    source_kind: "decision",
-                    source_id: &decision.event_id,
-                    relation: "decision_receipt",
-                    referenced_id: receipt_id,
-                    detail: "decision references an engineering receipt that does not resolve",
-                },
-            ),
+                    &mut findings,
+                    &mut unmapped,
+                    UnmappedRelation {
+                        code: "DECISION_RECEIPT_NOT_FOUND",
+                        source_kind: "decision",
+                        source_id: &decision.event_id,
+                        relation: "decision_receipt",
+                        referenced_id: receipt_id,
+                        detail: "decision references an engineering receipt that does not resolve",
+                    },
+                ),
             }
         }
 
@@ -1777,22 +1821,25 @@ fn project_built_environment_case_inner(
                         from_node: authority_node,
                         to_node: decision_node,
                         relation: "authorized_by",
-                        native_relationship_key: &format!("decision:{}:authority:{}", decision.event_id, authority_id),
+                        native_relationship_key: &format!(
+                            "decision:{}:authority:{}",
+                            decision.event_id, authority_id
+                        ),
                         mapping_family: "decision_authority",
                     },
                 ),
                 None => add_unmapped(
-                &mut findings,
-                &mut unmapped,
-                UnmappedRelation {
-                    code: "DECISION_AUTHORITY_EVIDENCE_NOT_PROJECTED",
-                    source_kind: "decision",
-                    source_id: &decision.event_id,
-                    relation: "decision_authority",
-                    referenced_id: authority_id,
-                    detail: "authority evidence is missing or lacks a source payload digest",
-                },
-            ),
+                    &mut findings,
+                    &mut unmapped,
+                    UnmappedRelation {
+                        code: "DECISION_AUTHORITY_EVIDENCE_NOT_PROJECTED",
+                        source_kind: "decision",
+                        source_id: &decision.event_id,
+                        relation: "decision_authority",
+                        referenced_id: authority_id,
+                        detail: "authority evidence is missing or lacks a source payload digest",
+                    },
+                ),
             }
         } else {
             add_unmapped(
@@ -1820,22 +1867,25 @@ fn project_built_environment_case_inner(
                         from_node: previous_node,
                         to_node: decision_node,
                         relation: "superseded_by",
-                        native_relationship_key: &format!("decision:{}:supersedes:{}", decision.event_id, superseded_id),
+                        native_relationship_key: &format!(
+                            "decision:{}:supersedes:{}",
+                            decision.event_id, superseded_id
+                        ),
                         mapping_family: "decision_supersession",
                     },
                 ),
                 None => add_unmapped(
-                &mut findings,
-                &mut unmapped,
-                UnmappedRelation {
-                    code: "SUPERSEDED_DECISION_NOT_FOUND",
-                    source_kind: "decision",
-                    source_id: &decision.event_id,
-                    relation: "decision_supersession",
-                    referenced_id: superseded_id,
-                    detail: "superseded decision event does not resolve in the case",
-                },
-            ),
+                    &mut findings,
+                    &mut unmapped,
+                    UnmappedRelation {
+                        code: "SUPERSEDED_DECISION_NOT_FOUND",
+                        source_kind: "decision",
+                        source_id: &decision.event_id,
+                        relation: "decision_supersession",
+                        referenced_id: superseded_id,
+                        detail: "superseded decision event does not resolve in the case",
+                    },
+                ),
             }
         }
     }
@@ -1909,17 +1959,9 @@ fn project_built_environment_case_inner(
 
     // Source maps are deterministic and preserve every native record key.
     let mut node_rows = nodes.into_values().collect::<Vec<_>>();
-    node_rows.sort_by(|left, right| {
-        left["node_id"]
-            .as_str()
-            .cmp(&right["node_id"].as_str())
-    });
+    node_rows.sort_by(|left, right| left["node_id"].as_str().cmp(&right["node_id"].as_str()));
     let mut edge_rows = edges.into_values().collect::<Vec<_>>();
-    edge_rows.sort_by(|left, right| {
-        left["edge_id"]
-            .as_str()
-            .cmp(&right["edge_id"].as_str())
-    });
+    edge_rows.sort_by(|left, right| left["edge_id"].as_str().cmp(&right["edge_id"].as_str()));
 
     let disposition = findings.disposition();
     let claim_ceiling = if disposition == ProjectionDisposition::ProjectedWithoutKnownLoss {
@@ -1946,11 +1988,7 @@ fn project_built_environment_case_inner(
     let graph_digest = match canonical_json_sha256(&graph_digest_input) {
         Ok(digest) => digest,
         Err(error) => {
-            findings.invalid(
-                "GRAPH_DIGEST_FAILED",
-                "projected_graph",
-                error,
-            );
+            findings.invalid("GRAPH_DIGEST_FAILED", "projected_graph", error);
             String::new()
         }
     };
@@ -2148,12 +2186,30 @@ mod tests {
             projector_build_sha256: Some(digest('d')),
             mapping_profile_sha256: digest('e'),
             native_identity_namespaces: BTreeMap::from([
-                ("evidence:evidence-design-source".into(), "urn:source-owner:survey-registry".into()),
-                ("evidence:evidence-authority".into(), "urn:source-owner:authority-registry".into()),
-                ("artifact:artifact-base".into(), "urn:source-owner:design-repository".into()),
-                ("artifact:artifact-revision-2".into(), "urn:source-owner:design-repository".into()),
-                ("engineering_receipt:receipt-structural-001".into(), "urn:source-owner:solver-registry".into()),
-                ("decision:decision-001".into(), "urn:source-owner:authority-registry".into())
+                (
+                    "evidence:evidence-design-source".into(),
+                    "urn:source-owner:survey-registry".into(),
+                ),
+                (
+                    "evidence:evidence-authority".into(),
+                    "urn:source-owner:authority-registry".into(),
+                ),
+                (
+                    "artifact:artifact-base".into(),
+                    "urn:source-owner:design-repository".into(),
+                ),
+                (
+                    "artifact:artifact-revision-2".into(),
+                    "urn:source-owner:design-repository".into(),
+                ),
+                (
+                    "engineering_receipt:receipt-structural-001".into(),
+                    "urn:source-owner:solver-registry".into(),
+                ),
+                (
+                    "decision:decision-001".into(),
+                    "urn:source-owner:authority-registry".into(),
+                ),
             ]),
         }
     }
@@ -2181,10 +2237,12 @@ mod tests {
                 .as_array()
                 .unwrap()
                 .iter()
-                .map(|component| (
-                    component["name"].as_str().unwrap().to_owned(),
-                    component["value"].as_str().unwrap().to_owned(),
-                ))
+                .map(|component| {
+                    (
+                        component["name"].as_str().unwrap().to_owned(),
+                        component["value"].as_str().unwrap().to_owned(),
+                    )
+                })
                 .collect::<Vec<_>>();
             components.sort_by(|left, right| left.0.cmp(&right.0));
 
@@ -2205,26 +2263,30 @@ mod tests {
         }
 
         let mut graph_core = output.graph.clone();
-        graph_core.as_object_mut().unwrap().remove("graph_snapshot_sha256");
-        let expected_graph_digest =
-            independent_sha256(&serde_json::to_vec(&graph_core).unwrap());
-        assert_eq!(
-            output.graph["graph_snapshot_sha256"],
-            expected_graph_digest
-        );
+        graph_core
+            .as_object_mut()
+            .unwrap()
+            .remove("graph_snapshot_sha256");
+        let expected_graph_digest = independent_sha256(&serde_json::to_vec(&graph_core).unwrap());
+        assert_eq!(output.graph["graph_snapshot_sha256"], expected_graph_digest);
     }
 
     #[test]
     fn unmodeled_source_media_type_and_schema_are_explicit_projection_losses() {
         let result = project_built_environment_case(&sample_case(), &context());
         let findings = result.projection_receipt["findings"].as_array().unwrap();
-        assert!(findings.iter().any(|finding| {
-            finding["code"] == "SOURCE_EVIDENCE_MEDIA_TYPE_SCHEMA_NOT_MODELED"
-        }));
+        assert!(
+            findings.iter().any(|finding| {
+                finding["code"] == "SOURCE_EVIDENCE_MEDIA_TYPE_SCHEMA_NOT_MODELED"
+            })
+        );
         assert!(findings.iter().any(|finding| {
             finding["code"] == "ENGINEERING_ARTIFACT_MEDIA_TYPE_SCHEMA_NOT_MODELED"
         }));
-        assert_eq!(result.disposition, ProjectionDisposition::ProjectedWithKnownLoss);
+        assert_eq!(
+            result.disposition,
+            ProjectionDisposition::ProjectedWithKnownLoss
+        );
         assert_eq!(result.graph["claim_ceiling"], "incomplete_or_indeterminate");
     }
 
@@ -2238,25 +2300,35 @@ mod tests {
             .find(|row| row["record_kind"] == "evidence")
             .unwrap();
         let expected_namespace = "urn:source-owner:survey-registry";
-        assert_eq!(evidence_mapping["native_identity_namespace"], expected_namespace);
+        assert_eq!(
+            evidence_mapping["native_identity_namespace"],
+            expected_namespace
+        );
         let evidence_node = result.graph["nodes"]
             .as_array()
             .unwrap()
             .iter()
-            .find(|node| node["node_type"] == "source_evidence"
-                && node["identity"]["identity_namespace"] == expected_namespace)
+            .find(|node| {
+                node["node_type"] == "source_evidence"
+                    && node["identity"]["identity_namespace"] == expected_namespace
+            })
             .unwrap();
-        assert_eq!(evidence_node["identity"]["identity_namespace"], expected_namespace);
+        assert_eq!(
+            evidence_node["identity"]["identity_namespace"],
+            expected_namespace
+        );
         assert!(valid_sha256(
             result.projection_receipt["projector"]["native_identity_namespace_map_sha256"]
                 .as_str()
                 .unwrap()
         ));
-        assert!(!result.projection_receipt["findings"]
-            .as_array()
-            .unwrap()
-            .iter()
-            .any(|finding| finding["code"] == "NATIVE_IDENTITY_NAMESPACE_NOT_SUPPLIED"));
+        assert!(
+            !result.projection_receipt["findings"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|finding| finding["code"] == "NATIVE_IDENTITY_NAMESPACE_NOT_SUPPLIED")
+        );
         assert_eq!(
             result.projection_receipt["projector"]["native_identity_namespace_entries_supplied"],
             6
@@ -2286,19 +2358,31 @@ mod tests {
             .native_identity_namespaces
             .remove("evidence:evidence-design-source");
         let result = project_built_environment_case(&sample_case(), &projection_context);
-        assert_eq!(result.disposition, ProjectionDisposition::ProjectedWithKnownLoss);
-        assert!(result.projection_receipt["findings"]
-            .as_array()
-            .unwrap()
-            .iter()
-            .any(|finding| finding["code"] == "NATIVE_IDENTITY_NAMESPACE_NOT_SUPPLIED"));
+        assert_eq!(
+            result.disposition,
+            ProjectionDisposition::ProjectedWithKnownLoss
+        );
+        assert!(
+            result.projection_receipt["findings"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|finding| finding["code"] == "NATIVE_IDENTITY_NAMESPACE_NOT_SUPPLIED")
+        );
         let node = result.graph["nodes"]
             .as_array()
             .unwrap()
             .iter()
-            .find(|node| node["identity"]["components"].as_array().unwrap().iter()
-                .any(|component| component["name"] == "native_record_id"
-                    && component["value"] == "evidence-design-source"))
+            .find(|node| {
+                node["identity"]["components"]
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .any(|component| {
+                        component["name"] == "native_record_id"
+                            && component["value"] == "evidence-design-source"
+                    })
+            })
             .unwrap();
         assert_eq!(node["identity"]["identity_namespace"], IDENTITY_NAMESPACE);
         assert_eq!(
@@ -2324,23 +2408,27 @@ mod tests {
     #[test]
     fn empty_source_owner_namespace_is_invalid_not_silently_normalized() {
         let mut projection_context = context();
-        projection_context.native_identity_namespaces.insert(
-            "evidence:evidence-design-source".into(),
-            "   ".into(),
-        );
+        projection_context
+            .native_identity_namespaces
+            .insert("evidence:evidence-design-source".into(), "   ".into());
         let result = project_built_environment_case(&sample_case(), &projection_context);
         assert_eq!(result.disposition, ProjectionDisposition::InvalidInput);
-        assert!(result.projection_receipt["findings"]
-            .as_array()
-            .unwrap()
-            .iter()
-            .any(|finding| finding["code"] == "INVALID_NATIVE_IDENTITY_NAMESPACE"));
+        assert!(
+            result.projection_receipt["findings"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|finding| finding["code"] == "INVALID_NATIVE_IDENTITY_NAMESPACE")
+        );
     }
 
     #[test]
     fn same_payload_does_not_collapse_distinct_source_evidence_identities() {
         let result = project_built_environment_case(&sample_case(), &context());
-        assert_eq!(result.disposition, ProjectionDisposition::ProjectedWithKnownLoss);
+        assert_eq!(
+            result.disposition,
+            ProjectionDisposition::ProjectedWithKnownLoss
+        );
         let evidence_nodes = result.graph["nodes"]
             .as_array()
             .unwrap()
@@ -2352,14 +2440,20 @@ mod tests {
             evidence_nodes[0]["artifact_sha256"],
             evidence_nodes[1]["artifact_sha256"]
         );
-        assert_ne!(evidence_nodes[0]["identity_sha256"], evidence_nodes[1]["identity_sha256"]);
+        assert_ne!(
+            evidence_nodes[0]["identity_sha256"],
+            evidence_nodes[1]["identity_sha256"]
+        );
         assert_ne!(evidence_nodes[0]["node_id"], evidence_nodes[1]["node_id"]);
     }
 
     #[test]
     fn projector_retains_parent_evidence_receipt_authority_and_decision_edges() {
         let result = project_built_environment_case(&sample_case(), &context());
-        assert_eq!(result.disposition, ProjectionDisposition::ProjectedWithKnownLoss);
+        assert_eq!(
+            result.disposition,
+            ProjectionDisposition::ProjectedWithKnownLoss
+        );
         let edges = result.graph["edges"].as_array().unwrap();
         for relation in [
             "derived_from",
@@ -2367,17 +2461,23 @@ mod tests {
             "verified_by",
             "authorized_by",
         ] {
-            assert!(edges.iter().any(|edge| edge["relation"] == relation), "missing {relation}");
+            assert!(
+                edges.iter().any(|edge| edge["relation"] == relation),
+                "missing {relation}"
+            );
         }
-        assert!(result.graph["nodes"].as_array().unwrap().iter().all(|node| {
-            node["verification"]["result"] == "unknown"
-                && node["observation_time"]["trusted_at"].is_null()
-        }));
-        assert_eq!(result.graph["action_authority"], "none");
-        assert_eq!(
-            result.graph["claim_ceiling"],
-            "incomplete_or_indeterminate"
+        assert!(
+            result.graph["nodes"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .all(|node| {
+                    node["verification"]["result"] == "unknown"
+                        && node["observation_time"]["trusted_at"].is_null()
+                })
         );
+        assert_eq!(result.graph["action_authority"], "none");
+        assert_eq!(result.graph["claim_ceiling"], "incomplete_or_indeterminate");
     }
 
     #[test]
@@ -2385,7 +2485,10 @@ mod tests {
         let mut case = sample_case();
         case.evidence[0].source_payload_sha256 = None;
         let result = project_built_environment_case(&case, &context());
-        assert_eq!(result.disposition, ProjectionDisposition::ProjectedWithKnownLoss);
+        assert_eq!(
+            result.disposition,
+            ProjectionDisposition::ProjectedWithKnownLoss
+        );
         assert!(
             result.projection_receipt["unmapped_relationships"]
                 .as_array()
@@ -2393,10 +2496,7 @@ mod tests {
                 .iter()
                 .any(|row| row["reason_code"] == "SOURCE_PAYLOAD_DIGEST_UNAVAILABLE")
         );
-        assert_eq!(
-            result.graph["claim_ceiling"],
-            "incomplete_or_indeterminate"
-        );
+        assert_eq!(result.graph["claim_ceiling"], "incomplete_or_indeterminate");
     }
 
     #[test]
@@ -2405,16 +2505,23 @@ mod tests {
         case.artifacts[1].parent_artifacts[0].content_sha256 = digest('f');
         case.engineering_receipts[0].input_artifact_sha256 = digest('f');
         let result = project_built_environment_case(&case, &context());
-        assert_eq!(result.disposition, ProjectionDisposition::ProjectedWithKnownLoss);
+        assert_eq!(
+            result.disposition,
+            ProjectionDisposition::ProjectedWithKnownLoss
+        );
         let unmapped = result.projection_receipt["unmapped_relationships"]
             .as_array()
             .unwrap();
-        assert!(unmapped.iter().any(|row| {
-            row["reason_code"] == "PARENT_ARTIFACT_DIGEST_OR_PROJECTION_MISMATCH"
-        }));
-        assert!(unmapped.iter().any(|row| {
-            row["reason_code"] == "RECEIPT_INPUT_DIGEST_OR_PROJECTION_MISMATCH"
-        }));
+        assert!(
+            unmapped.iter().any(|row| {
+                row["reason_code"] == "PARENT_ARTIFACT_DIGEST_OR_PROJECTION_MISMATCH"
+            })
+        );
+        assert!(
+            unmapped
+                .iter()
+                .any(|row| { row["reason_code"] == "RECEIPT_INPUT_DIGEST_OR_PROJECTION_MISMATCH" })
+        );
     }
 
     #[test]
@@ -2428,10 +2535,7 @@ mod tests {
             .as_object_mut()
             .unwrap()
             .remove("projection_receipt_sha256");
-        assert_eq!(
-            canonical_json_sha256(&digest_input).unwrap(),
-            declared
-        );
+        assert_eq!(canonical_json_sha256(&digest_input).unwrap(), declared);
     }
 
     #[test]
@@ -2520,18 +2624,26 @@ mod tests {
             evidence.source_payload_sha256 = None;
         }
         let result = project_built_environment_case(&case, &context());
-        assert_eq!(result.disposition, ProjectionDisposition::ProjectedWithKnownLoss);
+        assert_eq!(
+            result.disposition,
+            ProjectionDisposition::ProjectedWithKnownLoss
+        );
         assert_eq!(result.graph, Value::Null);
         assert!(result.projection_receipt["projected_graph"].is_null());
         assert_eq!(
-            result.projection_receipt["projected_payloads"].as_array().unwrap().len(),
+            result.projection_receipt["projected_payloads"]
+                .as_array()
+                .unwrap()
+                .len(),
             2
         );
-        assert!(result.projection_receipt["findings"]
-            .as_array()
-            .unwrap()
-            .iter()
-            .any(|finding| finding["code"] == "NO_GRAPH_NODES_PROJECTABLE"));
+        assert!(
+            result.projection_receipt["findings"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|finding| finding["code"] == "NO_GRAPH_NODES_PROJECTABLE")
+        );
     }
 
     #[test]
@@ -2543,15 +2655,14 @@ mod tests {
         });
         let result = project_built_environment_case(&case, &context());
         assert_eq!(result.disposition, ProjectionDisposition::InvalidInput);
-        assert_eq!(
-            result.graph["claim_ceiling"],
-            "incomplete_or_indeterminate"
+        assert_eq!(result.graph["claim_ceiling"], "incomplete_or_indeterminate");
+        assert!(
+            result.projection_receipt["findings"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|finding| finding["code"] == "PROJECTED_DEPENDENCY_CYCLE")
         );
-        assert!(result.projection_receipt["findings"]
-            .as_array()
-            .unwrap()
-            .iter()
-            .any(|finding| finding["code"] == "PROJECTED_DEPENDENCY_CYCLE"));
     }
 
     #[test]
@@ -2562,11 +2673,13 @@ mod tests {
             .push("evidence-design-source".into());
         let result = project_built_environment_case(&case, &context());
         assert_eq!(result.disposition, ProjectionDisposition::InvalidInput);
-        assert!(result.projection_receipt["findings"]
-            .as_array()
-            .unwrap()
-            .iter()
-            .any(|finding| finding["code"] == "DUPLICATE_PROJECTED_EDGE_ENDPOINT_PAIR"));
+        assert!(
+            result.projection_receipt["findings"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|finding| finding["code"] == "DUPLICATE_PROJECTED_EDGE_ENDPOINT_PAIR")
+        );
     }
 
     #[test]
@@ -2582,11 +2695,13 @@ mod tests {
         let result = project_built_environment_case(&case, &context());
         assert_eq!(result.disposition, ProjectionDisposition::InvalidInput);
         assert_eq!(result.graph, Value::Null);
-        assert!(result.projection_receipt["findings"]
-            .as_array()
-            .unwrap()
-            .iter()
-            .any(|finding| finding["code"] == "EMPTY_CASE_GRAPH"));
+        assert!(
+            result.projection_receipt["findings"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|finding| finding["code"] == "EMPTY_CASE_GRAPH")
+        );
     }
 
     #[test]
@@ -2594,12 +2709,17 @@ mod tests {
         let mut case = sample_case();
         case.decisions[0].authority_evidence_id = None;
         let result = project_built_environment_case(&case, &context());
-        assert_eq!(result.disposition, ProjectionDisposition::ProjectedWithKnownLoss);
-        assert!(result.projection_receipt["unmapped_relationships"]
-            .as_array()
-            .unwrap()
-            .iter()
-            .any(|row| row["reason_code"] == "DECISION_AUTHORITY_EVIDENCE_NOT_DECLARED"));
+        assert_eq!(
+            result.disposition,
+            ProjectionDisposition::ProjectedWithKnownLoss
+        );
+        assert!(
+            result.projection_receipt["unmapped_relationships"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|row| row["reason_code"] == "DECISION_AUTHORITY_EVIDENCE_NOT_DECLARED")
+        );
     }
 
     #[test]
