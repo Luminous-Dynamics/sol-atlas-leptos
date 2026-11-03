@@ -207,7 +207,7 @@ pub struct ExpectedSourceOwner {
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum SourceUniverseDisposition {
-    DeclaredOwnerSetCovered,
+    ExpectedOwnerManifestsPresent,
     IncompleteOrIndeterminate,
     InvalidInput,
 }
@@ -215,7 +215,7 @@ pub enum SourceUniverseDisposition {
 impl SourceUniverseDisposition {
     pub fn as_str(self) -> &'static str {
         match self {
-            Self::DeclaredOwnerSetCovered => "declared_owner_set_covered",
+            Self::ExpectedOwnerManifestsPresent => "expected_owner_manifests_present",
             Self::IncompleteOrIndeterminate => "incomplete_or_indeterminate",
             Self::InvalidInput => "invalid_input",
         }
@@ -972,13 +972,14 @@ pub fn validate_source_inventory_manifest(
     }
 }
 
-/// Reconcile observed manifests against a caller-supplied expected owner set.
+/// Reconcile observed manifest *presence* against a caller-supplied expected owner set.
 ///
-/// This does not prove that the expected owner set itself is complete. That
-/// discovery obligation must come from an independently maintained source
-/// register and appropriate owner attestations. This function only reconciles
-/// owner/system pairs; callers must separately validate each manifest's
-/// record-set completeness disposition.
+/// This function does not qualify the contents or completeness of any manifest.
+/// It only answers whether each required owner/system pair has a corresponding
+/// manifest, whether unexpected owners are present, and whether owner pairs are
+/// duplicated. Callers must separately validate every manifest's record-set
+/// completeness disposition. The expected owner set itself must come from an
+/// independently maintained source register and appropriate owner evidence.
 pub fn validate_source_universe_coverage(
     expected_owners: &[ExpectedSourceOwner],
     manifests: &[SourceInventoryManifest],
@@ -1058,7 +1059,7 @@ pub fn validate_source_universe_coverage(
     } else if !findings.rows.is_empty() {
         SourceUniverseDisposition::IncompleteOrIndeterminate
     } else {
-        SourceUniverseDisposition::DeclaredOwnerSetCovered
+        SourceUniverseDisposition::ExpectedOwnerManifestsPresent
     };
     SourceUniverseValidation {
         disposition,
@@ -1069,7 +1070,7 @@ pub fn validate_source_universe_coverage(
             .count(),
         observed_manifest_count: manifests.len(),
         missing_required_owner_count,
-        claim_scope: "caller_supplied_expected_owner_set_only".into(),
+        claim_scope: "caller_supplied_expected_owner_set_manifest_presence_only".into(),
         findings: findings.rows(),
     }
 }
@@ -1530,7 +1531,7 @@ mod tests {
         assert_eq!(result.missing_required_owner_count, 1);
         assert_eq!(
             result.claim_scope,
-            "caller_supplied_expected_owner_set_only"
+            "caller_supplied_expected_owner_set_manifest_presence_only"
         );
     }
 
