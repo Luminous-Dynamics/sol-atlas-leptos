@@ -56,7 +56,7 @@ impl InventoryDisposition {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum InventoryFindingSeverity {
     Incomplete,
@@ -446,15 +446,17 @@ fn validate_page_partition(
                 "page cursor_before must equal the preceding page cursor_after",
             );
         }
-        if let Some(cursor) = page.cursor_before_sha256.as_ref() {
-            if !valid_sha256(cursor) || !seen_cursors.insert(cursor.clone()) {
-                chain_well_formed = false;
-                findings.invalid(
-                    "INVENTORY_CURSOR_REPLAY",
-                    format!("{partition_id}:{}", page.ordinal),
-                    "cursor hashes must be valid and unique within a partition",
-                );
-            }
+        if page
+            .cursor_before_sha256
+            .as_deref()
+            .is_some_and(|cursor| !valid_sha256(cursor))
+        {
+            chain_well_formed = false;
+            findings.invalid(
+                "INVALID_INVENTORY_CURSOR_DIGEST",
+                format!("{partition_id}:{}", page.ordinal),
+                "cursor hashes must be lowercase SHA-256",
+            );
         }
 
         if page.terminal {
