@@ -1,8 +1,8 @@
 # Federated Source Inventory Completeness — Research and Benchmark Contract v0.1
 
-**Status:** research contract / not yet implemented  
+**Status:** v0.1 Rust verifier, schema, and synthetic fixtures implemented on a draft stacked branch; external source authentication remains separate  
 **Scope:** source-system inventory claims feeding the built-environment source descriptor catalogue and IEAC projection  
-**Claim boundary:** this protocol can qualify an inventory within an authenticated, declared query boundary. It cannot prove that the declared source set is the entire real-world source universe.
+**Claim boundary:** the current v0.1 verifier can qualify internal consistency within a declared query boundary. It does not authenticate that boundary or prove that the declared source set is the entire real-world source universe.
 
 ## 1. Why this is the next architectural boundary
 
@@ -66,6 +66,8 @@ Do not include raw secrets, access tokens, internal credentials, or protected qu
 
 Each page receipt should bind:
 
+- a per-item exact source-payload digest array, positionally aligned with the owner-native identity digest array, so repeated native identity can be checked for conflicting payload bytes without retaining payload content;
+
 - inventory ID and snapshot token/digest;
 - 0-based ordinal and stable partition identifier;
 - digest of the exact serialized page payload;
@@ -77,7 +79,7 @@ Each page receipt should bind:
 
 The verifier must reject a skipped ordinal, repeated cursor, broken predecessor link, duplicate terminal page, a page from a different snapshot, or a terminal marker that does not agree with the source API's documented completion semantics.
 
-A cursor chain proves only that the returned pages form the declared chain. It does not prove the source API itself exposed every relevant record. That requires source-specific completeness semantics and an authenticated source claim.
+A cursor chain proves only that the returned pages form the declared chain. It does not prove the source API itself exposed every relevant record. That requires source-specific completeness semantics and an authenticated source claim. The Rust verifier also requires a per-record payload digest for every page item and rejects one owner-native identity paired with conflicting payload digests across pages or partitions. Matching duplicate identities remain counted as duplicates rather than silently merged. These payload digests are still source/connector assertions: the verifier does not retrieve or independently hash those source bytes.
 
 ### 3.3 Bounded inventory disposition
 
@@ -210,13 +212,31 @@ Only the first case can support a bounded negative finding. All other states mus
 
 Downstream NoImpact must require a validated dependency graph **and** a sufficiently complete source inventory for the declared impact scope. An invalid or incomplete inventory cannot be converted into a green no-impact result by a correct graph traversal.
 
+## 8. Current v0.1 implementation status
+
+The draft branch now includes:
+- a strict Rust manifest/page-receipt model and Draft 2020-12 JSON Schema;
+- per-partition ordinal, cursor, terminal, predecessor-receipt, snapshot, watermark and time-order checks;
+- separate raw page-item and unique owner-native identity count reconciliation;
+- exact per-record payload-digest alignment, matching duplicate accounting, and conflict rejection for the same native identity with different payload digests;
+- tombstone identity binding and policy-bound exclusions with unique identity accounting;
+- expected-owner presence reconciliation kept distinct from per-source query completeness;
+- composed owner-closure validation that requires every required owner manifest to validate independently;
+- a descriptor-to-inventory projector path that matches owner namespace, source system, native identity digest, source payload digest and snapshot digest for every descriptor;
+- an explicit `no_impact_eligible: false` output and blockers, including when every synthetic inventory is internally complete.
+
+The projector receipt binds the inventory-closure validation digest and descriptor-binding result. A missing, incomplete, excluded, incomparable or invalid inventory, or any descriptor/inventory identity, payload or snapshot disagreement, downgrades the projected graph claim ceiling to `incomplete_or_indeterminate`.
+
+**Important serialization limit:** page-receipt hashes and current validation hashes use the Rust struct's `serde_json` field-order serialization profile. They are not yet a declared cross-language canonical JSON format such as RFC 8785 or deterministic CBOR. They must not be used as interoperable signature inputs until that profile is explicitly frozen and independently implemented.
+
+**Verification limit:** current tests use synthetic manifests. Payload digests, connector identity, source snapshot references, owner namespaces, page receipt digests and attestation references remain claims until a separate byte verifier and trust policy authenticate them. Neither a structurally complete inventory nor a matching descriptor binding authorizes `NoImpact`, construction, or actuation.
 ## 8. Implementation sequence
 
 1. Freeze this contract and publish the synthetic positive/negative manifests.
-2. Add a Rust SourceInventoryManifest model and JSON Schema in a separate v0.1 module, leaving the existing descriptor schema additive and backwards-compatible.
-3. Implement canonical query, page-chain and snapshot binding validation.
-4. Keep cryptographic signature verification as a separate verifier input with explicit trust-policy results; do not conflate it with structural validation.
-5. Join inventory dispositions to descriptor validation and IEAC projection receipts.
+2. Implemented on the draft branch: add a Rust SourceInventoryManifest model and JSON Schema in a separate v0.1 module, leaving the existing descriptor schema additive and backwards-compatible.
+3. Implemented on the draft branch: validate page chains, query digest shape, snapshot and watermark bindings. Canonical query semantics remain source-adapter-specific and are not independently reconstructed by the generic verifier.
+4. Keep cryptographic signature verification as a separate verifier input with explicit trust-policy results; not implemented by this module and never conflate it with structural validation.
+5. Implemented as a draft composition API: join owner inventory closure and per-descriptor native identity/payload/snapshot bindings into IEAC projection receipts.
 6. Add independent full-inventory gold oracles and mutation tests.
 7. Add change-event/tombstone watermarks to revalidation-frontier certificates.
 8. Only then compare end-to-end completeness, latency and cost against independent connector exports and vendor interfaces.
