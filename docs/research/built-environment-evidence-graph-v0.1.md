@@ -44,6 +44,45 @@ The new sol-atlas-core::built_environment_case module checks:
 
 It reports stable issue codes and deterministic order so that callers can create machine-readable receipts and UI explanations.
 
+## Change-impact and revalidation frontier
+
+The module also exposes `compute_revalidation_frontier`, an advisory query for a
+proposed content-digest change to an exact artifact ID. It returns one of:
+
+- `no_impact`: the graph is valid and the proposed digest is identical to the
+  current digest;
+- `revalidation_required`: the source digest changes and downstream records
+  depend on that artifact;
+- `graph_invalid`: the source is missing, the digest is malformed, or the
+  dependency/evidence/receipt/decision graph is incomplete or inconsistent.
+
+For a changed artifact, the query builds a deterministic parent-to-child
+closure and reports:
+- the changed artifact and every transitive descendant;
+- engineering receipts whose exact input artifact is in that closure;
+- decisions targeting an affected artifact or consuming an affected receipt;
+- a stable shortest artifact path from the changed artifact to each impact.
+
+The result is a **revalidation frontier, not a recalculation**. It does not edit
+old artifacts, receipts or decisions; it does not mark a fresh receipt as
+passed; and it never converts a historical approval into a new approval. Each
+affected engineering receipt must be regenerated or independently revalidated
+against the new exact input before a new decision can rely on it. The old record
+remains historical evidence of what was reviewed at the time.
+
+The query intentionally does not infer that an artifact content change also
+changes the upstream evidence records linked to that artifact. Source-evidence
+revision/revocation has a different dependency direction and needs its own
+evidence-source impact query. This prevents a changed design file from
+spuriously invalidating unrelated receipts that happen to cite the same
+unchanged source evidence.
+
+The query fails closed on duplicate graph IDs, missing parent/evidence/receipt/
+decision references, stale parent digests and artifact dependency cycles. It is
+advisory provenance analysis only: it cannot determine whether the proposed
+revision is safe, whether the source payload actually matches its declared
+digest, or whether revalidation is professionally or legally sufficient.
+
 ## What this does not do
 
 - It does not fetch/hash external payload bytes. It checks the supplied 64-character SHA-256 representation and compares declared digests. The ingestion/storage layer must hash exact bytes and protect immutability.
