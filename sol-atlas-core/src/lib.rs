@@ -10,6 +10,8 @@
 
 pub mod aesthetics;
 pub mod built_environment_case;
+/// Case-bound, owner-native source descriptors; validates metadata consistency
+/// only and does not authenticate source bytes, owners, rights, or attestations.
 pub mod built_environment_source_descriptor;
 pub mod confluence;
 pub mod constants;
