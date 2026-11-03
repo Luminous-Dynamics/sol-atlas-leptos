@@ -1038,6 +1038,22 @@ mod tests {
     }
 
     #[test]
+    fn frozen_synthetic_manifest_fixture_deserializes_and_validates() {
+        let manifest: SourceInventoryManifest = serde_json::from_str(include_str!(
+            "../../schemas/examples/federated-source-inventory-manifest-synthetic-v0.1.json"
+        ))
+        .unwrap();
+        let result = validate_source_inventory_manifest(&manifest);
+        assert_eq!(
+            result.disposition,
+            InventoryDisposition::CompleteWithinDeclaredQuery
+        );
+        assert_eq!(result.page_count, 2);
+        assert_eq!(result.enumerated_unique_count, 3);
+        assert_eq!(result.source_attestation_authentication, "not_performed");
+    }
+
+    #[test]
     fn complete_frozen_manifest_is_bounded_to_declared_query() {
         let result = validate_source_inventory_manifest(&valid_manifest());
         assert_eq!(
