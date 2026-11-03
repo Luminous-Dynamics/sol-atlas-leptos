@@ -830,6 +830,10 @@ pub(crate) fn build_impacted_results_with_adjacency(
                     "STATEMENT_RIGHTS_REVOKED_OR_EXPIRED",
                     "CURRENT_EVIDENCE_USE_WITHDRAWN",
                 )),
+                ("authority_grant", "rights_revoked_or_expired") => Some((
+                    "AUTHORITY_GRANT_RIGHTS_REVOKED_OR_EXPIRED",
+                    "CURRENT_AUTHORITY_EVIDENCE_WITHDRAWN",
+                )),
                 ("model", "model_superseded") => Some((
                     "MODEL_SUPERSEDED",
                     "CURRENT_MODEL_RELIANCE_WITHDRAWN",
