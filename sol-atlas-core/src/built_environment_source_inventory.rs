@@ -36,6 +36,22 @@ impl SnapshotSemantics {
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
+pub enum ReportedTotalSemantics {
+    UniqueNativeRecords,
+    RawPageItems,
+}
+
+impl ReportedTotalSemantics {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::UniqueNativeRecords => "unique_native_records",
+            Self::RawPageItems => "raw_page_items",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub enum InventoryDisposition {
     CompleteWithinDeclaredQuery,
     CompleteWithDeclaredExclusions,
@@ -93,6 +109,8 @@ pub struct InventoryPageReceipt {
     /// Owner-native identity digests for the items in this page. This list
     /// permits cross-page duplicate detection without moving source payloads.
     pub native_record_identity_sha256s: Vec<String>,
+    /// Tombstones must be a subset of this page's native identity digest list.
+    pub tombstone_identity_sha256s: Vec<String>,
     pub cursor_before_sha256: Option<String>,
     pub cursor_after_sha256: Option<String>,
     /// Hash of the previous page receipt in this partition's chain.
@@ -135,6 +153,7 @@ pub struct SourceInventoryManifest {
     pub enumeration_finished_at: String,
     pub page_receipts: Vec<InventoryPageReceipt>,
     pub reported_total_count: Option<u64>,
+    pub reported_total_count_semantics: Option<ReportedTotalSemantics>,
     pub enumerated_item_count: u64,
     pub enumerated_unique_count: u64,
     pub duplicate_count: u64,
@@ -320,6 +339,7 @@ fn validate_page_partition(
     pages: &[&InventoryPageReceipt],
     manifest: &SourceInventoryManifest,
     findings: &mut Findings,
+    all_tombstone_identities: &mut BTreeSet<String>,
 ) -> (u64, u64, bool) {
     let mut item_count = 0u64;
     let mut identities = BTreeSet::new();
@@ -448,6 +468,12 @@ fn validate_page_partition(
                 "identity digest list length must equal the page item count",
             );
         }
+        let page_identity_set = page
+            .native_record_identity_sha256s
+            .iter()
+            .filter(|identity| valid_sha256(identity))
+            .cloned()
+            .collect::<BTreeSet<_>>();
         for identity in &page.native_record_identity_sha256s {
             if !valid_sha256(identity) {
                 chain_well_formed = false;
@@ -458,6 +484,18 @@ fn validate_page_partition(
                 );
             } else {
                 identities.insert(identity.clone());
+            }
+        }
+        for tombstone in &page.tombstone_identity_sha256s {
+            if !valid_sha256(tombstone) || !page_identity_set.contains(tombstone) {
+                chain_well_formed = false;
+                findings.invalid(
+                    "INVENTORY_TOMBSTONE_IDENTITY_NOT_IN_PAGE",
+                    format!("{partition_id}:{}", page.ordinal),
+                    "each tombstone identity must be valid and present in the same page identity list",
+                );
+            } else {
+                all_tombstone_identities.insert(tombstone.clone());
             }
         }
 
@@ -760,12 +798,19 @@ pub fn validate_source_inventory_manifest(
     let mut all_partition_chains_complete = true;
     let mut all_identity_digests = BTreeSet::new();
     let mut all_identity_digest_count = 0u64;
+    let mut all_tombstone_identities = BTreeSet::new();
     for partition_id in &manifest.required_partitions {
         let pages = grouped_pages
             .get(partition_id)
             .map_or(&[][..], Vec::as_slice);
         let (partition_items, _partition_unique, chain_complete) =
-            validate_page_partition(partition_id, pages, manifest, &mut findings);
+            validate_page_partition(
+                partition_id,
+                pages,
+                manifest,
+                &mut findings,
+                &mut all_tombstone_identities,
+            );
         total_items = total_items.saturating_add(partition_items);
         all_partition_chains_complete &= chain_complete;
         for page in pages {
@@ -812,20 +857,40 @@ pub fn validate_source_inventory_manifest(
             "tombstone count cannot exceed enumerated unique record count",
         );
     }
-    match manifest.reported_total_count {
-        Some(source_total) if source_total != manifest.enumerated_unique_count => {
+    if u64::try_from(all_tombstone_identities.len()).unwrap_or(u64::MAX)
+        != manifest.tombstone_count
+    {
+        findings.invalid(
+            "INVENTORY_TOMBSTONE_IDENTITY_COUNT_MISMATCH",
+            "manifest",
+            "unique page tombstone identity digests do not reconcile to tombstone_count",
+        );
+    }
+    match (manifest.reported_total_count, manifest.reported_total_count_semantics) {
+        (Some(source_total), Some(ReportedTotalSemantics::UniqueNativeRecords))
+            if source_total != manifest.enumerated_unique_count =>
+        {
             findings.invalid(
                 "SOURCE_REPORTED_TOTAL_COUNT_MISMATCH",
                 "manifest",
-                "source-reported total count disagrees with the enumerated unique identity count",
+                "source-reported unique-native-record count disagrees with enumerated_unique_count",
             );
         }
-        None => findings.incomplete(
-            "SOURCE_REPORTED_TOTAL_COUNT_MISSING",
+        (Some(source_total), Some(ReportedTotalSemantics::RawPageItems))
+            if source_total != manifest.enumerated_item_count =>
+        {
+            findings.invalid(
+                "SOURCE_REPORTED_TOTAL_COUNT_MISMATCH",
+                "manifest",
+                "source-reported raw page-item count disagrees with enumerated_item_count",
+            );
+        }
+        (Some(_), Some(_)) => {}
+        (None, _) | (_, None) => findings.incomplete(
+            "SOURCE_REPORTED_TOTAL_COUNT_SEMANTICS_MISSING",
             "manifest",
-            "source did not provide a total count for the declared query boundary",
+            "source total count and its unique-record/raw-page-item semantics must both be declared",
         ),
-        _ => {}
     }
 
     let exclusion_total = manifest.exclusions.iter().fold(0u64, |sum, exclusion| {
@@ -1031,6 +1096,7 @@ mod tests {
             response_payload_sha256: digest(payload),
             item_count: identities.len() as u64,
             native_record_identity_sha256s: identities,
+            tombstone_identity_sha256s: vec![],
             cursor_before_sha256: cursor_before,
             cursor_after_sha256: cursor_after,
             predecessor_page_receipt_sha256: predecessor,
@@ -1083,6 +1149,7 @@ mod tests {
             enumeration_finished_at: "2026-11-03T10:02:00Z".into(),
             page_receipts: vec![first, second],
             reported_total_count: Some(3),
+            reported_total_count_semantics: Some(ReportedTotalSemantics::UniqueNativeRecords),
             enumerated_item_count: 3,
             enumerated_unique_count: 3,
             duplicate_count: 0,
