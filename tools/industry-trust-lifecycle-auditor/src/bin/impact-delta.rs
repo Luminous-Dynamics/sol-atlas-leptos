@@ -1458,5 +1458,16 @@ mod tests {
             batch["next_state_pin"]["impact_report_sha256"],
             canonical_json_digest(&batch["resulting_impact_report"]).unwrap()
         );
+        assert_eq!(
+            verify_batch(&graph, &base_report, &base_pin, &envelope, &batch).unwrap(),
+            batch
+        );
+
+        let mut tampered = batch.clone();
+        tampered["deltas"][1]["resulting_state_sha256"] = json!("f".repeat(64));
+        let resealed_delta =
+            canonical_digest_without_field(&tampered["deltas"][1], "delta_sha256").unwrap();
+        tampered["deltas"][1]["delta_sha256"] = json!(resealed_delta);
+        assert!(verify_batch(&graph, &base_report, &base_pin, &envelope, &tampered).is_err());
     }
 }
