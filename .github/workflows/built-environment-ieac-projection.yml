@@ -107,7 +107,7 @@ jobs:
           jsonschema-cli validate --draft 2020 --assert-format --offline "$assurance_schema" -i "$assurance_fixture"
           jq -e '
             .case_status == "draft" and
-            .claims | length > 0
+            (.claims | length > 0)
           ' "$assurance_fixture"
           jq -e '
             . as $case |
@@ -122,7 +122,18 @@ jobs:
             all($case.claims[]; all(.evidence_binding_ids[]; . as $id | ($case.evidence_bindings | any(.binding_id == $id)))) and
             all($case.claims[]; all(.assumption_ids[]; . as $id | ($case.assumptions | any(.assumption_id == $id)))) and
             all($case.claims[]; all(.defeater_ids[]; . as $id | ($case.defeaters | any(.defeater_id == $id)))) and
-            all($case.arguments[]; ($case.claims | any(.claim_id == .conclusion_claim_id)) // false) == false
+            all($case.arguments[];
+              . as $argument |
+              ($case.claims | any(.claim_id == $argument.conclusion_claim_id)) and
+              all($argument.premise_claim_ids[];
+                . as $id | ($case.claims | any(.claim_id == $id))) and
+              all($argument.evidence_binding_ids[];
+                . as $id | ($case.evidence_bindings | any(.binding_id == $id))) and
+              all($argument.assumption_ids[];
+                . as $id | ($case.assumptions | any(.assumption_id == $id))) and
+              all($argument.defeater_ids[];
+                . as $id | ($case.defeaters | any(.defeater_id == $id)))
+            )
           ' "$assurance_fixture"
           jq -e '
             .case_status == "draft" and
