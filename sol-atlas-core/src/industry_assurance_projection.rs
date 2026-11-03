@@ -1964,6 +1964,26 @@ mod tests {
             .unwrap()
             .iter()
             .any(|finding| finding["code"] == "NATIVE_IDENTITY_NAMESPACE_NOT_SUPPLIED"));
+        assert_eq!(
+            result.projection_receipt["projector"]["native_identity_namespace_entries_supplied"],
+            6
+        );
+        assert_eq!(
+            result.projection_receipt["projector"]["native_identity_namespace_entries_expected"],
+            6
+        );
+        assert_eq!(
+            result.projection_receipt["projector"]["source_owner_namespace_entries_supplied_for_all_records"],
+            true
+        );
+        assert_eq!(
+            result.projection_receipt["projector"]["source_owner_namespace_authenticated"],
+            false
+        );
+        assert_eq!(
+            evidence_mapping["native_identity_namespace_basis"],
+            "caller_supplied"
+        );
     }
 
     #[test]
