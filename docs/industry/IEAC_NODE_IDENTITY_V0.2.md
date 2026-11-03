@@ -80,6 +80,11 @@ P1:
 
 The identity envelope follows the general principle that source-native identities are scoped by their owning namespace, not inferred from payload bytes. Asset Administration Shell identity guidance uses globally unique identifiers and supports additional specific asset identifiers. OPC UA distinguishes namespace-qualified identifiers from local numeric/string identifiers. These are interoperability anchors; this v0.2 envelope is not a replacement for either source model.
 
+- [OPC UA Part 4, ExpandedNodeId](https://reference.opcfoundation.org/specs/OPC-10000-4/7.16): preserve the namespace URI and full identifier type/value; do not persist a server-local namespace index as globally meaningful identity.
+- [OPC UA Part 3, NamespaceIndex](https://reference.opcfoundation.org/specs/OPC-10000-3/8.2.2): the namespace URI identifies the naming authority and is case-sensitive.
+- [IDTA AAS Metamodel 3.0.2](https://industrialdigitaltwin.org/en/wp-content/uploads/sites/2/2025/03/IDTA-01001-3-0-2_SpecificationAssetAdministrationShell_Part1_Metamodel.pdf): preserve the asset's global identifier and additional domain-specific `specificAssetIds` rather than collapsing the two.
+- [NIST IR 8536 (September 2026)](https://csrc.nist.gov/pubs/ir/8536/final): a current manufacturing traceability meta-framework comparator for linking provenance across organizations while preserving proprietary internal data.
+
 RFC 8785 JCS is useful for canonical JSON hashing, but v0.2 deliberately avoids depending on JSON number/string serialization for node identity. Its fixed binary encoding is easier to reproduce and is separately versioned.
 
 ## Nonclaims
