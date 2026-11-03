@@ -744,6 +744,11 @@ pub(crate) fn build_impacted_results_with_adjacency(
         .get("targets")
         .and_then(Value::as_array)
         .ok_or_else(|| "event.targets must be an array".to_owned())?;
+    let cause = required_string(event, "cause_class", "event")?;
+    let direct_target_ids: BTreeSet<String> = targets
+        .iter()
+        .map(|target| required_string(target, "node_id", "event target").map(str::to_owned))
+        .collect::<Result<_, _>>()?;
     let mut paths: BTreeMap<String, Vec<String>> = BTreeMap::new();
     let mut queue = VecDeque::new();
     for target in targets {
@@ -785,13 +790,40 @@ pub(crate) fn build_impacted_results_with_adjacency(
             .ok_or_else(|| format!("impact traversal lost graph node {node_id}"))?;
         let node_type = required_string(node, "node_type", "graph node")?;
         let artifact_digest = required_string(node, "artifact_sha256", "graph node")?;
+        let direct_invalidation = if direct_target_ids.contains(&node_id) {
+            match (node_type, cause) {
+                ("issuer_key", "issuer_key_compromised") => Some((
+                    "ISSUER_KEY_COMPROMISED",
+                    "CURRENT_KEY_TRUST_WITHDRAWN",
+                )),
+                ("issuer_key", "issuer_key_revoked_or_rotated") => Some((
+                    "ISSUER_KEY_REVOKED_OR_ROTATED",
+                    "CURRENT_KEY_TRUST_WITHDRAWN",
+                )),
+                ("transparency_service_key", "transparency_service_key_compromised") => Some((
+                    "TRANSPARENCY_SERVICE_KEY_COMPROMISED",
+                    "CURRENT_TS_KEY_TRUST_WITHDRAWN",
+                )),
+                ("trust_bundle", "trust_root_changed") => Some((
+                    "TRUST_ROOT_CHANGED",
+                    "CURRENT_TRUST_BUNDLE_REQUIRES_REPLACEMENT",
+                )),
+                ("authority_grant", "authority_revoked") => Some((
+                    "AUTHORITY_GRANT_REVOKED",
+                    "CURRENT_AUTHORITY_WITHDRAWN",
+                )),
+                _ => None,
+            }
+        } else {
+            None
+        };
         let (impact_class, historical, current, reasons): (&str, &str, &str, Vec<&str>) =
-            if node_type == "issuer_key" {
+            if let Some((direct_reason, reliance_reason)) = direct_invalidation {
                 (
                     "claim_invalidated",
                     "unknown",
                     "ineligible",
-                    vec!["ISSUER_KEY_COMPROMISED", "CURRENT_KEY_TRUST_WITHDRAWN"],
+                    vec![direct_reason, reliance_reason],
                 )
             } else if signed_statement_precedes_compromise(&path, nodes, effective_at, evaluated_at)
             {
