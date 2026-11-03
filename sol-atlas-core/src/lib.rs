@@ -14,7 +14,9 @@ pub mod built_environment_case;
 /// reconciliation, and loss-accounted metadata validation. The catalogue is
 /// case-bound, but its owner-native identity hashes deliberately exclude case
 /// membership so shared source records retain stable identity across projects.
-/// Structural validation does not authenticate bytes, owners, rights, or signatures.
+/// Structural validation does not authenticate bytes, owners, rights, signatures,
+/// coverage completeness, engineering correctness, or authorization; those remain
+/// independent evidence and trust obligations.
 pub mod built_environment_source_descriptor;
 pub mod confluence;
 pub mod constants;
