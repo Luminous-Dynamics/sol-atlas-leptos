@@ -1,0 +1,466 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/built-environment-ieac-projection-receipt-v0.1.schema.json",
+  "title": "Built-environment IEAC projection receipt v0.1",
+  "description": "Loss-accounting receipt for a read-only BuiltEnvironmentCase to IEAC v0.2 projection. It records transformations and limitations; it does not authenticate source owners, prove coverage, or grant action authority.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "case_id",
+    "source_case_representation",
+    "projector",
+    "projected_graph",
+    "node_mappings",
+    "edge_mappings",
+    "projected_payloads",
+    "unmapped_relationships",
+    "findings",
+    "disposition",
+    "claim_ceiling",
+    "action_authority",
+    "verification_claim",
+    "limitations",
+    "projection_receipt_sha256"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "luminous.built-environment-ieac-projection.v0.1"
+    },
+    "case_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1024
+    },
+    "source_case_representation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "media_type",
+        "serialization_profile",
+        "sha256"
+      ],
+      "properties": {
+        "media_type": {
+          "const": "application/json"
+        },
+        "serialization_profile": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "projector": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "version",
+        "build_sha256",
+        "mapping_profile_sha256",
+        "adapter_fallback_identity_namespace",
+        "identity_namespace_basis",
+        "native_identity_namespaces",
+        "native_identity_namespace_map_sha256",
+        "native_identity_namespace_entries_supplied",
+        "native_identity_namespace_entries_expected",
+        "source_owner_namespace_entries_supplied_for_all_records",
+        "source_owner_namespace_authenticated"
+      ],
+      "properties": {
+        "id": {
+          "const": "sol-atlas-built-environment-ieac-projector"
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "build_sha256": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/sha256"
+            }
+          ]
+        },
+        "mapping_profile_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "adapter_fallback_identity_namespace": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        },
+        "identity_namespace_basis": {
+          "enum": [
+            "caller_supplied_per_record_namespace_map_not_authenticated",
+            "caller_supplied_map_with_adapter_fallback"
+          ]
+        },
+        "native_identity_namespaces": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2048
+          },
+          "additionalProperties": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1024
+          }
+        },
+        "native_identity_namespace_map_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "native_identity_namespace_entries_supplied": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "native_identity_namespace_entries_expected": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "source_owner_namespace_entries_supplied_for_all_records": {
+          "type": "boolean"
+        },
+        "source_owner_namespace_authenticated": {
+          "const": false
+        }
+      }
+    },
+    "projected_graph": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "schema_version",
+            "graph_id",
+            "graph_snapshot_sha256",
+            "node_count",
+            "edge_count"
+          ],
+          "properties": {
+            "schema_version": {
+              "const": "luminous.ieac-assurance-dependency-graph.v0.2"
+            },
+            "graph_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "graph_snapshot_sha256": {
+              "$ref": "#/$defs/sha256"
+            },
+            "node_count": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "edge_count": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        }
+      ]
+    },
+    "node_mappings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "record_kind",
+          "native_key",
+          "node_type",
+          "node_id",
+          "identity_sha256",
+          "native_identity_namespace",
+          "native_identity_namespace_basis",
+          "projected_payload_sha256",
+          "payload_digest_basis"
+        ],
+        "properties": {
+          "record_kind": {
+            "enum": [
+              "evidence",
+              "artifact",
+              "engineering_receipt",
+              "decision"
+            ]
+          },
+          "native_key": {
+            "type": "string",
+            "minLength": 1
+          },
+          "node_type": {
+            "enum": [
+              "source_evidence",
+              "engineering_artifact",
+              "engineering_receipt",
+              "decision"
+            ]
+          },
+          "node_id": {
+            "$ref": "#/$defs/nodeId"
+          },
+          "identity_sha256": {
+            "$ref": "#/$defs/sha256"
+          },
+          "native_identity_namespace": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1024
+          },
+          "native_identity_namespace_basis": {
+            "enum": [
+              "caller_supplied",
+              "adapter_fallback"
+            ]
+          },
+          "source_payload_sha256": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/$defs/sha256"
+              }
+            ]
+          },
+          "projected_payload_sha256": {
+            "$ref": "#/$defs/sha256"
+          },
+          "payload_digest_basis": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "edge_mappings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": [
+          "edge_id",
+          "mapping_family",
+          "native_relationship_key",
+          "from_node_id",
+          "to_node_id",
+          "relation",
+          "mapping_disposition"
+        ],
+        "properties": {
+          "edge_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "mapping_family": {
+            "type": "string",
+            "minLength": 1
+          },
+          "native_relationship_key": {
+            "type": "string",
+            "minLength": 1
+          },
+          "from_node_id": {
+            "$ref": "#/$defs/nodeId"
+          },
+          "to_node_id": {
+            "$ref": "#/$defs/nodeId"
+          },
+          "relation": {
+            "type": "string",
+            "minLength": 1
+          },
+          "mapping_disposition": {
+            "const": "exact_native_relationship"
+          }
+        }
+      }
+    },
+    "projected_payloads": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": [
+          "media_type",
+          "payload_sha256",
+          "payload_bytes_utf8"
+        ],
+        "properties": {
+          "record_key": {
+            "type": "string",
+            "minLength": 1
+          },
+          "node_id": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/$defs/nodeId"
+              }
+            ]
+          },
+          "media_type": {
+            "type": "string",
+            "minLength": 1
+          },
+          "payload_sha256": {
+            "$ref": "#/$defs/sha256"
+          },
+          "payload_digest_basis": {
+            "type": "string",
+            "minLength": 1
+          },
+          "payload_bytes_utf8": {
+            "type": "string"
+          },
+          "source_payload_sha256": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/$defs/sha256"
+              }
+            ]
+          },
+          "source_payload_bytes_included": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "unmapped_relationships": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "unmapped_id",
+          "source_record_kind",
+          "source_record_id",
+          "relationship_family",
+          "referenced_native_id",
+          "reason_code",
+          "detail"
+        ],
+        "properties": {
+          "unmapped_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "source_record_kind": {
+            "type": "string",
+            "minLength": 1
+          },
+          "source_record_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "relationship_family": {
+            "type": "string",
+            "minLength": 1
+          },
+          "referenced_native_id": {
+            "type": "string"
+          },
+          "reason_code": {
+            "type": "string",
+            "minLength": 1
+          },
+          "detail": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "severity",
+          "code",
+          "native_key",
+          "detail"
+        ],
+        "properties": {
+          "severity": {
+            "enum": [
+              "invalid",
+              "incomplete"
+            ]
+          },
+          "code": {
+            "type": "string",
+            "minLength": 1
+          },
+          "native_key": {
+            "type": "string",
+            "minLength": 1
+          },
+          "detail": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "disposition": {
+      "enum": [
+        "projected_without_known_loss",
+        "projected_with_known_loss",
+        "invalid_input"
+      ]
+    },
+    "claim_ceiling": {
+      "enum": [
+        "record_only",
+        "incomplete_or_indeterminate"
+      ]
+    },
+    "action_authority": {
+      "const": "none"
+    },
+    "verification_claim": {
+      "const": "none"
+    },
+    "limitations": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "projection_receipt_sha256": {
+      "$ref": "#/$defs/sha256"
+    }
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "nodeId": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_-]*:identity-sha256:[0-9a-f]{64}$"
+    }
+  }
+}
