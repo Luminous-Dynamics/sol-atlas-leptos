@@ -1465,11 +1465,12 @@ mod tests {
     #[test]
     fn source_correction_does_not_apply_key_compromise_historical_exception() {
         let mut fixture = fixture();
+        let previous_event_digest =
+            fixture["expected_impact_report"]["invalidation_event_sha256"].clone();
         let event = &mut fixture["invalidation_event"];
         event["event_id"] = json!("evt-source-correction-regression-002");
         event["authority_sequence"] = json!(2);
-        event["previous_event_sha256"] =
-            fixture["expected_impact_report"]["invalidation_event_sha256"].clone();
+        event["previous_event_sha256"] = previous_event_digest;
         event["cause_class"] = json!("source_corrected");
         event["invalidation_semantics"] = json!("reverify_required");
         event["valid_time"]["effective_at"] = json!("2026-11-02T10:30:00Z");
