@@ -18,6 +18,9 @@ pub mod built_environment_case;
 /// coverage completeness, engineering correctness, or authorization; those remain
 /// independent evidence and trust obligations.
 pub mod built_environment_source_descriptor;
+/// Bounded source inventory page-chain and source-owner closure validation.
+/// Does not authenticate source bytes, attestations, or the caller's owner register.
+pub mod built_environment_source_inventory;
 pub mod confluence;
 pub mod constants;
 pub mod data;
