@@ -1352,6 +1352,58 @@ mod tests {
     }
 
     #[test]
+    fn reachable_but_untargeted_issuer_key_is_not_directly_invalidated() {
+        let mut fixture = fixture();
+        let graph = &mut fixture["graph"];
+        let direct_key_id = graph["nodes"][0]["node_id"].clone();
+        let inherited_scope = graph["nodes"][0]["scope"].clone();
+        let descendant_digest =
+            "abababababababababababababababababababababababababababababababab";
+        let descendant_id = format!("issuer_key:sha256:{descendant_digest}");
+        graph["nodes"].as_array_mut().unwrap().push(json!({
+            "node_id": descendant_id,
+            "node_type": "issuer_key",
+            "artifact_sha256": descendant_digest,
+            "scope": inherited_scope
+        }));
+        graph["edges"].as_array_mut().unwrap().push(json!({
+            "edge_id": "edge-direct-key-to-descendant-key",
+            "from_node_id": direct_key_id,
+            "to_node_id": descendant_id,
+            "relation": "derived_from"
+        }));
+
+        let mut digest_input = graph.clone();
+        digest_input
+            .as_object_mut()
+            .unwrap()
+            .remove("graph_snapshot_sha256");
+        graph["graph_snapshot_sha256"] = json!(canonical_json_digest(&digest_input).unwrap());
+
+        let event = fixture["invalidation_event"].clone();
+        let nodes = validate_graph(graph).unwrap();
+        validate_event(&event, &nodes).unwrap();
+        let report = build_impact_report(
+            graph,
+            &event,
+            &fixture["expected_impact_report"],
+            &nodes,
+        )
+        .unwrap();
+        let rows = report["results"].as_array().unwrap();
+        let direct = rows
+            .iter()
+            .find(|row| row["node_id"] == direct_key_id)
+            .unwrap();
+        let descendant = rows
+            .iter()
+            .find(|row| row["node_id"] == descendant_id)
+            .unwrap();
+        assert_eq!(direct["impact_class"], "claim_invalidated");
+        assert_eq!(descendant["impact_class"], "reverify_required");
+    }
+
+    #[test]
     fn invalidation_cause_must_match_target_type() {
         let mut fixture = fixture();
         fixture["invalidation_event"]["cause_class"] = json!("model_superseded");
