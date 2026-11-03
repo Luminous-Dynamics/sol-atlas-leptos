@@ -10,6 +10,7 @@
 
 pub mod aesthetics;
 pub mod built_environment_case;
+pub mod industry_assurance_projection;
 pub mod confluence;
 pub mod constants;
 pub mod data;
