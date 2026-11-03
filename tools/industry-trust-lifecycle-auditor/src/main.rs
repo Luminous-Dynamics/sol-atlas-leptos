@@ -818,11 +818,49 @@ pub(crate) fn build_impacted_results_with_adjacency(
                     "AUTHORITY_GRANT_REVOKED",
                     "CURRENT_AUTHORITY_WITHDRAWN",
                 )),
+                ("source_measurement", "source_corrected") => Some((
+                    "SOURCE_MEASUREMENT_CORRECTED",
+                    "CURRENT_SOURCE_ASSERTION_WITHDRAWN",
+                )),
+                ("source_measurement", "rights_revoked_or_expired") => Some((
+                    "SOURCE_RIGHTS_REVOKED_OR_EXPIRED",
+                    "CURRENT_EVIDENCE_USE_WITHDRAWN",
+                )),
+                ("signed_statement", "rights_revoked_or_expired") => Some((
+                    "STATEMENT_RIGHTS_REVOKED_OR_EXPIRED",
+                    "CURRENT_EVIDENCE_USE_WITHDRAWN",
+                )),
+                ("model", "model_superseded") => Some((
+                    "MODEL_SUPERSEDED",
+                    "CURRENT_MODEL_RELIANCE_WITHDRAWN",
+                )),
+                ("schema", "schema_superseded") => Some((
+                    "SCHEMA_SUPERSEDED",
+                    "CURRENT_SCHEMA_RELIANCE_WITHDRAWN",
+                )),
+                ("verifier_build", "verifier_vulnerable") => Some((
+                    "VERIFIER_BUILD_VULNERABLE",
+                    "CURRENT_VERIFIER_RELIANCE_WITHDRAWN",
+                )),
+                ("policy", "policy_changed") => Some((
+                    "POLICY_SUPERSEDED",
+                    "CURRENT_POLICY_RELIANCE_WITHDRAWN",
+                )),
+                ("execution", "execution_corrected") => Some((
+                    "EXECUTION_RECORD_CORRECTED",
+                    "CURRENT_EXECUTION_RELIANCE_WITHDRAWN",
+                )),
+                ("outcome", "outcome_corrected") => Some((
+                    "OUTCOME_RECORD_CORRECTED",
+                    "CURRENT_OUTCOME_RELIANCE_WITHDRAWN",
+                )),
                 _ => None,
             }
         } else {
             None
         };
+        let direct_evidence_dispute =
+            direct_target_ids.contains(&node_id) && cause == "evidence_disputed";
         let (impact_class, historical, current, reasons): (&str, &str, &str, Vec<&str>) =
             if let Some((direct_reason, reliance_reason)) = direct_invalidation {
                 (
@@ -830,6 +868,16 @@ pub(crate) fn build_impacted_results_with_adjacency(
                     "unknown",
                     "ineligible",
                     vec![direct_reason, reliance_reason],
+                )
+            } else if direct_evidence_dispute {
+                (
+                    "quarantined_pending_review",
+                    "unknown",
+                    "quarantined",
+                    vec![
+                        "DIRECT_EVIDENCE_DISPUTED",
+                        "QUARANTINE_UNTIL_DISPUTE_RESOLVED",
+                    ],
                 )
             } else if key_compromise_semantics
                 && signed_statement_precedes_compromise(&path, nodes, effective_at, evaluated_at)
