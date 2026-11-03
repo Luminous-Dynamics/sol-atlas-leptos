@@ -1218,7 +1218,12 @@ pub fn project_built_environment_case(
         "claim_ceiling": claim_ceiling,
         "action_authority": "none"
     });
-    let graph_digest = match canonical_json_sha256(&graph) {
+    let mut graph_digest_input = graph.clone();
+    graph_digest_input
+        .as_object_mut()
+        .expect("projected graph is an object")
+        .remove("graph_snapshot_sha256");
+    let graph_digest = match canonical_json_sha256(&graph_digest_input) {
         Ok(digest) => digest,
         Err(error) => {
             findings.invalid(
@@ -1309,7 +1314,7 @@ mod tests {
                 source_id: "source-registry-01".into(),
                 source_payload_sha256: Some(digest('a')),
                 evidence_state: EvidenceState::Verified,
-                data_rights: DataRights::Permissive,
+                data_rights: DataRights::PublicDomain,
                 license_id: Some("CC0-1.0".into()),
                 jurisdiction: "synthetic-jurisdiction".into(),
                 observed_at_unix_seconds: Some(1_762_000_000),
@@ -1321,7 +1326,7 @@ mod tests {
                 source_id: "authority-registry-01".into(),
                 source_payload_sha256: Some(digest('a')),
                 evidence_state: EvidenceState::Verified,
-                data_rights: DataRights::Permissive,
+                data_rights: DataRights::PublicDomain,
                 license_id: Some("CC0-1.0".into()),
                 jurisdiction: "synthetic-jurisdiction".into(),
                 observed_at_unix_seconds: Some(1_762_000_001),
@@ -1434,10 +1439,6 @@ mod tests {
         ] {
             assert!(edges.iter().any(|edge| edge["relation"] == relation), "missing {relation}");
         }
-        assert!(result.graph["nodes"].as_array().unwrap().iter().all(|node| {
-            node["verification"]["result"] == "unknown"
-                && node["verification"]["trusted_at"].is_null()
-        }) == false); // trusted_at is an observation_time field; check below.
         assert!(result.graph["nodes"].as_array().unwrap().iter().all(|node| {
             node["verification"]["result"] == "unknown"
                 && node["observation_time"]["trusted_at"].is_null()
