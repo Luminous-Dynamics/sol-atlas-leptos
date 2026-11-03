@@ -522,6 +522,13 @@ pub fn project_built_environment_case(
     if case.jurisdiction.trim().is_empty() {
         findings.invalid("EMPTY_CASE_JURISDICTION", "case", "case jurisdiction is required");
     }
+    if !case.evidence.is_empty() || !case.artifacts.is_empty() {
+        findings.incomplete(
+            "SOURCE_OWNER_NAMESPACE_NOT_MODELED",
+            "case",
+            "the typed case has source IDs but no separately typed owner-native namespace; emitted identity namespace is adapter-scoped and must not be asserted as the external source owner's namespace",
+        );
+    }
     if case.evidence.is_empty()
         && case.artifacts.is_empty()
         && case.engineering_receipts.is_empty()
@@ -577,6 +584,9 @@ pub fn project_built_environment_case(
             "source_case_representation_sha256": case_sha256,
             "projector_build_sha256": context.projector_build_sha256,
             "mapping_profile_sha256": context.mapping_profile_sha256,
+            "identity_namespace": IDENTITY_NAMESPACE,
+            "identity_namespace_basis": "adapter_scoped_case_namespace",
+            "source_owner_namespace_modelled": false,
             "disposition": disposition.as_str(),
             "action_authority": "none",
             "findings": findings.json(),
@@ -1450,7 +1460,9 @@ pub fn project_built_environment_case(
             "version": env!("CARGO_PKG_VERSION"),
             "build_sha256": context.projector_build_sha256,
             "mapping_profile_sha256": context.mapping_profile_sha256,
-            "identity_namespace": IDENTITY_NAMESPACE
+            "identity_namespace": IDENTITY_NAMESPACE,
+            "identity_namespace_basis": "adapter_scoped_case_namespace",
+            "source_owner_namespace_modelled": false
         },
         "projected_graph": {
             "schema_version": GRAPH_SCHEMA_V02,
