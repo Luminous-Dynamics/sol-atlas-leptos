@@ -1310,6 +1310,8 @@ pub struct InventoryClosureValidation {
     pub incomplete_inventory_count: usize,
     pub invalid_inventory_count: usize,
     pub not_comparable_inventory_count: usize,
+    pub cross_manifest_duplicate_identity_count: usize,
+    pub cross_manifest_payload_digest_conflict_count: usize,
     pub owner_presence: SourceUniverseValidation,
     pub per_manifest_validations: Vec<InventoryValidation>,
     /// The caller-supplied owner register and exact query/snapshot manifests;
@@ -1379,9 +1381,53 @@ pub fn validate_source_inventory_closure(
     let mut incomplete_inventory_count = 0usize;
     let mut invalid_inventory_count = 0usize;
     let mut not_comparable_inventory_count = 0usize;
+    let mut cross_manifest_identity_payloads =
+        BTreeMap::<String, (String, String)>::new();
+    let mut cross_manifest_duplicate_identity_count = 0usize;
+    let mut cross_manifest_payload_digest_conflict_count = 0usize;
 
     for manifest in manifests {
         let validation = validate_source_inventory_manifest(manifest);
+        for page in &manifest.page_receipts {
+            for (identity_sha256, payload_sha256) in page
+                .native_record_identity_sha256s
+                .iter()
+                .zip(&page.native_record_payload_sha256s)
+            {
+                if !valid_sha256(identity_sha256) || !valid_sha256(payload_sha256) {
+                    continue;
+                }
+                let source_key = format!(
+                    "{}:{}:{}",
+                    manifest.source_owner_namespace,
+                    manifest.source_system_id,
+                    manifest.inventory_id
+                );
+                match cross_manifest_identity_payloads.get(identity_sha256) {
+                    Some((previous_payload_sha256, previous_source_key)) => {
+                        cross_manifest_duplicate_identity_count += 1;
+                        if previous_source_key != &source_key
+                            && previous_payload_sha256 != payload_sha256
+                        {
+                            cross_manifest_payload_digest_conflict_count += 1;
+                            findings.invalid(
+                                "CROSS_MANIFEST_NATIVE_IDENTITY_PAYLOAD_DIGEST_CONFLICT",
+                                identity_sha256,
+                                format!(
+                                    "the same owner-native identity appears in {previous_source_key} and {source_key} with different source payload digests"
+                                ),
+                            );
+                        }
+                    }
+                    None => {
+                        cross_manifest_identity_payloads.insert(
+                            identity_sha256.clone(),
+                            (payload_sha256.clone(), source_key),
+                        );
+                    }
+                }
+            }
+        }
         let subject = format!(
             "{}:{}",
             manifest.source_owner_namespace, manifest.source_system_id
@@ -1445,6 +1491,8 @@ pub fn validate_source_inventory_closure(
         incomplete_inventory_count,
         invalid_inventory_count,
         not_comparable_inventory_count,
+        cross_manifest_duplicate_identity_count,
+        cross_manifest_payload_digest_conflict_count,
         owner_presence,
         per_manifest_validations,
         claim_scope: "caller_supplied_required_owner_set_and_declared_query_snapshots_only".into(),
@@ -1951,6 +1999,86 @@ mod tests {
                 .iter()
                 .any(|finding| { finding.code == "ACCESS_DENIED_WITH_ENUMERATED_DATA" })
         );
+    }
+
+    #[test]
+    fn cross_manifest_duplicate_native_identity_with_matching_payload_is_reconciled() {
+        let first = valid_manifest();
+        let mut second = valid_manifest();
+        second.inventory_id = "inventory-synthetic-002".into();
+        second.source_system_id = "urn:synthetic:registry-mirror".into();
+        second.required_partitions = vec!["region-a".into()];
+        for page in &mut second.page_receipts {
+            page.inventory_id = second.inventory_id.clone();
+        }
+        second.page_receipts[0].native_record_identity_sha256s[0] = first
+            .page_receipts[0]
+            .native_record_identity_sha256s[0]
+            .clone();
+        second.page_receipts[0].native_record_payload_sha256s[0] = first
+            .page_receipts[0]
+            .native_record_payload_sha256s[0]
+            .clone();
+        second.page_receipts[1].predecessor_page_receipt_sha256 =
+            Some(second.page_receipts[0].receipt_sha256().unwrap());
+
+        let expected = vec![
+            ExpectedSourceOwner {
+                owner_namespace: first.source_owner_namespace.clone(),
+                source_system_id: first.source_system_id.clone(),
+                required: true,
+            },
+            ExpectedSourceOwner {
+                owner_namespace: second.source_owner_namespace.clone(),
+                source_system_id: second.source_system_id.clone(),
+                required: true,
+            },
+        ];
+        let closure = validate_source_inventory_closure(&expected, &[first, second]);
+        assert_eq!(
+            closure.disposition,
+            InventoryClosureDisposition::CompleteWithinDeclaredOwnerSet
+        );
+        assert_eq!(closure.cross_manifest_duplicate_identity_count, 1);
+        assert_eq!(closure.cross_manifest_payload_digest_conflict_count, 0);
+    }
+
+    #[test]
+    fn cross_manifest_duplicate_native_identity_with_conflicting_payload_is_invalid() {
+        let first = valid_manifest();
+        let mut second = valid_manifest();
+        second.inventory_id = "inventory-synthetic-002".into();
+        second.source_system_id = "urn:synthetic:registry-mirror".into();
+        for page in &mut second.page_receipts {
+            page.inventory_id = second.inventory_id.clone();
+        }
+        second.page_receipts[0].native_record_identity_sha256s[0] = first
+            .page_receipts[0]
+            .native_record_identity_sha256s[0]
+            .clone();
+        second.page_receipts[0].native_record_payload_sha256s[0] = digest('f');
+        second.page_receipts[1].predecessor_page_receipt_sha256 =
+            Some(second.page_receipts[0].receipt_sha256().unwrap());
+
+        let expected = vec![
+            ExpectedSourceOwner {
+                owner_namespace: first.source_owner_namespace.clone(),
+                source_system_id: first.source_system_id.clone(),
+                required: true,
+            },
+            ExpectedSourceOwner {
+                owner_namespace: second.source_owner_namespace.clone(),
+                source_system_id: second.source_system_id.clone(),
+                required: true,
+            },
+        ];
+        let closure = validate_source_inventory_closure(&expected, &[first, second]);
+        assert_eq!(closure.disposition, InventoryClosureDisposition::InvalidInput);
+        assert_eq!(closure.cross_manifest_duplicate_identity_count, 1);
+        assert_eq!(closure.cross_manifest_payload_digest_conflict_count, 1);
+        assert!(closure.findings.iter().any(|finding| {
+            finding.code == "CROSS_MANIFEST_NATIVE_IDENTITY_PAYLOAD_DIGEST_CONFLICT"
+        }));
     }
 
     #[test]
