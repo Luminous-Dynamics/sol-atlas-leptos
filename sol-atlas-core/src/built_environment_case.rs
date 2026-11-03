@@ -1574,6 +1574,169 @@ mod tests {
         case
     }
 
+    fn generated_dependency_case(node_count: usize) -> BuiltEnvironmentCase {
+        let mut case = valid_case();
+        let mut artifact_digests = BTreeMap::new();
+        artifact_digests.insert("model-1".to_string(), digest('b'));
+
+        for index in 0..node_count {
+            let id = format!("generated-{index:04}");
+            let sha = char::from_u32(u32::from(b'c') + (index % 20) as u32).unwrap();
+            let mut item = artifact(&id, 1, sha);
+            item.family_id = format!("generated-family-{index:04}");
+
+            let parent_indices: Vec<usize> = if index == 0 {
+                Vec::new()
+            } else if index % 11 == 0 {
+                Vec::new()
+            } else if index % 7 == 0 {
+                vec![index - 2, index - 1]
+            } else if index % 5 == 0 {
+                vec![index / 2]
+            } else {
+                vec![index - 1]
+            };
+            if index == 0 {
+                item.parent_artifacts.push(ArtifactReference {
+                    artifact_id: "model-1".into(),
+                    content_sha256: digest('b'),
+                });
+            } else {
+                for parent_index in parent_indices {
+                    let parent_id = format!("generated-{parent_index:04}");
+                    item.parent_artifacts.push(ArtifactReference {
+                        artifact_id: parent_id.clone(),
+                        content_sha256: artifact_digests[&parent_id].clone(),
+                    });
+                }
+            }
+            artifact_digests.insert(id, item.content_sha256.clone());
+            case.artifacts.push(item);
+        }
+
+        for index in (0..node_count).filter(|index| index % 3 == 0) {
+            let artifact_id = format!("generated-{index:04}");
+            let receipt_id = format!("generated-receipt-{index:04}");
+            let input_digest = artifact_digests[&artifact_id].clone();
+            case.engineering_receipts.push(receipt(
+                &receipt_id,
+                if index % 2 == 0 {
+                    EngineeringDiscipline::Structural
+                } else {
+                    EngineeringDiscipline::Geotechnical
+                },
+                &artifact_id,
+                input_digest.clone(),
+            ));
+
+            if index % 2 == 0 {
+                let mut decision = approval(&artifact_id, input_digest);
+                decision.event_id = format!("generated-approval-{index:04}");
+                decision.engineering_receipt_ids = vec![receipt_id];
+                case.decisions.push(decision);
+            }
+        }
+        case
+    }
+
+    /// Deliberately simple reference oracle: repeated full edge scans until
+    /// no new descendant can be reached. It does not use production adjacency,
+    /// BFS helpers, or the production frontier output.
+    fn reference_revalidation_nodes(
+        case: &BuiltEnvironmentCase,
+        source_artifact_id: &str,
+    ) -> BTreeSet<(ImpactNodeKind, String, ImpactReason)> {
+        let mut affected_artifacts = BTreeSet::from([source_artifact_id.to_owned()]);
+        loop {
+            let prior_count = affected_artifacts.len();
+            for candidate in &case.artifacts {
+                if candidate.parent_artifacts.iter().any(|parent| {
+                    affected_artifacts.contains(&parent.artifact_id)
+                }) {
+                    affected_artifacts.insert(candidate.artifact_id.clone());
+                }
+            }
+            if affected_artifacts.len() == prior_count {
+                break;
+            }
+        }
+
+        let affected_receipts = case
+            .engineering_receipts
+            .iter()
+            .filter(|receipt| affected_artifacts.contains(&receipt.input_artifact_id))
+            .map(|receipt| receipt.receipt_id.clone())
+            .collect::<BTreeSet<_>>();
+
+        let mut expected = BTreeSet::new();
+        for artifact_id in &affected_artifacts {
+            expected.insert((
+                ImpactNodeKind::Artifact,
+                artifact_id.clone(),
+                if artifact_id == source_artifact_id {
+                    ImpactReason::SourceArtifactDigestChanged
+                } else {
+                    ImpactReason::DescendantArtifactDependsOnChangedAncestor
+                },
+            ));
+        }
+        for receipt_id in &affected_receipts {
+            expected.insert((
+                ImpactNodeKind::EngineeringReceipt,
+                receipt_id.clone(),
+                ImpactReason::EngineeringReceiptInputArtifactChanged,
+            ));
+        }
+        for decision in &case.decisions {
+            let target_affected = affected_artifacts.contains(&decision.target_artifact_id);
+            let receipt_affected = decision
+                .engineering_receipt_ids
+                .iter()
+                .any(|receipt_id| affected_receipts.contains(receipt_id));
+            if target_affected || receipt_affected {
+                expected.insert((
+                    ImpactNodeKind::Decision,
+                    decision.event_id.clone(),
+                    if target_affected {
+                        ImpactReason::DecisionTargetArtifactAffected
+                    } else {
+                        ImpactReason::DecisionDependsOnAffectedReceipt
+                    },
+                ));
+            }
+        }
+        expected
+    }
+
+    fn frontier_nodes(
+        frontier: &RevalidationFrontier,
+    ) -> BTreeSet<(ImpactNodeKind, String, ImpactReason)> {
+        frontier
+            .impacts
+            .iter()
+            .map(|impact| (impact.node_kind, impact.node_id.clone(), impact.reason))
+            .collect()
+    }
+
+    #[test]
+    fn production_frontier_matches_independent_full_scan_oracle_on_generated_dags() {
+        let case = generated_dependency_case(128);
+        for source_id in ["model-1", "generated-0000", "generated-0035", "generated-0100"] {
+            let frontier = compute_revalidation_frontier(&case, source_id, &digest('z'));
+            assert_eq!(
+                frontier.status,
+                RevalidationStatus::RevalidationRequired,
+                "source {source_id}"
+            );
+            assert!(frontier.graph_issues.is_empty(), "source {source_id}");
+            assert_eq!(
+                frontier_nodes(&frontier),
+                reference_revalidation_nodes(&case, source_id),
+                "source {source_id}"
+            );
+        }
+    }
+
     #[test]
     fn unchanged_artifact_digest_has_no_revalidation_impact() {
         let case = valid_case();
