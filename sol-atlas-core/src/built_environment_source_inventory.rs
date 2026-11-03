@@ -6,6 +6,10 @@
 //! This module validates the internal structure of a declared source query
 //! enumeration. It does not authenticate source signatures, prove that the
 //! source claim is true, or prove that the declared owner universe is complete.
+//!
+//! Raw page-item totals and unique-native-record totals are separate semantics.
+//! Tombstone counts are accepted only when page receipts bind the corresponding
+//! owner-native identity digests. Neither count is a source-truth assertion.
 
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
