@@ -654,8 +654,7 @@ pub fn project_built_environment_case_with_inventory(
     expected_owners: &[ExpectedSourceOwner],
     manifests: &[SourceInventoryManifest],
 ) -> InventoryQualifiedProjectionOutput {
-    let descriptor_output =
-        project_built_environment_case_with_descriptors(case, context, catalog);
+    let descriptor_output = project_built_environment_case_with_descriptors(case, context, catalog);
     let inventory_validation = validate_source_inventory_closure(expected_owners, manifests);
     let descriptor_inventory_binding = validate_descriptor_inventory_bindings(
         catalog,
@@ -663,8 +662,7 @@ pub fn project_built_environment_case_with_inventory(
         manifests,
     );
     let mut projection = descriptor_output.projection;
-    let inventory_validation_bytes =
-        serde_json::to_vec(&inventory_validation).unwrap_or_default();
+    let inventory_validation_bytes = serde_json::to_vec(&inventory_validation).unwrap_or_default();
     let inventory_validation_sha256 = sha256_hex(&inventory_validation_bytes);
     let mut expected_owner_register = expected_owners.to_vec();
     expected_owner_register.sort_by(|left, right| {
@@ -736,8 +734,7 @@ pub fn project_built_environment_case_with_inventory(
                 projection.disposition = ProjectionDisposition::InvalidInput;
             }
         }
-        projection.projection_receipt["claim_ceiling"] =
-            json!("incomplete_or_indeterminate");
+        projection.projection_receipt["claim_ceiling"] = json!("incomplete_or_indeterminate");
         if let Some(limitations) = projection.projection_receipt["limitations"].as_array_mut() {
             limitations.push(json!(
                 "The source inventory closure or descriptor-to-inventory binding is incomplete, excluded, incomparable, or invalid; the projected graph cannot support a negative impact claim."
@@ -765,13 +762,12 @@ pub fn project_built_environment_case_with_inventory(
         "findings": inventory_validation.findings,
         "descriptor_inventory_binding": descriptor_inventory_binding
     });
-    projection.projection_receipt
+    projection
+        .projection_receipt
         .as_object_mut()
         .expect("projection receipt is an object")
         .remove("projection_receipt_sha256");
-    if let Ok(receipt_digest) =
-        canonical_json_sha256(&projection.projection_receipt)
-    {
+    if let Ok(receipt_digest) = canonical_json_sha256(&projection.projection_receipt) {
         projection.projection_receipt["projection_receipt_sha256"] = json!(receipt_digest);
     }
 
@@ -940,14 +936,10 @@ fn validate_descriptor_inventory_bindings(
     let mut has_incomplete = false;
 
     for descriptor in &catalog.descriptors {
-        let record_key = descriptor
-            .record_kind
-            .case_key(&descriptor.case_record_id);
+        let record_key = descriptor.record_kind.case_key(&descriptor.case_record_id);
         let subject = format!(
             "{}:{}:{}",
-            descriptor.owner_namespace,
-            descriptor.source_snapshot.source_id,
-            record_key
+            descriptor.owner_namespace, descriptor.source_snapshot.source_id, record_key
         );
         let Some(expected_identity) = descriptor_validation
             .identity_sha256_by_case_record
