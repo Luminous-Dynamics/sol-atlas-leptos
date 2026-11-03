@@ -8,6 +8,7 @@
   "required": ["schema_version", "events", "metadata"],
   "properties": {
     "schema_version": { "const": "luminous.ieac-assurance-impact-delta-input.v0.1" },
+    "note": { "type": "string", "maxLength": 1024 },
     "events": {
       "type": "array",
       "minItems": 1,
