@@ -21,6 +21,18 @@
         {
           "name": "native_revision",
           "value": "1"
+        },
+        {
+          "name": "field_path",
+          "value": "geometry.revision"
+        },
+        {
+          "name": "subject_id",
+          "value": "design-001"
+        },
+        {
+          "name": "jurisdiction",
+          "value": "synthetic-jurisdiction"
         }
       ],
       "source_payload": {
@@ -75,6 +87,14 @@
         {
           "name": "native_revision",
           "value": "2"
+        },
+        {
+          "name": "artifact_family",
+          "value": "design-model"
+        },
+        {
+          "name": "jurisdiction",
+          "value": "synthetic-jurisdiction"
         }
       ],
       "source_payload": {
