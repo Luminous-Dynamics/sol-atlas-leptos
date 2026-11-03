@@ -12,7 +12,7 @@ Adding mandatory fields directly to `BuiltEnvironmentCase` would break existing 
 
 `BuiltEnvironmentCase + SourceDescriptorCatalog -> descriptor validation -> projection inputs`
 
-The catalogue is bound to the exact typed case representation digest. Legacy cases remain readable; missing descriptors are reported as incomplete rather than backfilled from filenames, display labels, presumed vendors, or inferred IDs. The case ID binds the catalogue and graph scope but is deliberately excluded from owner-native identity hashing: the same owner namespace and native record/revision tuple must replay to the same node identity when referenced by multiple cases. Case membership remains in the graph scope and case-specific graph digest.
+The catalogue is bound to the exact typed case representation digest. Legacy cases remain readable; missing descriptors are reported as incomplete rather than backfilled from filenames, display labels, presumed vendors, or inferred IDs. The case ID binds the catalogue and graph scope but is deliberately excluded from owner-native identity hashing: the same owner namespace and native record/revision tuple must replay to the same node identity when referenced by multiple cases. Case membership remains in the graph scope and case-specific graph digest. The catalogue-set validator reconciles several case/catalogue pairs: shared identity with an agreeing digest is a valid shared reference; a conflicting digest is invalid; a missing digest is not comparable and remains incomplete.
 
 ## Descriptor model
 
@@ -56,7 +56,7 @@ It checks:
 - source snapshot digest and capture/retrieval/observation chronology;
 - attestation state cannot be promoted to authenticated by this layer.
 
-The result reports the descriptor count, missing/extra descriptor count, identity digests, owner namespace map, deterministic findings, and explicit verification boundaries.
+The result reports the descriptor count, missing/extra descriptor count, identity digests, owner namespace map, deterministic findings, and explicit verification boundaries. `validate_source_descriptor_catalog_set` performs the corresponding cross-case reconciliation and reports unique native identities, shared references, and conflicting digests.
 
 ## Three distinct outcomes
 
