@@ -38,7 +38,7 @@ To avoid implicit JSON canonicalization dependencies, v0.2 uses a small domain-s
 6. No Unicode normalization, trimming, case folding, URI rewriting or vendor-ID interpretation is performed. Empty names/values reject.
 7. SHA-256 over the complete byte sequence is `identity_sha256`.
 
-The schema constrains component names to ASCII identifiers. The runtime independently validates uniqueness and recomputes the digest. Component input order does not affect the identity hash; value bytes do.
+The schema constrains component names to ASCII identifiers. The envelope MUST include `native_id` and at least one disambiguator: `native_record_id`, `native_revision`, `native_sequence`, or `native_observation_id`. If the source does not expose enough identity to distinguish the relevant record/version, projection remains incomplete rather than inventing a discriminator. The runtime independently validates uniqueness and recomputes the digest. Component input order does not affect the identity hash; value bytes do.
 
 The graph snapshot digest remains the existing graph-level canonical JSON digest. This v0.2 node identity encoding does not silently change the v0.1 graph digest contract.
 
