@@ -12,11 +12,11 @@ Adding mandatory fields directly to `BuiltEnvironmentCase` would break existing 
 
 `BuiltEnvironmentCase + SourceDescriptorCatalog -> descriptor validation -> projection inputs`
 
-The catalogue is bound to the exact typed case representation digest. Legacy cases remain readable; missing descriptors are reported as incomplete rather than backfilled from filenames, display labels, presumed vendors, or inferred IDs.
+The catalogue is bound to the exact typed case representation digest. Legacy cases remain readable; missing descriptors are reported as incomplete rather than backfilled from filenames, display labels, presumed vendors, or inferred IDs. The case ID binds the catalogue and graph scope but is deliberately excluded from owner-native identity hashing: the same owner namespace and native record/revision tuple must replay to the same node identity when referenced by multiple cases. Case membership remains in the graph scope and case-specific graph digest.
 
 ## Descriptor model
 
-Each descriptor is keyed by `(record_kind, case_record_id)` and preserves:
+Each descriptor is keyed by `(record_kind, case_record_id)` and preserves. The record key locates the typed case entry; it is not substituted for the source-owner identity. Identity hashes bind node type, owner namespace and sorted native identity components, never the case ID:
 
 | Dimension | Required information | Why it is separate |
 | --- | --- | --- |
