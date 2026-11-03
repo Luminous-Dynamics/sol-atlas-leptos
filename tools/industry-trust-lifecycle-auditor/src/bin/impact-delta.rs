@@ -295,8 +295,12 @@ fn merge_impact_rows(previous: &Value, incoming: &Value) -> Value {
     } else if impact_rank(incoming) == impact_rank(previous) {
         let left_path = previous["dependency_path"].as_array().cloned().unwrap_or_default();
         let right_path = incoming["dependency_path"].as_array().cloned().unwrap_or_default();
+        let right_path_order = right_path
+            .iter()
+            .filter_map(Value::as_str)
+            .cmp(left_path.iter().filter_map(Value::as_str));
         if right_path.len() > left_path.len()
-            || (right_path.len() == left_path.len() && right_path < left_path)
+            || (right_path.len() == left_path.len() && right_path_order.is_lt())
         {
             merged["dependency_path"] = incoming["dependency_path"].clone();
         }
@@ -495,6 +499,8 @@ fn compute_transition(
     next_report["summary"] = next_summary;
     let resulting_report_sha = canonical_json_digest(&next_report)?;
 
+    let update_count = updates.len();
+    let affected_node_count = independently_reached.len();
     let mut delta = json!({
         "schema_version": DELTA_SCHEMA,
         "delta_id": format!("delta-{}-{}", sequence, required_string(event, "event_id", "event")?),
@@ -512,9 +518,9 @@ fn compute_transition(
         "evaluated_at": evaluated_at,
         "impact_merge_policy": "monotonic_conservative_join_v0.1",
         "affected_node_ids": affected_node_ids,
-        "affected_node_count": independently_reached.len(),
+        "affected_node_count": affected_node_count,
         "updates": updates,
-        "update_count": updates.len(),
+        "update_count": update_count,
         "closure_verifier": "independent_iterative_dfs_v0.1",
         "closure_complete": true,
         "resulting_impact_report_sha256": resulting_report_sha,
@@ -638,10 +644,13 @@ fn run_batch(
         "resulting_impact_report_sha256": canonical_json_digest(&current_report)?,
         "resulting_event_sequence": current_pin["last_event_sequence"],
         "resulting_event_chain_head_sha256": current_pin["event_chain_head_sha256"],
+        "resulting_impact_report": current_report,
+        "next_state_pin": current_pin,
+        "complete": true,
         "claim_ceiling": "incomplete_or_indeterminate",
         "action_authority": "none"
     });
-    Ok((batch, current_report, current_pin))
+    Ok(batch)
 }
 
 fn bootstrap_pin(
@@ -682,8 +691,8 @@ fn main() -> ExitCode {
         };
     }
 
-    if args.len() != 8 {
-        eprintln!("usage: industry-impact-delta <graph.json> <base-report.json> <base-pin.json> <events.json> <metadata.json> <delta-batch.json> <result-report.json> <next-pin.json>");
+    if args.len() != 6 {
+        eprintln!("usage: industry-impact-delta <graph.json> <base-report.json> <base-pin.json> <events.json> <metadata.json> <new-batch-result.json>");
         return ExitCode::from(4);
     }
     let result = (|| {
@@ -692,11 +701,10 @@ fn main() -> ExitCode {
         let base_pin = parse_strict(Path::new(&args[2]))?;
         let events = parse_strict(Path::new(&args[3]))?;
         let metadata = parse_strict(Path::new(&args[4]))?;
-        let (batch, report, pin) =
-            run_batch(&graph, &base_report, &base_pin, &events, &metadata)?;
+        let batch = run_batch(&graph, &base_report, &base_pin, &events, &metadata)?;
+        // One create-new envelope carries the deltas, final report and next pin.
+        // Consumers never observe a partially written three-file state tuple.
         write_new(Path::new(&args[5]), &batch)?;
-        write_new(Path::new(&args[6]), &report)?;
-        write_new(Path::new(&args[7]), &pin)?;
         Ok::<(), String>(())
     })();
     match result {
@@ -939,15 +947,14 @@ mod tests {
         event_three["system_time"]["trusted_at"] = json!("2026-11-02T12:01:00Z");
         let metadata = metadata_for_next_event(&base_report);
         let envelope = json!({"events":[event_two,event_three]});
-        let (batch, final_report, final_pin) =
-            run_batch(&graph, &base_report, &base_pin, &envelope, &metadata).unwrap();
+        let batch = run_batch(&graph, &base_report, &base_pin, &envelope, &metadata).unwrap();
         assert_eq!(batch["graph_index_build_count"], 1);
         assert_eq!(batch["graph_index_reused_for_events"], 2);
         assert_eq!(batch["delta_count"], 2);
-        assert_eq!(final_pin["last_event_sequence"], 3);
+        assert_eq!(batch["next_state_pin"]["last_event_sequence"], 3);
         assert_eq!(
-            final_pin["impact_report_sha256"],
-            canonical_json_digest(&final_report).unwrap()
+            batch["next_state_pin"]["impact_report_sha256"],
+            canonical_json_digest(&batch["resulting_impact_report"]).unwrap()
         );
     }
 }
