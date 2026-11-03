@@ -592,10 +592,6 @@ fn advance_state(
     {
         return Err("policy or engine identity changed; run full reconciliation before applying a delta".into());
     }
-    if canonical_json_digest(base_report)? != base_report_sha256 {
-        return Err("immutable batch base report digest changed during delta processing".into());
-    }
-
     let direct_target_set = event["targets"]
         .as_array()
         .ok_or("event.targets must be an array")?
