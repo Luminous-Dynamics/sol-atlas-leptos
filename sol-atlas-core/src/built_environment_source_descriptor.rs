@@ -1040,7 +1040,7 @@ pub fn validate_source_descriptor_catalog(
 
         let expected_components =
             expected_identity_components(case, descriptor.record_kind, &descriptor.case_record_id);
-        let mut supplied_components = descriptor
+        let supplied_components = descriptor
             .native_identity_components
             .iter()
             .map(|component| (component.name.clone(), component.value.clone()))
@@ -1432,15 +1432,15 @@ mod tests {
                 .as_array()
                 .unwrap()
                 .iter()
-                .find(|row| row["native_key"] == record_key)
+                .find(|row| row["native_key"].as_str() == Some(record_key.as_str()))
                 .unwrap();
-            assert_eq!(mapping["identity_sha256"], expected_identity);
+            assert_eq!(mapping["identity_sha256"].as_str(), Some(expected_identity.as_str()));
 
             let node = composed.projection.graph["nodes"]
                 .as_array()
                 .unwrap()
                 .iter()
-                .find(|node| node["identity_sha256"] == expected_identity)
+                .find(|node| node["identity_sha256"].as_str() == Some(expected_identity.as_str()))
                 .unwrap();
             let descriptor = catalog
                 .descriptors
