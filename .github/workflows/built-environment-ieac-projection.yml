@@ -89,7 +89,7 @@ jobs:
             -i "$RUNNER_TEMP/built-environment-projection-graph.json"
           jq -e '
             .schema_version == "luminous.ieac-assurance-dependency-graph.v0.2" and
-            .claim_ceiling == "record_only" and
+            .claim_ceiling == "incomplete_or_indeterminate" and
             .action_authority == "none" and
             ([.nodes[] | select(.verification.result != "unknown")] | length) == 0 and
             ([.nodes[] | select(.observation_time.trusted_at != null)] | length) == 0
