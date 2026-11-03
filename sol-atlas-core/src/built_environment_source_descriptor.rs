@@ -1085,6 +1085,74 @@ mod tests {
     }
 
     #[test]
+    fn descriptor_catalog_projects_the_same_identity_and_source_schema_into_ieac() {
+        use crate::industry_assurance_projection::{
+            ProjectionContext, project_built_environment_case_with_descriptors,
+        };
+
+        let case = case();
+        let catalog = catalog(&case);
+        let context = ProjectionContext {
+            captured_at_utc: "2026-11-03T12:00:00Z".into(),
+            projector_build_sha256: Some(digest('d')),
+            mapping_profile_sha256: digest('e'),
+            native_identity_namespaces: BTreeMap::new(),
+        };
+        let composed =
+            project_built_environment_case_with_descriptors(&case, &context, &catalog);
+
+        assert_eq!(
+            composed.descriptor_validation.disposition,
+            DescriptorDisposition::InternallyConsistentForDeclaredCase
+        );
+        assert_eq!(
+            composed.projection.disposition,
+            crate::industry_assurance_projection::ProjectionDisposition::ProjectedWithoutKnownLoss
+        );
+        for (record_key, expected_identity) in
+            &composed.descriptor_validation.identity_sha256_by_case_record
+        {
+            let mapping = composed.projection.projection_receipt["node_mappings"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .find(|row| row["native_key"] == record_key)
+                .unwrap();
+            assert_eq!(mapping["identity_sha256"], expected_identity);
+
+            let node = composed.projection.graph["nodes"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .find(|node| node["identity_sha256"] == expected_identity)
+                .unwrap();
+            let descriptor = catalog.descriptors.iter().find(|descriptor| {
+                descriptor.record_kind.case_key(&descriptor.case_record_id) == *record_key
+            }).unwrap();
+            assert_eq!(
+                node["identity"]["identity_namespace"],
+                descriptor.owner_namespace
+            );
+            if descriptor.record_kind == SourceRecordKind::Evidence
+                || descriptor.record_kind == SourceRecordKind::Artifact
+            {
+                assert_eq!(
+                    node["artifact_media_type"],
+                    descriptor.source_payload.media_type.as_deref().unwrap()
+                );
+                assert_eq!(
+                    node["schema_version"],
+                    descriptor.source_payload.schema_version.as_deref().unwrap()
+                );
+            }
+        }
+        assert_eq!(
+            composed.projection.projection_receipt["projector"]["source_descriptor_catalog"]["catalog_sha256"],
+            sha256_hex(&serde_json::to_vec(&catalog).unwrap())
+        );
+    }
+
+    #[test]
     fn complete_synthetic_descriptor_catalog_reconciles_all_case_records() {
         let case = case();
         let result = validate_source_descriptor_catalog(&case, &catalog(&case));
@@ -1144,7 +1212,7 @@ mod tests {
             'b',
         );
         let replay = original.clone();
-        assert_eq!(identity_digest(&original).unwrap(), identity_digest(&replay).unwrap());
+        assert_eq!(identity_digest(&original, "case-descriptor-001").unwrap(), identity_digest(&replay, "case-descriptor-001").unwrap());
 
         let mut revised = original.clone();
         let component = revised
@@ -1153,7 +1221,7 @@ mod tests {
             .find(|component| component.name == "native_revision")
             .unwrap();
         component.value = "3".into();
-        assert_ne!(identity_digest(&original).unwrap(), identity_digest(&revised).unwrap());
+        assert_ne!(identity_digest(&original, "case-descriptor-001").unwrap(), identity_digest(&revised, "case-descriptor-001").unwrap());
     }
 
     #[test]
