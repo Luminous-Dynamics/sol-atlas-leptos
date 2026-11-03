@@ -5,7 +5,7 @@
     "schema_version": "luminous.ieac-assurance-dependency-graph.v0.2",
     "graph_id": "synthetic-identity-collision-corpus-v0.2",
     "captured_at": "2026-11-03T00:00:02Z",
-    "graph_snapshot_sha256": "0fb31cfb0908af739cab66ab4ca8b8bffccc82c582e62975ee5b34c39e5984cb",
+    "graph_snapshot_sha256": "9cbf9725eb129382999f900fc9bf360b4ed624daf2b4c262b6d21e09538a3687",
     "nodes": [
       {
         "node_id": "source_measurement:identity-sha256:9d44bfea0695d452eccf7e1b5239ae1d58fa4875240aa4f480ce7225f874abaa",
@@ -171,11 +171,11 @@
         "artifact_sha256": "fd13299c4fabd771337218a8450a88319f6423cf998b92922742132dbefe4bdd",
         "artifact_media_type": "application/octet-stream",
         "schema_version": "urn:synthetic:pump-vibration:v1",
-        "issuer_id": "urn:synthetic:operator:plant-7",
+        "issuer_id": "urn:synthetic:operator:plant-8",
         "scope": {
           "domain": "industrial-maintenance",
           "subject_pseudonyms": [
-            "asset:pump-07"
+            "asset:pump-07-plant-8"
           ],
           "purposes": [
             "benchmarking"
