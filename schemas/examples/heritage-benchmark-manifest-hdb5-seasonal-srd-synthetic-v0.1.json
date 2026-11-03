@@ -1,0 +1,78 @@
+{
+  "schema_version": "luminous.heritage-benchmark-manifest.v0.1",
+  "benchmark_id": "HDB-5-SEASONAL-SRD-SYNTHETIC",
+  "benchmark_version": "0.1.0",
+  "task_id": "HDB-5",
+  "created_at": "2026-11-02T10:00:00Z",
+  "dataset_inventory_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "split_protocol": "held_out_site",
+  "splits": [
+    {
+      "split_id": "synthetic-held-out-site-v1",
+      "train_site_ids": [
+        "synthetic-site-a"
+      ],
+      "validation_site_ids": [
+        "synthetic-site-b"
+      ],
+      "test_site_ids": [
+        "synthetic-site-c"
+      ],
+      "spatial_buffer_m": 500,
+      "estimated_spatial_dependence_m": 250,
+      "split_manifest_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    }
+  ],
+  "evaluation": {
+    "primary_metric": "false_alerts_per_100_observed_site_months_at_fixed_recall",
+    "review_budget": {
+      "unit": "analyst_hours",
+      "limit": 4
+    },
+    "metrics": [
+      "srd_robust_z_score",
+      "srd_abstention_rate",
+      "single_month_false_alert_rate",
+      "cusum_detection_delay_months",
+      "cusum_false_alert_rate",
+      "no_data_gap_preservation",
+      "reference_leakage_guard",
+      "recall_at_fixed_review_budget",
+      "worst_region_performance"
+    ],
+    "confidence_interval_method": "site_level_bootstrap",
+    "bootstrap_unit": "site",
+    "blind_labels": true,
+    "evaluation_code_revision": "synthetic-commit",
+    "environment_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "protocol_profile": "seasonal_fixed_reference",
+    "seasonal_reference_period": {
+      "start_month_ordinal": 24240,
+      "end_month_ordinal": 24275
+    },
+    "seasonal_evaluation_period": {
+      "start_month_ordinal": 24276,
+      "end_month_ordinal": 24311
+    },
+    "seasonal_month_window": 1,
+    "seasonal_min_reference_years": 3,
+    "seasonal_scale_floor": 0.01,
+    "seasonal_alert_threshold_abs": 3,
+    "seasonal_threshold_policy_ref": "urn:synthetic:srd-threshold-policy:v1",
+    "seasonal_feature_definition_ref": "urn:synthetic:ndvi-definition:v1",
+    "seasonal_channel_semantics": "Sentinel-2 B08 NIR and B04 red BOA reflectance",
+    "seasonal_missing_month_policy": "unobserved_no_imputation",
+    "seasonal_future_reference_excluded": true,
+    "seasonal_cusum_included": true,
+    "seasonal_cusum_gap_policy_ref": "urn:synthetic:cusum-reset-policy:v1",
+    "seasonal_baselines": [
+      "fixed_reference_srd",
+      "two_sided_cusum",
+      "seasonal_naive",
+      "harmonic_regression",
+      "watch_ted",
+      "watch_sscd"
+    ]
+  },
+  "notes": "Synthetic HDB-5 seasonal SRD manifest. Month ordinals and feature semantics are fictional and contain no real sites."
+}

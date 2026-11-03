@@ -467,20 +467,30 @@ Reference metadata belongs in a frozen benchmark manifest alongside exact input 
 - Competing explanations and contradictions remain visible; no automatic causal winner or accusation.
 
 **Primary target:** reduce unsupported archaeological/looting assertions by at least 30% at matched coverage versus a probability-only cause classifier, while maintaining cause Brier score and macro F1 within a preregistered non-inferiority margin. Retain at least 95% of adjudicated counter-evidence records in the evidence bundle. These are aspirations, not current results.
-### HDB-10: evidence-balanced cause attribution
 
-**Question:** when a physical change is known, can the model preserve plausible competing causes, cite event-specific evidence for and against each hypothesis, avoid counting repeated interpretations of the same source as independent corroboration, and abstain when the evidence is insufficient?
+### HDB-3 extension: cropmark spectral-geometric transfer (HDB-3-SGT)
 
-**Input:** a locked event/candidate set; complete multi-label cause taxonomy; per-cause calibrated probabilities; typed support and contradiction records; source digests, acquisition/independence groups, modalities, evidence tiers, event scope, rights receipts, reviewer/authority references and detectability assessments for non-detections.
+**Scope:** this is a cropmark-proxy subprotocol under cross-region generalization. It is not a universal transfer score for stone walls, built structures, looting or LiDAR features.
 
-**Outputs:** per-cause calibration and classification metrics, unsupported asserted-cause rate, independent support/contradiction counts, contested-hypothesis counts, counter-evidence retention, repeated-source double-count robustness, and abstention risk/coverage.
+**Published anchor:** Gravanis and Agapiou (PNAS Nexus, 10 October 2026) report cross-location Sentinel-2 cropmark proxy transfer across three European sites, using NDVI phenophase alignment and a directional spectral-geometric similarity score. Their abstract states that transfer is directional and more associated with spectral-geometric similarity than geographic proximity. DOI: https://doi.org/10.1093/pnasnexus/pgag336.
 
-**Required safeguards:**
-- Cause attribution is separate from change detection, event-time localization and heritage significance.
-- Every cited evidence record resolves to the same event and cause with an explicit support/contradiction polarity.
-- Independent corroboration requires new raw-source digest and new independence group, verified rights and an admissible evidence tier.
-- Model-derived, catalogue-only, same-source interpretation, context-only and rights-unverified evidence remain visible but do not count as independent corroboration.
-- Non-detection requires a target detectability assessment; missing survey coverage is not counter-evidence.
-- Competing explanations and contradictions remain visible; no automatic causal winner or accusation.
+**Reproduction protocol:** for each ordered source→target pair and shared month, compute r(m)=d(A_source,A_target)/d(A_source,H_target). Select the M smallest positive ratios and report DSS=mean(1/r). Compute the reverse direction separately. Preserve distance metric, source/target identities, sample counts, channel semantics, phenophase filter, transform digest and split digests. Require positive finite distances and minimum shared-month coverage.
 
-**Primary target:** reduce unsupported archaeological/looting assertions by at least 30% at matched coverage versus a probability-only cause classifier, while maintaining cause Brier score and macro F1 within a preregistered non-inferiority margin. Retain at least 95% of adjudicated counter-evidence records in the evidence bundle. These are aspirations, not current results.
+**Primary evaluation:** held-out-site or held-out-region. Pixel-random splits are reproduction-only interpolation results and cannot support external transfer claims. Test DSS ranking against observed held-out F1, PR-AUC or recall at a fixed analyst review budget across at least four unique landscapes and six directed pairs. Because pairs reuse sites, use leave-one-site-out sensitivity and do not report naive pair-IID confidence intervals.
+
+**Baselines:** geographic distance, biome/land-cover similarity, phenophase alignment, spectral-distribution similarity, terrain/geomorphology similarity, RBF SVM, constrained XGBoost, LightGBM, remote-sensing foundation embeddings and calibrated late fusion.
+
+**Provisional target:** at least +10 absolute percentage points in worst-target-region recall at the same review budget versus geographic-nearest transfer, without worse calibration or worst-region false-positive burden. This is an aspiration, not a result.
+### HDB-5 refinement: fixed-reference seasonal anomaly monitoring
+
+**Primary baseline:** Seasonal Robust Deviation (SRD), with a frozen reference interval that ends before evaluation, circular month-of-year window, median/MAD robust scaling and a minimum distinct-reference-year requirement. Optional two-sided CUSUM is reported separately with an explicit missing-gap reset policy.
+
+**Required states:** every evaluation month is scored, Unobserved, or InsufficientReference. Missing months and null values are never zero-filled. Future observations cannot enter the reference. Threshold-selection provenance, feature identity/units, channel semantics, source digest and reference/evaluation intervals are pinned.
+
+**Negative controls:** deterministic seasonal series must not alert after sufficient reference coverage; injected shifts must preserve signed direction; insufficient-year sites must abstain; sensor/scale shifts may alert but cannot be called archaeological threats without separate cause evaluation; persistent weak shifts test CUSUM detection delay; long missing gaps test resets.
+
+**Comparators:** WATCH TED, SSCD and weakly supervised monthly scoring; seasonal-naive, same-month median and harmonic-regression baselines; SRD single-month alert and SRD+CUSUM. Use identical image availability, site splits and review budgets.
+
+**Metrics:** false alerts per 100 observed site-months, recall at fixed review budget, detection delay, early-warning lead, abstention/coverage by reference years, worst-region degradation, and calibrated probability only after a separate calibration procedure. Robust z-scores themselves are not probabilities.
+
+**Provisional target:** fewer than one false alert per 100 observed site-months on seasonality-only controls once reference coverage is sufficient, with detection delay no worse than the strongest matched WATCH baseline at equal false-alert burden. This is an aspiration, not a result.

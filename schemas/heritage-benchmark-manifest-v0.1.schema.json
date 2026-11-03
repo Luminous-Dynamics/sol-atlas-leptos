@@ -363,6 +363,171 @@
               "cross_polarity_conflict_count"
             ]
           }
+        },
+        "protocol_profile": {
+          "enum": [
+            "general",
+            "cropmark_spectral_geometric_transfer",
+            "seasonal_fixed_reference"
+          ]
+        },
+        "seasonal_reference_period": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "start_month_ordinal",
+            "end_month_ordinal"
+          ],
+          "properties": {
+            "start_month_ordinal": {
+              "type": "integer"
+            },
+            "end_month_ordinal": {
+              "type": "integer"
+            }
+          }
+        },
+        "seasonal_evaluation_period": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "start_month_ordinal",
+            "end_month_ordinal"
+          ],
+          "properties": {
+            "start_month_ordinal": {
+              "type": "integer"
+            },
+            "end_month_ordinal": {
+              "type": "integer"
+            }
+          }
+        },
+        "seasonal_month_window": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 6
+        },
+        "seasonal_min_reference_years": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "seasonal_scale_floor": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "seasonal_alert_threshold_abs": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "seasonal_threshold_policy_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "seasonal_feature_definition_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "seasonal_channel_semantics": {
+          "type": "string",
+          "minLength": 1
+        },
+        "seasonal_missing_month_policy": {
+          "const": "unobserved_no_imputation"
+        },
+        "seasonal_future_reference_excluded": {
+          "const": true
+        },
+        "seasonal_cusum_included": {
+          "type": "boolean"
+        },
+        "seasonal_cusum_gap_policy_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "seasonal_baselines": {
+          "type": "array",
+          "minItems": 3,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "fixed_reference_srd",
+              "two_sided_cusum",
+              "seasonal_naive",
+              "same_month_median",
+              "harmonic_regression",
+              "watch_ted",
+              "watch_sscd",
+              "watch_weakly_supervised"
+            ]
+          }
+        },
+        "dss_formula_version": {
+          "const": "directional-strength-score.v0.1"
+        },
+        "dss_distance_metrics": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "euclidean",
+              "band_wise_wasserstein",
+              "kolmogorov_smirnov",
+              "mahalanobis"
+            ]
+          }
+        },
+        "dss_top_m_months": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "dss_minimum_shared_months": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "dss_minimum_unique_landscapes": {
+          "type": "integer",
+          "minimum": 4
+        },
+        "dss_minimum_directed_pairs": {
+          "type": "integer",
+          "minimum": 6
+        },
+        "dss_outcome_metric": {
+          "enum": [
+            "f1",
+            "precision_recall_auc",
+            "recall_at_fixed_review_budget"
+          ]
+        },
+        "dss_primary_split_protocol": {
+          "enum": [
+            "held_out_site",
+            "held_out_region"
+          ]
+        },
+        "dss_pixel_random_reproduction_only": {
+          "const": true
+        },
+        "dss_validation_confidence_interval_policy": {
+          "const": "no_pair_iid_ci"
+        },
+        "cropmark_proxy_definition_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "phenophase_filter_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "directional_pair_manifest_digest": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "transfer_outcome_ledger_digest": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
         }
       }
     },
@@ -497,6 +662,121 @@
               },
               "multilabel_cause_predictions": {
                 "const": true
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "task_id": {
+            "const": "HDB-5"
+          }
+        },
+        "required": [
+          "task_id"
+        ]
+      },
+      "then": {
+        "properties": {
+          "evaluation": {
+            "required": [
+              "protocol_profile",
+              "seasonal_reference_period",
+              "seasonal_evaluation_period",
+              "seasonal_month_window",
+              "seasonal_min_reference_years",
+              "seasonal_scale_floor",
+              "seasonal_alert_threshold_abs",
+              "seasonal_threshold_policy_ref",
+              "seasonal_feature_definition_ref",
+              "seasonal_channel_semantics",
+              "seasonal_missing_month_policy",
+              "seasonal_future_reference_excluded",
+              "seasonal_cusum_included",
+              "seasonal_cusum_gap_policy_ref",
+              "seasonal_baselines"
+            ],
+            "properties": {
+              "protocol_profile": {
+                "const": "seasonal_fixed_reference"
+              },
+              "seasonal_missing_month_policy": {
+                "const": "unobserved_no_imputation"
+              },
+              "seasonal_future_reference_excluded": {
+                "const": true
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "task_id": {
+            "const": "HDB-3"
+          },
+          "evaluation": {
+            "properties": {
+              "protocol_profile": {
+                "const": "cropmark_spectral_geometric_transfer"
+              }
+            },
+            "required": [
+              "protocol_profile"
+            ]
+          }
+        },
+        "required": [
+          "task_id"
+        ]
+      },
+      "then": {
+        "properties": {
+          "evaluation": {
+            "required": [
+              "dss_formula_version",
+              "dss_distance_metrics",
+              "dss_top_m_months",
+              "dss_minimum_shared_months",
+              "dss_minimum_unique_landscapes",
+              "dss_minimum_directed_pairs",
+              "dss_outcome_metric",
+              "dss_primary_split_protocol",
+              "dss_pixel_random_reproduction_only",
+              "dss_validation_confidence_interval_policy",
+              "cropmark_proxy_definition_ref",
+              "phenophase_filter_ref",
+              "directional_pair_manifest_digest",
+              "transfer_outcome_ledger_digest"
+            ],
+            "properties": {
+              "dss_formula_version": {
+                "const": "directional-strength-score.v0.1"
+              },
+              "dss_minimum_unique_landscapes": {
+                "type": "integer",
+                "minimum": 4
+              },
+              "dss_minimum_directed_pairs": {
+                "type": "integer",
+                "minimum": 6
+              },
+              "dss_primary_split_protocol": {
+                "enum": [
+                  "held_out_site",
+                  "held_out_region"
+                ]
+              },
+              "dss_pixel_random_reproduction_only": {
+                "const": true
+              },
+              "dss_validation_confidence_interval_policy": {
+                "const": "no_pair_iid_ci"
               }
             }
           }

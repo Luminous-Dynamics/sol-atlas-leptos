@@ -1,0 +1,71 @@
+{
+  "schema_version": "luminous.heritage-benchmark-manifest.v0.1",
+  "benchmark_id": "HDB-3-SGT-CROPMARK-SYNTHETIC",
+  "benchmark_version": "0.1.0",
+  "task_id": "HDB-3",
+  "created_at": "2026-11-02T10:00:00Z",
+  "dataset_inventory_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "split_protocol": "held_out_site",
+  "splits": [
+    {
+      "split_id": "synthetic-held-out-site-v1",
+      "train_site_ids": [
+        "synthetic-site-a"
+      ],
+      "validation_site_ids": [
+        "synthetic-site-b"
+      ],
+      "test_site_ids": [
+        "synthetic-site-c",
+        "synthetic-site-d"
+      ],
+      "spatial_buffer_m": 500,
+      "estimated_spatial_dependence_m": 250,
+      "split_manifest_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    }
+  ],
+  "evaluation": {
+    "primary_metric": "spearman_dss_vs_held_out_transfer_pr_auc",
+    "review_budget": {
+      "unit": "analyst_hours",
+      "limit": 4
+    },
+    "metrics": [
+      "directional_strength_score",
+      "monthly_directional_ratio",
+      "top_m_selected_months",
+      "spearman_dss_vs_held_out_transfer_pr_auc",
+      "leave_one_site_out_spearman",
+      "held_out_site_pr_auc",
+      "recall_at_fixed_review_budget",
+      "calibration",
+      "worst_target_region_recall"
+    ],
+    "confidence_interval_method": "site_level_bootstrap",
+    "bootstrap_unit": "site",
+    "blind_labels": true,
+    "evaluation_code_revision": "synthetic-commit",
+    "environment_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "protocol_profile": "cropmark_spectral_geometric_transfer",
+    "dss_formula_version": "directional-strength-score.v0.1",
+    "dss_distance_metrics": [
+      "euclidean",
+      "band_wise_wasserstein",
+      "kolmogorov_smirnov",
+      "mahalanobis"
+    ],
+    "dss_top_m_months": 3,
+    "dss_minimum_shared_months": 3,
+    "dss_minimum_unique_landscapes": 4,
+    "dss_minimum_directed_pairs": 6,
+    "dss_outcome_metric": "precision_recall_auc",
+    "dss_primary_split_protocol": "held_out_site",
+    "dss_pixel_random_reproduction_only": true,
+    "dss_validation_confidence_interval_policy": "no_pair_iid_ci",
+    "cropmark_proxy_definition_ref": "urn:synthetic:cropmark-proxy-a-h-taxonomy:v1",
+    "phenophase_filter_ref": "urn:synthetic:ndvi-phenophase-filter:v1",
+    "directional_pair_manifest_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+    "transfer_outcome_ledger_digest": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+  },
+  "notes": "Synthetic HDB-3-SGT cropmark-proxy manifest. Four synthetic sites; six directed synthetic site pairs; no real site geometry."
+}

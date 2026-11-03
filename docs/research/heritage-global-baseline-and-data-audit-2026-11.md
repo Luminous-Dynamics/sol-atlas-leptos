@@ -255,3 +255,23 @@ Do not call a cause confirmed because the model's probability crosses a threshol
 ### HDB-10 implementation refinement: cross-polarity independence conflict
 
 The current HCEA audit excludes an eligible source digest or acquisition group from *both* independent support and independent contradiction counts when that same digest/group appears on both polarities for the same cause. The records remain visible and the hypothesis remains contested. HDB-10 therefore measures `cross_polarity_conflict_count` in addition to duplicate-source robustness. A non-detection must be represented as contradictory evidence and include a detectability assessment.
+
+## 12. 2026 updates: seasonal baselines and spectral-geometric transfer
+
+### 12.1 PNAS Nexus directional cropmark transfer
+
+Gravanis and Agapiou (PNAS Nexus, published 10 October 2026) report directional cross-site cropmark-proxy transfer across three European Sentinel-2 landscapes. Their central result is that spectral-geometric similarity is more explanatory than geographic proximity alone, with NDVI phenophase alignment. This is a cropmark vegetation proxy result—not universal archaeology transfer. The paper is CC BY-NC; any commercial reuse of article content, data or derivative materials requires separate permission review. DOI: https://doi.org/10.1093/pnasnexus/pgag336.
+
+The Sol-Atlas implementation mirrors the directional DSS formula but adds stricter positive-distance and shared-month validation, feature/phenophase/digest records, held-out-site/region split qualification, and a multi-site validation evaluator with site leave-out sensitivity. It deliberately emits no pair-IID confidence interval because ordered source-target pairs reuse sites.
+
+### 12.2 Fixed-reference seasonal change monitoring
+
+The new SRD baseline compares evaluation observations against a frozen historical month-of-year reference using median/MAD, distinct-year minimums and explicit abstention. It complements rather than replaces WATCH TED/SSCD/WS. Optional CUSUM captures persistent shifts separately. Missing values and insufficient reference are never interpreted as no change.
+
+### 12.3 Analyst-workflow baseline: S.A.D.A.
+
+The September–October 2026 S.A.D.A. platform is a useful open-source usability comparator: it brings spectral indices, PCA, anomaly detectors, clustering and local spatial indicators into a guided GIS-ready workflow with guardrails, while keeping interpretation with the analyst. The authors explicitly state it is not an automatic site detector. Sol-Atlas should match its reproducible analyst-oriented workflow and add rights-aware provenance, spatial holdout evidence, uncertainty/abstention, evidence-balanced cause review and non-invasive survey planning; it should not claim S.A.D.A. is an automated detector. DOI: https://doi.org/10.1016/j.culher.2026.06.026.
+
+### 12.4 Comparison rule
+
+Compare WATCH monthly event localization, UAV conservation pixel/object change detection, PNAS cropmark-proxy transfer and S.A.D.A. analyst workflow on their own task units. Do not flatten recall@K, pixel F1, cropmark DSS correlation and analyst throughput into one score. Any improvement must use matching assets/labels, held-out geography and review budgets with per-region uncertainty.
