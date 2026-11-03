@@ -1389,7 +1389,7 @@ mod tests {
                     SourceRecordKind::Evidence,
                     "evidence-001",
                     "survey-registry",
-                    "survey-record-001",
+                    "evidence-001",
                     "urn:synthetic:survey-owner",
                     'a',
                     Some("design-001"),
@@ -1398,7 +1398,7 @@ mod tests {
                     SourceRecordKind::Artifact,
                     "artifact-001",
                     "design-001",
-                    "model-001",
+                    "artifact-001",
                     "urn:synthetic:design-owner",
                     'b',
                     None,
@@ -1407,7 +1407,7 @@ mod tests {
                     SourceRecordKind::EngineeringReceipt,
                     "receipt-001",
                     "design-001",
-                    "solver-receipt-001",
+                    "receipt-001",
                     "urn:synthetic:solver-owner",
                     'c',
                     None,
@@ -1416,7 +1416,7 @@ mod tests {
                     SourceRecordKind::Decision,
                     "decision-001",
                     "design-001",
-                    "decision-record-001",
+                    "decision-001",
                     "urn:synthetic:authority-owner",
                     'd',
                     None,
@@ -1800,7 +1800,7 @@ mod tests {
         );
         let baseline = independent_identity_reference(&source);
         let mut seen = BTreeSet::new();
-        for revision in 0..1_000usize {
+        for revision in 3..1_003usize {
             let component = source
                 .native_identity_components
                 .iter_mut()
