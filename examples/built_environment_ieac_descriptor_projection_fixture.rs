@@ -250,7 +250,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             .iter()
             .find(|mapping| mapping["native_key"] == record_key)
             .ok_or_else(|| format!("missing projected mapping for {record_key}"))?;
-        if mapping["identity_sha256"] != *identity_sha {
+        if mapping["identity_sha256"].as_str() != Some(identity_sha.as_str()) {
             return Err(format!("identity mismatch for {record_key}").into());
         }
     }
