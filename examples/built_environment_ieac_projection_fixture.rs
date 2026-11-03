@@ -80,7 +80,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     };
 
     let output = project_built_environment_case(&case, &context);
-    if output.disposition != ProjectionDisposition::ProjectedWithoutKnownLoss {
+    if output.disposition != ProjectionDisposition::ProjectedWithKnownLoss {
         return Err(format!(
             "synthetic projector fixture did not reconcile: {}",
             serde_json::to_string(&output.projection_receipt)?
@@ -88,9 +88,9 @@ fn main() -> Result<(), Box<dyn Error>> {
         .into());
     }
     if output.graph["action_authority"] != "none"
-        || output.graph["claim_ceiling"] != "record_only"
+        || output.graph["claim_ceiling"] != "incomplete_or_indeterminate"
     {
-        return Err("projector fixture exceeded the record-only claim ceiling".into());
+        return Err("projector fixture exceeded the conservative incomplete claim ceiling".into());
     }
     println!("{}", serde_json::to_string_pretty(&output.graph)?);
     Ok(())
