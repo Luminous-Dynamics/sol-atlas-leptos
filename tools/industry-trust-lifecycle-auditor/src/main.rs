@@ -209,6 +209,20 @@ fn node_identity_sha256(node_type: &str, identity: &Value) -> Result<String, Str
     if !names.contains("native_id") {
         return Err("node identity requires a native_id component".into());
     }
+    if ![
+        "native_record_id",
+        "native_revision",
+        "native_sequence",
+        "native_observation_id",
+    ]
+    .iter()
+    .any(|required_discriminator| names.contains(required_discriminator))
+    {
+        return Err(
+            "node identity requires a native record, revision, sequence, or observation discriminator"
+                .into(),
+        );
+    }
     pairs.sort_by(|left, right| left.0.cmp(right.0));
 
     let mut encoded = b"LUMINOUS-IEAC-NODE-IDENTITY-V0.2\0".to_vec();
