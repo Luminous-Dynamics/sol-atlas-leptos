@@ -23,7 +23,7 @@ const BATCH_SCHEMA: &str = "luminous.ieac-assurance-impact-delta-batch.v0.1";
 const DELTA_INPUT_SCHEMA: &str = "luminous.ieac-assurance-impact-delta-input.v0.1";
 const MAX_INPUT_BYTES: u64 = 128 * 1024 * 1024;
 const MAX_BATCH_EVENTS: usize = 10_000;
-const MAX_BATCH_AFFECTED_NODE_VISITS: usize = 2_000_000;
+const MAX_BATCH_CLOSURE_NODE_MEMBERSHIPS: usize = 2_000_000;
 
 #[derive(Debug)]
 struct GraphIndex {
@@ -809,7 +809,7 @@ fn run_batch(
     let mut cursor = cursor_from_pin(base_pin)?;
     let base_report_sha256 = canonical_json_digest(base_report)?;
     let mut deltas = Vec::with_capacity(events.len());
-    let mut total_affected_node_visits = 0usize;
+    let mut total_closure_node_memberships = 0usize;
 
     for event in events {
         let (delta, next_cursor) = advance_state(
@@ -825,12 +825,12 @@ fn run_batch(
             .as_u64()
             .and_then(|value| usize::try_from(value).ok())
             .ok_or("delta affected-node count is invalid")?;
-        total_affected_node_visits = total_affected_node_visits
+        total_closure_node_memberships = total_closure_node_memberships
             .checked_add(affected)
             .ok_or("batch affected-node visit counter overflow")?;
-        if total_affected_node_visits > MAX_BATCH_AFFECTED_NODE_VISITS {
+        if total_closure_node_memberships > MAX_BATCH_CLOSURE_NODE_MEMBERSHIPS {
             return Err(format!(
-                "batch affected-node visit budget exceeded: {total_affected_node_visits} > {MAX_BATCH_AFFECTED_NODE_VISITS}"
+                "batch affected-node visit budget exceeded: {total_closure_node_memberships} > {MAX_BATCH_CLOSURE_NODE_MEMBERSHIPS}"
             ));
         }
         deltas.push(delta);
@@ -862,7 +862,7 @@ fn run_batch(
         "state_row_map_initializations": 1,
         "state_row_map_reused_for_events": events.len(),
         "full_report_materializations": 1,
-        "total_affected_node_visits": total_affected_node_visits,
+        "total_closure_node_memberships": total_closure_node_memberships,
         "graph_node_count": index.nodes.len(),
         "graph_edge_count": index.edge_count,
         "event_count": events.len(),
@@ -937,7 +937,7 @@ fn main() -> ExitCode {
                 "state_row_map_initializations": 1,
                 "state_row_map_reused_for_events": 1,
                 "full_report_materializations": 1,
-                "total_affected_node_visits": applied.delta["affected_node_count"],
+                "total_closure_node_memberships": applied.delta["affected_node_count"],
                 "graph_node_count": index.nodes.len(),
                 "graph_edge_count": index.edge_count,
                 "event_count": 1,
@@ -1342,7 +1342,7 @@ mod tests {
         assert_eq!(batch["state_row_map_initializations"], 1);
         assert_eq!(batch["state_row_map_reused_for_events"], 2);
         assert_eq!(batch["full_report_materializations"], 1);
-        assert!(batch["total_affected_node_visits"].as_u64().unwrap() <= 2_000_000);
+        assert!(batch["total_closure_node_memberships"].as_u64().unwrap() <= 2_000_000);
         assert_eq!(batch["delta_count"], 2);
         assert_eq!(batch["next_state_pin"]["last_event_sequence"], 3);
         assert_eq!(
