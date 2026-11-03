@@ -15,6 +15,7 @@ pub mod data;
 pub mod economics;
 pub mod energy_trading;
 pub mod geo;
+pub mod heritage_spectral_transfer;
 pub mod lod;
 pub mod mycelix_flows;
 // pub mod relativity_viz;

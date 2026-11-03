@@ -1,0 +1,98 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/heritage-dss-correlation-report-v0.1.schema.json",
+  "title": "Sol-Atlas DSS Cross-Site Validation Report",
+  "description": "Spearman rank association and leave-one-site-out sensitivity. Directed pairs are marked dependent and confidence intervals are withheld.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "outcome_metric",
+    "directed_pair_count",
+    "unique_site_count",
+    "spearman_rho",
+    "directed_pairs_are_independent",
+    "confidence_interval",
+    "site_leave_out"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "luminous.heritage-dss-validation.v0.1"
+    },
+    "outcome_metric": {
+      "enum": [
+        "f1",
+        "precision_recall_auc",
+        "recall_at_fixed_review_budget"
+      ]
+    },
+    "directed_pair_count": {
+      "type": "integer",
+      "minimum": 6
+    },
+    "unique_site_count": {
+      "type": "integer",
+      "minimum": 4
+    },
+    "spearman_rho": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": -1,
+      "maximum": 1
+    },
+    "directed_pairs_are_independent": {
+      "const": false
+    },
+    "confidence_interval": {
+      "type": [
+        "array",
+        "null"
+      ],
+      "minItems": 2,
+      "maxItems": 2,
+      "items": {
+        "type": "number",
+        "minimum": -1,
+        "maximum": 1
+      }
+    },
+    "site_leave_out": {
+      "type": "array",
+      "minItems": 4,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "excluded_site_id",
+          "remaining_pair_count",
+          "remaining_site_count",
+          "spearman_rho"
+        ],
+        "properties": {
+          "excluded_site_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "remaining_pair_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "remaining_site_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "spearman_rho": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": -1,
+            "maximum": 1
+          }
+        }
+      }
+    }
+  }
+}

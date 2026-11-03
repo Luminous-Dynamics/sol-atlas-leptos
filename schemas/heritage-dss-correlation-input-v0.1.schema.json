@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/heritage-dss-correlation-input-v0.1.schema.json",
+  "title": "Sol-Atlas DSS Cross-Site Validation Input",
+  "description": "DSS scores and observed held-out transfer outcomes from multiple directed site pairs. Pairs sharing sites are dyadically dependent.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "outcome_metric",
+    "pairs"
+  ],
+  "properties": {
+    "outcome_metric": {
+      "enum": [
+        "f1",
+        "precision_recall_auc",
+        "recall_at_fixed_review_budget"
+      ]
+    },
+    "pairs": {
+      "type": "array",
+      "minItems": 6,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "pair_id",
+          "source_site_id",
+          "target_site_id",
+          "directional_strength_score",
+          "observed_transfer_value"
+        ],
+        "properties": {
+          "pair_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "source_site_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "target_site_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "directional_strength_score": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "observed_transfer_value": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "pair_id": "synthetic-site-a-to-site-b",
+  "source_site_id": "synthetic-site-a",
+  "target_site_id": "synthetic-site-b",
+  "distance_metric": "euclidean",
+  "split_protocol": "held_out_site",
+  "source_split_manifest_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "target_split_manifest_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "feature_transform_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+  "input_channel_semantics": "Sentinel-2 L2A B02/B03/B04/B08 surface reflectance; NDVI phenophase alignment",
+  "phenophase_filter_ref": "urn:synthetic:ndvi-phenophase-filter:v1",
+  "top_m_months": 2,
+  "minimum_shared_months": 3,
+  "months": [
+    {
+      "month_ordinal": 24242,
+      "source_archaeological_sample_count": 20,
+      "target_archaeological_sample_count": 18,
+      "target_vegetated_control_sample_count": 25,
+      "archaeological_to_archaeological_distance": 1,
+      "archaeological_to_control_distance": 4
+    },
+    {
+      "month_ordinal": 24243,
+      "source_archaeological_sample_count": 20,
+      "target_archaeological_sample_count": 18,
+      "target_vegetated_control_sample_count": 25,
+      "archaeological_to_archaeological_distance": 2,
+      "archaeological_to_control_distance": 4
+    },
+    {
+      "month_ordinal": 24244,
+      "source_archaeological_sample_count": 20,
+      "target_archaeological_sample_count": 18,
+      "target_vegetated_control_sample_count": 25,
+      "archaeological_to_archaeological_distance": 3,
+      "archaeological_to_control_distance": 3
+    }
+  ]
+}

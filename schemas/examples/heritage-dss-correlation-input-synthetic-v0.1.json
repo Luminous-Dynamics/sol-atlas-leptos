@@ -1,0 +1,89 @@
+{
+  "outcome_metric": "precision_recall_auc",
+  "pairs": [
+    {
+      "pair_id": "synthetic-pair-0",
+      "source_site_id": "a",
+      "target_site_id": "b",
+      "directional_strength_score": 0.9,
+      "observed_transfer_value": 0.9
+    },
+    {
+      "pair_id": "synthetic-pair-1",
+      "source_site_id": "b",
+      "target_site_id": "a",
+      "directional_strength_score": 0.8,
+      "observed_transfer_value": 0.8
+    },
+    {
+      "pair_id": "synthetic-pair-2",
+      "source_site_id": "a",
+      "target_site_id": "c",
+      "directional_strength_score": 0.7,
+      "observed_transfer_value": 0.7
+    },
+    {
+      "pair_id": "synthetic-pair-3",
+      "source_site_id": "c",
+      "target_site_id": "a",
+      "directional_strength_score": 0.6,
+      "observed_transfer_value": 0.6
+    },
+    {
+      "pair_id": "synthetic-pair-4",
+      "source_site_id": "b",
+      "target_site_id": "c",
+      "directional_strength_score": 0.5,
+      "observed_transfer_value": 0.5
+    },
+    {
+      "pair_id": "synthetic-pair-5",
+      "source_site_id": "c",
+      "target_site_id": "b",
+      "directional_strength_score": 0.4,
+      "observed_transfer_value": 0.4
+    },
+    {
+      "pair_id": "synthetic-pair-6",
+      "source_site_id": "a",
+      "target_site_id": "d",
+      "directional_strength_score": 0.3,
+      "observed_transfer_value": 0.3
+    },
+    {
+      "pair_id": "synthetic-pair-7",
+      "source_site_id": "d",
+      "target_site_id": "a",
+      "directional_strength_score": 0.2,
+      "observed_transfer_value": 0.2
+    },
+    {
+      "pair_id": "synthetic-pair-8",
+      "source_site_id": "b",
+      "target_site_id": "d",
+      "directional_strength_score": 0.15,
+      "observed_transfer_value": 0.15
+    },
+    {
+      "pair_id": "synthetic-pair-9",
+      "source_site_id": "d",
+      "target_site_id": "b",
+      "directional_strength_score": 0.1,
+      "observed_transfer_value": 0.1
+    },
+    {
+      "pair_id": "synthetic-pair-10",
+      "source_site_id": "c",
+      "target_site_id": "d",
+      "directional_strength_score": 0.08,
+      "observed_transfer_value": 0.08
+    },
+    {
+      "pair_id": "synthetic-pair-11",
+      "source_site_id": "d",
+      "target_site_id": "c",
+      "directional_strength_score": 0.05,
+      "observed_transfer_value": 0.05
+    }
+  ]
+}
