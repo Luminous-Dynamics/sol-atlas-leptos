@@ -295,19 +295,19 @@ fn namespace_map_digest(
     Ok(sha256_hex(&bytes))
 }
 
+fn valid_native_identity_namespace(namespace: &str) -> bool {
+    !namespace.trim().is_empty()
+        && namespace == namespace.trim()
+        && namespace.len() <= 1_024
+}
+
 fn resolve_native_identity_namespace(
     record_key: &str,
     context: &ProjectionContext,
     findings: &mut Findings,
 ) -> String {
     match context.native_identity_namespaces.get(record_key) {
-        Some(namespace)
-            if !namespace.trim().is_empty()
-                && namespace.as_str() == namespace.trim()
-                && namespace.len() <= 1_024 =>
-        {
-            namespace.clone()
-        }
+        Some(namespace) if valid_native_identity_namespace(namespace) => namespace.clone()
         Some(_) => {
             findings.invalid(
                 "INVALID_NATIVE_IDENTITY_NAMESPACE",
@@ -603,6 +603,17 @@ pub fn project_built_environment_case(
     for record_key in &expected_namespace_keys {
         let _ = resolve_native_identity_namespace(record_key, context, &mut findings);
     }
+    let supplied_native_identity_namespace_count = expected_namespace_keys
+        .iter()
+        .filter(|record_key| {
+            context
+                .native_identity_namespaces
+                .get(*record_key)
+                .is_some_and(|namespace| valid_native_identity_namespace(namespace))
+        })
+        .count();
+    let all_native_identity_namespaces_supplied =
+        supplied_native_identity_namespace_count == expected_namespace_keys.len();
     if case.evidence.is_empty()
         && case.artifacts.is_empty()
         && case.engineering_receipts.is_empty()
@@ -665,12 +676,18 @@ pub fn project_built_environment_case(
                 "version": env!("CARGO_PKG_VERSION"),
                 "build_sha256": context.projector_build_sha256,
                 "mapping_profile_sha256": context.mapping_profile_sha256,
-                "identity_namespace": IDENTITY_NAMESPACE,
-                "identity_namespace_basis": "caller_supplied_per_record_namespace_map_not_authenticated",
-            "native_identity_namespaces": context.native_identity_namespaces,
-            "native_identity_namespace_map_sha256": namespace_map_digest(&context.native_identity_namespaces).unwrap_or_default(),
-            "source_owner_namespace_supplied": true,
-            "source_owner_namespace_authenticated": false
+                "adapter_fallback_identity_namespace": IDENTITY_NAMESPACE,
+                "identity_namespace_basis": if all_native_identity_namespaces_supplied {
+                    "caller_supplied_per_record_namespace_map_not_authenticated"
+                } else {
+                    "caller_supplied_map_with_adapter_fallback"
+                },
+                "native_identity_namespaces": context.native_identity_namespaces,
+                "native_identity_namespace_map_sha256": namespace_map_digest(&context.native_identity_namespaces).unwrap_or_default(),
+                "native_identity_namespace_entries_supplied": supplied_native_identity_namespace_count,
+                "native_identity_namespace_entries_expected": expected_namespace_keys.len(),
+                "source_owner_namespace_entries_supplied_for_all_records": all_native_identity_namespaces_supplied,
+                "source_owner_namespace_authenticated": false
             },
             "projected_graph": null,
             "node_mappings": [],
@@ -865,6 +882,15 @@ pub fn project_built_environment_case(
             context,
             &mut findings,
         );
+        let identity_namespace_basis = if context
+            .native_identity_namespaces
+            .get(&native_key)
+            .is_some_and(|namespace| valid_native_identity_namespace(namespace))
+        {
+            "caller_supplied"
+        } else {
+            "adapter_fallback"
+        };
         let node = match make_node(NodeProjection {
             node_type: "source_evidence",
             identity_namespace: &identity_namespace,
@@ -902,6 +928,7 @@ pub fn project_built_environment_case(
                 "native_source_id": evidence.source_id,
                 "native_record_id": evidence.evidence_id,
                 "native_identity_namespace": identity_namespace,
+                "native_identity_namespace_basis": identity_namespace_basis,
                 "node_type": "source_evidence",
                 "node_id": node_id,
                 "identity_sha256": identity_sha,
@@ -970,6 +997,15 @@ pub fn project_built_environment_case(
             context,
             &mut findings,
         );
+        let identity_namespace_basis = if context
+            .native_identity_namespaces
+            .get(&native_key)
+            .is_some_and(|namespace| valid_native_identity_namespace(namespace))
+        {
+            "caller_supplied"
+        } else {
+            "adapter_fallback"
+        };
         let node = match make_node(NodeProjection {
             node_type: "engineering_artifact",
             identity_namespace: &identity_namespace,
@@ -1009,6 +1045,7 @@ pub fn project_built_environment_case(
                 "native_family_id": artifact.family_id,
                 "native_revision": artifact.revision,
                 "native_identity_namespace": identity_namespace,
+                "native_identity_namespace_basis": identity_namespace_basis,
                 "source_artifact_kind": serde_json::to_value(artifact.kind).unwrap_or(Value::Null),
                 "source_jurisdiction": artifact.jurisdiction,
                 "source_created_at_unix_seconds": artifact.created_at_unix_seconds,
@@ -1051,6 +1088,15 @@ pub fn project_built_environment_case(
             context,
             &mut findings,
         );
+        let identity_namespace_basis = if context
+            .native_identity_namespaces
+            .get(&native_key)
+            .is_some_and(|namespace| valid_native_identity_namespace(namespace))
+        {
+            "caller_supplied"
+        } else {
+            "adapter_fallback"
+        };
         let node = match make_node(NodeProjection {
             node_type: "engineering_receipt",
             identity_namespace: &identity_namespace,
@@ -1088,6 +1134,7 @@ pub fn project_built_environment_case(
                 "native_design_id": receipt.design_id,
                 "native_record_id": receipt.receipt_id,
                 "native_identity_namespace": identity_namespace,
+                "native_identity_namespace_basis": identity_namespace_basis,
                 "node_type": "engineering_receipt",
                 "node_id": node_id,
                 "identity_sha256": identity_sha,
@@ -1138,6 +1185,15 @@ pub fn project_built_environment_case(
             context,
             &mut findings,
         );
+        let identity_namespace_basis = if context
+            .native_identity_namespaces
+            .get(&native_key)
+            .is_some_and(|namespace| valid_native_identity_namespace(namespace))
+        {
+            "caller_supplied"
+        } else {
+            "adapter_fallback"
+        };
         let node = match make_node(NodeProjection {
             node_type: "decision",
             identity_namespace: &identity_namespace,
@@ -1175,6 +1231,7 @@ pub fn project_built_environment_case(
                 "native_design_id": decision.design_id,
                 "native_record_id": decision.event_id,
                 "native_identity_namespace": identity_namespace,
+                "native_identity_namespace_basis": identity_namespace_basis,
                 "node_type": "decision",
                 "node_id": node_id,
                 "identity_sha256": identity_sha,
@@ -1637,11 +1694,17 @@ pub fn project_built_environment_case(
             "version": env!("CARGO_PKG_VERSION"),
             "build_sha256": context.projector_build_sha256,
             "mapping_profile_sha256": context.mapping_profile_sha256,
-            "identity_namespace": IDENTITY_NAMESPACE,
-            "identity_namespace_basis": "caller_supplied_per_record_namespace_map_not_authenticated",
+            "adapter_fallback_identity_namespace": IDENTITY_NAMESPACE,
+            "identity_namespace_basis": if all_native_identity_namespaces_supplied {
+                "caller_supplied_per_record_namespace_map_not_authenticated"
+            } else {
+                "caller_supplied_map_with_adapter_fallback"
+            },
             "native_identity_namespaces": context.native_identity_namespaces,
             "native_identity_namespace_map_sha256": namespace_map_digest(&context.native_identity_namespaces).unwrap_or_default(),
-            "source_owner_namespace_supplied": true,
+            "native_identity_namespace_entries_supplied": supplied_native_identity_namespace_count,
+            "native_identity_namespace_entries_expected": expected_namespace_keys.len(),
+            "source_owner_namespace_entries_supplied_for_all_records": all_native_identity_namespaces_supplied,
             "source_owner_namespace_authenticated": false
         },
         "projected_graph": {
