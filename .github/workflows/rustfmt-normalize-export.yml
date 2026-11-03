@@ -1,6 +1,14 @@
 name: Export rustfmt-normalized descriptor branch files
 
 on:
+  pull_request:
+    paths:
+      - "sol-atlas-core/src/industry_assurance_projection.rs"
+      - "sol-atlas-core/src/built_environment_source_descriptor.rs"
+      - "sol-atlas-core/src/lib.rs"
+      - "tests/industry_assurance_projection.rs"
+      - "examples/built_environment_ieac_projection_fixture.rs"
+      - "examples/built_environment_ieac_descriptor_projection_fixture.rs"
   push:
     branches:
       - research/built-environment-source-descriptors-v0-1-rebased
