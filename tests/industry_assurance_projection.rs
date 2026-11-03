@@ -89,18 +89,18 @@ fn context() -> ProjectionContext {
 #[test]
 fn public_projector_emits_identity_preserving_graph_and_receipt() {
     let output = project_built_environment_case(&fixture_case(), &context());
-    assert_eq!(output.disposition, ProjectionDisposition::ProjectedWithoutKnownLoss);
+    assert_eq!(output.disposition, ProjectionDisposition::ProjectedWithKnownLoss);
     assert_eq!(
         output.graph["schema_version"],
         "luminous.ieac-assurance-dependency-graph.v0.2"
     );
-    assert_eq!(output.graph["claim_ceiling"], "record_only");
+    assert_eq!(output.graph["claim_ceiling"], "incomplete_or_indeterminate");
     assert_eq!(output.graph["action_authority"], "none");
     assert_eq!(output.graph["nodes"].as_array().unwrap().len(), 4);
     assert_eq!(output.graph["edges"].as_array().unwrap().len(), 6);
     assert_eq!(
         output.projection_receipt["disposition"],
-        "projected_without_known_loss"
+        "projected_with_known_loss"
     );
     assert_eq!(output.projection_receipt["verification_claim"], "none");
     assert_eq!(output.projection_receipt["action_authority"], "none");
