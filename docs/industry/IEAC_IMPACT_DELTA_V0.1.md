@@ -74,7 +74,7 @@ The v0.1 merge is deliberately conservative and monotonic:
 
 A reversal, correction that reinstates reliance, or expiry of a quarantine requires a later, explicit policy and a full reconciliation event. It is not inferred from an empty sparse update.
 
-## 6. Atomic output envelope
+## 6. Single-file result envelope
 
 The CLI writes one `create_new` output file containing:
 - the ordered delta batch;
@@ -82,7 +82,7 @@ The CLI writes one `create_new` output file containing:
 - next state pin;
 - resulting report digest, event-chain sequence and head.
 
-This avoids exposing a three-file partial tuple at the application boundary. It is not a substitute for a durable transaction with an external state store: the caller must atomically persist the envelope and advance its protected high-water state or recover through full reconciliation.
+This avoids exposing a three-file inconsistent tuple at the application boundary. The file writer uses create-new semantics and synchronizes the file, but it is not a crash-atomic rename or a durable distributed transaction. The caller must persist the envelope and advance its protected high-water state in one external transaction or recover through full reconciliation.
 
 ## 7. Reconciliation and negative controls
 
