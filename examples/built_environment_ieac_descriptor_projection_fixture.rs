@@ -17,8 +17,8 @@ use sol_atlas_core::built_environment_source_descriptor::{
     SourceSnapshotDescriptor, validate_source_descriptor_catalog,
 };
 use sol_atlas_core::built_environment_source_inventory::{
-    ExpectedSourceOwner, InventoryPageReceipt, ReportedTotalSemantics, SnapshotSemantics,
-    SourceInventoryManifest,
+    ExpectedSourceOwner, InventoryAccessScope, InventoryPageReceipt, ReportedTotalSemantics,
+    SnapshotSemantics, SourceInventoryManifest,
 };
 use sol_atlas_core::industry_assurance_projection::{
     ProjectionContext, project_built_environment_case_with_inventory,
@@ -125,6 +125,7 @@ fn inventory_manifest_for_descriptor(
         connector_build_sha256: digest('d'),
         query_scope_sha256: digest('e'),
         query_scope_summary: format!("all synthetic records for {}", descriptor.case_record_id),
+        access_scope: InventoryAccessScope::SourceAssertedComplete,
         snapshot_semantics: SnapshotSemantics::ImmutableSnapshot,
         snapshot_token: Some(descriptor.source_snapshot.snapshot_id.clone()),
         snapshot_sha256: Some(snapshot_sha256),
