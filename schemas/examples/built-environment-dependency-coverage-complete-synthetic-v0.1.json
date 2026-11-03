@@ -449,7 +449,8 @@
   },
   "expected": {
     "disposition": "complete_for_declared_scope",
-    "eligible_to_support_no_impact_within_declared_scope": true,
+    "eligible_to_support_no_impact_within_declared_scope": false,
+    "reliance_gate": "blocked_unverified_external_attestations_and_profile_adequacy",
     "not_a_real_world_completeness_claim": true,
     "action_authority": "none"
   }
