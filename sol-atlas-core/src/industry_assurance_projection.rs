@@ -369,8 +369,7 @@ fn make_node(spec: NodeProjection<'_>) -> Result<Value, String> {
     if !valid_sha256(spec.payload_sha256) {
         return Err("artifact payload digest is not lowercase SHA-256".into());
     }
-    let mut components = spec.components;
-    string_component(&mut components, "case_id", spec.case_id);
+    let components = spec.components;
     let identity_sha = native_identity_sha256(
         spec.node_type,
         spec.identity_namespace,
