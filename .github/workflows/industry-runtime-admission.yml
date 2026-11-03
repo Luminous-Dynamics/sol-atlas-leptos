@@ -50,7 +50,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.ref || github.ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
       - name: Assert exact source revision
         env:
@@ -62,10 +63,15 @@ jobs:
         with:
           components: rustfmt, clippy
 
-      - name: Generate Rust formatting candidates (temporary verification aid)
+      - name: Generate Rust formatting candidates in an isolated worktree (non-qualifying aid)
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
-          cargo fmt --manifest-path tools/industry-assurance-validator/Cargo.toml
-          cargo fmt --manifest-path tools/industry-runtime-admission/Cargo.toml
+          set -euo pipefail
+          candidate="$RUNNER_TEMP/ieac-rustfmt-candidates"
+          git worktree add --detach "$candidate" "$EXPECTED_SHA"
+          cargo fmt --manifest-path "$candidate/tools/industry-assurance-validator/Cargo.toml"
+          cargo fmt --manifest-path "$candidate/tools/industry-runtime-admission/Cargo.toml"
 
       - name: Upload formatted Rust source candidates
         if: always()
@@ -73,8 +79,8 @@ jobs:
         with:
           name: ieac-rustfmt-candidates
           path: |
-            tools/industry-assurance-validator/src
-            tools/industry-runtime-admission/src
+            ${{ runner.temp }}/ieac-rustfmt-candidates/tools/industry-assurance-validator/src
+            ${{ runner.temp }}/ieac-rustfmt-candidates/tools/industry-runtime-admission/src
           if-no-files-found: error
           retention-days: 3
 
@@ -159,7 +165,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.ref || github.ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
       - name: Assert exact source revision
         env:
