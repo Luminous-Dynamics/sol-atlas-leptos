@@ -275,18 +275,15 @@ jobs:
             .claim_ceiling == "incomplete_or_indeterminate"
           ' "$RUNNER_TEMP/impact-delta-result-report.json"
 
-      - name: Apply the emitted sparse delta as an independent consumer
+      - name: Verify the emitted multi-event delta batch as a consumer
         shell: bash
         run: |
           set -euo pipefail
           base_fixture=schemas/examples/ieac-trust-lifecycle-key-compromise-synthetic-v0.1.json
           delta_input=schemas/examples/ieac-impact-delta-source-correction-synthetic-v0.1.json
-          graph="$RUNNER_TEMP/apply-delta-graph.json"
-          base_report="$RUNNER_TEMP/apply-delta-base-report.json"
-          base_pin="$RUNNER_TEMP/apply-delta-base-pin.json"
-          event="$RUNNER_TEMP/apply-delta-event.json"
-          metadata="$RUNNER_TEMP/apply-delta-metadata.json"
-          delta="$RUNNER_TEMP/apply-delta-input.json"
+          graph="$RUNNER_TEMP/verify-batch-graph.json"
+          base_report="$RUNNER_TEMP/verify-batch-base-report.json"
+          base_pin="$RUNNER_TEMP/verify-batch-base-pin.json"
           jq -e '.graph' "$base_fixture" > "$graph"
           jq -e '.expected_impact_report' "$base_fixture" > "$base_report"
           event_head="$(jq -r '.expected_impact_report.invalidation_event_sha256' "$base_fixture")"
@@ -294,17 +291,15 @@ jobs:
           trusted_at="$(jq -r '.invalidation_event.system_time.trusted_at' "$base_fixture")"
           cargo run --quiet --locked --manifest-path tools/industry-trust-lifecycle-auditor/Cargo.toml --bin industry-impact-delta -- \
             pin "$graph" "$base_report" 1 "$event_head" "$recorded_at" "$trusted_at" "$base_pin"
-          jq -e '.events[0]' "$delta_input" > "$event"
-          jq -e '.metadata' "$delta_input" > "$metadata"
-          jq -e '.deltas[0]' "$RUNNER_TEMP/impact-delta-batch.json" > "$delta"
           cargo run --locked --manifest-path tools/industry-trust-lifecycle-auditor/Cargo.toml --bin industry-impact-delta -- \
-            apply "$graph" "$base_report" "$base_pin" "$event" "$metadata" "$delta" "$RUNNER_TEMP/applied-delta-result.json"
-          jsonschema-cli validate --draft 2020 --assert-format --offline schemas/industry-assurance-impact-delta-batch-v0.1.schema.json -i "$RUNNER_TEMP/applied-delta-result.json"
+            verify-batch "$graph" "$base_report" "$base_pin" "$delta_input" "$RUNNER_TEMP/impact-delta-batch.json" "$RUNNER_TEMP/verified-delta-batch.json"
+          jsonschema-cli validate --draft 2020 --assert-format --offline schemas/industry-assurance-impact-delta-batch-v0.1.schema.json -i "$RUNNER_TEMP/verified-delta-batch.json"
           jq -e --slurpfile generated "$RUNNER_TEMP/impact-delta-batch.json" '
             .resulting_impact_report_sha256 == $generated[0].resulting_impact_report_sha256 and
+            .next_state_pin.impact_report_sha256 == $generated[0].next_state_pin.impact_report_sha256 and
             .next_state_pin.impact_state_sha256 == $generated[0].next_state_pin.impact_state_sha256 and
-            .deltas[0].delta_sha256 == $generated[0].deltas[0].delta_sha256
-          ' "$RUNNER_TEMP/applied-delta-result.json"
+            .deltas == $generated[0].deltas
+          ' "$RUNNER_TEMP/verified-delta-batch.json"
 
       - name: Reject stale-base and backdated-event delta inputs
         shell: bash
