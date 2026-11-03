@@ -303,7 +303,7 @@ fn resolve_native_identity_namespace(
     match context.native_identity_namespaces.get(record_key) {
         Some(namespace)
             if !namespace.trim().is_empty()
-                && namespace == namespace.trim()
+                && namespace.as_str() == namespace.trim()
                 && namespace.len() <= 1_024 =>
         {
             namespace.clone()
@@ -599,6 +599,9 @@ pub fn project_built_environment_case(
                 "identity namespace map contains a key that does not identify a record in this case",
             );
         }
+    }
+    for record_key in &expected_namespace_keys {
+        let _ = resolve_native_identity_namespace(record_key, context, &mut findings);
     }
     if case.evidence.is_empty()
         && case.artifacts.is_empty()
