@@ -83,6 +83,7 @@ pub struct InventoryExclusion {
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct InventoryPageReceipt {
+    pub inventory_id: String,
     pub partition_id: String,
     pub ordinal: u32,
     /// SHA-256 of the exact source response page bytes. The verifier does not
@@ -357,6 +358,14 @@ fn validate_page_partition(
                 "INVENTORY_PAGE_AFTER_TERMINAL",
                 format!("{partition_id}:{}", page.ordinal),
                 "no page may follow a terminal page in the same partition",
+            );
+        }
+        if page.inventory_id != manifest.inventory_id {
+            chain_well_formed = false;
+            findings.invalid(
+                "INVENTORY_PAGE_ID_MISMATCH",
+                format!("{partition_id}:{}", page.ordinal),
+                "page receipt inventory ID must match its containing manifest",
             );
         }
         if page.partition_id != partition_id {
@@ -958,6 +967,7 @@ mod tests {
         terminal: bool,
     ) -> InventoryPageReceipt {
         InventoryPageReceipt {
+            inventory_id: "inventory-synthetic-001".into(),
             partition_id: "region-a".into(),
             ordinal,
             response_payload_sha256: digest(payload),
