@@ -1192,6 +1192,52 @@ mod tests {
         );
     }
 
+    #[test]
+    fn v02_identity_nodes_are_valid_edge_endpoints() {
+        let fixture: Value = serde_json::from_str(include_str!(
+            "../../../schemas/examples/ieac-node-identity-collision-synthetic-v0.2.json"
+        ))
+        .expect("valid v0.2 identity fixture");
+        let mut graph = fixture["graph"].clone();
+
+        let mut transformation = graph["nodes"][0].clone();
+        transformation["node_type"] = json!("transformation");
+        transformation["identity"] = json!({
+            "identity_namespace": "urn:synthetic:sol-atlas-projector",
+            "components": [
+                {"name": "native_id", "value": "projector-run-001"},
+                {"name": "native_revision", "value": "projection-v1"}
+            ]
+        });
+        transformation["artifact_sha256"] =
+            json!("eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee");
+        transformation["artifact_media_type"] = json!("application/json");
+        transformation["schema_version"] = json!("urn:synthetic:projection-receipt:v1");
+        transformation["issuer_id"] = json!("urn:synthetic:sol-atlas");
+        let identity_sha256 = node_identity_sha256(
+            "transformation",
+            &transformation["identity"],
+        )
+        .expect("valid transformation native identity");
+        let transformation_node_id =
+            format!("transformation:identity-sha256:{identity_sha256}");
+        transformation["identity_sha256"] = json!(identity_sha256);
+        transformation["node_id"] = json!(transformation_node_id);
+
+        graph["nodes"].as_array_mut().unwrap().push(transformation);
+        graph["edges"] = json!([{
+            "edge_id": "edge-measurement-transformed-by-projection",
+            "from_node_id": graph["nodes"][0]["node_id"],
+            "to_node_id": transformation_node_id,
+            "relation": "transformed_by"
+        }]);
+        refresh_graph_snapshot_digest(&mut graph);
+
+        let nodes = validate_graph(&graph)
+            .expect("v0.2 native identity IDs must resolve as edge endpoints");
+        assert_eq!(nodes.len(), 5);
+    }
+
     fn fixture() -> Value {
         serde_json::from_str(include_str!(
             "../../../schemas/examples/ieac-trust-lifecycle-key-compromise-synthetic-v0.1.json"
