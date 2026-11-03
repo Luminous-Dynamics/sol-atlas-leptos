@@ -287,28 +287,35 @@ fn string_component(components: &mut BTreeMap<String, String>, name: &str, value
     components.insert(name.to_owned(), value.to_owned());
 }
 
-fn make_node(
-    node_type: &str,
-    identity_namespace: &str,
-    mut components: BTreeMap<String, String>,
-    payload_sha256: &str,
-    artifact_media_type: &str,
-    schema_version: &str,
-    recorded_at: &str,
+struct NodeProjection<'a> {
+    node_type: &'a str,
+    identity_namespace: &'a str,
+    components: BTreeMap<String, String>,
+    payload_sha256: &'a str,
+    artifact_media_type: &'a str,
+    schema_version: &'a str,
+    recorded_at: &'a str,
     artifact_created_at: Option<String>,
-    case_id: &str,
-    design_id: Option<&str>,
-) -> Result<Value, String> {
-    if !valid_sha256(payload_sha256) {
+    case_id: &'a str,
+    design_id: Option<&'a str>,
+}
+
+fn make_node(spec: NodeProjection<'_>) -> Result<Value, String> {
+    if !valid_sha256(spec.payload_sha256) {
         return Err("artifact payload digest is not lowercase SHA-256".into());
     }
-    string_component(&mut components, "case_id", case_id);
-    let identity_sha = native_identity_sha256(node_type, identity_namespace, &components)?;
-    let node_id = format!("{node_type}:identity-sha256:{identity_sha}");
+    let mut components = spec.components;
+    string_component(&mut components, "case_id", spec.case_id);
+    let identity_sha = native_identity_sha256(
+        spec.node_type,
+        spec.identity_namespace,
+        &components,
+    )?;
+    let node_id = format!("{}:identity-sha256:{identity_sha}", spec.node_type);
 
     let mut subjects = BTreeSet::new();
-    subjects.insert(case_id.to_owned());
-    if let Some(design_id) = design_id {
+    subjects.insert(spec.case_id.to_owned());
+    if let Some(design_id) = spec.design_id {
         if !design_id.is_empty() {
             subjects.insert(design_id.to_owned());
         }
@@ -321,15 +328,15 @@ fn make_node(
 
     Ok(json!({
         "node_id": node_id,
-        "node_type": node_type,
+        "node_type": spec.node_type,
         "identity": {
-            "identity_namespace": identity_namespace,
+            "identity_namespace": spec.identity_namespace,
             "components": identity_components
         },
         "identity_sha256": identity_sha,
-        "artifact_sha256": payload_sha256,
-        "artifact_media_type": artifact_media_type,
-        "schema_version": schema_version,
+        "artifact_sha256": spec.payload_sha256,
+        "artifact_media_type": spec.artifact_media_type,
+        "schema_version": spec.schema_version,
         "issuer_id": PROJECTOR_ISSUER,
         "scope": {
             "domain": "built_environment",
@@ -341,8 +348,8 @@ fn make_node(
             "valid_until": null
         },
         "observation_time": {
-            "artifact_created_at": artifact_created_at,
-            "recorded_at": recorded_at,
+            "artifact_created_at": spec.artifact_created_at,
+            "recorded_at": spec.recorded_at,
             "trusted_at": null
         },
         "verification": {
@@ -356,62 +363,36 @@ fn make_node(
     }))
 }
 
-fn resolve_native_identity_namespace(
-    record_key: &str,
-    context: &ProjectionContext,
-    findings: &mut Findings,
-) -> String {
-    match context.native_identity_namespaces.get(record_key) {
-        Some(namespace) if !namespace.trim().is_empty() && namespace.len() <= 1024 => namespace.clone(),
-        Some(_) => {
-            findings.invalid(
-                "INVALID_NATIVE_IDENTITY_NAMESPACE",
-                record_key,
-                "source-owner namespace must be non-empty and at most 1024 UTF-8 bytes",
-            );
-            IDENTITY_NAMESPACE.to_owned()
-        }
-        None => {
-            findings.incomplete(
-                "NATIVE_IDENTITY_NAMESPACE_NOT_SUPPLIED",
-                record_key,
-                "source-owner namespace was not supplied; adapter-scoped fallback is not source-native identity",
-            );
-            IDENTITY_NAMESPACE.to_owned()
-        }
-    }
-}
-
-fn namespace_map_digest(namespaces: &BTreeMap<String, String>) -> Result<String, String> {
-    let value = serde_json::to_value(namespaces)
-        .map_err(|error| format!("namespace map serialization failed: {error}"))?;
-    canonical_json_sha256(&value)
-}
-
 fn add_unmapped(
     findings: &mut Findings,
     unmapped: &mut BTreeMap<String, Value>,
-    code: &'static str,
-    source_kind: &str,
-    source_id: &str,
-    relation: &str,
-    referenced_id: &str,
-    detail: &str,
+    spec: UnmappedRelation<'_>,
 ) {
-    let key = format!("{source_kind}:{source_id}:{relation}:{referenced_id}:{code}");
-    findings.incomplete(code, key.clone(), detail);
+    let key = format!(
+        "{}:{}:{}:{}:{}",
+        spec.source_kind, spec.source_id, spec.relation, spec.referenced_id, spec.code
+    );
+    findings.incomplete(spec.code, key.clone(), spec.detail);
     unmapped.insert(
         key.clone(),
         json!({
             "unmapped_id": key,
-            "source_record_kind": source_kind,
-            "source_record_id": source_id,
-            "relationship_family": relation,
-            "referenced_native_id": referenced_id,
-            "reason_code": code,
-            "detail": detail
+            "source_record_kind": spec.source_kind,
+            "source_record_id": spec.source_id,
+            "relationship_family": spec.relation,
+            "referenced_native_id": spec.referenced_id,
+            "reason_code": spec.code,
+            "detail": spec.detail
         }),
     );
+}
+
+struct EdgeProjection<'a> {
+    from_node: &'a str,
+    to_node: &'a str,
+    relation: &'a str,
+    native_relationship_key: &'a str,
+    mapping_family: &'a str,
 }
 
 fn add_edge(
@@ -419,27 +400,28 @@ fn add_edge(
     edge_mappings: &mut BTreeMap<String, Value>,
     edge_pairs: &mut BTreeSet<(String, String)>,
     findings: &mut Findings,
-    from_node: &str,
-    to_node: &str,
-    relation: &str,
-    native_relationship_key: &str,
-    mapping_family: &str,
+    spec: EdgeProjection<'_>,
 ) {
     let mut bytes = Vec::new();
-    for field in [from_node, to_node, relation, native_relationship_key] {
+    for field in [
+        spec.from_node,
+        spec.to_node,
+        spec.relation,
+        spec.native_relationship_key,
+    ] {
         if append_identity_field(&mut bytes, field).is_err() {
             findings.invalid(
                 "EDGE_IDENTITY_ENCODING_FAILED",
-                native_relationship_key,
+                spec.native_relationship_key,
                 "edge identity could not be length-prefixed",
             );
             return;
         }
     }
-    if !edge_pairs.insert((from_node.to_owned(), to_node.to_owned())) {
+    if !edge_pairs.insert((spec.from_node.to_owned(), spec.to_node.to_owned())) {
         findings.invalid(
             "DUPLICATE_PROJECTED_EDGE_ENDPOINT_PAIR",
-            native_relationship_key,
+            spec.native_relationship_key,
             "IEAC graph cannot represent two directed edges with the same endpoint pair",
         );
         return;
@@ -447,14 +429,14 @@ fn add_edge(
     let edge_id = format!("edge-{}", &sha256_hex(&bytes)[..32]);
     let edge = json!({
         "edge_id": edge_id,
-        "from_node_id": from_node,
-        "to_node_id": to_node,
-        "relation": relation
+        "from_node_id": spec.from_node,
+        "to_node_id": spec.to_node,
+        "relation": spec.relation
     });
     if edges.insert(edge_id.clone(), edge).is_some() {
         findings.invalid(
             "DUPLICATE_PROJECTED_EDGE",
-            native_relationship_key,
+            spec.native_relationship_key,
             "two native relationships produced the same projected edge identity",
         );
         return;
@@ -463,11 +445,11 @@ fn add_edge(
         edge_id.clone(),
         json!({
             "edge_id": edge_id,
-            "mapping_family": mapping_family,
-            "native_relationship_key": native_relationship_key,
-            "from_node_id": from_node,
-            "to_node_id": to_node,
-            "relation": relation,
+            "mapping_family": spec.mapping_family,
+            "native_relationship_key": spec.native_relationship_key,
+            "from_node_id": spec.from_node,
+            "to_node_id": spec.to_node,
+            "relation": spec.relation,
             "mapping_disposition": "exact_native_relationship"
         }),
     );
@@ -804,12 +786,14 @@ pub fn project_built_environment_case(
             add_unmapped(
                 &mut findings,
                 &mut unmapped,
-                "SOURCE_PAYLOAD_DIGEST_UNAVAILABLE",
-                "evidence",
-                &evidence.evidence_id,
-                "source_payload",
-                &evidence.source_id,
-                "source evidence has no source_payload_sha256; the typed case record is preserved separately but cannot be represented as a source-payload-addressed graph node",
+                UnmappedRelation {
+                    code: "SOURCE_PAYLOAD_DIGEST_UNAVAILABLE",
+                    source_kind: "evidence",
+                    source_id: &evidence.evidence_id,
+                    relation: "source_payload",
+                    referenced_id: &evidence.source_id,
+                    detail: "source evidence has no source_payload_sha256; the typed case record is preserved separately but cannot be represented as a source-payload-addressed graph node",
+                },
             );
             continue;
         };
@@ -840,18 +824,18 @@ pub fn project_built_environment_case(
             context,
             &mut findings,
         );
-        let node = match make_node(
-            "source_evidence",
-            &identity_namespace,
-            components,
-            payload_sha,
-            "application/octet-stream",
-            SOURCE_SCHEMA_UNKNOWN,
-            &context.captured_at_utc,
-            observed,
-            &case.case_id,
-            None,
-        ) {
+        let node = match make_node(NodeProjection {
+            node_type: "source_evidence",
+            identity_namespace: &identity_namespace,
+            components: components,
+            payload_sha256: payload_sha,
+            artifact_media_type: "application/octet-stream",
+            schema_version: SOURCE_SCHEMA_UNKNOWN,
+            recorded_at: &context.captured_at_utc,
+            artifact_created_at: observed,
+            case_id: &case.case_id,
+            design_id: None,
+        }) {
             Ok(node) => node,
             Err(error) => {
                 findings.invalid("EVIDENCE_IDENTITY_INVALID", &native_key, error);
@@ -945,18 +929,18 @@ pub fn project_built_environment_case(
             context,
             &mut findings,
         );
-        let node = match make_node(
-            "engineering_artifact",
-            &identity_namespace,
-            components,
-            &artifact.content_sha256,
-            "application/octet-stream",
-            SOURCE_SCHEMA_UNKNOWN,
-            &context.captured_at_utc,
-            created,
-            &case.case_id,
-            Some(&artifact.design_id),
-        ) {
+        let node = match make_node(NodeProjection {
+            node_type: "engineering_artifact",
+            identity_namespace: &identity_namespace,
+            components: components,
+            payload_sha256: &artifact.content_sha256,
+            artifact_media_type: "application/octet-stream",
+            schema_version: SOURCE_SCHEMA_UNKNOWN,
+            recorded_at: &context.captured_at_utc,
+            artifact_created_at: created,
+            case_id: &case.case_id,
+            design_id: Some(&artifact.design_id),
+        }) {
             Ok(node) => node,
             Err(error) => {
                 findings.invalid("ARTIFACT_IDENTITY_INVALID", &native_key, error);
@@ -1026,18 +1010,18 @@ pub fn project_built_environment_case(
             context,
             &mut findings,
         );
-        let node = match make_node(
-            "engineering_receipt",
-            &identity_namespace,
-            components,
-            &payload_sha,
-            "application/vnd.luminous.engineering-receipt+json",
-            "luminous.sol-atlas.engineering-receipt-struct.v0.1",
-            &context.captured_at_utc,
-            None,
-            &case.case_id,
-            Some(&receipt.design_id),
-        ) {
+        let node = match make_node(NodeProjection {
+            node_type: "engineering_receipt",
+            identity_namespace: &identity_namespace,
+            components: components,
+            payload_sha256: &payload_sha,
+            artifact_media_type: "application/vnd.luminous.engineering-receipt+json",
+            schema_version: "luminous.sol-atlas.engineering-receipt-struct.v0.1",
+            recorded_at: &context.captured_at_utc,
+            artifact_created_at: None,
+            case_id: &case.case_id,
+            design_id: Some(&receipt.design_id),
+        }) {
             Ok(node) => node,
             Err(error) => {
                 findings.invalid("RECEIPT_IDENTITY_INVALID", &native_key, error);
@@ -1113,18 +1097,18 @@ pub fn project_built_environment_case(
             context,
             &mut findings,
         );
-        let node = match make_node(
-            "decision",
-            &identity_namespace,
-            components,
-            &payload_sha,
-            "application/vnd.luminous.engineering-decision+json",
-            "luminous.sol-atlas.engineering-decision-struct.v0.1",
-            &context.captured_at_utc,
-            created,
-            &case.case_id,
-            Some(&decision.design_id),
-        ) {
+        let node = match make_node(NodeProjection {
+            node_type: "decision",
+            identity_namespace: &identity_namespace,
+            components: components,
+            payload_sha256: &payload_sha,
+            artifact_media_type: "application/vnd.luminous.engineering-decision+json",
+            schema_version: "luminous.sol-atlas.engineering-decision-struct.v0.1",
+            recorded_at: &context.captured_at_utc,
+            artifact_created_at: created,
+            case_id: &case.case_id,
+            design_id: Some(&decision.design_id),
+        }) {
             Ok(node) => node,
             Err(error) => {
                 findings.invalid("DECISION_IDENTITY_INVALID", &native_key, error);
@@ -1186,37 +1170,43 @@ pub fn project_built_environment_case(
                 {
                     let parent_node = &artifact_nodes[&parent.artifact_id];
                     add_edge(
-                        &mut edges,
-                        &mut edge_mappings,
-                        &mut edge_pairs,
-                        &mut findings,
-                        parent_node,
-                        child_node,
-                        "derived_from",
-                        &format!("artifact:{}:parent:{}", artifact.artifact_id, parent.artifact_id),
-                        "artifact_lineage",
-                    );
+                    &mut edges,
+                    &mut edge_mappings,
+                    &mut edge_pairs,
+                    &mut findings,
+                    EdgeProjection {
+                        from_node: parent_node,
+                        to_node: child_node,
+                        relation: "derived_from",
+                        native_relationship_key: &format!("artifact:{}:parent:{}", artifact.artifact_id, parent.artifact_id),
+                        mapping_family: "artifact_lineage",
+                    },
+                );
                 }
                 Some(_) => add_unmapped(
-                    &mut findings,
-                    &mut unmapped,
-                    "PARENT_ARTIFACT_DIGEST_OR_PROJECTION_MISMATCH",
-                    "artifact",
-                    &artifact.artifact_id,
-                    "artifact_lineage",
-                    &parent.artifact_id,
-                    "parent reference digest does not match the source artifact or its node was not projected",
-                ),
+                &mut findings,
+                &mut unmapped,
+                UnmappedRelation {
+                    code: "PARENT_ARTIFACT_DIGEST_OR_PROJECTION_MISMATCH",
+                    source_kind: "artifact",
+                    source_id: &artifact.artifact_id,
+                    relation: "artifact_lineage",
+                    referenced_id: &parent.artifact_id,
+                    detail: "parent reference digest does not match the source artifact or its node was not projected",
+                },
+            ),
                 None => add_unmapped(
-                    &mut findings,
-                    &mut unmapped,
-                    "PARENT_ARTIFACT_NOT_FOUND",
-                    "artifact",
-                    &artifact.artifact_id,
-                    "artifact_lineage",
-                    &parent.artifact_id,
-                    "parent artifact reference does not resolve in the case",
-                ),
+                &mut findings,
+                &mut unmapped,
+                UnmappedRelation {
+                    code: "PARENT_ARTIFACT_NOT_FOUND",
+                    source_kind: "artifact",
+                    source_id: &artifact.artifact_id,
+                    relation: "artifact_lineage",
+                    referenced_id: &parent.artifact_id,
+                    detail: "parent artifact reference does not resolve in the case",
+                },
+            ),
             }
         }
 
@@ -1227,22 +1217,26 @@ pub fn project_built_environment_case(
                     &mut edge_mappings,
                     &mut edge_pairs,
                     &mut findings,
-                    evidence_node,
-                    child_node,
-                    "evidence_for",
-                    &format!("artifact:{}:evidence:{}", artifact.artifact_id, evidence_id),
-                    "source_evidence",
+                    EdgeProjection {
+                        from_node: evidence_node,
+                        to_node: child_node,
+                        relation: "evidence_for",
+                        native_relationship_key: &format!("artifact:{}:evidence:{}", artifact.artifact_id, evidence_id),
+                        mapping_family: "source_evidence",
+                    },
                 ),
                 None => add_unmapped(
-                    &mut findings,
-                    &mut unmapped,
-                    "ARTIFACT_EVIDENCE_NOT_PROJECTED",
-                    "artifact",
-                    &artifact.artifact_id,
-                    "source_evidence",
-                    evidence_id,
-                    "referenced evidence is missing or lacks a source payload digest",
-                ),
+                &mut findings,
+                &mut unmapped,
+                UnmappedRelation {
+                    code: "ARTIFACT_EVIDENCE_NOT_PROJECTED",
+                    source_kind: "artifact",
+                    source_id: &artifact.artifact_id,
+                    relation: "source_evidence",
+                    referenced_id: evidence_id,
+                    detail: "referenced evidence is missing or lacks a source payload digest",
+                },
+            ),
             }
         }
     }
@@ -1261,32 +1255,38 @@ pub fn project_built_environment_case(
                     &mut edge_mappings,
                     &mut edge_pairs,
                     &mut findings,
-                    &artifact_nodes[&receipt.input_artifact_id],
-                    receipt_node,
-                    "verified_by",
-                    &format!("receipt:{}:input:{}", receipt.receipt_id, receipt.input_artifact_id),
-                    "solver_inputs",
+                    EdgeProjection {
+                        from_node: &artifact_nodes[&receipt.input_artifact_id],
+                        to_node: receipt_node,
+                        relation: "verified_by",
+                        native_relationship_key: &format!("receipt:{}:input:{}", receipt.receipt_id, receipt.input_artifact_id),
+                        mapping_family: "solver_inputs",
+                    },
                 );
             }
             Some(_) => add_unmapped(
                 &mut findings,
                 &mut unmapped,
-                "RECEIPT_INPUT_DIGEST_OR_PROJECTION_MISMATCH",
-                "engineering_receipt",
-                &receipt.receipt_id,
-                "solver_inputs",
-                &receipt.input_artifact_id,
-                "receipt input digest does not match the named source artifact or its node was not projected",
+                UnmappedRelation {
+                    code: "RECEIPT_INPUT_DIGEST_OR_PROJECTION_MISMATCH",
+                    source_kind: "engineering_receipt",
+                    source_id: &receipt.receipt_id,
+                    relation: "solver_inputs",
+                    referenced_id: &receipt.input_artifact_id,
+                    detail: "receipt input digest does not match the named source artifact or its node was not projected",
+                },
             ),
             None => add_unmapped(
                 &mut findings,
                 &mut unmapped,
-                "RECEIPT_INPUT_ARTIFACT_NOT_FOUND",
-                "engineering_receipt",
-                &receipt.receipt_id,
-                "solver_inputs",
-                &receipt.input_artifact_id,
-                "receipt input artifact does not resolve in the case",
+                UnmappedRelation {
+                    code: "RECEIPT_INPUT_ARTIFACT_NOT_FOUND",
+                    source_kind: "engineering_receipt",
+                    source_id: &receipt.receipt_id,
+                    relation: "solver_inputs",
+                    referenced_id: &receipt.input_artifact_id,
+                    detail: "receipt input artifact does not resolve in the case",
+                },
             ),
         }
 
@@ -1297,22 +1297,26 @@ pub fn project_built_environment_case(
                     &mut edge_mappings,
                     &mut edge_pairs,
                     &mut findings,
-                    evidence_node,
-                    receipt_node,
-                    "evidence_for",
-                    &format!("receipt:{}:assumption:{}", receipt.receipt_id, evidence_id),
-                    "solver_assumptions",
+                    EdgeProjection {
+                        from_node: evidence_node,
+                        to_node: receipt_node,
+                        relation: "evidence_for",
+                        native_relationship_key: &format!("receipt:{}:assumption:{}", receipt.receipt_id, evidence_id),
+                        mapping_family: "solver_assumptions",
+                    },
                 ),
                 None => add_unmapped(
-                    &mut findings,
-                    &mut unmapped,
-                    "RECEIPT_ASSUMPTION_EVIDENCE_NOT_PROJECTED",
-                    "engineering_receipt",
-                    &receipt.receipt_id,
-                    "solver_assumptions",
-                    evidence_id,
-                    "assumption evidence is missing or lacks a source payload digest",
-                ),
+                &mut findings,
+                &mut unmapped,
+                UnmappedRelation {
+                    code: "RECEIPT_ASSUMPTION_EVIDENCE_NOT_PROJECTED",
+                    source_kind: "engineering_receipt",
+                    source_id: &receipt.receipt_id,
+                    relation: "solver_assumptions",
+                    referenced_id: evidence_id,
+                    detail: "assumption evidence is missing or lacks a source payload digest",
+                },
+            ),
             }
         }
     }
@@ -1331,32 +1335,38 @@ pub fn project_built_environment_case(
                     &mut edge_mappings,
                     &mut edge_pairs,
                     &mut findings,
-                    &artifact_nodes[&decision.target_artifact_id],
-                    decision_node,
-                    "evidence_for",
-                    &format!("decision:{}:target:{}", decision.event_id, decision.target_artifact_id),
-                    "decision_target",
+                    EdgeProjection {
+                        from_node: &artifact_nodes[&decision.target_artifact_id],
+                        to_node: decision_node,
+                        relation: "evidence_for",
+                        native_relationship_key: &format!("decision:{}:target:{}", decision.event_id, decision.target_artifact_id),
+                        mapping_family: "decision_target",
+                    },
                 );
             }
             Some(_) => add_unmapped(
                 &mut findings,
                 &mut unmapped,
-                "DECISION_TARGET_DIGEST_OR_PROJECTION_MISMATCH",
-                "decision",
-                &decision.event_id,
-                "decision_target",
-                &decision.target_artifact_id,
-                "decision target digest does not match the named source artifact or its node was not projected",
+                UnmappedRelation {
+                    code: "DECISION_TARGET_DIGEST_OR_PROJECTION_MISMATCH",
+                    source_kind: "decision",
+                    source_id: &decision.event_id,
+                    relation: "decision_target",
+                    referenced_id: &decision.target_artifact_id,
+                    detail: "decision target digest does not match the named source artifact or its node was not projected",
+                },
             ),
             None => add_unmapped(
                 &mut findings,
                 &mut unmapped,
-                "DECISION_TARGET_ARTIFACT_NOT_FOUND",
-                "decision",
-                &decision.event_id,
-                "decision_target",
-                &decision.target_artifact_id,
-                "decision target artifact does not resolve in the case",
+                UnmappedRelation {
+                    code: "DECISION_TARGET_ARTIFACT_NOT_FOUND",
+                    source_kind: "decision",
+                    source_id: &decision.event_id,
+                    relation: "decision_target",
+                    referenced_id: &decision.target_artifact_id,
+                    detail: "decision target artifact does not resolve in the case",
+                },
             ),
         }
 
@@ -1367,22 +1377,26 @@ pub fn project_built_environment_case(
                     &mut edge_mappings,
                     &mut edge_pairs,
                     &mut findings,
-                    receipt_node,
-                    decision_node,
-                    "evidence_for",
-                    &format!("decision:{}:receipt:{}", decision.event_id, receipt_id),
-                    "decision_receipt",
+                    EdgeProjection {
+                        from_node: receipt_node,
+                        to_node: decision_node,
+                        relation: "evidence_for",
+                        native_relationship_key: &format!("decision:{}:receipt:{}", decision.event_id, receipt_id),
+                        mapping_family: "decision_receipt",
+                    },
                 ),
                 None => add_unmapped(
-                    &mut findings,
-                    &mut unmapped,
-                    "DECISION_RECEIPT_NOT_FOUND",
-                    "decision",
-                    &decision.event_id,
-                    "decision_receipt",
-                    receipt_id,
-                    "decision references an engineering receipt that does not resolve",
-                ),
+                &mut findings,
+                &mut unmapped,
+                UnmappedRelation {
+                    code: "DECISION_RECEIPT_NOT_FOUND",
+                    source_kind: "decision",
+                    source_id: &decision.event_id,
+                    relation: "decision_receipt",
+                    referenced_id: receipt_id,
+                    detail: "decision references an engineering receipt that does not resolve",
+                },
+            ),
             }
         }
 
@@ -1393,33 +1407,39 @@ pub fn project_built_environment_case(
                     &mut edge_mappings,
                     &mut edge_pairs,
                     &mut findings,
-                    authority_node,
-                    decision_node,
-                    "authorized_by",
-                    &format!("decision:{}:authority:{}", decision.event_id, authority_id),
-                    "decision_authority",
+                    EdgeProjection {
+                        from_node: authority_node,
+                        to_node: decision_node,
+                        relation: "authorized_by",
+                        native_relationship_key: &format!("decision:{}:authority:{}", decision.event_id, authority_id),
+                        mapping_family: "decision_authority",
+                    },
                 ),
                 None => add_unmapped(
-                    &mut findings,
-                    &mut unmapped,
-                    "DECISION_AUTHORITY_EVIDENCE_NOT_PROJECTED",
-                    "decision",
-                    &decision.event_id,
-                    "decision_authority",
-                    authority_id,
-                    "authority evidence is missing or lacks a source payload digest",
-                ),
+                &mut findings,
+                &mut unmapped,
+                UnmappedRelation {
+                    code: "DECISION_AUTHORITY_EVIDENCE_NOT_PROJECTED",
+                    source_kind: "decision",
+                    source_id: &decision.event_id,
+                    relation: "decision_authority",
+                    referenced_id: authority_id,
+                    detail: "authority evidence is missing or lacks a source payload digest",
+                },
+            ),
             }
         } else {
             add_unmapped(
                 &mut findings,
                 &mut unmapped,
-                "DECISION_AUTHORITY_EVIDENCE_NOT_DECLARED",
-                "decision",
-                &decision.event_id,
-                "decision_authority",
-                "missing",
-                "decision record has no authority_evidence_id; the projector cannot infer an authority relationship",
+                UnmappedRelation {
+                    code: "DECISION_AUTHORITY_EVIDENCE_NOT_DECLARED",
+                    source_kind: "decision",
+                    source_id: &decision.event_id,
+                    relation: "decision_authority",
+                    referenced_id: "missing",
+                    detail: "decision record has no authority_evidence_id; the projector cannot infer an authority relationship",
+                },
             );
         }
 
@@ -1430,22 +1450,26 @@ pub fn project_built_environment_case(
                     &mut edge_mappings,
                     &mut edge_pairs,
                     &mut findings,
-                    previous_node,
-                    decision_node,
-                    "superseded_by",
-                    &format!("decision:{}:supersedes:{}", decision.event_id, superseded_id),
-                    "decision_supersession",
+                    EdgeProjection {
+                        from_node: previous_node,
+                        to_node: decision_node,
+                        relation: "superseded_by",
+                        native_relationship_key: &format!("decision:{}:supersedes:{}", decision.event_id, superseded_id),
+                        mapping_family: "decision_supersession",
+                    },
                 ),
                 None => add_unmapped(
-                    &mut findings,
-                    &mut unmapped,
-                    "SUPERSEDED_DECISION_NOT_FOUND",
-                    "decision",
-                    &decision.event_id,
-                    "decision_supersession",
-                    superseded_id,
-                    "superseded decision event does not resolve in the case",
-                ),
+                &mut findings,
+                &mut unmapped,
+                UnmappedRelation {
+                    code: "SUPERSEDED_DECISION_NOT_FOUND",
+                    source_kind: "decision",
+                    source_id: &decision.event_id,
+                    relation: "decision_supersession",
+                    referenced_id: superseded_id,
+                    detail: "superseded decision event does not resolve in the case",
+                },
+            ),
             }
         }
     }
