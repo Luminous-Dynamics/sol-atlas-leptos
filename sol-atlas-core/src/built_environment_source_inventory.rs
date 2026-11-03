@@ -115,6 +115,10 @@ pub struct InventoryPageReceipt {
     /// Owner-native identity digests for the items in this page. This list
     /// permits cross-page duplicate detection without moving source payloads.
     pub native_record_identity_sha256s: Vec<String>,
+    /// SHA-256 of each exact source-native record payload, aligned by index with
+    /// native_record_identity_sha256s. This permits cross-page identity/digest
+    /// conflict detection without retaining source payload bytes.
+    pub native_record_payload_sha256s: Vec<String>,
     /// Tombstones must be a subset of this page's native identity digest list.
     pub tombstone_identity_sha256s: Vec<String>,
     pub cursor_before_sha256: Option<String>,
@@ -346,6 +350,7 @@ fn validate_page_partition(
     manifest: &SourceInventoryManifest,
     findings: &mut Findings,
     all_tombstone_identities: &mut BTreeSet<String>,
+    all_record_payload_digests: &mut BTreeMap<String, String>,
 ) -> (u64, u64, bool) {
     let mut item_count = 0u64;
     let mut identities = BTreeSet::new();
@@ -473,6 +478,44 @@ fn validate_page_partition(
                 format!("{partition_id}:{}", page.ordinal),
                 "identity digest list length must equal the page item count",
             );
+        }
+        if page.native_record_payload_sha256s.len() as u64 != page.item_count {
+            chain_well_formed = false;
+            findings.invalid(
+                "INVENTORY_PAGE_ITEM_PAYLOAD_DIGEST_COUNT_MISMATCH",
+                format!("{partition_id}:{}", page.ordinal),
+                "per-record payload digest list length must equal the page item count",
+            );
+        }
+        for (identity, payload_digest) in page
+            .native_record_identity_sha256s
+            .iter()
+            .zip(&page.native_record_payload_sha256s)
+        {
+            if !valid_sha256(identity) || !valid_sha256(payload_digest) {
+                chain_well_formed = false;
+                findings.invalid(
+                    "INVALID_INVENTORY_RECORD_IDENTITY_OR_PAYLOAD_DIGEST",
+                    format!("{partition_id}:{}", page.ordinal),
+                    "per-record identity and exact source-payload digests must be lowercase SHA-256",
+                );
+                continue;
+            }
+            match all_record_payload_digests.get(identity) {
+                Some(previous_digest) if previous_digest != payload_digest => {
+                    chain_well_formed = false;
+                    findings.invalid(
+                        "CROSS_PAGE_NATIVE_IDENTITY_PAYLOAD_DIGEST_CONFLICT",
+                        identity,
+                        "the same owner-native identity was enumerated with conflicting exact source-payload digests",
+                    );
+                }
+                Some(_) => {}
+                None => {
+                    all_record_payload_digests
+                        .insert(identity.clone(), payload_digest.clone());
+                }
+            }
         }
         let page_identity_set = page
             .native_record_identity_sha256s
@@ -698,7 +741,10 @@ pub fn validate_source_inventory_manifest(
 
     match manifest.snapshot_semantics {
         SnapshotSemantics::ImmutableSnapshot => {
-            if manifest.snapshot_token.as_deref().is_none_or(str::is_empty)
+            if manifest
+                .snapshot_token
+                .as_deref()
+                .is_none_or(|value| value.trim().is_empty() || value.trim() != value)
                 || manifest
                     .snapshot_sha256
                     .as_deref()
@@ -715,7 +761,7 @@ pub fn validate_source_inventory_manifest(
             if manifest
                 .source_watermark
                 .as_deref()
-                .is_none_or(str::is_empty)
+                .is_none_or(|value| value.trim().is_empty() || value.trim() != value)
             {
                 findings.incomplete(
                     "SOURCE_WATERMARK_MISSING",
@@ -739,6 +785,29 @@ pub fn validate_source_inventory_manifest(
                 detail: "source does not expose comparable snapshot or watermark semantics".into(),
             });
         }
+    }
+
+    if manifest
+        .snapshot_sha256
+        .as_deref()
+        .is_some_and(|value| !valid_sha256(value))
+    {
+        findings.invalid(
+            "INVALID_INVENTORY_SNAPSHOT_DIGEST",
+            "manifest",
+            "declared source snapshot digest must be lowercase SHA-256",
+        );
+    }
+    if manifest
+        .source_watermark
+        .as_deref()
+        .is_some_and(|value| value.trim().is_empty() || value.trim() != value)
+    {
+        findings.invalid(
+            "INVALID_INVENTORY_SOURCE_WATERMARK",
+            "manifest",
+            "declared source watermark must be non-empty and have no surrounding whitespace",
+        );
     }
 
     if !manifest.snapshot_consistent {
@@ -772,8 +841,11 @@ pub fn validate_source_inventory_manifest(
     if manifest
         .attestation_ref
         .as_deref()
-        .is_none_or(str::is_empty)
-        || manifest.issuer_key_id.as_deref().is_none_or(str::is_empty)
+        .is_none_or(|value| value.trim().is_empty() || value.trim() != value)
+        || manifest
+            .issuer_key_id
+            .as_deref()
+            .is_none_or(|value| value.trim().is_empty() || value.trim() != value)
     {
         findings.incomplete(
             "SOURCE_INVENTORY_ATTESTATION_REFERENCE_MISSING",
@@ -805,6 +877,7 @@ pub fn validate_source_inventory_manifest(
     let mut all_identity_digests = BTreeSet::new();
     let mut all_identity_digest_count = 0u64;
     let mut all_tombstone_identities = BTreeSet::new();
+    let mut all_record_payload_digests = BTreeMap::new();
     for partition_id in &manifest.required_partitions {
         let pages = grouped_pages
             .get(partition_id)
@@ -815,8 +888,16 @@ pub fn validate_source_inventory_manifest(
             manifest,
             &mut findings,
             &mut all_tombstone_identities,
+            &mut all_record_payload_digests,
         );
-        total_items = total_items.saturating_add(partition_items);
+        match total_items.checked_add(partition_items) {
+            Some(total) => total_items = total,
+            None => findings.invalid(
+                "INVENTORY_TOTAL_ITEM_COUNT_OVERFLOW",
+                "manifest",
+                "summed item counts across partitions exceed u64",
+            ),
+        }
         all_partition_chains_complete &= chain_complete;
         for page in pages {
             let page_identity_count =
@@ -897,9 +978,17 @@ pub fn validate_source_inventory_manifest(
         ),
     }
 
-    let exclusion_total = manifest.exclusions.iter().fold(0u64, |sum, exclusion| {
-        sum.saturating_add(exclusion.item_count)
-    });
+    let mut exclusion_total = 0u64;
+    for exclusion in &manifest.exclusions {
+        match exclusion_total.checked_add(exclusion.item_count) {
+            Some(total) => exclusion_total = total,
+            None => findings.invalid(
+                "INVENTORY_EXCLUSION_COUNT_OVERFLOW",
+                "manifest",
+                "summed exclusion counts exceed u64",
+            ),
+        }
+    }
     if exclusion_total != manifest.excluded_count {
         findings.invalid(
             "INVENTORY_EXCLUSION_COUNT_MISMATCH",
@@ -1303,6 +1392,7 @@ mod tests {
             ordinal,
             response_payload_sha256: digest(payload),
             item_count: identities.len() as u64,
+            native_record_payload_sha256s: vec![digest('e'); identities.len()],
             native_record_identity_sha256s: identities,
             tombstone_identity_sha256s: vec![],
             cursor_before_sha256: cursor_before,
@@ -1480,6 +1570,72 @@ mod tests {
         assert_eq!(result.enumerated_item_count, 3);
         assert_eq!(result.enumerated_unique_count, 2);
         assert_eq!(result.duplicate_count, 1);
+    }
+
+    #[test]
+    fn duplicate_native_identity_with_matching_payload_digest_is_reconciled() {
+        let mut manifest = valid_manifest();
+        manifest.page_receipts[1].native_record_identity_sha256s[0] = digest('2');
+        manifest.enumerated_unique_count = 2;
+        manifest.duplicate_count = 1;
+        manifest.reported_total_count = Some(3);
+        manifest.reported_total_count_semantics = Some(ReportedTotalSemantics::RawPageItems);
+        let result = validate_source_inventory_manifest(&manifest);
+        assert_eq!(
+            result.disposition,
+            InventoryDisposition::CompleteWithinDeclaredQuery
+        );
+        assert_eq!(result.enumerated_unique_count, 2);
+        assert_eq!(result.duplicate_count, 1);
+    }
+
+    #[test]
+    fn duplicate_native_identity_with_conflicting_payload_digest_is_invalid() {
+        let mut manifest = valid_manifest();
+        manifest.page_receipts[1].native_record_identity_sha256s[0] = digest('2');
+        manifest.page_receipts[1].native_record_payload_sha256s[0] = digest('f');
+        manifest.enumerated_unique_count = 2;
+        manifest.duplicate_count = 1;
+        manifest.reported_total_count = Some(3);
+        manifest.reported_total_count_semantics = Some(ReportedTotalSemantics::RawPageItems);
+        let result = validate_source_inventory_manifest(&manifest);
+        assert_eq!(result.disposition, InventoryDisposition::InvalidInput);
+        assert!(result.findings.iter().any(|finding| {
+            finding.code == "CROSS_PAGE_NATIVE_IDENTITY_PAYLOAD_DIGEST_CONFLICT"
+        }));
+    }
+
+    #[test]
+    fn one_thousand_cross_page_payload_conflicts_never_claim_complete() {
+        for seed in 0..1_000u64 {
+            let mut manifest = valid_manifest();
+            manifest.page_receipts[1].native_record_identity_sha256s[0] = digest('2');
+            manifest.page_receipts[1].native_record_payload_sha256s[0] = digest_seed(seed + 1);
+            manifest.enumerated_unique_count = 2;
+            manifest.duplicate_count = 1;
+            manifest.reported_total_count = Some(3);
+            manifest.reported_total_count_semantics = Some(ReportedTotalSemantics::RawPageItems);
+            let result = validate_source_inventory_manifest(&manifest);
+            assert_eq!(
+                result.disposition,
+                InventoryDisposition::InvalidInput,
+                "payload conflict mutation seed {seed} must be invalid"
+            );
+            assert!(result.findings.iter().any(|finding| {
+                finding.code == "CROSS_PAGE_NATIVE_IDENTITY_PAYLOAD_DIGEST_CONFLICT"
+            }));
+        }
+    }
+
+    #[test]
+    fn per_record_payload_digest_count_mismatch_is_invalid() {
+        let mut manifest = valid_manifest();
+        manifest.page_receipts[0].native_record_payload_sha256s.pop();
+        let result = validate_source_inventory_manifest(&manifest);
+        assert_eq!(result.disposition, InventoryDisposition::InvalidInput);
+        assert!(result.findings.iter().any(|finding| {
+            finding.code == "INVENTORY_PAGE_ITEM_PAYLOAD_DIGEST_COUNT_MISMATCH"
+        }));
     }
 
     #[test]
