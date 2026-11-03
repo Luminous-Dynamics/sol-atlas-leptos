@@ -1405,18 +1405,18 @@ pub fn validate_source_inventory_closure(
                 );
                 match cross_manifest_identity_payloads.get(identity_sha256) {
                     Some((previous_payload_sha256, previous_source_key)) => {
-                        cross_manifest_duplicate_identity_count += 1;
-                        if previous_source_key != &source_key
-                            && previous_payload_sha256 != payload_sha256
-                        {
-                            cross_manifest_payload_digest_conflict_count += 1;
-                            findings.invalid(
-                                "CROSS_MANIFEST_NATIVE_IDENTITY_PAYLOAD_DIGEST_CONFLICT",
-                                identity_sha256,
-                                format!(
-                                    "the same owner-native identity appears in {previous_source_key} and {source_key} with different source payload digests"
-                                ),
-                            );
+                        if previous_source_key != &source_key {
+                            cross_manifest_duplicate_identity_count += 1;
+                            if previous_payload_sha256 != payload_sha256 {
+                                cross_manifest_payload_digest_conflict_count += 1;
+                                findings.invalid(
+                                    "CROSS_MANIFEST_NATIVE_IDENTITY_PAYLOAD_DIGEST_CONFLICT",
+                                    identity_sha256,
+                                    format!(
+                                        "the same owner-native identity appears in {previous_source_key} and {source_key} with different source payload digests"
+                                    ),
+                                );
+                            }
                         }
                     }
                     None => {
