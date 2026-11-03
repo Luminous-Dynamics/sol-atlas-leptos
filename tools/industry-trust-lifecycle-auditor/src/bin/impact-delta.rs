@@ -159,6 +159,14 @@ fn report_rows(report: &Value, index: &GraphIndex) -> Result<BTreeMap<String, Va
     {
         return Err("base impact report is bound to a different graph snapshot".into());
     }
+    if report.get("historical_record_preserved").and_then(Value::as_bool) != Some(true)
+        || report.get("claim_ceiling").and_then(Value::as_str)
+            != Some("incomplete_or_indeterminate")
+        || report.get("action_authority").and_then(Value::as_str) != Some("none")
+        || report.get("not_checked").and_then(Value::as_array).is_none_or(Vec::is_empty)
+    {
+        return Err("base report claim ceiling or historical-record disposition is invalid".into());
+    }
     let report_rows = report
         .get("results")
         .and_then(Value::as_array)
@@ -208,6 +216,16 @@ fn report_rows(report: &Value, index: &GraphIndex) -> Result<BTreeMap<String, Va
             return Err(format!(
                 "base report row {node_id} has an unknown current-reliance state"
             ));
+        }
+        let dependency_path = row
+            .get("dependency_path")
+            .and_then(Value::as_array)
+            .ok_or_else(|| format!("base report row {node_id} has no dependency path array"))?;
+        if dependency_path.iter().any(|item| item.as_str().is_none_or(str::is_empty))
+            || (row["impact_class"] == "no_impact" && !dependency_path.is_empty())
+            || (row["impact_class"] != "no_impact" && dependency_path.is_empty())
+        {
+            return Err(format!("base report row {node_id} has an inconsistent dependency path"));
         }
         let reasons = row
             .get("reason_codes")
@@ -488,6 +506,12 @@ fn compute_transition(
     }
 
     let base_rows = report_rows(base_report, index)?;
+    let direct_target_set = event["targets"]
+        .as_array()
+        .ok_or("event.targets must be an array")?
+        .iter()
+        .map(|target| required_string(target, "node_id", "event target").map(str::to_owned))
+        .collect::<Result<BTreeSet<_>, _>>()?;
     let impacted_rows = build_impacted_results_with_adjacency(
         event,
         evaluated_at,
@@ -501,21 +525,18 @@ fn compute_transition(
         return Err("independent DFS closure disagrees with lifecycle BFS closure".into());
     }
 
+    for (node_id, row) in &impacted_rows {
+        if row["impact_class"] == "claim_invalidated" && !direct_target_set.contains(node_id) {
+            return Err(format!(
+                "dependency descendant {node_id} was incorrectly classified as directly invalidated"
+            ));
+        }
+    }
     let affected_node_ids = bfs_reached.iter().cloned().collect::<Vec<_>>();
-    let direct_target_node_ids = event["targets"]
-        .as_array()
-        .ok_or("event.targets must be an array")?
-        .iter()
-        .map(|target| required_string(target, "node_id", "event target").map(str::to_owned))
-        .collect::<Result<BTreeSet<_>, _>>()?
-        .into_iter()
-        .collect::<Vec<_>>();
-    if direct_target_node_ids
-        .iter()
-        .any(|node_id| !bfs_reached.contains(node_id))
-    {
+    if direct_target_set.iter().any(|node_id| !bfs_reached.contains(node_id)) {
         return Err("direct target is missing from the calculated impact closure".into());
     }
+    let direct_target_node_ids = direct_target_set.iter().cloned().collect::<Vec<_>>();
     let mut updates = Vec::new();
     let mut next_rows = base_rows.clone();
     for node_id in &affected_node_ids {
