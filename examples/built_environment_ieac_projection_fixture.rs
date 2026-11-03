@@ -99,6 +99,12 @@ fn main() -> Result<(), Box<dyn Error>> {
     {
         return Err("projector fixture exceeded the conservative incomplete claim ceiling".into());
     }
-    println!("{}", serde_json::to_string_pretty(&output.graph)?);
+    let disposition = output.disposition.as_str();
+    let report = serde_json::json!({
+        "disposition": disposition,
+        "graph": output.graph,
+        "projection_receipt": output.projection_receipt
+    });
+    println!("{}", serde_json::to_string_pretty(&report)?);
     Ok(())
 }
