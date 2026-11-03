@@ -666,6 +666,45 @@ pub fn project_built_environment_case_with_inventory(
     let inventory_validation_bytes =
         serde_json::to_vec(&inventory_validation).unwrap_or_default();
     let inventory_validation_sha256 = sha256_hex(&inventory_validation_bytes);
+    let mut expected_owner_register = expected_owners.to_vec();
+    expected_owner_register.sort_by(|left, right| {
+        (
+            left.owner_namespace.as_str(),
+            left.source_system_id.as_str(),
+            left.required,
+        )
+            .cmp(&(
+                right.owner_namespace.as_str(),
+                right.source_system_id.as_str(),
+                right.required,
+            ))
+    });
+    let expected_owner_register_sha256 = serde_json::to_vec(&expected_owner_register)
+        .map(|bytes| sha256_hex(&bytes))
+        .unwrap_or_default();
+    let manifest_bindings = manifests
+        .iter()
+        .zip(&inventory_validation.per_manifest_validations)
+        .map(|(manifest, validation)| {
+            let manifest_sha256 = serde_json::to_vec(manifest)
+                .map(|bytes| sha256_hex(&bytes))
+                .unwrap_or_default();
+            json!({
+                "inventory_id": manifest.inventory_id,
+                "source_owner_namespace": manifest.source_owner_namespace,
+                "source_system_id": manifest.source_system_id,
+                "connector_id": manifest.connector_id,
+                "connector_build_sha256": manifest.connector_build_sha256,
+                "query_scope_sha256": manifest.query_scope_sha256,
+                "snapshot_semantics": manifest.snapshot_semantics.as_str(),
+                "snapshot_sha256": manifest.snapshot_sha256,
+                "source_watermark": manifest.source_watermark,
+                "page_count": validation.page_count,
+                "manifest_sha256": manifest_sha256,
+                "validation_disposition": validation.disposition.as_str()
+            })
+        })
+        .collect::<Vec<_>>();
     let inventory_disposition = inventory_validation.disposition.as_str();
 
     let inventory_qualified = inventory_validation.disposition
@@ -708,6 +747,8 @@ pub fn project_built_environment_case_with_inventory(
     projection.projection_receipt["projector"]["source_inventory_closure"] = json!({
         "validation_sha256": inventory_validation_sha256,
         "validation_serialization": "serde_json_struct_field_order_v1",
+        "expected_owner_register_sha256": expected_owner_register_sha256,
+        "manifest_bindings": manifest_bindings,
         "disposition": inventory_disposition,
         "expected_owner_count": inventory_validation.expected_owner_count,
         "required_owner_count": inventory_validation.required_owner_count,
