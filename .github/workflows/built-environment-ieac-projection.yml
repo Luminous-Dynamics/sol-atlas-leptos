@@ -17,6 +17,7 @@ on:
     branches:
       - main
       - research/built-environment-ieac-projector-v0-1
+      - research/federated-source-inventory-v0-1-stacked
     paths:
       - "Cargo.toml"
       - "Cargo.lock"
