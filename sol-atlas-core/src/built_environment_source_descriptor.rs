@@ -1172,6 +1172,52 @@ mod tests {
     }
 
     #[test]
+    fn content_addressed_object_reference_must_match_payload_digest() {
+        let case = case();
+        let mut catalog = catalog(&case);
+        catalog.descriptors[0].source_payload.payload_object_ref =
+            Some(format!("cas:sha256:{}", digest('f')));
+        let result = validate_source_descriptor_catalog(&case, &catalog);
+        assert_eq!(result.disposition, DescriptorDisposition::InvalidInput);
+        assert!(result.findings.iter().any(|finding| {
+            finding.code == "PAYLOAD_OBJECT_REFERENCE_DIGEST_MISMATCH"
+        }));
+    }
+
+    #[test]
+    fn unsupported_rights_purpose_is_rejected() {
+        let case = case();
+        let mut catalog = catalog(&case);
+        catalog.descriptors[0]
+            .rights
+            .permitted_uses
+            .push("automatic_construction_release".into());
+        let result = validate_source_descriptor_catalog(&case, &catalog);
+        assert_eq!(result.disposition, DescriptorDisposition::InvalidInput);
+        assert!(result.findings.iter().any(|finding| {
+            finding.code == "UNSUPPORTED_PERMITTED_USE"
+        }));
+    }
+
+    #[test]
+    fn observation_after_recording_is_loss_accounted() {
+        let case = case();
+        let mut catalog = catalog(&case);
+        catalog.descriptors[0].observation_time.observed_at =
+            Some("2026-11-03T10:01:00Z".into());
+        catalog.descriptors[0].observation_time.recorded_at =
+            "2026-11-03T10:00:00Z".into();
+        let result = validate_source_descriptor_catalog(&case, &catalog);
+        assert_eq!(
+            result.disposition,
+            DescriptorDisposition::IncompleteOrIndeterminate
+        );
+        assert!(result.findings.iter().any(|finding| {
+            finding.code == "OBSERVATION_TIME_AFTER_RECORDING_TIME"
+        }));
+    }
+
+    #[test]
     fn absent_schema_or_media_type_is_loss_accounted() {
         let case = case();
         let mut catalog = catalog(&case);
