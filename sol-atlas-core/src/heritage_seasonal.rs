@@ -370,11 +370,10 @@ fn reference_stats(
     let center = median(&values).ok_or(SeasonalSrdError::ArithmeticOverflow {
         month_ordinal: month,
     })?;
-    let mad = median_absolute_deviation(&values, center).ok_or(
-        SeasonalSrdError::ArithmeticOverflow {
+    let mad =
+        median_absolute_deviation(&values, center).ok_or(SeasonalSrdError::ArithmeticOverflow {
             month_ordinal: month,
-        },
-    )?;
+        })?;
     let robust_scale = (1.4826 * mad).max(config.scale_floor);
     if !center.is_finite() || !mad.is_finite() || !robust_scale.is_finite() {
         return Err(SeasonalSrdError::ArithmeticOverflow {
@@ -500,10 +499,8 @@ pub fn evaluate_seasonal_srd(
                             month_ordinal: month,
                         });
                     }
-                    cusum_valid_observation_count =
-                        cusum_valid_observation_count.saturating_add(1);
-                    let cusum_alert = cusum_valid_observation_count
-                        >= cusum.min_valid_observations
+                    cusum_valid_observation_count = cusum_valid_observation_count.saturating_add(1);
+                    let cusum_alert = cusum_valid_observation_count >= cusum.min_valid_observations
                         && (cusum_positive >= cusum.alert_threshold
                             || cusum_negative >= cusum.alert_threshold);
                     point.cusum_positive = Some(cusum_positive);
@@ -628,7 +625,12 @@ mod tests {
         let report = evaluate_seasonal_srd(&input, &config()).unwrap();
         assert_eq!(report.scored_month_count, 3);
         assert_eq!(report.single_month_alert_count, 0);
-        assert!(report.points.iter().all(|point| point.robust_z_score == Some(0.0)));
+        assert!(
+            report
+                .points
+                .iter()
+                .all(|point| point.robust_z_score == Some(0.0))
+        );
     }
 
     #[test]
@@ -681,7 +683,11 @@ mod tests {
     fn missing_observation_is_unobserved_not_zero() {
         let input = series(observations_for_months(
             &[(1, 10.0), (2, 20.0), (3, 30.0)],
-            &[(2023, 1, None), (2023, 2, Some(20.0)), (2023, 3, Some(30.0))],
+            &[
+                (2023, 1, None),
+                (2023, 2, Some(20.0)),
+                (2023, 3, Some(30.0)),
+            ],
         ));
         let report = evaluate_seasonal_srd(&input, &config()).unwrap();
         assert_eq!(report.points[0].state, SeasonalScoreState::Unobserved);
@@ -708,12 +714,30 @@ mod tests {
     #[test]
     fn circular_month_window_wraps_across_december_and_january() {
         let input = series(vec![
-            SeasonalObservation { month_ordinal: month(2020, 12), value: Some(5.0) },
-            SeasonalObservation { month_ordinal: month(2021, 1), value: Some(5.0) },
-            SeasonalObservation { month_ordinal: month(2022, 2), value: Some(5.0) },
-            SeasonalObservation { month_ordinal: month(2023, 1), value: Some(5.0) },
-            SeasonalObservation { month_ordinal: month(2023, 2), value: Some(5.0) },
-            SeasonalObservation { month_ordinal: month(2023, 3), value: Some(5.0) },
+            SeasonalObservation {
+                month_ordinal: month(2020, 12),
+                value: Some(5.0),
+            },
+            SeasonalObservation {
+                month_ordinal: month(2021, 1),
+                value: Some(5.0),
+            },
+            SeasonalObservation {
+                month_ordinal: month(2022, 2),
+                value: Some(5.0),
+            },
+            SeasonalObservation {
+                month_ordinal: month(2023, 1),
+                value: Some(5.0),
+            },
+            SeasonalObservation {
+                month_ordinal: month(2023, 2),
+                value: Some(5.0),
+            },
+            SeasonalObservation {
+                month_ordinal: month(2023, 3),
+                value: Some(5.0),
+            },
         ]);
         let mut cfg = config();
         cfg.month_window = 1;
@@ -756,10 +780,7 @@ mod tests {
     fn cusum_resets_after_missing_months_beyond_the_declared_gap() {
         let input = series(observations_for_months(
             &[(1, 10.0), (2, 10.0), (3, 10.0)],
-            &[
-                (2023, 1, Some(12.0)),
-                (2023, 3, Some(12.0)),
-            ],
+            &[(2023, 1, Some(12.0)), (2023, 3, Some(12.0))],
         ));
         let mut cfg = config();
         cfg.evaluation_interval = SeasonalInterval {
@@ -780,9 +801,18 @@ mod tests {
     #[test]
     fn invalid_values_month_order_metadata_and_reference_overlap_fail_closed() {
         let mut input = series(vec![
-            SeasonalObservation { month_ordinal: month(2020, 1), value: Some(10.0) },
-            SeasonalObservation { month_ordinal: month(2020, 1), value: Some(11.0) },
-            SeasonalObservation { month_ordinal: month(2023, 1), value: Some(10.0) },
+            SeasonalObservation {
+                month_ordinal: month(2020, 1),
+                value: Some(10.0),
+            },
+            SeasonalObservation {
+                month_ordinal: month(2020, 1),
+                value: Some(11.0),
+            },
+            SeasonalObservation {
+                month_ordinal: month(2023, 1),
+                value: Some(10.0),
+            },
         ]);
         assert_eq!(
             evaluate_seasonal_srd(&input, &config()),
@@ -816,7 +846,11 @@ mod tests {
     fn threshold_provenance_and_cusum_configuration_are_required() {
         let input = series(observations_for_months(
             &[(1, 10.0), (2, 20.0), (3, 30.0)],
-            &[(2023, 1, Some(10.0)), (2023, 2, Some(20.0)), (2023, 3, Some(30.0))],
+            &[
+                (2023, 1, Some(10.0)),
+                (2023, 2, Some(20.0)),
+                (2023, 3, Some(30.0)),
+            ],
         ));
         let mut cfg = config();
         cfg.alert_threshold_policy_ref.clear();
