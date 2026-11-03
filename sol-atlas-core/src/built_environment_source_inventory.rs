@@ -803,14 +803,13 @@ pub fn validate_source_inventory_manifest(
         let pages = grouped_pages
             .get(partition_id)
             .map_or(&[][..], Vec::as_slice);
-        let (partition_items, _partition_unique, chain_complete) =
-            validate_page_partition(
-                partition_id,
-                pages,
-                manifest,
-                &mut findings,
-                &mut all_tombstone_identities,
-            );
+        let (partition_items, _partition_unique, chain_complete) = validate_page_partition(
+            partition_id,
+            pages,
+            manifest,
+            &mut findings,
+            &mut all_tombstone_identities,
+        );
         total_items = total_items.saturating_add(partition_items);
         all_partition_chains_complete &= chain_complete;
         for page in pages {
@@ -857,8 +856,7 @@ pub fn validate_source_inventory_manifest(
             "tombstone count cannot exceed enumerated unique record count",
         );
     }
-    if u64::try_from(all_tombstone_identities.len()).unwrap_or(u64::MAX)
-        != manifest.tombstone_count
+    if u64::try_from(all_tombstone_identities.len()).unwrap_or(u64::MAX) != manifest.tombstone_count
     {
         findings.invalid(
             "INVENTORY_TOMBSTONE_IDENTITY_COUNT_MISMATCH",
@@ -1189,8 +1187,7 @@ mod tests {
             let first_receipt_sha256 = manifest.page_receipts[0].receipt_sha256().unwrap();
             manifest.page_receipts[1].cursor_before_sha256 = Some(repeated_cursor.clone());
             manifest.page_receipts[1].cursor_after_sha256 = Some(repeated_cursor);
-            manifest.page_receipts[1].predecessor_page_receipt_sha256 =
-                Some(first_receipt_sha256);
+            manifest.page_receipts[1].predecessor_page_receipt_sha256 = Some(first_receipt_sha256);
             manifest.page_receipts[1].terminal = false;
             let result = validate_source_inventory_manifest(&manifest);
             assert_eq!(
@@ -1198,9 +1195,12 @@ mod tests {
                 InventoryDisposition::InvalidInput,
                 "cursor-replay mutation seed {seed} must be invalid"
             );
-            assert!(result.findings.iter().any(|finding| {
-                finding.code == "INVENTORY_CURSOR_REPLAY"
-            }));
+            assert!(
+                result
+                    .findings
+                    .iter()
+                    .any(|finding| { finding.code == "INVENTORY_CURSOR_REPLAY" })
+            );
         }
     }
 
@@ -1229,9 +1229,12 @@ mod tests {
                 InventoryDisposition::InvalidInput,
                 "source-count mutation seed {seed} must be invalid"
             );
-            assert!(result.findings.iter().any(|finding| {
-                finding.code == "SOURCE_REPORTED_TOTAL_COUNT_MISMATCH"
-            }));
+            assert!(
+                result
+                    .findings
+                    .iter()
+                    .any(|finding| { finding.code == "SOURCE_REPORTED_TOTAL_COUNT_MISMATCH" })
+            );
         }
     }
 
