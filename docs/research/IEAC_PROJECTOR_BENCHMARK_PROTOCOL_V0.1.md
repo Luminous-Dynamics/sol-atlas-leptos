@@ -88,15 +88,62 @@ Always report raw numerators and denominators, including the number of unsupport
 
 ## 5. Baselines and comparisons
 
-Compare at the layer where products actually make a claim:
+Compare at the layer where products actually make a claim. The current industry baseline is not an empty field:
 
-- **Source and BIM/IDS interoperability:** independent IFC/IDS implementations, frozen IDS 1.0 fixtures, and a separately labelled IDS 1.1 preview lane. A checker pass is not a geometry or structural-safety result.
-- **Manufacturing traceability:** compare the data model and cross-organization exchange with NIST IR 8536 principles, retaining the distinction between traceability linkage and proof that a source claim is true. Benchmark against its reference implementation when its code and test corpus are publicly available and rights permit.
-- **Digital-twin composition:** compare adapters, schema coverage, identity and synchronization behavior against established iTwin, Siemens and Palantir integration capabilities. Do not compare an assurance prototype to their full products with marketing feature counts.
+- **Digital-twin composition:** ISO 23247-6:2026, published July 2026, now describes integrated, unified, and federated manufacturing digital-twin composition. Sol-Atlas should demonstrate standards-aligned composition and add independently checkable identity, loss, provenance, temporal-reliance and decision-impact evidence. It must not claim to invent digital-twin federation or composition.
+- **Manufacturing traceability:** NIST IR 8536 (final, 9 September 2026) provides an industry-neutral traceability meta-framework for cross-sector pedigree, cryptographic links, selective disclosure and supplier verification while preserving existing sector standards. The Luminous comparison is the extra qualification layer: which links are authenticated, which source bytes were actually checked, whether inventory coverage is bounded, and which downstream engineering conclusions remain valid. NIST's Python reference implementation was still undergoing final review at the time of publication; do not claim a completed head-to-head until its approved implementation and fixtures are available.
+- **Source and BIM/IDS interoperability:** use the official IFC 4.3.2.0 / ISO 16739-1:2024 release, open IFC/IDS fixtures, and independent IFC/IDS implementations. Keep IDS 1.0 and any IDS 1.1 preview lane separately labelled. A 2026 buildingSMART survey found divergent checker results for the same IDS file; 70% of 186 respondents wanted some form of software certification. This makes exact reason-code conformance, semantic-loss reporting and independent cross-tool agreement meaningful benchmarks—not optional polish.
+- **Bentley iTwin:** compare synchronization and export of native CAD/BIM sources, transformation into iModels, changed-element feeds, validation/clash detection, spatial alignment and workflow automation. iTwin's APIs cover these areas; treat them as production baseline capabilities, not straw-man import tools.
+- **Siemens Digital Twin Composer:** compare against large-scale factory/product/plant visualization, simulation, virtual commissioning and autonomous robot training. Siemens unveiled Composer at CES 2026. The relevant Luminous question is not whether a graph can replace those simulators; it is whether the exact evidence, versions, assumptions, source models and downstream decisions can be reconciled and selectively revalidated around their outputs.
+- **Palantir Ontology:** compare object/link/action modelling, integration of heterogeneous source systems, dynamic security and operational write-back. Palantir explicitly describes the ontology as integrating data, logic, actions and security. Luminous should not claim to invent an operational ontology; it must demonstrate stronger independent replay, portable provenance, cross-owner identity and explicit nonclaims without requiring a centralized operational repository.
 - **Geometry:** use CGAL exact-predicate/inexact-construction and exact-construction modes, Manifold exact and robust engines, and public pathological mesh corpora. Measure output embedding, topology, volume deviation and refusal—not merely function return status.
 - **Impact analysis:** compare full revalidation, immediate invalidation, transitive graph traversal, base-bound sparse deltas and the independently authored full-scan oracle.
 
-Do not advertise a commercial baseline as tested until its exact version, configuration, input corpus, hardware and result artifacts have been run by the benchmark team. Published vendor capability descriptions are context, not comparative test evidence.
+### 5.1 Matched comparison matrix
+
+For each external implementation, freeze and publish a row for:
+1. exportable input formats and exact versions;
+2. source objects, relationships and metadata actually accessible;
+3. transformation/configuration and connector versions;
+4. identity preservation under duplicate payload/different-owner and revision mutations;
+5. relationship precision/recall against the same independent gold inventory;
+6. schema/media preservation and semantic-loss reporting;
+7. update/invalidation latency after the same source mutation;
+8. false-negative and false-positive impact rates;
+9. auditability of source snapshot, configuration, build and output digests;
+10. rights, trust and source completeness assumptions;
+11. total cost and operational burden, including connector/source export and graph validation;
+12. unsupported, inaccessible, refused and failed cases.
+
+A vendor's unexportable internal relationships are unassessed, not missing; inaccessible data must not count against its fidelity score. If equivalent source scope or task boundaries cannot be established, mark the comparison not_comparable.
+
+Do not advertise a commercial baseline as tested until its exact version, configuration, input corpus, hardware and raw result artifacts have been run by the benchmark team. Published vendor capability descriptions are context, not comparative test evidence.
+
+### 5.2 Descriptor-to-projector composition gates
+
+The descriptor catalogue and projector must be evaluated as a joined pipeline, not two adjacent unit tests.
+
+Required positive controls:
+- the descriptor validator and IEAC projector emit byte-identical identity SHA-256 for every descriptor-backed native record;
+- native owner namespace, native component tuple, source media type and schema version are preserved exactly into the projected node/mapping;
+- the projection receipt binds the exact typed-case digest, descriptor catalogue digest, namespace map, mapping profile, projector build and resulting graph digest;
+- a descriptor catalogue with all required metadata produces no artificial SOURCE_*_NOT_MODELED findings;
+- a known incomplete descriptor remains explicitly incomplete and never receives a complete claim ceiling.
+
+Required negative controls:
+- changed typed-case bytes after catalogue generation;
+- same case ID but a different case representation;
+- an altered native identity component with unchanged case record ID;
+- source payload digest disagreement;
+- invalid digest basis or content-addressed object reference;
+- incomplete metadata and missing descriptor;
+- duplicate owner-native identity with same and conflicting digests;
+- descriptor catalogue invalidity must yield no graph;
+- descriptor validation incomplete must yield an incomplete/indeterminate graph if a diagnostic graph is emitted.
+
+The descriptor verifier currently reports byte verification, rights authentication and attestation authentication as not_performed. These fields stay separate from internal consistency and projection loss. An assertion that bytes were locally retrieved is not an independent byte hash. The trust workflow must perform that check before it can be used as an authenticated source claim.
+
+projected_without_known_loss means no known loss relative to the declared typed case plus supplied descriptors and mapping profile. It is never a source-universe completeness, authenticity, engineering-correctness, professional-approval or action-authority claim.
 
 ## 6. Efficiency and Pareto reporting
 
@@ -121,13 +168,34 @@ A claim must state the highest level it has actually passed and the exact corpus
 
 ## 8. How this can beat the state of the art
 
-The proposed differentiator is not merely a faster graph or another digital twin. It is an independently auditable chain that can identify which claim is supported by which source, explain every known loss, distinguish missing evidence from negative evidence, and determine which engineering conclusions must be revalidated when evidence changes.
+The proposed differentiator is not merely a faster graph, another digital twin, or a replacement for every PLM/BIM/industrial operations platform. It is a **portable, evidence-qualified engineering decision thread** that can sit across them.
+
+A candidate system should be able to answer, reproducibly:
+- Which exact native records and source bytes supported this engineering statement?
+- Which owner and schema versions supplied them?
+- Which source relationships and assumptions were included, and which were unavailable?
+- Which transformations, solvers, policies and verifier builds were used?
+- What changed since this decision was made?
+- Which conclusions are still current, which require revalidation, and why?
+- What can be safely disclosed to a counterparty without exposing protected source data?
+- Which actor is authorized to rely on or change the decision?
+
+The strongest differentiation tests are:
+
+1. **Interoperability without semantic erasure:** preserve native identities and source schemas across independent adapters, with zero silent loss.
+2. **Independent completeness:** compare candidate source inventories and relationships with gold inventories authored independently from extraction/projector code.
+3. **Cross-owner verification:** allow parties to check digest-linked provenance and scoped evidence without transferring proprietary source content; qualify selective disclosure and revocation.
+4. **Temporal decision continuity:** prove which evidence versions were current at decision time and whether a later change invalidates the decision, including late-arriving events and key revocation.
+5. **Selective recomputation:** reduce engineering rework and solver cost relative to full revalidation while retaining zero false negatives against an independent impact oracle.
+6. **Refusal quality:** identify when the correct answer is unknown, incomplete, invalid, or not_comparable, instead of manufacturing certainty.
 
 The defensible competitive target is:
-- correctness equal to the strongest independent reference on supported cases;
-- better cross-vendor identity and relationship preservation;
-- explicit and machine-checkable loss/unsupported-feature behavior;
-- selective revalidation with zero missed invalidations against a full-scan oracle;
-- lower cost and latency only after the correctness and coverage gates remain satisfied.
+- parity with the strongest independent reference on supported semantics;
+- zero false identity merges, false digest assertions, missing mandatory edges, false-complete projections and unqualified NoImpact results on frozen P0/P1 corpora;
+- stronger cross-adapter replay and explicit source coverage than each compared integration path;
+- lower full-pipeline revalidation cost only after correctness and coverage gates pass;
+- measured advantage on held-out projects and prospective operational changes before making a market-leading claim.
+
+Do not compare a research bridge's synthetic test count with vendor marketing claims. The benchmark must include source extraction, connector failure, schema translation, graph validation, trust/rights evaluation, impact analysis, compute costs, and the cost of unsupported or unavailable data.
 
 That is a testable path to differentiation, not a claim of superiority before evidence exists.
