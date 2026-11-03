@@ -1463,6 +1463,51 @@ mod tests {
     }
 
     #[test]
+    fn source_correction_does_not_apply_key_compromise_historical_exception() {
+        let mut fixture = fixture();
+        let event = &mut fixture["invalidation_event"];
+        event["event_id"] = json!("evt-source-correction-regression-002");
+        event["authority_sequence"] = json!(2);
+        event["previous_event_sha256"] =
+            fixture["expected_impact_report"]["invalidation_event_sha256"].clone();
+        event["cause_class"] = json!("source_corrected");
+        event["invalidation_semantics"] = json!("reverify_required");
+        event["valid_time"]["effective_at"] = json!("2026-11-02T10:30:00Z");
+        event["system_time"]["recorded_at"] = json!("2026-11-02T11:00:00Z");
+        event["system_time"]["trusted_at"] = json!("2026-11-02T11:01:00Z");
+        event["targets"] = json!([{
+            "node_id": "source_measurement:sha256:0202020202020202020202020202020202020202020202020202020202020202",
+            "node_type": "source_measurement",
+            "artifact_sha256": "0202020202020202020202020202020202020202020202020202020202020202"
+        }]);
+        let expected = &mut fixture["expected_impact_report"];
+        expected["evaluated_at"] = json!("2026-11-03T07:00:00Z");
+        let nodes = validate_graph(&fixture["graph"]).unwrap();
+        validate_event(event, &nodes).unwrap();
+        let report = build_impact_report(
+            &fixture["graph"],
+            event,
+            expected,
+            &nodes,
+        )
+        .unwrap();
+        let rows = report["results"].as_array().unwrap();
+        let source = rows
+            .iter()
+            .find(|row| row["node_type"] == "source_measurement"
+                && row["artifact_sha256"] == "0202020202020202020202020202020202020202020202020202020202020202")
+            .unwrap();
+        let statement = rows
+            .iter()
+            .find(|row| row["node_type"] == "signed_statement"
+                && row["artifact_sha256"] == "0303030303030303030303030303030303030303030303030303030303030303")
+            .unwrap();
+        assert_eq!(source["impact_class"], "claim_invalidated");
+        assert_eq!(statement["impact_class"], "quarantined_pending_review");
+        assert!(statement["impact_class"] != "historical_record_only");
+    }
+
+    #[test]
     fn invalidation_cause_must_match_target_type() {
         let mut fixture = fixture();
         fixture["invalidation_event"]["cause_class"] = json!("model_superseded");
