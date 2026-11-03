@@ -85,7 +85,7 @@ impl Findings {
 
     fn invalid(&mut self, code: &'static str, native_key: impl Into<String>, detail: impl Into<String>) {
         self.rows.insert(Finding {
-            severity: "invalid_input",
+            severity: "invalid",
             code,
             native_key: native_key.into(),
             detail: detail.into(),
@@ -93,7 +93,7 @@ impl Findings {
     }
 
     fn disposition(&self) -> ProjectionDisposition {
-        if self.rows.iter().any(|row| row.severity == "invalid_input") {
+        if self.rows.iter().any(|row| row.severity == "invalid") {
             ProjectionDisposition::InvalidInput
         } else if !self.rows.is_empty() {
             ProjectionDisposition::ProjectedWithKnownLoss
@@ -1280,7 +1280,7 @@ pub fn project_built_environment_case(
     let claim_ceiling = if disposition == ProjectionDisposition::ProjectedWithoutKnownLoss {
         "record_only"
     } else {
-        "projected_with_known_loss"
+        "incomplete_or_indeterminate"
     };
     let graph_id = format!("built-environment-case-{}", &case_sha256[..24]);
     let mut graph = json!({
@@ -1348,7 +1348,7 @@ pub fn project_built_environment_case(
         "claim_ceiling": if final_disposition == ProjectionDisposition::ProjectedWithoutKnownLoss {
             "record_only"
         } else {
-            "projected_with_known_loss"
+            "incomplete_or_indeterminate"
         },
         "action_authority": "none",
         "verification_claim": "none",
@@ -1537,7 +1537,7 @@ mod tests {
         );
         assert_eq!(
             result.graph["claim_ceiling"],
-            "projected_with_known_loss"
+            "incomplete_or_indeterminate"
         );
     }
 
