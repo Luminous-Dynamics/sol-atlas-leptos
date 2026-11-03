@@ -8,13 +8,15 @@
 
 The projector is a read-only adapter from the typed `BuiltEnvironmentCase` model into an IEAC v0.2 graph. It is not a second source graph, coverage engine, impact traversal, trust verifier, engineering solver, approval workflow, or action-authority issuer.
 
+**Known input-model limitation:** `BuiltEnvironmentCase` has source IDs but no distinct owner-native namespace field. The graph therefore uses a stable Sol-Atlas adapter namespace, and the projection receipt marks `source_owner_namespace_modelled=false`. This is an explicit loss, not a source identity assertion. Consequently, a normal case containing source evidence or artifacts is `projected_with_known_loss` even when every currently represented record and edge maps. The follow-on data-contract task must add source-native namespace and source descriptor fields before this loss can be removed.
+
 Its disposition vocabulary is deliberately distinct from coverage:
 
-- `projected_without_known_loss`: every record and relationship represented by the typed case was mapped under this profile, without a detected projection loss.
+- `projected_without_known_loss` (available only when no source-owner namespace loss is present): every record and relationship represented by the typed case was mapped under this profile, without a detected projection loss.
 - `projected_with_known_loss`: one or more records/relationships were unavailable, unresolved, unsupported, or not representable.
 - `invalid_input`: the input or projected graph contains a contradiction or structural violation.
 
-Even `projected_without_known_loss` is only an assertion about the provided typed case representation. It does **not** assert that the case contains all relevant source systems, that the source records are authentic, or that the selected profile is adequate for an engineering decision. It never authorizes `NoImpact`, release, construction, or actuation.
+Even `projected_without_known_loss` (available only when no source-owner namespace loss is present) is only an assertion about the provided typed case representation. It does **not** assert that the case contains all relevant source systems, that the source records are authentic, or that the selected profile is adequate for an engineering decision. It never authorizes `NoImpact`, release, construction, or actuation.
 
 ## Mapping table
 
