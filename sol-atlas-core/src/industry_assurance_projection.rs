@@ -12,7 +12,7 @@ use crate::built_environment_case::{
 };
 use crate::built_environment_source_descriptor::{
     validate_source_descriptor_catalog, DescriptorDisposition, DescriptorValidation,
-    NativeIdentityComponent, SourceDescriptorCatalog,
+    SourceDescriptorCatalog,
 };
 use serde::Serialize;
 use serde_json::{Value, json};
@@ -74,6 +74,9 @@ pub struct SourceRecordProjectionMetadata {
     pub schema_id: Option<String>,
     pub schema_version: Option<String>,
     pub schema_sha256: Option<String>,
+    pub source_payload_sha256: Option<String>,
+    pub source_payload_digest_basis: String,
+    pub source_payload_bytes_retrieved: bool,
 }
 
 #[derive(Clone, Debug)]
@@ -719,6 +722,9 @@ pub fn project_built_environment_case_with_descriptors(
                     schema_id: descriptor.source_payload.schema_id.clone(),
                     schema_version: descriptor.source_payload.schema_version.clone(),
                     schema_sha256: descriptor.source_payload.schema_sha256.clone(),
+                    source_payload_sha256: descriptor.source_payload.sha256.clone(),
+                    source_payload_digest_basis: descriptor.source_payload.digest_basis.as_str().into(),
+                    source_payload_bytes_retrieved: descriptor.source_payload.bytes_retrieved,
                 },
             )
         })
@@ -1151,6 +1157,10 @@ fn project_built_environment_case_inner(
                 "node_id": node_id,
                 "identity_sha256": identity_sha,
                 "source_payload_sha256": payload_sha,
+                "source_payload_digest_basis": source_metadata
+                    .map(|metadata| metadata.source_payload_digest_basis.as_str()),
+                "source_payload_bytes_retrieved": source_metadata
+                    .map(|metadata| metadata.source_payload_bytes_retrieved),
                 "projected_payload_sha256": payload_sha,
                 "payload_digest_basis": "source_payload_sha256",
                 "case_record_representation_sha256": record_sha256,
@@ -1299,6 +1309,10 @@ fn project_built_environment_case_inner(
                 "node_id": node_id,
                 "identity_sha256": identity_sha,
                 "source_payload_sha256": artifact.content_sha256,
+                "source_payload_digest_basis": source_metadata
+                    .map(|metadata| metadata.source_payload_digest_basis.as_str()),
+                "source_payload_bytes_retrieved": source_metadata
+                    .map(|metadata| metadata.source_payload_bytes_retrieved),
                 "projected_payload_sha256": artifact.content_sha256,
                 "payload_digest_basis": "artifact_content_sha256",
                 "source_media_type": source_metadata.and_then(|metadata| metadata.media_type.as_deref()),
@@ -1385,7 +1399,12 @@ fn project_built_environment_case_inner(
                 "node_type": "engineering_receipt",
                 "node_id": node_id,
                 "identity_sha256": identity_sha,
-                "source_payload_sha256": null,
+                "source_payload_sha256": source_metadata_for_record(&native_key, descriptor_overrides)
+                    .and_then(|metadata| metadata.source_payload_sha256.as_deref()),
+                "source_payload_digest_basis": source_metadata_for_record(&native_key, descriptor_overrides)
+                    .map(|metadata| metadata.source_payload_digest_basis.as_str()),
+                "source_payload_bytes_retrieved": source_metadata_for_record(&native_key, descriptor_overrides)
+                    .map(|metadata| metadata.source_payload_bytes_retrieved),
                 "projected_payload_sha256": payload_sha,
                 "payload_digest_basis": "sha256_of_projector_serialized_struct_representation"
             }),
