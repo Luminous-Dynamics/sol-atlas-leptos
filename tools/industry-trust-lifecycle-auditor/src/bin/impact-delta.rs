@@ -107,6 +107,15 @@ impl GraphIndex {
                             "independent closure found unknown edge endpoint {destination}"
                         ));
                     }
+                    if !self
+                        .reverse
+                        .get(destination)
+                        .is_some_and(|sources| sources.binary_search(&current).is_ok())
+                    {
+                        return Err(format!(
+                            "forward/reverse adjacency disagreement for edge {current} -> {destination}"
+                        ));
+                    }
                     if visited.insert(destination.clone()) {
                         pending.push(destination.clone());
                     }
@@ -804,7 +813,7 @@ fn main() -> ExitCode {
         let base_pin = parse_strict(Path::new(&args[2]))?;
         let delta_input = parse_strict(Path::new(&args[3]))?;
         let batch = run_batch(&graph, &base_report, &base_pin, &delta_input)?;
-        // One create-new envelope carries the deltas, final report and next pin.
+        // One create-new result file carries the deltas, final report and next pin.
         // Consumers never observe a partially written three-file state tuple.
         write_new(Path::new(&args[4]), &batch)?;
         Ok::<(), String>(())
