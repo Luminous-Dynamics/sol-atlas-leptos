@@ -5,7 +5,7 @@
 mod lifecycle;
 
 use lifecycle::{
-    GRAPH_SCHEMA, REPORT_SCHEMA, StrictJson, build_forward_adjacency,
+    REPORT_SCHEMA, StrictJson, build_forward_adjacency,
     build_impacted_results_with_adjacency, canonical_json_digest, required_string,
     valid_sha256, valid_utc_timestamp, validate_event, validate_graph,
 };
