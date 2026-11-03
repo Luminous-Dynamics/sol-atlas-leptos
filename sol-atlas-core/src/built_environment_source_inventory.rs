@@ -226,12 +226,7 @@ impl Findings {
         });
     }
 
-    fn incomplete(
-        &mut self,
-        code: &str,
-        subject: impl Into<String>,
-        detail: impl Into<String>,
-    ) {
+    fn incomplete(&mut self, code: &str, subject: impl Into<String>, detail: impl Into<String>) {
         self.rows.insert(InventoryFinding {
             severity: InventoryFindingSeverity::Incomplete,
             code: code.into(),
@@ -560,7 +555,11 @@ fn validate_page_partition(
             "authoritative terminal pagination state was not observed for this partition",
         );
     }
-    (item_count, identities.len() as u64, chain_well_formed && terminal_seen)
+    (
+        item_count,
+        identities.len() as u64,
+        chain_well_formed && terminal_seen,
+    )
 }
 
 /// Validate the exact structure of a source enumeration receipt.
@@ -597,7 +596,10 @@ pub fn validate_source_inventory_manifest(
         );
     }
     for (field, value) in [
-        ("connector_build_sha256", manifest.connector_build_sha256.as_str()),
+        (
+            "connector_build_sha256",
+            manifest.connector_build_sha256.as_str(),
+        ),
         ("query_scope_sha256", manifest.query_scope_sha256.as_str()),
     ] {
         if !valid_sha256(value) {
@@ -723,7 +725,10 @@ pub fn validate_source_inventory_manifest(
             "source enumeration does not establish visibility of tombstones/retractions",
         );
     }
-    if manifest.attestation_ref.as_deref().is_none_or(str::is_empty)
+    if manifest
+        .attestation_ref
+        .as_deref()
+        .is_none_or(str::is_empty)
         || manifest.issuer_key_id.as_deref().is_none_or(str::is_empty)
     {
         findings.incomplete(
@@ -928,7 +933,10 @@ pub fn validate_source_universe_coverage(
                 "expected owner namespace and source system ID must be non-empty",
             );
         }
-        if !expected_keys.insert((owner.owner_namespace.clone(), owner.source_system_id.clone())) {
+        if !expected_keys.insert((
+            owner.owner_namespace.clone(),
+            owner.source_system_id.clone(),
+        )) {
             findings.invalid(
                 "DUPLICATE_EXPECTED_SOURCE_OWNER",
                 &owner.owner_namespace,
@@ -961,7 +969,10 @@ pub fn validate_source_universe_coverage(
 
     let mut missing_required_owner_count = 0usize;
     for owner in expected_owners.iter().filter(|owner| owner.required) {
-        let key = (owner.owner_namespace.clone(), owner.source_system_id.clone());
+        let key = (
+            owner.owner_namespace.clone(),
+            owner.source_system_id.clone(),
+        );
         if !observed_keys.contains(&key) {
             missing_required_owner_count += 1;
             findings.incomplete(
@@ -1123,9 +1134,12 @@ mod tests {
         manifest.page_receipts[1].ordinal = 2;
         let result = validate_source_inventory_manifest(&manifest);
         assert_eq!(result.disposition, InventoryDisposition::InvalidInput);
-        assert!(result.findings.iter().any(|finding| {
-            finding.code == "INVENTORY_PAGE_ORDINAL_GAP"
-        }));
+        assert!(
+            result
+                .findings
+                .iter()
+                .any(|finding| { finding.code == "INVENTORY_PAGE_ORDINAL_GAP" })
+        );
     }
 
     #[test]
@@ -1136,9 +1150,12 @@ mod tests {
         manifest.page_receipts[1].terminal = false;
         let result = validate_source_inventory_manifest(&manifest);
         assert_eq!(result.disposition, InventoryDisposition::InvalidInput);
-        assert!(result.findings.iter().any(|finding| {
-            finding.code == "INVENTORY_CURSOR_REPLAY"
-        }));
+        assert!(
+            result
+                .findings
+                .iter()
+                .any(|finding| { finding.code == "INVENTORY_CURSOR_REPLAY" })
+        );
     }
 
     #[test]
@@ -1147,9 +1164,12 @@ mod tests {
         manifest.page_receipts[1].snapshot_sha256 = Some(digest('f'));
         let result = validate_source_inventory_manifest(&manifest);
         assert_eq!(result.disposition, InventoryDisposition::InvalidInput);
-        assert!(result.findings.iter().any(|finding| {
-            finding.code == "INVENTORY_PAGE_SNAPSHOT_MISMATCH"
-        }));
+        assert!(
+            result
+                .findings
+                .iter()
+                .any(|finding| { finding.code == "INVENTORY_PAGE_SNAPSHOT_MISMATCH" })
+        );
     }
 
     #[test]
@@ -1158,9 +1178,11 @@ mod tests {
         manifest.page_receipts[1].native_record_identity_sha256s[0] = digest('2');
         let result = validate_source_inventory_manifest(&manifest);
         assert_eq!(result.disposition, InventoryDisposition::InvalidInput);
-        assert!(result.findings.iter().any(|finding| {
-            finding.code == "INVENTORY_IDENTITY_COUNT_RECONCILIATION_FAILED"
-        }));
+        assert!(
+            result.findings.iter().any(|finding| {
+                finding.code == "INVENTORY_IDENTITY_COUNT_RECONCILIATION_FAILED"
+            })
+        );
     }
 
     #[test]
@@ -1183,9 +1205,11 @@ mod tests {
             result.disposition,
             InventoryDisposition::IncompleteOrIndeterminate
         );
-        assert!(result.findings.iter().any(|finding| {
-            finding.code == "AUTHORITATIVE_PAGINATION_EXHAUSTION_NOT_CLAIMED"
-        }));
+        assert!(
+            result.findings.iter().any(|finding| {
+                finding.code == "AUTHORITATIVE_PAGINATION_EXHAUSTION_NOT_CLAIMED"
+            })
+        );
     }
 
     #[test]
@@ -1194,9 +1218,12 @@ mod tests {
         manifest.reported_total_count = Some(4);
         let result = validate_source_inventory_manifest(&manifest);
         assert_eq!(result.disposition, InventoryDisposition::InvalidInput);
-        assert!(result.findings.iter().any(|finding| {
-            finding.code == "SOURCE_REPORTED_TOTAL_COUNT_MISMATCH"
-        }));
+        assert!(
+            result
+                .findings
+                .iter()
+                .any(|finding| { finding.code == "SOURCE_REPORTED_TOTAL_COUNT_MISMATCH" })
+        );
     }
 
     #[test]
@@ -1231,9 +1258,12 @@ mod tests {
             result.disposition,
             InventoryDisposition::IncompleteOrIndeterminate
         );
-        assert!(result.findings.iter().any(|finding| {
-            finding.code == "BEST_EFFORT_ENUMERATION_NOT_SNAPSHOT_COMPLETE"
-        }));
+        assert!(
+            result
+                .findings
+                .iter()
+                .any(|finding| { finding.code == "BEST_EFFORT_ENUMERATION_NOT_SNAPSHOT_COMPLETE" })
+        );
     }
 
     #[test]
@@ -1254,9 +1284,12 @@ mod tests {
             InventoryDisposition::InvalidInput,
             "pagination_exhausted cannot coexist with a missing required partition"
         );
-        assert!(result.findings.iter().any(|finding| {
-            finding.code == "INVENTORY_PARTITION_TERMINAL_NOT_OBSERVED"
-        }));
+        assert!(
+            result
+                .findings
+                .iter()
+                .any(|finding| { finding.code == "INVENTORY_PARTITION_TERMINAL_NOT_OBSERVED" })
+        );
     }
 
     #[test]
@@ -1294,12 +1327,12 @@ mod tests {
             required: true,
         };
         let result = validate_source_universe_coverage(&[owner.clone(), owner], &[]);
-        assert_eq!(
-            result.disposition,
-            SourceUniverseDisposition::InvalidInput
+        assert_eq!(result.disposition, SourceUniverseDisposition::InvalidInput);
+        assert!(
+            result
+                .findings
+                .iter()
+                .any(|finding| { finding.code == "DUPLICATE_EXPECTED_SOURCE_OWNER" })
         );
-        assert!(result.findings.iter().any(|finding| {
-            finding.code == "DUPLICATE_EXPECTED_SOURCE_OWNER"
-        }));
     }
 }
