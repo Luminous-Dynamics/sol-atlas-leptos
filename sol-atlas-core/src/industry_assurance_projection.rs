@@ -1636,6 +1636,26 @@ mod tests {
     }
 
     #[test]
+    fn empty_case_cannot_emit_a_valid_empty_ieac_graph() {
+        let case = BuiltEnvironmentCase {
+            case_id: "case-empty".into(),
+            jurisdiction: "synthetic-jurisdiction".into(),
+            evidence: vec![],
+            artifacts: vec![],
+            engineering_receipts: vec![],
+            decisions: vec![],
+        };
+        let result = project_built_environment_case(&case, &context());
+        assert_eq!(result.disposition, ProjectionDisposition::Invalid);
+        assert_eq!(result.graph, Value::Null);
+        assert!(result.projection_receipt["findings"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|finding| finding["code"] == "EMPTY_CASE_GRAPH"));
+    }
+
+    #[test]
     fn missing_decision_authority_is_explicitly_incomplete() {
         let mut case = sample_case();
         case.decisions[0].authority_evidence_id = None;
