@@ -1272,7 +1272,7 @@ fn project_built_environment_case_inner(
     // The node digest therefore identifies the exact projector serialization,
     // and the bytes are retained in projected_payloads for independent replay.
     for receipt in &case.engineering_receipts {
-        let native_key = format!("receipt:{}", receipt.receipt_id);
+        let native_key = format!("engineering_receipt:{}", receipt.receipt_id);
         let (payload_sha, payload_bytes) = match record_payload(receipt) {
             Ok(payload) => payload,
             Err(error) => {
