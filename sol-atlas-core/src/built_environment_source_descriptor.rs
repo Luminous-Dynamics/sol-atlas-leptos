@@ -1262,7 +1262,7 @@ mod tests {
             .as_array()
             .unwrap()
             .iter()
-            .any(|subject| subject == "case-descriptor-001"));
+            .any(|subject| subject.as_str() == Some("case-descriptor-001")));
     }
 
     #[test]
