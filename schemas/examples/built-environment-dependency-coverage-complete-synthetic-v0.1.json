@@ -1,0 +1,456 @@
+{
+  "fixture_schema_version": "luminous.built-environment-dependency-coverage-fixture.v0.1",
+  "fixture_status": "synthetic_only",
+  "coverage_manifest": {
+    "schema_version": "luminous.built-environment-dependency-coverage.v0.1",
+    "coverage_id": "coverage-pavilion-001-2026-11-03",
+    "case_scope": {
+      "case_id": "pavilion-001",
+      "project_id": "synthetic-project-001",
+      "design_ids": [
+        "design-001",
+        "design-001-rev-2"
+      ],
+      "jurisdiction": "synthetic-jurisdiction",
+      "intended_use": "engineering_change_impact",
+      "valid_time": {
+        "from": "2026-11-03T00:00:00Z",
+        "until": null
+      },
+      "spatial_scope": {
+        "boundary_kind": "project_boundary",
+        "crs": null,
+        "description": "Synthetic pavilion project boundary.",
+        "boundary_artifact_sha256": "5555555555555555555555555555555555555555555555555555555555555555"
+      }
+    },
+    "coverage_profile": {
+      "profile_id": "built-environment-core-v0.1",
+      "profile_version": "0.1.0",
+      "required_dependency_families": [
+        "artifact_lineage",
+        "source_evidence",
+        "solver_inputs",
+        "solver_assumptions",
+        "decision_authority",
+        "requirement_and_specification"
+      ],
+      "excluded_dependency_families": [
+        "material_lot_and_custody",
+        "geometry_datum_and_survey_control",
+        "utility_and_network_interface",
+        "permit_and_external_constraint",
+        "verifier_policy_schema_and_trust"
+      ],
+      "applicability_basis_sha256": "6666666666666666666666666666666666666666666666666666666666666666",
+      "profile_notes": "Fixture covers only the six listed required families; excluded families are deliberately outside this synthetic profile and must not be implied complete."
+    },
+    "source_inventory": [
+      {
+        "source_id": "source-artifacts",
+        "source_type": "artifact_repository",
+        "owner_namespace": "urn:synthetic:sol-atlas",
+        "native_snapshot_id": "snapshot-a",
+        "snapshot_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "schema_id": "urn:synthetic:schema:artifact",
+        "schema_version": "1.0",
+        "schema_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+        "captured_at": "2026-11-03T08:00:00Z",
+        "retrieved_at": "2026-11-03T08:02:00Z",
+        "access_state": "available",
+        "rights_state": "verified",
+        "permitted_uses": [
+          "impact_analysis",
+          "design_review"
+        ],
+        "extraction": {
+          "adapter_id": "synthetic-export-adapter",
+          "adapter_version": "0.1.0",
+          "adapter_build_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "configuration_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+          "query_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+        },
+        "completeness": {
+          "method": "complete_export",
+          "boundary": "All records for synthetic project case pavilion-001 at frozen snapshot.",
+          "total_record_count": 8,
+          "returned_record_count": 8,
+          "pagination_complete": true,
+          "proof_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      },
+      {
+        "source_id": "source-evidence",
+        "source_type": "evidence_registry",
+        "owner_namespace": "urn:synthetic:mycelix",
+        "native_snapshot_id": "snapshot-b",
+        "snapshot_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "schema_id": "urn:synthetic:schema:evidence",
+        "schema_version": "1.0",
+        "schema_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+        "captured_at": "2026-11-03T08:00:00Z",
+        "retrieved_at": "2026-11-03T08:02:00Z",
+        "access_state": "available",
+        "rights_state": "verified",
+        "permitted_uses": [
+          "impact_analysis",
+          "design_review"
+        ],
+        "extraction": {
+          "adapter_id": "synthetic-export-adapter",
+          "adapter_version": "0.1.0",
+          "adapter_build_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "configuration_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+          "query_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+        },
+        "completeness": {
+          "method": "complete_export",
+          "boundary": "All records for synthetic project case pavilion-001 at frozen snapshot.",
+          "total_record_count": 5,
+          "returned_record_count": 5,
+          "pagination_complete": true,
+          "proof_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      },
+      {
+        "source_id": "source-solvers",
+        "source_type": "solver_or_simulation_store",
+        "owner_namespace": "urn:synthetic:symtropy",
+        "native_snapshot_id": "snapshot-c",
+        "snapshot_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "schema_id": "urn:synthetic:schema:solver",
+        "schema_version": "1.0",
+        "schema_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+        "captured_at": "2026-11-03T08:00:00Z",
+        "retrieved_at": "2026-11-03T08:02:00Z",
+        "access_state": "available",
+        "rights_state": "verified",
+        "permitted_uses": [
+          "impact_analysis",
+          "design_review"
+        ],
+        "extraction": {
+          "adapter_id": "synthetic-export-adapter",
+          "adapter_version": "0.1.0",
+          "adapter_build_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "configuration_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+          "query_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+        },
+        "completeness": {
+          "method": "partition_manifest",
+          "boundary": "All records for synthetic project case pavilion-001 at frozen snapshot.",
+          "total_record_count": 3,
+          "returned_record_count": 3,
+          "pagination_complete": true,
+          "proof_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      },
+      {
+        "source_id": "source-authority",
+        "source_type": "authority_registry",
+        "owner_namespace": "urn:synthetic:mycelix",
+        "native_snapshot_id": "snapshot-d",
+        "snapshot_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "schema_id": "urn:synthetic:schema:authority",
+        "schema_version": "1.0",
+        "schema_sha256": "4444444444444444444444444444444444444444444444444444444444444444",
+        "captured_at": "2026-11-03T08:00:00Z",
+        "retrieved_at": "2026-11-03T08:02:00Z",
+        "access_state": "available",
+        "rights_state": "verified",
+        "permitted_uses": [
+          "impact_analysis",
+          "design_review"
+        ],
+        "extraction": {
+          "adapter_id": "synthetic-export-adapter",
+          "adapter_version": "0.1.0",
+          "adapter_build_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "configuration_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+          "query_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+        },
+        "completeness": {
+          "method": "bounded_query",
+          "boundary": "All records for synthetic project case pavilion-001 at frozen snapshot.",
+          "total_record_count": 2,
+          "returned_record_count": 2,
+          "pagination_complete": true,
+          "proof_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      }
+    ],
+    "relationship_coverage": [
+      {
+        "family": "artifact_lineage",
+        "required": true,
+        "status": "complete",
+        "source_ids": [
+          "source-artifacts"
+        ],
+        "expected_relationship_count": 2,
+        "observed_relationship_count": 2,
+        "unresolved_count": 0,
+        "unsupported_count": 0,
+        "mapping_rule_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+        "coverage_evidence_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+        "notes": "Synthetic frozen relationship inventory; counts are illustrative and not field measurements."
+      },
+      {
+        "family": "source_evidence",
+        "required": true,
+        "status": "complete",
+        "source_ids": [
+          "source-artifacts",
+          "source-evidence"
+        ],
+        "expected_relationship_count": 3,
+        "observed_relationship_count": 3,
+        "unresolved_count": 0,
+        "unsupported_count": 0,
+        "mapping_rule_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+        "coverage_evidence_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+        "notes": "Synthetic frozen relationship inventory; counts are illustrative and not field measurements."
+      },
+      {
+        "family": "solver_inputs",
+        "required": true,
+        "status": "complete",
+        "source_ids": [
+          "source-solvers",
+          "source-artifacts"
+        ],
+        "expected_relationship_count": 2,
+        "observed_relationship_count": 2,
+        "unresolved_count": 0,
+        "unsupported_count": 0,
+        "mapping_rule_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+        "coverage_evidence_sha256": "4444444444444444444444444444444444444444444444444444444444444444",
+        "notes": "Synthetic frozen relationship inventory; counts are illustrative and not field measurements."
+      },
+      {
+        "family": "solver_assumptions",
+        "required": true,
+        "status": "complete",
+        "source_ids": [
+          "source-solvers",
+          "source-evidence"
+        ],
+        "expected_relationship_count": 1,
+        "observed_relationship_count": 1,
+        "unresolved_count": 0,
+        "unsupported_count": 0,
+        "mapping_rule_sha256": "4444444444444444444444444444444444444444444444444444444444444444",
+        "coverage_evidence_sha256": "5555555555555555555555555555555555555555555555555555555555555555",
+        "notes": "Synthetic frozen relationship inventory; counts are illustrative and not field measurements."
+      },
+      {
+        "family": "decision_authority",
+        "required": true,
+        "status": "complete",
+        "source_ids": [
+          "source-authority",
+          "source-evidence"
+        ],
+        "expected_relationship_count": 1,
+        "observed_relationship_count": 1,
+        "unresolved_count": 0,
+        "unsupported_count": 0,
+        "mapping_rule_sha256": "5555555555555555555555555555555555555555555555555555555555555555",
+        "coverage_evidence_sha256": "6666666666666666666666666666666666666666666666666666666666666666",
+        "notes": "Synthetic frozen relationship inventory; counts are illustrative and not field measurements."
+      },
+      {
+        "family": "requirement_and_specification",
+        "required": true,
+        "status": "complete",
+        "source_ids": [
+          "source-artifacts",
+          "source-evidence"
+        ],
+        "expected_relationship_count": 1,
+        "observed_relationship_count": 1,
+        "unresolved_count": 0,
+        "unsupported_count": 0,
+        "mapping_rule_sha256": "6666666666666666666666666666666666666666666666666666666666666666",
+        "coverage_evidence_sha256": "7777777777777777777777777777777777777777777777777777777777777777",
+        "notes": "Synthetic frozen relationship inventory; counts are illustrative and not field measurements."
+      }
+    ],
+    "edge_provenance": [
+      {
+        "edge_id": "edge-artifact_lineage-1",
+        "family": "artifact_lineage",
+        "from_native_key": "synthetic:artifact_lineage:from:1",
+        "to_native_key": "synthetic:artifact_lineage:to:1",
+        "source_id": "source-artifacts",
+        "source_relationship_id": "rel-artifact_lineage-1",
+        "source_snapshot_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "extraction_build_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "mapping_rule_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+        "mapping_disposition": "exact_native_relationship",
+        "mapping_notes": "Fixture-only direct relationship mapping."
+      },
+      {
+        "edge_id": "edge-artifact_lineage-2",
+        "family": "artifact_lineage",
+        "from_native_key": "synthetic:artifact_lineage:from:2",
+        "to_native_key": "synthetic:artifact_lineage:to:2",
+        "source_id": "source-artifacts",
+        "source_relationship_id": "rel-artifact_lineage-2",
+        "source_snapshot_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "extraction_build_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "mapping_rule_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+        "mapping_disposition": "exact_native_relationship",
+        "mapping_notes": "Fixture-only direct relationship mapping."
+      },
+      {
+        "edge_id": "edge-source_evidence-1",
+        "family": "source_evidence",
+        "from_native_key": "synthetic:source_evidence:from:1",
+        "to_native_key": "synthetic:source_evidence:to:1",
+        "source_id": "source-artifacts",
+        "source_relationship_id": "rel-source_evidence-1",
+        "source_snapshot_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "extraction_build_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "mapping_rule_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+        "mapping_disposition": "exact_native_relationship",
+        "mapping_notes": "Fixture-only direct relationship mapping."
+      },
+      {
+        "edge_id": "edge-source_evidence-2",
+        "family": "source_evidence",
+        "from_native_key": "synthetic:source_evidence:from:2",
+        "to_native_key": "synthetic:source_evidence:to:2",
+        "source_id": "source-evidence",
+        "source_relationship_id": "rel-source_evidence-2",
+        "source_snapshot_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "extraction_build_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "mapping_rule_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+        "mapping_disposition": "exact_native_relationship",
+        "mapping_notes": "Fixture-only direct relationship mapping."
+      },
+      {
+        "edge_id": "edge-source_evidence-3",
+        "family": "source_evidence",
+        "from_native_key": "synthetic:source_evidence:from:3",
+        "to_native_key": "synthetic:source_evidence:to:3",
+        "source_id": "source-artifacts",
+        "source_relationship_id": "rel-source_evidence-3",
+        "source_snapshot_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "extraction_build_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "mapping_rule_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+        "mapping_disposition": "exact_native_relationship",
+        "mapping_notes": "Fixture-only direct relationship mapping."
+      },
+      {
+        "edge_id": "edge-solver_inputs-1",
+        "family": "solver_inputs",
+        "from_native_key": "synthetic:solver_inputs:from:1",
+        "to_native_key": "synthetic:solver_inputs:to:1",
+        "source_id": "source-solvers",
+        "source_relationship_id": "rel-solver_inputs-1",
+        "source_snapshot_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "extraction_build_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "mapping_rule_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+        "mapping_disposition": "exact_native_relationship",
+        "mapping_notes": "Fixture-only direct relationship mapping."
+      },
+      {
+        "edge_id": "edge-solver_inputs-2",
+        "family": "solver_inputs",
+        "from_native_key": "synthetic:solver_inputs:from:2",
+        "to_native_key": "synthetic:solver_inputs:to:2",
+        "source_id": "source-artifacts",
+        "source_relationship_id": "rel-solver_inputs-2",
+        "source_snapshot_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "extraction_build_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "mapping_rule_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+        "mapping_disposition": "exact_native_relationship",
+        "mapping_notes": "Fixture-only direct relationship mapping."
+      },
+      {
+        "edge_id": "edge-solver_assumptions-1",
+        "family": "solver_assumptions",
+        "from_native_key": "synthetic:solver_assumptions:from:1",
+        "to_native_key": "synthetic:solver_assumptions:to:1",
+        "source_id": "source-solvers",
+        "source_relationship_id": "rel-solver_assumptions-1",
+        "source_snapshot_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "extraction_build_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "mapping_rule_sha256": "4444444444444444444444444444444444444444444444444444444444444444",
+        "mapping_disposition": "exact_native_relationship",
+        "mapping_notes": "Fixture-only direct relationship mapping."
+      },
+      {
+        "edge_id": "edge-decision_authority-1",
+        "family": "decision_authority",
+        "from_native_key": "synthetic:decision_authority:from:1",
+        "to_native_key": "synthetic:decision_authority:to:1",
+        "source_id": "source-authority",
+        "source_relationship_id": "rel-decision_authority-1",
+        "source_snapshot_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "extraction_build_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "mapping_rule_sha256": "5555555555555555555555555555555555555555555555555555555555555555",
+        "mapping_disposition": "exact_native_relationship",
+        "mapping_notes": "Fixture-only direct relationship mapping."
+      },
+      {
+        "edge_id": "edge-requirement_and_specification-1",
+        "family": "requirement_and_specification",
+        "from_native_key": "synthetic:requirement_and_specification:from:1",
+        "to_native_key": "synthetic:requirement_and_specification:to:1",
+        "source_id": "source-artifacts",
+        "source_relationship_id": "rel-requirement_and_specification-1",
+        "source_snapshot_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "extraction_build_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "mapping_rule_sha256": "6666666666666666666666666666666666666666666666666666666666666666",
+        "mapping_disposition": "exact_native_relationship",
+        "mapping_notes": "Fixture-only direct relationship mapping."
+      }
+    ],
+    "absence_assertions": [
+      {
+        "assertion_id": "absence-no-open-hold-001",
+        "predicate": "No open hold record exists for the declared synthetic pavilion case in this snapshot.",
+        "source_id": "source-authority",
+        "source_snapshot_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "query_sha256": "7777777777777777777777777777777777777777777777777777777777777777",
+        "scope_description": "All hold records for pavilion-001 in the authority registry snapshot-d.",
+        "checked_at": "2026-11-03T08:02:00Z",
+        "valid_until": "2026-11-03T12:00:00Z",
+        "enumeration_complete": true,
+        "pagination_complete": true,
+        "result_count": 0,
+        "source_completeness_proof_sha256": "8888888888888888888888888888888888888888888888888888888888888888"
+      }
+    ],
+    "completeness_basis": {
+      "method": "independent_source_inventory",
+      "source_inventory_sha256": "9999999999999999999999999999999999999999999999999999999999999999",
+      "dependency_profile_sha256": "6666666666666666666666666666666666666666666666666666666666666666",
+      "boundary_statement": "Coverage is asserted only for pavilion-001, the two named design revisions, the synthetic jurisdiction, the six required dependency families, and the listed source snapshots.",
+      "limitations": [
+        "All source records and identities are synthetic.",
+        "The declared profile excludes material custody, survey control, utilities, permits, verifier policy and trust roots.",
+        "This fixture does not establish that the profile covers all dependencies required by a real engineering discipline or jurisdiction."
+      ]
+    },
+    "independent_review": {
+      "status": "accepted_for_declared_scope",
+      "reviewer_id": "synthetic-independent-reviewer",
+      "review_scope_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "review_evidence_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "reviewed_at": "2026-11-03T08:10:00Z"
+    },
+    "evaluated_at": "2026-11-03T08:12:00Z",
+    "disposition": "complete_for_declared_scope",
+    "claim_ceiling": "coverage_only",
+    "action_authority": "none"
+  },
+  "expected": {
+    "disposition": "complete_for_declared_scope",
+    "eligible_to_support_no_impact_within_declared_scope": true,
+    "not_a_real_world_completeness_claim": true,
+    "action_authority": "none"
+  }
+}

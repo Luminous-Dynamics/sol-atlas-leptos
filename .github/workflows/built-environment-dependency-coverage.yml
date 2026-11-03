@@ -1,0 +1,173 @@
+name: Built-environment dependency coverage contract
+
+on:
+  pull_request:
+    paths:
+      - "schemas/built-environment-dependency-coverage-v0.1.schema.json"
+      - "schemas/examples/built-environment-dependency-coverage-complete-synthetic-v0.1.json"
+      - "docs/research/BUILT_ENVIRONMENT_DEPENDENCY_COVERAGE_V0.1.md"
+      - ".github/workflows/built-environment-dependency-coverage.yml"
+  push:
+    branches:
+      - main
+      - research/built-environment-dependency-coverage-v0-1
+    paths:
+      - "schemas/built-environment-dependency-coverage-v0.1.schema.json"
+      - "schemas/examples/built-environment-dependency-coverage-complete-synthetic-v0.1.json"
+      - "docs/research/BUILT_ENVIRONMENT_DEPENDENCY_COVERAGE_V0.1.md"
+      - ".github/workflows/built-environment-dependency-coverage.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: built-environment-coverage-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  coverage-contract:
+    name: Exact-head schema, fixture and fail-closed mutations
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Assert exact source revision
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+
+      - name: Install pinned Draft 2020-12 validator
+        run: cargo install --locked jsonschema-cli --version 0.60.2 --root "$RUNNER_TEMP/jsonschema-cli"
+
+      - name: Add validator to PATH
+        run: echo "$RUNNER_TEMP/jsonschema-cli/bin" >> "$GITHUB_PATH"
+
+      - name: Validate schema and positive fixture
+        run: |
+          set -euo pipefail
+          schema=schemas/built-environment-dependency-coverage-v0.1.schema.json
+          fixture=schemas/examples/built-environment-dependency-coverage-complete-synthetic-v0.1.json
+          meta=https://json-schema.org/draft/2020-12/schema
+          meta_schema="$RUNNER_TEMP/draft-2020-12-meta-schema.json"
+          curl --fail --location --retry 5 --retry-connrefused "$meta" -o "$meta_schema"
+          jsonschema-cli validate --draft 2020 --assert-format "$meta_schema" -i "$schema"
+          jq -e '.coverage_manifest' "$fixture" > "$RUNNER_TEMP/coverage-manifest.json"
+          jsonschema-cli validate --draft 2020 --assert-format --offline "$schema" -i "$RUNNER_TEMP/coverage-manifest.json"
+          jq -e '
+            .disposition == "complete_for_declared_scope" and
+            .claim_ceiling == "coverage_only" and
+            .action_authority == "none" and
+            (([.relationship_coverage[] | select(.required == true and .status == "complete")] | length)) == (.coverage_profile.required_dependency_families | length)
+          ' "$RUNNER_TEMP/coverage-manifest.json"
+
+          required_families="$(jq -c '.coverage_profile.required_dependency_families | sort' "$RUNNER_TEMP/coverage-manifest.json")"
+          observed_families="$(jq -c '[.relationship_coverage[] | select(.required == true) | .family] | sort' "$RUNNER_TEMP/coverage-manifest.json")"
+          test "$required_families" = "$observed_families"
+
+          jq -e '
+            ([.source_inventory[].source_id] | unique | length) == (.source_inventory | length) and
+            ([.relationship_coverage[].family] | unique | length) == (.relationship_coverage | length) and
+            ([.edge_provenance[].edge_id] | unique | length) == (.edge_provenance | length) and
+            ((.coverage_profile.required_dependency_families - .coverage_profile.excluded_dependency_families) | length) == (.coverage_profile.required_dependency_families | length) and
+            ([.relationship_coverage[] | select(.status == "complete" and .expected_relationship_count != .observed_relationship_count)] | length) == 0
+          ' "$RUNNER_TEMP/coverage-manifest.json"
+
+          jq -e '
+            [.edge_provenance[] as $edge |
+              [.source_inventory[] | select(.source_id == $edge.source_id and .snapshot_sha256 == $edge.source_snapshot_sha256 and .extraction.adapter_build_sha256 == $edge.extraction_build_sha256)] | length == 1
+            ] | all
+          ' "$RUNNER_TEMP/coverage-manifest.json"
+
+          jq -e '
+            [.source_inventory[] | select(.completeness.total_record_count != null) |
+              select(.completeness.total_record_count != .completeness.returned_record_count)] | length == 0
+          ' "$RUNNER_TEMP/coverage-manifest.json"
+
+          jq -e '
+            . as $manifest |
+            ([ $manifest.relationship_coverage[] as $family |
+              select($family.status == "complete") |
+              select(([ $manifest.edge_provenance[] | select(.family == $family.family) ] | length) != $family.observed_relationship_count)
+            ] | length) == 0
+          ' "$RUNNER_TEMP/coverage-manifest.json"
+
+          jq -e '
+            . as $manifest |
+            ([ $manifest.relationship_coverage[] as $family |
+              $family.source_ids[] as $source_id |
+              select(([ $manifest.source_inventory[] | select(.source_id == $source_id) ] | length) != 1)
+            ] | length) == 0
+          ' "$RUNNER_TEMP/coverage-manifest.json"
+
+          jq -e '
+            [.absence_assertions[] as $assertion |
+              [.source_inventory[] | select(.source_id == $assertion.source_id and .snapshot_sha256 == $assertion.source_snapshot_sha256)] | length == 1
+            ] | all
+          ' "$RUNNER_TEMP/coverage-manifest.json"
+
+      - name: Reject required-family incompleteness in a complete declaration
+        run: |
+          set -euo pipefail
+          source=schemas/examples/built-environment-dependency-coverage-complete-synthetic-v0.1.json
+          schema=schemas/built-environment-dependency-coverage-v0.1.schema.json
+          jq '.coverage_manifest.relationship_coverage[0].status = "partial"' "$source" | jq '.coverage_manifest' > "$RUNNER_TEMP/partial-family.json"
+          if jsonschema-cli validate --draft 2020 --assert-format --offline "$schema" -i "$RUNNER_TEMP/partial-family.json"; then
+            echo "ERROR: complete coverage accepted a partial required dependency family"
+            exit 1
+          fi
+
+      - name: Reject incomplete sources or unreviewed coverage promoted to complete
+        run: |
+          set -euo pipefail
+          source=schemas/examples/built-environment-dependency-coverage-complete-synthetic-v0.1.json
+          schema=schemas/built-environment-dependency-coverage-v0.1.schema.json
+          jq '.coverage_manifest.source_inventory[0].access_state = "unavailable" | .coverage_manifest' "$source" > "$RUNNER_TEMP/unavailable-source.json"
+          jq '.coverage_manifest.independent_review.status = "not_reviewed" | .coverage_manifest' "$source" > "$RUNNER_TEMP/unreviewed.json"
+          for mutant in "$RUNNER_TEMP/unavailable-source.json" "$RUNNER_TEMP/unreviewed.json"; do
+            if jsonschema-cli validate --draft 2020 --assert-format --offline "$schema" -i "$mutant"; then
+              echo "ERROR: complete coverage accepted unavailable or unreviewed evidence"
+              exit 1
+            fi
+          done
+
+      - name: Reject rights escalation and duplicate/incomplete coverage bindings
+        run: |
+          set -euo pipefail
+          source=schemas/examples/built-environment-dependency-coverage-complete-synthetic-v0.1.json
+          schema=schemas/built-environment-dependency-coverage-v0.1.schema.json
+          jq '.coverage_manifest.source_inventory[0].rights_state = "unknown" | .coverage_manifest' "$source" > "$RUNNER_TEMP/unknown-rights-with-use.json"
+          if jsonschema-cli validate --draft 2020 --assert-format --offline "$schema" -i "$RUNNER_TEMP/unknown-rights-with-use.json"; then
+            echo "ERROR: unknown source rights retained permitted uses"
+            exit 1
+          fi
+          jq '.coverage_manifest.coverage_profile.excluded_dependency_families += ["artifact_lineage"] | .coverage_manifest' "$source" > "$RUNNER_TEMP/family-overlap.json"
+          if jq -e '((.coverage_profile.required_dependency_families - .coverage_profile.excluded_dependency_families) | length) == (.coverage_profile.required_dependency_families | length)' "$RUNNER_TEMP/family-overlap.json"; then
+            echo "ERROR: dependency family is both required and excluded"
+            exit 1
+          fi
+          jq '.coverage_manifest.edge_provenance |= .[1:] | .coverage_manifest' "$source" > "$RUNNER_TEMP/missing-edge.json"
+          if jq -e '
+            . as $manifest |
+            ([ $manifest.relationship_coverage[] as $family |
+              select($family.status == "complete") |
+              select(([ $manifest.edge_provenance[] | select(.family == $family.family) ] | length) != $family.observed_relationship_count)
+            ] | length) == 0
+          ' "$RUNNER_TEMP/missing-edge.json"; then
+            echo "ERROR: complete family accepted after an edge was removed"
+            exit 1
+          fi
+
+      - name: Reject unsupported proof of absence
+        run: |
+          set -euo pipefail
+          source=schemas/examples/built-environment-dependency-coverage-complete-synthetic-v0.1.json
+          schema=schemas/built-environment-dependency-coverage-v0.1.schema.json
+          jq '(.coverage_manifest.absence_assertions[0].pagination_complete) = false | .coverage_manifest' "$source" > "$RUNNER_TEMP/partial-absence-enumeration.json"
+          if jsonschema-cli validate --draft 2020 --assert-format --offline "$schema" -i "$RUNNER_TEMP/partial-absence-enumeration.json"; then
+            echo "ERROR: zero-result absence accepted without complete enumeration"
+            exit 1
+          fi
