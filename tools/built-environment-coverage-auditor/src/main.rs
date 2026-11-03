@@ -190,7 +190,10 @@ fn get_bool(value: &Value, key: &str) -> Option<bool> {
 
 fn is_sha256(value: Option<&str>) -> bool {
     value.is_some_and(|digest| {
-        digest.len() == 64 && digest.bytes().all(|byte| byte.is_ascii_hexdigit())
+        digest.len() == 64
+            && digest
+                .bytes()
+                .all(|byte| byte.is_ascii_hexdigit() && !byte.is_ascii_uppercase())
     })
 }
 
