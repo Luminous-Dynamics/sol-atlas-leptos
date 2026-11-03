@@ -13,6 +13,7 @@ on:
       - "schemas/industry-assurance-impact-delta-batch-v0.1.schema.json"
       - "schemas/industry-assurance-impact-state-pin-v0.1.schema.json"
       - "schemas/industry-assurance-impact-delta-v0.1.schema.json"
+      - "schemas/industry-assurance-impact-delta-benchmark-v0.1.schema.json"
       - "schemas/examples/ieac-trust-lifecycle-key-compromise-synthetic-v0.1.json"
       - "docs/industry/IEAC_TRUST_LIFECYCLE_V0.1.md"
       - ".github/workflows/industry-trust-lifecycle.yml"
@@ -29,6 +30,7 @@ on:
       - "schemas/industry-assurance-impact-state-pin-v0.1.schema.json"
       - "schemas/industry-assurance-impact-delta-batch-v0.1.schema.json"
       - "schemas/industry-assurance-impact-delta-input-v0.1.schema.json"
+      - "schemas/industry-assurance-impact-delta-benchmark-v0.1.schema.json"
       - "schemas/examples/ieac-impact-delta-source-correction-synthetic-v0.1.json"
       - "docs/industry/IEAC_IMPACT_DELTA_V0.1.md"
       - "schemas/examples/ieac-trust-lifecycle-key-compromise-synthetic-v0.1.json"
@@ -300,6 +302,31 @@ jobs:
             .next_state_pin.impact_state_sha256 == $generated[0].next_state_pin.impact_state_sha256 and
             .deltas == $generated[0].deltas
           ' "$RUNNER_TEMP/verified-delta-batch.json"
+
+      - name: Run matched full-recompute versus sparse-delta smoke benchmark
+        shell: bash
+        run: |
+          set -euo pipefail
+          report="$RUNNER_TEMP/impact-delta-benchmark-smoke.json"
+          cargo run --locked --manifest-path tools/industry-trust-lifecycle-auditor/Cargo.toml --bin industry-impact-delta -- benchmark --smoke "$report"
+          jsonschema-cli validate --draft 2020 --assert-format --offline schemas/industry-assurance-impact-delta-benchmark-v0.1.schema.json -i "$report"
+          jq -e '
+            .classification == "synthetic_only" and
+            .benchmark_mode == "smoke_100_to_10000_nodes" and
+            .case_count == 15 and
+            ([.cases[].graph_node_count] | unique) == [100, 1000, 10000] and
+            ([.cases[].impact_fraction_basis_points] | unique) == [10, 100, 1000, 5000, 8000] and
+            all(.cases[]; .exact_report_digest_agreement == true and .graph_index_build_count == 1 and .state_row_map_initializations == 1 and .full_report_materializations == 1 and .total_closure_node_memberships <= 2000000 and .full_recompute_p50_ns > 0 and .sparse_batch_p50_ns > 0)
+          ' "$report"
+
+      - name: Retain delta benchmark report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ieac-impact-delta-benchmark-${{ github.event.pull_request.head.sha || github.sha }}
+          path: ${{ runner.temp }}/impact-delta-benchmark-smoke.json
+          if-no-files-found: warn
+          retention-days: 30
 
       - name: Reject stale-base and backdated-event delta inputs
         shell: bash
