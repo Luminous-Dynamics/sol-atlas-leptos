@@ -257,7 +257,8 @@ jobs:
             .resulting_event_sequence == 2 and
             .resulting_impact_report_sha256 == .next_state_pin.impact_report_sha256 and
             .next_state_pin.impact_state_sha256 == .deltas[0].resulting_state_sha256 and
-            .deltas[0].base_state_sha256 == .deltas[0].base_state_sha256 and
+            (.deltas[0].base_state_sha256 | test("^[0-9a-f]{64}$")) and
+            (.deltas[0].resulting_state_sha256 | test("^[0-9a-f]{64}$")) and
             .resulting_event_chain_head_sha256 == .next_state_pin.event_chain_head_sha256 and
             .deltas[0].closure_complete == true and
             .deltas[0].affected_node_count > 0 and
