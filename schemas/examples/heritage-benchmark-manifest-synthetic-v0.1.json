@@ -1,0 +1,46 @@
+{
+  "schema_version": "luminous.heritage-benchmark-manifest.v0.1",
+  "benchmark_id": "HDB-GLOBAL-SYNTHETIC",
+  "benchmark_version": "0.1.0",
+  "task_id": "HDB-3",
+  "created_at": "2026-11-02T10:00:00Z",
+  "dataset_inventory_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "split_protocol": "held_out_site",
+  "splits": [
+    {
+      "split_id": "synthetic-held-out-site-v1",
+      "train_site_ids": [
+        "synthetic-site-a"
+      ],
+      "validation_site_ids": [
+        "synthetic-site-b"
+      ],
+      "test_site_ids": [
+        "synthetic-site-c"
+      ],
+      "spatial_buffer_m": 500,
+      "estimated_spatial_dependence_m": 250,
+      "split_manifest_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    }
+  ],
+  "evaluation": {
+    "primary_metric": "validated_candidates_per_analyst_hour_at_fixed_precision_floor",
+    "review_budget": {
+      "unit": "analyst_hours",
+      "limit": 4
+    },
+    "metrics": [
+      "precision_at_budget",
+      "recall_at_budget",
+      "false_candidates_per_km2",
+      "brier_score",
+      "site_level_bootstrap_interval"
+    ],
+    "confidence_interval_method": "site_level_bootstrap",
+    "bootstrap_unit": "site",
+    "blind_labels": true,
+    "evaluation_code_revision": "synthetic-commit",
+    "environment_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+  },
+  "notes": "Entirely synthetic fixture. Site identifiers and coordinates are fictional."
+}
