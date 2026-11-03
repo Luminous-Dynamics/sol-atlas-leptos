@@ -899,7 +899,7 @@ pub fn project_built_environment_case(
         let node = match make_node(NodeProjection {
             node_type: "source_evidence",
             identity_namespace: &identity_namespace,
-            components: components,
+            components,
             payload_sha256: payload_sha,
             artifact_media_type: "application/octet-stream",
             schema_version: SOURCE_SCHEMA_UNKNOWN,
@@ -1014,7 +1014,7 @@ pub fn project_built_environment_case(
         let node = match make_node(NodeProjection {
             node_type: "engineering_artifact",
             identity_namespace: &identity_namespace,
-            components: components,
+            components,
             payload_sha256: &artifact.content_sha256,
             artifact_media_type: "application/octet-stream",
             schema_version: SOURCE_SCHEMA_UNKNOWN,
@@ -1105,7 +1105,7 @@ pub fn project_built_environment_case(
         let node = match make_node(NodeProjection {
             node_type: "engineering_receipt",
             identity_namespace: &identity_namespace,
-            components: components,
+            components,
             payload_sha256: &payload_sha,
             artifact_media_type: "application/vnd.luminous.engineering-receipt+json",
             schema_version: "luminous.sol-atlas.engineering-receipt-struct.v0.1",
@@ -1202,7 +1202,7 @@ pub fn project_built_environment_case(
         let node = match make_node(NodeProjection {
             node_type: "decision",
             identity_namespace: &identity_namespace,
-            components: components,
+            components,
             payload_sha256: &payload_sha,
             artifact_media_type: "application/vnd.luminous.engineering-decision+json",
             schema_version: "luminous.sol-atlas.engineering-decision-struct.v0.1",
