@@ -80,7 +80,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     };
 
     let output = project_built_environment_case(&case, &context);
-    if output.disposition != ProjectionDisposition::CompleteForDeclaredScope {
+    if output.disposition != ProjectionDisposition::ProjectedWithoutKnownLoss {
         return Err(format!(
             "synthetic projector fixture did not reconcile: {}",
             serde_json::to_string(&output.projection_receipt)?
