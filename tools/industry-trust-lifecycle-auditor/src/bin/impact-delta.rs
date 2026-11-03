@@ -356,7 +356,7 @@ fn validate_state_pin(
     index: &GraphIndex,
     base_report: &Value,
     pin: &Value,
-) -> Result<(), String> {
+) -> Result<BTreeMap<String, Value>, String> {
     if pin.get("schema_version").and_then(Value::as_str) != Some(STATE_PIN_SCHEMA) {
         return Err("base state pin has an unsupported schema version".into());
     }
@@ -408,8 +408,42 @@ fn validate_state_pin(
     {
         return Err("base state pin claim ceiling or storage semantics are invalid".into());
     }
-    let _ = report_rows(base_report, index)?;
-    Ok(())
+    let state_sha256 = required_string(pin, "impact_state_sha256", "base state pin")?;
+    if !valid_sha256(state_sha256) {
+        return Err("base state pin has an invalid impact-state digest".into());
+    }
+    let rows = report_rows(base_report, index)?;
+    if sequence == 1 && initial_state_digest(base_report)? != state_sha256 {
+        return Err("genesis state pin does not match the canonical initial report state".into());
+    }
+    Ok(rows)
+}
+
+fn initial_state_digest(report: &Value) -> Result<String, String> {
+    let report_sha = canonical_json_digest(report)?;
+    canonical_json_digest(&json!({
+        "schema_version": "luminous.ieac-assurance-impact-state-root.v0.1",
+        "genesis_report_sha256": report_sha
+    }))
+}
+
+fn next_state_digest(
+    base_state_sha256: &str,
+    event_sha256: &str,
+    event_sequence: u64,
+    updates: &[Value],
+) -> Result<String, String> {
+    if !valid_sha256(base_state_sha256) || !valid_sha256(event_sha256) {
+        return Err("state transition requires valid base-state and event digests".into());
+    }
+    let updates_sha256 = canonical_json_digest(&Value::Array(updates.to_vec()))?;
+    canonical_json_digest(&json!({
+        "schema_version": "luminous.ieac-assurance-impact-state-transition.v0.1",
+        "base_state_sha256": base_state_sha256,
+        "event_sha256": event_sha256,
+        "event_sequence": event_sequence,
+        "updates_sha256": updates_sha256
+    }))
 }
 
 fn make_state_pin(
@@ -419,9 +453,10 @@ fn make_state_pin(
     event_head: &str,
     last_recorded_at: &str,
     last_trusted_at: &str,
+    state_sha256: &str,
 ) -> Result<Value, String> {
-    if sequence == 0 || !valid_sha256(event_head) {
-        return Err("state pin requires a positive sequence and lowercase SHA-256 event head".into());
+    if sequence == 0 || !valid_sha256(event_head) || !valid_sha256(state_sha256) {
+        return Err("state pin requires a positive sequence and valid lowercase SHA-256 digests".into());
     }
     if report.get("invalidation_event_sha256").and_then(Value::as_str) != Some(event_head) {
         return Err("state pin event head differs from report invalidation digest".into());
@@ -440,6 +475,7 @@ fn make_state_pin(
         "schema_version": STATE_PIN_SCHEMA,
         "graph_snapshot_sha256": index.graph_snapshot_sha256,
         "impact_report_sha256": report_sha,
+        "impact_state_sha256": state_sha256,
         "last_event_sequence": sequence,
         "event_chain_head_sha256": event_head,
         "last_recorded_at": last_recorded_at,
@@ -458,6 +494,47 @@ struct Transition {
     delta: Value,
     report: Value,
     state_pin: Value,
+}
+
+#[derive(Clone, Debug)]
+struct EventCursor {
+    sequence: u64,
+    event_head_sha256: String,
+    last_recorded_at: String,
+    last_trusted_at: String,
+    pinned_at: String,
+    state_sha256: String,
+}
+
+fn cursor_from_pin(pin: &Value) -> Result<EventCursor, String> {
+    Ok(EventCursor {
+        sequence: pin["last_event_sequence"]
+            .as_u64()
+            .ok_or("state pin sequence is missing")?,
+        event_head_sha256: required_string(pin, "event_chain_head_sha256", "state pin")?.to_owned(),
+        last_recorded_at: required_string(pin, "last_recorded_at", "state pin")?.to_owned(),
+        last_trusted_at: required_string(pin, "last_trusted_at", "state pin")?.to_owned(),
+        pinned_at: required_string(pin, "pinned_at", "state pin")?.to_owned(),
+        state_sha256: required_string(pin, "impact_state_sha256", "state pin")?.to_owned(),
+    })
+}
+
+fn materialize_report(
+    base_report: &Value,
+    rows: &BTreeMap<String, Value>,
+    final_event: &Value,
+    evaluated_at: &str,
+) -> Result<Value, String> {
+    let mut report = base_report.clone();
+    report["report_id"] = json!(format!(
+        "impact-{}",
+        required_string(final_event, "event_id", "final event")?
+    ));
+    report["invalidation_event_sha256"] = json!(canonical_json_digest(final_event)?);
+    report["evaluated_at"] = json!(evaluated_at);
+    report["results"] = json!(rows.values().cloned().collect::<Vec<_>>());
+    report["summary"] = summarize_rows(rows);
+    Ok(report)
 }
 
 fn compute_transition(
