@@ -1117,7 +1117,20 @@ fn full_recompute_batch_reference(
         .get("events")
         .and_then(Value::as_array)
         .ok_or("benchmark events array missing")?;
-    let mut rows = report_rows(base_report, &GraphIndex::build(graph)?)?;
+    let mut rows = BTreeMap::new();
+    for row in base_report
+        .get("results")
+        .and_then(Value::as_array)
+        .ok_or("benchmark base report results missing")?
+    {
+        let node_id = required_string(row, "node_id", "benchmark base row")?;
+        if rows.insert(node_id.to_owned(), row.clone()).is_some() {
+            return Err(format!("duplicate benchmark base row {node_id}"));
+        }
+    }
+    if rows.len() != nodes.len() {
+        return Err("benchmark base report does not cover the exact graph node set".into());
+    }
     for event in events {
         let full_event_report =
             lifecycle::build_impact_report(graph, event, metadata, &nodes)?;
@@ -1280,6 +1293,28 @@ fn run_delta_benchmark(smoke: bool) -> Result<Value, String> {
 }
 fn main() -> ExitCode {
     let args: Vec<String> = env::args().skip(1).collect();
+    if args.first().is_some_and(|item| item == "benchmark") {
+        let (smoke, output_arg) = match args.as_slice() {
+            [_, output] => (false, output.as_str()),
+            [_, mode, output] if mode == "--smoke" => (true, output.as_str()),
+            _ => {
+                eprintln!("usage: industry-impact-delta benchmark [--smoke] <new-report.json>");
+                return ExitCode::from(4);
+            }
+        };
+        let result = (|| {
+            let report = run_delta_benchmark(smoke)?;
+            write_new(Path::new(output_arg), &report)
+        })();
+        return match result {
+            Ok(()) => ExitCode::SUCCESS,
+            Err(error) => {
+                eprintln!("impact delta benchmark failed closed: {error}");
+                ExitCode::from(2)
+            }
+        };
+    }
+
     if args.first().is_some_and(|item| item == "verify-batch") {
         if args.len() != 7 {
             eprintln!("usage: industry-impact-delta verify-batch <graph.json> <base-report.json> <base-pin.json> <delta-input.json> <received-batch.json> <new-verified-result.json>");
@@ -1397,7 +1432,7 @@ fn main() -> ExitCode {
     }
 
     if args.len() != 5 {
-        eprintln!("usage: industry-impact-delta <graph.json> <base-report.json> <base-pin.json> <delta-input.json> <new-batch-result.json> (or subcommands: verify-batch, apply, pin)");
+        eprintln!("usage: industry-impact-delta <graph.json> <base-report.json> <base-pin.json> <delta-input.json> <new-batch-result.json> (or subcommands: benchmark, verify-batch, apply, pin)");
         return ExitCode::from(4);
     }
     let result = (|| {
