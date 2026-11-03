@@ -264,9 +264,9 @@
               },
               "components": {
                 "type": "array",
-                "minItems": 1,
+                "minItems": 2,
                 "maxItems": 32,
-                "description": "Unique named native identity components. Runtime canonicalizes by ASCII component name before hashing; string values are preserved byte-for-byte as UTF-8.",
+                "description": "At least native_id plus one native record, revision, sequence, or observation discriminator. Runtime canonicalizes by ASCII component name before hashing; duplicate names reject and values remain byte-exact UTF-8.",
                 "items": {
                   "type": "object",
                   "additionalProperties": false,
