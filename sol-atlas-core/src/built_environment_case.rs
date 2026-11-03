@@ -376,37 +376,52 @@ fn duplicates<'a>(values: impl IntoIterator<Item = &'a str>) -> BTreeSet<String>
 }
 
 fn has_dependency_cycle(artifacts: &BTreeMap<String, &ArtifactRecord>) -> bool {
-    fn visit(
-        id: &str,
-        artifacts: &BTreeMap<String, &ArtifactRecord>,
-        visiting: &mut BTreeSet<String>,
-        visited: &mut BTreeSet<String>,
-    ) -> bool {
-        if visited.contains(id) {
-            return false;
+    // Kahn's topological pass avoids recursive DFS stack growth on large,
+    // source-controlled artifact graphs. Missing parents are reported by the
+    // caller and are deliberately excluded from this cycle-only calculation.
+    let mut in_degree: BTreeMap<String, usize> = artifacts
+        .keys()
+        .map(|artifact_id| (artifact_id.clone(), 0))
+        .collect();
+    let mut children_by_parent = BTreeMap::<String, Vec<String>>::new();
+
+    for (child_id, artifact) in artifacts {
+        for parent in &artifact.parent_artifacts {
+            if artifacts.contains_key(&parent.artifact_id) {
+                if let Some(degree) = in_degree.get_mut(child_id) {
+                    *degree = degree.saturating_add(1);
+                }
+                children_by_parent
+                    .entry(parent.artifact_id.clone())
+                    .or_default()
+                    .push(child_id.clone());
+            }
         }
-        if !visiting.insert(id.to_owned()) {
-            return true;
-        }
-        if let Some(artifact) = artifacts.get(id) {
-            for parent in &artifact.parent_artifacts {
-                if artifacts.contains_key(&parent.artifact_id)
-                    && visit(&parent.artifact_id, artifacts, visiting, visited)
-                {
-                    return true;
+    }
+
+    let mut ready = in_degree
+        .iter()
+        .filter_map(|(artifact_id, degree)| {
+            (*degree == 0).then_some(artifact_id.clone())
+        })
+        .collect::<BTreeSet<_>>();
+    let mut visited_count = 0usize;
+
+    while let Some(artifact_id) = ready.pop_first() {
+        visited_count = visited_count.saturating_add(1);
+        if let Some(children) = children_by_parent.get(&artifact_id) {
+            for child_id in children {
+                if let Some(degree) = in_degree.get_mut(child_id) {
+                    *degree = degree.saturating_sub(1);
+                    if *degree == 0 {
+                        ready.insert(child_id.clone());
+                    }
                 }
             }
         }
-        visiting.remove(id);
-        visited.insert(id.to_owned());
-        false
     }
 
-    let mut visiting = BTreeSet::new();
-    let mut visited = BTreeSet::new();
-    artifacts
-        .keys()
-        .any(|id| visit(id, artifacts, &mut visiting, &mut visited))
+    visited_count != artifacts.len()
 }
 
 fn accepted_evidence<'a>(
@@ -2040,6 +2055,35 @@ mod tests {
                 .iter()
                 .any(|issue| issue.code == ValidationCode::ApprovalHasConditions)
         );
+    }
+
+    #[test]
+    fn cycle_detection_is_iterative_for_deep_artifact_chains() {
+        let node_count = 10_000usize;
+        let mut nodes = (0..node_count)
+            .map(|index| artifact(&format!("deep-node-{index:05}"), 1, 'b'))
+            .collect::<Vec<_>>();
+        for index in 1..node_count {
+            nodes[index].parent_artifacts.push(ArtifactReference {
+                artifact_id: format!("deep-node-{:05}", index - 1),
+                content_sha256: digest('b'),
+            });
+        }
+        let acyclic = nodes
+            .iter()
+            .map(|node| (node.artifact_id.clone(), node))
+            .collect::<BTreeMap<_, _>>();
+        assert!(!has_dependency_cycle(&acyclic));
+
+        nodes[0].parent_artifacts.push(ArtifactReference {
+            artifact_id: format!("deep-node-{:05}", node_count - 1),
+            content_sha256: digest('b'),
+        });
+        let cyclic = nodes
+            .iter()
+            .map(|node| (node.artifact_id.clone(), node))
+            .collect::<BTreeMap<_, _>>();
+        assert!(has_dependency_cycle(&cyclic));
     }
 
     #[test]
