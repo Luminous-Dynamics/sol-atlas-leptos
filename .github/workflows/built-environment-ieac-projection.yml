@@ -30,7 +30,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: built-environment-ieac-projection-\${{ github.ref }}
+  group: built-environment-ieac-projection-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -41,11 +41,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: \${{ github.event.pull_request.head.sha || github.sha }}
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
       - name: Assert exact source revision
         env:
-          EXPECTED_SHA: \${{ github.event.pull_request.head.sha || github.sha }}
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         run: test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
 
       - name: Install Rust toolchain
@@ -92,5 +92,13 @@ jobs:
             .claim_ceiling == "incomplete_or_indeterminate" and
             .action_authority == "none" and
             ([.nodes[] | select(.verification.result != "unknown")] | length) == 0 and
-            ([.nodes[] | select(.observation_time.trusted_at != null)] | length) == 0
+            ([.nodes[] | select(.observation_time.trusted_at != null)] | length) == 0 and
+            ([.nodes[].node_id] | unique | length) == (.nodes | length) and
+            ([.edges[].edge_id] | unique | length) == (.edges | length) and
+            ([.edges[] as $edge |
+              select(
+                ([.nodes[].node_id] | index($edge.from_node_id)) == null or
+                ([.nodes[].node_id] | index($edge.to_node_id)) == null
+              )
+            ] | length) == 0
           ' "$RUNNER_TEMP/built-environment-projection-graph.json"
