@@ -10,7 +10,7 @@ use lifecycle::{
     valid_sha256, valid_utc_timestamp, validate_event, validate_graph,
 };
 use serde_json::{Value, json};
-use std::collections::{BTreeMap, BTreeSet, VecDeque};
+use std::collections::{BTreeMap, BTreeSet};
 use std::env;
 use std::fs::{self, OpenOptions};
 use std::io::Read;
@@ -47,6 +47,13 @@ impl GraphIndex {
             sources.sort();
             sources.dedup();
         }
+        for (to, sources) in &reverse {
+            for from in sources {
+                if !forward.get(from).is_some_and(|destinations| destinations.contains(to)) {
+                    return Err("forward/reverse graph index consistency check failed".into());
+                }
+            }
+        }
 
         let graph_snapshot_sha256 =
             required_string(graph, "graph_snapshot_sha256", "graph")?.to_owned();
@@ -56,7 +63,7 @@ impl GraphIndex {
             .map_or(0, Vec::len);
         let index_identity = json!({
             "index_version": "validated-forward-reverse-adjacency-v0.1",
-            "graph_snapshot_sha256": graph_snapshot_sha256,
+            "graph_snapshot_sha256": graph_snapshot_sha256.clone(),
             "node_count": nodes.len(),
             "edge_count": edge_count
         });
@@ -439,27 +446,11 @@ fn compute_transition(
 
     let base_rows = report_rows(base_report, index)?;
     let impacted_rows = build_impacted_results_with_adjacency(
-        // The shared row evaluator uses the graph only to read its exact edge
-        // structure; the validated adjacency index below is reused by the BFS.
-        &json!({
-            "schema_version": GRAPH_SCHEMA,
-            "graph_snapshot_sha256": index.graph_snapshot_sha256,
-            "nodes": index.nodes.values().cloned().collect::<Vec<_>>(),
-            "edges": []
-        }),
         event,
         evaluated_at,
         &index.nodes,
         &index.forward,
-    );
-
-    // The lifecycle row evaluator expects only node identity metadata for its
-    // classifier. The graph argument is therefore deliberately synthetic and
-    // edge-empty here; all actual traversal reads the pinned reusable index.
-    let impacted_rows = match impacted_rows {
-        Ok(rows) => rows,
-        Err(error) => return Err(format!("impact row evaluation failed: {error}")),
-    };
+    )?;
 
     let independently_reached = index.independent_reachable_set(event)?;
     let bfs_reached: BTreeSet<String> = impacted_rows.keys().cloned().collect();
@@ -639,6 +630,8 @@ fn run_batch(
         "graph_index_sha256": index.index_sha256,
         "graph_index_build_count": 1,
         "graph_index_reused_for_events": events.len(),
+        "graph_node_count": index.nodes.len(),
+        "graph_edge_count": index.edge_count,
         "event_count": events.len(),
         "delta_count": deltas.len(),
         "deltas": deltas,
@@ -749,35 +742,23 @@ mod tests {
     }
 
     fn source_correction_event(base_pin: &Value) -> Value {
+        let original = fixture()["invalidation_event"].clone();
         let node_id = "source_measurement:sha256:0202020202020202020202020202020202020202020202020202020202020202";
-        json!({
-            "schema_version": lifecycle::EVENT_SCHEMA,
-            "event_id": "evt-source-correction-002",
-            "authority_sequence": 2,
-            "previous_event_sha256": base_pin["event_chain_head_sha256"],
-            "cause_class": "source_corrected",
-            "invalidation_semantics": "reverification_required",
-            "dispute_state": "undisputed",
-            "valid_time": {
-                "effective_at": "2026-11-02T10:30:00Z",
-                "effective_time_confidence": "verified"
-            },
-            "system_time": {
-                "recorded_at": "2026-11-02T11:00:00Z",
-                "trusted_at": "2026-11-02T11:01:00Z",
-                "trusted_timestamp_receipt_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-            },
-            "scope": {
-                "domains": ["energy"],
-                "subject_pseudonyms": ["case:site-001:asset:alpha"],
-                "purposes": ["runtime_admission_descriptive", "outcome_reconciliation"]
-            },
-            "targets": [{
-                "node_id": node_id,
-                "node_type": "source_measurement",
-                "artifact_sha256": "0202020202020202020202020202020202020202020202020202020202020202"
-            }]
-        })
+        let mut event = original;
+        event["event_id"] = json!("evt-source-correction-002");
+        event["authority_sequence"] = json!(2);
+        event["previous_event_sha256"] = base_pin["event_chain_head_sha256"].clone();
+        event["cause_class"] = json!("source_corrected");
+        event["invalidation_semantics"] = json!("reverify_required");
+        event["valid_time"]["effective_at"] = json!("2026-11-02T10:30:00Z");
+        event["system_time"]["recorded_at"] = json!("2026-11-02T11:00:00Z");
+        event["system_time"]["trusted_at"] = json!("2026-11-02T11:01:00Z");
+        event["targets"] = json!([{
+            "node_id": node_id,
+            "node_type": "source_measurement",
+            "artifact_sha256": "0202020202020202020202020202020202020202020202020202020202020202"
+        }]);
+        event
     }
 
     fn metadata_for_next_event(base: &Value) -> Value {
