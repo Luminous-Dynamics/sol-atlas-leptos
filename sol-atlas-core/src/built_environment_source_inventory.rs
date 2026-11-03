@@ -1041,6 +1041,10 @@ mod tests {
         }
     }
 
+    fn digest_seed(seed: u64) -> String {
+        format!("{seed:064x}")
+    }
+
     fn valid_manifest() -> SourceInventoryManifest {
         let first = page(
             0,
@@ -1092,6 +1096,75 @@ mod tests {
             attestation_ref: Some("synthetic:attestation:001".into()),
             issuer_key_id: Some("urn:synthetic:key:001".into()),
             limitations: vec!["synthetic-only; authentication is not performed".into()],
+        }
+    }
+
+    #[test]
+    fn one_thousand_page_gap_mutations_never_claim_complete() {
+        for seed in 0..1_000u64 {
+            let mut manifest = valid_manifest();
+            manifest.page_receipts[1].ordinal = u32::try_from(seed + 2).unwrap();
+            let result = validate_source_inventory_manifest(&manifest);
+            assert_eq!(
+                result.disposition,
+                InventoryDisposition::InvalidInput,
+                "page-gap mutation seed {seed} must be invalid"
+            );
+        }
+    }
+
+    #[test]
+    fn one_thousand_cursor_replay_mutations_never_claim_complete() {
+        for seed in 0..1_000u64 {
+            let mut manifest = valid_manifest();
+            let repeated_cursor = digest_seed(seed + 1);
+            manifest.page_receipts[0].cursor_after_sha256 = Some(repeated_cursor.clone());
+            let first_receipt_sha256 = manifest.page_receipts[0].receipt_sha256().unwrap();
+            manifest.page_receipts[1].cursor_before_sha256 = Some(repeated_cursor.clone());
+            manifest.page_receipts[1].cursor_after_sha256 = Some(repeated_cursor);
+            manifest.page_receipts[1].predecessor_page_receipt_sha256 =
+                Some(first_receipt_sha256);
+            manifest.page_receipts[1].terminal = false;
+            let result = validate_source_inventory_manifest(&manifest);
+            assert_eq!(
+                result.disposition,
+                InventoryDisposition::InvalidInput,
+                "cursor-replay mutation seed {seed} must be invalid"
+            );
+            assert!(result.findings.iter().any(|finding| {
+                finding.code == "INVENTORY_CURSOR_REPLAY"
+            }));
+        }
+    }
+
+    #[test]
+    fn one_thousand_cross_snapshot_mutations_never_claim_complete() {
+        for seed in 0..1_000u64 {
+            let mut manifest = valid_manifest();
+            manifest.page_receipts[1].snapshot_sha256 = Some(digest_seed(seed + 1));
+            let result = validate_source_inventory_manifest(&manifest);
+            assert_eq!(
+                result.disposition,
+                InventoryDisposition::InvalidInput,
+                "cross-snapshot mutation seed {seed} must be invalid"
+            );
+        }
+    }
+
+    #[test]
+    fn one_thousand_source_count_mismatch_mutations_never_claim_complete() {
+        for seed in 0..1_000u64 {
+            let mut manifest = valid_manifest();
+            manifest.reported_total_count = Some(seed + 4);
+            let result = validate_source_inventory_manifest(&manifest);
+            assert_eq!(
+                result.disposition,
+                InventoryDisposition::InvalidInput,
+                "source-count mutation seed {seed} must be invalid"
+            );
+            assert!(result.findings.iter().any(|finding| {
+                finding.code == "SOURCE_REPORTED_TOTAL_COUNT_MISMATCH"
+            }));
         }
     }
 
