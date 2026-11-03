@@ -1,0 +1,1087 @@
+{
+  "fixture_schema_version": "luminous.ieac-trust-lifecycle-fixture.v0.1",
+  "fixture_status": "synthetic_only",
+  "note": "All identities, timestamps, digests and classifications are synthetic expected vectors. The SCITT timestamp and authority approval are represented as input claims; cryptographic verification is not performed by this fixture.",
+  "graph": {
+    "schema_version": "luminous.ieac-assurance-dependency-graph.v0.1",
+    "graph_id": "graph-key-compromise-synthetic-001",
+    "captured_at": "2026-11-01T10:00:00Z",
+    "nodes": [
+      {
+        "node_id": "issuer_key:sha256:0101010101010101010101010101010101010101010101010101010101010101",
+        "node_type": "issuer_key",
+        "artifact_sha256": "0101010101010101010101010101010101010101010101010101010101010101",
+        "artifact_media_type": "application/vnd.luminous.issuer_key.v0.1+json",
+        "schema_version": "issuer_key-v0.1",
+        "issuer_id": "urn:example:issuer:site-gateway",
+        "scope": {
+          "domain": "energy",
+          "subject_pseudonyms": [
+            "case:site-001:asset:alpha"
+          ],
+          "purposes": [
+            "runtime_admission_descriptive",
+            "outcome_reconciliation"
+          ]
+        },
+        "valid_time": {
+          "valid_from": "2026-10-01T00:00:00Z",
+          "valid_until": null
+        },
+        "observation_time": {
+          "artifact_created_at": null,
+          "recorded_at": "2026-10-01T00:00:00Z",
+          "trusted_at": "2026-10-01T00:05:00Z"
+        },
+        "verification": {
+          "result": "verified",
+          "policy_sha256": "5050505050505050505050505050505050505050505050505050505050505050",
+          "verifier_build_sha256": "5151515151515151515151515151515151515151515151515151515151515151",
+          "trust_bundle_sha256": "5252525252525252525252525252525252525252525252525252525252525252",
+          "checked_at": "2026-11-01T10:00:00Z",
+          "fresh_until": "2026-11-01T12:00:00Z"
+        }
+      },
+      {
+        "node_id": "source_measurement:sha256:0202020202020202020202020202020202020202020202020202020202020202",
+        "node_type": "source_measurement",
+        "artifact_sha256": "0202020202020202020202020202020202020202020202020202020202020202",
+        "artifact_media_type": "application/vnd.luminous.source_measurement.v0.1+json",
+        "schema_version": "source_measurement-v0.1",
+        "issuer_id": "urn:example:issuer:site-gateway",
+        "scope": {
+          "domain": "energy",
+          "subject_pseudonyms": [
+            "case:site-001:asset:alpha"
+          ],
+          "purposes": [
+            "runtime_admission_descriptive",
+            "outcome_reconciliation"
+          ]
+        },
+        "valid_time": {
+          "valid_from": "2026-10-01T00:00:00Z",
+          "valid_until": null
+        },
+        "observation_time": {
+          "artifact_created_at": "2026-10-30T10:10:00Z",
+          "recorded_at": "2026-10-30T10:11:00Z",
+          "trusted_at": "2026-10-30T10:12:00Z"
+        },
+        "verification": {
+          "result": "verified",
+          "policy_sha256": "5050505050505050505050505050505050505050505050505050505050505050",
+          "verifier_build_sha256": "5151515151515151515151515151515151515151515151515151515151515151",
+          "trust_bundle_sha256": "5252525252525252525252525252525252525252525252525252525252525252",
+          "checked_at": "2026-11-01T10:00:00Z",
+          "fresh_until": "2026-11-01T12:00:00Z"
+        }
+      },
+      {
+        "node_id": "signed_statement:sha256:0303030303030303030303030303030303030303030303030303030303030303",
+        "node_type": "signed_statement",
+        "artifact_sha256": "0303030303030303030303030303030303030303030303030303030303030303",
+        "artifact_media_type": "application/vnd.luminous.signed_statement.v0.1+json",
+        "schema_version": "signed_statement-v0.1",
+        "issuer_id": "urn:example:issuer:site-gateway",
+        "scope": {
+          "domain": "energy",
+          "subject_pseudonyms": [
+            "case:site-001:asset:alpha"
+          ],
+          "purposes": [
+            "runtime_admission_descriptive",
+            "outcome_reconciliation"
+          ]
+        },
+        "valid_time": {
+          "valid_from": "2026-10-01T00:00:00Z",
+          "valid_until": null
+        },
+        "observation_time": {
+          "artifact_created_at": "2026-10-30T10:20:00Z",
+          "recorded_at": "2026-10-30T10:24:00Z",
+          "trusted_at": "2026-10-30T10:25:00Z"
+        },
+        "verification": {
+          "result": "verified",
+          "policy_sha256": "5050505050505050505050505050505050505050505050505050505050505050",
+          "verifier_build_sha256": "5151515151515151515151515151515151515151515151515151515151515151",
+          "trust_bundle_sha256": "5252525252525252525252525252525252525252525252525252525252525252",
+          "checked_at": "2026-11-01T10:00:00Z",
+          "fresh_until": "2026-11-01T12:00:00Z"
+        }
+      },
+      {
+        "node_id": "transparency_receipt:sha256:0404040404040404040404040404040404040404040404040404040404040404",
+        "node_type": "transparency_receipt",
+        "artifact_sha256": "0404040404040404040404040404040404040404040404040404040404040404",
+        "artifact_media_type": "application/vnd.luminous.transparency_receipt.v0.1+json",
+        "schema_version": "transparency_receipt-v0.1",
+        "issuer_id": "urn:example:issuer:site-gateway",
+        "scope": {
+          "domain": "energy",
+          "subject_pseudonyms": [
+            "case:site-001:asset:alpha"
+          ],
+          "purposes": [
+            "runtime_admission_descriptive",
+            "outcome_reconciliation"
+          ]
+        },
+        "valid_time": {
+          "valid_from": "2026-10-01T00:00:00Z",
+          "valid_until": null
+        },
+        "observation_time": {
+          "artifact_created_at": "2026-10-30T10:25:00Z",
+          "recorded_at": "2026-10-30T10:25:00Z",
+          "trusted_at": "2026-10-30T10:26:00Z"
+        },
+        "verification": {
+          "result": "verified",
+          "policy_sha256": "5050505050505050505050505050505050505050505050505050505050505050",
+          "verifier_build_sha256": "5151515151515151515151515151515151515151515151515151515151515151",
+          "trust_bundle_sha256": "5252525252525252525252525252525252525252525252525252525252525252",
+          "checked_at": "2026-11-01T10:00:00Z",
+          "fresh_until": "2026-11-01T12:00:00Z"
+        }
+      },
+      {
+        "node_id": "decision:sha256:0505050505050505050505050505050505050505050505050505050505050505",
+        "node_type": "decision",
+        "artifact_sha256": "0505050505050505050505050505050505050505050505050505050505050505",
+        "artifact_media_type": "application/vnd.luminous.decision.v0.1+json",
+        "schema_version": "decision-v0.1",
+        "issuer_id": "urn:example:issuer:site-gateway",
+        "scope": {
+          "domain": "energy",
+          "subject_pseudonyms": [
+            "case:site-001:asset:alpha"
+          ],
+          "purposes": [
+            "runtime_admission_descriptive",
+            "outcome_reconciliation"
+          ]
+        },
+        "valid_time": {
+          "valid_from": "2026-10-01T00:00:00Z",
+          "valid_until": null
+        },
+        "observation_time": {
+          "artifact_created_at": "2026-10-30T10:35:00Z",
+          "recorded_at": "2026-10-30T10:36:00Z",
+          "trusted_at": "2026-10-30T10:37:00Z"
+        },
+        "verification": {
+          "result": "verified",
+          "policy_sha256": "5050505050505050505050505050505050505050505050505050505050505050",
+          "verifier_build_sha256": "5151515151515151515151515151515151515151515151515151515151515151",
+          "trust_bundle_sha256": "5252525252525252525252525252525252525252525252525252525252525252",
+          "checked_at": "2026-11-01T10:00:00Z",
+          "fresh_until": "2026-11-01T12:00:00Z"
+        }
+      },
+      {
+        "node_id": "action_authorization:sha256:0606060606060606060606060606060606060606060606060606060606060606",
+        "node_type": "action_authorization",
+        "artifact_sha256": "0606060606060606060606060606060606060606060606060606060606060606",
+        "artifact_media_type": "application/vnd.luminous.action_authorization.v0.1+json",
+        "schema_version": "action_authorization-v0.1",
+        "issuer_id": "urn:example:issuer:site-gateway",
+        "scope": {
+          "domain": "energy",
+          "subject_pseudonyms": [
+            "case:site-001:asset:alpha"
+          ],
+          "purposes": [
+            "runtime_admission_descriptive",
+            "outcome_reconciliation"
+          ]
+        },
+        "valid_time": {
+          "valid_from": "2026-10-01T00:00:00Z",
+          "valid_until": null
+        },
+        "observation_time": {
+          "artifact_created_at": "2026-10-30T10:40:00Z",
+          "recorded_at": "2026-10-30T10:41:00Z",
+          "trusted_at": "2026-10-30T10:42:00Z"
+        },
+        "verification": {
+          "result": "verified",
+          "policy_sha256": "5050505050505050505050505050505050505050505050505050505050505050",
+          "verifier_build_sha256": "5151515151515151515151515151515151515151515151515151515151515151",
+          "trust_bundle_sha256": "5252525252525252525252525252525252525252525252525252525252525252",
+          "checked_at": "2026-11-01T10:00:00Z",
+          "fresh_until": "2026-11-01T12:00:00Z"
+        }
+      },
+      {
+        "node_id": "execution:sha256:0707070707070707070707070707070707070707070707070707070707070707",
+        "node_type": "execution",
+        "artifact_sha256": "0707070707070707070707070707070707070707070707070707070707070707",
+        "artifact_media_type": "application/vnd.luminous.execution.v0.1+json",
+        "schema_version": "execution-v0.1",
+        "issuer_id": "urn:example:issuer:site-gateway",
+        "scope": {
+          "domain": "energy",
+          "subject_pseudonyms": [
+            "case:site-001:asset:alpha"
+          ],
+          "purposes": [
+            "runtime_admission_descriptive",
+            "outcome_reconciliation"
+          ]
+        },
+        "valid_time": {
+          "valid_from": "2026-10-01T00:00:00Z",
+          "valid_until": null
+        },
+        "observation_time": {
+          "artifact_created_at": "2026-10-30T10:50:00Z",
+          "recorded_at": "2026-10-30T10:51:00Z",
+          "trusted_at": "2026-10-30T10:52:00Z"
+        },
+        "verification": {
+          "result": "verified",
+          "policy_sha256": "5050505050505050505050505050505050505050505050505050505050505050",
+          "verifier_build_sha256": "5151515151515151515151515151515151515151515151515151515151515151",
+          "trust_bundle_sha256": "5252525252525252525252525252525252525252525252525252525252525252",
+          "checked_at": "2026-11-01T10:00:00Z",
+          "fresh_until": "2026-11-01T12:00:00Z"
+        }
+      },
+      {
+        "node_id": "outcome:sha256:0808080808080808080808080808080808080808080808080808080808080808",
+        "node_type": "outcome",
+        "artifact_sha256": "0808080808080808080808080808080808080808080808080808080808080808",
+        "artifact_media_type": "application/vnd.luminous.outcome.v0.1+json",
+        "schema_version": "outcome-v0.1",
+        "issuer_id": "urn:example:issuer:site-gateway",
+        "scope": {
+          "domain": "energy",
+          "subject_pseudonyms": [
+            "case:site-001:asset:alpha"
+          ],
+          "purposes": [
+            "runtime_admission_descriptive",
+            "outcome_reconciliation"
+          ]
+        },
+        "valid_time": {
+          "valid_from": "2026-10-01T00:00:00Z",
+          "valid_until": null
+        },
+        "observation_time": {
+          "artifact_created_at": "2026-10-30T12:00:00Z",
+          "recorded_at": "2026-10-30T12:01:00Z",
+          "trusted_at": "2026-10-30T12:02:00Z"
+        },
+        "verification": {
+          "result": "verified",
+          "policy_sha256": "5050505050505050505050505050505050505050505050505050505050505050",
+          "verifier_build_sha256": "5151515151515151515151515151515151515151515151515151515151515151",
+          "trust_bundle_sha256": "5252525252525252525252525252525252525252525252525252525252525252",
+          "checked_at": "2026-11-01T10:00:00Z",
+          "fresh_until": "2026-11-01T12:00:00Z"
+        }
+      },
+      {
+        "node_id": "source_measurement:sha256:0909090909090909090909090909090909090909090909090909090909090909",
+        "node_type": "source_measurement",
+        "artifact_sha256": "0909090909090909090909090909090909090909090909090909090909090909",
+        "artifact_media_type": "application/vnd.luminous.source_measurement.v0.1+json",
+        "schema_version": "source_measurement-v0.1",
+        "issuer_id": "urn:example:issuer:site-gateway",
+        "scope": {
+          "domain": "energy",
+          "subject_pseudonyms": [
+            "case:site-001:asset:alpha"
+          ],
+          "purposes": [
+            "runtime_admission_descriptive",
+            "outcome_reconciliation"
+          ]
+        },
+        "valid_time": {
+          "valid_from": "2026-10-01T00:00:00Z",
+          "valid_until": null
+        },
+        "observation_time": {
+          "artifact_created_at": "2026-10-30T11:05:00Z",
+          "recorded_at": "2026-10-30T11:06:00Z",
+          "trusted_at": "2026-10-30T11:07:00Z"
+        },
+        "verification": {
+          "result": "verified",
+          "policy_sha256": "5050505050505050505050505050505050505050505050505050505050505050",
+          "verifier_build_sha256": "5151515151515151515151515151515151515151515151515151515151515151",
+          "trust_bundle_sha256": "5252525252525252525252525252525252525252525252525252525252525252",
+          "checked_at": "2026-11-01T10:00:00Z",
+          "fresh_until": "2026-11-01T12:00:00Z"
+        }
+      },
+      {
+        "node_id": "signed_statement:sha256:0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a",
+        "node_type": "signed_statement",
+        "artifact_sha256": "0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a",
+        "artifact_media_type": "application/vnd.luminous.signed_statement.v0.1+json",
+        "schema_version": "signed_statement-v0.1",
+        "issuer_id": "urn:example:issuer:site-gateway",
+        "scope": {
+          "domain": "energy",
+          "subject_pseudonyms": [
+            "case:site-001:asset:alpha"
+          ],
+          "purposes": [
+            "runtime_admission_descriptive",
+            "outcome_reconciliation"
+          ]
+        },
+        "valid_time": {
+          "valid_from": "2026-10-01T00:00:00Z",
+          "valid_until": null
+        },
+        "observation_time": {
+          "artifact_created_at": "2026-10-30T11:10:00Z",
+          "recorded_at": "2026-10-30T11:14:00Z",
+          "trusted_at": "2026-10-30T11:15:00Z"
+        },
+        "verification": {
+          "result": "verified",
+          "policy_sha256": "5050505050505050505050505050505050505050505050505050505050505050",
+          "verifier_build_sha256": "5151515151515151515151515151515151515151515151515151515151515151",
+          "trust_bundle_sha256": "5252525252525252525252525252525252525252525252525252525252525252",
+          "checked_at": "2026-11-01T10:00:00Z",
+          "fresh_until": "2026-11-01T12:00:00Z"
+        }
+      },
+      {
+        "node_id": "transparency_receipt:sha256:0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b",
+        "node_type": "transparency_receipt",
+        "artifact_sha256": "0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b",
+        "artifact_media_type": "application/vnd.luminous.transparency_receipt.v0.1+json",
+        "schema_version": "transparency_receipt-v0.1",
+        "issuer_id": "urn:example:issuer:site-gateway",
+        "scope": {
+          "domain": "energy",
+          "subject_pseudonyms": [
+            "case:site-001:asset:alpha"
+          ],
+          "purposes": [
+            "runtime_admission_descriptive",
+            "outcome_reconciliation"
+          ]
+        },
+        "valid_time": {
+          "valid_from": "2026-10-01T00:00:00Z",
+          "valid_until": null
+        },
+        "observation_time": {
+          "artifact_created_at": "2026-10-30T11:15:00Z",
+          "recorded_at": "2026-10-30T11:15:00Z",
+          "trusted_at": "2026-10-30T11:16:00Z"
+        },
+        "verification": {
+          "result": "verified",
+          "policy_sha256": "5050505050505050505050505050505050505050505050505050505050505050",
+          "verifier_build_sha256": "5151515151515151515151515151515151515151515151515151515151515151",
+          "trust_bundle_sha256": "5252525252525252525252525252525252525252525252525252525252525252",
+          "checked_at": "2026-11-01T10:00:00Z",
+          "fresh_until": "2026-11-01T12:00:00Z"
+        }
+      },
+      {
+        "node_id": "decision:sha256:0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c",
+        "node_type": "decision",
+        "artifact_sha256": "0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c",
+        "artifact_media_type": "application/vnd.luminous.decision.v0.1+json",
+        "schema_version": "decision-v0.1",
+        "issuer_id": "urn:example:issuer:site-gateway",
+        "scope": {
+          "domain": "energy",
+          "subject_pseudonyms": [
+            "case:site-001:asset:alpha"
+          ],
+          "purposes": [
+            "runtime_admission_descriptive",
+            "outcome_reconciliation"
+          ]
+        },
+        "valid_time": {
+          "valid_from": "2026-10-01T00:00:00Z",
+          "valid_until": null
+        },
+        "observation_time": {
+          "artifact_created_at": "2026-10-30T11:25:00Z",
+          "recorded_at": "2026-10-30T11:26:00Z",
+          "trusted_at": "2026-10-30T11:27:00Z"
+        },
+        "verification": {
+          "result": "verified",
+          "policy_sha256": "5050505050505050505050505050505050505050505050505050505050505050",
+          "verifier_build_sha256": "5151515151515151515151515151515151515151515151515151515151515151",
+          "trust_bundle_sha256": "5252525252525252525252525252525252525252525252525252525252525252",
+          "checked_at": "2026-11-01T10:00:00Z",
+          "fresh_until": "2026-11-01T12:00:00Z"
+        }
+      },
+      {
+        "node_id": "action_authorization:sha256:0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d",
+        "node_type": "action_authorization",
+        "artifact_sha256": "0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d",
+        "artifact_media_type": "application/vnd.luminous.action_authorization.v0.1+json",
+        "schema_version": "action_authorization-v0.1",
+        "issuer_id": "urn:example:issuer:site-gateway",
+        "scope": {
+          "domain": "energy",
+          "subject_pseudonyms": [
+            "case:site-001:asset:alpha"
+          ],
+          "purposes": [
+            "runtime_admission_descriptive",
+            "outcome_reconciliation"
+          ]
+        },
+        "valid_time": {
+          "valid_from": "2026-10-01T00:00:00Z",
+          "valid_until": null
+        },
+        "observation_time": {
+          "artifact_created_at": "2026-10-30T11:30:00Z",
+          "recorded_at": "2026-10-30T11:31:00Z",
+          "trusted_at": "2026-10-30T11:32:00Z"
+        },
+        "verification": {
+          "result": "verified",
+          "policy_sha256": "5050505050505050505050505050505050505050505050505050505050505050",
+          "verifier_build_sha256": "5151515151515151515151515151515151515151515151515151515151515151",
+          "trust_bundle_sha256": "5252525252525252525252525252525252525252525252525252525252525252",
+          "checked_at": "2026-11-01T10:00:00Z",
+          "fresh_until": "2026-11-01T12:00:00Z"
+        }
+      },
+      {
+        "node_id": "execution:sha256:0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e",
+        "node_type": "execution",
+        "artifact_sha256": "0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e",
+        "artifact_media_type": "application/vnd.luminous.execution.v0.1+json",
+        "schema_version": "execution-v0.1",
+        "issuer_id": "urn:example:issuer:site-gateway",
+        "scope": {
+          "domain": "energy",
+          "subject_pseudonyms": [
+            "case:site-001:asset:alpha"
+          ],
+          "purposes": [
+            "runtime_admission_descriptive",
+            "outcome_reconciliation"
+          ]
+        },
+        "valid_time": {
+          "valid_from": "2026-10-01T00:00:00Z",
+          "valid_until": null
+        },
+        "observation_time": {
+          "artifact_created_at": "2026-10-30T11:40:00Z",
+          "recorded_at": "2026-10-30T11:41:00Z",
+          "trusted_at": "2026-10-30T11:42:00Z"
+        },
+        "verification": {
+          "result": "verified",
+          "policy_sha256": "5050505050505050505050505050505050505050505050505050505050505050",
+          "verifier_build_sha256": "5151515151515151515151515151515151515151515151515151515151515151",
+          "trust_bundle_sha256": "5252525252525252525252525252525252525252525252525252525252525252",
+          "checked_at": "2026-11-01T10:00:00Z",
+          "fresh_until": "2026-11-01T12:00:00Z"
+        }
+      },
+      {
+        "node_id": "outcome:sha256:0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f",
+        "node_type": "outcome",
+        "artifact_sha256": "0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f",
+        "artifact_media_type": "application/vnd.luminous.outcome.v0.1+json",
+        "schema_version": "outcome-v0.1",
+        "issuer_id": "urn:example:issuer:site-gateway",
+        "scope": {
+          "domain": "energy",
+          "subject_pseudonyms": [
+            "case:site-001:asset:alpha"
+          ],
+          "purposes": [
+            "runtime_admission_descriptive",
+            "outcome_reconciliation"
+          ]
+        },
+        "valid_time": {
+          "valid_from": "2026-10-01T00:00:00Z",
+          "valid_until": null
+        },
+        "observation_time": {
+          "artifact_created_at": "2026-10-30T12:20:00Z",
+          "recorded_at": "2026-10-30T12:21:00Z",
+          "trusted_at": "2026-10-30T12:22:00Z"
+        },
+        "verification": {
+          "result": "verified",
+          "policy_sha256": "5050505050505050505050505050505050505050505050505050505050505050",
+          "verifier_build_sha256": "5151515151515151515151515151515151515151515151515151515151515151",
+          "trust_bundle_sha256": "5252525252525252525252525252525252525252525252525252525252525252",
+          "checked_at": "2026-11-01T10:00:00Z",
+          "fresh_until": "2026-11-01T12:00:00Z"
+        }
+      },
+      {
+        "node_id": "source_measurement:sha256:1010101010101010101010101010101010101010101010101010101010101010",
+        "node_type": "source_measurement",
+        "artifact_sha256": "1010101010101010101010101010101010101010101010101010101010101010",
+        "artifact_media_type": "application/vnd.luminous.source_measurement.v0.1+json",
+        "schema_version": "source_measurement-v0.1",
+        "issuer_id": "urn:example:issuer:site-gateway",
+        "scope": {
+          "domain": "water",
+          "subject_pseudonyms": [
+            "case:site-001:asset:alpha"
+          ],
+          "purposes": [
+            "runtime_admission_descriptive",
+            "outcome_reconciliation"
+          ]
+        },
+        "valid_time": {
+          "valid_from": "2026-10-01T00:00:00Z",
+          "valid_until": null
+        },
+        "observation_time": {
+          "artifact_created_at": "2026-10-30T10:00:00Z",
+          "recorded_at": "2026-10-30T10:01:00Z",
+          "trusted_at": "2026-10-30T10:02:00Z"
+        },
+        "verification": {
+          "result": "verified",
+          "policy_sha256": "5050505050505050505050505050505050505050505050505050505050505050",
+          "verifier_build_sha256": "5151515151515151515151515151515151515151515151515151515151515151",
+          "trust_bundle_sha256": "5252525252525252525252525252525252525252525252525252525252525252",
+          "checked_at": "2026-11-01T10:00:00Z",
+          "fresh_until": "2026-11-01T12:00:00Z"
+        }
+      },
+      {
+        "node_id": "policy:sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "node_type": "policy",
+        "artifact_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+        "artifact_media_type": "application/vnd.luminous.policy.v0.1+json",
+        "schema_version": "policy-v0.1",
+        "issuer_id": "urn:example:issuer:site-gateway",
+        "scope": {
+          "domain": "energy",
+          "subject_pseudonyms": [
+            "case:site-001:asset:alpha"
+          ],
+          "purposes": [
+            "runtime_admission_descriptive",
+            "outcome_reconciliation"
+          ]
+        },
+        "valid_time": {
+          "valid_from": "2026-10-01T00:00:00Z",
+          "valid_until": null
+        },
+        "observation_time": {
+          "artifact_created_at": "2026-10-01T00:00:00Z",
+          "recorded_at": "2026-10-01T00:01:00Z",
+          "trusted_at": "2026-10-01T00:02:00Z"
+        },
+        "verification": {
+          "result": "verified",
+          "policy_sha256": "5050505050505050505050505050505050505050505050505050505050505050",
+          "verifier_build_sha256": "5151515151515151515151515151515151515151515151515151515151515151",
+          "trust_bundle_sha256": "5252525252525252525252525252525252525252525252525252525252525252",
+          "checked_at": "2026-11-01T10:00:00Z",
+          "fresh_until": "2026-11-01T12:00:00Z"
+        }
+      }
+    ],
+    "edges": [
+      {
+        "edge_id": "edge-001",
+        "from_node_id": "issuer_key:sha256:0101010101010101010101010101010101010101010101010101010101010101",
+        "to_node_id": "signed_statement:sha256:0303030303030303030303030303030303030303030303030303030303030303",
+        "relation": "signed_by"
+      },
+      {
+        "edge_id": "edge-002",
+        "from_node_id": "source_measurement:sha256:0202020202020202020202020202020202020202020202020202020202020202",
+        "to_node_id": "signed_statement:sha256:0303030303030303030303030303030303030303030303030303030303030303",
+        "relation": "derived_from"
+      },
+      {
+        "edge_id": "edge-003",
+        "from_node_id": "signed_statement:sha256:0303030303030303030303030303030303030303030303030303030303030303",
+        "to_node_id": "transparency_receipt:sha256:0404040404040404040404040404040404040404040404040404040404040404",
+        "relation": "registered_as"
+      },
+      {
+        "edge_id": "edge-004",
+        "from_node_id": "transparency_receipt:sha256:0404040404040404040404040404040404040404040404040404040404040404",
+        "to_node_id": "decision:sha256:0505050505050505050505050505050505050505050505050505050505050505",
+        "relation": "evidence_for"
+      },
+      {
+        "edge_id": "edge-005",
+        "from_node_id": "policy:sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "to_node_id": "decision:sha256:0505050505050505050505050505050505050505050505050505050505050505",
+        "relation": "governed_by"
+      },
+      {
+        "edge_id": "edge-006",
+        "from_node_id": "decision:sha256:0505050505050505050505050505050505050505050505050505050505050505",
+        "to_node_id": "action_authorization:sha256:0606060606060606060606060606060606060606060606060606060606060606",
+        "relation": "authorized_by"
+      },
+      {
+        "edge_id": "edge-007",
+        "from_node_id": "action_authorization:sha256:0606060606060606060606060606060606060606060606060606060606060606",
+        "to_node_id": "execution:sha256:0707070707070707070707070707070707070707070707070707070707070707",
+        "relation": "executed_under"
+      },
+      {
+        "edge_id": "edge-008",
+        "from_node_id": "execution:sha256:0707070707070707070707070707070707070707070707070707070707070707",
+        "to_node_id": "outcome:sha256:0808080808080808080808080808080808080808080808080808080808080808",
+        "relation": "outcome_of"
+      },
+      {
+        "edge_id": "edge-009",
+        "from_node_id": "issuer_key:sha256:0101010101010101010101010101010101010101010101010101010101010101",
+        "to_node_id": "signed_statement:sha256:0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a",
+        "relation": "signed_by"
+      },
+      {
+        "edge_id": "edge-010",
+        "from_node_id": "source_measurement:sha256:0909090909090909090909090909090909090909090909090909090909090909",
+        "to_node_id": "signed_statement:sha256:0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a",
+        "relation": "derived_from"
+      },
+      {
+        "edge_id": "edge-011",
+        "from_node_id": "signed_statement:sha256:0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a",
+        "to_node_id": "transparency_receipt:sha256:0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b",
+        "relation": "registered_as"
+      },
+      {
+        "edge_id": "edge-012",
+        "from_node_id": "transparency_receipt:sha256:0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b",
+        "to_node_id": "decision:sha256:0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c",
+        "relation": "evidence_for"
+      },
+      {
+        "edge_id": "edge-013",
+        "from_node_id": "policy:sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "to_node_id": "decision:sha256:0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c",
+        "relation": "governed_by"
+      },
+      {
+        "edge_id": "edge-014",
+        "from_node_id": "decision:sha256:0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c",
+        "to_node_id": "action_authorization:sha256:0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d",
+        "relation": "authorized_by"
+      },
+      {
+        "edge_id": "edge-015",
+        "from_node_id": "action_authorization:sha256:0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d",
+        "to_node_id": "execution:sha256:0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e",
+        "relation": "executed_under"
+      },
+      {
+        "edge_id": "edge-016",
+        "from_node_id": "execution:sha256:0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e",
+        "to_node_id": "outcome:sha256:0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f",
+        "relation": "outcome_of"
+      }
+    ],
+    "claim_ceiling": "observation_only",
+    "action_authority": "none",
+    "graph_snapshot_sha256": "38348929c5062f2c2649f8b04b4985ef78f109ba95684d019d28de665f19a1c3"
+  },
+  "invalidation_event": {
+    "schema_version": "luminous.ieac-assurance-invalidation-event.v0.1",
+    "event_id": "issuer-key-compromise-event-0003",
+    "issuer_id": "urn:example:security-authority:site-gateway",
+    "authority_sequence": 3,
+    "previous_event_sha256": "1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e",
+    "statement_sha256": "1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f",
+    "cause_class": "issuer_key_compromised",
+    "targets": [
+      {
+        "node_id": "issuer_key:sha256:0101010101010101010101010101010101010101010101010101010101010101",
+        "node_type": "issuer_key",
+        "artifact_sha256": "0101010101010101010101010101010101010101010101010101010101010101"
+      }
+    ],
+    "scope": {
+      "domains": [
+        "energy"
+      ],
+      "subject_pseudonyms": [
+        "case:site-001:asset:alpha"
+      ],
+      "purposes": [
+        "runtime_admission_descriptive",
+        "outcome_reconciliation"
+      ]
+    },
+    "valid_time": {
+      "effective_at": "2026-10-30T11:00:00Z",
+      "effective_until": null,
+      "effective_time_confidence": "verified"
+    },
+    "system_time": {
+      "recorded_at": "2026-11-01T10:00:00Z",
+      "trusted_at": "2026-11-01T10:01:00Z",
+      "trusted_timestamp_receipt_sha256": "2020202020202020202020202020202020202020202020202020202020202020"
+    },
+    "invalidation_semantics": "retroactive_from_effective_time",
+    "evidence_references": [
+      {
+        "evidence_id": "incident-report-2026-10-30-001",
+        "artifact_sha256": "2121212121212121212121212121212121212121212121212121212121212121",
+        "media_type": "application/vnd.example.security-incident.v1+json"
+      }
+    ],
+    "authority": {
+      "authority_id": "urn:example:security-authority:site-gateway",
+      "key_id": "security-root-2026-01",
+      "scope_policy_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+      "authorization_receipt_sha256": "2323232323232323232323232323232323232323232323232323232323232323",
+      "independent_review": "approved"
+    },
+    "dispute_state": "undisputed",
+    "action_authority": "none"
+  },
+  "expected_impact_report": {
+    "schema_version": "luminous.ieac-assurance-impact-report.v0.1",
+    "report_id": "impact-issuer-key-compromise-event-0003",
+    "graph_snapshot_sha256": "38348929c5062f2c2649f8b04b4985ef78f109ba95684d019d28de665f19a1c3",
+    "invalidation_event_sha256": "d23d44e7b6b5d2b26c2824d2d336f5f4154ee91e5866520703a496ede96a76ee",
+    "impact_policy_sha256": "2424242424242424242424242424242424242424242424242424242424242424",
+    "impact_engine_build_sha256": "2525252525252525252525252525252525252525252525252525252525252525",
+    "evaluated_at": "2026-11-01T10:30:00Z",
+    "results": [
+      {
+        "node_id": "issuer_key:sha256:0101010101010101010101010101010101010101010101010101010101010101",
+        "node_type": "issuer_key",
+        "artifact_sha256": "0101010101010101010101010101010101010101010101010101010101010101",
+        "impact_class": "claim_invalidated",
+        "historical_authenticity": "unknown",
+        "current_reliance": "ineligible",
+        "dependency_path": [
+          "issuer_key:sha256:0101010101010101010101010101010101010101010101010101010101010101"
+        ],
+        "reason_codes": [
+          "ISSUER_KEY_COMPROMISED",
+          "CURRENT_KEY_TRUST_WITHDRAWN"
+        ]
+      },
+      {
+        "node_id": "source_measurement:sha256:0202020202020202020202020202020202020202020202020202020202020202",
+        "node_type": "source_measurement",
+        "artifact_sha256": "0202020202020202020202020202020202020202020202020202020202020202",
+        "impact_class": "no_impact",
+        "historical_authenticity": "valid_at_time",
+        "current_reliance": "eligible",
+        "dependency_path": [],
+        "reason_codes": [
+          "NO_DEPENDENCY_PATH"
+        ]
+      },
+      {
+        "node_id": "signed_statement:sha256:0303030303030303030303030303030303030303030303030303030303030303",
+        "node_type": "signed_statement",
+        "artifact_sha256": "0303030303030303030303030303030303030303030303030303030303030303",
+        "impact_class": "historical_record_only",
+        "historical_authenticity": "valid_at_time",
+        "current_reliance": "eligible",
+        "dependency_path": [
+          "issuer_key:sha256:0101010101010101010101010101010101010101010101010101010101010101",
+          "signed_statement:sha256:0303030303030303030303030303030303030303030303030303030303030303"
+        ],
+        "reason_codes": [
+          "TRUSTED_REGISTRATION_PRECEDES_EFFECTIVE_COMPROMISE",
+          "PRESERVE_HISTORICAL_RECORD"
+        ]
+      },
+      {
+        "node_id": "transparency_receipt:sha256:0404040404040404040404040404040404040404040404040404040404040404",
+        "node_type": "transparency_receipt",
+        "artifact_sha256": "0404040404040404040404040404040404040404040404040404040404040404",
+        "impact_class": "historical_record_only",
+        "historical_authenticity": "valid_at_time",
+        "current_reliance": "eligible",
+        "dependency_path": [
+          "issuer_key:sha256:0101010101010101010101010101010101010101010101010101010101010101",
+          "signed_statement:sha256:0303030303030303030303030303030303030303030303030303030303030303",
+          "transparency_receipt:sha256:0404040404040404040404040404040404040404040404040404040404040404"
+        ],
+        "reason_codes": [
+          "TRUSTED_REGISTRATION_PRECEDES_EFFECTIVE_COMPROMISE",
+          "PRESERVE_HISTORICAL_RECORD"
+        ]
+      },
+      {
+        "node_id": "decision:sha256:0505050505050505050505050505050505050505050505050505050505050505",
+        "node_type": "decision",
+        "artifact_sha256": "0505050505050505050505050505050505050505050505050505050505050505",
+        "impact_class": "historical_record_only",
+        "historical_authenticity": "valid_at_time",
+        "current_reliance": "eligible",
+        "dependency_path": [
+          "issuer_key:sha256:0101010101010101010101010101010101010101010101010101010101010101",
+          "signed_statement:sha256:0303030303030303030303030303030303030303030303030303030303030303",
+          "transparency_receipt:sha256:0404040404040404040404040404040404040404040404040404040404040404",
+          "decision:sha256:0505050505050505050505050505050505050505050505050505050505050505"
+        ],
+        "reason_codes": [
+          "TRUSTED_REGISTRATION_PRECEDES_EFFECTIVE_COMPROMISE",
+          "PRESERVE_HISTORICAL_RECORD"
+        ]
+      },
+      {
+        "node_id": "action_authorization:sha256:0606060606060606060606060606060606060606060606060606060606060606",
+        "node_type": "action_authorization",
+        "artifact_sha256": "0606060606060606060606060606060606060606060606060606060606060606",
+        "impact_class": "historical_record_only",
+        "historical_authenticity": "valid_at_time",
+        "current_reliance": "eligible",
+        "dependency_path": [
+          "issuer_key:sha256:0101010101010101010101010101010101010101010101010101010101010101",
+          "signed_statement:sha256:0303030303030303030303030303030303030303030303030303030303030303",
+          "transparency_receipt:sha256:0404040404040404040404040404040404040404040404040404040404040404",
+          "decision:sha256:0505050505050505050505050505050505050505050505050505050505050505",
+          "action_authorization:sha256:0606060606060606060606060606060606060606060606060606060606060606"
+        ],
+        "reason_codes": [
+          "TRUSTED_REGISTRATION_PRECEDES_EFFECTIVE_COMPROMISE",
+          "PRESERVE_HISTORICAL_RECORD"
+        ]
+      },
+      {
+        "node_id": "execution:sha256:0707070707070707070707070707070707070707070707070707070707070707",
+        "node_type": "execution",
+        "artifact_sha256": "0707070707070707070707070707070707070707070707070707070707070707",
+        "impact_class": "historical_record_only",
+        "historical_authenticity": "valid_at_time",
+        "current_reliance": "eligible",
+        "dependency_path": [
+          "issuer_key:sha256:0101010101010101010101010101010101010101010101010101010101010101",
+          "signed_statement:sha256:0303030303030303030303030303030303030303030303030303030303030303",
+          "transparency_receipt:sha256:0404040404040404040404040404040404040404040404040404040404040404",
+          "decision:sha256:0505050505050505050505050505050505050505050505050505050505050505",
+          "action_authorization:sha256:0606060606060606060606060606060606060606060606060606060606060606",
+          "execution:sha256:0707070707070707070707070707070707070707070707070707070707070707"
+        ],
+        "reason_codes": [
+          "TRUSTED_REGISTRATION_PRECEDES_EFFECTIVE_COMPROMISE",
+          "PRESERVE_HISTORICAL_RECORD"
+        ]
+      },
+      {
+        "node_id": "outcome:sha256:0808080808080808080808080808080808080808080808080808080808080808",
+        "node_type": "outcome",
+        "artifact_sha256": "0808080808080808080808080808080808080808080808080808080808080808",
+        "impact_class": "historical_record_only",
+        "historical_authenticity": "valid_at_time",
+        "current_reliance": "eligible",
+        "dependency_path": [
+          "issuer_key:sha256:0101010101010101010101010101010101010101010101010101010101010101",
+          "signed_statement:sha256:0303030303030303030303030303030303030303030303030303030303030303",
+          "transparency_receipt:sha256:0404040404040404040404040404040404040404040404040404040404040404",
+          "decision:sha256:0505050505050505050505050505050505050505050505050505050505050505",
+          "action_authorization:sha256:0606060606060606060606060606060606060606060606060606060606060606",
+          "execution:sha256:0707070707070707070707070707070707070707070707070707070707070707",
+          "outcome:sha256:0808080808080808080808080808080808080808080808080808080808080808"
+        ],
+        "reason_codes": [
+          "TRUSTED_REGISTRATION_PRECEDES_EFFECTIVE_COMPROMISE",
+          "PRESERVE_HISTORICAL_RECORD"
+        ]
+      },
+      {
+        "node_id": "source_measurement:sha256:0909090909090909090909090909090909090909090909090909090909090909",
+        "node_type": "source_measurement",
+        "artifact_sha256": "0909090909090909090909090909090909090909090909090909090909090909",
+        "impact_class": "no_impact",
+        "historical_authenticity": "valid_at_time",
+        "current_reliance": "eligible",
+        "dependency_path": [],
+        "reason_codes": [
+          "NO_DEPENDENCY_PATH"
+        ]
+      },
+      {
+        "node_id": "signed_statement:sha256:0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a",
+        "node_type": "signed_statement",
+        "artifact_sha256": "0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a",
+        "impact_class": "quarantined_pending_review",
+        "historical_authenticity": "unknown",
+        "current_reliance": "quarantined",
+        "dependency_path": [
+          "issuer_key:sha256:0101010101010101010101010101010101010101010101010101010101010101",
+          "signed_statement:sha256:0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a"
+        ],
+        "reason_codes": [
+          "REGISTRATION_AFTER_COMPROMISE_BOUNDARY",
+          "SIGNATURE_TIME_NOT_ESTABLISHED",
+          "QUARANTINE_UNTIL_REVERIFIED"
+        ]
+      },
+      {
+        "node_id": "transparency_receipt:sha256:0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b",
+        "node_type": "transparency_receipt",
+        "artifact_sha256": "0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b",
+        "impact_class": "quarantined_pending_review",
+        "historical_authenticity": "unknown",
+        "current_reliance": "quarantined",
+        "dependency_path": [
+          "issuer_key:sha256:0101010101010101010101010101010101010101010101010101010101010101",
+          "signed_statement:sha256:0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a",
+          "transparency_receipt:sha256:0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b"
+        ],
+        "reason_codes": [
+          "REGISTRATION_AFTER_COMPROMISE_BOUNDARY",
+          "ISSUER_SIGNATURE_TIME_NOT_ESTABLISHED",
+          "QUARANTINE_UNTIL_REVERIFIED"
+        ]
+      },
+      {
+        "node_id": "decision:sha256:0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c",
+        "node_type": "decision",
+        "artifact_sha256": "0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c",
+        "impact_class": "quarantined_pending_review",
+        "historical_authenticity": "unknown",
+        "current_reliance": "quarantined",
+        "dependency_path": [
+          "issuer_key:sha256:0101010101010101010101010101010101010101010101010101010101010101",
+          "signed_statement:sha256:0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a",
+          "transparency_receipt:sha256:0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b",
+          "decision:sha256:0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c"
+        ],
+        "reason_codes": [
+          "REGISTRATION_AFTER_COMPROMISE_BOUNDARY",
+          "DECISION_DEPENDS_ON_QUARANTINED_STATEMENT",
+          "QUARANTINE_UNTIL_REVERIFIED"
+        ]
+      },
+      {
+        "node_id": "action_authorization:sha256:0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d",
+        "node_type": "action_authorization",
+        "artifact_sha256": "0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d",
+        "impact_class": "reverify_required",
+        "historical_authenticity": "valid_at_time",
+        "current_reliance": "quarantined",
+        "dependency_path": [
+          "issuer_key:sha256:0101010101010101010101010101010101010101010101010101010101010101",
+          "signed_statement:sha256:0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a",
+          "transparency_receipt:sha256:0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b",
+          "decision:sha256:0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c",
+          "action_authorization:sha256:0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d"
+        ],
+        "reason_codes": [
+          "AUTHORIZATION_DEPENDS_ON_QUARANTINED_DECISION",
+          "REVIEW_EXECUTION_SCOPE"
+        ]
+      },
+      {
+        "node_id": "execution:sha256:0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e",
+        "node_type": "execution",
+        "artifact_sha256": "0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e",
+        "impact_class": "reverify_required",
+        "historical_authenticity": "valid_at_time",
+        "current_reliance": "quarantined",
+        "dependency_path": [
+          "issuer_key:sha256:0101010101010101010101010101010101010101010101010101010101010101",
+          "signed_statement:sha256:0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a",
+          "transparency_receipt:sha256:0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b",
+          "decision:sha256:0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c",
+          "action_authorization:sha256:0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d",
+          "execution:sha256:0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e"
+        ],
+        "reason_codes": [
+          "PHYSICAL_EXECUTION_RECORD_PRESERVED",
+          "POST_EVENT_REVIEW_REQUIRED"
+        ]
+      },
+      {
+        "node_id": "outcome:sha256:0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f",
+        "node_type": "outcome",
+        "artifact_sha256": "0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f",
+        "impact_class": "reverify_required",
+        "historical_authenticity": "valid_at_time",
+        "current_reliance": "quarantined",
+        "dependency_path": [
+          "issuer_key:sha256:0101010101010101010101010101010101010101010101010101010101010101",
+          "signed_statement:sha256:0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a",
+          "transparency_receipt:sha256:0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b",
+          "decision:sha256:0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c",
+          "action_authorization:sha256:0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d",
+          "execution:sha256:0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e",
+          "outcome:sha256:0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f"
+        ],
+        "reason_codes": [
+          "OUTCOME_OBSERVATION_PRESERVED",
+          "ATTRIBUTION_REQUIRES_REVALIDATION"
+        ]
+      },
+      {
+        "node_id": "source_measurement:sha256:1010101010101010101010101010101010101010101010101010101010101010",
+        "node_type": "source_measurement",
+        "artifact_sha256": "1010101010101010101010101010101010101010101010101010101010101010",
+        "impact_class": "no_impact",
+        "historical_authenticity": "valid_at_time",
+        "current_reliance": "eligible",
+        "dependency_path": [],
+        "reason_codes": [
+          "OUTSIDE_INVALIDATION_SCOPE"
+        ]
+      },
+      {
+        "node_id": "policy:sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "node_type": "policy",
+        "artifact_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+        "impact_class": "no_impact",
+        "historical_authenticity": "valid_at_time",
+        "current_reliance": "eligible",
+        "dependency_path": [],
+        "reason_codes": [
+          "NO_DEPENDENCY_PATH"
+        ]
+      }
+    ],
+    "summary": {
+      "node_count": 17,
+      "no_impact_count": 4,
+      "historical_record_only_count": 6,
+      "reverify_required_count": 3,
+      "claim_invalidated_count": 1,
+      "quarantined_pending_review_count": 3
+    },
+    "historical_record_preserved": true,
+    "claim_ceiling": "incomplete_or_indeterminate",
+    "action_authority": "none",
+    "not_checked": [
+      "invalidation event COSE signature and revoker authorization receipt",
+      "SCITT trusted timestamp receipt and proof of issuer signature creation time",
+      "external key-compromise incident evidence truth and effective-time adjudication",
+      "operator identity and administrative independence",
+      "SLSA/in-toto provenance of this impact auditor executable",
+      "source measurement truth, model fitness and physical consequence"
+    ]
+  },
+  "expected_semantics": {
+    "pre_compromise_statement": "historical authenticity may remain valid when its exact signed statement is independently proven registered before the verified compromise effective time",
+    "post_compromise_receipt": "registration after compromise does not prove that the signature was created after compromise; absent a trusted signing-time proof, classify as quarantined rather than invalid_at_time",
+    "physical_execution": "preserve the physical execution record; uncertainty in authorization/attribution triggers targeted review, not retroactive deletion",
+    "unrelated_nodes": "must remain no_impact"
+  }
+}
