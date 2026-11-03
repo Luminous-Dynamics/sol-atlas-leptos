@@ -178,7 +178,10 @@ mod tests {
             stress_y0.iter().map(|s| s.allostatic_load).sum::<f32>() / stress_y0.len() as f32;
         let avg_200: f32 =
             stress_y200.iter().map(|s| s.allostatic_load).sum::<f32>() / stress_y200.len() as f32;
-        // But renewable growth offsets some stress, so check specific high-stress regions
+        // Population-wide stress still increases in this synthetic scenario,
+        // although renewable growth offsets part of the fossil-decline effect.
+        assert!(avg_200 > avg_0);
+
         let joburg_200 = stress_y200
             .iter()
             .find(|s| s.name == "Johannesburg")
