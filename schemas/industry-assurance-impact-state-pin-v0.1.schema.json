@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/schemas/industry-assurance-impact-state-pin-v0.1.schema.json",
+  "title": "IEAC Impact State Pin v0.1",
+  "description": "Caller-managed monotonic high-water pin for an exact graph and canonical full impact report. It is not self-authenticating or a substitute for durable trusted storage.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "graph_snapshot_sha256", "impact_report_sha256",
+    "last_event_sequence", "event_chain_head_sha256", "impact_policy_sha256",
+    "impact_engine_build_sha256", "pinned_at", "high_water_storage",
+    "authentication_status", "claim_ceiling", "action_authority"
+  ],
+  "properties": {
+    "schema_version": { "const": "luminous.ieac-assurance-impact-state-pin.v0.1" },
+    "graph_snapshot_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "impact_report_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "last_event_sequence": { "type": "integer", "minimum": 1 },
+    "event_chain_head_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "impact_policy_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "impact_engine_build_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "pinned_at": { "type": "string", "format": "date-time" },
+    "high_water_storage": { "const": "caller_managed_monotonic_external_store_required" },
+    "authentication_status": { "const": "not_checked" },
+    "claim_ceiling": { "const": "incomplete_or_indeterminate" },
+    "action_authority": { "const": "none" }
+  }
+}
