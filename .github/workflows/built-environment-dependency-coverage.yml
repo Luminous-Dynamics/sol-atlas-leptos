@@ -69,6 +69,14 @@ jobs:
           test "$required_families" = "$observed_families"
 
           jq -e '
+            ([.source_inventory[].source_id] | unique | length) == (.source_inventory | length) and
+            ([.relationship_coverage[].family] | unique | length) == (.relationship_coverage | length) and
+            ([.edge_provenance[].edge_id] | unique | length) == (.edge_provenance | length) and
+            ((.coverage_profile.required_dependency_families - .coverage_profile.excluded_dependency_families) | length) == (.coverage_profile.required_dependency_families | length) and
+            ([.relationship_coverage[] | select(.status == "complete" and .expected_relationship_count != .observed_relationship_count)] | length) == 0
+          ' "$RUNNER_TEMP/coverage-manifest.json"
+
+          jq -e '
             [.edge_provenance[] as $edge |
               [.source_inventory[] | select(.source_id == $edge.source_id and .snapshot_sha256 == $edge.source_snapshot_sha256 and .extraction.adapter_build_sha256 == $edge.extraction_build_sha256)] | length == 1
             ] | all
@@ -125,6 +133,33 @@ jobs:
               exit 1
             fi
           done
+
+      - name: Reject rights escalation and duplicate/incomplete coverage bindings
+        run: |
+          set -euo pipefail
+          source=schemas/examples/built-environment-dependency-coverage-complete-synthetic-v0.1.json
+          schema=schemas/built-environment-dependency-coverage-v0.1.schema.json
+          jq '.coverage_manifest.source_inventory[0].rights_state = "unknown" | .coverage_manifest' "$source" > "$RUNNER_TEMP/unknown-rights-with-use.json"
+          if jsonschema-cli validate --draft 2020 --assert-format --offline "$schema" -i "$RUNNER_TEMP/unknown-rights-with-use.json"; then
+            echo "ERROR: unknown source rights retained permitted uses"
+            exit 1
+          fi
+          jq '.coverage_manifest.coverage_profile.excluded_dependency_families += ["artifact_lineage"] | .coverage_manifest' "$source" > "$RUNNER_TEMP/family-overlap.json"
+          if jq -e '((.coverage_profile.required_dependency_families - .coverage_profile.excluded_dependency_families) | length) == (.coverage_profile.required_dependency_families | length)' "$RUNNER_TEMP/family-overlap.json"; then
+            echo "ERROR: dependency family is both required and excluded"
+            exit 1
+          fi
+          jq '.coverage_manifest.edge_provenance |= .[1:] | .coverage_manifest' "$source" > "$RUNNER_TEMP/missing-edge.json"
+          if jq -e '
+            . as $manifest |
+            ([ $manifest.relationship_coverage[] as $family |
+              select($family.status == "complete") |
+              select(([ $manifest.edge_provenance[] | select(.family == $family.family) ] | length) != $family.observed_relationship_count)
+            ] | length) == 0
+          ' "$RUNNER_TEMP/missing-edge.json"; then
+            echo "ERROR: complete family accepted after an edge was removed"
+            exit 1
+          fi
 
       - name: Reject unsupported proof of absence
         run: |
