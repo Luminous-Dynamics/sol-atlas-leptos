@@ -613,26 +613,68 @@ pub fn project_built_environment_case_with_descriptors(
         .unwrap_or_default();
 
     if validation.disposition == DescriptorDisposition::InvalidInput {
-        let receipt = json!({
+        let case_bytes = serde_json::to_vec(case).unwrap_or_default();
+        let case_sha256 = sha256_hex(&case_bytes);
+        let mut receipt = json!({
             "schema_version": PROJECTION_SCHEMA_V01,
             "case_id": case.case_id,
-            "source_descriptor_catalog": {
-                "catalog_id": catalog.catalog_id,
-                "catalog_sha256": catalog_sha256,
-                "validation_disposition": validation.disposition.as_str(),
-                "validation": validation
+            "source_case_representation": {
+                "media_type": "application/json",
+                "serialization_profile": "serde_json_struct_field_order_v1",
+                "sha256": case_sha256
             },
-            "disposition": "invalid_input",
-            "claim_ceiling": "incomplete_or_indeterminate",
-            "action_authority": "none",
-            "verification_claim": "none",
+            "projector": {
+                "id": "sol-atlas-built-environment-ieac-projector",
+                "version": env!("CARGO_PKG_VERSION"),
+                "build_sha256": context.projector_build_sha256,
+                "mapping_profile_sha256": context.mapping_profile_sha256,
+                "adapter_fallback_identity_namespace": IDENTITY_NAMESPACE,
+                "identity_namespace_basis": "caller_supplied_map_with_adapter_fallback",
+                "native_identity_namespaces": context.native_identity_namespaces,
+                "native_identity_namespace_map_sha256": namespace_map_digest(&context.native_identity_namespaces).unwrap_or_default(),
+                "native_identity_namespace_entries_supplied": context.native_identity_namespaces.len(),
+                "native_identity_namespace_entries_expected": case.evidence.len()
+                    + case.artifacts.len()
+                    + case.engineering_receipts.len()
+                    + case.decisions.len(),
+                "source_owner_namespace_entries_supplied_for_all_records": false,
+                "source_owner_namespace_authenticated": false,
+                "source_descriptor_catalog": {
+                    "catalog_sha256": catalog_sha256,
+                    "validation_disposition": validation.disposition.as_str(),
+                    "descriptor_count": validation.descriptor_count,
+                    "missing_descriptor_count": validation.missing_descriptor_count,
+                    "extra_descriptor_count": validation.extra_descriptor_count,
+                    "payload_byte_verification": validation.payload_byte_verification,
+                    "rights_authentication": validation.rights_authentication,
+                    "source_attestation_authentication": validation.source_attestation_authentication,
+                    "action_authority": "none",
+                    "findings": validation.findings
+                }
+            },
+            "projected_graph": null,
+            "node_mappings": [],
+            "edge_mappings": [],
+            "projected_payloads": [],
+            "unmapped_relationships": [],
             "findings": [{
                 "severity": "invalid",
                 "code": "SOURCE_DESCRIPTOR_CATALOG_INVALID",
                 "native_key": "source_descriptor_catalog",
                 "detail": "invalid descriptor catalogue cannot supply projection identity or source metadata"
-            }]
+            }],
+            "disposition": "invalid_input",
+            "claim_ceiling": "incomplete_or_indeterminate",
+            "action_authority": "none",
+            "verification_claim": "none",
+            "limitations": [
+                "Invalid source descriptor catalogue was not used for projection.",
+                "The descriptor validator does not authenticate source-owner identities, source bytes, rights, or attestations."
+            ]
         });
+        if let Ok(receipt_digest) = canonical_json_sha256(&receipt) {
+            receipt["projection_receipt_sha256"] = json!(receipt_digest);
+        }
         return DescriptorProjectionOutput {
             descriptor_validation: validation,
             projection: projection_output(
