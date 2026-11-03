@@ -27,7 +27,7 @@ Even `projected_without_known_loss` (available only when no source-owner namespa
 | `EngineeringReceipt` | `engineering_receipt` | SHA-256 of the exact typed Rust struct serialization; explicitly not a source-native payload digest | Artifact-to-receipt `verified_by`; assumption evidence-to-receipt |
 | `DecisionRecord` | `decision` | SHA-256 of the exact typed Rust struct serialization; explicitly not a source-native payload digest | Artifact target, receipt, authority evidence, and superseded-decision relationships |
 
-Native identity uses the same v0.2 domain separator and length-prefixed, sorted identity components as #487. Identity and content digests remain distinct. Every identity contains the case and source-native identifiers plus a record/revision discriminator.
+Native identity uses the same v0.2 domain separator and length-prefixed, sorted identity components as #487. Identity and content digests remain distinct. Every identity contains the case and source identifiers plus a record/revision discriminator. Because the owner-native namespace is not present, the graph identity is adapter-scoped; the source identifiers are retained as components and in the receipt, but the graph does not assert that the adapter is the source owner.
 
 For evidence records, the identity includes source ID, evidence ID, subject, field path and jurisdiction. Artifact identities include design ID, artifact ID, revision, family and jurisdiction. Receipt and decision identities include design ID and their native receipt/event ID.
 
@@ -47,7 +47,7 @@ The projection receipt preserves:
 
 A missing evidence source digest does not get replaced with a digest of a display object or projected JSON. The evidence record is preserved in the receipt, but no source-payload-addressed graph node is created; all relationships depending on that node remain unmapped.
 
-The original source payload bytes are not present in the current `BuiltEnvironmentCase` model. A digest is therefore a reference to source bytes, not proof that the projector fetched or independently hashed those bytes. Likewise, artifact media types and source payload schema identifiers are not present in the model and remain explicitly unknown.
+The original source payload bytes are not present in the current `BuiltEnvironmentCase` model. The model also lacks a distinct owner namespace; this omission is reported as `SOURCE_OWNER_NAMESPACE_NOT_MODELED` and makes ordinary source-evidence/artifact projections incomplete until the sidecar descriptor from #492 is supplied. A digest is therefore a reference to source bytes, not proof that the projector fetched or independently hashed those bytes. Likewise, artifact media types and source payload schema identifiers are not present in the model and remain explicitly unknown.
 
 ## Structural invariants
 
