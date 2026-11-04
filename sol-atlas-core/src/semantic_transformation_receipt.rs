@@ -327,10 +327,10 @@ impl Findings {
             TransformationReceiptDisposition::InvalidReceipt
         } else if self.not_equivalent {
             TransformationReceiptDisposition::NotEquivalent
-        } else if self.has_indeterminate {
-            TransformationReceiptDisposition::Indeterminate
         } else if self.has_semantic_loss {
             TransformationReceiptDisposition::DeclaredSemanticLoss
+        } else if self.has_indeterminate {
+            TransformationReceiptDisposition::Indeterminate
         } else {
             TransformationReceiptDisposition::ReceiptConsistentForIndependentReview
         }
@@ -455,6 +455,7 @@ fn valid_axis_order(order: &[String]) -> bool {
 
 fn validate_mapping_metadata(
     mapping: &SemanticItemMapping,
+    required_for_declared_purposes: bool,
     findings: &mut Findings,
 ) {
     let id = &mapping.source_semantic_id;
@@ -598,7 +599,7 @@ fn validate_mapping_metadata(
                     findings.loss(
                         "UNCERTAINTY_REDUCED_OR_UNKNOWN",
                         id,
-                        true,
+                        required_for_declared_purposes,
                         "uncertainty was reduced or its propagation behavior is unknown",
                     );
                 }
@@ -970,7 +971,11 @@ pub fn validate_semantic_transformation_receipt(
                 }
             }
         }
-        validate_mapping_metadata(mapping, &mut findings);
+        validate_mapping_metadata(
+            mapping,
+            source_item.required_for_declared_purposes,
+            &mut findings,
+        );
     }
 
     let unmapped_source_count = source_by_id
