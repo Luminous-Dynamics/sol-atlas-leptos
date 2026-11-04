@@ -10,6 +10,9 @@
 
 pub mod aesthetics;
 pub mod built_environment_case;
+/// Bounded streaming rehashing of descriptor-backed source bytes through a
+/// caller-supplied resolver. Byte equality is separate from source trust/rights.
+pub mod built_environment_payload_verifier;
 /// Versioned source-owner descriptor catalogues, cross-case identity
 /// reconciliation, and loss-accounted metadata validation. The catalogue is
 /// case-bound, but its owner-native identity hashes deliberately exclude case
@@ -18,9 +21,6 @@ pub mod built_environment_case;
 /// coverage completeness, engineering correctness, or authorization; those remain
 /// independent evidence and trust obligations.
 pub mod built_environment_source_descriptor;
-/// Bounded streaming rehashing of descriptor-backed source bytes through a
-/// caller-supplied resolver. Byte equality is separate from source trust/rights.
-pub mod built_environment_payload_verifier;
 pub mod confluence;
 pub mod constants;
 pub mod data;
