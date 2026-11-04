@@ -591,6 +591,8 @@ fn catalog_report(
         || unavailable_count > 0
         || read_failed_count > 0
         || byte_limit_exceeded_count > 0
+        || descriptor_validation.disposition
+            == DescriptorDisposition::IncompleteOrIndeterminate
         || findings
             .iter()
             .any(|finding| finding.code == "VERIFIER_BUILD_IDENTITY_UNAVAILABLE")
@@ -1227,7 +1229,7 @@ mod tests {
 
         assert_eq!(
             result.disposition,
-            PayloadByteCatalogDisposition::AllDeclaredPayloadReferencesVerified
+            PayloadByteCatalogDisposition::IncompleteOrIndeterminate
         );
         assert_eq!(result.verified_count, 1);
         assert_eq!(result.descriptor_count, 1);
@@ -1253,7 +1255,7 @@ mod tests {
         });
         assert_eq!(
             result.disposition,
-            PayloadByteCatalogDisposition::AllDeclaredPayloadReferencesVerified
+            PayloadByteCatalogDisposition::IncompleteOrIndeterminate
         );
         assert_eq!(
             result.descriptor_validation_disposition, "incomplete_or_indeterminate",
