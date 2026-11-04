@@ -348,5 +348,27 @@
     "coordinate_access_restricted": {
       "type": "boolean"
     }
-  }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "declared_claim": {
+            "const": "proxy_interpretation"
+          }
+        },
+        "required": [
+          "declared_claim"
+        ]
+      },
+      "then": {
+        "properties": {
+          "proxy_family_id": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    }
+  ]
 }
