@@ -1373,7 +1373,7 @@ mod tests {
         }
     }
 
-        #[test]
+    #[test]
     fn all_required_current_proofs_allow_reliance_only_for_declared_scope() {
         let result =
             evaluate_decision_reliance_reference(&request(), &required(), &base_proofs(), &[]);
