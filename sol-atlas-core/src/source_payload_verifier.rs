@@ -953,23 +953,6 @@ mod tests {
     }
 
     #[test]
-    fn streaming_buffer_bounds_are_enforced_before_any_reader_is_consumed() {
-        let payload = b"payload";
-        let schema = b"schema";
-        let case = case(payload);
-        let catalog = catalog(&case, payload, schema);
-        let payload_readers = BTreeMap::from([(
-            "evidence:evidence-001".into(),
-            io::Cursor::new(payload.to_vec()),
-        )]);
-        let error =
-            verify_catalog_payload_streams(&case, &catalog, payload_readers, BTreeMap::new(), 1024)
-                .unwrap_err();
-        assert_eq!(error.error_kind, "invalid_buffer_size");
-        assert_eq!(error.bytes_read, 0);
-    }
-
-    #[test]
     fn invalid_stream_buffer_size_is_rejected_before_reader_consumption() {
         let payload = b"payload";
         let schema = b"schema";
@@ -985,7 +968,13 @@ mod tests {
         )]);
 
         let error =
-            verify_catalog_payload_streams(&case, &catalog, payload_readers, BTreeMap::new(), 1024)
+            verify_catalog_payload_streams(
+                &case,
+                &catalog,
+                payload_readers,
+                BTreeMap::<(String, String), io::Cursor<Vec<u8>>>::new(),
+                1024,
+            )
                 .unwrap_err();
         assert_eq!(error.error_kind, "invalid_buffer_size");
         assert_eq!(error.bytes_read, 0);
