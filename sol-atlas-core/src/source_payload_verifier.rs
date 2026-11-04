@@ -44,7 +44,9 @@ pub enum PayloadByteCatalogDisposition {
 impl PayloadByteCatalogDisposition {
     pub fn as_str(self) -> &'static str {
         match self {
-            Self::AllDeclaredPayloadReferencesVerified => "all_declared_payload_references_verified",
+            Self::AllDeclaredPayloadReferencesVerified => {
+                "all_declared_payload_references_verified"
+            }
             Self::IncompleteOrIndeterminate => "incomplete_or_indeterminate",
             Self::InvalidInput => "invalid_input",
         }
@@ -585,7 +587,7 @@ fn catalog_report(
     let disposition = if invalid_descriptor || invalid_count > 0 || invalid_report_finding {
         PayloadByteCatalogDisposition::InvalidInput
     } else if verified_count + unavailable_count + read_failed_count + byte_limit_exceeded_count
-            != records.len()
+        != records.len()
         || unavailable_count > 0
         || read_failed_count > 0
         || byte_limit_exceeded_count > 0
@@ -1218,8 +1220,7 @@ mod tests {
             PayloadByteCatalogDisposition::AllDeclaredPayloadReferencesVerified
         );
         assert_eq!(
-            result.descriptor_validation_disposition,
-            "incomplete_or_indeterminate",
+            result.descriptor_validation_disposition, "incomplete_or_indeterminate",
             "byte equality must not silently upgrade descriptor rights"
         );
         assert!(
