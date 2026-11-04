@@ -84,7 +84,8 @@
         }
       ],
       "rights_status": "verified",
-      "rights_receipt_ref": "urn:synthetic:rights:profile"
+      "rights_receipt_ref": "urn:synthetic:rights:profile",
+      "validation_site_set_sha256": "6666666666666666666666666666666666666666666666666666666666666666"
     }
   ]
 }
