@@ -722,7 +722,11 @@
           "authority_disposition",
           "impact_disposition",
           "impact_report_sha256",
-          "scope_sha256"
+          "scope_sha256",
+          "authority_receipt_sha256",
+          "effective_time_evidence_sha256",
+          "lifecycle_validation_receipt_sha256",
+          "impact_verifier_build_sha256"
         ],
         "properties": {
           "event_sha256": {
@@ -801,8 +805,100 @@
           },
           "scope_sha256": {
             "$ref": "#/$defs/sha256"
+          },
+          "authority_receipt_sha256": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "effective_time_evidence_sha256": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "lifecycle_validation_receipt_sha256": {
+            "$ref": "#/$defs/sha256"
+          },
+          "impact_verifier_build_sha256": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[0-9a-f]{64}$"
           }
-        }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "authority_disposition": {
+                  "const": "authenticated"
+                }
+              },
+              "required": [
+                "authority_disposition"
+              ]
+            },
+            "then": {
+              "properties": {
+                "authority_receipt_sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "effective_time_confidence": {
+                  "const": "verified"
+                }
+              },
+              "required": [
+                "effective_time_confidence"
+              ]
+            },
+            "then": {
+              "properties": {
+                "effective_at": {
+                  "type": "string",
+                  "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$"
+                },
+                "effective_time_evidence_sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "impact_disposition": {
+                  "enum": [
+                    "affected",
+                    "unaffected",
+                    "revalidation_required",
+                    "quarantined"
+                  ]
+                }
+              },
+              "required": [
+                "impact_disposition"
+              ]
+            },
+            "then": {
+              "properties": {
+                "impact_verifier_build_sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            }
+          }
+        ]
       }
     },
     "historical_record_preserved": {
