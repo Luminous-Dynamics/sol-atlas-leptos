@@ -77,7 +77,7 @@ impl PayloadByteDisposition {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum PayloadFindingSeverity {
     Incomplete,
@@ -654,9 +654,7 @@ pub fn verify_source_descriptor_payloads<R: ContentAddressedPayloadResolver>(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::built_environment_case::{
-        ArtifactKind, ArtifactRecord, DataRights, EvidenceRecord, EvidenceState,
-    };
+    use crate::built_environment_case::{DataRights, EvidenceRecord, EvidenceState};
     use crate::built_environment_source_descriptor::{
         NativeIdentityComponent, SourceAttestationDescriptor, SourceObservationTime,
         SourcePayloadDescriptor, SourceRecordDescriptor, SourceRightsDescriptor, SourceRightsState,
