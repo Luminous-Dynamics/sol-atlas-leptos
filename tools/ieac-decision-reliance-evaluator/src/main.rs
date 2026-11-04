@@ -663,39 +663,21 @@ fn validate_temporal_events(
         if confidence == "verified" && effective_at.is_none() {
             push_error(errors, "VERIFIED_EFFECTIVE_TIME_MISSING", event_sha);
         }
-        if confidence == "verified"
-            && !effective_time_evidence.is_some_and(valid_sha256)
-        {
+        if confidence == "verified" && !effective_time_evidence.is_some_and(valid_sha256) {
             push_error(
                 errors,
                 "VERIFIED_EFFECTIVE_TIME_EVIDENCE_MISSING",
                 event_sha,
             );
         }
-        if authority == "authenticated"
-            && !authority_receipt.is_some_and(valid_sha256)
-        {
-            push_error(
-                errors,
-                "AUTHORITY_VERIFICATION_RECEIPT_MISSING",
-                event_sha,
-            );
+        if authority == "authenticated" && !authority_receipt.is_some_and(valid_sha256) {
+            push_error(errors, "AUTHORITY_VERIFICATION_RECEIPT_MISSING", event_sha);
         }
         if !valid_sha256(lifecycle_receipt) {
-            push_error(
-                errors,
-                "LIFECYCLE_VALIDATION_RECEIPT_INVALID",
-                event_sha,
-            );
+            push_error(errors, "LIFECYCLE_VALIDATION_RECEIPT_INVALID", event_sha);
         }
-        if impact != "not_checked"
-            && !impact_verifier_build.is_some_and(valid_sha256)
-        {
-            push_error(
-                errors,
-                "IMPACT_VERIFIER_BUILD_MISSING",
-                event_sha,
-            );
+        if impact != "not_checked" && !impact_verifier_build.is_some_and(valid_sha256) {
+            push_error(errors, "IMPACT_VERIFIER_BUILD_MISSING", event_sha);
         }
         if authority == "authenticated" && trusted_at.is_none() {
             push_error(
@@ -1596,11 +1578,16 @@ mod tests {
         }]);
         let report = evaluate(&input).unwrap();
         assert_eq!(report["continuity_assessment"], "invalid_input");
-        assert!(report["validation_errors"]
-            .as_array()
-            .unwrap()
-            .iter()
-            .any(|error| error.as_str().unwrap().starts_with("AUTHORITY_VERIFICATION_RECEIPT_MISSING")));
+        assert!(
+            report["validation_errors"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|error| error
+                    .as_str()
+                    .unwrap()
+                    .starts_with("AUTHORITY_VERIFICATION_RECEIPT_MISSING"))
+        );
     }
 
     #[test]
@@ -1626,11 +1613,16 @@ mod tests {
         }]);
         let report = evaluate(&input).unwrap();
         assert_eq!(report["continuity_assessment"], "invalid_input");
-        assert!(report["validation_errors"]
-            .as_array()
-            .unwrap()
-            .iter()
-            .any(|error| error.as_str().unwrap().starts_with("VERIFIED_EFFECTIVE_TIME_EVIDENCE_MISSING")));
+        assert!(
+            report["validation_errors"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|error| error
+                    .as_str()
+                    .unwrap()
+                    .starts_with("VERIFIED_EFFECTIVE_TIME_EVIDENCE_MISSING"))
+        );
     }
 
     #[test]
