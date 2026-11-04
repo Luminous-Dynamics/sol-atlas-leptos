@@ -553,7 +553,18 @@
       "then": {
         "properties": {
           "revalidation_obligations": {
-            "minItems": 1
+            "minItems": 1,
+            "contains": {
+              "type": "object",
+              "properties": {
+                "blocking": {
+                  "const": true
+                }
+              },
+              "required": [
+                "blocking"
+              ]
+            }
           }
         }
       }
