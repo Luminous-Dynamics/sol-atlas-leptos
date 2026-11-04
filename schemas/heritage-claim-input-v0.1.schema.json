@@ -253,6 +253,7 @@
           "required": [
             "reviewer_id",
             "reviewer_scope",
+            "adjudicated_at",
             "outcome",
             "decision_ref",
             "decision_sha256",
@@ -310,6 +311,10 @@
             },
             "contradictions_resolved": {
               "type": "boolean"
+            },
+            "adjudicated_at": {
+              "type": "string",
+              "format": "date-time"
             }
           },
           "allOf": [
