@@ -60,10 +60,12 @@
     "survey_unit_id": "unit-01",
     "survey_unit_crs_id": "EPSG:32636",
     "survey_unit_area_m2": 100000,
-    "overlap_adjusted_path_length_m": 1000,
     "transect_geometry_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
     "survey_unit_geometry_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
     "spatial_union_method_id": "buffered_transect_union_v1",
-    "spatial_union_receipt_sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+    "spatial_union_receipt_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+    "buffered_transect_union_area_m2": 6499,
+    "buffered_sweep_width_m": 6.499856768073857,
+    "calibration_profile_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
   }
 }
