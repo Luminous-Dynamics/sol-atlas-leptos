@@ -22,6 +22,11 @@ use std::io::{self, Read};
 const RECEIPT_SCHEMA: &str = "luminous.source-payload-byte-verification-receipt.v0.1";
 const PAYLOAD_INPUT_DOMAIN: &[u8] = b"LUMINOUS-SOURCE-PAYLOAD-INPUT-MANIFEST-V0.1\0";
 const SCHEMA_INPUT_DOMAIN: &[u8] = b"LUMINOUS-SOURCE-SCHEMA-INPUT-MANIFEST-V0.1\0";
+const STREAMING_RECEIPT_SCHEMA: &str =
+    "luminous.streaming-source-byte-verification-receipt.v0.1";
+const MIN_STREAM_BUFFER_BYTES: usize = 4 * 1024;
+const MAX_STREAM_BUFFER_BYTES: usize = 4 * 1024 * 1024;
+
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -39,6 +44,28 @@ impl ByteVerificationDisposition {
             Self::InvalidInput => "invalid_input",
         }
     }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct StreamingExecutionProfile {
+    pub io_mode: String,
+    pub buffer_size_bytes: usize,
+    pub working_buffer_bytes: usize,
+    pub ordering: String,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct StreamingByteVerificationReceipt {
+    pub schema_version: String,
+    pub case_id: String,
+    pub catalog_id: String,
+    pub verification_receipt_sha256: String,
+    pub payload_input_manifest_sha256: String,
+    pub schema_input_manifest_sha256: String,
+    pub execution_profile: StreamingExecutionProfile,
+    pub verification: PayloadByteVerificationReceipt,
+    pub receipt_digest_basis: String,
+    pub receipt_sha256: String,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize)]
@@ -231,22 +258,147 @@ fn record_key(kind: SourceRecordKind, id: &str) -> String {
     kind.case_key(id)
 }
 
-/// Verify payload and schema bytes for one exact case-bound descriptor
-/// catalogue.
-///
-/// payload_inputs is keyed by the descriptor's stable typed record key
-/// (evidence:<id>, artifact:<id>, engineering_receipt:<id>, or decision:<id>).
-/// schema_inputs is keyed by (schema_id, schema_version). The verifier hashes
-/// supplied byte slices and does not fetch any network resource or trust an
-/// input filename/URL.
-///
-/// This is a bounded in-memory v0.1 implementation. A streaming Read/async
-/// interface and content-addressed object-store adapters are future work.
+/// Verify payload and schema bytes supplied as in-memory byte slices.
 pub fn verify_catalog_payload_bytes(
     case: &BuiltEnvironmentCase,
     catalog: &SourceDescriptorCatalog,
     payload_inputs: &BTreeMap<String, Vec<u8>>,
     schema_inputs: &BTreeMap<(String, String), Vec<u8>>,
+) -> PayloadByteVerificationReceipt {
+    let payload_digests = payload_inputs
+        .iter()
+        .map(|(key, bytes)| (key.clone(), digest_bytes(bytes)))
+        .collect::<BTreeMap<_, _>>();
+    let schema_digests = schema_inputs
+        .iter()
+        .map(|(key, bytes)| (key.clone(), digest_bytes(bytes)))
+        .collect::<BTreeMap<_, _>>();
+    verify_catalog_payload_digests(case, catalog, &payload_digests, &schema_digests)
+}
+
+/// Hash caller-supplied readers in deterministic key order, then run the exact
+/// same descriptor and byte-claim verifier used by the in-memory API.
+///
+/// Payload readers are keyed by evidence:<id>, artifact:<id>,
+/// engineering_receipt:<id>, or decision:<id>. Schema readers are keyed by
+/// (schema_id, schema_version). No URL is fetched and no object location is
+/// inferred. A read error returns a typed error and no partial-success receipt.
+pub fn verify_catalog_payload_streams<P, S>(
+    case: &BuiltEnvironmentCase,
+    catalog: &SourceDescriptorCatalog,
+    payload_readers: BTreeMap<String, P>,
+    schema_readers: BTreeMap<(String, String), S>,
+    buffer_size_bytes: usize,
+) -> Result<StreamingByteVerificationReceipt, ByteInputReadError>
+where
+    P: Read,
+    S: Read,
+{
+    if !(MIN_STREAM_BUFFER_BYTES..=MAX_STREAM_BUFFER_BYTES).contains(&buffer_size_bytes) {
+        return Err(ByteInputReadError {
+            input_key: "execution_profile.buffer_size_bytes".into(),
+            bytes_read: 0,
+            error_kind: "invalid_buffer_size".into(),
+            message: format!(
+                "buffer size must be between {MIN_STREAM_BUFFER_BYTES} and {MAX_STREAM_BUFFER_BYTES} bytes"
+            ),
+        });
+    }
+
+    let mut payload_digests = BTreeMap::new();
+    for (key, reader) in payload_readers {
+        let digest = hash_reader(reader, &key, buffer_size_bytes)?;
+        payload_digests.insert(key, digest);
+    }
+
+    let mut schema_digests = BTreeMap::new();
+    for ((schema_id, schema_version), reader) in schema_readers {
+        let key = format!("{schema_id}@{schema_version}");
+        let digest = hash_reader(reader, &key, buffer_size_bytes)?;
+        schema_digests.insert((schema_id, schema_version), digest);
+    }
+
+    let verification =
+        verify_catalog_payload_digests(case, catalog, &payload_digests, &schema_digests);
+    let mut receipt = StreamingByteVerificationReceipt {
+        schema_version: STREAMING_RECEIPT_SCHEMA.into(),
+        case_id: case.case_id.clone(),
+        catalog_id: catalog.catalog_id.clone(),
+        verification_receipt_sha256: verification.receipt_sha256.clone(),
+        payload_input_manifest_sha256: verification.payload_input_manifest_sha256.clone(),
+        schema_input_manifest_sha256: verification.schema_input_manifest_sha256.clone(),
+        execution_profile: StreamingExecutionProfile {
+            io_mode: "streaming_reader".into(),
+            buffer_size_bytes,
+            working_buffer_bytes: buffer_size_bytes,
+            ordering: "lexicographic_btreemap_key_order".into(),
+        },
+        verification,
+        receipt_digest_basis:
+            "sha256_over_serde_json_streaming_receipt_with_empty_receipt_sha256_field".into(),
+        receipt_sha256: String::new(),
+    };
+    let receipt_bytes = serde_json::to_vec(&receipt).unwrap_or_default();
+    receipt.receipt_sha256 = sha256_hex(&receipt_bytes);
+    Ok(receipt)
+}
+
+fn hash_reader<R: Read>(
+    mut reader: R,
+    input_key: &str,
+    buffer_size_bytes: usize,
+) -> Result<InputDigest, ByteInputReadError> {
+    let mut buffer = vec![0u8; buffer_size_bytes];
+    let mut hasher = Sha256::new();
+    let mut bytes_read = 0u64;
+
+    loop {
+        match reader.read(&mut buffer) {
+            Ok(0) => break,
+            Ok(count) => {
+                let count_u64 = u64::try_from(count).map_err(|error| ByteInputReadError {
+                    input_key: input_key.to_owned(),
+                    bytes_read,
+                    error_kind: "byte_count_overflow".into(),
+                    message: error.to_string(),
+                })?;
+                bytes_read = bytes_read.checked_add(count_u64).ok_or_else(|| ByteInputReadError {
+                    input_key: input_key.to_owned(),
+                    bytes_read,
+                    error_kind: "byte_count_overflow".into(),
+                    message: "stream byte count exceeds u64".into(),
+                })?;
+                hasher.update(&buffer[..count]);
+            }
+            Err(error) if error.kind() == io::ErrorKind::Interrupted => continue,
+            Err(error) => {
+                return Err(ByteInputReadError {
+                    input_key: input_key.to_owned(),
+                    bytes_read,
+                    error_kind: format!("{:?}", error.kind()),
+                    message: error.to_string(),
+                });
+            }
+        }
+    }
+
+    let digest = hasher.finalize();
+    let mut sha256 = String::with_capacity(64);
+    for byte in digest {
+        use std::fmt::Write as _;
+        let _ = write!(&mut sha256, "{byte:02x}");
+    }
+    Ok(InputDigest {
+        sha256,
+        byte_length: bytes_read,
+    })
+}
+
+fn verify_catalog_payload_digests(
+    case: &BuiltEnvironmentCase,
+    catalog: &SourceDescriptorCatalog,
+    payload_inputs: &BTreeMap<String, InputDigest>,
+    schema_inputs: &BTreeMap<(String, String), InputDigest>,
 ) -> PayloadByteVerificationReceipt {
     let descriptor_validation = validate_source_descriptor_catalog(case, catalog);
     let catalog_bytes = serde_json::to_vec(catalog).unwrap_or_default();
@@ -298,8 +450,8 @@ pub fn verify_catalog_payload_bytes(
                 payload_bytes,
             ) {
                 (Some(expected), Some(bytes)) => {
-                    let computed = sha256_hex(bytes);
-                    let actual_length = bytes.len() as u64;
+                    let computed = bytes.sha256.clone();
+                    let actual_length = bytes.byte_length;
                     let expected_digest_valid = valid_sha256(expected);
                     let digest_matches = expected_digest_valid && computed == expected;
                     let length_matches = expected_byte_length
@@ -386,8 +538,8 @@ pub fn verify_catalog_payload_bytes(
                             "supplied bytes were hashed for observation only; the computed digest is not promoted to a source-native claim",
                         );
                     (
-                        Some(sha256_hex(bytes)),
-                        Some(bytes.len() as u64),
+                        Some(bytes.sha256.clone()),
+                        Some(bytes.byte_length),
                         "observed_bytes_without_source_digest_claim",
                     )
                 }
@@ -417,7 +569,7 @@ pub fn verify_catalog_payload_bytes(
                     referenced_schema_keys.insert(schema_key.clone());
                     match schema_inputs.get(schema_key) {
                         Some(bytes) => {
-                            let computed = sha256_hex(bytes);
+                            let computed = bytes.sha256.clone();
                             if computed == expected && valid_sha256(expected) {
                                 schema_bytes_verified += 1;
                                 (Some(computed), "schema_bytes_match_declared_digest")
@@ -557,7 +709,7 @@ pub fn verify_catalog_payload_bytes(
             "The verifier hashes caller-supplied byte buffers; it does not retrieve source bytes or authenticate their origin.".into(),
             "A matching payload digest proves byte equality with the descriptor claim, not source-owner identity or attestation authenticity.".into(),
             "Rights, signatures, trust roots, revocation, source-universe completeness, and engineering correctness are outside this verifier.".into(),
-            "The v0.1 implementation is an in-memory implementation with memory use proportional to supplied bytes; streaming and object-store readers are future work.".into(),
+            "The in-memory API accepts caller-owned byte slices; the streaming API accepts caller-owned Read implementations and uses a bounded working buffer.".into(),
             "Schema byte hashing proves exact schema artifact bytes only; it does not prove parser conformance or domain semantics.".into(),
         ],
         receipt_digest_basis: "sha256_over_serde_json_receipt_with_empty_receipt_sha256_field".into(),
