@@ -1,0 +1,104 @@
+{
+  "schema_version": "luminous.heritage-architecture.v0.1",
+  "project_id": "synthetic-shivta-style-study",
+  "site_id": "synthetic-site-1",
+  "snapshot_id": "synthetic-snapshot-2026",
+  "coordinate_reference_id": "EPSG:32735",
+  "captures": [
+    {
+      "capture_id": "orthomosaic-1",
+      "site_id": "synthetic-site-1",
+      "snapshot_id": "synthetic-snapshot-2026",
+      "modality": "orthomosaic",
+      "source_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "coordinate_reference_id": "EPSG:32735",
+      "calibration_id": "calibration-1",
+      "ground_sample_distance_m": 0.01,
+      "rights_state": "unknown"
+    },
+    {
+      "capture_id": "survey-1",
+      "site_id": "synthetic-site-1",
+      "snapshot_id": "synthetic-snapshot-2026",
+      "modality": "total_station",
+      "source_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "coordinate_reference_id": "EPSG:32735",
+      "calibration_id": "calibration-1",
+      "rights_state": "unknown"
+    }
+  ],
+  "elements": [
+    {
+      "element_id": "wall-1",
+      "level": "wall",
+      "parentage": {
+        "status": "unassigned"
+      },
+      "observations": [
+        {
+          "observation_id": "wall-measurement-1",
+          "geometry_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "origin": "direct_measurement",
+          "measurement_basis": "calibrated_planar2d",
+          "source_capture_ids": ["survey-1"],
+          "spatial_reference_id": "EPSG:32735",
+          "calibration_id": "calibration-1",
+          "metric_area_m2": 18.2,
+          "metric_area_semantics": "plan_footprint",
+          "metric_perimeter_m": 27.4
+        }
+      ]
+    },
+    {
+      "element_id": "segment-1",
+      "level": "wall_segment",
+      "parentage": {
+        "status": "assigned",
+        "parent_element_id": "wall-1"
+      },
+      "observations": [
+        {
+          "observation_id": "segment-measurement-1",
+          "geometry_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "origin": "direct_measurement",
+          "measurement_basis": "calibrated_planar2d",
+          "source_capture_ids": ["survey-1"],
+          "spatial_reference_id": "EPSG:32735",
+          "calibration_id": "calibration-1",
+          "metric_area_m2": 4.5,
+          "metric_area_semantics": "plan_footprint"
+        }
+      ]
+    },
+    {
+      "element_id": "stone-1",
+      "level": "stone",
+      "physical_identity_id": "physical-stone-1",
+      "parentage": {
+        "status": "assigned",
+        "parent_element_id": "segment-1"
+      },
+      "observations": [
+        {
+          "observation_id": "stone-digitization-1",
+          "geometry_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "origin": "human_digitization",
+          "measurement_basis": "calibrated_planar2d",
+          "source_capture_ids": ["orthomosaic-1"],
+          "spatial_reference_id": "EPSG:32735",
+          "calibration_id": "calibration-1",
+          "pixel_area_pixels2": 420.0,
+          "metric_area_m2": 0.042,
+          "metric_area_semantics": "plan_footprint",
+          "metric_perimeter_m": 0.83,
+          "mrr_area_ratio": 0.91,
+          "elongation_ratio": 1.34,
+          "uncertainty": {
+            "area_standard_deviation_m2": 0.002,
+            "area_interval_90_m2": [0.038, 0.046]
+          }
+        }
+      ]
+    }
+  ]
+}
