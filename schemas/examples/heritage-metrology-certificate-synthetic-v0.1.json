@@ -1,0 +1,32 @@
+{
+  "schema_version": "luminous.heritage-metrology.v0.1",
+  "calibration_id": "synthetic-calibration-1",
+  "site_id": "synthetic-site-1",
+  "snapshot_id": "synthetic-snapshot-1",
+  "coordinate_reference_id": "EPSG:32735",
+  "reference_survey_id": "synthetic-total-station-campaign",
+  "method_build_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "source_capture_ids": ["orthomosaic-1", "pointcloud-1"],
+  "control_point_ids": ["control-1", "control-2"],
+  "independent_checkpoints": [
+    {
+      "checkpoint_id": "check-1",
+      "stratum": "open-ground",
+      "reference_xyz_m": [100.0, 200.0, 10.0],
+      "product_xyz_m": [100.01, 200.02, 10.03],
+      "reference_sigma_h_m": 0.005,
+      "reference_sigma_v_m": 0.008
+    },
+    {
+      "checkpoint_id": "check-2",
+      "stratum": "vegetated-edge",
+      "reference_xyz_m": [101.0, 200.0, 10.0],
+      "product_xyz_m": [101.02, 200.02, 10.03],
+      "reference_sigma_h_m": 0.006,
+      "reference_sigma_v_m": 0.009
+    }
+  ],
+  "assessment_profile": "exploratory",
+  "independence_attestation_ref": "custody://synthetic/independence",
+  "rights_receipt_ref": "rights://synthetic/survey"
+}
