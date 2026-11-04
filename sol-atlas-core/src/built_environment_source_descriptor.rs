@@ -242,12 +242,19 @@ impl CrossCaseNativeClaim {
         for (field, value) in [
             ("media_type", descriptor.source_payload.media_type.as_ref()),
             ("schema_id", descriptor.source_payload.schema_id.as_ref()),
-            ("schema_version", descriptor.source_payload.schema_version.as_ref()),
-            ("schema_sha256", descriptor.source_payload.schema_sha256.as_ref()),
+            (
+                "schema_version",
+                descriptor.source_payload.schema_version.as_ref(),
+            ),
+            (
+                "schema_sha256",
+                descriptor.source_payload.schema_sha256.as_ref(),
+            ),
         ] {
             match value {
                 Some(value) => {
-                    claim.metadata_values
+                    claim
+                        .metadata_values
                         .entry(field.into())
                         .or_default()
                         .insert(value.clone());
@@ -904,12 +911,9 @@ pub fn validate_source_descriptor_catalog_set(
         }
 
         for (record_key, identity_sha256) in &validation.identity_sha256_by_case_record {
-            let descriptor = catalog
-                .descriptors
-                .iter()
-                .find(|descriptor| {
-                    descriptor.record_kind.case_key(&descriptor.case_record_id) == *record_key
-                });
+            let descriptor = catalog.descriptors.iter().find(|descriptor| {
+                descriptor.record_kind.case_key(&descriptor.case_record_id) == *record_key
+            });
             let Some(descriptor) = descriptor else {
                 incomparable_shared_identity_count += 1;
                 findings.incomplete(
@@ -919,11 +923,10 @@ pub fn validate_source_descriptor_catalog_set(
                 );
                 continue;
             };
-            let current_claim =
-                CrossCaseNativeClaim::from_descriptor(
-                    format!("{}:{record_key}", catalog.case_id),
-                    descriptor,
-                );
+            let current_claim = CrossCaseNativeClaim::from_descriptor(
+                format!("{}:{record_key}", catalog.case_id),
+                descriptor,
+            );
 
             if let Some(first_claim) = native_identities.get_mut(identity_sha256) {
                 shared_native_identity_reference_count += 1;
