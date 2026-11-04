@@ -1226,7 +1226,10 @@ mod tests {
                 "candidate_current_within_declared_scope"
             );
         }
-        assert_eq!(report["continuity_assessment"], "views_consistent_candidate");
+        assert_eq!(
+            report["continuity_assessment"],
+            "views_consistent_candidate"
+        );
         assert_eq!(report["action_authority"], "none");
         assert_eq!(report["input_authentication"], "not_performed");
         assert_eq!(report["impact_recomputation"], "not_performed");
