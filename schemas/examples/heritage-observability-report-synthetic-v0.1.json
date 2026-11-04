@@ -27,5 +27,24 @@
   "reasons": [],
   "archaeological_absence_claimed": false,
   "archaeological_identification_claimed": false,
-  "combined_multi_observation_probability_reported": false
+  "combined_multi_observation_probability_reported": false,
+  "calibration_context": {
+    "feature_class_id": "stone_enclosure",
+    "modality": "airborne_lidar",
+    "sensor_configuration_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "processing_build_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "environment_stratum_id": "open_grassland_low_relief",
+    "season_stratum_id": "leaf_off_dry_season",
+    "resolution_class_id": "dem_0p5m"
+  },
+  "observed_context": {
+    "feature_class_id": "stone_enclosure",
+    "modality": "airborne_lidar",
+    "sensor_configuration_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "processing_build_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "environment_stratum_id": "open_grassland_low_relief",
+    "season_stratum_id": "leaf_off_dry_season",
+    "resolution_class_id": "dem_0p5m"
+  },
+  "observation_profile_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
 }
