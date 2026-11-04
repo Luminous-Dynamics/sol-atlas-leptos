@@ -28,7 +28,7 @@ jobs:
         run: test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
       - uses: dtolnay/rust-toolchain@stable
         with:
-          components: rustfmt, clippy
+          components: rustfmt
       - name: Check core formatting
         run: cargo fmt --manifest-path sol-atlas-core/Cargo.toml -- --check
       - name: Run core unit and fixture tests
