@@ -830,8 +830,10 @@ pub fn validate_heritage_reconstruction(
         {
             restricted_exact_count += 1;
         }
-        if element.identifiability != Identifiability::Identifiable {
+        if element.identifiability == Identifiability::NonIdentifiable {
             non_identifiable_count += 1;
+        }
+        if element.identifiability != Identifiability::Identifiable {
             if let (Some(family), Some(hypothesis)) =
                 (&element.hypothesis_family_id, &element.hypothesis_id)
             {
@@ -1213,6 +1215,17 @@ mod tests {
             chronology_evidence_ids: vec!["chronology".into()],
         };
         assert!(validate_heritage_reconstruction(&value).is_ok());
+    }
+
+    #[test]
+    fn weak_identifiability_is_not_counted_as_non_identifiable() {
+        let mut value = input();
+        value.elements[0].identifiability = Identifiability::WeaklyIdentifiable;
+        value.elements[0].hypothesis_family_id = Some("settlement-boundary".into());
+        value.elements[0].hypothesis_id = Some("boundary-hypothesis-a".into());
+        let report = validate_heritage_reconstruction(&value).unwrap();
+        assert_eq!(report.non_identifiable_element_count, 0);
+        assert_eq!(report.alternative_hypothesis_family_count, 0);
     }
 
     #[test]
