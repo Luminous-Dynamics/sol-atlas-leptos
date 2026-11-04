@@ -16,8 +16,12 @@ use sol_atlas_core::built_environment_source_descriptor::{
     SourceRecordDescriptor, SourceRecordKind, SourceRightsDescriptor, SourceRightsState,
     SourceSnapshotDescriptor, validate_source_descriptor_catalog,
 };
+use sol_atlas_core::built_environment_source_inventory::{
+    ExpectedSourceOwner, InventoryAccessScope, InventoryPageReceipt, ReportedTotalSemantics,
+    SnapshotSemantics, SourceInventoryManifest,
+};
 use sol_atlas_core::industry_assurance_projection::{
-    ProjectionContext, project_built_environment_case_with_descriptors,
+    ProjectionContext, project_built_environment_case_with_inventory,
 };
 use std::collections::BTreeMap;
 use std::error::Error;
@@ -85,6 +89,72 @@ fn descriptor(
             key_id: Some("urn:synthetic:key:001".into()),
             trust_evaluation: "not_evaluated_by_descriptor_catalog".into(),
         },
+    }
+}
+
+fn inventory_manifest_for_descriptor(
+    descriptor: &SourceRecordDescriptor,
+    identity_sha256: &str,
+) -> SourceInventoryManifest {
+    let inventory_id = format!("inventory-{}", descriptor.case_record_id);
+    let payload_sha256 = descriptor
+        .source_payload
+        .sha256
+        .clone()
+        .unwrap_or_else(|| digest('0'));
+    let snapshot_sha256 = descriptor.source_snapshot.snapshot_sha256.clone();
+    let page = InventoryPageReceipt {
+        inventory_id: inventory_id.clone(),
+        partition_id: "region-a".into(),
+        ordinal: 0,
+        response_payload_sha256: digest('a'),
+        item_count: 1,
+        native_record_identity_sha256s: vec![identity_sha256.into()],
+        native_record_payload_sha256s: vec![payload_sha256],
+        tombstone_identity_sha256s: vec![],
+        cursor_before_sha256: None,
+        cursor_after_sha256: None,
+        predecessor_page_receipt_sha256: None,
+        snapshot_sha256: Some(snapshot_sha256.clone()),
+        source_watermark: None,
+        response_at: "2026-11-03T12:01:00Z".into(),
+        terminal: true,
+    };
+    SourceInventoryManifest {
+        schema_version: "luminous.federated-source-inventory-manifest.v0.1".into(),
+        inventory_id,
+        source_owner_namespace: descriptor.owner_namespace.clone(),
+        source_system_id: descriptor.source_snapshot.source_id.clone(),
+        connector_id: "synthetic-connector".into(),
+        connector_build_sha256: digest('d'),
+        query_scope_sha256: digest('e'),
+        query_scope_summary: format!("all synthetic records for {}", descriptor.case_record_id),
+        access_scope: InventoryAccessScope::SourceAssertedComplete,
+        snapshot_semantics: SnapshotSemantics::ImmutableSnapshot,
+        snapshot_token: Some(descriptor.source_snapshot.snapshot_id.clone()),
+        snapshot_sha256: Some(snapshot_sha256),
+        source_watermark: None,
+        required_partitions: vec!["region-a".into()],
+        enumeration_started_at: "2026-11-03T12:00:00Z".into(),
+        enumeration_finished_at: "2026-11-03T12:02:00Z".into(),
+        page_receipts: vec![page],
+        reported_total_count: Some(1),
+        reported_total_count_semantics: Some(ReportedTotalSemantics::UniqueNativeRecords),
+        enumerated_item_count: 1,
+        enumerated_unique_count: 1,
+        duplicate_count: 0,
+        excluded_count: 0,
+        exclusions: vec![],
+        tombstone_count: 0,
+        tombstones_included: true,
+        pagination_exhausted: true,
+        snapshot_consistent: true,
+        truncation_detected: false,
+        attestation_ref: Some("synthetic:inventory-attestation:001".into()),
+        issuer_key_id: Some("urn:synthetic:inventory-key:001".into()),
+        limitations: vec![
+            "Synthetic-only inventory; source bytes and signatures remain unauthenticated.".into(),
+        ],
     }
 }
 
@@ -232,14 +302,46 @@ fn main() -> Result<(), Box<dyn Error>> {
         mapping_profile_sha256: digest('e'),
         native_identity_namespaces: BTreeMap::new(),
     };
-    let output = project_built_environment_case_with_descriptors(&case, &context, &catalog);
+    let mut expected_owners = Vec::new();
+    let mut manifests = Vec::new();
+    for descriptor in &catalog.descriptors {
+        let record_key = descriptor.record_kind.case_key(&descriptor.case_record_id);
+        let identity_sha256 = descriptor_validation
+            .identity_sha256_by_case_record
+            .get(&record_key)
+            .ok_or_else(|| format!("descriptor validator omitted {record_key}"))?;
+        expected_owners.push(ExpectedSourceOwner {
+            owner_namespace: descriptor.owner_namespace.clone(),
+            source_system_id: descriptor.source_snapshot.source_id.clone(),
+            required: true,
+        });
+        manifests.push(inventory_manifest_for_descriptor(
+            descriptor,
+            identity_sha256,
+        ));
+    }
+    let output = project_built_environment_case_with_inventory(
+        &case,
+        &context,
+        &catalog,
+        &expected_owners,
+        &manifests,
+    );
 
     if descriptor_validation.disposition.as_str() != "incomplete_or_indeterminate"
+        || output.inventory_validation.disposition.as_str() != "complete_within_declared_owner_set"
+        || output.descriptor_inventory_binding.disposition
+            != "internally_consistent_for_declared_descriptors"
         || output.projection.disposition.as_str() != "projected_with_known_loss"
         || output.projection.graph["claim_ceiling"] != "incomplete_or_indeterminate"
         || output.projection.graph["action_authority"] != "none"
+        || output.inventory_validation.no_impact_eligible
+        || output.projection.projection_receipt["projector"]["source_inventory_closure"]["no_impact_eligible"]
+            != false
     {
-        return Err("descriptor composition did not retain its conservative claim ceiling".into());
+        return Err(
+            "descriptor/inventory composition did not retain its conservative claim ceiling".into(),
+        );
     }
 
     let expected = &descriptor_validation.identity_sha256_by_case_record;
@@ -261,6 +363,8 @@ fn main() -> Result<(), Box<dyn Error>> {
         serde_json::to_string_pretty(&serde_json::json!({
             "fixture_status": "synthetic_only",
             "descriptor_validation": descriptor_validation,
+            "inventory_validation": output.inventory_validation,
+            "descriptor_inventory_binding": output.descriptor_inventory_binding,
             "graph": output.projection.graph,
             "projection_receipt": output.projection.projection_receipt
         }))?

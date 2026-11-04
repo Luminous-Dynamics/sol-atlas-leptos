@@ -223,6 +223,322 @@
               "type": "null"
             }
           ]
+        },
+        "source_inventory_closure": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "validation_sha256",
+            "validation_serialization",
+            "expected_owner_register_sha256",
+            "manifest_bindings",
+            "disposition",
+            "expected_owner_count",
+            "required_owner_count",
+            "present_required_owner_count",
+            "complete_inventory_count",
+            "complete_with_exclusions_count",
+            "incomplete_inventory_count",
+            "invalid_inventory_count",
+            "not_comparable_inventory_count",
+            "cross_manifest_duplicate_identity_count",
+            "cross_manifest_payload_digest_conflict_count",
+            "claim_scope",
+            "no_impact_eligible",
+            "no_impact_blockers",
+            "findings",
+            "descriptor_inventory_binding"
+          ],
+          "properties": {
+            "validation_sha256": {
+              "$ref": "#/$defs/sha256"
+            },
+            "validation_serialization": {
+              "const": "serde_json_struct_field_order_v1"
+            },
+            "disposition": {
+              "enum": [
+                "complete_within_declared_owner_set",
+                "complete_with_declared_exclusions",
+                "incomplete_or_indeterminate",
+                "invalid_input"
+              ]
+            },
+            "expected_owner_count": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "required_owner_count": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "present_required_owner_count": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "complete_inventory_count": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "complete_with_exclusions_count": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "incomplete_inventory_count": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "invalid_inventory_count": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "not_comparable_inventory_count": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "claim_scope": {
+              "type": "string",
+              "minLength": 1
+            },
+            "no_impact_eligible": {
+              "const": false
+            },
+            "no_impact_blockers": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "findings": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "severity",
+                  "code",
+                  "subject",
+                  "detail"
+                ],
+                "properties": {
+                  "severity": {
+                    "enum": [
+                      "incomplete",
+                      "invalid"
+                    ]
+                  },
+                  "code": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "subject": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "detail": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              }
+            },
+            "descriptor_inventory_binding": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "disposition",
+                "descriptor_count",
+                "bound_record_count",
+                "missing_inventory_count",
+                "missing_record_count",
+                "payload_digest_mismatch_count",
+                "snapshot_mismatch_count",
+                "no_impact_eligible",
+                "findings"
+              ],
+              "properties": {
+                "disposition": {
+                  "enum": [
+                    "internally_consistent_for_declared_descriptors",
+                    "incomplete_or_indeterminate",
+                    "invalid_input"
+                  ]
+                },
+                "descriptor_count": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "bound_record_count": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "missing_inventory_count": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "missing_record_count": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "payload_digest_mismatch_count": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "snapshot_mismatch_count": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "no_impact_eligible": {
+                  "const": false
+                },
+                "findings": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "severity",
+                      "code",
+                      "record_key",
+                      "detail"
+                    ],
+                    "properties": {
+                      "severity": {
+                        "enum": [
+                          "incomplete",
+                          "invalid"
+                        ]
+                      },
+                      "code": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "record_key": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "detail": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "expected_owner_register_sha256": {
+              "$ref": "#/$defs/sha256"
+            },
+            "manifest_bindings": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "inventory_id",
+                  "source_owner_namespace",
+                  "source_system_id",
+                  "connector_id",
+                  "connector_build_sha256",
+                  "query_scope_sha256",
+                  "access_scope",
+                  "snapshot_semantics",
+                  "snapshot_sha256",
+                  "source_watermark",
+                  "page_count",
+                  "manifest_sha256",
+                  "validation_disposition"
+                ],
+                "properties": {
+                  "inventory_id": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "source_owner_namespace": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "source_system_id": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "connector_id": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "connector_build_sha256": {
+                    "$ref": "#/$defs/sha256"
+                  },
+                  "query_scope_sha256": {
+                    "$ref": "#/$defs/sha256"
+                  },
+                  "snapshot_semantics": {
+                    "enum": [
+                      "immutable_snapshot",
+                      "watermark_bound",
+                      "best_effort",
+                      "unsupported"
+                    ]
+                  },
+                  "snapshot_sha256": {
+                    "anyOf": [
+                      {
+                        "$ref": "#/$defs/sha256"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "source_watermark": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "page_count": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "manifest_sha256": {
+                    "$ref": "#/$defs/sha256"
+                  },
+                  "validation_disposition": {
+                    "enum": [
+                      "complete_within_declared_query",
+                      "complete_with_declared_exclusions",
+                      "incomplete_or_indeterminate",
+                      "invalid_input",
+                      "not_comparable"
+                    ]
+                  },
+                  "access_scope": {
+                    "enum": [
+                      "source_asserted_complete",
+                      "caller_authorized_subset",
+                      "unknown",
+                      "access_denied"
+                    ]
+                  }
+                }
+              }
+            },
+            "cross_manifest_duplicate_identity_count": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "cross_manifest_payload_digest_conflict_count": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
         }
       }
     },

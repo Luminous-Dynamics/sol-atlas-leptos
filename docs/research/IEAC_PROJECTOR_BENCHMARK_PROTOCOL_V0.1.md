@@ -160,6 +160,36 @@ Case membership is not part of source-native node identity. Include catalogue-se
 
 projected_without_known_loss means no known loss relative to the declared typed case plus supplied descriptors and mapping profile. It is never a source-universe completeness, authenticity, engineering-correctness, professional-approval or action-authority claim.
 
+### 5.3 Federated inventory and descriptor binding gates
+
+The inventory path must be tested as a joined pipeline rather than a page-count test.
+
+Required controls:
+- the exact expected-owner register is digested and retained in the IEAC projection receipt;
+- every inventory manifest is individually bound by owner namespace, source-system ID, connector build, query-scope digest, snapshot semantics/digest, page count and manifest digest;
+- every descriptor is bound to exactly one matching owner/system inventory;
+- descriptor native-identity digest must occur in that inventory's enumerated identity set;
+- descriptor per-record source-payload digest must equal the inventory's digest for that same identity;
+- descriptor source snapshot digest must equal the inventory snapshot digest;
+- duplicate native identities with equal payload digests are counted, not silently collapsed;
+- duplicate native identities with conflicting payload digests are invalid;
+- a complete page chain with missing owners, missing descriptor records, declared exclusions, a source-payload mismatch, or a snapshot mismatch must never retain an unqualified `record_only` claim ceiling;
+- even a complete declared-owner closure must keep `no_impact_eligible=false` until source bytes, attestations, signer authority, expected-owner-register adequacy, downstream dependency scope and decision freshness are independently qualified.
+
+P0 targets:
+| Metric | P0 target |
+|---|---:|
+| False complete owner-set closure | **0** |
+| Descriptor missing from an owner inventory but binding accepted | **0** |
+| Owner/system mismatch accepted | **0** |
+| Descriptor/inventory identity mismatch accepted | **0** |
+| Payload digest conflict accepted for the same owner-native identity | **0** |
+| Descriptor/inventory snapshot mismatch accepted | **0** |
+| Incomplete, excluded, invalid, or not-comparable inventory supporting `record_only` | **0** |
+| Structurally complete inventory directly authorizing `NoImpact` | **0** |
+
+A descriptor inventory join is only a consistency check. It does not retrieve bytes, authenticate an inventory issuer, or establish source truth. The `no_impact_eligible` field stays false at this layer by design.
+
 ## 6. Efficiency and Pareto reporting
 
 Report separately:

@@ -14,6 +14,10 @@ use crate::built_environment_source_descriptor::{
     DescriptorDisposition, DescriptorValidation, SourceDescriptorCatalog,
     validate_source_descriptor_catalog,
 };
+use crate::built_environment_source_inventory::{
+    ExpectedSourceOwner, InventoryClosureDisposition, InventoryClosureValidation,
+    SourceInventoryManifest, validate_source_inventory_closure,
+};
 use serde::Serialize;
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
@@ -83,6 +87,29 @@ pub struct SourceRecordProjectionMetadata {
 pub struct DescriptorProjectionOutput {
     pub descriptor_validation: DescriptorValidation,
     pub projection: ProjectionOutput,
+}
+
+#[derive(Clone, Debug)]
+pub struct InventoryQualifiedProjectionOutput {
+    pub descriptor_validation: DescriptorValidation,
+    pub inventory_validation: InventoryClosureValidation,
+    pub descriptor_inventory_binding: DescriptorInventoryBindingValidation,
+    /// The graph remains descriptive. An incomplete or invalid inventory
+    /// lowers its claim ceiling; this API never authorizes NoImpact.
+    pub projection: ProjectionOutput,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+pub struct DescriptorInventoryBindingValidation {
+    pub disposition: &'static str,
+    pub descriptor_count: usize,
+    pub bound_record_count: usize,
+    pub missing_inventory_count: usize,
+    pub missing_record_count: usize,
+    pub payload_digest_mismatch_count: usize,
+    pub snapshot_mismatch_count: usize,
+    pub no_impact_eligible: bool,
+    pub findings: Vec<Value>,
 }
 
 struct ProjectionOverrides {
@@ -617,6 +644,143 @@ pub fn project_built_environment_case(
     project_built_environment_case_inner(case, context, None)
 }
 
+/// Compose descriptor-backed projection with independently qualified source
+/// inventory closure. An incomplete, excluded, incomparable, or invalid closure
+/// cannot support an unqualified downstream negative finding.
+pub fn project_built_environment_case_with_inventory(
+    case: &BuiltEnvironmentCase,
+    context: &ProjectionContext,
+    catalog: &SourceDescriptorCatalog,
+    expected_owners: &[ExpectedSourceOwner],
+    manifests: &[SourceInventoryManifest],
+) -> InventoryQualifiedProjectionOutput {
+    let descriptor_output = project_built_environment_case_with_descriptors(case, context, catalog);
+    let inventory_validation = validate_source_inventory_closure(expected_owners, manifests);
+    let descriptor_inventory_binding = validate_descriptor_inventory_bindings(
+        catalog,
+        &descriptor_output.descriptor_validation,
+        manifests,
+    );
+    let mut projection = descriptor_output.projection;
+    let inventory_validation_bytes = serde_json::to_vec(&inventory_validation).unwrap_or_default();
+    let inventory_validation_sha256 = sha256_hex(&inventory_validation_bytes);
+    let mut expected_owner_register = expected_owners.to_vec();
+    expected_owner_register.sort_by(|left, right| {
+        (
+            left.owner_namespace.as_str(),
+            left.source_system_id.as_str(),
+            left.required,
+        )
+            .cmp(&(
+                right.owner_namespace.as_str(),
+                right.source_system_id.as_str(),
+                right.required,
+            ))
+    });
+    let expected_owner_register_sha256 = serde_json::to_vec(&expected_owner_register)
+        .map(|bytes| sha256_hex(&bytes))
+        .unwrap_or_default();
+    let manifest_bindings = manifests
+        .iter()
+        .zip(&inventory_validation.per_manifest_validations)
+        .map(|(manifest, validation)| {
+            let manifest_sha256 = serde_json::to_vec(manifest)
+                .map(|bytes| sha256_hex(&bytes))
+                .unwrap_or_default();
+            json!({
+                "inventory_id": manifest.inventory_id,
+                "source_owner_namespace": manifest.source_owner_namespace,
+                "source_system_id": manifest.source_system_id,
+                "connector_id": manifest.connector_id,
+                "connector_build_sha256": manifest.connector_build_sha256,
+                "query_scope_sha256": manifest.query_scope_sha256,
+                "access_scope": manifest.access_scope.as_str(),
+                "snapshot_semantics": manifest.snapshot_semantics.as_str(),
+                "snapshot_sha256": manifest.snapshot_sha256,
+                "source_watermark": manifest.source_watermark,
+                "page_count": validation.page_count,
+                "manifest_sha256": manifest_sha256,
+                "validation_disposition": validation.disposition.as_str()
+            })
+        })
+        .collect::<Vec<_>>();
+    let inventory_disposition = inventory_validation.disposition.as_str();
+
+    let inventory_qualified = inventory_validation.disposition
+        == InventoryClosureDisposition::CompleteWithinDeclaredOwnerSet
+        && descriptor_inventory_binding.disposition
+            == "internally_consistent_for_declared_descriptors";
+    if !inventory_qualified {
+        if projection.disposition != ProjectionDisposition::InvalidInput {
+            projection.disposition = ProjectionDisposition::ProjectedWithKnownLoss;
+            projection.projection_receipt["disposition"] =
+                json!(ProjectionDisposition::ProjectedWithKnownLoss.as_str());
+        }
+        if !projection.graph.is_null() {
+            projection.graph["claim_ceiling"] = json!("incomplete_or_indeterminate");
+            let mut graph_digest_input = projection.graph.clone();
+            if let Some(object) = graph_digest_input.as_object_mut() {
+                object.insert("graph_snapshot_sha256".into(), Value::Null);
+                object.remove("graph_snapshot_sha256");
+            }
+            if let Ok(graph_digest) = canonical_json_sha256(&graph_digest_input) {
+                projection.graph["graph_snapshot_sha256"] = json!(graph_digest);
+                projection.projection_receipt["projected_graph"]["graph_snapshot_sha256"] =
+                    json!(graph_digest);
+            } else {
+                projection.graph = Value::Null;
+                projection.projection_receipt["projected_graph"] = Value::Null;
+                projection.projection_receipt["disposition"] = json!("invalid_input");
+                projection.disposition = ProjectionDisposition::InvalidInput;
+            }
+        }
+        projection.projection_receipt["claim_ceiling"] = json!("incomplete_or_indeterminate");
+        if let Some(limitations) = projection.projection_receipt["limitations"].as_array_mut() {
+            limitations.push(json!(
+                "The source inventory closure or descriptor-to-inventory binding is incomplete, excluded, incomparable, or invalid; the projected graph cannot support a negative impact claim."
+            ));
+        }
+    }
+
+    projection.projection_receipt["projector"]["source_inventory_closure"] = json!({
+        "validation_sha256": inventory_validation_sha256,
+        "validation_serialization": "serde_json_struct_field_order_v1",
+        "expected_owner_register_sha256": expected_owner_register_sha256,
+        "manifest_bindings": manifest_bindings,
+        "disposition": inventory_disposition,
+        "expected_owner_count": inventory_validation.expected_owner_count,
+        "required_owner_count": inventory_validation.required_owner_count,
+        "present_required_owner_count": inventory_validation.present_required_owner_count,
+        "complete_inventory_count": inventory_validation.complete_inventory_count,
+        "complete_with_exclusions_count": inventory_validation.complete_with_exclusions_count,
+        "incomplete_inventory_count": inventory_validation.incomplete_inventory_count,
+        "invalid_inventory_count": inventory_validation.invalid_inventory_count,
+        "not_comparable_inventory_count": inventory_validation.not_comparable_inventory_count,
+        "cross_manifest_duplicate_identity_count": inventory_validation.cross_manifest_duplicate_identity_count,
+        "cross_manifest_payload_digest_conflict_count": inventory_validation.cross_manifest_payload_digest_conflict_count,
+        "claim_scope": inventory_validation.claim_scope,
+        "no_impact_eligible": inventory_validation.no_impact_eligible,
+        "no_impact_blockers": inventory_validation.no_impact_blockers,
+        "findings": inventory_validation.findings,
+        "descriptor_inventory_binding": descriptor_inventory_binding
+    });
+    projection
+        .projection_receipt
+        .as_object_mut()
+        .expect("projection receipt is an object")
+        .remove("projection_receipt_sha256");
+    if let Ok(receipt_digest) = canonical_json_sha256(&projection.projection_receipt) {
+        projection.projection_receipt["projection_receipt_sha256"] = json!(receipt_digest);
+    }
+
+    InventoryQualifiedProjectionOutput {
+        descriptor_validation: descriptor_output.descriptor_validation,
+        inventory_validation,
+        descriptor_inventory_binding,
+        projection,
+    }
+}
+
 pub fn project_built_environment_case_with_descriptors(
     case: &BuiltEnvironmentCase,
     context: &ProjectionContext,
@@ -756,6 +920,165 @@ pub fn project_built_environment_case_with_descriptors(
     DescriptorProjectionOutput {
         descriptor_validation: validation,
         projection,
+    }
+}
+
+fn validate_descriptor_inventory_bindings(
+    catalog: &SourceDescriptorCatalog,
+    descriptor_validation: &DescriptorValidation,
+    manifests: &[SourceInventoryManifest],
+) -> DescriptorInventoryBindingValidation {
+    let mut findings = Vec::new();
+    let mut bound_record_count = 0usize;
+    let mut missing_inventory_count = 0usize;
+    let mut missing_record_count = 0usize;
+    let mut payload_digest_mismatch_count = 0usize;
+    let mut snapshot_mismatch_count = 0usize;
+    let mut has_invalid = false;
+    let mut has_incomplete = false;
+
+    for descriptor in &catalog.descriptors {
+        let record_key = descriptor.record_kind.case_key(&descriptor.case_record_id);
+        let subject = format!(
+            "{}:{}:{}",
+            descriptor.owner_namespace, descriptor.source_snapshot.source_id, record_key
+        );
+        let Some(expected_identity) = descriptor_validation
+            .identity_sha256_by_case_record
+            .get(&record_key)
+        else {
+            has_incomplete = true;
+            findings.push(json!({
+                "severity": "incomplete",
+                "code": "DESCRIPTOR_NATIVE_IDENTITY_NOT_VALIDATED",
+                "record_key": record_key,
+                "detail": "descriptor identity was not produced by the exact-case descriptor validator"
+            }));
+            continue;
+        };
+
+        let matching_manifests = manifests
+            .iter()
+            .filter(|manifest| {
+                manifest.source_owner_namespace == descriptor.owner_namespace
+                    && manifest.source_system_id == descriptor.source_snapshot.source_id
+            })
+            .collect::<Vec<_>>();
+        if matching_manifests.is_empty() {
+            missing_inventory_count += 1;
+            has_incomplete = true;
+            findings.push(json!({
+                "severity": "incomplete",
+                "code": "DESCRIPTOR_SOURCE_INVENTORY_NOT_PRESENT",
+                "record_key": subject,
+                "detail": "no source inventory manifest was supplied for the descriptor's owner namespace and source system"
+            }));
+            continue;
+        }
+        if matching_manifests.len() != 1 {
+            has_invalid = true;
+            findings.push(json!({
+                "severity": "invalid",
+                "code": "DESCRIPTOR_SOURCE_INVENTORY_AMBIGUOUS",
+                "record_key": subject,
+                "detail": "more than one inventory manifest matches the descriptor's owner namespace and source system"
+            }));
+            continue;
+        }
+        let manifest = matching_manifests[0];
+        match manifest.snapshot_sha256.as_deref() {
+            Some(snapshot_sha256)
+                if snapshot_sha256 == descriptor.source_snapshot.snapshot_sha256 => {}
+            Some(_) => {
+                snapshot_mismatch_count += 1;
+                has_invalid = true;
+                findings.push(json!({
+                    "severity": "invalid",
+                    "code": "DESCRIPTOR_INVENTORY_SNAPSHOT_MISMATCH",
+                    "record_key": subject,
+                    "detail": "descriptor source snapshot digest disagrees with its owner inventory manifest"
+                }));
+                continue;
+            }
+            None => {
+                has_incomplete = true;
+                findings.push(json!({
+                    "severity": "incomplete",
+                    "code": "DESCRIPTOR_INVENTORY_SNAPSHOT_NOT_BOUND",
+                    "record_key": subject,
+                    "detail": "inventory manifest does not provide a snapshot digest to bind the descriptor"
+                }));
+                continue;
+            }
+        }
+
+        let mut matching_payload_digests = Vec::new();
+        for page in &manifest.page_receipts {
+            for (identity_sha256, payload_sha256) in page
+                .native_record_identity_sha256s
+                .iter()
+                .zip(&page.native_record_payload_sha256s)
+            {
+                if identity_sha256 == expected_identity {
+                    matching_payload_digests.push(payload_sha256.as_str());
+                }
+            }
+        }
+        if matching_payload_digests.is_empty() {
+            missing_record_count += 1;
+            has_incomplete = true;
+            findings.push(json!({
+                "severity": "incomplete",
+                "code": "DESCRIPTOR_NATIVE_RECORD_NOT_IN_INVENTORY",
+                "record_key": subject,
+                "detail": "descriptor native identity digest is absent from the matching owner inventory pages"
+            }));
+            continue;
+        }
+        let Some(expected_payload_sha256) = descriptor.source_payload.sha256.as_deref() else {
+            has_incomplete = true;
+            findings.push(json!({
+                "severity": "incomplete",
+                "code": "DESCRIPTOR_SOURCE_PAYLOAD_DIGEST_UNAVAILABLE",
+                "record_key": subject,
+                "detail": "descriptor does not supply a source payload digest for inventory cross-checking"
+            }));
+            continue;
+        };
+        if matching_payload_digests
+            .iter()
+            .any(|payload_sha256| *payload_sha256 != expected_payload_sha256)
+        {
+            payload_digest_mismatch_count += 1;
+            has_invalid = true;
+            findings.push(json!({
+                "severity": "invalid",
+                "code": "DESCRIPTOR_INVENTORY_PAYLOAD_DIGEST_MISMATCH",
+                "record_key": subject,
+                "detail": "inventory and descriptor disagree on the exact payload digest for the same owner-native identity"
+            }));
+            continue;
+        }
+        bound_record_count += 1;
+    }
+
+    let disposition = if has_invalid {
+        "invalid_input"
+    } else if has_incomplete {
+        "incomplete_or_indeterminate"
+    } else {
+        "internally_consistent_for_declared_descriptors"
+    };
+    DescriptorInventoryBindingValidation {
+        disposition,
+        descriptor_count: catalog.descriptors.len(),
+        bound_record_count,
+        missing_inventory_count,
+        missing_record_count,
+        payload_digest_mismatch_count,
+        snapshot_mismatch_count,
+        no_impact_eligible: false,
+        findings,
     }
 }
 

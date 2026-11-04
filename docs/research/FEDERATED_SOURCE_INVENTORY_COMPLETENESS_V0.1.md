@@ -1,8 +1,8 @@
 # Federated Source Inventory Completeness — Research and Benchmark Contract v0.1
 
-**Status:** research contract / not yet implemented  
+**Status:** v0.1 Rust verifier, schema, and synthetic fixtures implemented on a draft stacked branch; external source authentication remains separate  
 **Scope:** source-system inventory claims feeding the built-environment source descriptor catalogue and IEAC projection  
-**Claim boundary:** this protocol can qualify an inventory within an authenticated, declared query boundary. It cannot prove that the declared source set is the entire real-world source universe.
+**Claim boundary:** the current v0.1 verifier can qualify internal consistency within a declared query boundary. It does not authenticate that boundary or prove that the declared source set is the entire real-world source universe.
 
 ## 1. Why this is the next architectural boundary
 
@@ -30,7 +30,7 @@ The decisive principle: **absence is evidence only when the relevant source scop
 
 ## 3. Proposed data model
 
-This is a versioned design proposal, not a schema already accepted by the repository.
+The v0.1 schema and Rust validator are implemented on the stacked draft branch; source adapters and independent trust verifiers remain separate.
 
 ### 3.1 Inventory manifest
 
@@ -45,6 +45,7 @@ A v0.1 manifest should carry:
 | connector_id + connector_build_sha256 | Adapter identity and exact build |
 | query_scope_sha256 | Digest of canonical query and filter semantics |
 | query_scope_summary | Human-auditable, non-secret statement of included domains, time range and partitions |
+| access_scope | Source assertion that enumeration is complete within the declared source-policy query, caller-authorized subset only, unknown, or denied; a limited/unknown scope is incomplete, denied is not comparable |
 | snapshot_token / snapshot_sha256 | Source snapshot or export identity; null must remain explicit |
 | enumeration_started_at / enumeration_finished_at | Enumeration time interval |
 | source_watermark | Source-side high-water mark, sequence, revision or event offset, if supported |
@@ -52,7 +53,7 @@ A v0.1 manifest should carry:
 | reported_total_count | Source-reported count under the declared query |
 | enumerated_unique_count | Count of unique owner-native records returned |
 | duplicate_count | Repeated owner-native identities during enumeration |
-| excluded_count + exclusion_reasons[] | Records excluded by declared policy, rights or query conditions |
+| excluded_count + exclusion_reasons[] | Records excluded by declared policy, rights or query conditions; each excluded item is bound to an enumerated native-identity digest, and each identity may appear under at most one exclusion reason |
 | tombstone_count | Explicitly observed deletes/retractions |
 | pagination_exhausted | True only when the source's authoritative terminal condition was observed |
 | snapshot_consistent | Whether every page belongs to the same source snapshot/watermark |
@@ -66,6 +67,8 @@ Do not include raw secrets, access tokens, internal credentials, or protected qu
 
 Each page receipt should bind:
 
+- a per-item exact source-payload digest array, positionally aligned with the owner-native identity digest array, so repeated native identity can be checked for conflicting payload bytes without retaining payload content; The generic verifier compares these hashes but does not fetch the payload bytes; the hashes remain unauthenticated source/connector claims.
+
 - inventory ID and snapshot token/digest;
 - 0-based ordinal and stable partition identifier;
 - digest of the exact serialized page payload;
@@ -77,7 +80,7 @@ Each page receipt should bind:
 
 The verifier must reject a skipped ordinal, repeated cursor, broken predecessor link, duplicate terminal page, a page from a different snapshot, or a terminal marker that does not agree with the source API's documented completion semantics.
 
-A cursor chain proves only that the returned pages form the declared chain. It does not prove the source API itself exposed every relevant record. That requires source-specific completeness semantics and an authenticated source claim.
+A cursor chain proves only that the returned pages form the declared chain. It does not prove the source API itself exposed every relevant record. That requires source-specific completeness semantics and an authenticated source claim. The Rust verifier also requires a per-record payload digest for every page item and rejects one owner-native identity paired with conflicting payload digests across pages or partitions. Matching duplicate identities remain counted as duplicates rather than silently merged. These payload digests are still source/connector assertions: the verifier does not retrieve or independently hash those source bytes.
 
 ### 3.3 Bounded inventory disposition
 
@@ -110,6 +113,8 @@ The verifier must handle both malicious and accidental failures:
 - page substitution from a different snapshot or tenant;
 - source mutation during enumeration;
 - authorization-limited response presented as unrestricted;
+- source access denied but represented as an empty inventory;
+- caller-authorized subset or unknown access scope presented as a source-policy-complete inventory;
 - silent default filter, retention window, pagination cap, or result truncation;
 - deleted/tombstoned records omitted from the current-state endpoint;
 - late-arriving events and retroactive corrections;
@@ -210,13 +215,31 @@ Only the first case can support a bounded negative finding. All other states mus
 
 Downstream NoImpact must require a validated dependency graph **and** a sufficiently complete source inventory for the declared impact scope. An invalid or incomplete inventory cannot be converted into a green no-impact result by a correct graph traversal.
 
-## 8. Implementation sequence
+## 8. Current v0.1 implementation status
 
-1. Freeze this contract and publish the synthetic positive/negative manifests.
-2. Add a Rust SourceInventoryManifest model and JSON Schema in a separate v0.1 module, leaving the existing descriptor schema additive and backwards-compatible.
-3. Implement canonical query, page-chain and snapshot binding validation.
-4. Keep cryptographic signature verification as a separate verifier input with explicit trust-policy results; do not conflate it with structural validation.
-5. Join inventory dispositions to descriptor validation and IEAC projection receipts.
+The draft branch now includes:
+- a strict Rust manifest/page-receipt model and Draft 2020-12 JSON Schema;
+- per-partition ordinal, cursor, terminal, predecessor-receipt, snapshot, watermark and time-order checks;
+- separate raw page-item and unique owner-native identity count reconciliation;
+- exact per-record payload-digest alignment, matching duplicate accounting, and conflict rejection for the same native identity with different payload digests;
+- tombstone identity binding and policy-bound exclusions with unique identity accounting;
+- expected-owner presence reconciliation kept distinct from per-source query completeness;
+- composed owner-closure validation that requires every required owner manifest to validate independently;
+- a descriptor-to-inventory projector path that matches owner namespace, source system, native identity digest, source payload digest and snapshot digest for every descriptor;
+- an explicit `no_impact_eligible: false` output and blockers, including when every synthetic inventory is internally complete. Source access scope is now explicit: limited and unknown scopes are incomplete, and access-denied empty results are `not_comparable`, never empty.
+
+The projector receipt binds the inventory-closure validation digest and descriptor-binding result. It also binds a digest of the caller-supplied expected-owner register and records each manifest's owner namespace, source system, connector/build, query digest, snapshot semantics/digest, page count, manifest digest and per-manifest disposition. The register digest proves which expected set was evaluated; it does not authenticate the register or prove it is globally complete. A missing, incomplete, excluded, incomparable or invalid inventory, or any descriptor/inventory identity, payload or snapshot disagreement, downgrades the projected graph claim ceiling to `incomplete_or_indeterminate`.
+
+**Important serialization limit:** page-receipt hashes and current validation hashes use the Rust struct's `serde_json` field-order serialization profile. They are not yet a declared cross-language canonical JSON format such as RFC 8785 or deterministic CBOR. They must not be used as interoperable signature inputs until that profile is explicitly frozen and independently implemented.
+
+**Verification limit:** current tests use synthetic manifests. Payload digests, connector identity, source snapshot references, owner namespaces, page receipt digests and attestation references remain claims until a separate byte verifier and trust policy authenticate them. Neither a structurally complete inventory nor a matching descriptor binding authorizes `NoImpact`, construction, or actuation.
+## 9. Remaining implementation sequence
+
+1. Keep this contract and synthetic positive/negative manifests frozen; expand them with independent cross-tool corpora.
+2. Implemented on the draft branch: the Rust SourceInventoryManifest model and JSON Schema live in a separate v0.1 module, leaving the existing descriptor schema additive and backwards-compatible.
+3. Implemented on the draft branch: page chains, query digest shape, snapshot and watermark bindings, counts, tombstones, exclusions, and duplicate identity/payload consistency. Canonical query semantics remain source-adapter-specific and are not independently reconstructed by the generic verifier.
+4. Keep cryptographic signature verification as a separate verifier input with explicit trust-policy results; not implemented by this module and never conflate it with structural validation.
+5. Implemented as a draft composition API: join owner inventory closure and per-descriptor native identity/payload/snapshot bindings into IEAC projection receipts, with claim-ceiling downgrade on missing or conflicting coverage.
 6. Add independent full-inventory gold oracles and mutation tests.
 7. Add change-event/tombstone watermarks to revalidation-frontier certificates.
 8. Only then compare end-to-end completeness, latency and cost against independent connector exports and vendor interfaces.

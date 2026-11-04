@@ -1,0 +1,541 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/federated-source-inventory-manifest-v0.1.schema.json",
+  "title": "Luminous Federated Source Inventory Manifest v0.1",
+  "description": "Bounded source-query enumeration manifest. Structural validity does not authenticate source statements or prove source-universe completeness.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "inventory_id",
+    "source_owner_namespace",
+    "source_system_id",
+    "connector_id",
+    "connector_build_sha256",
+    "query_scope_sha256",
+    "query_scope_summary",
+    "access_scope",
+    "snapshot_semantics",
+    "snapshot_token",
+    "snapshot_sha256",
+    "source_watermark",
+    "required_partitions",
+    "enumeration_started_at",
+    "enumeration_finished_at",
+    "page_receipts",
+    "reported_total_count",
+    "reported_total_count_semantics",
+    "enumerated_item_count",
+    "enumerated_unique_count",
+    "duplicate_count",
+    "excluded_count",
+    "exclusions",
+    "tombstone_count",
+    "tombstones_included",
+    "pagination_exhausted",
+    "snapshot_consistent",
+    "truncation_detected",
+    "attestation_ref",
+    "issuer_key_id",
+    "limitations"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "luminous.federated-source-inventory-manifest.v0.1"
+    },
+    "inventory_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source_owner_namespace": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source_system_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "connector_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "connector_build_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "query_scope_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "query_scope_summary": {
+      "type": "string",
+      "minLength": 1
+    },
+    "snapshot_semantics": {
+      "enum": [
+        "immutable_snapshot",
+        "watermark_bound",
+        "best_effort",
+        "unsupported"
+      ]
+    },
+    "snapshot_token": {
+      "anyOf": [
+        {
+          "type": "string",
+          "minLength": 1
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "snapshot_sha256": {
+      "anyOf": [
+        {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "source_watermark": {
+      "anyOf": [
+        {
+          "type": "string",
+          "minLength": 1
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "required_partitions": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "enumeration_started_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "enumeration_finished_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "page_receipts": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "inventory_id",
+          "partition_id",
+          "ordinal",
+          "response_payload_sha256",
+          "item_count",
+          "native_record_identity_sha256s",
+          "tombstone_identity_sha256s",
+          "cursor_before_sha256",
+          "cursor_after_sha256",
+          "predecessor_page_receipt_sha256",
+          "snapshot_sha256",
+          "source_watermark",
+          "response_at",
+          "terminal",
+          "native_record_payload_sha256s"
+        ],
+        "properties": {
+          "inventory_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "partition_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "ordinal": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "response_payload_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "item_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "native_record_identity_sha256s": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          },
+          "cursor_before_sha256": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "cursor_after_sha256": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "predecessor_page_receipt_sha256": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "snapshot_sha256": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "source_watermark": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "response_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "terminal": {
+            "type": "boolean"
+          },
+          "tombstone_identity_sha256s": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/sha256"
+            }
+          },
+          "native_record_payload_sha256s": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/sha256"
+            }
+          }
+        }
+      }
+    },
+    "reported_total_count": {
+      "anyOf": [
+        {
+          "type": "integer",
+          "minimum": 0
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "enumerated_item_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "enumerated_unique_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "duplicate_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "excluded_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "exclusions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "exclusion_code",
+          "item_count",
+          "native_record_identity_sha256s",
+          "policy_ref"
+        ],
+        "properties": {
+          "exclusion_code": {
+            "type": "string",
+            "minLength": 1
+          },
+          "item_count": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "policy_ref": {
+            "type": "string",
+            "minLength": 1
+          },
+          "native_record_identity_sha256s": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/sha256"
+            }
+          }
+        }
+      }
+    },
+    "tombstone_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "tombstones_included": {
+      "type": "boolean"
+    },
+    "pagination_exhausted": {
+      "type": "boolean"
+    },
+    "snapshot_consistent": {
+      "type": "boolean"
+    },
+    "truncation_detected": {
+      "type": "boolean"
+    },
+    "attestation_ref": {
+      "anyOf": [
+        {
+          "type": "string",
+          "minLength": 1
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "issuer_key_id": {
+      "anyOf": [
+        {
+          "type": "string",
+          "minLength": 1
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "limitations": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "reported_total_count_semantics": {
+      "anyOf": [
+        {
+          "enum": [
+            "unique_native_records",
+            "raw_page_items"
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "access_scope": {
+      "enum": [
+        "source_asserted_complete",
+        "caller_authorized_subset",
+        "unknown",
+        "access_denied"
+      ]
+    }
+  },
+  "$defs": {
+    "page": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "inventory_id",
+        "partition_id",
+        "ordinal",
+        "response_payload_sha256",
+        "item_count",
+        "native_record_identity_sha256s",
+        "tombstone_identity_sha256s",
+        "cursor_before_sha256",
+        "cursor_after_sha256",
+        "predecessor_page_receipt_sha256",
+        "snapshot_sha256",
+        "source_watermark",
+        "response_at",
+        "terminal",
+        "native_record_payload_sha256s"
+      ],
+      "properties": {
+        "inventory_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "partition_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "ordinal": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "response_payload_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "item_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "native_record_identity_sha256s": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        },
+        "cursor_before_sha256": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "cursor_after_sha256": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "predecessor_page_receipt_sha256": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "snapshot_sha256": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "source_watermark": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "response_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "terminal": {
+          "type": "boolean"
+        },
+        "tombstone_identity_sha256s": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/sha256"
+          }
+        },
+        "native_record_payload_sha256s": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/sha256"
+          }
+        }
+      }
+    },
+    "exclusion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "exclusion_code",
+        "item_count",
+        "policy_ref"
+      ],
+      "properties": {
+        "exclusion_code": {
+          "type": "string",
+          "minLength": 1
+        },
+        "item_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "policy_ref": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  }
+}
