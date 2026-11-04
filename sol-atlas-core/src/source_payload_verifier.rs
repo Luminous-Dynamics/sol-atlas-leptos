@@ -1083,10 +1083,7 @@ mod tests {
         let case = test_case(bytes);
         let catalog = catalog(&case, descriptor(bytes));
         let result = verify_catalog_payload_bytes(&case, &catalog, &context(), |_reference| {
-            Err::<Cursor<Vec<u8>>, _>(io::Error::new(
-                io::ErrorKind::NotFound,
-                "missing",
-            ))
+            Err::<Cursor<Vec<u8>>, _>(io::Error::new(io::ErrorKind::NotFound, "missing"))
         });
         assert_eq!(
             result.disposition,
