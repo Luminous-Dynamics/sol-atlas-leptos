@@ -107,6 +107,8 @@ pub struct EvaluationSample {
     pub source_capture_id: String,
     pub source_capture_sha256: String,
     pub source_tile_sha256: String,
+    pub source_image_width_px: u32,
+    pub source_image_height_px: u32,
     pub source_pixel_window: PixelWindow,
     /// Axis-aligned bounds in the manifest's projected metric CRS.
     pub metric_bounds: MetricBounds,
@@ -167,6 +169,10 @@ pub struct HeritageEvaluationSplitAuditReport {
     pub shared_block_count: usize,
     pub spatial_buffer_violation_pair_count: usize,
     pub held_out_identity_count: usize,
+    /// None outside the buffered-spatial estimand, where the distance audit is not run.
+    pub spatial_buffer_violation_pair_count: Option<usize>,
+    /// paper_exact_manifest, seeded_protocol_reproduction, protocol_reconstruction, or not_applicable.
+    pub paper_split_exactness: String,
     pub claim_ceiling: String,
 }
 
@@ -190,7 +196,6 @@ pub enum HeritageEvaluationSplitError {
     ExcludedSampleMissingReason(String),
     ActiveSampleHasExclusionReason(String),
     CaptureIdDigestMismatch(String),
-    MissingRandomSeedOrReferenceManifest,
     InvalidHeldOutIdentity(String),
     DuplicateHeldOutIdentity(String),
     MissingHeldOutIdentity,
@@ -206,7 +211,7 @@ pub enum HeritageEvaluationSplitError {
     SharedPhysicalEntityAcrossPartitions(String),
     SourcePixelOverlapAcrossPartitions,
     SharedBlockAcrossPartitions(String),
-    SpatialBufferViolation { sample_a: String, sample_b: String },
+    SpatialBufferViolation { sample_a: String, sample_b: String, pair_count: usize },
     TooManyCandidatePairChecks,
 }
 
@@ -451,7 +456,12 @@ pub fn audit_heritage_evaluation_split(
                 sample.sample_id.clone(),
             ));
         }
-        if !sample.source_pixel_window.valid() {
+        if sample.source_image_width_px == 0
+            || sample.source_image_height_px == 0
+            || !sample.source_pixel_window.valid()
+            || sample.source_pixel_window.max_x_px > sample.source_image_width_px
+            || sample.source_pixel_window.max_y_px > sample.source_image_height_px
+        {
             return Err(HeritageEvaluationSplitError::InvalidPixelWindow(
                 sample.sample_id.clone(),
             ));
@@ -539,13 +549,7 @@ pub fn audit_heritage_evaluation_split(
 
     let mut held_out_identity_count = 0usize;
     match manifest.profile {
-        EvaluationSplitProfile::PaperFaithfulRandomTiles => {
-            if manifest.random_seed.is_none()
-                && manifest.reference_paper_split_manifest_sha256.is_none()
-            {
-                return Err(HeritageEvaluationSplitError::MissingRandomSeedOrReferenceManifest);
-            }
-        }
+        EvaluationSplitProfile::PaperFaithfulRandomTiles => {}
         EvaluationSplitProfile::SourceFootprintIndependent => {
             if source_pixel_overlap_pair_count > 0 {
                 return Err(HeritageEvaluationSplitError::SourcePixelOverlapAcrossPartitions);
@@ -640,6 +644,7 @@ pub fn audit_heritage_evaluation_split(
                 return Err(HeritageEvaluationSplitError::SpatialBufferViolation {
                     sample_a,
                     sample_b,
+                    pair_count: violations,
                 });
             }
         }
@@ -652,7 +657,18 @@ pub fn audit_heritage_evaluation_split(
             if source_pixel_overlap_pair_count > 0 {
                 return Err(HeritageEvaluationSplitError::SourcePixelOverlapAcrossPartitions);
             }
-            if shared_physical_entity_count > 0 {
+            if let Some(tile_id) = first_shared_identity(active.iter().map(|sample| {
+                (sample.source_tile_sha256.clone(), sample.role)
+            })) {
+                return Err(HeritageEvaluationSplitError::SharedTileDigestAcrossPartitions(tile_id));
+            }
+            if let Some(entity_id) = first_shared_identity(active.iter().flat_map(|sample| {
+                sample
+                    .physical_entity_ids
+                    .iter()
+                    .cloned()
+                    .map(move |id| (id, sample.role))
+            })) {
                 return Err(HeritageEvaluationSplitError::SharedPhysicalEntityAcrossPartitions(
                     "duplicate physical entity".to_owned(),
                 ));
@@ -687,6 +703,17 @@ pub fn audit_heritage_evaluation_split(
         EvaluationSplitProfile::CrossEpochTransfer => "held_out_epoch_partition_only",
     };
 
+    let paper_split_exactness = match (
+        manifest.profile,
+        manifest.reference_paper_split_manifest_sha256.is_some(),
+        manifest.random_seed.is_some(),
+    ) {
+        (EvaluationSplitProfile::PaperFaithfulRandomTiles, true, _) => "paper_exact_manifest",
+        (EvaluationSplitProfile::PaperFaithfulRandomTiles, false, true) => "seeded_protocol_reproduction",
+        (EvaluationSplitProfile::PaperFaithfulRandomTiles, false, false) => "protocol_reconstruction",
+        _ => "not_applicable",
+    };
+
     Ok(HeritageEvaluationSplitAuditReport {
         schema_version: HERITAGE_EVALUATION_SCHEMA_VERSION.to_owned(),
         profile: manifest.profile,
@@ -698,8 +725,15 @@ pub fn audit_heritage_evaluation_split(
         shared_physical_entity_count,
         shared_site_count,
         shared_block_count,
-        spatial_buffer_violation_pair_count: 0,
+        spatial_buffer_violation_pair_count: if manifest.profile
+            == EvaluationSplitProfile::BufferedSpatialBlocks
+        {
+            Some(0)
+        } else {
+            None
+        },
         held_out_identity_count,
+        paper_split_exactness: paper_split_exactness.to_owned(),
         claim_ceiling: claim_ceiling.to_owned(),
     })
 }
@@ -733,6 +767,8 @@ mod tests {
             source_capture_id: capture.to_owned(),
             source_capture_sha256: digest('a'),
             source_tile_sha256: digest(tile.chars().next().unwrap_or('b')),
+            source_image_width_px: 1000,
+            source_image_height_px: 1000,
             source_pixel_window: window,
             metric_bounds: bounds,
             physical_entity_ids: feature_ids.iter().map(|s| (*s).to_owned()).collect(),
