@@ -28,9 +28,10 @@ pub mod industry_assurance_projection;
 pub mod lod;
 pub mod mycelix_flows;
 /// Independent SHA-256 checking of caller-supplied source and schema byte
-/// buffers against case-bound descriptor claims. It does not retrieve source
-/// bytes or authenticate owners, attestations, rights, completeness, or truth;
-/// verified byte equality remains one proof obligation within the larger IEAC.
+/// buffers against case-bound descriptor claims. Includes an in-memory API
+/// and a bounded Read-based streaming API that share one verification engine.
+/// Neither path retrieves source bytes or authenticates owners, attestations,
+/// rights, completeness, or engineering truth.
 pub mod source_payload_verifier;
 // pub mod relativity_viz;
 pub mod geometry;

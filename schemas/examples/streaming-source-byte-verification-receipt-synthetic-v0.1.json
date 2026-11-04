@@ -1,0 +1,69 @@
+{
+  "schema_version": "luminous.streaming-source-byte-verification-receipt.v0.1",
+  "case_id": "case-byte-verify-synthetic-001",
+  "catalog_id": "catalog-byte-verify-synthetic-001",
+  "verification_receipt_sha256": "1d9af9474d4ca664ad7ff06c34973fde9d00d47d6e8ba4ab89bb5ac7e336d4a5",
+  "payload_input_manifest_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+  "schema_input_manifest_sha256": "4444444444444444444444444444444444444444444444444444444444444444",
+  "execution_profile": {
+    "io_mode": "streaming_reader",
+    "buffer_size_bytes": 65536,
+    "working_buffer_bytes": 65536,
+    "ordering": "lexicographic_btreemap_key_order"
+  },
+  "verification": {
+    "schema_version": "luminous.source-payload-byte-verification-receipt.v0.1",
+    "case_id": "case-byte-verify-synthetic-001",
+    "catalog_id": "catalog-byte-verify-synthetic-001",
+    "catalog_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+    "case_representation_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+    "descriptor_validation_disposition": "internally_consistent_for_declared_case",
+    "payload_input_manifest_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+    "schema_input_manifest_sha256": "4444444444444444444444444444444444444444444444444444444444444444",
+    "records": [
+      {
+        "record_kind": "source_evidence",
+        "record_key": "evidence:evidence-001",
+        "digest_basis": "locally_retrieved_and_hashed",
+        "expected_payload_sha256": "5555555555555555555555555555555555555555555555555555555555555555",
+        "computed_payload_sha256": "5555555555555555555555555555555555555555555555555555555555555555",
+        "expected_byte_length": 32,
+        "actual_byte_length": 32,
+        "payload_result": "verified_supplied_bytes_match_local_digest_claim",
+        "schema_id": "urn:synthetic:schema:evidence",
+        "schema_version": "1.0",
+        "expected_schema_sha256": "6666666666666666666666666666666666666666666666666666666666666666",
+        "computed_schema_sha256": "6666666666666666666666666666666666666666666666666666666666666666",
+        "schema_result": "schema_bytes_match_declared_digest"
+      }
+    ],
+    "record_count": 1,
+    "payload_bytes_verified": 1,
+    "payload_bytes_missing": 0,
+    "payload_digests_unavailable": 0,
+    "payload_digest_mismatches": 0,
+    "payload_length_mismatches": 0,
+    "schema_bytes_verified": 1,
+    "schema_bytes_missing": 0,
+    "schema_digest_mismatches": 0,
+    "unreferenced_payload_input_count": 0,
+    "unreferenced_schema_input_count": 0,
+    "disposition": "complete_for_supplied_claims",
+    "payload_byte_verification": "complete_for_supplied_payload_claims",
+    "source_owner_authentication": "not_performed",
+    "source_attestation_authentication": "not_performed",
+    "rights_authentication": "not_performed",
+    "source_universe_completeness": "not_performed",
+    "engineering_correctness": "not_performed",
+    "action_authority": "none",
+    "findings": [],
+    "limitations": [
+      "Synthetic schema-shape fixture only; digests and values are fabricated structural examples.",
+      "A matching supplied-byte digest does not authenticate source-owner identity, rights, or source completeness."
+    ],
+    "receipt_sha256": "1d9af9474d4ca664ad7ff06c34973fde9d00d47d6e8ba4ab89bb5ac7e336d4a5",
+    "receipt_digest_basis": "sha256_over_serde_json_receipt_with_empty_receipt_sha256_field"
+  },
+  "receipt_digest_basis": "sha256_over_serde_json_streaming_receipt_with_empty_receipt_sha256_field",
+  "receipt_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+}

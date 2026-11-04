@@ -17,10 +17,14 @@ use crate::built_environment_source_descriptor::{
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::collections::{BTreeMap, BTreeSet};
+use std::io::{self, Read};
 
 const RECEIPT_SCHEMA: &str = "luminous.source-payload-byte-verification-receipt.v0.1";
 const PAYLOAD_INPUT_DOMAIN: &[u8] = b"LUMINOUS-SOURCE-PAYLOAD-INPUT-MANIFEST-V0.1\0";
 const SCHEMA_INPUT_DOMAIN: &[u8] = b"LUMINOUS-SOURCE-SCHEMA-INPUT-MANIFEST-V0.1\0";
+const STREAMING_RECEIPT_SCHEMA: &str = "luminous.streaming-source-byte-verification-receipt.v0.1";
+const MIN_STREAM_BUFFER_BYTES: usize = 4 * 1024;
+const MAX_STREAM_BUFFER_BYTES: usize = 4 * 1024 * 1024;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -38,6 +42,28 @@ impl ByteVerificationDisposition {
             Self::InvalidInput => "invalid_input",
         }
     }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct StreamingExecutionProfile {
+    pub io_mode: String,
+    pub buffer_size_bytes: usize,
+    pub working_buffer_bytes: usize,
+    pub ordering: String,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct StreamingByteVerificationReceipt {
+    pub schema_version: String,
+    pub case_id: String,
+    pub catalog_id: String,
+    pub verification_receipt_sha256: String,
+    pub payload_input_manifest_sha256: String,
+    pub schema_input_manifest_sha256: String,
+    pub execution_profile: StreamingExecutionProfile,
+    pub verification: PayloadByteVerificationReceipt,
+    pub receipt_digest_basis: String,
+    pub receipt_sha256: String,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize)]
@@ -101,6 +127,32 @@ pub struct PayloadByteVerificationReceipt {
     pub receipt_sha256: String,
 }
 
+#[derive(Clone, Debug, Eq, PartialEq)]
+struct InputDigest {
+    sha256: String,
+    byte_length: u64,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ByteInputReadError {
+    pub input_key: String,
+    pub bytes_read: u64,
+    pub error_kind: String,
+    pub message: String,
+}
+
+impl std::fmt::Display for ByteInputReadError {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            formatter,
+            "failed reading {} after {} bytes ({}): {}",
+            self.input_key, self.bytes_read, self.error_kind, self.message
+        )
+    }
+}
+
+impl std::error::Error for ByteInputReadError {}
+
 #[derive(Default)]
 struct Findings {
     rows: BTreeSet<ByteVerificationFinding>,
@@ -158,27 +210,36 @@ fn append_field(encoded: &mut Vec<u8>, value: &[u8]) -> Result<(), String> {
     Ok(())
 }
 
-fn payload_input_manifest_digest(payloads: &BTreeMap<String, Vec<u8>>) -> Result<String, String> {
+fn payload_input_manifest_digest(
+    payloads: &BTreeMap<String, InputDigest>,
+) -> Result<String, String> {
     let mut encoded = PAYLOAD_INPUT_DOMAIN.to_vec();
-    for (key, bytes) in payloads {
+    for (key, input) in payloads {
         append_field(&mut encoded, key.as_bytes())?;
-        append_field(&mut encoded, &(bytes.len() as u64).to_be_bytes())?;
-        append_field(&mut encoded, sha256_hex(bytes).as_bytes())?;
+        append_field(&mut encoded, &input.byte_length.to_be_bytes())?;
+        append_field(&mut encoded, input.sha256.as_bytes())?;
     }
     Ok(sha256_hex(&encoded))
 }
 
 fn schema_input_manifest_digest(
-    schemas: &BTreeMap<(String, String), Vec<u8>>,
+    schemas: &BTreeMap<(String, String), InputDigest>,
 ) -> Result<String, String> {
     let mut encoded = SCHEMA_INPUT_DOMAIN.to_vec();
-    for ((schema_id, schema_version), bytes) in schemas {
+    for ((schema_id, schema_version), input) in schemas {
         append_field(&mut encoded, schema_id.as_bytes())?;
         append_field(&mut encoded, schema_version.as_bytes())?;
-        append_field(&mut encoded, &(bytes.len() as u64).to_be_bytes())?;
-        append_field(&mut encoded, sha256_hex(bytes).as_bytes())?;
+        append_field(&mut encoded, &input.byte_length.to_be_bytes())?;
+        append_field(&mut encoded, input.sha256.as_bytes())?;
     }
     Ok(sha256_hex(&encoded))
+}
+
+fn digest_bytes(bytes: &[u8]) -> InputDigest {
+    InputDigest {
+        sha256: sha256_hex(bytes),
+        byte_length: bytes.len() as u64,
+    }
 }
 
 fn valid_sha256(value: &str) -> bool {
@@ -192,22 +253,150 @@ fn record_key(kind: SourceRecordKind, id: &str) -> String {
     kind.case_key(id)
 }
 
-/// Verify payload and schema bytes for one exact case-bound descriptor
-/// catalogue.
-///
-/// payload_inputs is keyed by the descriptor's stable typed record key
-/// (evidence:<id>, artifact:<id>, engineering_receipt:<id>, or decision:<id>).
-/// schema_inputs is keyed by (schema_id, schema_version). The verifier hashes
-/// supplied byte slices and does not fetch any network resource or trust an
-/// input filename/URL.
-///
-/// This is a bounded in-memory v0.1 implementation. A streaming Read/async
-/// interface and content-addressed object-store adapters are future work.
+/// Verify payload and schema bytes supplied as in-memory byte slices.
 pub fn verify_catalog_payload_bytes(
     case: &BuiltEnvironmentCase,
     catalog: &SourceDescriptorCatalog,
     payload_inputs: &BTreeMap<String, Vec<u8>>,
     schema_inputs: &BTreeMap<(String, String), Vec<u8>>,
+) -> PayloadByteVerificationReceipt {
+    let payload_digests = payload_inputs
+        .iter()
+        .map(|(key, bytes)| (key.clone(), digest_bytes(bytes)))
+        .collect::<BTreeMap<_, _>>();
+    let schema_digests = schema_inputs
+        .iter()
+        .map(|(key, bytes)| (key.clone(), digest_bytes(bytes)))
+        .collect::<BTreeMap<_, _>>();
+    verify_catalog_payload_digests(case, catalog, &payload_digests, &schema_digests)
+}
+
+/// Hash caller-supplied readers in deterministic key order, then run the exact
+/// same descriptor and byte-claim verifier used by the in-memory API.
+///
+/// Payload readers are keyed by evidence:<id>, artifact:<id>,
+/// engineering_receipt:<id>, or decision:<id>. Schema readers are keyed by
+/// (schema_id, schema_version). No URL is fetched and no object location is
+/// inferred. A read error returns a typed error and no partial-success receipt.
+pub fn verify_catalog_payload_streams<P, S>(
+    case: &BuiltEnvironmentCase,
+    catalog: &SourceDescriptorCatalog,
+    payload_readers: BTreeMap<String, P>,
+    schema_readers: BTreeMap<(String, String), S>,
+    buffer_size_bytes: usize,
+) -> Result<StreamingByteVerificationReceipt, ByteInputReadError>
+where
+    P: Read,
+    S: Read,
+{
+    if !(MIN_STREAM_BUFFER_BYTES..=MAX_STREAM_BUFFER_BYTES).contains(&buffer_size_bytes) {
+        return Err(ByteInputReadError {
+            input_key: "execution_profile.buffer_size_bytes".into(),
+            bytes_read: 0,
+            error_kind: "invalid_buffer_size".into(),
+            message: format!(
+                "buffer size must be between {MIN_STREAM_BUFFER_BYTES} and {MAX_STREAM_BUFFER_BYTES} bytes"
+            ),
+        });
+    }
+
+    let mut payload_digests = BTreeMap::new();
+    for (key, reader) in payload_readers {
+        let digest = hash_reader(reader, &key, buffer_size_bytes)?;
+        payload_digests.insert(key, digest);
+    }
+
+    let mut schema_digests = BTreeMap::new();
+    for ((schema_id, schema_version), reader) in schema_readers {
+        let key = format!("{schema_id}@{schema_version}");
+        let digest = hash_reader(reader, &key, buffer_size_bytes)?;
+        schema_digests.insert((schema_id, schema_version), digest);
+    }
+
+    let verification =
+        verify_catalog_payload_digests(case, catalog, &payload_digests, &schema_digests);
+    let mut receipt = StreamingByteVerificationReceipt {
+        schema_version: STREAMING_RECEIPT_SCHEMA.into(),
+        case_id: case.case_id.clone(),
+        catalog_id: catalog.catalog_id.clone(),
+        verification_receipt_sha256: verification.receipt_sha256.clone(),
+        payload_input_manifest_sha256: verification.payload_input_manifest_sha256.clone(),
+        schema_input_manifest_sha256: verification.schema_input_manifest_sha256.clone(),
+        execution_profile: StreamingExecutionProfile {
+            io_mode: "streaming_reader".into(),
+            buffer_size_bytes,
+            working_buffer_bytes: buffer_size_bytes,
+            ordering: "lexicographic_btreemap_key_order".into(),
+        },
+        verification,
+        receipt_digest_basis:
+            "sha256_over_serde_json_streaming_receipt_with_empty_receipt_sha256_field".into(),
+        receipt_sha256: String::new(),
+    };
+    let receipt_bytes = serde_json::to_vec(&receipt).unwrap_or_default();
+    receipt.receipt_sha256 = sha256_hex(&receipt_bytes);
+    Ok(receipt)
+}
+
+fn hash_reader<R: Read>(
+    mut reader: R,
+    input_key: &str,
+    buffer_size_bytes: usize,
+) -> Result<InputDigest, ByteInputReadError> {
+    let mut buffer = vec![0u8; buffer_size_bytes];
+    let mut hasher = Sha256::new();
+    let mut bytes_read = 0u64;
+
+    loop {
+        match reader.read(&mut buffer) {
+            Ok(0) => break,
+            Ok(count) => {
+                let count_u64 = u64::try_from(count).map_err(|error| ByteInputReadError {
+                    input_key: input_key.to_owned(),
+                    bytes_read,
+                    error_kind: "byte_count_overflow".into(),
+                    message: error.to_string(),
+                })?;
+                bytes_read =
+                    bytes_read
+                        .checked_add(count_u64)
+                        .ok_or_else(|| ByteInputReadError {
+                            input_key: input_key.to_owned(),
+                            bytes_read,
+                            error_kind: "byte_count_overflow".into(),
+                            message: "stream byte count exceeds u64".into(),
+                        })?;
+                hasher.update(&buffer[..count]);
+            }
+            Err(error) if error.kind() == io::ErrorKind::Interrupted => continue,
+            Err(error) => {
+                return Err(ByteInputReadError {
+                    input_key: input_key.to_owned(),
+                    bytes_read,
+                    error_kind: format!("{:?}", error.kind()),
+                    message: error.to_string(),
+                });
+            }
+        }
+    }
+
+    let digest = hasher.finalize();
+    let mut sha256 = String::with_capacity(64);
+    for byte in digest {
+        use std::fmt::Write as _;
+        let _ = write!(&mut sha256, "{byte:02x}");
+    }
+    Ok(InputDigest {
+        sha256,
+        byte_length: bytes_read,
+    })
+}
+
+fn verify_catalog_payload_digests(
+    case: &BuiltEnvironmentCase,
+    catalog: &SourceDescriptorCatalog,
+    payload_inputs: &BTreeMap<String, InputDigest>,
+    schema_inputs: &BTreeMap<(String, String), InputDigest>,
 ) -> PayloadByteVerificationReceipt {
     let descriptor_validation = validate_source_descriptor_catalog(case, catalog);
     let catalog_bytes = serde_json::to_vec(catalog).unwrap_or_default();
@@ -259,8 +448,8 @@ pub fn verify_catalog_payload_bytes(
                 payload_bytes,
             ) {
                 (Some(expected), Some(bytes)) => {
-                    let computed = sha256_hex(bytes);
-                    let actual_length = bytes.len() as u64;
+                    let computed = bytes.sha256.clone();
+                    let actual_length = bytes.byte_length;
                     let expected_digest_valid = valid_sha256(expected);
                     let digest_matches = expected_digest_valid && computed == expected;
                     let length_matches = expected_byte_length
@@ -347,8 +536,8 @@ pub fn verify_catalog_payload_bytes(
                             "supplied bytes were hashed for observation only; the computed digest is not promoted to a source-native claim",
                         );
                     (
-                        Some(sha256_hex(bytes)),
-                        Some(bytes.len() as u64),
+                        Some(bytes.sha256.clone()),
+                        Some(bytes.byte_length),
                         "observed_bytes_without_source_digest_claim",
                     )
                 }
@@ -378,7 +567,7 @@ pub fn verify_catalog_payload_bytes(
                     referenced_schema_keys.insert(schema_key.clone());
                     match schema_inputs.get(schema_key) {
                         Some(bytes) => {
-                            let computed = sha256_hex(bytes);
+                            let computed = bytes.sha256.clone();
                             if computed == expected && valid_sha256(expected) {
                                 schema_bytes_verified += 1;
                                 (Some(computed), "schema_bytes_match_declared_digest")
@@ -518,7 +707,7 @@ pub fn verify_catalog_payload_bytes(
             "The verifier hashes caller-supplied byte buffers; it does not retrieve source bytes or authenticate their origin.".into(),
             "A matching payload digest proves byte equality with the descriptor claim, not source-owner identity or attestation authenticity.".into(),
             "Rights, signatures, trust roots, revocation, source-universe completeness, and engineering correctness are outside this verifier.".into(),
-            "The v0.1 implementation is an in-memory implementation with memory use proportional to supplied bytes; streaming and object-store readers are future work.".into(),
+            "The in-memory API accepts caller-owned byte slices; the streaming API accepts caller-owned Read implementations and uses a bounded working buffer.".into(),
             "Schema byte hashing proves exact schema artifact bytes only; it does not prove parser conformance or domain semantics.".into(),
         ],
         receipt_digest_basis: "sha256_over_serde_json_receipt_with_empty_receipt_sha256_field".into(),
@@ -662,6 +851,161 @@ mod tests {
                 schema.to_vec(),
             )]),
         )
+    }
+
+    struct FailsAfter {
+        bytes: Vec<u8>,
+        position: usize,
+        fail_after: usize,
+    }
+
+    impl Read for FailsAfter {
+        fn read(&mut self, buffer: &mut [u8]) -> io::Result<usize> {
+            if self.position >= self.fail_after {
+                return Err(io::Error::other("synthetic injected reader failure"));
+            }
+            if self.position >= self.bytes.len() {
+                return Ok(0);
+            }
+            let count = buffer
+                .len()
+                .min(self.fail_after - self.position)
+                .min(self.bytes.len() - self.position);
+            buffer[..count].copy_from_slice(&self.bytes[self.position..self.position + count]);
+            self.position += count;
+            Ok(count)
+        }
+    }
+
+    #[test]
+    fn input_manifest_hashes_match_frozen_independent_reference_vectors() {
+        // These constants were independently computed with Python hashlib
+        // using the documented u64-big-endian length-prefix encoding.
+        let payloads = BTreeMap::from([(
+            "evidence:evidence-001".to_owned(),
+            InputDigest {
+                sha256: "18d4310f227c26eba9df9201259401b68f5a4b443aee50605b2947ccade72219".into(),
+                byte_length: 23,
+            },
+        )]);
+        let schemas = BTreeMap::from([(
+            ("urn:synthetic:schema:evidence".to_owned(), "1.0".to_owned()),
+            InputDigest {
+                sha256: "b26ac0a7e7dfdad5c3a62712855bec360c3a7878cb82ea3c4e48fc4743d778e5".into(),
+                byte_length: 44,
+            },
+        )]);
+
+        assert_eq!(
+            payload_input_manifest_digest(&payloads).unwrap(),
+            "3a42bdc29320b982de2e491c67fb6acc3e01b7a34743c049d8494beb467cb8b9"
+        );
+        assert_eq!(
+            schema_input_manifest_digest(&schemas).unwrap(),
+            "9b0b3ba72b083d92641beb2afdd43bb082163a39edf5f2becc3283216fab0424"
+        );
+    }
+
+    #[test]
+    fn streaming_and_in_memory_verifiers_have_identical_inner_receipts() {
+        let payload = br#"{"measurement":42,"unit":"mm"}"#;
+        let schema =
+            br#"{"$schema":"https://json-schema.org/draft/2020-12/schema","type":"object"}"#;
+        let case = case(payload);
+        let catalog = catalog(&case, payload, schema);
+        let (payloads, schemas) = inputs(payload, schema);
+        let in_memory = verify_catalog_payload_bytes(&case, &catalog, &payloads, &schemas);
+
+        for buffer_size in [4 * 1024, 64 * 1024, 1024 * 1024, 4 * 1024 * 1024] {
+            let payload_readers = BTreeMap::from([(
+                "evidence:evidence-001".into(),
+                io::Cursor::new(payload.to_vec()),
+            )]);
+            let schema_readers = BTreeMap::from([(
+                ("urn:synthetic:schema:evidence".into(), "1.0".into()),
+                io::Cursor::new(schema.to_vec()),
+            )]);
+            let streamed = verify_catalog_payload_streams(
+                &case,
+                &catalog,
+                payload_readers,
+                schema_readers,
+                buffer_size,
+            )
+            .unwrap();
+
+            assert_eq!(streamed.verification, in_memory);
+            assert_eq!(
+                streamed.payload_input_manifest_sha256,
+                in_memory.payload_input_manifest_sha256
+            );
+            assert_eq!(
+                streamed.schema_input_manifest_sha256,
+                in_memory.schema_input_manifest_sha256
+            );
+            assert_eq!(streamed.execution_profile.buffer_size_bytes, buffer_size);
+            assert_eq!(streamed.execution_profile.working_buffer_bytes, buffer_size);
+            assert_eq!(streamed.execution_profile.io_mode, "streaming_reader");
+            assert!(valid_sha256(&streamed.receipt_sha256));
+        }
+    }
+
+    #[test]
+    fn streaming_reader_failure_returns_key_and_consumed_length_without_receipt() {
+        let payload = b"payload bytes that fail partway";
+        let schema = b"schema bytes";
+        let case = case(payload);
+        let catalog = catalog(&case, payload, schema);
+        let payload_readers = BTreeMap::from([(
+            "evidence:evidence-001".into(),
+            FailsAfter {
+                bytes: payload.to_vec(),
+                position: 0,
+                fail_after: 7,
+            },
+        )]);
+        let schema_readers = BTreeMap::<(String, String), io::Cursor<Vec<u8>>>::new();
+
+        let error = verify_catalog_payload_streams(
+            &case,
+            &catalog,
+            payload_readers,
+            schema_readers,
+            4 * 1024,
+        )
+        .unwrap_err();
+
+        assert_eq!(error.input_key, "evidence:evidence-001");
+        assert_eq!(error.bytes_read, 7);
+        assert_eq!(error.error_kind, "Other");
+        assert!(error.message.contains("synthetic injected reader failure"));
+    }
+
+    #[test]
+    fn invalid_stream_buffer_size_is_rejected_before_reader_consumption() {
+        let payload = b"payload";
+        let schema = b"schema";
+        let case = case(payload);
+        let catalog = catalog(&case, payload, schema);
+        let payload_readers = BTreeMap::from([(
+            "evidence:evidence-001".into(),
+            FailsAfter {
+                bytes: payload.to_vec(),
+                position: 0,
+                fail_after: 0,
+            },
+        )]);
+
+        let error = verify_catalog_payload_streams(
+            &case,
+            &catalog,
+            payload_readers,
+            BTreeMap::<(String, String), io::Cursor<Vec<u8>>>::new(),
+            1024,
+        )
+        .unwrap_err();
+        assert_eq!(error.error_kind, "invalid_buffer_size");
+        assert_eq!(error.bytes_read, 0);
     }
 
     #[test]
