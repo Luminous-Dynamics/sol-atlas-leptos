@@ -1381,8 +1381,7 @@ pub fn validate_source_inventory_closure(
     let mut incomplete_inventory_count = 0usize;
     let mut invalid_inventory_count = 0usize;
     let mut not_comparable_inventory_count = 0usize;
-    let mut cross_manifest_identity_payloads =
-        BTreeMap::<String, (String, String)>::new();
+    let mut cross_manifest_identity_payloads = BTreeMap::<String, (String, String)>::new();
     let mut cross_manifest_duplicate_identity_count = 0usize;
     let mut cross_manifest_payload_digest_conflict_count = 0usize;
 
@@ -2011,14 +2010,10 @@ mod tests {
         for page in &mut second.page_receipts {
             page.inventory_id = second.inventory_id.clone();
         }
-        second.page_receipts[0].native_record_identity_sha256s[0] = first
-            .page_receipts[0]
-            .native_record_identity_sha256s[0]
-            .clone();
-        second.page_receipts[0].native_record_payload_sha256s[0] = first
-            .page_receipts[0]
-            .native_record_payload_sha256s[0]
-            .clone();
+        second.page_receipts[0].native_record_identity_sha256s[0] =
+            first.page_receipts[0].native_record_identity_sha256s[0].clone();
+        second.page_receipts[0].native_record_payload_sha256s[0] =
+            first.page_receipts[0].native_record_payload_sha256s[0].clone();
         second.page_receipts[1].predecessor_page_receipt_sha256 =
             Some(second.page_receipts[0].receipt_sha256().unwrap());
 
@@ -2052,10 +2047,8 @@ mod tests {
         for page in &mut second.page_receipts {
             page.inventory_id = second.inventory_id.clone();
         }
-        second.page_receipts[0].native_record_identity_sha256s[0] = first
-            .page_receipts[0]
-            .native_record_identity_sha256s[0]
-            .clone();
+        second.page_receipts[0].native_record_identity_sha256s[0] =
+            first.page_receipts[0].native_record_identity_sha256s[0].clone();
         second.page_receipts[0].native_record_payload_sha256s[0] = digest('f');
         second.page_receipts[1].predecessor_page_receipt_sha256 =
             Some(second.page_receipts[0].receipt_sha256().unwrap());
@@ -2073,7 +2066,10 @@ mod tests {
             },
         ];
         let closure = validate_source_inventory_closure(&expected, &[first, second]);
-        assert_eq!(closure.disposition, InventoryClosureDisposition::InvalidInput);
+        assert_eq!(
+            closure.disposition,
+            InventoryClosureDisposition::InvalidInput
+        );
         assert_eq!(closure.cross_manifest_duplicate_identity_count, 1);
         assert_eq!(closure.cross_manifest_payload_digest_conflict_count, 1);
         assert!(closure.findings.iter().any(|finding| {

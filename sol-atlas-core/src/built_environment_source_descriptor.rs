@@ -1436,8 +1436,8 @@ mod tests {
         payload_sha256: &str,
     ) -> crate::built_environment_source_inventory::SourceInventoryManifest {
         use crate::built_environment_source_inventory::{
-            InventoryAccessScope, InventoryPageReceipt, ReportedTotalSemantics,
-            SnapshotSemantics, SourceInventoryManifest,
+            InventoryAccessScope, InventoryPageReceipt, ReportedTotalSemantics, SnapshotSemantics,
+            SourceInventoryManifest,
         };
 
         let inventory_id = format!("inventory-{}", descriptor.case_record_id);
@@ -1491,7 +1491,9 @@ mod tests {
             truncation_detected: false,
             attestation_ref: Some("synthetic:inventory-attestation:001".into()),
             issuer_key_id: Some("urn:synthetic:inventory-key:001".into()),
-            limitations: vec!["synthetic only; source attestation authentication is not performed".into()],
+            limitations: vec![
+                "synthetic only; source attestation authentication is not performed".into(),
+            ],
         }
     }
 
@@ -1507,9 +1509,7 @@ mod tests {
         let mut expected_owners = Vec::new();
         let mut manifests = Vec::new();
         for descriptor in &catalog.descriptors {
-            let key = descriptor
-                .record_kind
-                .case_key(&descriptor.case_record_id);
+            let key = descriptor.record_kind.case_key(&descriptor.case_record_id);
             let identity = validation.identity_sha256_by_case_record.get(&key).unwrap();
             let payload = descriptor.source_payload.sha256.as_deref().unwrap();
             expected_owners.push(ExpectedSourceOwner {
