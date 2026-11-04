@@ -878,6 +878,38 @@ mod tests {
     }
 
     #[test]
+    fn input_manifest_hashes_match_frozen_independent_reference_vectors() {
+        // These constants were independently computed with Python hashlib
+        // using the documented u64-big-endian length-prefix encoding.
+        let payloads = BTreeMap::from([(
+            "evidence:evidence-001".to_owned(),
+            InputDigest {
+                sha256: "18d4310f227c26eba9df9201259401b68f5a4b443aee50605b2947ccade72219".into(),
+                byte_length: 23,
+            },
+        )]);
+        let schemas = BTreeMap::from([(
+            (
+                "urn:synthetic:schema:evidence".to_owned(),
+                "1.0".to_owned(),
+            ),
+            InputDigest {
+                sha256: "b26ac0a7e7dfdad5c3a62712855bec360c3a7878cb82ea3c4e48fc4743d778e5".into(),
+                byte_length: 44,
+            },
+        )]);
+
+        assert_eq!(
+            payload_input_manifest_digest(&payloads).unwrap(),
+            "3a42bdc29320b982de2e491c67fb6acc3e01b7a34743c049d8494beb467cb8b9"
+        );
+        assert_eq!(
+            schema_input_manifest_digest(&schemas).unwrap(),
+            "9b0b3ba72b083d92641beb2afdd43bb082163a39edf5f2becc3283216fab0424"
+        );
+    }
+
+    #[test]
     fn streaming_and_in_memory_verifiers_have_identical_inner_receipts() {
         let payload = br#"{"measurement":42,"unit":"mm"}"#;
         let schema =
