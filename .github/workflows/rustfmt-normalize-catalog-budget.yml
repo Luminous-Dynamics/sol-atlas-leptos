@@ -1,0 +1,49 @@
+name: Normalize Rust source formatting for catalogue-budget branch
+
+on:
+  push:
+    branches:
+      - research/built-environment-catalog-resource-budget-v0-1-rebased
+    paths:
+      - "sol-atlas-core/src/**"
+      - "src/**"
+      - "tests/**"
+      - "examples/**"
+      - ".github/workflows/rustfmt-normalize-catalog-budget.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: rustfmt-normalize-catalog-budget
+  cancel-in-progress: false
+
+jobs:
+  normalize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: true
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - name: Normalize both root and core crate Rust sources
+        run: |
+          set -euo pipefail
+          cargo fmt --manifest-path Cargo.toml
+          cargo fmt --manifest-path sol-atlas-core/Cargo.toml
+          git diff --check
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -u -- '*.rs'
+          if git diff --cached --quiet; then
+            echo "No formatter changes required"
+          else
+            git commit -m "style: normalize source payload catalogue Rust"
+            git push origin "HEAD:$GITHUB_REF_NAME"
+          fi
+          cargo fmt --manifest-path Cargo.toml --check
+          cargo fmt --manifest-path sol-atlas-core/Cargo.toml --check
