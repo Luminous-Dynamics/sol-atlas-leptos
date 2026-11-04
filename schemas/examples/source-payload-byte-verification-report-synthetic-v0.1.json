@@ -39,5 +39,7 @@
   "source_inventory_completeness": "not_performed",
   "engineering_correctness": "not_performed",
   "action_authority": "none",
-  "no_impact_eligibility": "none"
+  "no_impact_eligibility": "none",
+  "invalid_finding_count": 0,
+  "incomplete_finding_count": 0
 }
