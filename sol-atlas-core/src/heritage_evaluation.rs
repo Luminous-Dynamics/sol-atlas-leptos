@@ -13,8 +13,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 use std::fmt;
 
-pub const HERITAGE_EVALUATION_SCHEMA_VERSION: &str =
-    "luminous.heritage-evaluation-split.v0.1";
+pub const HERITAGE_EVALUATION_SCHEMA_VERSION: &str = "luminous.heritage-evaluation-split.v0.1";
 pub const MAX_EVALUATION_SAMPLES: usize = 250_000;
 pub const MAX_CANDIDATE_PAIR_CHECKS: usize = 10_000_000;
 
@@ -211,7 +210,11 @@ pub enum HeritageEvaluationSplitError {
     SharedPhysicalEntityAcrossPartitions(String),
     SourcePixelOverlapAcrossPartitions,
     SharedBlockAcrossPartitions(String),
-    SpatialBufferViolation { sample_a: String, sample_b: String, pair_count: usize },
+    SpatialBufferViolation {
+        sample_a: String,
+        sample_b: String,
+        pair_count: usize,
+    },
     TooManyCandidatePairChecks,
 }
 
@@ -278,7 +281,11 @@ fn count_source_pixel_overlaps(
     samples: &[&EvaluationSample],
 ) -> Result<usize, HeritageEvaluationSplitError> {
     let mut captures = BTreeMap::<&str, Vec<&EvaluationSample>>::new();
-    for sample in samples.iter().copied().filter(|s| s.role != SplitRole::BufferExcluded) {
+    for sample in samples
+        .iter()
+        .copied()
+        .filter(|s| s.role != SplitRole::BufferExcluded)
+    {
         captures
             .entry(sample.source_capture_sha256.as_str())
             .or_default()
@@ -307,7 +314,10 @@ fn count_source_pixel_overlaps(
                 if candidate_checks > MAX_CANDIDATE_PAIR_CHECKS {
                     return Err(HeritageEvaluationSplitError::TooManyCandidatePairChecks);
                 }
-                if prior.source_pixel_window.intersects(current.source_pixel_window) {
+                if prior
+                    .source_pixel_window
+                    .intersects(current.source_pixel_window)
+                {
                     overlap_count += 1;
                 }
             }
@@ -338,7 +348,9 @@ fn count_spatial_buffer_violations(
     let mut first_violation = None;
     let mut candidate_checks = 0usize;
     for current in sorted {
-        active.retain(|prior| prior.metric_bounds.max_x_m + buffer_m >= current.metric_bounds.min_x_m);
+        active.retain(|prior| {
+            prior.metric_bounds.max_x_m + buffer_m >= current.metric_bounds.min_x_m
+        });
         for prior in &active {
             if prior.role == current.role {
                 continue;
@@ -381,7 +393,11 @@ fn validate_held_out_partition(
         }
     }
     let mut found_in_test = BTreeSet::new();
-    for sample in samples.iter().copied().filter(|s| s.role != SplitRole::BufferExcluded) {
+    for sample in samples
+        .iter()
+        .copied()
+        .filter(|s| s.role != SplitRole::BufferExcluded)
+    {
         let value = identity(sample);
         match sample.role {
             SplitRole::Train | SplitRole::Validation if held.contains(value) => {
@@ -390,9 +406,11 @@ fn validate_held_out_partition(
                 ));
             }
             SplitRole::Test if !held.contains(value) => {
-                return Err(HeritageEvaluationSplitError::TestPartitionContainsUnheldIdentity(
-                    value.to_owned(),
-                ));
+                return Err(
+                    HeritageEvaluationSplitError::TestPartitionContainsUnheldIdentity(
+                        value.to_owned(),
+                    ),
+                );
             }
             SplitRole::Test => {
                 found_in_test.insert(value);
@@ -489,12 +507,16 @@ pub fn audit_heritage_evaluation_split(
                 ));
             }
         } else if sample.exclusion_reason.is_some() {
-            return Err(HeritageEvaluationSplitError::ActiveSampleHasExclusionReason(
-                sample.sample_id.clone(),
-            ));
+            return Err(
+                HeritageEvaluationSplitError::ActiveSampleHasExclusionReason(
+                    sample.sample_id.clone(),
+                ),
+            );
         }
-        let prior_digest = capture_digests_by_id
-            .insert(sample.source_capture_id.as_str(), sample.source_capture_sha256.as_str());
+        let prior_digest = capture_digests_by_id.insert(
+            sample.source_capture_id.as_str(),
+            sample.source_capture_sha256.as_str(),
+        );
         if prior_digest.is_some_and(|digest| digest != sample.source_capture_sha256) {
             return Err(HeritageEvaluationSplitError::CaptureIdDigestMismatch(
                 sample.source_capture_id.clone(),
@@ -518,9 +540,7 @@ pub fn audit_heritage_evaluation_split(
     if active.is_empty() {
         return Err(HeritageEvaluationSplitError::NoActiveSamples);
     }
-    let counts = role_counts(
-        &manifest.samples.iter().collect::<Vec<_>>(),
-    );
+    let counts = role_counts(&manifest.samples.iter().collect::<Vec<_>>());
     if counts.train == 0 || counts.test == 0 {
         return Err(HeritageEvaluationSplitError::MissingTrainOrTestPartition);
     }
@@ -564,9 +584,9 @@ pub fn audit_heritage_evaluation_split(
             if let Some(tile_id) = first_shared_identity(active.iter().flat_map(|sample| {
                 std::iter::once((sample.source_tile_sha256.clone(), sample.role))
             })) {
-                return Err(HeritageEvaluationSplitError::SharedTileDigestAcrossPartitions(
-                    tile_id,
-                ));
+                return Err(
+                    HeritageEvaluationSplitError::SharedTileDigestAcrossPartitions(tile_id),
+                );
             }
             if let Some(entity_id) = first_shared_identity(active.iter().flat_map(|sample| {
                 sample
@@ -575,9 +595,9 @@ pub fn audit_heritage_evaluation_split(
                     .cloned()
                     .map(move |id| (id, sample.role))
             })) {
-                return Err(HeritageEvaluationSplitError::SharedPhysicalEntityAcrossPartitions(
-                    entity_id,
-                ));
+                return Err(
+                    HeritageEvaluationSplitError::SharedPhysicalEntityAcrossPartitions(entity_id),
+                );
             }
         }
         EvaluationSplitProfile::BufferedSpatialBlocks => {
@@ -585,9 +605,11 @@ pub fn audit_heritage_evaluation_split(
                 return Err(HeritageEvaluationSplitError::SourcePixelOverlapAcrossPartitions);
             }
             if shared_tile_digest_count > 0 {
-                let id = first_shared_identity(active.iter().map(|sample| {
-                    (sample.source_tile_sha256.clone(), sample.role)
-                }))
+                let id = first_shared_identity(
+                    active
+                        .iter()
+                        .map(|sample| (sample.source_tile_sha256.clone(), sample.role)),
+                )
                 .unwrap_or_default();
                 return Err(HeritageEvaluationSplitError::SharedTileDigestAcrossPartitions(id));
             }
@@ -598,11 +620,14 @@ pub fn audit_heritage_evaluation_split(
                     .cloned()
                     .map(move |id| (id, sample.role))
             })) {
-                return Err(HeritageEvaluationSplitError::SharedPhysicalEntityAcrossPartitions(
-                    entity_id,
-                ));
+                return Err(
+                    HeritageEvaluationSplitError::SharedPhysicalEntityAcrossPartitions(entity_id),
+                );
             }
-            if active.iter().any(|sample| sample.block_id.as_deref().is_none_or(|id| !non_empty(id))) {
+            if active
+                .iter()
+                .any(|sample| sample.block_id.as_deref().is_none_or(|id| !non_empty(id)))
+            {
                 let sample_id = active
                     .iter()
                     .find(|sample| sample.block_id.as_deref().is_none_or(|id| !non_empty(id)))
@@ -615,25 +640,29 @@ pub fn audit_heritage_evaluation_split(
                     "block ID appears in multiple roles".to_owned(),
                 ));
             }
-            let basis = manifest.spatial_buffer_basis.ok_or(
-                HeritageEvaluationSplitError::MissingSpatialBufferConfiguration,
-            )?;
-            let buffer = manifest.spatial_buffer_m.ok_or(
-                HeritageEvaluationSplitError::MissingSpatialBufferConfiguration,
-            )?;
+            let basis = manifest
+                .spatial_buffer_basis
+                .ok_or(HeritageEvaluationSplitError::MissingSpatialBufferConfiguration)?;
+            let buffer = manifest
+                .spatial_buffer_m
+                .ok_or(HeritageEvaluationSplitError::MissingSpatialBufferConfiguration)?;
             if !buffer.is_finite() || buffer <= 0.0 {
                 return Err(HeritageEvaluationSplitError::InvalidSpatialBufferConfiguration);
             }
             match basis {
                 SpatialBufferBasis::EmpiricalCorrelationRange => {
-                    let range = manifest.spatial_correlation_range_m.ok_or(
-                        HeritageEvaluationSplitError::MissingSpatialBufferConfiguration,
-                    )?;
+                    let range = manifest
+                        .spatial_correlation_range_m
+                        .ok_or(HeritageEvaluationSplitError::MissingSpatialBufferConfiguration)?;
                     if !range.is_finite() || range <= 0.0 {
-                        return Err(HeritageEvaluationSplitError::InvalidSpatialBufferConfiguration);
+                        return Err(
+                            HeritageEvaluationSplitError::InvalidSpatialBufferConfiguration,
+                        );
                     }
                     if buffer < range {
-                        return Err(HeritageEvaluationSplitError::BufferSmallerThanCorrelationRange);
+                        return Err(
+                            HeritageEvaluationSplitError::BufferSmallerThanCorrelationRange,
+                        );
                     }
                 }
                 SpatialBufferBasis::DeclaredDeploymentDistance => {}
@@ -656,18 +685,21 @@ pub fn audit_heritage_evaluation_split(
             }
         }
         EvaluationSplitProfile::LeaveOneSiteOut => {
-            held_out_identity_count = validate_held_out_partition(
-                &manifest.held_out_site_ids,
-                &active,
-                |sample| sample.site_id.as_str(),
-            )?;
+            held_out_identity_count =
+                validate_held_out_partition(&manifest.held_out_site_ids, &active, |sample| {
+                    sample.site_id.as_str()
+                })?;
             if source_pixel_overlap_pair_count > 0 {
                 return Err(HeritageEvaluationSplitError::SourcePixelOverlapAcrossPartitions);
             }
-            if let Some(tile_id) = first_shared_identity(active.iter().map(|sample| {
-                (sample.source_tile_sha256.clone(), sample.role)
-            })) {
-                return Err(HeritageEvaluationSplitError::SharedTileDigestAcrossPartitions(tile_id));
+            if let Some(tile_id) = first_shared_identity(
+                active
+                    .iter()
+                    .map(|sample| (sample.source_tile_sha256.clone(), sample.role)),
+            ) {
+                return Err(
+                    HeritageEvaluationSplitError::SharedTileDigestAcrossPartitions(tile_id),
+                );
             }
             if let Some(entity_id) = first_shared_identity(active.iter().flat_map(|sample| {
                 sample
@@ -676,24 +708,24 @@ pub fn audit_heritage_evaluation_split(
                     .cloned()
                     .map(move |id| (id, sample.role))
             })) {
-                return Err(HeritageEvaluationSplitError::SharedPhysicalEntityAcrossPartitions(
-                    "duplicate physical entity".to_owned(),
-                ));
+                return Err(
+                    HeritageEvaluationSplitError::SharedPhysicalEntityAcrossPartitions(
+                        "duplicate physical entity".to_owned(),
+                    ),
+                );
             }
         }
         EvaluationSplitProfile::CrossSensorTransfer => {
-            held_out_identity_count = validate_held_out_partition(
-                &manifest.held_out_sensor_ids,
-                &active,
-                |sample| sample.sensor_id.as_str(),
-            )?;
+            held_out_identity_count =
+                validate_held_out_partition(&manifest.held_out_sensor_ids, &active, |sample| {
+                    sample.sensor_id.as_str()
+                })?;
         }
         EvaluationSplitProfile::CrossEpochTransfer => {
-            held_out_identity_count = validate_held_out_partition(
-                &manifest.held_out_epoch_ids,
-                &active,
-                |sample| sample.acquisition_epoch_id.as_str(),
-            )?;
+            held_out_identity_count =
+                validate_held_out_partition(&manifest.held_out_epoch_ids, &active, |sample| {
+                    sample.acquisition_epoch_id.as_str()
+                })?;
         }
     }
 
@@ -716,8 +748,12 @@ pub fn audit_heritage_evaluation_split(
         manifest.random_seed.is_some(),
     ) {
         (EvaluationSplitProfile::PaperFaithfulRandomTiles, true, _) => "paper_exact_manifest",
-        (EvaluationSplitProfile::PaperFaithfulRandomTiles, false, true) => "seeded_protocol_reproduction",
-        (EvaluationSplitProfile::PaperFaithfulRandomTiles, false, false) => "protocol_reconstruction",
+        (EvaluationSplitProfile::PaperFaithfulRandomTiles, false, true) => {
+            "seeded_protocol_reproduction"
+        }
+        (EvaluationSplitProfile::PaperFaithfulRandomTiles, false, false) => {
+            "protocol_reconstruction"
+        }
         _ => "not_applicable",
     };
 
@@ -806,8 +842,18 @@ mod tests {
                     "site-1",
                     "capture-1",
                     "tile-1",
-                    PixelWindow { min_x_px: 0, min_y_px: 0, max_x_px: 100, max_y_px: 100 },
-                    MetricBounds { min_x_m: 0.0, min_y_m: 0.0, max_x_m: 10.0, max_y_m: 10.0 },
+                    PixelWindow {
+                        min_x_px: 0,
+                        min_y_px: 0,
+                        max_x_px: 100,
+                        max_y_px: 100,
+                    },
+                    MetricBounds {
+                        min_x_m: 0.0,
+                        min_y_m: 0.0,
+                        max_x_m: 10.0,
+                        max_y_m: 10.0,
+                    },
                     &["stone-1"],
                 ),
                 sample(
@@ -816,8 +862,18 @@ mod tests {
                     "site-1",
                     "capture-1",
                     "tile-2",
-                    PixelWindow { min_x_px: 200, min_y_px: 0, max_x_px: 300, max_y_px: 100 },
-                    MetricBounds { min_x_m: 20.0, min_y_m: 0.0, max_x_m: 30.0, max_y_m: 10.0 },
+                    PixelWindow {
+                        min_x_px: 200,
+                        min_y_px: 0,
+                        max_x_px: 300,
+                        max_y_px: 100,
+                    },
+                    MetricBounds {
+                        min_x_m: 20.0,
+                        min_y_m: 0.0,
+                        max_x_m: 30.0,
+                        max_y_m: 10.0,
+                    },
                     &["stone-2"],
                 ),
             ],
@@ -827,8 +883,12 @@ mod tests {
     #[test]
     fn paper_faithful_random_tiles_report_overlap_without_claiming_transfer() {
         let mut input = base_manifest(EvaluationSplitProfile::PaperFaithfulRandomTiles);
-        input.samples[1].source_pixel_window =
-            PixelWindow { min_x_px: 50, min_y_px: 0, max_x_px: 150, max_y_px: 100 };
+        input.samples[1].source_pixel_window = PixelWindow {
+            min_x_px: 50,
+            min_y_px: 0,
+            max_x_px: 150,
+            max_y_px: 100,
+        };
         input.samples[1].physical_entity_ids = vec!["stone-1".to_owned()];
         let report = audit_heritage_evaluation_split(&input).expect("paper split is auditable");
         assert_eq!(report.source_pixel_overlap_pair_count, 1);
@@ -839,8 +899,12 @@ mod tests {
     #[test]
     fn source_footprint_profile_rejects_overlapping_source_pixels() {
         let mut input = base_manifest(EvaluationSplitProfile::SourceFootprintIndependent);
-        input.samples[1].source_pixel_window =
-            PixelWindow { min_x_px: 50, min_y_px: 0, max_x_px: 150, max_y_px: 100 };
+        input.samples[1].source_pixel_window = PixelWindow {
+            min_x_px: 50,
+            min_y_px: 0,
+            max_x_px: 150,
+            max_y_px: 100,
+        };
         assert_eq!(
             audit_heritage_evaluation_split(&input),
             Err(HeritageEvaluationSplitError::SourcePixelOverlapAcrossPartitions)
@@ -882,7 +946,9 @@ mod tests {
         input.samples[1].sensor_id = "drone-1".to_owned();
         assert!(matches!(
             audit_heritage_evaluation_split(&input),
-            Err(HeritageEvaluationSplitError::HeldOutIdentityInFitPartition(_))
+            Err(HeritageEvaluationSplitError::HeldOutIdentityInFitPartition(
+                _
+            ))
         ));
     }
 
@@ -890,8 +956,12 @@ mod tests {
     fn buffered_spatial_error_reports_the_violating_pair_count() {
         let mut input = base_manifest(EvaluationSplitProfile::BufferedSpatialBlocks);
         input.samples[1].block_id = Some("block-test".to_owned());
-        input.samples[1].metric_bounds =
-            MetricBounds { min_x_m: 12.0, min_y_m: 0.0, max_x_m: 22.0, max_y_m: 10.0 };
+        input.samples[1].metric_bounds = MetricBounds {
+            min_x_m: 12.0,
+            min_y_m: 0.0,
+            max_x_m: 22.0,
+            max_y_m: 10.0,
+        };
         input.spatial_buffer_basis = Some(SpatialBufferBasis::DeclaredDeploymentDistance);
         input.spatial_buffer_m = Some(5.0);
         input.buffer_basis_receipt_ref = Some("deployment-distance://receipt/1".to_owned());
@@ -916,7 +986,9 @@ mod tests {
         input.held_out_site_ids = vec!["site-1".to_owned()];
         assert!(matches!(
             audit_heritage_evaluation_split(&input),
-            Err(HeritageEvaluationSplitError::HeldOutIdentityInFitPartition(_))
+            Err(HeritageEvaluationSplitError::HeldOutIdentityInFitPartition(
+                _
+            ))
         ));
     }
 
@@ -927,8 +999,12 @@ mod tests {
         input.samples[1].site_id = "site-2".to_owned();
         input.samples[1].source_capture_id = "capture-2".to_owned();
         input.samples[1].source_capture_sha256 = digest('e');
-        input.samples[1].source_pixel_window =
-            PixelWindow { min_x_px: 0, min_y_px: 0, max_x_px: 100, max_y_px: 100 };
+        input.samples[1].source_pixel_window = PixelWindow {
+            min_x_px: 0,
+            min_y_px: 0,
+            max_x_px: 100,
+            max_y_px: 100,
+        };
         input.samples[1].physical_entity_ids = vec!["stone-99".to_owned()];
         let report = audit_heritage_evaluation_split(&input).expect("held out site");
         assert_eq!(report.held_out_identity_count, 1);
@@ -953,8 +1029,12 @@ mod tests {
     fn spatial_block_profile_rejects_bbox_distance_below_buffer() {
         let mut input = base_manifest(EvaluationSplitProfile::BufferedSpatialBlocks);
         input.samples[1].block_id = Some("block-test".to_owned());
-        input.samples[1].metric_bounds =
-            MetricBounds { min_x_m: 12.0, min_y_m: 0.0, max_x_m: 22.0, max_y_m: 10.0 };
+        input.samples[1].metric_bounds = MetricBounds {
+            min_x_m: 12.0,
+            min_y_m: 0.0,
+            max_x_m: 22.0,
+            max_y_m: 10.0,
+        };
         input.spatial_buffer_basis = Some(SpatialBufferBasis::DeclaredDeploymentDistance);
         input.spatial_buffer_m = Some(5.0);
         input.buffer_basis_receipt_ref = Some("deployment-distance://receipt/1".to_owned());
@@ -970,7 +1050,8 @@ mod tests {
         let mut excluded = input.samples[1].clone();
         excluded.sample_id = "buffer-1".to_owned();
         excluded.role = SplitRole::BufferExcluded;
-        excluded.exclusion_reason = Some("inside preregistered spatial exclusion buffer".to_owned());
+        excluded.exclusion_reason =
+            Some("inside preregistered spatial exclusion buffer".to_owned());
         input.samples.push(excluded);
         let report = audit_heritage_evaluation_split(&input).expect("auditable exclusion");
         assert_eq!(report.role_counts.buffer_excluded, 1);
