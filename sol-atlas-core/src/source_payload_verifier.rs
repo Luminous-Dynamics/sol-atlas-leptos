@@ -11,8 +11,8 @@
 
 use crate::built_environment_case::BuiltEnvironmentCase;
 use crate::built_environment_source_descriptor::{
-    DescriptorDisposition, PayloadDigestBasis, SourceDescriptorCatalog,
-    SourceRecordKind, validate_source_descriptor_catalog,
+    DescriptorDisposition, PayloadDigestBasis, SourceDescriptorCatalog, SourceRecordKind,
+    validate_source_descriptor_catalog,
 };
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
@@ -126,7 +126,11 @@ impl Findings {
     }
 
     fn disposition(&self) -> ByteVerificationDisposition {
-        if self.rows.iter().any(|finding| finding.severity == "invalid") {
+        if self
+            .rows
+            .iter()
+            .any(|finding| finding.severity == "invalid")
+        {
             ByteVerificationDisposition::InvalidInput
         } else if !self.rows.is_empty() {
             ByteVerificationDisposition::IncompleteOrIndeterminate
@@ -154,9 +158,7 @@ fn append_field(encoded: &mut Vec<u8>, value: &[u8]) -> Result<(), String> {
     Ok(())
 }
 
-fn payload_input_manifest_digest(
-    payloads: &BTreeMap<String, Vec<u8>>,
-) -> Result<String, String> {
+fn payload_input_manifest_digest(payloads: &BTreeMap<String, Vec<u8>>) -> Result<String, String> {
     let mut encoded = PAYLOAD_INPUT_DOMAIN.to_vec();
     for (key, bytes) in payloads {
         append_field(&mut encoded, key.as_bytes())?;
@@ -212,10 +214,8 @@ pub fn verify_catalog_payload_bytes(
     let case_bytes = serde_json::to_vec(case).unwrap_or_default();
     let catalog_sha256 = sha256_hex(&catalog_bytes);
     let case_sha256 = sha256_hex(&case_bytes);
-    let payload_manifest_sha256 =
-        payload_input_manifest_digest(payload_inputs).unwrap_or_default();
-    let schema_manifest_sha256 =
-        schema_input_manifest_digest(schema_inputs).unwrap_or_default();
+    let payload_manifest_sha256 = payload_input_manifest_digest(payload_inputs).unwrap_or_default();
+    let schema_manifest_sha256 = schema_input_manifest_digest(schema_inputs).unwrap_or_default();
 
     let mut findings = Findings::default();
     if descriptor_validation.disposition == DescriptorDisposition::InvalidInput {
@@ -224,7 +224,8 @@ pub fn verify_catalog_payload_bytes(
             "catalog",
             "payload verification will not run against an invalid descriptor catalogue",
         );
-    } else if descriptor_validation.disposition == DescriptorDisposition::IncompleteOrIndeterminate {
+    } else if descriptor_validation.disposition == DescriptorDisposition::IncompleteOrIndeterminate
+    {
         findings.incomplete(
             "DESCRIPTOR_CATALOG_INCOMPLETE",
             "catalog",
@@ -253,106 +254,114 @@ pub fn verify_catalog_payload_bytes(
             let expected_byte_length = descriptor.source_payload.byte_length;
             let digest_basis = descriptor.source_payload.digest_basis.as_str().to_owned();
             let payload_bytes = payload_inputs.get(&key);
-            let (computed_payload_sha256, actual_byte_length, payload_result) =
-                match (expected_payload_sha256.as_deref(), payload_bytes) {
-                    (Some(expected), Some(bytes)) => {
-                        let computed = sha256_hex(bytes);
-                        let actual_length = bytes.len() as u64;
-                        let expected_digest_valid = valid_sha256(expected);
-                        let digest_matches = expected_digest_valid && computed == expected;
-                        let length_matches = expected_byte_length
-                            .is_none_or(|expected_length| expected_length == actual_length);
+            let (computed_payload_sha256, actual_byte_length, payload_result) = match (
+                expected_payload_sha256.as_deref(),
+                payload_bytes,
+            ) {
+                (Some(expected), Some(bytes)) => {
+                    let computed = sha256_hex(bytes);
+                    let actual_length = bytes.len() as u64;
+                    let expected_digest_valid = valid_sha256(expected);
+                    let digest_matches = expected_digest_valid && computed == expected;
+                    let length_matches = expected_byte_length
+                        .is_none_or(|expected_length| expected_length == actual_length);
 
-                        if !expected_digest_valid {
-                            payload_digest_mismatches += 1;
-                            findings.invalid(
-                                "INVALID_EXPECTED_PAYLOAD_DIGEST",
-                                &key,
-                                "descriptor payload digest is not lowercase SHA-256",
-                            );
-                        } else if !digest_matches {
-                            payload_digest_mismatches += 1;
-                            findings.invalid(
-                                "SOURCE_PAYLOAD_DIGEST_MISMATCH",
-                                &key,
-                                "SHA-256 of supplied payload bytes does not match the descriptor claim",
-                            );
-                        }
-
-                        if !length_matches {
-                            payload_length_mismatches += 1;
-                            findings.invalid(
-                                "SOURCE_PAYLOAD_LENGTH_MISMATCH",
-                                &key,
-                                "supplied payload byte length does not match the descriptor claim",
-                            );
-                        }
-
-                        if descriptor.source_payload.digest_basis == PayloadDigestBasis::Unavailable {
-                            payload_digests_unavailable += 1;
-                            findings.invalid(
-                                "UNAVAILABLE_PAYLOAD_HAS_DIGEST",
-                                &key,
-                                "unavailable digest basis unexpectedly contains a digest",
-                            );
-                            (Some(computed), Some(actual_length), "invalid_unavailable_digest_state")
-                        } else if !expected_digest_valid {
-                            (Some(computed), Some(actual_length), "invalid_expected_digest")
-                        } else if !digest_matches {
-                            (Some(computed), Some(actual_length), "digest_mismatch")
-                        } else if !length_matches {
-                            (Some(computed), Some(actual_length), "length_mismatch")
-                        } else {
-                            payload_bytes_verified += 1;
-                            let result = match descriptor.source_payload.digest_basis {
-                                PayloadDigestBasis::LocallyRetrievedAndHashed => {
-                                    "verified_supplied_bytes_match_local_digest_claim"
-                                }
-                                PayloadDigestBasis::SourceOwnerAttested => {
-                                    "supplied_bytes_match_owner_attested_digest"
-                                }
-                                PayloadDigestBasis::ExternalReference => {
-                                    "verified_supplied_bytes_match_external_digest_claim"
-                                }
-                                PayloadDigestBasis::Unavailable => {
-                                    "invalid_unavailable_digest_state"
-                                }
-                            };
-                            (Some(computed), Some(actual_length), result)
-                        }
+                    if !expected_digest_valid {
+                        payload_digest_mismatches += 1;
+                        findings.invalid(
+                            "INVALID_EXPECTED_PAYLOAD_DIGEST",
+                            &key,
+                            "descriptor payload digest is not lowercase SHA-256",
+                        );
+                    } else if !digest_matches {
+                        payload_digest_mismatches += 1;
+                        findings.invalid(
+                            "SOURCE_PAYLOAD_DIGEST_MISMATCH",
+                            &key,
+                            "SHA-256 of supplied payload bytes does not match the descriptor claim",
+                        );
                     }
-                    (Some(_), None) => {
-                        payload_bytes_missing += 1;
-                        findings.incomplete(
+
+                    if !length_matches {
+                        payload_length_mismatches += 1;
+                        findings.invalid(
+                            "SOURCE_PAYLOAD_LENGTH_MISMATCH",
+                            &key,
+                            "supplied payload byte length does not match the descriptor claim",
+                        );
+                    }
+
+                    if descriptor.source_payload.digest_basis == PayloadDigestBasis::Unavailable {
+                        payload_digests_unavailable += 1;
+                        findings.invalid(
+                            "UNAVAILABLE_PAYLOAD_HAS_DIGEST",
+                            &key,
+                            "unavailable digest basis unexpectedly contains a digest",
+                        );
+                        (
+                            Some(computed),
+                            Some(actual_length),
+                            "invalid_unavailable_digest_state",
+                        )
+                    } else if !expected_digest_valid {
+                        (
+                            Some(computed),
+                            Some(actual_length),
+                            "invalid_expected_digest",
+                        )
+                    } else if !digest_matches {
+                        (Some(computed), Some(actual_length), "digest_mismatch")
+                    } else if !length_matches {
+                        (Some(computed), Some(actual_length), "length_mismatch")
+                    } else {
+                        payload_bytes_verified += 1;
+                        let result = match descriptor.source_payload.digest_basis {
+                            PayloadDigestBasis::LocallyRetrievedAndHashed => {
+                                "verified_supplied_bytes_match_local_digest_claim"
+                            }
+                            PayloadDigestBasis::SourceOwnerAttested => {
+                                "supplied_bytes_match_owner_attested_digest"
+                            }
+                            PayloadDigestBasis::ExternalReference => {
+                                "verified_supplied_bytes_match_external_digest_claim"
+                            }
+                            PayloadDigestBasis::Unavailable => "invalid_unavailable_digest_state",
+                        };
+                        (Some(computed), Some(actual_length), result)
+                    }
+                }
+                (Some(_), None) => {
+                    payload_bytes_missing += 1;
+                    findings.incomplete(
                             "SOURCE_PAYLOAD_BYTES_NOT_SUPPLIED",
                             &key,
                             "descriptor contains a source digest but no corresponding byte buffer was supplied",
                         );
-                        (None, None, "missing_bytes")
-                    }
-                    (None, Some(bytes)) => {
-                        payload_digests_unavailable += 1;
-                        findings.incomplete(
+                    (None, None, "missing_bytes")
+                }
+                (None, Some(bytes)) => {
+                    payload_digests_unavailable += 1;
+                    findings.incomplete(
                             "BYTES_OBSERVED_WITHOUT_SOURCE_DIGEST_CLAIM",
                             &key,
                             "supplied bytes were hashed for observation only; the computed digest is not promoted to a source-native claim",
                         );
-                        (
-                            Some(sha256_hex(bytes)),
-                            Some(bytes.len() as u64),
-                            "observed_bytes_without_source_digest_claim",
-                        )
-                    }
-                    (None, None) => {
-                        payload_digests_unavailable += 1;
-                        findings.incomplete(
-                            "SOURCE_PAYLOAD_DIGEST_UNAVAILABLE",
-                            &key,
-                            "the descriptor has no source payload digest claim",
-                        );
-                        (None, None, "source_digest_unavailable")
-                    }
-                };
+                    (
+                        Some(sha256_hex(bytes)),
+                        Some(bytes.len() as u64),
+                        "observed_bytes_without_source_digest_claim",
+                    )
+                }
+                (None, None) => {
+                    payload_digests_unavailable += 1;
+                    findings.incomplete(
+                        "SOURCE_PAYLOAD_DIGEST_UNAVAILABLE",
+                        &key,
+                        "the descriptor has no source payload digest claim",
+                    );
+                    (None, None, "source_digest_unavailable")
+                }
+            };
 
             let schema_id = descriptor.source_payload.schema_id.clone();
             let schema_version = descriptor.source_payload.schema_version.clone();
@@ -361,57 +370,59 @@ pub fn verify_catalog_payload_bytes(
                 .as_ref()
                 .zip(schema_version.as_ref())
                 .map(|(id, version)| (id.clone(), version.clone()));
-            let (computed_schema_sha256, schema_result) =
-                match (schema_key.as_ref(), expected_schema_sha256.as_deref()) {
-                    (Some(schema_key), Some(expected)) => {
-                        referenced_schema_keys.insert(schema_key.clone());
-                        match schema_inputs.get(schema_key) {
-                            Some(bytes) => {
-                                let computed = sha256_hex(bytes);
-                                if computed == expected && valid_sha256(expected) {
-                                    schema_bytes_verified += 1;
-                                    (Some(computed), "schema_bytes_match_declared_digest")
-                                } else {
-                                    schema_digest_mismatches += 1;
-                                    findings.invalid(
+            let (computed_schema_sha256, schema_result) = match (
+                schema_key.as_ref(),
+                expected_schema_sha256.as_deref(),
+            ) {
+                (Some(schema_key), Some(expected)) => {
+                    referenced_schema_keys.insert(schema_key.clone());
+                    match schema_inputs.get(schema_key) {
+                        Some(bytes) => {
+                            let computed = sha256_hex(bytes);
+                            if computed == expected && valid_sha256(expected) {
+                                schema_bytes_verified += 1;
+                                (Some(computed), "schema_bytes_match_declared_digest")
+                            } else {
+                                schema_digest_mismatches += 1;
+                                findings.invalid(
                                         "SOURCE_SCHEMA_DIGEST_MISMATCH",
                                         &key,
                                         "SHA-256 of supplied schema bytes does not match the descriptor claim",
                                     );
-                                    (Some(computed), "schema_digest_mismatch")
-                                }
+                                (Some(computed), "schema_digest_mismatch")
                             }
-                            None => {
-                                schema_bytes_missing += 1;
-                                findings.incomplete(
+                        }
+                        None => {
+                            schema_bytes_missing += 1;
+                            findings.incomplete(
                                     "SOURCE_SCHEMA_BYTES_NOT_SUPPLIED",
                                     &key,
                                     "schema ID/version and digest are present, but schema bytes were not supplied",
                                 );
-                                (None, "schema_bytes_missing")
-                            }
+                            (None, "schema_bytes_missing")
                         }
                     }
-                    (Some(schema_key), None) => {
-                        referenced_schema_keys.insert(schema_key.clone());
-                        schema_bytes_missing += 1;
-                        findings.incomplete(
-                            "SOURCE_SCHEMA_DIGEST_UNAVAILABLE",
-                            &key,
-                            "schema ID/version are present but no schema digest is declared",
-                        );
-                        (None, "schema_digest_unavailable")
-                    }
-                    _ => {
-                        schema_bytes_missing += 1;
-                        findings.incomplete(
+                }
+                (Some(schema_key), None) => {
+                    referenced_schema_keys.insert(schema_key.clone());
+                    schema_bytes_missing += 1;
+                    findings.incomplete(
+                        "SOURCE_SCHEMA_DIGEST_UNAVAILABLE",
+                        &key,
+                        "schema ID/version are present but no schema digest is declared",
+                    );
+                    (None, "schema_digest_unavailable")
+                }
+                _ => {
+                    schema_bytes_missing += 1;
+                    findings.incomplete(
                             "SOURCE_SCHEMA_IDENTITY_UNAVAILABLE",
                             &key,
                             "schema ID/version are unavailable, so schema bytes cannot be independently bound",
                         );
-                        (None, "schema_identity_unavailable")
-                    }
-                };
+                    (None, "schema_identity_unavailable")
+                }
+            };
 
             records.push(RecordByteVerification {
                 record_kind: descriptor.record_kind.node_type().into(),
@@ -575,12 +586,30 @@ mod tests {
                 case_record_id: "evidence-001".into(),
                 owner_namespace: "urn:synthetic:survey-owner".into(),
                 native_identity_components: vec![
-                    NativeIdentityComponent { name: "native_id".into(), value: "survey-registry".into() },
-                    NativeIdentityComponent { name: "native_record_id".into(), value: "evidence-001".into() },
-                    NativeIdentityComponent { name: "native_revision".into(), value: "1".into() },
-                    NativeIdentityComponent { name: "field_path".into(), value: "geometry.revision".into() },
-                    NativeIdentityComponent { name: "subject_id".into(), value: "design-001".into() },
-                    NativeIdentityComponent { name: "jurisdiction".into(), value: "synthetic-jurisdiction".into() },
+                    NativeIdentityComponent {
+                        name: "native_id".into(),
+                        value: "survey-registry".into(),
+                    },
+                    NativeIdentityComponent {
+                        name: "native_record_id".into(),
+                        value: "evidence-001".into(),
+                    },
+                    NativeIdentityComponent {
+                        name: "native_revision".into(),
+                        value: "1".into(),
+                    },
+                    NativeIdentityComponent {
+                        name: "field_path".into(),
+                        value: "geometry.revision".into(),
+                    },
+                    NativeIdentityComponent {
+                        name: "subject_id".into(),
+                        value: "design-001".into(),
+                    },
+                    NativeIdentityComponent {
+                        name: "jurisdiction".into(),
+                        value: "synthetic-jurisdiction".into(),
+                    },
                 ],
                 source_payload: SourcePayloadDescriptor {
                     sha256: Some(payload_sha256.clone()),
@@ -671,11 +700,17 @@ mod tests {
         let catalog = catalog(&case, payload, schema);
         let (payloads, schemas) = inputs(b"mutated payload", schema);
         let receipt = verify_catalog_payload_bytes(&case, &catalog, &payloads, &schemas);
-        assert_eq!(receipt.disposition, ByteVerificationDisposition::InvalidInput);
+        assert_eq!(
+            receipt.disposition,
+            ByteVerificationDisposition::InvalidInput
+        );
         assert_eq!(receipt.payload_digest_mismatches, 1);
-        assert!(receipt.findings.iter().any(|finding| {
-            finding.code == "SOURCE_PAYLOAD_DIGEST_MISMATCH"
-        }));
+        assert!(
+            receipt
+                .findings
+                .iter()
+                .any(|finding| { finding.code == "SOURCE_PAYLOAD_DIGEST_MISMATCH" })
+        );
         assert_eq!(schemas.len(), 1);
     }
 
@@ -688,7 +723,10 @@ mod tests {
         catalog.descriptors[0].source_payload.byte_length = Some(999);
         let (payloads, schemas) = inputs(payload, schema);
         let receipt = verify_catalog_payload_bytes(&case, &catalog, &payloads, &schemas);
-        assert_eq!(receipt.disposition, ByteVerificationDisposition::InvalidInput);
+        assert_eq!(
+            receipt.disposition,
+            ByteVerificationDisposition::InvalidInput
+        );
         assert_eq!(receipt.payload_length_mismatches, 1);
     }
 
@@ -701,15 +739,24 @@ mod tests {
         let (payloads, schemas) = inputs(b"mutated and longer", schema);
 
         let receipt = verify_catalog_payload_bytes(&case, &catalog, &payloads, &schemas);
-        assert_eq!(receipt.disposition, ByteVerificationDisposition::InvalidInput);
+        assert_eq!(
+            receipt.disposition,
+            ByteVerificationDisposition::InvalidInput
+        );
         assert_eq!(receipt.payload_digest_mismatches, 1);
         assert_eq!(receipt.payload_length_mismatches, 1);
-        assert!(receipt.findings.iter().any(|finding| {
-            finding.code == "SOURCE_PAYLOAD_DIGEST_MISMATCH"
-        }));
-        assert!(receipt.findings.iter().any(|finding| {
-            finding.code == "SOURCE_PAYLOAD_LENGTH_MISMATCH"
-        }));
+        assert!(
+            receipt
+                .findings
+                .iter()
+                .any(|finding| { finding.code == "SOURCE_PAYLOAD_DIGEST_MISMATCH" })
+        );
+        assert!(
+            receipt
+                .findings
+                .iter()
+                .any(|finding| { finding.code == "SOURCE_PAYLOAD_LENGTH_MISMATCH" })
+        );
     }
 
     #[test]
@@ -739,7 +786,10 @@ mod tests {
             b"tampered schema".to_vec(),
         )]);
         let receipt = verify_catalog_payload_bytes(&case, &catalog, &payloads, &wrong_schemas);
-        assert_eq!(receipt.disposition, ByteVerificationDisposition::InvalidInput);
+        assert_eq!(
+            receipt.disposition,
+            ByteVerificationDisposition::InvalidInput
+        );
         assert_eq!(receipt.schema_digest_mismatches, 1);
     }
 
@@ -757,7 +807,10 @@ mod tests {
         let (payloads, schemas) = inputs(payload, schema);
 
         let receipt = verify_catalog_payload_bytes(&case, &catalog, &payloads, &schemas);
-        assert_eq!(receipt.disposition, ByteVerificationDisposition::IncompleteOrIndeterminate);
+        assert_eq!(
+            receipt.disposition,
+            ByteVerificationDisposition::IncompleteOrIndeterminate
+        );
         assert_eq!(
             receipt.records[0].payload_result,
             "supplied_bytes_match_owner_attested_digest"
@@ -783,7 +836,10 @@ mod tests {
             receipt.records[0].payload_result,
             "verified_supplied_bytes_match_external_digest_claim"
         );
-        assert_eq!(receipt.disposition, ByteVerificationDisposition::IncompleteOrIndeterminate);
+        assert_eq!(
+            receipt.disposition,
+            ByteVerificationDisposition::IncompleteOrIndeterminate
+        );
     }
 
     #[test]
@@ -799,12 +855,14 @@ mod tests {
         descriptor.bytes_retrieved = false;
         descriptor.byte_length = None;
         descriptor.payload_object_ref = None;
-        catalog.case_representation_sha256 =
-            sha256_hex(&serde_json::to_vec(&case).unwrap());
+        catalog.case_representation_sha256 = sha256_hex(&serde_json::to_vec(&case).unwrap());
         let (payloads, schemas) = inputs(payload, schema);
 
         let receipt = verify_catalog_payload_bytes(&case, &catalog, &payloads, &schemas);
-        assert_eq!(receipt.disposition, ByteVerificationDisposition::IncompleteOrIndeterminate);
+        assert_eq!(
+            receipt.disposition,
+            ByteVerificationDisposition::IncompleteOrIndeterminate
+        );
         assert_eq!(receipt.payload_bytes_verified, 0);
         assert_eq!(
             receipt.records[0].payload_result,
@@ -826,7 +884,10 @@ mod tests {
 
         let receipt = verify_catalog_payload_bytes(&case, &catalog, &payloads, &BTreeMap::new());
         assert_eq!(receipt.schema_bytes_missing, 1);
-        assert_eq!(receipt.disposition, ByteVerificationDisposition::IncompleteOrIndeterminate);
+        assert_eq!(
+            receipt.disposition,
+            ByteVerificationDisposition::IncompleteOrIndeterminate
+        );
         assert_eq!(receipt.records[0].schema_result, "schema_bytes_missing");
     }
 
