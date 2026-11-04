@@ -166,7 +166,6 @@ pub struct HeritageEvaluationSplitAuditReport {
     pub shared_physical_entity_count: usize,
     pub shared_site_count: usize,
     pub shared_block_count: usize,
-    pub spatial_buffer_violation_pair_count: usize,
     pub held_out_identity_count: usize,
     /// None outside the buffered-spatial estimand, where the distance audit is not run.
     pub spatial_buffer_violation_pair_count: Option<usize>,
