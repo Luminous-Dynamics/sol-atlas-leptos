@@ -19,7 +19,10 @@
     "action_authority",
     "claim_ceiling",
     "not_checked",
-    "obligations"
+    "obligations",
+    "top_level_disposition",
+    "validation_errors",
+    "report_sha256"
   ],
   "properties": {
     "schema_version": {
@@ -98,7 +101,8 @@
             "unknown_count",
             "revalidation_required_count",
             "quarantined_count",
-            "missing_required_gates"
+            "missing_required_gates",
+            "event_effects"
           ],
           "properties": {
             "valid_time_as_of": {
@@ -243,6 +247,48 @@
                   "inspection",
                   "accepted_work"
                 ]
+              }
+            },
+            "event_effects": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "event_sha256",
+                  "target_node_id",
+                  "cause_class",
+                  "effect",
+                  "reason_code"
+                ],
+                "properties": {
+                  "event_sha256": {
+                    "$ref": "#/$defs/sha256"
+                  },
+                  "target_node_id": {
+                    "type": "string",
+                    "minLength": 3,
+                    "maxLength": 256
+                  },
+                  "cause_class": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128
+                  },
+                  "effect": {
+                    "enum": [
+                      "claim_invalidated",
+                      "revalidation_required",
+                      "quarantined",
+                      "indeterminate"
+                    ]
+                  },
+                  "reason_code": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128
+                  }
+                }
               }
             }
           }
@@ -260,7 +306,8 @@
             "unknown_count",
             "revalidation_required_count",
             "quarantined_count",
-            "missing_required_gates"
+            "missing_required_gates",
+            "event_effects"
           ],
           "properties": {
             "valid_time_as_of": {
@@ -405,6 +452,48 @@
                   "inspection",
                   "accepted_work"
                 ]
+              }
+            },
+            "event_effects": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "event_sha256",
+                  "target_node_id",
+                  "cause_class",
+                  "effect",
+                  "reason_code"
+                ],
+                "properties": {
+                  "event_sha256": {
+                    "$ref": "#/$defs/sha256"
+                  },
+                  "target_node_id": {
+                    "type": "string",
+                    "minLength": 3,
+                    "maxLength": 256
+                  },
+                  "cause_class": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128
+                  },
+                  "effect": {
+                    "enum": [
+                      "claim_invalidated",
+                      "revalidation_required",
+                      "quarantined",
+                      "indeterminate"
+                    ]
+                  },
+                  "reason_code": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128
+                  }
+                }
               }
             }
           }
@@ -422,7 +511,8 @@
             "unknown_count",
             "revalidation_required_count",
             "quarantined_count",
-            "missing_required_gates"
+            "missing_required_gates",
+            "event_effects"
           ],
           "properties": {
             "valid_time_as_of": {
@@ -567,6 +657,48 @@
                   "inspection",
                   "accepted_work"
                 ]
+              }
+            },
+            "event_effects": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "event_sha256",
+                  "target_node_id",
+                  "cause_class",
+                  "effect",
+                  "reason_code"
+                ],
+                "properties": {
+                  "event_sha256": {
+                    "$ref": "#/$defs/sha256"
+                  },
+                  "target_node_id": {
+                    "type": "string",
+                    "minLength": 3,
+                    "maxLength": 256
+                  },
+                  "cause_class": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128
+                  },
+                  "effect": {
+                    "enum": [
+                      "claim_invalidated",
+                      "revalidation_required",
+                      "quarantined",
+                      "indeterminate"
+                    ]
+                  },
+                  "reason_code": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128
+                  }
+                }
               }
             }
           }
@@ -734,6 +866,27 @@
           }
         }
       }
+    },
+    "top_level_disposition": {
+      "enum": [
+        "candidate_current_within_declared_scope",
+        "revalidation_required",
+        "claim_invalidated",
+        "quarantined_pending_review",
+        "indeterminate",
+        "invalid_input"
+      ]
+    },
+    "validation_errors": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 2048
+      }
+    },
+    "report_sha256": {
+      "$ref": "#/$defs/sha256"
     }
   },
   "$defs": {
