@@ -409,6 +409,23 @@ where
         Some(_) => {}
     }
 
+    let invalid_verifier_context = !valid_utc_timestamp(&context.verified_at_utc)
+        || context
+            .verifier_build_sha256
+            .as_deref()
+            .is_some_and(|digest| !valid_sha256(digest));
+    if invalid_verifier_context {
+        return catalog_report(
+            catalog,
+            context,
+            case_sha256,
+            catalog_sha256,
+            &descriptor_validation,
+            Vec::new(),
+            report_findings,
+        );
+    }
+
     if descriptor_validation.disposition == DescriptorDisposition::InvalidInput {
         report_findings.insert(finding(
             "invalid",
@@ -1116,6 +1133,31 @@ mod tests {
                 .iter()
                 .any(|finding| { finding.code == "INVALID_VERIFICATION_TIME" })
         );
+    }
+
+    #[test]
+    fn invalid_verifier_build_digest_prevents_payload_resolution() {
+        let bytes = b"actual source payload";
+        let case = test_case(bytes);
+        let catalog = catalog(&case, descriptor(bytes));
+        let mut context = context();
+        context.verifier_build_sha256 = Some("not-a-digest".into());
+        let mut resolver_called = false;
+        let result = verify_catalog_payload_bytes(
+            &case,
+            &catalog,
+            &context,
+            |_reference| {
+                resolver_called = true;
+                Ok(Cursor::new(bytes.to_vec()))
+            },
+        );
+        assert!(!resolver_called);
+        assert_eq!(result.disposition, PayloadByteCatalogDisposition::InvalidInput);
+        assert_eq!(result.records.len(), 0);
+        assert!(result.findings.iter().any(|finding| {
+            finding.code == "INVALID_VERIFIER_BUILD_DIGEST"
+        }));
     }
 
     #[test]
