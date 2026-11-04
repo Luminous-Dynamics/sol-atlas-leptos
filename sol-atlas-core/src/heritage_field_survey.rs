@@ -18,8 +18,7 @@ use std::collections::BTreeSet;
 use std::fmt;
 
 pub const FIELD_SWEEP_SCHEMA_VERSION: &str = "luminous.heritage-field-sweep.v0.1";
-pub const FIELD_SWEEP_REPORT_SCHEMA_VERSION: &str =
-    "luminous.heritage-field-sweep-report.v0.1";
+pub const FIELD_SWEEP_REPORT_SCHEMA_VERSION: &str = "luminous.heritage-field-sweep-report.v0.1";
 pub const MIN_FIT_TRANSECTS: usize = 3;
 pub const MIN_VALIDATION_TRANSECTS: usize = 2;
 pub const MIN_FIT_TARGETS: usize = 20;
@@ -253,9 +252,7 @@ fn validate_context(context: &FieldSurveyContext) -> Result<(), FieldSweepError>
     Ok(())
 }
 
-fn validate_profile(
-    profile: &SweepWidthCalibrationProfile,
-) -> Result<(), FieldSweepError> {
+fn validate_profile(profile: &SweepWidthCalibrationProfile) -> Result<(), FieldSweepError> {
     if !non_empty(&profile.profile_id) {
         return Err(FieldSweepError::EmptyProfileId);
     }
@@ -293,8 +290,8 @@ fn validate_profile(
     {
         return Err(FieldSweepError::InvalidStandardError);
     }
-    let covariance_limit = profile.detection_probability_standard_error
-        * profile.lateral_decay_standard_error;
+    let covariance_limit =
+        profile.detection_probability_standard_error * profile.lateral_decay_standard_error;
     if !profile.b_k_covariance.is_finite()
         || profile.b_k_covariance.abs() > covariance_limit + COVARIANCE_TOLERANCE
     {
@@ -411,7 +408,11 @@ pub fn effective_sweep_width(
         + d_w_dk.powi(2) * se_k.powi(2)
         + 2.0 * d_w_db * d_w_dk * profile.b_k_covariance;
 
-    if !width.is_finite() || width <= 0.0 || !variance.is_finite() || variance < -COVARIANCE_TOLERANCE {
+    if !width.is_finite()
+        || width <= 0.0
+        || !variance.is_finite()
+        || variance < -COVARIANCE_TOLERANCE
+    {
         return Err(FieldSweepError::InvalidSweepWidthArithmetic);
     }
     let standard_error = variance.max(0.0).sqrt();
@@ -470,12 +471,8 @@ pub fn evaluate_field_sweep(
 
     let interval = effective_sweep_width(&input.calibration_profile)?;
     let width = input.calibration_profile.detection_probability_at_transect
-        * (std::f64::consts::PI
-            / input.calibration_profile.lateral_decay_per_metre_squared)
-            .sqrt();
-    if input.coverage.calibration_profile_sha256
-        != input.calibration_profile.profile_sha256
-    {
+        * (std::f64::consts::PI / input.calibration_profile.lateral_decay_per_metre_squared).sqrt();
+    if input.coverage.calibration_profile_sha256 != input.calibration_profile.profile_sha256 {
         return Err(FieldSweepError::CoverageProfileDigestMismatch);
     }
     let width_tolerance = (width.abs() * COVERAGE_TOLERANCE).max(COVERAGE_TOLERANCE);
@@ -597,8 +594,14 @@ mod tests {
     fn analytical_sweep_width_matches_known_value() {
         let interval = effective_sweep_width(&profile()).unwrap();
         let expected = 0.82 * (std::f64::consts::PI / 0.05_f64).sqrt();
-        assert!((interval.lower_m - (expected - NORMAL_95_Z * interval.standard_error_m).max(0.0)).abs() < 1e-12);
-        assert!((interval.upper_m - (expected + NORMAL_95_Z * interval.standard_error_m)).abs() < 1e-12);
+        assert!(
+            (interval.lower_m - (expected - NORMAL_95_Z * interval.standard_error_m).max(0.0))
+                .abs()
+                < 1e-12
+        );
+        assert!(
+            (interval.upper_m - (expected + NORMAL_95_Z * interval.standard_error_m)).abs() < 1e-12
+        );
         assert!(interval.lower_m <= expected && expected <= interval.upper_m);
     }
 
@@ -620,10 +623,22 @@ mod tests {
         assert!(!report.repeated_search_independence_assumed);
         assert_eq!(report.profile_sha256, "a".repeat(64));
         assert_eq!(report.spatial_union_receipt_sha256, "1".repeat(64));
-        assert!(report.receipt_reported_coverage_fraction > 0.0 && report.receipt_reported_coverage_fraction <= 1.0);
+        assert!(
+            report.receipt_reported_coverage_fraction > 0.0
+                && report.receipt_reported_coverage_fraction <= 1.0
+        );
         assert_eq!(report.receipt_reported_swept_area_m2, 6_499.0);
-        assert!((report.buffered_sweep_width_m - input().calibration_profile.detection_probability_at_transect
-            * (std::f64::consts::PI / input().calibration_profile.lateral_decay_per_metre_squared).sqrt()).abs() < 1e-12);
+        assert!(
+            (report.buffered_sweep_width_m
+                - input()
+                    .calibration_profile
+                    .detection_probability_at_transect
+                    * (std::f64::consts::PI
+                        / input().calibration_profile.lateral_decay_per_metre_squared)
+                        .sqrt())
+            .abs()
+                < 1e-12
+        );
     }
 
     #[test]
