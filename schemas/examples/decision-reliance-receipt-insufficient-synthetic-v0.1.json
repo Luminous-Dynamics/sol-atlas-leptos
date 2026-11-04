@@ -1,0 +1,251 @@
+{
+  "schema_version": "luminous.engineering-decision-reliance-receipt.v0.1",
+  "receipt_id": "reliance-synthetic-case-tunnel-001",
+  "evaluation_environment": "synthetic_only",
+  "result": "insufficient_evidence",
+  "case_id": "case-synthetic-tunnel-001",
+  "jurisdiction": "synthetic-jurisdiction",
+  "purpose": "design_change_reliance_review",
+  "scope": {
+    "subject_ids": [
+      "tunnel-lining-segment-001"
+    ],
+    "engineering_disciplines": [
+      "structural",
+      "geotechnical"
+    ],
+    "decision_boundary": "Evaluate whether the synthetic lining design decision remains supported for design review only",
+    "declared_profile_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "required_proof_classes": [
+      "decision_identity",
+      "source_payload_bytes",
+      "source_owner_authority",
+      "source_snapshot_currentness",
+      "source_rights",
+      "source_inventory_coverage",
+      "dependency_completeness",
+      "projection_semantics",
+      "impact_frontier_correctness",
+      "lifecycle_currentness",
+      "engineering_verification",
+      "professional_review",
+      "actor_authorization",
+      "schema_interoperability"
+    ]
+  },
+  "decision": {
+    "native_identity_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "decision_payload_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "decision_event_id": "decision-synthetic-001",
+    "decision_disposition": "conditional",
+    "decided_at": "2026-10-15T12:00:00Z",
+    "valid_from": "2026-10-15T12:00:00Z",
+    "valid_until": null
+  },
+  "evaluation_time": "2026-11-04T06:00:00Z",
+  "knowledge_watermark": {
+    "system_recorded_through": "2026-11-04T06:00:00Z",
+    "trusted_registered_through": null,
+    "source_snapshot_manifest_sha256": null
+  },
+  "input_bindings": {
+    "ieac_graph_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+    "projection_receipt_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+    "descriptor_catalog_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+    "payload_byte_report_sha256": null,
+    "coverage_report_sha256": null,
+    "trust_evaluation_sha256": null,
+    "lifecycle_report_sha256": null,
+    "engineering_report_sha256": null,
+    "impact_report_sha256": null
+  },
+  "obligations": [
+    {
+      "proof_class": "decision_identity",
+      "mandatory": true,
+      "status": "qualified",
+      "evidence_refs": [
+        {
+          "artifact_id": "decision-event",
+          "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+        }
+      ],
+      "evaluator_build_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+      "evaluated_at": "2026-11-04T06:00:00Z",
+      "expires_at": null,
+      "reason_codes": []
+    },
+    {
+      "proof_class": "source_payload_bytes",
+      "mandatory": true,
+      "status": "not_evaluated",
+      "evidence_refs": [],
+      "evaluator_build_sha256": null,
+      "evaluated_at": "2026-11-04T06:00:00Z",
+      "expires_at": null,
+      "reason_codes": [
+        "BYTE_VERIFICATION_REPORT_MISSING"
+      ]
+    },
+    {
+      "proof_class": "source_owner_authority",
+      "mandatory": true,
+      "status": "missing",
+      "evidence_refs": [],
+      "evaluator_build_sha256": null,
+      "evaluated_at": "2026-11-04T06:00:00Z",
+      "expires_at": null,
+      "reason_codes": [
+        "OWNER_AUTHORITY_NOT_EVALUATED"
+      ]
+    },
+    {
+      "proof_class": "source_inventory_coverage",
+      "mandatory": true,
+      "status": "missing",
+      "evidence_refs": [],
+      "evaluator_build_sha256": null,
+      "evaluated_at": "2026-11-04T06:00:00Z",
+      "expires_at": null,
+      "reason_codes": [
+        "COVERAGE_REPORT_MISSING"
+      ]
+    },
+    {
+      "proof_class": "dependency_completeness",
+      "mandatory": true,
+      "status": "not_comparable",
+      "evidence_refs": [],
+      "evaluator_build_sha256": null,
+      "evaluated_at": "2026-11-04T06:00:00Z",
+      "expires_at": null,
+      "reason_codes": [
+        "INDEPENDENT_GOLD_INVENTORY_MISSING"
+      ]
+    },
+    {
+      "proof_class": "impact_frontier_correctness",
+      "mandatory": true,
+      "status": "not_evaluated",
+      "evidence_refs": [],
+      "evaluator_build_sha256": null,
+      "evaluated_at": "2026-11-04T06:00:00Z",
+      "expires_at": null,
+      "reason_codes": [
+        "IMPACT_ORACLE_REPORT_MISSING"
+      ]
+    },
+    {
+      "proof_class": "lifecycle_currentness",
+      "mandatory": true,
+      "status": "stale",
+      "evidence_refs": [],
+      "evaluator_build_sha256": null,
+      "evaluated_at": "2026-11-04T06:00:00Z",
+      "expires_at": null,
+      "reason_codes": [
+        "LIFECYCLE_CHAIN_NOT_REPLAYED"
+      ]
+    },
+    {
+      "proof_class": "engineering_verification",
+      "mandatory": true,
+      "status": "not_evaluated",
+      "evidence_refs": [],
+      "evaluator_build_sha256": null,
+      "evaluated_at": "2026-11-04T06:00:00Z",
+      "expires_at": null,
+      "reason_codes": [
+        "ENGINEERING_VERIFICATION_MISSING"
+      ]
+    },
+    {
+      "proof_class": "actor_authorization",
+      "mandatory": true,
+      "status": "not_evaluated",
+      "evidence_refs": [],
+      "evaluator_build_sha256": null,
+      "evaluated_at": "2026-11-04T06:00:00Z",
+      "expires_at": null,
+      "reason_codes": [
+        "AUTHORIZATION_REPORT_MISSING"
+      ]
+    },
+    {
+      "proof_class": "source_snapshot_currentness",
+      "mandatory": true,
+      "status": "not_evaluated",
+      "evidence_refs": [],
+      "evaluator_build_sha256": null,
+      "evaluated_at": "2026-11-04T06:00:00Z",
+      "expires_at": null,
+      "reason_codes": [
+        "SOURCE_SNAPSHOT_MANIFEST_MISSING"
+      ]
+    },
+    {
+      "proof_class": "source_rights",
+      "mandatory": true,
+      "status": "missing",
+      "evidence_refs": [],
+      "evaluator_build_sha256": null,
+      "evaluated_at": "2026-11-04T06:00:00Z",
+      "expires_at": null,
+      "reason_codes": [
+        "RIGHTS_EVIDENCE_NOT_EVALUATED"
+      ]
+    },
+    {
+      "proof_class": "projection_semantics",
+      "mandatory": true,
+      "status": "qualified",
+      "evidence_refs": [],
+      "evaluator_build_sha256": null,
+      "evaluated_at": "2026-11-04T06:00:00Z",
+      "expires_at": null,
+      "reason_codes": [
+        "PROJECTION_RECEIPT_PRESENT"
+      ]
+    },
+    {
+      "proof_class": "professional_review",
+      "mandatory": true,
+      "status": "not_evaluated",
+      "evidence_refs": [],
+      "evaluator_build_sha256": null,
+      "evaluated_at": "2026-11-04T06:00:00Z",
+      "expires_at": null,
+      "reason_codes": [
+        "PROFESSIONAL_REVIEW_EVIDENCE_MISSING"
+      ]
+    },
+    {
+      "proof_class": "schema_interoperability",
+      "mandatory": true,
+      "status": "not_evaluated",
+      "evidence_refs": [],
+      "evaluator_build_sha256": null,
+      "evaluated_at": "2026-11-04T06:00:00Z",
+      "expires_at": null,
+      "reason_codes": [
+        "SCHEMA_CROSS_IMPLEMENTATION_CHECK_MISSING"
+      ]
+    }
+  ],
+  "revalidation_obligations": [],
+  "actor_authorization": {
+    "actor_id": "synthetic-reviewer-001",
+    "capability": "rely_for_declared_purpose",
+    "status": "unknown",
+    "authority_evidence_sha256": null,
+    "evaluated_at": "2026-11-04T06:00:00Z"
+  },
+  "action_authority": "none",
+  "claim_ceiling": "decision_reliance_evaluation_only",
+  "limitations": [
+    "Synthetic refusal fixture; no real project or source data is represented.",
+    "The receipt demonstrates an insufficient-evidence outcome, not an engineering approval.",
+    "No source owner, byte payload, rights, signature, trust root, coverage inventory or lifecycle history has been independently authenticated.",
+    "No professional engineering approval, construction release, operation, or actuation authority is established."
+  ]
+}
