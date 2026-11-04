@@ -41,7 +41,14 @@
           "trusted_at": "2026-10-01T10:05:00Z",
           "fresh_until": "2026-12-01T00:00:00Z",
           "revoked_at": null,
-          "finding_codes": []
+          "finding_codes": [],
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ]
         },
         {
           "proof_id": "source-bytes",
@@ -64,7 +71,14 @@
           "trusted_at": "2026-10-01T10:05:00Z",
           "fresh_until": "2026-12-01T00:00:00Z",
           "revoked_at": null,
-          "finding_codes": []
+          "finding_codes": [],
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ]
         },
         {
           "proof_id": "source-rights",
@@ -87,7 +101,14 @@
           "trusted_at": "2026-10-01T10:05:00Z",
           "fresh_until": "2026-12-01T00:00:00Z",
           "revoked_at": null,
-          "finding_codes": []
+          "finding_codes": [],
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ]
         },
         {
           "proof_id": "coverage",
@@ -110,7 +131,14 @@
           "trusted_at": "2026-10-01T10:05:00Z",
           "fresh_until": "2026-12-01T00:00:00Z",
           "revoked_at": null,
-          "finding_codes": []
+          "finding_codes": [],
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ]
         },
         {
           "proof_id": "actor-authority",
@@ -133,11 +161,23 @@
           "trusted_at": "2026-10-01T10:05:00Z",
           "fresh_until": "2026-12-01T00:00:00Z",
           "revoked_at": null,
-          "finding_codes": []
+          "finding_codes": [],
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ]
         }
       ],
       "change_events": [],
-      "expected_outcome": "reliable_for_declared_scope"
+      "expected_outcome": "reliable_for_declared_scope",
+      "purpose": "engineering_review",
+      "jurisdiction": "synthetic-jurisdiction",
+      "scope_subjects": [
+        "design-001"
+      ]
     },
     {
       "scenario_id": "retroactive-correction-recorded-after-decision",
@@ -172,7 +212,14 @@
           "trusted_at": "2026-10-01T10:05:00Z",
           "fresh_until": "2026-12-01T00:00:00Z",
           "revoked_at": null,
-          "finding_codes": []
+          "finding_codes": [],
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ]
         },
         {
           "proof_id": "source-bytes",
@@ -195,7 +242,14 @@
           "trusted_at": "2026-10-01T10:05:00Z",
           "fresh_until": "2026-12-01T00:00:00Z",
           "revoked_at": null,
-          "finding_codes": []
+          "finding_codes": [],
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ]
         },
         {
           "proof_id": "source-rights",
@@ -218,7 +272,14 @@
           "trusted_at": "2026-10-01T10:05:00Z",
           "fresh_until": "2026-12-01T00:00:00Z",
           "revoked_at": null,
-          "finding_codes": []
+          "finding_codes": [],
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ]
         },
         {
           "proof_id": "coverage",
@@ -241,7 +302,14 @@
           "trusted_at": "2026-10-01T10:05:00Z",
           "fresh_until": "2026-12-01T00:00:00Z",
           "revoked_at": null,
-          "finding_codes": []
+          "finding_codes": [],
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ]
         },
         {
           "proof_id": "actor-authority",
@@ -264,7 +332,14 @@
           "trusted_at": "2026-10-01T10:05:00Z",
           "fresh_until": "2026-12-01T00:00:00Z",
           "revoked_at": null,
-          "finding_codes": []
+          "finding_codes": [],
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ]
         }
       ],
       "change_events": [
@@ -284,7 +359,12 @@
         }
       ],
       "expected_outcome": "revalidation_required",
-      "expected_late_arriving_events": 1
+      "expected_late_arriving_events": 1,
+      "purpose": "engineering_review",
+      "jurisdiction": "synthetic-jurisdiction",
+      "scope_subjects": [
+        "design-001"
+      ]
     },
     {
       "scenario_id": "signing-key-revoked-before-decision",
@@ -319,7 +399,14 @@
           "trusted_at": "2026-10-01T10:05:00Z",
           "fresh_until": "2026-12-01T00:00:00Z",
           "revoked_at": null,
-          "finding_codes": []
+          "finding_codes": [],
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ]
         },
         {
           "proof_id": "source-bytes",
@@ -342,7 +429,14 @@
           "trusted_at": "2026-10-01T10:05:00Z",
           "fresh_until": "2026-12-01T00:00:00Z",
           "revoked_at": null,
-          "finding_codes": []
+          "finding_codes": [],
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ]
         },
         {
           "proof_id": "source-rights",
@@ -365,7 +459,14 @@
           "trusted_at": "2026-10-01T10:05:00Z",
           "fresh_until": "2026-12-01T00:00:00Z",
           "revoked_at": null,
-          "finding_codes": []
+          "finding_codes": [],
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ]
         },
         {
           "proof_id": "coverage",
@@ -388,7 +489,14 @@
           "trusted_at": "2026-10-01T10:05:00Z",
           "fresh_until": "2026-12-01T00:00:00Z",
           "revoked_at": null,
-          "finding_codes": []
+          "finding_codes": [],
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ]
         },
         {
           "proof_id": "actor-authority",
@@ -411,7 +519,14 @@
           "trusted_at": "2026-10-01T10:05:00Z",
           "fresh_until": "2026-12-01T00:00:00Z",
           "revoked_at": null,
-          "finding_codes": []
+          "finding_codes": [],
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ]
         }
       ],
       "change_events": [
@@ -430,7 +545,12 @@
           "receipt_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
         }
       ],
-      "expected_outcome": "invalid_evidence"
+      "expected_outcome": "invalid_evidence",
+      "purpose": "engineering_review",
+      "jurisdiction": "synthetic-jurisdiction",
+      "scope_subjects": [
+        "design-001"
+      ]
     },
     {
       "scenario_id": "source-rights-revoked-after-decision",
@@ -465,7 +585,14 @@
           "trusted_at": "2026-10-01T10:05:00Z",
           "fresh_until": "2026-12-01T00:00:00Z",
           "revoked_at": null,
-          "finding_codes": []
+          "finding_codes": [],
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ]
         },
         {
           "proof_id": "source-bytes",
@@ -488,7 +615,14 @@
           "trusted_at": "2026-10-01T10:05:00Z",
           "fresh_until": "2026-12-01T00:00:00Z",
           "revoked_at": null,
-          "finding_codes": []
+          "finding_codes": [],
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ]
         },
         {
           "proof_id": "source-rights",
@@ -511,7 +645,14 @@
           "trusted_at": "2026-10-01T10:05:00Z",
           "fresh_until": "2026-12-01T00:00:00Z",
           "revoked_at": null,
-          "finding_codes": []
+          "finding_codes": [],
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ]
         },
         {
           "proof_id": "coverage",
@@ -534,7 +675,14 @@
           "trusted_at": "2026-10-01T10:05:00Z",
           "fresh_until": "2026-12-01T00:00:00Z",
           "revoked_at": null,
-          "finding_codes": []
+          "finding_codes": [],
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ]
         },
         {
           "proof_id": "actor-authority",
@@ -557,7 +705,14 @@
           "trusted_at": "2026-10-01T10:05:00Z",
           "fresh_until": "2026-12-01T00:00:00Z",
           "revoked_at": null,
-          "finding_codes": []
+          "finding_codes": [],
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ]
         }
       ],
       "change_events": [
@@ -576,7 +731,12 @@
           "receipt_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
         }
       ],
-      "expected_outcome": "not_authorized"
+      "expected_outcome": "not_authorized",
+      "purpose": "engineering_review",
+      "jurisdiction": "synthetic-jurisdiction",
+      "scope_subjects": [
+        "design-001"
+      ]
     },
     {
       "scenario_id": "coverage-proof-missing",
@@ -611,7 +771,14 @@
           "trusted_at": "2026-10-01T10:05:00Z",
           "fresh_until": "2026-12-01T00:00:00Z",
           "revoked_at": null,
-          "finding_codes": []
+          "finding_codes": [],
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ]
         },
         {
           "proof_id": "source-bytes",
@@ -634,7 +801,14 @@
           "trusted_at": "2026-10-01T10:05:00Z",
           "fresh_until": "2026-12-01T00:00:00Z",
           "revoked_at": null,
-          "finding_codes": []
+          "finding_codes": [],
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ]
         },
         {
           "proof_id": "source-rights",
@@ -657,7 +831,14 @@
           "trusted_at": "2026-10-01T10:05:00Z",
           "fresh_until": "2026-12-01T00:00:00Z",
           "revoked_at": null,
-          "finding_codes": []
+          "finding_codes": [],
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ]
         },
         {
           "proof_id": "coverage",
@@ -680,7 +861,14 @@
           "trusted_at": "2026-10-01T10:05:00Z",
           "fresh_until": "2026-12-01T00:00:00Z",
           "revoked_at": null,
-          "finding_codes": []
+          "finding_codes": [],
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ]
         },
         {
           "proof_id": "actor-authority",
@@ -703,11 +891,23 @@
           "trusted_at": "2026-10-01T10:05:00Z",
           "fresh_until": "2026-12-01T00:00:00Z",
           "revoked_at": null,
-          "finding_codes": []
+          "finding_codes": [],
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ]
         }
       ],
       "change_events": [],
-      "expected_outcome": "insufficient_evidence"
+      "expected_outcome": "insufficient_evidence",
+      "purpose": "engineering_review",
+      "jurisdiction": "synthetic-jurisdiction",
+      "scope_subjects": [
+        "design-001"
+      ]
     },
     {
       "scenario_id": "future-registered-correction-not-leaked",
@@ -742,7 +942,14 @@
           "trusted_at": "2026-10-01T10:05:00Z",
           "fresh_until": "2026-12-01T00:00:00Z",
           "revoked_at": null,
-          "finding_codes": []
+          "finding_codes": [],
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ]
         },
         {
           "proof_id": "source-bytes",
@@ -765,7 +972,14 @@
           "trusted_at": "2026-10-01T10:05:00Z",
           "fresh_until": "2026-12-01T00:00:00Z",
           "revoked_at": null,
-          "finding_codes": []
+          "finding_codes": [],
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ]
         },
         {
           "proof_id": "source-rights",
@@ -788,7 +1002,14 @@
           "trusted_at": "2026-10-01T10:05:00Z",
           "fresh_until": "2026-12-01T00:00:00Z",
           "revoked_at": null,
-          "finding_codes": []
+          "finding_codes": [],
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ]
         },
         {
           "proof_id": "coverage",
@@ -811,7 +1032,14 @@
           "trusted_at": "2026-10-01T10:05:00Z",
           "fresh_until": "2026-12-01T00:00:00Z",
           "revoked_at": null,
-          "finding_codes": []
+          "finding_codes": [],
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ]
         },
         {
           "proof_id": "actor-authority",
@@ -834,7 +1062,14 @@
           "trusted_at": "2026-10-01T10:05:00Z",
           "fresh_until": "2026-12-01T00:00:00Z",
           "revoked_at": null,
-          "finding_codes": []
+          "finding_codes": [],
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ]
         }
       ],
       "change_events": [
@@ -854,7 +1089,12 @@
         }
       ],
       "expected_outcome": "reliable_for_declared_scope",
-      "expected_late_arriving_events": 0
+      "expected_late_arriving_events": 0,
+      "purpose": "engineering_review",
+      "jurisdiction": "synthetic-jurisdiction",
+      "scope_subjects": [
+        "design-001"
+      ]
     },
     {
       "scenario_id": "unverified-change-event-insufficient",
@@ -889,7 +1129,14 @@
           "trusted_at": "2026-10-01T10:05:00Z",
           "fresh_until": "2026-12-01T00:00:00Z",
           "revoked_at": null,
-          "finding_codes": []
+          "finding_codes": [],
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ]
         },
         {
           "proof_id": "source-bytes",
@@ -912,7 +1159,14 @@
           "trusted_at": "2026-10-01T10:05:00Z",
           "fresh_until": "2026-12-01T00:00:00Z",
           "revoked_at": null,
-          "finding_codes": []
+          "finding_codes": [],
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ]
         },
         {
           "proof_id": "source-rights",
@@ -935,7 +1189,14 @@
           "trusted_at": "2026-10-01T10:05:00Z",
           "fresh_until": "2026-12-01T00:00:00Z",
           "revoked_at": null,
-          "finding_codes": []
+          "finding_codes": [],
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ]
         },
         {
           "proof_id": "coverage",
@@ -958,7 +1219,14 @@
           "trusted_at": "2026-10-01T10:05:00Z",
           "fresh_until": "2026-12-01T00:00:00Z",
           "revoked_at": null,
-          "finding_codes": []
+          "finding_codes": [],
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ]
         },
         {
           "proof_id": "actor-authority",
@@ -981,7 +1249,14 @@
           "trusted_at": "2026-10-01T10:05:00Z",
           "fresh_until": "2026-12-01T00:00:00Z",
           "revoked_at": null,
-          "finding_codes": []
+          "finding_codes": [],
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ]
         }
       ],
       "change_events": [
@@ -1000,7 +1275,12 @@
           "receipt_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
         }
       ],
-      "expected_outcome": "insufficient_evidence"
+      "expected_outcome": "insufficient_evidence",
+      "purpose": "engineering_review",
+      "jurisdiction": "synthetic-jurisdiction",
+      "scope_subjects": [
+        "design-001"
+      ]
     },
     {
       "scenario_id": "actor-authority-expired",
@@ -1035,7 +1315,14 @@
           "trusted_at": "2026-10-01T10:05:00Z",
           "fresh_until": "2026-12-01T00:00:00Z",
           "revoked_at": null,
-          "finding_codes": []
+          "finding_codes": [],
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ]
         },
         {
           "proof_id": "source-bytes",
@@ -1058,7 +1345,14 @@
           "trusted_at": "2026-10-01T10:05:00Z",
           "fresh_until": "2026-12-01T00:00:00Z",
           "revoked_at": null,
-          "finding_codes": []
+          "finding_codes": [],
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ]
         },
         {
           "proof_id": "source-rights",
@@ -1081,7 +1375,14 @@
           "trusted_at": "2026-10-01T10:05:00Z",
           "fresh_until": "2026-12-01T00:00:00Z",
           "revoked_at": null,
-          "finding_codes": []
+          "finding_codes": [],
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ]
         },
         {
           "proof_id": "coverage",
@@ -1104,7 +1405,14 @@
           "trusted_at": "2026-10-01T10:05:00Z",
           "fresh_until": "2026-12-01T00:00:00Z",
           "revoked_at": null,
-          "finding_codes": []
+          "finding_codes": [],
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ]
         },
         {
           "proof_id": "actor-authority",
@@ -1127,11 +1435,23 @@
           "trusted_at": "2026-10-01T10:05:00Z",
           "fresh_until": "2026-12-01T00:00:00Z",
           "revoked_at": null,
-          "finding_codes": []
+          "finding_codes": [],
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ]
         }
       ],
       "change_events": [],
-      "expected_outcome": "not_authorized"
+      "expected_outcome": "not_authorized",
+      "purpose": "engineering_review",
+      "jurisdiction": "synthetic-jurisdiction",
+      "scope_subjects": [
+        "design-001"
+      ]
     }
   ]
 }
