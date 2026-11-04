@@ -252,6 +252,7 @@ pub enum HeritageArchitectureError {
     MetricCalibrationMissing(String),
     MetricCalibrationNotInSource(String),
     SurfaceAreaRequires3dSource(String),
+    DirectMeasurementMustBeMetric(String),
     DirectMeasurementSourceMissing(String),
     MethodBuildDigestMissing(String),
     MethodBuildDigestInvalid(String),
@@ -395,6 +396,14 @@ fn validate_observation(
             }
         }
         GeometryOrigin::DirectMeasurement | GeometryOrigin::HumanDigitization => {}
+    }
+
+    if observation.origin == GeometryOrigin::DirectMeasurement
+        && observation.measurement_basis == MeasurementBasis::PixelOnly
+    {
+        return Err(HeritageArchitectureError::DirectMeasurementMustBeMetric(
+            observation.observation_id.clone(),
+        ));
     }
 
     match observation.measurement_basis {
@@ -850,6 +859,38 @@ mod tests {
             report.claim_ceiling,
             ArchitectureClaimCeiling::StructuralIntegrityOnly
         );
+    }
+
+    #[test]
+    fn one_physical_stone_can_have_independent_observations_from_multiple_captures() {
+        let mut input = valid_input();
+        let second_observation = observation(
+            "obs-stone-field-survey",
+            "survey-1",
+            GeometryOrigin::DirectMeasurement,
+        );
+        input.elements[2].observations.push(second_observation);
+        let report = validate_heritage_architecture(&input).expect("multi-capture stone");
+        assert_eq!(report.element_count, 3);
+        assert_eq!(report.observation_count, 4);
+    }
+
+    #[test]
+    fn direct_measurement_cannot_be_pixel_only() {
+        let mut input = valid_input();
+        let observation = &mut input.elements[2].observations[0];
+        observation.origin = GeometryOrigin::DirectMeasurement;
+        observation.measurement_basis = MeasurementBasis::PixelOnly;
+        observation.spatial_reference_id = None;
+        observation.calibration_id = None;
+        observation.metric_area_m2 = None;
+        observation.metric_area_semantics = None;
+        observation.metric_perimeter_m = None;
+        observation.uncertainty = None;
+        assert!(matches!(
+            validate_heritage_architecture(&input),
+            Err(HeritageArchitectureError::DirectMeasurementMustBeMetric(_))
+        ));
     }
 
     #[test]
