@@ -85,6 +85,26 @@ jobs:
             echo "ERROR: schema accepted revalidation_required without an obligation"
             exit 1
           fi
+      - name: Negative control — nonblocking item cannot justify revalidation_required
+        run: |
+          set -euo pipefail
+          schema=schemas/decision-reliance-receipt-v0.1.schema.json
+          fixture=schemas/examples/decision-reliance-receipt-insufficient-synthetic-v0.1.json
+          jq '
+            .result = "revalidation_required" |
+            .revalidation_obligations = [{
+              "obligation_id": "synthetic-revalidation-001",
+              "cause_code": "SYNTHETIC_CAUSE",
+              "affected_decision_id": .decision.decision_event_id,
+              "required_action": "Synthetic nonblocking item",
+              "blocking": false
+            }]
+          ' "$fixture" > "$RUNNER_TEMP/nonblocking-revalidation-item.json"
+          if jsonschema-cli validate --draft 2020 --assert-format --offline "$schema" \
+              -i "$RUNNER_TEMP/nonblocking-revalidation-item.json"; then
+            echo "ERROR: schema accepted revalidation_required with no blocking obligation"
+            exit 1
+          fi
       - name: Negative control — unauthorized result cannot claim authorized actor
         run: |
           set -euo pipefail
