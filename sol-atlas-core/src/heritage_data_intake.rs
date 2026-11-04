@@ -98,6 +98,10 @@ pub struct DatasetPackageRecord {
     pub source_uri: String,
     pub citation: String,
     pub availability: RepositoryAvailability,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub package_sha256: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub package_byte_size: Option<u64>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -117,6 +121,8 @@ pub struct DatasetAssetRecord {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub licence_uri: Option<String>,
     pub access_tier: AccessTier,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub access_receipt_ref: Option<String>,
     pub coordinate_sensitivity: CoordinateSensitivity,
     pub permissions: Vec<PurposePermission>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -173,6 +179,12 @@ pub enum DatasetIntakeError {
     DeniedPermissionMissingCondition(String),
     EmptyPermissionEvidence(String),
     EmptyPermissionCondition(String),
+    DeniedPermissionMissingEvidence(String),
+    AccessReceiptMissing(String),
+    EmptyAccessReceipt(String),
+    InvalidPackageSha256(String),
+    PackageDigestRequiresByteSize(String),
+    PackageByteSizeWithoutDigest(String),
     ExactSensitiveCoordinateMustNotBePublic(String),
 }
 
@@ -217,6 +229,25 @@ pub fn validate_heritage_dataset_registry(
             return Err(DatasetIntakeError::DuplicatePackageId(
                 package.package_id.clone(),
             ));
+        }
+        match (&package.package_sha256, package.package_byte_size) {
+            (Some(digest), Some(size)) if valid_sha256(digest) && size > 0 => {}
+            (Some(digest), Some(_)) if !valid_sha256(digest) => {
+                return Err(DatasetIntakeError::InvalidPackageSha256(
+                    package.package_id.clone(),
+                ));
+            }
+            (Some(_), None) => {
+                return Err(DatasetIntakeError::PackageDigestRequiresByteSize(
+                    package.package_id.clone(),
+                ));
+            }
+            (None, Some(_)) => {
+                return Err(DatasetIntakeError::PackageByteSizeWithoutDigest(
+                    package.package_id.clone(),
+                ));
+            }
+            _ => {}
         }
     }
 
@@ -270,6 +301,23 @@ pub fn validate_heritage_dataset_registry(
                 asset.asset_id.clone(),
             ));
         }
+        if asset.access_tier != AccessTier::Public
+            && asset
+                .access_receipt_ref
+                .as_deref()
+                .is_none_or(|value| !non_empty(value))
+        {
+            return Err(DatasetIntakeError::AccessReceiptMissing(
+                asset.asset_id.clone(),
+            ));
+        }
+        if asset
+            .access_receipt_ref
+            .as_deref()
+            .is_some_and(|value| !non_empty(value))
+        {
+            return Err(DatasetIntakeError::EmptyAccessReceipt(asset.asset_id.clone()));
+        }
 
         let mut purposes = BTreeSet::new();
         for permission in &asset.permissions {
@@ -297,6 +345,15 @@ pub fn validate_heritage_dataset_registry(
                         .is_none_or(|value| !non_empty(value))
                     {
                         return Err(DatasetIntakeError::DeniedPermissionMissingCondition(
+                            asset.asset_id.clone(),
+                        ));
+                    }
+                    if permission
+                        .evidence_ref
+                        .as_deref()
+                        .is_none_or(|value| !non_empty(value))
+                    {
+                        return Err(DatasetIntakeError::DeniedPermissionMissingEvidence(
                             asset.asset_id.clone(),
                         ));
                     }
@@ -434,6 +491,7 @@ mod tests {
             licence_id: None,
             licence_uri: None,
             access_tier: AccessTier::Public,
+            access_receipt_ref: None,
             coordinate_sensitivity: CoordinateSensitivity::None,
             permissions,
             parent_asset_id: None,
@@ -537,6 +595,46 @@ mod tests {
             validate_heritage_dataset_registry(&registry),
             Err(DatasetIntakeError::DuplicatePurposePermission(_))
         ));
+    }
+
+    #[test]
+    fn denied_permission_requires_a_rights_evidence_reference() {
+        let mut registry = registry();
+        registry.assets[0].permissions.push(PurposePermission {
+            purpose: UsePurpose::Redistribution,
+            state: PermissionState::Denied,
+            evidence_ref: None,
+            condition_summary: Some("Redistribution prohibited.".to_owned()),
+        });
+        assert!(matches!(
+            validate_heritage_dataset_registry(&registry),
+            Err(DatasetIntakeError::DeniedPermissionMissingEvidence(_))
+        ));
+    }
+
+    #[test]
+    fn restricted_asset_requires_an_access_receipt() {
+        let mut registry = registry();
+        registry.assets[0].access_tier = AccessTier::Controlled;
+        assert!(matches!(
+            validate_heritage_dataset_registry(&registry),
+            Err(DatasetIntakeError::AccessReceiptMissing(_))
+        ));
+        registry.assets[0].access_receipt_ref =
+            Some("custody://access/approved-1".to_owned());
+        assert!(validate_heritage_dataset_registry(&registry).is_ok());
+    }
+
+    #[test]
+    fn package_digest_and_size_must_be_recorded_together() {
+        let mut registry = registry();
+        registry.packages[0].package_sha256 = Some("a".repeat(64));
+        assert!(matches!(
+            validate_heritage_dataset_registry(&registry),
+            Err(DatasetIntakeError::PackageDigestRequiresByteSize(_))
+        ));
+        registry.packages[0].package_byte_size = Some(512);
+        assert!(validate_heritage_dataset_registry(&registry).is_ok());
     }
 
     #[test]
