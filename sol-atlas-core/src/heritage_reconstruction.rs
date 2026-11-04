@@ -568,8 +568,18 @@ fn validate_element(
                     element.element_id.clone(),
                 ));
             }
-            if !has_source_dependency {
-                return Err(HeritageReconstructionError::SourceEvidenceDependencyMissing(
+            let Some(method_digest) = element.method_build_sha256.as_deref() else {
+                return Err(HeritageReconstructionError::MethodBuildMissing(
+                    element.element_id.clone(),
+                ));
+            };
+            if !valid_sha256(method_digest) {
+                return Err(HeritageReconstructionError::MethodBuildMissing(
+                    element.element_id.clone(),
+                ));
+            }
+            if !method_dependency_digests.contains(method_digest) {
+                return Err(HeritageReconstructionError::MethodBuildDigestMismatch(
                     element.element_id.clone(),
                 ));
             }
@@ -590,10 +600,18 @@ fn validate_element(
                     element.element_id.clone(),
                 ));
             }
-            if element.method_build_sha256.as_deref().is_none_or(|value| !valid_sha256(value))
-                || !has_method_dependency
-            {
+            let Some(method_digest) = element.method_build_sha256.as_deref() else {
                 return Err(HeritageReconstructionError::MethodBuildMissing(
+                    element.element_id.clone(),
+                ));
+            };
+            if !valid_sha256(method_digest) {
+                return Err(HeritageReconstructionError::MethodBuildMissing(
+                    element.element_id.clone(),
+                ));
+            }
+            if !method_dependency_digests.contains(method_digest) {
+                return Err(HeritageReconstructionError::MethodBuildDigestMismatch(
                     element.element_id.clone(),
                 ));
             }
@@ -613,8 +631,18 @@ fn validate_element(
                     element.element_id.clone(),
                 ));
             }
-            if !has_source_dependency {
-                return Err(HeritageReconstructionError::SourceEvidenceDependencyMissing(
+            let Some(method_digest) = element.method_build_sha256.as_deref() else {
+                return Err(HeritageReconstructionError::MethodBuildMissing(
+                    element.element_id.clone(),
+                ));
+            };
+            if !valid_sha256(method_digest) {
+                return Err(HeritageReconstructionError::MethodBuildMissing(
+                    element.element_id.clone(),
+                ));
+            }
+            if !method_dependency_digests.contains(method_digest) {
+                return Err(HeritageReconstructionError::MethodBuildDigestMismatch(
                     element.element_id.clone(),
                 ));
             }
@@ -630,17 +658,31 @@ fn validate_element(
                     element.element_id.clone(),
                 ));
             }
-            if element.method_build_sha256.as_deref().is_none_or(|value| !valid_sha256(value))
-                || !has_method_dependency
-            {
+            let Some(method_digest) = element.method_build_sha256.as_deref() else {
+                return Err(HeritageReconstructionError::MethodBuildMissing(
+                    element.element_id.clone(),
+                ));
+            };
+            if !valid_sha256(method_digest) {
                 return Err(HeritageReconstructionError::MethodBuildMissing(
                     element.element_id.clone(),
                 ));
             }
-            if element.simulation_manifest_sha256.as_deref().is_none_or(|value| !valid_sha256(value))
-                || !has_simulation_dependency
-            {
+            if !method_dependency_digests.contains(method_digest) {
+                return Err(HeritageReconstructionError::MethodBuildDigestMismatch(
+                    element.element_id.clone(),
+                ));
+            }
+            let Some(simulation_digest) = element.simulation_manifest_sha256.as_deref() else {
                 return Err(HeritageReconstructionError::SimulatedGeometryMissingManifest(
+                    element.element_id.clone(),
+                ));
+            };
+            if !valid_sha256(simulation_digest)
+                || !simulation_manifest_digests.contains(simulation_digest)
+                || simulation_dependency_digests.is_empty()
+            {
+                return Err(HeritageReconstructionError::SimulationManifestDigestMismatch(
                     element.element_id.clone(),
                 ));
             }
