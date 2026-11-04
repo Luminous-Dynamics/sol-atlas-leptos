@@ -1213,9 +1213,119 @@ mod tests {
         report["views"][view]["disposition"].as_str().unwrap()
     }
 
+    /// Deliberately simple test-only oracle. It scans required gates and
+    /// temporal events directly and does not call production assessment helpers.
+    fn reference_view_disposition(input: &Value, view_name: &str) -> String {
+        let decision = &input["decision"];
+        let scope = decision["scope_sha256"].as_str().unwrap();
+        let view = &input["views"][view_name];
+        let valid_time = view["valid_time_as_of"].as_str().unwrap();
+        let knowledge_cutoff = view["knowledge_cutoff_at"].as_str().unwrap();
+        let required = input["required_gates"].as_array().unwrap();
+        let gates = view["gate_results"].as_array().unwrap();
+
+        let mut missing_or_unknown = false;
+        let mut failed = false;
+        let mut revalidation = false;
+        let mut quarantined = false;
+
+        for required_gate in required {
+            let name = required_gate.as_str().unwrap();
+            let found = gates.iter().find(|row| row["gate"] == name);
+            let Some(row) = found else {
+                missing_or_unknown = true;
+                continue;
+            };
+            let status = row["status"].as_str().unwrap();
+            if status == "not_applicable" || status == "unknown" {
+                missing_or_unknown = true;
+            } else if status == "failed" {
+                failed = true;
+            } else if status == "quarantined" {
+                quarantined = true;
+            } else if status == "revalidation_required" {
+                revalidation = true;
+            }
+
+            if status == "qualified" {
+                if let Some(until) = row["valid_until"].as_str() {
+                    if until < valid_time {
+                        revalidation = true;
+                    }
+                }
+            }
+        }
+
+        for event in input["temporal_events"].as_array().unwrap() {
+            let recorded = event["recorded_at"].as_str().unwrap();
+            if recorded > knowledge_cutoff || event["impact_disposition"] == "unaffected" {
+                continue;
+            }
+
+            if event["scope_sha256"].as_str() != Some(scope) {
+                quarantined = true;
+                continue;
+            }
+
+            let authority_ok = event["authority_disposition"] == "authenticated";
+            let time_ok = event["effective_time_confidence"] == "verified"
+                && event["effective_at"].as_str().is_some();
+            if !authority_ok || !time_ok {
+                quarantined = true;
+                continue;
+            }
+
+            let effective = event["effective_at"].as_str().unwrap();
+            if effective > valid_time {
+                continue;
+            }
+
+            match event["impact_disposition"].as_str().unwrap() {
+                "affected" => failed = true,
+                "revalidation_required" => revalidation = true,
+                "quarantined" => quarantined = true,
+                _ => missing_or_unknown = true,
+            }
+        }
+
+        if quarantined {
+            "quarantined_pending_review".into()
+        } else if failed {
+            "claim_invalidated".into()
+        } else if revalidation {
+            "revalidation_required".into()
+        } else if missing_or_unknown {
+            if view_name == "historical_knowledge"
+                || view_name == "retrospective_at_decision"
+            {
+                "historical_basis_incomplete".into()
+            } else {
+                "indeterminate".into()
+            }
+        } else {
+            "candidate_current_within_declared_scope".into()
+        }
+    }
+
+    fn assert_matches_reference_oracle(input: &Value, report: &Value) {
+        for view_name in [
+            "historical_knowledge",
+            "retrospective_at_decision",
+            "current_reliance",
+        ] {
+            assert_eq!(
+                result_disposition(report, view_name),
+                reference_view_disposition(input, view_name),
+                "production evaluator diverged from reference oracle for {view_name}"
+            );
+        }
+    }
+
     #[test]
     fn complete_baseline_is_candidate_in_all_three_temporal_views() {
-        let report = evaluate(&base_input()).unwrap();
+        let input = base_input();
+        let report = evaluate(&input).unwrap();
+        assert_matches_reference_oracle(&input, &report);
         for view in [
             "historical_knowledge",
             "retrospective_at_decision",
@@ -1255,6 +1365,7 @@ mod tests {
         }]);
 
         let report = evaluate(&input).unwrap();
+        assert_matches_reference_oracle(&input, &report);
         assert_eq!(
             result_disposition(&report, "historical_knowledge"),
             "candidate_current_within_declared_scope"
@@ -1290,6 +1401,7 @@ mod tests {
         }]);
 
         let report = evaluate(&input).unwrap();
+        assert_matches_reference_oracle(&input, &report);
         assert_eq!(
             result_disposition(&report, "retrospective_at_decision"),
             "candidate_current_within_declared_scope"
@@ -1319,6 +1431,7 @@ mod tests {
         }]);
 
         let report = evaluate(&input).unwrap();
+        assert_matches_reference_oracle(&input, &report);
         assert_eq!(
             result_disposition(&report, "historical_knowledge"),
             "candidate_current_within_declared_scope"
@@ -1342,6 +1455,7 @@ mod tests {
             .retain(|row| row["gate"] != "source_coverage");
 
         let report = evaluate(&input).unwrap();
+        assert_matches_reference_oracle(&input, &report);
         assert_eq!(
             result_disposition(&report, "current_reliance"),
             "indeterminate"
@@ -1366,6 +1480,7 @@ mod tests {
         gate["valid_until"] = json!("2026-11-03T00:00:00Z");
 
         let report = evaluate(&input).unwrap();
+        assert_matches_reference_oracle(&input, &report);
         assert_eq!(
             result_disposition(&report, "current_reliance"),
             "revalidation_required"
