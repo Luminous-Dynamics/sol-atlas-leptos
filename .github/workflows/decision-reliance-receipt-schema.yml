@@ -1,0 +1,119 @@
+name: Engineering decision reliance receipt schema qualification
+
+on:
+  pull_request:
+    paths:
+      - "schemas/decision-reliance-receipt-v0.1.schema.json"
+      - "schemas/examples/decision-reliance-receipt-insufficient-synthetic-v0.1.json"
+      - ".github/workflows/decision-reliance-receipt-schema.yml"
+  push:
+    branches:
+      - main
+      - research/engineering-decision-reliance-receipt-v0-1
+      - research/engineering-decision-reliance-receipt-v0-1-rebased
+    paths:
+      - "schemas/decision-reliance-receipt-v0.1.schema.json"
+      - "schemas/examples/decision-reliance-receipt-insufficient-synthetic-v0.1.json"
+      - ".github/workflows/decision-reliance-receipt-schema.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: decision-reliance-schema-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  receipt-schema:
+    name: Exact-head decision reliance receipt contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout immutable source revision
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Assert exact checked-out revision
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+      - name: Install pinned Draft 2020-12 validator
+        run: cargo install --locked jsonschema-cli --version 0.60.2 --root "$RUNNER_TEMP/jsonschema-cli"
+      - name: Validate schema and insufficient-evidence synthetic receipt
+        run: |
+          set -euo pipefail
+          export PATH="$RUNNER_TEMP/jsonschema-cli/bin:$PATH"
+          schema=schemas/decision-reliance-receipt-v0.1.schema.json
+          fixture=schemas/examples/decision-reliance-receipt-insufficient-synthetic-v0.1.json
+          meta="$RUNNER_TEMP/draft-2020-12-meta-schema.json"
+          curl --fail --location --retry 5 --retry-connrefused \
+            https://json-schema.org/draft/2020-12/schema -o "$meta"
+          jsonschema-cli validate --draft 2020 --assert-format "$meta" -i "$schema"
+          jsonschema-cli validate --draft 2020 --assert-format --offline "$schema" -i "$fixture"
+          jq -e '
+            .evaluation_environment == "synthetic_only" and
+            .result == "insufficient_evidence" and
+            .action_authority == "none" and
+            .claim_ceiling == "decision_reliance_evaluation_only" and
+            (.scope.required_proof_classes | length) == 14 and
+            (.obligations | length) >= 14 and
+            ([.obligations[] | select(.status != "qualified")] | length) > 0 and
+            .actor_authorization.status == "unknown"
+          ' "$fixture"
+      - name: Negative control — reliable result cannot contain an unqualified obligation
+        run: |
+          set -euo pipefail
+          schema=schemas/decision-reliance-receipt-v0.1.schema.json
+          fixture=schemas/examples/decision-reliance-receipt-insufficient-synthetic-v0.1.json
+          jq '.result = "reliable_for_declared_scope" | .actor_authorization.status = "authorized"' \
+            "$fixture" > "$RUNNER_TEMP/false-reliable-receipt.json"
+          if jsonschema-cli validate --draft 2020 --assert-format --offline "$schema" \
+              -i "$RUNNER_TEMP/false-reliable-receipt.json"; then
+            echo "ERROR: schema accepted a reliable result with unqualified obligations"
+            exit 1
+          fi
+      - name: Negative control — revalidation status requires a blocking obligation
+        run: |
+          set -euo pipefail
+          schema=schemas/decision-reliance-receipt-v0.1.schema.json
+          fixture=schemas/examples/decision-reliance-receipt-insufficient-synthetic-v0.1.json
+          jq '.result = "revalidation_required" | .revalidation_obligations = []' \
+            "$fixture" > "$RUNNER_TEMP/missing-revalidation-obligation.json"
+          if jsonschema-cli validate --draft 2020 --assert-format --offline "$schema" \
+              -i "$RUNNER_TEMP/missing-revalidation-obligation.json"; then
+            echo "ERROR: schema accepted revalidation_required without an obligation"
+            exit 1
+          fi
+      - name: Negative control — nonblocking item cannot justify revalidation_required
+        run: |
+          set -euo pipefail
+          schema=schemas/decision-reliance-receipt-v0.1.schema.json
+          fixture=schemas/examples/decision-reliance-receipt-insufficient-synthetic-v0.1.json
+          jq '
+            .result = "revalidation_required" |
+            .revalidation_obligations = [{
+              "obligation_id": "synthetic-revalidation-001",
+              "cause_code": "SYNTHETIC_CAUSE",
+              "affected_decision_id": .decision.decision_event_id,
+              "required_action": "Synthetic nonblocking item",
+              "blocking": false
+            }]
+          ' "$fixture" > "$RUNNER_TEMP/nonblocking-revalidation-item.json"
+          if jsonschema-cli validate --draft 2020 --assert-format --offline "$schema" \
+              -i "$RUNNER_TEMP/nonblocking-revalidation-item.json"; then
+            echo "ERROR: schema accepted revalidation_required with no blocking obligation"
+            exit 1
+          fi
+      - name: Negative control — unauthorized result cannot claim authorized actor
+        run: |
+          set -euo pipefail
+          schema=schemas/decision-reliance-receipt-v0.1.schema.json
+          fixture=schemas/examples/decision-reliance-receipt-insufficient-synthetic-v0.1.json
+          jq '.result = "not_authorized" | .actor_authorization.status = "authorized"' \
+            "$fixture" > "$RUNNER_TEMP/authorization-state-conflict.json"
+          if jsonschema-cli validate --draft 2020 --assert-format --offline "$schema" \
+              -i "$RUNNER_TEMP/authorization-state-conflict.json"; then
+            echo "ERROR: schema accepted not_authorized with authorized actor"
+            exit 1
+          fi
