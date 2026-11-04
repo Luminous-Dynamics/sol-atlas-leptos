@@ -31,7 +31,7 @@ A target observation must match the whole profile. There is no implicit interpol
 
 1. Preregister the target feature class, observation context, profile digest, primary sampling unit, sample design, minimum number of PSUs, confidence level and lower-bound requirement.
 2. Sample independent sites / PSUs where presence of the declared target feature is independently established through field assessment, independent expert review or appropriate instrument observation.
-3. Run the exact declared sensor and processing configuration. Record whether each target was detected.
+3. Run the exact declared sensor and processing configuration. Each trial records its own full context (feature class, modality, sensor/configuration digest, processing-build digest, environment/visibility stratum, season/phenophase stratum and resolution class), detected/not-detected outcome, PSU ID, calibration-profile digest, independent reference evidence and rights receipt. The trial's recorded context must equal the profile context exactly; the digest string alone is not treated as proof of matching acquisition conditions.
 4. Count at most one calibration outcome per independent PSU. Multiple pixels, chips, dates, repeated interpretations or overlapping tiles from the same site do not create additional independent trials.
 5. Require verified rights and a rights receipt for every calibration reference.
 6. Estimate empirical PoD and its two-sided 95% Wilson score interval.
