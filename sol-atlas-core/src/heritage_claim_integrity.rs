@@ -281,6 +281,7 @@ pub enum HeritageClaimError {
     EmptyAdjudicationTimestamp,
     EmptyAdjudicationReference,
     InvalidAdjudicationDigest,
+    HumanAdjudicationRightsNotVerified,
     DuplicateReviewedEvidenceId(String),
 }
 
@@ -359,10 +360,7 @@ fn is_remote_or_geophysical_proxy(item: &ClaimEvidence) -> bool {
 fn is_usable_support(item: &ClaimEvidence) -> bool {
     item.relation == EvidenceRelation::Supports
         && item.rights_status == RightsStatus::Verified
-        && item
-            .rights_receipt_ref
-            .as_deref()
-            .is_some_and(non_empty)
+        && item.rights_receipt_ref.as_deref().is_some_and(non_empty)
         && is_direct_observation(item)
 }
 
@@ -488,7 +486,10 @@ fn validate_input(input: &HeritageClaimInput) -> Result<(), HeritageClaimError> 
             return Err(HeritageClaimError::InvalidAdjudicationDigest);
         }
         if adjudication.rights_status == RightsStatus::Verified
-            && adjudication.rights_receipt_ref.as_deref().is_none_or(|value| !non_empty(value))
+            && adjudication
+                .rights_receipt_ref
+                .as_deref()
+                .is_none_or(|value| !non_empty(value))
         {
             return Err(HeritageClaimError::HumanAdjudicationRightsNotVerified);
         }
@@ -509,9 +510,7 @@ fn validate_input(input: &HeritageClaimInput) -> Result<(), HeritageClaimError> 
 /// group are all unique. This deliberately conservative check catches simple
 /// duplicate/derived-output inflation; it does not authenticate the external
 /// independence assessment or establish statistical independence.
-fn independent_support_records<'a>(
-    evidence: &'a [ClaimEvidence],
-) -> Vec<&'a ClaimEvidence> {
+fn independent_support_records<'a>(evidence: &'a [ClaimEvidence]) -> Vec<&'a ClaimEvidence> {
     let mut selected = Vec::new();
     let mut lineages = BTreeSet::new();
     let mut acquisitions = BTreeSet::new();
@@ -566,8 +565,7 @@ fn adjudication_matches_evidence(input: &HeritageClaimInput) -> bool {
 
 fn adjudication_is_accepted(input: &HeritageClaimInput) -> bool {
     input.adjudication.as_ref().is_some_and(|item| {
-        item.outcome == HumanAdjudicationOutcome::Accepted
-            && adjudication_matches_evidence(input)
+        item.outcome == HumanAdjudicationOutcome::Accepted && adjudication_matches_evidence(input)
     })
 }
 
@@ -596,7 +594,9 @@ fn evaluate_ceiling(
     }
 
     let mut ceiling = ClaimCeiling::MeasuredSignal;
-    let has_proxy = support.iter().any(|item| is_remote_or_geophysical_proxy(item));
+    let has_proxy = support
+        .iter()
+        .any(|item| is_remote_or_geophysical_proxy(item));
     if has_proxy && input.proxy_family_id.as_deref().is_some_and(non_empty) {
         ceiling = ClaimCeiling::ProxyInterpretation;
     }
@@ -712,8 +712,7 @@ pub fn evaluate_heritage_claim(
     let adjudication_rights_ok = adjudication_rights_verified(input);
     let has_unresolved_contradictions =
         contradiction_count > 0 && !(accepted && adjudication_matches && contradictions_resolved);
-    let adjudication_set_invalid =
-        input.adjudication.is_some() && !adjudication_matches;
+    let adjudication_set_invalid = input.adjudication.is_some() && !adjudication_matches;
     let adjudication_missing_for_site = matches!(
         input.declared_claim,
         ClaimKind::ArchaeologicalSiteInterpretation | ClaimKind::HistoricalProcessInterpretation
@@ -724,7 +723,10 @@ pub fn evaluate_heritage_claim(
         reasons.push(ClaimReason::NoDirectObservation);
     }
     if input.declared_claim == ClaimKind::ProxyInterpretation
-        && input.proxy_family_id.as_deref().is_none_or(|value| !non_empty(value))
+        && input
+            .proxy_family_id
+            .as_deref()
+            .is_none_or(|value| !non_empty(value))
     {
         reasons.push(ClaimReason::ProxyFamilyMissing);
     }
@@ -763,9 +765,7 @@ pub fn evaluate_heritage_claim(
     if has_unresolved_contradictions {
         reasons.push(ClaimReason::ContradictoryEvidenceUnresolved);
     }
-    if chronology_count == 0
-        && input.declared_claim == ClaimKind::HistoricalProcessInterpretation
-    {
+    if chronology_count == 0 && input.declared_claim == ClaimKind::HistoricalProcessInterpretation {
         reasons.push(ClaimReason::ChronologicalOrArchivalEvidenceMissing);
     }
     if rights_blocked_count > 0 {
@@ -773,7 +773,10 @@ pub fn evaluate_heritage_claim(
     }
     if input.evidence.iter().any(|item| {
         item.rights_status == RightsStatus::Verified
-            && item.rights_receipt_ref.as_deref().is_none_or(|value| !non_empty(value))
+            && item
+                .rights_receipt_ref
+                .as_deref()
+                .is_none_or(|value| !non_empty(value))
     }) {
         reasons.push(ClaimReason::EvidenceRightsReceiptMissing);
     }
@@ -829,7 +832,8 @@ pub fn evaluate_heritage_claim(
         human_adjudication_applies: input.adjudication.is_some(),
         adjudication_evidence_set_matches: adjudication_matches,
         coordinate_access_restricted: input.coordinate_access_restricted,
-        exact_coordinates_publication_allowed: !input.coordinate_access_restricted && rights_blocked_count == 0,
+        exact_coordinates_publication_allowed: !input.coordinate_access_restricted
+            && rights_blocked_count == 0,
         reasons,
         archaeological_fact_established: false,
         historical_truth_established: false,
@@ -855,7 +859,12 @@ mod tests {
             origin: EvidenceOrigin::DirectObservation,
             relation: EvidenceRelation::Supports,
             modality,
-            source_asset_sha256: format!("{:064x}", evidence_id.bytes().fold(0_u128, |value, byte| value.wrapping_mul(257).wrapping_add(u128::from(byte)))),
+            source_asset_sha256: format!(
+                "{:064x}",
+                evidence_id.bytes().fold(0_u128, |value, byte| value
+                    .wrapping_mul(257)
+                    .wrapping_add(u128::from(byte)))
+            ),
             source_lineage_id: lineage.into(),
             acquisition_group_id: acquisition.into(),
             method_family_id: method.into(),
@@ -936,8 +945,14 @@ mod tests {
             )],
         );
         let report = evaluate_heritage_claim(&input).unwrap();
-        assert_eq!(report.evidence_supported_ceiling, ClaimCeiling::ProxyInterpretation);
-        assert_eq!(report.disposition, ClaimDisposition::QualifiedAtDeclaredClaim);
+        assert_eq!(
+            report.evidence_supported_ceiling,
+            ClaimCeiling::ProxyInterpretation
+        );
+        assert_eq!(
+            report.disposition,
+            ClaimDisposition::QualifiedAtDeclaredClaim
+        );
         assert!(!report.archaeological_fact_established);
     }
 
@@ -952,7 +967,10 @@ mod tests {
             report.evidence_supported_ceiling,
             ClaimCeiling::ArchaeologicalFeatureCandidate
         );
-        assert_eq!(report.disposition, ClaimDisposition::QualifiedAtDeclaredClaim);
+        assert_eq!(
+            report.disposition,
+            ClaimDisposition::QualifiedAtDeclaredClaim
+        );
         assert!(!report.human_adjudication_applies);
         assert!(!report.archaeological_fact_established);
     }
@@ -969,7 +987,10 @@ mod tests {
             report.evidence_supported_ceiling,
             ClaimCeiling::ArchaeologicalSiteInterpretation
         );
-        assert_eq!(report.disposition, ClaimDisposition::QualifiedAtDeclaredClaim);
+        assert_eq!(
+            report.disposition,
+            ClaimDisposition::QualifiedAtDeclaredClaim
+        );
         assert!(report.adjudication_evidence_set_matches);
         assert!(!report.archaeological_fact_established);
     }
@@ -993,7 +1014,11 @@ mod tests {
         let report = evaluate_heritage_claim(&input).unwrap();
         assert!(!report.adjudication_evidence_set_matches);
         assert_eq!(report.disposition, ClaimDisposition::Indeterminate);
-        assert!(report.reasons.contains(&ClaimReason::HumanAdjudicationEvidenceSetMismatch));
+        assert!(
+            report
+                .reasons
+                .contains(&ClaimReason::HumanAdjudicationEvidenceSetMismatch)
+        );
     }
 
     #[test]
@@ -1003,7 +1028,10 @@ mod tests {
         let input = base_input(ClaimKind::ArchaeologicalFeatureCandidate, items);
         let report = evaluate_heritage_claim(&input).unwrap();
         assert_eq!(report.independent_support_group_count, 1);
-        assert_eq!(report.evidence_supported_ceiling, ClaimCeiling::AnthropogenicFeatureCandidate);
+        assert_eq!(
+            report.evidence_supported_ceiling,
+            ClaimCeiling::AnthropogenicFeatureCandidate
+        );
         assert_eq!(report.disposition, ClaimDisposition::Overclaimed);
     }
 
@@ -1044,10 +1072,16 @@ mod tests {
             "simulation-group",
         );
         simulation.origin = EvidenceOrigin::Simulation;
-        let input = base_input(ClaimKind::AnthropogenicFeatureCandidate, vec![model, simulation]);
+        let input = base_input(
+            ClaimKind::AnthropogenicFeatureCandidate,
+            vec![model, simulation],
+        );
         let report = evaluate_heritage_claim(&input).unwrap();
         assert_eq!(report.direct_support_count, 0);
-        assert_eq!(report.evidence_supported_ceiling, ClaimCeiling::NoSupportedClaim);
+        assert_eq!(
+            report.evidence_supported_ceiling,
+            ClaimCeiling::NoSupportedClaim
+        );
         assert_eq!(report.disposition, ClaimDisposition::Overclaimed);
         assert_eq!(report.model_or_simulation_evidence_count, 2);
     }
@@ -1069,7 +1103,10 @@ mod tests {
         item.independence_assessment_sha256 = None;
         let input = base_input(ClaimKind::ArchaeologicalFeatureCandidate, vec![item]);
         let report = evaluate_heritage_claim(&input).unwrap();
-        assert_eq!(report.evidence_supported_ceiling, ClaimCeiling::NoSupportedClaim);
+        assert_eq!(
+            report.evidence_supported_ceiling,
+            ClaimCeiling::NoSupportedClaim
+        );
         assert_eq!(report.disposition, ClaimDisposition::Overclaimed);
     }
 
@@ -1091,7 +1128,11 @@ mod tests {
         let report = evaluate_heritage_claim(&input).unwrap();
         assert_eq!(report.disposition, ClaimDisposition::Contradicted);
         assert_eq!(report.contradictory_evidence_count, 1);
-        assert!(report.reasons.contains(&ClaimReason::ContradictoryEvidenceUnresolved));
+        assert!(
+            report
+                .reasons
+                .contains(&ClaimReason::ContradictoryEvidenceUnresolved)
+        );
     }
 
     #[test]
@@ -1117,7 +1158,10 @@ mod tests {
             report.evidence_supported_ceiling,
             ClaimCeiling::ArchaeologicalSiteInterpretation
         );
-        assert_eq!(report.disposition, ClaimDisposition::QualifiedAtDeclaredClaim);
+        assert_eq!(
+            report.disposition,
+            ClaimDisposition::QualifiedAtDeclaredClaim
+        );
     }
 
     #[test]
@@ -1139,7 +1183,10 @@ mod tests {
             report.evidence_supported_ceiling,
             ClaimCeiling::HistoricalProcessInterpretation
         );
-        assert_eq!(report.disposition, ClaimDisposition::QualifiedAtDeclaredClaim);
+        assert_eq!(
+            report.disposition,
+            ClaimDisposition::QualifiedAtDeclaredClaim
+        );
         assert!(!report.historical_truth_established);
     }
 
@@ -1201,7 +1248,10 @@ mod tests {
             report.evidence_supported_ceiling,
             ClaimCeiling::ArchaeologicalFeatureCandidate
         );
-        assert_eq!(report.disposition, ClaimDisposition::QualifiedAtDeclaredClaim);
+        assert_eq!(
+            report.disposition,
+            ClaimDisposition::QualifiedAtDeclaredClaim
+        );
     }
 
     #[test]
