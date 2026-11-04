@@ -19,6 +19,7 @@ pub mod lod;
 pub mod mycelix_flows;
 // pub mod relativity_viz;
 pub mod geometry;
+pub mod heritage_observability;
 pub mod math;
 pub mod picking;
 pub mod simulation;
@@ -26,6 +27,5 @@ pub mod solar_system;
 pub mod timeline;
 pub mod types;
 pub mod visual_validation;
-pub mod heritage_observability;
 
 pub use types::*;
