@@ -1051,6 +1051,13 @@ mod tests {
         element.geometry_uncertainty = Some(uncertainty(UncertaintyRepresentation::ScenarioRange));
         element.dependencies = vec![
             ReconstructionDependency {
+                dependency_id: "source-lidar".into(),
+                kind: DependencyKind::SourceEvidence,
+                reference_id: Some("lidar-measurement".into()),
+                artifact_sha256: None,
+                statement: "Initial measured terrain conditions".into(),
+            },
+            ReconstructionDependency {
                 dependency_id: "model-build".into(),
                 kind: DependencyKind::MethodBuild,
                 reference_id: Some("symtropy-climate-v1".into()),
@@ -1063,6 +1070,13 @@ mod tests {
                 reference_id: Some("symtropy-climate-v1".into()),
                 artifact_sha256: Some("4".repeat(64)),
                 statement: "Simulation model identity".into(),
+            },
+            ReconstructionDependency {
+                dependency_id: "simulation-manifest".into(),
+                kind: DependencyKind::SimulationManifest,
+                reference_id: Some("simulation-run-001".into()),
+                artifact_sha256: Some("5".repeat(64)),
+                statement: "Exact simulation run manifest".into(),
             },
         ];
         element.method_build_sha256 = Some("4".repeat(64));
@@ -1112,7 +1126,7 @@ mod tests {
         value.evidence[0].evidence_kind = EvidenceKind::Simulation;
         assert!(matches!(
             validate_heritage_reconstruction(&value),
-            Err(HeritageReconstructionError::EvidenceRightsNotVerified { .. })
+            Err(HeritageReconstructionError::SimulationEvidenceUsedAsEmpiricalSupport(_))
         ));
     }
 
@@ -1144,7 +1158,7 @@ mod tests {
         value.elements = vec![element];
         assert!(matches!(
             validate_heritage_reconstruction(&value),
-            Err(HeritageReconstructionError::EvidenceRightsNotVerified { .. })
+            Err(HeritageReconstructionError::ModelEvidenceUsedAsEmpiricalSupport(_))
         ));
     }
 
@@ -1248,6 +1262,13 @@ mod tests {
         element.simulation_manifest_sha256 = Some("5".repeat(64));
         element.dependencies = vec![
             ReconstructionDependency {
+                dependency_id: "source-lidar".into(),
+                kind: DependencyKind::SourceEvidence,
+                reference_id: Some("lidar-measurement".into()),
+                artifact_sha256: None,
+                statement: "Initial measured terrain conditions".into(),
+            },
+            ReconstructionDependency {
                 dependency_id: "method".into(),
                 kind: DependencyKind::MethodBuild,
                 reference_id: Some("sim-v1".into()),
@@ -1260,6 +1281,13 @@ mod tests {
                 reference_id: Some("sim-v1".into()),
                 artifact_sha256: Some("4".repeat(64)),
                 statement: "simulation model".into(),
+            },
+            ReconstructionDependency {
+                dependency_id: "simulation-manifest".into(),
+                kind: DependencyKind::SimulationManifest,
+                reference_id: Some("simulation-run-001".into()),
+                artifact_sha256: Some("5".repeat(64)),
+                statement: "Exact simulation run manifest".into(),
             },
         ];
         value.elements = vec![element];
