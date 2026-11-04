@@ -1,0 +1,44 @@
+name: Normalize streaming byte verifier Rust formatting
+
+on:
+  push:
+    branches:
+      - research/built-environment-streaming-byte-verifier-v0-1
+    paths:
+      - "sol-atlas-core/src/source_payload_verifier.rs"
+      - ".github/workflows/rustfmt-normalize-stream-verifier.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: rustfmt-normalize-stream-verifier
+  cancel-in-progress: false
+
+jobs:
+  normalize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: true
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - name: Format core crate
+        run: |
+          set -euo pipefail
+          cargo fmt --manifest-path sol-atlas-core/Cargo.toml
+          git diff --check
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add sol-atlas-core/src/source_payload_verifier.rs
+          if git diff --cached --quiet; then
+            echo "Source verifier already formatted"
+          else
+            git commit -m "style: format streaming source byte verifier"
+            git push origin "HEAD:$GITHUB_REF_NAME"
+          fi
+          cargo fmt --manifest-path sol-atlas-core/Cargo.toml --check
