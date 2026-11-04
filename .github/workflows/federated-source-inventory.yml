@@ -14,6 +14,7 @@ on:
     branches:
       - main
       - research/federated-source-inventory-v0-1
+      - research/federated-source-inventory-v0-1-rebased
     paths:
       - "sol-atlas-core/Cargo.toml"
       - "sol-atlas-core/Cargo.lock"
