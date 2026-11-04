@@ -613,7 +613,7 @@ mod tests {
         .expect("exploratory certificate");
         assert_eq!(report.checkpoint_count, 2);
         assert_eq!(report.stratum_counts.get("open"), Some(&1));
-        assert!((report.rmse_h_m - (0.000_65_f64 + 0.000_4).sqrt()).abs() > 0.0);
+        assert!((report.rmse_h_m - 0.000_65_f64.sqrt()).abs() < 1e-12);
         assert!(report.rmse_h_m > 0.0);
         assert!(report.reference_sigma_rmse_h_m > 0.0);
         assert_eq!(report.claim_ceiling, "checkpoint_residual_summary_only");
@@ -779,6 +779,18 @@ mod tests {
         input.factor_correlation_matrix.clear();
         let report = aggregate_disjoint_plan_areas(&input).expect("independent-only sum");
         assert!((report.combined_standard_uncertainty_m2 - 0.05_f64.sqrt()).abs() < 1e-12);
+    }
+
+    #[test]
+    fn aggregation_fixture_deserializes_and_matches_factor_model() {
+        let fixture: AdditiveAreaAggregationInput = serde_json::from_str(include_str!(
+            "../../schemas/examples/heritage-area-aggregation-synthetic-v0.1.json"
+        ))
+        .expect("aggregation fixture");
+        let report = aggregate_disjoint_plan_areas(&fixture).expect("fixture aggregation");
+        assert_eq!(report.component_count, 2);
+        assert_eq!(report.area_sum_m2, 3.0);
+        assert!((report.combined_standard_uncertainty_m2 - 1.05_f64.sqrt()).abs() < 1e-12);
     }
 
     #[test]
