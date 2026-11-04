@@ -46,7 +46,10 @@
     "incomplete_finding_count": 0,
     "descriptor_missing_count": 0,
     "descriptor_extra_count": 0,
-    "skipped_budget_count": 0
+    "skipped_budget_count": 0,
+    "object_not_found_count": 0,
+    "resolver_access_denied_count": 0,
+    "resolver_open_failed_count": 0
   },
   "budget": {
     "max_descriptors": 100,
