@@ -174,6 +174,7 @@ pub struct ClaimEvidence {
 pub struct HumanAdjudication {
     pub reviewer_id: String,
     pub reviewer_scope: String,
+    pub adjudicated_at: String,
     pub outcome: HumanAdjudicationOutcome,
     pub decision_ref: String,
     pub decision_sha256: String,
@@ -381,10 +382,11 @@ fn validate_input(input: &HeritageClaimInput) -> Result<(), HeritageClaimError> 
             | ClaimKind::ArchaeologicalFeatureCandidate
             | ClaimKind::ArchaeologicalSiteInterpretation
             | ClaimKind::HistoricalProcessInterpretation
-    ) && input
-        .proxy_family_id
-        .as_deref()
-        .is_none_or(|value| !non_empty(value))
+    ) && input.declared_claim == ClaimKind::ProxyInterpretation
+        && input
+            .proxy_family_id
+            .as_deref()
+            .is_none_or(|value| !non_empty(value))
     {
         return Err(HeritageClaimError::ProxyFamilyRequired);
     }
@@ -473,6 +475,9 @@ fn validate_input(input: &HeritageClaimInput) -> Result<(), HeritageClaimError> 
             return Err(HeritageClaimError::EmptyReviewerId);
         }
         if !non_empty(&adjudication.reviewer_scope) {
+            return Err(HeritageClaimError::EmptyReviewerScope);
+        }
+        if !non_empty(&adjudication.adjudicated_at) {
             return Err(HeritageClaimError::EmptyReviewerScope);
         }
         if !non_empty(&adjudication.decision_ref) {
@@ -668,7 +673,12 @@ pub fn evaluate_heritage_claim(
     let contradiction_count = input
         .evidence
         .iter()
-        .filter(|item| item.relation == EvidenceRelation::Contradicts)
+        .filter(|item| {
+            item.relation == EvidenceRelation::Contradicts
+                && is_direct_observation(item)
+                && item.rights_status == RightsStatus::Verified
+                && item.rights_receipt_ref.as_deref().is_some_and(non_empty)
+        })
         .count();
     let rights_blocked_count = input
         .evidence
@@ -712,8 +722,8 @@ pub fn evaluate_heritage_claim(
     if direct_support_count == 0 {
         reasons.push(ClaimReason::NoDirectObservation);
     }
-    if input.proxy_family_id.as_deref().is_none_or(|value| !non_empty(value))
-        && input.declared_claim != ClaimKind::MeasuredSignal
+    if input.declared_claim == ClaimKind::ProxyInterpretation
+        && input.proxy_family_id.as_deref().is_none_or(|value| !non_empty(value))
     {
         reasons.push(ClaimReason::ProxyFamilyMissing);
     }
@@ -896,6 +906,7 @@ mod tests {
         HumanAdjudication {
             reviewer_id: "reviewer-001".into(),
             reviewer_scope: "stone-built archaeological features".into(),
+            adjudicated_at: "2026-11-04T17:00:00Z".into(),
             outcome: HumanAdjudicationOutcome::Accepted,
             decision_ref: "urn:synthetic:adjudication:001".into(),
             decision_sha256: "f".repeat(64),
