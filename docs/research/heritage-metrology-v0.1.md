@@ -10,14 +10,16 @@ HDB-18 closes two gaps in the HDB-17 architectural measurement graph: a calibrat
 
 A metrology certificate records project/site/snapshot scope, CRS, reference survey identity, method-build digest, capture IDs, control point IDs, independent checkpoints, per-checkpoint horizontal and vertical reference survey uncertainty, strata, rights receipt and independence attestation.
 
-The assessment computes:
-- RMSEH from horizontal product-reference residuals;
-- RMSEV from vertical product-reference residuals;
-- 3D RMSE from all three coordinate residuals;
-- separate RMS reference-survey horizontal and vertical uncertainties;
-- checkpoint counts by declared stratum.
+The assessment computes product-fit RMSE components and checkpoint-survey components separately, then combines them using the ASPRS quadrature model:
 
-Control/checkpoint identity overlap is rejected. The `asprs2024_style` profile requires at least 30 independent checkpoints, following the USGS summary of ASPRS Positional Accuracy Standards Edition 2 Version 2 (2024). This is a software floor, not a claim of ASPRS certification. Product residuals and reference survey uncertainty are reported separately; no unreviewed subtraction/correction formula is applied.
+- RMSEH1 from horizontal product-reference residuals;
+- RMSEV1 from vertical product-reference residuals;
+- RMSEH2 and RMSEV2 from supplied checkpoint-survey accuracy;
+- RMSEH = sqrt(RMSEH1² + RMSEH2²);
+- RMSEV = sqrt(RMSEV1² + RMSEV2²);
+- RMSE3D = sqrt(RMSEH² + RMSEV²).
+
+Control/checkpoint identity overlap is rejected. The `asprs2024_core` profile requires at least 30 independent checkpoints and requires the declared checkpoint survey accuracy to be at least twice as accurate as the declared horizontal and vertical product targets. The report explicitly identifies itself as core statistics only—not full ASPRS conformance. A separate target status is computed from the combined RMSE values. Checkpoint counts by declared stratum are retained.
 
 ### Covariance-aware additive area
 
