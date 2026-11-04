@@ -790,8 +790,7 @@ pub fn qualify_projection_with_inventory(
         projection.graph = Value::Null;
         projection.disposition = ProjectionDisposition::InvalidInput;
         projection.projection_receipt["disposition"] = json!("invalid_input");
-        projection.projection_receipt["claim_ceiling"] =
-            json!("incomplete_or_indeterminate");
+        projection.projection_receipt["claim_ceiling"] = json!("incomplete_or_indeterminate");
         projection.projection_receipt["projected_graph"] = Value::Null;
         if let Some(findings) = projection.projection_receipt["findings"].as_array_mut() {
             findings.push(json!({
@@ -807,8 +806,7 @@ pub fn qualify_projection_with_inventory(
             | InventoryClosureDisposition::CompleteWithDeclaredExclusions
     ) {
         if projection.graph.is_object() {
-            projection.graph["claim_ceiling"] =
-                json!("incomplete_or_indeterminate");
+            projection.graph["claim_ceiling"] = json!("incomplete_or_indeterminate");
             let mut graph_core = projection.graph.clone();
             graph_core
                 .as_object_mut()
@@ -822,11 +820,9 @@ pub fn qualify_projection_with_inventory(
         }
         if projection.disposition != ProjectionDisposition::InvalidInput {
             projection.disposition = ProjectionDisposition::ProjectedWithKnownLoss;
-            projection.projection_receipt["disposition"] =
-                json!("projected_with_known_loss");
+            projection.projection_receipt["disposition"] = json!("projected_with_known_loss");
         }
-        projection.projection_receipt["claim_ceiling"] =
-            json!("incomplete_or_indeterminate");
+        projection.projection_receipt["claim_ceiling"] = json!("incomplete_or_indeterminate");
         if let Some(findings) = projection.projection_receipt["findings"].as_array_mut() {
             findings.push(json!({
                 "severity": "incomplete",
@@ -2384,8 +2380,14 @@ mod tests {
             inventory_receipt["disposition"],
             "complete_within_declared_owner_set"
         );
-        assert_eq!(inventory_receipt["page_payload_byte_verification"], "not_performed");
-        assert_eq!(inventory_receipt["source_attestation_authentication"], "not_performed");
+        assert_eq!(
+            inventory_receipt["page_payload_byte_verification"],
+            "not_performed"
+        );
+        assert_eq!(
+            inventory_receipt["source_attestation_authentication"],
+            "not_performed"
+        );
         assert_eq!(inventory_receipt["source_truth"], "not_established");
         assert_eq!(inventory_receipt["negative_finding_eligibility"], false);
         assert_eq!(inventory_receipt["action_authority"], "none");
@@ -2393,7 +2395,10 @@ mod tests {
             qualified.projection.graph["graph_snapshot_sha256"],
             canonical_json_sha256(&{
                 let mut graph = qualified.projection.graph.clone();
-                graph.as_object_mut().unwrap().remove("graph_snapshot_sha256");
+                graph
+                    .as_object_mut()
+                    .unwrap()
+                    .remove("graph_snapshot_sha256");
                 graph
             })
             .unwrap()
@@ -2439,11 +2444,13 @@ mod tests {
             qualified.projection.projection_receipt["projector"]["source_inventory_closure"]["negative_finding_eligibility"],
             false
         );
-        assert!(qualified.projection.projection_receipt["findings"]
-            .as_array()
-            .unwrap()
-            .iter()
-            .any(|finding| finding["code"] == "SOURCE_INVENTORY_CLOSURE_INCOMPLETE"));
+        assert!(
+            qualified.projection.projection_receipt["findings"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|finding| finding["code"] == "SOURCE_INVENTORY_CLOSURE_INCOMPLETE")
+        );
     }
 
     #[test]
