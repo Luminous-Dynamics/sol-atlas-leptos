@@ -15,7 +15,7 @@ use crate::built_environment_source_descriptor::{
 };
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 use std::io::{self, Read};
 
 const VERIFIER_SCHEMA: &str = "luminous.source-payload-byte-verification.v0.1";
@@ -31,6 +31,7 @@ pub enum PayloadByteStatus {
     InvalidDescriptor,
     DigestMismatch,
     LengthMismatch,
+    SkippedBudget,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -108,6 +109,7 @@ pub struct PayloadByteCatalogReport {
     pub unavailable_count: usize,
     pub read_failed_count: usize,
     pub byte_limit_exceeded_count: usize,
+    pub skipped_budget_count: usize,
     pub invalid_count: usize,
     pub invalid_finding_count: usize,
     pub incomplete_finding_count: usize,
@@ -561,6 +563,10 @@ fn catalog_report(
         .iter()
         .filter(|record| record.status == PayloadByteStatus::ByteLimitExceeded)
         .count();
+    let skipped_budget_count = records
+        .iter()
+        .filter(|record| record.status == PayloadByteStatus::SkippedBudget)
+        .count();
     let invalid_count = records
         .iter()
         .filter(|record| {
@@ -591,6 +597,7 @@ fn catalog_report(
         || unavailable_count > 0
         || read_failed_count > 0
         || byte_limit_exceeded_count > 0
+        || skipped_budget_count > 0
         || descriptor_validation.disposition
             == DescriptorDisposition::IncompleteOrIndeterminate
         || findings
@@ -621,6 +628,7 @@ fn catalog_report(
         unavailable_count,
         read_failed_count,
         byte_limit_exceeded_count,
+        skipped_budget_count,
         invalid_count,
         invalid_finding_count,
         incomplete_finding_count,
@@ -740,6 +748,409 @@ fn hex_digest(bytes: &[u8]) -> String {
     }
     output
 }
+
+
+/// Deterministic aggregate resource policy for one source-payload catalogue.
+/// The verifier processes records sequentially in canonical record-key order;
+/// no parallel resolver work is performed in v0.1.
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct CatalogResourceBudget {
+    pub max_descriptors: usize,
+    /// Maximum payload bytes incorporated into incremental SHA-256 streams.
+    pub max_total_payload_bytes: u64,
+    /// Maximum bytes returned by all resolver streams, including over-limit
+    /// one-byte probes used to distinguish exact boundaries from extensions.
+    pub max_total_bytes_read: u64,
+    pub max_bytes_per_payload: u64,
+    pub max_resolver_open_attempts: usize,
+    /// Retries are disabled in v0.1. This is an upper bound, not a target.
+    pub max_retries_per_payload: usize,
+    /// Maximum serialized size of this report, including truncation metadata.
+    pub max_report_bytes: usize,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct BudgetedPayloadByteCatalogReport {
+    pub schema_version: String,
+    pub report: PayloadByteCatalogReport,
+    pub budget: CatalogResourceBudget,
+    pub descriptor_count: usize,
+    pub evaluated_descriptor_count: usize,
+    pub skipped_budget_count: usize,
+    pub total_payload_bytes_hashed: u64,
+    pub total_bytes_read: u64,
+    pub resolver_open_attempts: usize,
+    pub resolver_retries: usize,
+    pub max_concurrency_used: usize,
+    pub report_truncated: bool,
+    pub omitted_record_count: usize,
+    pub omitted_records_sha256: Option<String>,
+    pub omitted_finding_count: usize,
+    pub omitted_findings_sha256: Option<String>,
+    pub omitted_descriptor_validation_finding_count: usize,
+    pub omitted_descriptor_validation_findings_sha256: Option<String>,
+    pub serialized_report_bytes: usize,
+}
+
+const BUDGET_REPORT_SCHEMA: &str = "luminous.source-payload-catalog-budget-report.v0.1";
+const MIN_BUDGET_REPORT_BYTES: usize = 8 * 1024;
+
+fn skipped_budget_result(
+    descriptor: &SourceRecordDescriptor,
+    record_key: &str,
+    code: &str,
+    detail: &str,
+) -> PayloadByteRecordResult {
+    PayloadByteRecordResult {
+        record_key: record_key.to_owned(),
+        status: PayloadByteStatus::SkippedBudget,
+        digest_basis: descriptor.source_payload.digest_basis,
+        object_ref: descriptor.source_payload.payload_object_ref.clone(),
+        expected_sha256: descriptor.source_payload.sha256.clone(),
+        actual_sha256: None,
+        expected_byte_length: descriptor.source_payload.byte_length,
+        actual_byte_length: None,
+        bytes_read: 0,
+        read_error_kind: None,
+        findings: vec![finding("incomplete", code, record_key, detail)],
+    }
+}
+
+fn digest_serialized<T: Serialize>(hasher: &mut Sha256, value: &T) {
+    let bytes = serde_json::to_vec(value).unwrap_or_default();
+    hasher.update((bytes.len() as u64).to_be_bytes());
+    hasher.update(bytes);
+}
+
+fn finalize_optional_digest(count: usize, hasher: Sha256) -> Option<String> {
+    (count > 0).then(|| hex_digest(&hasher.finalize()))
+}
+
+/// Verify a catalogue under explicit aggregate resource limits.
+///
+/// Records are evaluated sequentially in canonical record-key order. The
+/// maximum read budget includes the one-byte per-object probe used by the
+/// stream verifier; hashed payload bytes are counted separately. A skipped
+/// record is never reported as verified.
+pub fn verify_catalog_payload_bytes_with_budget<R, F>(
+    case: &BuiltEnvironmentCase,
+    catalog: &SourceDescriptorCatalog,
+    context: &PayloadByteVerificationContext,
+    budget: &CatalogResourceBudget,
+    mut open_payload: F,
+) -> BudgetedPayloadByteCatalogReport
+where
+    R: Read,
+    F: FnMut(&str) -> io::Result<R>,
+{
+    let case_bytes = serde_json::to_vec(case).unwrap_or_default();
+    let catalog_bytes = serde_json::to_vec(catalog).unwrap_or_default();
+    let case_sha256 = sha256_hex(&case_bytes);
+    let catalog_sha256 = sha256_hex(&catalog_bytes);
+    let descriptor_validation = validate_source_descriptor_catalog(case, catalog);
+    let mut report_findings = BTreeSet::new();
+
+    let invalid_budget = budget.max_descriptors == 0
+        || budget.max_resolver_open_attempts == 0
+        || budget.max_report_bytes < MIN_BUDGET_REPORT_BYTES
+        || budget.max_retries_per_payload > 0;
+    if invalid_budget {
+        report_findings.insert(finding(
+            "invalid",
+            "INVALID_CATALOG_RESOURCE_BUDGET",
+            "budget",
+            format!(
+                "v0.1 requires max_descriptors>0, max_resolver_open_attempts>0, max_report_bytes>={MIN_BUDGET_REPORT_BYTES}, and retries=0"
+            ),
+        ));
+    }
+
+    if !valid_utc_timestamp(&context.verified_at_utc) {
+        report_findings.insert(finding(
+            "invalid",
+            "INVALID_VERIFICATION_TIME",
+            "verifier",
+            "verified_at_utc must be a canonical UTC whole-second timestamp",
+        ));
+    }
+    match context.verifier_build_sha256.as_deref() {
+        None => {
+            report_findings.insert(finding(
+                "incomplete",
+                "VERIFIER_BUILD_IDENTITY_UNAVAILABLE",
+                "verifier",
+                "exact verifier build digest was not supplied",
+            ));
+        }
+        Some(digest) if !valid_sha256(digest) => {
+            report_findings.insert(finding(
+                "invalid",
+                "INVALID_VERIFIER_BUILD_DIGEST",
+                "verifier",
+                "verifier build digest is not lowercase SHA-256",
+            ));
+        }
+        Some(_) => {}
+    }
+
+    let mut records = Vec::with_capacity(catalog.descriptors.len());
+    let mut total_payload_bytes_hashed = 0_u64;
+    let mut total_bytes_read = 0_u64;
+    let mut resolver_open_attempts = 0_usize;
+    let mut skipped_budget_count = 0_usize;
+
+    let invalid_context = invalid_budget
+        || !valid_utc_timestamp(&context.verified_at_utc)
+        || context
+            .verifier_build_sha256
+            .as_deref()
+            .is_some_and(|digest| !valid_sha256(digest));
+
+    if descriptor_validation.disposition == DescriptorDisposition::InvalidInput
+        || invalid_context
+    {
+        if descriptor_validation.disposition == DescriptorDisposition::InvalidInput {
+            report_findings.insert(finding(
+                "invalid",
+                "SOURCE_DESCRIPTOR_CATALOG_INVALID",
+                "catalog",
+                "invalid descriptor catalogue was rejected before any payload object was opened",
+            ));
+        }
+    } else {
+        let mut ordered = catalog.descriptors.iter().collect::<Vec<_>>();
+        ordered.sort_by_key(|descriptor| {
+            descriptor.record_kind.case_key(&descriptor.case_record_id)
+        });
+
+        for (index, descriptor) in ordered.iter().enumerate() {
+            let record_key = descriptor.record_kind.case_key(&descriptor.case_record_id);
+            let skip = if index >= budget.max_descriptors {
+                Some((
+                    "CATALOG_DESCRIPTOR_BUDGET_EXCEEDED",
+                    "descriptor was not evaluated because max_descriptors was exhausted",
+                ))
+            } else if resolver_open_attempts >= budget.max_resolver_open_attempts {
+                Some((
+                    "CATALOG_RESOLVER_OPEN_BUDGET_EXCEEDED",
+                    "descriptor was not opened because max_resolver_open_attempts was exhausted",
+                ))
+            } else if total_bytes_read >= budget.max_total_bytes_read {
+                Some((
+                    "CATALOG_TOTAL_READ_BUDGET_EXCEEDED",
+                    "descriptor was not opened because max_total_bytes_read was exhausted",
+                ))
+            } else {
+                None
+            };
+
+            if let Some((code, detail)) = skip {
+                let result = skipped_budget_result(descriptor, &record_key, code, detail);
+                report_findings.extend(result.findings.iter().cloned());
+                records.push(result);
+                skipped_budget_count += 1;
+                continue;
+            }
+
+            let Some(object_ref) = descriptor.source_payload.payload_object_ref.as_deref() else {
+                let result = unavailable_result(
+                    descriptor,
+                    &record_key,
+                    "SOURCE_PAYLOAD_OBJECT_REFERENCE_UNAVAILABLE",
+                    "no content-addressed payload object reference is available",
+                );
+                report_findings.extend(result.findings.iter().cloned());
+                records.push(result);
+                continue;
+            };
+
+            // Reserve one byte from the aggregate read budget for the stream
+            // verifier's EOF/extension probe. It never reads more than the
+            // remaining aggregate read budget.
+            let remaining_read = budget.max_total_bytes_read - total_bytes_read;
+            let read_probe_reserve = remaining_read.saturating_sub(1);
+            let remaining_payload =
+                budget.max_total_payload_bytes.saturating_sub(total_payload_bytes_hashed);
+            let per_payload_cap = budget
+                .max_bytes_per_payload
+                .min(remaining_payload)
+                .min(read_probe_reserve);
+
+            resolver_open_attempts += 1;
+            match open_payload(object_ref) {
+                Ok(reader) => {
+                    let mut result = verify_descriptor_payload_stream(
+                        descriptor,
+                        &record_key,
+                        reader,
+                        per_payload_cap,
+                    );
+                    let bytes_read = result.bytes_read;
+                    let bytes_hashed = if result.status == PayloadByteStatus::ByteLimitExceeded {
+                        bytes_read.saturating_sub(1)
+                    } else {
+                        bytes_read
+                    };
+                    total_bytes_read = total_bytes_read.saturating_add(bytes_read);
+                    total_payload_bytes_hashed =
+                        total_payload_bytes_hashed.saturating_add(bytes_hashed);
+
+                    if result.status == PayloadByteStatus::ByteLimitExceeded {
+                        let code = if per_payload_cap < budget.max_bytes_per_payload {
+                            if remaining_payload <= budget.max_bytes_per_payload {
+                                "CATALOG_TOTAL_PAYLOAD_BUDGET_EXCEEDED"
+                            } else {
+                                "CATALOG_TOTAL_READ_BUDGET_EXCEEDED"
+                            }
+                        } else {
+                            "PAYLOAD_PER_OBJECT_BUDGET_EXCEEDED"
+                        };
+                        result.findings.push(finding(
+                            "incomplete",
+                            code,
+                            &record_key,
+                            "stream stopped at a configured aggregate or per-payload byte boundary",
+                        ));
+                        report_findings.insert(result.findings.last().unwrap().clone());
+                    }
+                    report_findings.extend(result.findings.iter().cloned());
+                    records.push(result);
+                }
+                Err(error) => {
+                    let error_kind = format!("{:?}", error.kind());
+                    let result = PayloadByteRecordResult {
+                        record_key: record_key.clone(),
+                        status: PayloadByteStatus::SourceBytesUnavailable,
+                        digest_basis: descriptor.source_payload.digest_basis,
+                        object_ref: Some(object_ref.to_owned()),
+                        expected_sha256: descriptor.source_payload.sha256.clone(),
+                        actual_sha256: None,
+                        expected_byte_length: descriptor.source_payload.byte_length,
+                        actual_byte_length: None,
+                        bytes_read: 0,
+                        read_error_kind: Some(error_kind.clone()),
+                        findings: vec![finding(
+                            "incomplete",
+                            "SOURCE_PAYLOAD_OBJECT_OPEN_FAILED",
+                            &record_key,
+                            format!("payload resolver could not open object (IO kind {error_kind})"),
+                        )],
+                    };
+                    report_findings.extend(result.findings.iter().cloned());
+                    records.push(result);
+                }
+            }
+        }
+    }
+
+    records.sort_by(|left, right| left.record_key.cmp(&right.record_key));
+    let base_report = catalog_report(
+        PayloadByteReportContext {
+            case_id: &case.case_id,
+            catalog,
+            verification_context: context,
+            case_sha256,
+            catalog_sha256,
+            descriptor_validation: &descriptor_validation,
+        },
+        records,
+        report_findings,
+    );
+
+    let mut output = BudgetedPayloadByteCatalogReport {
+        schema_version: BUDGET_REPORT_SCHEMA.into(),
+        report: base_report,
+        budget: budget.clone(),
+        descriptor_count: catalog.descriptors.len(),
+        evaluated_descriptor_count: 0,
+        skipped_budget_count,
+        total_payload_bytes_hashed,
+        total_bytes_read,
+        resolver_open_attempts,
+        resolver_retries: 0,
+        max_concurrency_used: 1,
+        report_truncated: false,
+        omitted_record_count: 0,
+        omitted_records_sha256: None,
+        omitted_finding_count: 0,
+        omitted_findings_sha256: None,
+        omitted_descriptor_validation_finding_count: 0,
+        omitted_descriptor_validation_findings_sha256: None,
+        serialized_report_bytes: 0,
+    };
+    output.evaluated_descriptor_count =
+        output.report.records.len().saturating_sub(output.skipped_budget_count);
+
+    let mut omitted_records_hasher = Sha256::new();
+    let mut omitted_findings_hasher = Sha256::new();
+    let mut omitted_descriptor_findings_hasher = Sha256::new();
+    let mut truncation_finding_added = false;
+
+    loop {
+        let serialized = serde_json::to_vec(&output).unwrap_or_default();
+        if serialized.len() <= budget.max_report_bytes {
+            output.serialized_report_bytes = serialized.len();
+            break;
+        }
+        output.report_truncated = true;
+        if !truncation_finding_added {
+            truncation_finding_added = true;
+            if output.report.disposition != PayloadByteCatalogDisposition::InvalidInput {
+                output.report.disposition =
+                    PayloadByteCatalogDisposition::IncompleteOrIndeterminate;
+            }
+            output.report.findings.push(finding(
+                "incomplete",
+                "REPORT_TRUNCATED_BY_RESOURCE_BUDGET",
+                "report",
+                "deterministic report sections were truncated to respect max_report_bytes",
+            ));
+        } else if let Some(record) = output.report.records.pop() {
+            digest_serialized(&mut omitted_records_hasher, &record);
+            output.omitted_record_count += 1;
+            output.omitted_records_sha256 = Some("0".repeat(64));
+        } else if let Some(finding) = output.report.findings.pop() {
+            digest_serialized(&mut omitted_findings_hasher, &finding);
+            output.omitted_finding_count += 1;
+            output.omitted_findings_sha256 = Some("0".repeat(64));
+        } else if let Some(finding) = output.report.descriptor_validation_findings.pop() {
+            digest_serialized(&mut omitted_descriptor_findings_hasher, &finding);
+            output.omitted_descriptor_validation_finding_count += 1;
+            output.omitted_descriptor_validation_findings_sha256 = Some("0".repeat(64));
+        } else {
+            break;
+        }
+    }
+
+    if output.omitted_record_count > 0 {
+        output.omitted_records_sha256 = finalize_optional_digest(
+            output.omitted_record_count,
+            omitted_records_hasher,
+        );
+    }
+    if output.omitted_finding_count > 0 {
+        output.omitted_findings_sha256 = finalize_optional_digest(
+            output.omitted_finding_count,
+            omitted_findings_hasher,
+        );
+    }
+    if output.omitted_descriptor_validation_finding_count > 0 {
+        output.omitted_descriptor_validation_findings_sha256 = finalize_optional_digest(
+            output.omitted_descriptor_validation_finding_count,
+            omitted_descriptor_findings_hasher,
+        );
+    }
+
+    let mut serialized_len = serde_json::to_vec(&output).unwrap_or_default().len();
+    if output.serialized_report_bytes != serialized_len {
+        output.serialized_report_bytes = serialized_len;
+        serialized_len = serde_json::to_vec(&output).unwrap_or_default().len();
+        output.serialized_report_bytes = serialized_len;
+    }
+
+    output
+}
+
 
 #[cfg(test)]
 mod tests {
