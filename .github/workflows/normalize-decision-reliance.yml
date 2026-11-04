@@ -40,6 +40,8 @@ jobs:
             echo "Evaluator source is already rustfmt-normalized"
           else
             git commit -m "style: format decision reliance evaluator"
+            git fetch origin "$GITHUB_REF_NAME"
+            git rebase "origin/$GITHUB_REF_NAME"
             git push origin "HEAD:$GITHUB_REF_NAME"
           fi
           cargo fmt --manifest-path "$manifest" --check
