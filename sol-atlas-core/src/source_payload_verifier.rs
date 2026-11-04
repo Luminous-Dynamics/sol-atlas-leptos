@@ -1088,7 +1088,7 @@ where
 
     loop {
         let serialized = serde_json::to_vec(&output).unwrap_or_default();
-        if serialized.len() <= budget.max_report_bytes {
+        if serialized.len().saturating_add(16) <= budget.max_report_bytes {
             output.serialized_report_bytes = serialized.len();
             break;
         }
@@ -1099,6 +1099,7 @@ where
                 output.report.disposition =
                     PayloadByteCatalogDisposition::IncompleteOrIndeterminate;
             }
+            output.report.incomplete_finding_count += 1;
             output.report.findings.push(finding(
                 "incomplete",
                 "REPORT_TRUNCATED_BY_RESOURCE_BUDGET",
@@ -1825,8 +1826,10 @@ mod tests {
             result.report.records.iter().filter(|row| row.status == PayloadByteStatus::SkippedBudget).count(),
             2
         );
-        assert!(result.report.records.iter().all(|row| row.status != PayloadByteStatus::Verified)
-            || result.report.records[0].status == PayloadByteStatus::Verified);
+        assert_eq!(result.report.records[0].status, PayloadByteStatus::Verified);
+        assert!(result.report.records[1..]
+            .iter()
+            .all(|row| row.status == PayloadByteStatus::SkippedBudget));
         assert_eq!(
             result.report.disposition,
             PayloadByteCatalogDisposition::IncompleteOrIndeterminate
