@@ -1,6 +1,6 @@
 # Source payload catalogue resource budgets v0.1
 
-**Status:** sequential aggregate budget verifier implemented; exact-head Rust and schema qualification pending.
+**Status:** sequential aggregate budget verifier ported onto the current qualified descriptor base; exact-head qualification of this rebased branch is pending.
 **Issue:** [#504 — aggregate resource budgets](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/504).
 **Composes with:** [#500 payload byte verification / PR #503](https://github.com/Luminous-Dynamics/sol-atlas-leptos/pull/503), [#492 source descriptors / PR #496](https://github.com/Luminous-Dynamics/sol-atlas-leptos/pull/496), [#488 coverage qualification](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/488), and the pre-registered [#338 IBAP run manifest](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/338).
 
@@ -40,7 +40,7 @@ Two byte counters are reported separately:
 - total_payload_bytes_hashed: bytes incorporated into the streaming SHA-256 state;
 - total_bytes_read: bytes returned by resolver streams, including the one-byte probe used to distinguish a stream ending exactly at a limit from a longer stream.
 
-The per-object stream verifier reads at most the lesser of its per-object cap and the remaining aggregate payload/read budgets (reserving the probe byte). Therefore the aggregate read budget is a hard cap at the Read interface. The report never hides probe bytes inside hashed-payload totals.
+The per-object stream verifier reads at most the lesser of its per-object cap and the remaining aggregate payload/read budgets (reserving the probe byte). Therefore the aggregate read budget is a hard cap at the Read interface. The report never hides probe bytes inside hashed-payload totals. Resolver open failures remain separately classified as object-not-found, access-denied, and generic resolver-open failure; stream read failures are separate.
 
 An exact content boundary is accepted when the stream ends at EOF at that size. A payload one byte longer is stopped at the reserved probe, receives byte_limit_exceeded, and produces no digest conclusion for that object.
 
