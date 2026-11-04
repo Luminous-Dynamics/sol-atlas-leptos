@@ -752,6 +752,94 @@ mod tests {
         }
     }
 
+    struct FailingReader;
+
+    impl Read for FailingReader {
+        fn read(&mut self, _buffer: &mut [u8]) -> std::io::Result<usize> {
+            Err(std::io::Error::new(
+                std::io::ErrorKind::Other,
+                "synthetic interrupted storage failure",
+            ))
+        }
+    }
+
+    struct FailingReaderResolver;
+
+    impl ContentAddressedPayloadResolver for FailingReaderResolver {
+        type Reader = FailingReader;
+
+        fn open(
+            &mut self,
+            _descriptor: &SourceRecordDescriptor,
+        ) -> Result<Self::Reader, PayloadResolveError> {
+            Ok(FailingReader)
+        }
+    }
+
+    #[test]
+    fn stream_read_failure_is_never_reported_as_verified() {
+        let bytes = b"synthetic payload";
+        let case = case(&digest(bytes));
+        let descriptor = descriptor(bytes);
+        let catalog = catalog(&case, descriptor);
+        let mut resolver = FailingReaderResolver;
+        let report = verify_source_descriptor_catalog_payloads(
+            &case,
+            &catalog,
+            &mut resolver,
+            limits(),
+            "2026-11-04T10:03:00Z",
+            Some(digest(b"verifier-build")),
+        );
+        assert_eq!(
+            report.disposition,
+            PayloadCatalogVerificationDisposition::IncompleteOrIndeterminate
+        );
+        assert_eq!(
+            report.payload_results[0].disposition,
+            PayloadByteVerificationDisposition::StreamReadError
+        );
+        assert_eq!(report.payload_results[0].digest_matches, None);
+    }
+
+    #[test]
+    fn missing_digest_basis_skips_resolver_and_keeps_catalogue_incomplete() {
+        let bytes = b"synthetic payload";
+        let case = case(&digest(bytes));
+        let mut descriptor = descriptor(bytes);
+        descriptor.source_payload = crate::built_environment_source_descriptor::SourcePayloadDescriptor {
+            sha256: None,
+            digest_basis: PayloadDigestBasis::Unavailable,
+            bytes_retrieved: false,
+            byte_length: None,
+            payload_object_ref: None,
+            media_type: None,
+            schema_id: None,
+            schema_version: None,
+            schema_sha256: None,
+        };
+        let catalog = catalog(&case, descriptor);
+        let mut resolver = MemoryResolver::default();
+        let report = verify_source_descriptor_catalog_payloads(
+            &case,
+            &catalog,
+            &mut resolver,
+            limits(),
+            "2026-11-04T10:03:00Z",
+            Some(digest(b"verifier-build")),
+        );
+        assert_eq!(
+            report.disposition,
+            PayloadCatalogVerificationDisposition::IncompleteOrIndeterminate
+        );
+        assert_eq!(resolver.open_count, 0);
+        assert_eq!(
+            report.payload_results[0].disposition,
+            PayloadByteVerificationDisposition::DeclaredUnavailable
+        );
+        assert_eq!(report.payload_results[0].observed_sha256, None);
+    }
+
     #[test]
     fn matching_payload_bytes_are_rehashed_and_reported_verified() {
         let bytes = b"exact synthetic source payload";
