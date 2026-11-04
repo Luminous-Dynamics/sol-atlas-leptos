@@ -872,10 +872,7 @@ mod tests {
     impl Read for FailsAfter {
         fn read(&mut self, buffer: &mut [u8]) -> io::Result<usize> {
             if self.position >= self.fail_after {
-                return Err(io::Error::new(
-                    io::ErrorKind::Other,
-                    "synthetic injected reader failure",
-                ));
+                return Err(io::Error::other("synthetic injected reader failure"));
             }
             if self.position >= self.bytes.len() {
                 return Ok(0);
