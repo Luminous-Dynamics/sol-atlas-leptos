@@ -307,7 +307,7 @@ fn resolve_native_identity_namespace(
     findings: &mut Findings,
 ) -> String {
     match context.native_identity_namespaces.get(record_key) {
-        Some(namespace) if valid_native_identity_namespace(namespace) => namespace.clone()
+        Some(namespace) if valid_native_identity_namespace(namespace) => namespace.clone(),
         Some(_) => {
             findings.invalid(
                 "INVALID_NATIVE_IDENTITY_NAMESPACE",
@@ -399,6 +399,15 @@ fn make_node(spec: NodeProjection<'_>) -> Result<Value, String> {
             "fresh_until": null
         }
     }))
+}
+
+struct UnmappedRelation<'a> {
+    code: &'static str,
+    source_kind: &'a str,
+    source_id: &'a str,
+    relation: &'a str,
+    referenced_id: &'a str,
+    detail: &'a str,
 }
 
 fn add_unmapped(
