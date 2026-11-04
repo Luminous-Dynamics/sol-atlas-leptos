@@ -12,8 +12,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
 use std::fmt;
 
-pub const HERITAGE_DATA_INTAKE_SCHEMA_VERSION: &str =
-    "luminous.heritage-data-intake.v0.1";
+pub const HERITAGE_DATA_INTAKE_SCHEMA_VERSION: &str = "luminous.heritage-data-intake.v0.1";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -257,14 +256,10 @@ pub fn validate_heritage_dataset_registry(
             || !non_empty(&asset.file_name)
             || !non_empty(&asset.media_type)
         {
-            return Err(DatasetIntakeError::EmptyAssetField(
-                asset.asset_id.clone(),
-            ));
+            return Err(DatasetIntakeError::EmptyAssetField(asset.asset_id.clone()));
         }
         if !asset_ids.insert(asset.asset_id.as_str()) {
-            return Err(DatasetIntakeError::DuplicateAssetId(
-                asset.asset_id.clone(),
-            ));
+            return Err(DatasetIntakeError::DuplicateAssetId(asset.asset_id.clone()));
         }
         if !package_ids.contains(asset.package_id.as_str()) {
             return Err(DatasetIntakeError::PackageReferenceMissing(
@@ -288,10 +283,18 @@ pub fn validate_heritage_dataset_registry(
             }
             _ => {}
         }
-        if asset.licence_id.as_deref().is_some_and(|value| !non_empty(value)) {
+        if asset
+            .licence_id
+            .as_deref()
+            .is_some_and(|value| !non_empty(value))
+        {
             return Err(DatasetIntakeError::EmptyLicenceId(asset.asset_id.clone()));
         }
-        if asset.licence_uri.as_deref().is_some_and(|value| !non_empty(value)) {
+        if asset
+            .licence_uri
+            .as_deref()
+            .is_some_and(|value| !non_empty(value))
+        {
             return Err(DatasetIntakeError::EmptyLicenceUri(asset.asset_id.clone()));
         }
         if asset.coordinate_sensitivity == CoordinateSensitivity::ExactSensitive
@@ -316,7 +319,9 @@ pub fn validate_heritage_dataset_registry(
             .as_deref()
             .is_some_and(|value| !non_empty(value))
         {
-            return Err(DatasetIntakeError::EmptyAccessReceipt(asset.asset_id.clone()));
+            return Err(DatasetIntakeError::EmptyAccessReceipt(
+                asset.asset_id.clone(),
+            ));
         }
 
         let mut purposes = BTreeSet::new();
@@ -397,16 +402,12 @@ pub fn validate_heritage_dataset_registry(
         let mut current = asset.asset_id.as_str();
         while let Some(parent) = parent_by_child.get(current) {
             if !visited.insert(current) {
-                return Err(DatasetIntakeError::ParentAssetCycle(
-                    asset.asset_id.clone(),
-                ));
+                return Err(DatasetIntakeError::ParentAssetCycle(asset.asset_id.clone()));
             }
             current = parent;
         }
         if !visited.insert(current) {
-            return Err(DatasetIntakeError::ParentAssetCycle(
-                asset.asset_id.clone(),
-            ));
+            return Err(DatasetIntakeError::ParentAssetCycle(asset.asset_id.clone()));
         }
     }
 
@@ -475,11 +476,7 @@ pub fn evaluate_asset_use(
 mod tests {
     use super::*;
 
-    fn asset(
-        id: &str,
-        kind: AssetKind,
-        permissions: Vec<PurposePermission>,
-    ) -> DatasetAssetRecord {
+    fn asset(id: &str, kind: AssetKind, permissions: Vec<PurposePermission>) -> DatasetAssetRecord {
         DatasetAssetRecord {
             asset_id: id.to_owned(),
             package_id: "pkg-1".to_owned(),
@@ -522,7 +519,10 @@ mod tests {
             assets: vec![asset(
                 "images-1",
                 AssetKind::Imagery,
-                vec![granted(UsePurpose::LocalInspection, "rights://local-inspection/1")],
+                vec![granted(
+                    UsePurpose::LocalInspection,
+                    "rights://local-inspection/1",
+                )],
             )],
         }
     }
@@ -535,7 +535,10 @@ mod tests {
         let redistribution = evaluate_asset_use(&registry, "images-1", UsePurpose::Redistribution)
             .expect("valid registry");
         assert_eq!(training.decision, UseDecision::BlockedUnknownPermission);
-        assert_eq!(redistribution.decision, UseDecision::BlockedUnknownPermission);
+        assert_eq!(
+            redistribution.decision,
+            UseDecision::BlockedUnknownPermission
+        );
     }
 
     #[test]
@@ -558,8 +561,7 @@ mod tests {
         let mut registry = registry();
         registry.assets[0].licence_id = Some("GPL-3.0-only".to_owned());
         registry.assets[0].kind = AssetKind::Imagery;
-        let report =
-            evaluate_asset_use(&registry, "images-1", UsePurpose::CommercialUse).unwrap();
+        let report = evaluate_asset_use(&registry, "images-1", UsePurpose::CommercialUse).unwrap();
         assert_eq!(report.decision, UseDecision::BlockedUnknownPermission);
         assert_eq!(report.licence_id.as_deref(), Some("GPL-3.0-only"));
     }
@@ -620,8 +622,7 @@ mod tests {
             validate_heritage_dataset_registry(&registry),
             Err(DatasetIntakeError::AccessReceiptMissing(_))
         ));
-        registry.assets[0].access_receipt_ref =
-            Some("custody://access/approved-1".to_owned());
+        registry.assets[0].access_receipt_ref = Some("custody://access/approved-1".to_owned());
         assert!(validate_heritage_dataset_registry(&registry).is_ok());
     }
 
@@ -643,7 +644,9 @@ mod tests {
         registry.assets[0].coordinate_sensitivity = CoordinateSensitivity::ExactSensitive;
         assert!(matches!(
             validate_heritage_dataset_registry(&registry),
-            Err(DatasetIntakeError::ExactSensitiveCoordinateMustNotBePublic(_))
+            Err(DatasetIntakeError::ExactSensitiveCoordinateMustNotBePublic(
+                _
+            ))
         ));
     }
 
@@ -665,15 +668,18 @@ mod tests {
         let mut code = asset(
             "code-1",
             AssetKind::SourceCode,
-            vec![granted(UsePurpose::ResearchTraining, "licence://GPL-3.0-only")],
+            vec![granted(
+                UsePurpose::ResearchTraining,
+                "licence://GPL-3.0-only",
+            )],
         );
         code.licence_id = Some("GPL-3.0-only".to_owned());
         code.parent_asset_id = Some("images-1".to_owned());
         registry.assets.push(code);
-        let image_use = evaluate_asset_use(&registry, "images-1", UsePurpose::ResearchTraining)
-            .unwrap();
-        let code_use = evaluate_asset_use(&registry, "code-1", UsePurpose::ResearchTraining)
-            .unwrap();
+        let image_use =
+            evaluate_asset_use(&registry, "images-1", UsePurpose::ResearchTraining).unwrap();
+        let code_use =
+            evaluate_asset_use(&registry, "code-1", UsePurpose::ResearchTraining).unwrap();
         assert_eq!(image_use.decision, UseDecision::BlockedUnknownPermission);
         assert_eq!(code_use.decision, UseDecision::AllowedByRecordedEvidence);
     }
