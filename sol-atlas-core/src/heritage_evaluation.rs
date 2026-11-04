@@ -418,6 +418,13 @@ pub fn audit_heritage_evaluation_split(
     if !valid_sha256(&manifest.split_protocol_sha256) {
         return Err(HeritageEvaluationSplitError::InvalidProtocolDigest);
     }
+    if manifest
+        .reference_paper_split_manifest_sha256
+        .as_deref()
+        .is_some_and(|digest| !valid_sha256(digest))
+    {
+        return Err(HeritageEvaluationSplitError::InvalidProtocolDigest);
+    }
     if !non_empty(&manifest.coordinate_reference_id) {
         return Err(HeritageEvaluationSplitError::EmptyCoordinateReference);
     }
@@ -766,7 +773,7 @@ mod tests {
             block_id: Some(format!("block-{id}")),
             source_capture_id: capture.to_owned(),
             source_capture_sha256: digest('a'),
-            source_tile_sha256: digest(tile.chars().next().unwrap_or('b')),
+            source_tile_sha256: digest(tile.chars().last().unwrap_or('b')),
             source_image_width_px: 1000,
             source_image_height_px: 1000,
             source_pixel_window: window,
