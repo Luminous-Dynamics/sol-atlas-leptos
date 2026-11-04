@@ -1,0 +1,120 @@
+name: Built-environment IEAC projection
+
+on:
+  pull_request:
+    paths:
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "sol-atlas-core/Cargo.toml"
+      - "sol-atlas-core/src/**"
+      - "tests/industry_assurance_projection.rs"
+      - "examples/built_environment_ieac_projection_fixture.rs"
+      - "schemas/industry-assurance-dependency-graph-v0.2.schema.json"
+      - "schemas/built-environment-ieac-projection-receipt-v0.1.schema.json"
+      - ".github/workflows/built-environment-ieac-projection.yml"
+  push:
+    branches:
+      - main
+      - research/built-environment-ieac-projector-v0-1
+    paths:
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "sol-atlas-core/Cargo.toml"
+      - "sol-atlas-core/src/**"
+      - "tests/industry_assurance_projection.rs"
+      - "examples/built_environment_ieac_projection_fixture.rs"
+      - "schemas/industry-assurance-dependency-graph-v0.2.schema.json"
+      - "schemas/built-environment-ieac-projection-receipt-v0.1.schema.json"
+      - ".github/workflows/built-environment-ieac-projection.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: built-environment-ieac-projection-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  projection:
+    name: Exact-head projector, integration tests and schema validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Assert exact source revision
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Check formatting
+        run: |
+          set -euo pipefail
+          rustfmt --edition 2024 --check tests/industry_assurance_projection.rs
+          rustfmt --edition 2024 --check examples/built_environment_ieac_projection_fixture.rs
+          cargo fmt --manifest-path sol-atlas-core/Cargo.toml --check
+
+      - name: Strict Clippy and locked integration tests
+        run: |
+          set -euo pipefail
+          cargo clippy --manifest-path Cargo.toml --locked --all-targets -- -D warnings
+          cargo test --manifest-path Cargo.toml --locked
+
+      - name: Build and emit the synthetic projector graph
+        run: |
+          set -euo pipefail
+          cargo run --manifest-path Cargo.toml --locked --example built_environment_ieac_projection_fixture \
+            > "$RUNNER_TEMP/built-environment-projection-report.json"
+          jq -e '.graph and .projection_receipt and .disposition' "$RUNNER_TEMP/built-environment-projection-report.json"
+          jq '.graph' "$RUNNER_TEMP/built-environment-projection-report.json" > "$RUNNER_TEMP/built-environment-projection-graph.json"
+          jq '.projection_receipt' "$RUNNER_TEMP/built-environment-projection-report.json" > "$RUNNER_TEMP/built-environment-projection-receipt.json"
+
+      - name: Install pinned Draft 2020-12 validator
+        run: cargo install --locked jsonschema-cli --version 0.60.2 --root "$RUNNER_TEMP/jsonschema-cli"
+
+      - name: Validate the actual projector output against IEAC v0.2
+        run: |
+          set -euo pipefail
+          echo "$RUNNER_TEMP/jsonschema-cli/bin" >> "$GITHUB_PATH"
+          export PATH="$RUNNER_TEMP/jsonschema-cli/bin:$PATH"
+          graph_schema=schemas/industry-assurance-dependency-graph-v0.2.schema.json
+          receipt_schema=schemas/built-environment-ieac-projection-receipt-v0.1.schema.json
+          meta=https://json-schema.org/draft/2020-12/schema
+          meta_schema="$RUNNER_TEMP/draft-2020-12-meta-schema.json"
+          curl --fail --location --retry 5 --retry-connrefused "$meta" -o "$meta_schema"
+          jsonschema-cli validate --draft 2020 --assert-format "$meta_schema" -i "$graph_schema"
+          jsonschema-cli validate --draft 2020 --assert-format "$meta_schema" -i "$receipt_schema"
+          jsonschema-cli validate --draft 2020 --assert-format --offline "$graph_schema" \
+            -i "$RUNNER_TEMP/built-environment-projection-graph.json"
+          jsonschema-cli validate --draft 2020 --assert-format --offline "$receipt_schema" \
+            -i "$RUNNER_TEMP/built-environment-projection-receipt.json"
+          jq -e '
+            .disposition == "projected_with_known_loss" and
+            .projection_receipt.disposition == "projected_with_known_loss" and
+            .projection_receipt.action_authority == "none" and
+            .projection_receipt.verification_claim == "none" and
+            .projection_receipt.projector.source_owner_namespace_authenticated == false
+          ' "$RUNNER_TEMP/built-environment-projection-report.json"
+          jq -e '
+            .schema_version == "luminous.ieac-assurance-dependency-graph.v0.2" and
+            .claim_ceiling == "incomplete_or_indeterminate" and
+            .action_authority == "none" and
+            ([.nodes[] | select(.verification.result != "unknown")] | length) == 0 and
+            ([.nodes[] | select(.observation_time.trusted_at != null)] | length) == 0 and
+            ([.nodes[].node_id] | unique | length) == (.nodes | length) and
+            ([.edges[].edge_id] | unique | length) == (.edges | length) and
+            ([.edges[] as $edge |
+              select(
+                ([.nodes[].node_id] | index($edge.from_node_id)) == null or
+                ([.nodes[].node_id] | index($edge.to_node_id)) == null
+              )
+            ] | length) == 0
+          ' "$RUNNER_TEMP/built-environment-projection-graph.json"
