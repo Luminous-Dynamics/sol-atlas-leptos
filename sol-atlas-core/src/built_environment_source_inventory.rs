@@ -367,6 +367,11 @@ fn validate_page_partition(
             partition_id,
             "required partition has no page receipts",
         );
+        findings.incomplete(
+            "INVENTORY_PARTITION_TERMINAL_NOT_OBSERVED",
+            partition_id,
+            "authoritative terminal pagination state was not observed because no page was enumerated",
+        );
         return (0, 0, false);
     }
 
