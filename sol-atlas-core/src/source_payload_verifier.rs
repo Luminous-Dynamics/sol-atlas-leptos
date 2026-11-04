@@ -569,7 +569,10 @@ fn catalog_report(
 
     let invalid_descriptor =
         descriptor_validation.disposition == DescriptorDisposition::InvalidInput;
-    let disposition = if invalid_descriptor || invalid_count > 0 {
+    let invalid_report_finding = findings
+        .iter()
+        .any(|finding| finding.severity == "invalid");
+    let disposition = if invalid_descriptor || invalid_count > 0 || invalid_report_finding {
         PayloadByteCatalogDisposition::InvalidInput
     } else if descriptor_validation.disposition == DescriptorDisposition::IncompleteOrIndeterminate
         || verified_count + unavailable_count + read_failed_count + byte_limit_exceeded_count
