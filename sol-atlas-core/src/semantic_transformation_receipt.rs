@@ -278,7 +278,7 @@ pub struct TransformationReceiptValidation {
 #[derive(Default)]
 struct Findings {
     rows: BTreeSet<TransformationFinding>,
-    has_decision_required_loss: bool,
+    decision_required_loss_count: usize,
     has_semantic_loss: bool,
     has_indeterminate: bool,
     not_equivalent: bool,
@@ -308,7 +308,9 @@ impl Findings {
 
     fn loss(&mut self, code: &str, id: &str, required: bool, detail: impl Into<String>) {
         self.has_semantic_loss = true;
-        self.has_decision_required_loss |= required;
+        if required {
+            self.decision_required_loss_count += 1;
+        }
         self.push("loss", code, id, detail);
     }
 
@@ -791,7 +793,7 @@ pub fn validate_semantic_transformation_receipt(
 
     let mut mapping_by_source = BTreeMap::new();
     let mut mapped_source_count = 0usize;
-    let mut decision_required_loss_count = 0usize;
+    let mut unmapped_decision_required_loss_count = 0usize;
     let mut opaque_count = 0usize;
     let mut dropped_count = 0usize;
     let mut unsupported_count = 0usize;
@@ -991,7 +993,7 @@ pub fn validate_semantic_transformation_receipt(
                 "source semantic inventory item has no mapping disposition",
             );
             if source.required_for_declared_purposes {
-                decision_required_loss_count += 1;
+                unmapped_decision_required_loss_count += 1;
             }
         }
     }
@@ -1128,7 +1130,8 @@ pub fn validate_semantic_transformation_receipt(
         }
     }
 
-    let invalid_count = findings.invalid;
+    let decision_required_loss_count =
+        findings.decision_required_loss_count + unmapped_decision_required_loss_count;
     let disposition = findings.disposition();
     let findings_vec = findings.rows.into_iter().collect::<Vec<_>>();
     let receipt_representation_sha256 = serde_json::to_vec(receipt)
@@ -1510,7 +1513,7 @@ mod tests {
     #[test]
     fn oracle_pass_remains_unverified_and_cannot_upgrade_claim_ceiling() {
         let result = validate_semantic_transformation_receipt(&receipt());
-        assert_eq!(result.oracle_evidence_present, true);
+        assert!(result.oracle_evidence_present);
         assert_eq!(result.oracle_evidence_authenticated, "not_performed");
         assert_eq!(result.claim_ceiling, "mapping_integrity_only");
     }
