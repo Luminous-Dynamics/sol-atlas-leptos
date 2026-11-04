@@ -1090,7 +1090,7 @@ mod tests {
     #[test]
     fn capture_id_cannot_map_to_multiple_capture_digests() {
         let mut input = base_manifest(EvaluationSplitProfile::PaperFaithfulRandomTiles);
-        input.samples[1].source_capture_sha256 = digest('x');
+        input.samples[1].source_capture_sha256 = digest('f');
         assert!(matches!(
             audit_heritage_evaluation_split(&input),
             Err(HeritageEvaluationSplitError::CaptureIdDigestMismatch(_))
