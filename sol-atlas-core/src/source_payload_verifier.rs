@@ -691,6 +691,26 @@ mod tests {
     }
 
     #[test]
+    fn simultaneous_digest_and_length_mismatches_are_both_reported() {
+        let payload = b"original";
+        let schema = b"schema";
+        let case = case(payload);
+        let catalog = catalog(&case, payload, schema);
+        let (payloads, schemas) = inputs(b"mutated and longer", schema);
+
+        let receipt = verify_catalog_payload_bytes(&case, &catalog, &payloads, &schemas);
+        assert_eq!(receipt.disposition, ByteVerificationDisposition::InvalidInput);
+        assert_eq!(receipt.payload_digest_mismatches, 1);
+        assert_eq!(receipt.payload_length_mismatches, 1);
+        assert!(receipt.findings.iter().any(|finding| {
+            finding.code == "SOURCE_PAYLOAD_DIGEST_MISMATCH"
+        }));
+        assert!(receipt.findings.iter().any(|finding| {
+            finding.code == "SOURCE_PAYLOAD_LENGTH_MISMATCH"
+        }));
+    }
+
+    #[test]
     fn missing_payload_bytes_remain_incomplete() {
         let payload = b"payload";
         let schema = b"schema";
