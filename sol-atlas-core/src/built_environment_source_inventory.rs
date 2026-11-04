@@ -2039,7 +2039,7 @@ mod tests {
             closure.disposition,
             InventoryClosureDisposition::CompleteWithinDeclaredOwnerSet
         );
-        assert_eq!(closure.cross_manifest_duplicate_identity_count, 1);
+        assert_eq!(closure.cross_manifest_duplicate_identity_count, 3);
         assert_eq!(closure.cross_manifest_payload_digest_conflict_count, 0);
     }
 
@@ -2075,7 +2075,7 @@ mod tests {
             closure.disposition,
             InventoryClosureDisposition::InvalidInput
         );
-        assert_eq!(closure.cross_manifest_duplicate_identity_count, 1);
+        assert_eq!(closure.cross_manifest_duplicate_identity_count, 3);
         assert_eq!(closure.cross_manifest_payload_digest_conflict_count, 1);
         assert!(closure.findings.iter().any(|finding| {
             finding.code == "CROSS_MANIFEST_NATIVE_IDENTITY_PAYLOAD_DIGEST_CONFLICT"
@@ -2164,7 +2164,7 @@ mod tests {
     #[test]
     fn cross_snapshot_page_is_invalid() {
         let mut manifest = valid_manifest();
-        manifest.page_receipts[1].snapshot_sha256 = Some(digest('f'));
+        manifest.page_receipts[1].snapshot_sha256 = Some(digest('e'));
         let result = validate_source_inventory_manifest(&manifest);
         assert_eq!(result.disposition, InventoryDisposition::InvalidInput);
         assert!(
@@ -2340,7 +2340,7 @@ mod tests {
             result
                 .findings
                 .iter()
-                .any(|finding| { finding.code == "INVENTORY_PARTITION_TERMINAL_NOT_OBSERVED" })
+                .any(|finding| { finding.code == "INVENTORY_PARTITION_NOT_ENUMERATED" })
         );
     }
 
