@@ -362,18 +362,13 @@
             "type": "object",
             "additionalProperties": false,
             "required": [
-              "source_id",
+              "source_system_id",
               "snapshot_id",
               "snapshot_sha256",
               "captured_at",
               "retrieved_at"
             ],
             "properties": {
-              "source_id": {
-                "type": "string",
-                "minLength": 1,
-                "maxLength": 512
-              },
               "snapshot_id": {
                 "type": "string",
                 "minLength": 1,
@@ -390,6 +385,12 @@
               "retrieved_at": {
                 "type": "string",
                 "format": "date-time"
+              },
+              "source_system_id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 512,
+                "description": "Stable source-system identifier matching the corresponding federated source inventory manifest."
               }
             }
           },
