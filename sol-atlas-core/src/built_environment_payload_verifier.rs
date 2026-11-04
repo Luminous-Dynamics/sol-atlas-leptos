@@ -136,10 +136,17 @@ pub struct PayloadCatalogVerificationReport {
     pub catalog_validation: crate::built_environment_source_descriptor::DescriptorValidation,
     pub context_findings: Vec<String>,
     pub limits: PayloadVerificationLimits,
+    /// Total descriptors in the catalogue, including records not attempted
+    /// because the catalogue or limits were invalid.
+    pub descriptor_count: usize,
+    /// Per-record verification results emitted by this run.
     pub payload_count: usize,
+    pub not_attempted_count: usize,
     pub verified_payload_count: usize,
     pub unavailable_payload_count: usize,
     pub resource_limited_payload_count: usize,
+    pub resolver_error_count: usize,
+    pub stream_error_count: usize,
     pub invalid_payload_count: usize,
     pub total_bytes_hashed: u64,
     pub payload_results: Vec<PayloadByteVerification>,
@@ -524,10 +531,33 @@ pub fn verify_source_descriptor_catalog_payloads<R: ContentAddressedPayloadResol
             result.disposition == PayloadByteVerificationDisposition::ResourceLimitReached
         })
         .count();
+    let resolver_error_count = results
+        .iter()
+        .filter(|result| {
+            matches!(
+                result.disposition,
+                PayloadByteVerificationDisposition::ResolverRejected
+                    | PayloadByteVerificationDisposition::ResolverIoError
+            )
+        })
+        .count();
+    let stream_error_count = results
+        .iter()
+        .filter(|result| {
+            result.disposition == PayloadByteVerificationDisposition::StreamReadError
+        })
+        .count();
     let invalid_payload_count = results
         .iter()
         .filter(|result| result.disposition.is_invalid())
         .count();
+    let descriptor_count = catalog.descriptors.len();
+    let not_attempted_count = descriptor_count.saturating_sub(results.len());
+    let payload_byte_verification = if results.iter().any(|result| result.resolver_open_attempted) {
+        "streaming_rehash_performed_for_attempted_records"
+    } else {
+        "not_performed"
+    };
 
     PayloadCatalogVerificationReport {
         disposition,
@@ -540,14 +570,18 @@ pub fn verify_source_descriptor_catalog_payloads<R: ContentAddressedPayloadResol
         catalog_validation: validation,
         context_findings,
         limits,
+        descriptor_count,
         payload_count: results.len(),
+        not_attempted_count,
         verified_payload_count,
         unavailable_payload_count,
         resource_limited_payload_count,
+        resolver_error_count,
+        stream_error_count,
         invalid_payload_count,
         total_bytes_hashed,
         payload_results: results,
-        payload_byte_verification: "recomputed_over_resolver_bytes".into(),
+        payload_byte_verification: payload_byte_verification.into(),
         rights_authentication: "not_performed".into(),
         source_attestation_authentication: "not_performed".into(),
         action_authority: "none".into(),
