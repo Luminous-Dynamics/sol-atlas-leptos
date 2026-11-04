@@ -131,6 +131,7 @@ pub enum DependencyKind {
     Prior,
     SimulationModel,
     EnvironmentalScenario,
+    SimulationManifest,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -273,6 +274,11 @@ pub enum HeritageReconstructionError {
     HypothesisIdentityMissing(String),
     NonIdentifiableHypothesisHasNoAlternative(String),
     EvidenceRightsNotVerified { element_id: String, evidence_id: String },
+    EvidenceRightsReceiptMissing { element_id: String, evidence_id: String },
+    EvidenceNotSupportingClaim { element_id: String, evidence_id: String },
+    SourceEvidenceDependencySetMismatch(String),
+    MethodBuildDigestMismatch(String),
+    SimulationManifestDigestMismatch(String),
 }
 
 impl fmt::Display for HeritageReconstructionError {
@@ -302,18 +308,43 @@ fn is_direct_measurement(evidence: &ReconstructionEvidence) -> bool {
         )
 }
 
-fn is_empirical_support(evidence: &ReconstructionEvidence) -> bool {
-    evidence.relation == EvidenceRelation::Supports
-        && evidence.rights_status == RightsStatus::Verified
-        && evidence.rights_receipt_ref.as_deref().is_some_and(non_empty)
-        && !matches!(
-            evidence.origin,
-            EvidenceOrigin::ModelOutput | EvidenceOrigin::Simulation
-        )
-        && !matches!(
-            evidence.evidence_kind,
-            EvidenceKind::ModelPrediction | EvidenceKind::Simulation
-        )
+fn validate_empirical_support(
+    element_id: &str,
+    evidence: &ReconstructionEvidence,
+) -> Result<(), HeritageReconstructionError> {
+    if evidence.relation != EvidenceRelation::Supports {
+        return Err(HeritageReconstructionError::EvidenceNotSupportingClaim {
+            element_id: element_id.to_owned(),
+            evidence_id: evidence.evidence_id.clone(),
+        });
+    }
+    if evidence.rights_status != RightsStatus::Verified {
+        return Err(HeritageReconstructionError::EvidenceRightsNotVerified {
+            element_id: element_id.to_owned(),
+            evidence_id: evidence.evidence_id.clone(),
+        });
+    }
+    if evidence.rights_receipt_ref.as_deref().is_none_or(|value| !non_empty(value)) {
+        return Err(HeritageReconstructionError::EvidenceRightsReceiptMissing {
+            element_id: element_id.to_owned(),
+            evidence_id: evidence.evidence_id.clone(),
+        });
+    }
+    if evidence.origin == EvidenceOrigin::ModelOutput
+        || evidence.evidence_kind == EvidenceKind::ModelPrediction
+    {
+        return Err(HeritageReconstructionError::ModelEvidenceUsedAsEmpiricalSupport(
+            element_id.to_owned(),
+        ));
+    }
+    if evidence.origin == EvidenceOrigin::Simulation
+        || evidence.evidence_kind == EvidenceKind::Simulation
+    {
+        return Err(HeritageReconstructionError::SimulationEvidenceUsedAsEmpiricalSupport(
+            element_id.to_owned(),
+        ));
+    }
+    Ok(())
 }
 
 fn validate_temporal_interval(
@@ -390,12 +421,7 @@ fn validate_temporal_interval(
                 evidence_id: evidence_id.clone(),
             });
         }
-        if !is_empirical_support(evidence) {
-            return Err(HeritageReconstructionError::EvidenceRightsNotVerified {
-                element_id: element.element_id.clone(),
-                evidence_id: evidence_id.clone(),
-            });
-        }
+        validate_empirical_support(&element.element_id, evidence)?;
     }
     Ok(())
 }
@@ -430,12 +456,7 @@ fn validate_element(
                 evidence_id: evidence_id.clone(),
             });
         };
-        if !is_empirical_support(evidence) {
-            return Err(HeritageReconstructionError::EvidenceRightsNotVerified {
-                element_id: element.element_id.clone(),
-                evidence_id: evidence_id.clone(),
-            });
-        }
+        validate_empirical_support(&element.element_id, evidence)?;
         source_evidence.push(*evidence);
     }
 
