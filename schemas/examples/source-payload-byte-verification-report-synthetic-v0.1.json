@@ -1,6 +1,6 @@
 {
   "schema_version": "luminous.source-payload-byte-verification.v0.1",
-  "disposition": "all_resolvable_payloads_verified",
+  "disposition": "all_declared_payload_references_verified",
   "case_id": "case-byte-verifier-synthetic-001",
   "case_representation_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
   "catalog_id": "catalog-byte-verifier-synthetic-001",
@@ -41,5 +41,7 @@
   "action_authority": "none",
   "no_impact_eligibility": "none",
   "invalid_finding_count": 0,
-  "incomplete_finding_count": 0
+  "incomplete_finding_count": 0,
+  "descriptor_missing_count": 0,
+  "descriptor_extra_count": 0
 }
