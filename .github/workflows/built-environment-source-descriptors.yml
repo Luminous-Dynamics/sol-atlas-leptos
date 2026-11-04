@@ -6,21 +6,27 @@ on:
       - "sol-atlas-core/Cargo.toml"
       - "sol-atlas-core/Cargo.lock"
       - "sol-atlas-core/src/built_environment_source_descriptor.rs"
+      - "sol-atlas-core/src/source_payload_verifier.rs"
       - "sol-atlas-core/src/lib.rs"
       - "schemas/built-environment-source-descriptor-catalog-v0.1.schema.json"
       - "schemas/examples/built-environment-source-descriptor-catalog-synthetic-v0.1.json"
+      - "schemas/source-payload-byte-verification-receipt-v0.1.schema.json"
+      - "schemas/examples/source-payload-byte-verification-receipt-synthetic-v0.1.json"
       - ".github/workflows/built-environment-source-descriptors.yml"
   push:
     branches:
       - main
-      - research/built-environment-source-descriptors-v0-1
+      - research/built-environment-source-byte-verifier-v0-1
     paths:
       - "sol-atlas-core/Cargo.toml"
       - "sol-atlas-core/Cargo.lock"
       - "sol-atlas-core/src/built_environment_source_descriptor.rs"
+      - "sol-atlas-core/src/source_payload_verifier.rs"
       - "sol-atlas-core/src/lib.rs"
       - "schemas/built-environment-source-descriptor-catalog-v0.1.schema.json"
       - "schemas/examples/built-environment-source-descriptor-catalog-synthetic-v0.1.json"
+      - "schemas/source-payload-byte-verification-receipt-v0.1.schema.json"
+      - "schemas/examples/source-payload-byte-verification-receipt-synthetic-v0.1.json"
       - ".github/workflows/built-environment-source-descriptors.yml"
   workflow_dispatch:
 
@@ -75,6 +81,21 @@ jobs:
             https://json-schema.org/draft/2020-12/schema -o "$meta_schema"
           jsonschema-cli validate --draft 2020 --assert-format "$meta_schema" -i "$schema"
           jsonschema-cli validate --draft 2020 --assert-format --offline "$schema" -i "$fixture"
+
+          receipt_schema=schemas/source-payload-byte-verification-receipt-v0.1.schema.json
+          receipt_fixture=schemas/examples/source-payload-byte-verification-receipt-synthetic-v0.1.json
+          jsonschema-cli validate --draft 2020 --assert-format --offline "$receipt_schema" -i "$receipt_fixture"
+          jq -e '
+            .schema_version == "luminous.source-payload-byte-verification-receipt.v0.1" and
+            .disposition == "complete_for_supplied_claims" and
+            .payload_byte_verification == "complete_for_supplied_payload_claims" and
+            .source_owner_authentication == "not_performed" and
+            .source_attestation_authentication == "not_performed" and
+            .receipt_digest_basis == "sha256_over_serde_json_receipt_with_empty_receipt_sha256_field" and
+            .rights_authentication == "not_performed" and
+            .action_authority == "none" and
+            .receipt_sha256 == "1d9af9474d4ca664ad7ff06c34973fde9d00d47d6e8ba4ab89bb5ac7e336d4a5"
+          ' "$receipt_fixture"
           jq -e '
             .schema_version == "luminous.built-environment-source-descriptor-catalog.v0.1" and
             .claim_ceiling == "descriptor_integrity_only" and
