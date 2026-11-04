@@ -437,14 +437,14 @@ fn parse_gate_row(
     if !valid_utc_timestamp(&checked_at) || !valid_utc_timestamp(&knowledge_available_at) {
         push_error(errors, "GATE_TIME_INVALID", &gate);
     } else {
-        if checked_at > knowledge_cutoff_at {
+        if checked_at.as_str() > knowledge_cutoff_at {
             push_error(
                 errors,
                 "FUTURE_INFORMATION_LEAK",
                 format!("{gate} was checked after the view's knowledge cutoff"),
             );
         }
-        if knowledge_available_at > knowledge_cutoff_at {
+        if knowledge_available_at.as_str() > knowledge_cutoff_at {
             push_error(
                 errors,
                 "FUTURE_KNOWLEDGE_LEAK",
