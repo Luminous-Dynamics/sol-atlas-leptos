@@ -22,6 +22,9 @@
     "descriptor_missing_count",
     "verified_count",
     "unavailable_count",
+    "resolver_open_failed_count",
+    "resolver_access_denied_count",
+    "object_not_found_count",
     "read_failed_count",
     "byte_limit_exceeded_count",
     "invalid_count",
@@ -143,6 +146,9 @@
             "enum": [
               "verified",
               "source_bytes_unavailable",
+              "resolver_open_failed",
+              "resolver_access_denied",
+              "object_not_found",
               "read_failed",
               "byte_limit_exceeded",
               "invalid_descriptor",
@@ -260,6 +266,18 @@
       "minimum": 0
     },
     "skipped_budget_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "object_not_found_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "resolver_access_denied_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "resolver_open_failed_count": {
       "type": "integer",
       "minimum": 0
     }
