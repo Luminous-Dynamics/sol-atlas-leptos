@@ -10,8 +10,8 @@
 //! It does not authenticate their receipts, traverse dependency graphs, verify
 //! engineering calculations, adjudicate rights, or authorize action.
 
-use serde::de::{self, MapAccess, SeqAccess, Visitor};
 use serde::Deserialize;
+use serde::de::{self, MapAccess, SeqAccess, Visitor};
 use serde_json::{Map, Number, Value, json};
 use sha2::{Digest, Sha256};
 use std::collections::{BTreeMap, BTreeSet};
@@ -58,9 +58,7 @@ impl StrictJson {
             Self::Bool(value) => Value::Bool(value),
             Self::Number(value) => Value::Number(value),
             Self::String(value) => Value::String(value),
-            Self::Array(values) => {
-                Value::Array(values.into_iter().map(Self::into_value).collect())
-            }
+            Self::Array(values) => Value::Array(values.into_iter().map(Self::into_value).collect()),
             Self::Object(values) => {
                 let mut object = Map::new();
                 for (key, value) in values {
@@ -194,8 +192,8 @@ fn sha256_hex(bytes: &[u8]) -> String {
 }
 
 fn canonical_json_sha256(value: &Value) -> Result<String, String> {
-    let bytes = serde_json::to_vec(value)
-        .map_err(|error| format!("JSON serialization failed: {error}"))?;
+    let bytes =
+        serde_json::to_vec(value).map_err(|error| format!("JSON serialization failed: {error}"))?;
     Ok(sha256_hex(&bytes))
 }
 
@@ -282,31 +280,50 @@ fn push_error(errors: &mut Vec<String>, code: &str, detail: impl AsRef<str>) {
 
 fn validate_decision_and_top_level(input: &Value, errors: &mut Vec<String>) -> Result<(), String> {
     if non_empty_string(input, "schema_version") != Some(INPUT_SCHEMA) {
-        push_error(errors, "UNSUPPORTED_INPUT_SCHEMA", "schema_version is not v0.1");
+        push_error(
+            errors,
+            "UNSUPPORTED_INPUT_SCHEMA",
+            "schema_version is not v0.1",
+        );
     }
     if non_empty_string(input, "assessment_id").is_none() {
         push_error(errors, "ASSESSMENT_ID_MISSING", "assessment_id is required");
     }
 
     let decision = input.get("decision").ok_or("decision object is missing")?;
-    let decision_at = non_empty_string(decision, "decided_at").ok_or("decision.decided_at missing")?;
+    let decision_at =
+        non_empty_string(decision, "decided_at").ok_or("decision.decided_at missing")?;
     let evaluated_at = non_empty_string(input, "evaluated_at").ok_or("evaluated_at missing")?;
 
     if non_empty_string(decision, "decision_id").is_none()
         || non_empty_string(decision, "purpose").is_none()
         || non_empty_string(decision, "target_node_id").is_none()
     {
-        push_error(errors, "DECISION_IDENTITY_INCOMPLETE", "decision ID, target node and purpose are required");
+        push_error(
+            errors,
+            "DECISION_IDENTITY_INCOMPLETE",
+            "decision ID, target node and purpose are required",
+        );
     }
-    if !is_hash_at(decision, "target_artifact_sha256")
-        || !is_hash_at(decision, "scope_sha256")
-    {
-        push_error(errors, "DECISION_DIGEST_INVALID", "decision artifact and scope digests must be lowercase SHA-256");
+    if !is_hash_at(decision, "target_artifact_sha256") || !is_hash_at(decision, "scope_sha256") {
+        push_error(
+            errors,
+            "DECISION_DIGEST_INVALID",
+            "decision artifact and scope digests must be lowercase SHA-256",
+        );
     }
     if !valid_utc_timestamp(decision_at) || !valid_utc_timestamp(evaluated_at) {
-        push_error(errors, "DECISION_TIME_INVALID", "decision and evaluation times must be canonical UTC whole-second timestamps");
+        push_error(
+            errors,
+            "DECISION_TIME_INVALID",
+            "decision and evaluation times must be canonical UTC whole-second timestamps",
+        );
     } else if decision_at > evaluated_at {
-        push_error(errors, "EVALUATION_PRECEDES_DECISION", "evaluated_at cannot precede decided_at");
+        push_error(
+            errors,
+            "EVALUATION_PRECEDES_DECISION",
+            "evaluated_at cannot precede decided_at",
+        );
     }
 
     let required = input
@@ -314,12 +331,20 @@ fn validate_decision_and_top_level(input: &Value, errors: &mut Vec<String>) -> R
         .and_then(Value::as_array)
         .ok_or("required_gates must be an array")?;
     if required.is_empty() || required.len() > MAX_GATES {
-        push_error(errors, "REQUIRED_GATE_COUNT_INVALID", "required_gates must contain 1..=11 entries");
+        push_error(
+            errors,
+            "REQUIRED_GATE_COUNT_INVALID",
+            "required_gates must contain 1..=11 entries",
+        );
     }
     let mut unique = BTreeSet::new();
     for gate in required {
         let Some(name) = gate.as_str() else {
-            push_error(errors, "REQUIRED_GATE_NAME_INVALID", "required gate names must be strings");
+            push_error(
+                errors,
+                "REQUIRED_GATE_NAME_INVALID",
+                "required gate names must be strings",
+            );
             continue;
         };
         if !GATE_NAMES.contains(&name) {
@@ -408,8 +433,7 @@ fn parse_gate_row(
     }
 
     let checked_at = non_empty_string(raw, "checked_at")?.to_owned();
-    let knowledge_available_at =
-        non_empty_string(raw, "knowledge_available_at")?.to_owned();
+    let knowledge_available_at = non_empty_string(raw, "knowledge_available_at")?.to_owned();
     if !valid_utc_timestamp(&checked_at) || !valid_utc_timestamp(&knowledge_available_at) {
         push_error(errors, "GATE_TIME_INVALID", &gate);
     } else {
@@ -542,7 +566,11 @@ fn validate_temporal_events(
         .and_then(Value::as_array)
         .ok_or("temporal_events must be an array")?;
     if events.len() > MAX_EVENTS {
-        push_error(errors, "EVENT_COUNT_EXCEEDED", "more than 10,000 temporal events");
+        push_error(
+            errors,
+            "EVENT_COUNT_EXCEEDED",
+            "more than 10,000 temporal events",
+        );
     }
 
     let mut seen = BTreeSet::new();
@@ -559,13 +587,25 @@ fn validate_temporal_events(
         let impact = non_empty_string(event, "impact_disposition").unwrap_or_default();
 
         if !valid_sha256(event_sha) || !valid_sha256(target_sha) || !valid_sha256(impact_sha) {
-            push_error(errors, "EVENT_DIGEST_INVALID", "event, target, or impact report digest is invalid");
+            push_error(
+                errors,
+                "EVENT_DIGEST_INVALID",
+                "event, target, or impact report digest is invalid",
+            );
         }
         if !valid_sha256(scope_sha) {
-            push_error(errors, "EVENT_SCOPE_DIGEST_INVALID", "event scope digest is invalid");
+            push_error(
+                errors,
+                "EVENT_SCOPE_DIGEST_INVALID",
+                "event scope digest is invalid",
+            );
         }
         if target_node.is_empty() || cause.is_empty() {
-            push_error(errors, "EVENT_IDENTITY_MISSING", "event target and cause class are required");
+            push_error(
+                errors,
+                "EVENT_IDENTITY_MISSING",
+                "event target and cause class are required",
+            );
         }
         if !seen.insert(event_sha.to_owned()) {
             push_error(errors, "DUPLICATE_TEMPORAL_EVENT", event_sha);
@@ -591,24 +631,10 @@ fn validate_temporal_events(
             }
         };
 
-        if ![
-            "verified",
-            "authority_asserted",
-            "unknown",
-            "disputed",
-        ]
-        .contains(&confidence)
-        {
+        if !["verified", "authority_asserted", "unknown", "disputed"].contains(&confidence) {
             push_error(errors, "EVENT_EFFECTIVE_CONFIDENCE_INVALID", event_sha);
         }
-        if ![
-            "authenticated",
-            "unauthenticated",
-            "unknown",
-            "revoked",
-        ]
-        .contains(&authority)
-        {
+        if !["authenticated", "unauthenticated", "unknown", "revoked"].contains(&authority) {
             push_error(errors, "EVENT_AUTHORITY_DISPOSITION_INVALID", event_sha);
         }
         if ![
@@ -627,14 +653,17 @@ fn validate_temporal_events(
             push_error(errors, "VERIFIED_EFFECTIVE_TIME_MISSING", event_sha);
         }
         if authority == "authenticated" && trusted_at.is_none() {
-            push_error(errors, "AUTHENTICATED_EVENT_TRUSTED_TIME_MISSING", event_sha);
+            push_error(
+                errors,
+                "AUTHENTICATED_EVENT_TRUSTED_TIME_MISSING",
+                event_sha,
+            );
         }
         if let (Some(recorded), Some(trusted)) = (Some(recorded_at), trusted_at) {
             if trusted < recorded {
                 push_error(errors, "TRUSTED_EVENT_TIME_REVERSAL", event_sha);
             }
         }
-
     }
     Ok(events.clone())
 }
@@ -694,14 +723,8 @@ fn event_effect_for_view(
             "revalidation_required",
             "VERIFIED_EVENT_REQUIRES_DOWNSTREAM_REVALIDATION",
         ),
-        "quarantined" => (
-            "quarantined",
-            "UPSTREAM_IMPACT_REPORT_QUARANTINED_EVENT",
-        ),
-        _ => (
-            "indeterminate",
-            "UPSTREAM_IMPACT_NOT_CHECKED",
-        ),
+        "quarantined" => ("quarantined", "UPSTREAM_IMPACT_REPORT_QUARANTINED_EVENT"),
+        _ => ("indeterminate", "UPSTREAM_IMPACT_NOT_CHECKED"),
     };
 
     Some(EventEffect {
@@ -832,12 +855,18 @@ fn assess_view(
         })
         .collect::<Vec<_>>();
 
-    let event_quarantined = event_effects.iter().any(|effect| effect.effect == "quarantined");
-    let event_invalidated = event_effects.iter().any(|effect| effect.effect == "claim_invalidated");
+    let event_quarantined = event_effects
+        .iter()
+        .any(|effect| effect.effect == "quarantined");
+    let event_invalidated = event_effects
+        .iter()
+        .any(|effect| effect.effect == "claim_invalidated");
     let event_revalidation = event_effects
         .iter()
         .any(|effect| effect.effect == "revalidation_required");
-    let event_indeterminate = event_effects.iter().any(|effect| effect.effect == "indeterminate");
+    let event_indeterminate = event_effects
+        .iter()
+        .any(|effect| effect.effect == "indeterminate");
 
     let disposition = if event_quarantined || quarantined_count > 0 {
         "quarantined_pending_review"
@@ -894,11 +923,13 @@ fn derive_obligations(views: &[ViewResult], decision_node_id: &str) -> Vec<Value
                 gate.status.as_str(),
                 "failed" | "unknown" | "revalidation_required" | "quarantined"
             ) {
-                let reason = gate
-                    .reason_codes
-                    .first()
-                    .cloned()
-                    .unwrap_or_else(|| format!("{}_{}", gate.gate.to_uppercase(), gate.status.to_uppercase()));
+                let reason = gate.reason_codes.first().cloned().unwrap_or_else(|| {
+                    format!(
+                        "{}_{}",
+                        gate.gate.to_uppercase(),
+                        gate.status.to_uppercase()
+                    )
+                });
                 let target = decision_node_id.to_owned();
                 let obligation = obligation_for_gate(&gate.gate);
                 if unique.insert((target.clone(), obligation.to_owned(), reason.clone())) {
@@ -969,11 +1000,15 @@ fn evaluate(input: &Value) -> Result<Value, String> {
     let events = validate_temporal_events(input, evaluated_at, &mut errors)?;
     let views = input.get("views").ok_or("views missing")?;
 
-    let historical_raw = views.get("historical_knowledge").ok_or("historical view missing")?;
+    let historical_raw = views
+        .get("historical_knowledge")
+        .ok_or("historical view missing")?;
     let retrospective_raw = views
         .get("retrospective_at_decision")
         .ok_or("retrospective view missing")?;
-    let current_raw = views.get("current_reliance").ok_or("current view missing")?;
+    let current_raw = views
+        .get("current_reliance")
+        .ok_or("current view missing")?;
 
     let expected_times = [
         ("historical_knowledge", decision_at, decision_at),
@@ -988,7 +1023,9 @@ fn evaluate(input: &Value) -> Result<Value, String> {
             push_error(
                 &mut errors,
                 "VIEW_TIME_AXIS_MISMATCH",
-                format!("{name} must bind valid-time {expected_valid} and knowledge-time {expected_knowledge}"),
+                format!(
+                    "{name} must bind valid-time {expected_valid} and knowledge-time {expected_knowledge}"
+                ),
             );
         }
     }
@@ -1027,13 +1064,9 @@ fn evaluate(input: &Value) -> Result<Value, String> {
         .any(|result| result.disposition == "revalidation_required")
     {
         "revalidation_required"
-    } else if results
-        .iter()
-        .any(|result| {
-            result.disposition == "historical_basis_incomplete"
-                || result.disposition == "indeterminate"
-        })
-    {
+    } else if results.iter().any(|result| {
+        result.disposition == "historical_basis_incomplete" || result.disposition == "indeterminate"
+    }) {
         "indeterminate"
     } else {
         "candidate_current_within_declared_scope"
@@ -1091,8 +1124,8 @@ fn run() -> Result<(), String> {
     if arguments.len() != 1 {
         return Err("usage: ieac-decision-reliance <input.json>".into());
     }
-    let metadata = fs::metadata(&arguments[0])
-        .map_err(|error| format!("cannot stat input file: {error}"))?;
+    let metadata =
+        fs::metadata(&arguments[0]).map_err(|error| format!("cannot stat input file: {error}"))?;
     if metadata.len() > MAX_INPUT_BYTES {
         return Err(format!("input file exceeds {MAX_INPUT_BYTES} bytes"));
     }
@@ -1210,7 +1243,8 @@ mod tests {
     }
 
     #[test]
-    fn late_discovered_verified_retroactive_correction_changes_retrospective_not_historical_knowledge() {
+    fn late_discovered_verified_retroactive_correction_changes_retrospective_not_historical_knowledge()
+     {
         let mut input = base_input();
         input["temporal_events"] = json!([{
             "event_sha256": digest('f'),
