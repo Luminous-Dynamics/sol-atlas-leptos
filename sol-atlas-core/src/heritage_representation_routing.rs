@@ -14,8 +14,7 @@ use std::collections::BTreeSet;
 use std::fmt;
 
 pub const HERITAGE_ROUTING_SCHEMA_VERSION: &str = "luminous.heritage-routing.v0.1";
-pub const HERITAGE_ROUTING_REPORT_SCHEMA_VERSION: &str =
-    "luminous.heritage-routing-report.v0.1";
+pub const HERITAGE_ROUTING_REPORT_SCHEMA_VERSION: &str = "luminous.heritage-routing-report.v0.1";
 pub const MAX_ROUTING_PROFILES: usize = 1_000;
 pub const MINIMUM_INDEPENDENT_VALIDATION_SITES: usize = 3;
 
@@ -315,17 +314,13 @@ fn validate_request(
     {
         return Err(RepresentationRoutingError::InvalidQualityFloor);
     }
-    if floors.minimum_independent_validation_sites
-        < MINIMUM_INDEPENDENT_VALIDATION_SITES
-    {
+    if floors.minimum_independent_validation_sites < MINIMUM_INDEPENDENT_VALIDATION_SITES {
         return Err(RepresentationRoutingError::InvalidMinimumValidationSiteCount);
     }
     Ok(())
 }
 
-fn validate_profiles(
-    profiles: &[RepresentationProfile],
-) -> Result<(), RepresentationRoutingError> {
+fn validate_profiles(profiles: &[RepresentationProfile]) -> Result<(), RepresentationRoutingError> {
     if profiles.is_empty() {
         return Err(RepresentationRoutingError::NoProfiles);
     }
@@ -568,13 +563,8 @@ pub fn select_heritage_representation(
     qualified.sort_by(|left, right| {
         worst_site_utility(right)
             .total_cmp(&worst_site_utility(left))
-            .then_with(|| {
-                worst_site_precision(right).total_cmp(&worst_site_precision(left))
-            })
-            .then_with(|| {
-                worst_site_false_candidates(left)
-                    .total_cmp(&worst_site_false_candidates(right))
-            })
+            .then_with(|| worst_site_precision(right).total_cmp(&worst_site_precision(left)))
+            .then_with(|| worst_site_false_candidates(left).total_cmp(&worst_site_false_candidates(right)))
             .then_with(|| left.profile_id.cmp(&right.profile_id))
     });
     rejected_profiles.sort_by(|left, right| left.profile_id.cmp(&right.profile_id));
@@ -746,7 +736,14 @@ mod tests {
             RoutingDisposition::SelectedQualifiedProfile
         );
         assert_eq!(report.selected_profile_id.as_deref(), Some("stable"));
-        assert!((report.selected_worst_site_primary_metric_utility_lower_bound.unwrap() - 0.68).abs() < 1e-12);
+        assert!(
+            (report
+                .selected_worst_site_primary_metric_utility_lower_bound
+                .unwrap()
+                - 0.68)
+                .abs()
+                < 1e-12
+        );
     }
 
     #[test]
@@ -754,12 +751,17 @@ mod tests {
         let mut candidate = profile("other-biome", &[0.80, 0.80, 0.80]);
         candidate.context.biome_or_ecology_id = "open_savanna".into();
         let report = select_heritage_representation(&request(), &[candidate]).unwrap();
-        assert_eq!(report.disposition, RoutingDisposition::AbstainNoQualifiedProfile);
+        assert_eq!(
+            report.disposition,
+            RoutingDisposition::AbstainNoQualifiedProfile
+        );
         assert!(report.selected_profile_id.is_none());
         assert!(!report.silent_fallback_performed);
-        assert!(report.rejected_profiles[0].reasons.contains(
-            &ProfileRejectionReason::LandscapeContextMismatch
-        ));
+        assert!(
+            report.rejected_profiles[0]
+                .reasons
+                .contains(&ProfileRejectionReason::LandscapeContextMismatch)
+        );
     }
 
     #[test]
@@ -767,10 +769,15 @@ mod tests {
         let mut candidate = profile("test-only", &[0.90, 0.90, 0.90]);
         candidate.evaluation_role = EvaluationRole::OuterTest;
         let report = select_heritage_representation(&request(), &[candidate]).unwrap();
-        assert_eq!(report.disposition, RoutingDisposition::AbstainNoQualifiedProfile);
-        assert!(report.rejected_profiles[0]
-            .reasons
-            .contains(&ProfileRejectionReason::NotSelectorValidationRole));
+        assert_eq!(
+            report.disposition,
+            RoutingDisposition::AbstainNoQualifiedProfile
+        );
+        assert!(
+            report.rejected_profiles[0]
+                .reasons
+                .contains(&ProfileRejectionReason::NotSelectorValidationRole)
+        );
         assert!(!report.outer_test_data_used_for_selection);
     }
 
@@ -779,9 +786,11 @@ mod tests {
         let mut candidate = profile("pixel-random", &[0.90, 0.90, 0.90]);
         candidate.split_protocol = SplitProtocol::PixelRandomInterpolation;
         let report = select_heritage_representation(&request(), &[candidate]).unwrap();
-        assert!(report.rejected_profiles[0]
-            .reasons
-            .contains(&ProfileRejectionReason::SplitNotSiteOrRegionHeldOut));
+        assert!(
+            report.rejected_profiles[0]
+                .reasons
+                .contains(&ProfileRejectionReason::SplitNotSiteOrRegionHeldOut)
+        );
     }
 
     #[test]
@@ -789,16 +798,20 @@ mod tests {
         let mut candidate = profile("leaky", &[0.90, 0.90, 0.90]);
         candidate.training_site_ids.push("validation-1".into());
         let report = select_heritage_representation(&request(), &[candidate]).unwrap();
-        assert!(report.rejected_profiles[0]
-            .reasons
-            .contains(&ProfileRejectionReason::TrainingValidationSiteOverlap));
+        assert!(
+            report.rejected_profiles[0]
+                .reasons
+                .contains(&ProfileRejectionReason::TrainingValidationSiteOverlap)
+        );
     }
 
     #[test]
     fn duplicate_site_results_fail_closed() {
         let mut candidate = profile("duplicate-site", &[0.90, 0.90, 0.90]);
-        candidate.validation_site_results[1].validation_site_id =
-            candidate.validation_site_results[0].validation_site_id.clone();
+        candidate.validation_site_results[1].validation_site_id = candidate.validation_site_results
+            [0]
+            .validation_site_id
+            .clone();
         assert!(matches!(
             select_heritage_representation(&request(), &[candidate]),
             Err(RepresentationRoutingError::DuplicateValidationSiteId(_))
@@ -809,9 +822,11 @@ mod tests {
     fn insufficient_independent_sites_reject_profile() {
         let candidate = profile("too-few", &[0.90, 0.90]);
         let report = select_heritage_representation(&request(), &[candidate]).unwrap();
-        assert!(report.rejected_profiles[0]
-            .reasons
-            .contains(&ProfileRejectionReason::InsufficientIndependentValidationSites));
+        assert!(
+            report.rejected_profiles[0]
+                .reasons
+                .contains(&ProfileRejectionReason::InsufficientIndependentValidationSites)
+        );
     }
 
     #[test]
@@ -819,10 +834,15 @@ mod tests {
         let mut candidate = profile("one-bad-site", &[0.90, 0.90, 0.90]);
         candidate.validation_site_results[2].precision_lower_bound = 0.50;
         let report = select_heritage_representation(&request(), &[candidate]).unwrap();
-        assert_eq!(report.disposition, RoutingDisposition::AbstainNoQualifiedProfile);
-        assert!(report.rejected_profiles[0]
-            .reasons
-            .contains(&ProfileRejectionReason::PrecisionFloorNotMet));
+        assert_eq!(
+            report.disposition,
+            RoutingDisposition::AbstainNoQualifiedProfile
+        );
+        assert!(
+            report.rejected_profiles[0]
+                .reasons
+                .contains(&ProfileRejectionReason::PrecisionFloorNotMet)
+        );
     }
 
     #[test]
@@ -831,10 +851,15 @@ mod tests {
         candidate.rights_status = RightsStatus::Pending;
         candidate.rights_receipt_ref = None;
         let report = select_heritage_representation(&request(), &[candidate]).unwrap();
-        assert_eq!(report.disposition, RoutingDisposition::AbstainNoQualifiedProfile);
-        assert!(report.rejected_profiles[0]
-            .reasons
-            .contains(&ProfileRejectionReason::RightsNotVerified));
+        assert_eq!(
+            report.disposition,
+            RoutingDisposition::AbstainNoQualifiedProfile
+        );
+        assert!(
+            report.rejected_profiles[0]
+                .reasons
+                .contains(&ProfileRejectionReason::RightsNotVerified)
+        );
     }
 
     #[test]
@@ -842,9 +867,11 @@ mod tests {
         let mut candidate = profile("uncalibrated", &[0.90, 0.90, 0.90]);
         candidate.validation_site_results[1].calibration_passed = false;
         let report = select_heritage_representation(&request(), &[candidate]).unwrap();
-        assert!(report.rejected_profiles[0]
-            .reasons
-            .contains(&ProfileRejectionReason::CalibrationFailed));
+        assert!(
+            report.rejected_profiles[0]
+                .reasons
+                .contains(&ProfileRejectionReason::CalibrationFailed)
+        );
     }
 
     #[test]
@@ -852,10 +879,15 @@ mod tests {
         let mut candidate = profile("wrong-metric", &[0.90, 0.90, 0.90]);
         candidate.primary_metric_id = "pixel_f1".into();
         let report = select_heritage_representation(&request(), &[candidate]).unwrap();
-        assert_eq!(report.disposition, RoutingDisposition::AbstainNoQualifiedProfile);
-        assert!(report.rejected_profiles[0]
-            .reasons
-            .contains(&ProfileRejectionReason::PrimaryMetricMismatch));
+        assert_eq!(
+            report.disposition,
+            RoutingDisposition::AbstainNoQualifiedProfile
+        );
+        assert!(
+            report.rejected_profiles[0]
+                .reasons
+                .contains(&ProfileRejectionReason::PrimaryMetricMismatch)
+        );
     }
 
     #[test]
@@ -863,9 +895,11 @@ mod tests {
         let mut candidate = profile("nir-mask-mismatch", &[0.90, 0.90, 0.90]);
         candidate.channel_semantics_sha256 = "e".repeat(64);
         let report = select_heritage_representation(&request(), &[candidate]).unwrap();
-        assert!(report.rejected_profiles[0]
-            .reasons
-            .contains(&ProfileRejectionReason::ChannelSemanticsMismatch));
+        assert!(
+            report.rejected_profiles[0]
+                .reasons
+                .contains(&ProfileRejectionReason::ChannelSemanticsMismatch)
+        );
     }
 
     #[test]
@@ -873,9 +907,11 @@ mod tests {
         let mut candidate = profile("false-alarm-site", &[0.90, 0.90, 0.90]);
         candidate.validation_site_results[0].false_candidates_per_km2 = 20.0;
         let report = select_heritage_representation(&request(), &[candidate]).unwrap();
-        assert!(report.rejected_profiles[0]
-            .reasons
-            .contains(&ProfileRejectionReason::FalseCandidateCeilingExceeded));
+        assert!(
+            report.rejected_profiles[0]
+                .reasons
+                .contains(&ProfileRejectionReason::FalseCandidateCeilingExceeded)
+        );
     }
 
     #[test]
@@ -907,12 +943,9 @@ mod tests {
             .unwrap()
             .remove("profiles")
             .unwrap();
-        let request: RepresentationSelectionRequest =
-            serde_json::from_value(input_value).unwrap();
-        let profiles: Vec<RepresentationProfile> =
-            serde_json::from_value(profiles_value).unwrap();
-        let report =
-            select_heritage_representation(&request, &profiles).unwrap();
+        let request: RepresentationSelectionRequest = serde_json::from_value(input_value).unwrap();
+        let profiles: Vec<RepresentationProfile> = serde_json::from_value(profiles_value).unwrap();
+        let report = select_heritage_representation(&request, &profiles).unwrap();
         assert_eq!(report.selected_profile_id.as_deref(), Some("stable"));
 
         let expected: RepresentationSelectionReport = serde_json::from_str(include_str!(
@@ -934,8 +967,7 @@ mod tests {
             serde_json::from_value(abstain_value).unwrap();
         let abstain_profiles: Vec<RepresentationProfile> =
             serde_json::from_value(abstain_profiles_value).unwrap();
-        let abstain =
-            select_heritage_representation(&abstain_request, &abstain_profiles).unwrap();
+        let abstain = select_heritage_representation(&abstain_request, &abstain_profiles).unwrap();
         assert_eq!(
             abstain.disposition,
             RoutingDisposition::AbstainNoQualifiedProfile
@@ -952,11 +984,20 @@ mod tests {
         let report =
             select_heritage_representation(&request(), &[profile("valid", &[0.80, 0.82, 0.81])])
                 .unwrap();
-        assert_eq!(report.disposition, RoutingDisposition::SelectedQualifiedProfile);
+        assert_eq!(
+            report.disposition,
+            RoutingDisposition::SelectedQualifiedProfile
+        );
         assert!(!report.archaeological_identification_claimed);
         assert!(!report.outer_test_data_used_for_selection);
-        assert_eq!(report.selected_data_manifest_sha256.as_deref(), Some("f".repeat(64).as_str()));
-        assert_eq!(report.selected_split_manifest_sha256.as_deref(), Some("e".repeat(64).as_str()));
+        assert_eq!(
+            report.selected_data_manifest_sha256.as_deref(),
+            Some("f".repeat(64).as_str())
+        );
+        assert_eq!(
+            report.selected_split_manifest_sha256.as_deref(),
+            Some("e".repeat(64).as_str())
+        );
         assert_eq!(report.selected_validation_site_count, Some(3));
         assert!(report.selected_rights_receipt_ref.is_some());
         assert!(!report.silent_fallback_performed);
