@@ -1,0 +1,509 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/decision-reliance-receipt-v0.1.schema.json",
+  "title": "Decision Reliance Receipt v0.1",
+  "description": "Time-qualified, proof-carrying assessment of whether one exact engineering decision can be relied upon for a declared scope and purpose. Shape validation is not proof verification.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "reliance_id",
+    "decision_subject",
+    "reliance_request",
+    "required_proof_classes",
+    "proofs",
+    "change_events",
+    "outcome",
+    "findings",
+    "evaluator",
+    "claim_ceiling",
+    "action_authority",
+    "canonicalization_profile",
+    "receipt_sha256"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "luminous.engineering-decision-reliance-receipt.v0.1"
+    },
+    "reliance_id": {
+      "type": "string",
+      "minLength": 8,
+      "maxLength": 160,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+    },
+    "decision_subject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "case_id",
+        "project_id",
+        "decision_event_id",
+        "decision_identity_sha256",
+        "decision_event_payload_sha256",
+        "ieac_graph_snapshot_sha256",
+        "projection_receipt_sha256"
+      ],
+      "properties": {
+        "case_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "project_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "decision_event_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "decision_identity_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "decision_event_payload_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "ieac_graph_snapshot_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "projection_receipt_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    },
+    "reliance_request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "evaluating_actor_id",
+        "purpose",
+        "jurisdiction",
+        "scope_subjects",
+        "decision_time",
+        "evaluation_time"
+      ],
+      "properties": {
+        "evaluating_actor_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "purpose": {
+          "enum": [
+            "design_review",
+            "engineering_review",
+            "construction_release_review",
+            "operations",
+            "maintenance",
+            "regulatory_submission",
+            "benchmarking"
+          ]
+        },
+        "jurisdiction": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "scope_subjects": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          }
+        },
+        "decision_time": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "evaluation_time": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "required_proof_classes": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "decision_event_integrity",
+          "native_source_identity",
+          "source_payload_bytes",
+          "source_use_rights",
+          "source_attestation_trust",
+          "source_coverage",
+          "projection_integrity",
+          "engineering_domain_validity",
+          "lifecycle_currentness",
+          "impact_frontier_correctness",
+          "actor_reliance_authority"
+        ]
+      }
+    },
+    "proofs": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 100000,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "proof_id",
+          "proof_class",
+          "status",
+          "subject_ref",
+          "receipt_sha256",
+          "checked_at",
+          "valid_time",
+          "observation_time",
+          "trusted_at",
+          "fresh_until",
+          "revoked_at",
+          "finding_codes"
+        ],
+        "properties": {
+          "proof_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1024
+          },
+          "proof_class": {
+            "enum": [
+              "decision_event_integrity",
+              "native_source_identity",
+              "source_payload_bytes",
+              "source_use_rights",
+              "source_attestation_trust",
+              "source_coverage",
+              "projection_integrity",
+              "engineering_domain_validity",
+              "lifecycle_currentness",
+              "impact_frontier_correctness",
+              "actor_reliance_authority"
+            ]
+          },
+          "status": {
+            "enum": [
+              "qualified",
+              "stale",
+              "missing",
+              "unsupported",
+              "not_comparable",
+              "invalid",
+              "revoked",
+              "not_authorized",
+              "not_applicable",
+              "revalidation_required"
+            ]
+          },
+          "subject_ref": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2048
+          },
+          "subject_sha256": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "receipt_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "policy_sha256": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "verifier_build_sha256": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "checked_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "valid_time": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "valid_from",
+              "valid_until"
+            ],
+            "properties": {
+              "valid_from": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "date-time"
+              },
+              "valid_until": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "date-time"
+              }
+            }
+          },
+          "observation_time": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "observed_at",
+              "recorded_at"
+            ],
+            "properties": {
+              "observed_at": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "date-time"
+              },
+              "recorded_at": {
+                "type": "string",
+                "format": "date-time"
+              }
+            }
+          },
+          "trusted_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "fresh_until": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "revoked_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "finding_codes": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            }
+          }
+        }
+      }
+    },
+    "change_events": {
+      "type": "array",
+      "maxItems": 100000,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "event_id",
+          "event_type",
+          "affected_proof_ids",
+          "valid_at",
+          "observed_at",
+          "recorded_at",
+          "trusted_at",
+          "trust_status",
+          "event_sha256",
+          "receipt_sha256"
+        ],
+        "properties": {
+          "event_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1024
+          },
+          "event_type": {
+            "enum": [
+              "source_corrected",
+              "source_superseded",
+              "rights_revoked",
+              "key_revoked",
+              "calibration_expired",
+              "schema_changed",
+              "dependency_added",
+              "decision_superseded",
+              "authority_expired",
+              "solver_build_revoked",
+              "inspection_hold_added"
+            ]
+          },
+          "affected_proof_ids": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            }
+          },
+          "valid_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "observed_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "recorded_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "trusted_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "trust_status": {
+            "enum": [
+              "qualified",
+              "unverified",
+              "invalid",
+              "revoked"
+            ]
+          },
+          "event_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "receipt_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        }
+      }
+    },
+    "outcome": {
+      "enum": [
+        "reliable_for_declared_scope",
+        "revalidation_required",
+        "insufficient_evidence",
+        "not_authorized",
+        "invalid_evidence"
+      ]
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "severity",
+          "code",
+          "subject_ref",
+          "detail"
+        ],
+        "properties": {
+          "severity": {
+            "enum": [
+              "info",
+              "incomplete",
+              "revalidation",
+              "not_authorized",
+              "invalid"
+            ]
+          },
+          "code": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "subject_ref": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2048
+          },
+          "detail": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2048
+          }
+        }
+      }
+    },
+    "evaluator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "profile_sha256",
+        "build_sha256",
+        "reference_oracle_version",
+        "evaluated_at"
+      ],
+      "properties": {
+        "profile_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "build_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "reference_oracle_version": {
+          "const": "decision-reliance-reference-oracle-v0.1"
+        },
+        "evaluated_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "claim_ceiling": {
+      "const": "decision_reliance_assessment_only"
+    },
+    "action_authority": {
+      "const": "none"
+    },
+    "canonicalization_profile": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256,
+      "description": "Exact #347 canonicalization profile identifier; schema does not select JCS or deterministic CBOR."
+    },
+    "receipt_sha256": {
+      "$ref": "#/$defs/sha256",
+      "description": "Digest of the complete receipt core under the declared #347 canonicalization profile, excluding this field."
+    }
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  }
+}
