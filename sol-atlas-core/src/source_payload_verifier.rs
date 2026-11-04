@@ -399,7 +399,6 @@ where
             "invalid descriptor catalogue was rejected before any payload object was opened",
         ));
         return catalog_report(
-            case,
             catalog,
             context,
             case_sha256,
@@ -466,7 +465,6 @@ where
 
     records.sort_by(|left, right| left.record_key.cmp(&right.record_key));
     catalog_report(
-        case,
         catalog,
         context,
         case_sha256,
@@ -478,7 +476,6 @@ where
 }
 
 fn catalog_report(
-    case: &BuiltEnvironmentCase,
     catalog: &SourceDescriptorCatalog,
     context: &PayloadByteVerificationContext,
     case_sha256: String,
@@ -611,7 +608,10 @@ fn valid_sha256(value: &str) -> bool {
 }
 
 fn sha256_hex(bytes: &[u8]) -> String {
-    hex_digest(Sha256::digest(bytes).as_slice())
+    {
+        let digest = Sha256::digest(bytes);
+        hex_digest(&digest)
+    }
 }
 
 fn hex_digest(bytes: &[u8]) -> String {
@@ -635,7 +635,6 @@ mod tests {
         SourceRecordDescriptor, SourceRecordKind, SourceRightsDescriptor, SourceRightsState,
         SourceSnapshotDescriptor,
     };
-    use std::collections::BTreeMap;
     use std::io::Cursor;
 
     fn sha(bytes: &[u8]) -> String {
