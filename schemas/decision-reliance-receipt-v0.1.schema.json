@@ -127,7 +127,8 @@
               "actor_authorization",
               "schema_interoperability"
             ]
-          }
+          },
+          "description": "The complete proof-class set required by the declared reliance profile. The evaluator must verify that each listed class has exactly one corresponding obligation row; it must not infer completeness from the obligation rows alone."
         }
       }
     },
