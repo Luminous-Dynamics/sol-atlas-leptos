@@ -1289,6 +1289,99 @@ mod tests {
     }
 
     #[test]
+    fn source_evidence_ids_must_match_dependency_set_exactly() {
+        let mut value = input();
+        value.elements[0].dependencies[0].reference_id = Some("field-assessment".into());
+        assert!(matches!(
+            validate_heritage_reconstruction(&value),
+            Err(HeritageReconstructionError::SourceEvidenceDependencySetMismatch(_))
+        ));
+    }
+
+    #[test]
+    fn method_build_digest_must_match_dependency_digest() {
+        let mut value = input();
+        value.elements[0].dependencies[1].artifact_sha256 = Some("9".repeat(64));
+        assert!(matches!(
+            validate_heritage_reconstruction(&value),
+            Err(HeritageReconstructionError::MethodBuildDigestMismatch(_))
+        ));
+    }
+
+    #[test]
+    fn disputed_chronology_cannot_have_reversed_bounds() {
+        let mut value = input();
+        value.elements[0].temporal_interval = TemporalInterval {
+            kind: TemporalExtentKind::Disputed,
+            lower_year_ce: Some(250),
+            upper_year_ce: Some(150),
+            chronology_evidence_ids: vec!["chronology".into()],
+        };
+        assert!(matches!(
+            validate_heritage_reconstruction(&value),
+            Err(HeritageReconstructionError::InvalidTemporalInterval(_))
+        ));
+    }
+
+    #[test]
+    fn verified_evidence_requires_a_rights_receipt() {
+        let mut value = input();
+        value.evidence[0].rights_receipt_ref = None;
+        assert!(matches!(
+            validate_heritage_reconstruction(&value),
+            Err(HeritageReconstructionError::VerifiedEvidenceRightsReceiptMissing { .. })
+        ));
+    }
+
+    #[test]
+    fn simulation_manifest_digest_must_match_manifest_dependency() {
+        let mut value = input();
+        let mut element = observed_element();
+        element.element_id = "scenario-surface".into();
+        element.epistemic_class = EpistemicGeometryClass::Simulated;
+        element.geometry_uncertainty = Some(uncertainty(
+            UncertaintyRepresentation::ScenarioRange,
+        ));
+        element.method_build_sha256 = Some("4".repeat(64));
+        element.simulation_manifest_sha256 = Some("6".repeat(64));
+        element.dependencies = vec![
+            ReconstructionDependency {
+                dependency_id: "source-lidar".into(),
+                kind: DependencyKind::SourceEvidence,
+                reference_id: Some("lidar-measurement".into()),
+                artifact_sha256: None,
+                statement: "Initial measured terrain conditions".into(),
+            },
+            ReconstructionDependency {
+                dependency_id: "method".into(),
+                kind: DependencyKind::MethodBuild,
+                reference_id: Some("sim-v1".into()),
+                artifact_sha256: Some("4".repeat(64)),
+                statement: "Simulation build".into(),
+            },
+            ReconstructionDependency {
+                dependency_id: "simulation-model".into(),
+                kind: DependencyKind::SimulationModel,
+                reference_id: Some("sim-v1".into()),
+                artifact_sha256: Some("4".repeat(64)),
+                statement: "Simulation model".into(),
+            },
+            ReconstructionDependency {
+                dependency_id: "simulation-manifest".into(),
+                kind: DependencyKind::SimulationManifest,
+                reference_id: Some("run-001".into()),
+                artifact_sha256: Some("5".repeat(64)),
+                statement: "Simulation run manifest".into(),
+            },
+        ];
+        value.elements = vec![element];
+        assert!(matches!(
+            validate_heritage_reconstruction(&value),
+            Err(HeritageReconstructionError::SimulationManifestDigestMismatch(_))
+        ));
+    }
+
+    #[test]
     fn synthetic_observed_fixture_and_report_round_trip() {
         let input: HeritageReconstructionInput = serde_json::from_str(include_str!(
             "../../schemas/examples/heritage-reconstruction-input-synthetic-v0.1.json"
