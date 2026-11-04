@@ -188,6 +188,9 @@ pub struct HeritageObservabilityReport {
     pub candidate_id: String,
     pub profile_id: String,
     pub profile_sha256: String,
+    pub calibration_context: SurveyContext,
+    pub observed_context: SurveyContext,
+    pub observation_profile_sha256: String,
     pub observation_id: Option<String>,
     pub observation_outcome: ObservationOutcome,
     pub disposition: ObservabilityDisposition,
@@ -562,6 +565,9 @@ pub fn evaluate_heritage_observability(
         candidate_id: input.candidate_id.clone(),
         profile_id: input.calibration_profile.profile_id.clone(),
         profile_sha256: input.calibration_profile.profile_sha256.clone(),
+        calibration_context: input.calibration_profile.context.clone(),
+        observed_context: observation.context.clone(),
+        observation_profile_sha256: observation.calibration_profile_sha256.clone(),
         observation_id: observation.observation_id.clone(),
         observation_outcome: observation.outcome,
         disposition,
@@ -664,6 +670,9 @@ mod tests {
         assert!(!report.archaeological_identification_claimed);
         assert!(!report.combined_multi_observation_probability_reported);
         assert!(report.reasons.is_empty());
+        assert_eq!(report.calibration_context, context());
+        assert_eq!(report.observed_context, context());
+        assert_eq!(report.observation_profile_sha256, "c".repeat(64));
     }
 
     #[test]
