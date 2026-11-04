@@ -1,6 +1,6 @@
 # Federated Source Inventory Completeness — Research and Benchmark Contract v0.1
 
-**Status:** research contract / not yet implemented  
+**Status:** Rust schema/verifier implementation integrated on the feature branch; exact-head CI qualification pending  
 **Scope:** source-system inventory claims feeding the built-environment source descriptor catalogue and IEAC projection  
 **Claim boundary:** this protocol can qualify an inventory within an authenticated, declared query boundary. It cannot prove that the declared source set is the entire real-world source universe.
 
@@ -22,7 +22,7 @@ The intended pipeline is:
 2. **Freeze:** obtain a source snapshot token, watermark, immutable export ID, or explicitly record that the source cannot provide snapshot consistency.
 3. **Enumerate:** retrieve every page/partition under a canonical query scope, preserving page order and cursor ancestry.
 4. **Reconcile:** compare reported totals, returned identities, tombstones, duplicates, filters and exclusions.
-5. **Attest:** authenticate the receipt issuer/key and verify the receipt signature and trust status in a separate verifier.
+5. **Attest:** authenticate the receipt issuer/key and verify the receipt signature and trust status in a separate verifier. The current structural verifier deliberately reports page-payload byte verification and source-attestation authentication as `not_performed`; it cannot independently issue the full authenticated disposition.
 6. **Qualify:** issue a bounded inventory disposition with precise nonclaims.
 7. **Project:** only then compose the record descriptors into IEAC. A descriptor catalogue cannot promote an incomplete inventory to complete.
 
@@ -213,10 +213,10 @@ Downstream NoImpact must require a validated dependency graph **and** a sufficie
 ## 8. Implementation sequence
 
 1. Freeze this contract and publish the synthetic positive/negative manifests.
-2. Add a Rust SourceInventoryManifest model and JSON Schema in a separate v0.1 module, leaving the existing descriptor schema additive and backwards-compatible.
+2. **Implemented on this branch:** add a Rust `SourceInventoryManifest` model and Draft 2020-12 JSON Schema in a separate v0.1 module, leaving the existing descriptor schema additive and backwards-compatible. The validator binds page receipts, partitions, cursor/predecessor chains, counts, exclusions and tombstones. It includes deterministic 1,000-mutation negative controls for page gaps, cursor replay, cross-snapshot substitution and source-count mismatch.
 3. Implement canonical query, page-chain and snapshot binding validation.
 4. Keep cryptographic signature verification as a separate verifier input with explicit trust-policy results; do not conflate it with structural validation.
-5. Join inventory dispositions to descriptor validation and IEAC projection receipts.
+5. **Implemented as a composition helper:** `qualify_projection_with_inventory` joins inventory closure into an IEAC projection receipt; invalid closure returns no graph, incomplete/exclusion-bearing closure downgrades the claim ceiling, and every result explicitly has `negative_finding_eligibility=false` until byte, attestation and source-truth verification are performed.
 6. Add independent full-inventory gold oracles and mutation tests.
 7. Add change-event/tombstone watermarks to revalidation-frontier certificates.
 8. Only then compare end-to-end completeness, latency and cost against independent connector exports and vendor interfaces.
