@@ -1,0 +1,98 @@
+name: IEAC decision reliance continuity qualification
+
+on:
+  pull_request:
+    paths:
+      - "tools/ieac-decision-reliance-evaluator/**"
+      - "schemas/industry-assurance-decision-reliance-*.schema.json"
+      - "schemas/examples/decision-reliance-*.json"
+      - ".github/workflows/ieac-decision-reliance.yml"
+  push:
+    branches:
+      - main
+      - research/ieac-decision-reliance-continuity-v0-1
+    paths:
+      - "tools/ieac-decision-reliance-evaluator/**"
+      - "schemas/industry-assurance-decision-reliance-*.schema.json"
+      - "schemas/examples/decision-reliance-*.json"
+      - ".github/workflows/ieac-decision-reliance.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ieac-decision-reliance-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  evaluator:
+    name: Exact-head bitemporal decision reliance evaluator
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout immutable source revision
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Assert exact checkout
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+
+      - name: Install stable Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Format, strict Clippy, and unit tests
+        run: |
+          set -euo pipefail
+          manifest=tools/ieac-decision-reliance-evaluator/Cargo.toml
+          cargo fmt --manifest-path "$manifest" --check
+          cargo clippy --manifest-path "$manifest" --locked --all-targets -- -D warnings
+          cargo test --manifest-path "$manifest" --locked
+
+      - name: Install pinned Draft 2020-12 schema validator
+        run: cargo install --locked jsonschema-cli --version 0.60.2 --root "$RUNNER_TEMP/jsonschema-cli"
+
+      - name: Validate schemas and execute frozen late-correction scenario
+        run: |
+          set -euo pipefail
+          echo "$RUNNER_TEMP/jsonschema-cli/bin" >> "$GITHUB_PATH"
+          export PATH="$RUNNER_TEMP/jsonschema-cli/bin:$PATH"
+          input_schema=schemas/industry-assurance-decision-reliance-input-v0.1.schema.json
+          report_schema=schemas/industry-assurance-decision-reliance-report-v0.1.schema.json
+          fixture=schemas/examples/decision-reliance-late-source-correction-synthetic-v0.1.json
+          meta_schema="$RUNNER_TEMP/draft-2020-12-meta-schema.json"
+          curl --fail --location --retry 5 --retry-connrefused             https://json-schema.org/draft/2020-12/schema -o "$meta_schema"
+          jsonschema-cli validate --draft 2020 --assert-format "$meta_schema" -i "$input_schema"
+          jsonschema-cli validate --draft 2020 --assert-format "$meta_schema" -i "$report_schema"
+          jsonschema-cli validate --draft 2020 --assert-format --offline "$input_schema" -i "$fixture"
+
+          cargo run --manifest-path tools/ieac-decision-reliance-evaluator/Cargo.toml             --locked -- "$fixture" > "$RUNNER_TEMP/decision-reliance-report.json"
+          jsonschema-cli validate --draft 2020 --assert-format --offline "$report_schema"             -i "$RUNNER_TEMP/decision-reliance-report.json"
+
+          jq -e '
+            .views.historical_knowledge.disposition == "candidate_current_within_declared_scope" and
+            .views.retrospective_at_decision.disposition == "claim_invalidated" and
+            .views.current_reliance.disposition == "claim_invalidated" and
+            .continuity_assessment == "temporal_views_diverge" and
+            .historical_record_preserved == true and
+            .input_authentication == "not_performed" and
+            .impact_recomputation == "not_performed" and
+            .action_authority == "none" and
+            .claim_ceiling == "upstream_receipt_composition_only"
+          ' "$RUNNER_TEMP/decision-reliance-report.json"
+
+      - name: Negative schema control — invalid authority states remain explicit
+        run: |
+          set -euo pipefail
+          fixture=schemas/examples/decision-reliance-late-source-correction-synthetic-v0.1.json
+          input_schema=schemas/industry-assurance-decision-reliance-input-v0.1.schema.json
+          jq '.temporal_events[0].authority_disposition = "trusted_by_composer"' "$fixture"             > "$RUNNER_TEMP/authority-promotion.json"
+          if jsonschema-cli validate --draft 2020 --assert-format --offline "$input_schema"               -i "$RUNNER_TEMP/authority-promotion.json"; then
+            echo "ERROR: schema accepted an invented authority state"
+            exit 1
+          fi

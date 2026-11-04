@@ -1,0 +1,992 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/schemas/industry-assurance-decision-reliance-report-v0.1.schema.json",
+  "title": "IEAC Decision Reliance Continuity Report v0.1",
+  "description": "Three-axis composition report. It preserves historical knowledge, retrospective state at decision time, and current reliance without authorizing action.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "report_id",
+    "input_sha256",
+    "decision",
+    "evaluated_at",
+    "views",
+    "temporal_events",
+    "historical_record_preserved",
+    "input_authentication",
+    "impact_recomputation",
+    "action_authority",
+    "claim_ceiling",
+    "not_checked",
+    "obligations",
+    "validation_errors",
+    "report_sha256",
+    "continuity_assessment"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "luminous.ieac-decision-reliance-report.v0.1"
+    },
+    "report_id": {
+      "type": "string",
+      "minLength": 8,
+      "maxLength": 128
+    },
+    "input_sha256": {
+      "$ref": "#/$defs/sha256"
+    },
+    "decision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "decision_id",
+        "target_node_id",
+        "target_artifact_sha256",
+        "decided_at",
+        "scope_sha256",
+        "purpose"
+      ],
+      "properties": {
+        "decision_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "target_node_id": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 256
+        },
+        "target_artifact_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "decided_at": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$"
+        },
+        "scope_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "purpose": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
+    },
+    "evaluated_at": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$"
+    },
+    "views": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "historical_knowledge",
+        "retrospective_at_decision",
+        "current_reliance"
+      ],
+      "properties": {
+        "historical_knowledge": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "valid_time_as_of",
+            "knowledge_cutoff_at",
+            "disposition",
+            "gate_results",
+            "qualified_count",
+            "failed_count",
+            "unknown_count",
+            "revalidation_required_count",
+            "quarantined_count",
+            "missing_required_gates",
+            "event_effects"
+          ],
+          "properties": {
+            "valid_time_as_of": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$"
+            },
+            "knowledge_cutoff_at": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$"
+            },
+            "disposition": {
+              "enum": [
+                "candidate_current_within_declared_scope",
+                "revalidation_required",
+                "historical_basis_incomplete",
+                "claim_invalidated",
+                "quarantined_pending_review",
+                "indeterminate",
+                "invalid_input"
+              ]
+            },
+            "gate_results": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "gate",
+                  "status",
+                  "receipt_sha256",
+                  "verifier_build_sha256",
+                  "scope_sha256",
+                  "checked_at",
+                  "knowledge_available_at",
+                  "valid_until",
+                  "reason_codes"
+                ],
+                "properties": {
+                  "gate": {
+                    "enum": [
+                      "source_coverage",
+                      "native_identity",
+                      "payload_integrity",
+                      "source_authenticity",
+                      "rights",
+                      "lifecycle",
+                      "impact_oracle",
+                      "engineering",
+                      "decision_authority",
+                      "inspection",
+                      "accepted_work"
+                    ]
+                  },
+                  "status": {
+                    "enum": [
+                      "qualified",
+                      "failed",
+                      "unknown",
+                      "revalidation_required",
+                      "quarantined",
+                      "not_applicable"
+                    ]
+                  },
+                  "receipt_sha256": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "pattern": "^[0-9a-f]{64}$"
+                  },
+                  "verifier_build_sha256": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "pattern": "^[0-9a-f]{64}$"
+                  },
+                  "scope_sha256": {
+                    "$ref": "#/$defs/sha256"
+                  },
+                  "checked_at": {
+                    "type": "string",
+                    "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$"
+                  },
+                  "knowledge_available_at": {
+                    "type": "string",
+                    "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$"
+                  },
+                  "valid_until": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$"
+                  },
+                  "reason_codes": {
+                    "type": "array",
+                    "uniqueItems": true,
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 128
+                    }
+                  }
+                }
+              }
+            },
+            "qualified_count": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "failed_count": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "unknown_count": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "revalidation_required_count": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "quarantined_count": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "missing_required_gates": {
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "enum": [
+                  "source_coverage",
+                  "native_identity",
+                  "payload_integrity",
+                  "source_authenticity",
+                  "rights",
+                  "lifecycle",
+                  "impact_oracle",
+                  "engineering",
+                  "decision_authority",
+                  "inspection",
+                  "accepted_work"
+                ]
+              }
+            },
+            "event_effects": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "event_sha256",
+                  "target_node_id",
+                  "cause_class",
+                  "effect",
+                  "reason_code"
+                ],
+                "properties": {
+                  "event_sha256": {
+                    "$ref": "#/$defs/sha256"
+                  },
+                  "target_node_id": {
+                    "type": "string",
+                    "minLength": 3,
+                    "maxLength": 256
+                  },
+                  "cause_class": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128
+                  },
+                  "effect": {
+                    "enum": [
+                      "claim_invalidated",
+                      "revalidation_required",
+                      "quarantined",
+                      "indeterminate"
+                    ]
+                  },
+                  "reason_code": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128
+                  }
+                }
+              }
+            }
+          }
+        },
+        "retrospective_at_decision": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "valid_time_as_of",
+            "knowledge_cutoff_at",
+            "disposition",
+            "gate_results",
+            "qualified_count",
+            "failed_count",
+            "unknown_count",
+            "revalidation_required_count",
+            "quarantined_count",
+            "missing_required_gates",
+            "event_effects"
+          ],
+          "properties": {
+            "valid_time_as_of": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$"
+            },
+            "knowledge_cutoff_at": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$"
+            },
+            "disposition": {
+              "enum": [
+                "candidate_current_within_declared_scope",
+                "revalidation_required",
+                "historical_basis_incomplete",
+                "claim_invalidated",
+                "quarantined_pending_review",
+                "indeterminate",
+                "invalid_input"
+              ]
+            },
+            "gate_results": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "gate",
+                  "status",
+                  "receipt_sha256",
+                  "verifier_build_sha256",
+                  "scope_sha256",
+                  "checked_at",
+                  "knowledge_available_at",
+                  "valid_until",
+                  "reason_codes"
+                ],
+                "properties": {
+                  "gate": {
+                    "enum": [
+                      "source_coverage",
+                      "native_identity",
+                      "payload_integrity",
+                      "source_authenticity",
+                      "rights",
+                      "lifecycle",
+                      "impact_oracle",
+                      "engineering",
+                      "decision_authority",
+                      "inspection",
+                      "accepted_work"
+                    ]
+                  },
+                  "status": {
+                    "enum": [
+                      "qualified",
+                      "failed",
+                      "unknown",
+                      "revalidation_required",
+                      "quarantined",
+                      "not_applicable"
+                    ]
+                  },
+                  "receipt_sha256": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "pattern": "^[0-9a-f]{64}$"
+                  },
+                  "verifier_build_sha256": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "pattern": "^[0-9a-f]{64}$"
+                  },
+                  "scope_sha256": {
+                    "$ref": "#/$defs/sha256"
+                  },
+                  "checked_at": {
+                    "type": "string",
+                    "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$"
+                  },
+                  "knowledge_available_at": {
+                    "type": "string",
+                    "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$"
+                  },
+                  "valid_until": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$"
+                  },
+                  "reason_codes": {
+                    "type": "array",
+                    "uniqueItems": true,
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 128
+                    }
+                  }
+                }
+              }
+            },
+            "qualified_count": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "failed_count": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "unknown_count": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "revalidation_required_count": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "quarantined_count": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "missing_required_gates": {
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "enum": [
+                  "source_coverage",
+                  "native_identity",
+                  "payload_integrity",
+                  "source_authenticity",
+                  "rights",
+                  "lifecycle",
+                  "impact_oracle",
+                  "engineering",
+                  "decision_authority",
+                  "inspection",
+                  "accepted_work"
+                ]
+              }
+            },
+            "event_effects": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "event_sha256",
+                  "target_node_id",
+                  "cause_class",
+                  "effect",
+                  "reason_code"
+                ],
+                "properties": {
+                  "event_sha256": {
+                    "$ref": "#/$defs/sha256"
+                  },
+                  "target_node_id": {
+                    "type": "string",
+                    "minLength": 3,
+                    "maxLength": 256
+                  },
+                  "cause_class": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128
+                  },
+                  "effect": {
+                    "enum": [
+                      "claim_invalidated",
+                      "revalidation_required",
+                      "quarantined",
+                      "indeterminate"
+                    ]
+                  },
+                  "reason_code": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128
+                  }
+                }
+              }
+            }
+          }
+        },
+        "current_reliance": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "valid_time_as_of",
+            "knowledge_cutoff_at",
+            "disposition",
+            "gate_results",
+            "qualified_count",
+            "failed_count",
+            "unknown_count",
+            "revalidation_required_count",
+            "quarantined_count",
+            "missing_required_gates",
+            "event_effects"
+          ],
+          "properties": {
+            "valid_time_as_of": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$"
+            },
+            "knowledge_cutoff_at": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$"
+            },
+            "disposition": {
+              "enum": [
+                "candidate_current_within_declared_scope",
+                "revalidation_required",
+                "historical_basis_incomplete",
+                "claim_invalidated",
+                "quarantined_pending_review",
+                "indeterminate",
+                "invalid_input"
+              ]
+            },
+            "gate_results": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "gate",
+                  "status",
+                  "receipt_sha256",
+                  "verifier_build_sha256",
+                  "scope_sha256",
+                  "checked_at",
+                  "knowledge_available_at",
+                  "valid_until",
+                  "reason_codes"
+                ],
+                "properties": {
+                  "gate": {
+                    "enum": [
+                      "source_coverage",
+                      "native_identity",
+                      "payload_integrity",
+                      "source_authenticity",
+                      "rights",
+                      "lifecycle",
+                      "impact_oracle",
+                      "engineering",
+                      "decision_authority",
+                      "inspection",
+                      "accepted_work"
+                    ]
+                  },
+                  "status": {
+                    "enum": [
+                      "qualified",
+                      "failed",
+                      "unknown",
+                      "revalidation_required",
+                      "quarantined",
+                      "not_applicable"
+                    ]
+                  },
+                  "receipt_sha256": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "pattern": "^[0-9a-f]{64}$"
+                  },
+                  "verifier_build_sha256": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "pattern": "^[0-9a-f]{64}$"
+                  },
+                  "scope_sha256": {
+                    "$ref": "#/$defs/sha256"
+                  },
+                  "checked_at": {
+                    "type": "string",
+                    "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$"
+                  },
+                  "knowledge_available_at": {
+                    "type": "string",
+                    "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$"
+                  },
+                  "valid_until": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$"
+                  },
+                  "reason_codes": {
+                    "type": "array",
+                    "uniqueItems": true,
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 128
+                    }
+                  }
+                }
+              }
+            },
+            "qualified_count": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "failed_count": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "unknown_count": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "revalidation_required_count": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "quarantined_count": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "missing_required_gates": {
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "enum": [
+                  "source_coverage",
+                  "native_identity",
+                  "payload_integrity",
+                  "source_authenticity",
+                  "rights",
+                  "lifecycle",
+                  "impact_oracle",
+                  "engineering",
+                  "decision_authority",
+                  "inspection",
+                  "accepted_work"
+                ]
+              }
+            },
+            "event_effects": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "event_sha256",
+                  "target_node_id",
+                  "cause_class",
+                  "effect",
+                  "reason_code"
+                ],
+                "properties": {
+                  "event_sha256": {
+                    "$ref": "#/$defs/sha256"
+                  },
+                  "target_node_id": {
+                    "type": "string",
+                    "minLength": 3,
+                    "maxLength": 256
+                  },
+                  "cause_class": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128
+                  },
+                  "effect": {
+                    "enum": [
+                      "claim_invalidated",
+                      "revalidation_required",
+                      "quarantined",
+                      "indeterminate"
+                    ]
+                  },
+                  "reason_code": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "temporal_events": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "event_sha256",
+          "cause_class",
+          "target_node_id",
+          "target_artifact_sha256",
+          "effective_at",
+          "recorded_at",
+          "trusted_at",
+          "effective_time_confidence",
+          "authority_disposition",
+          "impact_disposition",
+          "impact_report_sha256",
+          "scope_sha256",
+          "authority_receipt_sha256",
+          "effective_time_evidence_sha256",
+          "lifecycle_validation_receipt_sha256",
+          "impact_verifier_build_sha256"
+        ],
+        "properties": {
+          "event_sha256": {
+            "$ref": "#/$defs/sha256"
+          },
+          "cause_class": {
+            "enum": [
+              "source_corrected",
+              "rights_revoked_or_expired",
+              "issuer_key_compromised",
+              "issuer_key_revoked_or_rotated",
+              "schema_superseded",
+              "model_superseded",
+              "verifier_vulnerable",
+              "policy_changed",
+              "authority_revoked",
+              "evidence_disputed",
+              "execution_corrected",
+              "outcome_corrected",
+              "dependency_discovered"
+            ]
+          },
+          "target_node_id": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 256
+          },
+          "target_artifact_sha256": {
+            "$ref": "#/$defs/sha256"
+          },
+          "effective_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$"
+          },
+          "recorded_at": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$"
+          },
+          "trusted_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$"
+          },
+          "effective_time_confidence": {
+            "enum": [
+              "verified",
+              "authority_asserted",
+              "unknown",
+              "disputed"
+            ]
+          },
+          "authority_disposition": {
+            "enum": [
+              "authenticated",
+              "unauthenticated",
+              "unknown",
+              "revoked"
+            ]
+          },
+          "impact_disposition": {
+            "enum": [
+              "affected",
+              "unaffected",
+              "revalidation_required",
+              "quarantined",
+              "not_checked"
+            ]
+          },
+          "impact_report_sha256": {
+            "$ref": "#/$defs/sha256"
+          },
+          "scope_sha256": {
+            "$ref": "#/$defs/sha256"
+          },
+          "authority_receipt_sha256": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "effective_time_evidence_sha256": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "lifecycle_validation_receipt_sha256": {
+            "$ref": "#/$defs/sha256"
+          },
+          "impact_verifier_build_sha256": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "authority_disposition": {
+                  "const": "authenticated"
+                }
+              },
+              "required": [
+                "authority_disposition"
+              ]
+            },
+            "then": {
+              "properties": {
+                "authority_receipt_sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "effective_time_confidence": {
+                  "const": "verified"
+                }
+              },
+              "required": [
+                "effective_time_confidence"
+              ]
+            },
+            "then": {
+              "properties": {
+                "effective_at": {
+                  "type": "string",
+                  "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$"
+                },
+                "effective_time_evidence_sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "impact_disposition": {
+                  "enum": [
+                    "affected",
+                    "unaffected",
+                    "revalidation_required",
+                    "quarantined"
+                  ]
+                }
+              },
+              "required": [
+                "impact_disposition"
+              ]
+            },
+            "then": {
+              "properties": {
+                "impact_verifier_build_sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    "historical_record_preserved": {
+      "const": true
+    },
+    "input_authentication": {
+      "const": "not_performed"
+    },
+    "impact_recomputation": {
+      "const": "not_performed"
+    },
+    "action_authority": {
+      "const": "none"
+    },
+    "claim_ceiling": {
+      "const": "upstream_receipt_composition_only"
+    },
+    "not_checked": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 512
+      }
+    },
+    "obligations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "target_node_id",
+          "obligation_class",
+          "reason_code"
+        ],
+        "properties": {
+          "target_node_id": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 256
+          },
+          "obligation_class": {
+            "enum": [
+              "reverify_source",
+              "reverify_rights",
+              "reverify_signature_and_trust",
+              "recompute_engineering",
+              "reinspect_physical_work",
+              "review_authority",
+              "resolve_dispute",
+              "restore_coverage",
+              "manual_review"
+            ]
+          },
+          "reason_code": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          }
+        }
+      }
+    },
+    "validation_errors": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 2048
+      }
+    },
+    "report_sha256": {
+      "$ref": "#/$defs/sha256"
+    },
+    "continuity_assessment": {
+      "enum": [
+        "views_consistent_candidate",
+        "views_consistent_non_candidate",
+        "temporal_views_diverge",
+        "invalid_input"
+      ]
+    }
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  }
+}
