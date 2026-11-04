@@ -245,6 +245,13 @@ impl OutcomeFlags {
     }
 }
 
+fn valid_sha256(value: &str) -> bool {
+    value.len() == 64
+        && value
+            .bytes()
+            .all(|byte| byte.is_ascii_hexdigit() && !byte.is_ascii_uppercase())
+}
+
 fn valid_utc_timestamp(value: &str) -> bool {
     let bytes = value.as_bytes();
     if bytes.len() != 20
@@ -674,6 +681,16 @@ pub fn evaluate_decision_reliance_reference(
     let mut qualified_proof_count = 0usize;
     let mut unresolved_proof_count = 0usize;
     for proof in proofs {
+        if proof.proof_id.trim().is_empty() || proof.subject_ref.trim().is_empty() {
+            flags.invalid = true;
+            push_finding(
+                &mut findings,
+                "invalid",
+                "EMPTY_PROOF_IDENTITY",
+                &proof.subject_ref,
+                "proof_id and subject_ref must be non-empty",
+            );
+        }
         for (field, digest) in [
             ("receipt_sha256", Some(proof.receipt_sha256.as_str())),
             ("subject_sha256", proof.subject_sha256.as_deref()),
@@ -735,6 +752,22 @@ pub fn evaluate_decision_reliance_reference(
     let mut late_arriving_change_event_count = 0usize;
     let mut future_or_untrusted_change_event_count = 0usize;
     for event in change_events {
+        let unique_affected = event
+            .affected_proof_ids
+            .iter()
+            .collect::<BTreeSet<_>>();
+        if event.event_id.trim().is_empty()
+            || unique_affected.len() != event.affected_proof_ids.len()
+        {
+            flags.invalid = true;
+            push_finding(
+                &mut findings,
+                "invalid",
+                "INVALID_CHANGE_EVENT_IDENTITY",
+                &event.event_id,
+                "event ID must be non-empty and affected proof IDs must be unique",
+            );
+        }
         for (field, digest) in [
             ("event_sha256", event.event_sha256.as_str()),
             ("receipt_sha256", event.receipt_sha256.as_str()),
@@ -983,6 +1016,61 @@ mod tests {
             DecisionRelianceProofClass::SourceCoverage,
             DecisionRelianceProofClass::ActorRelianceAuthority,
         ]
+    }
+
+    #[derive(Deserialize)]
+    struct SyntheticTemporalCorpus {
+        schema_version: String,
+        scenarios: Vec<SyntheticRelianceScenario>,
+    }
+
+    #[derive(Deserialize)]
+    struct SyntheticRelianceScenario {
+        scenario_id: String,
+        decision_time: String,
+        evaluation_time: String,
+        required_proof_classes: Vec<DecisionRelianceProofClass>,
+        proofs: Vec<DecisionRelianceProof>,
+        change_events: Vec<DecisionRelianceChangeEvent>,
+        expected_outcome: DecisionRelianceOutcome,
+        expected_late_arriving_events: Option<usize>,
+    }
+
+    #[test]
+    fn frozen_synthetic_temporal_corpus_matches_independent_reference_oracle() {
+        let corpus: SyntheticTemporalCorpus = serde_json::from_str(include_str!(
+            "../../schemas/examples/decision-reliance-temporal-corpus-synthetic-v0.1.json"
+        ))
+        .expect("frozen temporal corpus must deserialize");
+        assert_eq!(
+            corpus.schema_version,
+            "luminous.decision-reliance-temporal-corpus.v0.1"
+        );
+        assert_eq!(corpus.scenarios.len(), 8);
+
+        for scenario in corpus.scenarios {
+            let result = evaluate_decision_reliance_reference(
+                &scenario.decision_time,
+                &scenario.evaluation_time,
+                &scenario.required_proof_classes,
+                &scenario.proofs,
+                &scenario.change_events,
+            );
+            assert_eq!(
+                result.outcome,
+                scenario.expected_outcome,
+                "scenario {}",
+                scenario.scenario_id
+            );
+            if let Some(expected_late_arriving_events) = scenario.expected_late_arriving_events {
+                assert_eq!(
+                    result.late_arriving_change_event_count,
+                    expected_late_arriving_events,
+                    "scenario {}",
+                    scenario.scenario_id
+                );
+            }
+        }
     }
 
     #[test]
