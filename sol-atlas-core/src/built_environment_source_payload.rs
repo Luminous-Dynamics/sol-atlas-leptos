@@ -665,6 +665,35 @@ mod tests {
     use std::collections::BTreeMap;
     use std::io::Cursor;
 
+    struct FailingReader {
+        emitted_partial: bool,
+    }
+
+    impl Read for FailingReader {
+        fn read(&mut self, buffer: &mut [u8]) -> io::Result<usize> {
+            if !self.emitted_partial {
+                self.emitted_partial = true;
+                let partial = b"partial";
+                let count = buffer.len().min(partial.len());
+                buffer[..count].copy_from_slice(&partial[..count]);
+                return Ok(count);
+            }
+            Err(io::Error::other("synthetic stream read failure"))
+        }
+    }
+
+    struct FailingReadResolver;
+
+    impl ContentAddressedPayloadResolver for FailingReadResolver {
+        type Reader = FailingReader;
+
+        fn open(&mut self, _object_reference: &str) -> io::Result<Self::Reader> {
+            Ok(FailingReader {
+                emitted_partial: false,
+            })
+        }
+    }
+
     #[derive(Default)]
     struct MemoryResolver {
         objects: BTreeMap<String, Vec<u8>>,
@@ -910,6 +939,32 @@ mod tests {
         );
         assert_eq!(report.disposition, PayloadVerificationDisposition::IncompleteOrIndeterminate);
         assert_eq!(report.records[0].disposition, PayloadByteDisposition::ReadFailed);
+    }
+
+    #[test]
+    fn stream_read_error_after_partial_bytes_is_not_misreported_as_digest_mismatch() {
+        let bytes = b"partial-and-more";
+        let case = case();
+        let catalog = catalog(&case, bytes);
+        let mut resolver = FailingReadResolver;
+
+        let report = verify_source_descriptor_payloads(
+            &case,
+            &catalog,
+            &context(),
+            &limits(),
+            &mut resolver,
+        );
+        assert_eq!(
+            report.disposition,
+            PayloadVerificationDisposition::IncompleteOrIndeterminate
+        );
+        assert_eq!(
+            report.records[0].disposition,
+            PayloadByteDisposition::ReadFailed
+        );
+        assert_eq!(report.records[0].bytes_read, 7);
+        assert!(report.records[0].observed_sha256.is_none());
     }
 
     #[test]
