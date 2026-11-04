@@ -935,8 +935,7 @@ mod tests {
                 fail_after: 7,
             },
         )]);
-        let schema_readers =
-            BTreeMap::<(String, String), io::Cursor<Vec<u8>>>::new();
+        let schema_readers = BTreeMap::<(String, String), io::Cursor<Vec<u8>>>::new();
 
         let error = verify_catalog_payload_streams(
             &case,
