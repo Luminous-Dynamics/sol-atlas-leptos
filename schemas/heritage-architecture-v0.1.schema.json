@@ -263,6 +263,19 @@
         },
         {
           "if": {
+            "properties": { "origin": { "const": "direct_measurement" } },
+            "required": ["origin"]
+          },
+          "then": {
+            "properties": {
+              "measurement_basis": {
+                "enum": ["calibrated_planar2d", "calibrated_surface3d"]
+              }
+            }
+          }
+        },
+        {
+          "if": {
             "properties": {
               "origin": { "enum": ["model_output", "simulation"] }
             },
