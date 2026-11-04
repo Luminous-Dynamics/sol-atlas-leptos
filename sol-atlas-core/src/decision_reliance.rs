@@ -15,9 +15,7 @@ pub const DECISION_RELIANCE_SCHEMA_V01: &str =
     "luminous.engineering-decision-reliance-receipt.v0.1";
 pub const REFERENCE_ORACLE_VERSION: &str = "decision-reliance-reference-oracle-v0.1";
 
-#[derive(
-    Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize,
-)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum DecisionRelianceProofClass {
     DecisionEventIntegrity,
@@ -307,11 +305,7 @@ fn push_finding(
     detail: &str,
 ) {
     findings.insert(
-        (
-            code.to_owned(),
-            subject_ref.to_owned(),
-            detail.to_owned(),
-        ),
+        (code.to_owned(), subject_ref.to_owned(), detail.to_owned()),
         DecisionRelianceFinding {
             severity: severity.to_owned(),
             code: code.to_owned(),
@@ -374,8 +368,7 @@ fn mark_proof_status(
                 "a required authority or rights proof does not authorize this reliance request",
             );
         }
-        DecisionRelianceProofStatus::Stale
-        | DecisionRelianceProofStatus::RevalidationRequired => {
+        DecisionRelianceProofStatus::Stale | DecisionRelianceProofStatus::RevalidationRequired => {
             flags.revalidation = true;
             push_finding(
                 findings,
@@ -444,7 +437,11 @@ fn validate_proof_temporal_state(
         }
     }
 
-    if proof.valid_time.valid_from.as_deref().zip(proof.valid_time.valid_until.as_deref())
+    if proof
+        .valid_time
+        .valid_from
+        .as_deref()
+        .zip(proof.valid_time.valid_until.as_deref())
         .is_some_and(|(from, until)| from >= until)
     {
         flags.invalid = true;
@@ -478,7 +475,10 @@ fn validate_proof_temporal_state(
             .observed_at
             .as_deref()
             .is_some_and(|time| time > evaluation_time)
-        || proof.trusted_at.as_deref().is_some_and(|time| time > evaluation_time)
+        || proof
+            .trusted_at
+            .as_deref()
+            .is_some_and(|time| time > evaluation_time)
     {
         flags.insufficient = true;
         push_finding(
@@ -538,7 +538,11 @@ fn validate_proof_temporal_state(
             );
         }
     }
-    if proof.revoked_at.as_deref().is_some_and(|revoked_at| revoked_at <= evaluation_time) {
+    if proof
+        .revoked_at
+        .as_deref()
+        .is_some_and(|revoked_at| revoked_at <= evaluation_time)
+    {
         if matches!(
             proof.proof_class,
             DecisionRelianceProofClass::SourceUseRights
@@ -572,8 +576,8 @@ fn event_effect(
     findings: &mut BTreeMap<(String, String, String), DecisionRelianceFinding>,
 ) {
     let subject = &event.event_id;
-    let late_arriving = event.valid_at.as_str() <= decision_time
-        && event.recorded_at.as_str() > decision_time;
+    let late_arriving =
+        event.valid_at.as_str() <= decision_time && event.recorded_at.as_str() > decision_time;
     if late_arriving {
         push_finding(
             findings,
@@ -691,7 +695,10 @@ pub fn evaluate_decision_reliance_reference(
     }
     let requested_scope = request.scope_subjects.iter().collect::<BTreeSet<_>>();
     if requested_scope.len() != request.scope_subjects.len()
-        || request.scope_subjects.iter().any(|subject| subject.trim().is_empty())
+        || request
+            .scope_subjects
+            .iter()
+            .any(|subject| subject.trim().is_empty())
     {
         flags.invalid = true;
         push_finding(
@@ -730,8 +737,7 @@ pub fn evaluate_decision_reliance_reference(
     let mut unresolved_proof_count = 0usize;
     let mut required_proof_ids = BTreeSet::new();
     let mut required_proof_classes_by_id = BTreeMap::new();
-    let mut covered_subjects =
-        BTreeMap::<DecisionRelianceProofClass, BTreeSet<String>>::new();
+    let mut covered_subjects = BTreeMap::<DecisionRelianceProofClass, BTreeSet<String>>::new();
     for proof in proofs {
         if proof.proof_id.trim().is_empty() || proof.subject_ref.trim().is_empty() {
             flags.invalid = true;
@@ -747,7 +753,10 @@ pub fn evaluate_decision_reliance_reference(
             ("receipt_sha256", Some(proof.receipt_sha256.as_str())),
             ("subject_sha256", proof.subject_sha256.as_deref()),
             ("policy_sha256", proof.policy_sha256.as_deref()),
-            ("verifier_build_sha256", proof.verifier_build_sha256.as_deref()),
+            (
+                "verifier_build_sha256",
+                proof.verifier_build_sha256.as_deref(),
+            ),
         ] {
             if digest.is_some_and(|value| !valid_sha256(value)) {
                 flags.invalid = true;
@@ -808,7 +817,11 @@ pub fn evaluate_decision_reliance_reference(
                 "proof contains an unsupported reliance purpose",
             );
         }
-        if proof.scope_subjects.iter().any(|subject| subject.trim().is_empty()) {
+        if proof
+            .scope_subjects
+            .iter()
+            .any(|subject| subject.trim().is_empty())
+        {
             flags.invalid = true;
             push_finding(
                 &mut findings,
@@ -886,12 +899,7 @@ pub fn evaluate_decision_reliance_reference(
                         "decision and attestation trust proofs require a trusted registration time",
                     );
                 }
-                validate_proof_temporal_state(
-                    proof,
-                    evaluation_time,
-                    &mut flags,
-                    &mut findings,
-                );
+                validate_proof_temporal_state(proof, evaluation_time, &mut flags, &mut findings);
             } else {
                 unresolved_proof_count += 1;
             }
@@ -936,10 +944,7 @@ pub fn evaluate_decision_reliance_reference(
     let mut late_arriving_change_event_count = 0usize;
     let mut future_or_untrusted_change_event_count = 0usize;
     for event in change_events {
-        let unique_affected = event
-            .affected_proof_ids
-            .iter()
-            .collect::<BTreeSet<_>>();
+        let unique_affected = event.affected_proof_ids.iter().collect::<BTreeSet<_>>();
         if event.event_id.trim().is_empty()
             || unique_affected.len() != event.affected_proof_ids.len()
         {
@@ -1044,7 +1049,11 @@ pub fn evaluate_decision_reliance_reference(
             continue;
         }
 
-        if event.observed_at.as_deref().is_some_and(|observed| observed > event.recorded_at.as_str()) {
+        if event
+            .observed_at
+            .as_deref()
+            .is_some_and(|observed| observed > event.recorded_at.as_str())
+        {
             flags.insufficient = true;
             push_finding(
                 &mut findings,
@@ -1248,17 +1257,41 @@ mod tests {
 
     fn base_proofs() -> Vec<DecisionRelianceProof> {
         vec![
-            proof("decision-event", DecisionRelianceProofClass::DecisionEventIntegrity),
+            proof(
+                "decision-event",
+                DecisionRelianceProofClass::DecisionEventIntegrity,
+            ),
             proof("identity", DecisionRelianceProofClass::NativeSourceIdentity),
-            proof("source-bytes", DecisionRelianceProofClass::SourcePayloadBytes),
+            proof(
+                "source-bytes",
+                DecisionRelianceProofClass::SourcePayloadBytes,
+            ),
             proof("source-rights", DecisionRelianceProofClass::SourceUseRights),
-            proof("source-trust", DecisionRelianceProofClass::SourceAttestationTrust),
+            proof(
+                "source-trust",
+                DecisionRelianceProofClass::SourceAttestationTrust,
+            ),
             proof("coverage", DecisionRelianceProofClass::SourceCoverage),
-            proof("projection", DecisionRelianceProofClass::ProjectionIntegrity),
-            proof("engineering", DecisionRelianceProofClass::EngineeringDomainValidity),
-            proof("lifecycle", DecisionRelianceProofClass::LifecycleCurrentness),
-            proof("impact-frontier", DecisionRelianceProofClass::ImpactFrontierCorrectness),
-            proof("actor-authority", DecisionRelianceProofClass::ActorRelianceAuthority),
+            proof(
+                "projection",
+                DecisionRelianceProofClass::ProjectionIntegrity,
+            ),
+            proof(
+                "engineering",
+                DecisionRelianceProofClass::EngineeringDomainValidity,
+            ),
+            proof(
+                "lifecycle",
+                DecisionRelianceProofClass::LifecycleCurrentness,
+            ),
+            proof(
+                "impact-frontier",
+                DecisionRelianceProofClass::ImpactFrontierCorrectness,
+            ),
+            proof(
+                "actor-authority",
+                DecisionRelianceProofClass::ActorRelianceAuthority,
+            ),
         ]
     }
 
@@ -1326,15 +1359,13 @@ mod tests {
                 &scenario.change_events,
             );
             assert_eq!(
-                result.outcome,
-                scenario.expected_outcome,
+                result.outcome, scenario.expected_outcome,
                 "scenario {}",
                 scenario.scenario_id
             );
             if let Some(expected_late_arriving_events) = scenario.expected_late_arriving_events {
                 assert_eq!(
-                    result.late_arriving_change_event_count,
-                    expected_late_arriving_events,
+                    result.late_arriving_change_event_count, expected_late_arriving_events,
                     "scenario {}",
                     scenario.scenario_id
                 );
@@ -1387,15 +1418,13 @@ mod tests {
                 &scenario.change_events,
             );
             assert_eq!(
-                result.outcome,
-                scenario.expected_outcome,
+                result.outcome, scenario.expected_outcome,
                 "scenario {}",
                 scenario.scenario_id
             );
             if let Some(expected_late_arriving_events) = scenario.expected_late_arriving_events {
                 assert_eq!(
-                    result.late_arriving_change_event_count,
-                    expected_late_arriving_events,
+                    result.late_arriving_change_event_count, expected_late_arriving_events,
                     "scenario {}",
                     scenario.scenario_id
                 );
@@ -1405,12 +1434,8 @@ mod tests {
 
     #[test]
     fn all_required_current_proofs_allow_reliance_only_for_declared_scope() {
-        let result = evaluate_decision_reliance_reference(
-            &request(),
-            &required(),
-            &base_proofs(),
-            &[],
-        );
+        let result =
+            evaluate_decision_reliance_reference(&request(), &required(), &base_proofs(), &[]);
         assert_eq!(
             result.outcome,
             DecisionRelianceOutcome::ReliableForDeclaredScope
@@ -1424,12 +1449,7 @@ mod tests {
     fn missing_required_proof_is_insufficient_not_false_or_reliable() {
         let mut proofs = base_proofs();
         proofs.retain(|proof| proof.proof_class != DecisionRelianceProofClass::SourceCoverage);
-        let result = evaluate_decision_reliance_reference(
-            &request(),
-            &required(),
-            &proofs,
-            &[],
-        );
+        let result = evaluate_decision_reliance_reference(&request(), &required(), &proofs, &[]);
         assert_eq!(
             result.outcome,
             DecisionRelianceOutcome::InsufficientEvidence
@@ -1441,13 +1461,11 @@ mod tests {
     fn purpose_mismatch_cannot_support_reliance_for_other_purpose() {
         let mut proofs = base_proofs();
         proofs[2].applicable_purposes = vec!["design_review".into()];
-        let result = evaluate_decision_reliance_reference(
-            &request(),
-            &required(),
-            &proofs,
-            &[],
+        let result = evaluate_decision_reliance_reference(&request(), &required(), &proofs, &[]);
+        assert_eq!(
+            result.outcome,
+            DecisionRelianceOutcome::InsufficientEvidence
         );
-        assert_eq!(result.outcome, DecisionRelianceOutcome::InsufficientEvidence);
         assert!(result.findings.iter().any(|finding| {
             finding.code == "REQUIRED_PROOF_CLASS_MISSING"
                 || finding.code == "REQUIRED_PROOF_SCOPE_NOT_COVERED"
@@ -1458,26 +1476,29 @@ mod tests {
     fn wrong_jurisdiction_cannot_support_reliance() {
         let mut proofs = base_proofs();
         proofs[2].jurisdiction = "other-jurisdiction".into();
-        let result = evaluate_decision_reliance_reference(
-            &request(),
-            &required(),
-            &proofs,
-            &[],
+        let result = evaluate_decision_reliance_reference(&request(), &required(), &proofs, &[]);
+        assert_eq!(
+            result.outcome,
+            DecisionRelianceOutcome::InsufficientEvidence
         );
-        assert_eq!(result.outcome, DecisionRelianceOutcome::InsufficientEvidence);
     }
 
     #[test]
     fn proof_covering_only_one_of_two_scope_subjects_is_insufficient() {
         let mut reliance_request = request();
-        reliance_request.scope_subjects.push("utility-corridor-001".into());
+        reliance_request
+            .scope_subjects
+            .push("utility-corridor-001".into());
         let result = evaluate_decision_reliance_reference(
             &reliance_request,
             &required(),
             &base_proofs(),
             &[],
         );
-        assert_eq!(result.outcome, DecisionRelianceOutcome::InsufficientEvidence);
+        assert_eq!(
+            result.outcome,
+            DecisionRelianceOutcome::InsufficientEvidence
+        );
         assert!(result.findings.iter().any(|finding| {
             finding.code == "REQUIRED_PROOF_SCOPE_NOT_COVERED"
                 && finding.subject_ref == "utility-corridor-001"
@@ -1520,25 +1541,21 @@ mod tests {
             "2026-11-01T00:00:00Z",
             "2026-11-02T00:00:00Z",
         );
-        let result = evaluate_decision_reliance_reference(
-            &request(),
-            &required(),
-            &base_proofs(),
-            &[event],
-        );
+        let result =
+            evaluate_decision_reliance_reference(&request(), &required(), &base_proofs(), &[event]);
         assert_eq!(result.outcome, DecisionRelianceOutcome::InvalidEvidence);
-        assert!(result.findings.iter().any(|finding| {
-            finding.code == "CHANGE_EVENT_PROOF_CLASS_MISMATCH"
-        }));
+        assert!(
+            result
+                .findings
+                .iter()
+                .any(|finding| { finding.code == "CHANGE_EVENT_PROOF_CLASS_MISMATCH" })
+        );
     }
 
     #[test]
     fn all_required_proof_classes_are_checked_for_every_requested_scope_subject() {
         let mut reliance_request = request();
-        reliance_request.scope_subjects = vec![
-            "design-001".into(),
-            "utility-corridor-001".into(),
-        ];
+        reliance_request.scope_subjects = vec!["design-001".into(), "utility-corridor-001".into()];
         let result = evaluate_decision_reliance_reference(
             &reliance_request,
             &required(),
@@ -1550,10 +1567,14 @@ mod tests {
             DecisionRelianceOutcome::InsufficientEvidence
         );
         assert_eq!(
-            result.findings.iter().filter(|finding| {
-                finding.code == "REQUIRED_PROOF_SCOPE_NOT_COVERED"
-                    && finding.subject_ref == "utility-corridor-001"
-            }).count(),
+            result
+                .findings
+                .iter()
+                .filter(|finding| {
+                    finding.code == "REQUIRED_PROOF_SCOPE_NOT_COVERED"
+                        && finding.subject_ref == "utility-corridor-001"
+                })
+                .count(),
             required().len()
         );
     }
@@ -1588,33 +1609,34 @@ mod tests {
     fn expired_proof_requires_revalidation() {
         let mut proofs = base_proofs();
         proofs[1].fresh_until = Some("2026-11-04T09:59:59Z".into());
-        let result = evaluate_decision_reliance_reference(
-            &request(),
-            &required(),
-            &proofs,
-            &[],
+        let result = evaluate_decision_reliance_reference(&request(), &required(), &proofs, &[]);
+        assert_eq!(
+            result.outcome,
+            DecisionRelianceOutcome::RevalidationRequired
         );
-        assert_eq!(result.outcome, DecisionRelianceOutcome::RevalidationRequired);
-        assert!(result.findings.iter().any(|finding| {
-            finding.code == "PROOF_VALIDITY_OR_FRESHNESS_EXPIRED"
-        }));
+        assert!(
+            result
+                .findings
+                .iter()
+                .any(|finding| { finding.code == "PROOF_VALIDITY_OR_FRESHNESS_EXPIRED" })
+        );
     }
 
     #[test]
     fn future_proof_observation_is_not_leaked_into_evaluation() {
         let mut proofs = base_proofs();
-        proofs[2].observation_time.observed_at =
-            Some("2026-11-05T09:00:00Z".into());
-        let result = evaluate_decision_reliance_reference(
-            &request(),
-            &required(),
-            &proofs,
-            &[],
+        proofs[2].observation_time.observed_at = Some("2026-11-05T09:00:00Z".into());
+        let result = evaluate_decision_reliance_reference(&request(), &required(), &proofs, &[]);
+        assert_eq!(
+            result.outcome,
+            DecisionRelianceOutcome::InsufficientEvidence
         );
-        assert_eq!(result.outcome, DecisionRelianceOutcome::InsufficientEvidence);
-        assert!(result.findings.iter().any(|finding| {
-            finding.code == "PROOF_NOT_KNOWN_AT_EVALUATION"
-        }));
+        assert!(
+            result
+                .findings
+                .iter()
+                .any(|finding| { finding.code == "PROOF_NOT_KNOWN_AT_EVALUATION" })
+        );
     }
 
     #[test]
@@ -1627,12 +1649,8 @@ mod tests {
             "2026-11-03T00:01:00Z",
         );
         event.observed_at = Some("2026-11-05T00:00:00Z".into());
-        let result = evaluate_decision_reliance_reference(
-            &request(),
-            &required(),
-            &base_proofs(),
-            &[event],
-        );
+        let result =
+            evaluate_decision_reliance_reference(&request(), &required(), &base_proofs(), &[event]);
         assert_eq!(
             result.outcome,
             DecisionRelianceOutcome::ReliableForDeclaredScope
@@ -1650,17 +1668,19 @@ mod tests {
             "2026-09-20T00:00:00Z",
             "2026-11-03T12:00:00Z",
         );
-        let result = evaluate_decision_reliance_reference(
-            &request(),
-            &required(),
-            &base_proofs(),
-            &[event],
+        let result =
+            evaluate_decision_reliance_reference(&request(), &required(), &base_proofs(), &[event]);
+        assert_eq!(
+            result.outcome,
+            DecisionRelianceOutcome::RevalidationRequired
         );
-        assert_eq!(result.outcome, DecisionRelianceOutcome::RevalidationRequired);
         assert_eq!(result.late_arriving_change_event_count, 1);
-        assert!(result.findings.iter().any(|finding| {
-            finding.code == "LATE_ARRIVING_RETROACTIVE_CHANGE"
-        }));
+        assert!(
+            result
+                .findings
+                .iter()
+                .any(|finding| { finding.code == "LATE_ARRIVING_RETROACTIVE_CHANGE" })
+        );
     }
 
     #[test]
@@ -1672,12 +1692,8 @@ mod tests {
             "2026-09-25T00:00:00Z",
             "2026-09-26T00:00:00Z",
         );
-        let result = evaluate_decision_reliance_reference(
-            &request(),
-            &required(),
-            &base_proofs(),
-            &[event],
-        );
+        let result =
+            evaluate_decision_reliance_reference(&request(), &required(), &base_proofs(), &[event]);
         assert_eq!(result.outcome, DecisionRelianceOutcome::InvalidEvidence);
     }
 
@@ -1690,13 +1706,12 @@ mod tests {
             "2026-11-01T00:00:00Z",
             "2026-11-02T00:00:00Z",
         );
-        let result = evaluate_decision_reliance_reference(
-            &request(),
-            &required(),
-            &base_proofs(),
-            &[event],
+        let result =
+            evaluate_decision_reliance_reference(&request(), &required(), &base_proofs(), &[event]);
+        assert_eq!(
+            result.outcome,
+            DecisionRelianceOutcome::RevalidationRequired
         );
-        assert_eq!(result.outcome, DecisionRelianceOutcome::RevalidationRequired);
     }
 
     #[test]
@@ -1708,12 +1723,8 @@ mod tests {
             "2026-11-01T00:00:00Z",
             "2026-11-02T00:00:00Z",
         );
-        let result = evaluate_decision_reliance_reference(
-            &request(),
-            &required(),
-            &base_proofs(),
-            &[event],
-        );
+        let result =
+            evaluate_decision_reliance_reference(&request(), &required(), &base_proofs(), &[event]);
         assert_eq!(result.outcome, DecisionRelianceOutcome::NotAuthorized);
     }
 
@@ -1727,12 +1738,8 @@ mod tests {
             "2026-11-02T00:00:00Z",
         );
         event.trust_status = DecisionRelianceEventTrustStatus::Unverified;
-        let result = evaluate_decision_reliance_reference(
-            &request(),
-            &required(),
-            &base_proofs(),
-            &[event],
-        );
+        let result =
+            evaluate_decision_reliance_reference(&request(), &required(), &base_proofs(), &[event]);
         assert_eq!(
             result.outcome,
             DecisionRelianceOutcome::InsufficientEvidence
@@ -1750,12 +1757,8 @@ mod tests {
             "2026-11-05T00:00:00Z",
             "2026-11-05T00:00:01Z",
         );
-        let result = evaluate_decision_reliance_reference(
-            &request(),
-            &required(),
-            &base_proofs(),
-            &[event],
-        );
+        let result =
+            evaluate_decision_reliance_reference(&request(), &required(), &base_proofs(), &[event]);
         assert_eq!(
             result.outcome,
             DecisionRelianceOutcome::ReliableForDeclaredScope
@@ -1769,12 +1772,7 @@ mod tests {
         let mut proofs = base_proofs();
         proofs[0].status = DecisionRelianceProofStatus::Invalid;
         proofs.remove(1);
-        let result = evaluate_decision_reliance_reference(
-            &request(),
-            &required(),
-            &proofs,
-            &[],
-        );
+        let result = evaluate_decision_reliance_reference(&request(), &required(), &proofs, &[]);
         assert_eq!(result.outcome, DecisionRelianceOutcome::InvalidEvidence);
         assert_eq!(result.missing_proof_class_count, 1);
     }
@@ -1787,12 +1785,7 @@ mod tests {
             .find(|proof| proof.proof_class == DecisionRelianceProofClass::ActorRelianceAuthority)
             .unwrap();
         authority.valid_time.valid_until = Some("2026-11-04T09:00:00Z".into());
-        let result = evaluate_decision_reliance_reference(
-            &request(),
-            &required(),
-            &proofs,
-            &[],
-        );
+        let result = evaluate_decision_reliance_reference(&request(), &required(), &proofs, &[]);
         assert_eq!(result.outcome, DecisionRelianceOutcome::NotAuthorized);
     }
 }
