@@ -662,7 +662,16 @@ pub fn evaluate_decision_reliance_reference(
     }
 
     if request.evaluating_actor_id.trim().is_empty()
-        || request.purpose.trim().is_empty()
+        || ![
+            "design_review",
+            "engineering_review",
+            "construction_release_review",
+            "operations",
+            "maintenance",
+            "regulatory_submission",
+            "benchmarking",
+        ]
+        .contains(&request.purpose.as_str())
         || request.jurisdiction.trim().is_empty()
         || request.scope_subjects.is_empty()
     {
@@ -771,6 +780,39 @@ pub fn evaluate_decision_reliance_reference(
         }
         let purpose_set = proof.applicable_purposes.iter().collect::<BTreeSet<_>>();
         let scope_set = proof.scope_subjects.iter().collect::<BTreeSet<_>>();
+        let allowed_purposes = [
+            "design_review",
+            "engineering_review",
+            "construction_release_review",
+            "operations",
+            "maintenance",
+            "regulatory_submission",
+            "benchmarking",
+        ];
+        if proof
+            .applicable_purposes
+            .iter()
+            .any(|purpose| !allowed_purposes.contains(&purpose.as_str()))
+        {
+            flags.invalid = true;
+            push_finding(
+                &mut findings,
+                "invalid",
+                "UNSUPPORTED_PROOF_PURPOSE",
+                &proof.subject_ref,
+                "proof contains an unsupported reliance purpose",
+            );
+        }
+        if proof.scope_subjects.iter().any(|subject| subject.trim().is_empty()) {
+            flags.invalid = true;
+            push_finding(
+                &mut findings,
+                "invalid",
+                "EMPTY_PROOF_SCOPE_SUBJECT",
+                &proof.subject_ref,
+                "proof scope subject identifiers must be non-empty",
+            );
+        }
         if purpose_set.len() != proof.applicable_purposes.len()
             || scope_set.len() != proof.scope_subjects.len()
         {
@@ -808,6 +850,37 @@ pub fn evaluate_decision_reliance_reference(
             mark_proof_status(proof, &mut flags, &mut findings);
             if proof.status == DecisionRelianceProofStatus::Qualified {
                 qualified_proof_count += 1;
+                if matches!(
+                    proof.proof_class,
+                    DecisionRelianceProofClass::SourceUseRights
+                        | DecisionRelianceProofClass::ActorRelianceAuthority
+                ) && (proof.valid_time.valid_from.is_none()
+                    || proof.valid_time.valid_until.is_none())
+                {
+                    flags.insufficient = true;
+                    push_finding(
+                        &mut findings,
+                        "incomplete",
+                        "AUTHORITY_VALIDITY_INTERVAL_MISSING",
+                        &proof.subject_ref,
+                        "rights and actor-authority proofs require explicit valid_from and valid_until bounds",
+                    );
+                }
+                if matches!(
+                    proof.proof_class,
+                    DecisionRelianceProofClass::DecisionEventIntegrity
+                        | DecisionRelianceProofClass::SourceAttestationTrust
+                ) && proof.trusted_at.is_none()
+                {
+                    flags.insufficient = true;
+                    push_finding(
+                        &mut findings,
+                        "incomplete",
+                        "TRUSTED_REGISTRATION_TIME_MISSING",
+                        &proof.subject_ref,
+                        "decision and attestation trust proofs require a trusted registration time",
+                    );
+                }
                 validate_proof_temporal_state(
                     proof,
                     evaluation_time,
