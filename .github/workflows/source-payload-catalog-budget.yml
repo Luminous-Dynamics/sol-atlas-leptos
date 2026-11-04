@@ -17,7 +17,7 @@ on:
   push:
     branches:
       - main
-      - research/built-environment-catalog-resource-budget-v0-1-rebased
+      - research/source-payload-catalog-budget-v0-1-rebased
     paths:
       - "sol-atlas-core/src/source_payload_verifier.rs"
       - "sol-atlas-core/src/built_environment_source_descriptor.rs"
@@ -95,6 +95,9 @@ jobs:
             .report.skipped_budget_count == 0 and
             .report.action_authority == "none" and
             .report.no_impact_eligibility == "none" and
+            .report.object_not_found_count == 0 and
+            .report.resolver_access_denied_count == 0 and
+            .report.resolver_open_failed_count == 0 and
             .serialized_report_bytes <= .budget.max_report_bytes
           ' "$budget_fixture"
 
