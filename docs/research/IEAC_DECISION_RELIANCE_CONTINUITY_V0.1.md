@@ -104,7 +104,13 @@ The input may include exact references to lifecycle events. Each event binds:
 - recorded time and trusted registration time;
 - authority disposition;
 - impact report digest and impact disposition;
+- authority-verification receipt digest whenever authority is marked authenticated;
+- effective-time evidence receipt digest whenever effective time is marked verified;
+- lifecycle event-validation receipt digest;
+- impact verifier build digest whenever an impact classification is supplied;
 - exact scope digest.
+
+These fields are exact references, not cryptographic proofs performed by this composer. Missing conditional references make the input invalid rather than allowing a caller to upgrade a status string into evidence.
 
 The composer applies events to each temporal view using two separate boundaries:
 - an event cannot affect a view before it was recorded/known by that view's knowledge cutoff;
