@@ -73,7 +73,7 @@ No repeated acquisitions are combined as though conditionally independent in v0.
 ## Benchmark programme
 
 Report by feature class × sensor × environment × season × resolution:
-- empirical PoD, Wilson lower and upper bounds, and independent PSU count;
+- empirical PoD, Wilson lower and upper bounds, independent PSU count, calibration context, observed context and both profile digests;
 - false-qualified-non-detection rate on adversarial and independently adjudicated controls;
 - coverage and indeterminate / abstention rate;
 - calibration reliability and degradation on held-out sites, regions and biomes;
