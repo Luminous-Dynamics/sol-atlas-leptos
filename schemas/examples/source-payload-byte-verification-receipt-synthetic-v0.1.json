@@ -48,5 +48,6 @@
     "Synthetic schema-shape fixture only; digests and values are fabricated structural examples.",
     "A matching supplied-byte digest does not authenticate source-owner identity, rights, or source completeness."
   ],
-  "receipt_sha256": "13bc3de7f8a0d9ce5bf8db512ef0b57f4b5d29a0c916bf68dff803abe51e57d3"
+  "receipt_sha256": "1d9af9474d4ca664ad7ff06c34973fde9d00d47d6e8ba4ab89bb5ac7e336d4a5",
+  "receipt_digest_basis": "sha256_over_serde_json_receipt_with_empty_receipt_sha256_field"
 }
