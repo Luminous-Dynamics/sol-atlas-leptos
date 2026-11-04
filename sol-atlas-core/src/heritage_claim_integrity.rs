@@ -788,6 +788,7 @@ pub fn evaluate_heritage_claim(
         item.relation == EvidenceRelation::Supports
             && item.independence_status != IndependenceStatus::IndependentlyAssessed
             && !is_archaeological_field_evidence(item)
+            && !is_model_or_simulation(item)
     }) {
         reasons.push(ClaimReason::NonIndependentEvidenceIgnored);
     }
