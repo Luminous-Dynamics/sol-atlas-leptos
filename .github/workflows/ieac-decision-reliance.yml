@@ -78,6 +78,7 @@ jobs:
             .views.historical_knowledge.disposition == "candidate_current_within_declared_scope" and
             .views.retrospective_at_decision.disposition == "claim_invalidated" and
             .views.current_reliance.disposition == "claim_invalidated" and
+            .continuity_assessment == "temporal_views_diverge" and
             .historical_record_preserved == true and
             .input_authentication == "not_performed" and
             .impact_recomputation == "not_performed" and
