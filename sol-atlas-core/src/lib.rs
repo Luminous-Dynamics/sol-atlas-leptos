@@ -18,6 +18,9 @@ pub mod built_environment_case;
 /// coverage completeness, engineering correctness, or authorization; those remain
 /// independent evidence and trust obligations.
 pub mod built_environment_source_descriptor;
+/// Bounded streaming rehashing of source payload bytes referenced by
+/// owner-native descriptors. Byte equality is not origin/trust/rights proof.
+pub mod source_payload_verifier;
 pub mod confluence;
 pub mod constants;
 pub mod data;
