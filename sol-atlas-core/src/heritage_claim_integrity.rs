@@ -818,7 +818,7 @@ pub fn evaluate_heritage_claim(
         human_adjudication_applies: input.adjudication.is_some(),
         adjudication_evidence_set_matches: adjudication_matches,
         coordinate_access_restricted: input.coordinate_access_restricted,
-        exact_coordinates_publication_allowed: !input.coordinate_access_restricted,
+        exact_coordinates_publication_allowed: !input.coordinate_access_restricted && rights_blocked_count == 0,
         reasons,
         archaeological_fact_established: false,
         historical_truth_established: false,
@@ -991,7 +991,7 @@ mod tests {
         let input = base_input(ClaimKind::ArchaeologicalFeatureCandidate, items);
         let report = evaluate_heritage_claim(&input).unwrap();
         assert_eq!(report.independent_support_group_count, 1);
-        assert_eq!(report.evidence_supported_ceiling, ClaimCeiling::ProxyInterpretation);
+        assert_eq!(report.evidence_supported_ceiling, ClaimCeiling::AnthropogenicFeatureCandidate);
         assert_eq!(report.disposition, ClaimDisposition::Overclaimed);
     }
 
