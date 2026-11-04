@@ -363,7 +363,11 @@
       "authority_disposition": "authenticated",
       "impact_disposition": "affected",
       "impact_report_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
-      "scope_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+      "scope_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "authority_receipt_sha256": "7777777777777777777777777777777777777777777777777777777777777777",
+      "effective_time_evidence_sha256": "8888888888888888888888888888888888888888888888888888888888888888",
+      "lifecycle_validation_receipt_sha256": "9999999999999999999999999999999999999999999999999999999999999999",
+      "impact_verifier_build_sha256": "4444444444444444444444444444444444444444444444444444444444444444"
     }
   ],
   "limitations": [
