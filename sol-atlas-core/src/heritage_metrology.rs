@@ -245,6 +245,12 @@ pub fn assess_metrology_certificate(
                 checkpoint.checkpoint_id.clone(),
             ));
         }
+        if certificate.assessment_profile == MetrologyAssessmentProfile::Asprs2024Core
+            && (checkpoint.reference_sigma_h_m > certificate.target_rmse_h_m.unwrap() / 2.0
+                || checkpoint.reference_sigma_v_m > certificate.target_rmse_v_m.unwrap() / 2.0)
+        {
+            return Err(MetrologyError::CheckpointSurveyNotTwiceAsAccurate);
+        }
         *stratum_counts.entry(checkpoint.stratum.clone()).or_insert(0) += 1;
 
         let dx = checkpoint.product_xyz_m[0] - checkpoint.reference_xyz_m[0];
