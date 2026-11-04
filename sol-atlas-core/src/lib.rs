@@ -21,6 +21,9 @@ pub mod built_environment_source_descriptor;
 pub mod confluence;
 pub mod constants;
 pub mod data;
+/// Research reference oracle and formal receipt types for time-qualified
+/// engineering decision reliance. This is not an approval or action API.
+pub mod decision_reliance;
 pub mod economics;
 pub mod energy_trading;
 pub mod geo;
