@@ -221,7 +221,8 @@
                 { "required": ["metric_area_semantics"] },
                 { "required": ["metric_perimeter_m"] },
                 { "required": ["spatial_reference_id"] },
-                { "required": ["calibration_id"] }
+                { "required": ["calibration_id"] },
+                { "required": ["uncertainty"] }
               ]
             }
           }
