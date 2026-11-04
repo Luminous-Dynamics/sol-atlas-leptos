@@ -13,8 +13,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 use std::fmt;
 
-pub const HERITAGE_RECONSTRUCTION_SCHEMA_VERSION: &str =
-    "luminous.heritage-reconstruction.v0.1";
+pub const HERITAGE_RECONSTRUCTION_SCHEMA_VERSION: &str = "luminous.heritage-reconstruction.v0.1";
 pub const HERITAGE_RECONSTRUCTION_REPORT_SCHEMA_VERSION: &str =
     "luminous.heritage-reconstruction-report.v0.1";
 
@@ -239,10 +238,18 @@ pub enum HeritageReconstructionError {
     TooManyElements,
     EmptyEvidenceId,
     DuplicateEvidenceId(String),
-    InvalidEvidenceDigest { evidence_id: String },
-    EmptyEvidenceLineage { evidence_id: String },
-    EmptyEvidenceMethod { evidence_id: String },
-    VerifiedEvidenceRightsReceiptMissing { evidence_id: String },
+    InvalidEvidenceDigest {
+        evidence_id: String,
+    },
+    EmptyEvidenceLineage {
+        evidence_id: String,
+    },
+    EmptyEvidenceMethod {
+        evidence_id: String,
+    },
+    VerifiedEvidenceRightsReceiptMissing {
+        evidence_id: String,
+    },
     EmptyElementId,
     DuplicateElementId(String),
     GeometryDigestMissing(String),
@@ -259,23 +266,53 @@ pub enum HeritageReconstructionError {
     MethodBuildMissing(String),
     SimulationEvidenceUsedAsEmpiricalSupport(String),
     ModelEvidenceUsedAsEmpiricalSupport(String),
-    SourceEvidenceReferenceMissing { element_id: String, evidence_id: String },
+    SourceEvidenceReferenceMissing {
+        element_id: String,
+        evidence_id: String,
+    },
     SourceEvidenceDependencyMissing(String),
     DependencyIdEmpty(String),
-    DuplicateDependencyId { element_id: String, dependency_id: String },
-    DependencyEvidenceReferenceMissing { element_id: String, evidence_id: String },
-    DependencyArtifactDigestInvalid { element_id: String },
-    DependencyStatementMissing { element_id: String },
-    UnknownDependencyTypeMissingReference { element_id: String },
+    DuplicateDependencyId {
+        element_id: String,
+        dependency_id: String,
+    },
+    DependencyEvidenceReferenceMissing {
+        element_id: String,
+        evidence_id: String,
+    },
+    DependencyArtifactDigestInvalid {
+        element_id: String,
+    },
+    DependencyStatementMissing {
+        element_id: String,
+    },
+    UnknownDependencyTypeMissingReference {
+        element_id: String,
+    },
     InvalidTemporalInterval(String),
-    TemporalEvidenceReferenceMissing { element_id: String, evidence_id: String },
-    TemporalEvidenceNotChronological { element_id: String, evidence_id: String },
+    TemporalEvidenceReferenceMissing {
+        element_id: String,
+        evidence_id: String,
+    },
+    TemporalEvidenceNotChronological {
+        element_id: String,
+        evidence_id: String,
+    },
     RestrictedCoordinatesPublished(String),
     HypothesisIdentityMissing(String),
     NonIdentifiableHypothesisHasNoAlternative(String),
-    EvidenceRightsNotVerified { element_id: String, evidence_id: String },
-    EvidenceRightsReceiptMissing { element_id: String, evidence_id: String },
-    EvidenceNotSupportingClaim { element_id: String, evidence_id: String },
+    EvidenceRightsNotVerified {
+        element_id: String,
+        evidence_id: String,
+    },
+    EvidenceRightsReceiptMissing {
+        element_id: String,
+        evidence_id: String,
+    },
+    EvidenceNotSupportingClaim {
+        element_id: String,
+        evidence_id: String,
+    },
     SourceEvidenceDependencySetMismatch(String),
     MethodBuildDigestMismatch(String),
     SimulationManifestDigestMismatch(String),
@@ -324,7 +361,11 @@ fn validate_empirical_support(
             evidence_id: evidence.evidence_id.clone(),
         });
     }
-    if evidence.rights_receipt_ref.as_deref().is_none_or(|value| !non_empty(value)) {
+    if evidence
+        .rights_receipt_ref
+        .as_deref()
+        .is_none_or(|value| !non_empty(value))
+    {
         return Err(HeritageReconstructionError::EvidenceRightsReceiptMissing {
             element_id: element_id.to_owned(),
             evidence_id: evidence.evidence_id.clone(),
@@ -333,16 +374,18 @@ fn validate_empirical_support(
     if evidence.origin == EvidenceOrigin::ModelOutput
         || evidence.evidence_kind == EvidenceKind::ModelPrediction
     {
-        return Err(HeritageReconstructionError::ModelEvidenceUsedAsEmpiricalSupport(
-            element_id.to_owned(),
-        ));
+        return Err(
+            HeritageReconstructionError::ModelEvidenceUsedAsEmpiricalSupport(element_id.to_owned()),
+        );
     }
     if evidence.origin == EvidenceOrigin::Simulation
         || evidence.evidence_kind == EvidenceKind::Simulation
     {
-        return Err(HeritageReconstructionError::SimulationEvidenceUsedAsEmpiricalSupport(
-            element_id.to_owned(),
-        ));
+        return Err(
+            HeritageReconstructionError::SimulationEvidenceUsedAsEmpiricalSupport(
+                element_id.to_owned(),
+            ),
+        );
     }
     Ok(())
 }
@@ -368,14 +411,20 @@ fn validate_temporal_interval(
             }
         }
         TemporalExtentKind::OpenStart => {
-            if interval.lower_year_ce.is_some() || interval.upper_year_ce.is_none() || !has_chronology {
+            if interval.lower_year_ce.is_some()
+                || interval.upper_year_ce.is_none()
+                || !has_chronology
+            {
                 return Err(HeritageReconstructionError::InvalidTemporalInterval(
                     element.element_id.clone(),
                 ));
             }
         }
         TemporalExtentKind::OpenEnd => {
-            if interval.lower_year_ce.is_none() || interval.upper_year_ce.is_some() || !has_chronology {
+            if interval.lower_year_ce.is_none()
+                || interval.upper_year_ce.is_some()
+                || !has_chronology
+            {
                 return Err(HeritageReconstructionError::InvalidTemporalInterval(
                     element.element_id.clone(),
                 ));
@@ -422,10 +471,12 @@ fn validate_temporal_interval(
             evidence.evidence_kind,
             EvidenceKind::ChronometricMeasurement | EvidenceKind::HistoricalDocument
         ) {
-            return Err(HeritageReconstructionError::TemporalEvidenceNotChronological {
-                element_id: element.element_id.clone(),
-                evidence_id: evidence_id.clone(),
-            });
+            return Err(
+                HeritageReconstructionError::TemporalEvidenceNotChronological {
+                    element_id: element.element_id.clone(),
+                    evidence_id: evidence_id.clone(),
+                },
+            );
         }
         validate_empirical_support(&element.element_id, evidence)?;
     }
@@ -439,7 +490,10 @@ fn validate_element(
     if !non_empty(&element.element_id) {
         return Err(HeritageReconstructionError::EmptyElementId);
     }
-    if !non_empty(&element.spatial_reference_id)
+    if element
+        .spatial_reference_id
+        .as_deref()
+        .is_none_or(|value| !non_empty(value))
         && element.epistemic_class != EpistemicGeometryClass::Unknown
     {
         return Err(HeritageReconstructionError::SpatialReferenceMissing(
@@ -451,16 +505,20 @@ fn validate_element(
     let mut source_seen = BTreeSet::new();
     for evidence_id in &element.source_evidence_ids {
         if !source_seen.insert(evidence_id.clone()) {
-            return Err(HeritageReconstructionError::SourceEvidenceReferenceMissing {
-                element_id: element.element_id.clone(),
-                evidence_id: evidence_id.clone(),
-            });
+            return Err(
+                HeritageReconstructionError::SourceEvidenceReferenceMissing {
+                    element_id: element.element_id.clone(),
+                    evidence_id: evidence_id.clone(),
+                },
+            );
         }
         let Some(evidence) = evidence_by_id.get(evidence_id) else {
-            return Err(HeritageReconstructionError::SourceEvidenceReferenceMissing {
-                element_id: element.element_id.clone(),
-                evidence_id: evidence_id.clone(),
-            });
+            return Err(
+                HeritageReconstructionError::SourceEvidenceReferenceMissing {
+                    element_id: element.element_id.clone(),
+                    evidence_id: evidence_id.clone(),
+                },
+            );
         };
         validate_empirical_support(&element.element_id, evidence)?;
         source_evidence.push(*evidence);
@@ -491,75 +549,103 @@ fn validate_element(
         match dependency.kind {
             DependencyKind::SourceEvidence => {
                 let Some(reference_id) = dependency.reference_id.as_deref() else {
-                    return Err(HeritageReconstructionError::UnknownDependencyTypeMissingReference {
-                        element_id: element.element_id.clone(),
-                    });
+                    return Err(
+                        HeritageReconstructionError::UnknownDependencyTypeMissingReference {
+                            element_id: element.element_id.clone(),
+                        },
+                    );
                 };
                 if !evidence_by_id.contains_key(reference_id) {
-                    return Err(HeritageReconstructionError::DependencyEvidenceReferenceMissing {
-                        element_id: element.element_id.clone(),
-                        evidence_id: reference_id.to_owned(),
-                    });
+                    return Err(
+                        HeritageReconstructionError::DependencyEvidenceReferenceMissing {
+                            element_id: element.element_id.clone(),
+                            evidence_id: reference_id.to_owned(),
+                        },
+                    );
                 }
                 source_dependency_ids.insert(reference_id.to_owned());
             }
             DependencyKind::MethodBuild => {
                 let Some(digest) = dependency.artifact_sha256.as_deref() else {
-                    return Err(HeritageReconstructionError::DependencyArtifactDigestInvalid {
-                        element_id: element.element_id.clone(),
-                    });
+                    return Err(
+                        HeritageReconstructionError::DependencyArtifactDigestInvalid {
+                            element_id: element.element_id.clone(),
+                        },
+                    );
                 };
                 if !valid_sha256(digest) {
-                    return Err(HeritageReconstructionError::DependencyArtifactDigestInvalid {
-                        element_id: element.element_id.clone(),
-                    });
+                    return Err(
+                        HeritageReconstructionError::DependencyArtifactDigestInvalid {
+                            element_id: element.element_id.clone(),
+                        },
+                    );
                 }
                 method_dependency_digests.insert(digest.to_owned());
             }
             DependencyKind::SimulationModel | DependencyKind::EnvironmentalScenario => {
                 let Some(digest) = dependency.artifact_sha256.as_deref() else {
-                    return Err(HeritageReconstructionError::DependencyArtifactDigestInvalid {
-                        element_id: element.element_id.clone(),
-                    });
+                    return Err(
+                        HeritageReconstructionError::DependencyArtifactDigestInvalid {
+                            element_id: element.element_id.clone(),
+                        },
+                    );
                 };
                 if !valid_sha256(digest) {
-                    return Err(HeritageReconstructionError::DependencyArtifactDigestInvalid {
-                        element_id: element.element_id.clone(),
-                    });
+                    return Err(
+                        HeritageReconstructionError::DependencyArtifactDigestInvalid {
+                            element_id: element.element_id.clone(),
+                        },
+                    );
                 }
                 simulation_dependency_digests.insert(digest.to_owned());
             }
             DependencyKind::SimulationManifest => {
                 let Some(digest) = dependency.artifact_sha256.as_deref() else {
-                    return Err(HeritageReconstructionError::DependencyArtifactDigestInvalid {
-                        element_id: element.element_id.clone(),
-                    });
+                    return Err(
+                        HeritageReconstructionError::DependencyArtifactDigestInvalid {
+                            element_id: element.element_id.clone(),
+                        },
+                    );
                 };
                 if !valid_sha256(digest) {
-                    return Err(HeritageReconstructionError::DependencyArtifactDigestInvalid {
-                        element_id: element.element_id.clone(),
-                    });
+                    return Err(
+                        HeritageReconstructionError::DependencyArtifactDigestInvalid {
+                            element_id: element.element_id.clone(),
+                        },
+                    );
                 }
                 simulation_manifest_digests.insert(digest.to_owned());
             }
             DependencyKind::Assumption | DependencyKind::Prior => {
-                if dependency.reference_id.as_deref().is_none_or(|value| !non_empty(value)) {
-                    return Err(HeritageReconstructionError::UnknownDependencyTypeMissingReference {
-                        element_id: element.element_id.clone(),
-                    });
+                if dependency
+                    .reference_id
+                    .as_deref()
+                    .is_none_or(|value| !non_empty(value))
+                {
+                    return Err(
+                        HeritageReconstructionError::UnknownDependencyTypeMissingReference {
+                            element_id: element.element_id.clone(),
+                        },
+                    );
                 }
             }
         }
     }
     if source_dependency_ids != source_seen {
-        return Err(HeritageReconstructionError::SourceEvidenceDependencySetMismatch(
-            element.element_id.clone(),
-        ));
+        return Err(
+            HeritageReconstructionError::SourceEvidenceDependencySetMismatch(
+                element.element_id.clone(),
+            ),
+        );
     }
 
     match element.epistemic_class {
         EpistemicGeometryClass::Observed => {
-            if element.geometry_asset_sha256.as_deref().is_none_or(|value| !valid_sha256(value)) {
+            if element
+                .geometry_asset_sha256
+                .as_deref()
+                .is_none_or(|value| !valid_sha256(value))
+            {
                 return Err(HeritageReconstructionError::GeometryDigestMissing(
                     element.element_id.clone(),
                 ));
@@ -569,10 +655,15 @@ fn validate_element(
                     element.element_id.clone(),
                 ));
             }
-            if !source_evidence.iter().any(|item| is_direct_measurement(item)) {
-                return Err(HeritageReconstructionError::ObservedGeometryLacksDirectMeasurement(
-                    element.element_id.clone(),
-                ));
+            if !source_evidence
+                .iter()
+                .any(|item| is_direct_measurement(item))
+            {
+                return Err(
+                    HeritageReconstructionError::ObservedGeometryLacksDirectMeasurement(
+                        element.element_id.clone(),
+                    ),
+                );
             }
             let Some(method_digest) = element.method_build_sha256.as_deref() else {
                 return Err(HeritageReconstructionError::MethodBuildMissing(
@@ -591,7 +682,11 @@ fn validate_element(
             }
         }
         EpistemicGeometryClass::Inferred => {
-            if element.geometry_asset_sha256.as_deref().is_none_or(|value| !valid_sha256(value)) {
+            if element
+                .geometry_asset_sha256
+                .as_deref()
+                .is_none_or(|value| !valid_sha256(value))
+            {
                 return Err(HeritageReconstructionError::GeometryDigestMissing(
                     element.element_id.clone(),
                 ));
@@ -602,9 +697,11 @@ fn validate_element(
                 ));
             }
             if source_evidence.is_empty() {
-                return Err(HeritageReconstructionError::InferredGeometryLacksEmpiricalSupport(
-                    element.element_id.clone(),
-                ));
+                return Err(
+                    HeritageReconstructionError::InferredGeometryLacksEmpiricalSupport(
+                        element.element_id.clone(),
+                    ),
+                );
             }
             let Some(method_digest) = element.method_build_sha256.as_deref() else {
                 return Err(HeritageReconstructionError::MethodBuildMissing(
@@ -625,21 +722,29 @@ fn validate_element(
                 item.origin == EvidenceOrigin::Simulation
                     || item.evidence_kind == EvidenceKind::Simulation
             }) {
-                return Err(HeritageReconstructionError::SimulationEvidenceUsedAsEmpiricalSupport(
-                    element.element_id.clone(),
-                ));
+                return Err(
+                    HeritageReconstructionError::SimulationEvidenceUsedAsEmpiricalSupport(
+                        element.element_id.clone(),
+                    ),
+                );
             }
             if source_evidence.iter().any(|item| {
                 item.origin == EvidenceOrigin::ModelOutput
                     || item.evidence_kind == EvidenceKind::ModelPrediction
             }) {
-                return Err(HeritageReconstructionError::ModelEvidenceUsedAsEmpiricalSupport(
-                    element.element_id.clone(),
-                ));
+                return Err(
+                    HeritageReconstructionError::ModelEvidenceUsedAsEmpiricalSupport(
+                        element.element_id.clone(),
+                    ),
+                );
             }
         }
         EpistemicGeometryClass::Simulated => {
-            if element.geometry_asset_sha256.as_deref().is_none_or(|value| !valid_sha256(value)) {
+            if element
+                .geometry_asset_sha256
+                .as_deref()
+                .is_none_or(|value| !valid_sha256(value))
+            {
                 return Err(HeritageReconstructionError::GeometryDigestMissing(
                     element.element_id.clone(),
                 ));
@@ -665,17 +770,21 @@ fn validate_element(
                 ));
             }
             let Some(simulation_digest) = element.simulation_manifest_sha256.as_deref() else {
-                return Err(HeritageReconstructionError::SimulatedGeometryMissingManifest(
-                    element.element_id.clone(),
-                ));
+                return Err(
+                    HeritageReconstructionError::SimulatedGeometryMissingManifest(
+                        element.element_id.clone(),
+                    ),
+                );
             };
             if !valid_sha256(simulation_digest)
                 || !simulation_manifest_digests.contains(simulation_digest)
                 || simulation_dependency_digests.is_empty()
             {
-                return Err(HeritageReconstructionError::SimulationManifestDigestMismatch(
-                    element.element_id.clone(),
-                ));
+                return Err(
+                    HeritageReconstructionError::SimulationManifestDigestMismatch(
+                        element.element_id.clone(),
+                    ),
+                );
             }
             if !source_evidence.iter().all(|item| {
                 matches!(
@@ -683,9 +792,11 @@ fn validate_element(
                     EvidenceOrigin::DirectMeasurement | EvidenceOrigin::HumanInterpretation
                 )
             }) {
-                return Err(HeritageReconstructionError::SimulationEvidenceUsedAsEmpiricalSupport(
-                    element.element_id.clone(),
-                ));
+                return Err(
+                    HeritageReconstructionError::SimulationEvidenceUsedAsEmpiricalSupport(
+                        element.element_id.clone(),
+                    ),
+                );
             }
         }
         EpistemicGeometryClass::Unknown => {
@@ -695,9 +806,11 @@ fn validate_element(
                 ));
             }
             if element.geometry_uncertainty.is_some() {
-                return Err(HeritageReconstructionError::UnknownElementCarriesUncertainty(
-                    element.element_id.clone(),
-                ));
+                return Err(
+                    HeritageReconstructionError::UnknownElementCarriesUncertainty(
+                        element.element_id.clone(),
+                    ),
+                );
             }
         }
     }
@@ -732,8 +845,14 @@ fn validate_element(
         ));
     }
     if element.identifiability != Identifiability::Identifiable {
-        if element.hypothesis_family_id.as_deref().is_none_or(|value| !non_empty(value))
-            || element.hypothesis_id.as_deref().is_none_or(|value| !non_empty(value))
+        if element
+            .hypothesis_family_id
+            .as_deref()
+            .is_none_or(|value| !non_empty(value))
+            || element
+                .hypothesis_id
+                .as_deref()
+                .is_none_or(|value| !non_empty(value))
         {
             return Err(HeritageReconstructionError::HypothesisIdentityMissing(
                 element.element_id.clone(),
@@ -773,7 +892,10 @@ pub fn validate_heritage_reconstruction(
         if !non_empty(&evidence.evidence_id) {
             return Err(HeritageReconstructionError::EmptyEvidenceId);
         }
-        if evidence_by_id.insert(evidence.evidence_id.clone(), evidence).is_some() {
+        if evidence_by_id
+            .insert(evidence.evidence_id.clone(), evidence)
+            .is_some()
+        {
             return Err(HeritageReconstructionError::DuplicateEvidenceId(
                 evidence.evidence_id.clone(),
             ));
@@ -794,11 +916,16 @@ pub fn validate_heritage_reconstruction(
             });
         }
         if evidence.rights_status == RightsStatus::Verified
-            && evidence.rights_receipt_ref.as_deref().is_none_or(|value| !non_empty(value))
+            && evidence
+                .rights_receipt_ref
+                .as_deref()
+                .is_none_or(|value| !non_empty(value))
         {
-            return Err(HeritageReconstructionError::VerifiedEvidenceRightsReceiptMissing {
-                evidence_id: evidence.evidence_id.clone(),
-            });
+            return Err(
+                HeritageReconstructionError::VerifiedEvidenceRightsReceiptMissing {
+                    evidence_id: evidence.evidence_id.clone(),
+                },
+            );
         }
     }
 
@@ -847,11 +974,11 @@ pub fn validate_heritage_reconstruction(
 
     for element in &input.elements {
         if element.identifiability == Identifiability::NonIdentifiable {
-            let family = element
-                .hypothesis_family_id
-                .as_deref()
-                .unwrap_or_default();
-            if hypothesis_families.get(family).is_none_or(|items| items.len() < 2) {
+            let family = element.hypothesis_family_id.as_deref().unwrap_or_default();
+            if hypothesis_families
+                .get(family)
+                .is_none_or(|items| items.len() < 2)
+            {
                 return Err(
                     HeritageReconstructionError::NonIdentifiableHypothesisHasNoAlternative(
                         element.element_id.clone(),
@@ -1133,7 +1260,9 @@ mod tests {
         value.elements = vec![element];
         assert!(matches!(
             validate_heritage_reconstruction(&value),
-            Err(HeritageReconstructionError::UnknownElementCarriesGeometry(_))
+            Err(HeritageReconstructionError::UnknownElementCarriesGeometry(
+                _
+            ))
         ));
     }
 
@@ -1163,7 +1292,9 @@ mod tests {
         value.elements[0].coordinate_access_tier = CoordinateAccessTier::Restricted;
         assert!(matches!(
             validate_heritage_reconstruction(&value),
-            Err(HeritageReconstructionError::RestrictedCoordinatesPublished(_))
+            Err(HeritageReconstructionError::RestrictedCoordinatesPublished(
+                _
+            ))
         ));
     }
 
@@ -1261,9 +1392,8 @@ mod tests {
         let mut value = input();
         let mut element = observed_element();
         element.epistemic_class = EpistemicGeometryClass::Simulated;
-        element.geometry_uncertainty = Some(uncertainty(
-            UncertaintyRepresentation::BoundingEnvelope,
-        ));
+        element.geometry_uncertainty =
+            Some(uncertainty(UncertaintyRepresentation::BoundingEnvelope));
         element.method_build_sha256 = Some("4".repeat(64));
         element.simulation_manifest_sha256 = Some("5".repeat(64));
         element.dependencies = vec![
@@ -1354,9 +1484,7 @@ mod tests {
         let mut element = observed_element();
         element.element_id = "scenario-surface".into();
         element.epistemic_class = EpistemicGeometryClass::Simulated;
-        element.geometry_uncertainty = Some(uncertainty(
-            UncertaintyRepresentation::ScenarioRange,
-        ));
+        element.geometry_uncertainty = Some(uncertainty(UncertaintyRepresentation::ScenarioRange));
         element.method_build_sha256 = Some("4".repeat(64));
         element.simulation_manifest_sha256 = Some("6".repeat(64));
         element.dependencies = vec![
