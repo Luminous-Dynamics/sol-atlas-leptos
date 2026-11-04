@@ -867,7 +867,7 @@ mod tests {
         let relative_error = (sample_variance - analytical_variance).abs() / analytical_variance;
         assert!(
             relative_error < 0.015,
-            "Monte Carlo variance {sample_variance} differs from analytical {analytical_variance} by {relative_error:.3%}"
+            "Monte Carlo variance {sample_variance} differs from analytical {analytical_variance} by {:.3}%", relative_error * 100.0
         );
     }
 
