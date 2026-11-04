@@ -15,7 +15,7 @@ use crate::built_environment_source_descriptor::{
 };
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::BTreeSet;
 use std::io::{self, Read};
 
 const VERIFIER_SCHEMA: &str = "luminous.source-payload-byte-verification.v0.1";
@@ -1703,4 +1703,279 @@ mod tests {
                 .any(|finding| { finding.code == "VERIFIER_BUILD_IDENTITY_UNAVAILABLE" })
         );
     }
+
+    fn resource_budget() -> CatalogResourceBudget {
+        CatalogResourceBudget {
+            max_descriptors: 100,
+            max_total_payload_bytes: 1024 * 1024,
+            max_total_bytes_read: 1024 * 1024 + 100,
+            max_bytes_per_payload: 1024 * 1024,
+            max_resolver_open_attempts: 100,
+            max_retries_per_payload: 0,
+            max_report_bytes: MIN_BUDGET_REPORT_BYTES,
+        }
+    }
+
+    fn multi_case_and_catalog(payloads: &[&[u8]]) -> (BuiltEnvironmentCase, SourceDescriptorCatalog) {
+        let mut case = test_case(payloads[0]);
+        case.evidence.clear();
+        let mut descriptors = Vec::new();
+        for (index, bytes) in payloads.iter().enumerate() {
+            let id = format!("evidence-{:03}", index + 1);
+            let subject = format!("design-{:03}", index + 1);
+            case.evidence.push(EvidenceRecord {
+                evidence_id: id.clone(),
+                subject_id: subject.clone(),
+                field_path: "geometry.revision".into(),
+                source_id: "survey-registry".into(),
+                source_payload_sha256: Some(sha(bytes)),
+                evidence_state: EvidenceState::Verified,
+                data_rights: DataRights::PublicDomain,
+                license_id: Some("CC0-1.0".into()),
+                jurisdiction: "synthetic-jurisdiction".into(),
+                observed_at_unix_seconds: Some(1_762_000_000 + index as i64),
+            });
+            let mut row = descriptor(bytes);
+            row.case_record_id = id.clone();
+            for component in &mut row.native_identity_components {
+                match component.name.as_str() {
+                    "native_record_id" => component.value = id.clone(),
+                    "subject_id" => component.value = subject.clone(),
+                    _ => {}
+                }
+            }
+            row.source_payload.payload_object_ref =
+                Some(cas_reference(row.source_payload.sha256.as_deref().unwrap()));
+            descriptors.push(row);
+        }
+        let catalog = SourceDescriptorCatalog {
+            schema_version: "luminous.built-environment-source-descriptor-catalog.v0.1".into(),
+            catalog_id: "catalog-budget-synthetic-001".into(),
+            case_id: case.case_id.clone(),
+            case_representation_sha256: sha(&serde_json::to_vec(&case).unwrap()),
+            captured_at: "2026-11-04T06:00:00Z".into(),
+            descriptors,
+            claim_ceiling: "descriptor_integrity_only".into(),
+            action_authority: "none".into(),
+            limitations: vec!["Synthetic budget fixture only.".into()],
+        };
+        (case, catalog)
+    }
+
+    #[test]
+    fn aggregate_read_budget_is_a_hard_cap_including_probe_bytes() {
+        let (case, catalog) = multi_case_and_catalog(&[b"four", b"fives"]);
+        let mut budget = resource_budget();
+        budget.max_total_payload_bytes = 9;
+        budget.max_total_bytes_read = 5;
+        let expected = BTreeSet::from([
+            cas_reference(&sha(b"four")),
+            cas_reference(&sha(b"fives")),
+        ]);
+        let result = verify_catalog_payload_bytes_with_budget(
+            &case,
+            &catalog,
+            &context(),
+            &budget,
+            move |reference| {
+                if expected.contains(reference) && reference == cas_reference(&sha(b"four")) {
+                    Ok(Cursor::new(b"four".to_vec()))
+                } else {
+                    Ok(Cursor::new(b"fives".to_vec()))
+                }
+            },
+        );
+        assert!(result.total_bytes_read <= budget.max_total_bytes_read);
+        assert_eq!(result.total_bytes_read, 5);
+        assert_eq!(result.total_payload_bytes_hashed, 4);
+        assert_eq!(result.report.records[0].status, PayloadByteStatus::Verified);
+        assert_eq!(result.report.records[1].status, PayloadByteStatus::ByteLimitExceeded);
+        assert_eq!(
+            result.report.disposition,
+            PayloadByteCatalogDisposition::IncompleteOrIndeterminate
+        );
+    }
+
+    #[test]
+    fn descriptor_and_open_attempt_budgets_skip_records_without_resolving_them() {
+        let (case, catalog) = multi_case_and_catalog(&[b"one", b"two", b"three"]);
+        let mut budget = resource_budget();
+        budget.max_descriptors = 3;
+        budget.max_resolver_open_attempts = 1;
+        let mut opens = Vec::new();
+        let result = verify_catalog_payload_bytes_with_budget(
+            &case,
+            &catalog,
+            &context(),
+            &budget,
+            |reference| {
+                opens.push(reference.to_owned());
+                let bytes = match reference {
+                    value if value == cas_reference(&sha(b"one")) => b"one".to_vec(),
+                    value if value == cas_reference(&sha(b"two")) => b"two".to_vec(),
+                    _ => b"three".to_vec(),
+                };
+                Ok(Cursor::new(bytes))
+            },
+        );
+        assert_eq!(opens.len(), 1);
+        assert_eq!(result.resolver_open_attempts, 1);
+        assert_eq!(result.skipped_budget_count, 2);
+        assert_eq!(
+            result.report.records.iter().filter(|row| row.status == PayloadByteStatus::SkippedBudget).count(),
+            2
+        );
+        assert!(result.report.records.iter().all(|row| row.status != PayloadByteStatus::Verified)
+            || result.report.records[0].status == PayloadByteStatus::Verified);
+        assert_eq!(
+            result.report.disposition,
+            PayloadByteCatalogDisposition::IncompleteOrIndeterminate
+        );
+    }
+
+    #[test]
+    fn descriptor_count_budget_is_deterministic_under_input_vector_reordering() {
+        let (case, mut catalog) = multi_case_and_catalog(&[b"one", b"two", b"three"]);
+        let mut budget = resource_budget();
+        budget.max_descriptors = 2;
+        let mut first_order = Vec::new();
+        let first = verify_catalog_payload_bytes_with_budget(
+            &case,
+            &catalog,
+            &context(),
+            &budget,
+            |reference| {
+                first_order.push(reference.to_owned());
+                let bytes = if reference == cas_reference(&sha(b"one")) {
+                    b"one".to_vec()
+                } else {
+                    b"two".to_vec()
+                };
+                Ok(Cursor::new(bytes))
+            },
+        );
+        catalog.descriptors.reverse();
+        let mut second_order = Vec::new();
+        let second = verify_catalog_payload_bytes_with_budget(
+            &case,
+            &catalog,
+            &context(),
+            &budget,
+            |reference| {
+                second_order.push(reference.to_owned());
+                let bytes = if reference == cas_reference(&sha(b"one")) {
+                    b"one".to_vec()
+                } else {
+                    b"two".to_vec()
+                };
+                Ok(Cursor::new(bytes))
+            },
+        );
+        assert_eq!(first_order, second_order);
+        assert_eq!(
+            first.report.records.iter().map(|row| (&row.record_key, &row.status)).collect::<Vec<_>>(),
+            second.report.records.iter().map(|row| (&row.record_key, &row.status)).collect::<Vec<_>>()
+        );
+    }
+
+    #[test]
+    fn report_budget_truncates_deterministically_and_preserves_denominators() {
+        let payloads = vec![b"same synthetic payload".as_slice(); 100];
+        let (case, catalog) = multi_case_and_catalog(&payloads);
+        let mut budget = resource_budget();
+        budget.max_descriptors = 100;
+        budget.max_resolver_open_attempts = 100;
+        budget.max_total_payload_bytes = 100_000;
+        budget.max_total_bytes_read = 100_100;
+        budget.max_report_bytes = MIN_BUDGET_REPORT_BYTES;
+        let expected_ref = cas_reference(&sha(b"same synthetic payload"));
+        let result = verify_catalog_payload_bytes_with_budget(
+            &case,
+            &catalog,
+            &context(),
+            &budget,
+            move |reference| {
+                if reference == expected_ref {
+                    Ok(Cursor::new(b"same synthetic payload".to_vec()))
+                } else {
+                    Err(io::Error::new(io::ErrorKind::NotFound, "unknown object"))
+                }
+            },
+        );
+        assert!(result.report_truncated);
+        assert!(result.omitted_record_count > 0 || result.omitted_finding_count > 0);
+        assert!(result.serialized_report_bytes <= budget.max_report_bytes);
+        assert_eq!(result.report.descriptor_count, 100);
+        assert_eq!(result.descriptor_count, 100);
+        assert_eq!(
+            result.omitted_records_sha256.is_some(),
+            result.omitted_record_count > 0
+        );
+        assert_eq!(
+            result.report.disposition,
+            PayloadByteCatalogDisposition::IncompleteOrIndeterminate
+        );
+    }
+
+    #[test]
+    fn invalid_aggregate_budget_never_opens_a_payload() {
+        let bytes = b"budget invalid";
+        let case = test_case(bytes);
+        let catalog = catalog(&case, descriptor(bytes));
+        let mut budget = resource_budget();
+        budget.max_retries_per_payload = 1;
+        let mut opened = false;
+        let result = verify_catalog_payload_bytes_with_budget(
+            &case,
+            &catalog,
+            &context(),
+            &budget,
+            |_reference| {
+                opened = true;
+                Ok(Cursor::new(bytes.to_vec()))
+            },
+        );
+        assert!(!opened);
+        assert_eq!(
+            result.report.disposition,
+            PayloadByteCatalogDisposition::InvalidInput
+        );
+        assert!(result.report.findings.iter().any(|row| row.code == "INVALID_CATALOG_RESOURCE_BUDGET"));
+        assert_eq!(result.resolver_open_attempts, 0);
+    }
+
+    #[test]
+    fn descriptor_incompleteness_cannot_be_upgraded_by_byte_verification() {
+        let bytes = b"descriptor incomplete";
+        let mut case = test_case(bytes);
+        case.evidence.push(EvidenceRecord {
+            evidence_id: "evidence-missing".into(),
+            subject_id: "design-missing".into(),
+            field_path: "material.lot".into(),
+            source_id: "supplier-registry".into(),
+            source_payload_sha256: Some("f".repeat(64)),
+            evidence_state: EvidenceState::Verified,
+            data_rights: DataRights::PublicDomain,
+            license_id: Some("CC0-1.0".into()),
+            jurisdiction: "synthetic-jurisdiction".into(),
+            observed_at_unix_seconds: Some(1_762_000_001),
+        });
+        let catalog = catalog(&case, descriptor(bytes));
+        let result = verify_catalog_payload_bytes_with_budget(
+            &case,
+            &catalog,
+            &context(),
+            &resource_budget(),
+            |_reference| Ok(Cursor::new(bytes.to_vec())),
+        );
+        assert_eq!(
+            result.report.disposition,
+            PayloadByteCatalogDisposition::IncompleteOrIndeterminate
+        );
+        assert_eq!(result.report.descriptor_validation_disposition, "incomplete_or_indeterminate");
+        assert_eq!(result.report.verified_count, 1);
+        assert_eq!(result.report.descriptor_missing_count, 1);
+        assert_eq!(result.report.no_impact_eligibility, "none");
+    }
+
 }
