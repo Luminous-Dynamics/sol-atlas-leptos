@@ -153,13 +153,25 @@ fn append_field(encoded: &mut Vec<u8>, value: &[u8]) -> Result<(), String> {
     Ok(())
 }
 
-fn input_manifest_digest(
-    domain: &[u8],
+fn payload_input_manifest_digest(
     payloads: &BTreeMap<String, Vec<u8>>,
 ) -> Result<String, String> {
-    let mut encoded = domain.to_vec();
+    let mut encoded = PAYLOAD_INPUT_DOMAIN.to_vec();
     for (key, bytes) in payloads {
         append_field(&mut encoded, key.as_bytes())?;
+        append_field(&mut encoded, &(bytes.len() as u64).to_be_bytes())?;
+        append_field(&mut encoded, sha256_hex(bytes).as_bytes())?;
+    }
+    Ok(sha256_hex(&encoded))
+}
+
+fn schema_input_manifest_digest(
+    schemas: &BTreeMap<(String, String), Vec<u8>>,
+) -> Result<String, String> {
+    let mut encoded = SCHEMA_INPUT_DOMAIN.to_vec();
+    for ((schema_id, schema_version), bytes) in schemas {
+        append_field(&mut encoded, schema_id.as_bytes())?;
+        append_field(&mut encoded, schema_version.as_bytes())?;
         append_field(&mut encoded, &(bytes.len() as u64).to_be_bytes())?;
         append_field(&mut encoded, sha256_hex(bytes).as_bytes())?;
     }
@@ -200,9 +212,9 @@ pub fn verify_catalog_payload_bytes(
     let catalog_sha256 = sha256_hex(&catalog_bytes);
     let case_sha256 = sha256_hex(&case_bytes);
     let payload_manifest_sha256 =
-        input_manifest_digest(PAYLOAD_INPUT_DOMAIN, payload_inputs).unwrap_or_default();
+        payload_input_manifest_digest(payload_inputs).unwrap_or_default();
     let schema_manifest_sha256 =
-        input_manifest_digest(SCHEMA_INPUT_DOMAIN, schema_inputs).unwrap_or_default();
+        schema_input_manifest_digest(schema_inputs).unwrap_or_default();
 
     let mut findings = Findings::default();
     if descriptor_validation.disposition == DescriptorDisposition::InvalidInput {
