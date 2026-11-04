@@ -192,7 +192,10 @@ pub enum HeritageEvaluationSplitError {
     CaptureIdDigestMismatch(String),
     MissingRandomSeedOrReferenceManifest,
     InvalidHeldOutIdentity(String),
+    DuplicateHeldOutIdentity(String),
     MissingHeldOutIdentity,
+    TestPartitionContainsUnheldIdentity(String),
+    MissingBlockId(String),
     HeldOutIdentityInFitPartition(String),
     TestPartitionMissingHeldOutIdentity,
     MissingSpatialBufferConfiguration,
@@ -250,6 +253,20 @@ fn shared_identity_count<T: Ord + Clone>(
         }
     }
     roles.values().filter(|set| set.len() > 1).count()
+}
+
+fn first_shared_identity<T: Ord + Clone>(
+    values: impl IntoIterator<Item = (T, SplitRole)>,
+) -> Option<T> {
+    let mut roles = BTreeMap::<T, BTreeSet<SplitRole>>::new();
+    for (value, role) in values {
+        if role != SplitRole::BufferExcluded {
+            roles.entry(value).or_default().insert(role);
+        }
+    }
+    roles
+        .into_iter()
+        .find_map(|(value, split_roles)| (split_roles.len() > 1).then_some(value))
 }
 
 fn count_source_pixel_overlaps(
@@ -338,32 +355,44 @@ fn count_spatial_buffer_violations(
 }
 
 fn validate_held_out_partition(
-    labels: &BTreeSet<String>,
     held_out: &[String],
     samples: &[&EvaluationSample],
+    identity: impl Fn(&EvaluationSample) -> &str,
 ) -> Result<usize, HeritageEvaluationSplitError> {
     if held_out.is_empty() {
         return Err(HeritageEvaluationSplitError::MissingHeldOutIdentity);
     }
     let mut held = BTreeSet::new();
     for id in held_out {
-        if !non_empty(id) || !held.insert(id.as_str()) {
+        if !non_empty(id) {
             return Err(HeritageEvaluationSplitError::InvalidHeldOutIdentity(
+                id.clone(),
+            ));
+        }
+        if !held.insert(id.as_str()) {
+            return Err(HeritageEvaluationSplitError::DuplicateHeldOutIdentity(
                 id.clone(),
             ));
         }
     }
     let mut found_in_test = BTreeSet::new();
     for sample in samples.iter().copied().filter(|s| s.role != SplitRole::BufferExcluded) {
-        if labels.contains(&sample.site_id) {
-            if matches!(sample.role, SplitRole::Train | SplitRole::Validation) {
+        let value = identity(sample);
+        match sample.role {
+            SplitRole::Train | SplitRole::Validation if held.contains(value) => {
                 return Err(HeritageEvaluationSplitError::HeldOutIdentityInFitPartition(
-                    sample.site_id.clone(),
+                    value.to_owned(),
                 ));
             }
-            if sample.role == SplitRole::Test {
-                found_in_test.insert(sample.site_id.as_str());
+            SplitRole::Test if !held.contains(value) => {
+                return Err(HeritageEvaluationSplitError::TestPartitionContainsUnheldIdentity(
+                    value.to_owned(),
+                ));
             }
+            SplitRole::Test => {
+                found_in_test.insert(value);
+            }
+            SplitRole::Train | SplitRole::Validation | SplitRole::BufferExcluded => {}
         }
     }
     if held.iter().any(|id| !found_in_test.contains(id)) {
@@ -521,33 +550,22 @@ pub fn audit_heritage_evaluation_split(
             if source_pixel_overlap_pair_count > 0 {
                 return Err(HeritageEvaluationSplitError::SourcePixelOverlapAcrossPartitions);
             }
-            if shared_tile_digest_count > 0 {
-                let tile_id = active
-                    .iter()
-                    .find(|sample| {
-                        active.iter().any(|other| {
-                            other.role != sample.role
-                                && other.source_tile_sha256 == sample.source_tile_sha256
-                        })
-                    })
-                    .map(|sample| sample.source_tile_sha256.clone())
-                    .unwrap_or_default();
+            if let Some(tile_id) = first_shared_identity(active.iter().flat_map(|sample| {
+                std::iter::once((sample.source_tile_sha256.clone(), sample.role))
+            })) {
                 return Err(HeritageEvaluationSplitError::SharedTileDigestAcrossPartitions(
                     tile_id,
                 ));
             }
-            if shared_physical_entity_count > 0 {
-                let id = active
+            if let Some(entity_id) = first_shared_identity(active.iter().flat_map(|sample| {
+                sample
+                    .physical_entity_ids
                     .iter()
-                    .flat_map(|sample| sample.physical_entity_ids.iter())
-                    .find(|id| active.iter().any(|other| {
-                        other.role != active.iter().find(|s| s.physical_entity_ids.contains(id)).unwrap().role
-                            && other.physical_entity_ids.contains(id)
-                    }))
                     .cloned()
-                    .unwrap_or_default();
+                    .map(move |id| (id, sample.role))
+            })) {
                 return Err(HeritageEvaluationSplitError::SharedPhysicalEntityAcrossPartitions(
-                    id,
+                    entity_id,
                 ));
             }
         }
@@ -555,10 +573,31 @@ pub fn audit_heritage_evaluation_split(
             if source_pixel_overlap_pair_count > 0 {
                 return Err(HeritageEvaluationSplitError::SourcePixelOverlapAcrossPartitions);
             }
-            if shared_physical_entity_count > 0 {
+            if shared_tile_digest_count > 0 {
+                let id = first_shared_identity(active.iter().map(|sample| {
+                    (sample.source_tile_sha256.clone(), sample.role)
+                }))
+                .unwrap_or_default();
+                return Err(HeritageEvaluationSplitError::SharedTileDigestAcrossPartitions(id));
+            }
+            if let Some(entity_id) = first_shared_identity(active.iter().flat_map(|sample| {
+                sample
+                    .physical_entity_ids
+                    .iter()
+                    .cloned()
+                    .map(move |id| (id, sample.role))
+            })) {
                 return Err(HeritageEvaluationSplitError::SharedPhysicalEntityAcrossPartitions(
-                    "duplicate physical entity".to_owned(),
+                    entity_id,
                 ));
+            }
+            if active.iter().any(|sample| sample.block_id.as_deref().is_none_or(|id| !non_empty(id))) {
+                let sample_id = active
+                    .iter()
+                    .find(|sample| sample.block_id.as_deref().is_none_or(|id| !non_empty(id)))
+                    .map(|sample| sample.sample_id.clone())
+                    .unwrap_or_default();
+                return Err(HeritageEvaluationSplitError::MissingBlockId(sample_id));
             }
             if shared_block_count > 0 {
                 return Err(HeritageEvaluationSplitError::SharedBlockAcrossPartitions(
@@ -605,8 +644,11 @@ pub fn audit_heritage_evaluation_split(
             }
         }
         EvaluationSplitProfile::LeaveOneSiteOut => {
-            let held: BTreeSet<String> = manifest.held_out_site_ids.iter().cloned().collect();
-            held_out_identity_count = validate_held_out_partition(&held, &manifest.held_out_site_ids, &active)?;
+            held_out_identity_count = validate_held_out_partition(
+                &manifest.held_out_site_ids,
+                &active,
+                |sample| sample.site_id.as_str(),
+            )?;
             if source_pixel_overlap_pair_count > 0 {
                 return Err(HeritageEvaluationSplitError::SourcePixelOverlapAcrossPartitions);
             }
@@ -617,31 +659,18 @@ pub fn audit_heritage_evaluation_split(
             }
         }
         EvaluationSplitProfile::CrossSensorTransfer => {
-            let held: BTreeSet<String> = manifest.held_out_sensor_ids.iter().cloned().collect();
-            held_out_identity_count = validate_held_out_partition(&held, &manifest.held_out_sensor_ids, &active.iter().map(|sample| *sample).collect::<Vec<_>>())?;
+            held_out_identity_count = validate_held_out_partition(
+                &manifest.held_out_sensor_ids,
+                &active,
+                |sample| sample.sensor_id.as_str(),
+            )?;
         }
         EvaluationSplitProfile::CrossEpochTransfer => {
-            let held: BTreeSet<String> = manifest.held_out_epoch_ids.iter().cloned().collect();
-            let Some(_) = manifest.held_out_epoch_ids.first() else {
-                return Err(HeritageEvaluationSplitError::MissingHeldOutIdentity);
-            };
-            let mut seen = BTreeSet::new();
-            for sample in &active {
-                if held.contains(&sample.acquisition_epoch_id) {
-                    if matches!(sample.role, SplitRole::Train | SplitRole::Validation) {
-                        return Err(HeritageEvaluationSplitError::HeldOutIdentityInFitPartition(
-                            sample.acquisition_epoch_id.clone(),
-                        ));
-                    }
-                    if sample.role == SplitRole::Test {
-                        seen.insert(sample.acquisition_epoch_id.as_str());
-                    }
-                }
-            }
-            if held.iter().any(|id| !seen.contains(id.as_str())) {
-                return Err(HeritageEvaluationSplitError::TestPartitionMissingHeldOutIdentity);
-            }
-            held_out_identity_count = seen.len();
+            held_out_identity_count = validate_held_out_partition(
+                &manifest.held_out_epoch_ids,
+                &active,
+                |sample| sample.acquisition_epoch_id.as_str(),
+            )?;
         }
     }
 
