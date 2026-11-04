@@ -18,6 +18,10 @@ pub mod built_environment_case;
 /// coverage completeness, engineering correctness, or authorization; those remain
 /// independent evidence and trust obligations.
 pub mod built_environment_source_descriptor;
+/// Independent hashing of caller-supplied source and schema bytes against
+/// case-bound descriptor claims. Does not retrieve bytes or authenticate
+/// source owners, rights, trust roots, completeness, or engineering truth.
+pub mod source_payload_verifier;
 pub mod confluence;
 pub mod constants;
 pub mod data;
