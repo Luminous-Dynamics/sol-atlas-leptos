@@ -1,0 +1,359 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/heritage-field-sweep-input-v0.1.schema.json",
+  "title": "Sol-Atlas Heritage Field Sweep Input v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "evaluation_id",
+    "calibration_profile",
+    "observed_context",
+    "coverage"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "luminous.heritage-field-sweep.v0.1"
+    },
+    "evaluation_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "calibration_profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "profile_id",
+        "profile_sha256",
+        "context",
+        "detection_probability_at_transect",
+        "lateral_decay_per_metre_squared",
+        "detection_probability_standard_error",
+        "lateral_decay_standard_error",
+        "b_k_covariance",
+        "fit_method_id",
+        "fit_software_version",
+        "fit_receipt_sha256",
+        "calibration_data_sha256",
+        "calibration_split_manifest_sha256",
+        "fit_transect_ids",
+        "validation_transect_ids",
+        "fit_seeded_target_count",
+        "validation_seeded_target_count",
+        "validation_brier_score",
+        "maximum_permitted_validation_brier_score",
+        "rights_status",
+        "rights_receipt_ref"
+      ],
+      "properties": {
+        "profile_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "profile_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "context": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "target_material_or_feature_class_id",
+            "obtrusiveness_class_id",
+            "survey_method",
+            "crew_cohort_id",
+            "search_speed_m_per_minute",
+            "visibility_stratum_id",
+            "ground_cover_stratum_id",
+            "soil_moisture_stratum_id",
+            "illumination_stratum_id",
+            "season_stratum_id",
+            "terrain_stratum_id"
+          ],
+          "properties": {
+            "target_material_or_feature_class_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "obtrusiveness_class_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "survey_method": {
+              "enum": [
+                "field_walking",
+                "ground_magnetometry",
+                "ground_penetrating_radar",
+                "augering",
+                "test_pitting",
+                "uav_surface_survey"
+              ]
+            },
+            "crew_cohort_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "search_speed_m_per_minute": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "visibility_stratum_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "ground_cover_stratum_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "soil_moisture_stratum_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "illumination_stratum_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "season_stratum_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "terrain_stratum_id": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "detection_probability_at_transect": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 1
+        },
+        "lateral_decay_per_metre_squared": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "detection_probability_standard_error": {
+          "type": "number",
+          "minimum": 0
+        },
+        "lateral_decay_standard_error": {
+          "type": "number",
+          "minimum": 0
+        },
+        "b_k_covariance": {
+          "type": "number"
+        },
+        "fit_method_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "fit_software_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "fit_receipt_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "calibration_data_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "calibration_split_manifest_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "fit_transect_ids": {
+          "type": "array",
+          "minItems": 3,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "validation_transect_ids": {
+          "type": "array",
+          "minItems": 2,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "fit_seeded_target_count": {
+          "type": "integer",
+          "minimum": 20
+        },
+        "validation_seeded_target_count": {
+          "type": "integer",
+          "minimum": 10
+        },
+        "validation_brier_score": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "maximum_permitted_validation_brier_score": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "rights_status": {
+          "enum": [
+            "verified",
+            "pending",
+            "denied",
+            "unknown"
+          ]
+        },
+        "rights_receipt_ref": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "rights_status": {
+                "const": "verified"
+              }
+            },
+            "required": [
+              "rights_status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "rights_receipt_ref": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        }
+      ]
+    },
+    "observed_context": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "target_material_or_feature_class_id",
+        "obtrusiveness_class_id",
+        "survey_method",
+        "crew_cohort_id",
+        "search_speed_m_per_minute",
+        "visibility_stratum_id",
+        "ground_cover_stratum_id",
+        "soil_moisture_stratum_id",
+        "illumination_stratum_id",
+        "season_stratum_id",
+        "terrain_stratum_id"
+      ],
+      "properties": {
+        "target_material_or_feature_class_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "obtrusiveness_class_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "survey_method": {
+          "enum": [
+            "field_walking",
+            "ground_magnetometry",
+            "ground_penetrating_radar",
+            "augering",
+            "test_pitting",
+            "uav_surface_survey"
+          ]
+        },
+        "crew_cohort_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "search_speed_m_per_minute": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "visibility_stratum_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "ground_cover_stratum_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "soil_moisture_stratum_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "illumination_stratum_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "season_stratum_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "terrain_stratum_id": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "coverage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "survey_unit_id",
+        "survey_unit_crs_id",
+        "survey_unit_area_m2",
+        "overlap_adjusted_path_length_m",
+        "transect_geometry_sha256",
+        "survey_unit_geometry_sha256",
+        "spatial_union_method_id",
+        "spatial_union_receipt_sha256"
+      ],
+      "properties": {
+        "survey_unit_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "survey_unit_crs_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "survey_unit_area_m2": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "overlap_adjusted_path_length_m": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "transect_geometry_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "survey_unit_geometry_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "spatial_union_method_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "spatial_union_receipt_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        }
+      }
+    }
+  }
+}
