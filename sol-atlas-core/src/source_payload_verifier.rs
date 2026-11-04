@@ -889,10 +889,7 @@ mod tests {
             },
         )]);
         let schemas = BTreeMap::from([(
-            (
-                "urn:synthetic:schema:evidence".to_owned(),
-                "1.0".to_owned(),
-            ),
+            ("urn:synthetic:schema:evidence".to_owned(), "1.0".to_owned()),
             InputDigest {
                 sha256: "b26ac0a7e7dfdad5c3a62712855bec360c3a7878cb82ea3c4e48fc4743d778e5".into(),
                 byte_length: 44,
