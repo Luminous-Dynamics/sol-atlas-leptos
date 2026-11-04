@@ -210,7 +210,19 @@ pub struct DescriptorCatalogSetValidation {
     pub unique_native_identity_count: usize,
     pub shared_native_identity_reference_count: usize,
     pub conflicting_native_identity_count: usize,
+    pub conflicting_source_metadata_count: usize,
+    pub incomparable_shared_identity_count: usize,
     pub findings: Vec<DescriptorFinding>,
+}
+
+#[derive(Clone)]
+struct CrossCaseNativeClaim {
+    first_case_key: String,
+    payload_sha256: Option<String>,
+    media_type: Option<String>,
+    schema_id: Option<String>,
+    schema_version: Option<String>,
+    schema_sha256: Option<String>,
 }
 
 #[derive(Default)]
@@ -822,9 +834,11 @@ pub fn validate_source_descriptor_catalog_set(
     }
 
     let mut seen_catalog_cases = BTreeSet::new();
-    let mut native_identities = BTreeMap::<String, (String, Option<String>)>::new();
+    let mut native_identities = BTreeMap::<String, CrossCaseNativeClaim>::new();
     let mut shared_native_identity_reference_count = 0usize;
     let mut conflicting_native_identity_count = 0usize;
+    let mut conflicting_source_metadata_count = 0usize;
+    let mut incomparable_shared_identity_count = 0usize;
 
     for catalog in catalogs {
         if !seen_catalog_cases.insert(catalog.case_id.clone()) {
@@ -854,43 +868,93 @@ pub fn validate_source_descriptor_catalog_set(
         }
 
         for (record_key, identity_sha256) in &validation.identity_sha256_by_case_record {
-            let payload_sha256 = catalog
+            let descriptor = catalog
                 .descriptors
                 .iter()
                 .find(|descriptor| {
                     descriptor.record_kind.case_key(&descriptor.case_record_id) == *record_key
-                })
-                .and_then(|descriptor| descriptor.source_payload.sha256.clone());
+                });
+            let Some(descriptor) = descriptor else {
+                incomparable_shared_identity_count += 1;
+                findings.incomplete(
+                    "CROSS_CASE_DESCRIPTOR_LOOKUP_MISSING",
+                    format!("{}:{record_key}", catalog.case_id),
+                    "validated identity has no corresponding descriptor row",
+                );
+                continue;
+            };
+            let current_claim = CrossCaseNativeClaim {
+                first_case_key: format!("{}:{record_key}", catalog.case_id),
+                payload_sha256: descriptor.source_payload.sha256.clone(),
+                media_type: descriptor.source_payload.media_type.clone(),
+                schema_id: descriptor.source_payload.schema_id.clone(),
+                schema_version: descriptor.source_payload.schema_version.clone(),
+                schema_sha256: descriptor.source_payload.schema_sha256.clone(),
+            };
 
-            if let Some((first_case_key, first_digest)) = native_identities.get(identity_sha256) {
+            if let Some(first_claim) = native_identities.get(identity_sha256) {
                 shared_native_identity_reference_count += 1;
-                match (first_digest.as_deref(), payload_sha256.as_deref()) {
+                match (
+                    first_claim.payload_sha256.as_deref(),
+                    current_claim.payload_sha256.as_deref(),
+                ) {
                     (Some(first), Some(current)) if first != current => {
                         conflicting_native_identity_count += 1;
                         findings.invalid(
                             "CROSS_CASE_NATIVE_IDENTITY_DIGEST_CONFLICT",
                             format!("{}:{record_key}", catalog.case_id),
                             format!(
-                                "native identity {identity_sha256} was previously bound at {first_case_key} to a different payload digest"
+                                "native identity {identity_sha256} was previously bound at {} to a different payload digest",
+                                first_claim.first_case_key
                             ),
                         );
                     }
-                    (None, Some(_)) | (Some(_), None) => {
+                    (None, _) | (_, None) => {
+                        incomparable_shared_identity_count += 1;
                         findings.incomplete(
                             "CROSS_CASE_NATIVE_IDENTITY_DIGEST_NOT_COMPARABLE",
                             format!("{}:{record_key}", catalog.case_id),
                             format!(
-                                "native identity {identity_sha256} is shared with {first_case_key}, but one case lacks a comparable payload digest"
+                                "native identity {identity_sha256} is shared with {}, but at least one case lacks a comparable payload digest",
+                                first_claim.first_case_key
                             ),
                         );
                     }
                     _ => {}
                 }
+
+                for (field, first, current) in [
+                    ("media_type", first_claim.media_type.as_deref(), current_claim.media_type.as_deref()),
+                    ("schema_id", first_claim.schema_id.as_deref(), current_claim.schema_id.as_deref()),
+                    ("schema_version", first_claim.schema_version.as_deref(), current_claim.schema_version.as_deref()),
+                    ("schema_sha256", first_claim.schema_sha256.as_deref(), current_claim.schema_sha256.as_deref()),
+                ] {
+                    match (first, current) {
+                        (Some(left), Some(right)) if left != right => {
+                            conflicting_source_metadata_count += 1;
+                            findings.invalid(
+                                "CROSS_CASE_NATIVE_IDENTITY_SCHEMA_CONFLICT",
+                                format!("{}:{record_key}", catalog.case_id),
+                                format!(
+                                    "shared native identity {identity_sha256} has conflicting {field}: {} vs {}",
+                                    first_claim.first_case_key, current_claim.first_case_key
+                                ),
+                            );
+                        }
+                        (None, _) | (_, None) => {
+                            findings.incomplete(
+                                "CROSS_CASE_NATIVE_IDENTITY_METADATA_NOT_COMPARABLE",
+                                format!("{}:{record_key}", catalog.case_id),
+                                format!(
+                                    "shared native identity {identity_sha256} lacks comparable {field} metadata in one or more cases"
+                                ),
+                            );
+                        }
+                        _ => {}
+                    }
+                }
             } else {
-                native_identities.insert(
-                    identity_sha256.clone(),
-                    (format!("{}:{record_key}", catalog.case_id), payload_sha256),
-                );
+                native_identities.insert(identity_sha256.clone(), current_claim);
             }
         }
     }
@@ -913,6 +977,8 @@ pub fn validate_source_descriptor_catalog_set(
         unique_native_identity_count: native_identities.len(),
         shared_native_identity_reference_count,
         conflicting_native_identity_count,
+        conflicting_source_metadata_count,
+        incomparable_shared_identity_count,
         findings: findings.rows.into_iter().collect(),
     }
 }
