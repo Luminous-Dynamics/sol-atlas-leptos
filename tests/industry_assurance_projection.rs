@@ -86,10 +86,22 @@ fn context() -> ProjectionContext {
         projector_build_sha256: Some(digest(b'd')),
         mapping_profile_sha256: digest(b'e'),
         native_identity_namespaces: BTreeMap::from([
-            ("evidence:evidence-001".into(), "urn:fixture:source-registry".into()),
-            ("artifact:artifact-001".into(), "urn:fixture:design-repository".into()),
-            ("engineering_receipt:receipt-001".into(), "urn:fixture:solver-registry".into()),
-            ("decision:decision-001".into(), "urn:fixture:authority-registry".into()),
+            (
+                "evidence:evidence-001".into(),
+                "urn:fixture:source-registry".into(),
+            ),
+            (
+                "artifact:artifact-001".into(),
+                "urn:fixture:design-repository".into(),
+            ),
+            (
+                "engineering_receipt:receipt-001".into(),
+                "urn:fixture:solver-registry".into(),
+            ),
+            (
+                "decision:decision-001".into(),
+                "urn:fixture:authority-registry".into(),
+            ),
         ]),
     }
 }
@@ -97,7 +109,10 @@ fn context() -> ProjectionContext {
 #[test]
 fn public_projector_emits_identity_preserving_graph_and_receipt() {
     let output = project_built_environment_case(&fixture_case(), &context());
-    assert_eq!(output.disposition, ProjectionDisposition::ProjectedWithKnownLoss);
+    assert_eq!(
+        output.disposition,
+        ProjectionDisposition::ProjectedWithKnownLoss
+    );
     assert_eq!(
         output.graph["schema_version"],
         "luminous.ieac-assurance-dependency-graph.v0.2"
@@ -134,12 +149,36 @@ fn public_projector_emits_identity_preserving_graph_and_receipt() {
         .collect::<Vec<_>>();
     gold_relationships.sort();
     let mut expected_relationships = vec![
-        ("source_evidence".to_owned(), "engineering_artifact".to_owned(), "evidence_for".to_owned()),
-        ("engineering_artifact".to_owned(), "engineering_receipt".to_owned(), "verified_by".to_owned()),
-        ("source_evidence".to_owned(), "engineering_receipt".to_owned(), "evidence_for".to_owned()),
-        ("engineering_artifact".to_owned(), "decision".to_owned(), "evidence_for".to_owned()),
-        ("engineering_receipt".to_owned(), "decision".to_owned(), "evidence_for".to_owned()),
-        ("source_evidence".to_owned(), "decision".to_owned(), "authorized_by".to_owned()),
+        (
+            "source_evidence".to_owned(),
+            "engineering_artifact".to_owned(),
+            "evidence_for".to_owned(),
+        ),
+        (
+            "engineering_artifact".to_owned(),
+            "engineering_receipt".to_owned(),
+            "verified_by".to_owned(),
+        ),
+        (
+            "source_evidence".to_owned(),
+            "engineering_receipt".to_owned(),
+            "evidence_for".to_owned(),
+        ),
+        (
+            "engineering_artifact".to_owned(),
+            "decision".to_owned(),
+            "evidence_for".to_owned(),
+        ),
+        (
+            "engineering_receipt".to_owned(),
+            "decision".to_owned(),
+            "evidence_for".to_owned(),
+        ),
+        (
+            "source_evidence".to_owned(),
+            "decision".to_owned(),
+            "authorized_by".to_owned(),
+        ),
     ];
     expected_relationships.sort();
     assert_eq!(gold_relationships, expected_relationships);
@@ -157,11 +196,12 @@ fn public_projector_emits_identity_preserving_graph_and_receipt() {
         .collect::<std::collections::BTreeSet<_>>();
     assert_eq!(ids.len(), 4);
     assert!(ids.iter().all(|id| id.contains(":identity-sha256:")));
-    assert!(output.graph["graph_snapshot_sha256"]
-        .as_str()
-        .is_some_and(|value| value.len() == 64));
+    assert!(
+        output.graph["graph_snapshot_sha256"]
+            .as_str()
+            .is_some_and(|value| value.len() == 64)
+    );
 }
-
 
 #[test]
 fn identical_evidence_payloads_keep_distinct_source_record_identities() {
@@ -178,8 +218,14 @@ fn identical_evidence_payloads_keep_distinct_source_record_identities() {
         .filter(|node| node["node_type"] == "source_evidence")
         .collect::<Vec<_>>();
     assert_eq!(evidence_nodes.len(), 2);
-    assert_eq!(evidence_nodes[0]["artifact_sha256"], evidence_nodes[1]["artifact_sha256"]);
-    assert_ne!(evidence_nodes[0]["identity_sha256"], evidence_nodes[1]["identity_sha256"]);
+    assert_eq!(
+        evidence_nodes[0]["artifact_sha256"],
+        evidence_nodes[1]["artifact_sha256"]
+    );
+    assert_ne!(
+        evidence_nodes[0]["identity_sha256"],
+        evidence_nodes[1]["identity_sha256"]
+    );
 }
 
 #[test]
@@ -187,18 +233,20 @@ fn missing_source_payload_digest_is_preserved_but_not_projected_as_evidence_node
     let mut case = fixture_case();
     case.evidence[0].source_payload_sha256 = None;
     let output = project_built_environment_case(&case, &context());
-    assert_eq!(output.disposition, ProjectionDisposition::ProjectedWithKnownLoss);
     assert_eq!(
-        output.graph["claim_ceiling"],
-        "incomplete_or_indeterminate"
+        output.disposition,
+        ProjectionDisposition::ProjectedWithKnownLoss
     );
-    assert!(output.projection_receipt["projected_payloads"]
-        .as_array()
-        .unwrap()
-        .iter()
-        .any(|row| row["record_key"] == "evidence:evidence-001"
-            && row["node_id"].is_null()
-            && row["payload_bytes_utf8"].as_str().is_some()));
+    assert_eq!(output.graph["claim_ceiling"], "incomplete_or_indeterminate");
+    assert!(
+        output.projection_receipt["projected_payloads"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|row| row["record_key"] == "evidence:evidence-001"
+                && row["node_id"].is_null()
+                && row["payload_bytes_utf8"].as_str().is_some())
+    );
 }
 
 #[test]
@@ -206,17 +254,27 @@ fn missing_decision_authority_is_not_inferred() {
     let mut case = fixture_case();
     case.decisions[0].authority_evidence_id = None;
     let output = project_built_environment_case(&case, &context());
-    assert_eq!(output.disposition, ProjectionDisposition::ProjectedWithKnownLoss);
-    assert!(output.projection_receipt["unmapped_relationships"]
-        .as_array()
-        .unwrap()
-        .iter()
-        .any(|row| row["reason_code"] == "DECISION_AUTHORITY_EVIDENCE_NOT_DECLARED"));
+    assert_eq!(
+        output.disposition,
+        ProjectionDisposition::ProjectedWithKnownLoss
+    );
+    assert!(
+        output.projection_receipt["unmapped_relationships"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|row| row["reason_code"] == "DECISION_AUTHORITY_EVIDENCE_NOT_DECLARED")
+    );
 }
 
 #[test]
 fn reordered_input_preserves_graph_digest_but_changes_exact_input_receipt() {
-    let case = fixture_case();
+    let mut case = fixture_case();
+    let mut second_evidence = case.evidence[0].clone();
+    second_evidence.evidence_id = "evidence-002".into();
+    second_evidence.field_path = "geometry.as_built_revision".into();
+    case.evidence.push(second_evidence);
+
     let mut reordered = case.clone();
     reordered.evidence.reverse();
     reordered.artifacts.reverse();
@@ -245,11 +303,13 @@ fn duplicate_dependency_edges_in_source_case_are_rejected_not_deduplicated() {
     case.artifacts[0].evidence_ids.push("evidence-001".into());
     let output = project_built_environment_case(&case, &context());
     assert_eq!(output.disposition, ProjectionDisposition::InvalidInput);
-    assert!(output.projection_receipt["findings"]
-        .as_array()
-        .unwrap()
-        .iter()
-        .any(|finding| finding["code"] == "DUPLICATE_PROJECTED_EDGE_ENDPOINT_PAIR"));
+    assert!(
+        output.projection_receipt["findings"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|finding| finding["code"] == "DUPLICATE_PROJECTED_EDGE_ENDPOINT_PAIR")
+    );
 }
 
 #[test]
@@ -259,15 +319,17 @@ fn source_artifact_parent_cycle_is_rejected() {
         sol_atlas_core::built_environment_case::ArtifactReference {
             artifact_id: "artifact-001".into(),
             content_sha256: digest(b'b'),
-        }
+        },
     );
     let output = project_built_environment_case(&case, &context());
     assert_eq!(output.disposition, ProjectionDisposition::InvalidInput);
-    assert!(output.projection_receipt["findings"]
-        .as_array()
-        .unwrap()
-        .iter()
-        .any(|finding| finding["code"] == "PROJECTED_DEPENDENCY_CYCLE"));
+    assert!(
+        output.projection_receipt["findings"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|finding| finding["code"] == "PROJECTED_DEPENDENCY_CYCLE")
+    );
 }
 
 #[test]
@@ -280,21 +342,31 @@ fn mismatched_parent_and_solver_input_digests_do_not_create_edges() {
         sol_atlas_core::built_environment_case::ArtifactReference {
             artifact_id: parent.artifact_id.clone(),
             content_sha256: digest(b'e'),
-        }
+        },
     );
     case.artifacts.push(parent);
     case.artifacts[0].parent_artifacts[0].artifact_id = "missing-parent".into();
     case.engineering_receipts[0].input_artifact_sha256 = digest(b'f');
 
     let output = project_built_environment_case(&case, &context());
-    assert_eq!(output.disposition, ProjectionDisposition::ProjectedWithKnownLoss);
+    assert_eq!(
+        output.disposition,
+        ProjectionDisposition::ProjectedWithKnownLoss
+    );
     let unmapped = output.projection_receipt["unmapped_relationships"]
         .as_array()
         .unwrap();
-    assert!(unmapped.iter().any(|row| row["reason_code"] == "PARENT_ARTIFACT_NOT_FOUND"));
-    assert!(unmapped.iter().any(|row| row["reason_code"] == "RECEIPT_INPUT_DIGEST_OR_PROJECTION_MISMATCH"));
+    assert!(
+        unmapped
+            .iter()
+            .any(|row| row["reason_code"] == "PARENT_ARTIFACT_NOT_FOUND")
+    );
+    assert!(
+        unmapped
+            .iter()
+            .any(|row| row["reason_code"] == "RECEIPT_INPUT_DIGEST_OR_PROJECTION_MISMATCH")
+    );
 }
-
 
 #[test]
 fn one_thousand_digest_rebinding_mutations_never_map_a_false_parent_edge() {
@@ -311,7 +383,7 @@ fn one_thousand_digest_rebinding_mutations_never_map_a_false_parent_edge() {
             sol_atlas_core::built_environment_case::ArtifactReference {
                 artifact_id: "artifact-parent".into(),
                 content_sha256: digest(allowed_hex[seed % allowed_hex.len()]),
-            }
+            },
         );
         case.artifacts.push(parent);
 
@@ -321,16 +393,19 @@ fn one_thousand_digest_rebinding_mutations_never_map_a_false_parent_edge() {
             ProjectionDisposition::ProjectedWithKnownLoss,
             "mutation seed {seed} must be loss-accounted"
         );
-        assert!(!output.graph["edges"]
-            .as_array()
-            .unwrap()
-            .iter()
-            .any(|edge| edge["relation"] == "derived_from"));
-        assert!(output.projection_receipt["unmapped_relationships"]
-            .as_array()
-            .unwrap()
-            .iter()
-            .any(|row| row["reason_code"] == "PARENT_ARTIFACT_DIGEST_OR_PROJECTION_MISMATCH"),
+        assert!(
+            !output.graph["edges"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|edge| edge["relation"] == "derived_from")
+        );
+        assert!(
+            output.projection_receipt["unmapped_relationships"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|row| row["reason_code"] == "PARENT_ARTIFACT_DIGEST_OR_PROJECTION_MISMATCH"),
             "mutation seed {seed} must have an explicit digest mismatch finding"
         );
     }

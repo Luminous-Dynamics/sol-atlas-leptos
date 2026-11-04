@@ -93,17 +93,15 @@ pub fn parse_climate_projects(json: &str) -> Result<Vec<ClimateProject>, serde_j
     serde_json::from_str(json)
 }
 
+/// Parsed infrastructure components returned by the infrastructure bundle adapter.
+type ParsedInfrastructure = (
+    Vec<EmergencyShelter>,
+    Vec<HealthFacility>,
+    Vec<RoboticsDispatch>,
+);
+
 /// Parse infrastructure.json → (emergency_shelters, health_facilities, robotics_dispatch).
-pub fn parse_infrastructure(
-    json: &str,
-) -> Result<
-    (
-        Vec<EmergencyShelter>,
-        Vec<HealthFacility>,
-        Vec<RoboticsDispatch>,
-    ),
-    serde_json::Error,
-> {
+pub fn parse_infrastructure(json: &str) -> Result<ParsedInfrastructure, serde_json::Error> {
     let bundle: InfrastructureBundle = serde_json::from_str(json)?;
     Ok((
         bundle.emergency_shelters,
@@ -135,6 +133,8 @@ fn parse_or_log<T: Default>(dataset: &str, result: Result<T, serde_json::Error>)
 }
 
 /// Load all datasets from their respective JSON strings into a single `LoadedData`.
+// Retained as a compatibility API: each argument is a separate source dataset.
+#[allow(clippy::too_many_arguments)]
 pub fn load_all(
     sites_json: &str,
     maglev_json: &str,
@@ -238,7 +238,7 @@ fn parse_natural_events(
             #[serde(default)]
             name: Option<String>,
             #[serde(rename = "type", default)]
-            event_kind: Option<String>,
+            _event_kind: Option<String>,
         }
         #[derive(Deserialize)]
         struct Geometry {
@@ -453,7 +453,7 @@ mod infra_tests {
             let rgb = layer.rgb();
             for c in rgb {
                 assert!(
-                    c >= 0.0 && c <= 1.0,
+                    (0.0..=1.0).contains(&c),
                     "Layer {:?} RGB out of range: {:?}",
                     layer,
                     rgb

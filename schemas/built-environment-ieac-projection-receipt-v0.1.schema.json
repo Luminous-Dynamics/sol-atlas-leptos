@@ -131,6 +131,98 @@
         },
         "source_owner_namespace_authenticated": {
           "const": false
+        },
+        "source_descriptor_catalog": {
+          "anyOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "catalog_sha256",
+                "validation_disposition",
+                "descriptor_count",
+                "missing_descriptor_count",
+                "extra_descriptor_count",
+                "payload_byte_verification",
+                "rights_authentication",
+                "source_attestation_authentication",
+                "action_authority",
+                "findings"
+              ],
+              "properties": {
+                "catalog_sha256": {
+                  "$ref": "#/$defs/sha256"
+                },
+                "validation_disposition": {
+                  "enum": [
+                    "internally_consistent_for_declared_case",
+                    "incomplete_or_indeterminate",
+                    "invalid_input"
+                  ]
+                },
+                "descriptor_count": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "missing_descriptor_count": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "extra_descriptor_count": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "payload_byte_verification": {
+                  "const": "not_performed"
+                },
+                "rights_authentication": {
+                  "const": "not_performed"
+                },
+                "source_attestation_authentication": {
+                  "const": "not_performed"
+                },
+                "action_authority": {
+                  "const": "none"
+                },
+                "findings": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "severity",
+                      "code",
+                      "record_key",
+                      "detail"
+                    ],
+                    "properties": {
+                      "severity": {
+                        "enum": [
+                          "incomplete",
+                          "invalid"
+                        ]
+                      },
+                      "code": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "record_key": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "detail": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "type": "null"
+            }
+          ]
         }
       }
     },

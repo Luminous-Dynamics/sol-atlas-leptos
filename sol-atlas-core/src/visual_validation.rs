@@ -39,10 +39,10 @@ pub fn compute_frame_stats(pixels: &[u8], width: u32, height: u32) -> FrameStats
     let mut sum_b = 0.0f64;
     let mut non_black = 0u64;
 
-    for chunk in pixels.chunks_exact(4) {
-        let r = chunk[0] as f64 / 255.0;
-        let g = chunk[1] as f64 / 255.0;
-        let b = chunk[2] as f64 / 255.0;
+    for &[red, green, blue, _alpha] in pixels.as_chunks::<4>().0 {
+        let r = red as f64 / 255.0;
+        let g = green as f64 / 255.0;
+        let b = blue as f64 / 255.0;
         sum_r += r;
         sum_g += g;
         sum_b += b;

@@ -1,0 +1,111 @@
+name: Built-environment source descriptor qualification
+
+on:
+  pull_request:
+    paths:
+      - "sol-atlas-core/Cargo.toml"
+      - "sol-atlas-core/Cargo.lock"
+      - "sol-atlas-core/src/built_environment_source_descriptor.rs"
+      - "sol-atlas-core/src/lib.rs"
+      - "schemas/built-environment-source-descriptor-catalog-v0.1.schema.json"
+      - "schemas/examples/built-environment-source-descriptor-catalog-synthetic-v0.1.json"
+      - ".github/workflows/built-environment-source-descriptors.yml"
+  push:
+    branches:
+      - main
+      - research/built-environment-source-descriptors-v0-1
+    paths:
+      - "sol-atlas-core/Cargo.toml"
+      - "sol-atlas-core/Cargo.lock"
+      - "sol-atlas-core/src/built_environment_source_descriptor.rs"
+      - "sol-atlas-core/src/lib.rs"
+      - "schemas/built-environment-source-descriptor-catalog-v0.1.schema.json"
+      - "schemas/examples/built-environment-source-descriptor-catalog-synthetic-v0.1.json"
+      - ".github/workflows/built-environment-source-descriptors.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: built-environment-source-descriptors-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  descriptor:
+    name: Exact-head descriptor sidecar and consistency verifier
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout immutable source revision
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Assert exact checked-out revision
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+
+      - name: Install stable Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Format, lint, and test descriptor crate
+        run: |
+          set -euo pipefail
+          manifest=sol-atlas-core/Cargo.toml
+          cargo fmt --manifest-path "$manifest" --check
+          cargo clippy --manifest-path "$manifest" --locked --all-targets -- -D warnings
+          cargo test --manifest-path "$manifest" --locked
+
+      - name: Install pinned Draft 2020-12 validator
+        run: cargo install --locked jsonschema-cli --version 0.60.2 --root "$RUNNER_TEMP/jsonschema-cli"
+
+      - name: Validate schema and frozen synthetic descriptor catalogue
+        run: |
+          set -euo pipefail
+          echo "$RUNNER_TEMP/jsonschema-cli/bin" >> "$GITHUB_PATH"
+          export PATH="$RUNNER_TEMP/jsonschema-cli/bin:$PATH"
+          schema=schemas/built-environment-source-descriptor-catalog-v0.1.schema.json
+          fixture=schemas/examples/built-environment-source-descriptor-catalog-synthetic-v0.1.json
+          meta_schema="$RUNNER_TEMP/draft-2020-12-meta-schema.json"
+          curl --fail --location --retry 5 --retry-connrefused \
+            https://json-schema.org/draft/2020-12/schema -o "$meta_schema"
+          jsonschema-cli validate --draft 2020 --assert-format "$meta_schema" -i "$schema"
+          jsonschema-cli validate --draft 2020 --assert-format --offline "$schema" -i "$fixture"
+          jq -e '
+            .schema_version == "luminous.built-environment-source-descriptor-catalog.v0.1" and
+            .claim_ceiling == "descriptor_integrity_only" and
+            .action_authority == "none" and
+            (.descriptors | length) == 4 and
+            ([.descriptors[].record_kind] | unique | length) == 4 and
+            ([.descriptors[] | select(.attestation.trust_evaluation != "not_evaluated_by_descriptor_catalog")] | length) == 0
+          ' "$fixture"
+
+      - name: Negative schema control — unknown rights cannot grant permitted uses
+        run: |
+          set -euo pipefail
+          schema=schemas/built-environment-source-descriptor-catalog-v0.1.schema.json
+          fixture=schemas/examples/built-environment-source-descriptor-catalog-synthetic-v0.1.json
+          jq '.descriptors[0].rights.state = "unknown"' "$fixture" \
+            > "$RUNNER_TEMP/unknown-rights-with-use.json"
+          if jsonschema-cli validate --draft 2020 --assert-format --offline "$schema" \
+              -i "$RUNNER_TEMP/unknown-rights-with-use.json"; then
+            echo "ERROR: unknown rights accepted with permitted uses"
+            exit 1
+          fi
+
+      - name: Negative schema control — unavailable payload cannot retain a digest
+        run: |
+          set -euo pipefail
+          schema=schemas/built-environment-source-descriptor-catalog-v0.1.schema.json
+          fixture=schemas/examples/built-environment-source-descriptor-catalog-synthetic-v0.1.json
+          jq '.descriptors[0].source_payload.digest_basis = "unavailable"' "$fixture" \
+            > "$RUNNER_TEMP/unavailable-payload-with-digest.json"
+          if jsonschema-cli validate --draft 2020 --assert-format --offline "$schema" \
+              -i "$RUNNER_TEMP/unavailable-payload-with-digest.json"; then
+            echo "ERROR: unavailable payload accepted with a digest"
+            exit 1
+          fi

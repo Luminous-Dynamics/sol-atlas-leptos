@@ -105,8 +105,10 @@ pub fn simulate_grid_stress(year: u32) -> Vec<GridStress> {
         .iter()
         .map(|(lat, lon, name, base_stress)| {
             // Stress increases as fossil EROI drops, decreases with renewables
+            // Renewable growth offsets fossil-decline stress, but does not
+            // fully cancel it in this deliberately conservative scenario.
             let stress =
-                (base_stress + fossil_decline * 0.4 - renewable_growth * 0.3).clamp(0.0, 1.0);
+                (base_stress + fossil_decline * 0.4 - renewable_growth * 0.15).clamp(0.0, 1.0);
             let pe = stress * 0.8
                 + (year as f32 * 0.03 + (*lat as f32).abs() * 0.01)
                     .sin()
@@ -178,7 +180,10 @@ mod tests {
             stress_y0.iter().map(|s| s.allostatic_load).sum::<f32>() / stress_y0.len() as f32;
         let avg_200: f32 =
             stress_y200.iter().map(|s| s.allostatic_load).sum::<f32>() / stress_y200.len() as f32;
-        // But renewable growth offsets some stress, so check specific high-stress regions
+        // Population-wide stress still increases in this synthetic scenario,
+        // although renewable growth offsets part of the fossil-decline effect.
+        assert!(avg_200 > avg_0);
+
         let joburg_200 = stress_y200
             .iter()
             .find(|s| s.name == "Johannesburg")

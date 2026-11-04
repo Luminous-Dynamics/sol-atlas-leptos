@@ -1,0 +1,252 @@
+{
+  "schema_version": "luminous.built-environment-source-descriptor-catalog.v0.1",
+  "catalog_id": "descriptor-catalog-synthetic-001",
+  "case_id": "case-descriptor-synthetic-001",
+  "case_representation_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "captured_at": "2026-11-03T10:02:00Z",
+  "descriptors": [
+    {
+      "record_kind": "evidence",
+      "case_record_id": "evidence-001",
+      "owner_namespace": "urn:synthetic:survey-owner",
+      "native_identity_components": [
+        {
+          "name": "native_id",
+          "value": "survey-project-001"
+        },
+        {
+          "name": "native_record_id",
+          "value": "survey-record-001"
+        },
+        {
+          "name": "native_revision",
+          "value": "1"
+        },
+        {
+          "name": "field_path",
+          "value": "geometry.revision"
+        },
+        {
+          "name": "subject_id",
+          "value": "design-001"
+        },
+        {
+          "name": "jurisdiction",
+          "value": "synthetic-jurisdiction"
+        }
+      ],
+      "source_payload": {
+        "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "digest_basis": "source_owner_attested",
+        "bytes_retrieved": false,
+        "byte_length": null,
+        "payload_object_ref": null,
+        "media_type": "application/json",
+        "schema_id": "urn:synthetic:survey-evidence",
+        "schema_version": "1.0",
+        "schema_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      "source_snapshot": {
+        "source_id": "urn:synthetic:survey-owner",
+        "snapshot_id": "snapshot-survey-001",
+        "snapshot_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        "captured_at": "2026-11-03T10:00:00Z",
+        "retrieved_at": "2026-11-03T10:01:00Z"
+      },
+      "observation_time": {
+        "observed_at": "2026-11-03T09:59:00Z",
+        "recorded_at": "2026-11-03T10:00:00Z"
+      },
+      "rights": {
+        "state": "verified",
+        "permitted_uses": [
+          "impact_analysis",
+          "engineering_review"
+        ],
+        "rights_evidence_ref": "synthetic:rights-evidence:001"
+      },
+      "attestation": {
+        "statement_ref": "synthetic:attestation:001",
+        "key_id": "urn:synthetic:key:001",
+        "trust_evaluation": "not_evaluated_by_descriptor_catalog"
+      }
+    },
+    {
+      "record_kind": "artifact",
+      "case_record_id": "artifact-001",
+      "owner_namespace": "urn:synthetic:design-owner",
+      "native_identity_components": [
+        {
+          "name": "native_id",
+          "value": "design-001"
+        },
+        {
+          "name": "native_record_id",
+          "value": "ifc-model-001"
+        },
+        {
+          "name": "native_revision",
+          "value": "2"
+        },
+        {
+          "name": "artifact_family",
+          "value": "design-model"
+        },
+        {
+          "name": "jurisdiction",
+          "value": "synthetic-jurisdiction"
+        }
+      ],
+      "source_payload": {
+        "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "digest_basis": "external_reference",
+        "bytes_retrieved": false,
+        "byte_length": null,
+        "payload_object_ref": "cas:sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "media_type": "application/ifc",
+        "schema_id": "urn:buildingSMART:ifc",
+        "schema_version": "IFC4.3.2.0",
+        "schema_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+      },
+      "source_snapshot": {
+        "source_id": "urn:synthetic:design-owner",
+        "snapshot_id": "snapshot-design-001",
+        "snapshot_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        "captured_at": "2026-11-03T10:00:00Z",
+        "retrieved_at": "2026-11-03T10:01:00Z"
+      },
+      "observation_time": {
+        "observed_at": "2026-11-03T09:59:00Z",
+        "recorded_at": "2026-11-03T10:00:00Z"
+      },
+      "rights": {
+        "state": "verified",
+        "permitted_uses": [
+          "impact_analysis",
+          "engineering_review"
+        ],
+        "rights_evidence_ref": "synthetic:rights-evidence:001"
+      },
+      "attestation": {
+        "statement_ref": "synthetic:attestation:001",
+        "key_id": "urn:synthetic:key:001",
+        "trust_evaluation": "not_evaluated_by_descriptor_catalog"
+      }
+    },
+    {
+      "record_kind": "engineering_receipt",
+      "case_record_id": "receipt-001",
+      "owner_namespace": "urn:synthetic:solver-owner",
+      "native_identity_components": [
+        {
+          "name": "native_id",
+          "value": "design-001"
+        },
+        {
+          "name": "native_record_id",
+          "value": "solver-receipt-001"
+        },
+        {
+          "name": "native_revision",
+          "value": "1"
+        }
+      ],
+      "source_payload": {
+        "sha256": null,
+        "digest_basis": "unavailable",
+        "bytes_retrieved": false,
+        "byte_length": null,
+        "payload_object_ref": null,
+        "media_type": null,
+        "schema_id": null,
+        "schema_version": null,
+        "schema_sha256": null
+      },
+      "source_snapshot": {
+        "source_id": "urn:synthetic:solver-owner",
+        "snapshot_id": "snapshot-solver-001",
+        "snapshot_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        "captured_at": "2026-11-03T10:00:00Z",
+        "retrieved_at": "2026-11-03T10:01:00Z"
+      },
+      "observation_time": {
+        "observed_at": "2026-11-03T09:59:00Z",
+        "recorded_at": "2026-11-03T10:00:00Z"
+      },
+      "rights": {
+        "state": "verified",
+        "permitted_uses": [
+          "impact_analysis",
+          "engineering_review"
+        ],
+        "rights_evidence_ref": "synthetic:rights-evidence:001"
+      },
+      "attestation": {
+        "statement_ref": "synthetic:attestation:001",
+        "key_id": "urn:synthetic:key:001",
+        "trust_evaluation": "not_evaluated_by_descriptor_catalog"
+      }
+    },
+    {
+      "record_kind": "decision",
+      "case_record_id": "decision-001",
+      "owner_namespace": "urn:synthetic:authority-owner",
+      "native_identity_components": [
+        {
+          "name": "native_id",
+          "value": "design-001"
+        },
+        {
+          "name": "native_record_id",
+          "value": "decision-record-001"
+        },
+        {
+          "name": "native_revision",
+          "value": "1"
+        }
+      ],
+      "source_payload": {
+        "sha256": null,
+        "digest_basis": "unavailable",
+        "bytes_retrieved": false,
+        "byte_length": null,
+        "payload_object_ref": null,
+        "media_type": null,
+        "schema_id": null,
+        "schema_version": null,
+        "schema_sha256": null
+      },
+      "source_snapshot": {
+        "source_id": "urn:synthetic:authority-owner",
+        "snapshot_id": "snapshot-authority-001",
+        "snapshot_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        "captured_at": "2026-11-03T10:00:00Z",
+        "retrieved_at": "2026-11-03T10:01:00Z"
+      },
+      "observation_time": {
+        "observed_at": "2026-11-03T09:59:00Z",
+        "recorded_at": "2026-11-03T10:00:00Z"
+      },
+      "rights": {
+        "state": "verified",
+        "permitted_uses": [
+          "impact_analysis",
+          "engineering_review"
+        ],
+        "rights_evidence_ref": "synthetic:rights-evidence:001"
+      },
+      "attestation": {
+        "statement_ref": "synthetic:attestation:001",
+        "key_id": "urn:synthetic:key:001",
+        "trust_evaluation": "not_evaluated_by_descriptor_catalog"
+      }
+    }
+  ],
+  "claim_ceiling": "descriptor_integrity_only",
+  "action_authority": "none",
+  "limitations": [
+    "Synthetic fixture only; values do not authenticate source owners, payload bytes, rights, or attestations.",
+    "Source bytes, signatures, trust roots, and revocation evidence are not verified by descriptor validation.",
+    "Engineering correctness, completeness of the source universe, and real project profile adequacy are not established."
+  ]
+}

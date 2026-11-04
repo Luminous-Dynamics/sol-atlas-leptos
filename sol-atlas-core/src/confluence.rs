@@ -103,6 +103,13 @@ fn eligible_real_layers() -> [Layer; 10] {
 /// default — a single category alone isn't a confluence, it's just that
 /// layer's own marker).
 pub fn compute(data: &LoadedData, min_layers: usize) -> Vec<ConfluenceCell> {
+    for layer in eligible_real_layers() {
+        debug_assert_ne!(
+            layer.provenance().kind,
+            DataKind::Scenario,
+            "confluence eligible layer {layer:?} must never be scenario data"
+        );
+    }
     let mut cells: HashMap<CellIndex, (Vec<Layer>, u32)> = HashMap::new();
 
     let mut bin = |lat: f64, lon: f64, layer: Layer| {

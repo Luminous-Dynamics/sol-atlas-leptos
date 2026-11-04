@@ -61,7 +61,7 @@ pub const BLOOM_INTENSITY: f32 = 0.15;
 // ─── Sacred geometry ────────────────────────────────────────────
 
 pub const SACRED_BREATHING_PERIOD: f32 = 8.0; // seconds per cycle
-pub const GOLDEN_RATIO: f32 = 1.618_034;
+pub const GOLDEN_RATIO: f32 = std::f32::consts::GOLDEN_RATIO;
 
 // ─── Celestial body PBR defaults ────────────────────────────────
 

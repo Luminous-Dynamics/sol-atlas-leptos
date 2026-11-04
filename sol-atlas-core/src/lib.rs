@@ -10,13 +10,21 @@
 
 pub mod aesthetics;
 pub mod built_environment_case;
-pub mod industry_assurance_projection;
+/// Versioned source-owner descriptor catalogues, cross-case identity
+/// reconciliation, and loss-accounted metadata validation. The catalogue is
+/// case-bound, but its owner-native identity hashes deliberately exclude case
+/// membership so shared source records retain stable identity across projects.
+/// Structural validation does not authenticate bytes, owners, rights, signatures,
+/// coverage completeness, engineering correctness, or authorization; those remain
+/// independent evidence and trust obligations.
+pub mod built_environment_source_descriptor;
 pub mod confluence;
 pub mod constants;
 pub mod data;
 pub mod economics;
 pub mod energy_trading;
 pub mod geo;
+pub mod industry_assurance_projection;
 pub mod lod;
 pub mod mycelix_flows;
 // pub mod relativity_viz;
