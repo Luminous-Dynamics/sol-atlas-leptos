@@ -1333,6 +1333,11 @@ pub struct InventoryClosureValidation {
 /// A complete disposition requires every required owner manifest to be present
 /// and every required manifest to independently validate as complete within
 /// its declared query; declared exclusions retain a separate disposition.
+/// Reconcile independently supplied owner inventories before a negative
+/// engineering-impact conclusion can rely on their declared query scopes.
+/// This validates the manifests' internal page/identity accounting only; it
+/// does not authenticate source owners or prove the expected-owner register
+/// is globally complete.
 pub fn validate_source_inventory_closure(
     expected_owners: &[ExpectedSourceOwner],
     manifests: &[SourceInventoryManifest],
