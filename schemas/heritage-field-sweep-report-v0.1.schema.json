@@ -19,9 +19,9 @@
     "context_match",
     "effective_sweep_width_m",
     "effective_sweep_width_interval_95",
-    "overlap_adjusted_path_length_m",
-    "nominal_swept_area_m2",
-    "nominal_coverage_fraction",
+    "buffered_sweep_width_m",
+    "receipt_reported_swept_area_m2",
+    "receipt_reported_coverage_fraction",
     "validation_brier_score",
     "fit_transect_count",
     "validation_transect_count",
@@ -116,19 +116,6 @@
         }
       }
     },
-    "overlap_adjusted_path_length_m": {
-      "type": "number",
-      "exclusiveMinimum": 0
-    },
-    "nominal_swept_area_m2": {
-      "type": "number",
-      "exclusiveMinimum": 0
-    },
-    "nominal_coverage_fraction": {
-      "type": "number",
-      "exclusiveMinimum": 0,
-      "maximum": 1
-    },
     "validation_brier_score": {
       "type": "number",
       "minimum": 0,
@@ -164,6 +151,19 @@
     },
     "repeated_search_independence_assumed": {
       "const": false
+    },
+    "buffered_sweep_width_m": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "receipt_reported_swept_area_m2": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "receipt_reported_coverage_fraction": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "maximum": 1
     }
   }
 }
