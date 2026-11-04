@@ -1636,7 +1636,7 @@ mod tests {
         let event = event(
             "compromised-key-after-decision",
             DecisionRelianceChangeEventType::KeyRevoked,
-            "source-bytes",
+            "source-trust",
             "2026-11-01T00:00:00Z",
             "2026-11-02T00:00:00Z",
         );
