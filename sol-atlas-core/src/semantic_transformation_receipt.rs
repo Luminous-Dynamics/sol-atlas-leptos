@@ -1560,15 +1560,23 @@ mod tests {
     fn merged_mapping_requires_group_identity_and_reciprocal_source_links() {
         let mut value = receipt();
         value.mappings[0].disposition = MappingDisposition::Merged;
+        value.mappings[0].target_semantic_ids =
+            vec!["node:wall-001:combined-properties".into()];
         value.mappings[0].mapping_group_id = Some("merge:wall-material-properties".into());
         value.mappings[1].disposition = MappingDisposition::Merged;
-        value.mappings[1].target_semantic_ids = vec!["node:wall-001:combined-properties".into()];
+        value.mappings[1].target_semantic_ids =
+            vec!["node:wall-001:combined-properties".into()];
         value.mappings[1].mapping_group_id = Some("merge:wall-material-properties".into());
-        value.target_inventory[1].semantic_id = "node:wall-001:combined-properties".into();
-        value.target_inventory[1].source_semantic_ids = vec![
-            "wall:W-001:global-placement".into(),
-            "wall:W-001:fire-rating".into(),
-        ];
+        value.target_inventory = vec![TargetSemanticItem {
+            semantic_id: "node:wall-001:combined-properties".into(),
+            semantic_kind: "combined_engineering_properties".into(),
+            origin: TargetSemanticOrigin::SourceMapped,
+            source_semantic_ids: vec![
+                "wall:W-001:global-placement".into(),
+                "wall:W-001:fire-rating".into(),
+            ],
+            target_value_sha256: digest('8'),
+        }];
         let result = validate_semantic_transformation_receipt(&value);
         assert!(!result.findings.iter().any(|finding| {
             finding.code == "MERGED_MAPPING_GROUP_INVALID"
