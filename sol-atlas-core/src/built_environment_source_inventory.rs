@@ -1322,7 +1322,7 @@ mod tests {
             cursor_before_sha256: cursor_before,
             cursor_after_sha256: cursor_after,
             predecessor_page_receipt_sha256: predecessor,
-            snapshot_sha256: Some(digest('s')),
+            snapshot_sha256: Some(digest('5')),
             source_watermark: Some("watermark-100".into()),
             response_at: "2026-11-03T10:01:00Z".into(),
             terminal,
@@ -1881,7 +1881,7 @@ mod tests {
             result
                 .findings
                 .iter()
-                .any(|finding| { finding.code == "INVENTORY_PARTITION_TERMINAL_NOT_OBSERVED" })
+                .any(|finding| { finding.code == "INVENTORY_PARTITION_NOT_ENUMERATED" })
         );
     }
 
