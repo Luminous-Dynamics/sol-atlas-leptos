@@ -855,7 +855,7 @@ mod tests {
             origin: EvidenceOrigin::DirectObservation,
             relation: EvidenceRelation::Supports,
             modality,
-            source_asset_sha256: format!("{:0<64}", evidence_id),
+            source_asset_sha256: format!("{:064x}", evidence_id.bytes().fold(0_u128, |value, byte| value.wrapping_mul(257).wrapping_add(u128::from(byte)))),
             source_lineage_id: lineage.into(),
             acquisition_group_id: acquisition.into(),
             method_family_id: method.into(),
