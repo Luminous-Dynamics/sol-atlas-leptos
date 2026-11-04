@@ -65,7 +65,13 @@ fn descriptor(
             schema_sha256: Some(digest('e')),
         },
         source_snapshot: SourceSnapshotDescriptor {
-            source_id: owner_namespace.into(),
+            source_system_id: match kind {
+                SourceRecordKind::Evidence => "urn:synthetic:survey-system",
+                SourceRecordKind::Artifact => "urn:synthetic:design-system",
+                SourceRecordKind::EngineeringReceipt => "urn:synthetic:solver-system",
+                SourceRecordKind::Decision => "urn:synthetic:authority-system",
+            }
+            .into(),
             snapshot_id: format!("snapshot-{case_record_id}"),
             snapshot_sha256: digest('f'),
             captured_at: "2026-11-03T12:00:00Z".into(),
