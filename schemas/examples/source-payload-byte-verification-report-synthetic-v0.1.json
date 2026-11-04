@@ -1,0 +1,43 @@
+{
+  "schema_version": "luminous.source-payload-byte-verification.v0.1",
+  "disposition": "all_resolvable_payloads_verified",
+  "case_id": "case-byte-verifier-synthetic-001",
+  "case_representation_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "catalog_id": "catalog-byte-verifier-synthetic-001",
+  "catalog_representation_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "verifier_build_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+  "verified_at_utc": "2026-11-04T05:45:00Z",
+  "max_bytes_per_payload": 1048576,
+  "descriptor_validation_disposition": "internally_consistent_for_declared_case",
+  "descriptor_validation_findings": [],
+  "descriptor_count": 1,
+  "verified_count": 1,
+  "unavailable_count": 0,
+  "read_failed_count": 0,
+  "byte_limit_exceeded_count": 0,
+  "invalid_count": 0,
+  "records": [
+    {
+      "record_key": "evidence:evidence-001",
+      "status": "verified",
+      "digest_basis": "locally_retrieved_and_hashed",
+      "object_ref": "cas:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "expected_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "actual_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "expected_byte_length": 16,
+      "actual_byte_length": 16,
+      "bytes_read": 16,
+      "read_error_kind": null,
+      "findings": []
+    }
+  ],
+  "findings": [],
+  "source_owner_authentication": "not_performed",
+  "source_snapshot_authentication": "not_performed",
+  "rights_authentication": "not_performed",
+  "attestation_authentication": "not_performed",
+  "source_inventory_completeness": "not_performed",
+  "engineering_correctness": "not_performed",
+  "action_authority": "none",
+  "no_impact_eligibility": "none"
+}
