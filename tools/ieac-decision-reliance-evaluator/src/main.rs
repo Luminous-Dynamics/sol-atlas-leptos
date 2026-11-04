@@ -259,7 +259,7 @@ fn string_at<'a>(value: &'a Value, path: &[&str]) -> Option<&'a str> {
     current.as_str()
 }
 
-fn non_empty_string(value: &Value, key: &str) -> Option<&str> {
+fn non_empty_string<'a>(value: &'a Value, key: &str) -> Option<&'a str> {
     value
         .get(key)
         .and_then(Value::as_str)
@@ -531,7 +531,6 @@ impl EventEffect {
 
 fn validate_temporal_events(
     input: &Value,
-    decision_scope_sha256: &str,
     evaluated_at: &str,
     errors: &mut Vec<String>,
 ) -> Result<Vec<Value>, String> {
@@ -633,11 +632,6 @@ fn validate_temporal_events(
             }
         }
 
-        // A non-unaffected lifecycle assertion outside the declared decision
-        // scope cannot be silently ignored or treated as a confirmed impact.
-        if scope_sha != decision_scope_sha256 && impact != "unaffected" {
-            // This is evaluated as quarantine at view time, not a false pass.
-        }
     }
     Ok(events.clone())
 }
@@ -718,7 +712,6 @@ fn event_effect_for_view(
 
 #[derive(Clone, Debug)]
 struct ViewResult {
-    name: String,
     disposition: String,
     valid_time_as_of: String,
     knowledge_cutoff_at: String,
@@ -860,7 +853,6 @@ fn assess_view(
     };
 
     Ok(ViewResult {
-        name: name.to_owned(),
         disposition: disposition.to_owned(),
         valid_time_as_of,
         knowledge_cutoff_at,
@@ -971,7 +963,7 @@ fn evaluate(input: &Value) -> Result<Value, String> {
         .map(str::to_owned)
         .collect::<Vec<_>>();
 
-    let events = validate_temporal_events(input, scope_sha256, evaluated_at, &mut errors)?;
+    let events = validate_temporal_events(input, evaluated_at, &mut errors)?;
     let views = input.get("views").ok_or("views missing")?;
 
     let historical_raw = views.get("historical_knowledge").ok_or("historical view missing")?;
@@ -1192,7 +1184,7 @@ mod tests {
         })
     }
 
-    fn result_disposition(report: &Value, view: &str) -> &str {
+    fn result_disposition<'a>(report: &'a Value, view: &str) -> &'a str {
         report["views"][view]["disposition"].as_str().unwrap()
     }
 
@@ -1245,7 +1237,7 @@ mod tests {
             result_disposition(&report, "current_reliance"),
             "claim_invalidated"
         );
-        assert_eq!(report["historical_record_preserved"], true);
+        assert!(report["historical_record_preserved"].as_bool().unwrap());
     }
 
     #[test]
@@ -1338,6 +1330,8 @@ mod tests {
             .iter_mut()
             .find(|row| row["gate"] == "rights")
             .unwrap();
+        gate["checked_at"] = json!("2026-11-02T12:00:00Z");
+        gate["knowledge_available_at"] = json!("2026-11-02T12:00:00Z");
         gate["valid_until"] = json!("2026-11-03T00:00:00Z");
 
         let report = evaluate(&input).unwrap();
