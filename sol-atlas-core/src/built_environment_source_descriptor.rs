@@ -1593,6 +1593,116 @@ mod tests {
     }
 
     #[test]
+    fn cross_case_set_marks_two_missing_digests_not_comparable() {
+        let first_case = case();
+        let mut second_case = first_case.clone();
+        second_case.case_id = "case-descriptor-002".into();
+        let mut first_catalog = catalog(&first_case);
+        let mut second_catalog = catalog(&second_case);
+
+        for catalog in [&mut first_catalog, &mut second_catalog] {
+            let receipt = catalog
+                .descriptors
+                .iter_mut()
+                .find(|descriptor| {
+                    descriptor.record_kind == SourceRecordKind::EngineeringReceipt
+                })
+                .unwrap();
+            receipt.source_payload = SourcePayloadDescriptor {
+                sha256: None,
+                digest_basis: PayloadDigestBasis::Unavailable,
+                bytes_retrieved: false,
+                byte_length: None,
+                payload_object_ref: None,
+                media_type: Some("application/json".into()),
+                schema_id: Some("urn:synthetic:solver-receipt".into()),
+                schema_version: Some("1.0".into()),
+                schema_sha256: Some(digest('e')),
+            };
+        }
+
+        let result = validate_source_descriptor_catalog_set(
+            &[first_case, second_case],
+            &[first_catalog, second_catalog],
+        );
+        assert_eq!(result.disposition, DescriptorDisposition::IncompleteOrIndeterminate);
+        assert_eq!(result.incomparable_shared_identity_count, 1);
+        assert!(result.findings.iter().any(|finding| {
+            finding.code == "CROSS_CASE_NATIVE_IDENTITY_DIGEST_NOT_COMPARABLE"
+        }));
+    }
+
+    #[test]
+    fn cross_case_set_rejects_schema_conflict_for_same_native_identity() {
+        let first_case = case();
+        let mut second_case = first_case.clone();
+        second_case.case_id = "case-descriptor-002".into();
+        let first_catalog = catalog(&first_case);
+        let mut second_catalog = catalog(&second_case);
+        let second_evidence = second_catalog
+            .descriptors
+            .iter_mut()
+            .find(|descriptor| descriptor.record_kind == SourceRecordKind::Evidence)
+            .unwrap();
+        second_evidence.source_payload.schema_version = Some("2.0".into());
+
+        let result = validate_source_descriptor_catalog_set(
+            &[first_case, second_case],
+            &[first_catalog, second_catalog],
+        );
+        assert_eq!(result.disposition, DescriptorDisposition::InvalidInput);
+        assert_eq!(result.conflicting_source_metadata_count, 1);
+        assert!(result.findings.iter().any(|finding| {
+            finding.code == "CROSS_CASE_NATIVE_IDENTITY_SCHEMA_CONFLICT"
+        }));
+    }
+
+    #[test]
+    fn descriptor_identity_matches_frozen_independent_sha256_vector() {
+        let descriptor = descriptor(
+            SourceRecordKind::Evidence,
+            "evidence-001",
+            "survey-registry",
+            "evidence-001",
+            "urn:synthetic:survey-owner",
+            'a',
+            Some("design-001"),
+        );
+        let case = case();
+        let validation = validate_source_descriptor_catalog(&case, &catalog(&case));
+        let actual = validation.identity_sha256_by_case_record["evidence:evidence-001"].as_str();
+        assert_eq!(
+            actual,
+            "7cc3e8a7ee2bd03693ecaa7efc179fec4c0e1b07801157648ac0fe949ab0f4a0"
+        );
+
+        // Separate reference implementation: explicitly sort name/value
+        // pairs, length-prefix each UTF-8 field, and hash the frozen domain.
+        let mut components = descriptor
+            .native_identity_components
+            .iter()
+            .map(|component| (component.name.as_str(), component.value.as_str()))
+            .collect::<Vec<_>>();
+        components.sort_by_key(|(name, _)| *name);
+        let mut bytes = b"LUMINOUS-IEAC-NODE-IDENTITY-V0.2\\0".to_vec();
+        let mut append = |value: &str| {
+            bytes.extend_from_slice(&(value.len() as u64).to_be_bytes());
+            bytes.extend_from_slice(value.as_bytes());
+        };
+        append("source_evidence");
+        append("urn:synthetic:survey-owner");
+        for (name, value) in components {
+            append(name);
+            append(value);
+        }
+        let expected = Sha256::digest(&bytes)
+            .iter()
+            .map(|byte| format!("{byte:02x}"))
+            .collect::<String>();
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
     fn catalogue_set_rejects_cross_case_digest_conflict_for_same_native_identity() {
         let first_case = case();
         let mut second_case = first_case.clone();
