@@ -67,7 +67,8 @@
     ],
     "rights_status": "verified",
     "rights_receipt_ref": "urn:synthetic:rights:reviewer",
-    "contradictions_resolved": false
+    "contradictions_resolved": false,
+    "adjudicated_at": "2026-11-04T17:00:00Z"
   },
   "coordinate_access_restricted": true
 }
