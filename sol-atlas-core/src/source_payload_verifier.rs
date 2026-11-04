@@ -257,31 +257,37 @@ pub fn verify_catalog_payload_bytes(
                     (Some(expected), Some(bytes)) => {
                         let computed = sha256_hex(bytes);
                         let actual_length = bytes.len() as u64;
-                        if !valid_sha256(expected) {
+                        let expected_digest_valid = valid_sha256(expected);
+                        let digest_matches = expected_digest_valid && computed == expected;
+                        let length_matches = expected_byte_length
+                            .is_none_or(|expected_length| expected_length == actual_length);
+
+                        if !expected_digest_valid {
                             payload_digest_mismatches += 1;
                             findings.invalid(
                                 "INVALID_EXPECTED_PAYLOAD_DIGEST",
                                 &key,
                                 "descriptor payload digest is not lowercase SHA-256",
                             );
-                            (Some(computed), Some(actual_length), "invalid_expected_digest")
-                        } else if computed != expected {
+                        } else if !digest_matches {
                             payload_digest_mismatches += 1;
                             findings.invalid(
                                 "SOURCE_PAYLOAD_DIGEST_MISMATCH",
                                 &key,
                                 "SHA-256 of supplied payload bytes does not match the descriptor claim",
                             );
-                            (Some(computed), Some(actual_length), "digest_mismatch")
-                        } else if expected_byte_length.is_some_and(|expected_length| expected_length != actual_length) {
+                        }
+
+                        if !length_matches {
                             payload_length_mismatches += 1;
                             findings.invalid(
                                 "SOURCE_PAYLOAD_LENGTH_MISMATCH",
                                 &key,
                                 "supplied payload byte length does not match the descriptor claim",
                             );
-                            (Some(computed), Some(actual_length), "length_mismatch")
-                        } else if descriptor.source_payload.digest_basis == PayloadDigestBasis::Unavailable {
+                        }
+
+                        if descriptor.source_payload.digest_basis == PayloadDigestBasis::Unavailable {
                             payload_digests_unavailable += 1;
                             findings.invalid(
                                 "UNAVAILABLE_PAYLOAD_HAS_DIGEST",
@@ -289,13 +295,27 @@ pub fn verify_catalog_payload_bytes(
                                 "unavailable digest basis unexpectedly contains a digest",
                             );
                             (Some(computed), Some(actual_length), "invalid_unavailable_digest_state")
+                        } else if !expected_digest_valid {
+                            (Some(computed), Some(actual_length), "invalid_expected_digest")
+                        } else if !digest_matches {
+                            (Some(computed), Some(actual_length), "digest_mismatch")
+                        } else if !length_matches {
+                            (Some(computed), Some(actual_length), "length_mismatch")
                         } else {
                             payload_bytes_verified += 1;
                             let result = match descriptor.source_payload.digest_basis {
-                                PayloadDigestBasis::LocallyRetrievedAndHashed => "verified_supplied_bytes_match_local_digest_claim",
-                                PayloadDigestBasis::SourceOwnerAttested => "supplied_bytes_match_owner_attested_digest",
-                                PayloadDigestBasis::ExternalReference => "verified_supplied_bytes_match_external_digest_claim",
-                                PayloadDigestBasis::Unavailable => "invalid_unavailable_digest_state",
+                                PayloadDigestBasis::LocallyRetrievedAndHashed => {
+                                    "verified_supplied_bytes_match_local_digest_claim"
+                                }
+                                PayloadDigestBasis::SourceOwnerAttested => {
+                                    "supplied_bytes_match_owner_attested_digest"
+                                }
+                                PayloadDigestBasis::ExternalReference => {
+                                    "verified_supplied_bytes_match_external_digest_claim"
+                                }
+                                PayloadDigestBasis::Unavailable => {
+                                    "invalid_unavailable_digest_state"
+                                }
                             };
                             (Some(computed), Some(actual_length), result)
                         }
