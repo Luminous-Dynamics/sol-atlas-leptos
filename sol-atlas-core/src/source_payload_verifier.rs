@@ -654,10 +654,7 @@ mod tests {
         }
     }
 
-    fn inputs(
-        payload: &[u8],
-        schema: &[u8],
-    ) -> TestByteInputs {
+    fn inputs(payload: &[u8], schema: &[u8]) -> TestByteInputs {
         (
             BTreeMap::from([("evidence:evidence-001".into(), payload.to_vec())]),
             BTreeMap::from([(
