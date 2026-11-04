@@ -790,6 +790,29 @@ mod tests {
     }
 
     #[test]
+    fn synthetic_architecture_fixture_deserializes_and_validates() {
+        let fixture: HeritageArchitectureInput = serde_json::from_str(include_str!(
+            "../../schemas/examples/heritage-architecture-synthetic-v0.1.json"
+        ))
+        .expect("fixture should deserialize");
+        let report = validate_heritage_architecture(&fixture).expect("fixture should validate");
+        assert_eq!(report.element_count, 3);
+        assert_eq!(report.observation_count, 3);
+    }
+
+    #[test]
+    fn architecture_schema_is_valid_json() {
+        let schema: serde_json::Value = serde_json::from_str(include_str!(
+            "../../schemas/heritage-architecture-v0.1.schema.json"
+        ))
+        .expect("schema must be valid JSON");
+        assert_eq!(
+            schema["$schema"],
+            "https://json-schema.org/draft/2020-12/schema"
+        );
+    }
+
+    #[test]
     fn valid_multilevel_architecture_graph_is_qualified_only_structurally() {
         let report = validate_heritage_architecture(&valid_input()).expect("valid graph");
         assert_eq!(report.element_count, 3);
