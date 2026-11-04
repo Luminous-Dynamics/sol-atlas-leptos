@@ -1828,9 +1828,10 @@ mod tests {
         let result = validate_source_inventory_manifest(&manifest);
         assert_eq!(result.disposition, InventoryDisposition::InvalidInput);
         assert!(
-            result.findings.iter().any(|finding| {
-                finding.code == "INVALID_INVENTORY_SNAPSHOT_DIGEST"
-            })
+            result
+                .findings
+                .iter()
+                .any(|finding| { finding.code == "INVALID_INVENTORY_SNAPSHOT_DIGEST" })
         );
     }
 
