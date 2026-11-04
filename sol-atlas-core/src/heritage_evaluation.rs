@@ -169,7 +169,7 @@ pub struct HeritageEvaluationSplitAuditReport {
     pub held_out_identity_count: usize,
     /// None outside the buffered-spatial estimand, where the distance audit is not run.
     pub spatial_buffer_violation_pair_count: Option<usize>,
-    /// paper_exact_manifest, seeded_protocol_reproduction, protocol_reconstruction, or not_applicable.
+    /// reference_manifest_digest_recorded, seeded_protocol_reproduction, protocol_reconstruction, or not_applicable.
     pub paper_split_exactness: String,
     pub claim_ceiling: String,
 }
@@ -748,7 +748,7 @@ pub fn audit_heritage_evaluation_split(
         manifest.reference_paper_split_manifest_sha256.is_some(),
         manifest.random_seed.is_some(),
     ) {
-        (EvaluationSplitProfile::PaperFaithfulRandomTiles, true, _) => "paper_exact_manifest",
+        (EvaluationSplitProfile::PaperFaithfulRandomTiles, true, _) => "reference_manifest_digest_recorded",
         (EvaluationSplitProfile::PaperFaithfulRandomTiles, false, true) => {
             "seeded_protocol_reproduction"
         }
@@ -920,6 +920,18 @@ mod tests {
             audit_heritage_evaluation_split(&input),
             Err(HeritageEvaluationSplitError::SharedPhysicalEntityAcrossPartitions(_))
         ));
+    }
+
+    #[test]
+    fn paper_reference_digest_is_recorded_without_claiming_exact_authentication() {
+        let mut input = base_manifest(EvaluationSplitProfile::PaperFaithfulRandomTiles);
+        input.random_seed = None;
+        input.reference_paper_split_manifest_sha256 = Some(digest('e'));
+        let report = audit_heritage_evaluation_split(&input).expect("reference digest recorded");
+        assert_eq!(
+            report.paper_split_exactness,
+            "reference_manifest_digest_recorded"
+        );
     }
 
     #[test]
