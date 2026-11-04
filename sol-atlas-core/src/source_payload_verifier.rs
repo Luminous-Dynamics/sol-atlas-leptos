@@ -1221,12 +1221,9 @@ mod tests {
             observed_at_unix_seconds: Some(1_762_000_001),
         });
         let catalog = catalog(&case, descriptor(bytes));
-        let result = verify_catalog_payload_bytes(
-            &case,
-            &catalog,
-            &context(),
-            |_reference| Ok(Cursor::new(bytes.to_vec())),
-        );
+        let result = verify_catalog_payload_bytes(&case, &catalog, &context(), |_reference| {
+            Ok(Cursor::new(bytes.to_vec()))
+        });
 
         assert_eq!(
             result.disposition,
