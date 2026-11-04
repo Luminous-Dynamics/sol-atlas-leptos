@@ -444,7 +444,7 @@ fn validate_element(
     let mut source_evidence = Vec::new();
     let mut source_seen = BTreeSet::new();
     for evidence_id in &element.source_evidence_ids {
-        if !source_seen.insert(evidence_id) {
+        if !source_seen.insert(evidence_id.clone()) {
             return Err(HeritageReconstructionError::SourceEvidenceReferenceMissing {
                 element_id: element.element_id.clone(),
                 evidence_id: evidence_id.clone(),
@@ -461,9 +461,10 @@ fn validate_element(
     }
 
     let mut dependency_ids = BTreeSet::new();
-    let mut has_source_dependency = false;
-    let mut has_method_dependency = false;
-    let mut has_simulation_dependency = false;
+    let mut source_dependency_ids = BTreeSet::new();
+    let mut method_dependency_digests = BTreeSet::new();
+    let mut simulation_dependency_digests = BTreeSet::new();
+    let mut simulation_manifest_digests = BTreeSet::new();
     for dependency in &element.dependencies {
         if !non_empty(&dependency.dependency_id) {
             return Err(HeritageReconstructionError::DependencyIdEmpty(
@@ -494,7 +495,7 @@ fn validate_element(
                         evidence_id: reference_id.to_owned(),
                     });
                 }
-                has_source_dependency = true;
+                source_dependency_ids.insert(reference_id.to_owned());
             }
             DependencyKind::MethodBuild => {
                 let Some(digest) = dependency.artifact_sha256.as_deref() else {
@@ -507,7 +508,7 @@ fn validate_element(
                         element_id: element.element_id.clone(),
                     });
                 }
-                has_method_dependency = true;
+                method_dependency_digests.insert(digest.to_owned());
             }
             DependencyKind::SimulationModel | DependencyKind::EnvironmentalScenario => {
                 let Some(digest) = dependency.artifact_sha256.as_deref() else {
@@ -520,7 +521,20 @@ fn validate_element(
                         element_id: element.element_id.clone(),
                     });
                 }
-                has_simulation_dependency = true;
+                simulation_dependency_digests.insert(digest.to_owned());
+            }
+            DependencyKind::SimulationManifest => {
+                let Some(digest) = dependency.artifact_sha256.as_deref() else {
+                    return Err(HeritageReconstructionError::DependencyArtifactDigestInvalid {
+                        element_id: element.element_id.clone(),
+                    });
+                };
+                if !valid_sha256(digest) {
+                    return Err(HeritageReconstructionError::DependencyArtifactDigestInvalid {
+                        element_id: element.element_id.clone(),
+                    });
+                }
+                simulation_manifest_digests.insert(digest.to_owned());
             }
             DependencyKind::Assumption | DependencyKind::Prior => {
                 if dependency.reference_id.as_deref().is_none_or(|value| !non_empty(value)) {
@@ -530,6 +544,11 @@ fn validate_element(
                 }
             }
         }
+    }
+    if source_dependency_ids != source_seen {
+        return Err(HeritageReconstructionError::SourceEvidenceDependencySetMismatch(
+            element.element_id.clone(),
+        ));
     }
 
     match element.epistemic_class {
