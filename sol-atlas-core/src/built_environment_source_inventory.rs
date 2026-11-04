@@ -10,6 +10,11 @@
 //! Raw page-item totals and unique-native-record totals are separate semantics.
 //! Tombstone counts are accepted only when page receipts bind the corresponding
 //! owner-native identity digests. Neither count is a source-truth assertion.
+//!
+//! Page order in the serialized input is not trusted: pages are grouped by
+//! partition and validated in ordinal order. The manifest digest still binds
+//! the exact input representation, so semantic replay and byte identity remain
+//! independently visible in the result.
 
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
@@ -1445,6 +1450,29 @@ mod tests {
                     .any(|finding| { finding.code == "SOURCE_REPORTED_TOTAL_COUNT_MISMATCH" })
             );
         }
+    }
+
+    #[test]
+    fn page_receipt_input_order_does_not_change_inventory_disposition_or_findings() {
+        let manifest = valid_manifest();
+        let canonical = validate_source_inventory_manifest(&manifest);
+        let mut reordered = manifest.clone();
+        reordered.page_receipts.reverse();
+        let reordered_result = validate_source_inventory_manifest(&reordered);
+
+        assert_eq!(
+            canonical.disposition,
+            InventoryDisposition::CompleteWithinDeclaredQuery
+        );
+        assert_eq!(reordered_result.disposition, canonical.disposition);
+        assert_eq!(reordered_result.findings, canonical.findings);
+        assert_eq!(reordered_result.enumerated_item_count, canonical.enumerated_item_count);
+        assert_eq!(reordered_result.enumerated_unique_count, canonical.enumerated_unique_count);
+        assert_eq!(reordered_result.duplicate_count, canonical.duplicate_count);
+        // The manifest digest is intentionally representation-sensitive:
+        // reordering pages changes the exact input bytes even though semantic
+        // validation is invariant after partition/ordinal normalization.
+        assert_ne!(reordered_result.manifest_sha256, canonical.manifest_sha256);
     }
 
     #[test]
