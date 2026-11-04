@@ -1,0 +1,395 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/heritage-routing-input-v0.1.schema.json",
+  "title": "Sol-Atlas Heritage Representation Routing Input v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "request_id",
+    "task_id",
+    "feature_class_id",
+    "sensor_modality",
+    "channel_semantics_sha256",
+    "context",
+    "metric_definition_sha256",
+    "primary_metric_id",
+    "reference_tier_id",
+    "review_budget_id",
+    "quality_floors",
+    "profiles"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "luminous.heritage-routing.v0.1"
+    },
+    "request_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "task_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "feature_class_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "sensor_modality": {
+      "enum": [
+        "airborne_lidar",
+        "satellite_optical",
+        "satellite_sar",
+        "uav_photogrammetry",
+        "thermal_imaging",
+        "ground_geophysics",
+        "multimodal"
+      ]
+    },
+    "channel_semantics_sha256": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{64}$"
+    },
+    "context": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "biome_or_ecology_id",
+        "geomorphology_id",
+        "relief_complexity_stratum_id",
+        "vegetation_or_canopy_stratum_id",
+        "preservation_or_visibility_stratum_id",
+        "resolution_class_id"
+      ],
+      "properties": {
+        "biome_or_ecology_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "geomorphology_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "relief_complexity_stratum_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "vegetation_or_canopy_stratum_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "preservation_or_visibility_stratum_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "resolution_class_id": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "metric_definition_sha256": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{64}$"
+    },
+    "primary_metric_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "reference_tier_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "review_budget_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "quality_floors": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "minimum_primary_metric_utility_lower_bound",
+        "minimum_precision_lower_bound",
+        "maximum_false_candidates_per_km2",
+        "minimum_coverage_fraction",
+        "maximum_review_seconds_per_candidate",
+        "minimum_independent_validation_sites"
+      ],
+      "properties": {
+        "minimum_primary_metric_utility_lower_bound": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "minimum_precision_lower_bound": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "maximum_false_candidates_per_km2": {
+          "type": "number",
+          "minimum": 0
+        },
+        "minimum_coverage_fraction": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "maximum_review_seconds_per_candidate": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "minimum_independent_validation_sites": {
+          "type": "integer",
+          "minimum": 3
+        }
+      }
+    },
+    "profiles": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 1000,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "profile_id",
+          "task_id",
+          "feature_class_id",
+          "sensor_modality",
+          "channel_semantics_sha256",
+          "context",
+          "representation_transform_sha256",
+          "model_build_sha256",
+          "metric_definition_sha256",
+          "primary_metric_id",
+          "reference_tier_id",
+          "review_budget_id",
+          "evaluation_role",
+          "split_protocol",
+          "split_manifest_sha256",
+          "data_manifest_sha256",
+          "validation_site_set_sha256",
+          "training_site_ids",
+          "validation_site_results",
+          "rights_status",
+          "rights_receipt_ref"
+        ],
+        "properties": {
+          "profile_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "task_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "feature_class_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "sensor_modality": {
+            "enum": [
+              "airborne_lidar",
+              "satellite_optical",
+              "satellite_sar",
+              "uav_photogrammetry",
+              "thermal_imaging",
+              "ground_geophysics",
+              "multimodal"
+            ]
+          },
+          "channel_semantics_sha256": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{64}$"
+          },
+          "context": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "biome_or_ecology_id",
+              "geomorphology_id",
+              "relief_complexity_stratum_id",
+              "vegetation_or_canopy_stratum_id",
+              "preservation_or_visibility_stratum_id",
+              "resolution_class_id"
+            ],
+            "properties": {
+              "biome_or_ecology_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "geomorphology_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "relief_complexity_stratum_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "vegetation_or_canopy_stratum_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "preservation_or_visibility_stratum_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "resolution_class_id": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "representation_transform_sha256": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{64}$"
+          },
+          "model_build_sha256": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{64}$"
+          },
+          "metric_definition_sha256": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{64}$"
+          },
+          "primary_metric_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "reference_tier_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "review_budget_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "evaluation_role": {
+            "enum": [
+              "training",
+              "selector_validation",
+              "outer_test"
+            ]
+          },
+          "split_protocol": {
+            "enum": [
+              "held_out_site",
+              "held_out_region",
+              "pixel_random_interpolation",
+              "random_tile",
+              "unknown"
+            ]
+          },
+          "split_manifest_sha256": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{64}$"
+          },
+          "data_manifest_sha256": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{64}$"
+          },
+          "training_site_ids": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "validation_site_results": {
+            "type": "array",
+            "maxItems": 100000,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "validation_site_id",
+                "primary_metric_utility_lower_bound",
+                "precision_lower_bound",
+                "false_candidates_per_km2",
+                "coverage_fraction",
+                "review_seconds_per_candidate",
+                "calibration_passed"
+              ],
+              "properties": {
+                "validation_site_id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "primary_metric_utility_lower_bound": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "precision_lower_bound": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "false_candidates_per_km2": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "coverage_fraction": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "review_seconds_per_candidate": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "calibration_passed": {
+                  "type": "boolean"
+                }
+              }
+            }
+          },
+          "rights_status": {
+            "enum": [
+              "verified",
+              "pending",
+              "denied",
+              "unknown"
+            ]
+          },
+          "rights_receipt_ref": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "minLength": 1
+          },
+          "validation_site_set_sha256": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{64}$"
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "rights_status": {
+                  "const": "verified"
+                }
+              },
+              "required": [
+                "rights_status"
+              ]
+            },
+            "then": {
+              "properties": {
+                "rights_receipt_ref": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}
