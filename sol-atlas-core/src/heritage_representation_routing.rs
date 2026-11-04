@@ -453,6 +453,7 @@ fn rejection_reasons(
     let training = profile
         .training_site_ids
         .iter()
+        .cloned()
         .collect::<BTreeSet<_>>();
     if profile
         .validation_site_results
