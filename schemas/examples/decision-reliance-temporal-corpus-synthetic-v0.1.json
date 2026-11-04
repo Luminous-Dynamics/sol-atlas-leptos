@@ -1,0 +1,2945 @@
+{
+  "schema_version": "luminous.decision-reliance-temporal-corpus.v0.1",
+  "corpus_id": "decision-reliance-synthetic-temporal-corpus-001",
+  "synthetic_only": true,
+  "limitations": [
+    "All IDs, digests, proofs, authorities and events are synthetic.",
+    "Expected outcomes qualify only the reference decision-folding semantics; they do not authenticate source evidence or engineering correctness.",
+    "Event authentication is an input proof supplied by a distinct trust system; this corpus encodes its status without validating signatures."
+  ],
+  "scenarios": [
+    {
+      "scenario_id": "baseline-all-current-proof-classes-qualified",
+      "decision_time": "2026-10-01T10:00:00Z",
+      "evaluation_time": "2026-11-04T10:00:00Z",
+      "required_proof_classes": [
+        "decision_event_integrity",
+        "native_source_identity",
+        "source_payload_bytes",
+        "source_use_rights",
+        "source_attestation_trust",
+        "source_coverage",
+        "projection_integrity",
+        "engineering_domain_validity",
+        "lifecycle_currentness",
+        "impact_frontier_correctness",
+        "actor_reliance_authority"
+      ],
+      "proofs": [
+        {
+          "proof_id": "decision-event",
+          "proof_class": "decision_event_integrity",
+          "status": "qualified",
+          "subject_ref": "urn:synthetic:decision-event",
+          "subject_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "policy_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "verifier_build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "checked_at": "2026-11-04T09:00:00Z",
+          "valid_time": {
+            "valid_from": "2026-09-01T00:00:00Z",
+            "valid_until": "2026-12-01T00:00:00Z"
+          },
+          "observation_time": {
+            "observed_at": "2026-10-01T09:00:00Z",
+            "recorded_at": "2026-10-01T10:00:00Z"
+          },
+          "trusted_at": "2026-10-01T10:05:00Z",
+          "fresh_until": "2026-12-01T00:00:00Z",
+          "revoked_at": null,
+          "finding_codes": [],
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ]
+        },
+        {
+          "proof_id": "source-bytes",
+          "proof_class": "source_payload_bytes",
+          "status": "qualified",
+          "subject_ref": "urn:synthetic:source-bytes",
+          "subject_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "policy_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "verifier_build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "checked_at": "2026-11-04T09:00:00Z",
+          "valid_time": {
+            "valid_from": "2026-09-01T00:00:00Z",
+            "valid_until": "2026-12-01T00:00:00Z"
+          },
+          "observation_time": {
+            "observed_at": "2026-10-01T09:00:00Z",
+            "recorded_at": "2026-10-01T10:00:00Z"
+          },
+          "trusted_at": "2026-10-01T10:05:00Z",
+          "fresh_until": "2026-12-01T00:00:00Z",
+          "revoked_at": null,
+          "finding_codes": [],
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ]
+        },
+        {
+          "proof_id": "source-rights",
+          "proof_class": "source_use_rights",
+          "status": "qualified",
+          "subject_ref": "urn:synthetic:source-rights",
+          "subject_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "policy_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "verifier_build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "checked_at": "2026-11-04T09:00:00Z",
+          "valid_time": {
+            "valid_from": "2026-09-01T00:00:00Z",
+            "valid_until": "2026-12-01T00:00:00Z"
+          },
+          "observation_time": {
+            "observed_at": "2026-10-01T09:00:00Z",
+            "recorded_at": "2026-10-01T10:00:00Z"
+          },
+          "trusted_at": "2026-10-01T10:05:00Z",
+          "fresh_until": "2026-12-01T00:00:00Z",
+          "revoked_at": null,
+          "finding_codes": [],
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ]
+        },
+        {
+          "proof_id": "coverage",
+          "proof_class": "source_coverage",
+          "status": "qualified",
+          "subject_ref": "urn:synthetic:coverage",
+          "subject_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "policy_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "verifier_build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "checked_at": "2026-11-04T09:00:00Z",
+          "valid_time": {
+            "valid_from": "2026-09-01T00:00:00Z",
+            "valid_until": "2026-12-01T00:00:00Z"
+          },
+          "observation_time": {
+            "observed_at": "2026-10-01T09:00:00Z",
+            "recorded_at": "2026-10-01T10:00:00Z"
+          },
+          "trusted_at": "2026-10-01T10:05:00Z",
+          "fresh_until": "2026-12-01T00:00:00Z",
+          "revoked_at": null,
+          "finding_codes": [],
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ]
+        },
+        {
+          "proof_id": "actor-authority",
+          "proof_class": "actor_reliance_authority",
+          "status": "qualified",
+          "subject_ref": "urn:synthetic:actor-authority",
+          "subject_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "policy_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "verifier_build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "checked_at": "2026-11-04T09:00:00Z",
+          "valid_time": {
+            "valid_from": "2026-09-01T00:00:00Z",
+            "valid_until": "2026-12-01T00:00:00Z"
+          },
+          "observation_time": {
+            "observed_at": "2026-10-01T09:00:00Z",
+            "recorded_at": "2026-10-01T10:00:00Z"
+          },
+          "trusted_at": "2026-10-01T10:05:00Z",
+          "fresh_until": "2026-12-01T00:00:00Z",
+          "revoked_at": null,
+          "finding_codes": [],
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ]
+        },
+        {
+          "proof_id": "identity",
+          "proof_class": "native_source_identity",
+          "status": "qualified",
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ],
+          "subject_ref": "urn:synthetic:identity",
+          "subject_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "policy_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "verifier_build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "checked_at": "2026-11-04T09:00:00Z",
+          "valid_time": {
+            "valid_from": "2026-09-01T00:00:00Z",
+            "valid_until": "2026-12-01T00:00:00Z"
+          },
+          "observation_time": {
+            "observed_at": "2026-10-01T09:00:00Z",
+            "recorded_at": "2026-10-01T10:00:00Z"
+          },
+          "trusted_at": "2026-10-01T10:05:00Z",
+          "fresh_until": "2026-12-01T00:00:00Z",
+          "revoked_at": null,
+          "finding_codes": []
+        },
+        {
+          "proof_id": "source-trust",
+          "proof_class": "source_attestation_trust",
+          "status": "qualified",
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ],
+          "subject_ref": "urn:synthetic:source-trust",
+          "subject_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "policy_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "verifier_build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "checked_at": "2026-11-04T09:00:00Z",
+          "valid_time": {
+            "valid_from": "2026-09-01T00:00:00Z",
+            "valid_until": "2026-12-01T00:00:00Z"
+          },
+          "observation_time": {
+            "observed_at": "2026-10-01T09:00:00Z",
+            "recorded_at": "2026-10-01T10:00:00Z"
+          },
+          "trusted_at": "2026-10-01T10:05:00Z",
+          "fresh_until": "2026-12-01T00:00:00Z",
+          "revoked_at": null,
+          "finding_codes": []
+        },
+        {
+          "proof_id": "projection",
+          "proof_class": "projection_integrity",
+          "status": "qualified",
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ],
+          "subject_ref": "urn:synthetic:projection",
+          "subject_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "policy_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "verifier_build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "checked_at": "2026-11-04T09:00:00Z",
+          "valid_time": {
+            "valid_from": "2026-09-01T00:00:00Z",
+            "valid_until": "2026-12-01T00:00:00Z"
+          },
+          "observation_time": {
+            "observed_at": "2026-10-01T09:00:00Z",
+            "recorded_at": "2026-10-01T10:00:00Z"
+          },
+          "trusted_at": "2026-10-01T10:05:00Z",
+          "fresh_until": "2026-12-01T00:00:00Z",
+          "revoked_at": null,
+          "finding_codes": []
+        },
+        {
+          "proof_id": "engineering",
+          "proof_class": "engineering_domain_validity",
+          "status": "qualified",
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ],
+          "subject_ref": "urn:synthetic:engineering",
+          "subject_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "policy_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "verifier_build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "checked_at": "2026-11-04T09:00:00Z",
+          "valid_time": {
+            "valid_from": "2026-09-01T00:00:00Z",
+            "valid_until": "2026-12-01T00:00:00Z"
+          },
+          "observation_time": {
+            "observed_at": "2026-10-01T09:00:00Z",
+            "recorded_at": "2026-10-01T10:00:00Z"
+          },
+          "trusted_at": "2026-10-01T10:05:00Z",
+          "fresh_until": "2026-12-01T00:00:00Z",
+          "revoked_at": null,
+          "finding_codes": []
+        },
+        {
+          "proof_id": "lifecycle",
+          "proof_class": "lifecycle_currentness",
+          "status": "qualified",
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ],
+          "subject_ref": "urn:synthetic:lifecycle",
+          "subject_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "policy_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "verifier_build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "checked_at": "2026-11-04T09:00:00Z",
+          "valid_time": {
+            "valid_from": "2026-09-01T00:00:00Z",
+            "valid_until": "2026-12-01T00:00:00Z"
+          },
+          "observation_time": {
+            "observed_at": "2026-10-01T09:00:00Z",
+            "recorded_at": "2026-10-01T10:00:00Z"
+          },
+          "trusted_at": "2026-10-01T10:05:00Z",
+          "fresh_until": "2026-12-01T00:00:00Z",
+          "revoked_at": null,
+          "finding_codes": []
+        },
+        {
+          "proof_id": "impact-frontier",
+          "proof_class": "impact_frontier_correctness",
+          "status": "qualified",
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ],
+          "subject_ref": "urn:synthetic:impact-frontier",
+          "subject_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "policy_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "verifier_build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "checked_at": "2026-11-04T09:00:00Z",
+          "valid_time": {
+            "valid_from": "2026-09-01T00:00:00Z",
+            "valid_until": "2026-12-01T00:00:00Z"
+          },
+          "observation_time": {
+            "observed_at": "2026-10-01T09:00:00Z",
+            "recorded_at": "2026-10-01T10:00:00Z"
+          },
+          "trusted_at": "2026-10-01T10:05:00Z",
+          "fresh_until": "2026-12-01T00:00:00Z",
+          "revoked_at": null,
+          "finding_codes": []
+        }
+      ],
+      "change_events": [],
+      "expected_outcome": "reliable_for_declared_scope",
+      "purpose": "engineering_review",
+      "jurisdiction": "synthetic-jurisdiction",
+      "scope_subjects": [
+        "design-001"
+      ]
+    },
+    {
+      "scenario_id": "retroactive-correction-recorded-after-decision",
+      "decision_time": "2026-10-01T10:00:00Z",
+      "evaluation_time": "2026-11-04T10:00:00Z",
+      "required_proof_classes": [
+        "decision_event_integrity",
+        "native_source_identity",
+        "source_payload_bytes",
+        "source_use_rights",
+        "source_attestation_trust",
+        "source_coverage",
+        "projection_integrity",
+        "engineering_domain_validity",
+        "lifecycle_currentness",
+        "impact_frontier_correctness",
+        "actor_reliance_authority"
+      ],
+      "proofs": [
+        {
+          "proof_id": "decision-event",
+          "proof_class": "decision_event_integrity",
+          "status": "qualified",
+          "subject_ref": "urn:synthetic:decision-event",
+          "subject_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "policy_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "verifier_build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "checked_at": "2026-11-04T09:00:00Z",
+          "valid_time": {
+            "valid_from": "2026-09-01T00:00:00Z",
+            "valid_until": "2026-12-01T00:00:00Z"
+          },
+          "observation_time": {
+            "observed_at": "2026-10-01T09:00:00Z",
+            "recorded_at": "2026-10-01T10:00:00Z"
+          },
+          "trusted_at": "2026-10-01T10:05:00Z",
+          "fresh_until": "2026-12-01T00:00:00Z",
+          "revoked_at": null,
+          "finding_codes": [],
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ]
+        },
+        {
+          "proof_id": "source-bytes",
+          "proof_class": "source_payload_bytes",
+          "status": "qualified",
+          "subject_ref": "urn:synthetic:source-bytes",
+          "subject_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "policy_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "verifier_build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "checked_at": "2026-11-04T09:00:00Z",
+          "valid_time": {
+            "valid_from": "2026-09-01T00:00:00Z",
+            "valid_until": "2026-12-01T00:00:00Z"
+          },
+          "observation_time": {
+            "observed_at": "2026-10-01T09:00:00Z",
+            "recorded_at": "2026-10-01T10:00:00Z"
+          },
+          "trusted_at": "2026-10-01T10:05:00Z",
+          "fresh_until": "2026-12-01T00:00:00Z",
+          "revoked_at": null,
+          "finding_codes": [],
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ]
+        },
+        {
+          "proof_id": "source-rights",
+          "proof_class": "source_use_rights",
+          "status": "qualified",
+          "subject_ref": "urn:synthetic:source-rights",
+          "subject_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "policy_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "verifier_build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "checked_at": "2026-11-04T09:00:00Z",
+          "valid_time": {
+            "valid_from": "2026-09-01T00:00:00Z",
+            "valid_until": "2026-12-01T00:00:00Z"
+          },
+          "observation_time": {
+            "observed_at": "2026-10-01T09:00:00Z",
+            "recorded_at": "2026-10-01T10:00:00Z"
+          },
+          "trusted_at": "2026-10-01T10:05:00Z",
+          "fresh_until": "2026-12-01T00:00:00Z",
+          "revoked_at": null,
+          "finding_codes": [],
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ]
+        },
+        {
+          "proof_id": "coverage",
+          "proof_class": "source_coverage",
+          "status": "qualified",
+          "subject_ref": "urn:synthetic:coverage",
+          "subject_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "policy_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "verifier_build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "checked_at": "2026-11-04T09:00:00Z",
+          "valid_time": {
+            "valid_from": "2026-09-01T00:00:00Z",
+            "valid_until": "2026-12-01T00:00:00Z"
+          },
+          "observation_time": {
+            "observed_at": "2026-10-01T09:00:00Z",
+            "recorded_at": "2026-10-01T10:00:00Z"
+          },
+          "trusted_at": "2026-10-01T10:05:00Z",
+          "fresh_until": "2026-12-01T00:00:00Z",
+          "revoked_at": null,
+          "finding_codes": [],
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ]
+        },
+        {
+          "proof_id": "actor-authority",
+          "proof_class": "actor_reliance_authority",
+          "status": "qualified",
+          "subject_ref": "urn:synthetic:actor-authority",
+          "subject_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "policy_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "verifier_build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "checked_at": "2026-11-04T09:00:00Z",
+          "valid_time": {
+            "valid_from": "2026-09-01T00:00:00Z",
+            "valid_until": "2026-12-01T00:00:00Z"
+          },
+          "observation_time": {
+            "observed_at": "2026-10-01T09:00:00Z",
+            "recorded_at": "2026-10-01T10:00:00Z"
+          },
+          "trusted_at": "2026-10-01T10:05:00Z",
+          "fresh_until": "2026-12-01T00:00:00Z",
+          "revoked_at": null,
+          "finding_codes": [],
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ]
+        },
+        {
+          "proof_id": "identity",
+          "proof_class": "native_source_identity",
+          "status": "qualified",
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ],
+          "subject_ref": "urn:synthetic:identity",
+          "subject_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "policy_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "verifier_build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "checked_at": "2026-11-04T09:00:00Z",
+          "valid_time": {
+            "valid_from": "2026-09-01T00:00:00Z",
+            "valid_until": "2026-12-01T00:00:00Z"
+          },
+          "observation_time": {
+            "observed_at": "2026-10-01T09:00:00Z",
+            "recorded_at": "2026-10-01T10:00:00Z"
+          },
+          "trusted_at": "2026-10-01T10:05:00Z",
+          "fresh_until": "2026-12-01T00:00:00Z",
+          "revoked_at": null,
+          "finding_codes": []
+        },
+        {
+          "proof_id": "source-trust",
+          "proof_class": "source_attestation_trust",
+          "status": "qualified",
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ],
+          "subject_ref": "urn:synthetic:source-trust",
+          "subject_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "policy_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "verifier_build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "checked_at": "2026-11-04T09:00:00Z",
+          "valid_time": {
+            "valid_from": "2026-09-01T00:00:00Z",
+            "valid_until": "2026-12-01T00:00:00Z"
+          },
+          "observation_time": {
+            "observed_at": "2026-10-01T09:00:00Z",
+            "recorded_at": "2026-10-01T10:00:00Z"
+          },
+          "trusted_at": "2026-10-01T10:05:00Z",
+          "fresh_until": "2026-12-01T00:00:00Z",
+          "revoked_at": null,
+          "finding_codes": []
+        },
+        {
+          "proof_id": "projection",
+          "proof_class": "projection_integrity",
+          "status": "qualified",
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ],
+          "subject_ref": "urn:synthetic:projection",
+          "subject_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "policy_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "verifier_build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "checked_at": "2026-11-04T09:00:00Z",
+          "valid_time": {
+            "valid_from": "2026-09-01T00:00:00Z",
+            "valid_until": "2026-12-01T00:00:00Z"
+          },
+          "observation_time": {
+            "observed_at": "2026-10-01T09:00:00Z",
+            "recorded_at": "2026-10-01T10:00:00Z"
+          },
+          "trusted_at": "2026-10-01T10:05:00Z",
+          "fresh_until": "2026-12-01T00:00:00Z",
+          "revoked_at": null,
+          "finding_codes": []
+        },
+        {
+          "proof_id": "engineering",
+          "proof_class": "engineering_domain_validity",
+          "status": "qualified",
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ],
+          "subject_ref": "urn:synthetic:engineering",
+          "subject_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "policy_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "verifier_build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "checked_at": "2026-11-04T09:00:00Z",
+          "valid_time": {
+            "valid_from": "2026-09-01T00:00:00Z",
+            "valid_until": "2026-12-01T00:00:00Z"
+          },
+          "observation_time": {
+            "observed_at": "2026-10-01T09:00:00Z",
+            "recorded_at": "2026-10-01T10:00:00Z"
+          },
+          "trusted_at": "2026-10-01T10:05:00Z",
+          "fresh_until": "2026-12-01T00:00:00Z",
+          "revoked_at": null,
+          "finding_codes": []
+        },
+        {
+          "proof_id": "lifecycle",
+          "proof_class": "lifecycle_currentness",
+          "status": "qualified",
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ],
+          "subject_ref": "urn:synthetic:lifecycle",
+          "subject_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "policy_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "verifier_build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "checked_at": "2026-11-04T09:00:00Z",
+          "valid_time": {
+            "valid_from": "2026-09-01T00:00:00Z",
+            "valid_until": "2026-12-01T00:00:00Z"
+          },
+          "observation_time": {
+            "observed_at": "2026-10-01T09:00:00Z",
+            "recorded_at": "2026-10-01T10:00:00Z"
+          },
+          "trusted_at": "2026-10-01T10:05:00Z",
+          "fresh_until": "2026-12-01T00:00:00Z",
+          "revoked_at": null,
+          "finding_codes": []
+        },
+        {
+          "proof_id": "impact-frontier",
+          "proof_class": "impact_frontier_correctness",
+          "status": "qualified",
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ],
+          "subject_ref": "urn:synthetic:impact-frontier",
+          "subject_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "policy_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "verifier_build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "checked_at": "2026-11-04T09:00:00Z",
+          "valid_time": {
+            "valid_from": "2026-09-01T00:00:00Z",
+            "valid_until": "2026-12-01T00:00:00Z"
+          },
+          "observation_time": {
+            "observed_at": "2026-10-01T09:00:00Z",
+            "recorded_at": "2026-10-01T10:00:00Z"
+          },
+          "trusted_at": "2026-10-01T10:05:00Z",
+          "fresh_until": "2026-12-01T00:00:00Z",
+          "revoked_at": null,
+          "finding_codes": []
+        }
+      ],
+      "change_events": [
+        {
+          "event_id": "late-source-correction",
+          "event_type": "source_corrected",
+          "affected_proof_ids": [
+            "source-bytes"
+          ],
+          "valid_at": "2026-09-20T00:00:00Z",
+          "observed_at": "2026-11-03T12:00:00Z",
+          "recorded_at": "2026-11-03T12:00:00Z",
+          "trusted_at": "2026-11-03T12:00:00Z",
+          "trust_status": "qualified",
+          "event_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "receipt_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+        }
+      ],
+      "expected_outcome": "revalidation_required",
+      "expected_late_arriving_events": 1,
+      "purpose": "engineering_review",
+      "jurisdiction": "synthetic-jurisdiction",
+      "scope_subjects": [
+        "design-001"
+      ]
+    },
+    {
+      "scenario_id": "signing-key-revoked-before-decision",
+      "decision_time": "2026-10-01T10:00:00Z",
+      "evaluation_time": "2026-11-04T10:00:00Z",
+      "required_proof_classes": [
+        "decision_event_integrity",
+        "native_source_identity",
+        "source_payload_bytes",
+        "source_use_rights",
+        "source_attestation_trust",
+        "source_coverage",
+        "projection_integrity",
+        "engineering_domain_validity",
+        "lifecycle_currentness",
+        "impact_frontier_correctness",
+        "actor_reliance_authority"
+      ],
+      "proofs": [
+        {
+          "proof_id": "decision-event",
+          "proof_class": "decision_event_integrity",
+          "status": "qualified",
+          "subject_ref": "urn:synthetic:decision-event",
+          "subject_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "policy_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "verifier_build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "checked_at": "2026-11-04T09:00:00Z",
+          "valid_time": {
+            "valid_from": "2026-09-01T00:00:00Z",
+            "valid_until": "2026-12-01T00:00:00Z"
+          },
+          "observation_time": {
+            "observed_at": "2026-10-01T09:00:00Z",
+            "recorded_at": "2026-10-01T10:00:00Z"
+          },
+          "trusted_at": "2026-10-01T10:05:00Z",
+          "fresh_until": "2026-12-01T00:00:00Z",
+          "revoked_at": null,
+          "finding_codes": [],
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ]
+        },
+        {
+          "proof_id": "source-bytes",
+          "proof_class": "source_payload_bytes",
+          "status": "qualified",
+          "subject_ref": "urn:synthetic:source-bytes",
+          "subject_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "policy_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "verifier_build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "checked_at": "2026-11-04T09:00:00Z",
+          "valid_time": {
+            "valid_from": "2026-09-01T00:00:00Z",
+            "valid_until": "2026-12-01T00:00:00Z"
+          },
+          "observation_time": {
+            "observed_at": "2026-10-01T09:00:00Z",
+            "recorded_at": "2026-10-01T10:00:00Z"
+          },
+          "trusted_at": "2026-10-01T10:05:00Z",
+          "fresh_until": "2026-12-01T00:00:00Z",
+          "revoked_at": null,
+          "finding_codes": [],
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ]
+        },
+        {
+          "proof_id": "source-rights",
+          "proof_class": "source_use_rights",
+          "status": "qualified",
+          "subject_ref": "urn:synthetic:source-rights",
+          "subject_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "policy_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "verifier_build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "checked_at": "2026-11-04T09:00:00Z",
+          "valid_time": {
+            "valid_from": "2026-09-01T00:00:00Z",
+            "valid_until": "2026-12-01T00:00:00Z"
+          },
+          "observation_time": {
+            "observed_at": "2026-10-01T09:00:00Z",
+            "recorded_at": "2026-10-01T10:00:00Z"
+          },
+          "trusted_at": "2026-10-01T10:05:00Z",
+          "fresh_until": "2026-12-01T00:00:00Z",
+          "revoked_at": null,
+          "finding_codes": [],
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ]
+        },
+        {
+          "proof_id": "coverage",
+          "proof_class": "source_coverage",
+          "status": "qualified",
+          "subject_ref": "urn:synthetic:coverage",
+          "subject_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "policy_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "verifier_build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "checked_at": "2026-11-04T09:00:00Z",
+          "valid_time": {
+            "valid_from": "2026-09-01T00:00:00Z",
+            "valid_until": "2026-12-01T00:00:00Z"
+          },
+          "observation_time": {
+            "observed_at": "2026-10-01T09:00:00Z",
+            "recorded_at": "2026-10-01T10:00:00Z"
+          },
+          "trusted_at": "2026-10-01T10:05:00Z",
+          "fresh_until": "2026-12-01T00:00:00Z",
+          "revoked_at": null,
+          "finding_codes": [],
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ]
+        },
+        {
+          "proof_id": "actor-authority",
+          "proof_class": "actor_reliance_authority",
+          "status": "qualified",
+          "subject_ref": "urn:synthetic:actor-authority",
+          "subject_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "policy_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "verifier_build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "checked_at": "2026-11-04T09:00:00Z",
+          "valid_time": {
+            "valid_from": "2026-09-01T00:00:00Z",
+            "valid_until": "2026-12-01T00:00:00Z"
+          },
+          "observation_time": {
+            "observed_at": "2026-10-01T09:00:00Z",
+            "recorded_at": "2026-10-01T10:00:00Z"
+          },
+          "trusted_at": "2026-10-01T10:05:00Z",
+          "fresh_until": "2026-12-01T00:00:00Z",
+          "revoked_at": null,
+          "finding_codes": [],
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ]
+        },
+        {
+          "proof_id": "identity",
+          "proof_class": "native_source_identity",
+          "status": "qualified",
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ],
+          "subject_ref": "urn:synthetic:identity",
+          "subject_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "policy_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "verifier_build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "checked_at": "2026-11-04T09:00:00Z",
+          "valid_time": {
+            "valid_from": "2026-09-01T00:00:00Z",
+            "valid_until": "2026-12-01T00:00:00Z"
+          },
+          "observation_time": {
+            "observed_at": "2026-10-01T09:00:00Z",
+            "recorded_at": "2026-10-01T10:00:00Z"
+          },
+          "trusted_at": "2026-10-01T10:05:00Z",
+          "fresh_until": "2026-12-01T00:00:00Z",
+          "revoked_at": null,
+          "finding_codes": []
+        },
+        {
+          "proof_id": "source-trust",
+          "proof_class": "source_attestation_trust",
+          "status": "qualified",
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ],
+          "subject_ref": "urn:synthetic:source-trust",
+          "subject_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "policy_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "verifier_build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "checked_at": "2026-11-04T09:00:00Z",
+          "valid_time": {
+            "valid_from": "2026-09-01T00:00:00Z",
+            "valid_until": "2026-12-01T00:00:00Z"
+          },
+          "observation_time": {
+            "observed_at": "2026-10-01T09:00:00Z",
+            "recorded_at": "2026-10-01T10:00:00Z"
+          },
+          "trusted_at": "2026-10-01T10:05:00Z",
+          "fresh_until": "2026-12-01T00:00:00Z",
+          "revoked_at": null,
+          "finding_codes": []
+        },
+        {
+          "proof_id": "projection",
+          "proof_class": "projection_integrity",
+          "status": "qualified",
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ],
+          "subject_ref": "urn:synthetic:projection",
+          "subject_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "policy_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "verifier_build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "checked_at": "2026-11-04T09:00:00Z",
+          "valid_time": {
+            "valid_from": "2026-09-01T00:00:00Z",
+            "valid_until": "2026-12-01T00:00:00Z"
+          },
+          "observation_time": {
+            "observed_at": "2026-10-01T09:00:00Z",
+            "recorded_at": "2026-10-01T10:00:00Z"
+          },
+          "trusted_at": "2026-10-01T10:05:00Z",
+          "fresh_until": "2026-12-01T00:00:00Z",
+          "revoked_at": null,
+          "finding_codes": []
+        },
+        {
+          "proof_id": "engineering",
+          "proof_class": "engineering_domain_validity",
+          "status": "qualified",
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ],
+          "subject_ref": "urn:synthetic:engineering",
+          "subject_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "policy_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "verifier_build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "checked_at": "2026-11-04T09:00:00Z",
+          "valid_time": {
+            "valid_from": "2026-09-01T00:00:00Z",
+            "valid_until": "2026-12-01T00:00:00Z"
+          },
+          "observation_time": {
+            "observed_at": "2026-10-01T09:00:00Z",
+            "recorded_at": "2026-10-01T10:00:00Z"
+          },
+          "trusted_at": "2026-10-01T10:05:00Z",
+          "fresh_until": "2026-12-01T00:00:00Z",
+          "revoked_at": null,
+          "finding_codes": []
+        },
+        {
+          "proof_id": "lifecycle",
+          "proof_class": "lifecycle_currentness",
+          "status": "qualified",
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ],
+          "subject_ref": "urn:synthetic:lifecycle",
+          "subject_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "policy_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "verifier_build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "checked_at": "2026-11-04T09:00:00Z",
+          "valid_time": {
+            "valid_from": "2026-09-01T00:00:00Z",
+            "valid_until": "2026-12-01T00:00:00Z"
+          },
+          "observation_time": {
+            "observed_at": "2026-10-01T09:00:00Z",
+            "recorded_at": "2026-10-01T10:00:00Z"
+          },
+          "trusted_at": "2026-10-01T10:05:00Z",
+          "fresh_until": "2026-12-01T00:00:00Z",
+          "revoked_at": null,
+          "finding_codes": []
+        },
+        {
+          "proof_id": "impact-frontier",
+          "proof_class": "impact_frontier_correctness",
+          "status": "qualified",
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ],
+          "subject_ref": "urn:synthetic:impact-frontier",
+          "subject_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "policy_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "verifier_build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "checked_at": "2026-11-04T09:00:00Z",
+          "valid_time": {
+            "valid_from": "2026-09-01T00:00:00Z",
+            "valid_until": "2026-12-01T00:00:00Z"
+          },
+          "observation_time": {
+            "observed_at": "2026-10-01T09:00:00Z",
+            "recorded_at": "2026-10-01T10:00:00Z"
+          },
+          "trusted_at": "2026-10-01T10:05:00Z",
+          "fresh_until": "2026-12-01T00:00:00Z",
+          "revoked_at": null,
+          "finding_codes": []
+        }
+      ],
+      "change_events": [
+        {
+          "event_id": "key-revoked-pre-decision",
+          "event_type": "key_revoked",
+          "affected_proof_ids": [
+            "source-trust"
+          ],
+          "valid_at": "2026-09-25T00:00:00Z",
+          "observed_at": "2026-09-26T00:00:00Z",
+          "recorded_at": "2026-09-26T00:00:00Z",
+          "trusted_at": "2026-09-26T00:00:00Z",
+          "trust_status": "qualified",
+          "event_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "receipt_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+        }
+      ],
+      "expected_outcome": "invalid_evidence",
+      "purpose": "engineering_review",
+      "jurisdiction": "synthetic-jurisdiction",
+      "scope_subjects": [
+        "design-001"
+      ]
+    },
+    {
+      "scenario_id": "source-rights-revoked-after-decision",
+      "decision_time": "2026-10-01T10:00:00Z",
+      "evaluation_time": "2026-11-04T10:00:00Z",
+      "required_proof_classes": [
+        "decision_event_integrity",
+        "native_source_identity",
+        "source_payload_bytes",
+        "source_use_rights",
+        "source_attestation_trust",
+        "source_coverage",
+        "projection_integrity",
+        "engineering_domain_validity",
+        "lifecycle_currentness",
+        "impact_frontier_correctness",
+        "actor_reliance_authority"
+      ],
+      "proofs": [
+        {
+          "proof_id": "decision-event",
+          "proof_class": "decision_event_integrity",
+          "status": "qualified",
+          "subject_ref": "urn:synthetic:decision-event",
+          "subject_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "policy_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "verifier_build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "checked_at": "2026-11-04T09:00:00Z",
+          "valid_time": {
+            "valid_from": "2026-09-01T00:00:00Z",
+            "valid_until": "2026-12-01T00:00:00Z"
+          },
+          "observation_time": {
+            "observed_at": "2026-10-01T09:00:00Z",
+            "recorded_at": "2026-10-01T10:00:00Z"
+          },
+          "trusted_at": "2026-10-01T10:05:00Z",
+          "fresh_until": "2026-12-01T00:00:00Z",
+          "revoked_at": null,
+          "finding_codes": [],
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ]
+        },
+        {
+          "proof_id": "source-bytes",
+          "proof_class": "source_payload_bytes",
+          "status": "qualified",
+          "subject_ref": "urn:synthetic:source-bytes",
+          "subject_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "policy_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "verifier_build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "checked_at": "2026-11-04T09:00:00Z",
+          "valid_time": {
+            "valid_from": "2026-09-01T00:00:00Z",
+            "valid_until": "2026-12-01T00:00:00Z"
+          },
+          "observation_time": {
+            "observed_at": "2026-10-01T09:00:00Z",
+            "recorded_at": "2026-10-01T10:00:00Z"
+          },
+          "trusted_at": "2026-10-01T10:05:00Z",
+          "fresh_until": "2026-12-01T00:00:00Z",
+          "revoked_at": null,
+          "finding_codes": [],
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ]
+        },
+        {
+          "proof_id": "source-rights",
+          "proof_class": "source_use_rights",
+          "status": "qualified",
+          "subject_ref": "urn:synthetic:source-rights",
+          "subject_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "policy_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "verifier_build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "checked_at": "2026-11-04T09:00:00Z",
+          "valid_time": {
+            "valid_from": "2026-09-01T00:00:00Z",
+            "valid_until": "2026-12-01T00:00:00Z"
+          },
+          "observation_time": {
+            "observed_at": "2026-10-01T09:00:00Z",
+            "recorded_at": "2026-10-01T10:00:00Z"
+          },
+          "trusted_at": "2026-10-01T10:05:00Z",
+          "fresh_until": "2026-12-01T00:00:00Z",
+          "revoked_at": null,
+          "finding_codes": [],
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ]
+        },
+        {
+          "proof_id": "coverage",
+          "proof_class": "source_coverage",
+          "status": "qualified",
+          "subject_ref": "urn:synthetic:coverage",
+          "subject_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "policy_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "verifier_build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "checked_at": "2026-11-04T09:00:00Z",
+          "valid_time": {
+            "valid_from": "2026-09-01T00:00:00Z",
+            "valid_until": "2026-12-01T00:00:00Z"
+          },
+          "observation_time": {
+            "observed_at": "2026-10-01T09:00:00Z",
+            "recorded_at": "2026-10-01T10:00:00Z"
+          },
+          "trusted_at": "2026-10-01T10:05:00Z",
+          "fresh_until": "2026-12-01T00:00:00Z",
+          "revoked_at": null,
+          "finding_codes": [],
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ]
+        },
+        {
+          "proof_id": "actor-authority",
+          "proof_class": "actor_reliance_authority",
+          "status": "qualified",
+          "subject_ref": "urn:synthetic:actor-authority",
+          "subject_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "policy_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "verifier_build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "checked_at": "2026-11-04T09:00:00Z",
+          "valid_time": {
+            "valid_from": "2026-09-01T00:00:00Z",
+            "valid_until": "2026-12-01T00:00:00Z"
+          },
+          "observation_time": {
+            "observed_at": "2026-10-01T09:00:00Z",
+            "recorded_at": "2026-10-01T10:00:00Z"
+          },
+          "trusted_at": "2026-10-01T10:05:00Z",
+          "fresh_until": "2026-12-01T00:00:00Z",
+          "revoked_at": null,
+          "finding_codes": [],
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ]
+        },
+        {
+          "proof_id": "identity",
+          "proof_class": "native_source_identity",
+          "status": "qualified",
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ],
+          "subject_ref": "urn:synthetic:identity",
+          "subject_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "policy_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "verifier_build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "checked_at": "2026-11-04T09:00:00Z",
+          "valid_time": {
+            "valid_from": "2026-09-01T00:00:00Z",
+            "valid_until": "2026-12-01T00:00:00Z"
+          },
+          "observation_time": {
+            "observed_at": "2026-10-01T09:00:00Z",
+            "recorded_at": "2026-10-01T10:00:00Z"
+          },
+          "trusted_at": "2026-10-01T10:05:00Z",
+          "fresh_until": "2026-12-01T00:00:00Z",
+          "revoked_at": null,
+          "finding_codes": []
+        },
+        {
+          "proof_id": "source-trust",
+          "proof_class": "source_attestation_trust",
+          "status": "qualified",
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ],
+          "subject_ref": "urn:synthetic:source-trust",
+          "subject_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "policy_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "verifier_build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "checked_at": "2026-11-04T09:00:00Z",
+          "valid_time": {
+            "valid_from": "2026-09-01T00:00:00Z",
+            "valid_until": "2026-12-01T00:00:00Z"
+          },
+          "observation_time": {
+            "observed_at": "2026-10-01T09:00:00Z",
+            "recorded_at": "2026-10-01T10:00:00Z"
+          },
+          "trusted_at": "2026-10-01T10:05:00Z",
+          "fresh_until": "2026-12-01T00:00:00Z",
+          "revoked_at": null,
+          "finding_codes": []
+        },
+        {
+          "proof_id": "projection",
+          "proof_class": "projection_integrity",
+          "status": "qualified",
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ],
+          "subject_ref": "urn:synthetic:projection",
+          "subject_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "policy_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "verifier_build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "checked_at": "2026-11-04T09:00:00Z",
+          "valid_time": {
+            "valid_from": "2026-09-01T00:00:00Z",
+            "valid_until": "2026-12-01T00:00:00Z"
+          },
+          "observation_time": {
+            "observed_at": "2026-10-01T09:00:00Z",
+            "recorded_at": "2026-10-01T10:00:00Z"
+          },
+          "trusted_at": "2026-10-01T10:05:00Z",
+          "fresh_until": "2026-12-01T00:00:00Z",
+          "revoked_at": null,
+          "finding_codes": []
+        },
+        {
+          "proof_id": "engineering",
+          "proof_class": "engineering_domain_validity",
+          "status": "qualified",
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ],
+          "subject_ref": "urn:synthetic:engineering",
+          "subject_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "policy_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "verifier_build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "checked_at": "2026-11-04T09:00:00Z",
+          "valid_time": {
+            "valid_from": "2026-09-01T00:00:00Z",
+            "valid_until": "2026-12-01T00:00:00Z"
+          },
+          "observation_time": {
+            "observed_at": "2026-10-01T09:00:00Z",
+            "recorded_at": "2026-10-01T10:00:00Z"
+          },
+          "trusted_at": "2026-10-01T10:05:00Z",
+          "fresh_until": "2026-12-01T00:00:00Z",
+          "revoked_at": null,
+          "finding_codes": []
+        },
+        {
+          "proof_id": "lifecycle",
+          "proof_class": "lifecycle_currentness",
+          "status": "qualified",
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ],
+          "subject_ref": "urn:synthetic:lifecycle",
+          "subject_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "policy_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "verifier_build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "checked_at": "2026-11-04T09:00:00Z",
+          "valid_time": {
+            "valid_from": "2026-09-01T00:00:00Z",
+            "valid_until": "2026-12-01T00:00:00Z"
+          },
+          "observation_time": {
+            "observed_at": "2026-10-01T09:00:00Z",
+            "recorded_at": "2026-10-01T10:00:00Z"
+          },
+          "trusted_at": "2026-10-01T10:05:00Z",
+          "fresh_until": "2026-12-01T00:00:00Z",
+          "revoked_at": null,
+          "finding_codes": []
+        },
+        {
+          "proof_id": "impact-frontier",
+          "proof_class": "impact_frontier_correctness",
+          "status": "qualified",
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ],
+          "subject_ref": "urn:synthetic:impact-frontier",
+          "subject_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "policy_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "verifier_build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "checked_at": "2026-11-04T09:00:00Z",
+          "valid_time": {
+            "valid_from": "2026-09-01T00:00:00Z",
+            "valid_until": "2026-12-01T00:00:00Z"
+          },
+          "observation_time": {
+            "observed_at": "2026-10-01T09:00:00Z",
+            "recorded_at": "2026-10-01T10:00:00Z"
+          },
+          "trusted_at": "2026-10-01T10:05:00Z",
+          "fresh_until": "2026-12-01T00:00:00Z",
+          "revoked_at": null,
+          "finding_codes": []
+        }
+      ],
+      "change_events": [
+        {
+          "event_id": "rights-revoked",
+          "event_type": "rights_revoked",
+          "affected_proof_ids": [
+            "source-rights"
+          ],
+          "valid_at": "2026-11-01T00:00:00Z",
+          "observed_at": "2026-11-02T00:00:00Z",
+          "recorded_at": "2026-11-02T00:00:00Z",
+          "trusted_at": "2026-11-02T00:00:00Z",
+          "trust_status": "qualified",
+          "event_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "receipt_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+        }
+      ],
+      "expected_outcome": "not_authorized",
+      "purpose": "engineering_review",
+      "jurisdiction": "synthetic-jurisdiction",
+      "scope_subjects": [
+        "design-001"
+      ]
+    },
+    {
+      "scenario_id": "coverage-proof-missing",
+      "decision_time": "2026-10-01T10:00:00Z",
+      "evaluation_time": "2026-11-04T10:00:00Z",
+      "required_proof_classes": [
+        "decision_event_integrity",
+        "native_source_identity",
+        "source_payload_bytes",
+        "source_use_rights",
+        "source_attestation_trust",
+        "source_coverage",
+        "projection_integrity",
+        "engineering_domain_validity",
+        "lifecycle_currentness",
+        "impact_frontier_correctness",
+        "actor_reliance_authority"
+      ],
+      "proofs": [
+        {
+          "proof_id": "decision-event",
+          "proof_class": "decision_event_integrity",
+          "status": "qualified",
+          "subject_ref": "urn:synthetic:decision-event",
+          "subject_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "policy_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "verifier_build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "checked_at": "2026-11-04T09:00:00Z",
+          "valid_time": {
+            "valid_from": "2026-09-01T00:00:00Z",
+            "valid_until": "2026-12-01T00:00:00Z"
+          },
+          "observation_time": {
+            "observed_at": "2026-10-01T09:00:00Z",
+            "recorded_at": "2026-10-01T10:00:00Z"
+          },
+          "trusted_at": "2026-10-01T10:05:00Z",
+          "fresh_until": "2026-12-01T00:00:00Z",
+          "revoked_at": null,
+          "finding_codes": [],
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ]
+        },
+        {
+          "proof_id": "source-bytes",
+          "proof_class": "source_payload_bytes",
+          "status": "qualified",
+          "subject_ref": "urn:synthetic:source-bytes",
+          "subject_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "policy_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "verifier_build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "checked_at": "2026-11-04T09:00:00Z",
+          "valid_time": {
+            "valid_from": "2026-09-01T00:00:00Z",
+            "valid_until": "2026-12-01T00:00:00Z"
+          },
+          "observation_time": {
+            "observed_at": "2026-10-01T09:00:00Z",
+            "recorded_at": "2026-10-01T10:00:00Z"
+          },
+          "trusted_at": "2026-10-01T10:05:00Z",
+          "fresh_until": "2026-12-01T00:00:00Z",
+          "revoked_at": null,
+          "finding_codes": [],
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ]
+        },
+        {
+          "proof_id": "source-rights",
+          "proof_class": "source_use_rights",
+          "status": "qualified",
+          "subject_ref": "urn:synthetic:source-rights",
+          "subject_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "policy_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "verifier_build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "checked_at": "2026-11-04T09:00:00Z",
+          "valid_time": {
+            "valid_from": "2026-09-01T00:00:00Z",
+            "valid_until": "2026-12-01T00:00:00Z"
+          },
+          "observation_time": {
+            "observed_at": "2026-10-01T09:00:00Z",
+            "recorded_at": "2026-10-01T10:00:00Z"
+          },
+          "trusted_at": "2026-10-01T10:05:00Z",
+          "fresh_until": "2026-12-01T00:00:00Z",
+          "revoked_at": null,
+          "finding_codes": [],
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ]
+        },
+        {
+          "proof_id": "coverage",
+          "proof_class": "source_coverage",
+          "status": "missing",
+          "subject_ref": "urn:synthetic:coverage",
+          "subject_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "policy_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "verifier_build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "checked_at": "2026-11-04T09:00:00Z",
+          "valid_time": {
+            "valid_from": "2026-09-01T00:00:00Z",
+            "valid_until": "2026-12-01T00:00:00Z"
+          },
+          "observation_time": {
+            "observed_at": "2026-10-01T09:00:00Z",
+            "recorded_at": "2026-10-01T10:00:00Z"
+          },
+          "trusted_at": "2026-10-01T10:05:00Z",
+          "fresh_until": "2026-12-01T00:00:00Z",
+          "revoked_at": null,
+          "finding_codes": [],
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ]
+        },
+        {
+          "proof_id": "actor-authority",
+          "proof_class": "actor_reliance_authority",
+          "status": "qualified",
+          "subject_ref": "urn:synthetic:actor-authority",
+          "subject_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "policy_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "verifier_build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "checked_at": "2026-11-04T09:00:00Z",
+          "valid_time": {
+            "valid_from": "2026-09-01T00:00:00Z",
+            "valid_until": "2026-12-01T00:00:00Z"
+          },
+          "observation_time": {
+            "observed_at": "2026-10-01T09:00:00Z",
+            "recorded_at": "2026-10-01T10:00:00Z"
+          },
+          "trusted_at": "2026-10-01T10:05:00Z",
+          "fresh_until": "2026-12-01T00:00:00Z",
+          "revoked_at": null,
+          "finding_codes": [],
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ]
+        },
+        {
+          "proof_id": "identity",
+          "proof_class": "native_source_identity",
+          "status": "qualified",
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ],
+          "subject_ref": "urn:synthetic:identity",
+          "subject_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "policy_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "verifier_build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "checked_at": "2026-11-04T09:00:00Z",
+          "valid_time": {
+            "valid_from": "2026-09-01T00:00:00Z",
+            "valid_until": "2026-12-01T00:00:00Z"
+          },
+          "observation_time": {
+            "observed_at": "2026-10-01T09:00:00Z",
+            "recorded_at": "2026-10-01T10:00:00Z"
+          },
+          "trusted_at": "2026-10-01T10:05:00Z",
+          "fresh_until": "2026-12-01T00:00:00Z",
+          "revoked_at": null,
+          "finding_codes": []
+        },
+        {
+          "proof_id": "source-trust",
+          "proof_class": "source_attestation_trust",
+          "status": "qualified",
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ],
+          "subject_ref": "urn:synthetic:source-trust",
+          "subject_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "policy_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "verifier_build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "checked_at": "2026-11-04T09:00:00Z",
+          "valid_time": {
+            "valid_from": "2026-09-01T00:00:00Z",
+            "valid_until": "2026-12-01T00:00:00Z"
+          },
+          "observation_time": {
+            "observed_at": "2026-10-01T09:00:00Z",
+            "recorded_at": "2026-10-01T10:00:00Z"
+          },
+          "trusted_at": "2026-10-01T10:05:00Z",
+          "fresh_until": "2026-12-01T00:00:00Z",
+          "revoked_at": null,
+          "finding_codes": []
+        },
+        {
+          "proof_id": "projection",
+          "proof_class": "projection_integrity",
+          "status": "qualified",
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ],
+          "subject_ref": "urn:synthetic:projection",
+          "subject_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "policy_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "verifier_build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "checked_at": "2026-11-04T09:00:00Z",
+          "valid_time": {
+            "valid_from": "2026-09-01T00:00:00Z",
+            "valid_until": "2026-12-01T00:00:00Z"
+          },
+          "observation_time": {
+            "observed_at": "2026-10-01T09:00:00Z",
+            "recorded_at": "2026-10-01T10:00:00Z"
+          },
+          "trusted_at": "2026-10-01T10:05:00Z",
+          "fresh_until": "2026-12-01T00:00:00Z",
+          "revoked_at": null,
+          "finding_codes": []
+        },
+        {
+          "proof_id": "engineering",
+          "proof_class": "engineering_domain_validity",
+          "status": "qualified",
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ],
+          "subject_ref": "urn:synthetic:engineering",
+          "subject_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "policy_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "verifier_build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "checked_at": "2026-11-04T09:00:00Z",
+          "valid_time": {
+            "valid_from": "2026-09-01T00:00:00Z",
+            "valid_until": "2026-12-01T00:00:00Z"
+          },
+          "observation_time": {
+            "observed_at": "2026-10-01T09:00:00Z",
+            "recorded_at": "2026-10-01T10:00:00Z"
+          },
+          "trusted_at": "2026-10-01T10:05:00Z",
+          "fresh_until": "2026-12-01T00:00:00Z",
+          "revoked_at": null,
+          "finding_codes": []
+        },
+        {
+          "proof_id": "lifecycle",
+          "proof_class": "lifecycle_currentness",
+          "status": "qualified",
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ],
+          "subject_ref": "urn:synthetic:lifecycle",
+          "subject_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "policy_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "verifier_build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "checked_at": "2026-11-04T09:00:00Z",
+          "valid_time": {
+            "valid_from": "2026-09-01T00:00:00Z",
+            "valid_until": "2026-12-01T00:00:00Z"
+          },
+          "observation_time": {
+            "observed_at": "2026-10-01T09:00:00Z",
+            "recorded_at": "2026-10-01T10:00:00Z"
+          },
+          "trusted_at": "2026-10-01T10:05:00Z",
+          "fresh_until": "2026-12-01T00:00:00Z",
+          "revoked_at": null,
+          "finding_codes": []
+        },
+        {
+          "proof_id": "impact-frontier",
+          "proof_class": "impact_frontier_correctness",
+          "status": "qualified",
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ],
+          "subject_ref": "urn:synthetic:impact-frontier",
+          "subject_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "policy_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "verifier_build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "checked_at": "2026-11-04T09:00:00Z",
+          "valid_time": {
+            "valid_from": "2026-09-01T00:00:00Z",
+            "valid_until": "2026-12-01T00:00:00Z"
+          },
+          "observation_time": {
+            "observed_at": "2026-10-01T09:00:00Z",
+            "recorded_at": "2026-10-01T10:00:00Z"
+          },
+          "trusted_at": "2026-10-01T10:05:00Z",
+          "fresh_until": "2026-12-01T00:00:00Z",
+          "revoked_at": null,
+          "finding_codes": []
+        }
+      ],
+      "change_events": [],
+      "expected_outcome": "insufficient_evidence",
+      "purpose": "engineering_review",
+      "jurisdiction": "synthetic-jurisdiction",
+      "scope_subjects": [
+        "design-001"
+      ]
+    },
+    {
+      "scenario_id": "future-registered-correction-not-leaked",
+      "decision_time": "2026-10-01T10:00:00Z",
+      "evaluation_time": "2026-11-04T10:00:00Z",
+      "required_proof_classes": [
+        "decision_event_integrity",
+        "native_source_identity",
+        "source_payload_bytes",
+        "source_use_rights",
+        "source_attestation_trust",
+        "source_coverage",
+        "projection_integrity",
+        "engineering_domain_validity",
+        "lifecycle_currentness",
+        "impact_frontier_correctness",
+        "actor_reliance_authority"
+      ],
+      "proofs": [
+        {
+          "proof_id": "decision-event",
+          "proof_class": "decision_event_integrity",
+          "status": "qualified",
+          "subject_ref": "urn:synthetic:decision-event",
+          "subject_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "policy_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "verifier_build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "checked_at": "2026-11-04T09:00:00Z",
+          "valid_time": {
+            "valid_from": "2026-09-01T00:00:00Z",
+            "valid_until": "2026-12-01T00:00:00Z"
+          },
+          "observation_time": {
+            "observed_at": "2026-10-01T09:00:00Z",
+            "recorded_at": "2026-10-01T10:00:00Z"
+          },
+          "trusted_at": "2026-10-01T10:05:00Z",
+          "fresh_until": "2026-12-01T00:00:00Z",
+          "revoked_at": null,
+          "finding_codes": [],
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ]
+        },
+        {
+          "proof_id": "source-bytes",
+          "proof_class": "source_payload_bytes",
+          "status": "qualified",
+          "subject_ref": "urn:synthetic:source-bytes",
+          "subject_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "policy_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "verifier_build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "checked_at": "2026-11-04T09:00:00Z",
+          "valid_time": {
+            "valid_from": "2026-09-01T00:00:00Z",
+            "valid_until": "2026-12-01T00:00:00Z"
+          },
+          "observation_time": {
+            "observed_at": "2026-10-01T09:00:00Z",
+            "recorded_at": "2026-10-01T10:00:00Z"
+          },
+          "trusted_at": "2026-10-01T10:05:00Z",
+          "fresh_until": "2026-12-01T00:00:00Z",
+          "revoked_at": null,
+          "finding_codes": [],
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ]
+        },
+        {
+          "proof_id": "source-rights",
+          "proof_class": "source_use_rights",
+          "status": "qualified",
+          "subject_ref": "urn:synthetic:source-rights",
+          "subject_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "policy_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "verifier_build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "checked_at": "2026-11-04T09:00:00Z",
+          "valid_time": {
+            "valid_from": "2026-09-01T00:00:00Z",
+            "valid_until": "2026-12-01T00:00:00Z"
+          },
+          "observation_time": {
+            "observed_at": "2026-10-01T09:00:00Z",
+            "recorded_at": "2026-10-01T10:00:00Z"
+          },
+          "trusted_at": "2026-10-01T10:05:00Z",
+          "fresh_until": "2026-12-01T00:00:00Z",
+          "revoked_at": null,
+          "finding_codes": [],
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ]
+        },
+        {
+          "proof_id": "coverage",
+          "proof_class": "source_coverage",
+          "status": "qualified",
+          "subject_ref": "urn:synthetic:coverage",
+          "subject_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "policy_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "verifier_build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "checked_at": "2026-11-04T09:00:00Z",
+          "valid_time": {
+            "valid_from": "2026-09-01T00:00:00Z",
+            "valid_until": "2026-12-01T00:00:00Z"
+          },
+          "observation_time": {
+            "observed_at": "2026-10-01T09:00:00Z",
+            "recorded_at": "2026-10-01T10:00:00Z"
+          },
+          "trusted_at": "2026-10-01T10:05:00Z",
+          "fresh_until": "2026-12-01T00:00:00Z",
+          "revoked_at": null,
+          "finding_codes": [],
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ]
+        },
+        {
+          "proof_id": "actor-authority",
+          "proof_class": "actor_reliance_authority",
+          "status": "qualified",
+          "subject_ref": "urn:synthetic:actor-authority",
+          "subject_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "policy_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "verifier_build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "checked_at": "2026-11-04T09:00:00Z",
+          "valid_time": {
+            "valid_from": "2026-09-01T00:00:00Z",
+            "valid_until": "2026-12-01T00:00:00Z"
+          },
+          "observation_time": {
+            "observed_at": "2026-10-01T09:00:00Z",
+            "recorded_at": "2026-10-01T10:00:00Z"
+          },
+          "trusted_at": "2026-10-01T10:05:00Z",
+          "fresh_until": "2026-12-01T00:00:00Z",
+          "revoked_at": null,
+          "finding_codes": [],
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ]
+        },
+        {
+          "proof_id": "identity",
+          "proof_class": "native_source_identity",
+          "status": "qualified",
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ],
+          "subject_ref": "urn:synthetic:identity",
+          "subject_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "policy_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "verifier_build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "checked_at": "2026-11-04T09:00:00Z",
+          "valid_time": {
+            "valid_from": "2026-09-01T00:00:00Z",
+            "valid_until": "2026-12-01T00:00:00Z"
+          },
+          "observation_time": {
+            "observed_at": "2026-10-01T09:00:00Z",
+            "recorded_at": "2026-10-01T10:00:00Z"
+          },
+          "trusted_at": "2026-10-01T10:05:00Z",
+          "fresh_until": "2026-12-01T00:00:00Z",
+          "revoked_at": null,
+          "finding_codes": []
+        },
+        {
+          "proof_id": "source-trust",
+          "proof_class": "source_attestation_trust",
+          "status": "qualified",
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ],
+          "subject_ref": "urn:synthetic:source-trust",
+          "subject_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "policy_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "verifier_build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "checked_at": "2026-11-04T09:00:00Z",
+          "valid_time": {
+            "valid_from": "2026-09-01T00:00:00Z",
+            "valid_until": "2026-12-01T00:00:00Z"
+          },
+          "observation_time": {
+            "observed_at": "2026-10-01T09:00:00Z",
+            "recorded_at": "2026-10-01T10:00:00Z"
+          },
+          "trusted_at": "2026-10-01T10:05:00Z",
+          "fresh_until": "2026-12-01T00:00:00Z",
+          "revoked_at": null,
+          "finding_codes": []
+        },
+        {
+          "proof_id": "projection",
+          "proof_class": "projection_integrity",
+          "status": "qualified",
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ],
+          "subject_ref": "urn:synthetic:projection",
+          "subject_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "policy_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "verifier_build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "checked_at": "2026-11-04T09:00:00Z",
+          "valid_time": {
+            "valid_from": "2026-09-01T00:00:00Z",
+            "valid_until": "2026-12-01T00:00:00Z"
+          },
+          "observation_time": {
+            "observed_at": "2026-10-01T09:00:00Z",
+            "recorded_at": "2026-10-01T10:00:00Z"
+          },
+          "trusted_at": "2026-10-01T10:05:00Z",
+          "fresh_until": "2026-12-01T00:00:00Z",
+          "revoked_at": null,
+          "finding_codes": []
+        },
+        {
+          "proof_id": "engineering",
+          "proof_class": "engineering_domain_validity",
+          "status": "qualified",
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ],
+          "subject_ref": "urn:synthetic:engineering",
+          "subject_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "policy_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "verifier_build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "checked_at": "2026-11-04T09:00:00Z",
+          "valid_time": {
+            "valid_from": "2026-09-01T00:00:00Z",
+            "valid_until": "2026-12-01T00:00:00Z"
+          },
+          "observation_time": {
+            "observed_at": "2026-10-01T09:00:00Z",
+            "recorded_at": "2026-10-01T10:00:00Z"
+          },
+          "trusted_at": "2026-10-01T10:05:00Z",
+          "fresh_until": "2026-12-01T00:00:00Z",
+          "revoked_at": null,
+          "finding_codes": []
+        },
+        {
+          "proof_id": "lifecycle",
+          "proof_class": "lifecycle_currentness",
+          "status": "qualified",
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ],
+          "subject_ref": "urn:synthetic:lifecycle",
+          "subject_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "policy_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "verifier_build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "checked_at": "2026-11-04T09:00:00Z",
+          "valid_time": {
+            "valid_from": "2026-09-01T00:00:00Z",
+            "valid_until": "2026-12-01T00:00:00Z"
+          },
+          "observation_time": {
+            "observed_at": "2026-10-01T09:00:00Z",
+            "recorded_at": "2026-10-01T10:00:00Z"
+          },
+          "trusted_at": "2026-10-01T10:05:00Z",
+          "fresh_until": "2026-12-01T00:00:00Z",
+          "revoked_at": null,
+          "finding_codes": []
+        },
+        {
+          "proof_id": "impact-frontier",
+          "proof_class": "impact_frontier_correctness",
+          "status": "qualified",
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ],
+          "subject_ref": "urn:synthetic:impact-frontier",
+          "subject_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "policy_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "verifier_build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "checked_at": "2026-11-04T09:00:00Z",
+          "valid_time": {
+            "valid_from": "2026-09-01T00:00:00Z",
+            "valid_until": "2026-12-01T00:00:00Z"
+          },
+          "observation_time": {
+            "observed_at": "2026-10-01T09:00:00Z",
+            "recorded_at": "2026-10-01T10:00:00Z"
+          },
+          "trusted_at": "2026-10-01T10:05:00Z",
+          "fresh_until": "2026-12-01T00:00:00Z",
+          "revoked_at": null,
+          "finding_codes": []
+        }
+      ],
+      "change_events": [
+        {
+          "event_id": "future-source-correction",
+          "event_type": "source_corrected",
+          "affected_proof_ids": [
+            "source-bytes"
+          ],
+          "valid_at": "2026-11-05T00:00:00Z",
+          "observed_at": "2026-11-05T00:00:01Z",
+          "recorded_at": "2026-11-05T00:00:01Z",
+          "trusted_at": "2026-11-05T00:00:01Z",
+          "trust_status": "qualified",
+          "event_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "receipt_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+        }
+      ],
+      "expected_outcome": "reliable_for_declared_scope",
+      "expected_late_arriving_events": 0,
+      "purpose": "engineering_review",
+      "jurisdiction": "synthetic-jurisdiction",
+      "scope_subjects": [
+        "design-001"
+      ]
+    },
+    {
+      "scenario_id": "unverified-change-event-insufficient",
+      "decision_time": "2026-10-01T10:00:00Z",
+      "evaluation_time": "2026-11-04T10:00:00Z",
+      "required_proof_classes": [
+        "decision_event_integrity",
+        "native_source_identity",
+        "source_payload_bytes",
+        "source_use_rights",
+        "source_attestation_trust",
+        "source_coverage",
+        "projection_integrity",
+        "engineering_domain_validity",
+        "lifecycle_currentness",
+        "impact_frontier_correctness",
+        "actor_reliance_authority"
+      ],
+      "proofs": [
+        {
+          "proof_id": "decision-event",
+          "proof_class": "decision_event_integrity",
+          "status": "qualified",
+          "subject_ref": "urn:synthetic:decision-event",
+          "subject_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "policy_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "verifier_build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "checked_at": "2026-11-04T09:00:00Z",
+          "valid_time": {
+            "valid_from": "2026-09-01T00:00:00Z",
+            "valid_until": "2026-12-01T00:00:00Z"
+          },
+          "observation_time": {
+            "observed_at": "2026-10-01T09:00:00Z",
+            "recorded_at": "2026-10-01T10:00:00Z"
+          },
+          "trusted_at": "2026-10-01T10:05:00Z",
+          "fresh_until": "2026-12-01T00:00:00Z",
+          "revoked_at": null,
+          "finding_codes": [],
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ]
+        },
+        {
+          "proof_id": "source-bytes",
+          "proof_class": "source_payload_bytes",
+          "status": "qualified",
+          "subject_ref": "urn:synthetic:source-bytes",
+          "subject_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "policy_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "verifier_build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "checked_at": "2026-11-04T09:00:00Z",
+          "valid_time": {
+            "valid_from": "2026-09-01T00:00:00Z",
+            "valid_until": "2026-12-01T00:00:00Z"
+          },
+          "observation_time": {
+            "observed_at": "2026-10-01T09:00:00Z",
+            "recorded_at": "2026-10-01T10:00:00Z"
+          },
+          "trusted_at": "2026-10-01T10:05:00Z",
+          "fresh_until": "2026-12-01T00:00:00Z",
+          "revoked_at": null,
+          "finding_codes": [],
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ]
+        },
+        {
+          "proof_id": "source-rights",
+          "proof_class": "source_use_rights",
+          "status": "qualified",
+          "subject_ref": "urn:synthetic:source-rights",
+          "subject_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "policy_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "verifier_build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "checked_at": "2026-11-04T09:00:00Z",
+          "valid_time": {
+            "valid_from": "2026-09-01T00:00:00Z",
+            "valid_until": "2026-12-01T00:00:00Z"
+          },
+          "observation_time": {
+            "observed_at": "2026-10-01T09:00:00Z",
+            "recorded_at": "2026-10-01T10:00:00Z"
+          },
+          "trusted_at": "2026-10-01T10:05:00Z",
+          "fresh_until": "2026-12-01T00:00:00Z",
+          "revoked_at": null,
+          "finding_codes": [],
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ]
+        },
+        {
+          "proof_id": "coverage",
+          "proof_class": "source_coverage",
+          "status": "qualified",
+          "subject_ref": "urn:synthetic:coverage",
+          "subject_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "policy_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "verifier_build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "checked_at": "2026-11-04T09:00:00Z",
+          "valid_time": {
+            "valid_from": "2026-09-01T00:00:00Z",
+            "valid_until": "2026-12-01T00:00:00Z"
+          },
+          "observation_time": {
+            "observed_at": "2026-10-01T09:00:00Z",
+            "recorded_at": "2026-10-01T10:00:00Z"
+          },
+          "trusted_at": "2026-10-01T10:05:00Z",
+          "fresh_until": "2026-12-01T00:00:00Z",
+          "revoked_at": null,
+          "finding_codes": [],
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ]
+        },
+        {
+          "proof_id": "actor-authority",
+          "proof_class": "actor_reliance_authority",
+          "status": "qualified",
+          "subject_ref": "urn:synthetic:actor-authority",
+          "subject_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "policy_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "verifier_build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "checked_at": "2026-11-04T09:00:00Z",
+          "valid_time": {
+            "valid_from": "2026-09-01T00:00:00Z",
+            "valid_until": "2026-12-01T00:00:00Z"
+          },
+          "observation_time": {
+            "observed_at": "2026-10-01T09:00:00Z",
+            "recorded_at": "2026-10-01T10:00:00Z"
+          },
+          "trusted_at": "2026-10-01T10:05:00Z",
+          "fresh_until": "2026-12-01T00:00:00Z",
+          "revoked_at": null,
+          "finding_codes": [],
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ]
+        },
+        {
+          "proof_id": "identity",
+          "proof_class": "native_source_identity",
+          "status": "qualified",
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ],
+          "subject_ref": "urn:synthetic:identity",
+          "subject_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "policy_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "verifier_build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "checked_at": "2026-11-04T09:00:00Z",
+          "valid_time": {
+            "valid_from": "2026-09-01T00:00:00Z",
+            "valid_until": "2026-12-01T00:00:00Z"
+          },
+          "observation_time": {
+            "observed_at": "2026-10-01T09:00:00Z",
+            "recorded_at": "2026-10-01T10:00:00Z"
+          },
+          "trusted_at": "2026-10-01T10:05:00Z",
+          "fresh_until": "2026-12-01T00:00:00Z",
+          "revoked_at": null,
+          "finding_codes": []
+        },
+        {
+          "proof_id": "source-trust",
+          "proof_class": "source_attestation_trust",
+          "status": "qualified",
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ],
+          "subject_ref": "urn:synthetic:source-trust",
+          "subject_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "policy_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "verifier_build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "checked_at": "2026-11-04T09:00:00Z",
+          "valid_time": {
+            "valid_from": "2026-09-01T00:00:00Z",
+            "valid_until": "2026-12-01T00:00:00Z"
+          },
+          "observation_time": {
+            "observed_at": "2026-10-01T09:00:00Z",
+            "recorded_at": "2026-10-01T10:00:00Z"
+          },
+          "trusted_at": "2026-10-01T10:05:00Z",
+          "fresh_until": "2026-12-01T00:00:00Z",
+          "revoked_at": null,
+          "finding_codes": []
+        },
+        {
+          "proof_id": "projection",
+          "proof_class": "projection_integrity",
+          "status": "qualified",
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ],
+          "subject_ref": "urn:synthetic:projection",
+          "subject_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "policy_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "verifier_build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "checked_at": "2026-11-04T09:00:00Z",
+          "valid_time": {
+            "valid_from": "2026-09-01T00:00:00Z",
+            "valid_until": "2026-12-01T00:00:00Z"
+          },
+          "observation_time": {
+            "observed_at": "2026-10-01T09:00:00Z",
+            "recorded_at": "2026-10-01T10:00:00Z"
+          },
+          "trusted_at": "2026-10-01T10:05:00Z",
+          "fresh_until": "2026-12-01T00:00:00Z",
+          "revoked_at": null,
+          "finding_codes": []
+        },
+        {
+          "proof_id": "engineering",
+          "proof_class": "engineering_domain_validity",
+          "status": "qualified",
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ],
+          "subject_ref": "urn:synthetic:engineering",
+          "subject_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "policy_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "verifier_build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "checked_at": "2026-11-04T09:00:00Z",
+          "valid_time": {
+            "valid_from": "2026-09-01T00:00:00Z",
+            "valid_until": "2026-12-01T00:00:00Z"
+          },
+          "observation_time": {
+            "observed_at": "2026-10-01T09:00:00Z",
+            "recorded_at": "2026-10-01T10:00:00Z"
+          },
+          "trusted_at": "2026-10-01T10:05:00Z",
+          "fresh_until": "2026-12-01T00:00:00Z",
+          "revoked_at": null,
+          "finding_codes": []
+        },
+        {
+          "proof_id": "lifecycle",
+          "proof_class": "lifecycle_currentness",
+          "status": "qualified",
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ],
+          "subject_ref": "urn:synthetic:lifecycle",
+          "subject_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "policy_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "verifier_build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "checked_at": "2026-11-04T09:00:00Z",
+          "valid_time": {
+            "valid_from": "2026-09-01T00:00:00Z",
+            "valid_until": "2026-12-01T00:00:00Z"
+          },
+          "observation_time": {
+            "observed_at": "2026-10-01T09:00:00Z",
+            "recorded_at": "2026-10-01T10:00:00Z"
+          },
+          "trusted_at": "2026-10-01T10:05:00Z",
+          "fresh_until": "2026-12-01T00:00:00Z",
+          "revoked_at": null,
+          "finding_codes": []
+        },
+        {
+          "proof_id": "impact-frontier",
+          "proof_class": "impact_frontier_correctness",
+          "status": "qualified",
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ],
+          "subject_ref": "urn:synthetic:impact-frontier",
+          "subject_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "policy_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "verifier_build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "checked_at": "2026-11-04T09:00:00Z",
+          "valid_time": {
+            "valid_from": "2026-09-01T00:00:00Z",
+            "valid_until": "2026-12-01T00:00:00Z"
+          },
+          "observation_time": {
+            "observed_at": "2026-10-01T09:00:00Z",
+            "recorded_at": "2026-10-01T10:00:00Z"
+          },
+          "trusted_at": "2026-10-01T10:05:00Z",
+          "fresh_until": "2026-12-01T00:00:00Z",
+          "revoked_at": null,
+          "finding_codes": []
+        }
+      ],
+      "change_events": [
+        {
+          "event_id": "unverified-source-correction",
+          "event_type": "source_corrected",
+          "affected_proof_ids": [
+            "source-bytes"
+          ],
+          "valid_at": "2026-11-01T00:00:00Z",
+          "observed_at": "2026-11-02T00:00:00Z",
+          "recorded_at": "2026-11-02T00:00:00Z",
+          "trusted_at": "2026-11-02T00:00:00Z",
+          "trust_status": "unverified",
+          "event_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "receipt_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+        }
+      ],
+      "expected_outcome": "insufficient_evidence",
+      "purpose": "engineering_review",
+      "jurisdiction": "synthetic-jurisdiction",
+      "scope_subjects": [
+        "design-001"
+      ]
+    },
+    {
+      "scenario_id": "actor-authority-expired",
+      "decision_time": "2026-10-01T10:00:00Z",
+      "evaluation_time": "2026-11-04T10:00:00Z",
+      "required_proof_classes": [
+        "decision_event_integrity",
+        "native_source_identity",
+        "source_payload_bytes",
+        "source_use_rights",
+        "source_attestation_trust",
+        "source_coverage",
+        "projection_integrity",
+        "engineering_domain_validity",
+        "lifecycle_currentness",
+        "impact_frontier_correctness",
+        "actor_reliance_authority"
+      ],
+      "proofs": [
+        {
+          "proof_id": "decision-event",
+          "proof_class": "decision_event_integrity",
+          "status": "qualified",
+          "subject_ref": "urn:synthetic:decision-event",
+          "subject_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "policy_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "verifier_build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "checked_at": "2026-11-04T09:00:00Z",
+          "valid_time": {
+            "valid_from": "2026-09-01T00:00:00Z",
+            "valid_until": "2026-12-01T00:00:00Z"
+          },
+          "observation_time": {
+            "observed_at": "2026-10-01T09:00:00Z",
+            "recorded_at": "2026-10-01T10:00:00Z"
+          },
+          "trusted_at": "2026-10-01T10:05:00Z",
+          "fresh_until": "2026-12-01T00:00:00Z",
+          "revoked_at": null,
+          "finding_codes": [],
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ]
+        },
+        {
+          "proof_id": "source-bytes",
+          "proof_class": "source_payload_bytes",
+          "status": "qualified",
+          "subject_ref": "urn:synthetic:source-bytes",
+          "subject_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "policy_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "verifier_build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "checked_at": "2026-11-04T09:00:00Z",
+          "valid_time": {
+            "valid_from": "2026-09-01T00:00:00Z",
+            "valid_until": "2026-12-01T00:00:00Z"
+          },
+          "observation_time": {
+            "observed_at": "2026-10-01T09:00:00Z",
+            "recorded_at": "2026-10-01T10:00:00Z"
+          },
+          "trusted_at": "2026-10-01T10:05:00Z",
+          "fresh_until": "2026-12-01T00:00:00Z",
+          "revoked_at": null,
+          "finding_codes": [],
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ]
+        },
+        {
+          "proof_id": "source-rights",
+          "proof_class": "source_use_rights",
+          "status": "qualified",
+          "subject_ref": "urn:synthetic:source-rights",
+          "subject_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "policy_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "verifier_build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "checked_at": "2026-11-04T09:00:00Z",
+          "valid_time": {
+            "valid_from": "2026-09-01T00:00:00Z",
+            "valid_until": "2026-12-01T00:00:00Z"
+          },
+          "observation_time": {
+            "observed_at": "2026-10-01T09:00:00Z",
+            "recorded_at": "2026-10-01T10:00:00Z"
+          },
+          "trusted_at": "2026-10-01T10:05:00Z",
+          "fresh_until": "2026-12-01T00:00:00Z",
+          "revoked_at": null,
+          "finding_codes": [],
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ]
+        },
+        {
+          "proof_id": "coverage",
+          "proof_class": "source_coverage",
+          "status": "qualified",
+          "subject_ref": "urn:synthetic:coverage",
+          "subject_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "policy_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "verifier_build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "checked_at": "2026-11-04T09:00:00Z",
+          "valid_time": {
+            "valid_from": "2026-09-01T00:00:00Z",
+            "valid_until": "2026-12-01T00:00:00Z"
+          },
+          "observation_time": {
+            "observed_at": "2026-10-01T09:00:00Z",
+            "recorded_at": "2026-10-01T10:00:00Z"
+          },
+          "trusted_at": "2026-10-01T10:05:00Z",
+          "fresh_until": "2026-12-01T00:00:00Z",
+          "revoked_at": null,
+          "finding_codes": [],
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ]
+        },
+        {
+          "proof_id": "actor-authority",
+          "proof_class": "actor_reliance_authority",
+          "status": "qualified",
+          "subject_ref": "urn:synthetic:actor-authority",
+          "subject_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "policy_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "verifier_build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "checked_at": "2026-11-04T09:00:00Z",
+          "valid_time": {
+            "valid_from": "2026-09-01T00:00:00Z",
+            "valid_until": "2026-11-04T09:00:00Z"
+          },
+          "observation_time": {
+            "observed_at": "2026-10-01T09:00:00Z",
+            "recorded_at": "2026-10-01T10:00:00Z"
+          },
+          "trusted_at": "2026-10-01T10:05:00Z",
+          "fresh_until": "2026-12-01T00:00:00Z",
+          "revoked_at": null,
+          "finding_codes": [],
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ]
+        },
+        {
+          "proof_id": "identity",
+          "proof_class": "native_source_identity",
+          "status": "qualified",
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ],
+          "subject_ref": "urn:synthetic:identity",
+          "subject_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "policy_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "verifier_build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "checked_at": "2026-11-04T09:00:00Z",
+          "valid_time": {
+            "valid_from": "2026-09-01T00:00:00Z",
+            "valid_until": "2026-12-01T00:00:00Z"
+          },
+          "observation_time": {
+            "observed_at": "2026-10-01T09:00:00Z",
+            "recorded_at": "2026-10-01T10:00:00Z"
+          },
+          "trusted_at": "2026-10-01T10:05:00Z",
+          "fresh_until": "2026-12-01T00:00:00Z",
+          "revoked_at": null,
+          "finding_codes": []
+        },
+        {
+          "proof_id": "source-trust",
+          "proof_class": "source_attestation_trust",
+          "status": "qualified",
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ],
+          "subject_ref": "urn:synthetic:source-trust",
+          "subject_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "policy_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "verifier_build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "checked_at": "2026-11-04T09:00:00Z",
+          "valid_time": {
+            "valid_from": "2026-09-01T00:00:00Z",
+            "valid_until": "2026-12-01T00:00:00Z"
+          },
+          "observation_time": {
+            "observed_at": "2026-10-01T09:00:00Z",
+            "recorded_at": "2026-10-01T10:00:00Z"
+          },
+          "trusted_at": "2026-10-01T10:05:00Z",
+          "fresh_until": "2026-12-01T00:00:00Z",
+          "revoked_at": null,
+          "finding_codes": []
+        },
+        {
+          "proof_id": "projection",
+          "proof_class": "projection_integrity",
+          "status": "qualified",
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ],
+          "subject_ref": "urn:synthetic:projection",
+          "subject_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "policy_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "verifier_build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "checked_at": "2026-11-04T09:00:00Z",
+          "valid_time": {
+            "valid_from": "2026-09-01T00:00:00Z",
+            "valid_until": "2026-12-01T00:00:00Z"
+          },
+          "observation_time": {
+            "observed_at": "2026-10-01T09:00:00Z",
+            "recorded_at": "2026-10-01T10:00:00Z"
+          },
+          "trusted_at": "2026-10-01T10:05:00Z",
+          "fresh_until": "2026-12-01T00:00:00Z",
+          "revoked_at": null,
+          "finding_codes": []
+        },
+        {
+          "proof_id": "engineering",
+          "proof_class": "engineering_domain_validity",
+          "status": "qualified",
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ],
+          "subject_ref": "urn:synthetic:engineering",
+          "subject_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "policy_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "verifier_build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "checked_at": "2026-11-04T09:00:00Z",
+          "valid_time": {
+            "valid_from": "2026-09-01T00:00:00Z",
+            "valid_until": "2026-12-01T00:00:00Z"
+          },
+          "observation_time": {
+            "observed_at": "2026-10-01T09:00:00Z",
+            "recorded_at": "2026-10-01T10:00:00Z"
+          },
+          "trusted_at": "2026-10-01T10:05:00Z",
+          "fresh_until": "2026-12-01T00:00:00Z",
+          "revoked_at": null,
+          "finding_codes": []
+        },
+        {
+          "proof_id": "lifecycle",
+          "proof_class": "lifecycle_currentness",
+          "status": "qualified",
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ],
+          "subject_ref": "urn:synthetic:lifecycle",
+          "subject_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "policy_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "verifier_build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "checked_at": "2026-11-04T09:00:00Z",
+          "valid_time": {
+            "valid_from": "2026-09-01T00:00:00Z",
+            "valid_until": "2026-12-01T00:00:00Z"
+          },
+          "observation_time": {
+            "observed_at": "2026-10-01T09:00:00Z",
+            "recorded_at": "2026-10-01T10:00:00Z"
+          },
+          "trusted_at": "2026-10-01T10:05:00Z",
+          "fresh_until": "2026-12-01T00:00:00Z",
+          "revoked_at": null,
+          "finding_codes": []
+        },
+        {
+          "proof_id": "impact-frontier",
+          "proof_class": "impact_frontier_correctness",
+          "status": "qualified",
+          "applicable_purposes": [
+            "engineering_review"
+          ],
+          "jurisdiction": "synthetic-jurisdiction",
+          "scope_subjects": [
+            "design-001"
+          ],
+          "subject_ref": "urn:synthetic:impact-frontier",
+          "subject_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "policy_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "verifier_build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "checked_at": "2026-11-04T09:00:00Z",
+          "valid_time": {
+            "valid_from": "2026-09-01T00:00:00Z",
+            "valid_until": "2026-12-01T00:00:00Z"
+          },
+          "observation_time": {
+            "observed_at": "2026-10-01T09:00:00Z",
+            "recorded_at": "2026-10-01T10:00:00Z"
+          },
+          "trusted_at": "2026-10-01T10:05:00Z",
+          "fresh_until": "2026-12-01T00:00:00Z",
+          "revoked_at": null,
+          "finding_codes": []
+        }
+      ],
+      "change_events": [],
+      "expected_outcome": "not_authorized",
+      "purpose": "engineering_review",
+      "jurisdiction": "synthetic-jurisdiction",
+      "scope_subjects": [
+        "design-001"
+      ]
+    }
+  ]
+}
