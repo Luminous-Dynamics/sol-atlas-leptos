@@ -1,0 +1,69 @@
+{
+  "schema_version": "luminous.heritage-field-sweep.v0.1",
+  "evaluation_id": "sweep-eval-001",
+  "calibration_profile": {
+    "profile_id": "crew-alpha-ceramic-bare-ground-v1",
+    "profile_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "context": {
+      "target_material_or_feature_class_id": "ceramic_sherd",
+      "obtrusiveness_class_id": "small_red_shard",
+      "survey_method": "field_walking",
+      "crew_cohort_id": "crew-alpha",
+      "search_speed_m_per_minute": 45,
+      "visibility_stratum_id": "bare_dry_ground",
+      "ground_cover_stratum_id": "sparse_stubble",
+      "soil_moisture_stratum_id": "dry",
+      "illumination_stratum_id": "overcast_diffuse",
+      "season_stratum_id": "post_harvest_autumn",
+      "terrain_stratum_id": "low_relief_terrace"
+    },
+    "detection_probability_at_transect": 0.82,
+    "lateral_decay_per_metre_squared": 0.05,
+    "detection_probability_standard_error": 0.02,
+    "lateral_decay_standard_error": 0.004,
+    "b_k_covariance": -0.00002,
+    "fit_method_id": "nonlinear_least_squares_bounded",
+    "fit_software_version": "external-fit-tool-1.0",
+    "fit_receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "calibration_data_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "calibration_split_manifest_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+    "fit_transect_ids": [
+      "fit-1",
+      "fit-2",
+      "fit-3"
+    ],
+    "validation_transect_ids": [
+      "valid-1",
+      "valid-2"
+    ],
+    "fit_seeded_target_count": 60,
+    "validation_seeded_target_count": 30,
+    "validation_brier_score": 0.12,
+    "maximum_permitted_validation_brier_score": 0.2,
+    "rights_status": "verified",
+    "rights_receipt_ref": "urn:synthetic:rights:calibration"
+  },
+  "observed_context": {
+    "target_material_or_feature_class_id": "ceramic_sherd",
+    "obtrusiveness_class_id": "small_red_shard",
+    "survey_method": "field_walking",
+    "crew_cohort_id": "crew-alpha",
+    "search_speed_m_per_minute": 45,
+    "visibility_stratum_id": "bare_dry_ground",
+    "ground_cover_stratum_id": "sparse_stubble",
+    "soil_moisture_stratum_id": "dry",
+    "illumination_stratum_id": "overcast_diffuse",
+    "season_stratum_id": "post_harvest_autumn",
+    "terrain_stratum_id": "low_relief_terrace"
+  },
+  "coverage": {
+    "survey_unit_id": "unit-01",
+    "survey_unit_crs_id": "EPSG:32636",
+    "survey_unit_area_m2": 100000,
+    "overlap_adjusted_path_length_m": 1000,
+    "transect_geometry_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+    "survey_unit_geometry_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+    "spatial_union_method_id": "buffered_transect_union_v1",
+    "spatial_union_receipt_sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+  }
+}
