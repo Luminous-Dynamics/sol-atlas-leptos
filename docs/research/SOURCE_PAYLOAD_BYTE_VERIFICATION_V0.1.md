@@ -1,6 +1,6 @@
 # Source payload byte verification v0.1
 
-**Status:** bounded streaming verifier implemented. On 2026-11-04, exact-head Rust formatting, strict Clippy, and core unit tests passed at commit `74b5271a84b95a94f3487f7d5ec1fa606a37a30b`; report-schema validation is pending on the final schema/fixture head.
+**Status:** bounded streaming verifier and aggregate catalogue budgets ported to the current descriptor base; exact-head qualification of this rebased branch is pending.
 **Issue:** [#500 — independently rehash source payloads](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/500).
 **Depends on:** [#492 / PR #496 — owner-native descriptor catalogue](https://github.com/Luminous-Dynamics/sol-atlas-leptos/pull/496).
 **Composes with:** [#347 — trust roots and signed statements](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/347), [#488 — source coverage qualification](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/488), and [#484 — independent impact oracle](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/484).
@@ -37,12 +37,18 @@ A one-byte probe distinguishes an exact-limit object ending at EOF from an objec
 | Result | Meaning | Reliance |
 |---|---|---|
 | `verified` | Observed bytes match declared digest and optional length | Byte equality only |
-| `source_bytes_unavailable` | No object reference or resolver could not open it | Incomplete |
+| `source_bytes_unavailable` | No usable payload reference or digest is available | Incomplete |
+| `object_not_found` | Resolver confirms the referenced object does not exist | Incomplete |
+| `resolver_access_denied` | Resolver denies access to the object | Incomplete |
+| `resolver_open_failed` | Resolver fails for another reason before a stream is opened | Incomplete |
 | `read_failed` | Stream failed after opening | Incomplete |
 | `byte_limit_exceeded` | Per-object resource bound reached | Incomplete |
 | `invalid_descriptor` | Digest/reference basis is internally contradictory | Invalid |
 | `digest_mismatch` | Recomputed SHA-256 differs | Invalid |
 | `length_mismatch` | Recomputed byte count differs | Invalid |
+
+
+Resolver-open outcomes preserve the underlying I/O class and separate the three cases above. A missing object is not a digest mismatch; access denial is not evidence of an empty source; and a resolver outage is not a successful verification. Stream errors after open remain `read_failed`.
 
 Catalogue outcomes:
 - `all_declared_payload_references_verified`: every payload reference present in this catalogue was successfully rehashed. The report separately preserves descriptor validation disposition and missing/extra descriptor counts; this status does not upgrade an incomplete catalogue, authenticate the source, or grant action authority.
@@ -94,3 +100,5 @@ P2:
 - SCITT/VC trust evaluation, key rotation, equivocation and revocation handled as a separate qualification track.
 
 No aggregate score can compensate for one false byte-verification result. Report every object, unavailable record, failed open, timeout, retry and byte-limit exclusion. A faster verifier that silently skips unavailable or corrupt objects is not better.
+
+The report has independent counters for `object_not_found_count`, `resolver_access_denied_count`, and `resolver_open_failed_count`. These remain separate from `unavailable_count` (no usable reference/digest) and `read_failed_count` (the stream failed after opening).
