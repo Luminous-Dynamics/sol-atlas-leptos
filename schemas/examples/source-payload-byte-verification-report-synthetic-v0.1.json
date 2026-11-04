@@ -43,5 +43,6 @@
   "invalid_finding_count": 0,
   "incomplete_finding_count": 0,
   "descriptor_missing_count": 0,
-  "descriptor_extra_count": 0
+  "descriptor_extra_count": 0,
+  "skipped_budget_count": 0
 }
