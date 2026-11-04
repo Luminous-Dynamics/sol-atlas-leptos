@@ -148,6 +148,7 @@ pub enum HumanAdjudicationOutcome {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct ClaimEvidence {
     pub evidence_id: String,
     pub evidence_kind: EvidenceKind,
@@ -171,6 +172,7 @@ pub struct ClaimEvidence {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct HumanAdjudication {
     pub reviewer_id: String,
     pub reviewer_scope: String,
@@ -187,6 +189,7 @@ pub struct HumanAdjudication {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct HeritageClaimInput {
     pub schema_version: String,
     pub claim_id: String,
@@ -233,6 +236,7 @@ pub enum ClaimReason {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct HeritageClaimReport {
     pub schema_version: String,
     pub claim_id: String,
@@ -1286,6 +1290,31 @@ mod tests {
         input.adjudication = Some(adjudication);
         let report = evaluate_heritage_claim(&input).unwrap();
         assert_eq!(report.disposition, ClaimDisposition::RejectedByAdjudication);
+    }
+
+    #[test]
+    fn synthetic_positive_and_model_only_fixtures_match_typed_contracts() {
+        let positive_input: HeritageClaimInput = serde_json::from_str(include_str!(
+            "../../schemas/examples/heritage-claim-input-synthetic-v0.1.json"
+        ))
+        .unwrap();
+        let positive_report = evaluate_heritage_claim(&positive_input).unwrap();
+        let expected_positive: HeritageClaimReport = serde_json::from_str(include_str!(
+            "../../schemas/examples/heritage-claim-report-synthetic-v0.1.json"
+        ))
+        .unwrap();
+        assert_eq!(positive_report, expected_positive);
+
+        let model_only_input: HeritageClaimInput = serde_json::from_str(include_str!(
+            "../../schemas/examples/heritage-claim-input-model-only-v0.1.json"
+        ))
+        .unwrap();
+        let model_only_report = evaluate_heritage_claim(&model_only_input).unwrap();
+        let expected_model_only: HeritageClaimReport = serde_json::from_str(include_str!(
+            "../../schemas/examples/heritage-claim-report-model-only-v0.1.json"
+        ))
+        .unwrap();
+        assert_eq!(model_only_report, expected_model_only);
     }
 
     #[test]
