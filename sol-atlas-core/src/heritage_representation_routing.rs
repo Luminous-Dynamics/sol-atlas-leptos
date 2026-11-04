@@ -98,6 +98,8 @@ pub struct RepresentationProfile {
     pub review_budget_id: String,
     pub evaluation_role: EvaluationRole,
     pub split_protocol: SplitProtocol,
+    pub split_manifest_sha256: String,
+    pub data_manifest_sha256: String,
     pub training_site_ids: Vec<String>,
     pub validation_site_results: Vec<SitePerformance>,
     pub rights_status: RightsStatus,
@@ -208,6 +210,7 @@ pub enum RepresentationRoutingError {
     EmptyProfileId,
     DuplicateProfileId(String),
     EmptyTrainingSiteId,
+    NoTrainingSites,
     EmptyValidationSiteId,
     DuplicateTrainingSiteId(String),
     DuplicateValidationSiteId(String),
@@ -326,6 +329,8 @@ fn validate_profiles(
         }
         for digest in [
             &profile.channel_semantics_sha256,
+            &profile.split_manifest_sha256,
+            &profile.data_manifest_sha256,
             &profile.representation_transform_sha256,
             &profile.model_build_sha256,
             &profile.metric_definition_sha256,
@@ -338,6 +343,9 @@ fn validate_profiles(
         }
         validate_context(&profile.context)?;
 
+        if profile.training_site_ids.is_empty() {
+            return Err(RepresentationRoutingError::NoTrainingSites);
+        }
         let mut train_sites = BTreeSet::new();
         for site_id in &profile.training_site_ids {
             if !non_empty(site_id) {
@@ -651,6 +659,8 @@ mod tests {
             review_budget_id: "100_candidates_per_analyst_hour".into(),
             evaluation_role: EvaluationRole::SelectorValidation,
             split_protocol: SplitProtocol::HeldOutSite,
+            split_manifest_sha256: "e".repeat(64),
+            data_manifest_sha256: "f".repeat(64),
             training_site_ids: vec!["train-a".into(), "train-b".into()],
             validation_site_results: scores
                 .iter()
