@@ -124,7 +124,7 @@ pub enum PayloadCatalogVerificationDisposition {
     InvalidInput,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct PayloadCatalogVerificationReport {
     pub disposition: PayloadCatalogVerificationDisposition,
     pub case_id: String,
