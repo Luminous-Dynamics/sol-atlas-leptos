@@ -1274,12 +1274,11 @@ mod tests {
                 revalidation = true;
             }
 
-            if status == "qualified" {
-                if let Some(until) = row["valid_until"].as_str() {
-                    if until < valid_time {
-                        revalidation = true;
-                    }
-                }
+            if status == "qualified"
+                && let Some(until) = row["valid_until"].as_str()
+                && until < valid_time
+            {
+                revalidation = true;
             }
         }
 
