@@ -699,15 +699,23 @@ pub fn validate_source_inventory_manifest(
     match manifest.snapshot_semantics {
         SnapshotSemantics::ImmutableSnapshot => {
             if manifest.snapshot_token.as_deref().is_none_or(str::is_empty)
-                || manifest
-                    .snapshot_sha256
-                    .as_deref()
-                    .is_none_or(|value| !valid_sha256(value))
+                || manifest.snapshot_sha256.is_none()
             {
                 findings.incomplete(
                     "IMMUTABLE_SNAPSHOT_BINDING_MISSING",
                     "manifest",
                     "immutable snapshot semantics require a source snapshot token and snapshot digest",
+                );
+            }
+            if manifest
+                .snapshot_sha256
+                .as_deref()
+                .is_some_and(|value| !valid_sha256(value))
+            {
+                findings.invalid(
+                    "INVALID_INVENTORY_SNAPSHOT_DIGEST",
+                    "manifest",
+                    "a supplied snapshot digest must be lowercase SHA-256",
                 );
             }
         }
@@ -816,7 +824,14 @@ pub fn validate_source_inventory_manifest(
             &mut findings,
             &mut all_tombstone_identities,
         );
-        total_items = total_items.saturating_add(partition_items);
+        match total_items.checked_add(partition_items) {
+            Some(total) => total_items = total,
+            None => findings.invalid(
+                "INVENTORY_TOTAL_ITEM_COUNT_OVERFLOW",
+                partition_id,
+                "summed page item counts across required partitions exceed u64",
+            ),
+        }
         all_partition_chains_complete &= chain_complete;
         for page in pages {
             let page_identity_count =
@@ -1274,8 +1289,7 @@ pub fn validate_source_inventory_closure(
         not_comparable_inventory_count,
         owner_presence,
         per_manifest_validations,
-        claim_scope: "caller_supplied_required_owner_set_and_declared_query_snapshots_only"
-            .into(),
+        claim_scope: "caller_supplied_required_owner_set_and_declared_query_snapshots_only".into(),
         findings: findings.rows(),
     }
 }
@@ -1768,9 +1782,12 @@ mod tests {
         }];
         let result = validate_source_inventory_manifest(&manifest);
         assert_eq!(result.disposition, InventoryDisposition::InvalidInput);
-        assert!(result.findings.iter().any(|finding| {
-            finding.code == "INVENTORY_EXCLUSION_IDENTITY_NOT_ENUMERATED"
-        }));
+        assert!(
+            result
+                .findings
+                .iter()
+                .any(|finding| { finding.code == "INVENTORY_EXCLUSION_IDENTITY_NOT_ENUMERATED" })
+        );
     }
 
     #[test]
@@ -1793,9 +1810,12 @@ mod tests {
         ];
         let result = validate_source_inventory_manifest(&manifest);
         assert_eq!(result.disposition, InventoryDisposition::InvalidInput);
-        assert!(result.findings.iter().any(|finding| {
-            finding.code == "DUPLICATE_INVENTORY_EXCLUSION_IDENTITY"
-        }));
+        assert!(
+            result
+                .findings
+                .iter()
+                .any(|finding| { finding.code == "DUPLICATE_INVENTORY_EXCLUSION_IDENTITY" })
+        );
     }
 
     #[test]
