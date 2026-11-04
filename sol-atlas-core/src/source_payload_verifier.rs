@@ -15,8 +15,8 @@ use crate::built_environment_source_descriptor::{
 };
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
-use std::io::{self, Read};
 use std::collections::BTreeSet;
+use std::io::{self, Read};
 
 const VERIFIER_SCHEMA: &str = "luminous.source-payload-byte-verification.v0.1";
 const BUFFER_BYTES: usize = 64 * 1024;
@@ -482,7 +482,7 @@ fn catalog_report(
     catalog_sha256: String,
     descriptor_disposition: DescriptorDisposition,
     records: Vec<PayloadByteRecordResult>,
-    mut findings: BTreeSet<PayloadByteFinding>,
+    findings: BTreeSet<PayloadByteFinding>,
 ) -> PayloadByteCatalogReport {
     let verified_count = records
         .iter()
@@ -733,6 +733,68 @@ mod tests {
     }
 
     #[test]
+    fn sha256_known_vector_matches_independent_standard_value() {
+        assert_eq!(
+            sha(b"abc"),
+            "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+        );
+    }
+
+    struct ShortReader {
+        bytes: Cursor<Vec<u8>>,
+    }
+
+    impl Read for ShortReader {
+        fn read(&mut self, output: &mut [u8]) -> io::Result<usize> {
+            let cap = output.len().min(1);
+            self.bytes.read(&mut output[..cap])
+        }
+    }
+
+    #[test]
+    fn partial_reads_do_not_change_streaming_hash() {
+        let bytes = b"short read source payload";
+        let descriptor = descriptor(bytes);
+        let result = verify_descriptor_payload_stream(
+            &descriptor,
+            "evidence:evidence-001",
+            ShortReader { bytes: Cursor::new(bytes.to_vec()) },
+            1024,
+        );
+        assert_eq!(result.status, PayloadByteStatus::Verified);
+        assert_eq!(result.actual_sha256.as_deref(), Some(sha(bytes).as_str()));
+    }
+
+    struct InterruptedOnce {
+        interrupted: bool,
+        bytes: Cursor<Vec<u8>>,
+    }
+
+    impl Read for InterruptedOnce {
+        fn read(&mut self, output: &mut [u8]) -> io::Result<usize> {
+            if !self.interrupted {
+                self.interrupted = true;
+                return Err(io::Error::from(io::ErrorKind::Interrupted));
+            }
+            self.bytes.read(output)
+        }
+    }
+
+    #[test]
+    fn interrupted_read_is_retried_without_losing_bytes() {
+        let bytes = b"interrupted source stream";
+        let descriptor = descriptor(bytes);
+        let result = verify_descriptor_payload_stream(
+            &descriptor,
+            "evidence:evidence-001",
+            InterruptedOnce { interrupted: false, bytes: Cursor::new(bytes.to_vec()) },
+            1024,
+        );
+        assert_eq!(result.status, PayloadByteStatus::Verified);
+        assert_eq!(result.actual_byte_length, Some(bytes.len() as u64));
+    }
+
+    #[test]
     fn exact_payload_stream_matches_expected_sha256_and_length() {
         let bytes = b"engineering source bytes";
         let descriptor = descriptor(bytes);
@@ -876,6 +938,27 @@ mod tests {
         assert_eq!(result.action_authority, "none");
         assert!(valid_sha256(&result.case_representation_sha256));
         assert!(valid_sha256(&result.catalog_representation_sha256));
+    }
+
+    #[test]
+    fn resolved_object_bytes_are_rehashed_not_trusted_from_the_reference_name() {
+        let declared_bytes = b"declared source payload";
+        let substituted_bytes = b"different source payload";
+        let case = test_case(declared_bytes);
+        let catalog = catalog(&case, descriptor(declared_bytes));
+        let result = verify_catalog_payload_bytes(
+            &case,
+            &catalog,
+            &context(),
+            |_reference| Ok(Cursor::new(substituted_bytes.to_vec())),
+        );
+        assert_eq!(result.disposition, PayloadByteCatalogDisposition::InvalidInput);
+        assert_eq!(result.invalid_count, 1);
+        assert_eq!(result.records[0].status, PayloadByteStatus::DigestMismatch);
+        assert_ne!(
+            result.records[0].actual_sha256,
+            result.records[0].expected_sha256
+        );
     }
 
     #[test]
