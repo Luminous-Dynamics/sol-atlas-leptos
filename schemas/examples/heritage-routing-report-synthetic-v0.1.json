@@ -13,5 +13,12 @@
   "rejected_profiles": [],
   "outer_test_data_used_for_selection": false,
   "silent_fallback_performed": false,
-  "archaeological_identification_claimed": false
+  "archaeological_identification_claimed": false,
+  "selected_channel_semantics_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "selected_metric_definition_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "selected_data_manifest_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+  "selected_split_manifest_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+  "selected_validation_site_set_sha256": "6666666666666666666666666666666666666666666666666666666666666666",
+  "selected_rights_receipt_ref": "urn:synthetic:rights:profile",
+  "selected_validation_site_count": 3
 }
