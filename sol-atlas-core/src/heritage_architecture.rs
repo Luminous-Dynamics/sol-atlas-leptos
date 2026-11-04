@@ -801,18 +801,15 @@ mod tests {
     #[test]
     fn pixel_only_geometry_cannot_claim_physical_units() {
         let mut input = valid_input();
-        let observation = &mut input.elements[2].observations[0];
-        observation.measurement_basis = MeasurementBasis::PixelOnly;
-        observation.spatial_reference_id = None;
-        observation.calibration_id = None;
-        observation.metric_area_m2 = None;
-        observation.metric_area_semantics = None;
-        observation.metric_perimeter_m = None;
-        assert!(matches!(
-            validate_heritage_architecture(&input),
-            Ok(_)
-        ));
-        observation.metric_area_m2 = Some(0.04);
+        input.elements[2].observations[0].measurement_basis = MeasurementBasis::PixelOnly;
+        input.elements[2].observations[0].spatial_reference_id = None;
+        input.elements[2].observations[0].calibration_id = None;
+        input.elements[2].observations[0].metric_area_m2 = None;
+        input.elements[2].observations[0].metric_area_semantics = None;
+        input.elements[2].observations[0].metric_perimeter_m = None;
+        input.elements[2].observations[0].uncertainty = None;
+        assert!(matches!(validate_heritage_architecture(&input), Ok(_)));
+        input.elements[2].observations[0].metric_area_m2 = Some(0.04);
         assert!(matches!(
             validate_heritage_architecture(&input),
             Err(HeritageArchitectureError::PixelMeasurementClaimsMetricUnits(_))
