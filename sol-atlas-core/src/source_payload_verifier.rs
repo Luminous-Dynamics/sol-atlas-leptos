@@ -26,6 +26,9 @@ const BUFFER_BYTES: usize = 64 * 1024;
 pub enum PayloadByteStatus {
     Verified,
     SourceBytesUnavailable,
+    ObjectNotFound,
+    ResolverAccessDenied,
+    ResolverOpenFailed,
     ReadFailed,
     ByteLimitExceeded,
     InvalidDescriptor,
@@ -107,6 +110,9 @@ pub struct PayloadByteCatalogReport {
     pub descriptor_extra_count: usize,
     pub verified_count: usize,
     pub unavailable_count: usize,
+    pub object_not_found_count: usize,
+    pub resolver_access_denied_count: usize,
+    pub resolver_open_failed_count: usize,
     pub read_failed_count: usize,
     pub byte_limit_exceeded_count: usize,
     pub skipped_budget_count: usize,
@@ -494,28 +500,15 @@ where
                 records.push(result);
             }
             Err(error) => {
-                let error_kind = format!("{:?}", error.kind());
-                let result = PayloadByteRecordResult {
-                    record_key: record_key.clone(),
-                    status: PayloadByteStatus::SourceBytesUnavailable,
-                    digest_basis: descriptor.source_payload.digest_basis,
-                    object_ref: Some(object_ref.to_owned()),
-                    expected_sha256: descriptor.source_payload.sha256.clone(),
-                    actual_sha256: None,
-                    expected_byte_length: descriptor.source_payload.byte_length,
-                    actual_byte_length: None,
-                    bytes_read: 0,
-                    read_error_kind: Some(error_kind.clone()),
-                    findings: vec![finding(
-                        "incomplete",
-                        "SOURCE_PAYLOAD_OBJECT_OPEN_FAILED",
-                        &record_key,
-                        format!("payload resolver could not open object (IO kind {error_kind})"),
-                    )],
-                };
-                report_findings.extend(result.findings.iter().cloned());
-                records.push(result);
-            }
+    let result = resolver_open_failure_result(
+        descriptor,
+        &record_key,
+        object_ref,
+        error,
+    );
+    report_findings.extend(result.findings.iter().cloned());
+    records.push(result);
+}
         }
     }
 
@@ -555,6 +548,18 @@ fn catalog_report(
         .iter()
         .filter(|record| record.status == PayloadByteStatus::SourceBytesUnavailable)
         .count();
+    let object_not_found_count = records
+        .iter()
+        .filter(|record| record.status == PayloadByteStatus::ObjectNotFound)
+        .count();
+    let resolver_access_denied_count = records
+        .iter()
+        .filter(|record| record.status == PayloadByteStatus::ResolverAccessDenied)
+        .count();
+    let resolver_open_failed_count = records
+        .iter()
+        .filter(|record| record.status == PayloadByteStatus::ResolverOpenFailed)
+        .count();
     let read_failed_count = records
         .iter()
         .filter(|record| record.status == PayloadByteStatus::ReadFailed)
@@ -592,9 +597,20 @@ fn catalog_report(
     let invalid_report_finding = findings.iter().any(|finding| finding.severity == "invalid");
     let disposition = if invalid_descriptor || invalid_count > 0 || invalid_report_finding {
         PayloadByteCatalogDisposition::InvalidInput
-    } else if verified_count + unavailable_count + read_failed_count + byte_limit_exceeded_count
+    } else if verified_count
+        + unavailable_count
+        + object_not_found_count
+        + resolver_access_denied_count
+        + resolver_open_failed_count
+        + read_failed_count
+        + byte_limit_exceeded_count
+        + skipped_budget_count
+        + invalid_count
         != records.len()
         || unavailable_count > 0
+        || object_not_found_count > 0
+        || resolver_access_denied_count > 0
+        || resolver_open_failed_count > 0
         || read_failed_count > 0
         || byte_limit_exceeded_count > 0
         || skipped_budget_count > 0
@@ -625,6 +641,9 @@ fn catalog_report(
         descriptor_extra_count: descriptor_validation.extra_descriptor_count,
         verified_count,
         unavailable_count,
+        object_not_found_count,
+        resolver_access_denied_count,
+        resolver_open_failed_count,
         read_failed_count,
         byte_limit_exceeded_count,
         skipped_budget_count,
@@ -641,6 +660,47 @@ fn catalog_report(
         engineering_correctness: "not_performed".into(),
         action_authority: "none".into(),
         no_impact_eligibility: "none".into(),
+    }
+}
+
+fn resolver_open_failure_result(
+    descriptor: &SourceRecordDescriptor,
+    record_key: &str,
+    object_ref: &str,
+    error: io::Error,
+) -> PayloadByteRecordResult {
+    let (status, code) = match error.kind() {
+        io::ErrorKind::NotFound => (
+            PayloadByteStatus::ObjectNotFound,
+            "SOURCE_PAYLOAD_OBJECT_NOT_FOUND",
+        ),
+        io::ErrorKind::PermissionDenied => (
+            PayloadByteStatus::ResolverAccessDenied,
+            "SOURCE_PAYLOAD_ACCESS_DENIED",
+        ),
+        _ => (
+            PayloadByteStatus::ResolverOpenFailed,
+            "SOURCE_PAYLOAD_OBJECT_OPEN_FAILED",
+        ),
+    };
+    let error_kind = format!("{:?}", error.kind());
+    PayloadByteRecordResult {
+        record_key: record_key.to_owned(),
+        status,
+        digest_basis: descriptor.source_payload.digest_basis,
+        object_ref: Some(object_ref.to_owned()),
+        expected_sha256: descriptor.source_payload.sha256.clone(),
+        actual_sha256: None,
+        expected_byte_length: descriptor.source_payload.byte_length,
+        actual_byte_length: None,
+        bytes_read: 0,
+        read_error_kind: Some(error_kind.clone()),
+        findings: vec![finding(
+            "incomplete",
+            code,
+            record_key,
+            format!("payload resolver could not open object (IO kind {error_kind})"),
+        )],
     }
 }
 
@@ -1014,30 +1074,15 @@ where
                     records.push(result);
                 }
                 Err(error) => {
-                    let error_kind = format!("{:?}", error.kind());
-                    let result = PayloadByteRecordResult {
-                        record_key: record_key.clone(),
-                        status: PayloadByteStatus::SourceBytesUnavailable,
-                        digest_basis: descriptor.source_payload.digest_basis,
-                        object_ref: Some(object_ref.to_owned()),
-                        expected_sha256: descriptor.source_payload.sha256.clone(),
-                        actual_sha256: None,
-                        expected_byte_length: descriptor.source_payload.byte_length,
-                        actual_byte_length: None,
-                        bytes_read: 0,
-                        read_error_kind: Some(error_kind.clone()),
-                        findings: vec![finding(
-                            "incomplete",
-                            "SOURCE_PAYLOAD_OBJECT_OPEN_FAILED",
-                            &record_key,
-                            format!(
-                                "payload resolver could not open object (IO kind {error_kind})"
-                            ),
-                        )],
-                    };
-                    report_findings.extend(result.findings.iter().cloned());
-                    records.push(result);
-                }
+    let result = resolver_open_failure_result(
+        descriptor,
+        &record_key,
+        object_ref,
+        error,
+    );
+    report_findings.extend(result.findings.iter().cloned());
+    records.push(result);
+}
             }
         }
     }
@@ -1538,10 +1583,56 @@ mod tests {
             result.disposition,
             PayloadByteCatalogDisposition::IncompleteOrIndeterminate
         );
-        assert_eq!(result.unavailable_count, 1);
+        assert_eq!(result.unavailable_count, 0);
+        assert_eq!(result.object_not_found_count, 1);
         assert_eq!(
             result.records[0].status,
-            PayloadByteStatus::SourceBytesUnavailable
+            PayloadByteStatus::ObjectNotFound
+        );
+    }
+
+    #[test]
+    fn resolver_access_denial_is_distinct_from_missing_object() {
+        let bytes = b"access-controlled source payload";
+        let case = test_case(bytes);
+        let catalog = catalog(&case, descriptor(bytes));
+        let result = verify_catalog_payload_bytes(&case, &catalog, &context(), |_reference| {
+            Err::<Cursor<Vec<u8>>, _>(io::Error::new(
+                io::ErrorKind::PermissionDenied,
+                "access denied",
+            ))
+        });
+        assert_eq!(
+            result.disposition,
+            PayloadByteCatalogDisposition::IncompleteOrIndeterminate
+        );
+        assert_eq!(result.resolver_access_denied_count, 1);
+        assert_eq!(
+            result.records[0].status,
+            PayloadByteStatus::ResolverAccessDenied
+        );
+    }
+
+    #[test]
+    fn resolver_open_error_is_distinct_from_missing_and_stream_read_failure() {
+        let bytes = b"resolver failure payload";
+        let case = test_case(bytes);
+        let catalog = catalog(&case, descriptor(bytes));
+        let result = verify_catalog_payload_bytes(&case, &catalog, &context(), |_reference| {
+            Err::<Cursor<Vec<u8>>, _>(io::Error::new(
+                io::ErrorKind::ConnectionRefused,
+                "resolver unavailable",
+            ))
+        });
+        assert_eq!(
+            result.disposition,
+            PayloadByteCatalogDisposition::IncompleteOrIndeterminate
+        );
+        assert_eq!(result.resolver_open_failed_count, 1);
+        assert_eq!(result.read_failed_count, 0);
+        assert_eq!(
+            result.records[0].status,
+            PayloadByteStatus::ResolverOpenFailed
         );
     }
 
