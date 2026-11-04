@@ -1295,9 +1295,7 @@ mod tests {
         } else if revalidation {
             "revalidation_required".into()
         } else if missing_or_unknown {
-            if view_name == "historical_knowledge"
-                || view_name == "retrospective_at_decision"
-            {
+            if view_name == "historical_knowledge" || view_name == "retrospective_at_decision" {
                 "historical_basis_incomplete".into()
             } else {
                 "indeterminate".into()
