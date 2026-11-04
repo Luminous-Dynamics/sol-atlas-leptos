@@ -10,7 +10,7 @@
 //! an authenticator of evidence, rights, independence audits or reviewer authority.
 
 use serde::{Deserialize, Serialize};
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::BTreeSet;
 use std::fmt;
 
 pub const HERITAGE_CLAIM_SCHEMA_VERSION: &str = "luminous.heritage-claim.v0.1";
@@ -104,7 +104,7 @@ pub enum EvidenceRelation {
     ContextOnly,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum EvidenceModality {
     SatelliteOptical,
@@ -179,6 +179,8 @@ pub struct HumanAdjudication {
     pub decision_sha256: String,
     /// Must be exactly the evidence set in the claim, not a subset or stale set.
     pub reviewed_evidence_ids: Vec<String>,
+    pub rights_status: RightsStatus,
+    pub rights_receipt_ref: Option<String>,
     /// Must be explicit when any evidence is marked as contradicting the claim.
     pub contradictions_resolved: bool,
 }
@@ -479,6 +481,11 @@ fn validate_input(input: &HeritageClaimInput) -> Result<(), HeritageClaimError> 
         if !valid_sha256(&adjudication.decision_sha256) {
             return Err(HeritageClaimError::InvalidAdjudicationDigest);
         }
+        if adjudication.rights_status == RightsStatus::Verified
+            && adjudication.rights_receipt_ref.as_deref().is_none_or(|value| !non_empty(value))
+        {
+            return Err(HeritageClaimError::HumanAdjudicationRightsNotVerified);
+        }
         let mut reviewed_ids = BTreeSet::new();
         for evidence_id in &adjudication.reviewed_evidence_ids {
             if !reviewed_ids.insert(evidence_id.clone()) {
@@ -560,7 +567,10 @@ fn adjudication_is_accepted(input: &HeritageClaimInput) -> bool {
 
 fn adjudication_rights_verified(input: &HeritageClaimInput) -> bool {
     input.adjudication.as_ref().is_some_and(|item| {
-        item.reviewer_id.trim().len() > 0 && item.decision_ref.trim().len() > 0
+        item.reviewer_id.trim().len() > 0
+            && item.decision_ref.trim().len() > 0
+            && item.rights_status == RightsStatus::Verified
+            && item.rights_receipt_ref.as_deref().is_some_and(non_empty)
     })
 }
 
@@ -631,13 +641,6 @@ pub fn evaluate_heritage_claim(
 ) -> Result<HeritageClaimReport, HeritageClaimError> {
     validate_input(input)?;
 
-    let evidence_ids = input
-        .evidence
-        .iter()
-        .map(|item| item.evidence_id.as_str())
-        .collect::<BTreeSet<_>>();
-    let _ = evidence_ids;
-
     let support = input
         .evidence
         .iter()
@@ -645,15 +648,15 @@ pub fn evaluate_heritage_claim(
         .collect::<Vec<_>>();
     let direct_support_count = support.len();
     let independent = independent_support_records(&input.evidence);
-    let modalities = support
+    let modalities = independent
         .iter()
         .map(|item| item.modality)
         .collect::<BTreeSet<_>>();
-    let archaeology_count = support
+    let archaeology_count = independent
         .iter()
         .filter(|item| is_archaeological_field_evidence(item))
         .count();
-    let chronology_count = support
+    let chronology_count = independent
         .iter()
         .filter(|item| is_chronological_or_archival(item))
         .count();
@@ -900,6 +903,8 @@ mod tests {
                 .iter()
                 .map(|item| item.evidence_id.clone())
                 .collect(),
+            rights_status: RightsStatus::Verified,
+            rights_receipt_ref: Some("urn:synthetic:rights:reviewer".into()),
             contradictions_resolved: false,
         }
     }
