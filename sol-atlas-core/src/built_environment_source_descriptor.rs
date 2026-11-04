@@ -98,7 +98,8 @@ pub struct SourcePayloadDescriptor {
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct SourceSnapshotDescriptor {
-    pub source_id: String,
+    /// Stable source-system identifier; must match the inventory manifest system ID.
+    pub source_system_id: String,
     pub snapshot_id: String,
     pub snapshot_sha256: String,
     pub captured_at: String,
@@ -722,11 +723,11 @@ fn validate_time(
     key: &str,
 ) {
     let snapshot = &descriptor.source_snapshot;
-    if snapshot.source_id.trim().is_empty() || snapshot.snapshot_id.trim().is_empty() {
+    if snapshot.source_system_id.trim().is_empty() || snapshot.snapshot_id.trim().is_empty() {
         findings.invalid(
             "EMPTY_SOURCE_SNAPSHOT_IDENTITY",
             key,
-            "source_id and snapshot_id must be non-empty",
+            "source_system_id and snapshot_id must be non-empty",
         );
     }
     if !valid_sha256(&snapshot.snapshot_sha256) {
@@ -1353,7 +1354,13 @@ mod tests {
                 schema_sha256: Some(digest('e')),
             },
             source_snapshot: SourceSnapshotDescriptor {
-                source_id: namespace.into(),
+                source_system_id: match kind {
+                    SourceRecordKind::Evidence => "urn:synthetic:survey-system",
+                    SourceRecordKind::Artifact => "urn:synthetic:design-system",
+                    SourceRecordKind::EngineeringReceipt => "urn:synthetic:solver-system",
+                    SourceRecordKind::Decision => "urn:synthetic:authority-system",
+                }
+                .into(),
                 snapshot_id: "snapshot-001".into(),
                 snapshot_sha256: digest('f'),
                 captured_at: "2026-11-03T10:00:00Z".into(),
