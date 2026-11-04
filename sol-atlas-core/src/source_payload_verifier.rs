@@ -389,17 +389,24 @@ where
             "verified_at_utc must be a canonical UTC whole-second timestamp",
         ));
     }
-    if context
-        .verifier_build_sha256
-        .as_deref()
-        .is_none_or(|digest| !valid_sha256(digest))
-    {
-        report_findings.insert(finding(
-            "incomplete",
-            "VERIFIER_BUILD_IDENTITY_UNAVAILABLE",
-            "verifier",
-            "exact verifier build digest was not supplied or was invalid",
-        ));
+    match context.verifier_build_sha256.as_deref() {
+        None => {
+            report_findings.insert(finding(
+                "incomplete",
+                "VERIFIER_BUILD_IDENTITY_UNAVAILABLE",
+                "verifier",
+                "exact verifier build digest was not supplied",
+            ));
+        }
+        Some(digest) if !valid_sha256(digest) => {
+            report_findings.insert(finding(
+                "invalid",
+                "INVALID_VERIFIER_BUILD_DIGEST",
+                "verifier",
+                "verifier build digest is not lowercase SHA-256",
+            ));
+        }
+        Some(_) => {}
     }
 
     if descriptor_validation.disposition == DescriptorDisposition::InvalidInput {
@@ -531,10 +538,8 @@ fn catalog_report(
         || unavailable_count > 0
         || read_failed_count > 0
         || byte_limit_exceeded_count > 0
-        || findings.iter().any(|finding| finding.severity == "invalid")
         || findings.iter().any(|finding| {
             finding.code == "VERIFIER_BUILD_IDENTITY_UNAVAILABLE"
-                || finding.code == "REPORT_BINDING_DIGEST_FAILED"
         })
     {
         PayloadByteCatalogDisposition::IncompleteOrIndeterminate
@@ -1089,6 +1094,52 @@ mod tests {
         );
         assert_eq!(result.records.len(), 0);
         assert_eq!(result.invalid_count, 0);
+    }
+
+    #[test]
+    fn invalid_verification_time_is_invalid_input_not_incomplete_success() {
+        let bytes = b"actual source payload";
+        let case = test_case(bytes);
+        let catalog = catalog(&case, descriptor(bytes));
+        let mut context = context();
+        context.verified_at_utc = "2026-02-31T25:61:61Z".into();
+        let result = verify_catalog_payload_bytes(
+            &case,
+            &catalog,
+            &context,
+            |_reference| Ok(Cursor::new(bytes.to_vec())),
+        );
+        assert_eq!(
+            result.disposition,
+            PayloadByteCatalogDisposition::InvalidInput
+        );
+        assert!(result.findings.iter().any(|finding| {
+            finding.code == "INVALID_VERIFICATION_TIME"
+        }));
+    }
+
+    #[test]
+    fn descriptor_validation_findings_are_preserved_in_byte_report() {
+        let bytes = b"actual source payload";
+        let case = test_case(bytes);
+        let mut catalog = catalog(&case, descriptor(bytes));
+        catalog.descriptors[0].rights.state = SourceRightsState::Unknown;
+        catalog.descriptors[0].rights.permitted_uses.clear();
+        catalog.descriptors[0].rights.rights_evidence_ref = None;
+        let result = verify_catalog_payload_bytes(
+            &case,
+            &catalog,
+            &context(),
+            |_reference| Ok(Cursor::new(bytes.to_vec())),
+        );
+        assert_eq!(
+            result.disposition,
+            PayloadByteCatalogDisposition::IncompleteOrIndeterminate
+        );
+        assert!(result.descriptor_validation_findings.iter().any(|finding| {
+            finding.code == "SOURCE_RIGHTS_UNKNOWN"
+        }));
+        assert_eq!(result.no_impact_eligibility, "none");
     }
 
     #[test]
