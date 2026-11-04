@@ -659,10 +659,10 @@ fn validate_temporal_events(
                 event_sha,
             );
         }
-        if let (Some(recorded), Some(trusted)) = (Some(recorded_at), trusted_at) {
-            if trusted < recorded {
-                push_error(errors, "TRUSTED_EVENT_TIME_REVERSAL", event_sha);
-            }
+        if let Some(trusted) = trusted_at
+            && trusted < recorded_at
+        {
+            push_error(errors, "TRUSTED_EVENT_TIME_REVERSAL", event_sha);
         }
     }
     Ok(events.clone())
@@ -1161,7 +1161,7 @@ mod tests {
     }
 
     fn base_input() -> Value {
-        let required = GATE_NAMES.iter().copied().collect::<Vec<_>>();
+        let required = GATE_NAMES.to_vec();
         let decision_at = "2026-11-02T10:00:00Z";
         let evaluated_at = "2026-11-04T11:00:00Z";
         let historical = required
