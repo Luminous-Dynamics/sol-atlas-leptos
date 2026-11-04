@@ -1476,6 +1476,80 @@ mod tests {
     }
 
     #[test]
+    fn change_event_for_optional_proof_does_not_invalidate_required_scope() {
+        let mut proofs = base_proofs();
+        let required_without_identity = required()
+            .into_iter()
+            .filter(|class| *class != DecisionRelianceProofClass::NativeSourceIdentity)
+            .collect::<Vec<_>>();
+        let event = event(
+            "optional-identity-key-revocation",
+            DecisionRelianceChangeEventType::KeyRevoked,
+            "identity",
+            "2026-11-01T00:00:00Z",
+            "2026-11-02T00:00:00Z",
+        );
+        let result = evaluate_decision_reliance_reference(
+            &request(),
+            &required_without_identity,
+            &proofs,
+            &[event],
+        );
+        assert_eq!(
+            result.outcome,
+            DecisionRelianceOutcome::ReliableForDeclaredScope
+        );
+        assert_eq!(result.known_change_event_count, 0);
+    }
+
+    #[test]
+    fn rights_revocation_event_must_target_a_rights_proof() {
+        let event = event(
+            "misclassified-rights-revocation",
+            DecisionRelianceChangeEventType::RightsRevoked,
+            "source-bytes",
+            "2026-11-01T00:00:00Z",
+            "2026-11-02T00:00:00Z",
+        );
+        let result = evaluate_decision_reliance_reference(
+            &request(),
+            &required(),
+            &base_proofs(),
+            &[event],
+        );
+        assert_eq!(result.outcome, DecisionRelianceOutcome::InvalidEvidence);
+        assert!(result.findings.iter().any(|finding| {
+            finding.code == "CHANGE_EVENT_PROOF_CLASS_MISMATCH"
+        }));
+    }
+
+    #[test]
+    fn all_required_proof_classes_are_checked_for_every_requested_scope_subject() {
+        let mut reliance_request = request();
+        reliance_request.scope_subjects = vec![
+            "design-001".into(),
+            "utility-corridor-001".into(),
+        ];
+        let result = evaluate_decision_reliance_reference(
+            &reliance_request,
+            &required(),
+            &base_proofs(),
+            &[],
+        );
+        assert_eq!(
+            result.outcome,
+            DecisionRelianceOutcome::InsufficientEvidence
+        );
+        assert_eq!(
+            result.findings.iter().filter(|finding| {
+                finding.code == "REQUIRED_PROOF_SCOPE_NOT_COVERED"
+                    && finding.subject_ref == "utility-corridor-001"
+            }).count(),
+            required().len()
+        );
+    }
+
+    #[test]
     fn optional_proof_status_does_not_contaminate_required_decision_scope() {
         let mut proofs = base_proofs();
         let mut optional = proof(
