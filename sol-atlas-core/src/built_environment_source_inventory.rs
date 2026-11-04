@@ -1712,7 +1712,9 @@ mod tests {
     #[test]
     fn cross_snapshot_page_is_invalid() {
         let mut manifest = valid_manifest();
-        manifest.page_receipts[1].snapshot_sha256 = Some(digest('f'));
+        // The valid fixture snapshot is digest('f'); use a distinct digest
+        // so this negative control actually crosses the declared snapshot.
+        manifest.page_receipts[1].snapshot_sha256 = Some(digest('9'));
         let result = validate_source_inventory_manifest(&manifest);
         assert_eq!(result.disposition, InventoryDisposition::InvalidInput);
         assert!(
