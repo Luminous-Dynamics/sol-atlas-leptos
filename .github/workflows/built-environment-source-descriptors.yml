@@ -16,7 +16,7 @@ on:
   push:
     branches:
       - main
-      - research/built-environment-source-descriptors-v0-1
+      - research/built-environment-source-byte-verifier-v0-1
     paths:
       - "sol-atlas-core/Cargo.toml"
       - "sol-atlas-core/Cargo.lock"
@@ -91,9 +91,10 @@ jobs:
             .payload_byte_verification == "complete_for_supplied_payload_claims" and
             .source_owner_authentication == "not_performed" and
             .source_attestation_authentication == "not_performed" and
+            .receipt_digest_basis == "sha256_over_serde_json_receipt_with_empty_receipt_sha256_field" and
             .rights_authentication == "not_performed" and
             .action_authority == "none" and
-            .receipt_sha256 == "13bc3de7f8a0d9ce5bf8db512ef0b57f4b5d29a0c916bf68dff803abe51e57d3"
+            .receipt_sha256 == "1d9af9474d4ca664ad7ff06c34973fde9d00d47d6e8ba4ab89bb5ac7e336d4a5"
           ' "$receipt_fixture"
           jq -e '
             .schema_version == "luminous.built-environment-source-descriptor-catalog.v0.1" and
