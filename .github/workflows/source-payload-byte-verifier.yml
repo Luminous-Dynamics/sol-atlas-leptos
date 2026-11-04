@@ -83,6 +83,8 @@ jobs:
             .disposition == "all_resolvable_payloads_verified" and
             .verified_count == 1 and
             .invalid_count == 0 and
+            .invalid_finding_count == 0 and
+            .incomplete_finding_count == 0 and
             .source_owner_authentication == "not_performed" and
             .rights_authentication == "not_performed" and
             .action_authority == "none" and
