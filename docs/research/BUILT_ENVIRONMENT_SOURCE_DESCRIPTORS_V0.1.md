@@ -23,7 +23,7 @@ Each descriptor is keyed by `(record_kind, case_record_id)` and preserves. The r
 | Owner identity | owner namespace + named native identity components | Prevent equal content from collapsing distinct source records |
 | Payload identity | SHA-256, digest basis, byte-retrieval state, length, object reference | Distinguish source bytes from case/projector representations |
 | Representation | media type, schema ID/version, schema digest | A payload digest does not describe how to parse or interpret bytes |
-| Source snapshot | source ID, snapshot ID/digest, capture/retrieval time | Prevent mixing records from different source states |
+| Source snapshot | source-system ID, snapshot ID/digest, capture/retrieval time | Bind records to the exact owner/system inventory and source state |
 | Observation time | observed time and recorded time | Preserve valid-time/system-time distinctions |
 | Rights | state, permitted uses, rights evidence reference | Do not infer permission from availability |
 | Attestation | statement reference and key identity | Preserve the claim without claiming that it has been authenticated |
@@ -36,6 +36,9 @@ The descriptor supports four explicit source payload digest bases:
 - `unavailable`: no digest, bytes, byte length, or content reference is claimed. This remains incomplete.
 
 A content-addressed object reference must bind the exact digest as `cas:sha256:<lowercase-sha256>`. A reference cannot silently point to a different digest.
+
+
+The descriptor's `source_system_id` must match the corresponding `SourceInventoryManifest.source_system_id`; owner namespace is checked independently. A source owner may expose several systems, and a system identifier must never be inferred from the owner namespace or a record display name.
 
 ## Rust verifier semantics
 
