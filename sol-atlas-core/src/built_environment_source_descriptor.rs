@@ -1790,7 +1790,7 @@ mod tests {
         third_case.evidence[0].source_payload_sha256 = Some(digest('c'));
 
         let mut first_catalog = catalog(&first_case);
-        let mut first_evidence = first_catalog
+        let first_evidence = first_catalog
             .descriptors
             .iter_mut()
             .find(|descriptor| descriptor.record_kind == SourceRecordKind::Evidence)
