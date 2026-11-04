@@ -416,6 +416,7 @@ where
             .is_some_and(|digest| !valid_sha256(digest));
     if invalid_verifier_context {
         return catalog_report(
+            &case.case_id,
             catalog,
             context,
             case_sha256,
@@ -498,6 +499,7 @@ where
 
     records.sort_by(|left, right| left.record_key.cmp(&right.record_key));
     catalog_report(
+        &case.case_id,
         catalog,
         context,
         case_sha256,
@@ -509,6 +511,7 @@ where
 }
 
 fn catalog_report(
+    case_id: &str,
     catalog: &SourceDescriptorCatalog,
     context: &PayloadByteVerificationContext,
     case_sha256: String,
@@ -567,7 +570,7 @@ fn catalog_report(
     let report = PayloadByteCatalogReport {
         schema_version: VERIFIER_SCHEMA.into(),
         disposition,
-        case_id: case.case_id.clone(),
+        case_id: case_id.to_owned(),
         case_representation_sha256: case_sha256,
         catalog_id: catalog.catalog_id.clone(),
         catalog_representation_sha256: catalog_sha256,
@@ -1080,7 +1083,10 @@ mod tests {
         let case = test_case(bytes);
         let catalog = catalog(&case, descriptor(bytes));
         let result = verify_catalog_payload_bytes(&case, &catalog, &context(), |_reference| {
-            Err(io::Error::new(io::ErrorKind::NotFound, "missing"))
+            Err::<Cursor<Vec<u8>>, _>(io::Error::new(
+                io::ErrorKind::NotFound,
+                "missing",
+            ))
         });
         assert_eq!(
             result.disposition,
