@@ -36,7 +36,7 @@ pub enum PayloadByteStatus {
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum PayloadByteCatalogDisposition {
-    AllResolvablePayloadsVerified,
+    AllDeclaredPayloadReferencesVerified,
     IncompleteOrIndeterminate,
     InvalidInput,
 }
@@ -44,7 +44,7 @@ pub enum PayloadByteCatalogDisposition {
 impl PayloadByteCatalogDisposition {
     pub fn as_str(self) -> &'static str {
         match self {
-            Self::AllResolvablePayloadsVerified => "all_resolvable_payloads_verified",
+            Self::AllDeclaredPayloadReferencesVerified => "all_declared_payload_references_verified",
             Self::IncompleteOrIndeterminate => "incomplete_or_indeterminate",
             Self::InvalidInput => "invalid_input",
         }
@@ -100,6 +100,8 @@ pub struct PayloadByteCatalogReport {
     pub descriptor_validation_disposition: String,
     pub descriptor_validation_findings: Vec<DescriptorFinding>,
     pub descriptor_count: usize,
+    pub descriptor_missing_count: usize,
+    pub descriptor_extra_count: usize,
     pub verified_count: usize,
     pub unavailable_count: usize,
     pub read_failed_count: usize,
@@ -582,8 +584,7 @@ fn catalog_report(
     let invalid_report_finding = findings.iter().any(|finding| finding.severity == "invalid");
     let disposition = if invalid_descriptor || invalid_count > 0 || invalid_report_finding {
         PayloadByteCatalogDisposition::InvalidInput
-    } else if descriptor_validation.disposition == DescriptorDisposition::IncompleteOrIndeterminate
-        || verified_count + unavailable_count + read_failed_count + byte_limit_exceeded_count
+    } else if verified_count + unavailable_count + read_failed_count + byte_limit_exceeded_count
             != records.len()
         || unavailable_count > 0
         || read_failed_count > 0
@@ -594,7 +595,7 @@ fn catalog_report(
     {
         PayloadByteCatalogDisposition::IncompleteOrIndeterminate
     } else {
-        PayloadByteCatalogDisposition::AllResolvablePayloadsVerified
+        PayloadByteCatalogDisposition::AllDeclaredPayloadReferencesVerified
     };
 
     PayloadByteCatalogReport {
@@ -610,6 +611,8 @@ fn catalog_report(
         descriptor_validation_disposition: descriptor_validation.disposition.as_str().into(),
         descriptor_validation_findings: descriptor_validation.findings.clone(),
         descriptor_count: catalog.descriptors.len(),
+        descriptor_missing_count: descriptor_validation.missing_descriptor_count,
+        descriptor_extra_count: descriptor_validation.extra_descriptor_count,
         verified_count,
         unavailable_count,
         read_failed_count,
@@ -1074,7 +1077,7 @@ mod tests {
         });
         assert_eq!(
             result.disposition,
-            PayloadByteCatalogDisposition::AllResolvablePayloadsVerified
+            PayloadByteCatalogDisposition::AllDeclaredPayloadReferencesVerified
         );
         assert_eq!(result.verified_count, 1);
         assert_eq!(result.invalid_count, 0);
@@ -1212,7 +1215,12 @@ mod tests {
         });
         assert_eq!(
             result.disposition,
-            PayloadByteCatalogDisposition::IncompleteOrIndeterminate
+            PayloadByteCatalogDisposition::AllDeclaredPayloadReferencesVerified
+        );
+        assert_eq!(
+            result.descriptor_validation_disposition,
+            "incomplete_or_indeterminate",
+            "byte equality must not silently upgrade descriptor rights"
         );
         assert!(
             result
