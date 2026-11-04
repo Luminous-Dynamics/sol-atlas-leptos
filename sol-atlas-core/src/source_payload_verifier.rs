@@ -435,6 +435,7 @@ where
             "invalid descriptor catalogue was rejected before any payload object was opened",
         ));
         return catalog_report(
+            &case.case_id,
             catalog,
             context,
             case_sha256,
