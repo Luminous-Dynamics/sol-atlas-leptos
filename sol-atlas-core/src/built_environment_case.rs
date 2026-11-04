@@ -401,9 +401,7 @@ fn has_dependency_cycle(artifacts: &BTreeMap<String, &ArtifactRecord>) -> bool {
 
     let mut ready = in_degree
         .iter()
-        .filter_map(|(artifact_id, degree)| {
-            (*degree == 0).then_some(artifact_id.clone())
-        })
+        .filter_map(|(artifact_id, degree)| (*degree == 0).then_some(artifact_id.clone()))
         .collect::<BTreeSet<_>>();
     let mut visited_count = 0usize;
 
@@ -1103,7 +1101,6 @@ pub fn validate_case(
     Ok(issues)
 }
 
-
 /// Compute the exact downstream revalidation frontier for a proposed artifact digest change.
 ///
 /// This is an advisory graph query. It never mutates the case, rewrites historical
@@ -1132,7 +1129,8 @@ pub fn compute_revalidation_frontier(
         );
     }
 
-    let duplicate_artifacts = duplicates(case.artifacts.iter().map(|item| item.artifact_id.as_str()));
+    let duplicate_artifacts =
+        duplicates(case.artifacts.iter().map(|item| item.artifact_id.as_str()));
     for id in duplicate_artifacts {
         add_issue(ImpactGraphErrorCode::DuplicateArtifactId, id);
     }
@@ -1141,7 +1139,9 @@ pub fn compute_revalidation_frontier(
         add_issue(ImpactGraphErrorCode::DuplicateEvidenceId, id);
     }
     let duplicate_receipts = duplicates(
-        case.engineering_receipts.iter().map(|item| item.receipt_id.as_str()),
+        case.engineering_receipts
+            .iter()
+            .map(|item| item.receipt_id.as_str()),
     );
     for id in duplicate_receipts {
         add_issue(ImpactGraphErrorCode::DuplicateEngineeringReceiptId, id);
@@ -1665,9 +1665,11 @@ mod tests {
         loop {
             let prior_count = affected_artifacts.len();
             for candidate in &case.artifacts {
-                if candidate.parent_artifacts.iter().any(|parent| {
-                    affected_artifacts.contains(&parent.artifact_id)
-                }) {
+                if candidate
+                    .parent_artifacts
+                    .iter()
+                    .any(|parent| affected_artifacts.contains(&parent.artifact_id))
+                {
                     affected_artifacts.insert(candidate.artifact_id.clone());
                 }
             }
@@ -1736,7 +1738,12 @@ mod tests {
     #[test]
     fn production_frontier_matches_independent_full_scan_oracle_on_generated_dags() {
         let case = generated_dependency_case(128);
-        for source_id in ["model-1", "generated-0000", "generated-0035", "generated-0100"] {
+        for source_id in [
+            "model-1",
+            "generated-0000",
+            "generated-0035",
+            "generated-0100",
+        ] {
             let frontier = compute_revalidation_frontier(&case, source_id, &digest('9'));
             assert_eq!(
                 frontier.status,
@@ -1755,8 +1762,7 @@ mod tests {
     #[test]
     fn unchanged_artifact_digest_has_no_revalidation_impact() {
         let case = valid_case();
-        let frontier =
-            compute_revalidation_frontier(&case, "model-1", &digest('b'));
+        let frontier = compute_revalidation_frontier(&case, "model-1", &digest('b'));
         assert_eq!(frontier.status, RevalidationStatus::NoImpact);
         assert!(frontier.graph_issues.is_empty());
         assert!(frontier.impacts.is_empty());
@@ -1766,8 +1772,7 @@ mod tests {
     #[test]
     fn changed_artifact_reports_transitive_artifact_receipt_and_decision_frontier() {
         let case = case_with_transitive_revalidation_chain();
-        let frontier =
-            compute_revalidation_frontier(&case, "model-1", &digest('c'));
+        let frontier = compute_revalidation_frontier(&case, "model-1", &digest('c'));
 
         assert_eq!(frontier.status, RevalidationStatus::RevalidationRequired);
         assert!(frontier.graph_issues.is_empty());
@@ -1804,9 +1809,14 @@ mod tests {
             .collect::<BTreeSet<_>>();
         assert_eq!(
             receipt_impacts,
-            ["structural-1", "geotechnical-1", "structural-plan", "geotechnical-plan"]
-                .into_iter()
-                .collect::<BTreeSet<_>>()
+            [
+                "structural-1",
+                "geotechnical-1",
+                "structural-plan",
+                "geotechnical-plan"
+            ]
+            .into_iter()
+            .collect::<BTreeSet<_>>()
         );
 
         let decision_impacts = frontier
@@ -1817,12 +1827,13 @@ mod tests {
             .collect::<BTreeSet<_>>();
         assert_eq!(
             decision_impacts,
-            ["approval-1", "approval-plan"].into_iter().collect::<BTreeSet<_>>()
+            ["approval-1", "approval-plan"]
+                .into_iter()
+                .collect::<BTreeSet<_>>()
         );
 
         assert!(!frontier.impacts.iter().any(|impact| {
-            impact.node_id == "unrelated-model"
-                || impact.node_id == "unrelated-family"
+            impact.node_id == "unrelated-model" || impact.node_id == "unrelated-family"
         }));
         assert!(frontier.impacts.iter().all(|impact| {
             impact.node_kind != ImpactNodeKind::Decision
@@ -1859,9 +1870,12 @@ mod tests {
         let frontier = compute_revalidation_frontier(&case, "model-1", &digest('c'));
         assert_eq!(frontier.status, RevalidationStatus::GraphInvalid);
         assert!(frontier.impacts.is_empty());
-        assert!(frontier.graph_issues.iter().any(|issue| {
-            issue.code == ImpactGraphErrorCode::MissingParentArtifact
-        }));
+        assert!(
+            frontier
+                .graph_issues
+                .iter()
+                .any(|issue| { issue.code == ImpactGraphErrorCode::MissingParentArtifact })
+        );
     }
 
     #[test]
@@ -1881,9 +1895,12 @@ mod tests {
         let frontier = compute_revalidation_frontier(&case, "model-1", &digest('c'));
         assert_eq!(frontier.status, RevalidationStatus::GraphInvalid);
         assert!(frontier.impacts.is_empty());
-        assert!(frontier.graph_issues.iter().any(|issue| {
-            issue.code == ImpactGraphErrorCode::ArtifactDependencyCycle
-        }));
+        assert!(
+            frontier
+                .graph_issues
+                .iter()
+                .any(|issue| { issue.code == ImpactGraphErrorCode::ArtifactDependencyCycle })
+        );
     }
 
     #[test]
@@ -1892,9 +1909,12 @@ mod tests {
         let frontier = compute_revalidation_frontier(&case, "model-1", "not-a-digest");
         assert_eq!(frontier.status, RevalidationStatus::GraphInvalid);
         assert!(frontier.impacts.is_empty());
-        assert!(frontier.graph_issues.iter().any(|issue| {
-            issue.code == ImpactGraphErrorCode::InvalidProposedDigest
-        }));
+        assert!(
+            frontier
+                .graph_issues
+                .iter()
+                .any(|issue| { issue.code == ImpactGraphErrorCode::InvalidProposedDigest })
+        );
     }
 
     #[test]
@@ -1910,9 +1930,12 @@ mod tests {
         case.engineering_receipts.push(unrelated_receipt);
 
         let frontier = compute_revalidation_frontier(&case, "model-1", &digest('c'));
-        assert!(!frontier.impacts.iter().any(|impact| {
-            impact.node_id == "unrelated-receipt"
-        }));
+        assert!(
+            !frontier
+                .impacts
+                .iter()
+                .any(|impact| { impact.node_id == "unrelated-receipt" })
+        );
     }
 
     #[test]
