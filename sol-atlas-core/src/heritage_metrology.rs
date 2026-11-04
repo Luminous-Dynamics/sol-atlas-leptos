@@ -22,7 +22,7 @@ pub const AREA_AGGREGATION_FORMULA_VERSION: &str = "sum-disjoint-area-factor-mod
 pub enum MetrologyAssessmentProfile {
     Exploratory,
     ProjectDefined,
-    Asprs2024Style,
+    Asprs2024Core,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -52,6 +52,10 @@ pub struct MetrologyCertificate {
     /// These points are withheld from fitting and reserved for assessment.
     pub independent_checkpoints: Vec<Checkpoint3d>,
     pub assessment_profile: MetrologyAssessmentProfile,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub target_rmse_h_m: Option<f64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub target_rmse_v_m: Option<f64>,
     pub independence_attestation_ref: String,
     pub rights_receipt_ref: String,
 }
@@ -66,12 +70,18 @@ pub struct MetrologyAssessmentReport {
     pub assessment_profile: MetrologyAssessmentProfile,
     pub checkpoint_count: usize,
     pub stratum_counts: BTreeMap<String, usize>,
+    pub product_fit_rmse_h_m: f64,
+    pub product_fit_rmse_v_m: f64,
+    /// Checkpoint survey RMSE component, reported separately.
+    pub reference_sigma_rmse_h_m: f64,
+    pub reference_sigma_rmse_v_m: f64,
+    /// Combined product accuracy: sqrt(product_fit_rmse^2 + reference_sigma_rmse^2).
     pub rmse_h_m: f64,
     pub rmse_v_m: f64,
     pub rmse_3d_m: f64,
-    /// Kept separate from product residuals; no hidden subtraction/correction.
-    pub reference_sigma_rmse_h_m: f64,
-    pub reference_sigma_rmse_v_m: f64,
+    pub target_rmse_h_m: Option<f64>,
+    pub target_rmse_v_m: Option<f64>,
+    pub meets_declared_target: Option<bool>,
     pub method_build_sha256: String,
     pub claim_ceiling: String,
 }
@@ -94,6 +104,9 @@ pub enum MetrologyError {
     InvalidCheckpointCoordinate(String),
     InvalidReferenceUncertainty(String),
     InsufficientAsprsStyleCheckpoints { actual: usize, minimum: usize },
+    MissingTargetAccuracy,
+    InvalidTargetAccuracy,
+    CheckpointSurveyNotTwiceAsAccurate,
     MissingIndependenceAttestation,
     MissingRightsReceipt,
 }
@@ -162,13 +175,28 @@ pub fn assess_metrology_certificate(
             minimum: 1,
         });
     }
-    if certificate.assessment_profile == MetrologyAssessmentProfile::Asprs2024Style
+    if certificate.assessment_profile == MetrologyAssessmentProfile::Asprs2024Core
         && certificate.independent_checkpoints.len() < MIN_ASPRS_STYLE_CHECKPOINTS
     {
         return Err(MetrologyError::InsufficientAsprsStyleCheckpoints {
             actual: certificate.independent_checkpoints.len(),
             minimum: MIN_ASPRS_STYLE_CHECKPOINTS,
         });
+    }
+    if let Some(target) = certificate.target_rmse_h_m {
+        if !target.is_finite() || target <= 0.0 {
+            return Err(MetrologyError::InvalidTargetAccuracy);
+        }
+    }
+    if let Some(target) = certificate.target_rmse_v_m {
+        if !target.is_finite() || target <= 0.0 {
+            return Err(MetrologyError::InvalidTargetAccuracy);
+        }
+    }
+    if certificate.assessment_profile == MetrologyAssessmentProfile::Asprs2024Core
+        && (certificate.target_rmse_h_m.is_none() || certificate.target_rmse_v_m.is_none())
+    {
+        return Err(MetrologyError::MissingTargetAccuracy);
     }
     if !non_empty(&certificate.independence_attestation_ref) {
         return Err(MetrologyError::MissingIndependenceAttestation);
@@ -230,6 +258,28 @@ pub fn assess_metrology_certificate(
     }
 
     let n = certificate.independent_checkpoints.len() as f64;
+    let product_fit_rmse_h_m = (sum_h_squared / n).sqrt();
+    let product_fit_rmse_v_m = (sum_v_squared / n).sqrt();
+    let reference_sigma_rmse_h_m = (sum_reference_h_variance / n).sqrt();
+    let reference_sigma_rmse_v_m = (sum_reference_v_variance / n).sqrt();
+
+    if certificate.assessment_profile == MetrologyAssessmentProfile::Asprs2024Core
+        && (reference_sigma_rmse_h_m > certificate.target_rmse_h_m.unwrap() / 2.0
+            || reference_sigma_rmse_v_m > certificate.target_rmse_v_m.unwrap() / 2.0)
+    {
+        return Err(MetrologyError::CheckpointSurveyNotTwiceAsAccurate);
+    }
+
+    // ASPRS Edition 2 Version 2 combines product-fit and checkpoint-survey
+    // components in quadrature. Keep both inputs visible in the report.
+    let rmse_h_m = product_fit_rmse_h_m.hypot(reference_sigma_rmse_h_m);
+    let rmse_v_m = product_fit_rmse_v_m.hypot(reference_sigma_rmse_v_m);
+    let rmse_3d_m = rmse_h_m.hypot(rmse_v_m);
+    let meets_declared_target = match (certificate.target_rmse_h_m, certificate.target_rmse_v_m) {
+        (Some(target_h), Some(target_v)) => Some(rmse_h_m <= target_h && rmse_v_m <= target_v),
+        _ => None,
+    };
+
     Ok(MetrologyAssessmentReport {
         schema_version: HERITAGE_METROLOGY_SCHEMA_VERSION.to_owned(),
         calibration_id: certificate.calibration_id.clone(),
@@ -239,13 +289,18 @@ pub fn assess_metrology_certificate(
         assessment_profile: certificate.assessment_profile,
         checkpoint_count: certificate.independent_checkpoints.len(),
         stratum_counts,
-        rmse_h_m: (sum_h_squared / n).sqrt(),
-        rmse_v_m: (sum_v_squared / n).sqrt(),
-        rmse_3d_m: (sum_3d_squared / n).sqrt(),
-        reference_sigma_rmse_h_m: (sum_reference_h_variance / n).sqrt(),
-        reference_sigma_rmse_v_m: (sum_reference_v_variance / n).sqrt(),
+        product_fit_rmse_h_m,
+        product_fit_rmse_v_m,
+        reference_sigma_rmse_h_m,
+        reference_sigma_rmse_v_m,
+        rmse_h_m,
+        rmse_v_m,
+        rmse_3d_m,
+        target_rmse_h_m: certificate.target_rmse_h_m,
+        target_rmse_v_m: certificate.target_rmse_v_m,
+        meets_declared_target,
         method_build_sha256: certificate.method_build_sha256.clone(),
-        claim_ceiling: "checkpoint_residual_summary_only".to_owned(),
+        claim_ceiling: "combined_checkpoint_accuracy_statistics_only_not_full_standards_conformance".to_owned(),
     })
 }
 
@@ -563,6 +618,8 @@ mod tests {
             control_point_ids: vec!["control-1".to_owned()],
             independent_checkpoints: (0..n).map(checkpoint).collect(),
             assessment_profile: profile,
+            target_rmse_h_m: None,
+            target_rmse_v_m: None,
             independence_attestation_ref: "custody://independence/1".to_owned(),
             rights_receipt_ref: "rights://survey/1".to_owned(),
         }
@@ -613,16 +670,20 @@ mod tests {
         .expect("exploratory certificate");
         assert_eq!(report.checkpoint_count, 2);
         assert_eq!(report.stratum_counts.get("open"), Some(&1));
-        assert!((report.rmse_h_m - 0.000_65_f64.sqrt()).abs() < 1e-12);
-        assert!(report.rmse_h_m > 0.0);
-        assert!(report.reference_sigma_rmse_h_m > 0.0);
-        assert_eq!(report.claim_ceiling, "checkpoint_residual_summary_only");
+        assert!((report.product_fit_rmse_h_m - 0.000_65_f64.sqrt()).abs() < 1e-12);
+        assert!((report.reference_sigma_rmse_h_m - 0.005).abs() < 1e-12);
+        assert!((report.rmse_h_m - 0.000_675_f64.sqrt()).abs() < 1e-12);
+        assert!(report.rmse_v_m > report.product_fit_rmse_v_m);
+        assert_eq!(
+            report.claim_ceiling,
+            "combined_checkpoint_accuracy_statistics_only_not_full_standards_conformance"
+        );
     }
 
     #[test]
     fn asprs_style_profile_requires_thirty_independent_checkpoints() {
         let err = assess_metrology_certificate(&certificate(
-            MetrologyAssessmentProfile::Asprs2024Style,
+            MetrologyAssessmentProfile::Asprs2024Core,
             29,
         ))
         .expect_err("29 is below the declared profile minimum");
@@ -632,6 +693,25 @@ mod tests {
                 actual: 29,
                 minimum: MIN_ASPRS_STYLE_CHECKPOINTS
             }
+        );
+    }
+
+    #[test]
+    fn asprs_core_profile_requires_target_and_checkpoint_survey_accuracy() {
+        let mut input = certificate(MetrologyAssessmentProfile::Asprs2024Core, 30);
+        assert_eq!(
+            assess_metrology_certificate(&input),
+            Err(MetrologyError::MissingTargetAccuracy)
+        );
+        input.target_rmse_h_m = Some(0.05);
+        input.target_rmse_v_m = Some(0.05);
+        let report = assess_metrology_certificate(&input).expect("30 accurate checkpoints");
+        assert_eq!(report.meets_declared_target, Some(true));
+
+        input.independent_checkpoints[0].reference_sigma_h_m = 0.03;
+        assert_eq!(
+            assess_metrology_certificate(&input),
+            Err(MetrologyError::CheckpointSurveyNotTwiceAsAccurate)
         );
     }
 
