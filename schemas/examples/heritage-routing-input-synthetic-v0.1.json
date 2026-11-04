@@ -1,0 +1,150 @@
+{
+  "schema_version": "luminous.heritage-routing.v0.1",
+  "request_id": "route-request-001",
+  "task_id": "stone_wall_detection",
+  "feature_class_id": "dry_stone_wall",
+  "sensor_modality": "airborne_lidar",
+  "channel_semantics_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "context": {
+    "biome_or_ecology_id": "tropical_montane_forest",
+    "geomorphology_id": "rugged_mountain",
+    "relief_complexity_stratum_id": "high_relief",
+    "vegetation_or_canopy_stratum_id": "dense_canopy",
+    "preservation_or_visibility_stratum_id": "lidar_observable",
+    "resolution_class_id": "dtm_0p5m"
+  },
+  "metric_definition_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "primary_metric_id": "object_map_50_95",
+  "reference_tier_id": "expert_lidar_interpretation",
+  "review_budget_id": "100_candidates_per_analyst_hour",
+  "quality_floors": {
+    "minimum_primary_metric_utility_lower_bound": 0.5,
+    "minimum_precision_lower_bound": 0.75,
+    "maximum_false_candidates_per_km2": 5,
+    "minimum_coverage_fraction": 0.9,
+    "maximum_review_seconds_per_candidate": 60,
+    "minimum_independent_validation_sites": 3
+  },
+  "profiles": [
+    {
+      "profile_id": "high-mean-fragile",
+      "task_id": "stone_wall_detection",
+      "feature_class_id": "dry_stone_wall",
+      "sensor_modality": "airborne_lidar",
+      "channel_semantics_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "context": {
+        "biome_or_ecology_id": "tropical_montane_forest",
+        "geomorphology_id": "rugged_mountain",
+        "relief_complexity_stratum_id": "high_relief",
+        "vegetation_or_canopy_stratum_id": "dense_canopy",
+        "preservation_or_visibility_stratum_id": "lidar_observable",
+        "resolution_class_id": "dtm_0p5m"
+      },
+      "representation_transform_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "model_build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "metric_definition_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "primary_metric_id": "object_map_50_95",
+      "reference_tier_id": "expert_lidar_interpretation",
+      "review_budget_id": "100_candidates_per_analyst_hour",
+      "evaluation_role": "selector_validation",
+      "split_protocol": "held_out_site",
+      "split_manifest_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "data_manifest_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "training_site_ids": [
+        "train-a",
+        "train-b"
+      ],
+      "validation_site_results": [
+        {
+          "validation_site_id": "validation-0",
+          "primary_metric_utility_lower_bound": 0.95,
+          "precision_lower_bound": 0.8,
+          "false_candidates_per_km2": 3,
+          "coverage_fraction": 0.95,
+          "review_seconds_per_candidate": 40,
+          "calibration_passed": true
+        },
+        {
+          "validation_site_id": "validation-1",
+          "primary_metric_utility_lower_bound": 0.95,
+          "precision_lower_bound": 0.8,
+          "false_candidates_per_km2": 3,
+          "coverage_fraction": 0.95,
+          "review_seconds_per_candidate": 40,
+          "calibration_passed": true
+        },
+        {
+          "validation_site_id": "validation-2",
+          "primary_metric_utility_lower_bound": 0.51,
+          "precision_lower_bound": 0.8,
+          "false_candidates_per_km2": 3,
+          "coverage_fraction": 0.95,
+          "review_seconds_per_candidate": 40,
+          "calibration_passed": true
+        }
+      ],
+      "rights_status": "verified",
+      "rights_receipt_ref": "urn:synthetic:rights:profile"
+    },
+    {
+      "profile_id": "stable",
+      "task_id": "stone_wall_detection",
+      "feature_class_id": "dry_stone_wall",
+      "sensor_modality": "airborne_lidar",
+      "channel_semantics_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "context": {
+        "biome_or_ecology_id": "tropical_montane_forest",
+        "geomorphology_id": "rugged_mountain",
+        "relief_complexity_stratum_id": "high_relief",
+        "vegetation_or_canopy_stratum_id": "dense_canopy",
+        "preservation_or_visibility_stratum_id": "lidar_observable",
+        "resolution_class_id": "dtm_0p5m"
+      },
+      "representation_transform_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+      "model_build_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+      "metric_definition_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "primary_metric_id": "object_map_50_95",
+      "reference_tier_id": "expert_lidar_interpretation",
+      "review_budget_id": "100_candidates_per_analyst_hour",
+      "evaluation_role": "selector_validation",
+      "split_protocol": "held_out_site",
+      "split_manifest_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "data_manifest_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "training_site_ids": [
+        "train-a",
+        "train-b"
+      ],
+      "validation_site_results": [
+        {
+          "validation_site_id": "validation-0",
+          "primary_metric_utility_lower_bound": 0.7,
+          "precision_lower_bound": 0.8,
+          "false_candidates_per_km2": 3,
+          "coverage_fraction": 0.95,
+          "review_seconds_per_candidate": 40,
+          "calibration_passed": true
+        },
+        {
+          "validation_site_id": "validation-1",
+          "primary_metric_utility_lower_bound": 0.72,
+          "precision_lower_bound": 0.8,
+          "false_candidates_per_km2": 3,
+          "coverage_fraction": 0.95,
+          "review_seconds_per_candidate": 40,
+          "calibration_passed": true
+        },
+        {
+          "validation_site_id": "validation-2",
+          "primary_metric_utility_lower_bound": 0.68,
+          "precision_lower_bound": 0.8,
+          "false_candidates_per_km2": 3,
+          "coverage_fraction": 0.95,
+          "review_seconds_per_candidate": 40,
+          "calibration_passed": true
+        }
+      ],
+      "rights_status": "verified",
+      "rights_receipt_ref": "urn:synthetic:rights:profile"
+    }
+  ]
+}
