@@ -1005,13 +1005,14 @@ where
                         } else {
                             "PAYLOAD_PER_OBJECT_BUDGET_EXCEEDED"
                         };
-                        result.findings.push(finding(
+                        let budget_finding = finding(
                             "incomplete",
                             code,
                             &record_key,
                             "stream stopped at a configured aggregate or per-payload byte boundary",
-                        ));
-                        report_findings.insert(result.findings.last().unwrap().clone());
+                        );
+                        result.findings.push(budget_finding.clone());
+                        report_findings.insert(budget_finding);
                     }
                     report_findings.extend(result.findings.iter().cloned());
                     records.push(result);
