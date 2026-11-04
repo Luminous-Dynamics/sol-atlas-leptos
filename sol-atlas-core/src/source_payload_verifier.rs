@@ -1143,21 +1143,22 @@ mod tests {
         let mut context = context();
         context.verifier_build_sha256 = Some("not-a-digest".into());
         let mut resolver_called = false;
-        let result = verify_catalog_payload_bytes(
-            &case,
-            &catalog,
-            &context,
-            |_reference| {
-                resolver_called = true;
-                Ok(Cursor::new(bytes.to_vec()))
-            },
-        );
+        let result = verify_catalog_payload_bytes(&case, &catalog, &context, |_reference| {
+            resolver_called = true;
+            Ok(Cursor::new(bytes.to_vec()))
+        });
         assert!(!resolver_called);
-        assert_eq!(result.disposition, PayloadByteCatalogDisposition::InvalidInput);
+        assert_eq!(
+            result.disposition,
+            PayloadByteCatalogDisposition::InvalidInput
+        );
         assert_eq!(result.records.len(), 0);
-        assert!(result.findings.iter().any(|finding| {
-            finding.code == "INVALID_VERIFIER_BUILD_DIGEST"
-        }));
+        assert!(
+            result
+                .findings
+                .iter()
+                .any(|finding| { finding.code == "INVALID_VERIFIER_BUILD_DIGEST" })
+        );
     }
 
     #[test]
