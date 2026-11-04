@@ -1,0 +1,31 @@
+{
+  "schema_version": "luminous.heritage-claim-report.v0.1",
+  "claim_id": "claim-negative-001",
+  "candidate_id": "candidate-negative-001",
+  "declared_claim": "archaeological_site_interpretation",
+  "evidence_supported_ceiling": "no_supported_claim",
+  "disposition": "overclaimed",
+  "evidence_record_count": 1,
+  "direct_support_count": 0,
+  "independent_support_group_count": 0,
+  "distinct_support_modality_count": 0,
+  "archaeological_field_evidence_count": 0,
+  "chronological_or_archival_evidence_count": 0,
+  "model_or_simulation_evidence_count": 1,
+  "contradictory_evidence_count": 0,
+  "rights_blocked_evidence_count": 0,
+  "human_adjudication_applies": false,
+  "adjudication_evidence_set_matches": false,
+  "coordinate_access_restricted": true,
+  "exact_coordinates_publication_allowed": false,
+  "reasons": [
+    "no_direct_observation",
+    "insufficient_independent_evidence_groups",
+    "insufficient_distinct_modalities",
+    "archaeological_field_evidence_missing",
+    "human_adjudication_missing",
+    "model_or_simulation_evidence_ignored"
+  ],
+  "archaeological_fact_established": false,
+  "historical_truth_established": false
+}
