@@ -45,11 +45,11 @@ A one-byte probe distinguishes an exact-limit object ending at EOF from an objec
 | `length_mismatch` | Recomputed byte count differs | Invalid |
 
 Catalogue outcomes:
-- `all_resolvable_payloads_verified`: descriptor validation is internally consistent and every descriptor payload reference was successfully rehashed; it still grants no source trust or action authority.
+- `all_declared_payload_references_verified`: every payload reference present in this catalogue was successfully rehashed. The report separately preserves descriptor validation disposition and missing/extra descriptor counts; this status does not upgrade an incomplete catalogue, authenticate the source, or grant action authority.
 - `incomplete_or_indeterminate`: one or more payloads were unavailable, a read failed, a limit was reached, verifier identity is missing, or the descriptor catalogue was incomplete.
 - `invalid_input`: invalid descriptor catalogue, invalid verifier context, digest mismatch, or length mismatch.
 
-The report carries the exact case representation digest, descriptor catalogue digest, verifier build digest, verification time, resource limit, descriptor-validation disposition and findings, per-record expected/observed digest and length, and counts/denominators. It also exposes `invalid_finding_count` and `incomplete_finding_count`. Any invalid verifier/report finding is non-compensable and forces `invalid_input`, even if all payload bytes individually match.
+The report carries the exact case representation digest, descriptor catalogue digest, verifier build digest, verification time, resource limit, descriptor-validation disposition and findings, descriptor missing/extra counts, per-record expected/observed digest and length, and counts/denominators. It also exposes `invalid_finding_count` and `incomplete_finding_count`. Any invalid verifier/report finding is non-compensable and forces `invalid_input`, even if all payload bytes individually match.
 
 ## 4. Digest-basis behavior
 
