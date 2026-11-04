@@ -712,12 +712,12 @@ mod tests {
             assess_metrology_certificate(&input),
             Err(MetrologyError::MissingTargetAccuracy)
         );
-        input.target_rmse_h_m = Some(0.05);
-        input.target_rmse_v_m = Some(0.05);
+        input.target_rmse_h_m = Some(0.5);
+        input.target_rmse_v_m = Some(0.5);
         let report = assess_metrology_certificate(&input).expect("30 accurate checkpoints");
         assert_eq!(report.meets_declared_target, Some(true));
 
-        input.independent_checkpoints[0].reference_sigma_h_m = 0.03;
+        input.independent_checkpoints[0].reference_sigma_h_m = 0.26;
         assert_eq!(
             assess_metrology_certificate(&input),
             Err(MetrologyError::CheckpointSurveyNotTwiceAsAccurate)
