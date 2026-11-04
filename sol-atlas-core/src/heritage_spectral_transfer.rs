@@ -735,10 +735,12 @@ mod tests {
         let reverse = dss_input(
             "site-b",
             "site-a",
-            &[(3, 3.0, 3.0), (4, 2.0, 4.0), (5, 1.0, 4.0)],
+            &[(3, 3.0, 3.0), (4, 2.0, 3.0), (5, 1.0, 4.0)],
         );
         let f = evaluate_directional_spectral_transfer(&forward).unwrap();
         let r = evaluate_directional_spectral_transfer(&reverse).unwrap();
+        assert!((f.directional_strength_score - 3.0).abs() < 1e-12);
+        assert!((r.directional_strength_score - 2.75).abs() < 1e-12);
         assert_ne!(f.directional_strength_score, r.directional_strength_score);
         assert_eq!(f.source_site_id, "site-a");
         assert_eq!(r.source_site_id, "site-b");
