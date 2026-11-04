@@ -477,9 +477,7 @@ pub fn verify_source_descriptor_catalog_payloads<R: ContentAddressedPayloadResol
         || !limits_valid
         || !evaluation_time_valid
         || build_identity_state == "invalid";
-    let mut incomplete = validation.disposition == DescriptorDisposition::IncompleteOrIndeterminate
-        || !limits_valid
-        || build_identity_state == "missing";
+    let mut incomplete = !limits_valid || build_identity_state == "missing";
     let mut results = Vec::new();
     let mut total_bytes_hashed = 0_u64;
 
@@ -504,6 +502,25 @@ pub fn verify_source_descriptor_catalog_payloads<R: ContentAddressedPayloadResol
             results.push(result);
         }
     }
+
+    let verified_record_keys = results
+        .iter()
+        .filter(|result| result.disposition.is_verified())
+        .map(|result| result.record_key.as_str())
+        .collect::<std::collections::BTreeSet<_>>();
+    let unresolved_catalog_findings = validation.findings.iter().any(|finding| {
+        if finding.severity != "incomplete" {
+            return false;
+        }
+        let can_be_resolved_by_byte_rehash = matches!(
+            finding.code.as_str(),
+            "SOURCE_PAYLOAD_DIGEST_NOT_LOCALLY_REVERIFIED"
+                | "EXTERNAL_PAYLOAD_BYTES_NOT_RETRIEVED"
+        );
+        !(can_be_resolved_by_byte_rehash
+            && verified_record_keys.contains(finding.record_key.as_str()))
+    });
+    incomplete |= unresolved_catalog_findings;
 
     let disposition = if invalid_input {
         PayloadCatalogVerificationDisposition::InvalidInput
@@ -600,10 +617,17 @@ mod tests {
             let object_ref = descriptor
                 .source_payload
                 .payload_object_ref
-                .as_deref()
+                .clone()
+                .or_else(|| {
+                    descriptor
+                        .source_payload
+                        .sha256
+                        .as_deref()
+                        .map(expected_cas_reference)
+                })
                 .ok_or(PayloadResolveError::NotFound)?;
             self.objects
-                .get(object_ref)
+                .get(&object_ref)
                 .cloned()
                 .map(Cursor::new)
                 .ok_or(PayloadResolveError::NotFound)
@@ -760,6 +784,70 @@ mod tests {
         );
         assert_eq!(report.rights_authentication, "not_performed");
         assert_eq!(report.action_authority, "none");
+    }
+
+    #[test]
+    fn source_owner_attested_digest_becomes_byte_verified_when_resolver_supplies_bytes() {
+        let bytes = b"source-owner-attested payload";
+        let case = case(&digest(bytes));
+        let mut descriptor = descriptor(bytes);
+        descriptor.source_payload.digest_basis = PayloadDigestBasis::SourceOwnerAttested;
+        descriptor.source_payload.bytes_retrieved = false;
+        descriptor.source_payload.byte_length = None;
+        descriptor.source_payload.payload_object_ref = None;
+        let catalog = catalog(&case, descriptor.clone());
+        let mut resolver = MemoryResolver::default();
+        resolver.objects.insert(
+            expected_cas_reference(descriptor.source_payload.sha256.as_deref().unwrap()),
+            bytes.to_vec(),
+        );
+
+        let report = verify_source_descriptor_catalog_payloads(
+            &case,
+            &catalog,
+            &mut resolver,
+            limits(),
+            "2026-11-04T10:03:00Z",
+            Some(digest(b"verifier-build")),
+        );
+        assert_eq!(
+            report.disposition,
+            PayloadCatalogVerificationDisposition::AllAvailablePayloadsVerified
+        );
+        assert_eq!(report.verified_payload_count, 1);
+        assert!(report.catalog_validation.findings.iter().any(|finding| {
+            finding.code == "SOURCE_PAYLOAD_DIGEST_NOT_LOCALLY_REVERIFIED"
+        }));
+        assert_eq!(report.rights_authentication, "not_performed");
+        assert_eq!(report.source_attestation_authentication, "not_performed");
+    }
+
+    #[test]
+    fn claimed_byte_length_mismatch_is_invalid() {
+        let bytes = b"length-check";
+        let case = case(&digest(bytes));
+        let mut descriptor = descriptor(bytes);
+        descriptor.source_payload.byte_length = Some(bytes.len() as u64 + 1);
+        let catalog = catalog(&case, descriptor.clone());
+        let mut resolver = MemoryResolver::default();
+        resolver.objects.insert(
+            descriptor.source_payload.payload_object_ref.clone().unwrap(),
+            bytes.to_vec(),
+        );
+
+        let report = verify_source_descriptor_catalog_payloads(
+            &case,
+            &catalog,
+            &mut resolver,
+            limits(),
+            "2026-11-04T10:03:00Z",
+            Some(digest(b"verifier-build")),
+        );
+        assert_eq!(report.disposition, PayloadCatalogVerificationDisposition::InvalidInput);
+        assert_eq!(
+            report.payload_results[0].disposition,
+            PayloadByteVerificationDisposition::ByteLengthMismatch
+        );
     }
 
     #[test]
