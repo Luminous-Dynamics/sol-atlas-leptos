@@ -863,6 +863,131 @@ mod tests {
         )
     }
 
+    struct FailsAfter {
+        bytes: Vec<u8>,
+        position: usize,
+        fail_after: usize,
+    }
+
+    impl Read for FailsAfter {
+        fn read(&mut self, buffer: &mut [u8]) -> io::Result<usize> {
+            if self.position >= self.fail_after {
+                return Err(io::Error::new(
+                    io::ErrorKind::Other,
+                    "synthetic injected reader failure",
+                ));
+            }
+            if self.position >= self.bytes.len() {
+                return Ok(0);
+            }
+            let count = buffer
+                .len()
+                .min(self.fail_after - self.position)
+                .min(self.bytes.len() - self.position);
+            buffer[..count]
+                .copy_from_slice(&self.bytes[self.position..self.position + count]);
+            self.position += count;
+            Ok(count)
+        }
+    }
+
+    #[test]
+    fn streaming_and_in_memory_verifiers_have_identical_inner_receipts() {
+        let payload = br#"{"measurement":42,"unit":"mm"}"#;
+        let schema =
+            br#"{"$schema":"https://json-schema.org/draft/2020-12/schema","type":"object"}"#;
+        let case = case(payload);
+        let catalog = catalog(&case, payload, schema);
+        let (payloads, schemas) = inputs(payload, schema);
+        let in_memory = verify_catalog_payload_bytes(&case, &catalog, &payloads, &schemas);
+
+        for buffer_size in [4 * 1024, 64 * 1024, 1024 * 1024, 4 * 1024 * 1024] {
+            let payload_readers = BTreeMap::from([(
+                "evidence:evidence-001".into(),
+                io::Cursor::new(payload.to_vec()),
+            )]);
+            let schema_readers = BTreeMap::from([(
+                ("urn:synthetic:schema:evidence".into(), "1.0".into()),
+                io::Cursor::new(schema.to_vec()),
+            )]);
+            let streamed = verify_catalog_payload_streams(
+                &case,
+                &catalog,
+                payload_readers,
+                schema_readers,
+                buffer_size,
+            )
+            .unwrap();
+
+            assert_eq!(streamed.verification, in_memory);
+            assert_eq!(
+                streamed.payload_input_manifest_sha256,
+                in_memory.payload_input_manifest_sha256
+            );
+            assert_eq!(
+                streamed.schema_input_manifest_sha256,
+                in_memory.schema_input_manifest_sha256
+            );
+            assert_eq!(streamed.execution_profile.buffer_size_bytes, buffer_size);
+            assert_eq!(streamed.execution_profile.working_buffer_bytes, buffer_size);
+            assert_eq!(streamed.execution_profile.io_mode, "streaming_reader");
+            assert!(valid_sha256(&streamed.receipt_sha256));
+        }
+    }
+
+    #[test]
+    fn streaming_reader_failure_returns_key_and_consumed_length_without_receipt() {
+        let payload = b"payload bytes that fail partway";
+        let schema = b"schema bytes";
+        let case = case(payload);
+        let catalog = catalog(&case, payload, schema);
+        let payload_readers = BTreeMap::from([(
+            "evidence:evidence-001".into(),
+            FailsAfter {
+                bytes: payload.to_vec(),
+                position: 0,
+                fail_after: 7,
+            },
+        )]);
+        let schema_readers = BTreeMap::new();
+
+        let error = verify_catalog_payload_streams(
+            &case,
+            &catalog,
+            payload_readers,
+            schema_readers,
+            4 * 1024,
+        )
+        .unwrap_err();
+
+        assert_eq!(error.input_key, "evidence:evidence-001");
+        assert_eq!(error.bytes_read, 7);
+        assert_eq!(error.error_kind, "Other");
+        assert!(error.message.contains("synthetic injected reader failure"));
+    }
+
+    #[test]
+    fn streaming_buffer_bounds_are_enforced_before_any_reader_is_consumed() {
+        let payload = b"payload";
+        let schema = b"schema";
+        let case = case(payload);
+        let catalog = catalog(&case, payload, schema);
+        let payload_readers = BTreeMap::from([(
+            "evidence:evidence-001".into(),
+            io::Cursor::new(payload.to_vec()),
+        )]);
+        let error = verify_catalog_payload_streams(
+            &case,
+            &catalog,
+            payload_readers,
+            BTreeMap::new(),
+            1024,
+        )
+        .unwrap_err();
+        assert_eq!(error.error_kind, "invalid_buffer_size");
+        assert_eq!(error.bytes_read, 0);
+    }
+
     #[test]
     fn exact_payload_and_schema_bytes_are_independently_hashed() {
         let payload = br#"{"measurement":42,"unit":"mm"}"#;
