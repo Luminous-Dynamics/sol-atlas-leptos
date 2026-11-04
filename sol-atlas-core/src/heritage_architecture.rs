@@ -251,6 +251,7 @@ pub enum HeritageArchitectureError {
     MetricCoordinateReferenceMismatch(String),
     MetricCalibrationMissing(String),
     MetricCalibrationNotInSource(String),
+    SurfaceAreaRequires3dSource(String),
     DirectMeasurementSourceMissing(String),
     MethodBuildDigestMissing(String),
     MethodBuildDigestInvalid(String),
@@ -406,11 +407,15 @@ fn validate_observation(
                     observation.observation_id.clone(),
                 ));
             }
+            let has_metric_uncertainty = observation.uncertainty.as_ref().is_some_and(|value| {
+                value.area_standard_deviation_m2.is_some() || value.area_interval_90_m2.is_some()
+            });
             if observation.metric_area_m2.is_some()
                 || observation.metric_area_semantics.is_some()
                 || observation.metric_perimeter_m.is_some()
                 || observation.spatial_reference_id.is_some()
                 || observation.calibration_id.is_some()
+                || has_metric_uncertainty
             {
                 return Err(
                     HeritageArchitectureError::PixelMeasurementClaimsMetricUnits(
@@ -450,6 +455,18 @@ fn validate_observation(
                     && capture.coordinate_reference_id == input.coordinate_reference_id
             }) {
                 return Err(HeritageArchitectureError::MetricCalibrationNotInSource(
+                    observation.observation_id.clone(),
+                ));
+            }
+            if observation.measurement_basis == MeasurementBasis::CalibratedSurface3d
+                && !source_captures.iter().any(|capture| {
+                    matches!(
+                        capture.modality,
+                        CaptureModality::PointCloud | CaptureModality::Photogrammetry
+                    )
+                })
+            {
+                return Err(HeritageArchitectureError::SurfaceAreaRequires3dSource(
                     observation.observation_id.clone(),
                 ));
             }
@@ -852,6 +869,35 @@ mod tests {
         assert!(matches!(
             validate_heritage_architecture(&input),
             Err(HeritageArchitectureError::PixelMeasurementClaimsMetricUnits(_))
+        ));
+    }
+
+    #[test]
+    fn pixel_only_geometry_cannot_claim_metric_uncertainty() {
+        let mut input = valid_input();
+        let observation = &mut input.elements[2].observations[0];
+        observation.measurement_basis = MeasurementBasis::PixelOnly;
+        observation.spatial_reference_id = None;
+        observation.calibration_id = None;
+        observation.metric_area_m2 = None;
+        observation.metric_area_semantics = None;
+        observation.metric_perimeter_m = None;
+        observation.uncertainty.as_mut().unwrap().area_interval_90_m2 = None;
+        assert!(matches!(
+            validate_heritage_architecture(&input),
+            Err(HeritageArchitectureError::PixelMeasurementClaimsMetricUnits(_))
+        ));
+    }
+
+    #[test]
+    fn surface_area_requires_point_cloud_or_photogrammetry_source() {
+        let mut input = valid_input();
+        let observation = &mut input.elements[2].observations[0];
+        observation.measurement_basis = MeasurementBasis::CalibratedSurface3d;
+        observation.metric_area_semantics = Some(MetricAreaSemantics::SurfaceArea);
+        assert!(matches!(
+            validate_heritage_architecture(&input),
+            Err(HeritageArchitectureError::SurfaceAreaRequires3dSource(_))
         ));
     }
 
