@@ -273,7 +273,14 @@ pub fn verify_catalog_payload_bytes(
         .iter()
         .map(|(key, bytes)| (key.clone(), digest_bytes(bytes)))
         .collect::<BTreeMap<_, _>>();
-    verify_catalog_payload_digests(case, catalog, &payload_digests, &schema_digests)
+    verify_catalog_payload_digests(
+        case,
+        catalog,
+        &payload_digests,
+        &schema_digests,
+        "in_memory",
+        0,
+    )
 }
 
 /// Hash caller-supplied readers in deterministic key order, then run the exact
@@ -319,7 +326,14 @@ where
     }
 
     let verification =
-        verify_catalog_payload_digests(case, catalog, &payload_digests, &schema_digests);
+        verify_catalog_payload_digests(
+            case,
+            catalog,
+            &payload_digests,
+            &schema_digests,
+            "streaming_reader",
+            buffer_size_bytes,
+        );
     let mut receipt = StreamingByteVerificationReceipt {
         schema_version: STREAMING_RECEIPT_SCHEMA.into(),
         case_id: case.case_id.clone(),
@@ -399,6 +413,8 @@ fn verify_catalog_payload_digests(
     catalog: &SourceDescriptorCatalog,
     payload_inputs: &BTreeMap<String, InputDigest>,
     schema_inputs: &BTreeMap<(String, String), InputDigest>,
+    input_mode: &str,
+    read_buffer_bytes: usize,
 ) -> PayloadByteVerificationReceipt {
     let descriptor_validation = validate_source_descriptor_catalog(case, catalog);
     let catalog_bytes = serde_json::to_vec(catalog).unwrap_or_default();
@@ -677,6 +693,8 @@ fn verify_catalog_payload_digests(
 
     let mut receipt = PayloadByteVerificationReceipt {
         schema_version: RECEIPT_SCHEMA.into(),
+        input_mode: input_mode.to_owned(),
+        read_buffer_bytes,
         case_id: case.case_id.clone(),
         catalog_id: catalog.catalog_id.clone(),
         catalog_sha256,
