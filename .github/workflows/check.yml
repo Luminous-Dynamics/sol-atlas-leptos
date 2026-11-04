@@ -65,7 +65,5 @@ jobs:
       # (renderer::hex, sol-atlas-core). Must target the bin explicitly:
       # `cargo test --lib` fails with "no library targets found".
       - run: cargo test --bin sol-atlas-leptos
-      - name: Test sol-atlas-core unit tests with the repository lockfile
-        run: |
-          cp Cargo.lock sol-atlas-core/Cargo.lock
-          cargo test --manifest-path sol-atlas-core/Cargo.toml --locked
+      - name: Test sol-atlas-core unit tests
+        run: cargo test --package sol-atlas-core --locked
