@@ -391,6 +391,7 @@ fn validate_coverage(receipt: &SurveyCoverageReceipt) -> Result<(), FieldSweepEr
 pub fn effective_sweep_width(
     profile: &SweepWidthCalibrationProfile,
 ) -> Result<SweepWidthInterval, FieldSweepError> {
+    validate_profile(profile)?;
     let b = profile.detection_probability_at_transect;
     let k = profile.lateral_decay_per_metre_squared;
     if !b.is_finite() || b <= 0.0 || b > 1.0 {
