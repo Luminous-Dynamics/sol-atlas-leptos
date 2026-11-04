@@ -1,0 +1,121 @@
+{
+  "schema_version": "luminous.semantic-transformation-receipt.v0.1",
+  "receipt_id": "receipt-synthetic-ifc-to-ieac-001",
+  "declared_claim": "equivalent_for_declared_profile",
+  "declared_purposes": [
+    "engineering_review",
+    "impact_analysis"
+  ],
+  "source": {
+    "native_artifact_id": "synthetic-owner:ifc-model:revision-17",
+    "payload_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "media_type": "application/ifc",
+    "schema_id": "urn:buildingsmart:ifc",
+    "schema_version": "IFC4.3.2.0",
+    "schema_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+  },
+  "target": {
+    "native_artifact_id": "synthetic-sol-atlas:ieac-graph:revision-17",
+    "payload_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "media_type": "application/json",
+    "schema_id": "urn:luminous:ieac-graph",
+    "schema_version": "0.2",
+    "schema_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+  },
+  "implementation": {
+    "implementation_id": "sol-atlas-ifc-ieac-projector",
+    "implementation_version": "0.1.0",
+    "implementation_build_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "mapping_profile_id": "ifc43-to-ieac02-core",
+    "mapping_profile_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+    "configuration_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+    "parameters_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+  },
+  "source_inventory": [
+    {
+      "semantic_id": "wall:W-001:global-placement",
+      "semantic_kind": "coordinate_frame",
+      "required_for_declared_purposes": true,
+      "source_value_sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+    },
+    {
+      "semantic_id": "wall:W-001:fire-rating",
+      "semantic_kind": "property",
+      "required_for_declared_purposes": true,
+      "source_value_sha256": "2222222222222222222222222222222222222222222222222222222222222222"
+    }
+  ],
+  "target_inventory": [
+    {
+      "semantic_id": "node:wall-001:placement",
+      "semantic_kind": "coordinate_frame",
+      "origin": "source_mapped",
+      "source_semantic_ids": [
+        "wall:W-001:global-placement"
+      ],
+      "target_value_sha256": "3333333333333333333333333333333333333333333333333333333333333333"
+    },
+    {
+      "semantic_id": "node:wall-001:fire-rating",
+      "semantic_kind": "property",
+      "origin": "source_mapped",
+      "source_semantic_ids": [
+        "wall:W-001:fire-rating"
+      ],
+      "target_value_sha256": "4444444444444444444444444444444444444444444444444444444444444444"
+    }
+  ],
+  "mappings": [
+    {
+      "source_semantic_id": "wall:W-001:global-placement",
+      "disposition": "preserved",
+      "target_semantic_ids": [
+        "node:wall-001:placement"
+      ],
+      "mapping_group_id": null,
+      "metadata": {
+        "conversion_kind": null,
+        "unit_conversion": null,
+        "coordinate_conversion": null,
+        "uncertainty_conversion": null,
+        "rule_id": "ifc:placement:identity",
+        "rule_version": "1.0",
+        "rationale": "Source coordinate frame descriptor is preserved without normalization."
+      },
+      "loss_reason": null
+    },
+    {
+      "source_semantic_id": "wall:W-001:fire-rating",
+      "disposition": "preserved",
+      "target_semantic_ids": [
+        "node:wall-001:fire-rating"
+      ],
+      "mapping_group_id": null,
+      "metadata": {
+        "conversion_kind": null,
+        "unit_conversion": null,
+        "coordinate_conversion": null,
+        "uncertainty_conversion": null,
+        "rule_id": "ifc:property:fire-rating",
+        "rule_version": "1.0",
+        "rationale": "Fire-rating property identity and value digest are retained."
+      },
+      "loss_reason": null
+    }
+  ],
+  "equivalence_oracle": {
+    "oracle_id": "independent-ifc-ieac-semantic-oracle",
+    "oracle_build_sha256": "5555555555555555555555555555555555555555555555555555555555555555",
+    "corpus_id": "ifc-ieac-semantic-core-v0.1",
+    "corpus_sha256": "6666666666666666666666666666666666666666666666666666666666666666",
+    "result_sha256": "7777777777777777777777777777777777777777777777777777777777777777",
+    "result": "pass",
+    "evaluated_at": "2026-11-04T12:00:00Z"
+  },
+  "action_authority": "none",
+  "limitations": [
+    "Synthetic fixture only; this is not a real IFC conversion or engineering result.",
+    "The receipt validator checks inventory and mapping consistency but does not execute or authenticate the equivalence oracle.",
+    "The receipt does not establish source-owner authenticity, rights, professional approval, or physical safety."
+  ]
+}
