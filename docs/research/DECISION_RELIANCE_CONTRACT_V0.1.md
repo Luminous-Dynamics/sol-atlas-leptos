@@ -154,3 +154,6 @@ P2:
 - prospective evaluation on real change histories before any market-leading claim.
 
 No aggregate score may allow speed to compensate for false reliance, missed invalidation or authority escalation.
+
+
+Implementation note (2026-11-04): the Rust reference evaluator and temporal mutation corpus are formatted under the repository's stable Rust toolchain. Exact-head strict Clippy, unit tests, and schema validation remain the qualification gates; no reliance accuracy or production assurance claim is made until those complete.
