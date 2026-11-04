@@ -105,6 +105,8 @@ pub struct PayloadByteCatalogReport {
     pub read_failed_count: usize,
     pub byte_limit_exceeded_count: usize,
     pub invalid_count: usize,
+    pub invalid_finding_count: usize,
+    pub incomplete_finding_count: usize,
     pub records: Vec<PayloadByteRecordResult>,
     pub findings: Vec<PayloadByteFinding>,
     pub source_owner_authentication: String,
@@ -566,6 +568,14 @@ fn catalog_report(
             )
         })
         .count();
+    let invalid_finding_count = findings
+        .iter()
+        .filter(|finding| finding.severity == "invalid")
+        .count();
+    let incomplete_finding_count = findings
+        .iter()
+        .filter(|finding| finding.severity == "incomplete")
+        .count();
 
     let invalid_descriptor =
         descriptor_validation.disposition == DescriptorDisposition::InvalidInput;
@@ -605,6 +615,8 @@ fn catalog_report(
         read_failed_count,
         byte_limit_exceeded_count,
         invalid_count,
+        invalid_finding_count,
+        incomplete_finding_count,
         records,
         findings: findings.iter().cloned().collect(),
         source_owner_authentication: "not_performed".into(),
@@ -1066,6 +1078,8 @@ mod tests {
         );
         assert_eq!(result.verified_count, 1);
         assert_eq!(result.invalid_count, 0);
+        assert_eq!(result.invalid_finding_count, 0);
+        assert_eq!(result.incomplete_finding_count, 0);
         assert_eq!(result.records[0].status, PayloadByteStatus::Verified);
         assert_eq!(result.source_owner_authentication, "not_performed");
         assert_eq!(result.rights_authentication, "not_performed");
@@ -1149,6 +1163,7 @@ mod tests {
             result.disposition,
             PayloadByteCatalogDisposition::InvalidInput
         );
+        assert!(result.invalid_finding_count > 0);
         assert!(
             result
                 .findings
@@ -1175,6 +1190,7 @@ mod tests {
             PayloadByteCatalogDisposition::InvalidInput
         );
         assert_eq!(result.records.len(), 0);
+        assert!(result.invalid_finding_count > 0);
         assert!(
             result
                 .findings
