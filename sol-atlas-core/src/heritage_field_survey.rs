@@ -100,13 +100,16 @@ pub struct SurveyCoverageReceipt {
     pub survey_unit_id: String,
     pub survey_unit_crs_id: String,
     pub survey_unit_area_m2: f64,
-    /// Total path length after GIS-side clipping and the declared overlap audit.
-    /// This is not raw GPS length.
-    pub overlap_adjusted_path_length_m: f64,
+    /// Area of the GIS-computed union of transect buffers using this exact width.
+    pub buffered_transect_union_area_m2: f64,
+    /// Effective sweep width used by the GIS buffer construction.
+    pub buffered_sweep_width_m: f64,
+    /// Exact calibration profile used to define the buffer width.
+    pub calibration_profile_sha256: String,
     pub transect_geometry_sha256: String,
     pub survey_unit_geometry_sha256: String,
     pub spatial_union_method_id: String,
-    /// Digest of the GIS-side spatial-union/overlap audit receipt.
+    /// Digest of the GIS-side buffer/union, clipping and overlap-audit receipt.
     pub spatial_union_receipt_sha256: String,
 }
 
@@ -147,11 +150,11 @@ pub struct FieldSweepEvaluationReport {
     pub context_match: bool,
     pub effective_sweep_width_m: f64,
     pub effective_sweep_width_interval_95: SweepWidthInterval,
-    pub overlap_adjusted_path_length_m: f64,
-    pub nominal_swept_area_m2: f64,
-    /// Area ratio based on an externally audited, overlap-adjusted geometry.
-    /// It is not archaeological occupancy probability or proof of absence.
-    pub nominal_coverage_fraction: f64,
+    pub buffered_sweep_width_m: f64,
+    pub receipt_reported_swept_area_m2: f64,
+    /// GIS receipt's union area divided by survey-unit area. This is not
+    /// archaeological occupancy probability or proof of absence.
+    pub receipt_reported_coverage_fraction: f64,
     pub validation_brier_score: f64,
     pub fit_transect_count: usize,
     pub validation_transect_count: usize,
@@ -199,6 +202,10 @@ pub enum FieldSweepError {
     InvalidSurveyUnitGeometryDigest,
     EmptySpatialUnionMethod,
     InvalidSpatialUnionReceiptDigest,
+    InvalidCoverageProfileDigest,
+    CoverageProfileDigestMismatch,
+    InvalidBufferedSweepWidth,
+    CoverageSweepWidthMismatch,
     InvalidCoverageRatio,
     InvalidSweepWidthArithmetic,
 }
@@ -349,8 +356,16 @@ fn validate_coverage(receipt: &SurveyCoverageReceipt) -> Result<(), FieldSweepEr
     if !finite_positive(receipt.survey_unit_area_m2) {
         return Err(FieldSweepError::InvalidSurveyUnitArea);
     }
-    if !finite_positive(receipt.overlap_adjusted_path_length_m) {
-        return Err(FieldSweepError::InvalidPathLength);
+    if !finite_positive(receipt.buffered_transect_union_area_m2)
+        || receipt.buffered_transect_union_area_m2 > receipt.survey_unit_area_m2
+    {
+        return Err(FieldSweepError::InvalidCoverageRatio);
+    }
+    if !finite_positive(receipt.buffered_sweep_width_m) {
+        return Err(FieldSweepError::InvalidBufferedSweepWidth);
+    }
+    if !valid_sha256(&receipt.calibration_profile_sha256) {
+        return Err(FieldSweepError::InvalidCoverageProfileDigest);
     }
     if !valid_sha256(&receipt.transect_geometry_sha256) {
         return Err(FieldSweepError::InvalidTransectGeometryDigest);
@@ -457,15 +472,21 @@ pub fn evaluate_field_sweep(
         * (std::f64::consts::PI
             / input.calibration_profile.lateral_decay_per_metre_squared)
             .sqrt();
-    let swept_area = width * input.coverage.overlap_adjusted_path_length_m;
-    let nominal_coverage = swept_area / input.coverage.survey_unit_area_m2;
-
-    // This ratio uses a declared GIS-side overlap/clipping-adjusted path length.
-    // If it exceeds one, the input's "adjusted" geometry receipt is inconsistent.
+    if input.coverage.calibration_profile_sha256
+        != input.calibration_profile.profile_sha256
+    {
+        return Err(FieldSweepError::CoverageProfileDigestMismatch);
+    }
+    let width_tolerance = (width.abs() * COVERAGE_TOLERANCE).max(COVERAGE_TOLERANCE);
+    if (input.coverage.buffered_sweep_width_m - width).abs() > width_tolerance {
+        return Err(FieldSweepError::CoverageSweepWidthMismatch);
+    }
+    let swept_area = input.coverage.buffered_transect_union_area_m2;
+    let reported_coverage = swept_area / input.coverage.survey_unit_area_m2;
     if !swept_area.is_finite()
-        || !nominal_coverage.is_finite()
-        || nominal_coverage <= 0.0
-        || nominal_coverage > 1.0 + COVERAGE_TOLERANCE
+        || !reported_coverage.is_finite()
+        || reported_coverage <= 0.0
+        || reported_coverage > 1.0
     {
         return Err(FieldSweepError::InvalidCoverageRatio);
     }
@@ -488,9 +509,9 @@ pub fn evaluate_field_sweep(
         context_match: true,
         effective_sweep_width_m: width,
         effective_sweep_width_interval_95: interval,
-        overlap_adjusted_path_length_m: input.coverage.overlap_adjusted_path_length_m,
-        nominal_swept_area_m2: swept_area,
-        nominal_coverage_fraction: nominal_coverage.min(1.0),
+        buffered_sweep_width_m: width,
+        receipt_reported_swept_area_m2: swept_area,
+        receipt_reported_coverage_fraction: reported_coverage,
         validation_brier_score: input.calibration_profile.validation_brier_score,
         fit_transect_count: input.calibration_profile.fit_transect_ids.len(),
         validation_transect_count: input.calibration_profile.validation_transect_ids.len(),
@@ -560,7 +581,9 @@ mod tests {
                 survey_unit_id: "unit-01".into(),
                 survey_unit_crs_id: "EPSG:32636".into(),
                 survey_unit_area_m2: 100_000.0,
-                overlap_adjusted_path_length_m: 1_000.0,
+                buffered_transect_union_area_m2: 6_499.0,
+                buffered_sweep_width_m: 0.82 * (std::f64::consts::PI / 0.05_f64).sqrt(),
+                calibration_profile_sha256: "a".repeat(64),
                 transect_geometry_sha256: "e".repeat(64),
                 survey_unit_geometry_sha256: "f".repeat(64),
                 spatial_union_method_id: "buffered_transect_union_v1".into(),
@@ -596,7 +619,10 @@ mod tests {
         assert!(!report.repeated_search_independence_assumed);
         assert_eq!(report.profile_sha256, "a".repeat(64));
         assert_eq!(report.spatial_union_receipt_sha256, "1".repeat(64));
-        assert!(report.nominal_coverage_fraction > 0.0 && report.nominal_coverage_fraction <= 1.0);
+        assert!(report.receipt_reported_coverage_fraction > 0.0 && report.receipt_reported_coverage_fraction <= 1.0);
+        assert_eq!(report.receipt_reported_swept_area_m2, 6_499.0);
+        assert!((report.buffered_sweep_width_m - input().calibration_profile.detection_probability_at_transect
+            * (std::f64::consts::PI / input().calibration_profile.lateral_decay_per_metre_squared).sqrt()).abs() < 1e-12);
     }
 
     #[test]
@@ -702,9 +728,29 @@ mod tests {
     }
 
     #[test]
+    fn coverage_receipt_must_bind_exact_calibration_profile() {
+        let mut value = input();
+        value.coverage.calibration_profile_sha256 = "9".repeat(64);
+        assert_eq!(
+            evaluate_field_sweep(&value),
+            Err(FieldSweepError::CoverageProfileDigestMismatch)
+        );
+    }
+
+    #[test]
+    fn coverage_receipt_must_use_exact_sweep_width() {
+        let mut value = input();
+        value.coverage.buffered_sweep_width_m *= 1.1;
+        assert_eq!(
+            evaluate_field_sweep(&value),
+            Err(FieldSweepError::CoverageSweepWidthMismatch)
+        );
+    }
+
+    #[test]
     fn inconsistent_nominal_coverage_is_rejected() {
         let mut value = input();
-        value.coverage.overlap_adjusted_path_length_m = 100_000.0;
+        value.coverage.buffered_transect_union_area_m2 = 100_001.0;
         assert_eq!(
             evaluate_field_sweep(&value),
             Err(FieldSweepError::InvalidCoverageRatio)
