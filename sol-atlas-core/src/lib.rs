@@ -18,6 +18,10 @@ pub mod built_environment_case;
 /// coverage completeness, engineering correctness, or authorization; those remain
 /// independent evidence and trust obligations.
 pub mod built_environment_source_descriptor;
+/// Bounded source-query page-chain and owner-universe inventory validation.
+/// This layer proves only structural enumeration properties within a declared
+/// query; it does not authenticate source truth or establish universal discovery.
+pub mod built_environment_source_inventory;
 pub mod confluence;
 pub mod constants;
 pub mod data;
