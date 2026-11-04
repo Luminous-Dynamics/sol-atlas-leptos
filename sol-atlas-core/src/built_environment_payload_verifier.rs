@@ -11,8 +11,8 @@
 
 use crate::built_environment_case::BuiltEnvironmentCase;
 use crate::built_environment_source_descriptor::{
-    DescriptorDisposition, PayloadDigestBasis, SourceDescriptorCatalog,
-    SourceRecordDescriptor, validate_source_descriptor_catalog,
+    DescriptorDisposition, PayloadDigestBasis, SourceDescriptorCatalog, SourceRecordDescriptor,
+    validate_source_descriptor_catalog,
 };
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
@@ -90,7 +90,6 @@ impl PayloadByteVerificationDisposition {
             Self::DigestMismatch
                 | Self::ByteLengthMismatch
                 | Self::DigestAndByteLengthMismatch
-                | Self::ResolverRejected
                 | Self::InvalidDescriptor
         )
     }
@@ -152,17 +151,9 @@ pub struct PayloadCatalogVerificationReport {
 }
 
 enum StreamHashOutcome {
-    Complete {
-        sha256: String,
-        byte_length: u64,
-    },
-    LimitReached {
-        bytes_hashed: u64,
-    },
-    ReadError {
-        bytes_hashed: u64,
-        detail: String,
-    },
+    Complete { sha256: String, byte_length: u64 },
+    LimitReached { bytes_hashed: u64 },
+    ReadError { bytes_hashed: u64, detail: String },
 }
 
 fn sha256_hex(bytes: &[u8]) -> String {
@@ -279,13 +270,9 @@ fn hash_bounded_reader<R: Read>(
     }
 }
 
-fn base_result(
-    descriptor: &SourceRecordDescriptor,
-) -> PayloadByteVerification {
+fn base_result(descriptor: &SourceRecordDescriptor) -> PayloadByteVerification {
     PayloadByteVerification {
-        record_key: descriptor
-            .record_kind
-            .case_key(&descriptor.case_record_id),
+        record_key: descriptor.record_kind.case_key(&descriptor.case_record_id),
         digest_basis: descriptor.source_payload.digest_basis.as_str().into(),
         object_ref: descriptor.source_payload.payload_object_ref.clone(),
         expected_sha256: descriptor.source_payload.sha256.clone(),
@@ -793,17 +780,18 @@ mod tests {
         let bytes = b"synthetic payload";
         let case = case(&digest(bytes));
         let mut descriptor = descriptor(bytes);
-        descriptor.source_payload = crate::built_environment_source_descriptor::SourcePayloadDescriptor {
-            sha256: None,
-            digest_basis: PayloadDigestBasis::Unavailable,
-            bytes_retrieved: false,
-            byte_length: None,
-            payload_object_ref: None,
-            media_type: None,
-            schema_id: None,
-            schema_version: None,
-            schema_sha256: None,
-        };
+        descriptor.source_payload =
+            crate::built_environment_source_descriptor::SourcePayloadDescriptor {
+                sha256: None,
+                digest_basis: PayloadDigestBasis::Unavailable,
+                bytes_retrieved: false,
+                byte_length: None,
+                payload_object_ref: None,
+                media_type: None,
+                schema_id: None,
+                schema_version: None,
+                schema_sha256: None,
+            };
         let catalog = catalog(&case, descriptor);
         let mut resolver = MemoryResolver::default();
         let report = verify_source_descriptor_catalog_payloads(
