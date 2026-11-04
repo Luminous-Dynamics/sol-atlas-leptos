@@ -15,7 +15,23 @@
       "geotechnical"
     ],
     "decision_boundary": "Evaluate whether the synthetic lining design decision remains supported for design review only",
-    "declared_profile_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    "declared_profile_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "required_proof_classes": [
+      "decision_identity",
+      "source_payload_bytes",
+      "source_owner_authority",
+      "source_snapshot_currentness",
+      "source_rights",
+      "source_inventory_coverage",
+      "dependency_completeness",
+      "projection_semantics",
+      "impact_frontier_correctness",
+      "lifecycle_currentness",
+      "engineering_verification",
+      "professional_review",
+      "actor_authorization",
+      "schema_interoperability"
+    ]
   },
   "decision": {
     "native_identity_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
@@ -153,6 +169,66 @@
       "expires_at": null,
       "reason_codes": [
         "AUTHORIZATION_REPORT_MISSING"
+      ]
+    },
+    {
+      "proof_class": "source_snapshot_currentness",
+      "mandatory": true,
+      "status": "not_evaluated",
+      "evidence_refs": [],
+      "evaluator_build_sha256": null,
+      "evaluated_at": "2026-11-04T06:00:00Z",
+      "expires_at": null,
+      "reason_codes": [
+        "SOURCE_SNAPSHOT_MANIFEST_MISSING"
+      ]
+    },
+    {
+      "proof_class": "source_rights",
+      "mandatory": true,
+      "status": "missing",
+      "evidence_refs": [],
+      "evaluator_build_sha256": null,
+      "evaluated_at": "2026-11-04T06:00:00Z",
+      "expires_at": null,
+      "reason_codes": [
+        "RIGHTS_EVIDENCE_NOT_EVALUATED"
+      ]
+    },
+    {
+      "proof_class": "projection_semantics",
+      "mandatory": true,
+      "status": "qualified",
+      "evidence_refs": [],
+      "evaluator_build_sha256": null,
+      "evaluated_at": "2026-11-04T06:00:00Z",
+      "expires_at": null,
+      "reason_codes": [
+        "PROJECTION_RECEIPT_PRESENT"
+      ]
+    },
+    {
+      "proof_class": "professional_review",
+      "mandatory": true,
+      "status": "not_evaluated",
+      "evidence_refs": [],
+      "evaluator_build_sha256": null,
+      "evaluated_at": "2026-11-04T06:00:00Z",
+      "expires_at": null,
+      "reason_codes": [
+        "PROFESSIONAL_REVIEW_EVIDENCE_MISSING"
+      ]
+    },
+    {
+      "proof_class": "schema_interoperability",
+      "mandatory": true,
+      "status": "not_evaluated",
+      "evidence_refs": [],
+      "evaluator_build_sha256": null,
+      "evaluated_at": "2026-11-04T06:00:00Z",
+      "expires_at": null,
+      "reason_codes": [
+        "SCHEMA_CROSS_IMPLEMENTATION_CHECK_MISSING"
       ]
     }
   ],
