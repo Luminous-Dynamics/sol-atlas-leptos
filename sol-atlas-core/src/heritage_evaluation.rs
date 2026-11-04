@@ -748,7 +748,9 @@ pub fn audit_heritage_evaluation_split(
         manifest.reference_paper_split_manifest_sha256.is_some(),
         manifest.random_seed.is_some(),
     ) {
-        (EvaluationSplitProfile::PaperFaithfulRandomTiles, true, _) => "reference_manifest_digest_recorded",
+        (EvaluationSplitProfile::PaperFaithfulRandomTiles, true, _) => {
+            "reference_manifest_digest_recorded"
+        }
         (EvaluationSplitProfile::PaperFaithfulRandomTiles, false, true) => {
             "seeded_protocol_reproduction"
         }
