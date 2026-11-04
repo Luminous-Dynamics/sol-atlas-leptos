@@ -465,7 +465,11 @@ pub fn verify_source_descriptor_catalog_payloads<R: ContentAddressedPayloadResol
     let mut results = Vec::new();
     let mut total_bytes_hashed = 0_u64;
 
-    if validation.disposition != DescriptorDisposition::InvalidInput && limits_valid {
+    if validation.disposition != DescriptorDisposition::InvalidInput
+        && limits_valid
+        && evaluation_time_valid
+        && build_identity_state != "invalid"
+    {
         let mut descriptors = catalog.descriptors.iter().collect::<Vec<_>>();
         descriptors
             .sort_by_key(|descriptor| descriptor.record_kind.case_key(&descriptor.case_record_id));
@@ -843,6 +847,93 @@ mod tests {
             PayloadByteVerificationDisposition::DeclaredUnavailable
         );
         assert_eq!(report.payload_results[0].observed_sha256, None);
+    }
+
+    #[test]
+    fn streaming_sha256_matches_frozen_known_answer_vector() {
+        let result = hash_bounded_reader(std::io::Cursor::new(b"abc"), 4, 2);
+        match result {
+            StreamHashOutcome::Complete { sha256, byte_length } => {
+                assert_eq!(
+                    sha256,
+                    "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+                );
+                assert_eq!(byte_length, 3);
+            }
+            _ => panic!("three-byte known-answer vector should complete below the limit"),
+        }
+    }
+
+    struct ResolverOpenIoFailure;
+
+    impl ContentAddressedPayloadResolver for ResolverOpenIoFailure {
+        type Reader = std::io::Cursor<Vec<u8>>;
+
+        fn open(
+            &mut self,
+            _descriptor: &SourceRecordDescriptor,
+        ) -> Result<Self::Reader, PayloadResolveError> {
+            Err(PayloadResolveError::IoError(
+                "synthetic CAS metadata read failure".into(),
+            ))
+        }
+    }
+
+    #[test]
+    fn resolver_open_io_failure_is_incomplete_and_distinct() {
+        let bytes = b"synthetic payload";
+        let case = case(&digest(bytes));
+        let descriptor = descriptor(bytes);
+        let catalog = catalog(&case, descriptor);
+        let mut resolver = ResolverOpenIoFailure;
+        let report = verify_source_descriptor_catalog_payloads(
+            &case,
+            &catalog,
+            &mut resolver,
+            limits(),
+            "2026-11-04T10:03:00Z",
+            Some(digest(b"verifier-build")),
+        );
+        assert_eq!(
+            report.disposition,
+            PayloadCatalogVerificationDisposition::IncompleteOrIndeterminate
+        );
+        assert_eq!(report.resolver_error_count, 1);
+        assert_eq!(
+            report.payload_results[0].disposition,
+            PayloadByteVerificationDisposition::ResolverIoError
+        );
+        assert_eq!(report.payload_results[0].bytes_hashed, 0);
+    }
+
+    #[test]
+    fn malformed_evaluation_time_blocks_resolver_access() {
+        let bytes = b"synthetic payload";
+        let case = case(&digest(bytes));
+        let descriptor = descriptor(bytes);
+        let catalog = catalog(&case, descriptor.clone());
+        let mut resolver = MemoryResolver::default();
+        resolver.objects.insert(
+            descriptor.source_payload.payload_object_ref.clone().unwrap(),
+            bytes.to_vec(),
+        );
+        let report = verify_source_descriptor_catalog_payloads(
+            &case,
+            &catalog,
+            &mut resolver,
+            limits(),
+            "not-a-time",
+            Some(digest(b"verifier-build")),
+        );
+        assert_eq!(report.disposition, PayloadCatalogVerificationDisposition::InvalidInput);
+        assert_eq!(resolver.open_count, 0);
+        assert_eq!(report.not_attempted_count, 1);
+        assert!(
+            report
+                .context_findings
+                .iter()
+                .any(|finding| finding == "INVALID_EVALUATION_TIME")
+        );
     }
 
     #[test]
