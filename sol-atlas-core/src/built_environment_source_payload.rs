@@ -850,7 +850,8 @@ mod tests {
         );
         assert_eq!(
             report.disposition,
-            PayloadVerificationDisposition::FullyVerified
+            PayloadVerificationDisposition::FullyVerified,
+            "unexpected byte verification report: {report:#?}"
         );
         assert_eq!(report.verified_count, 1);
         assert_eq!(
