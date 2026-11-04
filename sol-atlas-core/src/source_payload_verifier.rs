@@ -1205,6 +1205,45 @@ mod tests {
     }
 
     #[test]
+    fn byte_pass_does_not_upgrade_case_with_missing_source_descriptor() {
+        let bytes = b"declared evidence bytes";
+        let mut case = test_case(bytes);
+        case.evidence.push(EvidenceRecord {
+            evidence_id: "evidence-002".into(),
+            subject_id: "design-002".into(),
+            field_path: "material.lot".into(),
+            source_id: "supplier-registry".into(),
+            source_payload_sha256: Some("f".repeat(64)),
+            evidence_state: EvidenceState::Verified,
+            data_rights: DataRights::PublicDomain,
+            license_id: Some("CC0-1.0".into()),
+            jurisdiction: "synthetic-jurisdiction".into(),
+            observed_at_unix_seconds: Some(1_762_000_001),
+        });
+        let catalog = catalog(&case, descriptor(bytes));
+        let result = verify_catalog_payload_bytes(
+            &case,
+            &catalog,
+            &context(),
+            |_reference| Ok(Cursor::new(bytes.to_vec())),
+        );
+
+        assert_eq!(
+            result.disposition,
+            PayloadByteCatalogDisposition::AllDeclaredPayloadReferencesVerified
+        );
+        assert_eq!(result.verified_count, 1);
+        assert_eq!(result.descriptor_count, 1);
+        assert_eq!(result.descriptor_missing_count, 1);
+        assert_eq!(
+            result.descriptor_validation_disposition,
+            "incomplete_or_indeterminate"
+        );
+        assert_eq!(result.no_impact_eligibility, "none");
+        assert_eq!(result.action_authority, "none");
+    }
+
+    #[test]
     fn descriptor_validation_findings_are_preserved_in_byte_report() {
         let bytes = b"actual source payload";
         let case = test_case(bytes);
