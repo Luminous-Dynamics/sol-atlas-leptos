@@ -1,0 +1,24 @@
+{
+  "schema_version": "luminous.heritage-routing-report.v0.1",
+  "request_id": "route-request-negative-001",
+  "disposition": "abstain_no_qualified_profile",
+  "selected_profile_id": null,
+  "selected_representation_transform_sha256": null,
+  "selected_model_build_sha256": null,
+  "selected_worst_site_primary_metric_utility_lower_bound": null,
+  "selected_worst_site_precision_lower_bound": null,
+  "selected_worst_site_false_candidates_per_km2": null,
+  "candidate_profile_count": 1,
+  "qualified_profile_count": 0,
+  "rejected_profiles": [
+    {
+      "profile_id": "unsupported-context",
+      "reasons": [
+        "landscape_context_mismatch"
+      ]
+    }
+  ],
+  "outer_test_data_used_for_selection": false,
+  "silent_fallback_performed": false,
+  "archaeological_identification_claimed": false
+}
