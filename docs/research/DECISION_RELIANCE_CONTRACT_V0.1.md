@@ -71,6 +71,29 @@ A backdated source correction recorded after the decision but before the evaluat
 
 Change events are bound to explicit affected proof IDs. Rights revocation must affect a rights proof; actor-authority expiry must affect an authority proof; key revocation must affect an attestation-trust proof. An incorrectly typed event is invalid. Events with unverified trust are not used as trusted invalidations and instead leave the result insufficient.
 
+## Industry baseline and where to differentiate
+
+Do not claim that digital-twin federation, traceability, or operational ontologies are new. The standards and commercial baseline is already substantive:
+
+- **ISO 23247-6:2026** explicitly defines integrated, unified and federated digital-twin composition, including interoperability among twins produced by different vendors and organizations. Sol-Atlas should be composition-compatible and make the evidence and reliance state independently checkable across the composed view.
+- **NIST IR 8536 (final, September 2026)** supplies an industry-neutral manufacturing traceability meta-framework for linking and querying cross-sector provenance, cryptographically verifiable links and selective disclosure while allowing existing sector standards to remain in use. This is a foundation to compose with, not a novelty claim.
+- **buildingSMART IDS** remains a concrete standards-conformance baseline. Its 2026 survey received 186 responses; 131 respondents (70%) wanted some form of IDS software certification, and respondents reported cases where the same IDS file produced different checker results. A stronger comparison must measure cross-implementation semantic agreement, unsupported-feature refusal and reason-code determinism—not simply whether an IFC file imports.
+- **Bentley iTwin** exposes synchronization/export, changed-element review, schedules, reality data, validation/clash detection and workflow automation. The assurance-layer comparison is whether the exact source exports, mappings, assumptions and change conclusions can be independently replayed and scope-qualified.
+- **Palantir Ontology** already combines objects, links, actions, functions and dynamic security over integrated digital assets. Luminous should not claim to invent an operational ontology; it should show portable proof receipts and independently reviewable reliance without forcing all counterparties to move into one centralized operational repository.
+- **Siemens Digital Twin Composer**, unveiled at CES 2026, targets real-time product/plant/factory contexts, large-scale simulation, virtual commissioning and autonomous robot training. The decision-reliance layer should consume and qualify the outputs of such specialized systems rather than pretending to replace their simulators.
+
+The fair competitive experiment is matched-scope and multi-dimensional. Freeze the same source snapshot, exportable relationships, purpose, jurisdiction, evaluator time, hardware and compute budget. Count inaccessible vendor-native relationships as `unassessed`, not as missing. Compare:
+1. native identity and schema fidelity;
+2. source/relationship coverage against an independent gold inventory;
+3. source byte and attestation verification;
+4. decision reliance classification against an independent bitemporal oracle;
+5. missed invalidations and false reliable outcomes;
+6. revalidation latency and avoidable recomputation;
+7. proof/report byte size, memory, throughput and operational burden;
+8. refusal quality for unknown, unsupported and untrusted evidence.
+
+A credible P0 advantage is zero false-reliance outcomes and zero missed required invalidations on frozen corpora. A P1 advantage is lower end-to-end revalidation cost while retaining those gates on 10–100,000 node/decision strata and held-out project/source-system combinations. We must not advertise a commercial head-to-head until exact vendor versions, comparable export scope, configurations and raw artifacts have actually been run.
+
 ## Ownership and non-claims
 
 This is a reference fold, not a replacement for upstream proof providers:
