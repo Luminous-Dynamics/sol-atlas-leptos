@@ -1,0 +1,29 @@
+{
+  "schema_version": "luminous.heritage-metrology.v0.1",
+  "aggregation_id": "synthetic-wall-plan-area",
+  "measurand": "disjoint_plan_footprint_area",
+  "disjointness_receipt_ref": "gis-union://synthetic/disjointness",
+  "components": [
+    {
+      "observation_id": "stone-1-plan",
+      "area_m2": 1.0,
+      "independent_standard_uncertainty_m2": 0.1
+    },
+    {
+      "observation_id": "stone-2-plan",
+      "area_m2": 2.0,
+      "independent_standard_uncertainty_m2": 0.2
+    }
+  ],
+  "shared_factors": [
+    {
+      "factor_id": "ortho-scale",
+      "standard_uncertainty": 0.5,
+      "component_sensitivities": [
+        { "observation_id": "stone-1-plan", "sensitivity": 1.0 },
+        { "observation_id": "stone-2-plan", "sensitivity": 1.0 }
+      ]
+    }
+  ],
+  "factor_correlation_matrix": [[1.0]]
+}
