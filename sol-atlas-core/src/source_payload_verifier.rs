@@ -117,6 +117,15 @@ pub struct PayloadByteCatalogReport {
     pub no_impact_eligibility: String,
 }
 
+struct PayloadByteReportContext<'a> {
+    case_id: &'a str,
+    catalog: &'a SourceDescriptorCatalog,
+    verification_context: &'a PayloadByteVerificationContext,
+    case_sha256: String,
+    catalog_sha256: String,
+    descriptor_validation: &'a DescriptorValidation,
+}
+
 /// Verify one exact descriptor payload using a stream already resolved by the
 /// caller. The stream is read in fixed-size chunks and is never buffered whole.
 ///
@@ -314,16 +323,16 @@ pub fn verify_descriptor_payload_stream<R: Read>(
             "recomputed payload SHA-256 differs from the descriptor's expected digest",
         ));
     }
-    if let Some(expected_length) = payload.byte_length {
-        if expected_length != bytes_read {
-            mismatch = true;
-            findings.push(finding(
-                "invalid",
-                "SOURCE_PAYLOAD_BYTE_LENGTH_MISMATCH",
-                record_key,
-                "recomputed payload byte length differs from the descriptor's expected length",
-            ));
-        }
+    if let Some(expected_length) = payload.byte_length
+        && expected_length != bytes_read
+    {
+        mismatch = true;
+        findings.push(finding(
+            "invalid",
+            "SOURCE_PAYLOAD_BYTE_LENGTH_MISMATCH",
+            record_key,
+            "recomputed payload byte length differs from the descriptor's expected length",
+        ));
     }
     if mismatch {
         let status = if actual_sha256 != expected_sha256 {
@@ -416,12 +425,14 @@ where
             .is_some_and(|digest| !valid_sha256(digest));
     if invalid_verifier_context {
         return catalog_report(
-            &case.case_id,
-            catalog,
-            context,
-            case_sha256,
-            catalog_sha256,
-            &descriptor_validation,
+            PayloadByteReportContext {
+                case_id: &case.case_id,
+                catalog,
+                verification_context: context,
+                case_sha256,
+                catalog_sha256,
+                descriptor_validation: &descriptor_validation,
+            },
             Vec::new(),
             report_findings,
         );
@@ -435,12 +446,14 @@ where
             "invalid descriptor catalogue was rejected before any payload object was opened",
         ));
         return catalog_report(
-            &case.case_id,
-            catalog,
-            context,
-            case_sha256,
-            catalog_sha256,
-            &descriptor_validation,
+            PayloadByteReportContext {
+                case_id: &case.case_id,
+                catalog,
+                verification_context: context,
+                case_sha256,
+                catalog_sha256,
+                descriptor_validation: &descriptor_validation,
+            },
             Vec::new(),
             report_findings,
         );
@@ -500,27 +513,32 @@ where
 
     records.sort_by(|left, right| left.record_key.cmp(&right.record_key));
     catalog_report(
-        &case.case_id,
-        catalog,
-        context,
-        case_sha256,
-        catalog_sha256,
-        &descriptor_validation,
+        PayloadByteReportContext {
+            case_id: &case.case_id,
+            catalog,
+            verification_context: context,
+            case_sha256,
+            catalog_sha256,
+            descriptor_validation: &descriptor_validation,
+        },
         records,
         report_findings,
     )
 }
 
 fn catalog_report(
-    case_id: &str,
-    catalog: &SourceDescriptorCatalog,
-    context: &PayloadByteVerificationContext,
-    case_sha256: String,
-    catalog_sha256: String,
-    descriptor_validation: &DescriptorValidation,
+    binding: PayloadByteReportContext<'_>,
     records: Vec<PayloadByteRecordResult>,
     findings: BTreeSet<PayloadByteFinding>,
 ) -> PayloadByteCatalogReport {
+    let PayloadByteReportContext {
+        case_id,
+        catalog,
+        verification_context,
+        case_sha256,
+        catalog_sha256,
+        descriptor_validation,
+    } = binding;
     let verified_count = records
         .iter()
         .filter(|record| record.status == PayloadByteStatus::Verified)
@@ -568,16 +586,16 @@ fn catalog_report(
         PayloadByteCatalogDisposition::AllResolvablePayloadsVerified
     };
 
-    let report = PayloadByteCatalogReport {
+    PayloadByteCatalogReport {
         schema_version: VERIFIER_SCHEMA.into(),
         disposition,
         case_id: case_id.to_owned(),
         case_representation_sha256: case_sha256,
         catalog_id: catalog.catalog_id.clone(),
         catalog_representation_sha256: catalog_sha256,
-        verifier_build_sha256: context.verifier_build_sha256.clone(),
-        verified_at_utc: context.verified_at_utc.clone(),
-        max_bytes_per_payload: context.max_bytes_per_payload,
+        verifier_build_sha256: verification_context.verifier_build_sha256.clone(),
+        verified_at_utc: verification_context.verified_at_utc.clone(),
+        max_bytes_per_payload: verification_context.max_bytes_per_payload,
         descriptor_validation_disposition: descriptor_validation.disposition.as_str().into(),
         descriptor_validation_findings: descriptor_validation.findings.clone(),
         descriptor_count: catalog.descriptors.len(),
@@ -596,8 +614,7 @@ fn catalog_report(
         engineering_correctness: "not_performed".into(),
         action_authority: "none".into(),
         no_impact_eligibility: "none".into(),
-    };
-    report
+    }
 }
 
 fn unavailable_result(
