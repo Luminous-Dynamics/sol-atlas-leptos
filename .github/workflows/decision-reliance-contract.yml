@@ -1,0 +1,103 @@
+name: Decision reliance receipt and temporal oracle qualification
+
+on:
+  pull_request:
+    paths:
+      - "sol-atlas-core/src/decision_reliance.rs"
+      - "sol-atlas-core/src/lib.rs"
+      - "sol-atlas-core/Cargo.toml"
+      - "sol-atlas-core/Cargo.lock"
+      - "schemas/decision-reliance-receipt-v0.1.schema.json"
+      - "schemas/examples/decision-reliance-temporal-corpus-synthetic-v0.1.json"
+      - ".github/workflows/decision-reliance-contract.yml"
+  push:
+    branches:
+      - main
+      - research/decision-reliance-contract-v0-1
+    paths:
+      - "sol-atlas-core/src/decision_reliance.rs"
+      - "sol-atlas-core/src/lib.rs"
+      - "sol-atlas-core/Cargo.toml"
+      - "sol-atlas-core/Cargo.lock"
+      - "schemas/decision-reliance-receipt-v0.1.schema.json"
+      - "schemas/examples/decision-reliance-temporal-corpus-synthetic-v0.1.json"
+      - ".github/workflows/decision-reliance-contract.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: decision-reliance-contract-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  decision-reliance:
+    name: Exact-head Rust reference oracle and receipt contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout immutable source revision
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Assert exact checked-out revision
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+
+      - name: Install stable Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Format, lint and run reference oracle tests
+        run: |
+          set -euo pipefail
+          manifest=sol-atlas-core/Cargo.toml
+          cargo fmt --manifest-path "$manifest" --check
+          cargo clippy --manifest-path "$manifest" --locked --all-targets -- -D warnings
+          cargo test --manifest-path "$manifest" --locked decision_reliance
+
+      - name: Install pinned Draft 2020-12 schema validator
+        run: cargo install --locked jsonschema-cli --version 0.60.2 --root "$RUNNER_TEMP/jsonschema-cli"
+
+      - name: Validate receipt schema and frozen temporal corpus
+        run: |
+          set -euo pipefail
+          echo "$RUNNER_TEMP/jsonschema-cli/bin" >> "$GITHUB_PATH"
+          export PATH="$RUNNER_TEMP/jsonschema-cli/bin:$PATH"
+          schema=schemas/decision-reliance-receipt-v0.1.schema.json
+          corpus=schemas/examples/decision-reliance-temporal-corpus-synthetic-v0.1.json
+          meta_schema="$RUNNER_TEMP/draft-2020-12-meta-schema.json"
+
+          curl --fail --location --retry 5 --retry-connrefused \
+            https://json-schema.org/draft/2020-12/schema -o "$meta_schema"
+          jsonschema-cli validate --draft 2020 --assert-format "$meta_schema" -i "$schema"
+
+          jq -e '
+            .schema_version == "luminous.decision-reliance-temporal-corpus.v0.1" and
+            .synthetic_only == true and
+            (.scenarios | length) == 8 and
+            ([.scenarios[].required_proof_classes[]] | unique | length) == 11 and
+            ([.scenarios[] | select(
+              (.purpose != "engineering_review") or
+              (.jurisdiction != "synthetic-jurisdiction") or
+              (.scope_subjects != ["design-001"]) or
+              ((.proofs | length) != 11) or
+              ([.proofs[].applicable_purposes[]] | unique) != ["engineering_review"] or
+              ([.proofs[].jurisdiction] | unique) != ["synthetic-jurisdiction"] or
+              ([.proofs[].scope_subjects[]] | unique) != ["design-001"]
+            )] | length) == 0
+          ' "$corpus"
+
+          jq -e '
+            ([.proofs[].proof_class] | unique | length) == 11 and
+            ([.proofs[].proof_id] | unique | length) == (.proofs | length) and
+            ([.required_proof_classes[]] - [.proofs[].proof_class] | length) == 0 and
+            .claim_ceiling == "decision_reliance_assessment_only" and
+            .action_authority == "none"
+          ' <(jq -n --argjson proofs "$(jq -c '.scenarios[0].proofs' "$corpus")" \
+                   --argjson required "$(jq -c '.scenarios[0].required_proof_classes' "$corpus")" \
+                   '{proofs:$proofs,required_proof_classes:$required,claim_ceiling:"decision_reliance_assessment_only",action_authority:"none"}')
