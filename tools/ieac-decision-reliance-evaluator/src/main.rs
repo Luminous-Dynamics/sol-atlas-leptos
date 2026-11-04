@@ -3,6 +3,9 @@
 
 //! Bitemporal decision-reliance receipt composer.
 //!
+//! This command reports decision-time knowledge, retrospective decision-time
+//! validity, and present-day reliance as three separate temporal assessments.
+//!
 //! This package composes normalized outputs from existing assurance authorities.
 //! It does not authenticate their receipts, traverse dependency graphs, verify
 //! engineering calculations, adjudicate rights, or authorize action.
