@@ -18,6 +18,8 @@
     "descriptor_validation_disposition",
     "descriptor_validation_findings",
     "descriptor_count",
+    "descriptor_extra_count",
+    "descriptor_missing_count",
     "verified_count",
     "unavailable_count",
     "read_failed_count",
@@ -42,7 +44,7 @@
     },
     "disposition": {
       "enum": [
-        "all_resolvable_payloads_verified",
+        "all_declared_payload_references_verified",
         "incomplete_or_indeterminate",
         "invalid_input"
       ]
@@ -244,6 +246,14 @@
       "minimum": 0
     },
     "incomplete_finding_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "descriptor_missing_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "descriptor_extra_count": {
       "type": "integer",
       "minimum": 0
     }
