@@ -659,8 +659,8 @@ mod tests {
     };
     use crate::built_environment_source_descriptor::{
         NativeIdentityComponent, SourceAttestationDescriptor, SourceObservationTime,
-        SourcePayloadDescriptor, SourceRecordDescriptor, SourceRightsDescriptor,
-        SourceRightsState, SourceSnapshotDescriptor,
+        SourcePayloadDescriptor, SourceRecordDescriptor, SourceRightsDescriptor, SourceRightsState,
+        SourceSnapshotDescriptor,
     };
     use std::collections::BTreeMap;
     use std::io::Cursor;
@@ -850,10 +850,19 @@ mod tests {
             &limits(),
             &mut resolver,
         );
-        assert_eq!(report.disposition, PayloadVerificationDisposition::FullyVerified);
+        assert_eq!(
+            report.disposition,
+            PayloadVerificationDisposition::FullyVerified
+        );
         assert_eq!(report.verified_count, 1);
-        assert_eq!(report.records[0].observed_sha256.as_deref(), Some(sha256(bytes).as_str()));
-        assert_eq!(report.records[0].observed_byte_length, Some(bytes.len() as u64));
+        assert_eq!(
+            report.records[0].observed_sha256.as_deref(),
+            Some(sha256(bytes).as_str())
+        );
+        assert_eq!(
+            report.records[0].observed_byte_length,
+            Some(bytes.len() as u64)
+        );
         assert_eq!(report.action_authority, "none");
         assert_eq!(report.source_owner_authentication, "not_performed");
         assert!(valid_sha256(&report.report_sha256));
@@ -876,8 +885,14 @@ mod tests {
             &limits(),
             &mut resolver,
         );
-        assert_eq!(report.disposition, PayloadVerificationDisposition::InvalidInput);
-        assert_eq!(report.records[0].disposition, PayloadByteDisposition::DigestMismatch);
+        assert_eq!(
+            report.disposition,
+            PayloadVerificationDisposition::InvalidInput
+        );
+        assert_eq!(
+            report.records[0].disposition,
+            PayloadByteDisposition::DigestMismatch
+        );
     }
 
     #[test]
@@ -897,8 +912,14 @@ mod tests {
             &limits(),
             &mut resolver,
         );
-        assert_eq!(report.disposition, PayloadVerificationDisposition::InvalidInput);
-        assert_eq!(report.records[0].disposition, PayloadByteDisposition::ByteLengthMismatch);
+        assert_eq!(
+            report.disposition,
+            PayloadVerificationDisposition::InvalidInput
+        );
+        assert_eq!(
+            report.records[0].disposition,
+            PayloadByteDisposition::ByteLengthMismatch
+        );
     }
 
     #[test]
@@ -915,8 +936,14 @@ mod tests {
             &limits(),
             &mut resolver,
         );
-        assert_eq!(report.disposition, PayloadVerificationDisposition::IncompleteOrIndeterminate);
-        assert_eq!(report.records[0].disposition, PayloadByteDisposition::ObjectNotFound);
+        assert_eq!(
+            report.disposition,
+            PayloadVerificationDisposition::IncompleteOrIndeterminate
+        );
+        assert_eq!(
+            report.records[0].disposition,
+            PayloadByteDisposition::ObjectNotFound
+        );
     }
 
     #[test]
@@ -937,8 +964,14 @@ mod tests {
             &limits(),
             &mut resolver,
         );
-        assert_eq!(report.disposition, PayloadVerificationDisposition::IncompleteOrIndeterminate);
-        assert_eq!(report.records[0].disposition, PayloadByteDisposition::ReadFailed);
+        assert_eq!(
+            report.disposition,
+            PayloadVerificationDisposition::IncompleteOrIndeterminate
+        );
+        assert_eq!(
+            report.records[0].disposition,
+            PayloadByteDisposition::ReadFailed
+        );
     }
 
     #[test]
@@ -981,15 +1014,16 @@ mod tests {
             max_bytes_per_payload: 10,
             max_total_bytes: 1024,
         };
-        let report = verify_source_descriptor_payloads(
-            &case,
-            &catalog,
-            &context(),
-            &limited,
-            &mut resolver,
+        let report =
+            verify_source_descriptor_payloads(&case, &catalog, &context(), &limited, &mut resolver);
+        assert_eq!(
+            report.disposition,
+            PayloadVerificationDisposition::IncompleteOrIndeterminate
         );
-        assert_eq!(report.disposition, PayloadVerificationDisposition::IncompleteOrIndeterminate);
-        assert_eq!(report.records[0].disposition, PayloadByteDisposition::ByteLimitExceeded);
+        assert_eq!(
+            report.records[0].disposition,
+            PayloadByteDisposition::ByteLimitExceeded
+        );
         assert_eq!(report.records[0].bytes_read, 11);
     }
 
@@ -1008,7 +1042,10 @@ mod tests {
             &limits(),
             &mut resolver,
         );
-        assert_eq!(report.disposition, PayloadVerificationDisposition::InvalidInput);
+        assert_eq!(
+            report.disposition,
+            PayloadVerificationDisposition::InvalidInput
+        );
         assert_eq!(resolver.open_count, 0);
         assert_eq!(
             report.records[0].disposition,
@@ -1033,8 +1070,14 @@ mod tests {
             &limits(),
             &mut resolver,
         );
-        assert_eq!(report.disposition, PayloadVerificationDisposition::IncompleteOrIndeterminate);
-        assert_eq!(report.records[0].disposition, PayloadByteDisposition::Verified);
+        assert_eq!(
+            report.disposition,
+            PayloadVerificationDisposition::IncompleteOrIndeterminate
+        );
+        assert_eq!(
+            report.records[0].disposition,
+            PayloadByteDisposition::Verified
+        );
     }
 
     #[test]
@@ -1042,7 +1085,8 @@ mod tests {
         let bytes = b"owner attested";
         let case = case();
         let mut catalog = catalog(&case, bytes);
-        catalog.descriptors[0].source_payload.digest_basis = PayloadDigestBasis::SourceOwnerAttested;
+        catalog.descriptors[0].source_payload.digest_basis =
+            PayloadDigestBasis::SourceOwnerAttested;
         catalog.descriptors[0].source_payload.bytes_retrieved = false;
         catalog.descriptors[0].source_payload.payload_object_ref = None;
         let mut resolver = MemoryResolver::default();
@@ -1054,9 +1098,15 @@ mod tests {
             &limits(),
             &mut resolver,
         );
-        assert_eq!(report.disposition, PayloadVerificationDisposition::IncompleteOrIndeterminate);
+        assert_eq!(
+            report.disposition,
+            PayloadVerificationDisposition::IncompleteOrIndeterminate
+        );
         assert_eq!(resolver.open_count, 0);
-        assert_eq!(report.records[0].disposition, PayloadByteDisposition::BytesUnavailable);
+        assert_eq!(
+            report.records[0].disposition,
+            PayloadByteDisposition::BytesUnavailable
+        );
     }
 
     #[test]
@@ -1064,7 +1114,8 @@ mod tests {
         let bytes = b"owner attested but independently available";
         let case = case();
         let mut catalog = catalog(&case, bytes);
-        catalog.descriptors[0].source_payload.digest_basis = PayloadDigestBasis::SourceOwnerAttested;
+        catalog.descriptors[0].source_payload.digest_basis =
+            PayloadDigestBasis::SourceOwnerAttested;
         catalog.descriptors[0].source_payload.bytes_retrieved = false;
         let reference = format!("cas:sha256:{}", sha256(bytes));
         catalog.descriptors[0].source_payload.payload_object_ref = Some(reference.clone());
@@ -1078,7 +1129,10 @@ mod tests {
             &limits(),
             &mut resolver,
         );
-        assert_eq!(report.records[0].disposition, PayloadByteDisposition::Verified);
+        assert_eq!(
+            report.records[0].disposition,
+            PayloadByteDisposition::Verified
+        );
         assert_eq!(report.source_attestation_authentication, "not_performed");
     }
 
@@ -1101,9 +1155,15 @@ mod tests {
             &limits(),
             &mut resolver,
         );
-        assert_eq!(report.disposition, PayloadVerificationDisposition::IncompleteOrIndeterminate);
+        assert_eq!(
+            report.disposition,
+            PayloadVerificationDisposition::IncompleteOrIndeterminate
+        );
         assert_eq!(resolver.open_count, 0);
-        assert_eq!(report.records[0].disposition, PayloadByteDisposition::BytesUnavailable);
+        assert_eq!(
+            report.records[0].disposition,
+            PayloadByteDisposition::BytesUnavailable
+        );
     }
 
     #[test]
@@ -1122,7 +1182,10 @@ mod tests {
             &limits(),
             &mut resolver,
         );
-        assert_eq!(report.disposition, PayloadVerificationDisposition::FullyVerified);
+        assert_eq!(
+            report.disposition,
+            PayloadVerificationDisposition::FullyVerified
+        );
         assert_eq!(report.records[0].observed_byte_length, Some(0));
     }
 }
