@@ -693,6 +693,27 @@ pub fn validate_semantic_transformation_receipt(
 
     validate_artifact(&receipt.source, "source", &mut findings);
     validate_artifact(&receipt.target, "target", &mut findings);
+    if receipt.source_inventory.is_empty() {
+        findings.invalid(
+            "SOURCE_SEMANTIC_INVENTORY_EMPTY",
+            "source_inventory",
+            "a transformation receipt must enumerate at least one source semantic item",
+        );
+    }
+    if receipt.target_inventory.is_empty() {
+        findings.invalid(
+            "TARGET_SEMANTIC_INVENTORY_EMPTY",
+            "target_inventory",
+            "a transformation receipt must enumerate at least one target semantic item",
+        );
+    }
+    if receipt.mappings.is_empty() {
+        findings.indeterminate(
+            "SEMANTIC_MAPPING_INVENTORY_EMPTY",
+            "mappings",
+            "no source-to-target semantic mappings were supplied",
+        );
+    }
 
     for (field, value) in [
         ("implementation_id", receipt.implementation.implementation_id.as_str()),
@@ -1297,6 +1318,20 @@ mod tests {
         assert_eq!(result.claim_ceiling, "mapping_integrity_only");
         assert!(result.findings.iter().any(|finding| {
             finding.code == "ORACLE_RESULT_NOT_AUTHENTICATED_HERE"
+        }));
+    }
+
+    #[test]
+    fn empty_semantic_inventory_is_invalid_even_without_schema_validation() {
+        let mut value = receipt();
+        value.source_inventory.clear();
+        let result = validate_semantic_transformation_receipt(&value);
+        assert_eq!(
+            result.disposition,
+            TransformationReceiptDisposition::InvalidReceipt
+        );
+        assert!(result.findings.iter().any(|finding| {
+            finding.code == "SOURCE_SEMANTIC_INVENTORY_EMPTY"
         }));
     }
 
