@@ -331,9 +331,8 @@ fn verify_one<R: ContentAddressedPayloadResolver>(
     ) {
         let expected_ref = expected_cas_reference(expected_sha256);
         if payload.payload_object_ref.as_deref() != Some(expected_ref.as_str()) {
-            result.detail = Some(
-                "content-addressed reference does not bind the exact expected SHA-256".into(),
-            );
+            result.detail =
+                Some("content-addressed reference does not bind the exact expected SHA-256".into());
             return result;
         }
     }
@@ -356,9 +355,7 @@ fn verify_one<R: ContentAddressedPayloadResolver>(
         return result;
     }
 
-    let max_for_payload = limits
-        .max_bytes_per_payload
-        .min(remaining_total_budget);
+    let max_for_payload = limits.max_bytes_per_payload.min(remaining_total_budget);
     result.resolver_open_attempted = true;
     let reader = match resolver.open(descriptor) {
         Ok(reader) => reader,
@@ -379,11 +376,7 @@ fn verify_one<R: ContentAddressedPayloadResolver>(
         }
     };
 
-    match hash_bounded_reader(
-        reader,
-        max_for_payload,
-        limits.buffer_size_bytes,
-    ) {
+    match hash_bounded_reader(reader, max_for_payload, limits.buffer_size_bytes) {
         StreamHashOutcome::Complete {
             sha256,
             byte_length,
@@ -402,9 +395,7 @@ fn verify_one<R: ContentAddressedPayloadResolver>(
                 (true, true) => PayloadByteVerificationDisposition::VerifiedMatch,
                 (false, true) => PayloadByteVerificationDisposition::DigestMismatch,
                 (true, false) => PayloadByteVerificationDisposition::ByteLengthMismatch,
-                (false, false) => {
-                    PayloadByteVerificationDisposition::DigestAndByteLengthMismatch
-                }
+                (false, false) => PayloadByteVerificationDisposition::DigestAndByteLengthMismatch,
             };
             if !digest_matches {
                 result.detail = Some("recomputed SHA-256 differs from descriptor claim".into());
@@ -483,11 +474,8 @@ pub fn verify_source_descriptor_catalog_payloads<R: ContentAddressedPayloadResol
 
     if validation.disposition != DescriptorDisposition::InvalidInput && limits_valid {
         let mut descriptors = catalog.descriptors.iter().collect::<Vec<_>>();
-        descriptors.sort_by_key(|descriptor| {
-            descriptor
-                .record_kind
-                .case_key(&descriptor.case_record_id)
-        });
+        descriptors
+            .sort_by_key(|descriptor| descriptor.record_kind.case_key(&descriptor.case_record_id));
 
         for descriptor in descriptors {
             let remaining = limits.max_total_bytes.saturating_sub(total_bytes_hashed);
@@ -514,8 +502,7 @@ pub fn verify_source_descriptor_catalog_payloads<R: ContentAddressedPayloadResol
         }
         let can_be_resolved_by_byte_rehash = matches!(
             finding.code.as_str(),
-            "SOURCE_PAYLOAD_DIGEST_NOT_LOCALLY_REVERIFIED"
-                | "EXTERNAL_PAYLOAD_BYTES_NOT_RETRIEVED"
+            "SOURCE_PAYLOAD_DIGEST_NOT_LOCALLY_REVERIFIED" | "EXTERNAL_PAYLOAD_BYTES_NOT_RETRIEVED"
         );
         !(can_be_resolved_by_byte_rehash
             && verified_record_keys.contains(finding.record_key.as_str()))
@@ -847,7 +834,11 @@ mod tests {
         let catalog = catalog(&case, descriptor.clone());
         let mut resolver = MemoryResolver::default();
         resolver.objects.insert(
-            descriptor.source_payload.payload_object_ref.clone().unwrap(),
+            descriptor
+                .source_payload
+                .payload_object_ref
+                .clone()
+                .unwrap(),
             bytes.to_vec(),
         );
 
@@ -902,9 +893,13 @@ mod tests {
             PayloadCatalogVerificationDisposition::AllAvailablePayloadsVerified
         );
         assert_eq!(report.verified_payload_count, 1);
-        assert!(report.catalog_validation.findings.iter().any(|finding| {
-            finding.code == "SOURCE_PAYLOAD_DIGEST_NOT_LOCALLY_REVERIFIED"
-        }));
+        assert!(
+            report
+                .catalog_validation
+                .findings
+                .iter()
+                .any(|finding| { finding.code == "SOURCE_PAYLOAD_DIGEST_NOT_LOCALLY_REVERIFIED" })
+        );
         assert_eq!(report.rights_authentication, "not_performed");
         assert_eq!(report.source_attestation_authentication, "not_performed");
     }
@@ -918,7 +913,11 @@ mod tests {
         let catalog = catalog(&case, descriptor.clone());
         let mut resolver = MemoryResolver::default();
         resolver.objects.insert(
-            descriptor.source_payload.payload_object_ref.clone().unwrap(),
+            descriptor
+                .source_payload
+                .payload_object_ref
+                .clone()
+                .unwrap(),
             bytes.to_vec(),
         );
 
@@ -930,7 +929,10 @@ mod tests {
             "2026-11-04T10:03:00Z",
             Some(digest(b"verifier-build")),
         );
-        assert_eq!(report.disposition, PayloadCatalogVerificationDisposition::InvalidInput);
+        assert_eq!(
+            report.disposition,
+            PayloadCatalogVerificationDisposition::InvalidInput
+        );
         assert_eq!(
             report.payload_results[0].disposition,
             PayloadByteVerificationDisposition::ByteLengthMismatch
@@ -946,7 +948,11 @@ mod tests {
         let catalog = catalog(&case, descriptor.clone());
         let mut resolver = MemoryResolver::default();
         resolver.objects.insert(
-            descriptor.source_payload.payload_object_ref.clone().unwrap(),
+            descriptor
+                .source_payload
+                .payload_object_ref
+                .clone()
+                .unwrap(),
             observed.to_vec(),
         );
 
@@ -958,7 +964,10 @@ mod tests {
             "2026-11-04T10:03:00Z",
             None,
         );
-        assert_eq!(report.disposition, PayloadCatalogVerificationDisposition::InvalidInput);
+        assert_eq!(
+            report.disposition,
+            PayloadCatalogVerificationDisposition::InvalidInput
+        );
         assert_eq!(
             report.payload_results[0].disposition,
             PayloadByteVerificationDisposition::DigestMismatch
@@ -973,7 +982,11 @@ mod tests {
         let catalog = catalog(&case, descriptor.clone());
         let mut resolver = MemoryResolver::default();
         resolver.objects.insert(
-            descriptor.source_payload.payload_object_ref.clone().unwrap(),
+            descriptor
+                .source_payload
+                .payload_object_ref
+                .clone()
+                .unwrap(),
             bytes.to_vec(),
         );
         let mut configured = limits();
@@ -1009,7 +1022,11 @@ mod tests {
         catalog.case_representation_sha256 = digest(b"different case bytes");
         let mut resolver = MemoryResolver::default();
         resolver.objects.insert(
-            descriptor.source_payload.payload_object_ref.clone().unwrap(),
+            descriptor
+                .source_payload
+                .payload_object_ref
+                .clone()
+                .unwrap(),
             bytes.to_vec(),
         );
 
@@ -1021,7 +1038,10 @@ mod tests {
             "2026-11-04T10:03:00Z",
             None,
         );
-        assert_eq!(report.disposition, PayloadCatalogVerificationDisposition::InvalidInput);
+        assert_eq!(
+            report.disposition,
+            PayloadCatalogVerificationDisposition::InvalidInput
+        );
         assert_eq!(resolver.open_count, 0);
         assert!(report.payload_results.is_empty());
     }
