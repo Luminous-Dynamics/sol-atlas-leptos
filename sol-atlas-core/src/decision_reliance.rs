@@ -1073,6 +1073,61 @@ mod tests {
         }
     }
 
+    #[derive(Deserialize)]
+    struct SyntheticTemporalCorpus {
+        schema_version: String,
+        scenarios: Vec<SyntheticRelianceScenario>,
+    }
+
+    #[derive(Deserialize)]
+    struct SyntheticRelianceScenario {
+        scenario_id: String,
+        decision_time: String,
+        evaluation_time: String,
+        required_proof_classes: Vec<DecisionRelianceProofClass>,
+        proofs: Vec<DecisionRelianceProof>,
+        change_events: Vec<DecisionRelianceChangeEvent>,
+        expected_outcome: DecisionRelianceOutcome,
+        expected_late_arriving_events: Option<usize>,
+    }
+
+    #[test]
+    fn frozen_synthetic_temporal_corpus_matches_reference_oracle() {
+        let corpus: SyntheticTemporalCorpus = serde_json::from_str(include_str!(
+            "../../schemas/examples/decision-reliance-temporal-corpus-synthetic-v0.1.json"
+        ))
+        .expect("frozen temporal corpus must deserialize");
+        assert_eq!(
+            corpus.schema_version,
+            "luminous.decision-reliance-temporal-corpus.v0.1"
+        );
+        assert_eq!(corpus.scenarios.len(), 8);
+
+        for scenario in corpus.scenarios {
+            let result = evaluate_decision_reliance_reference(
+                &scenario.decision_time,
+                &scenario.evaluation_time,
+                &scenario.required_proof_classes,
+                &scenario.proofs,
+                &scenario.change_events,
+            );
+            assert_eq!(
+                result.outcome,
+                scenario.expected_outcome,
+                "scenario {}",
+                scenario.scenario_id
+            );
+            if let Some(expected_late_arriving_events) = scenario.expected_late_arriving_events {
+                assert_eq!(
+                    result.late_arriving_change_event_count,
+                    expected_late_arriving_events,
+                    "scenario {}",
+                    scenario.scenario_id
+                );
+            }
+        }
+    }
+
     #[test]
     fn all_required_current_proofs_allow_reliance_only_for_declared_scope() {
         let result = evaluate_decision_reliance_reference(
