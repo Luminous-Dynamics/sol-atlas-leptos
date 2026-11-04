@@ -773,11 +773,12 @@ pub fn project_built_environment_case_with_descriptors(
 /// existing projection receipt.
 ///
 /// Inventory structure is necessary for bounded negative findings but is not
-/// sufficient: page payload bytes, source signatures, rights, and source truth
-/// remain unauthenticated here. Consequently this function never grants
-/// NoImpact eligibility. Invalid inventory input is fail-closed (no graph);
-/// incomplete or exclusion-bearing inventories retain only a diagnostic graph
-/// with an incomplete claim ceiling.
+/// sufficient: page payload bytes, source signatures, signer authority, rights,
+/// and source truth remain unauthenticated here. Consequently this function
+/// never grants NoImpact eligibility, even for a structurally complete closure.
+/// Invalid inventory input is fail-closed (no graph); incomplete or exclusion-
+/// bearing inventories retain only a diagnostic graph with an incomplete claim
+/// ceiling.
 pub fn qualify_projection_with_inventory(
     mut projection: ProjectionOutput,
     expected_owners: &[ExpectedSourceOwner],
