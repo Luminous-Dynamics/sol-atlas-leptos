@@ -1,0 +1,375 @@
+{
+  "schema_version": "luminous.ieac-decision-reliance-input.v0.1",
+  "assessment_id": "decision-reliance-late-correction-001",
+  "decision": {
+    "decision_id": "bridge-lining-conditional-approval-001",
+    "target_node_id": "decision:sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+    "target_artifact_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+    "decided_at": "2026-11-02T10:00:00Z",
+    "scope_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "purpose": "engineering_review"
+  },
+  "evaluated_at": "2026-11-04T11:00:00Z",
+  "required_gates": [
+    "source_coverage",
+    "native_identity",
+    "payload_integrity",
+    "source_authenticity",
+    "rights",
+    "lifecycle",
+    "impact_oracle",
+    "engineering",
+    "decision_authority"
+  ],
+  "views": {
+    "historical_knowledge": {
+      "valid_time_as_of": "2026-11-02T10:00:00Z",
+      "knowledge_cutoff_at": "2026-11-02T10:00:00Z",
+      "gate_results": [
+        {
+          "gate": "source_coverage",
+          "status": "qualified",
+          "receipt_sha256": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+          "verifier_build_sha256": "b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1",
+          "scope_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "checked_at": "2026-11-02T10:00:00Z",
+          "knowledge_available_at": "2026-11-02T10:00:00Z",
+          "valid_until": "2027-01-01T00:00:00Z",
+          "reason_codes": []
+        },
+        {
+          "gate": "native_identity",
+          "status": "qualified",
+          "receipt_sha256": "a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2",
+          "verifier_build_sha256": "b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
+          "scope_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "checked_at": "2026-11-02T10:00:00Z",
+          "knowledge_available_at": "2026-11-02T10:00:00Z",
+          "valid_until": "2027-01-01T00:00:00Z",
+          "reason_codes": []
+        },
+        {
+          "gate": "payload_integrity",
+          "status": "qualified",
+          "receipt_sha256": "a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3",
+          "verifier_build_sha256": "b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3",
+          "scope_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "checked_at": "2026-11-02T10:00:00Z",
+          "knowledge_available_at": "2026-11-02T10:00:00Z",
+          "valid_until": "2027-01-01T00:00:00Z",
+          "reason_codes": []
+        },
+        {
+          "gate": "source_authenticity",
+          "status": "qualified",
+          "receipt_sha256": "a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4",
+          "verifier_build_sha256": "b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4",
+          "scope_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "checked_at": "2026-11-02T10:00:00Z",
+          "knowledge_available_at": "2026-11-02T10:00:00Z",
+          "valid_until": "2027-01-01T00:00:00Z",
+          "reason_codes": []
+        },
+        {
+          "gate": "rights",
+          "status": "qualified",
+          "receipt_sha256": "a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5",
+          "verifier_build_sha256": "b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5",
+          "scope_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "checked_at": "2026-11-02T10:00:00Z",
+          "knowledge_available_at": "2026-11-02T10:00:00Z",
+          "valid_until": "2027-01-01T00:00:00Z",
+          "reason_codes": []
+        },
+        {
+          "gate": "lifecycle",
+          "status": "qualified",
+          "receipt_sha256": "a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6",
+          "verifier_build_sha256": "b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6",
+          "scope_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "checked_at": "2026-11-02T10:00:00Z",
+          "knowledge_available_at": "2026-11-02T10:00:00Z",
+          "valid_until": "2027-01-01T00:00:00Z",
+          "reason_codes": []
+        },
+        {
+          "gate": "impact_oracle",
+          "status": "qualified",
+          "receipt_sha256": "a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7",
+          "verifier_build_sha256": "b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7",
+          "scope_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "checked_at": "2026-11-02T10:00:00Z",
+          "knowledge_available_at": "2026-11-02T10:00:00Z",
+          "valid_until": "2027-01-01T00:00:00Z",
+          "reason_codes": []
+        },
+        {
+          "gate": "engineering",
+          "status": "qualified",
+          "receipt_sha256": "a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8",
+          "verifier_build_sha256": "b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8",
+          "scope_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "checked_at": "2026-11-02T10:00:00Z",
+          "knowledge_available_at": "2026-11-02T10:00:00Z",
+          "valid_until": "2027-01-01T00:00:00Z",
+          "reason_codes": []
+        },
+        {
+          "gate": "decision_authority",
+          "status": "qualified",
+          "receipt_sha256": "a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9",
+          "verifier_build_sha256": "b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9",
+          "scope_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "checked_at": "2026-11-02T10:00:00Z",
+          "knowledge_available_at": "2026-11-02T10:00:00Z",
+          "valid_until": "2027-01-01T00:00:00Z",
+          "reason_codes": []
+        }
+      ]
+    },
+    "retrospective_at_decision": {
+      "valid_time_as_of": "2026-11-02T10:00:00Z",
+      "knowledge_cutoff_at": "2026-11-04T11:00:00Z",
+      "gate_results": [
+        {
+          "gate": "source_coverage",
+          "status": "qualified",
+          "receipt_sha256": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+          "verifier_build_sha256": "b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1",
+          "scope_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "checked_at": "2026-11-04T11:00:00Z",
+          "knowledge_available_at": "2026-11-04T10:45:00Z",
+          "valid_until": "2027-01-01T00:00:00Z",
+          "reason_codes": []
+        },
+        {
+          "gate": "native_identity",
+          "status": "qualified",
+          "receipt_sha256": "a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2",
+          "verifier_build_sha256": "b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
+          "scope_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "checked_at": "2026-11-04T11:00:00Z",
+          "knowledge_available_at": "2026-11-04T10:45:00Z",
+          "valid_until": "2027-01-01T00:00:00Z",
+          "reason_codes": []
+        },
+        {
+          "gate": "payload_integrity",
+          "status": "failed",
+          "receipt_sha256": "a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3",
+          "verifier_build_sha256": "b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3",
+          "scope_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "checked_at": "2026-11-04T11:00:00Z",
+          "knowledge_available_at": "2026-11-04T10:45:00Z",
+          "valid_until": "2027-01-01T00:00:00Z",
+          "reason_codes": [
+            "SOURCE_CORRECTION_EFFECTIVE_BEFORE_DECISION"
+          ]
+        },
+        {
+          "gate": "source_authenticity",
+          "status": "qualified",
+          "receipt_sha256": "a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4",
+          "verifier_build_sha256": "b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4",
+          "scope_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "checked_at": "2026-11-04T11:00:00Z",
+          "knowledge_available_at": "2026-11-04T10:45:00Z",
+          "valid_until": "2027-01-01T00:00:00Z",
+          "reason_codes": []
+        },
+        {
+          "gate": "rights",
+          "status": "qualified",
+          "receipt_sha256": "a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5",
+          "verifier_build_sha256": "b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5",
+          "scope_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "checked_at": "2026-11-04T11:00:00Z",
+          "knowledge_available_at": "2026-11-04T10:45:00Z",
+          "valid_until": "2027-01-01T00:00:00Z",
+          "reason_codes": []
+        },
+        {
+          "gate": "lifecycle",
+          "status": "qualified",
+          "receipt_sha256": "a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6",
+          "verifier_build_sha256": "b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6",
+          "scope_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "checked_at": "2026-11-04T11:00:00Z",
+          "knowledge_available_at": "2026-11-04T10:45:00Z",
+          "valid_until": "2027-01-01T00:00:00Z",
+          "reason_codes": []
+        },
+        {
+          "gate": "impact_oracle",
+          "status": "failed",
+          "receipt_sha256": "a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7",
+          "verifier_build_sha256": "b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7",
+          "scope_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "checked_at": "2026-11-04T11:00:00Z",
+          "knowledge_available_at": "2026-11-04T10:45:00Z",
+          "valid_until": "2027-01-01T00:00:00Z",
+          "reason_codes": [
+            "DEPENDENT_DECISION_CLAIM_INVALIDATED"
+          ]
+        },
+        {
+          "gate": "engineering",
+          "status": "revalidation_required",
+          "receipt_sha256": "a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8",
+          "verifier_build_sha256": "b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8",
+          "scope_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "checked_at": "2026-11-04T11:00:00Z",
+          "knowledge_available_at": "2026-11-04T10:45:00Z",
+          "valid_until": "2027-01-01T00:00:00Z",
+          "reason_codes": [
+            "ENGINEERING_RECEIPT_INPUT_CORRECTED"
+          ]
+        },
+        {
+          "gate": "decision_authority",
+          "status": "qualified",
+          "receipt_sha256": "a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9",
+          "verifier_build_sha256": "b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9",
+          "scope_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "checked_at": "2026-11-04T11:00:00Z",
+          "knowledge_available_at": "2026-11-04T10:45:00Z",
+          "valid_until": "2027-01-01T00:00:00Z",
+          "reason_codes": []
+        }
+      ]
+    },
+    "current_reliance": {
+      "valid_time_as_of": "2026-11-04T11:00:00Z",
+      "knowledge_cutoff_at": "2026-11-04T11:00:00Z",
+      "gate_results": [
+        {
+          "gate": "source_coverage",
+          "status": "qualified",
+          "receipt_sha256": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+          "verifier_build_sha256": "b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1",
+          "scope_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "checked_at": "2026-11-04T11:00:00Z",
+          "knowledge_available_at": "2026-11-04T10:45:00Z",
+          "valid_until": "2027-01-01T00:00:00Z",
+          "reason_codes": []
+        },
+        {
+          "gate": "native_identity",
+          "status": "qualified",
+          "receipt_sha256": "a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2",
+          "verifier_build_sha256": "b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
+          "scope_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "checked_at": "2026-11-04T11:00:00Z",
+          "knowledge_available_at": "2026-11-04T10:45:00Z",
+          "valid_until": "2027-01-01T00:00:00Z",
+          "reason_codes": []
+        },
+        {
+          "gate": "payload_integrity",
+          "status": "failed",
+          "receipt_sha256": "a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3",
+          "verifier_build_sha256": "b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3",
+          "scope_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "checked_at": "2026-11-04T11:00:00Z",
+          "knowledge_available_at": "2026-11-04T10:45:00Z",
+          "valid_until": "2027-01-01T00:00:00Z",
+          "reason_codes": [
+            "SOURCE_CORRECTION_EFFECTIVE_BEFORE_DECISION"
+          ]
+        },
+        {
+          "gate": "source_authenticity",
+          "status": "qualified",
+          "receipt_sha256": "a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4",
+          "verifier_build_sha256": "b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4",
+          "scope_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "checked_at": "2026-11-04T11:00:00Z",
+          "knowledge_available_at": "2026-11-04T10:45:00Z",
+          "valid_until": "2027-01-01T00:00:00Z",
+          "reason_codes": []
+        },
+        {
+          "gate": "rights",
+          "status": "qualified",
+          "receipt_sha256": "a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5",
+          "verifier_build_sha256": "b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5",
+          "scope_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "checked_at": "2026-11-04T11:00:00Z",
+          "knowledge_available_at": "2026-11-04T10:45:00Z",
+          "valid_until": "2027-01-01T00:00:00Z",
+          "reason_codes": []
+        },
+        {
+          "gate": "lifecycle",
+          "status": "qualified",
+          "receipt_sha256": "a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6",
+          "verifier_build_sha256": "b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6",
+          "scope_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "checked_at": "2026-11-04T11:00:00Z",
+          "knowledge_available_at": "2026-11-04T10:45:00Z",
+          "valid_until": "2027-01-01T00:00:00Z",
+          "reason_codes": []
+        },
+        {
+          "gate": "impact_oracle",
+          "status": "failed",
+          "receipt_sha256": "a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7",
+          "verifier_build_sha256": "b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7",
+          "scope_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "checked_at": "2026-11-04T11:00:00Z",
+          "knowledge_available_at": "2026-11-04T10:45:00Z",
+          "valid_until": "2027-01-01T00:00:00Z",
+          "reason_codes": [
+            "DEPENDENT_DECISION_CLAIM_INVALIDATED"
+          ]
+        },
+        {
+          "gate": "engineering",
+          "status": "revalidation_required",
+          "receipt_sha256": "a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8",
+          "verifier_build_sha256": "b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8",
+          "scope_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "checked_at": "2026-11-04T11:00:00Z",
+          "knowledge_available_at": "2026-11-04T10:45:00Z",
+          "valid_until": "2027-01-01T00:00:00Z",
+          "reason_codes": [
+            "ENGINEERING_RECEIPT_INPUT_CORRECTED"
+          ]
+        },
+        {
+          "gate": "decision_authority",
+          "status": "qualified",
+          "receipt_sha256": "a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9",
+          "verifier_build_sha256": "b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9",
+          "scope_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "checked_at": "2026-11-04T11:00:00Z",
+          "knowledge_available_at": "2026-11-04T10:45:00Z",
+          "valid_until": "2027-01-01T00:00:00Z",
+          "reason_codes": []
+        }
+      ]
+    }
+  },
+  "temporal_events": [
+    {
+      "event_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "cause_class": "source_corrected",
+      "target_node_id": "source_measurement:sha256:1111111111111111111111111111111111111111111111111111111111111111",
+      "target_artifact_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+      "effective_at": "2026-11-01T12:00:00Z",
+      "recorded_at": "2026-11-04T10:45:00Z",
+      "trusted_at": "2026-11-04T10:50:00Z",
+      "effective_time_confidence": "verified",
+      "authority_disposition": "authenticated",
+      "impact_disposition": "affected",
+      "impact_report_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+      "scope_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+    }
+  ],
+  "limitations": [
+    "Synthetic scenario only; hashes and records are placeholders.",
+    "The composer consumes upstream gate dispositions and does not authenticate their receipts.",
+    "The composer does not recompute dependency traversal or engineering results.",
+    "No construction, operational, professional, or actuation authority is conferred."
+  ]
+}
