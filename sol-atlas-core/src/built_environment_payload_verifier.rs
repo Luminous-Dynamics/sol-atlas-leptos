@@ -554,8 +554,11 @@ pub fn verify_source_descriptor_catalog_payloads<R: ContentAddressedPayloadResol
         .count();
     let descriptor_count = catalog.descriptors.len();
     let not_attempted_count = descriptor_count.saturating_sub(results.len());
-    let payload_byte_verification = if results.iter().any(|result| result.resolver_open_attempted) {
-        "streaming_rehash_performed_for_attempted_records"
+    let payload_byte_verification = if results
+        .iter()
+        .any(|result| result.bytes_hashed > 0 || result.observed_sha256.is_some())
+    {
+        "byte_stream_rehash_performed"
     } else {
         "not_performed"
     };
@@ -782,6 +785,71 @@ mod tests {
         ) -> Result<Self::Reader, PayloadResolveError> {
             Ok(FailingReader)
         }
+    }
+
+    #[test]
+    fn incomplete_catalogue_stays_incomplete_after_successful_byte_rehash() {
+        let bytes = b"synthetic payload with missing schema metadata";
+        let case = case(&digest(bytes));
+        let mut descriptor = descriptor(bytes);
+        descriptor.source_payload.schema_version = None;
+        let catalog = catalog(&case, descriptor.clone());
+        let mut resolver = MemoryResolver::default();
+        resolver.objects.insert(
+            descriptor.source_payload.payload_object_ref.clone().unwrap(),
+            bytes.to_vec(),
+        );
+
+        let report = verify_source_descriptor_catalog_payloads(
+            &case,
+            &catalog,
+            &mut resolver,
+            limits(),
+            "2026-11-04T10:03:00Z",
+            Some(digest(b"verifier-build")),
+        );
+        assert_eq!(report.verified_payload_count, 1);
+        assert_eq!(
+            report.disposition,
+            PayloadCatalogVerificationDisposition::IncompleteOrIndeterminate
+        );
+        assert!(
+            report
+                .catalog_validation
+                .findings
+                .iter()
+                .any(|finding| finding.code == "SOURCE_SCHEMA_IDENTITY_UNAVAILABLE")
+        );
+    }
+
+    #[test]
+    fn invalid_verifier_build_digest_blocks_resolver_access() {
+        let bytes = b"synthetic payload";
+        let case = case(&digest(bytes));
+        let descriptor = descriptor(bytes);
+        let catalog = catalog(&case, descriptor.clone());
+        let mut resolver = MemoryResolver::default();
+        resolver.objects.insert(
+            descriptor.source_payload.payload_object_ref.clone().unwrap(),
+            bytes.to_vec(),
+        );
+        let report = verify_source_descriptor_catalog_payloads(
+            &case,
+            &catalog,
+            &mut resolver,
+            limits(),
+            "2026-11-04T10:03:00Z",
+            Some("not-a-sha256".into()),
+        );
+        assert_eq!(report.disposition, PayloadCatalogVerificationDisposition::InvalidInput);
+        assert_eq!(resolver.open_count, 0);
+        assert_eq!(report.not_attempted_count, 1);
+        assert!(
+            report
+                .context_findings
+                .iter()
+                .any(|finding| finding == "INVALID_VERIFIER_BUILD_DIGEST")
+        );
     }
 
     #[test]
