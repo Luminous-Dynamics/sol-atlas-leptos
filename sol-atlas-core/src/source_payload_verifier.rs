@@ -500,15 +500,15 @@ where
                 records.push(result);
             }
             Err(error) => {
-    let result = resolver_open_failure_result(
-        descriptor,
-        &record_key,
-        object_ref,
-        error,
-    );
-    report_findings.extend(result.findings.iter().cloned());
-    records.push(result);
-}
+                let result = resolver_open_failure_result(
+                    descriptor,
+                    &record_key,
+                    object_ref,
+                    error,
+                );
+                report_findings.extend(result.findings.iter().cloned());
+                records.push(result);
+            }
         }
     }
 
@@ -1074,15 +1074,15 @@ where
                     records.push(result);
                 }
                 Err(error) => {
-    let result = resolver_open_failure_result(
-        descriptor,
-        &record_key,
-        object_ref,
-        error,
-    );
-    report_findings.extend(result.findings.iter().cloned());
-    records.push(result);
-}
+                    let result = resolver_open_failure_result(
+                        descriptor,
+                        &record_key,
+                        object_ref,
+                        error,
+                    );
+                    report_findings.extend(result.findings.iter().cloned());
+                    records.push(result);
+                }
             }
         }
     }
