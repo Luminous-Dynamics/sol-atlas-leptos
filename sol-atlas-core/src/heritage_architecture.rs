@@ -880,7 +880,11 @@ mod tests {
         observation.metric_area_m2 = None;
         observation.metric_area_semantics = None;
         observation.metric_perimeter_m = None;
-        observation.uncertainty.as_mut().unwrap().area_interval_90_m2 = None;
+        observation
+            .uncertainty
+            .as_mut()
+            .unwrap()
+            .area_interval_90_m2 = None;
         assert!(matches!(
             validate_heritage_architecture(&input),
             Err(HeritageArchitectureError::PixelMeasurementClaimsMetricUnits(_))
