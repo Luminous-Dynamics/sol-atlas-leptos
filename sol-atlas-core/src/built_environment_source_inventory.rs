@@ -1819,6 +1819,22 @@ mod tests {
     }
 
     #[test]
+    fn malformed_supplied_snapshot_digest_is_invalid_not_missing() {
+        let mut manifest = valid_manifest();
+        manifest.snapshot_sha256 = Some("not-a-sha256".into());
+        for page in &mut manifest.page_receipts {
+            page.snapshot_sha256 = Some("not-a-sha256".into());
+        }
+        let result = validate_source_inventory_manifest(&manifest);
+        assert_eq!(result.disposition, InventoryDisposition::InvalidInput);
+        assert!(
+            result.findings.iter().any(|finding| {
+                finding.code == "INVALID_INVENTORY_SNAPSHOT_DIGEST"
+            })
+        );
+    }
+
+    #[test]
     fn best_effort_source_semantics_cannot_claim_complete_inventory() {
         let mut manifest = valid_manifest();
         manifest.snapshot_semantics = SnapshotSemantics::BestEffort;
