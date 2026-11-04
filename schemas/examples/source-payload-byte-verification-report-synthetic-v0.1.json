@@ -1,0 +1,45 @@
+{
+  "schema_version": "luminous.source-payload-byte-verification.v0.1",
+  "case_id": "payload-byte-verification-synthetic-case-001",
+  "case_representation_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+  "catalog_id": "payload-byte-catalog-synthetic-001",
+  "catalog_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+  "descriptor_validation_disposition": "internally_consistent_for_declared_case",
+  "verifier_version": "0.1.0",
+  "verifier_build_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+  "verifier_build_identity_authenticated": false,
+  "limits": {
+    "buffer_size_bytes": 262144,
+    "max_bytes_per_payload": 1048576,
+    "max_total_bytes": 8388608
+  },
+  "disposition": "fully_verified",
+  "records": [
+    {
+      "record_key": "evidence:evidence-synthetic-001",
+      "digest_basis": "locally_retrieved_and_hashed",
+      "object_reference": "cas:sha256:4444444444444444444444444444444444444444444444444444444444444444",
+      "expected_sha256": "4444444444444444444444444444444444444444444444444444444444444444",
+      "observed_sha256": "4444444444444444444444444444444444444444444444444444444444444444",
+      "expected_byte_length": 27,
+      "observed_byte_length": 27,
+      "bytes_read": 27,
+      "disposition": "verified",
+      "findings": []
+    }
+  ],
+  "bytes_read_total": 27,
+  "payload_count": 1,
+  "verified_count": 1,
+  "unavailable_count": 0,
+  "failed_count": 0,
+  "action_authority": "none",
+  "source_owner_authentication": "not_performed",
+  "rights_authentication": "not_performed",
+  "source_attestation_authentication": "not_performed",
+  "report_sha256": "ebaf0666cfba475b66558d75f5bcd90420c21eebd38677f4cb27c6604323b7a5",
+  "limitations": [
+    "Synthetic fixture only; the values do not represent a real source payload.",
+    "Matching payload bytes does not authenticate source ownership, rights, signatures, or source truth."
+  ]
+}
