@@ -585,6 +585,17 @@ fn validate_temporal_events(
         let authority = non_empty_string(event, "authority_disposition").unwrap_or_default();
         let confidence = non_empty_string(event, "effective_time_confidence").unwrap_or_default();
         let impact = non_empty_string(event, "impact_disposition").unwrap_or_default();
+        let authority_receipt = event
+            .get("authority_receipt_sha256")
+            .and_then(Value::as_str);
+        let effective_time_evidence = event
+            .get("effective_time_evidence_sha256")
+            .and_then(Value::as_str);
+        let lifecycle_receipt =
+            non_empty_string(event, "lifecycle_validation_receipt_sha256").unwrap_or_default();
+        let impact_verifier_build = event
+            .get("impact_verifier_build_sha256")
+            .and_then(Value::as_str);
 
         if !valid_sha256(event_sha) || !valid_sha256(target_sha) || !valid_sha256(impact_sha) {
             push_error(
@@ -651,6 +662,40 @@ fn validate_temporal_events(
 
         if confidence == "verified" && effective_at.is_none() {
             push_error(errors, "VERIFIED_EFFECTIVE_TIME_MISSING", event_sha);
+        }
+        if confidence == "verified"
+            && !effective_time_evidence.is_some_and(valid_sha256)
+        {
+            push_error(
+                errors,
+                "VERIFIED_EFFECTIVE_TIME_EVIDENCE_MISSING",
+                event_sha,
+            );
+        }
+        if authority == "authenticated"
+            && !authority_receipt.is_some_and(valid_sha256)
+        {
+            push_error(
+                errors,
+                "AUTHORITY_VERIFICATION_RECEIPT_MISSING",
+                event_sha,
+            );
+        }
+        if !valid_sha256(lifecycle_receipt) {
+            push_error(
+                errors,
+                "LIFECYCLE_VALIDATION_RECEIPT_INVALID",
+                event_sha,
+            );
+        }
+        if impact != "not_checked"
+            && !impact_verifier_build.is_some_and(valid_sha256)
+        {
+            push_error(
+                errors,
+                "IMPACT_VERIFIER_BUILD_MISSING",
+                event_sha,
+            );
         }
         if authority == "authenticated" && trusted_at.is_none() {
             push_error(
@@ -1359,6 +1404,10 @@ mod tests {
             "authority_disposition": "authenticated",
             "impact_disposition": "affected",
             "impact_report_sha256": digest('3'),
+            "authority_receipt_sha256": digest('7'),
+            "effective_time_evidence_sha256": digest('8'),
+            "lifecycle_validation_receipt_sha256": digest('9'),
+            "impact_verifier_build_sha256": digest('4'),
             "scope_sha256": digest('c')
         }]);
 
@@ -1395,6 +1444,10 @@ mod tests {
             "authority_disposition": "authenticated",
             "impact_disposition": "affected",
             "impact_report_sha256": digest('3'),
+            "authority_receipt_sha256": digest('7'),
+            "effective_time_evidence_sha256": digest('8'),
+            "lifecycle_validation_receipt_sha256": digest('9'),
+            "impact_verifier_build_sha256": digest('4'),
             "scope_sha256": digest('c')
         }]);
 
@@ -1425,6 +1478,10 @@ mod tests {
             "authority_disposition": "unknown",
             "impact_disposition": "affected",
             "impact_report_sha256": digest('3'),
+            "authority_receipt_sha256": digest('7'),
+            "effective_time_evidence_sha256": digest('8'),
+            "lifecycle_validation_receipt_sha256": digest('9'),
+            "impact_verifier_build_sha256": digest('4'),
             "scope_sha256": digest('c')
         }]);
 
@@ -1514,6 +1571,66 @@ mod tests {
                 .iter()
                 .any(|error| error.as_str().unwrap().starts_with("FUTURE_KNOWLEDGE_LEAK"))
         );
+    }
+
+    #[test]
+    fn authenticated_event_requires_an_upstream_authority_receipt() {
+        let mut input = base_input();
+        input["temporal_events"] = json!([{
+            "event_sha256": digest('f'),
+            "cause_class": "source_corrected",
+            "target_node_id": format!("source_measurement:sha256:{}", digest('1')),
+            "target_artifact_sha256": digest('2'),
+            "effective_at": "2026-11-01T12:00:00Z",
+            "recorded_at": "2026-11-04T10:45:00Z",
+            "trusted_at": "2026-11-04T10:50:00Z",
+            "effective_time_confidence": "verified",
+            "authority_disposition": "authenticated",
+            "impact_disposition": "affected",
+            "impact_report_sha256": digest('3'),
+            "authority_receipt_sha256": null,
+            "effective_time_evidence_sha256": digest('8'),
+            "lifecycle_validation_receipt_sha256": digest('9'),
+            "impact_verifier_build_sha256": digest('4'),
+            "scope_sha256": digest('c')
+        }]);
+        let report = evaluate(&input).unwrap();
+        assert_eq!(report["continuity_assessment"], "invalid_input");
+        assert!(report["validation_errors"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|error| error.as_str().unwrap().starts_with("AUTHORITY_VERIFICATION_RECEIPT_MISSING")));
+    }
+
+    #[test]
+    fn verified_effective_time_requires_evidence_receipt() {
+        let mut input = base_input();
+        input["temporal_events"] = json!([{
+            "event_sha256": digest('f'),
+            "cause_class": "source_corrected",
+            "target_node_id": format!("source_measurement:sha256:{}", digest('1')),
+            "target_artifact_sha256": digest('2'),
+            "effective_at": "2026-11-01T12:00:00Z",
+            "recorded_at": "2026-11-04T10:45:00Z",
+            "trusted_at": "2026-11-04T10:50:00Z",
+            "effective_time_confidence": "verified",
+            "authority_disposition": "authenticated",
+            "impact_disposition": "affected",
+            "impact_report_sha256": digest('3'),
+            "authority_receipt_sha256": digest('7'),
+            "effective_time_evidence_sha256": null,
+            "lifecycle_validation_receipt_sha256": digest('9'),
+            "impact_verifier_build_sha256": digest('4'),
+            "scope_sha256": digest('c')
+        }]);
+        let report = evaluate(&input).unwrap();
+        assert_eq!(report["continuity_assessment"], "invalid_input");
+        assert!(report["validation_errors"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|error| error.as_str().unwrap().starts_with("VERIFIED_EFFECTIVE_TIME_EVIDENCE_MISSING")));
     }
 
     #[test]
