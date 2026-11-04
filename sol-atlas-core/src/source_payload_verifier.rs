@@ -97,6 +97,7 @@ pub struct PayloadByteVerificationReceipt {
     pub action_authority: String,
     pub findings: Vec<ByteVerificationFinding>,
     pub limitations: Vec<String>,
+    pub receipt_digest_basis: String,
     pub receipt_sha256: String,
 }
 
@@ -506,9 +507,10 @@ pub fn verify_catalog_payload_bytes(
             "The verifier hashes caller-supplied byte buffers; it does not retrieve source bytes or authenticate their origin.".into(),
             "A matching payload digest proves byte equality with the descriptor claim, not source-owner identity or attestation authenticity.".into(),
             "Rights, signatures, trust roots, revocation, source-universe completeness, and engineering correctness are outside this verifier.".into(),
-            "The v0.1 implementation is bounded and in-memory; streaming and object-store readers are future work.".into(),
+            "The v0.1 implementation is an in-memory implementation with memory use proportional to supplied bytes; streaming and object-store readers are future work.".into(),
             "Schema byte hashing proves exact schema artifact bytes only; it does not prove parser conformance or domain semantics.".into(),
         ],
+        receipt_digest_basis: "sha256_over_serde_json_receipt_with_empty_receipt_sha256_field".into(),
         receipt_sha256: String::new(),
     };
     let receipt_bytes = serde_json::to_vec(&receipt).unwrap_or_default();
