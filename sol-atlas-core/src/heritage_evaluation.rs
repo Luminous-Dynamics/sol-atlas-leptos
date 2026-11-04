@@ -893,7 +893,7 @@ mod tests {
         input.samples[1].physical_entity_ids = vec!["stone-1".to_owned()];
         let report = audit_heritage_evaluation_split(&input).expect("paper split is auditable");
         assert_eq!(report.source_pixel_overlap_pair_count, 1);
-        assert_eq!(report.shared_physical_entity_count, 2);
+        assert_eq!(report.shared_physical_entity_count, 1);
         assert_eq!(report.claim_ceiling, "paper_split_reproduction_only");
     }
 
@@ -1129,6 +1129,6 @@ mod tests {
         );
         let report = audit_heritage_evaluation_split(&fixture).expect("paper fixture audit");
         assert_eq!(report.source_pixel_overlap_pair_count, 1);
-        assert_eq!(report.shared_physical_entity_count, 1);
+        assert_eq!(report.shared_physical_entity_count, 2);
     }
 }
