@@ -35,6 +35,9 @@ pub mod mycelix_flows;
 /// missing/extra case descriptors remain separate findings and counts. The report
 /// keeps byte equality, descriptor completeness, source trust, rights, and
 /// engineering correctness as separate proof classes; it grants no action authority.
+/// Bounded streaming source-byte rehashing and aggregate catalogue resource
+/// budgets. A byte match is not owner authentication, source-universe
+/// completeness, rights verification, engineering correctness, or authority.
 pub mod source_payload_verifier;
 // pub mod relativity_viz;
 pub mod geometry;
