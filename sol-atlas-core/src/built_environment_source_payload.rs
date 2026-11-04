@@ -506,7 +506,18 @@ pub fn verify_source_descriptor_payloads<R: ContentAddressedPayloadResolver>(
                 limit_is_aggregate,
                 limits.buffer_size_bytes,
             );
-            bytes_read_total = bytes_read_total.saturating_add(streamed.bytes_read);
+            bytes_read_total = match bytes_read_total.checked_add(streamed.bytes_read) {
+                Some(total) => total,
+                None => {
+                    report_findings.push(finding(
+                        PayloadFindingSeverity::Invalid,
+                        "PAYLOAD_TOTAL_BYTE_COUNT_OVERFLOW",
+                        &key,
+                        "aggregate streamed byte count overflowed u64",
+                    ));
+                    u64::MAX
+                }
+            };
             if limit_is_aggregate
                 && streamed.disposition == PayloadByteDisposition::ByteLimitExceeded
             {
@@ -519,14 +530,8 @@ pub fn verify_source_descriptor_payloads<R: ContentAddressedPayloadResolver>(
                 .map(|(severity, code, detail)| finding(*severity, code, &key, detail))
                 .collect::<Vec<_>>();
             let disposition = streamed.disposition;
-            if disposition == PayloadByteDisposition::Verified {
-                findings.push(finding(
-                    PayloadFindingSeverity::Incomplete,
-                    "BYTE_EQUALITY_ONLY",
-                    &key,
-                    "bytes match the declared digest and length; owner identity, rights, signatures and source truth remain unauthenticated",
-                ));
-            }
+            // Authentication and authority limitations are reported at
+            // report level; they must not downgrade a successful byte hash.
             records.push(PayloadRecordVerification {
                 record_key: key,
                 digest_basis: payload.digest_basis.as_str().into(),
