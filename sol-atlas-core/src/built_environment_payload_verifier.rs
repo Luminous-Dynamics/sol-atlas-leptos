@@ -756,8 +756,7 @@ mod tests {
 
     impl Read for FailingReader {
         fn read(&mut self, _buffer: &mut [u8]) -> std::io::Result<usize> {
-            Err(std::io::Error::new(
-                std::io::ErrorKind::Other,
+            Err(std::io::Error::other(
                 "synthetic interrupted storage failure",
             ))
         }
