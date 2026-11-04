@@ -20,9 +20,9 @@
     "claim_ceiling",
     "not_checked",
     "obligations",
-    "top_level_disposition",
     "validation_errors",
-    "report_sha256"
+    "report_sha256",
+    "continuity_assessment"
   ],
   "properties": {
     "schema_version": {
@@ -867,16 +867,6 @@
         }
       }
     },
-    "top_level_disposition": {
-      "enum": [
-        "candidate_current_within_declared_scope",
-        "revalidation_required",
-        "claim_invalidated",
-        "quarantined_pending_review",
-        "indeterminate",
-        "invalid_input"
-      ]
-    },
     "validation_errors": {
       "type": "array",
       "items": {
@@ -887,6 +877,14 @@
     },
     "report_sha256": {
       "$ref": "#/$defs/sha256"
+    },
+    "continuity_assessment": {
+      "enum": [
+        "views_consistent_candidate",
+        "views_consistent_non_candidate",
+        "temporal_views_diverge",
+        "invalid_input"
+      ]
     }
   },
   "$defs": {
