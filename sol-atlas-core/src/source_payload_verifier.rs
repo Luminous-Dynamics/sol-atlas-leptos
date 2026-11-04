@@ -690,6 +690,93 @@ mod tests {
     }
 
     #[test]
+    fn owner_attested_digest_is_corroborated_without_authenticating_owner() {
+        let payload = b"owner-attested bytes";
+        let schema = b"schema bytes";
+        let case = case(payload);
+        let mut catalog = catalog(&case, payload, schema);
+        let descriptor = &mut catalog.descriptors[0].source_payload;
+        descriptor.digest_basis = PayloadDigestBasis::SourceOwnerAttested;
+        descriptor.bytes_retrieved = false;
+        descriptor.byte_length = None;
+        descriptor.payload_object_ref = None;
+        let (payloads, schemas) = inputs(payload, schema);
+
+        let receipt = verify_catalog_payload_bytes(&case, &catalog, &payloads, &schemas);
+        assert_eq!(receipt.disposition, ByteVerificationDisposition::IncompleteOrIndeterminate);
+        assert_eq!(
+            receipt.records[0].payload_result,
+            "supplied_bytes_match_owner_attested_digest"
+        );
+        assert_eq!(receipt.source_owner_authentication, "not_performed");
+        assert_eq!(receipt.source_attestation_authentication, "not_performed");
+    }
+
+    #[test]
+    fn external_reference_digest_is_checked_against_supplied_bytes() {
+        let payload = b"external object bytes";
+        let schema = b"schema bytes";
+        let case = case(payload);
+        let mut catalog = catalog(&case, payload, schema);
+        let descriptor = &mut catalog.descriptors[0].source_payload;
+        descriptor.digest_basis = PayloadDigestBasis::ExternalReference;
+        descriptor.bytes_retrieved = false;
+        descriptor.byte_length = None;
+        let (payloads, schemas) = inputs(payload, schema);
+
+        let receipt = verify_catalog_payload_bytes(&case, &catalog, &payloads, &schemas);
+        assert_eq!(
+            receipt.records[0].payload_result,
+            "verified_supplied_bytes_match_external_digest_claim"
+        );
+        assert_eq!(receipt.disposition, ByteVerificationDisposition::IncompleteOrIndeterminate);
+    }
+
+    #[test]
+    fn unavailable_source_digest_never_promotes_a_computed_digest() {
+        let payload = b"observed but unbound bytes";
+        let schema = b"schema bytes";
+        let mut case = case(payload);
+        case.evidence[0].source_payload_sha256 = None;
+        let mut catalog = catalog(&case, payload, schema);
+        let descriptor = &mut catalog.descriptors[0].source_payload;
+        descriptor.sha256 = None;
+        descriptor.digest_basis = PayloadDigestBasis::Unavailable;
+        descriptor.bytes_retrieved = false;
+        descriptor.byte_length = None;
+        descriptor.payload_object_ref = None;
+        catalog.case_representation_sha256 =
+            sha256_hex(&serde_json::to_vec(&case).unwrap());
+        let (payloads, schemas) = inputs(payload, schema);
+
+        let receipt = verify_catalog_payload_bytes(&case, &catalog, &payloads, &schemas);
+        assert_eq!(receipt.disposition, ByteVerificationDisposition::IncompleteOrIndeterminate);
+        assert_eq!(receipt.payload_bytes_verified, 0);
+        assert_eq!(
+            receipt.records[0].payload_result,
+            "observed_bytes_without_source_digest_claim"
+        );
+        assert_ne!(
+            receipt.records[0].computed_payload_sha256,
+            receipt.records[0].expected_payload_sha256
+        );
+    }
+
+    #[test]
+    fn missing_schema_bytes_remain_incomplete() {
+        let payload = b"payload";
+        let schema = b"schema bytes";
+        let case = case(payload);
+        let catalog = catalog(&case, payload, schema);
+        let (payloads, _) = inputs(payload, schema);
+
+        let receipt = verify_catalog_payload_bytes(&case, &catalog, &payloads, &BTreeMap::new());
+        assert_eq!(receipt.schema_bytes_missing, 1);
+        assert_eq!(receipt.disposition, ByteVerificationDisposition::IncompleteOrIndeterminate);
+        assert_eq!(receipt.records[0].schema_result, "schema_bytes_missing");
+    }
+
+    #[test]
     fn unreferenced_payload_and_schema_inputs_are_not_silently_ignored() {
         let payload = b"payload";
         let schema = b"schema";
