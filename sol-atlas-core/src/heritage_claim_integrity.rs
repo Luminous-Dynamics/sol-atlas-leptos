@@ -278,6 +278,7 @@ pub enum HeritageClaimError {
     InvalidRightsReceipt { evidence_id: String },
     EmptyReviewerId,
     EmptyReviewerScope,
+    EmptyAdjudicationTimestamp,
     EmptyAdjudicationReference,
     InvalidAdjudicationDigest,
     DuplicateReviewedEvidenceId(String),
@@ -478,7 +479,7 @@ fn validate_input(input: &HeritageClaimInput) -> Result<(), HeritageClaimError> 
             return Err(HeritageClaimError::EmptyReviewerScope);
         }
         if !non_empty(&adjudication.adjudicated_at) {
-            return Err(HeritageClaimError::EmptyReviewerScope);
+            return Err(HeritageClaimError::EmptyAdjudicationTimestamp);
         }
         if !non_empty(&adjudication.decision_ref) {
             return Err(HeritageClaimError::EmptyAdjudicationReference);
@@ -1181,6 +1182,26 @@ mod tests {
             evaluate_heritage_claim(&input),
             Err(HeritageClaimError::DuplicateEvidenceId(_))
         ));
+    }
+
+    #[test]
+    fn archaeological_feature_claim_can_use_field_evidence_without_proxy_label() {
+        let input = HeritageClaimInput {
+            schema_version: HERITAGE_CLAIM_SCHEMA_VERSION.into(),
+            claim_id: "claim-field-only".into(),
+            candidate_id: "candidate-field-only".into(),
+            declared_claim: ClaimKind::ArchaeologicalFeatureCandidate,
+            proxy_family_id: None,
+            evidence: two_independent_plus_field(),
+            adjudication: None,
+            coordinate_access_restricted: false,
+        };
+        let report = evaluate_heritage_claim(&input).unwrap();
+        assert_eq!(
+            report.evidence_supported_ceiling,
+            ClaimCeiling::ArchaeologicalFeatureCandidate
+        );
+        assert_eq!(report.disposition, ClaimDisposition::QualifiedAtDeclaredClaim);
     }
 
     #[test]
