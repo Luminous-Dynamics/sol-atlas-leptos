@@ -12,11 +12,14 @@ on:
       - "schemas/examples/built-environment-source-descriptor-catalog-synthetic-v0.1.json"
       - "schemas/source-payload-byte-verification-receipt-v0.1.schema.json"
       - "schemas/examples/source-payload-byte-verification-receipt-synthetic-v0.1.json"
+      - "schemas/streaming-source-byte-verification-receipt-v0.1.schema.json"
+      - "schemas/examples/streaming-source-byte-verification-receipt-synthetic-v0.1.json"
       - ".github/workflows/built-environment-source-descriptors.yml"
   push:
     branches:
       - main
       - research/built-environment-source-byte-verifier-v0-1
+      - research/built-environment-streaming-byte-verifier-v0-1
     paths:
       - "sol-atlas-core/Cargo.toml"
       - "sol-atlas-core/Cargo.lock"
@@ -27,6 +30,8 @@ on:
       - "schemas/examples/built-environment-source-descriptor-catalog-synthetic-v0.1.json"
       - "schemas/source-payload-byte-verification-receipt-v0.1.schema.json"
       - "schemas/examples/source-payload-byte-verification-receipt-synthetic-v0.1.json"
+      - "schemas/streaming-source-byte-verification-receipt-v0.1.schema.json"
+      - "schemas/examples/streaming-source-byte-verification-receipt-synthetic-v0.1.json"
       - ".github/workflows/built-environment-source-descriptors.yml"
   workflow_dispatch:
 
@@ -85,6 +90,19 @@ jobs:
           receipt_schema=schemas/source-payload-byte-verification-receipt-v0.1.schema.json
           receipt_fixture=schemas/examples/source-payload-byte-verification-receipt-synthetic-v0.1.json
           jsonschema-cli validate --draft 2020 --assert-format --offline "$receipt_schema" -i "$receipt_fixture"
+
+          streaming_schema=schemas/streaming-source-byte-verification-receipt-v0.1.schema.json
+          streaming_fixture=schemas/examples/streaming-source-byte-verification-receipt-synthetic-v0.1.json
+          jsonschema-cli validate --draft 2020 --assert-format --offline "$streaming_schema" -i "$streaming_fixture"
+          jq -e '
+            .schema_version == "luminous.streaming-source-byte-verification-receipt.v0.1" and
+            .execution_profile.io_mode == "streaming_reader" and
+            .execution_profile.buffer_size_bytes == .execution_profile.working_buffer_bytes and
+            .execution_profile.buffer_size_bytes >= 4096 and
+            .execution_profile.buffer_size_bytes <= 4194304 and
+            .verification.action_authority == "none" and
+            .verification.source_owner_authentication == "not_performed"
+          ' "$streaming_fixture"
           jq -e '
             .schema_version == "luminous.source-payload-byte-verification-receipt.v0.1" and
             .disposition == "complete_for_supplied_claims" and
