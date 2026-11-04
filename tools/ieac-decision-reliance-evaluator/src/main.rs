@@ -1530,7 +1530,7 @@ mod tests {
         gate["scope_sha256"] = json!(digest('9'));
 
         let report = evaluate(&input).unwrap();
-        assert_eq!(report["top_level_disposition"], "invalid_input");
+        assert_eq!(report["continuity_assessment"], "invalid_input");
     }
 
     #[test]
