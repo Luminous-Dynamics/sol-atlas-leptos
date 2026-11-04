@@ -317,15 +317,40 @@ fn mark_proof_status(
     let subject = &proof.subject_ref;
     match proof.status {
         DecisionRelianceProofStatus::Qualified => {}
-        DecisionRelianceProofStatus::Invalid | DecisionRelianceProofStatus::Revoked => {
+        DecisionRelianceProofStatus::Invalid => {
             flags.invalid = true;
             push_finding(
                 findings,
                 "invalid",
-                "PROOF_INVALID_OR_REVOKED",
+                "PROOF_INVALID",
                 subject,
-                "a required proof provider marked this evidence invalid or revoked",
+                "a required proof provider marked this evidence invalid",
             );
+        }
+        DecisionRelianceProofStatus::Revoked => {
+            if matches!(
+                proof.proof_class,
+                DecisionRelianceProofClass::SourceUseRights
+                    | DecisionRelianceProofClass::ActorRelianceAuthority
+            ) {
+                flags.not_authorized = true;
+                push_finding(
+                    findings,
+                    "not_authorized",
+                    "RIGHT_OR_AUTHORITY_PROOF_REVOKED",
+                    subject,
+                    "a required rights or actor-authority proof was revoked",
+                );
+            } else {
+                flags.invalid = true;
+                push_finding(
+                    findings,
+                    "invalid",
+                    "PROOF_REVOKED",
+                    subject,
+                    "a required proof was revoked",
+                );
+            }
         }
         DecisionRelianceProofStatus::NotAuthorized => {
             flags.not_authorized = true;
@@ -407,6 +432,18 @@ fn validate_proof_temporal_state(
         }
     }
 
+    if proof.valid_time.valid_from.as_deref().zip(proof.valid_time.valid_until.as_deref())
+        .is_some_and(|(from, until)| from >= until)
+    {
+        flags.invalid = true;
+        push_finding(
+            findings,
+            "invalid",
+            "INVALID_PROOF_VALID_TIME_INTERVAL",
+            subject,
+            "proof valid_until must be later than valid_from",
+        );
+    }
     if proof
         .observation_time
         .observed_at
@@ -611,6 +648,16 @@ pub fn evaluate_decision_reliance_reference(
         );
     }
 
+    if required_proof_classes.is_empty() {
+        flags.invalid = true;
+        push_finding(
+            &mut findings,
+            "invalid",
+            "EMPTY_REQUIRED_PROOF_SET",
+            "reliance_request",
+            "at least one mandatory proof class must be declared for a reliance assessment",
+        );
+    }
     for proof_class in required_proof_classes {
         if !required.insert(*proof_class) {
             flags.invalid = true;
@@ -627,13 +674,30 @@ pub fn evaluate_decision_reliance_reference(
     let mut qualified_proof_count = 0usize;
     let mut unresolved_proof_count = 0usize;
     for proof in proofs {
+        for (field, digest) in [
+            ("receipt_sha256", Some(proof.receipt_sha256.as_str())),
+            ("subject_sha256", proof.subject_sha256.as_deref()),
+            ("policy_sha256", proof.policy_sha256.as_deref()),
+            ("verifier_build_sha256", proof.verifier_build_sha256.as_deref()),
+        ] {
+            if digest.is_some_and(|value| !valid_sha256(value)) {
+                flags.invalid = true;
+                push_finding(
+                    &mut findings,
+                    "invalid",
+                    "INVALID_PROOF_DIGEST",
+                    &proof.subject_ref,
+                    &format!("{field} is not lowercase SHA-256"),
+                );
+            }
+        }
         if !proof_ids.insert(proof.proof_id.as_str()) {
             flags.invalid = true;
             push_finding(
                 &mut findings,
                 "invalid",
-                &proof.subject_ref,
                 "DUPLICATE_PROOF_ID",
+                &proof.subject_ref,
                 "proof IDs must be unique within one decision-reliance receipt",
             );
         }
@@ -671,6 +735,31 @@ pub fn evaluate_decision_reliance_reference(
     let mut late_arriving_change_event_count = 0usize;
     let mut future_or_untrusted_change_event_count = 0usize;
     for event in change_events {
+        for (field, digest) in [
+            ("event_sha256", event.event_sha256.as_str()),
+            ("receipt_sha256", event.receipt_sha256.as_str()),
+        ] {
+            if !valid_sha256(digest) {
+                flags.invalid = true;
+                push_finding(
+                    &mut findings,
+                    "invalid",
+                    "INVALID_CHANGE_EVENT_DIGEST",
+                    &event.event_id,
+                    &format!("{field} is not lowercase SHA-256"),
+                );
+            }
+        }
+        if event.affected_proof_ids.is_empty() {
+            flags.invalid = true;
+            push_finding(
+                &mut findings,
+                "invalid",
+                "CHANGE_EVENT_WITHOUT_AFFECTED_PROOF",
+                &event.event_id,
+                "change event must identify at least one affected proof",
+            );
+        }
         if !event_ids.insert(event.event_id.as_str()) {
             flags.invalid = true;
             push_finding(
@@ -732,6 +821,17 @@ pub fn evaluate_decision_reliance_reference(
                 "a future or not-yet-registered change event is not applied to this historical query",
             );
             continue;
+        }
+
+        if event.observed_at.as_deref().is_some_and(|observed| observed > event.recorded_at.as_str()) {
+            flags.insufficient = true;
+            push_finding(
+                &mut findings,
+                "incomplete",
+                "CHANGE_EVENT_OBSERVED_AFTER_RECORDING",
+                &event.event_id,
+                "change-event observation time is later than its recorded time",
+            );
         }
 
         match event.trust_status {
