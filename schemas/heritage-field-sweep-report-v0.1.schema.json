@@ -1,0 +1,169 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/heritage-field-sweep-report-v0.1.schema.json",
+  "title": "Sol-Atlas Heritage Field Sweep Report v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "evaluation_id",
+    "profile_id",
+    "profile_sha256",
+    "calibration_data_sha256",
+    "calibration_split_manifest_sha256",
+    "fit_receipt_sha256",
+    "survey_unit_id",
+    "transect_geometry_sha256",
+    "survey_unit_geometry_sha256",
+    "spatial_union_receipt_sha256",
+    "context_match",
+    "effective_sweep_width_m",
+    "effective_sweep_width_interval_95",
+    "overlap_adjusted_path_length_m",
+    "nominal_swept_area_m2",
+    "nominal_coverage_fraction",
+    "validation_brier_score",
+    "fit_transect_count",
+    "validation_transect_count",
+    "fit_seeded_target_count",
+    "validation_seeded_target_count",
+    "rights_status",
+    "archaeological_absence_claimed",
+    "archaeological_identification_claimed",
+    "geomorphological_surface_survival_estimated",
+    "repeated_search_independence_assumed"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "luminous.heritage-field-sweep-report.v0.1"
+    },
+    "evaluation_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "profile_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "profile_sha256": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{64}$"
+    },
+    "calibration_data_sha256": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{64}$"
+    },
+    "calibration_split_manifest_sha256": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{64}$"
+    },
+    "fit_receipt_sha256": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{64}$"
+    },
+    "survey_unit_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "transect_geometry_sha256": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{64}$"
+    },
+    "survey_unit_geometry_sha256": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{64}$"
+    },
+    "spatial_union_receipt_sha256": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{64}$"
+    },
+    "context_match": {
+      "const": true
+    },
+    "effective_sweep_width_m": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "effective_sweep_width_interval_95": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "confidence_level",
+        "z_value",
+        "standard_error_m",
+        "lower_m",
+        "upper_m"
+      ],
+      "properties": {
+        "confidence_level": {
+          "const": 0.95
+        },
+        "z_value": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "standard_error_m": {
+          "type": "number",
+          "minimum": 0
+        },
+        "lower_m": {
+          "type": "number",
+          "minimum": 0
+        },
+        "upper_m": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "overlap_adjusted_path_length_m": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "nominal_swept_area_m2": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "nominal_coverage_fraction": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "maximum": 1
+    },
+    "validation_brier_score": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "fit_transect_count": {
+      "type": "integer",
+      "minimum": 3
+    },
+    "validation_transect_count": {
+      "type": "integer",
+      "minimum": 2
+    },
+    "fit_seeded_target_count": {
+      "type": "integer",
+      "minimum": 20
+    },
+    "validation_seeded_target_count": {
+      "type": "integer",
+      "minimum": 10
+    },
+    "rights_status": {
+      "const": "verified"
+    },
+    "archaeological_absence_claimed": {
+      "const": false
+    },
+    "archaeological_identification_claimed": {
+      "const": false
+    },
+    "geomorphological_surface_survival_estimated": {
+      "const": false
+    },
+    "repeated_search_independence_assumed": {
+      "const": false
+    }
+  }
+}
