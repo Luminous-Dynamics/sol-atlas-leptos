@@ -627,12 +627,12 @@ pub fn validate_heritage_architecture(
     let mut unresolved_parentage_count = 0usize;
 
     for element in &input.elements {
-        if let Some(identity) = element.physical_identity_id.as_deref() {
-            if !physical_identities.insert(identity) {
-                return Err(HeritageArchitectureError::DuplicatePhysicalIdentity(
-                    identity.to_owned(),
-                ));
-            }
+        if let Some(identity) = element.physical_identity_id.as_deref()
+            && !physical_identities.insert(identity)
+        {
+            return Err(HeritageArchitectureError::DuplicatePhysicalIdentity(
+                identity.to_owned(),
+            ));
         }
         validate_parentage(element, &elements)?;
         if matches!(
@@ -847,7 +847,7 @@ mod tests {
         input.elements[2].observations[0].metric_area_semantics = None;
         input.elements[2].observations[0].metric_perimeter_m = None;
         input.elements[2].observations[0].uncertainty = None;
-        assert!(matches!(validate_heritage_architecture(&input), Ok(_)));
+        assert!(validate_heritage_architecture(&input).is_ok());
         input.elements[2].observations[0].metric_area_m2 = Some(0.04);
         assert!(matches!(
             validate_heritage_architecture(&input),
