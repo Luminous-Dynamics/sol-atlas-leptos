@@ -500,12 +500,8 @@ where
                 records.push(result);
             }
             Err(error) => {
-                let result = resolver_open_failure_result(
-                    descriptor,
-                    &record_key,
-                    object_ref,
-                    error,
-                );
+                let result =
+                    resolver_open_failure_result(descriptor, &record_key, object_ref, error);
                 report_findings.extend(result.findings.iter().cloned());
                 records.push(result);
             }
@@ -1585,10 +1581,7 @@ mod tests {
         );
         assert_eq!(result.unavailable_count, 0);
         assert_eq!(result.object_not_found_count, 1);
-        assert_eq!(
-            result.records[0].status,
-            PayloadByteStatus::ObjectNotFound
-        );
+        assert_eq!(result.records[0].status, PayloadByteStatus::ObjectNotFound);
     }
 
     #[test]
