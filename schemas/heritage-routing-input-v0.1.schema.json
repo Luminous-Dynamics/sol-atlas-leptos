@@ -169,6 +169,7 @@
           "split_protocol",
           "split_manifest_sha256",
           "data_manifest_sha256",
+          "validation_site_set_sha256",
           "training_site_ids",
           "validation_site_results",
           "rights_status",
@@ -360,6 +361,10 @@
               "null"
             ],
             "minLength": 1
+          },
+          "validation_site_set_sha256": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{64}$"
           }
         },
         "allOf": [
