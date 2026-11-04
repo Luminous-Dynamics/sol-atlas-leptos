@@ -22,11 +22,9 @@ use std::io::{self, Read};
 const RECEIPT_SCHEMA: &str = "luminous.source-payload-byte-verification-receipt.v0.1";
 const PAYLOAD_INPUT_DOMAIN: &[u8] = b"LUMINOUS-SOURCE-PAYLOAD-INPUT-MANIFEST-V0.1\0";
 const SCHEMA_INPUT_DOMAIN: &[u8] = b"LUMINOUS-SOURCE-SCHEMA-INPUT-MANIFEST-V0.1\0";
-const STREAMING_RECEIPT_SCHEMA: &str =
-    "luminous.streaming-source-byte-verification-receipt.v0.1";
+const STREAMING_RECEIPT_SCHEMA: &str = "luminous.streaming-source-byte-verification-receipt.v0.1";
 const MIN_STREAM_BUFFER_BYTES: usize = 4 * 1024;
 const MAX_STREAM_BUFFER_BYTES: usize = 4 * 1024 * 1024;
-
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -244,7 +242,6 @@ fn digest_bytes(bytes: &[u8]) -> InputDigest {
     }
 }
 
-
 fn valid_sha256(value: &str) -> bool {
     value.len() == 64
         && value
@@ -271,12 +268,7 @@ pub fn verify_catalog_payload_bytes(
         .iter()
         .map(|(key, bytes)| (key.clone(), digest_bytes(bytes)))
         .collect::<BTreeMap<_, _>>();
-    verify_catalog_payload_digests(
-        case,
-        catalog,
-        &payload_digests,
-        &schema_digests,
-    )
+    verify_catalog_payload_digests(case, catalog, &payload_digests, &schema_digests)
 }
 
 /// Hash caller-supplied readers in deterministic key order, then run the exact
@@ -322,12 +314,7 @@ where
     }
 
     let verification =
-        verify_catalog_payload_digests(
-            case,
-            catalog,
-            &payload_digests,
-            &schema_digests,
-        );
+        verify_catalog_payload_digests(case, catalog, &payload_digests, &schema_digests);
     let mut receipt = StreamingByteVerificationReceipt {
         schema_version: STREAMING_RECEIPT_SCHEMA.into(),
         case_id: case.case_id.clone(),
@@ -370,12 +357,15 @@ fn hash_reader<R: Read>(
                     error_kind: "byte_count_overflow".into(),
                     message: error.to_string(),
                 })?;
-                bytes_read = bytes_read.checked_add(count_u64).ok_or_else(|| ByteInputReadError {
-                    input_key: input_key.to_owned(),
-                    bytes_read,
-                    error_kind: "byte_count_overflow".into(),
-                    message: "stream byte count exceeds u64".into(),
-                })?;
+                bytes_read =
+                    bytes_read
+                        .checked_add(count_u64)
+                        .ok_or_else(|| ByteInputReadError {
+                            input_key: input_key.to_owned(),
+                            bytes_read,
+                            error_kind: "byte_count_overflow".into(),
+                            message: "stream byte count exceeds u64".into(),
+                        })?;
                 hasher.update(&buffer[..count]);
             }
             Err(error) if error.kind() == io::ErrorKind::Interrupted => continue,
@@ -881,8 +871,7 @@ mod tests {
                 .len()
                 .min(self.fail_after - self.position)
                 .min(self.bytes.len() - self.position);
-            buffer[..count]
-                .copy_from_slice(&self.bytes[self.position..self.position + count]);
+            buffer[..count].copy_from_slice(&self.bytes[self.position..self.position + count]);
             self.position += count;
             Ok(count)
         }
@@ -973,14 +962,9 @@ mod tests {
             "evidence:evidence-001".into(),
             io::Cursor::new(payload.to_vec()),
         )]);
-        let error = verify_catalog_payload_streams(
-            &case,
-            &catalog,
-            payload_readers,
-            BTreeMap::new(),
-            1024,
-        )
-        .unwrap_err();
+        let error =
+            verify_catalog_payload_streams(&case, &catalog, payload_readers, BTreeMap::new(), 1024)
+                .unwrap_err();
         assert_eq!(error.error_kind, "invalid_buffer_size");
         assert_eq!(error.bytes_read, 0);
     }
@@ -1006,8 +990,7 @@ mod tests {
                 .len()
                 .min(self.fail_after - self.position)
                 .min(self.bytes.len() - self.position);
-            buffer[..count]
-                .copy_from_slice(&self.bytes[self.position..self.position + count]);
+            buffer[..count].copy_from_slice(&self.bytes[self.position..self.position + count]);
             self.position += count;
             Ok(count)
         }
@@ -1102,14 +1085,9 @@ mod tests {
             },
         )]);
 
-        let error = verify_catalog_payload_streams(
-            &case,
-            &catalog,
-            payload_readers,
-            BTreeMap::new(),
-            1024,
-        )
-        .unwrap_err();
+        let error =
+            verify_catalog_payload_streams(&case, &catalog, payload_readers, BTreeMap::new(), 1024)
+                .unwrap_err();
         assert_eq!(error.error_kind, "invalid_buffer_size");
         assert_eq!(error.bytes_read, 0);
     }
