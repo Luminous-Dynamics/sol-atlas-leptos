@@ -688,6 +688,20 @@ mod tests {
     }
 
     #[test]
+    fn synthetic_input_and_report_fixtures_match_rust_evaluator() {
+        let input: FieldSweepEvaluationInput = serde_json::from_str(include_str!(
+            "../../schemas/examples/heritage-field-sweep-input-synthetic-v0.1.json"
+        ))
+        .unwrap();
+        let actual = evaluate_field_sweep(&input).unwrap();
+        let expected: FieldSweepEvaluationReport = serde_json::from_str(include_str!(
+            "../../schemas/examples/heritage-field-sweep-report-synthetic-v0.1.json"
+        ))
+        .unwrap();
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
     fn inconsistent_nominal_coverage_is_rejected() {
         let mut value = input();
         value.coverage.overlap_adjusted_path_length_m = 100_000.0;
