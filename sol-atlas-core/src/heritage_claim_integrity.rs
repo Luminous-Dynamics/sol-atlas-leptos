@@ -281,7 +281,7 @@ pub enum HeritageClaimError {
     EmptyAdjudicationTimestamp,
     EmptyAdjudicationReference,
     InvalidAdjudicationDigest,
-    HumanAdjudicationRightsNotVerified,
+    InvalidAdjudicationRightsReceipt,
     DuplicateReviewedEvidenceId(String),
 }
 
@@ -491,7 +491,7 @@ fn validate_input(input: &HeritageClaimInput) -> Result<(), HeritageClaimError> 
                 .as_deref()
                 .is_none_or(|value| !non_empty(value))
         {
-            return Err(HeritageClaimError::HumanAdjudicationRightsNotVerified);
+            return Err(HeritageClaimError::InvalidAdjudicationRightsReceipt);
         }
         let mut reviewed_ids = BTreeSet::new();
         for evidence_id in &adjudication.reviewed_evidence_ids {
