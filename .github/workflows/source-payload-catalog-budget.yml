@@ -1,0 +1,112 @@
+name: Source payload catalogue resource budget qualification
+
+on:
+  pull_request:
+    paths:
+      - "sol-atlas-core/src/source_payload_verifier.rs"
+      - "sol-atlas-core/src/built_environment_source_descriptor.rs"
+      - "sol-atlas-core/src/built_environment_case.rs"
+      - "sol-atlas-core/src/lib.rs"
+      - "schemas/source-payload-byte-verification-report-v0.1.schema.json"
+      - "schemas/examples/source-payload-byte-verification-report-synthetic-v0.1.json"
+      - "schemas/source-payload-catalog-resource-budget-v0.1.schema.json"
+      - "schemas/examples/source-payload-catalog-resource-budget-synthetic-v0.1.json"
+      - "sol-atlas-core/Cargo.toml"
+      - "sol-atlas-core/Cargo.lock"
+      - ".github/workflows/source-payload-catalog-budget.yml"
+  push:
+    branches:
+      - main
+      - research/built-environment-catalog-resource-budget-v0-1-rebased
+    paths:
+      - "sol-atlas-core/src/source_payload_verifier.rs"
+      - "sol-atlas-core/src/built_environment_source_descriptor.rs"
+      - "sol-atlas-core/src/built_environment_case.rs"
+      - "sol-atlas-core/src/lib.rs"
+      - "schemas/source-payload-byte-verification-report-v0.1.schema.json"
+      - "schemas/examples/source-payload-byte-verification-report-synthetic-v0.1.json"
+      - "schemas/source-payload-catalog-resource-budget-v0.1.schema.json"
+      - "schemas/examples/source-payload-catalog-resource-budget-synthetic-v0.1.json"
+      - "sol-atlas-core/Cargo.toml"
+      - "sol-atlas-core/Cargo.lock"
+      - ".github/workflows/source-payload-catalog-budget.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: source-payload-catalog-budget-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  resource-budget:
+    name: Exact-head aggregate I/O and report bounds
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout immutable source revision
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Assert exact checked-out revision
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+
+      - name: Install stable Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Format, lint, and test complete core crate
+        run: |
+          set -euo pipefail
+          manifest=sol-atlas-core/Cargo.toml
+          cargo fmt --manifest-path "$manifest" --check
+          cargo clippy --manifest-path "$manifest" --locked --all-targets -- -D warnings
+          cargo test --manifest-path "$manifest" --locked
+
+      - name: Install pinned Draft 2020-12 validator
+        run: cargo install --locked jsonschema-cli --version 0.60.2 --root "$RUNNER_TEMP/jsonschema-cli"
+
+      - name: Validate base and budget report schemas and fixtures
+        run: |
+          set -euo pipefail
+          export PATH="$RUNNER_TEMP/jsonschema-cli/bin:$PATH"
+          base_schema=schemas/source-payload-byte-verification-report-v0.1.schema.json
+          base_fixture=schemas/examples/source-payload-byte-verification-report-synthetic-v0.1.json
+          budget_schema=schemas/source-payload-catalog-resource-budget-v0.1.schema.json
+          budget_fixture=schemas/examples/source-payload-catalog-resource-budget-synthetic-v0.1.json
+          meta_schema="$RUNNER_TEMP/draft-2020-12-meta-schema.json"
+          curl --fail --location --retry 5 --retry-connrefused \
+            https://json-schema.org/draft/2020-12/schema -o "$meta_schema"
+          jsonschema-cli validate --draft 2020 --assert-format "$meta_schema" -i "$base_schema"
+          jsonschema-cli validate --draft 2020 --assert-format "$meta_schema" -i "$budget_schema"
+          jsonschema-cli validate --draft 2020 --assert-format --offline "$base_schema" -i "$base_fixture"
+          jsonschema-cli validate --draft 2020 --assert-format --offline "$budget_schema" -i "$budget_fixture"
+          jq -e '
+            .schema_version == "luminous.source-payload-catalog-budget-report.v0.1" and
+            .budget.max_retries_per_payload == 0 and
+            .max_concurrency_used == 1 and
+            .report_truncated == false and
+            .skipped_budget_count == 0 and
+            .report.skipped_budget_count == 0 and
+            .report.action_authority == "none" and
+            .report.no_impact_eligibility == "none" and
+            .serialized_report_bytes <= .budget.max_report_bytes
+          ' "$budget_fixture"
+
+      - name: Negative schema control — retries are disabled in v0.1
+        run: |
+          set -euo pipefail
+          schema=schemas/source-payload-catalog-resource-budget-v0.1.schema.json
+          fixture=schemas/examples/source-payload-catalog-resource-budget-synthetic-v0.1.json
+          jq '.budget.max_retries_per_payload = 1' "$fixture" \
+            > "$RUNNER_TEMP/invalid-retry-budget.json"
+          if jsonschema-cli validate --draft 2020 --assert-format --offline "$schema" \
+              -i "$RUNNER_TEMP/invalid-retry-budget.json"; then
+            echo "ERROR: v0.1 accepted a retry budget despite deterministic no-retry semantics"
+            exit 1
+          fi
