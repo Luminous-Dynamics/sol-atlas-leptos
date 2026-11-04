@@ -251,7 +251,9 @@ pub fn assess_metrology_certificate(
         {
             return Err(MetrologyError::CheckpointSurveyNotTwiceAsAccurate);
         }
-        *stratum_counts.entry(checkpoint.stratum.clone()).or_insert(0) += 1;
+        *stratum_counts
+            .entry(checkpoint.stratum.clone())
+            .or_insert(0) += 1;
 
         let dx = checkpoint.product_xyz_m[0] - checkpoint.reference_xyz_m[0];
         let dy = checkpoint.product_xyz_m[1] - checkpoint.reference_xyz_m[1];
@@ -309,7 +311,8 @@ pub fn assess_metrology_certificate(
         target_rmse_v_m: certificate.target_rmse_v_m,
         meets_declared_target,
         method_build_sha256: certificate.method_build_sha256.clone(),
-        claim_ceiling: "combined_checkpoint_accuracy_statistics_only_not_full_standards_conformance".to_owned(),
+        claim_ceiling:
+            "combined_checkpoint_accuracy_statistics_only_not_full_standards_conformance".to_owned(),
     })
 }
 
@@ -516,7 +519,9 @@ pub fn aggregate_disjoint_plan_areas(
             }
         }
         if sensitivities.len() != component_ids.len()
-            || component_ids.iter().any(|id| !sensitivities.contains_key(id))
+            || component_ids
+                .iter()
+                .any(|id| !sensitivities.contains_key(id))
         {
             return Err(AreaAggregationError::MissingOrDuplicateFactorSensitivity(
                 factor.factor_id.clone(),
@@ -672,11 +677,9 @@ mod tests {
 
     #[test]
     fn exploratory_certificate_reports_independent_rmse_and_reference_error() {
-        let report = assess_metrology_certificate(&certificate(
-            MetrologyAssessmentProfile::Exploratory,
-            2,
-        ))
-        .expect("exploratory certificate");
+        let report =
+            assess_metrology_certificate(&certificate(MetrologyAssessmentProfile::Exploratory, 2))
+                .expect("exploratory certificate");
         assert_eq!(report.checkpoint_count, 2);
         assert_eq!(report.stratum_counts.get("open"), Some(&1));
         assert!((report.product_fit_rmse_h_m - 0.000_65_f64.sqrt()).abs() < 1e-12);
@@ -801,16 +804,28 @@ mod tests {
                 factor_id: "factor-b".to_owned(),
                 standard_uncertainty: 0.2,
                 component_sensitivities: vec![
-                    ComponentFactorSensitivity { observation_id: "stone-1".to_owned(), sensitivity: 1.0 },
-                    ComponentFactorSensitivity { observation_id: "stone-2".to_owned(), sensitivity: 1.0 },
+                    ComponentFactorSensitivity {
+                        observation_id: "stone-1".to_owned(),
+                        sensitivity: 1.0,
+                    },
+                    ComponentFactorSensitivity {
+                        observation_id: "stone-2".to_owned(),
+                        sensitivity: 1.0,
+                    },
                 ],
             },
             SharedSystematicFactor {
                 factor_id: "factor-c".to_owned(),
                 standard_uncertainty: 0.3,
                 component_sensitivities: vec![
-                    ComponentFactorSensitivity { observation_id: "stone-1".to_owned(), sensitivity: 1.0 },
-                    ComponentFactorSensitivity { observation_id: "stone-2".to_owned(), sensitivity: 1.0 },
+                    ComponentFactorSensitivity {
+                        observation_id: "stone-1".to_owned(),
+                        sensitivity: 1.0,
+                    },
+                    ComponentFactorSensitivity {
+                        observation_id: "stone-2".to_owned(),
+                        sensitivity: 1.0,
+                    },
                 ],
             },
         ]);
