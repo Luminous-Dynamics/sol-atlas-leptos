@@ -2208,6 +2208,9 @@ mod tests {
         ArtifactKind, ArtifactReference, DataRights, DecisionDisposition, EngineeringConclusion,
         EngineeringDiscipline, EvidenceState, ReviewLevel, SolverRunStatus,
     };
+    use crate::built_environment_source_inventory::{
+        ExpectedSourceOwner, InventoryClosureDisposition, SourceInventoryManifest,
+    };
 
     fn digest(byte: char) -> String {
         std::iter::repeat_n(byte, 64).collect()
@@ -2350,6 +2353,123 @@ mod tests {
     fn append_independent_identity_field(encoded: &mut Vec<u8>, value: &str) {
         encoded.extend_from_slice(&(value.len() as u64).to_be_bytes());
         encoded.extend_from_slice(value.as_bytes());
+    }
+
+    fn inventory_fixture() -> (Vec<ExpectedSourceOwner>, Vec<SourceInventoryManifest>) {
+        let manifest: SourceInventoryManifest = serde_json::from_str(include_str!(
+            "../../schemas/examples/federated-source-inventory-manifest-synthetic-v0.1.json"
+        ))
+        .expect("synthetic source inventory manifest deserializes");
+        let owners = vec![ExpectedSourceOwner {
+            owner_namespace: manifest.source_owner_namespace.clone(),
+            source_system_id: manifest.source_system_id.clone(),
+            required: true,
+        }];
+        (owners, vec![manifest])
+    }
+
+    #[test]
+    fn complete_structural_inventory_is_bound_but_never_grants_negative_finding_eligibility() {
+        let projection = project_built_environment_case(&sample_case(), &context());
+        let (owners, manifests) = inventory_fixture();
+        let qualified = qualify_projection_with_inventory(projection, &owners, &manifests);
+
+        assert_eq!(
+            qualified.inventory_validation.disposition,
+            InventoryClosureDisposition::CompleteWithinDeclaredOwnerSet
+        );
+        let inventory_receipt =
+            &qualified.projection.projection_receipt["projector"]["source_inventory_closure"];
+        assert_eq!(
+            inventory_receipt["disposition"],
+            "complete_within_declared_owner_set"
+        );
+        assert_eq!(inventory_receipt["page_payload_byte_verification"], "not_performed");
+        assert_eq!(inventory_receipt["source_attestation_authentication"], "not_performed");
+        assert_eq!(inventory_receipt["source_truth"], "not_established");
+        assert_eq!(inventory_receipt["negative_finding_eligibility"], false);
+        assert_eq!(inventory_receipt["action_authority"], "none");
+        assert_eq!(
+            qualified.projection.graph["graph_snapshot_sha256"],
+            canonical_json_sha256(&{
+                let mut graph = qualified.projection.graph.clone();
+                graph.as_object_mut().unwrap().remove("graph_snapshot_sha256");
+                graph
+            })
+            .unwrap()
+        );
+        assert_eq!(
+            qualified.projection.projection_receipt["projection_receipt_sha256"],
+            canonical_json_sha256(&{
+                let mut receipt = qualified.projection.projection_receipt.clone();
+                receipt
+                    .as_object_mut()
+                    .unwrap()
+                    .remove("projection_receipt_sha256");
+                receipt
+            })
+            .unwrap()
+        );
+    }
+
+    #[test]
+    fn incomplete_inventory_downgrades_graph_and_projection_claim_ceiling() {
+        let projection = project_built_environment_case(&sample_case(), &context());
+        let (owners, mut manifests) = inventory_fixture();
+        manifests[0].pagination_exhausted = false;
+        let qualified = qualify_projection_with_inventory(projection, &owners, &manifests);
+
+        assert_eq!(
+            qualified.inventory_validation.disposition,
+            InventoryClosureDisposition::IncompleteOrIndeterminate
+        );
+        assert_eq!(
+            qualified.projection.disposition,
+            ProjectionDisposition::ProjectedWithKnownLoss
+        );
+        assert_eq!(
+            qualified.projection.graph["claim_ceiling"],
+            "incomplete_or_indeterminate"
+        );
+        assert_eq!(
+            qualified.projection.projection_receipt["claim_ceiling"],
+            "incomplete_or_indeterminate"
+        );
+        assert_eq!(
+            qualified.projection.projection_receipt["projector"]["source_inventory_closure"]["negative_finding_eligibility"],
+            false
+        );
+        assert!(qualified.projection.projection_receipt["findings"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|finding| finding["code"] == "SOURCE_INVENTORY_CLOSURE_INCOMPLETE"));
+    }
+
+    #[test]
+    fn invalid_inventory_closure_is_fail_closed_and_emits_no_graph() {
+        let projection = project_built_environment_case(&sample_case(), &context());
+        let (owners, mut manifests) = inventory_fixture();
+        manifests[0].enumerated_item_count += 1;
+        let qualified = qualify_projection_with_inventory(projection, &owners, &manifests);
+
+        assert_eq!(
+            qualified.inventory_validation.disposition,
+            InventoryClosureDisposition::InvalidInput
+        );
+        assert_eq!(
+            qualified.projection.disposition,
+            ProjectionDisposition::InvalidInput
+        );
+        assert_eq!(qualified.projection.graph, Value::Null);
+        assert_eq!(
+            qualified.projection.projection_receipt["projected_graph"],
+            Value::Null
+        );
+        assert_eq!(
+            qualified.projection.projection_receipt["action_authority"],
+            "none"
+        );
     }
 
     #[test]
