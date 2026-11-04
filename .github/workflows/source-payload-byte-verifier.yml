@@ -15,7 +15,7 @@ on:
   push:
     branches:
       - main
-      - research/built-environment-payload-byte-verifier-v0-1
+      - research/source-payload-catalog-budget-v0-1-rebased
     paths:
       - "sol-atlas-core/src/source_payload_verifier.rs"
       - "sol-atlas-core/src/built_environment_source_descriptor.rs"
@@ -82,6 +82,9 @@ jobs:
             .schema_version == "luminous.source-payload-byte-verification.v0.1" and
             .disposition == "all_declared_payload_references_verified" and
             .verified_count == 1 and
+            .object_not_found_count == 0 and
+            .resolver_access_denied_count == 0 and
+            .resolver_open_failed_count == 0 and
             .descriptor_missing_count == 0 and
             .descriptor_extra_count == 0 and
             .invalid_count == 0 and
