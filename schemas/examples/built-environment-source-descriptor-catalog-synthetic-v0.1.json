@@ -47,11 +47,11 @@
         "schema_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
       },
       "source_snapshot": {
-        "source_id": "urn:synthetic:survey-owner",
         "snapshot_id": "snapshot-survey-001",
         "snapshot_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
         "captured_at": "2026-11-03T10:00:00Z",
-        "retrieved_at": "2026-11-03T10:01:00Z"
+        "retrieved_at": "2026-11-03T10:01:00Z",
+        "source_system_id": "urn:synthetic:survey-system"
       },
       "observation_time": {
         "observed_at": "2026-11-03T09:59:00Z",
@@ -109,11 +109,11 @@
         "schema_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
       },
       "source_snapshot": {
-        "source_id": "urn:synthetic:design-owner",
         "snapshot_id": "snapshot-design-001",
         "snapshot_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
         "captured_at": "2026-11-03T10:00:00Z",
-        "retrieved_at": "2026-11-03T10:01:00Z"
+        "retrieved_at": "2026-11-03T10:01:00Z",
+        "source_system_id": "urn:synthetic:design-system"
       },
       "observation_time": {
         "observed_at": "2026-11-03T09:59:00Z",
@@ -163,11 +163,11 @@
         "schema_sha256": null
       },
       "source_snapshot": {
-        "source_id": "urn:synthetic:solver-owner",
         "snapshot_id": "snapshot-solver-001",
         "snapshot_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
         "captured_at": "2026-11-03T10:00:00Z",
-        "retrieved_at": "2026-11-03T10:01:00Z"
+        "retrieved_at": "2026-11-03T10:01:00Z",
+        "source_system_id": "urn:synthetic:solver-system"
       },
       "observation_time": {
         "observed_at": "2026-11-03T09:59:00Z",
@@ -217,11 +217,11 @@
         "schema_sha256": null
       },
       "source_snapshot": {
-        "source_id": "urn:synthetic:authority-owner",
         "snapshot_id": "snapshot-authority-001",
         "snapshot_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
         "captured_at": "2026-11-03T10:00:00Z",
-        "retrieved_at": "2026-11-03T10:01:00Z"
+        "retrieved_at": "2026-11-03T10:01:00Z",
+        "source_system_id": "urn:synthetic:authority-system"
       },
       "observation_time": {
         "observed_at": "2026-11-03T09:59:00Z",
