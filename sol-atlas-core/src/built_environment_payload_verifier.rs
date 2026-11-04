@@ -543,9 +543,7 @@ pub fn verify_source_descriptor_catalog_payloads<R: ContentAddressedPayloadResol
         .count();
     let stream_error_count = results
         .iter()
-        .filter(|result| {
-            result.disposition == PayloadByteVerificationDisposition::StreamReadError
-        })
+        .filter(|result| result.disposition == PayloadByteVerificationDisposition::StreamReadError)
         .count();
     let invalid_payload_count = results
         .iter()
