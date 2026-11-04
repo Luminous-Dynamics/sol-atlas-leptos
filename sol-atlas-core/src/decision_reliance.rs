@@ -798,8 +798,8 @@ pub fn evaluate_decision_reliance_reference(
             push_finding(
                 &mut findings,
                 "invalid",
-                &event.event_id,
                 "DUPLICATE_CHANGE_EVENT_ID",
+                &event.event_id,
                 "change-event IDs must be unique within one decision-reliance receipt",
             );
         }
@@ -813,8 +813,8 @@ pub fn evaluate_decision_reliance_reference(
                 push_finding(
                     &mut findings,
                     "invalid",
-                    &event.event_id,
                     "INVALID_CHANGE_EVENT_TIME",
+                    &event.event_id,
                     &format!("{field} is not canonical UTC whole-second time"),
                 );
             }
@@ -874,8 +874,8 @@ pub fn evaluate_decision_reliance_reference(
                 push_finding(
                     &mut findings,
                     "invalid",
-                    &event.event_id,
                     "CHANGE_EVENT_TRUST_INVALID",
+                    &event.event_id,
                     "change event provenance or registration is invalid or revoked",
                 );
                 continue;
@@ -886,8 +886,8 @@ pub fn evaluate_decision_reliance_reference(
                 push_finding(
                     &mut findings,
                     "incomplete",
-                    &event.event_id,
                     "CHANGE_EVENT_NOT_AUTHENTICATED",
+                    &event.event_id,
                     "an unverified change event cannot be used as a trusted invalidation event",
                 );
                 continue;
@@ -899,8 +899,8 @@ pub fn evaluate_decision_reliance_reference(
                     push_finding(
                         &mut findings,
                         "incomplete",
-                        &event.event_id,
                         "CHANGE_EVENT_TRUST_TIME_MISSING",
+                        &event.event_id,
                         "trusted change event has no trusted registration time",
                     );
                     continue;
@@ -918,8 +918,8 @@ pub fn evaluate_decision_reliance_reference(
             push_finding(
                 &mut findings,
                 "incomplete",
-                &event.event_id,
                 "CHANGE_EVENT_REFERENCES_UNLISTED_PROOF",
+                &event.event_id,
                 "change event affects proof IDs not represented in this reliance receipt",
             );
         }
