@@ -1,0 +1,94 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/heritage-reconstruction-report-v0.1.schema.json",
+  "title": "Sol-Atlas Heritage Reconstruction Report v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "reconstruction_id",
+    "reconstruction_version",
+    "element_count",
+    "observed_geometry_count",
+    "inferred_geometry_count",
+    "simulated_geometry_count",
+    "unknown_geometry_count",
+    "evidence_record_count",
+    "restricted_exact_geometry_count",
+    "alternative_hypothesis_family_count",
+    "non_identifiable_element_count",
+    "disposition",
+    "all_elements_have_explicit_epistemic_class",
+    "all_non_unknown_elements_have_uncertainty",
+    "simulated_geometry_promoted_to_observed",
+    "archaeological_fact_established",
+    "historical_truth_established"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "luminous.heritage-reconstruction-report.v0.1"
+    },
+    "reconstruction_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "reconstruction_version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "element_count": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "observed_geometry_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "inferred_geometry_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "simulated_geometry_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "unknown_geometry_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "evidence_record_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "restricted_exact_geometry_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "alternative_hypothesis_family_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "non_identifiable_element_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "disposition": {
+      "const": "structurally_qualified"
+    },
+    "all_elements_have_explicit_epistemic_class": {
+      "const": true
+    },
+    "all_non_unknown_elements_have_uncertainty": {
+      "const": true
+    },
+    "simulated_geometry_promoted_to_observed": {
+      "const": false
+    },
+    "archaeological_fact_established": {
+      "const": false
+    },
+    "historical_truth_established": {
+      "const": false
+    }
+  }
+}

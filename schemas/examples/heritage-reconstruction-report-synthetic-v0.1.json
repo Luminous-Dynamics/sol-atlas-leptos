@@ -1,0 +1,20 @@
+{
+  "schema_version": "luminous.heritage-reconstruction-report.v0.1",
+  "reconstruction_id": "landscape-001",
+  "reconstruction_version": "v0.1",
+  "element_count": 1,
+  "observed_geometry_count": 1,
+  "inferred_geometry_count": 0,
+  "simulated_geometry_count": 0,
+  "unknown_geometry_count": 0,
+  "evidence_record_count": 4,
+  "restricted_exact_geometry_count": 0,
+  "alternative_hypothesis_family_count": 0,
+  "non_identifiable_element_count": 0,
+  "disposition": "structurally_qualified",
+  "all_elements_have_explicit_epistemic_class": true,
+  "all_non_unknown_elements_have_uncertainty": true,
+  "simulated_geometry_promoted_to_observed": false,
+  "archaeological_fact_established": false,
+  "historical_truth_established": false
+}

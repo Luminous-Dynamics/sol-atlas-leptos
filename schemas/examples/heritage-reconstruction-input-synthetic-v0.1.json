@@ -1,0 +1,98 @@
+{
+  "schema_version": "luminous.heritage-reconstruction.v0.1",
+  "reconstruction_id": "landscape-001",
+  "reconstruction_version": "v0.1",
+  "spatial_reference_id": "EPSG:32736",
+  "coordinate_units": "metres",
+  "evidence": [
+    {
+      "evidence_id": "lidar-measurement",
+      "evidence_kind": "remote_sensing_measurement",
+      "origin": "direct_measurement",
+      "relation": "supports",
+      "source_asset_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "source_lineage_id": "lineage-lidar-measurement",
+      "method_family_id": "lidar-dem-processing",
+      "rights_status": "verified",
+      "rights_receipt_ref": "urn:synthetic:rights:lidar"
+    },
+    {
+      "evidence_id": "field-assessment",
+      "evidence_kind": "surface_field_assessment",
+      "origin": "human_interpretation",
+      "relation": "supports",
+      "source_asset_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "source_lineage_id": "lineage-field-assessment",
+      "method_family_id": "field-archaeological-assessment",
+      "rights_status": "verified",
+      "rights_receipt_ref": "urn:synthetic:rights:field"
+    },
+    {
+      "evidence_id": "chronology",
+      "evidence_kind": "chronometric_measurement",
+      "origin": "direct_measurement",
+      "relation": "supports",
+      "source_asset_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "source_lineage_id": "lineage-chronology",
+      "method_family_id": "radiocarbon-laboratory",
+      "rights_status": "verified",
+      "rights_receipt_ref": "urn:synthetic:rights:chronology"
+    },
+    {
+      "evidence_id": "simulation",
+      "evidence_kind": "simulation",
+      "origin": "simulation",
+      "relation": "supports",
+      "source_asset_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "source_lineage_id": "lineage-simulation",
+      "method_family_id": "forward-simulation",
+      "rights_status": "verified",
+      "rights_receipt_ref": "urn:synthetic:rights:simulation"
+    }
+  ],
+  "elements": [
+    {
+      "element_id": "surface-dem",
+      "epistemic_class": "observed",
+      "geometry_asset_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+      "spatial_reference_id": "EPSG:32736",
+      "geometry_uncertainty": {
+        "representation": "positional_covariance",
+        "coverage_level": 0.9,
+        "characteristic_extent_m": 0.25
+      },
+      "temporal_interval": {
+        "kind": "unknown",
+        "lower_year_ce": null,
+        "upper_year_ce": null,
+        "chronology_evidence_ids": []
+      },
+      "source_evidence_ids": [
+        "lidar-measurement"
+      ],
+      "dependencies": [
+        {
+          "dependency_id": "source-lidar",
+          "kind": "source_evidence",
+          "reference_id": "lidar-measurement",
+          "artifact_sha256": null,
+          "statement": "Direct LiDAR-derived surface measurement"
+        },
+        {
+          "dependency_id": "dem-build",
+          "kind": "method_build",
+          "reference_id": "dem-builder-v1",
+          "artifact_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+          "statement": "Declared terrain reconstruction pipeline"
+        }
+      ],
+      "method_build_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+      "simulation_manifest_sha256": null,
+      "hypothesis_family_id": null,
+      "hypothesis_id": null,
+      "identifiability": "identifiable",
+      "coordinate_access_tier": "public",
+      "exact_geometry_publication_allowed": true
+    }
+  ]
+}
