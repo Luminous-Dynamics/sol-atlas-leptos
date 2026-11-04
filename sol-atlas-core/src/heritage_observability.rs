@@ -13,8 +13,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
 use std::fmt;
 
-pub const HERITAGE_OBSERVABILITY_SCHEMA_VERSION: &str =
-    "luminous.heritage-observability.v0.1";
+pub const HERITAGE_OBSERVABILITY_SCHEMA_VERSION: &str = "luminous.heritage-observability.v0.1";
 pub const MINIMUM_CALIBRATION_PSUS_FLOOR: usize = 20;
 pub const MAX_CALIBRATION_TRIALS: usize = 100_000;
 pub const WILSON_95_Z: f64 = 1.959_963_984_540_054;
@@ -271,9 +270,7 @@ fn valid_fraction(value: f64) -> bool {
     value.is_finite() && (0.0..=1.0).contains(&value)
 }
 
-fn validate_profile(
-    profile: &CalibrationProfile,
-) -> Result<(), HeritageObservabilityError> {
+fn validate_profile(profile: &CalibrationProfile) -> Result<(), HeritageObservabilityError> {
     if !non_empty(&profile.profile_id) {
         return Err(HeritageObservabilityError::EmptyProfileId);
     }
@@ -354,9 +351,11 @@ fn validate_trials(
             ));
         }
         if trial.profile_sha256 != profile.profile_sha256 {
-            return Err(HeritageObservabilityError::CalibrationProfileDigestMismatch {
-                psu_id: trial.psu_id.clone(),
-            });
+            return Err(
+                HeritageObservabilityError::CalibrationProfileDigestMismatch {
+                    psu_id: trial.psu_id.clone(),
+                },
+            );
         }
         if !trial.reference_evidence_tier.supports_presence_reference() {
             return Err(
@@ -378,9 +377,11 @@ fn validate_trials(
             });
         }
         if !non_empty(&trial.rights_receipt_ref) {
-            return Err(HeritageObservabilityError::CalibrationRightsReceiptMissing {
-                psu_id: trial.psu_id.clone(),
-            });
+            return Err(
+                HeritageObservabilityError::CalibrationRightsReceiptMissing {
+                    psu_id: trial.psu_id.clone(),
+                },
+            );
         }
     }
     Ok(())
@@ -400,17 +401,11 @@ fn wilson_interval(
     let z2 = z * z;
     let denominator = 1.0 + z2 / n;
     let center = (p + z2 / (2.0 * n)) / denominator;
-    let half_width =
-        z * ((p * (1.0 - p) / n) + (z2 / (4.0 * n * n))).sqrt() / denominator;
+    let half_width = z * ((p * (1.0 - p) / n) + (z2 / (4.0 * n * n))).sqrt() / denominator;
     let lower = (center - half_width).max(0.0);
     let upper = (center + half_width).min(1.0);
 
-    if !lower.is_finite()
-        || !upper.is_finite()
-        || lower < 0.0
-        || upper > 1.0
-        || lower > upper
-    {
+    if !lower.is_finite() || !upper.is_finite() || lower < 0.0 || upper > 1.0 || lower > upper {
         return Err(HeritageObservabilityError::InvalidWilsonInterval);
     }
 
@@ -548,12 +543,10 @@ pub fn evaluate_heritage_observability(
     } else {
         Vec::new()
     };
-    let context_match = context_mismatch_reasons(
-        &input.calibration_profile.context,
-        &observation.context,
-    )
-    .is_empty()
-        && observation.calibration_profile_sha256 == input.calibration_profile.profile_sha256;
+    let context_match =
+        context_mismatch_reasons(&input.calibration_profile.context, &observation.context)
+            .is_empty()
+            && observation.calibration_profile_sha256 == input.calibration_profile.profile_sha256;
 
     let disposition = match observation.outcome {
         ObservationOutcome::NotSurveyed => ObservabilityDisposition::NotSurveyed,
@@ -661,7 +654,10 @@ mod tests {
     fn well_calibrated_context_matched_non_detection_is_qualified_but_not_absence() {
         let report =
             evaluate_heritage_observability(&input(ObservationOutcome::NotDetected)).unwrap();
-        assert_eq!(report.disposition, ObservabilityDisposition::QualifiedNonDetection);
+        assert_eq!(
+            report.disposition,
+            ObservabilityDisposition::QualifiedNonDetection
+        );
         assert!((report.empirical_probability_of_detection - 1.0).abs() < 1e-12);
         assert!(report.probability_of_detection_wilson_95.lower > 0.80);
         assert!(!report.archaeological_absence_claimed);
@@ -679,9 +675,11 @@ mod tests {
             report.disposition,
             ObservabilityDisposition::IndeterminateNonDetection
         );
-        assert!(report.reasons.contains(
-            &NonDetectionReason::DetectionProbabilityLowerBoundBelowThreshold
-        ));
+        assert!(
+            report
+                .reasons
+                .contains(&NonDetectionReason::DetectionProbabilityLowerBoundBelowThreshold)
+        );
     }
 
     #[test]
@@ -694,7 +692,11 @@ mod tests {
             report.disposition,
             ObservabilityDisposition::IndeterminateNonDetection
         );
-        assert!(report.reasons.contains(&NonDetectionReason::CalibrationSampleBelowMinimum));
+        assert!(
+            report
+                .reasons
+                .contains(&NonDetectionReason::CalibrationSampleBelowMinimum)
+        );
     }
 
     #[test]
@@ -725,9 +727,21 @@ mod tests {
             report.disposition,
             ObservabilityDisposition::IndeterminateNonDetection
         );
-        assert!(report.reasons.contains(&NonDetectionReason::ModalityMismatch));
-        assert!(report.reasons.contains(&NonDetectionReason::EnvironmentStratumMismatch));
-        assert!(report.reasons.contains(&NonDetectionReason::SensorConfigurationMismatch));
+        assert!(
+            report
+                .reasons
+                .contains(&NonDetectionReason::ModalityMismatch)
+        );
+        assert!(
+            report
+                .reasons
+                .contains(&NonDetectionReason::EnvironmentStratumMismatch)
+        );
+        assert!(
+            report
+                .reasons
+                .contains(&NonDetectionReason::SensorConfigurationMismatch)
+        );
         assert!(!report.context_match);
     }
 
@@ -739,10 +753,26 @@ mod tests {
         value.observation.context.season_stratum_id = "leaf_on_wet_season".into();
         value.observation.context.resolution_class_id = "sentinel2_10m".into();
         let report = evaluate_heritage_observability(&value).unwrap();
-        assert!(report.reasons.contains(&NonDetectionReason::FeatureClassMismatch));
-        assert!(report.reasons.contains(&NonDetectionReason::ProcessingBuildMismatch));
-        assert!(report.reasons.contains(&NonDetectionReason::SeasonStratumMismatch));
-        assert!(report.reasons.contains(&NonDetectionReason::ResolutionClassMismatch));
+        assert!(
+            report
+                .reasons
+                .contains(&NonDetectionReason::FeatureClassMismatch)
+        );
+        assert!(
+            report
+                .reasons
+                .contains(&NonDetectionReason::ProcessingBuildMismatch)
+        );
+        assert!(
+            report
+                .reasons
+                .contains(&NonDetectionReason::SeasonStratumMismatch)
+        );
+        assert!(
+            report
+                .reasons
+                .contains(&NonDetectionReason::ResolutionClassMismatch)
+        );
     }
 
     #[test]
@@ -752,9 +782,21 @@ mod tests {
         value.observation.valid_data_fraction = 0.80;
         value.observation.visibility = VisibilityClass::Blocked;
         let report = evaluate_heritage_observability(&value).unwrap();
-        assert!(report.reasons.contains(&NonDetectionReason::CoverageBelowThreshold));
-        assert!(report.reasons.contains(&NonDetectionReason::ValidDataBelowThreshold));
-        assert!(report.reasons.contains(&NonDetectionReason::VisibilityNotAdequate));
+        assert!(
+            report
+                .reasons
+                .contains(&NonDetectionReason::CoverageBelowThreshold)
+        );
+        assert!(
+            report
+                .reasons
+                .contains(&NonDetectionReason::ValidDataBelowThreshold)
+        );
+        assert!(
+            report
+                .reasons
+                .contains(&NonDetectionReason::VisibilityNotAdequate)
+        );
         assert_eq!(
             report.disposition,
             ObservabilityDisposition::IndeterminateNonDetection
@@ -767,8 +809,16 @@ mod tests {
         value.observation.rights_status = RightsStatus::Pending;
         value.observation.rights_receipt_ref = None;
         let report = evaluate_heritage_observability(&value).unwrap();
-        assert!(report.reasons.contains(&NonDetectionReason::RightsNotVerified));
-        assert!(report.reasons.contains(&NonDetectionReason::RightsReceiptMissing));
+        assert!(
+            report
+                .reasons
+                .contains(&NonDetectionReason::RightsNotVerified)
+        );
+        assert!(
+            report
+                .reasons
+                .contains(&NonDetectionReason::RightsReceiptMissing)
+        );
     }
 
     #[test]
@@ -796,7 +846,11 @@ mod tests {
         let mut value = input(ObservationOutcome::NotDetected);
         value.observation.calibration_profile_sha256 = "d".repeat(64);
         let report = evaluate_heritage_observability(&value).unwrap();
-        assert!(report.reasons.contains(&NonDetectionReason::CalibrationProfileDigestMismatch));
+        assert!(
+            report
+                .reasons
+                .contains(&NonDetectionReason::CalibrationProfileDigestMismatch)
+        );
         assert!(!report.context_match);
         assert_eq!(
             report.disposition,
@@ -806,8 +860,7 @@ mod tests {
 
     #[test]
     fn detected_observation_is_not_promoted_to_archaeological_identification() {
-        let report =
-            evaluate_heritage_observability(&input(ObservationOutcome::Detected)).unwrap();
+        let report = evaluate_heritage_observability(&input(ObservationOutcome::Detected)).unwrap();
         assert_eq!(report.disposition, ObservabilityDisposition::Detected);
         assert!(!report.archaeological_identification_claimed);
         assert!(!report.archaeological_absence_claimed);
