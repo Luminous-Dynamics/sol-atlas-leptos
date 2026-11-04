@@ -331,16 +331,15 @@ fn verify_one<R: ContentAddressedPayloadResolver>(
         }
     }
 
-    if let Some(expected_length) = payload.byte_length {
-        if expected_length > limits.max_bytes_per_payload
-            || expected_length > remaining_total_budget
-        {
-            result.disposition = PayloadByteVerificationDisposition::ResourceLimitReached;
-            result.detail = Some(
-                "declared byte length exceeds the remaining configured verification budget".into(),
-            );
-            return result;
-        }
+    if let Some(expected_length) = payload.byte_length
+        && (expected_length > limits.max_bytes_per_payload
+            || expected_length > remaining_total_budget)
+    {
+        result.disposition = PayloadByteVerificationDisposition::ResourceLimitReached;
+        result.detail = Some(
+            "declared byte length exceeds the remaining configured verification budget".into(),
+        );
+        return result;
     }
 
     if remaining_total_budget == 0 {
