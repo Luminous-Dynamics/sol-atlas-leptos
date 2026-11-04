@@ -27,9 +27,10 @@ pub mod geo;
 pub mod industry_assurance_projection;
 pub mod lod;
 pub mod mycelix_flows;
-/// Independent hashing of caller-supplied source and schema bytes against
-/// case-bound descriptor claims. Does not retrieve bytes or authenticate
-/// source owners, rights, trust roots, completeness, or engineering truth.
+/// Independent SHA-256 checking of caller-supplied source and schema byte
+/// buffers against case-bound descriptor claims. It does not retrieve source
+/// bytes or authenticate owners, attestations, rights, completeness, or truth;
+/// verified byte equality remains one proof obligation within the larger IEAC.
 pub mod source_payload_verifier;
 // pub mod relativity_viz;
 pub mod geometry;
