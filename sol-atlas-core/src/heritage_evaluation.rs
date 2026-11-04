@@ -450,7 +450,7 @@ pub fn audit_heritage_evaluation_split(
     }
 
     let mut sample_ids = BTreeSet::new();
-    let mut capture_digests_by_id = BTreeMap::<&str, &str>::new();
+    let mut capture_digests_by_id = BTreeMap::<String, String>::new();
     for sample in &manifest.samples {
         if !non_empty(&sample.sample_id) {
             return Err(HeritageEvaluationSplitError::EmptySampleId);
@@ -512,15 +512,17 @@ pub fn audit_heritage_evaluation_split(
                 ),
             );
         }
-        let prior_digest = capture_digests_by_id.insert(
-            sample.source_capture_id.as_str(),
-            sample.source_capture_sha256.as_str(),
-        );
-        if prior_digest.is_some_and(|digest| digest != sample.source_capture_sha256.as_str()) {
+        if capture_digests_by_id
+            .get(&sample.source_capture_id)
+            .is_some_and(|digest| digest != &sample.source_capture_sha256)
+        {
             return Err(HeritageEvaluationSplitError::CaptureIdDigestMismatch(
                 sample.source_capture_id.clone(),
             ));
         }
+        capture_digests_by_id
+            .entry(sample.source_capture_id.clone())
+            .or_insert_with(|| sample.source_capture_sha256.clone());
         let mut identities = BTreeSet::new();
         for identity in &sample.physical_entity_ids {
             if !non_empty(identity) || !identities.insert(identity.as_str()) {
