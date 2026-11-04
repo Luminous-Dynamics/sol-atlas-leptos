@@ -1,0 +1,277 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/schemas/source-payload-byte-verification-report-v0.1.schema.json",
+  "title": "Source Payload Byte Verification Report v0.1",
+  "description": "Report of bounded local rehashing of descriptor-referenced source bytes. Byte equality is not source-owner, rights, attestation, source-completeness, or engineering-correctness authentication.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "disposition",
+    "case_id",
+    "case_representation_sha256",
+    "catalog_id",
+    "catalog_representation_sha256",
+    "verifier_build_sha256",
+    "verified_at_utc",
+    "max_bytes_per_payload",
+    "descriptor_validation_disposition",
+    "descriptor_validation_findings",
+    "descriptor_count",
+    "verified_count",
+    "unavailable_count",
+    "read_failed_count",
+    "byte_limit_exceeded_count",
+    "invalid_count",
+    "records",
+    "findings",
+    "source_owner_authentication",
+    "source_snapshot_authentication",
+    "rights_authentication",
+    "attestation_authentication",
+    "source_inventory_completeness",
+    "engineering_correctness",
+    "action_authority",
+    "no_impact_eligibility"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "luminous.source-payload-byte-verification.v0.1"
+    },
+    "disposition": {
+      "enum": [
+        "all_resolvable_payloads_verified",
+        "incomplete_or_indeterminate",
+        "invalid_input"
+      ]
+    },
+    "case_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "case_representation_sha256": {
+      "$ref": "#/$defs/sha256"
+    },
+    "catalog_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "catalog_representation_sha256": {
+      "$ref": "#/$defs/sha256"
+    },
+    "verifier_build_sha256": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "verified_at_utc": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "max_bytes_per_payload": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "descriptor_validation_disposition": {
+      "enum": [
+        "internally_consistent_for_declared_case",
+        "incomplete_or_indeterminate",
+        "invalid_input"
+      ]
+    },
+    "descriptor_validation_findings": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/finding"
+      }
+    },
+    "descriptor_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "verified_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "unavailable_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "read_failed_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "byte_limit_exceeded_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "invalid_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "records": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "record_key",
+          "status",
+          "digest_basis",
+          "object_ref",
+          "expected_sha256",
+          "actual_sha256",
+          "expected_byte_length",
+          "actual_byte_length",
+          "bytes_read",
+          "read_error_kind",
+          "findings"
+        ],
+        "properties": {
+          "record_key": {
+            "type": "string",
+            "minLength": 1
+          },
+          "status": {
+            "enum": [
+              "verified",
+              "source_bytes_unavailable",
+              "read_failed",
+              "byte_limit_exceeded",
+              "invalid_descriptor",
+              "digest_mismatch",
+              "length_mismatch"
+            ]
+          },
+          "digest_basis": {
+            "enum": [
+              "locally_retrieved_and_hashed",
+              "source_owner_attested",
+              "external_reference",
+              "unavailable"
+            ]
+          },
+          "object_ref": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "minLength": 1
+          },
+          "expected_sha256": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "actual_sha256": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "expected_byte_length": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "actual_byte_length": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "bytes_read": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "read_error_kind": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "findings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/finding"
+            }
+          }
+        }
+      }
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/finding"
+      }
+    },
+    "source_owner_authentication": {
+      "const": "not_performed"
+    },
+    "source_snapshot_authentication": {
+      "const": "not_performed"
+    },
+    "rights_authentication": {
+      "const": "not_performed"
+    },
+    "attestation_authentication": {
+      "const": "not_performed"
+    },
+    "source_inventory_completeness": {
+      "const": "not_performed"
+    },
+    "engineering_correctness": {
+      "const": "not_performed"
+    },
+    "action_authority": {
+      "const": "none"
+    },
+    "no_impact_eligibility": {
+      "const": "none"
+    }
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "finding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "severity",
+        "code",
+        "record_key",
+        "detail"
+      ],
+      "properties": {
+        "severity": {
+          "enum": [
+            "incomplete",
+            "invalid"
+          ]
+        },
+        "code": {
+          "type": "string",
+          "minLength": 1
+        },
+        "record_key": {
+          "type": "string",
+          "minLength": 1
+        },
+        "detail": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  }
+}
