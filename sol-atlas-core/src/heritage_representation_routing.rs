@@ -564,7 +564,9 @@ pub fn select_heritage_representation(
         worst_site_utility(right)
             .total_cmp(&worst_site_utility(left))
             .then_with(|| worst_site_precision(right).total_cmp(&worst_site_precision(left)))
-            .then_with(|| worst_site_false_candidates(left).total_cmp(&worst_site_false_candidates(right)))
+            .then_with(|| {
+                worst_site_false_candidates(left).total_cmp(&worst_site_false_candidates(right))
+            })
             .then_with(|| left.profile_id.cmp(&right.profile_id))
     });
     rejected_profiles.sort_by(|left, right| left.profile_id.cmp(&right.profile_id));
@@ -810,8 +812,8 @@ mod tests {
         let mut candidate = profile("duplicate-site", &[0.90, 0.90, 0.90]);
         candidate.validation_site_results[1].validation_site_id = candidate.validation_site_results
             [0]
-            .validation_site_id
-            .clone();
+        .validation_site_id
+        .clone();
         assert!(matches!(
             select_heritage_representation(&request(), &[candidate]),
             Err(RepresentationRoutingError::DuplicateValidationSiteId(_))
