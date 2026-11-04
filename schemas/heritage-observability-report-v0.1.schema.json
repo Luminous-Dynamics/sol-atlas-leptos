@@ -9,6 +9,9 @@
     "candidate_id",
     "profile_id",
     "profile_sha256",
+    "calibration_context",
+    "observed_context",
+    "observation_profile_sha256",
     "observation_id",
     "observation_outcome",
     "disposition",
@@ -188,6 +191,110 @@
     },
     "combined_multi_observation_probability_reported": {
       "const": false
+    },
+    "calibration_context": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "feature_class_id",
+        "modality",
+        "sensor_configuration_sha256",
+        "processing_build_sha256",
+        "environment_stratum_id",
+        "season_stratum_id",
+        "resolution_class_id"
+      ],
+      "properties": {
+        "feature_class_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "modality": {
+          "enum": [
+            "airborne_lidar",
+            "satellite_optical",
+            "satellite_sar",
+            "uav_photogrammetry",
+            "ground_geophysics",
+            "field_walking",
+            "other"
+          ]
+        },
+        "sensor_configuration_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "processing_build_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "environment_stratum_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "season_stratum_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "resolution_class_id": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "observed_context": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "feature_class_id",
+        "modality",
+        "sensor_configuration_sha256",
+        "processing_build_sha256",
+        "environment_stratum_id",
+        "season_stratum_id",
+        "resolution_class_id"
+      ],
+      "properties": {
+        "feature_class_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "modality": {
+          "enum": [
+            "airborne_lidar",
+            "satellite_optical",
+            "satellite_sar",
+            "uav_photogrammetry",
+            "ground_geophysics",
+            "field_walking",
+            "other"
+          ]
+        },
+        "sensor_configuration_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "processing_build_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "environment_stratum_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "season_stratum_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "resolution_class_id": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "observation_profile_sha256": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{64}$"
     }
   }
 }
