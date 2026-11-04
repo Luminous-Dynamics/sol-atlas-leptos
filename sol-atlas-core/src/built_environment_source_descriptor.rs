@@ -1746,6 +1746,59 @@ mod tests {
     }
 
     #[test]
+    fn cross_case_set_detects_late_digest_conflict_after_an_earlier_missing_value() {
+        let first_case = case();
+        let mut second_case = first_case.clone();
+        second_case.case_id = "case-descriptor-002".into();
+        second_case.evidence[0].source_payload_sha256 = Some(digest('b'));
+        let mut third_case = first_case.clone();
+        third_case.case_id = "case-descriptor-003".into();
+        third_case.evidence[0].source_payload_sha256 = Some(digest('c'));
+
+        let mut first_catalog = catalog(&first_case);
+        let mut first_evidence = first_catalog
+            .descriptors
+            .iter_mut()
+            .find(|descriptor| descriptor.record_kind == SourceRecordKind::Evidence)
+            .unwrap();
+        first_evidence.source_payload = SourcePayloadDescriptor {
+            sha256: None,
+            digest_basis: PayloadDigestBasis::Unavailable,
+            bytes_retrieved: false,
+            byte_length: None,
+            payload_object_ref: None,
+            media_type: Some("application/json".into()),
+            schema_id: Some("urn:synthetic:survey-evidence".into()),
+            schema_version: Some("1.0".into()),
+            schema_sha256: Some(digest('e')),
+        };
+
+        let mut second_catalog = catalog(&second_case);
+        second_catalog.descriptors[0].source_payload.sha256 = Some(digest('b'));
+        second_catalog.descriptors[0].source_payload.payload_object_ref =
+            Some(format!("cas:sha256:{}", digest('b')));
+        second_catalog.case_representation_sha256 =
+            sha256_hex(&serde_json::to_vec(&second_case).unwrap());
+
+        let mut third_catalog = catalog(&third_case);
+        third_catalog.descriptors[0].source_payload.sha256 = Some(digest('c'));
+        third_catalog.descriptors[0].source_payload.payload_object_ref =
+            Some(format!("cas:sha256:{}", digest('c')));
+        third_catalog.case_representation_sha256 =
+            sha256_hex(&serde_json::to_vec(&third_case).unwrap());
+
+        let result = validate_source_descriptor_catalog_set(
+            &[first_case, second_case, third_case],
+            &[first_catalog, second_catalog, third_catalog],
+        );
+        assert_eq!(result.disposition, DescriptorDisposition::InvalidInput);
+        assert_eq!(result.conflicting_native_identity_count, 1);
+        assert!(result.findings.iter().any(|finding| {
+            finding.code == "CROSS_CASE_NATIVE_IDENTITY_DIGEST_CONFLICT"
+        }));
+    }
+
+    #[test]
     fn catalogue_set_rejects_cross_case_digest_conflict_for_same_native_identity() {
         let first_case = case();
         let mut second_case = first_case.clone();
