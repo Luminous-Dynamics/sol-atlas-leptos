@@ -17,6 +17,7 @@ use crate::built_environment_source_descriptor::{
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::collections::{BTreeMap, BTreeSet};
+use std::io::{self, Read};
 
 const RECEIPT_SCHEMA: &str = "luminous.source-payload-byte-verification-receipt.v0.1";
 const PAYLOAD_INPUT_DOMAIN: &[u8] = b"LUMINOUS-SOURCE-PAYLOAD-INPUT-MANIFEST-V0.1\0";
@@ -68,6 +69,8 @@ pub struct RecordByteVerification {
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct PayloadByteVerificationReceipt {
     pub schema_version: String,
+    pub input_mode: String,
+    pub read_buffer_bytes: usize,
     pub case_id: String,
     pub catalog_id: String,
     pub catalog_sha256: String,
@@ -100,6 +103,32 @@ pub struct PayloadByteVerificationReceipt {
     pub receipt_digest_basis: String,
     pub receipt_sha256: String,
 }
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+struct InputDigest {
+    sha256: String,
+    byte_length: u64,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ByteInputReadError {
+    pub input_key: String,
+    pub bytes_read: u64,
+    pub error_kind: String,
+    pub message: String,
+}
+
+impl std::fmt::Display for ByteInputReadError {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            formatter,
+            "failed reading {} after {} bytes ({}): {}",
+            self.input_key, self.bytes_read, self.error_kind, self.message
+        )
+    }
+}
+
+impl std::error::Error for ByteInputReadError {}
 
 #[derive(Default)]
 struct Findings {
@@ -158,28 +187,38 @@ fn append_field(encoded: &mut Vec<u8>, value: &[u8]) -> Result<(), String> {
     Ok(())
 }
 
-fn payload_input_manifest_digest(payloads: &BTreeMap<String, Vec<u8>>) -> Result<String, String> {
+fn payload_input_manifest_digest(
+    payloads: &BTreeMap<String, InputDigest>,
+) -> Result<String, String> {
     let mut encoded = PAYLOAD_INPUT_DOMAIN.to_vec();
-    for (key, bytes) in payloads {
+    for (key, input) in payloads {
         append_field(&mut encoded, key.as_bytes())?;
-        append_field(&mut encoded, &(bytes.len() as u64).to_be_bytes())?;
-        append_field(&mut encoded, sha256_hex(bytes).as_bytes())?;
+        append_field(&mut encoded, &input.byte_length.to_be_bytes())?;
+        append_field(&mut encoded, input.sha256.as_bytes())?;
     }
     Ok(sha256_hex(&encoded))
 }
 
 fn schema_input_manifest_digest(
-    schemas: &BTreeMap<(String, String), Vec<u8>>,
+    schemas: &BTreeMap<(String, String), InputDigest>,
 ) -> Result<String, String> {
     let mut encoded = SCHEMA_INPUT_DOMAIN.to_vec();
-    for ((schema_id, schema_version), bytes) in schemas {
+    for ((schema_id, schema_version), input) in schemas {
         append_field(&mut encoded, schema_id.as_bytes())?;
         append_field(&mut encoded, schema_version.as_bytes())?;
-        append_field(&mut encoded, &(bytes.len() as u64).to_be_bytes())?;
-        append_field(&mut encoded, sha256_hex(bytes).as_bytes())?;
+        append_field(&mut encoded, &input.byte_length.to_be_bytes())?;
+        append_field(&mut encoded, input.sha256.as_bytes())?;
     }
     Ok(sha256_hex(&encoded))
 }
+
+fn digest_bytes(bytes: &[u8]) -> InputDigest {
+    InputDigest {
+        sha256: sha256_hex(bytes),
+        byte_length: bytes.len() as u64,
+    }
+}
+
 
 fn valid_sha256(value: &str) -> bool {
     value.len() == 64
