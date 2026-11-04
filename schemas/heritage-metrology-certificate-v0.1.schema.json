@@ -44,8 +44,10 @@
       "items": { "$ref": "#/$defs/checkpoint" }
     },
     "assessment_profile": {
-      "enum": ["exploratory", "project_defined", "asprs2024_style"]
+      "enum": ["exploratory", "project_defined", "asprs2024_core"]
     },
+    "target_rmse_h_m": { "type": "number", "exclusiveMinimum": 0 },
+    "target_rmse_v_m": { "type": "number", "exclusiveMinimum": 0 },
     "independence_attestation_ref": { "type": "string", "minLength": 1 },
     "rights_receipt_ref": { "type": "string", "minLength": 1 }
   },
@@ -55,7 +57,10 @@
         "properties": { "assessment_profile": { "const": "asprs2024_style" } },
         "required": ["assessment_profile"]
       },
-      "then": { "properties": { "independent_checkpoints": { "minItems": 30 } } }
+      "then": {
+        "required": ["target_rmse_h_m", "target_rmse_v_m"],
+        "properties": { "independent_checkpoints": { "minItems": 30 } }
+      }
     }
   ],
   "$defs": {
