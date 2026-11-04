@@ -569,9 +569,7 @@ fn catalog_report(
 
     let invalid_descriptor =
         descriptor_validation.disposition == DescriptorDisposition::InvalidInput;
-    let invalid_report_finding = findings
-        .iter()
-        .any(|finding| finding.severity == "invalid");
+    let invalid_report_finding = findings.iter().any(|finding| finding.severity == "invalid");
     let disposition = if invalid_descriptor || invalid_count > 0 || invalid_report_finding {
         PayloadByteCatalogDisposition::InvalidInput
     } else if descriptor_validation.disposition == DescriptorDisposition::IncompleteOrIndeterminate
