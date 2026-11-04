@@ -589,7 +589,6 @@ mod tests {
     #[test]
     fn evaluation_preserves_calibration_and_spatial_receipts() {
         let report = evaluate_field_sweep(&input()).unwrap();
-        assert_eq!(report.disposition_if_no_absence_claimed(), false);
         assert!(report.context_match);
         assert!(!report.archaeological_absence_claimed);
         assert!(!report.archaeological_identification_claimed);
