@@ -532,6 +532,10 @@ pub fn verify_catalog_payload_bytes(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    type PayloadByteInputs = BTreeMap<String, Vec<u8>>;
+    type SchemaByteInputs = BTreeMap<(String, String), Vec<u8>>;
+    type TestByteInputs = (PayloadByteInputs, SchemaByteInputs);
     use crate::built_environment_case::{
         BuiltEnvironmentCase, DataRights, EvidenceRecord, EvidenceState,
     };
@@ -653,10 +657,7 @@ mod tests {
     fn inputs(
         payload: &[u8],
         schema: &[u8],
-    ) -> (
-        BTreeMap<String, Vec<u8>>,
-        BTreeMap<(String, String), Vec<u8>>,
-    ) {
+    ) -> TestByteInputs {
         (
             BTreeMap::from([("evidence:evidence-001".into(), payload.to_vec())]),
             BTreeMap::from([(
