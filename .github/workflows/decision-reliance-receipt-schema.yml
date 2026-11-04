@@ -10,6 +10,7 @@ on:
     branches:
       - main
       - research/engineering-decision-reliance-receipt-v0-1
+      - research/engineering-decision-reliance-receipt-v0-1-rebased
     paths:
       - "schemas/decision-reliance-receipt-v0.1.schema.json"
       - "schemas/examples/decision-reliance-receipt-insufficient-synthetic-v0.1.json"
