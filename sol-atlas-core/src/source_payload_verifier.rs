@@ -538,9 +538,9 @@ fn catalog_report(
         || unavailable_count > 0
         || read_failed_count > 0
         || byte_limit_exceeded_count > 0
-        || findings.iter().any(|finding| {
-            finding.code == "VERIFIER_BUILD_IDENTITY_UNAVAILABLE"
-        })
+        || findings
+            .iter()
+            .any(|finding| finding.code == "VERIFIER_BUILD_IDENTITY_UNAVAILABLE")
     {
         PayloadByteCatalogDisposition::IncompleteOrIndeterminate
     } else {
@@ -1103,19 +1103,19 @@ mod tests {
         let catalog = catalog(&case, descriptor(bytes));
         let mut context = context();
         context.verified_at_utc = "2026-02-31T25:61:61Z".into();
-        let result = verify_catalog_payload_bytes(
-            &case,
-            &catalog,
-            &context,
-            |_reference| Ok(Cursor::new(bytes.to_vec())),
-        );
+        let result = verify_catalog_payload_bytes(&case, &catalog, &context, |_reference| {
+            Ok(Cursor::new(bytes.to_vec()))
+        });
         assert_eq!(
             result.disposition,
             PayloadByteCatalogDisposition::InvalidInput
         );
-        assert!(result.findings.iter().any(|finding| {
-            finding.code == "INVALID_VERIFICATION_TIME"
-        }));
+        assert!(
+            result
+                .findings
+                .iter()
+                .any(|finding| { finding.code == "INVALID_VERIFICATION_TIME" })
+        );
     }
 
     #[test]
@@ -1126,19 +1126,19 @@ mod tests {
         catalog.descriptors[0].rights.state = SourceRightsState::Unknown;
         catalog.descriptors[0].rights.permitted_uses.clear();
         catalog.descriptors[0].rights.rights_evidence_ref = None;
-        let result = verify_catalog_payload_bytes(
-            &case,
-            &catalog,
-            &context(),
-            |_reference| Ok(Cursor::new(bytes.to_vec())),
-        );
+        let result = verify_catalog_payload_bytes(&case, &catalog, &context(), |_reference| {
+            Ok(Cursor::new(bytes.to_vec()))
+        });
         assert_eq!(
             result.disposition,
             PayloadByteCatalogDisposition::IncompleteOrIndeterminate
         );
-        assert!(result.descriptor_validation_findings.iter().any(|finding| {
-            finding.code == "SOURCE_RIGHTS_UNKNOWN"
-        }));
+        assert!(
+            result
+                .descriptor_validation_findings
+                .iter()
+                .any(|finding| { finding.code == "SOURCE_RIGHTS_UNKNOWN" })
+        );
         assert_eq!(result.no_impact_eligibility, "none");
     }
 
