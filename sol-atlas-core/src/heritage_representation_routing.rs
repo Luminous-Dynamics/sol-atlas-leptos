@@ -100,6 +100,8 @@ pub struct RepresentationProfile {
     pub split_protocol: SplitProtocol,
     pub split_manifest_sha256: String,
     pub data_manifest_sha256: String,
+    /// Digest of the canonical sorted set of validation-site identities.
+    pub validation_site_set_sha256: String,
     pub training_site_ids: Vec<String>,
     pub validation_site_results: Vec<SitePerformance>,
     pub rights_status: RightsStatus,
@@ -179,6 +181,13 @@ pub struct RepresentationSelectionReport {
     pub selected_profile_id: Option<String>,
     pub selected_representation_transform_sha256: Option<String>,
     pub selected_model_build_sha256: Option<String>,
+    pub selected_channel_semantics_sha256: Option<String>,
+    pub selected_metric_definition_sha256: Option<String>,
+    pub selected_data_manifest_sha256: Option<String>,
+    pub selected_split_manifest_sha256: Option<String>,
+    pub selected_validation_site_set_sha256: Option<String>,
+    pub selected_rights_receipt_ref: Option<String>,
+    pub selected_validation_site_count: Option<usize>,
     pub selected_worst_site_primary_metric_utility_lower_bound: Option<f64>,
     pub selected_worst_site_precision_lower_bound: Option<f64>,
     pub selected_worst_site_false_candidates_per_km2: Option<f64>,
@@ -331,6 +340,7 @@ fn validate_profiles(
             &profile.channel_semantics_sha256,
             &profile.split_manifest_sha256,
             &profile.data_manifest_sha256,
+            &profile.validation_site_set_sha256,
             &profile.representation_transform_sha256,
             &profile.model_build_sha256,
             &profile.metric_definition_sha256,
@@ -562,28 +572,56 @@ pub fn select_heritage_representation(
     rejected_profiles.sort_by(|left, right| left.profile_id.cmp(&right.profile_id));
 
     let selected = qualified.first().copied();
-    let (disposition, id, transform, model, utility, precision, false_candidates) =
-        if let Some(profile) = selected {
-            (
-                RoutingDisposition::SelectedQualifiedProfile,
-                Some(profile.profile_id.clone()),
-                Some(profile.representation_transform_sha256.clone()),
-                Some(profile.model_build_sha256.clone()),
-                Some(worst_site_utility(profile)),
-                Some(worst_site_precision(profile)),
-                Some(worst_site_false_candidates(profile)),
-            )
-        } else {
-            (
-                RoutingDisposition::AbstainNoQualifiedProfile,
-                None,
-                None,
-                None,
-                None,
-                None,
-                None,
-            )
-        };
+    let (
+        disposition,
+        id,
+        transform,
+        model,
+        channel_semantics,
+        metric_definition,
+        data_manifest,
+        split_manifest,
+        validation_site_set,
+        rights_receipt,
+        validation_site_count,
+        utility,
+        precision,
+        false_candidates,
+    ) = if let Some(profile) = selected {
+        (
+            RoutingDisposition::SelectedQualifiedProfile,
+            Some(profile.profile_id.clone()),
+            Some(profile.representation_transform_sha256.clone()),
+            Some(profile.model_build_sha256.clone()),
+            Some(profile.channel_semantics_sha256.clone()),
+            Some(profile.metric_definition_sha256.clone()),
+            Some(profile.data_manifest_sha256.clone()),
+            Some(profile.split_manifest_sha256.clone()),
+            Some(profile.validation_site_set_sha256.clone()),
+            profile.rights_receipt_ref.clone(),
+            Some(profile.validation_site_results.len()),
+            Some(worst_site_utility(profile)),
+            Some(worst_site_precision(profile)),
+            Some(worst_site_false_candidates(profile)),
+        )
+    } else {
+        (
+            RoutingDisposition::AbstainNoQualifiedProfile,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+        )
+    };
 
     Ok(RepresentationSelectionReport {
         schema_version: HERITAGE_ROUTING_REPORT_SCHEMA_VERSION.to_owned(),
@@ -592,6 +630,13 @@ pub fn select_heritage_representation(
         selected_profile_id: id,
         selected_representation_transform_sha256: transform,
         selected_model_build_sha256: model,
+        selected_channel_semantics_sha256: channel_semantics,
+        selected_metric_definition_sha256: metric_definition,
+        selected_data_manifest_sha256: data_manifest,
+        selected_split_manifest_sha256: split_manifest,
+        selected_validation_site_set_sha256: validation_site_set,
+        selected_rights_receipt_ref: rights_receipt,
+        selected_validation_site_count: validation_site_count,
         selected_worst_site_primary_metric_utility_lower_bound: utility,
         selected_worst_site_precision_lower_bound: precision,
         selected_worst_site_false_candidates_per_km2: false_candidates,
@@ -661,6 +706,7 @@ mod tests {
             split_protocol: SplitProtocol::HeldOutSite,
             split_manifest_sha256: "e".repeat(64),
             data_manifest_sha256: "f".repeat(64),
+            validation_site_set_sha256: "6".repeat(64),
             training_site_ids: vec!["train-a".into(), "train-b".into()],
             validation_site_results: scores
                 .iter()
@@ -850,6 +896,10 @@ mod tests {
         assert_eq!(report.disposition, RoutingDisposition::SelectedQualifiedProfile);
         assert!(!report.archaeological_identification_claimed);
         assert!(!report.outer_test_data_used_for_selection);
+        assert_eq!(report.selected_data_manifest_sha256.as_deref(), Some("f".repeat(64).as_str()));
+        assert_eq!(report.selected_split_manifest_sha256.as_deref(), Some("e".repeat(64).as_str()));
+        assert_eq!(report.selected_validation_site_count, Some(3));
+        assert!(report.selected_rights_receipt_ref.is_some());
         assert!(!report.silent_fallback_performed);
     }
 }
