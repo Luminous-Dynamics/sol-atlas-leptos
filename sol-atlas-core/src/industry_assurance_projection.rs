@@ -14,6 +14,10 @@ use crate::built_environment_source_descriptor::{
     DescriptorDisposition, DescriptorValidation, SourceDescriptorCatalog,
     validate_source_descriptor_catalog,
 };
+use crate::built_environment_source_inventory::{
+    ExpectedSourceOwner, InventoryClosureDisposition, InventoryClosureValidation,
+    SourceInventoryManifest, validate_source_inventory_closure,
+};
 use serde::Serialize;
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
@@ -82,6 +86,12 @@ pub struct SourceRecordProjectionMetadata {
 #[derive(Clone, Debug)]
 pub struct DescriptorProjectionOutput {
     pub descriptor_validation: DescriptorValidation,
+    pub projection: ProjectionOutput,
+}
+
+#[derive(Clone, Debug)]
+pub struct InventoryProjectionOutput {
+    pub inventory_validation: InventoryClosureValidation,
     pub projection: ProjectionOutput,
 }
 
@@ -755,6 +765,110 @@ pub fn project_built_environment_case_with_descriptors(
         project_built_environment_case_inner(case, &projection_context, Some(&overrides));
     DescriptorProjectionOutput {
         descriptor_validation: validation,
+        projection,
+    }
+}
+
+/// Attach an independently validated source-inventory closure to an
+/// existing projection receipt.
+///
+/// Inventory structure is necessary for bounded negative findings but is not
+/// sufficient: page payload bytes, source signatures, rights, and source truth
+/// remain unauthenticated here. Consequently this function never grants
+/// NoImpact eligibility. Invalid inventory input is fail-closed (no graph);
+/// incomplete or exclusion-bearing inventories retain only a diagnostic graph
+/// with an incomplete claim ceiling.
+pub fn qualify_projection_with_inventory(
+    mut projection: ProjectionOutput,
+    expected_owners: &[ExpectedSourceOwner],
+    manifests: &[SourceInventoryManifest],
+) -> InventoryProjectionOutput {
+    let inventory_validation = validate_source_inventory_closure(expected_owners, manifests);
+    let disposition = inventory_validation.disposition;
+
+    if disposition == InventoryClosureDisposition::InvalidInput {
+        projection.graph = Value::Null;
+        projection.disposition = ProjectionDisposition::InvalidInput;
+        projection.projection_receipt["disposition"] = json!("invalid_input");
+        projection.projection_receipt["claim_ceiling"] =
+            json!("incomplete_or_indeterminate");
+        if let Some(findings) = projection.projection_receipt["findings"].as_array_mut() {
+            findings.push(json!({
+                "severity": "invalid",
+                "code": "SOURCE_INVENTORY_CLOSURE_INVALID",
+                "native_key": "source_inventory_closure",
+                "detail": "invalid source inventory closure cannot support projection reliance"
+            }));
+        }
+    } else if matches!(
+        disposition,
+        InventoryClosureDisposition::IncompleteOrIndeterminate
+            | InventoryClosureDisposition::CompleteWithDeclaredExclusions
+    ) {
+        if let Some(graph) = projection.graph.as_object_mut() {
+            graph.insert(
+                "claim_ceiling".into(),
+                json!("incomplete_or_indeterminate"),
+            );
+            let mut graph_core = projection.graph.clone();
+            graph_core
+                .as_object_mut()
+                .expect("projected graph remains an object")
+                .remove("graph_snapshot_sha256");
+            if let Ok(graph_digest) = canonical_json_sha256(&graph_core) {
+                projection.graph["graph_snapshot_sha256"] = json!(graph_digest);
+                projection.projection_receipt["projected_graph"]["graph_snapshot_sha256"] =
+                    json!(graph_digest);
+            }
+        }
+        if projection.disposition != ProjectionDisposition::InvalidInput {
+            projection.disposition = ProjectionDisposition::ProjectedWithKnownLoss;
+            projection.projection_receipt["disposition"] =
+                json!("projected_with_known_loss");
+        }
+        projection.projection_receipt["claim_ceiling"] =
+            json!("incomplete_or_indeterminate");
+        if let Some(findings) = projection.projection_receipt["findings"].as_array_mut() {
+            findings.push(json!({
+                "severity": "incomplete",
+                "code": "SOURCE_INVENTORY_CLOSURE_INCOMPLETE",
+                "native_key": "source_inventory_closure",
+                "detail": "source inventory is incomplete or contains declared exclusions; no unqualified negative finding can be supported"
+            }));
+        }
+    }
+
+    projection.projection_receipt["projector"]["source_inventory_closure"] = json!({
+        "disposition": inventory_validation.disposition.as_str(),
+        "expected_owner_count": inventory_validation.expected_owner_count,
+        "required_owner_count": inventory_validation.required_owner_count,
+        "present_required_owner_count": inventory_validation.present_required_owner_count,
+        "complete_inventory_count": inventory_validation.complete_inventory_count,
+        "complete_with_exclusions_count": inventory_validation.complete_with_exclusions_count,
+        "incomplete_inventory_count": inventory_validation.incomplete_inventory_count,
+        "invalid_inventory_count": inventory_validation.invalid_inventory_count,
+        "not_comparable_inventory_count": inventory_validation.not_comparable_inventory_count,
+        "owner_presence_disposition": inventory_validation.owner_presence.disposition.as_str(),
+        "claim_scope": inventory_validation.claim_scope,
+        "page_payload_byte_verification": "not_performed",
+        "source_attestation_authentication": "not_performed",
+        "source_truth": "not_established",
+        "negative_finding_eligibility": false,
+        "action_authority": "none",
+        "findings": inventory_validation.findings
+    });
+
+    let mut receipt_core = projection.projection_receipt.clone();
+    receipt_core
+        .as_object_mut()
+        .expect("projection receipt remains an object")
+        .remove("projection_receipt_sha256");
+    if let Ok(receipt_digest) = canonical_json_sha256(&receipt_core) {
+        projection.projection_receipt["projection_receipt_sha256"] = json!(receipt_digest);
+    }
+
+    InventoryProjectionOutput {
+        inventory_validation,
         projection,
     }
 }
