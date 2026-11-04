@@ -1,0 +1,208 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/heritage-routing-report-v0.1.schema.json",
+  "title": "Sol-Atlas Heritage Representation Routing Report v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "request_id",
+    "disposition",
+    "selected_profile_id",
+    "selected_representation_transform_sha256",
+    "selected_model_build_sha256",
+    "selected_worst_site_primary_metric_utility_lower_bound",
+    "selected_worst_site_precision_lower_bound",
+    "selected_worst_site_false_candidates_per_km2",
+    "candidate_profile_count",
+    "qualified_profile_count",
+    "rejected_profiles",
+    "outer_test_data_used_for_selection",
+    "silent_fallback_performed",
+    "archaeological_identification_claimed"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "luminous.heritage-routing-report.v0.1"
+    },
+    "request_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "disposition": {
+      "enum": [
+        "selected_qualified_profile",
+        "abstain_no_qualified_profile"
+      ]
+    },
+    "selected_profile_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "selected_representation_transform_sha256": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[a-fA-F0-9]{64}$"
+    },
+    "selected_model_build_sha256": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[a-fA-F0-9]{64}$"
+    },
+    "selected_worst_site_primary_metric_utility_lower_bound": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0,
+      "maximum": 1
+    },
+    "selected_worst_site_precision_lower_bound": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0,
+      "maximum": 1
+    },
+    "selected_worst_site_false_candidates_per_km2": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "candidate_profile_count": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "qualified_profile_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "rejected_profiles": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "profile_id",
+          "reasons"
+        ],
+        "properties": {
+          "profile_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "reasons": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "enum": [
+                "task_mismatch",
+                "feature_class_mismatch",
+                "sensor_modality_mismatch",
+                "channel_semantics_mismatch",
+                "landscape_context_mismatch",
+                "metric_definition_mismatch",
+                "primary_metric_mismatch",
+                "reference_tier_mismatch",
+                "review_budget_mismatch",
+                "not_selector_validation_role",
+                "split_not_site_or_region_held_out",
+                "training_validation_site_overlap",
+                "insufficient_independent_validation_sites",
+                "rights_not_verified",
+                "rights_receipt_missing",
+                "primary_metric_floor_not_met",
+                "precision_floor_not_met",
+                "false_candidate_ceiling_exceeded",
+                "coverage_floor_not_met",
+                "review_cost_ceiling_exceeded",
+                "calibration_failed"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "outer_test_data_used_for_selection": {
+      "const": false
+    },
+    "silent_fallback_performed": {
+      "const": false
+    },
+    "archaeological_identification_claimed": {
+      "const": false
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "disposition": {
+            "const": "selected_qualified_profile"
+          }
+        },
+        "required": [
+          "disposition"
+        ]
+      },
+      "then": {
+        "properties": {
+          "selected_profile_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "selected_representation_transform_sha256": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{64}$"
+          },
+          "selected_model_build_sha256": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{64}$"
+          },
+          "selected_worst_site_primary_metric_utility_lower_bound": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "disposition": {
+            "const": "abstain_no_qualified_profile"
+          }
+        },
+        "required": [
+          "disposition"
+        ]
+      },
+      "then": {
+        "properties": {
+          "selected_profile_id": {
+            "type": "null"
+          },
+          "selected_representation_transform_sha256": {
+            "type": "null"
+          },
+          "selected_model_build_sha256": {
+            "type": "null"
+          },
+          "selected_worst_site_primary_metric_utility_lower_bound": {
+            "type": "null"
+          }
+        }
+      }
+    }
+  ]
+}
