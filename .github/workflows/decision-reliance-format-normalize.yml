@@ -1,0 +1,45 @@
+name: Normalize decision reliance Rust formatting
+
+on:
+  push:
+    branches:
+      - research/decision-reliance-contract-v0-1
+    paths:
+      - "sol-atlas-core/src/decision_reliance.rs"
+      - "sol-atlas-core/src/lib.rs"
+      - ".github/workflows/decision-reliance-format-normalize.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: decision-reliance-format-normalize
+  cancel-in-progress: false
+
+jobs:
+  normalize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: true
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - name: Format and commit only decision reliance Rust files
+        run: |
+          set -euo pipefail
+          cargo fmt --manifest-path sol-atlas-core/Cargo.toml
+          git diff --check
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add sol-atlas-core/src/decision_reliance.rs sol-atlas-core/src/lib.rs
+          if git diff --cached --quiet; then
+            echo "Decision reliance Rust sources already formatted"
+          else
+            git commit -m "style: normalize decision reliance Rust sources"
+            git push origin "HEAD:$GITHUB_REF_NAME"
+          fi
+          cargo fmt --manifest-path sol-atlas-core/Cargo.toml --check
