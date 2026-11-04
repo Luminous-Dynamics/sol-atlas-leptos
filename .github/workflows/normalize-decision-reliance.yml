@@ -1,0 +1,45 @@
+name: Normalize decision reliance evaluator Rust formatting
+
+on:
+  push:
+    branches:
+      - research/ieac-decision-reliance-continuity-v0-1
+    paths:
+      - "tools/ieac-decision-reliance-evaluator/src/**"
+      - ".github/workflows/normalize-decision-reliance.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: decision-reliance-rustfmt
+  cancel-in-progress: false
+
+jobs:
+  normalize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: true
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - name: Normalize and commit the standalone evaluator
+        run: |
+          set -euo pipefail
+          manifest=tools/ieac-decision-reliance-evaluator/Cargo.toml
+          cargo fmt --manifest-path "$manifest"
+          git diff --check
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tools/ieac-decision-reliance-evaluator/src/main.rs
+          if git diff --cached --quiet; then
+            echo "Evaluator source is already rustfmt-normalized"
+          else
+            git commit -m "style: format decision reliance evaluator"
+            git push origin "HEAD:$GITHUB_REF_NAME"
+          fi
+          cargo fmt --manifest-path "$manifest" --check
