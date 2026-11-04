@@ -72,6 +72,7 @@ pub struct MetrologyAssessmentReport {
     pub stratum_counts: BTreeMap<String, usize>,
     pub product_fit_rmse_h_m: f64,
     pub product_fit_rmse_v_m: f64,
+    pub product_fit_rmse_3d_m: f64,
     /// Checkpoint survey RMSE component, reported separately.
     pub reference_sigma_rmse_h_m: f64,
     pub reference_sigma_rmse_v_m: f64,
@@ -260,6 +261,7 @@ pub fn assess_metrology_certificate(
     let n = certificate.independent_checkpoints.len() as f64;
     let product_fit_rmse_h_m = (sum_h_squared / n).sqrt();
     let product_fit_rmse_v_m = (sum_v_squared / n).sqrt();
+    let product_fit_rmse_3d_m = (sum_3d_squared / n).sqrt();
     let reference_sigma_rmse_h_m = (sum_reference_h_variance / n).sqrt();
     let reference_sigma_rmse_v_m = (sum_reference_v_variance / n).sqrt();
 
@@ -291,6 +293,7 @@ pub fn assess_metrology_certificate(
         stratum_counts,
         product_fit_rmse_h_m,
         product_fit_rmse_v_m,
+        product_fit_rmse_3d_m,
         reference_sigma_rmse_h_m,
         reference_sigma_rmse_v_m,
         rmse_h_m,
