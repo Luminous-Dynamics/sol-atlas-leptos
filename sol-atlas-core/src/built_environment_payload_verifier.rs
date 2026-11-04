@@ -1088,15 +1088,15 @@ mod tests {
     fn resource_limit_is_incomplete_and_never_reports_a_digest_match() {
         let bytes = b"payload longer than configured limit";
         let case = case(&digest(bytes));
-        let descriptor = descriptor(bytes);
+        let mut descriptor = descriptor(bytes);
+        descriptor.source_payload.digest_basis = PayloadDigestBasis::SourceOwnerAttested;
+        descriptor.source_payload.bytes_retrieved = false;
+        descriptor.source_payload.byte_length = None;
+        descriptor.source_payload.payload_object_ref = None;
         let catalog = catalog(&case, descriptor.clone());
         let mut resolver = MemoryResolver::default();
         resolver.objects.insert(
-            descriptor
-                .source_payload
-                .payload_object_ref
-                .clone()
-                .unwrap(),
+            expected_cas_reference(descriptor.source_payload.sha256.as_deref().unwrap()),
             bytes.to_vec(),
         );
         let mut configured = limits();
