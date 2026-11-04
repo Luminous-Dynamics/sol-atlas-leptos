@@ -43,7 +43,9 @@
             "not_available",
             "unknown"
           ]
-        }
+        },
+        "package_sha256": { "type": "string", "pattern": "^[A-Fa-f0-9]{64}$" },
+        "package_byte_size": { "type": "integer", "minimum": 1 }
       }
     },
     "permission": {
@@ -79,7 +81,7 @@
             "properties": { "state": { "const": "denied" } },
             "required": ["state"]
           },
-          "then": { "required": ["condition_summary"] }
+          "then": { "required": ["condition_summary", "evidence_ref"] }
         }
       ]
     },
@@ -124,6 +126,7 @@
         "access_tier": {
           "enum": ["public", "controlled", "restricted", "custodial"]
         },
+        "access_receipt_ref": { "type": "string", "minLength": 1 },
         "coordinate_sensitivity": {
           "enum": ["none", "generalized", "approximate", "exact_sensitive"]
         },
@@ -148,6 +151,15 @@
               }
             }
           }
+        },
+        {
+          "if": {
+            "properties": {
+              "access_tier": { "enum": ["controlled", "restricted", "custodial"] }
+            },
+            "required": ["access_tier"]
+          },
+          "then": { "required": ["access_receipt_ref"] }
         }
       ]
     }
