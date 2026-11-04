@@ -32,9 +32,9 @@ pub mod mycelix_flows;
 /// Bounded streaming rehash of descriptor-referenced bytes using a fixed
 /// 64 KiB read buffer and a caller-specified per-object byte limit. Its aggregate
 /// result applies only to payload references declared in the supplied catalogue;
-/// missing/extra case descriptors remain separate findings and counts. It verifies
-/// byte equality, not issuer, owner, rights, source-snapshot completeness,
-/// engineering correctness, or action authority.
+/// missing/extra case descriptors remain separate findings and counts. The report
+/// keeps byte equality, descriptor completeness, source trust, rights, and
+/// engineering correctness as separate proof classes; it grants no action authority.
 pub mod source_payload_verifier;
 // pub mod relativity_viz;
 pub mod geometry;
