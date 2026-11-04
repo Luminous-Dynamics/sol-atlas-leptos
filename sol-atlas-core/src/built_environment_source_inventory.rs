@@ -1364,7 +1364,7 @@ mod tests {
             query_scope_summary: "all synthetic records in region-a".into(),
             snapshot_semantics: SnapshotSemantics::ImmutableSnapshot,
             snapshot_token: Some("snapshot-100".into()),
-            snapshot_sha256: Some(digest('s')),
+            snapshot_sha256: Some(digest('5')),
             source_watermark: Some("watermark-100".into()),
             required_partitions: vec!["region-a".into()],
             enumeration_started_at: "2026-11-03T10:00:00Z".into(),
