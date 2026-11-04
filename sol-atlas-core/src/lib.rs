@@ -19,6 +19,7 @@ pub mod lod;
 pub mod mycelix_flows;
 // pub mod relativity_viz;
 pub mod geometry;
+pub mod heritage_field_survey;
 pub mod heritage_observability;
 pub mod math;
 pub mod picking;
