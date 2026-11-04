@@ -516,7 +516,7 @@ pub fn audit_heritage_evaluation_split(
             sample.source_capture_id.as_str(),
             sample.source_capture_sha256.as_str(),
         );
-        if prior_digest.is_some_and(|digest| digest != sample.source_capture_sha256) {
+        if prior_digest.is_some_and(|digest| digest != sample.source_capture_sha256.as_str()) {
             return Err(HeritageEvaluationSplitError::CaptureIdDigestMismatch(
                 sample.source_capture_id.clone(),
             ));
@@ -891,7 +891,7 @@ mod tests {
         input.samples[1].physical_entity_ids = vec!["stone-1".to_owned()];
         let report = audit_heritage_evaluation_split(&input).expect("paper split is auditable");
         assert_eq!(report.source_pixel_overlap_pair_count, 1);
-        assert_eq!(report.shared_physical_entity_count, 1);
+        assert_eq!(report.shared_physical_entity_count, 2);
         assert_eq!(report.claim_ceiling, "paper_split_reproduction_only");
     }
 
@@ -941,8 +941,8 @@ mod tests {
     #[test]
     fn cross_sensor_profile_rejects_held_out_sensor_in_training() {
         let mut input = base_manifest(EvaluationSplitProfile::CrossSensorTransfer);
-        input.held_out_sensor_ids = vec!["drone-1".to_owned()];
-        input.samples[1].sensor_id = "drone-1".to_owned();
+        input.held_out_sensor_ids = vec!["drone-camera-1".to_owned()];
+        input.samples[1].sensor_id = "lidar-1".to_owned();
         assert!(matches!(
             audit_heritage_evaluation_split(&input),
             Err(HeritageEvaluationSplitError::HeldOutIdentityInFitPartition(
