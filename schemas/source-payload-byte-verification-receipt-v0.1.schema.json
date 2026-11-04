@@ -36,6 +36,7 @@
     "action_authority",
     "findings",
     "limitations",
+    "receipt_digest_basis",
     "receipt_sha256"
   ],
   "properties": {
@@ -167,6 +168,9 @@
     },
     "receipt_sha256": {
       "$ref": "#/$defs/sha256"
+    },
+    "receipt_digest_basis": {
+      "const": "sha256_over_serde_json_receipt_with_empty_receipt_sha256_field"
     }
   },
   "$defs": {
