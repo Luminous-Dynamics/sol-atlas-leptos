@@ -473,6 +473,11 @@ fn validate_proof_temporal_state(
     }
     if proof.observation_time.recorded_at.as_str() > evaluation_time
         || proof.checked_at.as_str() > evaluation_time
+        || proof
+            .observation_time
+            .observed_at
+            .as_deref()
+            .is_some_and(|time| time > evaluation_time)
         || proof.trusted_at.as_deref().is_some_and(|time| time > evaluation_time)
     {
         flags.insufficient = true;
@@ -1018,6 +1023,10 @@ pub fn evaluate_decision_reliance_reference(
         }
 
         if event.recorded_at.as_str() > evaluation_time
+            || event
+                .observed_at
+                .as_deref()
+                .is_some_and(|observed_at| observed_at > evaluation_time)
             || event
                 .trusted_at
                 .as_deref()
@@ -1589,6 +1598,47 @@ mod tests {
         assert!(result.findings.iter().any(|finding| {
             finding.code == "PROOF_VALIDITY_OR_FRESHNESS_EXPIRED"
         }));
+    }
+
+    #[test]
+    fn future_proof_observation_is_not_leaked_into_evaluation() {
+        let mut proofs = base_proofs();
+        proofs[2].observation_time.observed_at =
+            Some("2026-11-05T09:00:00Z".into());
+        let result = evaluate_decision_reliance_reference(
+            &request(),
+            &required(),
+            &proofs,
+            &[],
+        );
+        assert_eq!(result.outcome, DecisionRelianceOutcome::InsufficientEvidence);
+        assert!(result.findings.iter().any(|finding| {
+            finding.code == "PROOF_NOT_KNOWN_AT_EVALUATION"
+        }));
+    }
+
+    #[test]
+    fn future_change_observation_is_not_applied_even_if_record_time_is_earlier() {
+        let mut event = event(
+            "future-observed-source-correction",
+            DecisionRelianceChangeEventType::SourceCorrected,
+            "source-bytes",
+            "2026-11-03T00:00:00Z",
+            "2026-11-03T00:01:00Z",
+        );
+        event.observed_at = Some("2026-11-05T00:00:00Z".into());
+        let result = evaluate_decision_reliance_reference(
+            &request(),
+            &required(),
+            &base_proofs(),
+            &[event],
+        );
+        assert_eq!(
+            result.outcome,
+            DecisionRelianceOutcome::ReliableForDeclaredScope
+        );
+        assert_eq!(result.known_change_event_count, 0);
+        assert_eq!(result.future_or_untrusted_change_event_count, 1);
     }
 
     #[test]
