@@ -314,7 +314,9 @@
         "survey_unit_id",
         "survey_unit_crs_id",
         "survey_unit_area_m2",
-        "overlap_adjusted_path_length_m",
+        "buffered_transect_union_area_m2",
+        "buffered_sweep_width_m",
+        "calibration_profile_sha256",
         "transect_geometry_sha256",
         "survey_unit_geometry_sha256",
         "spatial_union_method_id",
@@ -333,10 +335,6 @@
           "type": "number",
           "exclusiveMinimum": 0
         },
-        "overlap_adjusted_path_length_m": {
-          "type": "number",
-          "exclusiveMinimum": 0
-        },
         "transect_geometry_sha256": {
           "type": "string",
           "pattern": "^[a-fA-F0-9]{64}$"
@@ -350,6 +348,18 @@
           "minLength": 1
         },
         "spatial_union_receipt_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "buffered_transect_union_area_m2": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "buffered_sweep_width_m": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "calibration_profile_sha256": {
           "type": "string",
           "pattern": "^[a-fA-F0-9]{64}$"
         }
