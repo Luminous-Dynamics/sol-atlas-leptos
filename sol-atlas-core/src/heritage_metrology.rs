@@ -878,16 +878,24 @@ mod tests {
 
     #[test]
     fn metrology_schema_and_fixture_are_valid_json() {
-        let schema: serde_json::Value = serde_json::from_str(include_str!(
-            "../../schemas/heritage-metrology-v0.1.schema.json"
+        let certificate_schema: serde_json::Value = serde_json::from_str(include_str!(
+            "../../schemas/heritage-metrology-certificate-v0.1.schema.json"
         ))
-        .expect("schema JSON");
+        .expect("certificate schema JSON");
+        let aggregation_schema: serde_json::Value = serde_json::from_str(include_str!(
+            "../../schemas/heritage-area-aggregation-v0.1.schema.json"
+        ))
+        .expect("aggregation schema JSON");
         let fixture: MetrologyCertificate = serde_json::from_str(include_str!(
             "../../schemas/examples/heritage-metrology-certificate-synthetic-v0.1.json"
         ))
         .expect("certificate fixture");
         assert_eq!(
-            schema["$schema"],
+            certificate_schema["$schema"],
+            "https://json-schema.org/draft/2020-12/schema"
+        );
+        assert_eq!(
+            aggregation_schema["$schema"],
             "https://json-schema.org/draft/2020-12/schema"
         );
         assert!(assess_metrology_certificate(&fixture).is_ok());
