@@ -21,6 +21,9 @@ pub mod built_environment_source_descriptor;
 /// Bounded streaming source-payload byte verification. Digest equality does
 /// not authenticate owners, rights, signatures, source completeness or
 /// engineering correctness.
+/// Bounded streaming payload-byte verification with independent SHA-256
+/// and length checks. Successful byte equality does not authenticate source
+/// ownership, rights, signatures, source completeness or engineering correctness.
 pub mod built_environment_source_payload;
 pub mod confluence;
 pub mod constants;
