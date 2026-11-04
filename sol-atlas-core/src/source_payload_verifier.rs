@@ -10,8 +10,8 @@
 
 use crate::built_environment_case::BuiltEnvironmentCase;
 use crate::built_environment_source_descriptor::{
-    DescriptorDisposition, PayloadDigestBasis, SourceDescriptorCatalog, SourceRecordDescriptor,
-    validate_source_descriptor_catalog,
+    DescriptorDisposition, DescriptorFinding, DescriptorValidation, PayloadDigestBasis,
+    SourceDescriptorCatalog, SourceRecordDescriptor, validate_source_descriptor_catalog,
 };
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
@@ -78,6 +78,8 @@ pub struct PayloadByteRecordResult {
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct PayloadByteVerificationContext {
+    /// Canonical UTC whole-second time at which this verifier evaluated bytes.
+    pub verified_at_utc: String,
     /// Hard per-object bound. Zero permits only an empty object.
     pub max_bytes_per_payload: u64,
     /// Digest of the exact verifier executable/build artifact.
@@ -93,8 +95,10 @@ pub struct PayloadByteCatalogReport {
     pub catalog_id: String,
     pub catalog_representation_sha256: String,
     pub verifier_build_sha256: Option<String>,
+    pub verified_at_utc: String,
     pub max_bytes_per_payload: u64,
     pub descriptor_validation_disposition: String,
+    pub descriptor_validation_findings: Vec<DescriptorFinding>,
     pub descriptor_count: usize,
     pub verified_count: usize,
     pub unavailable_count: usize,
@@ -110,6 +114,7 @@ pub struct PayloadByteCatalogReport {
     pub source_inventory_completeness: String,
     pub engineering_correctness: String,
     pub action_authority: String,
+    pub no_impact_eligibility: String,
 }
 
 /// Verify one exact descriptor payload using a stream already resolved by the
@@ -378,6 +383,14 @@ where
             "case or descriptor catalogue representation could not be bound",
         ));
     }
+    if !valid_utc_timestamp(&context.verified_at_utc) {
+        report_findings.insert(finding(
+            "invalid",
+            "INVALID_VERIFICATION_TIME",
+            "verifier",
+            "verified_at_utc must be a canonical UTC whole-second timestamp",
+        ));
+    }
     if context
         .verifier_build_sha256
         .as_deref()
@@ -403,7 +416,7 @@ where
             context,
             case_sha256,
             catalog_sha256,
-            descriptor_validation.disposition,
+            &descriptor_validation,
             Vec::new(),
             report_findings,
         );
@@ -469,7 +482,7 @@ where
         context,
         case_sha256,
         catalog_sha256,
-        descriptor_validation.disposition,
+        &descriptor_validation,
         records,
         report_findings,
     )
@@ -480,7 +493,7 @@ fn catalog_report(
     context: &PayloadByteVerificationContext,
     case_sha256: String,
     catalog_sha256: String,
-    descriptor_disposition: DescriptorDisposition,
+    descriptor_validation: &DescriptorValidation,
     records: Vec<PayloadByteRecordResult>,
     findings: BTreeSet<PayloadByteFinding>,
 ) -> PayloadByteCatalogReport {
@@ -512,10 +525,11 @@ fn catalog_report(
         })
         .count();
 
-    let invalid_descriptor = descriptor_disposition == DescriptorDisposition::InvalidInput;
+    let invalid_descriptor =
+        descriptor_validation.disposition == DescriptorDisposition::InvalidInput;
     let disposition = if invalid_descriptor || invalid_count > 0 {
         PayloadByteCatalogDisposition::InvalidInput
-    } else if descriptor_disposition == DescriptorDisposition::IncompleteOrIndeterminate
+    } else if descriptor_validation.disposition == DescriptorDisposition::IncompleteOrIndeterminate
         || verified_count + unavailable_count + read_failed_count + byte_limit_exceeded_count
             != records.len()
         || unavailable_count > 0
@@ -540,8 +554,10 @@ fn catalog_report(
         catalog_id: catalog.catalog_id.clone(),
         catalog_representation_sha256: catalog_sha256,
         verifier_build_sha256: context.verifier_build_sha256.clone(),
+        verified_at_utc: context.verified_at_utc.clone(),
         max_bytes_per_payload: context.max_bytes_per_payload,
-        descriptor_validation_disposition: descriptor_disposition.as_str().into(),
+        descriptor_validation_disposition: descriptor_validation.disposition.as_str().into(),
+        descriptor_validation_findings: descriptor_validation.findings.clone(),
         descriptor_count: catalog.descriptors.len(),
         verified_count,
         unavailable_count,
@@ -557,6 +573,7 @@ fn catalog_report(
         source_inventory_completeness: "not_performed".into(),
         engineering_correctness: "not_performed".into(),
         action_authority: "none".into(),
+        no_impact_eligibility: "none".into(),
     };
     report
 }
@@ -598,6 +615,48 @@ fn finding(
 
 fn cas_reference(sha256: &str) -> String {
     format!("cas:sha256:{sha256}")
+}
+
+fn valid_utc_timestamp(value: &str) -> bool {
+    let bytes = value.as_bytes();
+    if bytes.len() != 20
+        || bytes[4] != b'-'
+        || bytes[7] != b'-'
+        || bytes[10] != b'T'
+        || bytes[13] != b':'
+        || bytes[16] != b':'
+        || bytes[19] != b'Z'
+    {
+        return false;
+    }
+    for (index, byte) in bytes.iter().enumerate() {
+        if !matches!(index, 4 | 7 | 10 | 13 | 16 | 19) && !byte.is_ascii_digit() {
+            return false;
+        }
+    }
+    let part = |start: usize, end: usize| {
+        std::str::from_utf8(&bytes[start..end])
+            .ok()
+            .and_then(|value| value.parse::<u32>().ok())
+    };
+    let year = part(0, 4).unwrap_or(0);
+    let month = part(5, 7).unwrap_or(0);
+    let day = part(8, 10).unwrap_or(0);
+    let hour = part(11, 13).unwrap_or(99);
+    let minute = part(14, 16).unwrap_or(99);
+    let second = part(17, 19).unwrap_or(99);
+    if year == 0 || !(1..=12).contains(&month) || hour > 23 || minute > 59 || second > 59 {
+        return false;
+    }
+    let leap = year % 4 == 0 && (year % 100 != 0 || year % 400 == 0);
+    let max_day = match month {
+        1 | 3 | 5 | 7 | 8 | 10 | 12 => 31,
+        4 | 6 | 9 | 11 => 30,
+        2 if leap => 29,
+        2 => 28,
+        _ => 0,
+    };
+    day >= 1 && day <= max_day
 }
 
 fn valid_sha256(value: &str) -> bool {
@@ -727,6 +786,7 @@ mod tests {
 
     fn context() -> PayloadByteVerificationContext {
         PayloadByteVerificationContext {
+            verified_at_utc: "2026-11-04T05:45:00Z".into(),
             max_bytes_per_payload: 1024 * 1024,
             verifier_build_sha256: Some("d".repeat(64)),
         }
@@ -936,6 +996,7 @@ mod tests {
         assert_eq!(result.source_owner_authentication, "not_performed");
         assert_eq!(result.rights_authentication, "not_performed");
         assert_eq!(result.action_authority, "none");
+        assert_eq!(result.no_impact_eligibility, "none");
         assert!(valid_sha256(&result.case_representation_sha256));
         assert!(valid_sha256(&result.catalog_representation_sha256));
     }
