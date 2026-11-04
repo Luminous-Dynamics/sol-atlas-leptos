@@ -424,7 +424,9 @@ pub enum DssCorrelationError {
     EmptySiteId,
     EmptyGeographicDomainId,
     EmptyCropmarkEcologyId,
-    InconsistentSiteContext { site_id: String },
+    InconsistentSiteContext {
+        site_id: String,
+    },
     SourceAndTargetMustDiffer,
     DuplicatePairId(String),
     DuplicateDirectedSitePair {
@@ -548,7 +550,10 @@ fn validate_correlation_pairs(
                 return Err(DssCorrelationError::EmptyCropmarkEcologyId);
             }
             let context = (domain_id.clone(), ecology_id.clone());
-            if sites.get(site_id).is_some_and(|existing| existing != &context) {
+            if sites
+                .get(site_id)
+                .is_some_and(|existing| existing != &context)
+            {
                 return Err(DssCorrelationError::InconsistentSiteContext {
                     site_id: site_id.clone(),
                 });
@@ -631,9 +636,22 @@ pub fn evaluate_dss_transfer_correlation(
             .collect::<BTreeSet<_>>()
             .len(),
         multi_ecology_external_scope_eligible: sites.len() >= 10
-            && sites.values().map(|context| context.0.as_str()).collect::<BTreeSet<_>>().len() >= 3
-            && sites.values().map(|context| context.1.as_str()).collect::<BTreeSet<_>>().len() >= 2
-            && input.pairs.iter().all(|pair| pair.split_protocol.is_primary_cross_site_generalization()),
+            && sites
+                .values()
+                .map(|context| context.0.as_str())
+                .collect::<BTreeSet<_>>()
+                .len()
+                >= 3
+            && sites
+                .values()
+                .map(|context| context.1.as_str())
+                .collect::<BTreeSet<_>>()
+                .len()
+                >= 2
+            && input
+                .pairs
+                .iter()
+                .all(|pair| pair.split_protocol.is_primary_cross_site_generalization()),
         spearman_rho,
         directed_pairs_are_independent: false,
         confidence_interval: None,
@@ -694,10 +712,7 @@ mod tests {
             &[(3, 1.0, 4.0), (4, 2.0, 4.0), (5, 3.0, 3.0)],
         );
         let report = evaluate_directional_spectral_transfer(&input).unwrap();
-        assert_eq!(
-            report.selected_calendar_months,
-            vec![month(3), month(4)]
-        );
+        assert_eq!(report.selected_calendar_months, vec![month(3), month(4)]);
         assert!((report.directional_strength_score - 3.0).abs() < 1e-12);
         assert_eq!(
             report
@@ -737,10 +752,7 @@ mod tests {
             &[(3, 1.0, 2.0), (4, 2.0, 4.0), (5, 1.0, 2.0)],
         );
         let report = evaluate_directional_spectral_transfer(&input).unwrap();
-        assert_eq!(
-            report.selected_calendar_months,
-            vec![month(3), month(4)]
-        );
+        assert_eq!(report.selected_calendar_months, vec![month(3), month(4)]);
     }
 
     #[test]
@@ -859,13 +871,7 @@ mod tests {
                 .iter()
                 .enumerate()
                 .map(|(index, (source, target, dss, observed))| {
-                    correlation_pair(
-                        format!("pair-{index}"),
-                        source,
-                        target,
-                        *dss,
-                        *observed,
-                    )
+                    correlation_pair(format!("pair-{index}"), source, target, *dss, *observed)
                 })
                 .collect(),
         }
@@ -907,13 +913,7 @@ mod tests {
                 .iter()
                 .enumerate()
                 .map(|(index, (source, target, dss, observed))| {
-                    correlation_pair(
-                        format!("tie-{index}"),
-                        source,
-                        target,
-                        *dss,
-                        *observed,
-                    )
+                    correlation_pair(format!("tie-{index}"), source, target, *dss, *observed)
                 })
                 .collect(),
         };
@@ -952,7 +952,12 @@ mod tests {
         assert_eq!(report.unique_site_count, 3);
         assert_eq!(report.spearman_rho, Some(1.0));
         assert!(!report.multi_ecology_external_scope_eligible);
-        assert!(report.site_leave_out.iter().all(|item| item.spearman_rho.is_none()));
+        assert!(
+            report
+                .site_leave_out
+                .iter()
+                .all(|item| item.spearman_rho.is_none())
+        );
     }
 
     #[test]
@@ -1059,5 +1064,4 @@ mod tests {
             Err(DirectionalSpectralTransferError::InvalidMinimumSharedMonths)
         );
     }
-
 }
