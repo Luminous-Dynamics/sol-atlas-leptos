@@ -12,8 +12,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 use std::fmt;
 
-pub const HERITAGE_ARCHITECTURE_SCHEMA_VERSION: &str =
-    "luminous.heritage-architecture.v0.1";
+pub const HERITAGE_ARCHITECTURE_SCHEMA_VERSION: &str = "luminous.heritage-architecture.v0.1";
 pub const MAX_ARCHITECTURE_ELEMENTS: usize = 1_000_000;
 pub const MAX_ARCHITECTURE_OBSERVATIONS: usize = 5_000_000;
 
@@ -457,16 +456,20 @@ fn validate_observation(
         }
     }
 
-    if observation.metric_perimeter_m.is_some_and(|value| !finite_positive(value)) {
+    if observation
+        .metric_perimeter_m
+        .is_some_and(|value| !finite_positive(value))
+    {
         return Err(HeritageArchitectureError::InvalidMetricValue(
             observation.observation_id.clone(),
         ));
     }
-    if observation.mrr_area_ratio.is_some_and(|value| {
-        !value.is_finite() || !(0.0..=1.0).contains(&value)
-    }) || observation
-        .elongation_ratio
-        .is_some_and(|value| !value.is_finite() || value < 1.0)
+    if observation
+        .mrr_area_ratio
+        .is_some_and(|value| !value.is_finite() || !(0.0..=1.0).contains(&value))
+        || observation
+            .elongation_ratio
+            .is_some_and(|value| !value.is_finite() || value < 1.0)
     {
         return Err(HeritageArchitectureError::InvalidMetricValue(
             observation.observation_id.clone(),
@@ -487,7 +490,11 @@ fn validate_observation(
                     observation.observation_id.clone(),
                 ));
             };
-            if !lower.is_finite() || !upper.is_finite() || lower < 0.0 || lower > area || area > upper
+            if !lower.is_finite()
+                || !upper.is_finite()
+                || lower < 0.0
+                || lower > area
+                || area > upper
             {
                 return Err(HeritageArchitectureError::InvalidUncertainty(
                     observation.observation_id.clone(),
@@ -537,7 +544,10 @@ pub fn validate_heritage_architecture(
         if !non_empty(&capture.capture_id) {
             return Err(HeritageArchitectureError::EmptyCaptureId);
         }
-        if captures.insert(capture.capture_id.as_str(), capture).is_some() {
+        if captures
+            .insert(capture.capture_id.as_str(), capture)
+            .is_some()
+        {
             return Err(HeritageArchitectureError::DuplicateCaptureId(
                 capture.capture_id.clone(),
             ));
@@ -582,7 +592,10 @@ pub fn validate_heritage_architecture(
         if !non_empty(&element.element_id) {
             return Err(HeritageArchitectureError::EmptyElementId);
         }
-        if elements.insert(element.element_id.as_str(), element).is_some() {
+        if elements
+            .insert(element.element_id.as_str(), element)
+            .is_some()
+        {
             return Err(HeritageArchitectureError::DuplicateElementId(
                 element.element_id.clone(),
             ));
@@ -818,7 +831,10 @@ mod tests {
         assert_eq!(report.element_count, 3);
         assert_eq!(report.observation_count, 3);
         assert_eq!(report.metric_observation_count, 3);
-        assert_eq!(report.claim_ceiling, ArchitectureClaimCeiling::StructuralIntegrityOnly);
+        assert_eq!(
+            report.claim_ceiling,
+            ArchitectureClaimCeiling::StructuralIntegrityOnly
+        );
     }
 
     #[test]
@@ -936,8 +952,11 @@ mod tests {
     #[test]
     fn geometry_uncertainty_interval_must_contain_the_measurement() {
         let mut input = valid_input();
-        input.elements[2].observations[0].uncertainty.as_mut().unwrap().area_interval_90_m2 =
-            Some([0.05, 0.06]);
+        input.elements[2].observations[0]
+            .uncertainty
+            .as_mut()
+            .unwrap()
+            .area_interval_90_m2 = Some([0.05, 0.06]);
         assert!(matches!(
             validate_heritage_architecture(&input),
             Err(HeritageArchitectureError::InvalidUncertainty(_))
