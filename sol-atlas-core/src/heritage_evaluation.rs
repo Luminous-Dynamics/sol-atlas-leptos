@@ -858,6 +858,50 @@ mod tests {
     }
 
     #[test]
+    fn paper_protocol_without_seed_is_labelled_protocol_reconstruction() {
+        let mut input = base_manifest(EvaluationSplitProfile::PaperFaithfulRandomTiles);
+        input.random_seed = None;
+        let report = audit_heritage_evaluation_split(&input).expect("paper protocol record");
+        assert_eq!(report.paper_split_exactness, "protocol_reconstruction");
+    }
+
+    #[test]
+    fn strict_profile_rejects_duplicate_tile_digest_without_window_overlap() {
+        let mut input = base_manifest(EvaluationSplitProfile::SourceFootprintIndependent);
+        input.samples[1].source_tile_sha256 = input.samples[0].source_tile_sha256.clone();
+        assert!(matches!(
+            audit_heritage_evaluation_split(&input),
+            Err(HeritageEvaluationSplitError::SharedTileDigestAcrossPartitions(_))
+        ));
+    }
+
+    #[test]
+    fn cross_sensor_profile_rejects_held_out_sensor_in_training() {
+        let mut input = base_manifest(EvaluationSplitProfile::CrossSensorTransfer);
+        input.held_out_sensor_ids = vec!["drone-1".to_owned()];
+        input.samples[1].sensor_id = "drone-1".to_owned();
+        assert!(matches!(
+            audit_heritage_evaluation_split(&input),
+            Err(HeritageEvaluationSplitError::HeldOutIdentityInFitPartition(_))
+        ));
+    }
+
+    #[test]
+    fn buffered_spatial_error_reports_the_violating_pair_count() {
+        let mut input = base_manifest(EvaluationSplitProfile::BufferedSpatialBlocks);
+        input.samples[1].block_id = Some("block-test".to_owned());
+        input.samples[1].metric_bounds =
+            MetricBounds { min_x_m: 12.0, min_y_m: 0.0, max_x_m: 22.0, max_y_m: 10.0 };
+        input.spatial_buffer_basis = Some(SpatialBufferBasis::DeclaredDeploymentDistance);
+        input.spatial_buffer_m = Some(5.0);
+        input.buffer_basis_receipt_ref = Some("deployment-distance://receipt/1".to_owned());
+        assert!(matches!(
+            audit_heritage_evaluation_split(&input),
+            Err(HeritageEvaluationSplitError::SpatialBufferViolation { pair_count: 1, .. })
+        ));
+    }
+
+    #[test]
     fn source_footprint_profile_accepts_disjoint_tiles_from_same_capture() {
         let input = base_manifest(EvaluationSplitProfile::SourceFootprintIndependent);
         let report = audit_heritage_evaluation_split(&input).expect("disjoint tiles");
@@ -1001,6 +1045,8 @@ mod tests {
             schema["$schema"],
             "https://json-schema.org/draft/2020-12/schema"
         );
-        assert!(audit_heritage_evaluation_split(&fixture).is_ok());
+        let report = audit_heritage_evaluation_split(&fixture).expect("paper fixture audit");
+        assert_eq!(report.source_pixel_overlap_pair_count, 1);
+        assert_eq!(report.shared_physical_entity_count, 1);
     }
 }
