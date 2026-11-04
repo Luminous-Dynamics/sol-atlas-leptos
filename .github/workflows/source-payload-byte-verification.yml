@@ -1,0 +1,119 @@
+name: Source payload byte verification qualification
+
+on:
+  pull_request:
+    paths:
+      - "sol-atlas-core/Cargo.toml"
+      - "sol-atlas-core/Cargo.lock"
+      - "sol-atlas-core/src/built_environment_source_payload.rs"
+      - "sol-atlas-core/src/built_environment_source_descriptor.rs"
+      - "sol-atlas-core/src/built_environment_case.rs"
+      - "sol-atlas-core/src/lib.rs"
+      - "schemas/source-payload-byte-verification-report-v0.1.schema.json"
+      - "schemas/examples/source-payload-byte-verification-report-synthetic-v0.1.json"
+      - ".github/workflows/source-payload-byte-verification.yml"
+  push:
+    branches:
+      - main
+      - research/source-payload-byte-verifier-v0-1
+    paths:
+      - "sol-atlas-core/Cargo.toml"
+      - "sol-atlas-core/Cargo.lock"
+      - "sol-atlas-core/src/built_environment_source_payload.rs"
+      - "sol-atlas-core/src/built_environment_source_descriptor.rs"
+      - "sol-atlas-core/src/built_environment_case.rs"
+      - "sol-atlas-core/src/lib.rs"
+      - "schemas/source-payload-byte-verification-report-v0.1.schema.json"
+      - "schemas/examples/source-payload-byte-verification-report-synthetic-v0.1.json"
+      - ".github/workflows/source-payload-byte-verification.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: source-payload-byte-verification-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  byte-verification:
+    name: Exact-head bounded source payload byte verifier
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout immutable PR source revision
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Assert exact checked-out revision
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+
+      - name: Install stable Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Format, lint and test the core crate
+        run: |
+          set -euo pipefail
+          manifest=sol-atlas-core/Cargo.toml
+          cargo fmt --manifest-path "$manifest" --check
+          cargo clippy --manifest-path "$manifest" --locked --all-targets -- -D warnings
+          cargo test --manifest-path "$manifest" --locked
+
+      - name: Install pinned Draft 2020-12 validator
+        run: cargo install --locked jsonschema-cli --version 0.60.2 --root "$RUNNER_TEMP/jsonschema-cli"
+
+      - name: Validate report schema and synthetic byte-verification fixture
+        run: |
+          set -euo pipefail
+          echo "$RUNNER_TEMP/jsonschema-cli/bin" >> "$GITHUB_PATH"
+          export PATH="$RUNNER_TEMP/jsonschema-cli/bin:$PATH"
+          schema=schemas/source-payload-byte-verification-report-v0.1.schema.json
+          fixture=schemas/examples/source-payload-byte-verification-report-synthetic-v0.1.json
+          meta_schema="$RUNNER_TEMP/draft-2020-12-meta-schema.json"
+          curl --fail --location --retry 5 --retry-connrefused \
+            https://json-schema.org/draft/2020-12/schema -o "$meta_schema"
+          jsonschema-cli validate --draft 2020 --assert-format "$meta_schema" -i "$schema"
+          jsonschema-cli validate --draft 2020 --assert-format --offline "$schema" -i "$fixture"
+          jq -e '
+            .schema_version == "luminous.source-payload-byte-verification.v0.1" and
+            .disposition == "fully_verified" and
+            .descriptor_validation_disposition == "internally_consistent_for_declared_case" and
+            .verified_count == .payload_count and
+            .failed_count == 0 and
+            .unavailable_count == 0 and
+            .action_authority == "none" and
+            .source_owner_authentication == "not_performed" and
+            .rights_authentication == "not_performed" and
+            .source_attestation_authentication == "not_performed"
+          ' "$fixture"
+
+      - name: Negative schema control — a fully verified byte report cannot claim owner authentication
+        run: |
+          set -euo pipefail
+          schema=schemas/source-payload-byte-verification-report-v0.1.schema.json
+          fixture=schemas/examples/source-payload-byte-verification-report-synthetic-v0.1.json
+          jq '.source_owner_authentication = "verified"' "$fixture" \
+            > "$RUNNER_TEMP/invalid-owner-authentication.json"
+          if jsonschema-cli validate --draft 2020 --assert-format --offline "$schema" \
+              -i "$RUNNER_TEMP/invalid-owner-authentication.json"; then
+            echo "ERROR: byte report promoted owner authentication"
+            exit 1
+          fi
+
+      - name: Negative schema control — fully verified disposition cannot contain failed records
+        run: |
+          set -euo pipefail
+          schema=schemas/source-payload-byte-verification-report-v0.1.schema.json
+          fixture=schemas/examples/source-payload-byte-verification-report-synthetic-v0.1.json
+          jq '.records[0].disposition = "digest_mismatch" | .failed_count = 1' "$fixture" \
+            > "$RUNNER_TEMP/fully-verified-with-mismatch.json"
+          if jsonschema-cli validate --draft 2020 --assert-format --offline "$schema" \
+              -i "$RUNNER_TEMP/fully-verified-with-mismatch.json"; then
+            echo "ERROR: fully_verified report accepted a failed record"
+            exit 1
+          fi
