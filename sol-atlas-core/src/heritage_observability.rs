@@ -124,6 +124,7 @@ pub struct CalibrationTrial {
     pub psu_id: String,
     pub site_id: String,
     pub profile_sha256: String,
+    pub context: SurveyContext,
     /// True when this independent, known-positive PSU's target feature was detected.
     pub detected: bool,
     pub reference_evidence_tier: ReferenceEvidenceTier,
@@ -240,6 +241,7 @@ pub enum HeritageObservabilityError {
     DuplicateCalibrationPsuId(String),
     DuplicateCalibrationSiteId(String),
     CalibrationProfileDigestMismatch { psu_id: String },
+    CalibrationContextMismatch { psu_id: String },
     CalibrationReferenceEvidenceInsufficient { psu_id: String },
     CalibrationRightsNotVerified { psu_id: String },
     CalibrationReferenceEvidenceMissing { psu_id: String },
@@ -359,6 +361,11 @@ fn validate_trials(
                     psu_id: trial.psu_id.clone(),
                 },
             );
+        }
+        if trial.context != profile.context {
+            return Err(HeritageObservabilityError::CalibrationContextMismatch {
+                psu_id: trial.psu_id.clone(),
+            });
         }
         if !trial.reference_evidence_tier.supports_presence_reference() {
             return Err(
@@ -626,6 +633,7 @@ mod tests {
                 psu_id: format!("psu-{index}"),
                 site_id: format!("site-{index}"),
                 profile_sha256: "c".repeat(64),
+                context: context(),
                 detected: index < detections,
                 reference_evidence_tier: ReferenceEvidenceTier::FieldAssessed,
                 reference_evidence_ref: format!("urn:synthetic:field-reference:{index}"),
@@ -837,6 +845,16 @@ mod tests {
         assert!(matches!(
             evaluate_heritage_observability(&value),
             Err(HeritageObservabilityError::CalibrationReferenceEvidenceInsufficient { .. })
+        ));
+    }
+
+    #[test]
+    fn calibration_trial_context_mismatch_is_rejected_even_when_digest_matches() {
+        let mut value = input(ObservationOutcome::NotDetected);
+        value.calibration_trials[0].context.environment_stratum_id = "dense_forest".into();
+        assert!(matches!(
+            evaluate_heritage_observability(&value),
+            Err(HeritageObservabilityError::CalibrationContextMismatch { .. })
         ));
     }
 
