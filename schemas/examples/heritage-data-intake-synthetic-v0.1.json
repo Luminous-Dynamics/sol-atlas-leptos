@@ -1,0 +1,65 @@
+{
+  "schema_version": "luminous.heritage-data-intake.v0.1",
+  "registry_id": "synthetic-heritage-registry",
+  "packages": [
+    {
+      "package_id": "lab-masonry-1",
+      "title": "Synthetic laboratory masonry data package",
+      "version": "v1",
+      "source_uri": "https://example.org/lab-masonry",
+      "citation": "Synthetic fixture for rights-aware intake tests",
+      "availability": "downloadable"
+    }
+  ],
+  "assets": [
+    {
+      "asset_id": "images-1",
+      "package_id": "lab-masonry-1",
+      "file_name": "orthomosaic.zip",
+      "kind": "imagery",
+      "media_type": "application/zip",
+      "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "byte_size": 1024,
+      "access_tier": "public",
+      "coordinate_sensitivity": "none",
+      "permissions": [
+        {
+          "purpose": "local_inspection",
+          "state": "granted",
+          "evidence_ref": "rights://synthetic/local-inspection"
+        },
+        {
+          "purpose": "research_training",
+          "state": "unknown"
+        },
+        {
+          "purpose": "redistribution",
+          "state": "unknown"
+        },
+        {
+          "purpose": "commercial_use",
+          "state": "unknown"
+        }
+      ]
+    },
+    {
+      "asset_id": "code-1",
+      "package_id": "lab-masonry-1",
+      "file_name": "processing.py",
+      "kind": "source_code",
+      "media_type": "text/x-python",
+      "licence_id": "GPL-3.0-only",
+      "licence_uri": "https://www.gnu.org/licenses/gpl-3.0.html",
+      "access_tier": "public",
+      "coordinate_sensitivity": "none",
+      "permissions": [
+        {
+          "purpose": "research_training",
+          "state": "granted",
+          "evidence_ref": "licence://GPL-3.0-only"
+        }
+      ],
+      "parent_asset_id": "images-1"
+    }
+  ]
+}

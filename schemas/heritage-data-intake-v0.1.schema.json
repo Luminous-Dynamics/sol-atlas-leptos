@@ -1,0 +1,167 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/heritage-data-intake-v0.1.schema.json",
+  "title": "Sol-Atlas Heritage Dataset Intake Registry v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "registry_id", "packages", "assets"],
+  "properties": {
+    "schema_version": { "const": "luminous.heritage-data-intake.v0.1" },
+    "registry_id": { "type": "string", "minLength": 1 },
+    "packages": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/package" }
+    },
+    "assets": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/asset" }
+    }
+  },
+  "$defs": {
+    "package": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "package_id",
+        "title",
+        "version",
+        "source_uri",
+        "citation",
+        "availability"
+      ],
+      "properties": {
+        "package_id": { "type": "string", "minLength": 1 },
+        "title": { "type": "string", "minLength": 1 },
+        "version": { "type": "string", "minLength": 1 },
+        "source_uri": { "type": "string", "minLength": 1 },
+        "citation": { "type": "string", "minLength": 1 },
+        "availability": {
+          "enum": [
+            "publicly_listed",
+            "downloadable",
+            "access_by_request",
+            "not_available",
+            "unknown"
+          ]
+        },
+        "package_sha256": { "type": "string", "pattern": "^[A-Fa-f0-9]{64}$" },
+        "package_byte_size": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "permission": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["purpose", "state"],
+      "properties": {
+        "purpose": {
+          "enum": [
+            "local_inspection",
+            "research_training",
+            "evaluation",
+            "derivative_storage",
+            "publication",
+            "redistribution",
+            "commercial_use"
+          ]
+        },
+        "state": { "enum": ["granted", "denied", "unknown"] },
+        "evidence_ref": { "type": "string", "minLength": 1 },
+        "condition_summary": { "type": "string", "minLength": 1 }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "state": { "const": "granted" } },
+            "required": ["state"]
+          },
+          "then": { "required": ["evidence_ref"] }
+        },
+        {
+          "if": {
+            "properties": { "state": { "const": "denied" } },
+            "required": ["state"]
+          },
+          "then": { "required": ["condition_summary", "evidence_ref"] }
+        }
+      ]
+    },
+    "asset": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "asset_id",
+        "package_id",
+        "file_name",
+        "kind",
+        "media_type",
+        "access_tier",
+        "coordinate_sensitivity",
+        "permissions"
+      ],
+      "properties": {
+        "asset_id": { "type": "string", "minLength": 1 },
+        "package_id": { "type": "string", "minLength": 1 },
+        "file_name": { "type": "string", "minLength": 1 },
+        "kind": {
+          "enum": [
+            "imagery",
+            "orthomosaic",
+            "elevation_raster",
+            "point_cloud",
+            "mesh",
+            "vector_layer",
+            "annotation",
+            "model_weights",
+            "source_code",
+            "documentation",
+            "survey_raw_data",
+            "other"
+          ]
+        },
+        "media_type": { "type": "string", "minLength": 1 },
+        "sha256": { "type": "string", "pattern": "^[A-Fa-f0-9]{64}$" },
+        "byte_size": { "type": "integer", "minimum": 1 },
+        "licence_id": { "type": "string", "minLength": 1 },
+        "licence_uri": { "type": "string", "minLength": 1 },
+        "access_tier": {
+          "enum": ["public", "controlled", "restricted", "custodial"]
+        },
+        "access_receipt_ref": { "type": "string", "minLength": 1 },
+        "coordinate_sensitivity": {
+          "enum": ["none", "generalized", "approximate", "exact_sensitive"]
+        },
+        "permissions": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/permission" }
+        },
+        "parent_asset_id": { "type": "string", "minLength": 1 }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "coordinate_sensitivity": { "const": "exact_sensitive" }
+            },
+            "required": ["coordinate_sensitivity"]
+          },
+          "then": {
+            "properties": {
+              "access_tier": {
+                "enum": ["controlled", "restricted", "custodial"]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "access_tier": { "enum": ["controlled", "restricted", "custodial"] }
+            },
+            "required": ["access_tier"]
+          },
+          "then": { "required": ["access_receipt_ref"] }
+        }
+      ]
+    }
+  }
+}
