@@ -28,7 +28,16 @@
       "reference_evidence_tier": "field_assessed",
       "reference_evidence_ref": "urn:synthetic:field-reference:0",
       "rights_status": "verified",
-      "rights_receipt_ref": "urn:synthetic:rights:0"
+      "rights_receipt_ref": "urn:synthetic:rights:0",
+      "context": {
+        "feature_class_id": "stone_enclosure",
+        "modality": "airborne_lidar",
+        "sensor_configuration_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "processing_build_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "environment_stratum_id": "open_grassland_low_relief",
+        "season_stratum_id": "leaf_off_dry_season",
+        "resolution_class_id": "dem_0p5m"
+      }
     },
     {
       "psu_id": "psu-1",
@@ -38,7 +47,16 @@
       "reference_evidence_tier": "field_assessed",
       "reference_evidence_ref": "urn:synthetic:field-reference:1",
       "rights_status": "verified",
-      "rights_receipt_ref": "urn:synthetic:rights:1"
+      "rights_receipt_ref": "urn:synthetic:rights:1",
+      "context": {
+        "feature_class_id": "stone_enclosure",
+        "modality": "airborne_lidar",
+        "sensor_configuration_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "processing_build_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "environment_stratum_id": "open_grassland_low_relief",
+        "season_stratum_id": "leaf_off_dry_season",
+        "resolution_class_id": "dem_0p5m"
+      }
     },
     {
       "psu_id": "psu-2",
@@ -48,7 +66,16 @@
       "reference_evidence_tier": "field_assessed",
       "reference_evidence_ref": "urn:synthetic:field-reference:2",
       "rights_status": "verified",
-      "rights_receipt_ref": "urn:synthetic:rights:2"
+      "rights_receipt_ref": "urn:synthetic:rights:2",
+      "context": {
+        "feature_class_id": "stone_enclosure",
+        "modality": "airborne_lidar",
+        "sensor_configuration_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "processing_build_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "environment_stratum_id": "open_grassland_low_relief",
+        "season_stratum_id": "leaf_off_dry_season",
+        "resolution_class_id": "dem_0p5m"
+      }
     },
     {
       "psu_id": "psu-3",
@@ -58,7 +85,16 @@
       "reference_evidence_tier": "field_assessed",
       "reference_evidence_ref": "urn:synthetic:field-reference:3",
       "rights_status": "verified",
-      "rights_receipt_ref": "urn:synthetic:rights:3"
+      "rights_receipt_ref": "urn:synthetic:rights:3",
+      "context": {
+        "feature_class_id": "stone_enclosure",
+        "modality": "airborne_lidar",
+        "sensor_configuration_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "processing_build_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "environment_stratum_id": "open_grassland_low_relief",
+        "season_stratum_id": "leaf_off_dry_season",
+        "resolution_class_id": "dem_0p5m"
+      }
     },
     {
       "psu_id": "psu-4",
@@ -68,7 +104,16 @@
       "reference_evidence_tier": "field_assessed",
       "reference_evidence_ref": "urn:synthetic:field-reference:4",
       "rights_status": "verified",
-      "rights_receipt_ref": "urn:synthetic:rights:4"
+      "rights_receipt_ref": "urn:synthetic:rights:4",
+      "context": {
+        "feature_class_id": "stone_enclosure",
+        "modality": "airborne_lidar",
+        "sensor_configuration_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "processing_build_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "environment_stratum_id": "open_grassland_low_relief",
+        "season_stratum_id": "leaf_off_dry_season",
+        "resolution_class_id": "dem_0p5m"
+      }
     },
     {
       "psu_id": "psu-5",
@@ -78,7 +123,16 @@
       "reference_evidence_tier": "field_assessed",
       "reference_evidence_ref": "urn:synthetic:field-reference:5",
       "rights_status": "verified",
-      "rights_receipt_ref": "urn:synthetic:rights:5"
+      "rights_receipt_ref": "urn:synthetic:rights:5",
+      "context": {
+        "feature_class_id": "stone_enclosure",
+        "modality": "airborne_lidar",
+        "sensor_configuration_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "processing_build_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "environment_stratum_id": "open_grassland_low_relief",
+        "season_stratum_id": "leaf_off_dry_season",
+        "resolution_class_id": "dem_0p5m"
+      }
     },
     {
       "psu_id": "psu-6",
@@ -88,7 +142,16 @@
       "reference_evidence_tier": "field_assessed",
       "reference_evidence_ref": "urn:synthetic:field-reference:6",
       "rights_status": "verified",
-      "rights_receipt_ref": "urn:synthetic:rights:6"
+      "rights_receipt_ref": "urn:synthetic:rights:6",
+      "context": {
+        "feature_class_id": "stone_enclosure",
+        "modality": "airborne_lidar",
+        "sensor_configuration_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "processing_build_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "environment_stratum_id": "open_grassland_low_relief",
+        "season_stratum_id": "leaf_off_dry_season",
+        "resolution_class_id": "dem_0p5m"
+      }
     },
     {
       "psu_id": "psu-7",
@@ -98,7 +161,16 @@
       "reference_evidence_tier": "field_assessed",
       "reference_evidence_ref": "urn:synthetic:field-reference:7",
       "rights_status": "verified",
-      "rights_receipt_ref": "urn:synthetic:rights:7"
+      "rights_receipt_ref": "urn:synthetic:rights:7",
+      "context": {
+        "feature_class_id": "stone_enclosure",
+        "modality": "airborne_lidar",
+        "sensor_configuration_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "processing_build_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "environment_stratum_id": "open_grassland_low_relief",
+        "season_stratum_id": "leaf_off_dry_season",
+        "resolution_class_id": "dem_0p5m"
+      }
     },
     {
       "psu_id": "psu-8",
@@ -108,7 +180,16 @@
       "reference_evidence_tier": "field_assessed",
       "reference_evidence_ref": "urn:synthetic:field-reference:8",
       "rights_status": "verified",
-      "rights_receipt_ref": "urn:synthetic:rights:8"
+      "rights_receipt_ref": "urn:synthetic:rights:8",
+      "context": {
+        "feature_class_id": "stone_enclosure",
+        "modality": "airborne_lidar",
+        "sensor_configuration_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "processing_build_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "environment_stratum_id": "open_grassland_low_relief",
+        "season_stratum_id": "leaf_off_dry_season",
+        "resolution_class_id": "dem_0p5m"
+      }
     },
     {
       "psu_id": "psu-9",
@@ -118,7 +199,16 @@
       "reference_evidence_tier": "field_assessed",
       "reference_evidence_ref": "urn:synthetic:field-reference:9",
       "rights_status": "verified",
-      "rights_receipt_ref": "urn:synthetic:rights:9"
+      "rights_receipt_ref": "urn:synthetic:rights:9",
+      "context": {
+        "feature_class_id": "stone_enclosure",
+        "modality": "airborne_lidar",
+        "sensor_configuration_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "processing_build_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "environment_stratum_id": "open_grassland_low_relief",
+        "season_stratum_id": "leaf_off_dry_season",
+        "resolution_class_id": "dem_0p5m"
+      }
     },
     {
       "psu_id": "psu-10",
@@ -128,7 +218,16 @@
       "reference_evidence_tier": "field_assessed",
       "reference_evidence_ref": "urn:synthetic:field-reference:10",
       "rights_status": "verified",
-      "rights_receipt_ref": "urn:synthetic:rights:10"
+      "rights_receipt_ref": "urn:synthetic:rights:10",
+      "context": {
+        "feature_class_id": "stone_enclosure",
+        "modality": "airborne_lidar",
+        "sensor_configuration_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "processing_build_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "environment_stratum_id": "open_grassland_low_relief",
+        "season_stratum_id": "leaf_off_dry_season",
+        "resolution_class_id": "dem_0p5m"
+      }
     },
     {
       "psu_id": "psu-11",
@@ -138,7 +237,16 @@
       "reference_evidence_tier": "field_assessed",
       "reference_evidence_ref": "urn:synthetic:field-reference:11",
       "rights_status": "verified",
-      "rights_receipt_ref": "urn:synthetic:rights:11"
+      "rights_receipt_ref": "urn:synthetic:rights:11",
+      "context": {
+        "feature_class_id": "stone_enclosure",
+        "modality": "airborne_lidar",
+        "sensor_configuration_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "processing_build_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "environment_stratum_id": "open_grassland_low_relief",
+        "season_stratum_id": "leaf_off_dry_season",
+        "resolution_class_id": "dem_0p5m"
+      }
     },
     {
       "psu_id": "psu-12",
@@ -148,7 +256,16 @@
       "reference_evidence_tier": "field_assessed",
       "reference_evidence_ref": "urn:synthetic:field-reference:12",
       "rights_status": "verified",
-      "rights_receipt_ref": "urn:synthetic:rights:12"
+      "rights_receipt_ref": "urn:synthetic:rights:12",
+      "context": {
+        "feature_class_id": "stone_enclosure",
+        "modality": "airborne_lidar",
+        "sensor_configuration_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "processing_build_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "environment_stratum_id": "open_grassland_low_relief",
+        "season_stratum_id": "leaf_off_dry_season",
+        "resolution_class_id": "dem_0p5m"
+      }
     },
     {
       "psu_id": "psu-13",
@@ -158,7 +275,16 @@
       "reference_evidence_tier": "field_assessed",
       "reference_evidence_ref": "urn:synthetic:field-reference:13",
       "rights_status": "verified",
-      "rights_receipt_ref": "urn:synthetic:rights:13"
+      "rights_receipt_ref": "urn:synthetic:rights:13",
+      "context": {
+        "feature_class_id": "stone_enclosure",
+        "modality": "airborne_lidar",
+        "sensor_configuration_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "processing_build_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "environment_stratum_id": "open_grassland_low_relief",
+        "season_stratum_id": "leaf_off_dry_season",
+        "resolution_class_id": "dem_0p5m"
+      }
     },
     {
       "psu_id": "psu-14",
@@ -168,7 +294,16 @@
       "reference_evidence_tier": "field_assessed",
       "reference_evidence_ref": "urn:synthetic:field-reference:14",
       "rights_status": "verified",
-      "rights_receipt_ref": "urn:synthetic:rights:14"
+      "rights_receipt_ref": "urn:synthetic:rights:14",
+      "context": {
+        "feature_class_id": "stone_enclosure",
+        "modality": "airborne_lidar",
+        "sensor_configuration_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "processing_build_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "environment_stratum_id": "open_grassland_low_relief",
+        "season_stratum_id": "leaf_off_dry_season",
+        "resolution_class_id": "dem_0p5m"
+      }
     },
     {
       "psu_id": "psu-15",
@@ -178,7 +313,16 @@
       "reference_evidence_tier": "field_assessed",
       "reference_evidence_ref": "urn:synthetic:field-reference:15",
       "rights_status": "verified",
-      "rights_receipt_ref": "urn:synthetic:rights:15"
+      "rights_receipt_ref": "urn:synthetic:rights:15",
+      "context": {
+        "feature_class_id": "stone_enclosure",
+        "modality": "airborne_lidar",
+        "sensor_configuration_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "processing_build_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "environment_stratum_id": "open_grassland_low_relief",
+        "season_stratum_id": "leaf_off_dry_season",
+        "resolution_class_id": "dem_0p5m"
+      }
     },
     {
       "psu_id": "psu-16",
@@ -188,7 +332,16 @@
       "reference_evidence_tier": "field_assessed",
       "reference_evidence_ref": "urn:synthetic:field-reference:16",
       "rights_status": "verified",
-      "rights_receipt_ref": "urn:synthetic:rights:16"
+      "rights_receipt_ref": "urn:synthetic:rights:16",
+      "context": {
+        "feature_class_id": "stone_enclosure",
+        "modality": "airborne_lidar",
+        "sensor_configuration_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "processing_build_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "environment_stratum_id": "open_grassland_low_relief",
+        "season_stratum_id": "leaf_off_dry_season",
+        "resolution_class_id": "dem_0p5m"
+      }
     },
     {
       "psu_id": "psu-17",
@@ -198,7 +351,16 @@
       "reference_evidence_tier": "field_assessed",
       "reference_evidence_ref": "urn:synthetic:field-reference:17",
       "rights_status": "verified",
-      "rights_receipt_ref": "urn:synthetic:rights:17"
+      "rights_receipt_ref": "urn:synthetic:rights:17",
+      "context": {
+        "feature_class_id": "stone_enclosure",
+        "modality": "airborne_lidar",
+        "sensor_configuration_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "processing_build_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "environment_stratum_id": "open_grassland_low_relief",
+        "season_stratum_id": "leaf_off_dry_season",
+        "resolution_class_id": "dem_0p5m"
+      }
     },
     {
       "psu_id": "psu-18",
@@ -208,7 +370,16 @@
       "reference_evidence_tier": "field_assessed",
       "reference_evidence_ref": "urn:synthetic:field-reference:18",
       "rights_status": "verified",
-      "rights_receipt_ref": "urn:synthetic:rights:18"
+      "rights_receipt_ref": "urn:synthetic:rights:18",
+      "context": {
+        "feature_class_id": "stone_enclosure",
+        "modality": "airborne_lidar",
+        "sensor_configuration_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "processing_build_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "environment_stratum_id": "open_grassland_low_relief",
+        "season_stratum_id": "leaf_off_dry_season",
+        "resolution_class_id": "dem_0p5m"
+      }
     },
     {
       "psu_id": "psu-19",
@@ -218,7 +389,16 @@
       "reference_evidence_tier": "field_assessed",
       "reference_evidence_ref": "urn:synthetic:field-reference:19",
       "rights_status": "verified",
-      "rights_receipt_ref": "urn:synthetic:rights:19"
+      "rights_receipt_ref": "urn:synthetic:rights:19",
+      "context": {
+        "feature_class_id": "stone_enclosure",
+        "modality": "airborne_lidar",
+        "sensor_configuration_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "processing_build_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "environment_stratum_id": "open_grassland_low_relief",
+        "season_stratum_id": "leaf_off_dry_season",
+        "resolution_class_id": "dem_0p5m"
+      }
     }
   ],
   "observation": {
