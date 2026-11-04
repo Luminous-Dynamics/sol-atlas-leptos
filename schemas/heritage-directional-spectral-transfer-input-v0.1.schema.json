@@ -1,0 +1,149 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/heritage-directional-spectral-transfer-input-v0.1.schema.json",
+  "title": "Sol-Atlas Directional Spectral-Geometric Transfer Input",
+  "description": "Ordered source-to-target cropmark-proxy spectral cluster distances. Each of the 12 calendar months pools valid observations across years before A/H distance computation. This is cropmark proxy transfer, not a general archaeology detector.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "pair_id",
+    "source_site_id",
+    "target_site_id",
+    "distance_metric",
+    "split_protocol",
+    "source_split_manifest_sha256",
+    "target_split_manifest_sha256",
+    "feature_transform_sha256",
+    "input_channel_semantics",
+    "phenophase_filter_ref",
+    "top_m_months",
+    "minimum_shared_months",
+    "months",
+    "source_observation_manifest_sha256",
+    "target_observation_manifest_sha256",
+    "source_proxy_class_definition_ref",
+    "target_proxy_class_definition_ref",
+    "distance_estimator_ref"
+  ],
+  "properties": {
+    "pair_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source_site_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "target_site_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "distance_metric": {
+      "enum": [
+        "euclidean",
+        "band_wise_wasserstein",
+        "kolmogorov_smirnov",
+        "mahalanobis"
+      ]
+    },
+    "split_protocol": {
+      "enum": [
+        "pixel_random_interpolation",
+        "within_site_spatial_blocked",
+        "held_out_site",
+        "held_out_region"
+      ]
+    },
+    "source_split_manifest_sha256": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{64}$"
+    },
+    "target_split_manifest_sha256": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{64}$"
+    },
+    "feature_transform_sha256": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{64}$"
+    },
+    "input_channel_semantics": {
+      "type": "string",
+      "minLength": 1
+    },
+    "phenophase_filter_ref": {
+      "type": "string",
+      "minLength": 1
+    },
+    "top_m_months": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "minimum_shared_months": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "months": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "calendar_month",
+          "source_archaeological_sample_count",
+          "target_archaeological_sample_count",
+          "target_vegetated_control_sample_count",
+          "archaeological_to_archaeological_distance",
+          "archaeological_to_control_distance"
+        ],
+        "properties": {
+          "source_archaeological_sample_count": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "target_archaeological_sample_count": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "target_vegetated_control_sample_count": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "archaeological_to_archaeological_distance": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "archaeological_to_control_distance": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "calendar_month": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 12
+          }
+        }
+      }
+    },
+    "source_observation_manifest_sha256": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{64}$"
+    },
+    "target_observation_manifest_sha256": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{64}$"
+    },
+    "source_proxy_class_definition_ref": {
+      "type": "string",
+      "minLength": 1
+    },
+    "target_proxy_class_definition_ref": {
+      "type": "string",
+      "minLength": 1
+    },
+    "distance_estimator_ref": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}

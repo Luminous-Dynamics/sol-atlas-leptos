@@ -1,0 +1,172 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/heritage-directional-spectral-transfer-report-v0.1.schema.json",
+  "title": "Sol-Atlas Directional Spectral-Geometric Transfer Report",
+  "description": "Directional source-to-target spectral affinity. Months are calendar-month clusters pooled across years. Reverse direction is evaluated separately; split protocol determines whether results qualify for primary cross-site generalization evidence.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "pair_id",
+    "source_site_id",
+    "target_site_id",
+    "distance_metric",
+    "split_protocol",
+    "primary_cross_site_generalization_eligible",
+    "source_split_manifest_sha256",
+    "target_split_manifest_sha256",
+    "feature_transform_sha256",
+    "input_channel_semantics",
+    "phenophase_filter_ref",
+    "top_m_months",
+    "shared_month_count",
+    "selected_calendar_months",
+    "directional_strength_score",
+    "months",
+    "source_observation_manifest_sha256",
+    "target_observation_manifest_sha256",
+    "source_proxy_class_definition_ref",
+    "target_proxy_class_definition_ref",
+    "distance_estimator_ref"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "luminous.heritage-directional-spectral-transfer.v0.1"
+    },
+    "pair_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source_site_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "target_site_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "distance_metric": {
+      "enum": [
+        "euclidean",
+        "band_wise_wasserstein",
+        "kolmogorov_smirnov",
+        "mahalanobis"
+      ]
+    },
+    "split_protocol": {
+      "enum": [
+        "pixel_random_interpolation",
+        "within_site_spatial_blocked",
+        "held_out_site",
+        "held_out_region"
+      ]
+    },
+    "primary_cross_site_generalization_eligible": {
+      "type": "boolean"
+    },
+    "source_split_manifest_sha256": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{64}$"
+    },
+    "target_split_manifest_sha256": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{64}$"
+    },
+    "feature_transform_sha256": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{64}$"
+    },
+    "input_channel_semantics": {
+      "type": "string",
+      "minLength": 1
+    },
+    "phenophase_filter_ref": {
+      "type": "string",
+      "minLength": 1
+    },
+    "top_m_months": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "shared_month_count": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "directional_strength_score": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "months": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "calendar_month",
+          "archaeological_to_archaeological_distance",
+          "archaeological_to_control_distance",
+          "directional_ratio",
+          "reciprocal_affinity",
+          "selected_in_top_m"
+        ],
+        "properties": {
+          "archaeological_to_archaeological_distance": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "archaeological_to_control_distance": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "directional_ratio": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "reciprocal_affinity": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "selected_in_top_m": {
+            "type": "boolean"
+          },
+          "calendar_month": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 12
+          }
+        }
+      }
+    },
+    "selected_calendar_months": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 12,
+      "items": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 12
+      }
+    },
+    "source_observation_manifest_sha256": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{64}$"
+    },
+    "target_observation_manifest_sha256": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{64}$"
+    },
+    "source_proxy_class_definition_ref": {
+      "type": "string",
+      "minLength": 1
+    },
+    "target_proxy_class_definition_ref": {
+      "type": "string",
+      "minLength": 1
+    },
+    "distance_estimator_ref": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}

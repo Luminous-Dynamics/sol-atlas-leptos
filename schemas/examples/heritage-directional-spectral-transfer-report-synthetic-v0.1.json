@@ -1,0 +1,52 @@
+{
+  "schema_version": "luminous.heritage-directional-spectral-transfer.v0.1",
+  "pair_id": "synthetic-site-a-to-site-b",
+  "source_site_id": "synthetic-site-a",
+  "target_site_id": "synthetic-site-b",
+  "distance_metric": "euclidean",
+  "split_protocol": "held_out_site",
+  "primary_cross_site_generalization_eligible": true,
+  "source_split_manifest_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "target_split_manifest_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "feature_transform_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+  "input_channel_semantics": "Sentinel-2 L2A B02/B03/B04/B08 surface reflectance; NDVI phenophase alignment",
+  "phenophase_filter_ref": "urn:synthetic:ndvi-phenophase-filter:v1",
+  "top_m_months": 2,
+  "shared_month_count": 3,
+  "directional_strength_score": 3,
+  "months": [
+    {
+      "archaeological_to_archaeological_distance": 1,
+      "archaeological_to_control_distance": 4,
+      "directional_ratio": 0.25,
+      "reciprocal_affinity": 4,
+      "selected_in_top_m": true,
+      "calendar_month": 3
+    },
+    {
+      "archaeological_to_archaeological_distance": 2,
+      "archaeological_to_control_distance": 4,
+      "directional_ratio": 0.5,
+      "reciprocal_affinity": 2,
+      "selected_in_top_m": true,
+      "calendar_month": 4
+    },
+    {
+      "archaeological_to_archaeological_distance": 3,
+      "archaeological_to_control_distance": 3,
+      "directional_ratio": 1,
+      "reciprocal_affinity": 1,
+      "selected_in_top_m": false,
+      "calendar_month": 5
+    }
+  ],
+  "selected_calendar_months": [
+    3,
+    4
+  ],
+  "source_observation_manifest_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+  "target_observation_manifest_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+  "source_proxy_class_definition_ref": "urn:synthetic:source-cropmark-proxy-mask-definition:v1",
+  "target_proxy_class_definition_ref": "urn:synthetic:target-cropmark-proxy-mask-definition:v1",
+  "distance_estimator_ref": "urn:synthetic:euclidean-distance-estimator:v1"
+}

@@ -1,0 +1,38 @@
+{
+  "schema_version": "luminous.heritage-dss-validation.v0.1",
+  "outcome_metric": "precision_recall_auc",
+  "directed_pair_count": 12,
+  "unique_site_count": 4,
+  "spearman_rho": 1,
+  "directed_pairs_are_independent": false,
+  "confidence_interval": null,
+  "site_leave_out": [
+    {
+      "excluded_site_id": "a",
+      "remaining_pair_count": 6,
+      "remaining_site_count": 3,
+      "spearman_rho": 1
+    },
+    {
+      "excluded_site_id": "b",
+      "remaining_pair_count": 6,
+      "remaining_site_count": 3,
+      "spearman_rho": 1
+    },
+    {
+      "excluded_site_id": "c",
+      "remaining_pair_count": 6,
+      "remaining_site_count": 3,
+      "spearman_rho": 1
+    },
+    {
+      "excluded_site_id": "d",
+      "remaining_pair_count": 6,
+      "remaining_site_count": 3,
+      "spearman_rho": 1
+    }
+  ],
+  "unique_geographic_domain_count": 3,
+  "unique_cropmark_ecology_count": 2,
+  "multi_ecology_external_scope_eligible": false
+}
