@@ -715,6 +715,7 @@ pub fn evaluate_decision_reliance_reference(
     let mut qualified_proof_count = 0usize;
     let mut unresolved_proof_count = 0usize;
     let mut required_proof_ids = BTreeSet::new();
+    let mut required_proof_classes_by_id = BTreeMap::new();
     let mut covered_subjects =
         BTreeMap::<DecisionRelianceProofClass, BTreeSet<String>>::new();
     for proof in proofs {
@@ -802,6 +803,7 @@ pub fn evaluate_decision_reliance_reference(
         }
         if any_subject_applies {
             required_proof_ids.insert(proof.proof_id.clone());
+            required_proof_classes_by_id.insert(proof.proof_id.clone(), proof.proof_class);
             present_classes.insert(proof.proof_class);
             mark_proof_status(proof, &mut flags, &mut findings);
             if proof.status == DecisionRelianceProofStatus::Qualified {
@@ -1002,6 +1004,35 @@ pub fn evaluate_decision_reliance_reference(
             continue;
         }
 
+        let affected_classes = event
+            .affected_proof_ids
+            .iter()
+            .filter_map(|proof_id| required_proof_classes_by_id.get(proof_id).copied())
+            .collect::<BTreeSet<_>>();
+        let event_class_matches = match event.event_type {
+            DecisionRelianceChangeEventType::RightsRevoked => {
+                affected_classes.contains(&DecisionRelianceProofClass::SourceUseRights)
+            }
+            DecisionRelianceChangeEventType::AuthorityExpired => {
+                affected_classes.contains(&DecisionRelianceProofClass::ActorRelianceAuthority)
+            }
+            DecisionRelianceChangeEventType::KeyRevoked => {
+                affected_classes.contains(&DecisionRelianceProofClass::SourceAttestationTrust)
+            }
+            _ => true,
+        };
+        if !event_class_matches {
+            flags.invalid = true;
+            push_finding(
+                &mut findings,
+                "invalid",
+                "CHANGE_EVENT_PROOF_CLASS_MISMATCH",
+                &event.event_id,
+                "the change-event type does not target the corresponding required proof class",
+            );
+            continue;
+        }
+
         match event.trust_status {
             DecisionRelianceEventTrustStatus::Invalid
             | DecisionRelianceEventTrustStatus::Revoked => {
@@ -1136,8 +1167,15 @@ mod tests {
     fn base_proofs() -> Vec<DecisionRelianceProof> {
         vec![
             proof("decision-event", DecisionRelianceProofClass::DecisionEventIntegrity),
+            proof("identity", DecisionRelianceProofClass::NativeSourceIdentity),
             proof("source-bytes", DecisionRelianceProofClass::SourcePayloadBytes),
+            proof("source-rights", DecisionRelianceProofClass::SourceUseRights),
+            proof("source-trust", DecisionRelianceProofClass::SourceAttestationTrust),
             proof("coverage", DecisionRelianceProofClass::SourceCoverage),
+            proof("projection", DecisionRelianceProofClass::ProjectionIntegrity),
+            proof("engineering", DecisionRelianceProofClass::EngineeringDomainValidity),
+            proof("lifecycle", DecisionRelianceProofClass::LifecycleCurrentness),
+            proof("impact-frontier", DecisionRelianceProofClass::ImpactFrontierCorrectness),
             proof("actor-authority", DecisionRelianceProofClass::ActorRelianceAuthority),
         ]
     }
@@ -1145,8 +1183,15 @@ mod tests {
     fn required() -> Vec<DecisionRelianceProofClass> {
         vec![
             DecisionRelianceProofClass::DecisionEventIntegrity,
+            DecisionRelianceProofClass::NativeSourceIdentity,
             DecisionRelianceProofClass::SourcePayloadBytes,
+            DecisionRelianceProofClass::SourceUseRights,
+            DecisionRelianceProofClass::SourceAttestationTrust,
             DecisionRelianceProofClass::SourceCoverage,
+            DecisionRelianceProofClass::ProjectionIntegrity,
+            DecisionRelianceProofClass::EngineeringDomainValidity,
+            DecisionRelianceProofClass::LifecycleCurrentness,
+            DecisionRelianceProofClass::ImpactFrontierCorrectness,
             DecisionRelianceProofClass::ActorRelianceAuthority,
         ]
     }
@@ -1311,6 +1356,79 @@ mod tests {
     }
 
     #[test]
+    fn purpose_mismatch_cannot_support_reliance_for_other_purpose() {
+        let mut proofs = base_proofs();
+        proofs[2].applicable_purposes = vec!["design_review".into()];
+        let result = evaluate_decision_reliance_reference(
+            &request(),
+            &required(),
+            &proofs,
+            &[],
+        );
+        assert_eq!(result.outcome, DecisionRelianceOutcome::InsufficientEvidence);
+        assert!(result.findings.iter().any(|finding| {
+            finding.code == "REQUIRED_PROOF_CLASS_MISSING"
+                || finding.code == "REQUIRED_PROOF_SCOPE_NOT_COVERED"
+        }));
+    }
+
+    #[test]
+    fn wrong_jurisdiction_cannot_support_reliance() {
+        let mut proofs = base_proofs();
+        proofs[2].jurisdiction = "other-jurisdiction".into();
+        let result = evaluate_decision_reliance_reference(
+            &request(),
+            &required(),
+            &proofs,
+            &[],
+        );
+        assert_eq!(result.outcome, DecisionRelianceOutcome::InsufficientEvidence);
+    }
+
+    #[test]
+    fn proof_covering_only_one_of_two_scope_subjects_is_insufficient() {
+        let mut reliance_request = request();
+        reliance_request.scope_subjects.push("utility-corridor-001".into());
+        let result = evaluate_decision_reliance_reference(
+            &reliance_request,
+            &required(),
+            &base_proofs(),
+            &[],
+        );
+        assert_eq!(result.outcome, DecisionRelianceOutcome::InsufficientEvidence);
+        assert!(result.findings.iter().any(|finding| {
+            finding.code == "REQUIRED_PROOF_SCOPE_NOT_COVERED"
+                && finding.subject_ref == "utility-corridor-001"
+        }));
+    }
+
+    #[test]
+    fn optional_proof_status_does_not_contaminate_required_decision_scope() {
+        let mut proofs = base_proofs();
+        let mut optional = proof(
+            "optional-telemetry",
+            DecisionRelianceProofClass::NativeSourceIdentity,
+        );
+        optional.status = DecisionRelianceProofStatus::Invalid;
+        optional.applicable_purposes = vec!["benchmarking".into()];
+        proofs.push(optional);
+        let required_without_identity = required()
+            .into_iter()
+            .filter(|class| *class != DecisionRelianceProofClass::NativeSourceIdentity)
+            .collect::<Vec<_>>();
+        let result = evaluate_decision_reliance_reference(
+            &request(),
+            &required_without_identity,
+            &proofs,
+            &[],
+        );
+        assert_eq!(
+            result.outcome,
+            DecisionRelianceOutcome::ReliableForDeclaredScope
+        );
+    }
+
+    #[test]
     fn expired_proof_requires_revalidation() {
         let mut proofs = base_proofs();
         proofs[1].fresh_until = Some("2026-11-04T09:59:59Z".into());
@@ -1353,7 +1471,7 @@ mod tests {
         let event = event(
             "compromised-key-before-decision",
             DecisionRelianceChangeEventType::KeyRevoked,
-            "source-bytes",
+            "source-trust",
             "2026-09-25T00:00:00Z",
             "2026-09-26T00:00:00Z",
         );
@@ -1389,7 +1507,7 @@ mod tests {
         let event = event(
             "rights-revoked",
             DecisionRelianceChangeEventType::RightsRevoked,
-            "source-bytes",
+            "source-rights",
             "2026-11-01T00:00:00Z",
             "2026-11-02T00:00:00Z",
         );
