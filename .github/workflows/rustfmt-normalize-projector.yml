@@ -1,0 +1,47 @@
+name: Normalize projector Rust formatting
+
+on:
+  push:
+    branches:
+      - research/built-environment-ieac-projector-v0-1
+    paths:
+      - "sol-atlas-core/src/**"
+      - "tests/industry_assurance_projection.rs"
+      - ".github/workflows/rustfmt-normalize-projector.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: rustfmt-normalize-projector
+  cancel-in-progress: false
+
+jobs:
+  normalize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: true
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - name: Format core crate and integration tests
+        run: |
+          set -euo pipefail
+          cargo fmt --manifest-path Cargo.toml
+          cargo fmt --manifest-path sol-atlas-core/Cargo.toml
+          git diff --check
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add sol-atlas-core/src tests/industry_assurance_projection.rs
+          if git diff --cached --quiet; then
+            echo "Projector Rust sources already formatted"
+          else
+            git commit -m "style: normalize projector Rust sources"
+            git push origin "HEAD:$GITHUB_REF_NAME"
+          fi
+          cargo fmt --manifest-path Cargo.toml --check
+          cargo fmt --manifest-path sol-atlas-core/Cargo.toml --check
