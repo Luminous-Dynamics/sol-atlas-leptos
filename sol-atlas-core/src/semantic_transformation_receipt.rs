@@ -1304,6 +1304,7 @@ mod tests {
     fn missing_source_mapping_is_indeterminate_not_silent() {
         let mut value = receipt();
         value.mappings.pop();
+        value.target_inventory.pop();
         let result = validate_semantic_transformation_receipt(&value);
         assert_eq!(
             result.disposition,
@@ -1508,6 +1509,103 @@ mod tests {
             TransformationReceiptDisposition::DeclaredSemanticLoss
         );
         assert_eq!(result.decision_required_loss_count, 1);
+    }
+
+    #[test]
+    fn split_mapping_requires_multiple_targets_and_group_identity() {
+        let mut value = receipt();
+        value.mappings[0].disposition = MappingDisposition::Split;
+        value.mappings[0].target_semantic_ids = vec![
+            "node:wall-001:placement-origin".into(),
+            "node:wall-001:placement-orientation".into(),
+        ];
+        value.mappings[0].mapping_group_id = Some("split:wall-001-placement".into());
+        value.target_inventory.push(TargetSemanticItem {
+            semantic_id: "node:wall-001:placement-orientation".into(),
+            semantic_kind: "coordinate_frame_orientation".into(),
+            origin: TargetSemanticOrigin::SourceMapped,
+            source_semantic_ids: vec!["wall:W-001:global-placement".into()],
+            target_value_sha256: digest('8'),
+        });
+        let result = validate_semantic_transformation_receipt(&value);
+        assert!(!result.findings.iter().any(|finding| {
+            finding.code == "SPLIT_MAPPING_GROUP_INVALID"
+                || finding.code == "MAPPING_TARGET_NOT_IN_INVENTORY"
+        }));
+    }
+
+    #[test]
+    fn split_mapping_without_group_id_is_invalid() {
+        let mut value = receipt();
+        value.mappings[0].disposition = MappingDisposition::Split;
+        value.mappings[0].target_semantic_ids = vec![
+            "node:wall-001:placement".into(),
+            "node:wall-001:placement-extra".into(),
+        ];
+        value.target_inventory.push(TargetSemanticItem {
+            semantic_id: "node:wall-001:placement-extra".into(),
+            semantic_kind: "coordinate_frame_component".into(),
+            origin: TargetSemanticOrigin::SourceMapped,
+            source_semantic_ids: vec!["wall:W-001:global-placement".into()],
+            target_value_sha256: digest('8'),
+        });
+        let result = validate_semantic_transformation_receipt(&value);
+        assert_eq!(result.disposition, TransformationReceiptDisposition::InvalidReceipt);
+        assert!(result.findings.iter().any(|finding| {
+            finding.code == "SPLIT_MAPPING_GROUP_INVALID"
+        }));
+    }
+
+    #[test]
+    fn merged_mapping_requires_group_identity_and_reciprocal_source_links() {
+        let mut value = receipt();
+        value.mappings[0].disposition = MappingDisposition::Merged;
+        value.mappings[0].mapping_group_id = Some("merge:wall-material-properties".into());
+        value.mappings[1].disposition = MappingDisposition::Merged;
+        value.mappings[1].target_semantic_ids = vec!["node:wall-001:combined-properties".into()];
+        value.mappings[1].mapping_group_id = Some("merge:wall-material-properties".into());
+        value.target_inventory[1].semantic_id = "node:wall-001:combined-properties".into();
+        value.target_inventory[1].source_semantic_ids = vec![
+            "wall:W-001:global-placement".into(),
+            "wall:W-001:fire-rating".into(),
+        ];
+        let result = validate_semantic_transformation_receipt(&value);
+        assert!(!result.findings.iter().any(|finding| {
+            finding.code == "MERGED_MAPPING_GROUP_INVALID"
+                || finding.code == "TARGET_SOURCE_MAPPING_NOT_RECIPROCAL"
+        }));
+    }
+
+    #[test]
+    fn converted_mapping_without_a_typed_conversion_kind_is_indeterminate() {
+        let mut value = receipt();
+        value.mappings[0].disposition = MappingDisposition::Converted;
+        let result = validate_semantic_transformation_receipt(&value);
+        assert_eq!(result.disposition, TransformationReceiptDisposition::Indeterminate);
+        assert!(result.findings.iter().any(|finding| {
+            finding.code == "CONVERSION_KIND_UNSPECIFIED"
+        }));
+    }
+
+    #[test]
+    fn uncertainty_propagation_requires_method_and_assumption_digest() {
+        let mut value = receipt();
+        value.mappings[0].disposition = MappingDisposition::Converted;
+        value.mappings[0].metadata.conversion_kind = Some(ConversionKind::Uncertainty);
+        value.mappings[0].metadata.uncertainty_conversion = Some(UncertaintyConversion {
+            source_model: "expanded-uncertainty-k2".into(),
+            target_model: "covariance-model".into(),
+            behavior: UncertaintyBehavior::Propagated,
+            propagation_method: Some("first-order propagation".into()),
+            assumptions_sha256: None,
+            covariance_sha256: Some(digest('9')),
+            target_bound_sha256: None,
+        });
+        let result = validate_semantic_transformation_receipt(&value);
+        assert_eq!(result.disposition, TransformationReceiptDisposition::Indeterminate);
+        assert!(result.findings.iter().any(|finding| {
+            finding.code == "UNCERTAINTY_PROPAGATION_EVIDENCE_INCOMPLETE"
+        }));
     }
 
     #[test]
