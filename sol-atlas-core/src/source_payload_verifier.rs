@@ -967,15 +967,14 @@ mod tests {
             },
         )]);
 
-        let error =
-            verify_catalog_payload_streams(
-                &case,
-                &catalog,
-                payload_readers,
-                BTreeMap::<(String, String), io::Cursor<Vec<u8>>>::new(),
-                1024,
-            )
-                .unwrap_err();
+        let error = verify_catalog_payload_streams(
+            &case,
+            &catalog,
+            payload_readers,
+            BTreeMap::<(String, String), io::Cursor<Vec<u8>>>::new(),
+            1024,
+        )
+        .unwrap_err();
         assert_eq!(error.error_kind, "invalid_buffer_size");
         assert_eq!(error.bytes_read, 0);
     }
