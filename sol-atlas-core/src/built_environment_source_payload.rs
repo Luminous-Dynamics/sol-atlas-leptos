@@ -159,10 +159,7 @@ pub struct PayloadVerificationContext {
 }
 
 fn digest_bytes_hex(digest: &[u8]) -> String {
-    digest
-        .iter()
-        .map(|byte| format!("{byte:02x}"))
-        .collect()
+    digest.iter().map(|byte| format!("{byte:02x}")).collect()
 }
 
 fn sha256_hex(bytes: &[u8]) -> String {
