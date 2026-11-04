@@ -169,7 +169,10 @@
           "trusted_at",
           "fresh_until",
           "revoked_at",
-          "finding_codes"
+          "finding_codes",
+          "applicable_purposes",
+          "jurisdiction",
+          "scope_subjects"
         ],
         "properties": {
           "proof_id": {
@@ -313,6 +316,37 @@
               "type": "string",
               "minLength": 1,
               "maxLength": 128
+            }
+          },
+          "applicable_purposes": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "enum": [
+                "design_review",
+                "engineering_review",
+                "construction_release_review",
+                "operations",
+                "maintenance",
+                "regulatory_submission",
+                "benchmarking"
+              ]
+            }
+          },
+          "jurisdiction": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          },
+          "scope_subjects": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 512
             }
           }
         }
