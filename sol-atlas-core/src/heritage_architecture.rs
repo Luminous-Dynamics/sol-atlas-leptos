@@ -407,9 +407,7 @@ fn validate_observation(
                     observation.observation_id.clone(),
                 ));
             }
-            let has_metric_uncertainty = observation.uncertainty.as_ref().is_some_and(|value| {
-                value.area_standard_deviation_m2.is_some() || value.area_interval_90_m2.is_some()
-            });
+            let has_metric_uncertainty = observation.uncertainty.is_some();
             if observation.metric_area_m2.is_some()
                 || observation.metric_area_semantics.is_some()
                 || observation.metric_perimeter_m.is_some()
