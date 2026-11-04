@@ -717,7 +717,6 @@ pub fn evaluate_decision_reliance_reference(
     let mut required_proof_ids = BTreeSet::new();
     let mut covered_subjects =
         BTreeMap::<DecisionRelianceProofClass, BTreeSet<String>>::new();
-    let mut applicable_proofs = BTreeSet::<String>::new();
     for proof in proofs {
         if proof.proof_id.trim().is_empty() || proof.subject_ref.trim().is_empty() {
             flags.invalid = true;
@@ -783,24 +782,6 @@ pub fn evaluate_decision_reliance_reference(
                 "proof purposes and scope subjects must be unique",
             );
         }
-        for (field, digest) in [
-            ("receipt_sha256", Some(proof.receipt_sha256.as_str())),
-            ("subject_sha256", proof.subject_sha256.as_deref()),
-            ("policy_sha256", proof.policy_sha256.as_deref()),
-            ("verifier_build_sha256", proof.verifier_build_sha256.as_deref()),
-        ] {
-            if digest.is_some_and(|value| !valid_sha256(value)) {
-                flags.invalid = true;
-                push_finding(
-                    &mut findings,
-                    "invalid",
-                    "INVALID_PROOF_DIGEST",
-                    &proof.subject_ref,
-                    &format!("{field} is not lowercase SHA-256"),
-                );
-            }
-        }
-
         if !required.contains(&proof.proof_class) {
             continue;
         }
@@ -820,7 +801,6 @@ pub fn evaluate_decision_reliance_reference(
             }
         }
         if any_subject_applies {
-            applicable_proofs.insert(proof.proof_id.clone());
             required_proof_ids.insert(proof.proof_id.clone());
             present_classes.insert(proof.proof_class);
             mark_proof_status(proof, &mut flags, &mut findings);
@@ -991,6 +971,37 @@ pub fn evaluate_decision_reliance_reference(
             );
         }
 
+        let unlisted = event
+            .affected_proof_ids
+            .iter()
+            .filter(|proof_id| !proof_ids.contains(proof_id.as_str()))
+            .collect::<Vec<_>>();
+        if !unlisted.is_empty() {
+            flags.insufficient = true;
+            push_finding(
+                &mut findings,
+                "incomplete",
+                "CHANGE_EVENT_REFERENCES_UNLISTED_PROOF",
+                &event.event_id,
+                "change event affects proof IDs not represented in this reliance receipt",
+            );
+        }
+
+        let affects_required_proof = event
+            .affected_proof_ids
+            .iter()
+            .any(|proof_id| required_proof_ids.contains(proof_id));
+        if !affects_required_proof {
+            push_finding(
+                &mut findings,
+                "info",
+                "CHANGE_EVENT_OUTSIDE_REQUIRED_PROOF_SCOPE",
+                &event.event_id,
+                "the event does not affect a proof required for this exact reliance purpose and scope",
+            );
+            continue;
+        }
+
         match event.trust_status {
             DecisionRelianceEventTrustStatus::Invalid
             | DecisionRelianceEventTrustStatus::Revoked => {
@@ -1032,36 +1043,6 @@ pub fn evaluate_decision_reliance_reference(
             }
         }
 
-        let unlisted = event
-            .affected_proof_ids
-            .iter()
-            .filter(|proof_id| !proof_ids.contains(proof_id.as_str()))
-            .collect::<Vec<_>>();
-        if !unlisted.is_empty() {
-            flags.insufficient = true;
-            push_finding(
-                &mut findings,
-                "incomplete",
-                "CHANGE_EVENT_REFERENCES_UNLISTED_PROOF",
-                &event.event_id,
-                "change event affects proof IDs not represented in this reliance receipt",
-            );
-        }
-
-        let affects_required_proof = event
-            .affected_proof_ids
-            .iter()
-            .any(|proof_id| required_proof_ids.contains(proof_id));
-        if !affects_required_proof {
-            push_finding(
-                &mut findings,
-                "info",
-                "CHANGE_EVENT_OUTSIDE_REQUIRED_PROOF_SCOPE",
-                &event.event_id,
-                "the event does not affect a proof required for this exact reliance purpose and scope",
-            );
-            continue;
-        }
         known_change_event_count += 1;
         if event.valid_at.as_str() <= decision_time && event.recorded_at.as_str() > decision_time {
             late_arriving_change_event_count += 1;
