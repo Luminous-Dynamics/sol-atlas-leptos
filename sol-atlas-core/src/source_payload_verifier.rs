@@ -131,24 +131,22 @@ pub fn verify_descriptor_payload_stream<R: Read>(
     let payload = &descriptor.source_payload;
     let mut findings = Vec::new();
 
-    let result = |status,
-                  actual_sha256,
-                  actual_byte_length,
-                  bytes_read,
-                  read_error_kind,
-                  findings| PayloadByteRecordResult {
-        record_key: record_key.to_owned(),
-        status,
-        digest_basis: payload.digest_basis,
-        object_ref: payload.payload_object_ref.clone(),
-        expected_sha256: payload.sha256.clone(),
-        actual_sha256,
-        expected_byte_length: payload.byte_length,
-        actual_byte_length,
-        bytes_read,
-        read_error_kind,
-        findings,
-    };
+    let result =
+        |status, actual_sha256, actual_byte_length, bytes_read, read_error_kind, findings| {
+            PayloadByteRecordResult {
+                record_key: record_key.to_owned(),
+                status,
+                digest_basis: payload.digest_basis,
+                object_ref: payload.payload_object_ref.clone(),
+                expected_sha256: payload.sha256.clone(),
+                actual_sha256,
+                expected_byte_length: payload.byte_length,
+                actual_byte_length,
+                bytes_read,
+                read_error_kind,
+                findings,
+            }
+        };
 
     let Some(expected_sha256) = payload.sha256.as_deref() else {
         findings.push(finding(
@@ -424,9 +422,7 @@ where
 
     let mut records = Vec::with_capacity(catalog.descriptors.len());
     for descriptor in &catalog.descriptors {
-        let record_key = descriptor
-            .record_kind
-            .case_key(&descriptor.case_record_id);
+        let record_key = descriptor.record_kind.case_key(&descriptor.case_record_id);
         let Some(object_ref) = descriptor.source_payload.payload_object_ref.as_deref() else {
             let result = unavailable_result(
                 descriptor,
@@ -729,11 +725,26 @@ mod tests {
             case_record_id: "evidence-001".into(),
             owner_namespace: "urn:synthetic:survey-owner".into(),
             native_identity_components: vec![
-                NativeIdentityComponent { name: "native_id".into(), value: "survey-registry".into() },
-                NativeIdentityComponent { name: "native_record_id".into(), value: "evidence-001".into() },
-                NativeIdentityComponent { name: "field_path".into(), value: "geometry.revision".into() },
-                NativeIdentityComponent { name: "subject_id".into(), value: "design-001".into() },
-                NativeIdentityComponent { name: "jurisdiction".into(), value: "synthetic-jurisdiction".into() },
+                NativeIdentityComponent {
+                    name: "native_id".into(),
+                    value: "survey-registry".into(),
+                },
+                NativeIdentityComponent {
+                    name: "native_record_id".into(),
+                    value: "evidence-001".into(),
+                },
+                NativeIdentityComponent {
+                    name: "field_path".into(),
+                    value: "geometry.revision".into(),
+                },
+                NativeIdentityComponent {
+                    name: "subject_id".into(),
+                    value: "design-001".into(),
+                },
+                NativeIdentityComponent {
+                    name: "jurisdiction".into(),
+                    value: "synthetic-jurisdiction".into(),
+                },
             ],
             source_payload: SourcePayloadDescriptor {
                 sha256: Some(digest.clone()),
@@ -770,7 +781,10 @@ mod tests {
         }
     }
 
-    fn catalog(case: &BuiltEnvironmentCase, descriptor: SourceRecordDescriptor) -> SourceDescriptorCatalog {
+    fn catalog(
+        case: &BuiltEnvironmentCase,
+        descriptor: SourceRecordDescriptor,
+    ) -> SourceDescriptorCatalog {
         SourceDescriptorCatalog {
             schema_version: "luminous.built-environment-source-descriptor-catalog.v0.1".into(),
             catalog_id: "catalog-byte-verifier-001".into(),
@@ -818,7 +832,9 @@ mod tests {
         let result = verify_descriptor_payload_stream(
             &descriptor,
             "evidence:evidence-001",
-            ShortReader { bytes: Cursor::new(bytes.to_vec()) },
+            ShortReader {
+                bytes: Cursor::new(bytes.to_vec()),
+            },
             1024,
         );
         assert_eq!(result.status, PayloadByteStatus::Verified);
@@ -847,7 +863,10 @@ mod tests {
         let result = verify_descriptor_payload_stream(
             &descriptor,
             "evidence:evidence-001",
-            InterruptedOnce { interrupted: false, bytes: Cursor::new(bytes.to_vec()) },
+            InterruptedOnce {
+                interrupted: false,
+                bytes: Cursor::new(bytes.to_vec()),
+            },
             1024,
         );
         assert_eq!(result.status, PayloadByteStatus::Verified);
@@ -880,9 +899,12 @@ mod tests {
             1024,
         );
         assert_eq!(result.status, PayloadByteStatus::DigestMismatch);
-        assert!(result.findings.iter().any(|finding| {
-            finding.code == "SOURCE_PAYLOAD_SHA256_MISMATCH"
-        }));
+        assert!(
+            result
+                .findings
+                .iter()
+                .any(|finding| { finding.code == "SOURCE_PAYLOAD_SHA256_MISMATCH" })
+        );
     }
 
     #[test]
@@ -895,9 +917,12 @@ mod tests {
             1024,
         );
         assert_eq!(truncated.status, PayloadByteStatus::DigestMismatch);
-        assert!(truncated.findings.iter().any(|finding| {
-            finding.code == "SOURCE_PAYLOAD_BYTE_LENGTH_MISMATCH"
-        }));
+        assert!(
+            truncated
+                .findings
+                .iter()
+                .any(|finding| { finding.code == "SOURCE_PAYLOAD_BYTE_LENGTH_MISMATCH" })
+        );
 
         let extended = verify_descriptor_payload_stream(
             &descriptor,
@@ -906,9 +931,12 @@ mod tests {
             1024,
         );
         assert_eq!(extended.status, PayloadByteStatus::DigestMismatch);
-        assert!(extended.findings.iter().any(|finding| {
-            finding.code == "SOURCE_PAYLOAD_BYTE_LENGTH_MISMATCH"
-        }));
+        assert!(
+            extended
+                .findings
+                .iter()
+                .any(|finding| { finding.code == "SOURCE_PAYLOAD_BYTE_LENGTH_MISMATCH" })
+        );
     }
 
     #[test]
@@ -936,7 +964,10 @@ mod tests {
     struct BrokenReader;
     impl Read for BrokenReader {
         fn read(&mut self, _buffer: &mut [u8]) -> io::Result<usize> {
-            Err(io::Error::new(io::ErrorKind::PermissionDenied, "synthetic denial"))
+            Err(io::Error::new(
+                io::ErrorKind::PermissionDenied,
+                "synthetic denial",
+            ))
         }
     }
 
@@ -973,19 +1004,18 @@ mod tests {
         let case = test_case(bytes);
         let descriptor = descriptor(bytes);
         let catalog = catalog(&case, descriptor.clone());
-        let expected_ref = descriptor.source_payload.payload_object_ref.clone().unwrap();
-        let result = verify_catalog_payload_bytes(
-            &case,
-            &catalog,
-            &context(),
-            move |reference| {
-                if reference == expected_ref {
-                    Ok(Cursor::new(bytes.to_vec()))
-                } else {
-                    Err(io::Error::new(io::ErrorKind::NotFound, "wrong ref"))
-                }
-            },
-        );
+        let expected_ref = descriptor
+            .source_payload
+            .payload_object_ref
+            .clone()
+            .unwrap();
+        let result = verify_catalog_payload_bytes(&case, &catalog, &context(), move |reference| {
+            if reference == expected_ref {
+                Ok(Cursor::new(bytes.to_vec()))
+            } else {
+                Err(io::Error::new(io::ErrorKind::NotFound, "wrong ref"))
+            }
+        });
         assert_eq!(
             result.disposition,
             PayloadByteCatalogDisposition::AllResolvablePayloadsVerified
@@ -1007,13 +1037,13 @@ mod tests {
         let substituted_bytes = b"different source payload";
         let case = test_case(declared_bytes);
         let catalog = catalog(&case, descriptor(declared_bytes));
-        let result = verify_catalog_payload_bytes(
-            &case,
-            &catalog,
-            &context(),
-            |_reference| Ok(Cursor::new(substituted_bytes.to_vec())),
+        let result = verify_catalog_payload_bytes(&case, &catalog, &context(), |_reference| {
+            Ok(Cursor::new(substituted_bytes.to_vec()))
+        });
+        assert_eq!(
+            result.disposition,
+            PayloadByteCatalogDisposition::InvalidInput
         );
-        assert_eq!(result.disposition, PayloadByteCatalogDisposition::InvalidInput);
         assert_eq!(result.invalid_count, 1);
         assert_eq!(result.records[0].status, PayloadByteStatus::DigestMismatch);
         assert_ne!(
@@ -1027,18 +1057,18 @@ mod tests {
         let bytes = b"actual source payload";
         let case = test_case(bytes);
         let catalog = catalog(&case, descriptor(bytes));
-        let result = verify_catalog_payload_bytes(
-            &case,
-            &catalog,
-            &context(),
-            |_reference| Err(io::Error::new(io::ErrorKind::NotFound, "missing")),
-        );
+        let result = verify_catalog_payload_bytes(&case, &catalog, &context(), |_reference| {
+            Err(io::Error::new(io::ErrorKind::NotFound, "missing"))
+        });
         assert_eq!(
             result.disposition,
             PayloadByteCatalogDisposition::IncompleteOrIndeterminate
         );
         assert_eq!(result.unavailable_count, 1);
-        assert_eq!(result.records[0].status, PayloadByteStatus::SourceBytesUnavailable);
+        assert_eq!(
+            result.records[0].status,
+            PayloadByteStatus::SourceBytesUnavailable
+        );
     }
 
     #[test]
@@ -1048,17 +1078,15 @@ mod tests {
         let mut catalog = catalog(&case, descriptor(bytes));
         catalog.case_representation_sha256 = "0".repeat(64);
         let mut resolver_called = false;
-        let result = verify_catalog_payload_bytes(
-            &case,
-            &catalog,
-            &context(),
-            |_reference| {
-                resolver_called = true;
-                Ok(Cursor::new(bytes.to_vec()))
-            },
-        );
+        let result = verify_catalog_payload_bytes(&case, &catalog, &context(), |_reference| {
+            resolver_called = true;
+            Ok(Cursor::new(bytes.to_vec()))
+        });
         assert!(!resolver_called);
-        assert_eq!(result.disposition, PayloadByteCatalogDisposition::InvalidInput);
+        assert_eq!(
+            result.disposition,
+            PayloadByteCatalogDisposition::InvalidInput
+        );
         assert_eq!(result.records.len(), 0);
         assert_eq!(result.invalid_count, 0);
     }
@@ -1070,19 +1098,19 @@ mod tests {
         let catalog = catalog(&case, descriptor(bytes));
         let mut context = context();
         context.verifier_build_sha256 = None;
-        let result = verify_catalog_payload_bytes(
-            &case,
-            &catalog,
-            &context,
-            |_reference| Ok(Cursor::new(bytes.to_vec())),
-        );
+        let result = verify_catalog_payload_bytes(&case, &catalog, &context, |_reference| {
+            Ok(Cursor::new(bytes.to_vec()))
+        });
         assert_eq!(result.verified_count, 1);
         assert_eq!(
             result.disposition,
             PayloadByteCatalogDisposition::IncompleteOrIndeterminate
         );
-        assert!(result.findings.iter().any(|finding| {
-            finding.code == "VERIFIER_BUILD_IDENTITY_UNAVAILABLE"
-        }));
+        assert!(
+            result
+                .findings
+                .iter()
+                .any(|finding| { finding.code == "VERIFIER_BUILD_IDENTITY_UNAVAILABLE" })
+        );
     }
 }
