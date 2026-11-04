@@ -1,6 +1,6 @@
 # Source payload byte verification v0.1
 
-**Status:** bounded streaming verifier and exact-head qualification lane implemented; Rust formatting, Clippy, unit tests and report-schema validation are pending.
+**Status:** bounded streaming verifier implemented. On 2026-11-04, exact-head Rust formatting, strict Clippy, and core unit tests passed at commit `74b5271a84b95a94f3487f7d5ec1fa606a37a30b`; report-schema validation is pending on the final schema/fixture head.
 **Issue:** [#500 — independently rehash source payloads](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/500).
 **Depends on:** [#492 / PR #496 — owner-native descriptor catalogue](https://github.com/Luminous-Dynamics/sol-atlas-leptos/pull/496).
 **Composes with:** [#347 — trust roots and signed statements](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/347), [#488 — source coverage qualification](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/488), and [#484 — independent impact oracle](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/484).
@@ -49,7 +49,7 @@ Catalogue outcomes:
 - `incomplete_or_indeterminate`: one or more payloads were unavailable, a read failed, a limit was reached, verifier identity is missing, or the descriptor catalogue was incomplete.
 - `invalid_input`: invalid descriptor catalogue, invalid verifier context, digest mismatch, or length mismatch.
 
-The report carries the exact case representation digest, descriptor catalogue digest, verifier build digest, verification time, resource limit, descriptor-validation disposition and findings, per-record expected/observed digest and length, and counts/denominators.
+The report carries the exact case representation digest, descriptor catalogue digest, verifier build digest, verification time, resource limit, descriptor-validation disposition and findings, per-record expected/observed digest and length, and counts/denominators. It also exposes `invalid_finding_count` and `incomplete_finding_count`. Any invalid verifier/report finding is non-compensable and forces `invalid_input`, even if all payload bytes individually match.
 
 ## 4. Digest-basis behavior
 
