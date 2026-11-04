@@ -1047,29 +1047,18 @@ fn evaluate(input: &Value) -> Result<Value, String> {
         results.push(result);
     }
 
-    let top_disposition = if !errors.is_empty() {
+    let continuity_assessment = if !errors.is_empty() {
         "invalid_input"
-    } else if results
-        .iter()
-        .any(|result| result.disposition == "quarantined_pending_review")
-    {
-        "quarantined_pending_review"
-    } else if results
-        .iter()
-        .any(|result| result.disposition == "claim_invalidated")
-    {
-        "claim_invalidated"
-    } else if results
-        .iter()
-        .any(|result| result.disposition == "revalidation_required")
-    {
-        "revalidation_required"
-    } else if results.iter().any(|result| {
-        result.disposition == "historical_basis_incomplete" || result.disposition == "indeterminate"
-    }) {
-        "indeterminate"
     } else {
-        "candidate_current_within_declared_scope"
+        let first = &results[0].disposition;
+        let all_same = results.iter().all(|result| &result.disposition == first);
+        if all_same && first == "candidate_current_within_declared_scope" {
+            "views_consistent_candidate"
+        } else if all_same {
+            "views_consistent_non_candidate"
+        } else {
+            "temporal_views_diverge"
+        }
     };
 
     let input_sha256 = canonical_json_sha256(input)?;
@@ -1111,7 +1100,7 @@ fn evaluate(input: &Value) -> Result<Value, String> {
             "professional approval, construction release, and operational actuation are not granted"
         ],
         "obligations": obligations,
-        "top_level_disposition": top_disposition,
+        "continuity_assessment": continuity_assessment,
         "validation_errors": errors
     });
     let report_core_digest = canonical_json_sha256(&report)?;
@@ -1237,6 +1226,7 @@ mod tests {
                 "candidate_current_within_declared_scope"
             );
         }
+        assert_eq!(report["continuity_assessment"], "views_consistent_candidate");
         assert_eq!(report["action_authority"], "none");
         assert_eq!(report["input_authentication"], "not_performed");
         assert_eq!(report["impact_recomputation"], "not_performed");
@@ -1274,6 +1264,7 @@ mod tests {
             result_disposition(&report, "current_reliance"),
             "claim_invalidated"
         );
+        assert_eq!(report["continuity_assessment"], "temporal_views_diverge");
         assert!(report["historical_record_preserved"].as_bool().unwrap());
     }
 
@@ -1399,7 +1390,7 @@ mod tests {
         gate["knowledge_available_at"] = json!("2026-11-03T00:00:00Z");
 
         let report = evaluate(&input).unwrap();
-        assert_eq!(report["top_level_disposition"], "invalid_input");
+        assert_eq!(report["continuity_assessment"], "invalid_input");
         assert!(
             report["validation_errors"]
                 .as_array()
