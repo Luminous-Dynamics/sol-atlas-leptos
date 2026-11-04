@@ -135,6 +135,7 @@ pub struct PayloadCatalogVerificationReport {
     pub evaluation_time_utc: String,
     pub verifier_build_sha256: Option<String>,
     pub catalog_validation: crate::built_environment_source_descriptor::DescriptorValidation,
+    pub context_findings: Vec<String>,
     pub limits: PayloadVerificationLimits,
     pub payload_count: usize,
     pub verified_payload_count: usize,
@@ -176,6 +177,48 @@ fn valid_sha256(value: &str) -> bool {
         && value
             .bytes()
             .all(|byte| byte.is_ascii_hexdigit() && !byte.is_ascii_uppercase())
+}
+
+fn valid_utc_timestamp(value: &str) -> bool {
+    let bytes = value.as_bytes();
+    if bytes.len() != 20
+        || bytes[4] != b'-'
+        || bytes[7] != b'-'
+        || bytes[10] != b'T'
+        || bytes[13] != b':'
+        || bytes[16] != b':'
+        || bytes[19] != b'Z'
+    {
+        return false;
+    }
+    for (index, byte) in bytes.iter().enumerate() {
+        if !matches!(index, 4 | 7 | 10 | 13 | 16 | 19) && !byte.is_ascii_digit() {
+            return false;
+        }
+    }
+    let part = |start: usize, end: usize| {
+        std::str::from_utf8(&bytes[start..end])
+            .ok()
+            .and_then(|value| value.parse::<u32>().ok())
+    };
+    let year = part(0, 4).unwrap_or(0);
+    let month = part(5, 7).unwrap_or(0);
+    let day = part(8, 10).unwrap_or(0);
+    let hour = part(11, 13).unwrap_or(99);
+    let minute = part(14, 16).unwrap_or(99);
+    let second = part(17, 19).unwrap_or(99);
+    if year == 0 || !(1..=12).contains(&month) || hour > 23 || minute > 59 || second > 59 {
+        return false;
+    }
+    let leap = year % 4 == 0 && (year % 100 != 0 || year % 400 == 0);
+    let last_day = match month {
+        1 | 3 | 5 | 7 | 8 | 10 | 12 => 31,
+        4 | 6 | 9 | 11 => 30,
+        2 if leap => 29,
+        2 => 28,
+        _ => 0,
+    };
+    (1..=last_day).contains(&day)
 }
 
 fn expected_cas_reference(sha256: &str) -> String {
@@ -411,10 +454,32 @@ pub fn verify_source_descriptor_catalog_payloads<R: ContentAddressedPayloadResol
     let evaluation_time_utc = evaluation_time_utc.into();
 
     let limits_valid = limits.validate().is_ok();
+    let mut context_findings = Vec::new();
+    let evaluation_time_valid = valid_utc_timestamp(&evaluation_time_utc);
+    if !evaluation_time_valid {
+        context_findings.push("INVALID_EVALUATION_TIME".into());
+    }
+    let build_identity_state = match verifier_build_sha256.as_deref() {
+        Some(value) if valid_sha256(value) => "valid",
+        Some(_) => {
+            context_findings.push("INVALID_VERIFIER_BUILD_DIGEST".into());
+            "invalid"
+        }
+        None => {
+            context_findings.push("VERIFIER_BUILD_IDENTITY_UNAVAILABLE".into());
+            "missing"
+        }
+    };
+    if !limits_valid {
+        context_findings.push("INVALID_VERIFICATION_LIMITS".into());
+    }
     let mut invalid_input = validation.disposition == DescriptorDisposition::InvalidInput
-        || !limits_valid;
+        || !limits_valid
+        || !evaluation_time_valid
+        || build_identity_state == "invalid";
     let mut incomplete = validation.disposition == DescriptorDisposition::IncompleteOrIndeterminate
-        || !limits_valid;
+        || !limits_valid
+        || build_identity_state == "missing";
     let mut results = Vec::new();
     let mut total_bytes_hashed = 0_u64;
 
@@ -482,6 +547,7 @@ pub fn verify_source_descriptor_catalog_payloads<R: ContentAddressedPayloadResol
         evaluation_time_utc,
         verifier_build_sha256,
         catalog_validation: validation,
+        context_findings,
         limits,
         payload_count: results.len(),
         verified_payload_count,
