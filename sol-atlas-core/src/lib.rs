@@ -18,6 +18,10 @@ pub mod built_environment_case;
 /// coverage completeness, engineering correctness, or authorization; those remain
 /// independent evidence and trust obligations.
 pub mod built_environment_source_descriptor;
+/// Bounded page-chain and source-owner inventory completeness validation.
+/// Structural consistency never authenticates source truth or proves that the
+/// caller-supplied expected source-owner universe is globally complete.
+pub mod built_environment_source_inventory;
 pub mod confluence;
 pub mod constants;
 pub mod data;

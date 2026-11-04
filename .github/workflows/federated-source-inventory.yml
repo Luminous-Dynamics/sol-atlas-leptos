@@ -1,0 +1,112 @@
+name: Federated source inventory qualification
+
+on:
+  pull_request:
+    paths:
+      - "sol-atlas-core/Cargo.toml"
+      - "sol-atlas-core/Cargo.lock"
+      - "sol-atlas-core/src/built_environment_source_inventory.rs"
+      - "sol-atlas-core/src/lib.rs"
+      - "schemas/federated-source-inventory-manifest-v0.1.schema.json"
+      - "schemas/examples/federated-source-inventory-manifest-synthetic-v0.1.json"
+      - ".github/workflows/federated-source-inventory.yml"
+  push:
+    branches:
+      - main
+      - research/federated-source-inventory-v0-1
+      - research/federated-source-inventory-v0-1-rebased
+    paths:
+      - "sol-atlas-core/Cargo.toml"
+      - "sol-atlas-core/Cargo.lock"
+      - "sol-atlas-core/src/built_environment_source_inventory.rs"
+      - "sol-atlas-core/src/lib.rs"
+      - "schemas/federated-source-inventory-manifest-v0.1.schema.json"
+      - "schemas/examples/federated-source-inventory-manifest-synthetic-v0.1.json"
+      - ".github/workflows/federated-source-inventory.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: federated-source-inventory-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  inventory:
+    name: Exact-head inventory verifier and false-completeness controls
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Assert exact checked-out revision
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+
+      - name: Install stable Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Format, lint and test inventory verifier
+        run: |
+          set -euo pipefail
+          manifest=sol-atlas-core/Cargo.toml
+          cargo fmt --manifest-path "$manifest" --check
+          cargo clippy --manifest-path "$manifest" --locked --all-targets -- -D warnings
+          cargo test --manifest-path "$manifest" --locked
+
+      - name: Install pinned Draft 2020-12 validator
+        run: cargo install --locked jsonschema-cli --version 0.60.2 --root "$RUNNER_TEMP/jsonschema-cli"
+
+      - name: Validate inventory schema and frozen synthetic manifest
+        run: |
+          set -euo pipefail
+          echo "$RUNNER_TEMP/jsonschema-cli/bin" >> "$GITHUB_PATH"
+          export PATH="$RUNNER_TEMP/jsonschema-cli/bin:$PATH"
+          schema=schemas/federated-source-inventory-manifest-v0.1.schema.json
+          fixture=schemas/examples/federated-source-inventory-manifest-synthetic-v0.1.json
+          meta_schema="$RUNNER_TEMP/draft-2020-12-meta-schema.json"
+          curl --fail --location --retry 5 --retry-connrefused \
+            https://json-schema.org/draft/2020-12/schema -o "$meta_schema"
+          jsonschema-cli validate --draft 2020 --assert-format "$meta_schema" -i "$schema"
+          jsonschema-cli validate --draft 2020 --assert-format --offline "$schema" -i "$fixture"
+          jq -e '
+            .schema_version == "luminous.federated-source-inventory-manifest.v0.1" and
+            .snapshot_semantics == "immutable_snapshot" and
+            .pagination_exhausted == true and
+            .snapshot_consistent == true and
+            .truncation_detected == false and
+            (.page_receipts | length) == 2 and
+            ([.page_receipts[].terminal] | map(select(. == true)) | length) == 1
+          ' "$fixture"
+
+      - name: Negative schema control — malformed connector build digest
+        run: |
+          set -euo pipefail
+          schema=schemas/federated-source-inventory-manifest-v0.1.schema.json
+          fixture=schemas/examples/federated-source-inventory-manifest-synthetic-v0.1.json
+          jq '.connector_build_sha256 = "not-a-sha256"' "$fixture" \
+            > "$RUNNER_TEMP/malformed-inventory-digest.json"
+          if jsonschema-cli validate --draft 2020 --assert-format --offline "$schema" \
+              -i "$RUNNER_TEMP/malformed-inventory-digest.json"; then
+            echo "ERROR: malformed inventory digest passed schema validation"
+            exit 1
+          fi
+
+      - name: Negative schema control — unsupported snapshot semantics
+        run: |
+          set -euo pipefail
+          schema=schemas/federated-source-inventory-manifest-v0.1.schema.json
+          fixture=schemas/examples/federated-source-inventory-manifest-synthetic-v0.1.json
+          jq '.snapshot_semantics = "probably_consistent"' "$fixture" \
+            > "$RUNNER_TEMP/unsupported-snapshot-semantics.json"
+          if jsonschema-cli validate --draft 2020 --assert-format --offline "$schema" \
+              -i "$RUNNER_TEMP/unsupported-snapshot-semantics.json"; then
+            echo "ERROR: unsupported snapshot semantics passed schema validation"
+            exit 1
+          fi

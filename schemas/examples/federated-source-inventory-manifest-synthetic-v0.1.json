@@ -1,0 +1,75 @@
+{
+  "schema_version": "luminous.federated-source-inventory-manifest.v0.1",
+  "inventory_id": "inventory-synthetic-001",
+  "source_owner_namespace": "urn:synthetic:source-owner",
+  "source_system_id": "urn:synthetic:registry",
+  "connector_id": "synthetic-connector",
+  "connector_build_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+  "query_scope_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+  "query_scope_summary": "all synthetic records in region-a",
+  "snapshot_semantics": "immutable_snapshot",
+  "snapshot_token": "snapshot-100",
+  "snapshot_sha256": "5555555555555555555555555555555555555555555555555555555555555555",
+  "source_watermark": "watermark-100",
+  "required_partitions": [
+    "region-a"
+  ],
+  "enumeration_started_at": "2026-11-03T10:00:00Z",
+  "enumeration_finished_at": "2026-11-03T10:02:00Z",
+  "page_receipts": [
+    {
+      "inventory_id": "inventory-synthetic-001",
+      "partition_id": "region-a",
+      "ordinal": 0,
+      "response_payload_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "item_count": 2,
+      "native_record_identity_sha256s": [
+        "1111111111111111111111111111111111111111111111111111111111111111",
+        "2222222222222222222222222222222222222222222222222222222222222222"
+      ],
+      "cursor_before_sha256": null,
+      "cursor_after_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "predecessor_page_receipt_sha256": null,
+      "snapshot_sha256": "5555555555555555555555555555555555555555555555555555555555555555",
+      "source_watermark": "watermark-100",
+      "response_at": "2026-11-03T10:01:00Z",
+      "terminal": false,
+      "tombstone_identity_sha256s": []
+    },
+    {
+      "inventory_id": "inventory-synthetic-001",
+      "partition_id": "region-a",
+      "ordinal": 1,
+      "response_payload_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "item_count": 1,
+      "native_record_identity_sha256s": [
+        "3333333333333333333333333333333333333333333333333333333333333333"
+      ],
+      "cursor_before_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "cursor_after_sha256": null,
+      "predecessor_page_receipt_sha256": "4f6304f14abd7b1691dc53afa07b031eced841c1a1bea4626f2a8fe46dea0948",
+      "snapshot_sha256": "5555555555555555555555555555555555555555555555555555555555555555",
+      "source_watermark": "watermark-100",
+      "response_at": "2026-11-03T10:02:00Z",
+      "terminal": true,
+      "tombstone_identity_sha256s": []
+    }
+  ],
+  "reported_total_count": 3,
+  "enumerated_item_count": 3,
+  "enumerated_unique_count": 3,
+  "duplicate_count": 0,
+  "excluded_count": 0,
+  "exclusions": [],
+  "tombstone_count": 0,
+  "tombstones_included": true,
+  "pagination_exhausted": true,
+  "snapshot_consistent": true,
+  "truncation_detected": false,
+  "attestation_ref": "synthetic:attestation:001",
+  "issuer_key_id": "urn:synthetic:key:001",
+  "limitations": [
+    "synthetic-only; authentication is not performed"
+  ],
+  "reported_total_count_semantics": "unique_native_records"
+}
