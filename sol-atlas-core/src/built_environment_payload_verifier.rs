@@ -853,7 +853,10 @@ mod tests {
     fn streaming_sha256_matches_frozen_known_answer_vector() {
         let result = hash_bounded_reader(std::io::Cursor::new(b"abc"), 4, 2);
         match result {
-            StreamHashOutcome::Complete { sha256, byte_length } => {
+            StreamHashOutcome::Complete {
+                sha256,
+                byte_length,
+            } => {
                 assert_eq!(
                     sha256,
                     "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
@@ -914,7 +917,11 @@ mod tests {
         let catalog = catalog(&case, descriptor.clone());
         let mut resolver = MemoryResolver::default();
         resolver.objects.insert(
-            descriptor.source_payload.payload_object_ref.clone().unwrap(),
+            descriptor
+                .source_payload
+                .payload_object_ref
+                .clone()
+                .unwrap(),
             bytes.to_vec(),
         );
         let report = verify_source_descriptor_catalog_payloads(
@@ -925,7 +932,10 @@ mod tests {
             "not-a-time",
             Some(digest(b"verifier-build")),
         );
-        assert_eq!(report.disposition, PayloadCatalogVerificationDisposition::InvalidInput);
+        assert_eq!(
+            report.disposition,
+            PayloadCatalogVerificationDisposition::InvalidInput
+        );
         assert_eq!(resolver.open_count, 0);
         assert_eq!(report.not_attempted_count, 1);
         assert!(
