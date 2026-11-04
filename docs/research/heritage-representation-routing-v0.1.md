@@ -63,6 +63,6 @@ When no exact-context profile qualifies, the selector returns `abstain_no_qualif
 
 ## v0.1 outputs and claim ceiling
 
-The report records selected profile/transform/model digests, worst-site utility/precision/false-candidate values, candidate/qualified/rejected profile counts and exact reasons for rejection. It sets outer-test usage, silent fallback and archaeological identification flags to false.
+The report records selected profile, channel, metric, data, split, validation-site-set, representation, model and rights-receipt identities; worst-site utility/precision/false-candidate values; candidate/qualified/rejected profile counts; and exact reasons for rejection. It sets outer-test usage, silent fallback and archaeological identification flags to false.
 
 The evaluator is a deterministic policy function over supplied summaries. It does not authenticate split manifests, rights, site independence, metrics, source data or model weights. Synthetic tests validate selector logic only; real superiority requires rights-cleared datasets, a nested site/region design, independent adjudication and outer-test results.
