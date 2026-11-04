@@ -962,14 +962,39 @@ pub fn validate_source_descriptor_catalog_set(
                 }
 
                 for (field, current_value) in [
-                    ("media_type", current_claim.metadata_values.get("media_type").and_then(|values| values.iter().next())),
-                    ("schema_id", current_claim.metadata_values.get("schema_id").and_then(|values| values.iter().next())),
-                    ("schema_version", current_claim.metadata_values.get("schema_version").and_then(|values| values.iter().next())),
-                    ("schema_sha256", current_claim.metadata_values.get("schema_sha256").and_then(|values| values.iter().next())),
+                    (
+                        "media_type",
+                        current_claim
+                            .metadata_values
+                            .get("media_type")
+                            .and_then(|values| values.iter().next()),
+                    ),
+                    (
+                        "schema_id",
+                        current_claim
+                            .metadata_values
+                            .get("schema_id")
+                            .and_then(|values| values.iter().next()),
+                    ),
+                    (
+                        "schema_version",
+                        current_claim
+                            .metadata_values
+                            .get("schema_version")
+                            .and_then(|values| values.iter().next()),
+                    ),
+                    (
+                        "schema_sha256",
+                        current_claim
+                            .metadata_values
+                            .get("schema_sha256")
+                            .and_then(|values| values.iter().next()),
+                    ),
                 ] {
                     match current_value {
                         Some(value) => {
-                            let previous = first_claim.metadata_values.entry(field.into()).or_default();
+                            let previous =
+                                first_claim.metadata_values.entry(field.into()).or_default();
                             if !previous.is_empty() && !previous.contains(value) {
                                 conflicting_source_metadata_count += 1;
                                 findings.invalid(
@@ -1647,9 +1672,7 @@ mod tests {
             let receipt = catalog
                 .descriptors
                 .iter_mut()
-                .find(|descriptor| {
-                    descriptor.record_kind == SourceRecordKind::EngineeringReceipt
-                })
+                .find(|descriptor| descriptor.record_kind == SourceRecordKind::EngineeringReceipt)
                 .unwrap();
             receipt.source_payload = SourcePayloadDescriptor {
                 sha256: None,
@@ -1668,11 +1691,16 @@ mod tests {
             &[first_case, second_case],
             &[first_catalog, second_catalog],
         );
-        assert_eq!(result.disposition, DescriptorDisposition::IncompleteOrIndeterminate);
+        assert_eq!(
+            result.disposition,
+            DescriptorDisposition::IncompleteOrIndeterminate
+        );
         assert_eq!(result.incomparable_shared_identity_count, 1);
-        assert!(result.findings.iter().any(|finding| {
-            finding.code == "CROSS_CASE_NATIVE_IDENTITY_DIGEST_NOT_COMPARABLE"
-        }));
+        assert!(
+            result.findings.iter().any(|finding| {
+                finding.code == "CROSS_CASE_NATIVE_IDENTITY_DIGEST_NOT_COMPARABLE"
+            })
+        );
     }
 
     #[test]
@@ -1695,9 +1723,12 @@ mod tests {
         );
         assert_eq!(result.disposition, DescriptorDisposition::InvalidInput);
         assert_eq!(result.conflicting_source_metadata_count, 1);
-        assert!(result.findings.iter().any(|finding| {
-            finding.code == "CROSS_CASE_NATIVE_IDENTITY_SCHEMA_CONFLICT"
-        }));
+        assert!(
+            result
+                .findings
+                .iter()
+                .any(|finding| { finding.code == "CROSS_CASE_NATIVE_IDENTITY_SCHEMA_CONFLICT" })
+        );
     }
 
     #[test]
@@ -1775,15 +1806,17 @@ mod tests {
 
         let mut second_catalog = catalog(&second_case);
         second_catalog.descriptors[0].source_payload.sha256 = Some(digest('b'));
-        second_catalog.descriptors[0].source_payload.payload_object_ref =
-            Some(format!("cas:sha256:{}", digest('b')));
+        second_catalog.descriptors[0]
+            .source_payload
+            .payload_object_ref = Some(format!("cas:sha256:{}", digest('b')));
         second_catalog.case_representation_sha256 =
             sha256_hex(&serde_json::to_vec(&second_case).unwrap());
 
         let mut third_catalog = catalog(&third_case);
         third_catalog.descriptors[0].source_payload.sha256 = Some(digest('c'));
-        third_catalog.descriptors[0].source_payload.payload_object_ref =
-            Some(format!("cas:sha256:{}", digest('c')));
+        third_catalog.descriptors[0]
+            .source_payload
+            .payload_object_ref = Some(format!("cas:sha256:{}", digest('c')));
         third_catalog.case_representation_sha256 =
             sha256_hex(&serde_json::to_vec(&third_case).unwrap());
 
@@ -1793,9 +1826,12 @@ mod tests {
         );
         assert_eq!(result.disposition, DescriptorDisposition::InvalidInput);
         assert_eq!(result.conflicting_native_identity_count, 1);
-        assert!(result.findings.iter().any(|finding| {
-            finding.code == "CROSS_CASE_NATIVE_IDENTITY_DIGEST_CONFLICT"
-        }));
+        assert!(
+            result
+                .findings
+                .iter()
+                .any(|finding| { finding.code == "CROSS_CASE_NATIVE_IDENTITY_DIGEST_CONFLICT" })
+        );
     }
 
     #[test]
