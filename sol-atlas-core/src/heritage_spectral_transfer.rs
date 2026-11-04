@@ -14,7 +14,7 @@
 //! dyadically dependent, so no naive pair-level confidence interval is emitted.
 
 use serde::{Deserialize, Serialize};
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 use std::fmt;
 
 pub const DIRECTIONAL_SPECTRAL_TRANSFER_SCHEMA_VERSION: &str =
@@ -47,7 +47,7 @@ impl TransferSplitProtocol {
 
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub struct SpectralMonthlyDistances {
-    pub month_ordinal: i64,
+    pub calendar_month: u8,
     pub source_archaeological_sample_count: usize,
     pub target_archaeological_sample_count: usize,
     pub target_vegetated_control_sample_count: usize,
@@ -67,19 +67,25 @@ pub struct DirectionalSpectralTransferInput {
     pub source_split_manifest_sha256: String,
     pub target_split_manifest_sha256: String,
     pub feature_transform_sha256: String,
+    pub source_observation_manifest_sha256: String,
+    pub target_observation_manifest_sha256: String,
+    pub source_proxy_class_definition_ref: String,
+    pub target_proxy_class_definition_ref: String,
+    pub distance_estimator_ref: String,
     pub input_channel_semantics: String,
     pub phenophase_filter_ref: String,
     /// Number of months with the smallest positive A->A / A->H ratios retained.
     pub top_m_months: usize,
-    /// Minimum number of shared valid phenophase months required for evaluation.
+    /// Minimum number of shared calendar-month clusters required (maximum 12).
     pub minimum_shared_months: usize,
-    /// Strictly increasing shared months with typed sample counts and distances.
+    /// Strictly increasing shared calendar months (1=January, 12=December),
+    /// pooled across all valid years before computing the A/H subcluster distances.
     pub months: Vec<SpectralMonthlyDistances>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct DirectionalSpectralMonthResult {
-    pub month_ordinal: i64,
+    pub calendar_month: u8,
     pub archaeological_to_archaeological_distance: f64,
     pub archaeological_to_control_distance: f64,
     pub directional_ratio: f64,
@@ -99,11 +105,16 @@ pub struct DirectionalSpectralTransferReport {
     pub source_split_manifest_sha256: String,
     pub target_split_manifest_sha256: String,
     pub feature_transform_sha256: String,
+    pub source_observation_manifest_sha256: String,
+    pub target_observation_manifest_sha256: String,
+    pub source_proxy_class_definition_ref: String,
+    pub target_proxy_class_definition_ref: String,
+    pub distance_estimator_ref: String,
     pub input_channel_semantics: String,
     pub phenophase_filter_ref: String,
     pub top_m_months: usize,
     pub shared_month_count: usize,
-    pub selected_month_ordinals: Vec<i64>,
+    pub selected_calendar_months: Vec<u8>,
     /// Mean reciprocal of the top-M smallest directional A->A / A->H ratios.
     pub directional_strength_score: f64,
     pub months: Vec<DirectionalSpectralMonthResult>,
@@ -118,18 +129,23 @@ pub enum DirectionalSpectralTransferError {
     InvalidSourceSplitDigest,
     InvalidTargetSplitDigest,
     InvalidFeatureTransformDigest,
+    InvalidSourceObservationManifestDigest,
+    InvalidTargetObservationManifestDigest,
+    EmptySourceProxyClassDefinitionReference,
+    EmptyTargetProxyClassDefinitionReference,
+    EmptyDistanceEstimatorReference,
     EmptyInputChannelSemantics,
     EmptyPhenophaseFilterReference,
     InvalidTopM,
     InvalidMinimumSharedMonths,
     InsufficientSharedMonths { found: usize, required: usize },
-    MonthOrdinalInvalid { month_ordinal: i64 },
-    MonthsNotStrictlyIncreasing,
-    EmptySourceArchaeologicalCluster { month_ordinal: i64 },
-    EmptyTargetArchaeologicalCluster { month_ordinal: i64 },
-    EmptyTargetControlCluster { month_ordinal: i64 },
-    InvalidDistance { month_ordinal: i64 },
-    InvalidDirectionalRatio { month_ordinal: i64 },
+    InvalidCalendarMonth { calendar_month: u8 },
+    CalendarMonthsNotStrictlyIncreasing,
+    EmptySourceArchaeologicalCluster { calendar_month: u8 },
+    EmptyTargetArchaeologicalCluster { calendar_month: u8 },
+    EmptyTargetControlCluster { calendar_month: u8 },
+    InvalidDistance { calendar_month: u8 },
+    InvalidDirectionalRatio { calendar_month: u8 },
     ScoreArithmeticOverflow,
 }
 
@@ -145,9 +161,8 @@ fn valid_sha256(value: &str) -> bool {
     value.len() == 64 && value.bytes().all(|byte| byte.is_ascii_hexdigit())
 }
 
-fn valid_month_ordinal(ordinal: i64) -> bool {
-    let year = ordinal.div_euclid(12);
-    (1..=9999).contains(&year)
+fn valid_calendar_month(calendar_month: u8) -> bool {
+    (1..=12).contains(&calendar_month)
 }
 
 fn validate_input(
@@ -174,6 +189,21 @@ fn validate_input(
     if !valid_sha256(&input.feature_transform_sha256) {
         return Err(DirectionalSpectralTransferError::InvalidFeatureTransformDigest);
     }
+    if !valid_sha256(&input.source_observation_manifest_sha256) {
+        return Err(DirectionalSpectralTransferError::InvalidSourceObservationManifestDigest);
+    }
+    if !valid_sha256(&input.target_observation_manifest_sha256) {
+        return Err(DirectionalSpectralTransferError::InvalidTargetObservationManifestDigest);
+    }
+    if input.source_proxy_class_definition_ref.trim().is_empty() {
+        return Err(DirectionalSpectralTransferError::EmptySourceProxyClassDefinitionReference);
+    }
+    if input.target_proxy_class_definition_ref.trim().is_empty() {
+        return Err(DirectionalSpectralTransferError::EmptyTargetProxyClassDefinitionReference);
+    }
+    if input.distance_estimator_ref.trim().is_empty() {
+        return Err(DirectionalSpectralTransferError::EmptyDistanceEstimatorReference);
+    }
     if input.input_channel_semantics.trim().is_empty() {
         return Err(DirectionalSpectralTransferError::EmptyInputChannelSemantics);
     }
@@ -183,7 +213,10 @@ fn validate_input(
     if input.top_m_months == 0 {
         return Err(DirectionalSpectralTransferError::InvalidTopM);
     }
-    if input.minimum_shared_months == 0 || input.top_m_months > input.minimum_shared_months {
+    if input.minimum_shared_months == 0
+        || input.minimum_shared_months > 12
+        || input.top_m_months > input.minimum_shared_months
+    {
         return Err(DirectionalSpectralTransferError::InvalidMinimumSharedMonths);
     }
     if input.months.len() < input.minimum_shared_months || input.months.len() < input.top_m_months {
@@ -195,32 +228,32 @@ fn validate_input(
 
     let mut previous = None;
     for month in &input.months {
-        if !valid_month_ordinal(month.month_ordinal) {
-            return Err(DirectionalSpectralTransferError::MonthOrdinalInvalid {
-                month_ordinal: month.month_ordinal,
+        if !valid_calendar_month(month.calendar_month) {
+            return Err(DirectionalSpectralTransferError::InvalidCalendarMonth {
+                calendar_month: month.calendar_month,
             });
         }
-        if previous.is_some_and(|ordinal| month.month_ordinal <= ordinal) {
-            return Err(DirectionalSpectralTransferError::MonthsNotStrictlyIncreasing);
+        if previous.is_some_and(|ordinal| month.calendar_month <= ordinal) {
+            return Err(DirectionalSpectralTransferError::CalendarMonthsNotStrictlyIncreasing);
         }
         if month.source_archaeological_sample_count == 0 {
             return Err(
                 DirectionalSpectralTransferError::EmptySourceArchaeologicalCluster {
-                    month_ordinal: month.month_ordinal,
+                    calendar_month: month.calendar_month,
                 },
             );
         }
         if month.target_archaeological_sample_count == 0 {
             return Err(
                 DirectionalSpectralTransferError::EmptyTargetArchaeologicalCluster {
-                    month_ordinal: month.month_ordinal,
+                    calendar_month: month.calendar_month,
                 },
             );
         }
         if month.target_vegetated_control_sample_count == 0 {
             return Err(
                 DirectionalSpectralTransferError::EmptyTargetControlCluster {
-                    month_ordinal: month.month_ordinal,
+                    calendar_month: month.calendar_month,
                 },
             );
         }
@@ -230,7 +263,7 @@ fn validate_input(
             || month.archaeological_to_control_distance <= 0.0
         {
             return Err(DirectionalSpectralTransferError::InvalidDistance {
-                month_ordinal: month.month_ordinal,
+                calendar_month: month.calendar_month,
             });
         }
         let ratio = month.archaeological_to_archaeological_distance
@@ -238,10 +271,10 @@ fn validate_input(
         let reciprocal = 1.0 / ratio;
         if !ratio.is_finite() || ratio <= 0.0 || !reciprocal.is_finite() || reciprocal <= 0.0 {
             return Err(DirectionalSpectralTransferError::InvalidDirectionalRatio {
-                month_ordinal: month.month_ordinal,
+                calendar_month: month.calendar_month,
             });
         }
-        previous = Some(month.month_ordinal);
+        previous = Some(month.calendar_month);
     }
     Ok(())
 }
@@ -264,7 +297,7 @@ pub fn evaluate_directional_spectral_transfer(
                 / month.archaeological_to_control_distance;
             let affinity = 1.0 / ratio;
             DirectionalSpectralMonthResult {
-                month_ordinal: month.month_ordinal,
+                calendar_month: month.calendar_month,
                 archaeological_to_archaeological_distance: month
                     .archaeological_to_archaeological_distance,
                 archaeological_to_control_distance: month.archaeological_to_control_distance,
@@ -282,16 +315,16 @@ pub fn evaluate_directional_spectral_transfer(
             .total_cmp(&month_results[*right].directional_ratio)
             .then_with(|| {
                 month_results[*left]
-                    .month_ordinal
-                    .cmp(&month_results[*right].month_ordinal)
+                    .calendar_month
+                    .cmp(&month_results[*right].calendar_month)
             })
     });
 
-    let mut selected_month_ordinals = Vec::with_capacity(input.top_m_months);
+    let mut selected_calendar_months = Vec::with_capacity(input.top_m_months);
     let mut score_sum = 0.0;
     for index in ranked.into_iter().take(input.top_m_months) {
         month_results[index].selected_in_top_m = true;
-        selected_month_ordinals.push(month_results[index].month_ordinal);
+        selected_calendar_months.push(month_results[index].calendar_month);
         score_sum += month_results[index].reciprocal_affinity;
     }
     let directional_strength_score = score_sum / input.top_m_months as f64;
@@ -312,11 +345,16 @@ pub fn evaluate_directional_spectral_transfer(
         source_split_manifest_sha256: input.source_split_manifest_sha256.clone(),
         target_split_manifest_sha256: input.target_split_manifest_sha256.clone(),
         feature_transform_sha256: input.feature_transform_sha256.clone(),
+        source_observation_manifest_sha256: input.source_observation_manifest_sha256.clone(),
+        target_observation_manifest_sha256: input.target_observation_manifest_sha256.clone(),
+        source_proxy_class_definition_ref: input.source_proxy_class_definition_ref.clone(),
+        target_proxy_class_definition_ref: input.target_proxy_class_definition_ref.clone(),
+        distance_estimator_ref: input.distance_estimator_ref.clone(),
         input_channel_semantics: input.input_channel_semantics.clone(),
         phenophase_filter_ref: input.phenophase_filter_ref.clone(),
         top_m_months: input.top_m_months,
         shared_month_count: input.months.len(),
-        selected_month_ordinals,
+        selected_calendar_months,
         directional_strength_score,
         months: month_results,
     })
@@ -335,6 +373,11 @@ pub struct ObservedTransferPair {
     pub pair_id: String,
     pub source_site_id: String,
     pub target_site_id: String,
+    pub source_geographic_domain_id: String,
+    pub target_geographic_domain_id: String,
+    pub source_cropmark_ecology_id: String,
+    pub target_cropmark_ecology_id: String,
+    pub split_protocol: TransferSplitProtocol,
     pub directional_strength_score: f64,
     /// Observed held-out transfer performance for the declared outcome metric.
     pub observed_transfer_value: f64,
@@ -360,6 +403,11 @@ pub struct DssCorrelationReport {
     pub outcome_metric: TransferOutcomeMetric,
     pub directed_pair_count: usize,
     pub unique_site_count: usize,
+    pub unique_geographic_domain_count: usize,
+    pub unique_cropmark_ecology_count: usize,
+    /// Requires >=10 sites, >=3 geographic domains, >=2 cropmark ecologies,
+    /// and held-out-site/region splits for every directed pair.
+    pub multi_ecology_external_scope_eligible: bool,
     pub spearman_rho: Option<f64>,
     /// Directed pairs reuse sites and are dyadically dependent.
     pub directed_pairs_are_independent: bool,
@@ -374,6 +422,9 @@ pub enum DssCorrelationError {
     TooFewUniqueSites,
     EmptyPairId,
     EmptySiteId,
+    EmptyGeographicDomainId,
+    EmptyCropmarkEcologyId,
+    InconsistentSiteContext { site_id: String },
     SourceAndTargetMustDiffer,
     DuplicatePairId(String),
     DuplicateDirectedSitePair {
@@ -457,13 +508,13 @@ fn spearman_correlation(pairs: &[ObservedTransferPair]) -> Option<f64> {
 
 fn validate_correlation_pairs(
     pairs: &[ObservedTransferPair],
-) -> Result<BTreeSet<String>, DssCorrelationError> {
+) -> Result<BTreeMap<String, (String, String)>, DssCorrelationError> {
     if pairs.len() < 6 {
         return Err(DssCorrelationError::TooFewDirectedPairs);
     }
     let mut pair_ids = BTreeSet::new();
     let mut directed_site_pairs = BTreeSet::new();
-    let mut sites = BTreeSet::new();
+    let mut sites: BTreeMap<String, (String, String)> = BTreeMap::new();
 
     for pair in pairs {
         if pair.pair_id.trim().is_empty() {
@@ -477,6 +528,32 @@ fn validate_correlation_pairs(
         }
         if pair.source_site_id == pair.target_site_id {
             return Err(DssCorrelationError::SourceAndTargetMustDiffer);
+        }
+        for (site_id, domain_id, ecology_id) in [
+            (
+                &pair.source_site_id,
+                &pair.source_geographic_domain_id,
+                &pair.source_cropmark_ecology_id,
+            ),
+            (
+                &pair.target_site_id,
+                &pair.target_geographic_domain_id,
+                &pair.target_cropmark_ecology_id,
+            ),
+        ] {
+            if domain_id.trim().is_empty() {
+                return Err(DssCorrelationError::EmptyGeographicDomainId);
+            }
+            if ecology_id.trim().is_empty() {
+                return Err(DssCorrelationError::EmptyCropmarkEcologyId);
+            }
+            let context = (domain_id.clone(), ecology_id.clone());
+            if sites.get(site_id).is_some_and(|existing| existing != &context) {
+                return Err(DssCorrelationError::InconsistentSiteContext {
+                    site_id: site_id.clone(),
+                });
+            }
+            sites.insert(site_id.clone(), context);
         }
         if !directed_site_pairs.insert((pair.source_site_id.as_str(), pair.target_site_id.as_str()))
         {
@@ -497,19 +574,19 @@ fn validate_correlation_pairs(
                 pair_id: pair.pair_id.clone(),
             });
         }
-        sites.insert(pair.source_site_id.clone());
-        sites.insert(pair.target_site_id.clone());
     }
 
-    if sites.len() < 4 {
+    if sites.len() < 3 {
         return Err(DssCorrelationError::TooFewUniqueSites);
     }
     Ok(sites)
 }
 
 /// Measure how well DSS ranks observed transfer performance across directed
-/// site pairs. Requires at least six pairs and four unique sites. Reports
-/// leave-one-site-out sensitivity; no pair-IID confidence interval is claimed.
+/// site pairs. Requires at least six pairs and three unique sites so the
+/// published three-site diagnostic can be reproduced. A separate scope gate
+/// requires 10 sites, three geographic domains, two cropmark ecologies and
+/// held-out-site/region splits before broader multi-ecology claims are eligible.
 pub fn evaluate_dss_transfer_correlation(
     input: &DssCorrelationInput,
 ) -> Result<DssCorrelationReport, DssCorrelationError> {
@@ -517,7 +594,7 @@ pub fn evaluate_dss_transfer_correlation(
     let spearman_rho = spearman_correlation(&input.pairs);
 
     let mut site_leave_out = Vec::with_capacity(sites.len());
-    for excluded_site_id in &sites {
+    for excluded_site_id in sites.keys() {
         let remaining = input
             .pairs
             .iter()
@@ -543,6 +620,20 @@ pub fn evaluate_dss_transfer_correlation(
         outcome_metric: input.outcome_metric,
         directed_pair_count: input.pairs.len(),
         unique_site_count: sites.len(),
+        unique_geographic_domain_count: sites
+            .values()
+            .map(|context| context.0.as_str())
+            .collect::<BTreeSet<_>>()
+            .len(),
+        unique_cropmark_ecology_count: sites
+            .values()
+            .map(|context| context.1.as_str())
+            .collect::<BTreeSet<_>>()
+            .len(),
+        multi_ecology_external_scope_eligible: sites.len() >= 10
+            && sites.values().map(|context| context.0.as_str()).collect::<BTreeSet<_>>().len() >= 3
+            && sites.values().map(|context| context.1.as_str()).collect::<BTreeSet<_>>().len() >= 2
+            && input.pairs.iter().all(|pair| pair.split_protocol.is_primary_cross_site_generalization()),
         spearman_rho,
         directed_pairs_are_independent: false,
         confidence_interval: None,
@@ -554,8 +645,8 @@ pub fn evaluate_dss_transfer_correlation(
 mod tests {
     use super::*;
 
-    fn month(year: i32, month: u8) -> i64 {
-        i64::from(year) * 12 + i64::from(month) - 1
+    fn month(calendar_month: u8) -> u8 {
+        calendar_month
     }
 
     fn dss_input(
@@ -572,6 +663,11 @@ mod tests {
             source_split_manifest_sha256: "a".repeat(64),
             target_split_manifest_sha256: "b".repeat(64),
             feature_transform_sha256: "c".repeat(64),
+            source_observation_manifest_sha256: "d".repeat(64),
+            target_observation_manifest_sha256: "e".repeat(64),
+            source_proxy_class_definition_ref: "urn:synthetic:source-proxy-class:v1".into(),
+            target_proxy_class_definition_ref: "urn:synthetic:target-proxy-class:v1".into(),
+            distance_estimator_ref: "urn:synthetic:distance-estimator:euclidean:v1".into(),
             input_channel_semantics: "Sentinel-2 L2A B02/B03/B04/B08 surface reflectance".into(),
             phenophase_filter_ref: "urn:synthetic:ndvi-phenophase-filter".into(),
             top_m_months: 2,
@@ -579,7 +675,7 @@ mod tests {
             months: distances
                 .iter()
                 .map(|(month_id, aa, ah)| SpectralMonthlyDistances {
-                    month_ordinal: month(2020, *month_id),
+                    calendar_month: month(*month_id),
                     source_archaeological_sample_count: 20,
                     target_archaeological_sample_count: 18,
                     target_vegetated_control_sample_count: 25,
@@ -599,8 +695,8 @@ mod tests {
         );
         let report = evaluate_directional_spectral_transfer(&input).unwrap();
         assert_eq!(
-            report.selected_month_ordinals,
-            vec![month(2020, 3), month(2020, 4)]
+            report.selected_calendar_months,
+            vec![month(3), month(4)]
         );
         assert!((report.directional_strength_score - 3.0).abs() < 1e-12);
         assert_eq!(
@@ -642,8 +738,8 @@ mod tests {
         );
         let report = evaluate_directional_spectral_transfer(&input).unwrap();
         assert_eq!(
-            report.selected_month_ordinals,
-            vec![month(2020, 3), month(2020, 4)]
+            report.selected_calendar_months,
+            vec![month(3), month(4)]
         );
     }
 
@@ -661,7 +757,11 @@ mod tests {
 
     #[test]
     fn zero_non_finite_and_empty_distances_fail_closed() {
-        let mut input = dss_input("site-a", "site-b", &[(3, 1.0, 4.0), (4, 2.0, 4.0), (5, 3.0, 3.0)]);
+        let mut input = dss_input(
+            "site-a",
+            "site-b",
+            &[(3, 1.0, 4.0), (4, 2.0, 4.0), (5, 3.0, 3.0)],
+        );
         input.months[0].archaeological_to_archaeological_distance = 0.0;
         assert!(matches!(
             evaluate_directional_spectral_transfer(&input),
@@ -692,17 +792,50 @@ mod tests {
             "site-b",
             &[(3, 1.0, 4.0), (4, 2.0, 4.0), (5, 3.0, 3.0)],
         );
-        input.months[2].month_ordinal = input.months[1].month_ordinal;
+        input.months[2].calendar_month = input.months[1].calendar_month;
         assert_eq!(
             evaluate_directional_spectral_transfer(&input),
-            Err(DirectionalSpectralTransferError::MonthsNotStrictlyIncreasing)
+            Err(DirectionalSpectralTransferError::CalendarMonthsNotStrictlyIncreasing)
         );
-        input.months[2].month_ordinal = month(2020, 5);
+        input.months[2].calendar_month = month(5);
         input.target_split_manifest_sha256 = "invalid".into();
         assert_eq!(
             evaluate_directional_spectral_transfer(&input),
             Err(DirectionalSpectralTransferError::InvalidTargetSplitDigest)
         );
+    }
+
+    fn site_context(site: &str) -> (String, String) {
+        match site {
+            "a" => ("western-europe".into(), "cereal".into()),
+            "b" => ("western-europe".into(), "cereal".into()),
+            "c" => ("eastern-europe".into(), "mixed-arable".into()),
+            "d" => ("southern-europe".into(), "mixed-arable".into()),
+            _ => ("other-domain".into(), "other-ecology".into()),
+        }
+    }
+
+    fn correlation_pair(
+        pair_id: String,
+        source: &str,
+        target: &str,
+        dss: f64,
+        observed: f64,
+    ) -> ObservedTransferPair {
+        let (source_domain, source_ecology) = site_context(source);
+        let (target_domain, target_ecology) = site_context(target);
+        ObservedTransferPair {
+            pair_id,
+            source_site_id: source.into(),
+            target_site_id: target.into(),
+            source_geographic_domain_id: source_domain,
+            target_geographic_domain_id: target_domain,
+            source_cropmark_ecology_id: source_ecology,
+            target_cropmark_ecology_id: target_ecology,
+            split_protocol: TransferSplitProtocol::HeldOutSite,
+            directional_strength_score: dss,
+            observed_transfer_value: observed,
+        }
     }
 
     fn correlation_input() -> DssCorrelationInput {
@@ -725,15 +858,15 @@ mod tests {
             pairs: pairs
                 .iter()
                 .enumerate()
-                .map(
-                    |(index, (source, target, dss, observed))| ObservedTransferPair {
-                        pair_id: format!("pair-{index}"),
-                        source_site_id: (*source).into(),
-                        target_site_id: (*target).into(),
-                        directional_strength_score: *dss,
-                        observed_transfer_value: *observed,
-                    },
-                )
+                .map(|(index, (source, target, dss, observed))| {
+                    correlation_pair(
+                        format!("pair-{index}"),
+                        source,
+                        target,
+                        *dss,
+                        *observed,
+                    )
+                })
                 .collect(),
         }
     }
@@ -743,6 +876,9 @@ mod tests {
         let report = evaluate_dss_transfer_correlation(&correlation_input()).unwrap();
         assert_eq!(report.directed_pair_count, 12);
         assert_eq!(report.unique_site_count, 4);
+        assert_eq!(report.unique_geographic_domain_count, 3);
+        assert_eq!(report.unique_cropmark_ecology_count, 2);
+        assert!(!report.multi_ecology_external_scope_eligible);
         assert_eq!(report.spearman_rho, Some(1.0));
         assert!(!report.directed_pairs_are_independent);
         assert_eq!(report.confidence_interval, None);
@@ -757,7 +893,7 @@ mod tests {
 
     #[test]
     fn spearman_ranks_average_ties_instead_of_ordering_by_input_position() {
-        let pairs = vec![
+        let values = vec![
             ("a", "b", 1.0, 0.2),
             ("b", "a", 1.0, 0.2),
             ("a", "c", 2.0, 0.8),
@@ -767,18 +903,18 @@ mod tests {
         ];
         let input = DssCorrelationInput {
             outcome_metric: TransferOutcomeMetric::F1,
-            pairs: pairs
+            pairs: values
                 .iter()
                 .enumerate()
-                .map(
-                    |(index, (source, target, dss, observed))| ObservedTransferPair {
-                        pair_id: format!("tie-{index}"),
-                        source_site_id: (*source).into(),
-                        target_site_id: (*target).into(),
-                        directional_strength_score: *dss,
-                        observed_transfer_value: *observed,
-                    },
-                )
+                .map(|(index, (source, target, dss, observed))| {
+                    correlation_pair(
+                        format!("tie-{index}"),
+                        source,
+                        target,
+                        *dss,
+                        *observed,
+                    )
+                })
                 .collect(),
         };
         let report = evaluate_dss_transfer_correlation(&input).unwrap();
@@ -786,13 +922,102 @@ mod tests {
     }
 
     #[test]
-    fn dss_correlation_requires_multiple_sites_and_unique_directed_pairs() {
+    fn published_three_site_six_direction_design_is_valid_but_not_broad_scope_eligible() {
+        let values = vec![
+            ("a", "b", 0.9, 0.9),
+            ("b", "a", 0.8, 0.8),
+            ("a", "c", 0.7, 0.7),
+            ("c", "a", 0.6, 0.6),
+            ("b", "c", 0.5, 0.5),
+            ("c", "b", 0.4, 0.4),
+        ];
+        let input = DssCorrelationInput {
+            outcome_metric: TransferOutcomeMetric::F1,
+            pairs: values
+                .iter()
+                .enumerate()
+                .map(|(index, (source, target, dss, observed))| {
+                    correlation_pair(
+                        format!("paper-pair-{index}"),
+                        source,
+                        target,
+                        *dss,
+                        *observed,
+                    )
+                })
+                .collect(),
+        };
+        let report = evaluate_dss_transfer_correlation(&input).unwrap();
+        assert_eq!(report.directed_pair_count, 6);
+        assert_eq!(report.unique_site_count, 3);
+        assert_eq!(report.spearman_rho, Some(1.0));
+        assert!(!report.multi_ecology_external_scope_eligible);
+        assert!(report.site_leave_out.iter().all(|item| item.spearman_rho.is_none()));
+    }
+
+    #[test]
+    fn ten_sites_three_domains_two_ecologies_and_held_out_site_splits_meet_scope_gate() {
+        let mut pairs = Vec::new();
+        for index in 0..10 {
+            let target_index = (index + 1) % 10;
+            let context = |site_index: usize| {
+                (
+                    format!("domain-{}", site_index % 3),
+                    if site_index < 5 { "cereal" } else { "legume" }.to_owned(),
+                )
+            };
+            let (source_domain, source_ecology) = context(index);
+            let (target_domain, target_ecology) = context(target_index);
+            pairs.push(ObservedTransferPair {
+                pair_id: format!("ring-{index}"),
+                source_site_id: format!("site-{index}"),
+                target_site_id: format!("site-{target_index}"),
+                source_geographic_domain_id: source_domain,
+                target_geographic_domain_id: target_domain,
+                source_cropmark_ecology_id: source_ecology,
+                target_cropmark_ecology_id: target_ecology,
+                split_protocol: TransferSplitProtocol::HeldOutSite,
+                directional_strength_score: 1.0 + index as f64,
+                observed_transfer_value: 0.05 + index as f64 * 0.08,
+            });
+        }
+        let input = DssCorrelationInput {
+            outcome_metric: TransferOutcomeMetric::RecallAtFixedReviewBudget,
+            pairs,
+        };
+        let report = evaluate_dss_transfer_correlation(&input).unwrap();
+        assert_eq!(report.unique_site_count, 10);
+        assert_eq!(report.unique_geographic_domain_count, 3);
+        assert_eq!(report.unique_cropmark_ecology_count, 2);
+        assert!(report.multi_ecology_external_scope_eligible);
+    }
+
+    #[test]
+    fn pixel_random_pairs_never_meet_external_scope_gate() {
         let mut input = correlation_input();
-        input.pairs.truncate(6);
-        assert_eq!(
+        input.pairs[0].split_protocol = TransferSplitProtocol::PixelRandomInterpolation;
+        let report = evaluate_dss_transfer_correlation(&input).unwrap();
+        assert!(!report.multi_ecology_external_scope_eligible);
+    }
+
+    #[test]
+    fn conflicting_site_domain_or_ecology_metadata_fails_closed() {
+        let mut input = correlation_input();
+        input.pairs[1].source_geographic_domain_id = "conflicting-domain".into();
+        assert!(matches!(
             evaluate_dss_transfer_correlation(&input),
-            Err(DssCorrelationError::TooFewUniqueSites)
-        );
+            Err(DssCorrelationError::InconsistentSiteContext { .. })
+        ));
+    }
+
+    #[test]
+    fn correlation_requires_six_pairs_and_unique_directed_site_pairs() {
+        let mut too_few = correlation_input();
+        too_few.pairs.truncate(5);
+        assert!(matches!(
+            evaluate_dss_transfer_correlation(&too_few),
+            Err(DssCorrelationError::TooFewDirectedPairs)
+        ));
 
         let mut duplicate = correlation_input();
         duplicate.pairs[1].source_site_id = duplicate.pairs[0].source_site_id.clone();
@@ -802,4 +1027,37 @@ mod tests {
             Err(DssCorrelationError::DuplicateDirectedSitePair { .. })
         ));
     }
+
+    #[test]
+    fn repeated_calendar_months_are_rejected_even_when_observations_came_from_different_years() {
+        let input = dss_input(
+            "site-a",
+            "site-b",
+            &[(1, 1.0, 4.0), (2, 2.0, 4.0), (1, 3.0, 3.0)],
+        );
+        assert!(matches!(
+            evaluate_directional_spectral_transfer(&input),
+            Err(DirectionalSpectralTransferError::CalendarMonthsNotStrictlyIncreasing)
+        ));
+    }
+
+    #[test]
+    fn calendar_months_are_one_to_twelve_and_maximum_coverage_is_twelve() {
+        let mut invalid = dss_input(
+            "site-a",
+            "site-b",
+            &[(1, 1.0, 4.0), (2, 2.0, 4.0), (13, 3.0, 3.0)],
+        );
+        assert!(matches!(
+            evaluate_directional_spectral_transfer(&invalid),
+            Err(DirectionalSpectralTransferError::InvalidCalendarMonth { .. })
+        ));
+        invalid.months[2].calendar_month = 3;
+        invalid.minimum_shared_months = 13;
+        assert_eq!(
+            evaluate_directional_spectral_transfer(&invalid),
+            Err(DirectionalSpectralTransferError::InvalidMinimumSharedMonths)
+        );
+    }
+
 }

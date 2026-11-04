@@ -48,3 +48,20 @@ Do not compare a cropmark-proxy DSS against wall segmentation, looting detection
 - Report every ordered direction, leave-one-site-out stability, per-target PR-AUC, recall@budget, calibration, OOD abstention and sample counts.
 
 These are research targets, not Sol-Atlas results.
+## Multi-ecology external-scope gate
+
+A descriptive cross-site correlation is not evidence of broad transfer by itself. The report's `multi_ecology_external_scope_eligible` flag becomes true only when all of the following hold:
+
+- at least 10 unique sites;
+- at least 3 declared geographic domains;
+- at least 2 declared cropmark ecologies;
+- every observed transfer outcome comes from a held-out-site or held-out-region split;
+- each site retains a consistent domain and ecology assignment across all directed pairs.
+
+This is a minimum scope gate, not proof of global archaeological generalization. A global claim still requires broader biome/crop systems, independently governed regions, adequate site counts, and external validation.
+
+## Data availability and rights
+
+The supplementary PDF documents the preprocessing and DSS formula. The associated Zenodo S2-CM record (10.5281/zenodo.19207808) is publicly discoverable, but its current record page marks the files as restricted. This PR therefore does not claim access to, or reproduction of, the authors' complete data/code archive. The article is CC BY-NC; that does not grant commercial reuse, and each data/code asset requires its own permission check.
+
+Reference: https://zenodo.org/records/19207808

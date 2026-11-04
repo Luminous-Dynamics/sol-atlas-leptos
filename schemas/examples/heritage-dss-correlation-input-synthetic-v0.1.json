@@ -6,84 +6,144 @@
       "source_site_id": "a",
       "target_site_id": "b",
       "directional_strength_score": 0.9,
-      "observed_transfer_value": 0.9
+      "observed_transfer_value": 0.9,
+      "source_geographic_domain_id": "western-europe",
+      "target_geographic_domain_id": "western-europe",
+      "source_cropmark_ecology_id": "cereal",
+      "target_cropmark_ecology_id": "cereal",
+      "split_protocol": "held_out_site"
     },
     {
       "pair_id": "synthetic-pair-1",
       "source_site_id": "b",
       "target_site_id": "a",
       "directional_strength_score": 0.8,
-      "observed_transfer_value": 0.8
+      "observed_transfer_value": 0.8,
+      "source_geographic_domain_id": "western-europe",
+      "target_geographic_domain_id": "western-europe",
+      "source_cropmark_ecology_id": "cereal",
+      "target_cropmark_ecology_id": "cereal",
+      "split_protocol": "held_out_site"
     },
     {
       "pair_id": "synthetic-pair-2",
       "source_site_id": "a",
       "target_site_id": "c",
       "directional_strength_score": 0.7,
-      "observed_transfer_value": 0.7
+      "observed_transfer_value": 0.7,
+      "source_geographic_domain_id": "western-europe",
+      "target_geographic_domain_id": "eastern-europe",
+      "source_cropmark_ecology_id": "cereal",
+      "target_cropmark_ecology_id": "mixed-arable",
+      "split_protocol": "held_out_site"
     },
     {
       "pair_id": "synthetic-pair-3",
       "source_site_id": "c",
       "target_site_id": "a",
       "directional_strength_score": 0.6,
-      "observed_transfer_value": 0.6
+      "observed_transfer_value": 0.6,
+      "source_geographic_domain_id": "eastern-europe",
+      "target_geographic_domain_id": "western-europe",
+      "source_cropmark_ecology_id": "mixed-arable",
+      "target_cropmark_ecology_id": "cereal",
+      "split_protocol": "held_out_site"
     },
     {
       "pair_id": "synthetic-pair-4",
       "source_site_id": "b",
       "target_site_id": "c",
       "directional_strength_score": 0.5,
-      "observed_transfer_value": 0.5
+      "observed_transfer_value": 0.5,
+      "source_geographic_domain_id": "western-europe",
+      "target_geographic_domain_id": "eastern-europe",
+      "source_cropmark_ecology_id": "cereal",
+      "target_cropmark_ecology_id": "mixed-arable",
+      "split_protocol": "held_out_site"
     },
     {
       "pair_id": "synthetic-pair-5",
       "source_site_id": "c",
       "target_site_id": "b",
       "directional_strength_score": 0.4,
-      "observed_transfer_value": 0.4
+      "observed_transfer_value": 0.4,
+      "source_geographic_domain_id": "eastern-europe",
+      "target_geographic_domain_id": "western-europe",
+      "source_cropmark_ecology_id": "mixed-arable",
+      "target_cropmark_ecology_id": "cereal",
+      "split_protocol": "held_out_site"
     },
     {
       "pair_id": "synthetic-pair-6",
       "source_site_id": "a",
       "target_site_id": "d",
       "directional_strength_score": 0.3,
-      "observed_transfer_value": 0.3
+      "observed_transfer_value": 0.3,
+      "source_geographic_domain_id": "western-europe",
+      "target_geographic_domain_id": "southern-europe",
+      "source_cropmark_ecology_id": "cereal",
+      "target_cropmark_ecology_id": "mixed-arable",
+      "split_protocol": "held_out_site"
     },
     {
       "pair_id": "synthetic-pair-7",
       "source_site_id": "d",
       "target_site_id": "a",
       "directional_strength_score": 0.2,
-      "observed_transfer_value": 0.2
+      "observed_transfer_value": 0.2,
+      "source_geographic_domain_id": "southern-europe",
+      "target_geographic_domain_id": "western-europe",
+      "source_cropmark_ecology_id": "mixed-arable",
+      "target_cropmark_ecology_id": "cereal",
+      "split_protocol": "held_out_site"
     },
     {
       "pair_id": "synthetic-pair-8",
       "source_site_id": "b",
       "target_site_id": "d",
       "directional_strength_score": 0.15,
-      "observed_transfer_value": 0.15
+      "observed_transfer_value": 0.15,
+      "source_geographic_domain_id": "western-europe",
+      "target_geographic_domain_id": "southern-europe",
+      "source_cropmark_ecology_id": "cereal",
+      "target_cropmark_ecology_id": "mixed-arable",
+      "split_protocol": "held_out_site"
     },
     {
       "pair_id": "synthetic-pair-9",
       "source_site_id": "d",
       "target_site_id": "b",
       "directional_strength_score": 0.1,
-      "observed_transfer_value": 0.1
+      "observed_transfer_value": 0.1,
+      "source_geographic_domain_id": "southern-europe",
+      "target_geographic_domain_id": "western-europe",
+      "source_cropmark_ecology_id": "mixed-arable",
+      "target_cropmark_ecology_id": "cereal",
+      "split_protocol": "held_out_site"
     },
     {
       "pair_id": "synthetic-pair-10",
       "source_site_id": "c",
       "target_site_id": "d",
       "directional_strength_score": 0.08,
-      "observed_transfer_value": 0.08
+      "observed_transfer_value": 0.08,
+      "source_geographic_domain_id": "eastern-europe",
+      "target_geographic_domain_id": "southern-europe",
+      "source_cropmark_ecology_id": "mixed-arable",
+      "target_cropmark_ecology_id": "mixed-arable",
+      "split_protocol": "held_out_site"
     },
     {
       "pair_id": "synthetic-pair-11",
       "source_site_id": "d",
       "target_site_id": "c",
       "directional_strength_score": 0.05,
-      "observed_transfer_value": 0.05
+      "observed_transfer_value": 0.05,
+      "source_geographic_domain_id": "southern-europe",
+      "target_geographic_domain_id": "eastern-europe",
+      "source_cropmark_ecology_id": "mixed-arable",
+      "target_cropmark_ecology_id": "mixed-arable",
+      "split_protocol": "held_out_site"
     }
   ]
 }

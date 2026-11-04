@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://luminousdynamics.io/schemas/heritage-directional-spectral-transfer-input-v0.1.schema.json",
   "title": "Sol-Atlas Directional Spectral-Geometric Transfer Input",
-  "description": "Ordered source-to-target cropmark-proxy spectral cluster distances for computing a directional-strength score. This is cropmark proxy transfer, not a general archaeology detector.",
+  "description": "Ordered source-to-target cropmark-proxy spectral cluster distances. Each of the 12 calendar months pools valid observations across years before A/H distance computation. This is cropmark proxy transfer, not a general archaeology detector.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -18,7 +18,12 @@
     "phenophase_filter_ref",
     "top_m_months",
     "minimum_shared_months",
-    "months"
+    "months",
+    "source_observation_manifest_sha256",
+    "target_observation_manifest_sha256",
+    "source_proxy_class_definition_ref",
+    "target_proxy_class_definition_ref",
+    "distance_estimator_ref"
   ],
   "properties": {
     "pair_id": {
@@ -84,7 +89,7 @@
         "type": "object",
         "additionalProperties": false,
         "required": [
-          "month_ordinal",
+          "calendar_month",
           "source_archaeological_sample_count",
           "target_archaeological_sample_count",
           "target_vegetated_control_sample_count",
@@ -92,9 +97,6 @@
           "archaeological_to_control_distance"
         ],
         "properties": {
-          "month_ordinal": {
-            "type": "integer"
-          },
           "source_archaeological_sample_count": {
             "type": "integer",
             "minimum": 1
@@ -114,9 +116,34 @@
           "archaeological_to_control_distance": {
             "type": "number",
             "exclusiveMinimum": 0
+          },
+          "calendar_month": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 12
           }
         }
       }
+    },
+    "source_observation_manifest_sha256": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{64}$"
+    },
+    "target_observation_manifest_sha256": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{64}$"
+    },
+    "source_proxy_class_definition_ref": {
+      "type": "string",
+      "minLength": 1
+    },
+    "target_proxy_class_definition_ref": {
+      "type": "string",
+      "minLength": 1
+    },
+    "distance_estimator_ref": {
+      "type": "string",
+      "minLength": 1
     }
   }
 }

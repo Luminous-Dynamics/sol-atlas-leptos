@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://luminousdynamics.io/schemas/heritage-dss-correlation-input-v0.1.schema.json",
   "title": "Sol-Atlas DSS Cross-Site Validation Input",
-  "description": "DSS scores and observed held-out transfer outcomes from multiple directed site pairs. Pairs sharing sites are dyadically dependent.",
+  "description": "DSS scores and observed held-out transfer outcomes from directed site pairs, with per-site geographic-domain and cropmark-ecology metadata. Site metadata must be consistent across all pairs. Pairs sharing sites are dyadically dependent.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -28,7 +28,12 @@
           "source_site_id",
           "target_site_id",
           "directional_strength_score",
-          "observed_transfer_value"
+          "observed_transfer_value",
+          "source_geographic_domain_id",
+          "target_geographic_domain_id",
+          "source_cropmark_ecology_id",
+          "target_cropmark_ecology_id",
+          "split_protocol"
         ],
         "properties": {
           "pair_id": {
@@ -51,6 +56,30 @@
             "type": "number",
             "minimum": 0,
             "maximum": 1
+          },
+          "source_geographic_domain_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "target_geographic_domain_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "source_cropmark_ecology_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "target_cropmark_ecology_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "split_protocol": {
+            "enum": [
+              "pixel_random_interpolation",
+              "within_site_spatial_blocked",
+              "held_out_site",
+              "held_out_region"
+            ]
           }
         }
       }

@@ -31,5 +31,8 @@
       "remaining_site_count": 3,
       "spearman_rho": 1
     }
-  ]
+  ],
+  "unique_geographic_domain_count": 3,
+  "unique_cropmark_ecology_count": 2,
+  "multi_ecology_external_scope_eligible": false
 }

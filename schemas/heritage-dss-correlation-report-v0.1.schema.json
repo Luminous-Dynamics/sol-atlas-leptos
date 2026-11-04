@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://luminousdynamics.io/schemas/heritage-dss-correlation-report-v0.1.schema.json",
   "title": "Sol-Atlas DSS Cross-Site Validation Report",
-  "description": "Spearman rank association and leave-one-site-out sensitivity. Directed pairs are marked dependent and confidence intervals are withheld.",
+  "description": "Exploratory Spearman rank association and leave-one-site-out sensitivity. Three-site/six-direction reproduction is permitted, but broad multi-ecology external-scope eligibility requires >=10 sites, >=3 geographic domains, >=2 cropmark ecologies and held-out-site/region splits for all pairs. Directed pairs are dependent; no naive pair confidence interval.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -13,7 +13,10 @@
     "spearman_rho",
     "directed_pairs_are_independent",
     "confidence_interval",
-    "site_leave_out"
+    "site_leave_out",
+    "unique_geographic_domain_count",
+    "unique_cropmark_ecology_count",
+    "multi_ecology_external_scope_eligible"
   ],
   "properties": {
     "schema_version": {
@@ -32,7 +35,7 @@
     },
     "unique_site_count": {
       "type": "integer",
-      "minimum": 4
+      "minimum": 3
     },
     "spearman_rho": {
       "type": [
@@ -93,6 +96,17 @@
           }
         }
       }
+    },
+    "unique_geographic_domain_count": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "unique_cropmark_ecology_count": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "multi_ecology_external_scope_eligible": {
+      "type": "boolean"
     }
   }
 }

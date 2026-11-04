@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://luminousdynamics.io/schemas/heritage-directional-spectral-transfer-report-v0.1.schema.json",
   "title": "Sol-Atlas Directional Spectral-Geometric Transfer Report",
-  "description": "Directional source-to-target spectral affinity report. Reverse direction is evaluated separately; split protocol determines whether the result is primary cross-site generalization evidence.",
+  "description": "Directional source-to-target spectral affinity. Months are calendar-month clusters pooled across years. Reverse direction is evaluated separately; split protocol determines whether results qualify for primary cross-site generalization evidence.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -20,9 +20,14 @@
     "phenophase_filter_ref",
     "top_m_months",
     "shared_month_count",
-    "selected_month_ordinals",
+    "selected_calendar_months",
     "directional_strength_score",
-    "months"
+    "months",
+    "source_observation_manifest_sha256",
+    "target_observation_manifest_sha256",
+    "source_proxy_class_definition_ref",
+    "target_proxy_class_definition_ref",
+    "distance_estimator_ref"
   ],
   "properties": {
     "schema_version": {
@@ -87,13 +92,6 @@
       "type": "integer",
       "minimum": 1
     },
-    "selected_month_ordinals": {
-      "type": "array",
-      "minItems": 1,
-      "items": {
-        "type": "integer"
-      }
-    },
     "directional_strength_score": {
       "type": "number",
       "exclusiveMinimum": 0
@@ -105,7 +103,7 @@
         "type": "object",
         "additionalProperties": false,
         "required": [
-          "month_ordinal",
+          "calendar_month",
           "archaeological_to_archaeological_distance",
           "archaeological_to_control_distance",
           "directional_ratio",
@@ -113,9 +111,6 @@
           "selected_in_top_m"
         ],
         "properties": {
-          "month_ordinal": {
-            "type": "integer"
-          },
           "archaeological_to_archaeological_distance": {
             "type": "number",
             "exclusiveMinimum": 0
@@ -134,9 +129,44 @@
           },
           "selected_in_top_m": {
             "type": "boolean"
+          },
+          "calendar_month": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 12
           }
         }
       }
+    },
+    "selected_calendar_months": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 12,
+      "items": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 12
+      }
+    },
+    "source_observation_manifest_sha256": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{64}$"
+    },
+    "target_observation_manifest_sha256": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{64}$"
+    },
+    "source_proxy_class_definition_ref": {
+      "type": "string",
+      "minLength": 1
+    },
+    "target_proxy_class_definition_ref": {
+      "type": "string",
+      "minLength": 1
+    },
+    "distance_estimator_ref": {
+      "type": "string",
+      "minLength": 1
     }
   }
 }
