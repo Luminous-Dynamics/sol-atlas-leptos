@@ -792,6 +792,7 @@ pub fn qualify_projection_with_inventory(
         projection.projection_receipt["disposition"] = json!("invalid_input");
         projection.projection_receipt["claim_ceiling"] =
             json!("incomplete_or_indeterminate");
+        projection.projection_receipt["projected_graph"] = Value::Null;
         if let Some(findings) = projection.projection_receipt["findings"].as_array_mut() {
             findings.push(json!({
                 "severity": "invalid",
@@ -805,11 +806,9 @@ pub fn qualify_projection_with_inventory(
         InventoryClosureDisposition::IncompleteOrIndeterminate
             | InventoryClosureDisposition::CompleteWithDeclaredExclusions
     ) {
-        if let Some(graph) = projection.graph.as_object_mut() {
-            graph.insert(
-                "claim_ceiling".into(),
-                json!("incomplete_or_indeterminate"),
-            );
+        if projection.graph.is_object() {
+            projection.graph["claim_ceiling"] =
+                json!("incomplete_or_indeterminate");
             let mut graph_core = projection.graph.clone();
             graph_core
                 .as_object_mut()
@@ -849,13 +848,13 @@ pub fn qualify_projection_with_inventory(
         "invalid_inventory_count": inventory_validation.invalid_inventory_count,
         "not_comparable_inventory_count": inventory_validation.not_comparable_inventory_count,
         "owner_presence_disposition": inventory_validation.owner_presence.disposition.as_str(),
-        "claim_scope": inventory_validation.claim_scope,
+        "claim_scope": inventory_validation.claim_scope.clone(),
         "page_payload_byte_verification": "not_performed",
         "source_attestation_authentication": "not_performed",
         "source_truth": "not_established",
         "negative_finding_eligibility": false,
         "action_authority": "none",
-        "findings": inventory_validation.findings
+        "findings": inventory_validation.findings.clone()
     });
 
     let mut receipt_core = projection.projection_receipt.clone();
