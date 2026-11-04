@@ -1,0 +1,374 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/heritage-claim-input-v0.1.schema.json",
+  "title": "Sol-Atlas Heritage Claim Input v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "claim_id",
+    "candidate_id",
+    "declared_claim",
+    "proxy_family_id",
+    "evidence",
+    "adjudication",
+    "coordinate_access_restricted"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "luminous.heritage-claim.v0.1"
+    },
+    "claim_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "candidate_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "declared_claim": {
+      "enum": [
+        "measured_signal",
+        "proxy_interpretation",
+        "anthropogenic_feature_candidate",
+        "archaeological_feature_candidate",
+        "archaeological_site_interpretation",
+        "historical_process_interpretation"
+      ]
+    },
+    "proxy_family_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "minLength": 1
+    },
+    "evidence": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 100000,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "evidence_id",
+          "evidence_kind",
+          "origin",
+          "relation",
+          "modality",
+          "source_asset_sha256",
+          "source_lineage_id",
+          "acquisition_group_id",
+          "method_family_id",
+          "independence_status",
+          "independence_group_id",
+          "independence_assessment_sha256",
+          "rights_status",
+          "rights_receipt_ref"
+        ],
+        "properties": {
+          "evidence_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "evidence_kind": {
+            "enum": [
+              "remote_sensing_signal",
+              "geophysical_signal",
+              "surface_field_assessment",
+              "excavation_stratigraphy",
+              "diagnostic_material_analysis",
+              "chronometric_measurement",
+              "historical_document",
+              "expert_interpretation",
+              "catalogue_assertion",
+              "model_prediction",
+              "simulation"
+            ]
+          },
+          "origin": {
+            "enum": [
+              "direct_observation",
+              "human_interpretation",
+              "catalogue",
+              "model_output",
+              "simulation"
+            ]
+          },
+          "relation": {
+            "enum": [
+              "supports",
+              "contradicts",
+              "context_only"
+            ]
+          },
+          "modality": {
+            "enum": [
+              "satellite_optical",
+              "satellite_sar",
+              "airborne_lidar",
+              "uav_photogrammetry",
+              "thermal_imaging",
+              "ground_geophysics",
+              "surface_field_survey",
+              "excavation",
+              "material_laboratory",
+              "chronometric_laboratory",
+              "historical_archive",
+              "expert_review",
+              "other"
+            ]
+          },
+          "source_asset_sha256": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{64}$"
+          },
+          "source_lineage_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "acquisition_group_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "method_family_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "independence_status": {
+            "enum": [
+              "independently_assessed",
+              "dependent",
+              "unknown"
+            ]
+          },
+          "independence_group_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "minLength": 1
+          },
+          "independence_assessment_sha256": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[a-fA-F0-9]{64}$"
+          },
+          "rights_status": {
+            "enum": [
+              "verified",
+              "pending",
+              "denied",
+              "unknown"
+            ]
+          },
+          "rights_receipt_ref": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "minLength": 1
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "independence_status": {
+                  "const": "independently_assessed"
+                }
+              },
+              "required": [
+                "independence_status"
+              ]
+            },
+            "then": {
+              "properties": {
+                "independence_group_id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "independence_assessment_sha256": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{64}$"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "independence_status": {
+                  "enum": [
+                    "dependent",
+                    "unknown"
+                  ]
+                }
+              },
+              "required": [
+                "independence_status"
+              ]
+            },
+            "then": {
+              "properties": {
+                "independence_group_id": {
+                  "type": "null"
+                },
+                "independence_assessment_sha256": {
+                  "type": "null"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "rights_status": {
+                  "const": "verified"
+                }
+              },
+              "required": [
+                "rights_status"
+              ]
+            },
+            "then": {
+              "properties": {
+                "rights_receipt_ref": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    "adjudication": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "reviewer_id",
+            "reviewer_scope",
+            "adjudicated_at",
+            "outcome",
+            "decision_ref",
+            "decision_sha256",
+            "reviewed_evidence_ids",
+            "rights_status",
+            "rights_receipt_ref",
+            "contradictions_resolved"
+          ],
+          "properties": {
+            "reviewer_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "reviewer_scope": {
+              "type": "string",
+              "minLength": 1
+            },
+            "outcome": {
+              "enum": [
+                "accepted",
+                "rejected",
+                "unresolved"
+              ]
+            },
+            "decision_ref": {
+              "type": "string",
+              "minLength": 1
+            },
+            "decision_sha256": {
+              "type": "string",
+              "pattern": "^[a-fA-F0-9]{64}$"
+            },
+            "reviewed_evidence_ids": {
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "rights_status": {
+              "enum": [
+                "verified",
+                "pending",
+                "denied",
+                "unknown"
+              ]
+            },
+            "rights_receipt_ref": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "minLength": 1
+            },
+            "contradictions_resolved": {
+              "type": "boolean"
+            },
+            "adjudicated_at": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "rights_status": {
+                    "const": "verified"
+                  }
+                },
+                "required": [
+                  "rights_status"
+                ]
+              },
+              "then": {
+                "properties": {
+                  "rights_receipt_ref": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "coordinate_access_restricted": {
+      "type": "boolean"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "declared_claim": {
+            "const": "proxy_interpretation"
+          }
+        },
+        "required": [
+          "declared_claim"
+        ]
+      },
+      "then": {
+        "properties": {
+          "proxy_family_id": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    }
+  ]
+}

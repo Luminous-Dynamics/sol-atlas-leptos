@@ -1,0 +1,27 @@
+{
+  "schema_version": "luminous.heritage-claim.v0.1",
+  "claim_id": "claim-negative-001",
+  "candidate_id": "candidate-negative-001",
+  "declared_claim": "archaeological_site_interpretation",
+  "proxy_family_id": "settlement_mound",
+  "evidence": [
+    {
+      "evidence_id": "model-001",
+      "evidence_kind": "model_prediction",
+      "origin": "model_output",
+      "relation": "supports",
+      "modality": "satellite_optical",
+      "source_asset_sha256": "4444444444444444444444444444444444444444444444444444444444444444",
+      "source_lineage_id": "model-lineage",
+      "acquisition_group_id": "model-run",
+      "method_family_id": "cnn",
+      "independence_status": "unknown",
+      "independence_group_id": null,
+      "independence_assessment_sha256": null,
+      "rights_status": "verified",
+      "rights_receipt_ref": "urn:synthetic:rights:model"
+    }
+  ],
+  "adjudication": null,
+  "coordinate_access_restricted": true
+}
