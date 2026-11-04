@@ -102,6 +102,8 @@ pub struct SourceSnapshotDescriptor {
     pub source_system_id: String,
     pub snapshot_id: String,
     pub snapshot_sha256: String,
+    /// Optional source watermark for watermark-bound inventory enumeration.
+    pub source_watermark: Option<String>,
     pub captured_at: String,
     pub retrieved_at: String,
 }
@@ -1361,8 +1363,9 @@ mod tests {
                     SourceRecordKind::Decision => "urn:synthetic:authority-system",
                 }
                 .into(),
-                snapshot_id: "snapshot-001".into(),
+                snapshot_id: "snapshot-100".into(),
                 snapshot_sha256: digest('f'),
+                source_watermark: Some("watermark-100".into()),
                 captured_at: "2026-11-03T10:00:00Z".into(),
                 retrieved_at: "2026-11-03T10:01:00Z".into(),
             },
