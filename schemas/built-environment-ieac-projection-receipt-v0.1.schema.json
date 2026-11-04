@@ -223,6 +223,130 @@
               "type": "null"
             }
           ]
+        },
+        "source_inventory_closure": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "disposition",
+            "expected_owner_count",
+            "required_owner_count",
+            "present_required_owner_count",
+            "complete_inventory_count",
+            "complete_with_exclusions_count",
+            "incomplete_inventory_count",
+            "invalid_inventory_count",
+            "not_comparable_inventory_count",
+            "owner_presence_disposition",
+            "claim_scope",
+            "page_payload_byte_verification",
+            "source_attestation_authentication",
+            "source_truth",
+            "negative_finding_eligibility",
+            "action_authority",
+            "findings"
+          ],
+          "properties": {
+            "disposition": {
+              "enum": [
+                "complete_within_declared_owner_set",
+                "complete_with_declared_exclusions",
+                "incomplete_or_indeterminate",
+                "invalid_input"
+              ]
+            },
+            "expected_owner_count": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "required_owner_count": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "present_required_owner_count": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "complete_inventory_count": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "complete_with_exclusions_count": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "incomplete_inventory_count": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "invalid_inventory_count": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "not_comparable_inventory_count": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "owner_presence_disposition": {
+              "enum": [
+                "expected_owner_manifests_present",
+                "incomplete_or_indeterminate",
+                "invalid_input"
+              ]
+            },
+            "claim_scope": {
+              "type": "string",
+              "minLength": 1
+            },
+            "page_payload_byte_verification": {
+              "const": "not_performed"
+            },
+            "source_attestation_authentication": {
+              "const": "not_performed"
+            },
+            "source_truth": {
+              "const": "not_established"
+            },
+            "negative_finding_eligibility": {
+              "const": false
+            },
+            "action_authority": {
+              "const": "none"
+            },
+            "findings": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "severity",
+                  "code",
+                  "subject",
+                  "detail"
+                ],
+                "properties": {
+                  "severity": {
+                    "enum": [
+                      "incomplete",
+                      "invalid"
+                    ]
+                  },
+                  "code": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "subject": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "detail": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              }
+            }
+          }
         }
       }
     },
