@@ -639,6 +639,31 @@ mod tests {
         }
     }
 
+    struct DeterministicRng(u64);
+
+    impl DeterministicRng {
+        fn new(seed: u64) -> Self {
+            Self(seed)
+        }
+
+        fn uniform_open(&mut self) -> f64 {
+            // xorshift64* with midpoint mapping to avoid exact 0 and 1.
+            let mut x = self.0;
+            x ^= x >> 12;
+            x ^= x << 25;
+            x ^= x >> 27;
+            self.0 = x;
+            let bits = x.wrapping_mul(0x2545_F491_4F6C_DD1D) >> 11;
+            (bits as f64 + 0.5) / ((1_u64 << 53) as f64)
+        }
+
+        fn standard_normal(&mut self) -> f64 {
+            let u1 = self.uniform_open();
+            let u2 = self.uniform_open();
+            (-2.0 * u1.ln()).sqrt() * (std::f64::consts::TAU * u2).cos()
+        }
+    }
+
     fn aggregate_input() -> AdditiveAreaAggregationInput {
         AdditiveAreaAggregationInput {
             schema_version: HERITAGE_METROLOGY_SCHEMA_VERSION.to_owned(),
@@ -794,6 +819,56 @@ mod tests {
         let report = aggregate_disjoint_plan_areas(&input).expect("correlated factors");
         // g = [1.0, 0.9]; g' R g = 1 + 0.81 + 0.9 = 2.71
         assert!((report.shared_systematic_variance_m4 - 2.71).abs() < 1e-12);
+    }
+
+    #[test]
+    fn factor_model_variance_matches_seeded_monte_carlo_reference() {
+        let mut input = aggregate_input();
+        input.shared_factors.push(SharedSystematicFactor {
+            factor_id: "camera-scale".to_owned(),
+            standard_uncertainty: 0.3,
+            component_sensitivities: vec![
+                ComponentFactorSensitivity {
+                    observation_id: "stone-1".to_owned(),
+                    sensitivity: 1.0,
+                },
+                ComponentFactorSensitivity {
+                    observation_id: "stone-2".to_owned(),
+                    sensitivity: 2.0,
+                },
+            ],
+        });
+        input.factor_correlation_matrix = vec![vec![1.0, 0.5], vec![0.5, 1.0]];
+
+        let report = aggregate_disjoint_plan_areas(&input).expect("analytical factor model");
+        let analytical_variance = report.combined_standard_uncertainty_m2.powi(2);
+
+        // Independent component errors: 0.1 and 0.2 m².
+        // Shared factor contributions are g1=1.0 and g2=0.9, with rho=0.5.
+        let mut rng = DeterministicRng::new(0x534f_4c41_544c_4153);
+        let sample_count = 250_000usize;
+        let mut sum = 0.0;
+        let mut sum_squared = 0.0;
+
+        for _ in 0..sample_count {
+            let component_1 = 0.1 * rng.standard_normal();
+            let component_2 = 0.2 * rng.standard_normal();
+            let factor_1 = rng.standard_normal();
+            let factor_independent = rng.standard_normal();
+            let factor_2 = 0.5 * factor_1 + (1.0_f64 - 0.5_f64.powi(2)).sqrt() * factor_independent;
+            let aggregate_error = component_1 + component_2 + factor_1 + 0.9 * factor_2;
+            sum += aggregate_error;
+            sum_squared += aggregate_error * aggregate_error;
+        }
+
+        let count = sample_count as f64;
+        let sample_mean = sum / count;
+        let sample_variance = (sum_squared / count) - sample_mean * sample_mean;
+        let relative_error = (sample_variance - analytical_variance).abs() / analytical_variance;
+        assert!(
+            relative_error < 0.015,
+            "Monte Carlo variance {sample_variance} differs from analytical {analytical_variance} by {relative_error:.3%}"
+        );
     }
 
     #[test]
