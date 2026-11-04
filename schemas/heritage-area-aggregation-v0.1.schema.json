@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/heritage-area-aggregation-v0.1.schema.json",
+  "title": "Sol-Atlas Disjoint Plan-Area Aggregation v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "aggregation_id",
+    "measurand",
+    "disjointness_receipt_ref",
+    "components",
+    "shared_factors",
+    "factor_correlation_matrix"
+  ],
+  "properties": {
+    "schema_version": { "const": "luminous.heritage-metrology.v0.1" },
+    "aggregation_id": { "type": "string", "minLength": 1 },
+    "measurand": { "const": "disjoint_plan_footprint_area" },
+    "disjointness_receipt_ref": { "type": "string", "minLength": 1 },
+    "components": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "observation_id",
+          "area_m2",
+          "independent_standard_uncertainty_m2"
+        ],
+        "properties": {
+          "observation_id": { "type": "string", "minLength": 1 },
+          "area_m2": { "type": "number", "exclusiveMinimum": 0 },
+          "independent_standard_uncertainty_m2": { "type": "number", "minimum": 0 }
+        }
+      }
+    },
+    "shared_factors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "factor_id",
+          "standard_uncertainty",
+          "component_sensitivities"
+        ],
+        "properties": {
+          "factor_id": { "type": "string", "minLength": 1 },
+          "standard_uncertainty": { "type": "number", "minimum": 0 },
+          "component_sensitivities": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["observation_id", "sensitivity"],
+              "properties": {
+                "observation_id": { "type": "string", "minLength": 1 },
+                "sensitivity": { "type": "number" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "factor_correlation_matrix": {
+      "type": "array",
+      "items": { "type": "array", "items": { "type": "number" } }
+    }
+  }
+}
