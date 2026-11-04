@@ -1,0 +1,883 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/schemas/semantic-transformation-receipt-v0.1.schema.json",
+  "title": "Semantic Transformation Receipt v0.1",
+  "description": "Loss-accounted engineering transformation record. Schema validity does not prove semantic equivalence, source authenticity, engineering correctness, or action authority.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "receipt_id",
+    "declared_claim",
+    "declared_purposes",
+    "source",
+    "target",
+    "implementation",
+    "source_inventory",
+    "target_inventory",
+    "mappings",
+    "equivalence_oracle",
+    "action_authority",
+    "limitations"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "luminous.semantic-transformation-receipt.v0.1"
+    },
+    "receipt_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512
+    },
+    "declared_claim": {
+      "enum": [
+        "equivalent_for_declared_profile",
+        "equivalent_with_declared_loss",
+        "not_equivalent",
+        "indeterminate"
+      ]
+    },
+    "declared_purposes": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 256
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "native_artifact_id",
+        "payload_sha256",
+        "media_type",
+        "schema_id",
+        "schema_version",
+        "schema_sha256"
+      ],
+      "properties": {
+        "native_artifact_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        },
+        "payload_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "media_type": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "schema_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2048
+        },
+        "schema_version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "schema_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    },
+    "target": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "native_artifact_id",
+        "payload_sha256",
+        "media_type",
+        "schema_id",
+        "schema_version",
+        "schema_sha256"
+      ],
+      "properties": {
+        "native_artifact_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        },
+        "payload_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "media_type": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "schema_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2048
+        },
+        "schema_version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "schema_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    },
+    "implementation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "implementation_id",
+        "implementation_version",
+        "implementation_build_sha256",
+        "mapping_profile_id",
+        "mapping_profile_sha256",
+        "configuration_sha256",
+        "parameters_sha256"
+      ],
+      "properties": {
+        "implementation_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "implementation_version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "implementation_build_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "mapping_profile_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "mapping_profile_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "configuration_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "parameters_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    },
+    "source_inventory": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 100000,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "semantic_id",
+          "semantic_kind",
+          "required_for_declared_purposes",
+          "source_value_sha256"
+        ],
+        "properties": {
+          "semantic_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1024
+          },
+          "semantic_kind": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          },
+          "required_for_declared_purposes": {
+            "type": "boolean"
+          },
+          "source_value_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        }
+      }
+    },
+    "target_inventory": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 100000,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "semantic_id",
+          "semantic_kind",
+          "origin",
+          "source_semantic_ids",
+          "target_value_sha256"
+        ],
+        "properties": {
+          "semantic_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1024
+          },
+          "semantic_kind": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          },
+          "origin": {
+            "enum": [
+              "source_mapped",
+              "derived",
+              "generated"
+            ]
+          },
+          "source_semantic_ids": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            }
+          },
+          "target_value_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        }
+      }
+    },
+    "mappings": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 100000,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "source_semantic_id",
+          "disposition",
+          "target_semantic_ids",
+          "mapping_group_id",
+          "metadata",
+          "loss_reason"
+        ],
+        "properties": {
+          "source_semantic_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1024
+          },
+          "disposition": {
+            "enum": [
+              "preserved",
+              "converted",
+              "opaque",
+              "dropped",
+              "unsupported",
+              "split",
+              "merged"
+            ]
+          },
+          "target_semantic_ids": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            }
+          },
+          "mapping_group_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "minLength": 1,
+            "maxLength": 512
+          },
+          "metadata": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "conversion_kind",
+              "unit_conversion",
+              "coordinate_conversion",
+              "uncertainty_conversion",
+              "rule_id",
+              "rule_version",
+              "rationale"
+            ],
+            "properties": {
+              "conversion_kind": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "unit",
+                  "coordinate_frame",
+                  "uncertainty",
+                  "enumeration",
+                  "other",
+                  null
+                ]
+              },
+              "unit_conversion": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "additionalProperties": false,
+                "required": [
+                  "source_unit",
+                  "target_unit",
+                  "source_dimension",
+                  "target_dimension",
+                  "scale",
+                  "offset"
+                ],
+                "properties": {
+                  "source_unit": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 256
+                  },
+                  "target_unit": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 256
+                  },
+                  "source_dimension": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 256
+                  },
+                  "target_dimension": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 256
+                  },
+                  "scale": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "numerator",
+                      "denominator"
+                    ],
+                    "properties": {
+                      "numerator": {
+                        "type": "integer"
+                      },
+                      "denominator": {
+                        "type": "integer",
+                        "minimum": 1
+                      }
+                    }
+                  },
+                  "offset": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "numerator",
+                      "denominator"
+                    ],
+                    "properties": {
+                      "numerator": {
+                        "type": "integer"
+                      },
+                      "denominator": {
+                        "type": "integer",
+                        "minimum": 1
+                      }
+                    }
+                  }
+                }
+              },
+              "coordinate_conversion": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "additionalProperties": false,
+                "required": [
+                  "source_crs_id",
+                  "target_crs_id",
+                  "source_frame_id",
+                  "target_frame_id",
+                  "source_axis_order",
+                  "target_axis_order",
+                  "source_handedness",
+                  "target_handedness",
+                  "source_vertical_datum",
+                  "target_vertical_datum",
+                  "operation_id",
+                  "operation_parameters_sha256"
+                ],
+                "properties": {
+                  "source_crs_id": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 512
+                  },
+                  "target_crs_id": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 512
+                  },
+                  "source_frame_id": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 512
+                  },
+                  "target_frame_id": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 512
+                  },
+                  "source_axis_order": {
+                    "type": "array",
+                    "minItems": 3,
+                    "maxItems": 3,
+                    "items": {
+                      "enum": [
+                        "x",
+                        "y",
+                        "z",
+                        "east",
+                        "north",
+                        "up"
+                      ]
+                    },
+                    "uniqueItems": true
+                  },
+                  "target_axis_order": {
+                    "type": "array",
+                    "minItems": 3,
+                    "maxItems": 3,
+                    "items": {
+                      "enum": [
+                        "x",
+                        "y",
+                        "z",
+                        "east",
+                        "north",
+                        "up"
+                      ]
+                    },
+                    "uniqueItems": true
+                  },
+                  "source_handedness": {
+                    "enum": [
+                      "right_handed",
+                      "left_handed"
+                    ]
+                  },
+                  "target_handedness": {
+                    "enum": [
+                      "right_handed",
+                      "left_handed"
+                    ]
+                  },
+                  "source_vertical_datum": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 256
+                  },
+                  "target_vertical_datum": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 256
+                  },
+                  "operation_id": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 512
+                  },
+                  "operation_parameters_sha256": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{64}$"
+                  }
+                }
+              },
+              "uncertainty_conversion": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "additionalProperties": false,
+                "required": [
+                  "source_model",
+                  "target_model",
+                  "behavior",
+                  "propagation_method",
+                  "assumptions_sha256",
+                  "covariance_sha256",
+                  "target_bound_sha256"
+                ],
+                "properties": {
+                  "source_model": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 256
+                  },
+                  "target_model": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 256
+                  },
+                  "behavior": {
+                    "enum": [
+                      "preserved",
+                      "propagated",
+                      "conservative_envelope",
+                      "reduced",
+                      "unknown"
+                    ]
+                  },
+                  "propagation_method": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "minLength": 1,
+                    "maxLength": 512
+                  },
+                  "assumptions_sha256": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "pattern": "^[0-9a-f]{64}$"
+                  },
+                  "covariance_sha256": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "pattern": "^[0-9a-f]{64}$"
+                  },
+                  "target_bound_sha256": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "pattern": "^[0-9a-f]{64}$"
+                  }
+                }
+              },
+              "rule_id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 512
+              },
+              "rule_version": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128
+              },
+              "rationale": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 2048
+              }
+            },
+            "allOf": [
+              {
+                "if": {
+                  "properties": {
+                    "conversion_kind": {
+                      "const": "unit"
+                    }
+                  },
+                  "required": [
+                    "conversion_kind"
+                  ]
+                },
+                "then": {
+                  "properties": {
+                    "unit_conversion": {
+                      "type": "object"
+                    }
+                  }
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "conversion_kind": {
+                      "const": "coordinate_frame"
+                    }
+                  },
+                  "required": [
+                    "conversion_kind"
+                  ]
+                },
+                "then": {
+                  "properties": {
+                    "coordinate_conversion": {
+                      "type": "object"
+                    }
+                  }
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "conversion_kind": {
+                      "const": "uncertainty"
+                    }
+                  },
+                  "required": [
+                    "conversion_kind"
+                  ]
+                },
+                "then": {
+                  "properties": {
+                    "uncertainty_conversion": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          "loss_reason": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "minLength": 1,
+            "maxLength": 2048
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "disposition": {
+                  "const": "preserved"
+                }
+              },
+              "required": [
+                "disposition"
+              ]
+            },
+            "then": {
+              "properties": {
+                "target_semantic_ids": {
+                  "minItems": 1,
+                  "maxItems": 1
+                },
+                "loss_reason": {
+                  "type": "null"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "disposition": {
+                  "const": "converted"
+                }
+              },
+              "required": [
+                "disposition"
+              ]
+            },
+            "then": {
+              "properties": {
+                "target_semantic_ids": {
+                  "minItems": 1,
+                  "maxItems": 1
+                },
+                "loss_reason": {
+                  "type": "null"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "disposition": {
+                  "const": "opaque"
+                }
+              },
+              "required": [
+                "disposition"
+              ]
+            },
+            "then": {
+              "properties": {
+                "target_semantic_ids": {
+                  "minItems": 1,
+                  "maxItems": 1
+                },
+                "loss_reason": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "disposition": {
+                  "enum": [
+                    "dropped",
+                    "unsupported"
+                  ]
+                }
+              },
+              "required": [
+                "disposition"
+              ]
+            },
+            "then": {
+              "properties": {
+                "target_semantic_ids": {
+                  "maxItems": 0
+                },
+                "loss_reason": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "disposition": {
+                  "const": "split"
+                }
+              },
+              "required": [
+                "disposition"
+              ]
+            },
+            "then": {
+              "properties": {
+                "target_semantic_ids": {
+                  "minItems": 2
+                },
+                "mapping_group_id": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "disposition": {
+                  "const": "merged"
+                }
+              },
+              "required": [
+                "disposition"
+              ]
+            },
+            "then": {
+              "properties": {
+                "target_semantic_ids": {
+                  "minItems": 1,
+                  "maxItems": 1
+                },
+                "mapping_group_id": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    "equivalence_oracle": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": false,
+      "required": [
+        "oracle_id",
+        "oracle_build_sha256",
+        "corpus_id",
+        "corpus_sha256",
+        "result_sha256",
+        "result",
+        "evaluated_at"
+      ],
+      "properties": {
+        "oracle_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "oracle_build_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "corpus_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "corpus_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "result_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "result": {
+          "enum": [
+            "pass",
+            "fail",
+            "indeterminate"
+          ]
+        },
+        "evaluated_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "action_authority": {
+      "const": "none"
+    },
+    "limitations": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 2048
+      }
+    }
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  }
+}
