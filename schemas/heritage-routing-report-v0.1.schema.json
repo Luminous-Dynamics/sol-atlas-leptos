@@ -11,6 +11,13 @@
     "selected_profile_id",
     "selected_representation_transform_sha256",
     "selected_model_build_sha256",
+    "selected_channel_semantics_sha256",
+    "selected_metric_definition_sha256",
+    "selected_data_manifest_sha256",
+    "selected_split_manifest_sha256",
+    "selected_validation_site_set_sha256",
+    "selected_rights_receipt_ref",
+    "selected_validation_site_count",
     "selected_worst_site_primary_metric_utility_lower_bound",
     "selected_worst_site_precision_lower_bound",
     "selected_worst_site_false_candidates_per_km2",
@@ -140,6 +147,55 @@
     },
     "archaeological_identification_claimed": {
       "const": false
+    },
+    "selected_channel_semantics_sha256": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[a-fA-F0-9]{64}$"
+    },
+    "selected_metric_definition_sha256": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[a-fA-F0-9]{64}$"
+    },
+    "selected_data_manifest_sha256": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[a-fA-F0-9]{64}$"
+    },
+    "selected_split_manifest_sha256": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[a-fA-F0-9]{64}$"
+    },
+    "selected_validation_site_set_sha256": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[a-fA-F0-9]{64}$"
+    },
+    "selected_rights_receipt_ref": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "minLength": 1
+    },
+    "selected_validation_site_count": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 1
     }
   },
   "allOf": [
@@ -172,6 +228,34 @@
             "type": "number",
             "minimum": 0,
             "maximum": 1
+          },
+          "selected_channel_semantics_sha256": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{64}$"
+          },
+          "selected_metric_definition_sha256": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{64}$"
+          },
+          "selected_data_manifest_sha256": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{64}$"
+          },
+          "selected_split_manifest_sha256": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{64}$"
+          },
+          "selected_validation_site_set_sha256": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{64}$"
+          },
+          "selected_rights_receipt_ref": {
+            "type": "string",
+            "minLength": 1
+          },
+          "selected_validation_site_count": {
+            "type": "integer",
+            "minimum": 3
           }
         }
       }
@@ -199,6 +283,27 @@
             "type": "null"
           },
           "selected_worst_site_primary_metric_utility_lower_bound": {
+            "type": "null"
+          },
+          "selected_channel_semantics_sha256": {
+            "type": "null"
+          },
+          "selected_metric_definition_sha256": {
+            "type": "null"
+          },
+          "selected_data_manifest_sha256": {
+            "type": "null"
+          },
+          "selected_split_manifest_sha256": {
+            "type": "null"
+          },
+          "selected_validation_site_set_sha256": {
+            "type": "null"
+          },
+          "selected_rights_receipt_ref": {
+            "type": "null"
+          },
+          "selected_validation_site_count": {
             "type": "null"
           }
         }
