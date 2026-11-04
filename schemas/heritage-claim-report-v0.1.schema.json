@@ -1,0 +1,153 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/heritage-claim-report-v0.1.schema.json",
+  "title": "Sol-Atlas Heritage Claim Report v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "claim_id",
+    "candidate_id",
+    "declared_claim",
+    "evidence_supported_ceiling",
+    "disposition",
+    "evidence_record_count",
+    "direct_support_count",
+    "independent_support_group_count",
+    "distinct_support_modality_count",
+    "archaeological_field_evidence_count",
+    "chronological_or_archival_evidence_count",
+    "model_or_simulation_evidence_count",
+    "contradictory_evidence_count",
+    "rights_blocked_evidence_count",
+    "human_adjudication_applies",
+    "adjudication_evidence_set_matches",
+    "coordinate_access_restricted",
+    "exact_coordinates_publication_allowed",
+    "reasons",
+    "archaeological_fact_established",
+    "historical_truth_established"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "luminous.heritage-claim-report.v0.1"
+    },
+    "claim_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "candidate_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "declared_claim": {
+      "enum": [
+        "measured_signal",
+        "proxy_interpretation",
+        "anthropogenic_feature_candidate",
+        "archaeological_feature_candidate",
+        "archaeological_site_interpretation",
+        "historical_process_interpretation"
+      ]
+    },
+    "evidence_supported_ceiling": {
+      "enum": [
+        "no_supported_claim",
+        "measured_signal",
+        "proxy_interpretation",
+        "anthropogenic_feature_candidate",
+        "archaeological_feature_candidate",
+        "archaeological_site_interpretation",
+        "historical_process_interpretation"
+      ]
+    },
+    "disposition": {
+      "enum": [
+        "qualified_at_declared_claim",
+        "overclaimed",
+        "contradicted",
+        "indeterminate",
+        "rejected_by_adjudication"
+      ]
+    },
+    "evidence_record_count": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "direct_support_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "independent_support_group_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "distinct_support_modality_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "archaeological_field_evidence_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "chronological_or_archival_evidence_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "model_or_simulation_evidence_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "contradictory_evidence_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "rights_blocked_evidence_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "human_adjudication_applies": {
+      "type": "boolean"
+    },
+    "adjudication_evidence_set_matches": {
+      "type": "boolean"
+    },
+    "coordinate_access_restricted": {
+      "type": "boolean"
+    },
+    "exact_coordinates_publication_allowed": {
+      "type": "boolean"
+    },
+    "reasons": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "no_direct_observation",
+          "proxy_family_missing",
+          "insufficient_independent_evidence_groups",
+          "insufficient_distinct_modalities",
+          "archaeological_field_evidence_missing",
+          "human_adjudication_missing",
+          "human_adjudication_evidence_set_mismatch",
+          "human_adjudication_rights_not_verified",
+          "human_adjudication_reference_missing",
+          "human_adjudication_digest_invalid",
+          "contradictory_evidence_unresolved",
+          "chronological_or_archival_evidence_missing",
+          "evidence_rights_not_verified",
+          "evidence_rights_receipt_missing",
+          "non_independent_evidence_ignored",
+          "model_or_simulation_evidence_ignored",
+          "duplicate_evidence_id"
+        ]
+      }
+    },
+    "archaeological_fact_established": {
+      "const": false
+    },
+    "historical_truth_established": {
+      "const": false
+    }
+  }
+}
