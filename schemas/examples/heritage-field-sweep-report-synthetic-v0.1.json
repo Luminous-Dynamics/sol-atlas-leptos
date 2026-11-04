@@ -19,9 +19,6 @@
     "lower_m": 5.840019210401976,
     "upper_m": 7.159694325745739
   },
-  "overlap_adjusted_path_length_m": 1000,
-  "nominal_swept_area_m2": 6499.856768073857,
-  "nominal_coverage_fraction": 0.06499856768073857,
   "validation_brier_score": 0.12,
   "fit_transect_count": 3,
   "validation_transect_count": 2,
@@ -31,5 +28,8 @@
   "archaeological_absence_claimed": false,
   "archaeological_identification_claimed": false,
   "geomorphological_surface_survival_estimated": false,
-  "repeated_search_independence_assumed": false
+  "repeated_search_independence_assumed": false,
+  "buffered_sweep_width_m": 6.499856768073857,
+  "receipt_reported_swept_area_m2": 6499,
+  "receipt_reported_coverage_fraction": 0.06499
 }
