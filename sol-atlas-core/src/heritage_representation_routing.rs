@@ -59,6 +59,7 @@ pub enum RightsStatus {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct LandscapeContext {
     pub biome_or_ecology_id: String,
     pub geomorphology_id: String,
@@ -69,6 +70,7 @@ pub struct LandscapeContext {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct SitePerformance {
     pub validation_site_id: String,
     /// Preregistered, higher-is-better primary-task utility in [0,1].
@@ -83,6 +85,7 @@ pub struct SitePerformance {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct RepresentationProfile {
     pub profile_id: String,
     pub task_id: String,
@@ -109,6 +112,7 @@ pub struct RepresentationProfile {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct RoutingQualityFloors {
     pub minimum_primary_metric_utility_lower_bound: f64,
     pub minimum_precision_lower_bound: f64,
@@ -119,6 +123,7 @@ pub struct RoutingQualityFloors {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct RepresentationSelectionRequest {
     pub schema_version: String,
     pub request_id: String,
@@ -168,12 +173,14 @@ pub enum ProfileRejectionReason {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct RejectedProfile {
     pub profile_id: String,
     pub reasons: Vec<ProfileRejectionReason>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct RepresentationSelectionReport {
     pub schema_version: String,
     pub request_id: String,
@@ -887,6 +894,57 @@ mod tests {
             select_heritage_representation(&request(), &[candidate]),
             Err(RepresentationRoutingError::InvalidSiteMetric { .. })
         ));
+    }
+
+    #[test]
+    fn synthetic_input_and_report_fixtures_match_typed_contracts() {
+        let mut input_value: serde_json::Value = serde_json::from_str(include_str!(
+            "../../schemas/examples/heritage-routing-input-synthetic-v0.1.json"
+        ))
+        .unwrap();
+        let profiles_value = input_value
+            .as_object_mut()
+            .unwrap()
+            .remove("profiles")
+            .unwrap();
+        let request: RepresentationSelectionRequest =
+            serde_json::from_value(input_value).unwrap();
+        let profiles: Vec<RepresentationProfile> =
+            serde_json::from_value(profiles_value).unwrap();
+        let report =
+            select_heritage_representation(&request, &profiles).unwrap();
+        assert_eq!(report.selected_profile_id.as_deref(), Some("stable"));
+
+        let expected: RepresentationSelectionReport = serde_json::from_str(include_str!(
+            "../../schemas/examples/heritage-routing-report-synthetic-v0.1.json"
+        ))
+        .unwrap();
+        assert_eq!(report, expected);
+
+        let mut abstain_value: serde_json::Value = serde_json::from_str(include_str!(
+            "../../schemas/examples/heritage-routing-input-abstain-v0.1.json"
+        ))
+        .unwrap();
+        let abstain_profiles_value = abstain_value
+            .as_object_mut()
+            .unwrap()
+            .remove("profiles")
+            .unwrap();
+        let abstain_request: RepresentationSelectionRequest =
+            serde_json::from_value(abstain_value).unwrap();
+        let abstain_profiles: Vec<RepresentationProfile> =
+            serde_json::from_value(abstain_profiles_value).unwrap();
+        let abstain =
+            select_heritage_representation(&abstain_request, &abstain_profiles).unwrap();
+        assert_eq!(
+            abstain.disposition,
+            RoutingDisposition::AbstainNoQualifiedProfile
+        );
+        let expected_abstain: RepresentationSelectionReport = serde_json::from_str(include_str!(
+            "../../schemas/examples/heritage-routing-report-abstain-v0.1.json"
+        ))
+        .unwrap();
+        assert_eq!(abstain, expected_abstain);
     }
 
     #[test]
