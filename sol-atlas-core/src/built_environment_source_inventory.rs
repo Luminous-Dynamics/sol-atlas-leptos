@@ -1466,8 +1466,14 @@ mod tests {
         );
         assert_eq!(reordered_result.disposition, canonical.disposition);
         assert_eq!(reordered_result.findings, canonical.findings);
-        assert_eq!(reordered_result.enumerated_item_count, canonical.enumerated_item_count);
-        assert_eq!(reordered_result.enumerated_unique_count, canonical.enumerated_unique_count);
+        assert_eq!(
+            reordered_result.enumerated_item_count,
+            canonical.enumerated_item_count
+        );
+        assert_eq!(
+            reordered_result.enumerated_unique_count,
+            canonical.enumerated_unique_count
+        );
         assert_eq!(reordered_result.duplicate_count, canonical.duplicate_count);
         // The manifest digest is intentionally representation-sensitive:
         // reordering pages changes the exact input bytes even though semantic
