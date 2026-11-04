@@ -80,8 +80,10 @@ jobs:
           jsonschema-cli validate --draft 2020 --assert-format --offline "$schema" -i "$fixture"
           jq -e '
             .schema_version == "luminous.source-payload-byte-verification.v0.1" and
-            .disposition == "all_resolvable_payloads_verified" and
+            .disposition == "all_declared_payload_references_verified" and
             .verified_count == 1 and
+            .descriptor_missing_count == 0 and
+            .descriptor_extra_count == 0 and
             .invalid_count == 0 and
             .invalid_finding_count == 0 and
             .incomplete_finding_count == 0 and
