@@ -382,7 +382,13 @@ fn validate_temporal_interval(
             }
         }
         TemporalExtentKind::Disputed => {
-            if !has_bounds || !has_chronology {
+            if !has_bounds
+                || interval
+                    .lower_year_ce
+                    .zip(interval.upper_year_ce)
+                    .is_some_and(|(lower, upper)| lower > upper)
+                || !has_chronology
+            {
                 return Err(HeritageReconstructionError::InvalidTemporalInterval(
                     element.element_id.clone(),
                 ));
@@ -628,21 +634,6 @@ fn validate_element(
                     || item.evidence_kind == EvidenceKind::ModelPrediction
             }) {
                 return Err(HeritageReconstructionError::ModelEvidenceUsedAsEmpiricalSupport(
-                    element.element_id.clone(),
-                ));
-            }
-            let Some(method_digest) = element.method_build_sha256.as_deref() else {
-                return Err(HeritageReconstructionError::MethodBuildMissing(
-                    element.element_id.clone(),
-                ));
-            };
-            if !valid_sha256(method_digest) {
-                return Err(HeritageReconstructionError::MethodBuildMissing(
-                    element.element_id.clone(),
-                ));
-            }
-            if !method_dependency_digests.contains(method_digest) {
-                return Err(HeritageReconstructionError::MethodBuildDigestMismatch(
                     element.element_id.clone(),
                 ));
             }
