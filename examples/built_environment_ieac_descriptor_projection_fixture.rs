@@ -72,8 +72,9 @@ fn descriptor(
                 SourceRecordKind::Decision => "urn:synthetic:authority-system",
             }
             .into(),
-            snapshot_id: format!("snapshot-{case_record_id}"),
+            snapshot_id: "snapshot-100".into(),
             snapshot_sha256: digest('f'),
+            source_watermark: Some("watermark-100".into()),
             captured_at: "2026-11-03T12:00:00Z".into(),
             retrieved_at: "2026-11-03T12:01:00Z".into(),
         },
