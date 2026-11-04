@@ -1,0 +1,73 @@
+{
+  "schema_version": "luminous.heritage-claim.v0.1",
+  "claim_id": "claim-synthetic-001",
+  "candidate_id": "candidate-synthetic-001",
+  "declared_claim": "historical_process_interpretation",
+  "proxy_family_id": "stone_wall_morphology",
+  "evidence": [
+    {
+      "evidence_id": "lidar-001",
+      "evidence_kind": "remote_sensing_signal",
+      "origin": "direct_observation",
+      "relation": "supports",
+      "modality": "airborne_lidar",
+      "source_asset_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+      "source_lineage_id": "lineage-lidar",
+      "acquisition_group_id": "acq-lidar",
+      "method_family_id": "lidar-morphometry",
+      "independence_status": "independently_assessed",
+      "independence_group_id": "independent-lidar",
+      "independence_assessment_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "rights_status": "verified",
+      "rights_receipt_ref": "urn:synthetic:rights:lidar"
+    },
+    {
+      "evidence_id": "field-001",
+      "evidence_kind": "surface_field_assessment",
+      "origin": "direct_observation",
+      "relation": "supports",
+      "modality": "surface_field_survey",
+      "source_asset_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+      "source_lineage_id": "lineage-field",
+      "acquisition_group_id": "acq-field",
+      "method_family_id": "field-archaeological-assessment",
+      "independence_status": "independently_assessed",
+      "independence_group_id": "independent-field",
+      "independence_assessment_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "rights_status": "verified",
+      "rights_receipt_ref": "urn:synthetic:rights:field"
+    },
+    {
+      "evidence_id": "chrono-001",
+      "evidence_kind": "chronometric_measurement",
+      "origin": "direct_observation",
+      "relation": "supports",
+      "modality": "chronometric_laboratory",
+      "source_asset_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+      "source_lineage_id": "lineage-chrono",
+      "acquisition_group_id": "acq-chrono",
+      "method_family_id": "radiocarbon",
+      "independence_status": "independently_assessed",
+      "independence_group_id": "independent-chrono",
+      "independence_assessment_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "rights_status": "verified",
+      "rights_receipt_ref": "urn:synthetic:rights:chrono"
+    }
+  ],
+  "adjudication": {
+    "reviewer_id": "reviewer-synthetic-001",
+    "reviewer_scope": "stone-built archaeological features",
+    "outcome": "accepted",
+    "decision_ref": "urn:synthetic:adjudication:001",
+    "decision_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+    "reviewed_evidence_ids": [
+      "lidar-001",
+      "field-001",
+      "chrono-001"
+    ],
+    "rights_status": "verified",
+    "rights_receipt_ref": "urn:synthetic:rights:reviewer",
+    "contradictions_resolved": false
+  },
+  "coordinate_access_restricted": true
+}
