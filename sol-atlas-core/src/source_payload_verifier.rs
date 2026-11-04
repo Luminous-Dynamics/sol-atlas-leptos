@@ -598,8 +598,7 @@ fn catalog_report(
         || read_failed_count > 0
         || byte_limit_exceeded_count > 0
         || skipped_budget_count > 0
-        || descriptor_validation.disposition
-            == DescriptorDisposition::IncompleteOrIndeterminate
+        || descriptor_validation.disposition == DescriptorDisposition::IncompleteOrIndeterminate
         || findings
             .iter()
             .any(|finding| finding.code == "VERIFIER_BUILD_IDENTITY_UNAVAILABLE")
@@ -748,7 +747,6 @@ fn hex_digest(bytes: &[u8]) -> String {
     }
     output
 }
-
 
 /// Deterministic aggregate resource policy for one source-payload catalogue.
 /// The verifier processes records sequentially in canonical record-key order;
@@ -906,9 +904,7 @@ where
             .as_deref()
             .is_some_and(|digest| !valid_sha256(digest));
 
-    if descriptor_validation.disposition == DescriptorDisposition::InvalidInput
-        || invalid_context
-    {
+    if descriptor_validation.disposition == DescriptorDisposition::InvalidInput || invalid_context {
         if descriptor_validation.disposition == DescriptorDisposition::InvalidInput {
             report_findings.insert(finding(
                 "invalid",
@@ -919,9 +915,8 @@ where
         }
     } else {
         let mut ordered = catalog.descriptors.iter().collect::<Vec<_>>();
-        ordered.sort_by_key(|descriptor| {
-            descriptor.record_kind.case_key(&descriptor.case_record_id)
-        });
+        ordered
+            .sort_by_key(|descriptor| descriptor.record_kind.case_key(&descriptor.case_record_id));
 
         for (index, descriptor) in ordered.iter().enumerate() {
             let record_key = descriptor.record_kind.case_key(&descriptor.case_record_id);
@@ -969,8 +964,9 @@ where
             // remaining aggregate read budget.
             let remaining_read = budget.max_total_bytes_read - total_bytes_read;
             let read_probe_reserve = remaining_read.saturating_sub(1);
-            let remaining_payload =
-                budget.max_total_payload_bytes.saturating_sub(total_payload_bytes_hashed);
+            let remaining_payload = budget
+                .max_total_payload_bytes
+                .saturating_sub(total_payload_bytes_hashed);
             let per_payload_cap = budget
                 .max_bytes_per_payload
                 .min(remaining_payload)
@@ -1034,7 +1030,9 @@ where
                             "incomplete",
                             "SOURCE_PAYLOAD_OBJECT_OPEN_FAILED",
                             &record_key,
-                            format!("payload resolver could not open object (IO kind {error_kind})"),
+                            format!(
+                                "payload resolver could not open object (IO kind {error_kind})"
+                            ),
                         )],
                     };
                     report_findings.extend(result.findings.iter().cloned());
@@ -1079,8 +1077,11 @@ where
         omitted_descriptor_validation_findings_sha256: None,
         serialized_report_bytes: 0,
     };
-    output.evaluated_descriptor_count =
-        output.report.records.len().saturating_sub(output.skipped_budget_count);
+    output.evaluated_descriptor_count = output
+        .report
+        .records
+        .len()
+        .saturating_sub(output.skipped_budget_count);
 
     let mut omitted_records_hasher = Sha256::new();
     let mut omitted_findings_hasher = Sha256::new();
@@ -1125,16 +1126,12 @@ where
     }
 
     if output.omitted_record_count > 0 {
-        output.omitted_records_sha256 = finalize_optional_digest(
-            output.omitted_record_count,
-            omitted_records_hasher,
-        );
+        output.omitted_records_sha256 =
+            finalize_optional_digest(output.omitted_record_count, omitted_records_hasher);
     }
     if output.omitted_finding_count > 0 {
-        output.omitted_findings_sha256 = finalize_optional_digest(
-            output.omitted_finding_count,
-            omitted_findings_hasher,
-        );
+        output.omitted_findings_sha256 =
+            finalize_optional_digest(output.omitted_finding_count, omitted_findings_hasher);
     }
     if output.omitted_descriptor_validation_finding_count > 0 {
         output.omitted_descriptor_validation_findings_sha256 = finalize_optional_digest(
@@ -1152,7 +1149,6 @@ where
 
     output
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -1718,7 +1714,9 @@ mod tests {
         }
     }
 
-    fn multi_case_and_catalog(payloads: &[&[u8]]) -> (BuiltEnvironmentCase, SourceDescriptorCatalog) {
+    fn multi_case_and_catalog(
+        payloads: &[&[u8]],
+    ) -> (BuiltEnvironmentCase, SourceDescriptorCatalog) {
         let mut case = test_case(payloads[0]);
         case.evidence.clear();
         let mut descriptors = Vec::new();
@@ -1770,10 +1768,8 @@ mod tests {
         let mut budget = resource_budget();
         budget.max_total_payload_bytes = 9;
         budget.max_total_bytes_read = 5;
-        let expected = BTreeSet::from([
-            cas_reference(&sha(b"four")),
-            cas_reference(&sha(b"fives")),
-        ]);
+        let expected =
+            BTreeSet::from([cas_reference(&sha(b"four")), cas_reference(&sha(b"fives"))]);
         let result = verify_catalog_payload_bytes_with_budget(
             &case,
             &catalog,
@@ -1791,7 +1787,10 @@ mod tests {
         assert_eq!(result.total_bytes_read, 5);
         assert_eq!(result.total_payload_bytes_hashed, 4);
         assert_eq!(result.report.records[0].status, PayloadByteStatus::Verified);
-        assert_eq!(result.report.records[1].status, PayloadByteStatus::ByteLimitExceeded);
+        assert_eq!(
+            result.report.records[1].status,
+            PayloadByteStatus::ByteLimitExceeded
+        );
         assert_eq!(
             result.report.disposition,
             PayloadByteCatalogDisposition::IncompleteOrIndeterminate
@@ -1824,13 +1823,20 @@ mod tests {
         assert_eq!(result.resolver_open_attempts, 1);
         assert_eq!(result.skipped_budget_count, 2);
         assert_eq!(
-            result.report.records.iter().filter(|row| row.status == PayloadByteStatus::SkippedBudget).count(),
+            result
+                .report
+                .records
+                .iter()
+                .filter(|row| row.status == PayloadByteStatus::SkippedBudget)
+                .count(),
             2
         );
         assert_eq!(result.report.records[0].status, PayloadByteStatus::Verified);
-        assert!(result.report.records[1..]
-            .iter()
-            .all(|row| row.status == PayloadByteStatus::SkippedBudget));
+        assert!(
+            result.report.records[1..]
+                .iter()
+                .all(|row| row.status == PayloadByteStatus::SkippedBudget)
+        );
         assert_eq!(
             result.report.disposition,
             PayloadByteCatalogDisposition::IncompleteOrIndeterminate
@@ -1877,8 +1883,18 @@ mod tests {
         );
         assert_eq!(first_order, second_order);
         assert_eq!(
-            first.report.records.iter().map(|row| (&row.record_key, &row.status)).collect::<Vec<_>>(),
-            second.report.records.iter().map(|row| (&row.record_key, &row.status)).collect::<Vec<_>>()
+            first
+                .report
+                .records
+                .iter()
+                .map(|row| (&row.record_key, &row.status))
+                .collect::<Vec<_>>(),
+            second
+                .report
+                .records
+                .iter()
+                .map(|row| (&row.record_key, &row.status))
+                .collect::<Vec<_>>()
         );
     }
 
@@ -1944,7 +1960,13 @@ mod tests {
             result.report.disposition,
             PayloadByteCatalogDisposition::InvalidInput
         );
-        assert!(result.report.findings.iter().any(|row| row.code == "INVALID_CATALOG_RESOURCE_BUDGET"));
+        assert!(
+            result
+                .report
+                .findings
+                .iter()
+                .any(|row| row.code == "INVALID_CATALOG_RESOURCE_BUDGET")
+        );
         assert_eq!(result.resolver_open_attempts, 0);
     }
 
@@ -1976,10 +1998,12 @@ mod tests {
             result.report.disposition,
             PayloadByteCatalogDisposition::IncompleteOrIndeterminate
         );
-        assert_eq!(result.report.descriptor_validation_disposition, "incomplete_or_indeterminate");
+        assert_eq!(
+            result.report.descriptor_validation_disposition,
+            "incomplete_or_indeterminate"
+        );
         assert_eq!(result.report.verified_count, 1);
         assert_eq!(result.report.descriptor_missing_count, 1);
         assert_eq!(result.report.no_impact_eligibility, "none");
     }
-
 }
