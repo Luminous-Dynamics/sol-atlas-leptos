@@ -13,7 +13,8 @@ HDB-20 stops dataset availability, paper citations and software licences from be
 - Purpose-specific permissions for local inspection, research training, evaluation, derivative storage, publication, redistribution and commercial use.
 - Explicit granted/denied/unknown permissions; granted requires evidence reference, denied requires a condition/reason.
 - Unknown permission blocks that purpose. Publicly downloadable availability never upgrades permission.
-- Access tier and coordinate sensitivity; exact sensitive coordinates cannot be declared public.
+- Access tier and coordinate sensitivity; exact sensitive coordinates cannot be declared public and non-public access tiers require an access receipt.
+- Denied-use decisions require both a restriction summary and a rights-evidence reference. Package archive digest and byte size are recorded together.
 - Parent asset references and cycle checking.
 - Deterministic use decision with claim ceiling limited to recorded permission presence; legal document authenticity and legal interpretation remain external.
 
