@@ -158,11 +158,15 @@ pub struct PayloadVerificationContext {
     pub verifier_build_sha256: Option<String>,
 }
 
-fn sha256_hex(bytes: &[u8]) -> String {
-    Sha256::digest(bytes)
+fn digest_bytes_hex(digest: &[u8]) -> String {
+    digest
         .iter()
         .map(|byte| format!("{byte:02x}"))
         .collect()
+}
+
+fn sha256_hex(bytes: &[u8]) -> String {
+    digest_bytes_hex(&Sha256::digest(bytes))
 }
 
 fn valid_sha256(value: &str) -> bool {
@@ -296,7 +300,8 @@ fn hash_reader<R: Read>(
         }
     }
 
-    let observed_sha256 = sha256_hex(&hasher.finalize());
+    let observed_digest = hasher.finalize();
+    let observed_sha256 = digest_bytes_hex(&observed_digest);
     let mut findings = Vec::new();
     let mut disposition = PayloadByteDisposition::Verified;
 
