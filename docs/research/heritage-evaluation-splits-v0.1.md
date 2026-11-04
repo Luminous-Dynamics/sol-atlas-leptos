@@ -6,7 +6,7 @@ HDB-19 records what a heritage-AI evaluation is actually testing. It preserves p
 
 ## Profiles
 
-- `paper_faithful_random_tiles`: reports overlap counts without rejecting the split. Its claim ceiling is paper-split reproduction only. If the reference split manifest and seed are both unavailable, the report labels the work `protocol_reconstruction`, not exact reproduction.
+- `paper_faithful_random_tiles`: reports overlap counts without rejecting the split. Its claim ceiling is paper-split reproduction only. The report distinguishes a supplied reference-manifest digest (`reference_manifest_digest_recorded`), a seeded protocol (`seeded_protocol_reproduction`) and an unseeded protocol reconstruction (`protocol_reconstruction`). A supplied hash is recorded but is not independently authenticated or compared with a canonicalized copy of the current manifest.
 - `source_footprint_independent`: rejects source-pixel window intersections, duplicate source tile digests and physical identity crossing across train/validation/test. Different non-overlapping tiles from one source capture are permitted and reported.
 - `buffered_spatial_blocks`: applies source-footprint checks, requires a common projected metric CRS, unique block IDs across roles and a buffer justified by an empirical correlation range or declared deployment distance. The v0.1 screen uses axis-aligned metric bounds, not a polygon engine.
 - `leave_one_site_out`: requires declared held-out sites to occur only in test, no source pixel overlap, no duplicate tile digest and no physical-identity crossing.
