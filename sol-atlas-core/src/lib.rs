@@ -27,6 +27,7 @@ pub mod geo;
 pub mod industry_assurance_projection;
 pub mod lod;
 pub mod mycelix_flows;
+pub mod source_payload_verifier;
 // pub mod relativity_viz;
 pub mod geometry;
 pub mod math;

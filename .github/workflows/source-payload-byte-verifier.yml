@@ -1,0 +1,97 @@
+name: Source payload byte verification qualification
+
+on:
+  pull_request:
+    paths:
+      - "sol-atlas-core/src/source_payload_verifier.rs"
+      - "sol-atlas-core/src/built_environment_source_descriptor.rs"
+      - "sol-atlas-core/src/built_environment_case.rs"
+      - "sol-atlas-core/src/lib.rs"
+      - "schemas/source-payload-byte-verification-report-v0.1.schema.json"
+      - "schemas/examples/source-payload-byte-verification-report-synthetic-v0.1.json"
+      - "sol-atlas-core/Cargo.toml"
+      - "sol-atlas-core/Cargo.lock"
+      - ".github/workflows/source-payload-byte-verifier.yml"
+  push:
+    branches:
+      - main
+      - research/source-payload-catalog-budget-v0-1-rebased
+    paths:
+      - "sol-atlas-core/src/source_payload_verifier.rs"
+      - "sol-atlas-core/src/built_environment_source_descriptor.rs"
+      - "sol-atlas-core/src/built_environment_case.rs"
+      - "sol-atlas-core/src/lib.rs"
+      - "schemas/source-payload-byte-verification-report-v0.1.schema.json"
+      - "schemas/examples/source-payload-byte-verification-report-synthetic-v0.1.json"
+      - "sol-atlas-core/Cargo.toml"
+      - "sol-atlas-core/Cargo.lock"
+      - ".github/workflows/source-payload-byte-verifier.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: source-payload-byte-verifier-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  payload-bytes:
+    name: Exact-head bounded SHA-256 payload verification
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout immutable source revision
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Assert exact checked-out revision
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+
+      - name: Install stable Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Format, lint and test the complete core crate
+        run: |
+          set -euo pipefail
+          manifest=sol-atlas-core/Cargo.toml
+          cargo fmt --manifest-path "$manifest" --check
+          cargo clippy --manifest-path "$manifest" --locked --all-targets -- -D warnings
+          cargo test --manifest-path "$manifest" --locked
+
+      - name: Install pinned Draft 2020-12 schema validator
+        run: cargo install --locked jsonschema-cli --version 0.60.2 --root "$RUNNER_TEMP/jsonschema-cli"
+
+      - name: Validate byte verification report schema and synthetic fixture
+        run: |
+          set -euo pipefail
+          export PATH="$RUNNER_TEMP/jsonschema-cli/bin:$PATH"
+          schema=schemas/source-payload-byte-verification-report-v0.1.schema.json
+          fixture=schemas/examples/source-payload-byte-verification-report-synthetic-v0.1.json
+          meta_schema="$RUNNER_TEMP/draft-2020-12-meta-schema.json"
+          curl --fail --location --retry 5 --retry-connrefused \
+            https://json-schema.org/draft/2020-12/schema -o "$meta_schema"
+          jsonschema-cli validate --draft 2020 --assert-format "$meta_schema" -i "$schema"
+          jsonschema-cli validate --draft 2020 --assert-format --offline "$schema" -i "$fixture"
+          jq -e '
+            .schema_version == "luminous.source-payload-byte-verification.v0.1" and
+            .disposition == "all_declared_payload_references_verified" and
+            .verified_count == 1 and
+            .object_not_found_count == 0 and
+            .resolver_access_denied_count == 0 and
+            .resolver_open_failed_count == 0 and
+            .descriptor_missing_count == 0 and
+            .descriptor_extra_count == 0 and
+            .invalid_count == 0 and
+            .invalid_finding_count == 0 and
+            .incomplete_finding_count == 0 and
+            .source_owner_authentication == "not_performed" and
+            .rights_authentication == "not_performed" and
+            .action_authority == "none" and
+            .no_impact_eligibility == "none"
+          ' "$fixture"
