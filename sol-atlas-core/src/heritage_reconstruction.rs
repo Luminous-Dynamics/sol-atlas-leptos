@@ -825,7 +825,9 @@ pub fn validate_heritage_reconstruction(
             EpistemicGeometryClass::Simulated => simulated_count += 1,
             EpistemicGeometryClass::Unknown => unknown_count += 1,
         }
-        if element.coordinate_access_tier != CoordinateAccessTier::Public {
+        if element.coordinate_access_tier != CoordinateAccessTier::Public
+            && element.geometry_asset_sha256.is_some()
+        {
             restricted_exact_count += 1;
         }
         if element.identifiability != Identifiability::Identifiable {
@@ -1379,6 +1381,38 @@ mod tests {
             validate_heritage_reconstruction(&value),
             Err(HeritageReconstructionError::SimulationManifestDigestMismatch(_))
         ));
+    }
+
+    #[test]
+    fn restricted_unknown_geometry_is_not_counted_as_restricted_exact_geometry() {
+        let mut value = input();
+        let mut unknown = ReconstructionElement {
+            element_id: "unknown-area".into(),
+            epistemic_class: EpistemicGeometryClass::Unknown,
+            geometry_asset_sha256: None,
+            spatial_reference_id: None,
+            geometry_uncertainty: None,
+            temporal_interval: TemporalInterval {
+                kind: TemporalExtentKind::Unknown,
+                lower_year_ce: None,
+                upper_year_ce: None,
+                chronology_evidence_ids: vec![],
+            },
+            source_evidence_ids: vec![],
+            dependencies: vec![],
+            method_build_sha256: None,
+            simulation_manifest_sha256: None,
+            hypothesis_family_id: None,
+            hypothesis_id: None,
+            identifiability: Identifiability::Identifiable,
+            coordinate_access_tier: CoordinateAccessTier::Restricted,
+            exact_geometry_publication_allowed: false,
+        };
+        unknown.coordinate_access_tier = CoordinateAccessTier::Restricted;
+        value.elements.push(unknown);
+        let report = validate_heritage_reconstruction(&value).unwrap();
+        assert_eq!(report.restricted_exact_geometry_count, 0);
+        assert_eq!(report.unknown_geometry_count, 1);
     }
 
     #[test]
