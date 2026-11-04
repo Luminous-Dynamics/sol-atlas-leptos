@@ -366,7 +366,8 @@
               "snapshot_id",
               "snapshot_sha256",
               "captured_at",
-              "retrieved_at"
+              "retrieved_at",
+              "source_watermark"
             ],
             "properties": {
               "snapshot_id": {
@@ -391,6 +392,18 @@
                 "minLength": 1,
                 "maxLength": 512,
                 "description": "Stable source-system identifier matching the corresponding federated source inventory manifest."
+              },
+              "source_watermark": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 512
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
               }
             }
           },
