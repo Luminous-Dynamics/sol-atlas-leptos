@@ -29,7 +29,8 @@ pub mod lod;
 pub mod mycelix_flows;
 /// Bounded streaming rehashing of source payload bytes referenced by
 /// owner-native descriptors. Byte equality is not origin/trust/rights proof.
-/// Bounded streaming rehash of descriptor-referenced bytes. This verifies
+/// Bounded streaming rehash of descriptor-referenced bytes using a fixed
+/// 64 KiB read buffer and a caller-specified per-object byte limit. This verifies
 /// digest equality against the declared payload, not issuer, owner, rights,
 /// source-snapshot completeness, engineering correctness, or action authority.
 pub mod source_payload_verifier;
