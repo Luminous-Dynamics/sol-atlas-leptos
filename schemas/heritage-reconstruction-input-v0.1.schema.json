@@ -1,0 +1,807 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/heritage-reconstruction-input-v0.1.schema.json",
+  "title": "Sol-Atlas Heritage Reconstruction Input v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "reconstruction_id",
+    "reconstruction_version",
+    "spatial_reference_id",
+    "coordinate_units",
+    "evidence",
+    "elements"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "luminous.heritage-reconstruction.v0.1"
+    },
+    "reconstruction_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "reconstruction_version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "spatial_reference_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "coordinate_units": {
+      "type": "string",
+      "minLength": 1
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "evidence_id",
+          "evidence_kind",
+          "origin",
+          "relation",
+          "source_asset_sha256",
+          "source_lineage_id",
+          "method_family_id",
+          "rights_status",
+          "rights_receipt_ref"
+        ],
+        "properties": {
+          "evidence_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "evidence_kind": {
+            "enum": [
+              "remote_sensing_measurement",
+              "photogrammetry_measurement",
+              "ground_survey_measurement",
+              "excavation_measurement",
+              "remote_sensing_signal",
+              "geophysical_signal",
+              "surface_field_assessment",
+              "excavation_stratigraphy",
+              "material_analysis",
+              "chronometric_measurement",
+              "historical_document",
+              "expert_interpretation",
+              "model_prediction",
+              "simulation"
+            ]
+          },
+          "origin": {
+            "enum": [
+              "direct_measurement",
+              "human_interpretation",
+              "model_output",
+              "simulation"
+            ]
+          },
+          "relation": {
+            "enum": [
+              "supports",
+              "contradicts",
+              "context_only"
+            ]
+          },
+          "source_asset_sha256": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{64}$"
+          },
+          "source_lineage_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "method_family_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "rights_status": {
+            "enum": [
+              "verified",
+              "pending",
+              "denied",
+              "unknown"
+            ]
+          },
+          "rights_receipt_ref": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "minLength": 1
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "rights_status": {
+                  "const": "verified"
+                }
+              },
+              "required": [
+                "rights_status"
+              ]
+            },
+            "then": {
+              "properties": {
+                "rights_receipt_ref": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    "elements": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 100000,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "element_id",
+          "epistemic_class",
+          "geometry_asset_sha256",
+          "spatial_reference_id",
+          "geometry_uncertainty",
+          "temporal_interval",
+          "source_evidence_ids",
+          "dependencies",
+          "method_build_sha256",
+          "simulation_manifest_sha256",
+          "hypothesis_family_id",
+          "hypothesis_id",
+          "identifiability",
+          "coordinate_access_tier",
+          "exact_geometry_publication_allowed"
+        ],
+        "properties": {
+          "element_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "epistemic_class": {
+            "enum": [
+              "observed",
+              "inferred",
+              "simulated",
+              "unknown"
+            ]
+          },
+          "geometry_asset_sha256": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[a-fA-F0-9]{64}$"
+          },
+          "spatial_reference_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "minLength": 1
+          },
+          "geometry_uncertainty": {
+            "oneOf": [
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "representation",
+                  "coverage_level",
+                  "characteristic_extent_m"
+                ],
+                "properties": {
+                  "representation": {
+                    "enum": [
+                      "positional_covariance",
+                      "bounding_envelope",
+                      "interval",
+                      "voxel_occupancy",
+                      "scenario_range"
+                    ]
+                  },
+                  "coverage_level": {
+                    "type": "number",
+                    "exclusiveMinimum": 0,
+                    "exclusiveMaximum": 1
+                  },
+                  "characteristic_extent_m": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  }
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "temporal_interval": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "kind",
+              "lower_year_ce",
+              "upper_year_ce",
+              "chronology_evidence_ids"
+            ],
+            "properties": {
+              "kind": {
+                "enum": [
+                  "bounded",
+                  "open_start",
+                  "open_end",
+                  "disputed",
+                  "unknown"
+                ]
+              },
+              "lower_year_ce": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "upper_year_ce": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "chronology_evidence_ids": {
+                "type": "array",
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            },
+            "allOf": [
+              {
+                "if": {
+                  "properties": {
+                    "kind": {
+                      "const": "bounded"
+                    }
+                  },
+                  "required": [
+                    "kind"
+                  ]
+                },
+                "then": {
+                  "properties": {
+                    "lower_year_ce": {
+                      "type": "integer"
+                    },
+                    "upper_year_ce": {
+                      "type": "integer"
+                    },
+                    "chronology_evidence_ids": {
+                      "type": "array",
+                      "minItems": 1
+                    }
+                  }
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "kind": {
+                      "const": "open_start"
+                    }
+                  },
+                  "required": [
+                    "kind"
+                  ]
+                },
+                "then": {
+                  "properties": {
+                    "lower_year_ce": {
+                      "type": "null"
+                    },
+                    "upper_year_ce": {
+                      "type": "integer"
+                    },
+                    "chronology_evidence_ids": {
+                      "type": "array",
+                      "minItems": 1
+                    }
+                  }
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "kind": {
+                      "const": "open_end"
+                    }
+                  },
+                  "required": [
+                    "kind"
+                  ]
+                },
+                "then": {
+                  "properties": {
+                    "lower_year_ce": {
+                      "type": "integer"
+                    },
+                    "upper_year_ce": {
+                      "type": "null"
+                    },
+                    "chronology_evidence_ids": {
+                      "type": "array",
+                      "minItems": 1
+                    }
+                  }
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "kind": {
+                      "const": "unknown"
+                    }
+                  },
+                  "required": [
+                    "kind"
+                  ]
+                },
+                "then": {
+                  "properties": {
+                    "lower_year_ce": {
+                      "type": "null"
+                    },
+                    "upper_year_ce": {
+                      "type": "null"
+                    },
+                    "chronology_evidence_ids": {
+                      "type": "array",
+                      "maxItems": 0
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          "source_evidence_ids": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "dependencies": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "dependency_id",
+                "kind",
+                "reference_id",
+                "artifact_sha256",
+                "statement"
+              ],
+              "properties": {
+                "dependency_id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "kind": {
+                  "enum": [
+                    "source_evidence",
+                    "method_build",
+                    "assumption",
+                    "prior",
+                    "simulation_model",
+                    "environmental_scenario",
+                    "simulation_manifest"
+                  ]
+                },
+                "reference_id": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "minLength": 1
+                },
+                "artifact_sha256": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "pattern": "^[a-fA-F0-9]{64}$"
+                },
+                "statement": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "allOf": [
+                {
+                  "if": {
+                    "properties": {
+                      "kind": {
+                        "const": "source_evidence"
+                      }
+                    },
+                    "required": [
+                      "kind"
+                    ]
+                  },
+                  "then": {
+                    "properties": {
+                      "reference_id": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "kind": {
+                        "enum": [
+                          "method_build",
+                          "simulation_model",
+                          "environmental_scenario",
+                          "simulation_manifest"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "kind"
+                    ]
+                  },
+                  "then": {
+                    "properties": {
+                      "artifact_sha256": {
+                        "type": "string",
+                        "pattern": "^[a-fA-F0-9]{64}$"
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "kind": {
+                        "enum": [
+                          "assumption",
+                          "prior"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "kind"
+                    ]
+                  },
+                  "then": {
+                    "properties": {
+                      "reference_id": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "method_build_sha256": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[a-fA-F0-9]{64}$"
+          },
+          "simulation_manifest_sha256": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[a-fA-F0-9]{64}$"
+          },
+          "hypothesis_family_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "minLength": 1
+          },
+          "hypothesis_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "minLength": 1
+          },
+          "identifiability": {
+            "enum": [
+              "identifiable",
+              "weakly_identifiable",
+              "non_identifiable"
+            ]
+          },
+          "coordinate_access_tier": {
+            "enum": [
+              "public",
+              "generalized",
+              "controlled",
+              "restricted"
+            ]
+          },
+          "exact_geometry_publication_allowed": {
+            "type": "boolean"
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "epistemic_class": {
+                  "const": "observed"
+                }
+              },
+              "required": [
+                "epistemic_class"
+              ]
+            },
+            "then": {
+              "properties": {
+                "geometry_asset_sha256": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{64}$"
+                },
+                "spatial_reference_id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "geometry_uncertainty": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "representation",
+                    "coverage_level",
+                    "characteristic_extent_m"
+                  ],
+                  "properties": {
+                    "representation": {
+                      "enum": [
+                        "positional_covariance",
+                        "bounding_envelope",
+                        "interval",
+                        "voxel_occupancy",
+                        "scenario_range"
+                      ]
+                    },
+                    "coverage_level": {
+                      "type": "number",
+                      "exclusiveMinimum": 0,
+                      "exclusiveMaximum": 1
+                    },
+                    "characteristic_extent_m": {
+                      "type": "number",
+                      "exclusiveMinimum": 0
+                    }
+                  }
+                },
+                "source_evidence_ids": {
+                  "type": "array",
+                  "minItems": 1
+                },
+                "method_build_sha256": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{64}$"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "epistemic_class": {
+                  "const": "inferred"
+                }
+              },
+              "required": [
+                "epistemic_class"
+              ]
+            },
+            "then": {
+              "properties": {
+                "geometry_asset_sha256": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{64}$"
+                },
+                "spatial_reference_id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "geometry_uncertainty": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "representation",
+                    "coverage_level",
+                    "characteristic_extent_m"
+                  ],
+                  "properties": {
+                    "representation": {
+                      "enum": [
+                        "positional_covariance",
+                        "bounding_envelope",
+                        "interval",
+                        "voxel_occupancy",
+                        "scenario_range"
+                      ]
+                    },
+                    "coverage_level": {
+                      "type": "number",
+                      "exclusiveMinimum": 0,
+                      "exclusiveMaximum": 1
+                    },
+                    "characteristic_extent_m": {
+                      "type": "number",
+                      "exclusiveMinimum": 0
+                    }
+                  }
+                },
+                "source_evidence_ids": {
+                  "type": "array",
+                  "minItems": 1
+                },
+                "method_build_sha256": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{64}$"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "epistemic_class": {
+                  "const": "simulated"
+                }
+              },
+              "required": [
+                "epistemic_class"
+              ]
+            },
+            "then": {
+              "properties": {
+                "geometry_asset_sha256": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{64}$"
+                },
+                "spatial_reference_id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "geometry_uncertainty": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "representation",
+                    "coverage_level",
+                    "characteristic_extent_m"
+                  ],
+                  "properties": {
+                    "representation": {
+                      "const": "scenario_range"
+                    },
+                    "coverage_level": {
+                      "type": "number",
+                      "exclusiveMinimum": 0,
+                      "exclusiveMaximum": 1
+                    },
+                    "characteristic_extent_m": {
+                      "type": "number",
+                      "exclusiveMinimum": 0
+                    }
+                  }
+                },
+                "method_build_sha256": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{64}$"
+                },
+                "simulation_manifest_sha256": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{64}$"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "epistemic_class": {
+                  "const": "unknown"
+                }
+              },
+              "required": [
+                "epistemic_class"
+              ]
+            },
+            "then": {
+              "properties": {
+                "geometry_asset_sha256": {
+                  "type": "null"
+                },
+                "spatial_reference_id": {
+                  "type": "null"
+                },
+                "geometry_uncertainty": {
+                  "type": "null"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "coordinate_access_tier": {
+                  "enum": [
+                    "generalized",
+                    "controlled",
+                    "restricted"
+                  ]
+                }
+              },
+              "required": [
+                "coordinate_access_tier"
+              ]
+            },
+            "then": {
+              "properties": {
+                "exact_geometry_publication_allowed": {
+                  "const": false
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "identifiability": {
+                  "enum": [
+                    "weakly_identifiable",
+                    "non_identifiable"
+                  ]
+                }
+              },
+              "required": [
+                "identifiability"
+              ]
+            },
+            "then": {
+              "properties": {
+                "hypothesis_family_id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "hypothesis_id": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}
