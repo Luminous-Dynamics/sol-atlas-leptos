@@ -73,6 +73,7 @@
       "artifact_id": "raw-capture-1",
       "expected_sha256": "18ed639cbad6f61ab58f2d39ceaf4e1018ca54b54c11a7f0a10f6f313b4917cc",
       "observed_sha256": "18ed639cbad6f61ab58f2d39ceaf4e1018ca54b54c11a7f0a10f6f313b4917cc",
+      "observed_byte_length": 27,
       "outcome": "matched",
       "checked_at_utc": "2026-11-05T08:10:00Z",
       "checked_by_agent_id": "archivist-1"
