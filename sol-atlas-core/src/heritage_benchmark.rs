@@ -214,7 +214,6 @@ pub struct WallEvaluationInput {
 pub struct SegmentCoverage {
     pub segment_id: String,
     pub covered_fraction: f64,
-    pub qualifies_at_any_threshold: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -427,22 +426,21 @@ fn match_ranked_predictions(
 }
 
 fn ap101(
-    ranked: &[&PredictedInstance],
+    ranked_prediction_count: usize,
     ground_truth_count: usize,
-    iou_threshold: f64,
     true_positive_sequence: &[bool],
 ) -> Option<f64> {
     if ground_truth_count == 0 {
         return None;
     }
-    if ranked.is_empty() {
+    if ranked_prediction_count == 0 {
         return Some(0.0);
     }
 
     let mut cumulative_tp = 0usize;
     let mut cumulative_fp = 0usize;
     let mut points = Vec::<(f64, f64)>::with_capacity(ranked.len());
-    for (index, is_tp) in true_positive_sequence.iter().enumerate() {
+    for is_tp in true_positive_sequence.iter() {
         if *is_tp {
             cumulative_tp += 1;
         } else {
@@ -451,7 +449,6 @@ fn ap101(
         let recall = cumulative_tp as f64 / ground_truth_count as f64;
         let precision = cumulative_tp as f64 / (cumulative_tp + cumulative_fp) as f64;
         points.push((recall, precision));
-        let _ = index;
     }
 
     let mut sum = 0.0;
@@ -464,7 +461,6 @@ fn ap101(
             .fold(0.0_f64, f64::max);
         sum += interpolated_precision;
     }
-    let _ = (iou_threshold, ranked);
     Some(sum / 101.0)
 }
 
@@ -514,9 +510,8 @@ pub fn evaluate_stone_instances(
     let (_, ap_sequence) =
         match_ranked_predictions(&all_ranked, &input.ground_truth, input.iou_threshold);
     let average_precision_101 = ap101(
-        &all_ranked,
+        all_ranked.len(),
         input.ground_truth.len(),
-        input.iou_threshold,
         &ap_sequence,
     );
 
@@ -653,12 +648,6 @@ pub fn evaluate_wall_segments(
             SegmentCoverage {
                 segment_id: segment.segment_id.clone(),
                 covered_fraction: intersection as f64 / segment.mask.pixel_indices.len() as f64,
-                qualifies_at_any_threshold: input
-                    .segment_coverage_thresholds
-                    .iter()
-                    .any(|threshold| {
-                        intersection as f64 / segment.mask.pixel_indices.len() as f64 >= *threshold
-                    }),
             }
         })
         .collect();
@@ -675,12 +664,6 @@ pub fn evaluate_wall_segments(
             SegmentCoverage {
                 segment_id: segment.segment_id.clone(),
                 covered_fraction: intersection as f64 / segment.mask.pixel_indices.len() as f64,
-                qualifies_at_any_threshold: input
-                    .segment_coverage_thresholds
-                    .iter()
-                    .any(|threshold| {
-                        intersection as f64 / segment.mask.pixel_indices.len() as f64 >= *threshold
-                    }),
             }
         })
         .collect();
@@ -872,6 +855,7 @@ mod tests {
         let mut input = stone_input();
         input.iou_threshold = 1.0;
         input.predictions[0].mask = mask(10, 10, &[0, 1, 2]);
+        input.predictions[2].mask = mask(10, 10, &[0, 1, 2]);
         let report = evaluate_stone_instances(&input).expect("valid masks");
         assert_eq!(report.true_positives, 1);
         assert_eq!(report.false_negatives, 1);
