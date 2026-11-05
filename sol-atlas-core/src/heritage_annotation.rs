@@ -770,7 +770,10 @@ mod tests {
             consensus.outcome,
             PluralityOutcome::Resolved("wall".to_owned())
         );
-        assert_eq!(input.annotations[2].decision, AnnotationDecision::Assigned("wall".to_owned()));
+        assert_eq!(
+            input.annotations[2].decision,
+            AnnotationDecision::Assigned("wall".to_owned())
+        );
         assert_eq!(consensus.source_annotation_ids.len(), 3);
     }
 
