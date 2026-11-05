@@ -96,12 +96,13 @@
     "fixity": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["event_id","artifact_id","expected_sha256","observed_sha256","outcome","checked_at_utc","checked_by_agent_id"],
+      "required": ["event_id","artifact_id","expected_sha256","observed_sha256","observed_byte_length","outcome","checked_at_utc","checked_by_agent_id"],
       "properties": {
         "event_id": { "type": "string", "minLength": 1 },
         "artifact_id": { "type": "string", "minLength": 1 },
         "expected_sha256": { "$ref": "#/$defs/digest" },
         "observed_sha256": { "$ref": "#/$defs/digest" },
+        "observed_byte_length": { "type": "integer", "minimum": 0 },
         "outcome": { "enum": ["matched","mismatch"] },
         "checked_at_utc": { "type": "string", "format": "date-time" },
         "checked_by_agent_id": { "type": "string", "minLength": 1 }
