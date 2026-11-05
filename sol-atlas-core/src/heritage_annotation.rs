@@ -12,8 +12,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 use std::fmt;
 
-pub const HERITAGE_ANNOTATION_SCHEMA_VERSION: &str =
-    "luminous.heritage-annotation.v0.1";
+pub const HERITAGE_ANNOTATION_SCHEMA_VERSION: &str = "luminous.heritage-annotation.v0.1";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -245,7 +244,9 @@ pub fn audit_heritage_annotations(
     let mut raters = BTreeMap::<&str, &AnnotationRater>::new();
     for rater in &dataset.raters {
         if !non_empty(&rater.rater_id) {
-            return Err(HeritageAnnotationError::EmptyIdentity("rater_id".to_owned()));
+            return Err(HeritageAnnotationError::EmptyIdentity(
+                "rater_id".to_owned(),
+            ));
         }
         if raters.insert(&rater.rater_id, rater).is_some() {
             return Err(HeritageAnnotationError::DuplicateIdentity(
@@ -276,7 +277,10 @@ pub fn audit_heritage_annotations(
             ("sample_id", annotation.sample_id.as_str()),
             ("context_id", annotation.context_id.as_str()),
             ("ontology_version", annotation.ontology_version.as_str()),
-            ("assessment_round_id", annotation.assessment_round_id.as_str()),
+            (
+                "assessment_round_id",
+                annotation.assessment_round_id.as_str(),
+            ),
         ] {
             if !non_empty(value) {
                 return Err(HeritageAnnotationError::EmptyIdentity(field.to_owned()));
@@ -341,9 +345,11 @@ pub fn audit_heritage_annotations(
             annotation.assessment_round_id.as_str(),
         );
         if !assessment_keys.insert(key) {
-            return Err(HeritageAnnotationError::DuplicateAssessmentForRaterAndRound(
-                annotation.annotation_id.clone(),
-            ));
+            return Err(
+                HeritageAnnotationError::DuplicateAssessmentForRaterAndRound(
+                    annotation.annotation_id.clone(),
+                ),
+            );
         }
 
         match &annotation.decision {
@@ -423,17 +429,19 @@ pub fn audit_heritage_annotations(
                     adjudication.adjudication_id.clone(),
                 ));
             }
-            let annotation = annotation_ids.get(annotation_id.as_str()).ok_or_else(|| {
-                HeritageAnnotationError::UnknownAnnotation(annotation_id.clone())
-            })?;
+            let annotation = annotation_ids
+                .get(annotation_id.as_str())
+                .ok_or_else(|| HeritageAnnotationError::UnknownAnnotation(annotation_id.clone()))?;
             if annotation.task_id != adjudication.task_id
                 || annotation.sample_id != adjudication.sample_id
                 || annotation.context_id != adjudication.context_id
                 || annotation.ontology_version != adjudication.ontology_version
             {
-                return Err(HeritageAnnotationError::AdjudicationReferencesDifferentSubject(
-                    adjudication.adjudication_id.clone(),
-                ));
+                return Err(
+                    HeritageAnnotationError::AdjudicationReferencesDifferentSubject(
+                        adjudication.adjudication_id.clone(),
+                    ),
+                );
             }
             if raters
                 .get(annotation.rater_id.as_str())
@@ -573,10 +581,16 @@ pub fn fleiss_kappa_report(
         .map(|rater| (rater.rater_id.as_str(), rater.kind))
         .collect::<BTreeMap<_, _>>();
     let mut grouped = BTreeMap::<&str, Vec<&HeritageAnnotation>>::new();
-    for annotation in dataset.annotations.iter().filter(|annotation| {
-        annotation.task_id == task_id && annotation.context_id == context_id
-    }) {
-        if is_human(*raters.get(annotation.rater_id.as_str()).expect("validated rater")) {
+    for annotation in dataset
+        .annotations
+        .iter()
+        .filter(|annotation| annotation.task_id == task_id && annotation.context_id == context_id)
+    {
+        if is_human(
+            *raters
+                .get(annotation.rater_id.as_str())
+                .expect("validated rater"),
+        ) {
             grouped
                 .entry(annotation.sample_id.as_str())
                 .or_default()
