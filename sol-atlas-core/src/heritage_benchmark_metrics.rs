@@ -371,11 +371,9 @@ fn union_masks<'a, I>(masks: I) -> Vec<u64>
 where
     I: IntoIterator<Item = &'a PixelMask>,
 {
-    masks
-        .into_iter()
-        .fold(Vec::new(), |accumulator, mask| {
-            union_two(&accumulator, &mask.pixel_indices)
-        })
+    masks.into_iter().fold(Vec::new(), |accumulator, mask| {
+        union_two(&accumulator, &mask.pixel_indices)
+    })
 }
 
 fn intersection_over_union(left: &[u64], right: &[u64]) -> f64 {
@@ -388,7 +386,11 @@ fn intersection_over_union(left: &[u64], right: &[u64]) -> f64 {
     }
 }
 
-fn count_metrics(true_positive: usize, false_positive: usize, false_negative: usize) -> CountMetrics {
+fn count_metrics(
+    true_positive: usize,
+    false_positive: usize,
+    false_negative: usize,
+) -> CountMetrics {
     let precision_denominator = true_positive + false_positive;
     let recall_denominator = true_positive + false_negative;
     let precision = if precision_denominator > 0 {
@@ -503,8 +505,7 @@ fn average_precision(
     }
     let mut precision_envelope = precision_at_rank.clone();
     for index in (0..precision_envelope.len().saturating_sub(1)).rev() {
-        precision_envelope[index] =
-            precision_envelope[index].max(precision_envelope[index + 1]);
+        precision_envelope[index] = precision_envelope[index].max(precision_envelope[index + 1]);
     }
     let mut previous_recall = 0.0;
     let mut area = 0.0;
@@ -523,8 +524,7 @@ fn average_precision(
 fn validate_stone_input(input: &StoneEvaluationInput) -> Result<(), HeritageMetricError> {
     input.raster.pixel_count()?;
     validate_threshold(input.iou_threshold, "iou_threshold")?;
-    if !input.confidence_threshold.is_finite()
-        || !(0.0..=1.0).contains(&input.confidence_threshold)
+    if !input.confidence_threshold.is_finite() || !(0.0..=1.0).contains(&input.confidence_threshold)
     {
         return Err(HeritageMetricError::InvalidThreshold(
             "confidence_threshold".into(),
@@ -588,9 +588,7 @@ pub fn evaluate_stone_instances(
         .filter_map(|index| {
             selected_matches[*index].map(|(ground_truth_index, score)| StoneMatch {
                 prediction_id: input.predictions[*index].instance_id.clone(),
-                ground_truth_id: input.ground_truth[ground_truth_index]
-                    .instance_id
-                    .clone(),
+                ground_truth_id: input.ground_truth[ground_truth_index].instance_id.clone(),
                 intersection_over_union: score,
             })
         })
@@ -633,8 +631,7 @@ fn validate_wall_input(input: &WallEvaluationInput) -> Result<(), HeritageMetric
         previous = *threshold;
     }
     input.provenance.validate()?;
-    if input.ground_truth_segments.len() + input.predicted_segments.len()
-        > MAX_BENCHMARK_OBJECTS
+    if input.ground_truth_segments.len() + input.predicted_segments.len() > MAX_BENCHMARK_OBJECTS
     {
         return Err(HeritageMetricError::TooManyObjects);
     }
@@ -669,11 +666,7 @@ pub fn evaluate_wall_segments(
         .iter()
         .filter(|segment| segment.status == ReferenceSegmentStatus::Eligible)
         .collect();
-    let ground_truth_union = union_masks(
-        eligible_ground_truth
-            .iter()
-            .map(|segment| &segment.mask),
-    );
+    let ground_truth_union = union_masks(eligible_ground_truth.iter().map(|segment| &segment.mask));
     let prediction_union = union_masks(selected_predictions.iter().map(|segment| &segment.mask));
     let true_positive = intersection_count(&ground_truth_union, &prediction_union);
     let false_positive = prediction_union.len() - true_positive;
@@ -748,9 +741,8 @@ pub fn evaluate_wall_segments(
                 ),
                 covered_prediction_count,
                 prediction_count: selected_predictions.len(),
-                covered_prediction_rate: (!selected_predictions.is_empty()).then_some(
-                    covered_prediction_count as f64 / selected_predictions.len() as f64,
-                ),
+                covered_prediction_rate: (!selected_predictions.is_empty())
+                    .then_some(covered_prediction_count as f64 / selected_predictions.len() as f64),
             }
         })
         .collect();
@@ -1031,10 +1023,12 @@ mod tests {
             report.ground_truth_segment_coverage[1].covered_fraction,
             None
         );
-        assert!(report
-            .coverage_threshold_results
-            .iter()
-            .all(|row| row.covered_ground_truth_rate == Some(1.0)));
+        assert!(
+            report
+                .coverage_threshold_results
+                .iter()
+                .all(|row| row.covered_ground_truth_rate == Some(1.0))
+        );
     }
 
     #[test]
@@ -1105,7 +1099,8 @@ mod tests {
 
     #[test]
     fn wall_fixture_contract_round_trips_through_serde() {
-        let fixture = include_str!("../../schemas/examples/heritage-wall-metrics-synthetic-v0.1.json");
+        let fixture =
+            include_str!("../../schemas/examples/heritage-wall-metrics-synthetic-v0.1.json");
         let input: WallEvaluationInput = serde_json::from_str(fixture).unwrap();
         let report = evaluate_wall_segments(&input).unwrap();
         assert_eq!(report.counts.true_positive, 4);
@@ -1114,7 +1109,8 @@ mod tests {
 
     #[test]
     fn fixture_contract_round_trips_through_serde() {
-        let fixture = include_str!("../../schemas/examples/heritage-stone-metrics-synthetic-v0.1.json");
+        let fixture =
+            include_str!("../../schemas/examples/heritage-stone-metrics-synthetic-v0.1.json");
         let input: StoneEvaluationInput = serde_json::from_str(fixture).unwrap();
         let report = evaluate_stone_instances(&input).unwrap();
         assert_eq!(report.counts.true_positive, 1);
