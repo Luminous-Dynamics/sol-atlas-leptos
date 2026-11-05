@@ -906,7 +906,6 @@ mod tests {
         assert_eq!(report.matches[0].prediction_id, "pred-a");
     }
 
-
     #[test]
     fn indexed_matching_is_invariant_to_ground_truth_vector_order() {
         let mut input = stone_input();
