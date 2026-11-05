@@ -1029,7 +1029,6 @@ mod tests {
         let mut input = manifest();
         input.artifacts[0].origin = ArtifactOrigin::Derived;
         input.artifacts[0].generated_by_activity_id = Some("reverse-transform".to_owned());
-        input.activities[0].input_artifact_ids = vec!["point-cloud-1".to_owned()];
         input.activities.push(ProvenanceActivity {
             activity_id: "reverse-transform".to_owned(),
             kind: ActivityKind::Transformation,
@@ -1045,7 +1044,6 @@ mod tests {
             started_at_utc: "2026-11-05T08:06:00Z".to_owned(),
             ended_at_utc: "2026-11-05T08:07:00Z".to_owned(),
         });
-        input.rights_decisions[0].allowed_purposes.push(RightsPurpose::ResearchAnalysis);
         assert_eq!(
             audit_heritage_provenance(&input),
             Err(HeritageProvenanceError::CycleDetected)
@@ -1095,6 +1093,23 @@ mod tests {
         input.activities[0].parameters_sha256 = Some(sha256_hex(b"changed-parameters"));
         let changed = canonical_manifest_sha256(&input).expect("changed canonical digest");
         assert_ne!(first, changed);
+    }
+
+    #[test]
+    fn provenance_schema_and_synthetic_fixture_parse_and_audit() {
+        let schema: serde_json::Value = serde_json::from_str(include_str!(
+            "../../schemas/heritage-provenance-v0.1.schema.json"
+        ))
+        .expect("provenance schema JSON");
+        let fixture: HeritageProvenanceManifest = serde_json::from_str(include_str!(
+            "../../schemas/examples/heritage-provenance-synthetic-v0.1.json"
+        ))
+        .expect("provenance fixture");
+        assert_eq!(
+            schema["$schema"],
+            "https://json-schema.org/draft/2020-12/schema"
+        );
+        assert!(audit_heritage_provenance(&fixture).is_ok());
     }
 
     #[test]
