@@ -8,7 +8,7 @@
     { "$ref": "#/$defs/wall_evaluation" }
   ],
   "$defs": {
-    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "sha256": { "type": "string", "pattern": "^[A-Fa-f0-9]{64}$" },
     "provenance": {
       "type": "object",
       "additionalProperties": false,
