@@ -1,0 +1,86 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/heritage-cluster-statistics-v0.1.schema.json",
+  "title": "Sol-Atlas Heritage Cluster Statistics Input v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "metric_name",
+    "split_manifest_sha256",
+    "evaluation_run_sha256",
+    "metric_definition_sha256",
+    "unit_kind",
+    "observations",
+    "correlation_matrix_sha256",
+    "correlation_matrix",
+    "correlation_evidence",
+    "equal_marginal_variance_assumed",
+    "bootstrap_seed",
+    "bootstrap_replicates",
+    "confidence_level",
+    "minimum_effective_units",
+    "maximum_permitted_inter_unit_correlation"
+  ],
+  "properties": {
+    "metric_name": { "type": "string", "minLength": 1 },
+    "split_manifest_sha256": { "$ref": "#/$defs/sha256" },
+    "evaluation_run_sha256": { "$ref": "#/$defs/sha256" },
+    "metric_definition_sha256": { "$ref": "#/$defs/sha256" },
+    "unit_kind": {
+      "enum": ["site", "region", "spatial_block", "sensor_family", "acquisition_epoch"]
+    },
+    "observations": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 512,
+      "items": { "$ref": "#/$defs/observation" }
+    },
+    "correlation_matrix_sha256": { "$ref": "#/$defs/sha256" },
+    "correlation_matrix": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 512,
+      "items": {
+        "type": "array",
+        "minItems": 1,
+        "maxItems": 512,
+        "items": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    },
+    "correlation_evidence": { "$ref": "#/$defs/correlation_evidence" },
+    "equal_marginal_variance_assumed": { "const": true },
+    "bootstrap_seed": { "type": "integer", "minimum": 0, "maximum": 18446744073709551615 },
+    "bootstrap_replicates": { "type": "integer", "minimum": 1000, "maximum": 100000 },
+    "confidence_level": { "type": "number", "exclusiveMinimum": 0, "exclusiveMaximum": 1 },
+    "minimum_effective_units": { "type": "number", "minimum": 2 },
+    "maximum_permitted_inter_unit_correlation": { "type": "number", "minimum": 0, "maximum": 1 }
+  },
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[A-Fa-f0-9]{64}$" },
+    "observation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["unit_id", "metric_value", "support_count"],
+      "properties": {
+        "unit_id": { "type": "string", "minLength": 1 },
+        "metric_value": { "type": "number" },
+        "support_count": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 18446744073709551615
+        }
+      }
+    },
+    "correlation_evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["model_sha256", "method", "evidence_ref", "receipt_ref"],
+      "properties": {
+        "model_sha256": { "$ref": "#/$defs/sha256" },
+        "method": { "type": "string", "minLength": 1 },
+        "evidence_ref": { "type": "string", "minLength": 1 },
+        "receipt_ref": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}
