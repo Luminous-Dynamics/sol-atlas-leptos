@@ -23,6 +23,18 @@
       "type":"object","additionalProperties":false,"required":["lower","upper"],
       "properties":{"lower":{"type":"number"},"upper":{"type":"number"}}
     },
+    "plan_area_interval":{
+      "type":"object","additionalProperties":false,"required":["lower","upper"],
+      "properties":{"lower":{"type":"number","exclusiveMinimum":0},"upper":{"type":"number","exclusiveMinimum":0}}
+    },
+    "mrr_area_ratio_interval":{
+      "type":"object","additionalProperties":false,"required":["lower","upper"],
+      "properties":{"lower":{"type":"number","exclusiveMinimum":0,"maximum":1},"upper":{"type":"number","exclusiveMinimum":0,"maximum":1}}
+    },
+    "elongation_interval":{
+      "type":"object","additionalProperties":false,"required":["lower","upper"],
+      "properties":{"lower":{"type":"number","minimum":1},"upper":{"type":"number","minimum":1}}
+    },
     "group_level":{"enum":["wall_segment","wall","building","household","compound","insula","neighbourhood","settlement"]},
     "membership":{
       "type":"object","additionalProperties":false,
@@ -53,9 +65,9 @@
         "method_build_sha256":{"$ref":"#/$defs/sha256"},
         "measurement_receipt_ref":{"type":"string","minLength":1},
         "measurement_receipt_sha256":{"$ref":"#/$defs/sha256"},
-        "plan_footprint_area_m2":{"$ref":"#/$defs/measurement_interval"},
-        "mrr_area_ratio":{"oneOf":[{"type":"null"},{"$ref":"#/$defs/measurement_interval"}]},
-        "elongation_ratio":{"oneOf":[{"type":"null"},{"$ref":"#/$defs/measurement_interval"}]},
+        "plan_footprint_area_m2":{"$ref":"#/$defs/plan_area_interval"},
+        "mrr_area_ratio":{"oneOf":[{"type":"null"},{"$ref":"#/$defs/mrr_area_ratio_interval"}]},
+        "elongation_ratio":{"oneOf":[{"type":"null"},{"$ref":"#/$defs/elongation_interval"}]},
         "memberships":{"type":"array","minItems":8,"maxItems":8,"items":{"$ref":"#/$defs/membership"}}
       }
     }
