@@ -159,6 +159,7 @@ pub struct FixityEvent {
     pub artifact_id: String,
     pub expected_sha256: String,
     pub observed_sha256: String,
+    pub observed_byte_length: u64,
     pub outcome: FixityOutcome,
     pub checked_at_utc: String,
     pub checked_by_agent_id: String,
@@ -179,6 +180,9 @@ pub struct ByteFixityCheck {
     pub artifact_id: String,
     pub expected_sha256: String,
     pub observed_sha256: String,
+    pub expected_byte_length: u64,
+    pub observed_byte_length: u64,
+    pub length_matched: bool,
     pub matched: bool,
 }
 
@@ -265,7 +269,7 @@ fn non_empty(value: &str) -> bool {
 }
 
 fn valid_sha256(value: &str) -> bool {
-    value.len() == 64 && value.bytes().all(|byte| byte.is_ascii_hexdigit())
+    value.len() == 64 && value.bytes().all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
 }
 
 fn valid_utc_timestamp(value: &str) -> bool {
@@ -292,7 +296,10 @@ pub fn verify_artifact_bytes(
     ByteFixityCheck {
         artifact_id: artifact.artifact_id.clone(),
         expected_sha256: artifact.sha256.clone(),
-        matched: observed == artifact.sha256,
+        expected_byte_length: artifact.byte_length,
+        observed_byte_length: bytes.len() as u64,
+        length_matched: bytes.len() as u64 == artifact.byte_length,
+        matched: observed == artifact.sha256 && bytes.len() as u64 == artifact.byte_length,
         observed_sha256: observed,
     }
 }
@@ -757,7 +764,11 @@ pub fn audit_heritage_provenance(
                 event.checked_by_agent_id.clone(),
             ));
         }
-        match (event.outcome, event.expected_sha256 == event.observed_sha256) {
+        match (
+            event.outcome,
+            event.expected_sha256 == event.observed_sha256
+                && event.observed_byte_length == artifact.byte_length,
+        ) {
             (FixityOutcome::Matched, true) => {
                 matched_fixity_event_count += 1;
                 verified_artifacts.insert(event.artifact_id.as_str());
@@ -948,6 +959,17 @@ mod tests {
     }
 
     #[test]
+    fn byte_verifier_rejects_length_mismatch_even_when_payload_prefix_matches() {
+        let input = manifest();
+        let artifact = &input.artifacts[0];
+        let mut extended = RAW_BYTES.to_vec();
+        extended.push(0);
+        let result = verify_artifact_bytes(artifact, &extended);
+        assert!(!result.length_matched);
+        assert!(!result.matched);
+    }
+
+    #[test]
     fn mismatch_fixity_event_is_retained_and_reported_not_promoted() {
         let mut input = manifest();
         input.fixity_events.push(FixityEvent {
@@ -955,6 +977,7 @@ mod tests {
             artifact_id: "raw-capture-1".to_owned(),
             expected_sha256: input.artifacts[0].sha256.clone(),
             observed_sha256: sha256_hex(b"mutated-payload"),
+            observed_byte_length: b"mutated-payload".len() as u64,
             outcome: FixityOutcome::Mismatch,
             checked_at_utc: "2026-11-05T08:11:00Z".to_owned(),
             checked_by_agent_id: "archivist-1".to_owned(),
@@ -1033,7 +1056,7 @@ mod tests {
             activity_id: "reverse-transform".to_owned(),
             kind: ActivityKind::Transformation,
             purpose: RightsPurpose::ResearchAnalysis,
-            input_artifact_ids: vec!["raw-capture-1".to_owned()],
+            input_artifact_ids: vec!["point-cloud-1".to_owned()],
             generated_artifact_ids: vec!["raw-capture-1".to_owned()],
             responsible_agent_ids: vec!["archivist-1".to_owned(), "pipeline-1".to_owned()],
             software_agent_id: Some("pipeline-1".to_owned()),
@@ -1073,6 +1096,7 @@ mod tests {
     fn fixity_outcome_must_match_expected_and_observed_digests() {
         let mut input = manifest();
         input.fixity_events[0].outcome = FixityOutcome::Mismatch;
+        input.fixity_events[0].observed_byte_length = RAW_BYTES.len() as u64;
         assert!(matches!(
             audit_heritage_provenance(&input),
             Err(HeritageProvenanceError::InvalidFixityOutcome(_))
