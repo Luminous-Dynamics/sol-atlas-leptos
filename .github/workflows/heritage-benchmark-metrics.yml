@@ -1,0 +1,65 @@
+name: Heritage Benchmark Metric Engine Qualification
+
+on:
+  pull_request:
+    paths:
+      - "sol-atlas-core/src/heritage_benchmark_metrics.rs"
+      - "sol-atlas-core/src/lib.rs"
+      - "sol-atlas-core/Cargo.toml"
+      - "schemas/heritage-benchmark-metrics-v0.1.schema.json"
+      - "schemas/examples/heritage-stone-metrics-synthetic-v0.1.json"
+      - "schemas/examples/heritage-wall-metrics-synthetic-v0.1.json"
+      - "docs/research/heritage-benchmark-metrics-v0.1.md"
+      - ".github/workflows/heritage-benchmark-metrics.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  qualify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Verify exact checkout
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - name: Check core formatting
+        run: cargo fmt --manifest-path sol-atlas-core/Cargo.toml -- --check
+      - name: Run core unit and fixture tests
+        run: cargo test --manifest-path sol-atlas-core/Cargo.toml
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Validate Draft 2020-12 schema and fixtures
+        run: |
+          python -m pip install --disable-pip-version-check jsonschema==4.23.0
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from jsonschema import Draft202012Validator
+
+          schema_path = Path("schemas/heritage-benchmark-metrics-v0.1.schema.json")
+          schema = json.loads(schema_path.read_text())
+          Draft202012Validator.check_schema(schema)
+          validator = Draft202012Validator(schema)
+
+          fixture_paths = [
+              Path("schemas/examples/heritage-stone-metrics-synthetic-v0.1.json"),
+              Path("schemas/examples/heritage-wall-metrics-synthetic-v0.1.json"),
+          ]
+          fixtures = [json.loads(path.read_text()) for path in fixture_paths]
+          for fixture in fixtures:
+              validator.validate(fixture)
+
+          malformed = json.loads(fixture_paths[0].read_text())
+          malformed["provenance"]["dataset_sha256"] = "not-a-digest"
+          assert list(validator.iter_errors(malformed)), "negative control unexpectedly passed"
+          print("Draft 2020-12 schema and 2 positive / 1 negative fixtures passed")
+          PY
