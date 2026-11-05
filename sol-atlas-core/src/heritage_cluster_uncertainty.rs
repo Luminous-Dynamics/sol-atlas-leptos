@@ -56,6 +56,9 @@ pub struct IndependentUnitMetric {
     /// Number of lower-level items contributing to this unit-level metric.
     /// This is descriptive support, not a weight in the macro-unit estimand.
     pub support_count: u64,
+    /// Optional baseline score for the same independent unit, enabling paired inference.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub paired_baseline_metric_value: Option<f64>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -68,6 +71,12 @@ pub struct ClusterBootstrapInput {
     pub metric_id: String,
     pub metric_unit: String,
     pub metric_direction: MetricDirection,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub paired_baseline_model_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub paired_baseline_run_sha256: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub paired_baseline_metric_definition_sha256: Option<String>,
     pub independent_unit_kind: IndependentUnitKind,
     pub independence_basis_ref: String,
     pub correlation_evidence_ref: String,
@@ -94,6 +103,14 @@ pub struct ClusterBootstrapReport {
     pub metric_id: String,
     pub metric_unit: String,
     pub metric_direction: MetricDirection,
+    pub paired_baseline_model_id: Option<String>,
+    pub paired_baseline_run_sha256: Option<String>,
+    pub paired_baseline_macro_unit_mean: Option<f64>,
+    /// Positive values mean the candidate model improved over the paired baseline.
+    pub paired_improvement_macro_mean: Option<f64>,
+    pub paired_improvement_percentile_lower: Option<f64>,
+    pub paired_improvement_percentile_upper: Option<f64>,
+    pub paired_improvement_bootstrap_standard_error: Option<f64>,
     pub independent_unit_kind: IndependentUnitKind,
     pub unit_count: usize,
     pub total_support_count: u64,
@@ -122,6 +139,13 @@ pub enum ClusterBootstrapError {
     InvalidSplitManifestDigest,
     InvalidMetricDefinitionDigest,
     InvalidCorrelationModelDigest,
+    InconsistentPairedComparisonMetadata,
+    EmptyPairedBaselineModelId,
+    InvalidPairedBaselineRunDigest,
+    InvalidPairedBaselineMetricDigest,
+    PairedBaselineMetricMissing(String),
+    PairedBaselineMetricUnexpected(String),
+    InvalidPairedBaselineValue(String),
     EmptyMetricIdentity,
     EmptyIndependenceBasisReceipt,
     EmptyCorrelationEvidenceReceipt,
@@ -319,6 +343,40 @@ pub fn evaluate_cluster_metric_uncertainty(
     if !valid_sha256(&input.correlation_model_sha256) {
         return Err(ClusterBootstrapError::InvalidCorrelationModelDigest);
     }
+    let paired_metadata_count = [
+        input.paired_baseline_model_id.is_some(),
+        input.paired_baseline_run_sha256.is_some(),
+        input.paired_baseline_metric_definition_sha256.is_some(),
+    ]
+    .into_iter()
+    .filter(|present| *present)
+    .count();
+    if paired_metadata_count != 0 && paired_metadata_count != 3 {
+        return Err(ClusterBootstrapError::InconsistentPairedComparisonMetadata);
+    }
+    let paired_comparison_enabled = paired_metadata_count == 3;
+    if paired_comparison_enabled {
+        if input
+            .paired_baseline_model_id
+            .as_deref()
+            .is_none_or(|model_id| !non_empty(model_id))
+        {
+            return Err(ClusterBootstrapError::EmptyPairedBaselineModelId);
+        }
+        if !valid_sha256(input.paired_baseline_run_sha256.as_deref().unwrap()) {
+            return Err(ClusterBootstrapError::InvalidPairedBaselineRunDigest);
+        }
+        if !valid_sha256(
+            input
+                .paired_baseline_metric_definition_sha256
+                .as_deref()
+                .unwrap(),
+        ) || input.paired_baseline_metric_definition_sha256.as_deref()
+            != Some(input.metric_definition_sha256.as_str())
+        {
+            return Err(ClusterBootstrapError::InvalidPairedBaselineMetricDigest);
+        }
+    }
     if !non_empty(&input.metric_id) || !non_empty(&input.metric_unit) {
         return Err(ClusterBootstrapError::EmptyMetricIdentity);
     }
@@ -355,6 +413,8 @@ pub fn evaluate_cluster_metric_uncertainty(
 
     let mut unit_ids = BTreeSet::new();
     let mut metric_values = Vec::with_capacity(input.units.len());
+    let mut paired_baseline_values = Vec::with_capacity(input.units.len());
+    let mut paired_improvement_values = Vec::with_capacity(input.units.len());
     let mut total_support_count = 0_u64;
     let mut minimum_unit_support_count = u64::MAX;
     let mut maximum_unit_support_count = 0_u64;
@@ -370,6 +430,32 @@ pub fn evaluate_cluster_metric_uncertainty(
             return Err(ClusterBootstrapError::InvalidMetricValue(
                 unit.unit_id.clone(),
             ));
+        }
+        match (paired_comparison_enabled, unit.paired_baseline_metric_value) {
+            (true, None) => {
+                return Err(ClusterBootstrapError::PairedBaselineMetricMissing(
+                    unit.unit_id.clone(),
+                ));
+            }
+            (false, Some(_)) => {
+                return Err(ClusterBootstrapError::PairedBaselineMetricUnexpected(
+                    unit.unit_id.clone(),
+                ));
+            }
+            (true, Some(baseline_value)) if !baseline_value.is_finite() => {
+                return Err(ClusterBootstrapError::InvalidPairedBaselineValue(
+                    unit.unit_id.clone(),
+                ));
+            }
+            (true, Some(baseline_value)) => {
+                paired_baseline_values.push(baseline_value);
+                let improvement = match input.metric_direction {
+                    MetricDirection::HigherIsBetter => unit.metric_value - baseline_value,
+                    MetricDirection::LowerIsBetter => baseline_value - unit.metric_value,
+                };
+                paired_improvement_values.push(improvement);
+            }
+            (false, None) => {}
         }
         if unit.support_count == 0 {
             return Err(ClusterBootstrapError::ZeroSupportCount(
@@ -387,6 +473,12 @@ pub fn evaluate_cluster_metric_uncertainty(
     let (effective_units, maximum_observed_inter_unit_correlation) =
         validate_correlation_matrix(&input.correlation_matrix, input.units.len())?;
     let macro_unit_mean = metric_values.iter().sum::<f64>() / metric_values.len() as f64;
+    let paired_baseline_macro_unit_mean = paired_comparison_enabled.then(|| {
+        paired_baseline_values.iter().sum::<f64>() / paired_baseline_values.len() as f64
+    });
+    let paired_improvement_macro_mean = paired_comparison_enabled.then(|| {
+        paired_improvement_values.iter().sum::<f64>() / paired_improvement_values.len() as f64
+    });
 
     let interval_status =
         if maximum_observed_inter_unit_correlation > input.maximum_inter_unit_correlation {
@@ -409,6 +501,23 @@ pub fn evaluate_cluster_metric_uncertainty(
         } else {
             (None, None, None)
         };
+    // Reusing the same seed and unit count produces matched bootstrap draws:
+    // every candidate and baseline value is resampled at the same site/block.
+    let (
+        paired_improvement_percentile_lower,
+        paired_improvement_percentile_upper,
+        paired_improvement_bootstrap_standard_error,
+    ) = if paired_comparison_enabled && interval_status == ClusterIntervalStatus::Qualified {
+        let (lower, upper, standard_error) = run_cluster_bootstrap(
+            &paired_improvement_values,
+            input.bootstrap_replicates,
+            input.random_seed,
+            input.confidence_level,
+        );
+        (Some(lower), Some(upper), Some(standard_error))
+    } else {
+        (None, None, None)
+    };
 
     Ok(ClusterBootstrapReport {
         schema_version: HERITAGE_CLUSTER_UNCERTAINTY_SCHEMA_VERSION.to_owned(),
@@ -419,6 +528,13 @@ pub fn evaluate_cluster_metric_uncertainty(
         metric_id: input.metric_id.clone(),
         metric_unit: input.metric_unit.clone(),
         metric_direction: input.metric_direction,
+        paired_baseline_model_id: input.paired_baseline_model_id.clone(),
+        paired_baseline_run_sha256: input.paired_baseline_run_sha256.clone(),
+        paired_baseline_macro_unit_mean,
+        paired_improvement_macro_mean,
+        paired_improvement_percentile_lower,
+        paired_improvement_percentile_upper,
+        paired_improvement_bootstrap_standard_error,
         independent_unit_kind: input.independent_unit_kind,
         unit_count: input.units.len(),
         total_support_count,
@@ -439,6 +555,8 @@ pub fn evaluate_cluster_metric_uncertainty(
         assumptions: vec![
             "Each supplied metric value summarizes one complete declared independent evaluation unit.".to_owned(),
             "The point estimate is an equal-weight macro mean across independent units; support_count is descriptive, not a weight.".to_owned(),
+            "When a paired baseline is supplied, model improvement is computed on the exact same independent units and bootstrap resamples.".to_owned(),
+            "Positive paired improvement values indicate the candidate is better after applying metric_direction.".to_owned(),
             "The supplied correlation matrix refers to correlation among unit-level metric estimation errors.".to_owned(),
             "Effective units use the equal-marginal-variance design-effect formula K² divided by the sum of all correlation-matrix entries.".to_owned(),
             "The percentile bootstrap resamples independent units only and is emitted only when declared correlation and effective-unit gates pass.".to_owned(),
@@ -460,6 +578,7 @@ mod tests {
             unit_id: id.to_owned(),
             metric_value: value,
             support_count: 100,
+            paired_baseline_metric_value: None,
         }
     }
 
@@ -473,6 +592,9 @@ mod tests {
             metric_id: "stone-instance-f1".to_owned(),
             metric_unit: "score".to_owned(),
             metric_direction: MetricDirection::HigherIsBetter,
+            paired_baseline_model_id: None,
+            paired_baseline_run_sha256: None,
+            paired_baseline_metric_definition_sha256: None,
             independent_unit_kind: IndependentUnitKind::Site,
             independence_basis_ref: "hdb19://site-holdout/receipt/1".to_owned(),
             correlation_evidence_ref: "correlogram://metric-errors/receipt/1".to_owned(),
@@ -569,6 +691,57 @@ mod tests {
             first.bootstrap_standard_error,
             second.bootstrap_standard_error
         );
+    }
+
+    #[test]
+    fn paired_model_comparison_bootstraps_same_site_differences() {
+        let mut value = input();
+        value.paired_baseline_model_id = Some("published-baseline-v1".to_owned());
+        value.paired_baseline_run_sha256 = Some(digest('e'));
+        value.paired_baseline_metric_definition_sha256 = Some(value.metric_definition_sha256.clone());
+        for unit in &mut value.units {
+            unit.paired_baseline_metric_value = Some(unit.metric_value - 0.04);
+        }
+        let report = evaluate_cluster_metric_uncertainty(&value).expect("paired model comparison");
+        assert!((report.paired_improvement_macro_mean.unwrap() - 0.04).abs() < 1e-12);
+        assert!(report.paired_improvement_percentile_lower.unwrap() > 0.0);
+        assert!(report.paired_improvement_percentile_upper.unwrap() > 0.0);
+        assert_eq!(
+            report.paired_baseline_model_id.as_deref(),
+            Some("published-baseline-v1")
+        );
+    }
+
+    #[test]
+    fn paired_model_comparison_respects_lower_is_better_direction() {
+        let mut value = input();
+        value.metric_direction = MetricDirection::LowerIsBetter;
+        value.paired_baseline_model_id = Some("baseline-error-model".to_owned());
+        value.paired_baseline_run_sha256 = Some(digest('e'));
+        value.paired_baseline_metric_definition_sha256 = Some(value.metric_definition_sha256.clone());
+        for unit in &mut value.units {
+            unit.paired_baseline_metric_value = Some(unit.metric_value + 0.15);
+        }
+        let report = evaluate_cluster_metric_uncertainty(&value).expect("lower-is-better comparison");
+        assert!((report.paired_improvement_macro_mean.unwrap() - 0.15).abs() < 1e-12);
+        assert!(report.paired_improvement_percentile_lower.unwrap() > 0.0);
+    }
+
+    #[test]
+    fn incomplete_paired_baseline_metadata_or_missing_unit_value_is_rejected() {
+        let mut value = input();
+        value.paired_baseline_model_id = Some("baseline".to_owned());
+        assert_eq!(
+            evaluate_cluster_metric_uncertainty(&value),
+            Err(ClusterBootstrapError::InconsistentPairedComparisonMetadata)
+        );
+        value.paired_baseline_run_sha256 = Some(digest('e'));
+        value.paired_baseline_metric_definition_sha256 =
+            Some(value.metric_definition_sha256.clone());
+        assert!(matches!(
+            evaluate_cluster_metric_uncertainty(&value),
+            Err(ClusterBootstrapError::PairedBaselineMetricMissing(_))
+        ));
     }
 
     #[test]
