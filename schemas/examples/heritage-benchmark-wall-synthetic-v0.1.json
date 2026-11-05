@@ -1,0 +1,105 @@
+{
+  "provenance": {
+    "schema_version": "luminous.heritage-benchmark.v0.1",
+    "source_id": "doi:10.1016/j.jas.2025.106430",
+    "dataset_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "model_artifact_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "model_build_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "prediction_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+    "reference_label_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+    "split_manifest_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+    "evaluator_build_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+    "metric_protocol_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+    "rights_receipt_ref": "rights://synthetic/approved",
+    "evaluation_unit_id": "site-synthetic-1",
+    "evaluation_unit_kind": "site"
+  },
+  "raster_width": 10,
+  "raster_height": 10,
+  "prediction_confidence_threshold": 0.5,
+  "segment_coverage_thresholds": [
+    0.7,
+    0.6,
+    0.5
+  ],
+  "ground_truth_segments": [
+    {
+      "segment_id": "gt-wall-1",
+      "mask": {
+        "width": 10,
+        "height": 10,
+        "pixel_indices": [
+          0,
+          1,
+          2,
+          3
+        ]
+      }
+    },
+    {
+      "segment_id": "gt-wall-2",
+      "mask": {
+        "width": 10,
+        "height": 10,
+        "pixel_indices": [
+          20,
+          21,
+          22,
+          23
+        ]
+      }
+    }
+  ],
+  "predicted_segments": [
+    {
+      "segment_id": "pred-wall-1a",
+      "confidence": 0.9,
+      "mask": {
+        "width": 10,
+        "height": 10,
+        "pixel_indices": [
+          0,
+          1
+        ]
+      }
+    },
+    {
+      "segment_id": "pred-wall-1b",
+      "confidence": 0.8,
+      "mask": {
+        "width": 10,
+        "height": 10,
+        "pixel_indices": [
+          2,
+          3
+        ]
+      }
+    },
+    {
+      "segment_id": "pred-wall-2",
+      "confidence": 0.4,
+      "mask": {
+        "width": 10,
+        "height": 10,
+        "pixel_indices": [
+          20,
+          21,
+          22,
+          23
+        ]
+      }
+    },
+    {
+      "segment_id": "false-positive",
+      "confidence": 0.7,
+      "mask": {
+        "width": 10,
+        "height": 10,
+        "pixel_indices": [
+          40,
+          41
+        ]
+      }
+    }
+  ]
+}
