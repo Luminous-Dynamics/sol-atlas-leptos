@@ -968,6 +968,7 @@ mod tests {
                 artifact_id: "raw-capture-1".to_owned(),
                 expected_sha256: sha256_hex(RAW_BYTES),
                 observed_sha256: sha256_hex(RAW_BYTES),
+                observed_byte_length: RAW_BYTES.len() as u64,
                 outcome: FixityOutcome::Matched,
                 checked_at_utc: "2026-11-05T08:10:00Z".to_owned(),
                 checked_by_agent_id: "archivist-1".to_owned(),
