@@ -13,8 +13,7 @@ use sha2::{Digest, Sha256};
 use std::collections::{BTreeMap, BTreeSet, VecDeque};
 use std::fmt;
 
-pub const HERITAGE_PROVENANCE_SCHEMA_VERSION: &str =
-    "luminous.heritage-provenance.v0.1";
+pub const HERITAGE_PROVENANCE_SCHEMA_VERSION: &str = "luminous.heritage-provenance.v0.1";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -238,7 +237,10 @@ pub enum HeritageProvenanceError {
     MissingAutomatedProvenanceDigest(String),
     InvalidActivityTimestamp(String),
     ActivityTimeOrderInvalid(String),
-    PurposeNotAllowed { activity_id: String, artifact_id: String },
+    PurposeNotAllowed {
+        activity_id: String,
+        artifact_id: String,
+    },
     CycleDetected,
     FixityReferenceMismatch(String),
     InvalidFixityObservedDigest(String),
@@ -269,7 +271,10 @@ fn non_empty(value: &str) -> bool {
 }
 
 fn valid_sha256(value: &str) -> bool {
-    value.len() == 64 && value.bytes().all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
+    value.len() == 64
+        && value
+            .bytes()
+            .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
 }
 
 fn valid_utc_timestamp(value: &str) -> bool {
@@ -288,10 +293,7 @@ fn is_automated(kind: ActivityKind) -> bool {
 
 /// Recomputes the digest from exact payload bytes. The caller must persist the
 /// resulting event separately; this function does not authenticate the caller.
-pub fn verify_artifact_bytes(
-    artifact: &ProvenanceArtifact,
-    bytes: &[u8],
-) -> ByteFixityCheck {
+pub fn verify_artifact_bytes(artifact: &ProvenanceArtifact, bytes: &[u8]) -> ByteFixityCheck {
     let observed = sha256_hex(bytes);
     ByteFixityCheck {
         artifact_id: artifact.artifact_id.clone(),
@@ -308,11 +310,19 @@ fn canonical_manifest_bytes(
     manifest: &HeritageProvenanceManifest,
 ) -> Result<Vec<u8>, HeritageProvenanceError> {
     let mut canonical = manifest.clone();
-    canonical.artifacts.sort_by(|a, b| a.artifact_id.cmp(&b.artifact_id));
+    canonical
+        .artifacts
+        .sort_by(|a, b| a.artifact_id.cmp(&b.artifact_id));
     canonical.agents.sort_by(|a, b| a.agent_id.cmp(&b.agent_id));
-    canonical.activities.sort_by(|a, b| a.activity_id.cmp(&b.activity_id));
-    canonical.rights_decisions.sort_by(|a, b| a.decision_id.cmp(&b.decision_id));
-    canonical.fixity_events.sort_by(|a, b| a.event_id.cmp(&b.event_id));
+    canonical
+        .activities
+        .sort_by(|a, b| a.activity_id.cmp(&b.activity_id));
+    canonical
+        .rights_decisions
+        .sort_by(|a, b| a.decision_id.cmp(&b.decision_id));
+    canonical
+        .fixity_events
+        .sort_by(|a, b| a.event_id.cmp(&b.event_id));
 
     for activity in &mut canonical.activities {
         activity.input_artifact_ids.sort();
@@ -333,10 +343,7 @@ pub fn canonical_manifest_sha256(
     Ok(sha256_hex(&canonical_manifest_bytes(manifest)?))
 }
 
-fn graph_is_acyclic(
-    artifact_ids: &BTreeSet<String>,
-    activities: &[ProvenanceActivity],
-) -> bool {
+fn graph_is_acyclic(artifact_ids: &BTreeSet<String>, activities: &[ProvenanceActivity]) -> bool {
     let mut adjacency = BTreeMap::<String, BTreeSet<String>>::new();
     let mut indegree = artifact_ids
         .iter()
@@ -370,7 +377,9 @@ fn graph_is_acyclic(
         visited += 1;
         if let Some(outputs) = adjacency.get(&id) {
             for output in outputs {
-                let degree = indegree.get_mut(output).expect("all graph nodes are artifacts");
+                let degree = indegree
+                    .get_mut(output)
+                    .expect("all graph nodes are artifacts");
                 *degree -= 1;
                 if *degree == 0 {
                     queue.push_back(output.clone());
@@ -421,7 +430,10 @@ pub fn audit_heritage_provenance(
                 artifact.artifact_id.clone(),
             ));
         }
-        match (artifact.origin, artifact.generated_by_activity_id.as_deref()) {
+        match (
+            artifact.origin,
+            artifact.generated_by_activity_id.as_deref(),
+        ) {
             (ArtifactOrigin::Primary, None) => {}
             (ArtifactOrigin::Primary, Some(_)) => {
                 return Err(HeritageProvenanceError::UnexpectedGeneratingActivity(
@@ -475,16 +487,28 @@ pub fn audit_heritage_provenance(
                 decision.artifact_id.clone(),
             ));
         }
-        if decision.allowed_purposes.iter().collect::<BTreeSet<_>>().len()
+        if decision
+            .allowed_purposes
+            .iter()
+            .collect::<BTreeSet<_>>()
+            .len()
             != decision.allowed_purposes.len()
-            || decision.prohibited_purposes.iter().collect::<BTreeSet<_>>().len()
+            || decision
+                .prohibited_purposes
+                .iter()
+                .collect::<BTreeSet<_>>()
+                .len()
                 != decision.prohibited_purposes.len()
         {
             return Err(HeritageProvenanceError::InvalidRightsPurposeSet(
                 decision.decision_id.clone(),
             ));
         }
-        let allowed = decision.allowed_purposes.iter().copied().collect::<BTreeSet<_>>();
+        let allowed = decision
+            .allowed_purposes
+            .iter()
+            .copied()
+            .collect::<BTreeSet<_>>();
         let prohibited = decision
             .prohibited_purposes
             .iter()
@@ -605,11 +629,23 @@ pub fn audit_heritage_provenance(
                 return Err(HeritageProvenanceError::UnknownAgent(id.clone()));
             }
         }
-        if activity.responsible_agent_ids.iter().collect::<BTreeSet<_>>().len()
+        if activity
+            .responsible_agent_ids
+            .iter()
+            .collect::<BTreeSet<_>>()
+            .len()
             != activity.responsible_agent_ids.len()
-            || activity.input_artifact_ids.iter().collect::<BTreeSet<_>>().len()
+            || activity
+                .input_artifact_ids
+                .iter()
+                .collect::<BTreeSet<_>>()
+                .len()
                 != activity.input_artifact_ids.len()
-            || activity.generated_artifact_ids.iter().collect::<BTreeSet<_>>().len()
+            || activity
+                .generated_artifact_ids
+                .iter()
+                .collect::<BTreeSet<_>>()
+                .len()
                 != activity.generated_artifact_ids.len()
         {
             return Err(HeritageProvenanceError::DuplicateActivityReference(
@@ -631,8 +667,10 @@ pub fn audit_heritage_provenance(
             let rights = rights_by_artifact
                 .get(input_id.as_str())
                 .expect("every artifact has one rights decision");
-            if !matches!(rights.status, RightsStatus::Allowed | RightsStatus::Restricted)
-                || !rights.allowed_purposes.contains(&activity.purpose)
+            if !matches!(
+                rights.status,
+                RightsStatus::Allowed | RightsStatus::Restricted
+            ) || !rights.allowed_purposes.contains(&activity.purpose)
                 || rights.prohibited_purposes.contains(&activity.purpose)
             {
                 return Err(HeritageProvenanceError::PurposeNotAllowed {
@@ -647,18 +685,20 @@ pub fn audit_heritage_provenance(
                     activity.activity_id.clone(),
                 ));
             }
-            let output = artifacts.get(output_id.as_str()).ok_or_else(|| {
-                HeritageProvenanceError::MissingActivityOutput(output_id.clone())
-            })?;
+            let output = artifacts
+                .get(output_id.as_str())
+                .ok_or_else(|| HeritageProvenanceError::MissingActivityOutput(output_id.clone()))?;
             if output.origin != ArtifactOrigin::Derived
-                || output.generated_by_activity_id.as_deref()
-                    != Some(activity.activity_id.as_str())
+                || output.generated_by_activity_id.as_deref() != Some(activity.activity_id.as_str())
             {
                 return Err(HeritageProvenanceError::OutputGeneratorMismatch(
                     output_id.clone(),
                 ));
             }
-            if generated_by.insert(output_id.as_str(), activity.activity_id.as_str()).is_some() {
+            if generated_by
+                .insert(output_id.as_str(), activity.activity_id.as_str())
+                .is_some()
+            {
                 return Err(HeritageProvenanceError::MultipleGenerators(
                     output_id.clone(),
                 ));
@@ -670,9 +710,9 @@ pub fn audit_heritage_provenance(
                     activity.activity_id.clone(),
                 )
             })?;
-            let software = agents.get(software_id).ok_or_else(|| {
-                HeritageProvenanceError::UnknownAgent(software_id.to_owned())
-            })?;
+            let software = agents
+                .get(software_id)
+                .ok_or_else(|| HeritageProvenanceError::UnknownAgent(software_id.to_owned()))?;
             if software.kind != AgentKind::Software {
                 return Err(HeritageProvenanceError::UnknownAgent(
                     software_id.to_owned(),
@@ -708,7 +748,10 @@ pub fn audit_heritage_provenance(
                 let activity = activities.get(activity_id).ok_or_else(|| {
                     HeritageProvenanceError::UnknownActivity(activity_id.to_owned())
                 })?;
-                if !activity.generated_artifact_ids.contains(&artifact.artifact_id) {
+                if !activity
+                    .generated_artifact_ids
+                    .contains(&artifact.artifact_id)
+                {
                     return Err(HeritageProvenanceError::OutputGeneratorMismatch(
                         artifact.artifact_id.clone(),
                     ));
@@ -741,9 +784,9 @@ pub fn audit_heritage_provenance(
                 event.event_id.clone(),
             ));
         }
-        let artifact = artifacts.get(event.artifact_id.as_str()).ok_or_else(|| {
-            HeritageProvenanceError::UnknownArtifact(event.artifact_id.clone())
-        })?;
+        let artifact = artifacts
+            .get(event.artifact_id.as_str())
+            .ok_or_else(|| HeritageProvenanceError::UnknownArtifact(event.artifact_id.clone()))?;
         if event.expected_sha256 != artifact.sha256 {
             return Err(HeritageProvenanceError::FixityReferenceMismatch(
                 event.event_id.clone(),
@@ -1076,14 +1119,20 @@ mod tests {
     #[test]
     fn missing_agent_and_orphan_activity_reference_are_rejected() {
         let mut input = manifest();
-        input.activities[0].responsible_agent_ids.push("unknown-agent".to_owned());
+        input.activities[0]
+            .responsible_agent_ids
+            .push("unknown-agent".to_owned());
         assert_eq!(
             audit_heritage_provenance(&input),
-            Err(HeritageProvenanceError::UnknownAgent("unknown-agent".to_owned()))
+            Err(HeritageProvenanceError::UnknownAgent(
+                "unknown-agent".to_owned()
+            ))
         );
 
         let mut input = manifest();
-        input.activities[0].input_artifact_ids.push("missing-artifact".to_owned());
+        input.activities[0]
+            .input_artifact_ids
+            .push("missing-artifact".to_owned());
         assert_eq!(
             audit_heritage_provenance(&input),
             Err(HeritageProvenanceError::MissingActivityInput(
