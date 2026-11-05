@@ -498,23 +498,9 @@ mod tests {
                 unit("site-9", 0.80),
                 unit("site-10", 0.87),
             ],
-            correlation_matrix: vec![vec![1.0; 10]; 10],
-        }
-        .with_identity_correlation()
-    }
-
-    trait IdentityCorrelation {
-        fn with_identity_correlation(self) -> Self;
-    }
-
-    impl IdentityCorrelation for ClusterBootstrapInput {
-        fn with_identity_correlation(mut self) -> Self {
-            for i in 0..self.correlation_matrix.len() {
-                for j in 0..self.correlation_matrix.len() {
-                    self.correlation_matrix[i][j] = if i == j { 1.0 } else { 0.0 };
-                }
-            }
-            self
+            correlation_matrix: (0..10)
+                .map(|i| (0..10).map(|j| if i == j { 1.0 } else { 0.0 }).collect())
+                .collect(),
         }
     }
 
@@ -599,6 +585,39 @@ mod tests {
         assert_eq!(
             evaluate_cluster_metric_uncertainty(&value),
             Err(ClusterBootstrapError::CorrelationMatrixNotPositiveSemidefinite)
+        );
+    }
+
+    #[test]
+    fn asymmetric_or_non_unit_diagonal_correlation_is_rejected() {
+        let mut value = input();
+        value.correlation_matrix[0][1] = 0.2;
+        assert_eq!(
+            evaluate_cluster_metric_uncertainty(&value),
+            Err(ClusterBootstrapError::CorrelationMatrixNotSymmetric)
+        );
+        value.correlation_matrix = (0..10)
+            .map(|i| (0..10).map(|j| if i == j { 0.9 } else { 0.0 }).collect())
+            .collect();
+        assert_eq!(
+            evaluate_cluster_metric_uncertainty(&value),
+            Err(ClusterBootstrapError::CorrelationMatrixDiagonalNotOne)
+        );
+    }
+
+    #[test]
+    fn unsupported_confidence_and_too_few_replicates_are_rejected() {
+        let mut value = input();
+        value.confidence_level = 0.975;
+        assert_eq!(
+            evaluate_cluster_metric_uncertainty(&value),
+            Err(ClusterBootstrapError::UnsupportedConfidenceLevel)
+        );
+        value.confidence_level = 0.95;
+        value.bootstrap_replicates = 999;
+        assert_eq!(
+            evaluate_cluster_metric_uncertainty(&value),
+            Err(ClusterBootstrapError::InvalidBootstrapReplicateCount)
         );
     }
 
