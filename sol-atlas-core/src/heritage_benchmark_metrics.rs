@@ -391,10 +391,16 @@ fn intersection_over_union(left: &[u64], right: &[u64]) -> f64 {
 fn count_metrics(true_positive: usize, false_positive: usize, false_negative: usize) -> CountMetrics {
     let precision_denominator = true_positive + false_positive;
     let recall_denominator = true_positive + false_negative;
-    let precision = (precision_denominator > 0)
-        .then_some(true_positive as f64 / precision_denominator as f64);
-    let recall =
-        (recall_denominator > 0).then_some(true_positive as f64 / recall_denominator as f64);
+    let precision = if precision_denominator > 0 {
+        Some(true_positive as f64 / precision_denominator as f64)
+    } else {
+        None
+    };
+    let recall = if recall_denominator > 0 {
+        Some(true_positive as f64 / recall_denominator as f64)
+    } else {
+        None
+    };
     let f1 = if recall_denominator == 0 {
         None
     } else if precision_denominator == 0 {
@@ -1108,7 +1114,7 @@ mod tests {
 
     #[test]
     fn fixture_contract_round_trips_through_serde() {
-        let fixture = include_str!("../../schemas/examples/heritage-benchmark-metrics-synthetic-v0.1.json");
+        let fixture = include_str!("../../schemas/examples/heritage-stone-metrics-synthetic-v0.1.json");
         let input: StoneEvaluationInput = serde_json::from_str(fixture).unwrap();
         let report = evaluate_stone_instances(&input).unwrap();
         assert_eq!(report.counts.true_positive, 1);
