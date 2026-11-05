@@ -221,10 +221,7 @@ fn validate_correlation_matrix(
 
     let n = unit_count as f64;
     let effective_units = n * n / correlation_sum;
-    if !effective_units.is_finite()
-        || effective_units < 1.0 - 1e-9
-        || effective_units > n + 1e-9
-    {
+    if !effective_units.is_finite() || effective_units < 1.0 - 1e-9 || effective_units > n + 1e-9 {
         return Err(ClusterBootstrapError::InvalidEffectiveUnitCount);
     }
 
@@ -340,8 +337,7 @@ pub fn evaluate_cluster_metric_uncertainty(
     if input.minimum_effective_units < MIN_DECLARED_EFFECTIVE_UNITS {
         return Err(ClusterBootstrapError::InvalidMinimumEffectiveUnits);
     }
-    if !(MIN_BOOTSTRAP_REPLICATES..=MAX_BOOTSTRAP_REPLICATES)
-        .contains(&input.bootstrap_replicates)
+    if !(MIN_BOOTSTRAP_REPLICATES..=MAX_BOOTSTRAP_REPLICATES).contains(&input.bootstrap_replicates)
     {
         return Err(ClusterBootstrapError::InvalidBootstrapReplicateCount);
     }
@@ -392,15 +388,14 @@ pub fn evaluate_cluster_metric_uncertainty(
         validate_correlation_matrix(&input.correlation_matrix, input.units.len())?;
     let macro_unit_mean = metric_values.iter().sum::<f64>() / metric_values.len() as f64;
 
-    let interval_status = if maximum_observed_inter_unit_correlation
-        > input.maximum_inter_unit_correlation
-    {
-        ClusterIntervalStatus::CorrelationExceedsTolerance
-    } else if effective_units < input.minimum_effective_units as f64 {
-        ClusterIntervalStatus::InsufficientEffectiveUnits
-    } else {
-        ClusterIntervalStatus::Qualified
-    };
+    let interval_status =
+        if maximum_observed_inter_unit_correlation > input.maximum_inter_unit_correlation {
+            ClusterIntervalStatus::CorrelationExceedsTolerance
+        } else if effective_units < input.minimum_effective_units as f64 {
+            ClusterIntervalStatus::InsufficientEffectiveUnits
+        } else {
+            ClusterIntervalStatus::Qualified
+        };
 
     let (percentile_lower, percentile_upper, bootstrap_standard_error) =
         if interval_status == ClusterIntervalStatus::Qualified {
@@ -570,7 +565,10 @@ mod tests {
         let second = evaluate_cluster_metric_uncertainty(&value).expect("second");
         assert_eq!(first.percentile_lower, second.percentile_lower);
         assert_eq!(first.percentile_upper, second.percentile_upper);
-        assert_eq!(first.bootstrap_standard_error, second.bootstrap_standard_error);
+        assert_eq!(
+            first.bootstrap_standard_error,
+            second.bootstrap_standard_error
+        );
     }
 
     #[test]
