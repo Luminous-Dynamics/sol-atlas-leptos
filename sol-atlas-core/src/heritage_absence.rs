@@ -67,6 +67,13 @@ pub struct CalibratedProbabilityBand {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct HeritageAbsenceCase {
+    pub schema_version: String,
+    pub observation: SurveyObservation,
+    pub model: Option<NonDetectionModel>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct NonDetectionModel {
     pub model_id: String,
     pub context_id: String,
@@ -304,6 +311,18 @@ fn bayes_presence_given_non_detection(
         return Err(HeritageAbsenceError::UndefinedBayesianUpdate);
     }
     Ok(numerator / denominator)
+}
+
+/// Validates the versioned serialized case before evaluating the observation.
+pub fn assess_heritage_absence_case(
+    case: &HeritageAbsenceCase,
+) -> Result<AbsenceAssessment, HeritageAbsenceError> {
+    if case.schema_version != HERITAGE_ABSENCE_SCHEMA_VERSION {
+        return Err(HeritageAbsenceError::EmptyIdentity(
+            "schema_version".to_owned(),
+        ));
+    }
+    assess_absence_evidence(&case.observation, case.model.as_ref())
 }
 
 /// Interprets one observation only. Repeated visits must not be multiplied as
@@ -549,6 +568,26 @@ mod tests {
                 0.02, 0.02, "false-positive", Some(method), Some(&effort),
             ),
         }
+    }
+
+    #[test]
+    fn versioned_absence_case_schema_and_fixture_parse() {
+        let schema: serde_json::Value = serde_json::from_str(include_str!(
+            "../../schemas/heritage-absence-v0.1.schema.json"
+        ))
+        .expect("absence schema JSON");
+        let fixture: HeritageAbsenceCase = serde_json::from_str(include_str!(
+            "../../schemas/examples/heritage-absence-synthetic-v0.1.json"
+        ))
+        .expect("absence fixture");
+        assert_eq!(
+            schema["$schema"],
+            "https://json-schema.org/draft/2020-12/schema"
+        );
+        assert!(matches!(
+            assess_heritage_absence_case(&fixture).expect("fixture posterior"),
+            AbsenceAssessment::PosteriorUpdate(_)
+        ));
     }
 
     #[test]
