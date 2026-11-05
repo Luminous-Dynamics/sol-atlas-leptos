@@ -1,0 +1,30 @@
+{
+  "metric_name": "site_macro_f1",
+  "split_manifest_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "evaluation_run_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "metric_definition_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+  "unit_kind": "site",
+  "observations": [
+    { "unit_id": "site-a", "metric_value": 0.6, "support_count": 10 },
+    { "unit_id": "site-b", "metric_value": 0.8, "support_count": 1000 },
+    { "unit_id": "site-c", "metric_value": 1.0, "support_count": 100 }
+  ],
+  "correlation_matrix_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+  "correlation_matrix": [
+    [1.0, 0.0, 0.0],
+    [0.0, 1.0, 0.0],
+    [0.0, 0.0, 1.0]
+  ],
+  "correlation_evidence": {
+    "model_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+    "method": "synthetic_independent_control",
+    "evidence_ref": "evidence:synthetic-correlation",
+    "receipt_ref": "receipt:synthetic-correlation"
+  },
+  "equal_marginal_variance_assumed": true,
+  "bootstrap_seed": 42,
+  "bootstrap_replicates": 2000,
+  "confidence_level": 0.95,
+  "minimum_effective_units": 2.0,
+  "maximum_permitted_inter_unit_correlation": 0.5
+}
