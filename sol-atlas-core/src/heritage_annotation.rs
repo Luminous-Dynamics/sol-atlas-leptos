@@ -178,6 +178,7 @@ pub enum HeritageAnnotationError {
     AdjudicationSetTooSmall(String),
     AdjudicationReferencesDifferentSubject(String),
     AdjudicatorMustBeHuman(String),
+    ModelOutputReferenceNotDisclosed(String),
     InvalidAdjudicationOutcome(String),
     NoAnnotationsForPlurality,
     NoHumanPanel,
@@ -434,6 +435,15 @@ pub fn audit_heritage_annotations(
                     adjudication.adjudication_id.clone(),
                 ));
             }
+            if raters
+                .get(annotation.rater_id.as_str())
+                .is_some_and(|rater| rater.kind == RaterKind::Model)
+                && !adjudication.model_outputs_shown
+            {
+                return Err(HeritageAnnotationError::ModelOutputReferenceNotDisclosed(
+                    adjudication.adjudication_id.clone(),
+                ));
+            }
         }
         let adjudicator = raters
             .get(adjudication.adjudicator_rater_id.as_str())
@@ -481,6 +491,12 @@ pub fn derive_plurality_consensus(
     context_id: &str,
 ) -> Result<PluralityConsensusRecord, HeritageAnnotationError> {
     audit_heritage_annotations(dataset)?;
+    let human_rater_ids = dataset
+        .raters
+        .iter()
+        .filter(|rater| is_human(rater.kind))
+        .map(|rater| rater.rater_id.as_str())
+        .collect::<BTreeSet<_>>();
     let mut matching: Vec<&HeritageAnnotation> = dataset
         .annotations
         .iter()
@@ -488,6 +504,7 @@ pub fn derive_plurality_consensus(
             annotation.task_id == task_id
                 && annotation.sample_id == sample_id
                 && annotation.context_id == context_id
+                && human_rater_ids.contains(annotation.rater_id.as_str())
         })
         .collect();
     if matching.is_empty() {
@@ -530,14 +547,14 @@ pub fn derive_plurality_consensus(
             .iter()
             .map(|annotation| annotation.annotation_id.clone())
             .collect(),
-        method: "unweighted_plurality_v0.1".to_owned(),
+        method: "human_only_unweighted_plurality_v0.1".to_owned(),
         outcome,
         assigned_vote_count: vote_counts.values().sum(),
         unsure_count,
         not_observable_count,
         abstained_count,
         vote_counts,
-        claim_ceiling: "derived_vote_summary_not_archaeological_truth".to_owned(),
+        claim_ceiling: "human_vote_summary_not_archaeological_truth".to_owned(),
     })
 }
 
@@ -778,6 +795,33 @@ mod tests {
     }
 
     #[test]
+    fn human_plurality_does_not_mix_model_predictions_into_the_panel() {
+        let mut input = dataset();
+        input.raters.push(AnnotationRater {
+            rater_id: "model-1".to_owned(),
+            kind: RaterKind::Model,
+            task_scope_tags: vec!["stone-wall-detection".to_owned()],
+            qualification_receipt_ref: None,
+        });
+        let mut model_annotation = assigned("model-a1", "sample-1", "model-1", "natural");
+        model_annotation.confidence = None;
+        input.annotations.push(model_annotation);
+        let consensus = derive_plurality_consensus(
+            &input,
+            "stone-wall-classification",
+            "sample-1",
+            "orthophoto-context-1",
+        )
+        .expect("human-only plurality");
+        assert_eq!(
+            consensus.outcome,
+            PluralityOutcome::Resolved("wall".to_owned())
+        );
+        assert_eq!(consensus.source_annotation_ids.len(), 3);
+        assert_eq!(consensus.method, "human_only_unweighted_plurality_v0.1");
+    }
+
+    #[test]
     fn unsure_not_observable_and_abstained_are_not_negative_labels() {
         let mut input = dataset();
         input.annotations[0].decision = AnnotationDecision::Unsure;
@@ -896,6 +940,39 @@ mod tests {
         assert_eq!(report.adjudication_count, 1);
         assert_eq!(input.annotations.len(), 6);
         assert_eq!(report.model_output_shown_adjudication_count, 0);
+    }
+
+    #[test]
+    fn model_annotation_in_adjudication_requires_explicit_visibility() {
+        let mut input = dataset();
+        input.raters.push(AnnotationRater {
+            rater_id: "model-1".to_owned(),
+            kind: RaterKind::Model,
+            task_scope_tags: vec!["stone-wall-detection".to_owned()],
+            qualification_receipt_ref: None,
+        });
+        let mut model_annotation = assigned("model-a1", "sample-1", "model-1", "wall");
+        model_annotation.confidence = None;
+        input.annotations.push(model_annotation);
+        input.adjudications.push(AnnotationAdjudication {
+            adjudication_id: "adj-with-hidden-model".to_owned(),
+            task_id: "stone-wall-classification".to_owned(),
+            sample_id: "sample-1".to_owned(),
+            context_id: "orthophoto-context-1".to_owned(),
+            ontology_version: "stone-wall-ontology-1.0".to_owned(),
+            source_annotation_ids: vec!["a-1".to_owned(), "model-a1".to_owned()],
+            adjudicator_rater_id: "expert-1".to_owned(),
+            outcome: AdjudicationOutcome::Resolved("wall".to_owned()),
+            rationale_sha256: digest(b"adjudication-rationale"),
+            model_outputs_shown: false,
+            created_at_utc: "2026-11-05T09:00:00Z".to_owned(),
+        });
+        assert!(matches!(
+            audit_heritage_annotations(&input),
+            Err(HeritageAnnotationError::ModelOutputReferenceNotDisclosed(_))
+        ));
+        input.adjudications[0].model_outputs_shown = true;
+        assert!(audit_heritage_annotations(&input).is_ok());
     }
 
     #[test]
