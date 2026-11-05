@@ -93,7 +93,7 @@
       "probability": { "lower": 0.5, "upper": 0.5 },
       "target_class_id": "dry_stone_wall",
       "context_id": "synthetic-site-context-1",
-      "conditioning": "covered_given_survival_exposure_observability",
+      "conditioning": "covered_given_survival_exposure_and_observability",
       "method_id": "synthetic-spatial-coverage-union",
       "profile_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
       "method_build_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
