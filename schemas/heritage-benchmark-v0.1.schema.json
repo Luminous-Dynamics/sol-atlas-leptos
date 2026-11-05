@@ -1,0 +1,169 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/heritage-benchmark-v0.1.schema.json",
+  "title": "Sol-Atlas Heritage Benchmark Inputs v0.1",
+  "oneOf": [
+    { "$ref": "#/$defs/stone_instance_input" },
+    { "$ref": "#/$defs/wall_evaluation_input" }
+  ],
+  "$defs": {
+    "digest": {
+      "type": "string",
+      "pattern": "^[A-Fa-f0-9]{64}$"
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "source_id",
+        "dataset_sha256",
+        "model_artifact_sha256",
+        "model_build_sha256",
+        "prediction_sha256",
+        "reference_label_sha256",
+        "split_manifest_sha256",
+        "evaluator_build_sha256",
+        "metric_protocol_sha256",
+        "rights_receipt_ref",
+        "evaluation_unit_id",
+        "evaluation_unit_kind"
+      ],
+      "properties": {
+        "schema_version": { "const": "luminous.heritage-benchmark.v0.1" },
+        "source_id": { "type": "string", "minLength": 1 },
+        "dataset_sha256": { "$ref": "#/$defs/digest" },
+        "model_artifact_sha256": { "$ref": "#/$defs/digest" },
+        "model_build_sha256": { "$ref": "#/$defs/digest" },
+        "prediction_sha256": { "$ref": "#/$defs/digest" },
+        "reference_label_sha256": { "$ref": "#/$defs/digest" },
+        "split_manifest_sha256": { "$ref": "#/$defs/digest" },
+        "evaluator_build_sha256": { "$ref": "#/$defs/digest" },
+        "metric_protocol_sha256": { "$ref": "#/$defs/digest" },
+        "rights_receipt_ref": { "type": "string", "minLength": 1 },
+        "evaluation_unit_id": { "type": "string", "minLength": 1 },
+        "evaluation_unit_kind": {
+          "enum": ["site", "region", "paper_test_partition"]
+        }
+      }
+    },
+    "mask": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["width", "height", "pixel_indices"],
+      "properties": {
+        "width": { "type": "integer", "minimum": 1 },
+        "height": { "type": "integer", "minimum": 1 },
+        "pixel_indices": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "integer", "minimum": 0 }
+        }
+      }
+    },
+    "ground_truth_instance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["object_id", "mask"],
+      "properties": {
+        "object_id": { "type": "string", "minLength": 1 },
+        "mask": { "$ref": "#/$defs/mask" }
+      }
+    },
+    "predicted_instance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["object_id", "confidence", "mask"],
+      "properties": {
+        "object_id": { "type": "string", "minLength": 1 },
+        "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+        "mask": { "$ref": "#/$defs/mask" }
+      }
+    },
+    "wall_segment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["segment_id", "mask"],
+      "properties": {
+        "segment_id": { "type": "string", "minLength": 1 },
+        "mask": { "$ref": "#/$defs/mask" }
+      }
+    },
+    "predicted_wall_segment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["segment_id", "confidence", "mask"],
+      "properties": {
+        "segment_id": { "type": "string", "minLength": 1 },
+        "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+        "mask": { "$ref": "#/$defs/mask" }
+      }
+    },
+    "stone_instance_input": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "provenance",
+        "raster_width",
+        "raster_height",
+        "iou_threshold",
+        "operating_confidence_threshold",
+        "size_rule_id",
+        "size_rule_description",
+        "ground_truth",
+        "predictions"
+      ],
+      "properties": {
+        "provenance": { "$ref": "#/$defs/provenance" },
+        "raster_width": { "type": "integer", "minimum": 1 },
+        "raster_height": { "type": "integer", "minimum": 1 },
+        "iou_threshold": { "type": "number", "exclusiveMinimum": 0, "maximum": 1 },
+        "operating_confidence_threshold": { "type": "number", "minimum": 0, "maximum": 1 },
+        "size_rule_id": { "type": "string", "minLength": 1 },
+        "size_rule_description": { "type": "string", "minLength": 1 },
+        "ground_truth": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/ground_truth_instance" }
+        },
+        "predictions": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/predicted_instance" }
+        }
+      }
+    },
+    "wall_evaluation_input": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "provenance",
+        "raster_width",
+        "raster_height",
+        "prediction_confidence_threshold",
+        "segment_coverage_thresholds",
+        "ground_truth_segments",
+        "predicted_segments"
+      ],
+      "properties": {
+        "provenance": { "$ref": "#/$defs/provenance" },
+        "raster_width": { "type": "integer", "minimum": 1 },
+        "raster_height": { "type": "integer", "minimum": 1 },
+        "prediction_confidence_threshold": { "type": "number", "minimum": 0, "maximum": 1 },
+        "segment_coverage_thresholds": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "number", "minimum": 0, "maximum": 1 }
+        },
+        "ground_truth_segments": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/wall_segment" }
+        },
+        "predicted_segments": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/predicted_wall_segment" }
+        }
+      }
+    }
+  }
+}

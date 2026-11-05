@@ -1,0 +1,95 @@
+{
+  "provenance": {
+    "schema_version": "luminous.heritage-benchmark.v0.1",
+    "source_id": "doi:10.1016/j.jas.2025.106430",
+    "dataset_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "model_artifact_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "model_build_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "prediction_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+    "reference_label_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+    "split_manifest_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+    "evaluator_build_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+    "metric_protocol_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+    "rights_receipt_ref": "rights://synthetic/approved",
+    "evaluation_unit_id": "site-synthetic-1",
+    "evaluation_unit_kind": "site"
+  },
+  "raster_width": 10,
+  "raster_height": 10,
+  "iou_threshold": 0.5,
+  "operating_confidence_threshold": 0.5,
+  "size_rule_id": "min-stone-15x15",
+  "size_rule_description": "objects retained under the 15x15 source size rule",
+  "ground_truth": [
+    {
+      "object_id": "gt-1",
+      "mask": {
+        "width": 10,
+        "height": 10,
+        "pixel_indices": [
+          0,
+          1,
+          2,
+          10
+        ]
+      }
+    },
+    {
+      "object_id": "gt-2",
+      "mask": {
+        "width": 10,
+        "height": 10,
+        "pixel_indices": [
+          30,
+          31,
+          32,
+          40
+        ]
+      }
+    }
+  ],
+  "predictions": [
+    {
+      "object_id": "pred-1",
+      "confidence": 0.95,
+      "mask": {
+        "width": 10,
+        "height": 10,
+        "pixel_indices": [
+          0,
+          1,
+          2,
+          10
+        ]
+      }
+    },
+    {
+      "object_id": "pred-2",
+      "confidence": 0.8,
+      "mask": {
+        "width": 10,
+        "height": 10,
+        "pixel_indices": [
+          30,
+          31,
+          32,
+          40
+        ]
+      }
+    },
+    {
+      "object_id": "pred-duplicate",
+      "confidence": 0.6,
+      "mask": {
+        "width": 10,
+        "height": 10,
+        "pixel_indices": [
+          0,
+          1,
+          2,
+          10
+        ]
+      }
+    }
+  ]
+}

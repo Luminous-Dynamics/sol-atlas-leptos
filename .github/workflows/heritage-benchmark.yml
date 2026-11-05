@@ -1,0 +1,35 @@
+name: Heritage Benchmark Metrics Qualification
+
+on:
+  pull_request:
+    paths:
+      - "sol-atlas-core/src/heritage_benchmark.rs"
+      - "sol-atlas-core/src/lib.rs"
+      - "schemas/heritage-benchmark-v0.1.schema.json"
+      - "schemas/examples/heritage-benchmark-stone-synthetic-v0.1.json"
+      - "schemas/examples/heritage-benchmark-wall-synthetic-v0.1.json"
+      - "docs/research/heritage-benchmark-metrics-v0.1.md"
+      - ".github/workflows/heritage-benchmark.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  qualify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Verify exact checkout
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - name: Check core formatting
+        run: cargo fmt --manifest-path sol-atlas-core/Cargo.toml -- --check
+      - name: Run core unit and fixture tests
+        run: cargo test --manifest-path sol-atlas-core/Cargo.toml
