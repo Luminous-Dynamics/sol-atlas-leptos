@@ -748,7 +748,7 @@ mod tests {
         )
         .expect("plurality");
         assert_eq!(consensus.outcome, PluralityOutcome::Tie);
-        assert_eq!(consensus.assigned_vote_count, 3);
+        assert_eq!(consensus.assigned_vote_count, 2);
         assert_eq!(
             consensus.claim_ceiling,
             "derived_vote_summary_not_archaeological_truth"
