@@ -1,0 +1,100 @@
+{
+  "schema_version": "luminous.heritage-absence.v0.1",
+  "observation": {
+    "observation_id": "negative-survey-1",
+    "survey_unit_id": "unit-1",
+    "target_class_id": "dry-stone-wall",
+    "context_id": "dry-stone-geomorph-context-1",
+    "method_id": "pedestrian-fieldwalking-v1",
+    "effort_profile_sha256": "c3060ed9d119c13f68a85f29c4977d7c7feafc6a0d9febd7ff5cdd7a73f2aa09",
+    "outcome": "searched_no_detection",
+    "coverage_receipt_ref": "coverage://receipt/1",
+    "coverage_receipt_sha256": "9303b1ccbc3818312012c0043d6c4a0cb4a2ee8c634cac0e735a58bcea2c39df",
+    "effort_receipt_ref": "effort://receipt/1",
+    "effort_receipt_sha256": "027afd6194bb51dc7b82fb96c6cd17a58c23a73ea11fbca24a895131945dddc9"
+  },
+  "model": {
+    "model_id": "presence-posterior-model-1",
+    "context_id": "dry-stone-geomorph-context-1",
+    "target_class_id": "dry-stone-wall",
+    "method_id": "pedestrian-fieldwalking-v1",
+    "effort_profile_sha256": "c3060ed9d119c13f68a85f29c4977d7c7feafc6a0d9febd7ff5cdd7a73f2aa09",
+    "prior_original_presence": {
+      "lower": 0.5, "upper": 0.5,
+      "context_id": "dry-stone-geomorph-context-1", "target_class_id": "dry-stone-wall",
+      "method_id": null, "effort_profile_sha256": null,
+      "calibration_profile_sha256": "46a7b9ee0181cb41871cb4a70dd668550128e67d017f9c17d4ff9511410857b6",
+      "calibration_data_sha256": "898431c4f38a57f9da6e610ad6ed984a51c762b9bf3b032a64d802d6e49908e1",
+      "validation_split_sha256": "6e826c5f9715e634b3ec123d6224c691b2acecc32103c9994647a4c1d7c557ea",
+      "conditional_semantics_sha256": "93c1c1c3751504f7997c5907fa2305bb0213761200437a627ef4831822aff9ed",
+      "receipt_ref": "calibration://receipt/prior",
+      "receipt_sha256": "df357635f594273592619dff7c6584b01c0c9831822ed1c582027efc9ad29913"
+    },
+    "survival": {
+      "lower": 0.8, "upper": 0.8,
+      "context_id": "dry-stone-geomorph-context-1", "target_class_id": "dry-stone-wall",
+      "method_id": null, "effort_profile_sha256": null,
+      "calibration_profile_sha256": "9cff06a404f62e56276c893221e434b40ff32df46be3f6ed3ae55df9b1adb428",
+      "calibration_data_sha256": "979eeaa49c2534138657691dee4dcd1d4a7eaa4c96194f8388bf79badad849dc",
+      "validation_split_sha256": "ae286626a62b955cd9af0f61e8d968ed752fbf7027a2fab573c523e5ae5556c5",
+      "conditional_semantics_sha256": "726225cf7d3238abd0bb2888c60aaff0f2dfd5eedbaadec4001a52b011a6821f",
+      "receipt_ref": "calibration://receipt/survival",
+      "receipt_sha256": "17b2d6807e3c2a3cf52cff08e60dc76159e302597ccc939212369a0d756aa7ac"
+    },
+    "exposure_given_survival": {
+      "lower": 0.5, "upper": 0.5,
+      "context_id": "dry-stone-geomorph-context-1", "target_class_id": "dry-stone-wall",
+      "method_id": null, "effort_profile_sha256": null,
+      "calibration_profile_sha256": "c1aacbf074266e6d8d47dbf442ef07fe96dd1d7882a43e69c36c9382700b52f6",
+      "calibration_data_sha256": "aa7c4fc6f98e049193ec63a4699a17dda0b67ff59dec5b5ca38605a819c3a790",
+      "validation_split_sha256": "8bbae055ca47b9d3f62a4b290fecead2889cb3b481c9a145c1fb7ce093c29249",
+      "conditional_semantics_sha256": "66a801157c5219cad23a39482039608459c0bcee29cc9b5d26277498af127f5a",
+      "receipt_ref": "calibration://receipt/exposure",
+      "receipt_sha256": "78b86ed97d64dcd7acbc42393264550b4e5e7fad19ef1e6cc838ef80d44b578c"
+    },
+    "observability_given_survival_and_exposure": {
+      "lower": 0.5, "upper": 0.5,
+      "context_id": "dry-stone-geomorph-context-1", "target_class_id": "dry-stone-wall",
+      "method_id": "pedestrian-fieldwalking-v1", "effort_profile_sha256": null,
+      "calibration_profile_sha256": "955388ec20e1821cc88fb9bd3b1168009a76c27eecf5533419991b8fa3bf0dfa",
+      "calibration_data_sha256": "91bf0b3fc604685f2d4977765067dbcaabb4540f59fc848dcba7def3607adff2",
+      "validation_split_sha256": "30bbfdf141d7b89c3f4881a5bc0175ca3ac49104b6fda3d496659f2a18e29846",
+      "conditional_semantics_sha256": "6c673d865cf6216146c6a1fea43d8f50f0ab3c352a56b1532c0322e1cca0bdf5",
+      "receipt_ref": "calibration://receipt/observability",
+      "receipt_sha256": "32684c659d5f6e33730035ac6bfd555c923d474c2581515693824a48f1353b64"
+    },
+    "footprint_coverage_given_observability": {
+      "lower": 0.5, "upper": 0.5,
+      "context_id": "dry-stone-geomorph-context-1", "target_class_id": "dry-stone-wall",
+      "method_id": "pedestrian-fieldwalking-v1", "effort_profile_sha256": "c3060ed9d119c13f68a85f29c4977d7c7feafc6a0d9febd7ff5cdd7a73f2aa09",
+      "calibration_profile_sha256": "85c446ce3b4c29f486d12eec973aa20303b4c6e137ca76f55967e73b24cca263",
+      "calibration_data_sha256": "df79ffe6a7860c40c431e67206fcea7cbc2f3be8ff33e040475601f3b0266e6e",
+      "validation_split_sha256": "f40f9978ec16f9763b86bcf3d5ee9c98602f5c1c1093c174df6e8a6d8cef184c",
+      "conditional_semantics_sha256": "7d46ca20f06135a92ff568e7703e1ec80c8eb001b3bd096f5bda82b249f32aeb",
+      "receipt_ref": "coverage://receipt/1",
+      "receipt_sha256": "9303b1ccbc3818312012c0043d6c4a0cb4a2ee8c634cac0e735a58bcea2c39df"
+    },
+    "conditional_detection_given_covered": {
+      "lower": 0.8, "upper": 0.8,
+      "context_id": "dry-stone-geomorph-context-1", "target_class_id": "dry-stone-wall",
+      "method_id": "pedestrian-fieldwalking-v1", "effort_profile_sha256": "c3060ed9d119c13f68a85f29c4977d7c7feafc6a0d9febd7ff5cdd7a73f2aa09",
+      "calibration_profile_sha256": "a5855055a13fbf51b64bb8c819fa5a6f61f585a113e2b72da328fab416083c9f",
+      "calibration_data_sha256": "2d9e983ea8142e144eb1b2578d6989e60fdbd7cad00827e0c98ec6312a1db466",
+      "validation_split_sha256": "3e889a18073f2b761226474730e8fa12115aa7b99a33a1512166f104624d0faf",
+      "conditional_semantics_sha256": "e18a2836eec57383ae6f8f23726629d8e974658fe4e81921b7d80494b467ca6e",
+      "receipt_ref": "calibration://receipt/detection",
+      "receipt_sha256": "e2e0408cde935b7269940e35bce3a1719d4efc7905ca82f3c496570917510eed"
+    },
+    "false_positive_given_absence": {
+      "lower": 0.02, "upper": 0.02,
+      "context_id": "dry-stone-geomorph-context-1", "target_class_id": "dry-stone-wall",
+      "method_id": "pedestrian-fieldwalking-v1", "effort_profile_sha256": "c3060ed9d119c13f68a85f29c4977d7c7feafc6a0d9febd7ff5cdd7a73f2aa09",
+      "calibration_profile_sha256": "54e9cc86b59f6e2fd0393a20e312cd67c07571810862ebbbd44b46b44770fb48",
+      "calibration_data_sha256": "3a6a2ee55c48f2326d6855ac67f6a37bc4667142e0e9ec35061133d8914a8521",
+      "validation_split_sha256": "94a6933b424432e28385526a0244bd98643fa5bc06cde5c59648d8a58b3e6749",
+      "conditional_semantics_sha256": "a3378cc73f511886fc459677d365ddac04bf16ff03d0487910d7993f124aede0",
+      "receipt_ref": "calibration://receipt/false-positive",
+      "receipt_sha256": "067cc066848acb7a4cedb09fb9f58797fe0e23ed08440184c4e3b7944197208f"
+    }
+  }
+}
