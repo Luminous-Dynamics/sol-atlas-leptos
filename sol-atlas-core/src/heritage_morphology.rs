@@ -13,8 +13,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 use std::fmt;
 
-pub const HERITAGE_MORPHOLOGY_SCHEMA_VERSION: &str =
-    "luminous.heritage-morphology.v0.1";
+pub const HERITAGE_MORPHOLOGY_SCHEMA_VERSION: &str = "luminous.heritage-morphology.v0.1";
 pub const MAX_MORPHOLOGY_STONES: usize = 2_000_000;
 pub const ARCHITECTURE_GROUP_LEVELS: [ArchitectureGroupLevel; 8] = [
     ArchitectureGroupLevel::WallSegment,
@@ -35,10 +34,7 @@ pub struct MeasurementInterval {
 }
 
 impl MeasurementInterval {
-    fn validate_positive(
-        self,
-        label: &str,
-    ) -> Result<(), HeritageMorphologyError> {
+    fn validate_positive(self, label: &str) -> Result<(), HeritageMorphologyError> {
         if !self.lower.is_finite()
             || !self.upper.is_finite()
             || self.lower <= 0.0
@@ -51,10 +47,7 @@ impl MeasurementInterval {
         Ok(())
     }
 
-    fn validate_unit_interval(
-        self,
-        label: &str,
-    ) -> Result<(), HeritageMorphologyError> {
+    fn validate_unit_interval(self, label: &str) -> Result<(), HeritageMorphologyError> {
         if !self.lower.is_finite()
             || !self.upper.is_finite()
             || self.lower <= 0.0
@@ -68,10 +61,7 @@ impl MeasurementInterval {
         Ok(())
     }
 
-    fn validate_at_least_one(
-        self,
-        label: &str,
-    ) -> Result<(), HeritageMorphologyError> {
+    fn validate_at_least_one(self, label: &str) -> Result<(), HeritageMorphologyError> {
         if !self.lower.is_finite()
             || !self.upper.is_finite()
             || self.lower < 1.0
@@ -276,10 +266,7 @@ fn valid_sha256(value: &str) -> bool {
     value.len() == 64 && value.bytes().all(|byte| byte.is_ascii_hexdigit())
 }
 
-fn validate_digest(
-    value: &str,
-    label: &str,
-) -> Result<(), HeritageMorphologyError> {
+fn validate_digest(value: &str, label: &str) -> Result<(), HeritageMorphologyError> {
     if !valid_sha256(value) {
         return Err(HeritageMorphologyError::InvalidDigest(label.into()));
     }
@@ -312,9 +299,7 @@ fn validate_membership(
             }
         }
         MembershipStatus::Ambiguous => {
-            if membership.group_id.is_some()
-                || membership.candidate_group_ids.len() < 2
-            {
+            if membership.group_id.is_some() || membership.candidate_group_ids.len() < 2 {
                 return Err(HeritageMorphologyError::InvalidMembership {
                     physical_identity_id: stone_id.into(),
                     level: membership.level,
@@ -337,9 +322,7 @@ fn validate_membership(
             }
         }
         MembershipStatus::Unassigned | MembershipStatus::NotAssessed => {
-            if membership.group_id.is_some()
-                || !membership.candidate_group_ids.is_empty()
-            {
+            if membership.group_id.is_some() || !membership.candidate_group_ids.is_empty() {
                 return Err(HeritageMorphologyError::InvalidMembership {
                     physical_identity_id: stone_id.into(),
                     level: membership.level,
@@ -350,9 +333,7 @@ fn validate_membership(
     Ok(())
 }
 
-fn validate_input(
-    input: &HeritageMorphologyInput,
-) -> Result<(), HeritageMorphologyError> {
+fn validate_input(input: &HeritageMorphologyInput) -> Result<(), HeritageMorphologyError> {
     if input.schema_version != HERITAGE_MORPHOLOGY_SCHEMA_VERSION {
         return Err(HeritageMorphologyError::WrongSchemaVersion);
     }
@@ -370,8 +351,14 @@ fn validate_input(
     }
     for (digest, label) in [
         (&input.dataset_sha256, "dataset_sha256"),
-        (&input.architecture_graph_sha256, "architecture_graph_sha256"),
-        (&input.measurement_protocol_sha256, "measurement_protocol_sha256"),
+        (
+            &input.architecture_graph_sha256,
+            "architecture_graph_sha256",
+        ),
+        (
+            &input.measurement_protocol_sha256,
+            "measurement_protocol_sha256",
+        ),
         (&input.rights_receipt_sha256, "rights_receipt_sha256"),
     ] {
         validate_digest(digest, label)?;
@@ -403,7 +390,10 @@ fn validate_input(
             (&stone.geometry_sha256, "geometry_sha256"),
             (&stone.source_capture_sha256, "source_capture_sha256"),
             (&stone.method_build_sha256, "method_build_sha256"),
-            (&stone.measurement_receipt_sha256, "measurement_receipt_sha256"),
+            (
+                &stone.measurement_receipt_sha256,
+                "measurement_receipt_sha256",
+            ),
         ] {
             validate_digest(digest, label)?;
         }
@@ -467,9 +457,7 @@ fn nearest_rank_interval(
     }
 }
 
-fn summarize_intervals(
-    intervals: &[MeasurementInterval],
-) -> Option<IntervalDistributionSummary> {
+fn summarize_intervals(intervals: &[MeasurementInterval]) -> Option<IntervalDistributionSummary> {
     if intervals.is_empty() {
         return None;
     }
@@ -526,10 +514,8 @@ pub fn aggregate_architecture_morphology(
 ) -> Result<HeritageMorphologyReport, HeritageMorphologyError> {
     validate_input(input)?;
 
-    let mut groups: BTreeMap<
-        (ArchitectureGroupLevel, String),
-        GroupAccumulator<'_>,
-    > = BTreeMap::new();
+    let mut groups: BTreeMap<(ArchitectureGroupLevel, String), GroupAccumulator<'_>> =
+        BTreeMap::new();
     let mut audits: BTreeMap<ArchitectureGroupLevel, [usize; 4]> = BTreeMap::new();
     let mut ambiguities = Vec::new();
 
@@ -574,9 +560,9 @@ pub fn aggregate_architecture_morphology(
     let group_summaries: Vec<GroupMorphologySummary> = groups
         .into_iter()
         .map(|((level, group_id), mut accumulator)| {
-            accumulator.assigned.sort_by(|left, right| {
-                left.physical_identity_id.cmp(&right.physical_identity_id)
-            });
+            accumulator
+                .assigned
+                .sort_by(|left, right| left.physical_identity_id.cmp(&right.physical_identity_id));
             summarize_group(level, group_id, accumulator)
         })
         .collect();
@@ -614,7 +600,9 @@ pub fn aggregate_architecture_morphology(
         groups: group_summaries,
         membership_audit,
         membership_ambiguities: ambiguities,
-        interval_interpretation: "per_observation_rectangular_measurement_bounds_not_confidence_or_credible_intervals".into(),
+        interval_interpretation:
+            "per_observation_rectangular_measurement_bounds_not_confidence_or_credible_intervals"
+                .into(),
         claim_ceiling: "descriptive_architectural_morphology_only".into(),
         independent_site_replicates_claimed: 0,
         historical_interpretation_claimed: false,
@@ -709,8 +697,7 @@ mod tests {
             .groups
             .iter()
             .find(|group| {
-                group.level == ArchitectureGroupLevel::Wall
-                    && group.group_id == "group:Wall"
+                group.level == ArchitectureGroupLevel::Wall && group.group_id == "group:Wall"
             })
             .unwrap();
         assert_eq!(wall.assigned_stone_count, 3);
@@ -748,8 +735,7 @@ mod tests {
             .groups
             .iter()
             .find(|group| {
-                group.level == ArchitectureGroupLevel::Wall
-                    && group.group_id == "wall-a"
+                group.level == ArchitectureGroupLevel::Wall && group.group_id == "wall-a"
             })
             .unwrap();
         assert_eq!(wall_a.assigned_stone_count, 0);
@@ -871,7 +857,6 @@ mod tests {
         assert_eq!(first.membership_audit, second.membership_audit);
     }
 
-
     #[test]
     fn ambiguous_membership_order_is_canonicalized() {
         let mut input = input();
@@ -901,7 +886,10 @@ mod tests {
         assert_eq!(report.independent_site_replicates_claimed, 0);
         assert!(!report.historical_interpretation_claimed);
         assert!(!report.social_identity_inference_claimed);
-        assert_eq!(report.claim_ceiling, "descriptive_architectural_morphology_only");
+        assert_eq!(
+            report.claim_ceiling,
+            "descriptive_architectural_morphology_only"
+        );
     }
 
     #[test]
