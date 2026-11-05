@@ -1,0 +1,71 @@
+{
+  "schema_version": "luminous.heritage-annotation.v0.1",
+  "ontology_version": "stone-wall-ontology-1.0",
+  "label_ids": ["wall", "natural"],
+  "confidence_scale_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "raters": [
+    { "rater_id": "expert-1", "kind": "human_expert", "task_scope_tags": ["dry-stone-wall"], "qualification_receipt_ref": "qualification://expert-1" },
+    { "rater_id": "expert-2", "kind": "human_expert", "task_scope_tags": ["dry-stone-wall"], "qualification_receipt_ref": "qualification://expert-2" },
+    { "rater_id": "expert-3", "kind": "practitioner", "task_scope_tags": ["dry-stone-wall"], "qualification_receipt_ref": null }
+  ],
+  "annotations": [
+    {
+      "annotation_id": "a-1", "task_id": "stone-wall-classification", "sample_id": "sample-1", "context_id": "orthophoto-context-1",
+      "ontology_version": "stone-wall-ontology-1.0", "rubric_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "source_artifact_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "assessment_round_id": "round-1", "rater_id": "expert-1",
+      "decision": { "state": "assigned", "label_id": "wall" },
+      "confidence": { "score": 4, "scale_min": 1, "scale_max": 5, "scale_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" },
+      "alternative_label_ids": [], "rationale_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "created_at_utc": "2026-11-05T08:00:00Z"
+    },
+    {
+      "annotation_id": "a-2", "task_id": "stone-wall-classification", "sample_id": "sample-1", "context_id": "orthophoto-context-1",
+      "ontology_version": "stone-wall-ontology-1.0", "rubric_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "source_artifact_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "assessment_round_id": "round-1", "rater_id": "expert-2",
+      "decision": { "state": "assigned", "label_id": "wall" },
+      "confidence": { "score": 3, "scale_min": 1, "scale_max": 5, "scale_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" },
+      "alternative_label_ids": ["natural"], "rationale_sha256": null,
+      "created_at_utc": "2026-11-05T08:01:00Z"
+    },
+    {
+      "annotation_id": "a-3", "task_id": "stone-wall-classification", "sample_id": "sample-1", "context_id": "orthophoto-context-1",
+      "ontology_version": "stone-wall-ontology-1.0", "rubric_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "source_artifact_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "assessment_round_id": "round-1", "rater_id": "expert-3",
+      "decision": { "state": "assigned", "label_id": "natural" },
+      "confidence": null, "alternative_label_ids": [],
+      "rationale_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "created_at_utc": "2026-11-05T08:02:00Z"
+    },
+    {
+      "annotation_id": "a-4", "task_id": "stone-wall-classification", "sample_id": "sample-2", "context_id": "orthophoto-context-1",
+      "ontology_version": "stone-wall-ontology-1.0", "rubric_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "source_artifact_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "assessment_round_id": "round-1", "rater_id": "expert-1",
+      "decision": { "state": "assigned", "label_id": "wall" },
+      "confidence": null, "alternative_label_ids": [], "rationale_sha256": null,
+      "created_at_utc": "2026-11-05T08:03:00Z"
+    },
+    {
+      "annotation_id": "a-5", "task_id": "stone-wall-classification", "sample_id": "sample-2", "context_id": "orthophoto-context-1",
+      "ontology_version": "stone-wall-ontology-1.0", "rubric_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "source_artifact_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "assessment_round_id": "round-1", "rater_id": "expert-2",
+      "decision": { "state": "assigned", "label_id": "natural" },
+      "confidence": null, "alternative_label_ids": [], "rationale_sha256": null,
+      "created_at_utc": "2026-11-05T08:04:00Z"
+    },
+    {
+      "annotation_id": "a-6", "task_id": "stone-wall-classification", "sample_id": "sample-2", "context_id": "orthophoto-context-1",
+      "ontology_version": "stone-wall-ontology-1.0", "rubric_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "source_artifact_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "assessment_round_id": "round-1", "rater_id": "expert-3",
+      "decision": { "state": "assigned", "label_id": "natural" },
+      "confidence": null, "alternative_label_ids": [], "rationale_sha256": null,
+      "created_at_utc": "2026-11-05T08:05:00Z"
+    }
+  ],
+  "adjudications": []
+}
