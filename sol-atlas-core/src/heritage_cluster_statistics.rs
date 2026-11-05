@@ -63,6 +63,7 @@ pub struct ClusterBootstrapInput {
     /// Row/column order of correlation_matrix is exactly this observation order.
     pub observations: Vec<UnitMetricObservation>,
     /// Correlation matrix of unit-level metric estimation errors, not raw pixels.
+    pub correlation_matrix_sha256: String,
     pub correlation_matrix: Vec<Vec<f64>>,
     pub correlation_evidence: CorrelationEvidence,
     /// The K_eff formula requires this equal marginal variance assumption.
@@ -96,6 +97,7 @@ pub enum HeritageClusterStatisticsError {
     InvalidConfidenceLevel,
     InvalidMinimumEffectiveUnits,
     InvalidMaximumCorrelation,
+    MetricAggregateNonFinite,
     InvalidCorrelationSum,
 }
 
@@ -131,7 +133,12 @@ pub struct ClusterBootstrapReport {
     pub metric_definition_sha256: String,
     pub unit_kind: IndependentUnitKind,
     pub observations: Vec<UnitMetricObservation>,
+    pub correlation_matrix_sha256: String,
+    pub correlation_matrix: Vec<Vec<f64>>,
     pub correlation_evidence: CorrelationEvidence,
+    pub equal_marginal_variance_assumed: bool,
+    pub minimum_effective_units: f64,
+    pub maximum_permitted_inter_unit_correlation: f64,
     pub bootstrap_seed: u64,
     pub confidence_level: f64,
     pub requested_replicates: usize,
@@ -166,6 +173,10 @@ fn validate_input(input: &ClusterBootstrapInput) -> Result<(), HeritageClusterSt
     validate_digest(&input.split_manifest_sha256, "split_manifest_sha256")?;
     validate_digest(&input.evaluation_run_sha256, "evaluation_run_sha256")?;
     validate_digest(&input.metric_definition_sha256, "metric_definition_sha256")?;
+    validate_digest(
+        &input.correlation_matrix_sha256,
+        "correlation_matrix_sha256",
+    )?;
     validate_digest(
         &input.correlation_evidence.model_sha256,
         "correlation_model_sha256",
@@ -218,7 +229,7 @@ fn validate_input(input: &ClusterBootstrapInput) -> Result<(), HeritageClusterSt
     {
         return Err(HeritageClusterStatisticsError::InvalidConfidenceLevel);
     }
-    if !input.minimum_effective_units.is_finite() || input.minimum_effective_units < 1.0 {
+    if !input.minimum_effective_units.is_finite() || input.minimum_effective_units < 2.0 {
         return Err(HeritageClusterStatisticsError::InvalidMinimumEffectiveUnits);
     }
     if !input.maximum_permitted_inter_unit_correlation.is_finite()
@@ -411,6 +422,9 @@ pub fn evaluate_cluster_bootstrap(
     };
 
     let macro_unit_mean = macro_mean(&input.observations);
+    if !macro_unit_mean.is_finite() {
+        return Err(HeritageClusterStatisticsError::MetricAggregateNonFinite);
+    }
     let mut interval = None;
     let mut bootstrap_standard_error = None;
     let mut completed_replicates = 0;
@@ -423,7 +437,11 @@ pub fn evaluate_cluster_bootstrap(
                 let index = random.next_bounded(unit_count);
                 sum += input.observations[index].metric_value;
             }
-            bootstrap_means.push(sum / unit_count as f64);
+            let replicate_mean = sum / unit_count as f64;
+            if !replicate_mean.is_finite() {
+                return Err(HeritageClusterStatisticsError::MetricAggregateNonFinite);
+            }
+            bootstrap_means.push(replicate_mean);
         }
         completed_replicates = bootstrap_means.len();
         let bootstrap_mean =
@@ -452,7 +470,12 @@ pub fn evaluate_cluster_bootstrap(
         metric_definition_sha256: input.metric_definition_sha256.clone(),
         unit_kind: input.unit_kind,
         observations: input.observations.clone(),
+        correlation_matrix_sha256: input.correlation_matrix_sha256.clone(),
+        correlation_matrix: input.correlation_matrix.clone(),
         correlation_evidence: input.correlation_evidence.clone(),
+        equal_marginal_variance_assumed: input.equal_marginal_variance_assumed,
+        minimum_effective_units: input.minimum_effective_units,
+        maximum_permitted_inter_unit_correlation: input.maximum_permitted_inter_unit_correlation,
         bootstrap_seed: input.bootstrap_seed,
         confidence_level: input.confidence_level,
         requested_replicates: input.bootstrap_replicates,
@@ -505,6 +528,7 @@ mod tests {
                 vec![0.0, 1.0, 0.0],
                 vec![0.0, 0.0, 1.0],
             ],
+            correlation_matrix_sha256: digest('e'),
             correlation_evidence: CorrelationEvidence {
                 model_sha256: digest('d'),
                 method: "synthetic_independent_control".into(),
@@ -741,14 +765,17 @@ mod tests {
     }
 
     #[test]
-    fn one_unit_with_explicit_minimum_one_can_be_reported_conditionally() {
+    fn one_unit_cannot_qualify_a_cluster_interval() {
         let mut value = input();
         value.observations.truncate(1);
         value.correlation_matrix = vec![vec![1.0]];
-        value.minimum_effective_units = 1.0;
+        value.minimum_effective_units = 2.0;
         let report = evaluate_cluster_bootstrap(&value).unwrap();
-        assert_eq!(report.status, ConfidenceIntervalStatus::Qualified);
-        assert_eq!(report.interval.unwrap().lower, 0.6);
-        assert_eq!(report.interval.unwrap().upper, 0.6);
+        assert_eq!(
+            report.status,
+            ConfidenceIntervalStatus::InsufficientEffectiveUnits
+        );
+        assert_eq!(report.interval, None);
+        assert_eq!(report.completed_replicates, 0);
     }
 }
