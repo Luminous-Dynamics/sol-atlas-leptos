@@ -75,6 +75,7 @@
         "rater_id": { "type": "string", "minLength": 1 },
         "decision": {
           "type": "object",
+          "additionalProperties": false,
           "required": ["state"],
           "properties": {
             "state": { "enum": ["assigned","unsure","not_observable","abstained"] },
@@ -120,6 +121,7 @@
         "adjudicator_rater_id": { "type": "string", "minLength": 1 },
         "outcome": {
           "type": "object",
+          "additionalProperties": false,
           "required": ["status"],
           "properties": {
             "status": { "enum": ["resolved","unresolved"] },
