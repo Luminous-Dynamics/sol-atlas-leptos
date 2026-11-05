@@ -782,7 +782,7 @@ mod tests {
         assert_eq!(consensus.assigned_vote_count, 2);
         assert_eq!(
             consensus.claim_ceiling,
-            "derived_vote_summary_not_archaeological_truth"
+            "human_vote_summary_not_archaeological_truth"
         );
     }
 
@@ -885,7 +885,7 @@ mod tests {
     #[test]
     fn same_sample_context_cannot_mix_source_assets_or_rubrics() {
         let mut input = dataset();
-        input.annotations[1].rubric_sha256 = digest(b"other-rubric");
+        input.annotations[1].rubric_sha256 = "b".repeat(64);
         assert!(matches!(
             audit_heritage_annotations(&input),
             Err(HeritageAnnotationError::DifferentAnnotationContext(_))
