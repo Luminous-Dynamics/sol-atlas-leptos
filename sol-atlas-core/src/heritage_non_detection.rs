@@ -885,7 +885,8 @@ mod tests {
     #[test]
     fn duplicate_stage_fails_closed() {
         let mut input = valid_input();
-        input.stage_evidence.push(input.stage_evidence[0].clone());
+        input.stage_evidence[1].stage = EvidenceStage::Survival;
+        input.stage_evidence[1].conditioning = Conditioning::OriginallyPresent;
         assert_eq!(
             evaluate_non_detection(&input).unwrap_err(),
             HeritageNonDetectionError::DuplicateStage(EvidenceStage::Survival)
