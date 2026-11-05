@@ -1,0 +1,22 @@
+{
+  "schema_version": "luminous.heritage-nondetection.v0.1",
+  "event_id": "synthetic-unsearched-event-1",
+  "target_class_id": "dry_stone_wall",
+  "context_id": "synthetic-site-context-1",
+  "observation_state": "not_searched",
+  "prior": {
+    "target_class_id": "dry_stone_wall",
+    "context_id": "synthetic-site-context-1",
+    "probability": { "lower": 0.4, "upper": 0.7 },
+    "prior_profile_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "source_data_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "validation_split_manifest_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "validation_receipt_ref": "receipt:synthetic-prior",
+    "validation_receipt_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+    "rights_decision_id": "rights:synthetic-prior",
+    "analytical_rights": "allowed",
+    "rights_receipt_ref": "receipt:synthetic-prior-rights",
+    "access_tier": "controlled"
+  },
+  "stage_evidence": []
+}
