@@ -61,10 +61,19 @@ impl BenchmarkRunProvenance {
             ("model_artifact_sha256", self.model_artifact_sha256.as_str()),
             ("model_build_sha256", self.model_build_sha256.as_str()),
             ("prediction_sha256", self.prediction_sha256.as_str()),
-            ("reference_label_sha256", self.reference_label_sha256.as_str()),
+            (
+                "reference_label_sha256",
+                self.reference_label_sha256.as_str(),
+            ),
             ("split_manifest_sha256", self.split_manifest_sha256.as_str()),
-            ("evaluator_build_sha256", self.evaluator_build_sha256.as_str()),
-            ("metric_protocol_sha256", self.metric_protocol_sha256.as_str()),
+            (
+                "evaluator_build_sha256",
+                self.evaluator_build_sha256.as_str(),
+            ),
+            (
+                "metric_protocol_sha256",
+                self.metric_protocol_sha256.as_str(),
+            ),
         ] {
             if !valid_sha256(digest) {
                 return Err(BenchmarkError::InvalidProvenanceDigest(name.to_owned()));
@@ -468,10 +477,7 @@ pub fn evaluate_stone_instances(
     input: &StoneInstanceEvaluationInput,
 ) -> Result<StoneInstanceEvaluationReport, BenchmarkError> {
     input.provenance.validate()?;
-    if !input.iou_threshold.is_finite()
-        || input.iou_threshold <= 0.0
-        || input.iou_threshold > 1.0
-    {
+    if !input.iou_threshold.is_finite() || input.iou_threshold <= 0.0 || input.iou_threshold > 1.0 {
         return Err(BenchmarkError::InvalidIouThreshold);
     }
     if !input.operating_confidence_threshold.is_finite()
@@ -493,11 +499,8 @@ pub fn evaluate_stone_instances(
         &input.predictions,
         Some(input.operating_confidence_threshold),
     );
-    let (matched_pairs, operating_sequence) = match_ranked_predictions(
-        &operating_ranked,
-        &input.ground_truth,
-        input.iou_threshold,
-    );
+    let (matched_pairs, operating_sequence) =
+        match_ranked_predictions(&operating_ranked, &input.ground_truth, input.iou_threshold);
     let true_positives = operating_sequence.iter().filter(|value| **value).count();
     let evaluated_prediction_count = operating_ranked.len();
     let false_positives = evaluated_prediction_count - true_positives;
@@ -509,11 +512,7 @@ pub fn evaluate_stone_instances(
     let all_ranked = ranked_predictions(&input.predictions, None);
     let (_, ap_sequence) =
         match_ranked_predictions(&all_ranked, &input.ground_truth, input.iou_threshold);
-    let average_precision_101 = ap101(
-        all_ranked.len(),
-        input.ground_truth.len(),
-        &ap_sequence,
-    );
+    let average_precision_101 = ap101(all_ranked.len(), input.ground_truth.len(), &ap_sequence);
 
     Ok(StoneInstanceEvaluationReport {
         schema_version: HERITAGE_BENCHMARK_SCHEMA_VERSION.to_owned(),
@@ -587,9 +586,13 @@ fn validate_wall_inputs(input: &WallEvaluationInput) -> Result<(), BenchmarkErro
             return Err(BenchmarkError::EmptyObjectId);
         }
         if !gt_ids.insert(segment.segment_id.as_str()) {
-            return Err(BenchmarkError::DuplicateObjectId(segment.segment_id.clone()));
+            return Err(BenchmarkError::DuplicateObjectId(
+                segment.segment_id.clone(),
+            ));
         }
-        segment.mask.validate(input.raster_width, input.raster_height)?;
+        segment
+            .mask
+            .validate(input.raster_width, input.raster_height)?;
     }
     let mut pred_ids = BTreeSet::new();
     for segment in &input.predicted_segments {
@@ -597,12 +600,18 @@ fn validate_wall_inputs(input: &WallEvaluationInput) -> Result<(), BenchmarkErro
             return Err(BenchmarkError::EmptyObjectId);
         }
         if !pred_ids.insert(segment.segment_id.as_str()) {
-            return Err(BenchmarkError::DuplicateObjectId(segment.segment_id.clone()));
+            return Err(BenchmarkError::DuplicateObjectId(
+                segment.segment_id.clone(),
+            ));
         }
         if !segment.confidence.is_finite() || !(0.0..=1.0).contains(&segment.confidence) {
-            return Err(BenchmarkError::InvalidConfidence(segment.segment_id.clone()));
+            return Err(BenchmarkError::InvalidConfidence(
+                segment.segment_id.clone(),
+            ));
         }
-        segment.mask.validate(input.raster_width, input.raster_height)?;
+        segment
+            .mask
+            .validate(input.raster_width, input.raster_height)?;
     }
     Ok(())
 }
@@ -942,8 +951,14 @@ mod tests {
     #[test]
     fn wall_segment_fragments_combine_for_union_coverage() {
         let report = evaluate_wall_segments(&wall_input()).expect("wall report");
-        assert_eq!(report.ground_truth_segment_coverages[0].covered_fraction, 1.0);
-        assert_eq!(report.ground_truth_segment_coverages[1].covered_fraction, 0.0);
+        assert_eq!(
+            report.ground_truth_segment_coverages[0].covered_fraction,
+            1.0
+        );
+        assert_eq!(
+            report.ground_truth_segment_coverages[1].covered_fraction,
+            0.0
+        );
         assert_eq!(report.prediction_segment_coverages[0].covered_fraction, 1.0);
         assert_eq!(report.prediction_segment_coverages[1].covered_fraction, 1.0);
     }
@@ -953,9 +968,18 @@ mod tests {
         let report = evaluate_wall_segments(&wall_input()).expect("wall report");
         assert_eq!(report.coverage_threshold_reports.len(), 3);
         assert_eq!(report.coverage_threshold_reports[0].threshold, 0.7);
-        assert_eq!(report.coverage_threshold_reports[0].covered_ground_truth_count, 1);
-        assert_eq!(report.coverage_threshold_reports[0].covered_prediction_count, 2);
-        assert_eq!(report.coverage_threshold_reports[2].covered_ground_truth_rate, Some(0.5));
+        assert_eq!(
+            report.coverage_threshold_reports[0].covered_ground_truth_count,
+            1
+        );
+        assert_eq!(
+            report.coverage_threshold_reports[0].covered_prediction_count,
+            2
+        );
+        assert_eq!(
+            report.coverage_threshold_reports[2].covered_ground_truth_rate,
+            Some(0.5)
+        );
     }
 
     #[test]
