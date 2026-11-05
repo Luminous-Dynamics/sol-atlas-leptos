@@ -1,0 +1,26 @@
+{
+  "raster": { "width": 4, "height": 3 },
+  "iou_threshold": 0.5,
+  "confidence_threshold": 0.5,
+  "size_rule_id": "synthetic-min-area-v1",
+  "provenance": {
+    "source_doi_or_identifier": "synthetic://hdb20/stone-fixture",
+    "dataset_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "model_artifact_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "model_build_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "prediction_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+    "reference_label_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+    "split_manifest_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+    "evaluator_build_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+    "metric_protocol_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+    "rights_receipt_ref": "receipt:synthetic-stone-fixture",
+    "evaluation_unit_kind": "site",
+    "evaluation_unit_id": "synthetic-site-1"
+  },
+  "ground_truth": [
+    { "instance_id": "stone-1", "mask": { "pixel_indices": [0, 1] } }
+  ],
+  "predictions": [
+    { "instance_id": "prediction-1", "confidence": 0.95, "mask": { "pixel_indices": [0, 1] } }
+  ]
+}
