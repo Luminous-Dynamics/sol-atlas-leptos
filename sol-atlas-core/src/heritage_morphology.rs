@@ -57,7 +57,7 @@ impl MeasurementInterval {
     ) -> Result<(), HeritageMorphologyError> {
         if !self.lower.is_finite()
             || !self.upper.is_finite()
-            || self.lower < 0.0
+            || self.lower <= 0.0
             || self.upper > 1.0
             || self.lower > self.upper
         {
@@ -551,7 +551,11 @@ pub fn aggregate_architecture_morphology(
                     ambiguities.push(MembershipAmbiguityRecord {
                         physical_identity_id: stone.physical_identity_id.clone(),
                         level: membership.level,
-                        candidate_group_ids: membership.candidate_group_ids.clone(),
+                        candidate_group_ids: {
+                            let mut candidates = membership.candidate_group_ids.clone();
+                            candidates.sort();
+                            candidates
+                        },
                     });
                     for candidate in &membership.candidate_group_ids {
                         groups
@@ -569,10 +573,18 @@ pub fn aggregate_architecture_morphology(
 
     let group_summaries: Vec<GroupMorphologySummary> = groups
         .into_iter()
-        .map(|((level, group_id), accumulator)| {
+        .map(|((level, group_id), mut accumulator)| {
+            accumulator.assigned.sort_by(|left, right| {
+                left.physical_identity_id.cmp(&right.physical_identity_id)
+            });
             summarize_group(level, group_id, accumulator)
         })
         .collect();
+    ambiguities.sort_by(|left, right| {
+        left.physical_identity_id
+            .cmp(&right.physical_identity_id)
+            .then_with(|| left.level.cmp(&right.level))
+    });
     let membership_audit: Vec<LevelMembershipAudit> = ARCHITECTURE_GROUP_LEVELS
         .iter()
         .map(|level| {
@@ -857,6 +869,30 @@ mod tests {
         let second = aggregate_architecture_morphology(&input).unwrap();
         assert_eq!(first.groups, second.groups);
         assert_eq!(first.membership_audit, second.membership_audit);
+    }
+
+
+    #[test]
+    fn ambiguous_membership_order_is_canonicalized() {
+        let mut input = input();
+        let member = input.stones[0]
+            .memberships
+            .iter_mut()
+            .find(|membership| membership.level == ArchitectureGroupLevel::Wall)
+            .unwrap();
+        member.status = MembershipStatus::Ambiguous;
+        member.group_id = None;
+        member.candidate_group_ids = vec!["wall-z".into(), "wall-a".into()];
+        let first = aggregate_architecture_morphology(&input).unwrap();
+        input.stones[0]
+            .memberships
+            .iter_mut()
+            .find(|membership| membership.level == ArchitectureGroupLevel::Wall)
+            .unwrap()
+            .candidate_group_ids
+            .reverse();
+        let second = aggregate_architecture_morphology(&input).unwrap();
+        assert_eq!(first, second);
     }
 
     #[test]
