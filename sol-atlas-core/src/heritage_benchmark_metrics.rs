@@ -761,8 +761,13 @@ pub fn evaluate_wall_segments(
                 ),
                 covered_prediction_count,
                 prediction_count: selected_predictions.len(),
-                covered_prediction_rate: (!selected_predictions.is_empty())
-                    .then_some(covered_prediction_count as f64 / selected_predictions.len() as f64),
+                covered_prediction_rate: if selected_predictions.is_empty()
+                    || ground_truth_union.is_empty()
+                {
+                    None
+                } else {
+                    Some(covered_prediction_count as f64 / selected_predictions.len() as f64)
+                },
             }
         })
         .collect();
