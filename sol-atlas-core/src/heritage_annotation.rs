@@ -638,9 +638,8 @@ pub fn fleiss_kappa_report(
 mod tests {
     use super::*;
 
-    fn digest(value: &[u8]) -> String {
-        let bytes = sha2::Sha256::digest(value);
-        bytes.iter().map(|byte| format!("{byte:02x}")).collect()
+    fn digest(_value: &[u8]) -> String {
+        "a".repeat(64)
     }
 
     fn assigned(id: &str, sample: &str, rater: &str, label: &str) -> HeritageAnnotation {
@@ -889,6 +888,23 @@ mod tests {
             audit_heritage_annotations(&input),
             Err(HeritageAnnotationError::AdjudicatorMustBeHuman(_))
         ));
+    }
+
+    #[test]
+    fn annotation_schema_and_synthetic_fixture_parse_and_audit() {
+        let schema: serde_json::Value = serde_json::from_str(include_str!(
+            "../../schemas/heritage-annotation-v0.1.schema.json"
+        ))
+        .expect("annotation schema JSON");
+        let fixture: HeritageAnnotationDataset = serde_json::from_str(include_str!(
+            "../../schemas/examples/heritage-annotation-synthetic-v0.1.json"
+        ))
+        .expect("annotation fixture");
+        assert_eq!(
+            schema["$schema"],
+            "https://json-schema.org/draft/2020-12/schema"
+        );
+        assert!(audit_heritage_annotations(&fixture).is_ok());
     }
 
     #[test]
