@@ -17,8 +17,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::fmt;
 
-pub const HERITAGE_NONDETECTION_SCHEMA_VERSION: &str =
-    "luminous.heritage-nondetection.v0.1";
+pub const HERITAGE_NONDETECTION_SCHEMA_VERSION: &str = "luminous.heritage-nondetection.v0.1";
 pub const MAX_STAGE_EVIDENCE: usize = 6;
 
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
@@ -97,9 +96,7 @@ impl EvidenceStage {
             Self::Survival => Conditioning::OriginallyPresent,
             Self::Exposure => Conditioning::SurvivedGivenOriginallyPresent,
             Self::Observability => Conditioning::ObservableGivenSurvivalAndExposure,
-            Self::FootprintCoverage => {
-                Conditioning::CoveredGivenSurvivalExposureAndObservability
-            }
+            Self::FootprintCoverage => Conditioning::CoveredGivenSurvivalExposureAndObservability,
             Self::ConditionalDetection => {
                 Conditioning::DetectedGivenSurvivalExposureObservabilityAndCoverage
             }
@@ -305,9 +302,7 @@ fn validate_digest(value: &str, label: &str) -> Result<(), HeritageNonDetectionE
     Ok(())
 }
 
-fn validate_prior(
-    input: &HeritageNonDetectionInput,
-) -> Result<(), HeritageNonDetectionError> {
+fn validate_prior(input: &HeritageNonDetectionInput) -> Result<(), HeritageNonDetectionError> {
     if !non_empty(&input.event_id) {
         return Err(HeritageNonDetectionError::EmptyEventId);
     }
@@ -363,23 +358,17 @@ fn validate_stage(
     target_class_id: &str,
     context_id: &str,
 ) -> Result<(), HeritageNonDetectionError> {
-    stage
-        .probability
-        .validate(&format!("{:?}", stage.stage))?;
+    stage.probability.validate(&format!("{:?}", stage.stage))?;
     if stage.target_class_id != target_class_id {
         return Err(HeritageNonDetectionError::StageTargetClassMismatch(
             stage.stage,
         ));
     }
     if stage.context_id != context_id {
-        return Err(HeritageNonDetectionError::StageContextMismatch(
-            stage.stage,
-        ));
+        return Err(HeritageNonDetectionError::StageContextMismatch(stage.stage));
     }
     if stage.conditioning != stage.stage.required_conditioning() {
-        return Err(HeritageNonDetectionError::ConditioningMismatch(
-            stage.stage,
-        ));
+        return Err(HeritageNonDetectionError::ConditioningMismatch(stage.stage));
     }
     if !non_empty(&stage.method_id) {
         return Err(HeritageNonDetectionError::EmptyMethodId(stage.stage));
@@ -401,9 +390,10 @@ fn validate_stage(
         validate_digest(value, label)?;
     }
     if !non_empty(&stage.validation_receipt_ref) {
-        return Err(HeritageNonDetectionError::EmptyEvidenceReference(
-            format!("{:?}", stage.stage),
-        ));
+        return Err(HeritageNonDetectionError::EmptyEvidenceReference(format!(
+            "{:?}",
+            stage.stage
+        )));
     }
     if stage.analytical_rights != AnalyticalRights::Allowed {
         return Err(HeritageNonDetectionError::AnalyticalRightsNotAllowed(
@@ -411,9 +401,10 @@ fn validate_stage(
         ));
     }
     if !non_empty(&stage.rights_receipt_ref) {
-        return Err(HeritageNonDetectionError::RightsReceiptMissing(
-            format!("{:?}", stage.stage),
-        ));
+        return Err(HeritageNonDetectionError::RightsReceiptMissing(format!(
+            "{:?}",
+            stage.stage
+        )));
     }
 
     match stage.stage {
@@ -545,18 +536,8 @@ pub fn evaluate_non_detection(
     }
     validate_prior(input)?;
 
-    let no_update = |disposition| {
-        make_report(
-            input,
-            disposition,
-            None,
-            None,
-            None,
-            None,
-            None,
-            Vec::new(),
-        )
-    };
+    let no_update =
+        |disposition| make_report(input, disposition, None, None, None, None, None, Vec::new());
 
     match input.observation_state {
         ObservationState::Detected => {
@@ -694,9 +675,8 @@ mod tests {
                 .then_some(CoverageEvidenceBasis::ActualSpatialUnionReceipt),
             coverage_geometry_sha256: is_coverage.then(|| digest('5')),
             spatial_coverage_receipt_sha256: is_coverage.then(|| digest('6')),
-            coverage_probability_model: is_coverage.then_some(
-                CoverageProbabilityModel::UniformAreaWeightedWithinSurveyUnit,
-            ),
+            coverage_probability_model: is_coverage
+                .then_some(CoverageProbabilityModel::UniformAreaWeightedWithinSurveyUnit),
             target_location_distribution_sha256: is_coverage.then(|| digest('7')),
         }
     }
@@ -766,8 +746,7 @@ mod tests {
         let detection = 0.9_f64 * 0.8 * 0.7 * 0.5 * 0.6;
         let miss_present = 1.0 - detection;
         let miss_absent = 0.9;
-        let expected =
-            (0.6 * miss_present) / (0.6 * miss_present + 0.4 * miss_absent);
+        let expected = (0.6 * miss_present) / (0.6 * miss_present + 0.4 * miss_absent);
         let posterior = report.posterior_probability_originally_present.unwrap();
         assert!((posterior.lower - expected).abs() < 1e-12);
         assert!((posterior.upper - expected).abs() < 1e-12);
@@ -820,7 +799,6 @@ mod tests {
         );
     }
 
-
     #[test]
     fn coverage_fraction_requires_an_explicit_target_location_model() {
         let mut input = valid_input();
@@ -843,7 +821,10 @@ mod tests {
         input.observation_state = ObservationState::NotSearched;
         input.stage_evidence.clear();
         let report = evaluate_non_detection(&input).unwrap();
-        assert_eq!(report.disposition, NonDetectionDisposition::NotSearchedNoUpdate);
+        assert_eq!(
+            report.disposition,
+            NonDetectionDisposition::NotSearchedNoUpdate
+        );
         assert_eq!(report.posterior_probability_originally_present, None);
         assert_eq!(report.prior_probability, input.prior.probability);
         assert!(report.stage_evidence_references.is_empty());
@@ -855,7 +836,10 @@ mod tests {
         input.observation_state = ObservationState::NotObservableOrInaccessible;
         input.stage_evidence.clear();
         let report = evaluate_non_detection(&input).unwrap();
-        assert_eq!(report.disposition, NonDetectionDisposition::NotObservableNoUpdate);
+        assert_eq!(
+            report.disposition,
+            NonDetectionDisposition::NotObservableNoUpdate
+        );
         assert_eq!(report.posterior_probability_originally_present, None);
     }
 
@@ -865,7 +849,10 @@ mod tests {
         input.observation_state = ObservationState::SurveyIncompleteOrInconclusive;
         input.stage_evidence.clear();
         let report = evaluate_non_detection(&input).unwrap();
-        assert_eq!(report.disposition, NonDetectionDisposition::SurveyIncompleteNoUpdate);
+        assert_eq!(
+            report.disposition,
+            NonDetectionDisposition::SurveyIncompleteNoUpdate
+        );
         assert_eq!(report.posterior_probability_originally_present, None);
     }
 
@@ -875,7 +862,10 @@ mod tests {
         input.observation_state = ObservationState::Detected;
         input.stage_evidence.clear();
         let report = evaluate_non_detection(&input).unwrap();
-        assert_eq!(report.disposition, NonDetectionDisposition::DetectedNoNegativeUpdate);
+        assert_eq!(
+            report.disposition,
+            NonDetectionDisposition::DetectedNoNegativeUpdate
+        );
         assert_eq!(report.posterior_probability_originally_present, None);
         assert!(!report.archaeological_identification_claimed);
     }
