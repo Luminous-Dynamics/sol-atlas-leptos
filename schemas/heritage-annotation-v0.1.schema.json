@@ -1,0 +1,142 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/heritage-annotation-v0.1.schema.json",
+  "title": "Sol-Atlas Heritage Annotation Dataset v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "ontology_version",
+    "label_ids",
+    "confidence_scale_sha256",
+    "raters",
+    "annotations",
+    "adjudications"
+  ],
+  "properties": {
+    "schema_version": { "const": "luminous.heritage-annotation.v0.1" },
+    "ontology_version": { "type": "string", "minLength": 1 },
+    "label_ids": { "type": "array", "minItems": 2, "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+    "confidence_scale_sha256": { "$ref": "#/$defs/digest" },
+    "raters": { "type": "array", "items": { "$ref": "#/$defs/rater" } },
+    "annotations": { "type": "array", "items": { "$ref": "#/$defs/annotation" } },
+    "adjudications": { "type": "array", "items": { "$ref": "#/$defs/adjudication" } }
+  },
+  "$defs": {
+    "digest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "rater": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["rater_id", "kind", "task_scope_tags"],
+      "properties": {
+        "rater_id": { "type": "string", "minLength": 1 },
+        "kind": { "enum": ["human_expert", "practitioner", "citizen_scientist", "model"] },
+        "task_scope_tags": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "qualification_receipt_ref": { "type": ["string","null"], "minLength": 1 }
+      }
+    },
+    "confidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["score", "scale_min", "scale_max", "scale_sha256"],
+      "properties": {
+        "score": { "type": "integer", "minimum": 0, "maximum": 255 },
+        "scale_min": { "type": "integer", "minimum": 0, "maximum": 255 },
+        "scale_max": { "type": "integer", "minimum": 1, "maximum": 255 },
+        "scale_sha256": { "$ref": "#/$defs/digest" }
+      }
+    },
+    "annotation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "annotation_id",
+        "task_id",
+        "sample_id",
+        "context_id",
+        "ontology_version",
+        "rubric_sha256",
+        "source_artifact_sha256",
+        "assessment_round_id",
+        "rater_id",
+        "decision",
+        "alternative_label_ids",
+        "created_at_utc"
+      ],
+      "properties": {
+        "annotation_id": { "type": "string", "minLength": 1 },
+        "task_id": { "type": "string", "minLength": 1 },
+        "sample_id": { "type": "string", "minLength": 1 },
+        "context_id": { "type": "string", "minLength": 1 },
+        "ontology_version": { "type": "string", "minLength": 1 },
+        "rubric_sha256": { "$ref": "#/$defs/digest" },
+        "source_artifact_sha256": { "$ref": "#/$defs/digest" },
+        "assessment_round_id": { "type": "string", "minLength": 1 },
+        "rater_id": { "type": "string", "minLength": 1 },
+        "decision": {
+          "type": "object",
+          "required": ["state"],
+          "properties": {
+            "state": { "enum": ["assigned","unsure","not_observable","abstained"] },
+            "label_id": { "type": "string", "minLength": 1 }
+          },
+          "allOf": [
+            {
+              "if": { "properties": { "state": { "const": "assigned" } }, "required": ["state"] },
+              "then": { "required": ["label_id"] },
+              "else": { "not": { "required": ["label_id"] } }
+            }
+          ]
+        },
+        "confidence": { "anyOf": [{ "$ref": "#/$defs/confidence" }, { "type": "null" }] },
+        "alternative_label_ids": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+        "rationale_sha256": { "anyOf": [{ "$ref": "#/$defs/digest" }, { "type": "null" }] },
+        "created_at_utc": { "type": "string", "format": "date-time" }
+      }
+    },
+    "adjudication": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "adjudication_id",
+        "task_id",
+        "sample_id",
+        "context_id",
+        "ontology_version",
+        "source_annotation_ids",
+        "adjudicator_rater_id",
+        "outcome",
+        "rationale_sha256",
+        "model_outputs_shown",
+        "created_at_utc"
+      ],
+      "properties": {
+        "adjudication_id": { "type": "string", "minLength": 1 },
+        "task_id": { "type": "string", "minLength": 1 },
+        "sample_id": { "type": "string", "minLength": 1 },
+        "context_id": { "type": "string", "minLength": 1 },
+        "ontology_version": { "type": "string", "minLength": 1 },
+        "source_annotation_ids": { "type": "array", "minItems": 2, "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+        "adjudicator_rater_id": { "type": "string", "minLength": 1 },
+        "outcome": {
+          "type": "object",
+          "required": ["status"],
+          "properties": {
+            "status": { "enum": ["resolved","unresolved"] },
+            "label_id": { "type": "string", "minLength": 1 }
+          },
+          "allOf": [
+            {
+              "if": { "properties": { "status": { "const": "resolved" } }, "required": ["status"] },
+              "then": { "required": ["label_id"] },
+              "else": { "not": { "required": ["label_id"] } }
+            }
+          ]
+        },
+        "rationale_sha256": { "$ref": "#/$defs/digest" },
+        "model_outputs_shown": { "type": "boolean" },
+        "created_at_utc": { "type": "string", "format": "date-time" }
+      }
+    }
+  }
+}
