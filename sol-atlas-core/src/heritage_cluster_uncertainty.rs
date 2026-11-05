@@ -473,9 +473,8 @@ pub fn evaluate_cluster_metric_uncertainty(
     let (effective_units, maximum_observed_inter_unit_correlation) =
         validate_correlation_matrix(&input.correlation_matrix, input.units.len())?;
     let macro_unit_mean = metric_values.iter().sum::<f64>() / metric_values.len() as f64;
-    let paired_baseline_macro_unit_mean = paired_comparison_enabled.then(|| {
-        paired_baseline_values.iter().sum::<f64>() / paired_baseline_values.len() as f64
-    });
+    let paired_baseline_macro_unit_mean = paired_comparison_enabled
+        .then(|| paired_baseline_values.iter().sum::<f64>() / paired_baseline_values.len() as f64);
     let paired_improvement_macro_mean = paired_comparison_enabled.then(|| {
         paired_improvement_values.iter().sum::<f64>() / paired_improvement_values.len() as f64
     });
@@ -698,7 +697,8 @@ mod tests {
         let mut value = input();
         value.paired_baseline_model_id = Some("published-baseline-v1".to_owned());
         value.paired_baseline_run_sha256 = Some(digest('e'));
-        value.paired_baseline_metric_definition_sha256 = Some(value.metric_definition_sha256.clone());
+        value.paired_baseline_metric_definition_sha256 =
+            Some(value.metric_definition_sha256.clone());
         for unit in &mut value.units {
             unit.paired_baseline_metric_value = Some(unit.metric_value - 0.04);
         }
@@ -718,11 +718,13 @@ mod tests {
         value.metric_direction = MetricDirection::LowerIsBetter;
         value.paired_baseline_model_id = Some("baseline-error-model".to_owned());
         value.paired_baseline_run_sha256 = Some(digest('e'));
-        value.paired_baseline_metric_definition_sha256 = Some(value.metric_definition_sha256.clone());
+        value.paired_baseline_metric_definition_sha256 =
+            Some(value.metric_definition_sha256.clone());
         for unit in &mut value.units {
             unit.paired_baseline_metric_value = Some(unit.metric_value + 0.15);
         }
-        let report = evaluate_cluster_metric_uncertainty(&value).expect("lower-is-better comparison");
+        let report =
+            evaluate_cluster_metric_uncertainty(&value).expect("lower-is-better comparison");
         assert!((report.paired_improvement_macro_mean.unwrap() - 0.15).abs() < 1e-12);
         assert!(report.paired_improvement_percentile_lower.unwrap() > 0.0);
     }
