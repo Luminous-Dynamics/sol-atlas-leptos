@@ -188,9 +188,7 @@ fn validate_input(input: &ClusterBootstrapInput) -> Result<(), HeritageClusterSt
         return Err(HeritageClusterStatisticsError::MissingCorrelationEvidence);
     }
     if !input.equal_marginal_variance_assumed {
-        return Err(
-            HeritageClusterStatisticsError::EqualMarginalVarianceAssumptionRequired,
-        );
+        return Err(HeritageClusterStatisticsError::EqualMarginalVarianceAssumptionRequired);
     }
     if input.observations.is_empty() {
         return Err(HeritageClusterStatisticsError::NoIndependentUnits);
@@ -200,9 +198,7 @@ fn validate_input(input: &ClusterBootstrapInput) -> Result<(), HeritageClusterSt
     }
     let mut identifiers = BTreeSet::new();
     for observation in &input.observations {
-        if observation.unit_id.trim().is_empty()
-            || !identifiers.insert(observation.unit_id.clone())
-        {
+        if observation.unit_id.trim().is_empty() || !identifiers.insert(observation.unit_id.clone()) {
             return Err(HeritageClusterStatisticsError::DuplicateOrEmptyUnitId(
                 observation.unit_id.clone(),
             ));
@@ -255,16 +251,10 @@ fn validate_correlation_matrix(
         for column in 0..unit_count {
             let value = matrix[row][column];
             if !value.is_finite() {
-                return Err(HeritageClusterStatisticsError::NonFiniteCorrelation {
-                    row,
-                    column,
-                });
+                return Err(HeritageClusterStatisticsError::NonFiniteCorrelation { row, column });
             }
             if !(0.0..=1.0).contains(&value) {
-                return Err(HeritageClusterStatisticsError::CorrelationOutOfRange {
-                    row,
-                    column,
-                });
+                return Err(HeritageClusterStatisticsError::CorrelationOutOfRange { row, column });
             }
             if row == column && (value - 1.0).abs() > MATRIX_TOLERANCE {
                 return Err(HeritageClusterStatisticsError::CorrelationDiagonalNotOne(
@@ -272,17 +262,14 @@ fn validate_correlation_matrix(
                 ));
             }
             if (matrix[row][column] - matrix[column][row]).abs() > MATRIX_TOLERANCE {
-                return Err(HeritageClusterStatisticsError::CorrelationMatrixNotSymmetric {
-                    row,
-                    column,
-                });
+                return Err(
+                    HeritageClusterStatisticsError::CorrelationMatrixNotSymmetric { row, column },
+                );
             }
         }
     }
     if !is_positive_semidefinite(matrix) {
-        return Err(
-            HeritageClusterStatisticsError::CorrelationMatrixNotPositiveSemidefinite,
-        );
+        return Err(HeritageClusterStatisticsError::CorrelationMatrixNotPositiveSemidefinite);
     }
     Ok(())
 }
@@ -297,9 +284,8 @@ fn is_positive_semidefinite(matrix: &[Vec<f64>]) -> bool {
     for pivot_index in 0..size {
         let mut pivot = matrix[pivot_index][pivot_index];
         for previous in 0..pivot_index {
-            pivot -= lower[pivot_index][previous]
-                * lower[pivot_index][previous]
-                * diagonal[previous];
+            pivot -=
+                lower[pivot_index][previous] * lower[pivot_index][previous] * diagonal[previous];
         }
         if pivot < -MATRIX_TOLERANCE {
             return false;
@@ -309,9 +295,8 @@ fn is_positive_semidefinite(matrix: &[Vec<f64>]) -> bool {
             for row in pivot_index + 1..size {
                 let mut residual = matrix[row][pivot_index];
                 for previous in 0..pivot_index {
-                    residual -= lower[row][previous]
-                        * lower[pivot_index][previous]
-                        * diagonal[previous];
+                    residual -=
+                        lower[row][previous] * lower[pivot_index][previous] * diagonal[previous];
                 }
                 if residual.abs() > MATRIX_TOLERANCE {
                     return false;
@@ -342,8 +327,7 @@ fn correlation_diagnostics(matrix: &[Vec<f64>]) -> (f64, f64, f64) {
     let mut maximum_off_diagonal = 0.0_f64;
     for row in 0..unit_count {
         for column in row + 1..unit_count {
-            maximum_off_diagonal =
-                maximum_off_diagonal.max(matrix[row][column]);
+            maximum_off_diagonal = maximum_off_diagonal.max(matrix[row][column]);
         }
     }
     (matrix_sum, effective_units, maximum_off_diagonal)
@@ -413,9 +397,7 @@ pub fn evaluate_cluster_bootstrap(
     }
     let status = if effective_unit_count < input.minimum_effective_units {
         ConfidenceIntervalStatus::InsufficientEffectiveUnits
-    } else if maximum_off_diagonal_correlation
-        > input.maximum_permitted_inter_unit_correlation
-    {
+    } else if maximum_off_diagonal_correlation > input.maximum_permitted_inter_unit_correlation {
         ConfidenceIntervalStatus::CorrelationExceedsTolerance
     } else {
         ConfidenceIntervalStatus::Qualified
@@ -444,14 +426,12 @@ pub fn evaluate_cluster_bootstrap(
             bootstrap_means.push(replicate_mean);
         }
         completed_replicates = bootstrap_means.len();
-        let bootstrap_mean =
-            bootstrap_means.iter().sum::<f64>() / bootstrap_means.len() as f64;
+        let bootstrap_mean = bootstrap_means.iter().sum::<f64>() / bootstrap_means.len() as f64;
         let squared_deviations = bootstrap_means
             .iter()
             .map(|value| (value - bootstrap_mean).powi(2))
             .sum::<f64>();
-        let standard_error =
-            (squared_deviations / (bootstrap_means.len() - 1) as f64).sqrt();
+        let standard_error = (squared_deviations / (bootstrap_means.len() - 1) as f64).sqrt();
         bootstrap_means.sort_by(f64::total_cmp);
         let tail_probability = (1.0 - input.confidence_level) / 2.0;
         interval = Some(PercentileInterval {
@@ -640,10 +620,7 @@ mod tests {
         value.correlation_matrix[0][1] = 0.2;
         assert_eq!(
             evaluate_cluster_bootstrap(&value).unwrap_err(),
-            HeritageClusterStatisticsError::CorrelationMatrixNotSymmetric {
-                row: 0,
-                column: 1
-            }
+            HeritageClusterStatisticsError::CorrelationMatrixNotSymmetric { row: 0, column: 1 }
         );
     }
 
