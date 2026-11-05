@@ -222,6 +222,12 @@ pub struct SegmentCoverage {
     pub covered_fraction: Option<f64>,
 }
 
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct PredictedSegmentCoverage {
+    pub segment_id: String,
+    pub covered_fraction: Option<f64>,
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub struct WallCoverageThresholdResult {
     pub threshold: f64,
@@ -247,7 +253,7 @@ pub struct WallEvaluationReport {
     pub excluded_ground_truth_segment_count: usize,
     pub counts: CountMetrics,
     pub ground_truth_segment_coverage: Vec<SegmentCoverage>,
-    pub prediction_segment_coverage: Vec<(String, Option<f64>)>,
+    pub prediction_segment_coverage: Vec<PredictedSegmentCoverage>,
     pub coverage_threshold_results: Vec<WallCoverageThresholdResult>,
 }
 
@@ -688,10 +694,10 @@ pub fn evaluate_wall_segments(
         })
         .collect();
 
-    let prediction_segment_coverage: Vec<(String, Option<f64>)> = selected_predictions
+    let prediction_segment_coverage: Vec<PredictedSegmentCoverage> = selected_predictions
         .iter()
         .map(|segment| {
-            let coverage = if ground_truth_union.is_empty() {
+            let covered_fraction = if ground_truth_union.is_empty() {
                 None
             } else {
                 Some(
@@ -699,7 +705,10 @@ pub fn evaluate_wall_segments(
                         / segment.mask.pixel_indices.len() as f64,
                 )
             };
-            (segment.segment_id.clone(), coverage)
+            PredictedSegmentCoverage {
+                segment_id: segment.segment_id.clone(),
+                covered_fraction,
+            }
         })
         .collect();
 
@@ -718,8 +727,10 @@ pub fn evaluate_wall_segments(
                 .count();
             let covered_prediction_count = prediction_segment_coverage
                 .iter()
-                .filter(|(_, coverage)| {
-                    coverage.is_some_and(|value| value >= *threshold)
+                .filter(|segment| {
+                    segment
+                        .covered_fraction
+                        .is_some_and(|coverage| coverage >= *threshold)
                 })
                 .count();
             WallCoverageThresholdResult {
