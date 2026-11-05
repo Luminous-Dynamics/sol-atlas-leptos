@@ -1,0 +1,85 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/heritage-absence-v0.1.schema.json",
+  "title": "Sol-Atlas Heritage Non-Detection Evidence Case v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version","observation","model"],
+  "properties": {
+    "schema_version": { "const": "luminous.heritage-absence.v0.1" },
+    "observation": { "$ref": "#/$defs/observation" },
+    "model": { "anyOf": [{ "$ref": "#/$defs/model" }, { "type": "null" }] }
+  },
+  "$defs": {
+    "digest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "observation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "observation_id","survey_unit_id","target_class_id","context_id","method_id",
+        "effort_profile_sha256","outcome","coverage_receipt_ref","coverage_receipt_sha256",
+        "effort_receipt_ref","effort_receipt_sha256"
+      ],
+      "properties": {
+        "observation_id": { "type": "string", "minLength": 1 },
+        "survey_unit_id": { "type": "string", "minLength": 1 },
+        "target_class_id": { "type": "string", "minLength": 1 },
+        "context_id": { "type": "string", "minLength": 1 },
+        "method_id": { "type": "string", "minLength": 1 },
+        "effort_profile_sha256": { "$ref": "#/$defs/digest" },
+        "outcome": { "enum": ["detected","searched_no_detection","not_searched","not_observable","inconclusive"] },
+        "coverage_receipt_ref": { "type": ["string","null"], "minLength": 1 },
+        "coverage_receipt_sha256": { "anyOf": [{ "$ref": "#/$defs/digest" }, { "type": "null" }] },
+        "effort_receipt_ref": { "type": ["string","null"], "minLength": 1 },
+        "effort_receipt_sha256": { "anyOf": [{ "$ref": "#/$defs/digest" }, { "type": "null" }] }
+      }
+    },
+    "band": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "lower","upper","context_id","target_class_id","method_id","effort_profile_sha256",
+        "calibration_profile_sha256","calibration_data_sha256","validation_split_sha256",
+        "conditional_semantics_sha256","receipt_ref","receipt_sha256"
+      ],
+      "properties": {
+        "lower": { "type": "number", "minimum": 0, "maximum": 1 },
+        "upper": { "type": "number", "minimum": 0, "maximum": 1 },
+        "context_id": { "type": "string", "minLength": 1 },
+        "target_class_id": { "type": "string", "minLength": 1 },
+        "method_id": { "type": ["string","null"], "minLength": 1 },
+        "effort_profile_sha256": { "anyOf": [{ "$ref": "#/$defs/digest" }, { "type": "null" }] },
+        "calibration_profile_sha256": { "$ref": "#/$defs/digest" },
+        "calibration_data_sha256": { "$ref": "#/$defs/digest" },
+        "validation_split_sha256": { "$ref": "#/$defs/digest" },
+        "conditional_semantics_sha256": { "$ref": "#/$defs/digest" },
+        "receipt_ref": { "type": "string", "minLength": 1 },
+        "receipt_sha256": { "$ref": "#/$defs/digest" }
+      }
+    },
+    "model": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "model_id","context_id","target_class_id","method_id","effort_profile_sha256",
+        "prior_original_presence","survival","exposure_given_survival",
+        "observability_given_survival_and_exposure","footprint_coverage_given_observability",
+        "conditional_detection_given_covered","false_positive_given_absence"
+      ],
+      "properties": {
+        "model_id": { "type": "string", "minLength": 1 },
+        "context_id": { "type": "string", "minLength": 1 },
+        "target_class_id": { "type": "string", "minLength": 1 },
+        "method_id": { "type": "string", "minLength": 1 },
+        "effort_profile_sha256": { "$ref": "#/$defs/digest" },
+        "prior_original_presence": { "$ref": "#/$defs/band" },
+        "survival": { "$ref": "#/$defs/band" },
+        "exposure_given_survival": { "$ref": "#/$defs/band" },
+        "observability_given_survival_and_exposure": { "$ref": "#/$defs/band" },
+        "footprint_coverage_given_observability": { "$ref": "#/$defs/band" },
+        "conditional_detection_given_covered": { "$ref": "#/$defs/band" },
+        "false_positive_given_absence": { "$ref": "#/$defs/band" }
+      }
+    }
+  }
+}
