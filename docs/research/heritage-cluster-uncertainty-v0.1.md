@@ -40,4 +40,5 @@ A report with `correlation_exceeds_tolerance` or `insufficient_effective_units` 
 - Compare percentile and BCa intervals; keep BCa out of the v0.1 implementation.
 - Evaluate paired model differences at the same held-out sites with a cluster bootstrap.
 - Verify the effective-unit calculation against a high-precision reference and independent geostatistical software.
+- Add paired model-comparison coverage studies under different correlation scenarios.
 - Bind actual model outputs from the HDB-B1 baseline before making any SOTA claim.
