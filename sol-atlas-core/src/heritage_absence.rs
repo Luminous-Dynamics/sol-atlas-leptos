@@ -490,9 +490,7 @@ mod tests {
     use super::*;
 
     fn digest(label: &str) -> String {
-        let mut value = label.as_bytes().to_vec();
-        value.resize(64, b'x');
-        value.truncate(64);
+        let value = sha2::Sha256::digest(label.as_bytes());
         value.iter().map(|byte| format!("{byte:02x}")).collect()
     }
 
