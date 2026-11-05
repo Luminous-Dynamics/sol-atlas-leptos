@@ -1,0 +1,85 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/heritage-cluster-uncertainty-v0.1.schema.json",
+  "title": "Sol-Atlas Heritage Cluster Uncertainty Input v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "evaluation_run_sha256",
+    "split_manifest_sha256",
+    "metric_definition_sha256",
+    "correlation_model_sha256",
+    "metric_id",
+    "metric_unit",
+    "metric_direction",
+    "independent_unit_kind",
+    "independence_basis_ref",
+    "correlation_evidence_ref",
+    "minimum_effective_units",
+    "bootstrap_replicates",
+    "random_seed",
+    "confidence_level",
+    "maximum_inter_unit_correlation",
+    "units",
+    "correlation_matrix"
+  ],
+  "properties": {
+    "schema_version": { "const": "luminous.heritage-cluster-uncertainty.v0.1" },
+    "evaluation_run_sha256": { "$ref": "#/$defs/digest" },
+    "split_manifest_sha256": { "$ref": "#/$defs/digest" },
+    "metric_definition_sha256": { "$ref": "#/$defs/digest" },
+    "correlation_model_sha256": { "$ref": "#/$defs/digest" },
+    "metric_id": { "type": "string", "minLength": 1 },
+    "metric_unit": { "type": "string", "minLength": 1 },
+    "metric_direction": { "enum": ["higher_is_better", "lower_is_better"] },
+    "independent_unit_kind": {
+      "enum": [
+        "site",
+        "region",
+        "buffered_spatial_block",
+        "sensor_family",
+        "acquisition_epoch"
+      ]
+    },
+    "independence_basis_ref": { "type": "string", "minLength": 1 },
+    "correlation_evidence_ref": { "type": "string", "minLength": 1 },
+    "minimum_effective_units": { "type": "integer", "minimum": 5 },
+    "bootstrap_replicates": { "type": "integer", "minimum": 1000, "maximum": 100000 },
+    "random_seed": { "type": "integer", "minimum": 0 },
+    "confidence_level": { "enum": [0.9, 0.95, 0.99] },
+    "maximum_inter_unit_correlation": { "type": "number", "minimum": 0, "maximum": 1 },
+    "units": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 512,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["unit_id", "metric_value", "support_count"],
+        "properties": {
+          "unit_id": { "type": "string", "minLength": 1 },
+          "metric_value": { "type": "number" },
+          "support_count": { "type": "integer", "minimum": 1 }
+        }
+      }
+    },
+    "correlation_matrix": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 512,
+      "items": {
+        "type": "array",
+        "minItems": 2,
+        "maxItems": 512,
+        "items": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    }
+  },
+  "$defs": {
+    "digest": {
+      "type": "string",
+      "pattern": "^[A-Fa-f0-9]{64}$"
+    }
+  }
+}
