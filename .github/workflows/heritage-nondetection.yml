@@ -1,0 +1,67 @@
+name: Heritage Non-Detection Evidence Qualification
+
+on:
+  pull_request:
+    paths:
+      - "sol-atlas-core/src/heritage_non_detection.rs"
+      - "sol-atlas-core/src/lib.rs"
+      - "sol-atlas-core/Cargo.toml"
+      - "schemas/heritage-nondetection-v0.1.schema.json"
+      - "schemas/examples/heritage-nondetection-synthetic-v0.1.json"
+      - "schemas/examples/heritage-nondetection-no-update-synthetic-v0.1.json"
+      - "docs/research/heritage-nondetection-v0.1.md"
+      - ".github/workflows/heritage-nondetection.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  qualify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Verify exact checkout
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - name: Check core formatting
+        run: cargo fmt --manifest-path sol-atlas-core/Cargo.toml -- --check
+      - name: Run core unit and fixture tests
+        run: cargo test --manifest-path sol-atlas-core/Cargo.toml
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Validate Draft 2020-12 schema and fixtures
+        run: |
+          python -m pip install --disable-pip-version-check jsonschema==4.23.0
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from jsonschema import Draft202012Validator
+
+          schema_path = Path("schemas/heritage-nondetection-v0.1.schema.json")
+          schema = json.loads(schema_path.read_text())
+          Draft202012Validator.check_schema(schema)
+          validator = Draft202012Validator(schema)
+
+          fixture_paths = [
+              Path("schemas/examples/heritage-nondetection-synthetic-v0.1.json"),
+              Path("schemas/examples/heritage-nondetection-no-update-synthetic-v0.1.json"),
+          ]
+          fixtures = [json.loads(path.read_text()) for path in fixture_paths]
+          for fixture in fixtures:
+              validator.validate(fixture)
+
+          malformed = json.loads(fixture_paths[0].read_text())
+          coverage = next(row for row in malformed["stage_evidence"]
+                          if row["stage"] == "footprint_coverage")
+          coverage["coverage_evidence_basis"] = "planned_survey_metadata"
+          assert list(validator.iter_errors(malformed)), "planned-only coverage negative control passed"
+          print("Draft 2020-12 schema, 2 positive fixtures and 1 negative control passed")
+          PY

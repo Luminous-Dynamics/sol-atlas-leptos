@@ -1,0 +1,286 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/heritage-nondetection-v0.1.schema.json",
+  "title": "Sol-Atlas Heritage Non-Detection Evidence Input v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "event_id",
+    "target_class_id",
+    "context_id",
+    "observation_state",
+    "prior",
+    "stage_evidence"
+  ],
+  "properties": {
+    "schema_version": { "const": "luminous.heritage-nondetection.v0.1" },
+    "event_id": { "type": "string", "minLength": 1 },
+    "target_class_id": { "type": "string", "minLength": 1 },
+    "context_id": { "type": "string", "minLength": 1 },
+    "observation_state": {
+      "enum": [
+        "detected",
+        "searched_no_detection",
+        "not_searched",
+        "not_observable_or_inaccessible",
+        "survey_incomplete_or_inconclusive"
+      ]
+    },
+    "prior": { "$ref": "#/$defs/prior" },
+    "stage_evidence": {
+      "type": "array",
+      "maxItems": 6,
+      "items": { "$ref": "#/$defs/stage_evidence" }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "observation_state": { "const": "searched_no_detection" }
+        },
+        "required": ["observation_state"]
+      },
+      "then": {
+        "properties": {
+          "stage_evidence": { "minItems": 6, "maxItems": 6 }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[A-Fa-f0-9]{64}$"
+    },
+    "probability_band": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["lower", "upper"],
+      "properties": {
+        "lower": { "type": "number", "minimum": 0, "maximum": 1 },
+        "upper": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    },
+    "prior": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "target_class_id",
+        "context_id",
+        "probability",
+        "prior_profile_sha256",
+        "source_data_sha256",
+        "validation_split_manifest_sha256",
+        "validation_receipt_ref",
+        "validation_receipt_sha256",
+        "rights_decision_id",
+        "analytical_rights",
+        "rights_receipt_ref",
+        "access_tier"
+      ],
+      "properties": {
+        "target_class_id": { "type": "string", "minLength": 1 },
+        "context_id": { "type": "string", "minLength": 1 },
+        "probability": { "$ref": "#/$defs/probability_band" },
+        "prior_profile_sha256": { "$ref": "#/$defs/sha256" },
+        "source_data_sha256": { "$ref": "#/$defs/sha256" },
+        "validation_split_manifest_sha256": { "$ref": "#/$defs/sha256" },
+        "validation_receipt_ref": { "type": "string", "minLength": 1 },
+        "validation_receipt_sha256": { "$ref": "#/$defs/sha256" },
+        "rights_decision_id": { "type": "string", "minLength": 1 },
+        "analytical_rights": { "enum": ["allowed", "denied", "undetermined"] },
+        "rights_receipt_ref": { "type": "string", "minLength": 1 },
+        "access_tier": { "enum": ["public", "controlled", "restricted", "unknown"] }
+      }
+    },
+    "stage_evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "stage",
+        "probability",
+        "target_class_id",
+        "context_id",
+        "conditioning",
+        "method_id",
+        "profile_sha256",
+        "method_build_sha256",
+        "calibration_data_sha256",
+        "validation_split_manifest_sha256",
+        "validation_receipt_ref",
+        "validation_receipt_sha256",
+        "source_data_sha256",
+        "analytical_rights",
+        "rights_receipt_ref",
+        "access_tier"
+      ],
+      "properties": {
+        "stage": {
+          "enum": [
+            "survival",
+            "exposure",
+            "observability",
+            "footprint_coverage",
+            "conditional_detection",
+            "false_positive"
+          ]
+        },
+        "probability": { "$ref": "#/$defs/probability_band" },
+        "target_class_id": { "type": "string", "minLength": 1 },
+        "context_id": { "type": "string", "minLength": 1 },
+        "conditioning": {
+          "enum": [
+            "originally_present",
+            "survived_given_originally_present",
+            "exposed_given_survival",
+            "observable_given_survival_and_exposure",
+            "covered_given_survival_exposure_and_observability",
+            "detected_given_survival_exposure_observability_and_coverage",
+            "false_positive_given_originally_absent"
+          ]
+        },
+        "method_id": { "type": "string", "minLength": 1 },
+        "profile_sha256": { "$ref": "#/$defs/sha256" },
+        "method_build_sha256": { "$ref": "#/$defs/sha256" },
+        "calibration_data_sha256": { "$ref": "#/$defs/sha256" },
+        "validation_split_manifest_sha256": { "$ref": "#/$defs/sha256" },
+        "validation_receipt_ref": { "type": "string", "minLength": 1 },
+        "validation_receipt_sha256": { "$ref": "#/$defs/sha256" },
+        "source_data_sha256": { "$ref": "#/$defs/sha256" },
+        "analytical_rights": { "enum": ["allowed", "denied", "undetermined"] },
+        "rights_receipt_ref": { "type": "string", "minLength": 1 },
+        "access_tier": { "enum": ["public", "controlled", "restricted", "unknown"] },
+        "coverage_evidence_basis": {
+          "oneOf": [
+            { "type": "null" },
+            {
+              "enum": [
+                "actual_spatial_union_receipt",
+                "planned_survey_metadata",
+                "unknown"
+              ]
+            }
+          ]
+        },
+        "coverage_geometry_sha256": {
+          "oneOf": [
+            { "type": "null" },
+            { "$ref": "#/$defs/sha256" }
+          ]
+        },
+        "spatial_coverage_receipt_sha256": {
+          "oneOf": [
+            { "type": "null" },
+            { "$ref": "#/$defs/sha256" }
+          ]
+        },
+        "coverage_probability_model": {
+          "oneOf": [
+            { "type": "null" },
+            {
+              "enum": [
+                "uniform_area_weighted_within_survey_unit",
+                "target_specific_spatial_distribution"
+              ]
+            }
+          ]
+        },
+        "target_location_distribution_sha256": {
+          "oneOf": [
+            { "type": "null" },
+            { "$ref": "#/$defs/sha256" }
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "stage": { "const": "survival" } },
+            "required": ["stage"]
+          },
+          "then": {
+            "properties": { "conditioning": { "const": "originally_present" } }
+          }
+        },
+        {
+          "if": {
+            "properties": { "stage": { "const": "exposure" } },
+            "required": ["stage"]
+          },
+          "then": {
+            "properties": {
+              "conditioning": { "const": "survived_given_originally_present" }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": { "stage": { "const": "observability" } },
+            "required": ["stage"]
+          },
+          "then": {
+            "properties": {
+              "conditioning": { "const": "observable_given_survival_and_exposure" }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": { "stage": { "const": "footprint_coverage" } },
+            "required": ["stage"]
+          },
+          "then": {
+            "required": [
+              "coverage_evidence_basis",
+              "coverage_geometry_sha256",
+              "spatial_coverage_receipt_sha256",
+              "coverage_probability_model",
+              "target_location_distribution_sha256"
+            ],
+            "properties": {
+              "conditioning": {
+                "const": "covered_given_survival_exposure_and_observability"
+              },
+              "coverage_evidence_basis": { "const": "actual_spatial_union_receipt" },
+              "coverage_geometry_sha256": { "$ref": "#/$defs/sha256" },
+              "spatial_coverage_receipt_sha256": { "$ref": "#/$defs/sha256" },
+              "coverage_probability_model": {
+                "enum": [
+                  "uniform_area_weighted_within_survey_unit",
+                  "target_specific_spatial_distribution"
+                ]
+              },
+              "target_location_distribution_sha256": { "$ref": "#/$defs/sha256" }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": { "stage": { "const": "conditional_detection" } },
+            "required": ["stage"]
+          },
+          "then": {
+            "properties": {
+              "conditioning": {
+                "const": "detected_given_survival_exposure_observability_and_coverage"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": { "stage": { "const": "false_positive" } },
+            "required": ["stage"]
+          },
+          "then": {
+            "properties": {
+              "conditioning": { "const": "false_positive_given_originally_absent" }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
