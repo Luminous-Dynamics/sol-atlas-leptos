@@ -1,0 +1,82 @@
+{
+  "schema_version": "luminous.heritage-provenance.v0.1",
+  "artifacts": [
+    {
+      "artifact_id": "raw-capture-1",
+      "sha256": "18ed639cbad6f61ab58f2d39ceaf4e1018ca54b54c11a7f0a10f6f313b4917cc",
+      "byte_length": 27,
+      "media_type": "image/tiff",
+      "role": "primary_capture",
+      "origin": "primary",
+      "access_tier": "restricted",
+      "rights_decision_id": "rights-raw-1",
+      "generated_by_activity_id": null
+    },
+    {
+      "artifact_id": "point-cloud-1",
+      "sha256": "a6689818bc623c2c14c9e896413bf3a85481cc9f96293d124dfbe3565bda73c3",
+      "byte_length": 31,
+      "media_type": "application/vnd.las",
+      "role": "point_cloud",
+      "origin": "derived",
+      "access_tier": "restricted",
+      "rights_decision_id": "rights-cloud-1",
+      "generated_by_activity_id": "photogrammetry-1"
+    }
+  ],
+  "agents": [
+    { "agent_id": "archivist-1", "kind": "person", "external_reference": "agent://pseudonymous/archivist-1" },
+    { "agent_id": "pipeline-1", "kind": "software", "external_reference": "software://sol-atlas/photogrammetry-pipeline" }
+  ],
+  "activities": [
+    {
+      "activity_id": "photogrammetry-1",
+      "kind": "transformation",
+      "purpose": "research_analysis",
+      "input_artifact_ids": ["raw-capture-1"],
+      "generated_artifact_ids": ["point-cloud-1"],
+      "responsible_agent_ids": ["archivist-1","pipeline-1"],
+      "software_agent_id": "pipeline-1",
+      "software_build_sha256": "e306f53c6083ef93e3f44a467b254d2e68bf92c8156a9ddfda4a4ee20fa4adda",
+      "environment_sha256": "8b2aa5da8995e32decc87e8b522833538ef449cc72c20f6326b200a694a1a1f8",
+      "parameters_sha256": "8e43a866063f95f1f1cc15d08cea06c1fe39a7542ea4f4d66e3a7d63f7e68cd4",
+      "protocol_sha256": null,
+      "started_at_utc": "2026-11-05T08:00:00Z",
+      "ended_at_utc": "2026-11-05T08:05:00Z"
+    }
+  ],
+  "rights_decisions": [
+    {
+      "decision_id": "rights-raw-1",
+      "artifact_id": "raw-capture-1",
+      "status": "restricted",
+      "allowed_purposes": ["research_analysis","preservation"],
+      "prohibited_purposes": ["commercial_use","redistribution"],
+      "decision_receipt_ref": "rights://receipts/rights-raw-1",
+      "decision_receipt_sha256": "8f0ecf0f497394d355c18f8503e1bebf857958dfda4ce0520f9a175a25ec4826",
+      "reviewed_by_agent_id": "archivist-1"
+    },
+    {
+      "decision_id": "rights-cloud-1",
+      "artifact_id": "point-cloud-1",
+      "status": "allowed",
+      "allowed_purposes": ["research_analysis","preservation"],
+      "prohibited_purposes": ["commercial_use","redistribution"],
+      "decision_receipt_ref": "rights://receipts/rights-cloud-1",
+      "decision_receipt_sha256": "8f0ecf0f497394d355c18f8503e1bebf857958dfda4ce0520f9a175a25ec4826",
+      "reviewed_by_agent_id": "archivist-1"
+    }
+  ],
+  "fixity_events": [
+    {
+      "event_id": "fixity-raw-1",
+      "artifact_id": "raw-capture-1",
+      "expected_sha256": "18ed639cbad6f61ab58f2d39ceaf4e1018ca54b54c11a7f0a10f6f313b4917cc",
+      "observed_sha256": "18ed639cbad6f61ab58f2d39ceaf4e1018ca54b54c11a7f0a10f6f313b4917cc",
+      "observed_byte_length": 27,
+      "outcome": "matched",
+      "checked_at_utc": "2026-11-05T08:10:00Z",
+      "checked_by_agent_id": "archivist-1"
+    }
+  ]
+}

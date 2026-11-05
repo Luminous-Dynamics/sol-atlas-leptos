@@ -1,0 +1,112 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/heritage-provenance-v0.1.schema.json",
+  "title": "Sol-Atlas Heritage Provenance Manifest v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version","artifacts","agents","activities","rights_decisions","fixity_events"],
+  "properties": {
+    "schema_version": { "const": "luminous.heritage-provenance.v0.1" },
+    "artifacts": { "type": "array", "items": { "$ref": "#/$defs/artifact" } },
+    "agents": { "type": "array", "items": { "$ref": "#/$defs/agent" } },
+    "activities": { "type": "array", "items": { "$ref": "#/$defs/activity" } },
+    "rights_decisions": { "type": "array", "items": { "$ref": "#/$defs/rights" } },
+    "fixity_events": { "type": "array", "items": { "$ref": "#/$defs/fixity" } }
+  },
+  "$defs": {
+    "digest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["artifact_id","sha256","byte_length","media_type","role","origin","access_tier","rights_decision_id"],
+      "properties": {
+        "artifact_id": { "type": "string", "minLength": 1 },
+        "sha256": { "$ref": "#/$defs/digest" },
+        "byte_length": { "type": "integer", "minimum": 1 },
+        "media_type": { "type": "string", "minLength": 1 },
+        "role": { "enum": ["primary_capture","imported_dataset","derived_image","point_cloud","geometry","annotation","adjudication","model_output","simulation_output","claim_record","reconstruction","other"] },
+        "origin": { "enum": ["primary","derived"] },
+        "access_tier": { "enum": ["public","controlled","restricted","sealed"] },
+        "rights_decision_id": { "type": "string", "minLength": 1 },
+        "generated_by_activity_id": { "type": ["string","null"], "minLength": 1 }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "origin": { "const": "derived" } }, "required": ["origin"] },
+          "then": { "required": ["generated_by_activity_id"], "properties": { "generated_by_activity_id": { "type": "string", "minLength": 1 } } }
+        },
+        {
+          "if": { "properties": { "origin": { "const": "primary" } }, "required": ["origin"] },
+          "then": { "properties": { "generated_by_activity_id": { "type": "null" } } }
+        }
+      ]
+    },
+    "agent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["agent_id","kind","external_reference"],
+      "properties": {
+        "agent_id": { "type": "string", "minLength": 1 },
+        "kind": { "enum": ["person","organization","software","instrument"] },
+        "external_reference": { "type": "string", "minLength": 1 }
+      }
+    },
+    "activity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["activity_id","kind","purpose","input_artifact_ids","generated_artifact_ids","responsible_agent_ids","started_at_utc","ended_at_utc"],
+      "properties": {
+        "activity_id": { "type": "string", "minLength": 1 },
+        "kind": { "enum": ["acquisition","ingest","transformation","annotation","adjudication","model_inference","simulation","preservation","publication"] },
+        "purpose": { "$ref": "#/$defs/purpose" },
+        "input_artifact_ids": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+        "generated_artifact_ids": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+        "responsible_agent_ids": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+        "software_agent_id": { "type": ["string","null"] },
+        "software_build_sha256": { "anyOf": [{ "$ref": "#/$defs/digest" }, { "type": "null" }] },
+        "environment_sha256": { "anyOf": [{ "$ref": "#/$defs/digest" }, { "type": "null" }] },
+        "parameters_sha256": { "anyOf": [{ "$ref": "#/$defs/digest" }, { "type": "null" }] },
+        "protocol_sha256": { "anyOf": [{ "$ref": "#/$defs/digest" }, { "type": "null" }] },
+        "started_at_utc": { "type": "string", "format": "date-time" },
+        "ended_at_utc": { "type": "string", "format": "date-time" }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "kind": { "enum": ["transformation","model_inference","simulation"] } }, "required": ["kind"] },
+          "then": { "required": ["software_agent_id","software_build_sha256","environment_sha256","parameters_sha256"] }
+        }
+      ]
+    },
+    "purpose": { "enum": ["preservation","research_analysis","annotation","model_training","public_display","redistribution","commercial_use"] },
+    "rights": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["decision_id","artifact_id","status","allowed_purposes","prohibited_purposes","reviewed_by_agent_id"],
+      "properties": {
+        "decision_id": { "type": "string", "minLength": 1 },
+        "artifact_id": { "type": "string", "minLength": 1 },
+        "status": { "enum": ["allowed","restricted","prohibited","undetermined"] },
+        "allowed_purposes": { "type": "array", "uniqueItems": true, "items": { "$ref": "#/$defs/purpose" } },
+        "prohibited_purposes": { "type": "array", "uniqueItems": true, "items": { "$ref": "#/$defs/purpose" } },
+        "decision_receipt_ref": { "type": ["string","null"], "minLength": 1 },
+        "decision_receipt_sha256": { "anyOf": [{ "$ref": "#/$defs/digest" }, { "type": "null" }] },
+        "reviewed_by_agent_id": { "type": "string", "minLength": 1 }
+      }
+    },
+    "fixity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["event_id","artifact_id","expected_sha256","observed_sha256","observed_byte_length","outcome","checked_at_utc","checked_by_agent_id"],
+      "properties": {
+        "event_id": { "type": "string", "minLength": 1 },
+        "artifact_id": { "type": "string", "minLength": 1 },
+        "expected_sha256": { "$ref": "#/$defs/digest" },
+        "observed_sha256": { "$ref": "#/$defs/digest" },
+        "observed_byte_length": { "type": "integer", "minimum": 0 },
+        "outcome": { "enum": ["matched","mismatch"] },
+        "checked_at_utc": { "type": "string", "format": "date-time" },
+        "checked_by_agent_id": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}
