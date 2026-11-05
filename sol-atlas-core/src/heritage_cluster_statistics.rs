@@ -365,12 +365,17 @@ impl SplitMix64 {
     }
 }
 
+fn stable_mean(values: impl IntoIterator<Item = f64>) -> f64 {
+    let mut mean = 0.0;
+    for (index, value) in values.into_iter().enumerate() {
+        let count = (index + 1) as f64;
+        mean = mean * (index as f64 / count) + value / count;
+    }
+    mean
+}
+
 fn macro_mean(observations: &[UnitMetricObservation]) -> f64 {
-    observations
-        .iter()
-        .map(|observation| observation.metric_value)
-        .sum::<f64>()
-        / observations.len() as f64
+    stable_mean(observations.iter().map(|observation| observation.metric_value))
 }
 
 fn quantile(sorted_values: &[f64], probability: f64) -> f64 {
@@ -414,30 +419,38 @@ pub fn evaluate_cluster_bootstrap(
         let mut random = SplitMix64::new(input.bootstrap_seed);
         let mut bootstrap_means = Vec::with_capacity(input.bootstrap_replicates);
         for _ in 0..input.bootstrap_replicates {
-            let mut sum = 0.0;
-            for _ in 0..unit_count {
+            let mut replicate_mean = 0.0;
+            for draw in 0..unit_count {
                 let index = random.next_bounded(unit_count);
-                sum += input.observations[index].metric_value;
+                let count = (draw + 1) as f64;
+                replicate_mean = replicate_mean * (draw as f64 / count)
+                    + input.observations[index].metric_value / count;
             }
-            let replicate_mean = sum / unit_count as f64;
             if !replicate_mean.is_finite() {
                 return Err(HeritageClusterStatisticsError::MetricAggregateNonFinite);
             }
             bootstrap_means.push(replicate_mean);
         }
         completed_replicates = bootstrap_means.len();
-        let bootstrap_mean = bootstrap_means.iter().sum::<f64>() / bootstrap_means.len() as f64;
+        let bootstrap_mean = stable_mean(bootstrap_means.iter().copied());
         let squared_deviations = bootstrap_means
             .iter()
             .map(|value| (value - bootstrap_mean).powi(2))
             .sum::<f64>();
         let standard_error = (squared_deviations / (bootstrap_means.len() - 1) as f64).sqrt();
+        if !standard_error.is_finite() {
+            return Err(HeritageClusterStatisticsError::MetricAggregateNonFinite);
+        }
         bootstrap_means.sort_by(f64::total_cmp);
         let tail_probability = (1.0 - input.confidence_level) / 2.0;
-        interval = Some(PercentileInterval {
+        let percentile_interval = PercentileInterval {
             lower: quantile(&bootstrap_means, tail_probability),
             upper: quantile(&bootstrap_means, 1.0 - tail_probability),
-        });
+        };
+        if !percentile_interval.lower.is_finite() || !percentile_interval.upper.is_finite() {
+            return Err(HeritageClusterStatisticsError::MetricAggregateNonFinite);
+        }
+        interval = Some(percentile_interval);
         bootstrap_standard_error = Some(standard_error);
     }
 
@@ -533,6 +546,22 @@ mod tests {
         assert_eq!(report.completed_replicates, 2_000);
         assert!(report.interval.unwrap().lower <= report.interval.unwrap().upper);
         assert!(report.bootstrap_standard_error.unwrap() > 0.0);
+    }
+
+
+    #[test]
+    fn stable_macro_and_bootstrap_means_handle_large_finite_values() {
+        let mut value = input();
+        value.observations.truncate(2);
+        value.observations[0].metric_value = 1.0e308;
+        value.observations[1].metric_value = 1.0e308;
+        value.correlation_matrix = vec![vec![1.0, 0.0], vec![0.0, 1.0]];
+        value.minimum_effective_units = 2.0;
+        let report = evaluate_cluster_bootstrap(&value).unwrap();
+        assert!(report.macro_unit_mean.is_finite());
+        assert_eq!(report.macro_unit_mean, 1.0e308);
+        assert_eq!(report.interval.unwrap().lower, 1.0e308);
+        assert_eq!(report.interval.unwrap().upper, 1.0e308);
     }
 
     #[test]
