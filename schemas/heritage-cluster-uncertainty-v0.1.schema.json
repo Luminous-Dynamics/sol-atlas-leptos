@@ -33,6 +33,9 @@
     "metric_id": { "type": "string", "minLength": 1 },
     "metric_unit": { "type": "string", "minLength": 1 },
     "metric_direction": { "enum": ["higher_is_better", "lower_is_better"] },
+    "paired_baseline_model_id": { "type": "string", "minLength": 1 },
+    "paired_baseline_run_sha256": { "$ref": "#/$defs/digest" },
+    "paired_baseline_metric_definition_sha256": { "$ref": "#/$defs/digest" },
     "independent_unit_kind": {
       "enum": [
         "site",
@@ -60,7 +63,8 @@
         "properties": {
           "unit_id": { "type": "string", "minLength": 1 },
           "metric_value": { "type": "number" },
-          "support_count": { "type": "integer", "minimum": 1 }
+          "support_count": { "type": "integer", "minimum": 1 },
+          "paired_baseline_metric_value": { "type": "number" }
         }
       }
     },
