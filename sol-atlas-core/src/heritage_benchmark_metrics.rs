@@ -10,7 +10,7 @@
 //! metric policy, not evidence of archaeological truth.
 
 use serde::{Deserialize, Serialize};
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::fmt;
 
 pub const HERITAGE_BENCHMARK_METRICS_SCHEMA_VERSION: &str =
@@ -372,9 +372,12 @@ where
     })
 }
 
-fn intersection_over_union(left: &[u64], right: &[u64]) -> f64 {
-    let intersection = intersection_count(left, right);
-    let union = left.len() + right.len() - intersection;
+fn intersection_over_union_from_count(
+    left_len: usize,
+    right_len: usize,
+    intersection: usize,
+) -> f64 {
+    let union = left_len + right_len - intersection;
     if union == 0 {
         0.0
     } else {
@@ -441,18 +444,41 @@ fn match_stone_predictions(
     ranked_indices: &[usize],
     iou_threshold: f64,
 ) -> Vec<Option<(usize, f64)>> {
+    // Index reference pixels once. Non-overlapping pairs have IoU 0 and can
+    // never pass the strictly-positive IoU threshold, so they need no scoring.
+    let mut pixel_to_ground_truth: HashMap<u64, Vec<usize>> = HashMap::new();
+    for (ground_truth_index, reference) in ground_truth.iter().enumerate() {
+        for pixel in &reference.mask.pixel_indices {
+            pixel_to_ground_truth
+                .entry(*pixel)
+                .or_default()
+                .push(ground_truth_index);
+        }
+    }
+
     let mut matched_ground_truth = vec![false; ground_truth.len()];
     let mut matches = vec![None; predictions.len()];
     for prediction_index in ranked_indices {
         let prediction = &predictions[*prediction_index];
+        let mut intersections: BTreeMap<usize, usize> = BTreeMap::new();
+        for pixel in &prediction.mask.pixel_indices {
+            if let Some(candidates) = pixel_to_ground_truth.get(pixel) {
+                for ground_truth_index in candidates {
+                    *intersections.entry(*ground_truth_index).or_default() += 1;
+                }
+            }
+        }
+
         let mut best: Option<(usize, f64)> = None;
-        for (ground_truth_index, reference) in ground_truth.iter().enumerate() {
+        for (ground_truth_index, intersection) in intersections {
             if matched_ground_truth[ground_truth_index] {
                 continue;
             }
-            let score = intersection_over_union(
-                &prediction.mask.pixel_indices,
-                &reference.mask.pixel_indices,
+            let reference = &ground_truth[ground_truth_index];
+            let score = intersection_over_union_from_count(
+                prediction.mask.pixel_indices.len(),
+                reference.mask.pixel_indices.len(),
+                intersection,
             );
             if score < iou_threshold {
                 continue;
@@ -878,6 +904,18 @@ mod tests {
         let report = evaluate_stone_instances(&input).unwrap();
         assert_eq!(report.matches.len(), 1);
         assert_eq!(report.matches[0].prediction_id, "pred-a");
+    }
+
+
+    #[test]
+    fn indexed_matching_is_invariant_to_ground_truth_vector_order() {
+        let mut input = stone_input();
+        let first = evaluate_stone_instances(&input).unwrap();
+        input.ground_truth.reverse();
+        let second = evaluate_stone_instances(&input).unwrap();
+        assert_eq!(first.counts, second.counts);
+        assert_eq!(first.matches, second.matches);
+        assert_eq!(first.average_precision, second.average_precision);
     }
 
     #[test]
