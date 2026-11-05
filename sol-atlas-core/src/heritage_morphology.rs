@@ -734,9 +734,7 @@ mod tests {
         let wall_a = report
             .groups
             .iter()
-            .find(|group| {
-                group.level == ArchitectureGroupLevel::Wall && group.group_id == "wall-a"
-            })
+            .find(|group| group.level == ArchitectureGroupLevel::Wall && group.group_id == "wall-a")
             .unwrap();
         assert_eq!(wall_a.assigned_stone_count, 0);
         assert_eq!(wall_a.ambiguous_candidate_stone_count, 1);
