@@ -130,8 +130,8 @@ pub struct StoneMorphologyObservation {
     pub measurement_receipt_sha256: String,
     /// Calibrated planar footprint area in square metres; not 3D surface area.
     pub plan_footprint_area_m2: MeasurementInterval,
-    /// MRR-area / stone-area ratio; values near one indicate a more regular
-    /// footprint under this declared descriptor definition.
+    /// Stone plan-footprint area / minimum-rotated-rectangle area.
+    /// Values in (0, 1] near one indicate a more regular footprint.
     pub mrr_area_ratio: Option<MeasurementInterval>,
     /// Long-to-short axis ratio; values are >= 1.
     pub elongation_ratio: Option<MeasurementInterval>,
@@ -792,20 +792,20 @@ mod tests {
 
     #[test]
     fn missing_or_duplicate_hierarchy_level_is_rejected() {
-        let mut input = input();
-        input.stones[0]
+        let mut missing_input = input();
+        missing_input.stones[0]
             .memberships
             .retain(|membership| membership.level != ArchitectureGroupLevel::Insula);
         assert!(matches!(
-            aggregate_architecture_morphology(&input),
+            aggregate_architecture_morphology(&missing_input),
             Err(HeritageMorphologyError::MissingMembershipLevel { .. })
         ));
-        input = input();
-        input.stones[0]
+        let mut duplicate_input = input();
+        duplicate_input.stones[0]
             .memberships
             .push(membership(ArchitectureGroupLevel::Wall));
         assert!(matches!(
-            aggregate_architecture_morphology(&input),
+            aggregate_architecture_morphology(&duplicate_input),
             Err(HeritageMorphologyError::DuplicateMembershipLevel { .. })
         ));
     }
