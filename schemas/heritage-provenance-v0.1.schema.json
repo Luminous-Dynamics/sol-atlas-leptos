@@ -14,7 +14,7 @@
     "fixity_events": { "type": "array", "items": { "$ref": "#/$defs/fixity" } }
   },
   "$defs": {
-    "digest": { "type": "string", "pattern": "^[A-Fa-f0-9]{64}$" },
+    "digest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
     "artifact": {
       "type": "object",
       "additionalProperties": false,
