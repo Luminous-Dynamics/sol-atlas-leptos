@@ -1085,6 +1085,16 @@ mod tests {
         ));
     }
 
+
+    #[test]
+    fn wall_fixture_contract_round_trips_through_serde() {
+        let fixture = include_str!("../../schemas/examples/heritage-wall-metrics-synthetic-v0.1.json");
+        let input: WallEvaluationInput = serde_json::from_str(fixture).unwrap();
+        let report = evaluate_wall_segments(&input).unwrap();
+        assert_eq!(report.counts.true_positive, 4);
+        assert_eq!(report.ambiguous_ground_truth_segment_count, 1);
+    }
+
     #[test]
     fn fixture_contract_round_trips_through_serde() {
         let fixture = include_str!("../../schemas/examples/heritage-benchmark-metrics-synthetic-v0.1.json");
