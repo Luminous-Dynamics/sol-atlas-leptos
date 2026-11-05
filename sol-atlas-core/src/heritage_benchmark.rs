@@ -439,7 +439,7 @@ fn ap101(
 
     let mut cumulative_tp = 0usize;
     let mut cumulative_fp = 0usize;
-    let mut points = Vec::<(f64, f64)>::with_capacity(ranked.len());
+    let mut points = Vec::<(f64, f64)>::with_capacity(ranked_prediction_count);
     for is_tp in true_positive_sequence.iter() {
         if *is_tp {
             cumulative_tp += 1;
