@@ -608,8 +608,7 @@ pub fn evaluate_stone_instances(
 
 fn validate_wall_input(input: &WallEvaluationInput) -> Result<(), HeritageMetricError> {
     input.raster.pixel_count()?;
-    if !input.confidence_threshold.is_finite()
-        || !(0.0..=1.0).contains(&input.confidence_threshold)
+    if !input.confidence_threshold.is_finite() || !(0.0..=1.0).contains(&input.confidence_threshold)
     {
         return Err(HeritageMetricError::InvalidThreshold(
             "confidence_threshold".into(),
