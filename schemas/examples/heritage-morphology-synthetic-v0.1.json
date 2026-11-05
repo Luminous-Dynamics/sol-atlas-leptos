@@ -1,0 +1,33 @@
+{
+  "schema_version":"luminous.heritage-morphology.v0.1",
+  "site_id":"synthetic-site-1",
+  "snapshot_id":"synthetic-snapshot-1",
+  "coordinate_reference_id":"EPSG:32735",
+  "dataset_sha256":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "architecture_graph_sha256":"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "measurement_protocol_sha256":"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+  "rights_decision_id":"rights:synthetic-morphology",
+  "rights_receipt_sha256":"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+  "stones":[{
+    "physical_identity_id":"physical-stone-1",
+    "observation_id":"measurement-observation-1",
+    "geometry_sha256":"eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+    "source_capture_sha256":"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+    "method_build_sha256":"1111111111111111111111111111111111111111111111111111111111111111",
+    "measurement_receipt_ref":"receipt:stone-measurement-1",
+    "measurement_receipt_sha256":"2222222222222222222222222222222222222222222222222222222222222222",
+    "plan_footprint_area_m2":{"lower":0.042,"upper":0.046},
+    "mrr_area_ratio":{"lower":0.84,"upper":0.91},
+    "elongation_ratio":{"lower":1.12,"upper":1.24},
+    "memberships":[
+      {"level":"wall_segment","status":"assigned","group_id":"segment-1","candidate_group_ids":[]},
+      {"level":"wall","status":"assigned","group_id":"wall-1","candidate_group_ids":[]},
+      {"level":"building","status":"assigned","group_id":"building-1","candidate_group_ids":[]},
+      {"level":"household","status":"assigned","group_id":"household-1","candidate_group_ids":[]},
+      {"level":"compound","status":"assigned","group_id":"compound-1","candidate_group_ids":[]},
+      {"level":"insula","status":"assigned","group_id":"insula-1","candidate_group_ids":[]},
+      {"level":"neighbourhood","status":"assigned","group_id":"neighbourhood-1","candidate_group_ids":[]},
+      {"level":"settlement","status":"assigned","group_id":"settlement-1","candidate_group_ids":[]}
+    ]
+  }]
+}
