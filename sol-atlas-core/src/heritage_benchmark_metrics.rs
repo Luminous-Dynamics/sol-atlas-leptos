@@ -520,7 +520,8 @@ fn average_precision(
 fn validate_stone_input(input: &StoneEvaluationInput) -> Result<(), HeritageMetricError> {
     input.raster.pixel_count()?;
     validate_threshold(input.iou_threshold, "iou_threshold")?;
-    if !input.confidence_threshold.is_finite() || !(0.0..=1.0).contains(&input.confidence_threshold) {
+    if !input.confidence_threshold.is_finite() || !(0.0..=1.0).contains(&input.confidence_threshold)
+    {
         return Err(HeritageMetricError::InvalidThreshold(
             "confidence_threshold".into(),
         ));
