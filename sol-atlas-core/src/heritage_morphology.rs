@@ -764,18 +764,22 @@ mod tests {
     #[test]
     fn unassigned_and_not_assessed_membership_are_separate() {
         let mut input = input();
-        for (stone, status) in [
-            (&mut input.stones[0], MembershipStatus::Unassigned),
-            (&mut input.stones[1], MembershipStatus::NotAssessed),
-        ] {
-            let member = stone
-                .memberships
-                .iter_mut()
-                .find(|member| member.level == ArchitectureGroupLevel::Household)
-                .unwrap();
-            member.status = status;
-            member.group_id = None;
-        }
+        let unassigned_member = input.stones[0]
+            .memberships
+            .iter_mut()
+            .find(|member| member.level == ArchitectureGroupLevel::Household)
+            .unwrap();
+        unassigned_member.status = MembershipStatus::Unassigned;
+        unassigned_member.group_id = None;
+
+        let not_assessed_member = input.stones[1]
+            .memberships
+            .iter_mut()
+            .find(|member| member.level == ArchitectureGroupLevel::Household)
+            .unwrap();
+        not_assessed_member.status = MembershipStatus::NotAssessed;
+        not_assessed_member.group_id = None;
+
         let report = aggregate_architecture_morphology(&input).unwrap();
         let audit = report
             .membership_audit
@@ -825,22 +829,22 @@ mod tests {
 
     #[test]
     fn invalid_morphology_intervals_fail_closed() {
-        let mut input = input();
-        input.stones[0].plan_footprint_area_m2 = MeasurementInterval {
+        let mut invalid_area = input();
+        invalid_area.stones[0].plan_footprint_area_m2 = MeasurementInterval {
             lower: 0.1,
             upper: 0.05,
         };
         assert!(matches!(
-            aggregate_architecture_morphology(&input),
+            aggregate_architecture_morphology(&invalid_area),
             Err(HeritageMorphologyError::InvalidMeasurementInterval(_))
         ));
-        input = input();
-        input.stones[0].mrr_area_ratio = Some(MeasurementInterval {
+        let mut invalid_mrr = input();
+        invalid_mrr.stones[0].mrr_area_ratio = Some(MeasurementInterval {
             lower: 0.9,
             upper: 1.1,
         });
         assert!(matches!(
-            aggregate_architecture_morphology(&input),
+            aggregate_architecture_morphology(&invalid_mrr),
             Err(HeritageMorphologyError::InvalidMeasurementInterval(_))
         ));
     }
