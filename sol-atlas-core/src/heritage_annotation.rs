@@ -172,6 +172,7 @@ pub enum HeritageAnnotationError {
     DuplicateAssessmentForRaterAndRound(String),
     InvalidConfidence(String),
     InvalidAlternativeLabel(String),
+    DifferentAnnotationContext(String),
     InvalidTimestamp(String),
     UnknownAnnotation(String),
     AdjudicationSetTooSmall(String),
@@ -259,6 +260,7 @@ pub fn audit_heritage_annotations(
 
     let mut annotation_ids = BTreeMap::<&str, &HeritageAnnotation>::new();
     let mut assessment_keys = BTreeSet::new();
+    let mut annotation_subject_sources = BTreeMap::<(&str, &str, &str), (&str, &str)>::new();
     let mut human_annotation_count = 0usize;
     let mut model_annotation_count = 0usize;
     let mut assigned_count = 0usize;
@@ -289,6 +291,26 @@ pub fn audit_heritage_annotations(
                 annotation.annotation_id.clone(),
             ));
         }
+        let subject_key = (
+            annotation.task_id.as_str(),
+            annotation.sample_id.as_str(),
+            annotation.context_id.as_str(),
+        );
+        let subject_signature = (
+            annotation.source_artifact_sha256.as_str(),
+            annotation.rubric_sha256.as_str(),
+        );
+        if annotation_subject_sources
+            .get(&subject_key)
+            .is_some_and(|existing| *existing != subject_signature)
+        {
+            return Err(HeritageAnnotationError::DifferentAnnotationContext(
+                annotation.annotation_id.clone(),
+            ));
+        }
+        annotation_subject_sources
+            .entry(subject_key)
+            .or_insert(subject_signature);
         if !valid_utc_timestamp(&annotation.created_at_utc) {
             return Err(HeritageAnnotationError::InvalidTimestamp(
                 annotation.annotation_id.clone(),
@@ -716,7 +738,8 @@ mod tests {
     #[test]
     fn plurality_tie_remains_unresolved() {
         let mut input = dataset();
-        input.annotations.truncate(3);
+        input.annotations.truncate(2);
+        input.annotations[1].decision = AnnotationDecision::Assigned("natural".to_owned());
         let consensus = derive_plurality_consensus(
             &input,
             "stone-wall-classification",
@@ -796,6 +819,16 @@ mod tests {
             fleiss_kappa_report(&input, "stone-wall-classification", "orthophoto-context-1"),
             Err(HeritageAnnotationError::UnequalRaterCounts)
         );
+    }
+
+    #[test]
+    fn same_sample_context_cannot_mix_source_assets_or_rubrics() {
+        let mut input = dataset();
+        input.annotations[1].rubric_sha256 = digest(b"other-rubric");
+        assert!(matches!(
+            audit_heritage_annotations(&input),
+            Err(HeritageAnnotationError::DifferentAnnotationContext(_))
+        ));
     }
 
     #[test]
