@@ -21,6 +21,7 @@ pub mod mycelix_flows;
 pub mod geometry;
 pub mod heritage_field_survey;
 pub mod heritage_observability;
+pub mod heritage_non_detection;
 pub mod math;
 pub mod picking;
 pub mod simulation;
