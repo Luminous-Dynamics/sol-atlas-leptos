@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/heritage-morphology-v0.1.schema.json",
+  "title": "Sol-Atlas Descriptive Heritage Morphology Input v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version","site_id","snapshot_id","coordinate_reference_id","dataset_sha256","architecture_graph_sha256","measurement_protocol_sha256","rights_decision_id","rights_receipt_sha256","stones"],
+  "properties": {
+    "schema_version": {"const":"luminous.heritage-morphology.v0.1"},
+    "site_id":{"type":"string","minLength":1},
+    "snapshot_id":{"type":"string","minLength":1},
+    "coordinate_reference_id":{"type":"string","minLength":1},
+    "dataset_sha256":{"$ref":"#/$defs/sha256"},
+    "architecture_graph_sha256":{"$ref":"#/$defs/sha256"},
+    "measurement_protocol_sha256":{"$ref":"#/$defs/sha256"},
+    "rights_decision_id":{"type":"string","minLength":1},
+    "rights_receipt_sha256":{"$ref":"#/$defs/sha256"},
+    "stones":{"type":"array","maxItems":2000000,"items":{"$ref":"#/$defs/stone"}}
+  },
+  "$defs": {
+    "sha256":{"type":"string","pattern":"^[A-Fa-f0-9]{64}$"},
+    "measurement_interval":{
+      "type":"object","additionalProperties":false,"required":["lower","upper"],
+      "properties":{"lower":{"type":"number"},"upper":{"type":"number"}}
+    },
+    "group_level":{"enum":["wall_segment","wall","building","household","compound","insula","neighbourhood","settlement"]},
+    "membership":{
+      "type":"object","additionalProperties":false,
+      "required":["level","status","group_id","candidate_group_ids"],
+      "properties":{
+        "level":{"$ref":"#/$defs/group_level"},
+        "status":{"enum":["assigned","ambiguous","unassigned","not_assessed"]},
+        "group_id":{"oneOf":[{"type":"null"},{"type":"string","minLength":1}]},
+        "candidate_group_ids":{"type":"array","uniqueItems":true,"items":{"type":"string","minLength":1}}
+      },
+      "allOf":[
+        {"if":{"properties":{"status":{"const":"assigned"}},"required":["status"]},
+         "then":{"properties":{"group_id":{"type":"string","minLength":1},"candidate_group_ids":{"maxItems":0}}}},
+        {"if":{"properties":{"status":{"const":"ambiguous"}},"required":["status"]},
+         "then":{"properties":{"group_id":{"type":"null"},"candidate_group_ids":{"minItems":2}}}},
+        {"if":{"properties":{"status":{"enum":["unassigned","not_assessed"]}},"required":["status"]},
+         "then":{"properties":{"group_id":{"type":"null"},"candidate_group_ids":{"maxItems":0}}}}
+      ]
+    },
+    "stone":{
+      "type":"object","additionalProperties":false,
+      "required":["physical_identity_id","observation_id","geometry_sha256","source_capture_sha256","method_build_sha256","measurement_receipt_ref","measurement_receipt_sha256","plan_footprint_area_m2","memberships"],
+      "properties":{
+        "physical_identity_id":{"type":"string","minLength":1},
+        "observation_id":{"type":"string","minLength":1},
+        "geometry_sha256":{"$ref":"#/$defs/sha256"},
+        "source_capture_sha256":{"$ref":"#/$defs/sha256"},
+        "method_build_sha256":{"$ref":"#/$defs/sha256"},
+        "measurement_receipt_ref":{"type":"string","minLength":1},
+        "measurement_receipt_sha256":{"$ref":"#/$defs/sha256"},
+        "plan_footprint_area_m2":{"$ref":"#/$defs/measurement_interval"},
+        "mrr_area_ratio":{"oneOf":[{"type":"null"},{"$ref":"#/$defs/measurement_interval"}]},
+        "elongation_ratio":{"oneOf":[{"type":"null"},{"$ref":"#/$defs/measurement_interval"}]},
+        "memberships":{"type":"array","minItems":8,"maxItems":8,"items":{"$ref":"#/$defs/membership"}}
+      }
+    }
+  }
+}
