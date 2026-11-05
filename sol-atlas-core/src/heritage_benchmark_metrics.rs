@@ -286,11 +286,7 @@ fn validate_mask(
             "{owner}: empty mask"
         )));
     }
-    if mask
-        .pixel_indices
-        .windows(2)
-        .any(|pair| pair[0] >= pair[1])
-    {
+    if mask.pixel_indices.windows(2).any(|pair| pair[0] >= pair[1]) {
         return Err(HeritageMetricError::InvalidMask(format!(
             "{owner}: pixel indices must be strictly increasing and unique"
         )));
@@ -524,8 +520,7 @@ fn average_precision(
 fn validate_stone_input(input: &StoneEvaluationInput) -> Result<(), HeritageMetricError> {
     input.raster.pixel_count()?;
     validate_threshold(input.iou_threshold, "iou_threshold")?;
-    if !input.confidence_threshold.is_finite() || !(0.0..=1.0).contains(&input.confidence_threshold)
-    {
+    if !input.confidence_threshold.is_finite() || !(0.0..=1.0).contains(&input.confidence_threshold) {
         return Err(HeritageMetricError::InvalidThreshold(
             "confidence_threshold".into(),
         ));
@@ -631,8 +626,7 @@ fn validate_wall_input(input: &WallEvaluationInput) -> Result<(), HeritageMetric
         previous = *threshold;
     }
     input.provenance.validate()?;
-    if input.ground_truth_segments.len() + input.predicted_segments.len() > MAX_BENCHMARK_OBJECTS
-    {
+    if input.ground_truth_segments.len() + input.predicted_segments.len() > MAX_BENCHMARK_OBJECTS {
         return Err(HeritageMetricError::TooManyObjects);
     }
     let mut total_mask_pixels = 0usize;
@@ -948,7 +942,6 @@ mod tests {
         assert_eq!(report.average_precision, None);
     }
 
-
     #[test]
     fn predictions_without_any_reference_have_undefined_recall_and_f1() {
         let mut input = stone_input();
@@ -1095,7 +1088,6 @@ mod tests {
             Err(HeritageMetricError::InvalidMask(_))
         ));
     }
-
 
     #[test]
     fn wall_fixture_contract_round_trips_through_serde() {
