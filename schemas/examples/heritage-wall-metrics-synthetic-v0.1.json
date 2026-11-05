@@ -1,0 +1,43 @@
+{
+  "raster": { "width": 4, "height": 4 },
+  "confidence_threshold": 0.5,
+  "coverage_thresholds": [0.7, 0.6, 0.5],
+  "provenance": {
+    "source_doi_or_identifier": "synthetic://hdb20/wall-fixture",
+    "dataset_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "model_artifact_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "model_build_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "prediction_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+    "reference_label_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+    "split_manifest_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+    "evaluator_build_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+    "metric_protocol_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+    "rights_receipt_ref": "receipt:synthetic-wall-fixture",
+    "evaluation_unit_kind": "site",
+    "evaluation_unit_id": "synthetic-site-1"
+  },
+  "ground_truth_segments": [
+    {
+      "segment_id": "wall-a",
+      "status": "eligible",
+      "mask": { "pixel_indices": [0, 1, 4, 5] }
+    },
+    {
+      "segment_id": "wall-ambiguous",
+      "status": "ambiguous",
+      "mask": { "pixel_indices": [8, 9] }
+    }
+  ],
+  "predicted_segments": [
+    {
+      "segment_id": "fragment-a",
+      "confidence": 0.9,
+      "mask": { "pixel_indices": [0, 1] }
+    },
+    {
+      "segment_id": "fragment-b",
+      "confidence": 0.8,
+      "mask": { "pixel_indices": [4, 5] }
+    }
+  ]
+}
