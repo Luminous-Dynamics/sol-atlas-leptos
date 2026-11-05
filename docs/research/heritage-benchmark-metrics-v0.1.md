@@ -36,7 +36,7 @@ The evaluator rejects duplicate IDs, non-finite/out-of-range confidences, invali
 
 ## Published baseline
 
-Uziel, Zohar and Jaffe, *Semi-automatic detection of building stones and wall segments of archaeological ruins*, Journal of Archaeological Science 185 (January 2026), article 106430, DOI [10.1016/j.jas.2025.106430](https://doi.org/10.1016/j.jas.2025.106430). The paper reports stone F1 of 0.83, 0.86 and 0.86 at the 15 × 15, 20 × 20 and 25 × 25 cm² minimum-size settings. Its wall pixel F1 is 0.79 at 0.7 coverage and approximately 0.90 at 0.5 coverage; approximately 90% of reference wall segments reach at least 0.5 coverage. The authors released their source data and code through [Zenodo record 15673668](https://doi.org/10.5281/zenodo.15673668).
+Uziel, Zohar and Jaffe, *Semi-automatic detection of building stones and wall segments of archaeological ruins*, Journal of Archaeological Science 185 (January 2026), article 106430, DOI [10.1016/j.jas.2025.106430](https://doi.org/10.1016/j.jas.2025.106430). The paper reports stone precision/recall/F1 of 0.87/0.79/0.83, 0.86/0.85/0.86 and 0.86/0.87/0.86 at the 15 × 15, 20 × 20 and 25 × 25 cm² minimum-size settings. Its wall table reports one pixel precision/recall/F1 triple (0.80/0.78/0.79, in the row labelled coverage threshold 0.7). It separately reports covered-ground-truth / covered-prediction segment rates of 0.82/0.83 at 0.7, 0.87/0.87 at 0.6 and 0.91/0.89 at 0.5. The paper does not publish additional pixel F1 values in the 0.6 and 0.5 rows; 0.91 is a covered-ground-truth segment rate, not pixel F1. The authors released their source data and code through [Zenodo record 15673668](https://doi.org/10.5281/zenodo.15673668).
 
 These are reference results, not results produced by this evaluator. Exact reproduction requires inspection of the released labels, tile-generation and split manifests, object matching, wall-coverage implementation, post-processing, model weights and thresholds. A numerically similar result under a different matching policy is not a faithful reproduction.
 
@@ -59,12 +59,15 @@ Sol-Atlas should interoperate with these mature systems rather than rebuild phot
 | Stone F1, 15 × 15 cm² | 0.83 | ≥0.90 |
 | Stone F1, 20 × 20 cm² | 0.86 | ≥0.92 |
 | Stone F1, 25 × 25 cm² | 0.86 | ≥0.92 |
-| Wall pixel F1, coverage 0.7 | 0.79 | ≥0.84 |
-| Wall pixel F1, coverage 0.6 | Report exact reproduced value | ≥0.90 |
-| Wall pixel F1, coverage 0.5 | ≈0.90 | ≥0.93 |
-| Reference wall segments covered at 0.5 | ≈90% | ≥95% |
+| Wall pixel P/R/F1 (paper-reported setting) | 0.80 / 0.78 / 0.79 | F1 ≥0.84 |
+| Reference segments covered ≥0.7 | 0.82 | ≥0.88 |
+| Reference segments covered ≥0.6 | 0.87 | ≥0.92 |
+| Reference segments covered ≥0.5 | 0.91 | ≥0.95 |
+| Predicted segments covered ≥0.7 | 0.83 | ≥0.88 |
+| Predicted segments covered ≥0.6 | 0.87 | ≥0.92 |
+| Predicted segments covered ≥0.5 | 0.89 | ≥0.93 |
 
-Every target must be reported with macro-by-site and worst-site results, cluster-aware uncertainty, confidence calibration, selective risk/coverage, annotation disagreement and review burden. No pooled metric can substitute for a held-out-site result.
+Here, "segments covered ≥t" means the fraction of segments whose overlap coverage reaches t; it is not pixel precision, recall or F1. Do not invent pixel F1 values for the paper's blank 0.6/0.5 cells. Every target must be reported with macro-by-site and worst-site results, cluster-aware uncertainty, confidence calibration, selective risk/coverage, annotation disagreement and review burden. No pooled metric can substitute for a held-out-site result.
 
 ## Claim boundary
 
