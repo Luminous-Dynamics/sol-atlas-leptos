@@ -133,6 +133,13 @@ pub enum CoverageEvidenceBasis {
     Unknown,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum CoverageProbabilityModel {
+    UniformAreaWeightedWithinSurveyUnit,
+    TargetSpecificSpatialDistribution,
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct PriorEvidence {
@@ -175,6 +182,11 @@ pub struct StageEvidence {
     pub coverage_geometry_sha256: Option<String>,
     /// Digest of the GIS-side spatial-union and clipping receipt.
     pub spatial_coverage_receipt_sha256: Option<String>,
+    /// Declares how the actual covered geometry becomes a target-location
+    /// probability. Area fraction is not a probability without this model.
+    pub coverage_probability_model: Option<CoverageProbabilityModel>,
+    /// Digest of the preregistered target-location distribution/model.
+    pub target_location_distribution_sha256: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -265,6 +277,8 @@ pub enum HeritageNonDetectionError {
     CoverageBasisNotActual,
     CoverageGeometryDigestMissing,
     SpatialCoverageReceiptDigestMissing,
+    CoverageProbabilityModelMissing,
+    TargetLocationDistributionDigestMissing,
     CoverageFieldsUnexpected(EvidenceStage),
 }
 
@@ -419,11 +433,21 @@ fn validate_stage(
                 .as_deref()
                 .ok_or(HeritageNonDetectionError::SpatialCoverageReceiptDigestMissing)?;
             validate_digest(receipt_digest, "spatial_coverage_receipt_sha256")?;
+            if stage.coverage_probability_model.is_none() {
+                return Err(HeritageNonDetectionError::CoverageProbabilityModelMissing);
+            }
+            let location_digest = stage
+                .target_location_distribution_sha256
+                .as_deref()
+                .ok_or(HeritageNonDetectionError::TargetLocationDistributionDigestMissing)?;
+            validate_digest(location_digest, "target_location_distribution_sha256")?;
         }
         _ => {
             if stage.coverage_evidence_basis.is_some()
                 || stage.coverage_geometry_sha256.is_some()
                 || stage.spatial_coverage_receipt_sha256.is_some()
+                || stage.coverage_probability_model.is_some()
+                || stage.target_location_distribution_sha256.is_some()
             {
                 return Err(HeritageNonDetectionError::CoverageFieldsUnexpected(
                     stage.stage,
@@ -670,6 +694,10 @@ mod tests {
                 .then_some(CoverageEvidenceBasis::ActualSpatialUnionReceipt),
             coverage_geometry_sha256: is_coverage.then(|| digest('5')),
             spatial_coverage_receipt_sha256: is_coverage.then(|| digest('6')),
+            coverage_probability_model: is_coverage.then_some(
+                CoverageProbabilityModel::UniformAreaWeightedWithinSurveyUnit,
+            ),
+            target_location_distribution_sha256: is_coverage.then(|| digest('7')),
         }
     }
 
@@ -789,6 +817,23 @@ mod tests {
         assert_eq!(
             evaluate_non_detection(&input).unwrap_err(),
             HeritageNonDetectionError::SpatialCoverageReceiptDigestMissing
+        );
+    }
+
+
+    #[test]
+    fn coverage_fraction_requires_an_explicit_target_location_model() {
+        let mut input = valid_input();
+        input.stage_evidence[3].coverage_probability_model = None;
+        assert_eq!(
+            evaluate_non_detection(&input).unwrap_err(),
+            HeritageNonDetectionError::CoverageProbabilityModelMissing
+        );
+        input = valid_input();
+        input.stage_evidence[3].target_location_distribution_sha256 = None;
+        assert_eq!(
+            evaluate_non_detection(&input).unwrap_err(),
+            HeritageNonDetectionError::TargetLocationDistributionDigestMissing
         );
     }
 
