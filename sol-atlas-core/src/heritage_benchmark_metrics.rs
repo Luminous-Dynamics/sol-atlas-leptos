@@ -389,11 +389,16 @@ fn count_metrics(true_positive: usize, false_positive: usize, false_negative: us
         .then_some(true_positive as f64 / precision_denominator as f64);
     let recall =
         (recall_denominator > 0).then_some(true_positive as f64 / recall_denominator as f64);
-    let f1 = match (precision, recall) {
-        (Some(p), Some(r)) if p + r > 0.0 => Some(2.0 * p * r / (p + r)),
-        (Some(_), Some(_)) => Some(0.0),
-        (None, Some(0.0)) | (Some(0.0), None) => Some(0.0),
-        _ => None,
+    let f1 = if recall_denominator == 0 {
+        None
+    } else if precision_denominator == 0 {
+        Some(0.0)
+    } else {
+        match (precision, recall) {
+            (Some(p), Some(r)) if p + r > 0.0 => Some(2.0 * p * r / (p + r)),
+            (Some(_), Some(_)) => Some(0.0),
+            _ => None,
+        }
     };
     CountMetrics {
         true_positive,
@@ -929,6 +934,18 @@ mod tests {
         input.predictions.clear();
         let report = evaluate_stone_instances(&input).unwrap();
         assert_eq!(report.counts.precision, None);
+        assert_eq!(report.counts.recall, None);
+        assert_eq!(report.counts.f1, None);
+        assert_eq!(report.average_precision, None);
+    }
+
+
+    #[test]
+    fn predictions_without_any_reference_have_undefined_recall_and_f1() {
+        let mut input = stone_input();
+        input.ground_truth.clear();
+        let report = evaluate_stone_instances(&input).unwrap();
+        assert_eq!(report.counts.precision, Some(0.0));
         assert_eq!(report.counts.recall, None);
         assert_eq!(report.counts.f1, None);
         assert_eq!(report.average_precision, None);
