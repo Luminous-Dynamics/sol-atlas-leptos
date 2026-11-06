@@ -467,6 +467,12 @@ mod tests {
 
     #[test]
     fn exact_methods_agree_and_double_count_bias_persists_across_synthetic_contexts() {
+        let mut exact_brier_total = 0.0;
+        let mut naive_brier_total = 0.0;
+        let mut exact_log_total = 0.0;
+        let mut naive_log_total = 0.0;
+
+        let mut scenarios = vec![input()];
         let cases = [
             (0.3, [0.95, 0.8, 0.4, 0.65, 0.75], 0.02),
             (0.45, [0.7, 0.5, 0.8, 0.75, 0.6], 0.08),
@@ -486,11 +492,27 @@ mod tests {
             value.joint_probability_of_detection_per_survey_unit =
                 p.into_iter().product::<f64>();
             value.false_positive_probability_if_originally_absent = false_positive;
+            scenarios.push(value);
+        }
 
-            let report = evaluate_probability_composition_benchmark(&value).unwrap();
+        for scenario in &scenarios {
+            let report = evaluate_probability_composition_benchmark(scenario).unwrap();
             assert!(report.exact_factorized_and_composite_posterior_agree);
             assert!(report.naive_double_count_has_nonzero_bias);
+            exact_brier_total += report.exact_factorized.expected_brier_score;
+            naive_brier_total += report.naive_double_count_negative_control.expected_brier_score;
+            exact_log_total += report.exact_factorized.expected_log_loss.unwrap();
+            naive_log_total += report
+                .naive_double_count_negative_control
+                .expected_log_loss
+                .unwrap();
         }
+
+        // Compare over the full preregistered finite corpus, not each context
+        // independently: one misspecified estimate can accidentally improve a
+        // proper score in an individual context while remaining biased.
+        assert!(naive_brier_total > exact_brier_total);
+        assert!(naive_log_total > exact_log_total);
     }
 
     #[test]
