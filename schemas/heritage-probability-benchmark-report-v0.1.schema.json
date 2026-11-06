@@ -1,0 +1,346 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/heritage-probability-benchmark-report-v0.1.schema.json",
+  "title": "Sol-Atlas Heritage Probability Benchmark Report v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "scenario_id",
+    "scenario_manifest_sha256",
+    "evaluation_protocol_sha256",
+    "evaluator_build_sha256",
+    "upstream_event_chain_probability",
+    "conditional_detection_probability",
+    "exact_factorized_probability_of_detection",
+    "declared_joint_probability_of_detection",
+    "exact_factorization_residual",
+    "false_positive_probability_if_originally_absent",
+    "exact_factorized",
+    "exact_composite",
+    "naive_double_count_negative_control",
+    "exact_factorized_and_composite_posterior_agree",
+    "naive_double_count_has_nonzero_bias",
+    "mutual_independence_assumed",
+    "archaeological_absence_claimed",
+    "claim_ceiling"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "luminous.heritage-probability-benchmark.v0.1"
+    },
+    "scenario_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "scenario_manifest_sha256": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{64}$"
+    },
+    "evaluation_protocol_sha256": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{64}$"
+    },
+    "evaluator_build_sha256": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{64}$"
+    },
+    "upstream_event_chain_probability": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "conditional_detection_probability": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "exact_factorized_probability_of_detection": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "declared_joint_probability_of_detection": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "exact_factorization_residual": {
+      "type": "number",
+      "minimum": -1e-12,
+      "maximum": 1e-12
+    },
+    "false_positive_probability_if_originally_absent": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "exact_factorized": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "probability_of_detection_if_present",
+        "posterior_present_given_detection",
+        "posterior_present_given_no_detection",
+        "posterior_bias_given_detection",
+        "posterior_bias_given_no_detection",
+        "expected_brier_score",
+        "expected_log_loss"
+      ],
+      "properties": {
+        "probability_of_detection_if_present": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "posterior_present_given_detection": {
+          "oneOf": [
+            {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "posterior_present_given_no_detection": {
+          "oneOf": [
+            {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "posterior_bias_given_detection": {
+          "oneOf": [
+            {
+              "type": "number",
+              "minimum": -1,
+              "maximum": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "posterior_bias_given_no_detection": {
+          "oneOf": [
+            {
+              "type": "number",
+              "minimum": -1,
+              "maximum": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "expected_brier_score": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "expected_log_loss": {
+          "oneOf": [
+            {
+              "type": "number",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "exact_composite": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "probability_of_detection_if_present",
+        "posterior_present_given_detection",
+        "posterior_present_given_no_detection",
+        "posterior_bias_given_detection",
+        "posterior_bias_given_no_detection",
+        "expected_brier_score",
+        "expected_log_loss"
+      ],
+      "properties": {
+        "probability_of_detection_if_present": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "posterior_present_given_detection": {
+          "oneOf": [
+            {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "posterior_present_given_no_detection": {
+          "oneOf": [
+            {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "posterior_bias_given_detection": {
+          "oneOf": [
+            {
+              "type": "number",
+              "minimum": -1,
+              "maximum": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "posterior_bias_given_no_detection": {
+          "oneOf": [
+            {
+              "type": "number",
+              "minimum": -1,
+              "maximum": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "expected_brier_score": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "expected_log_loss": {
+          "oneOf": [
+            {
+              "type": "number",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "naive_double_count_negative_control": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "probability_of_detection_if_present",
+        "posterior_present_given_detection",
+        "posterior_present_given_no_detection",
+        "posterior_bias_given_detection",
+        "posterior_bias_given_no_detection",
+        "expected_brier_score",
+        "expected_log_loss"
+      ],
+      "properties": {
+        "probability_of_detection_if_present": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "posterior_present_given_detection": {
+          "oneOf": [
+            {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "posterior_present_given_no_detection": {
+          "oneOf": [
+            {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "posterior_bias_given_detection": {
+          "oneOf": [
+            {
+              "type": "number",
+              "minimum": -1,
+              "maximum": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "posterior_bias_given_no_detection": {
+          "oneOf": [
+            {
+              "type": "number",
+              "minimum": -1,
+              "maximum": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "expected_brier_score": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "expected_log_loss": {
+          "oneOf": [
+            {
+              "type": "number",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "exact_factorized_and_composite_posterior_agree": {
+      "const": true
+    },
+    "naive_double_count_has_nonzero_bias": {
+      "const": true
+    },
+    "mutual_independence_assumed": {
+      "const": false
+    },
+    "archaeological_absence_claimed": {
+      "const": false
+    },
+    "claim_ceiling": {
+      "const": "synthetic_probability_composition_correctness_only_no_field_calibration"
+    }
+  }
+}
