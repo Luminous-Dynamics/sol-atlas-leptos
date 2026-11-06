@@ -62,7 +62,9 @@
     "validation_receipt_ref": "urn:coverage-validation:1",
     "validation_receipt_sha256": "kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk",
     "rights_receipt_ref": "urn:rights:hdb15",
-    "access_tier": "controlled"
+    "access_tier": "controlled",
+    "interval_semantics": "deterministic_bound",
+    "confidence_level": null
   },
   "hdb15_geometric_coverage_fraction": 0.5,
   "joint_detection_factor_used": false,
