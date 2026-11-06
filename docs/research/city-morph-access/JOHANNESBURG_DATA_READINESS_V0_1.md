@@ -31,3 +31,19 @@ This file is a research inventory of candidate sources, not an ingested or quali
 - GTFS publishing best practices: https://gtfs.org/documentation/schedule/schedule-best-practices/
 
 See `JOHANNESBURG_SOURCE_REGISTER_V0_1.json` for machine-readable access and rights states.
+
+
+## Construction and demolition material data: coverage warning
+
+South African C&D material data are not a dependable complete inventory. A 2022 national estimate reported materially different 2017 totals using different methods (20.2 Mt potential generation by lifetime method; 10.8 Mt reaching disposal sites by per-capita method; 4.48 Mt in official statistics) and identified likely underreporting, including informal-sector reuse. These quantities have different definitions/boundaries and must not be combined or converted into present-day Johannesburg stock.
+
+A November 2025 qualitative study in south-eastern Johannesburg interviewed 20 private-sector stakeholders; all 20 mentioned landfill use, and landfill was described as the cheapest option in those accounts. This is qualitative evidence, not a statistically representative citywide disposal rate or tonnage inventory.
+
+A 2025 human-settlements report contains a Johannesburg deconstruction/reuse scenario: at 50% adoption it models 225.21 kt of salvaged materials/components and about 44% less waste otherwise sent to landfill or fly-tipped. This is a modeled scenario, not measured recoverable supply.
+
+For material-loop mapping, an unrecorded facility or informal recovery channel is **Unknown**, not zero. A future pilot must include consent-based, non-extractive stakeholder engagement with informal salvagers, repairers, reuse yards and waste pickers, and must preserve the right not to disclose commercially or personally sensitive routes, locations, prices or identities. Any published spatial layer must use an aggregation/privacy policy and explicitly describe who and what is not represented.
+
+Research references:
+- https://journals.co.za/doi/10.17159/sajs.2022/12485
+- https://doi.org/10.1080/03736245.2025.2587860
+- https://www.circulareconomy.co.za/wp-content/uploads/2025/03/Human-Settlements_Report-CE-Opportunities_final.pdf
