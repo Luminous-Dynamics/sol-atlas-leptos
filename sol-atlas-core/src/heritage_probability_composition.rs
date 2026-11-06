@@ -134,6 +134,8 @@ pub struct Hdb24TargetCoverageReceipt {
     pub coverage_probability: Option<Hdb24ProbabilityBand>,
     pub model: Option<Hdb24CoverageProbabilityModel>,
     pub intersection_method_id: String,
+    /// Digest of the target-location probability model/profile.
+    pub target_location_model_sha256: String,
     /// Digest of the target-location distribution (or explicit uniform-area
     /// assumption model) used for the intersection computation.
     pub target_location_distribution_sha256: Option<String>,
@@ -435,6 +437,7 @@ fn validate_hdb15(input: &Hdb24AdapterInput) -> Result<(), Hdb24CompositionError
         (&source.transect_geometry_sha256, "hdb15_transect_geometry_sha256"),
         (&source.survey_unit_geometry_sha256, "hdb15_survey_unit_geometry_sha256"),
         (&source.coverage_union_geometry_sha256, "hdb15_coverage_union_geometry_sha256"),
+        (&source.coverage_calibration_profile_sha256, "hdb15_coverage_calibration_profile_sha256"),
         (&source.spatial_union_receipt_sha256, "hdb15_spatial_union_receipt_sha256"),
         (&source.spatial_union_method_build_sha256, "hdb15_spatial_union_method_build_sha256"),
     ] {
@@ -506,6 +509,7 @@ fn validate_target_coverage(input: &Hdb24AdapterInput) -> Result<(), Hdb24Compos
     require_text(&receipt.survey_unit_crs_id, "target_coverage_survey_unit_crs_id")?;
     require_text(&receipt.intersection_receipt_ref, "target_coverage_intersection_receipt_ref")?;
     require_text(&receipt.intersection_method_id, "target_coverage_intersection_method_id")?;
+    require_digest(&receipt.target_location_model_sha256, "target_location_model_sha256")?;
     require_text(&receipt.rights_decision_id, "target_coverage_rights_decision_id")?;
     require_text(&receipt.rights_receipt_ref, "target_coverage_rights_receipt_ref")?;
     for (value, label) in [
@@ -555,7 +559,6 @@ fn validate_target_coverage(input: &Hdb24AdapterInput) -> Result<(), Hdb24Compos
 
 fn project_coverage_stage(input: &Hdb24AdapterInput) -> Hdb22StageProjection {
     let receipt = &input.target_coverage;
-    let source = &input.hdb15;
     Hdb22StageProjection {
         stage: Hdb22ProjectedStage::FootprintCoverage,
         probability: receipt.coverage_probability.expect("validated target coverage"),
@@ -563,8 +566,7 @@ fn project_coverage_stage(input: &Hdb24AdapterInput) -> Hdb22StageProjection {
         context_id: input.context.context_id.clone(),
         conditioning: Hdb22ProjectedConditioning::CoveredGivenSurvivalExposureAndObservability,
         method_id: receipt.intersection_method_id.clone(),
-        profile_sha256: receipt.target_location_distribution_sha256.clone().expect("validated target location model"),
-
+        profile_sha256: receipt.target_location_model_sha256.clone(),
         method_build_sha256: receipt.method_build_sha256.clone(),
         calibration_data_sha256: source.calibration_data_sha256.clone(),
         validation_split_manifest_sha256: receipt.validation_split_manifest_sha256.clone(),
@@ -804,6 +806,7 @@ mod tests {
             }),
             model: Some(Hdb24CoverageProbabilityModel::TargetSpecificSpatialDistribution),
             intersection_method_id: "target-location-intersection-v1".into(),
+            target_location_model_sha256: digest('a'),
             target_location_distribution_sha256: Some(digest('b')),
             coverage_union_geometry_sha256: digest('8'),
             spatial_union_receipt_sha256: digest('9'),
