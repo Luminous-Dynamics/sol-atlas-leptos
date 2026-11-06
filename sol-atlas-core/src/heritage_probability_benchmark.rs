@@ -182,21 +182,6 @@ fn posterior(
     }
 }
 
-fn binary_entropy(probability: f64) -> f64 {
-    let present = if probability <= 0.0 {
-        0.0
-    } else {
-        -probability * probability.ln()
-    };
-    let absent_probability = 1.0 - probability;
-    let absent = if absent_probability <= 0.0 {
-        0.0
-    } else {
-        -absent_probability * absent_probability.ln()
-    };
-    present + absent
-}
-
 fn exact_scores(
     prior: f64,
     pod: f64,
@@ -250,17 +235,7 @@ fn exact_scores(
         }
     }
 
-    let entropy_check = if detected_mass > 0.0 {
-        detected_mass * binary_entropy(posterior_detected.unwrap())
-    } else {
-        0.0
-    } + if missed_mass > 0.0 {
-        missed_mass * binary_entropy(posterior_missed.unwrap())
-    } else {
-        0.0
-    };
     let log_score = if log_defined { Some(log_loss) } else { None };
-    let _ = entropy_check; // Independent entropy identity retained for test diagnostics.
     (posterior_detected, posterior_missed, brier, log_score)
 }
 
@@ -465,6 +440,65 @@ mod tests {
             negative.expected_log_loss.unwrap()
                 > report.exact_factorized.expected_log_loss.unwrap()
         );
+    }
+
+    #[test]
+    fn hand_calculated_reference_scores_match_the_exact_oracle() {
+        let report = evaluate_probability_composition_benchmark(&input()).unwrap();
+        assert!((report.exact_factorized.posterior_present_given_detection.unwrap()
+            - 0.43052391799544415)
+            .abs()
+            < 1e-12);
+        assert!((report.exact_factorized.posterior_present_given_no_detection.unwrap()
+            - 0.18258475305455174)
+            .abs()
+            < 1e-12);
+        assert!((report.exact_factorized.expected_brier_score - 0.1559853690412771).abs() < 1e-12);
+        assert!((report.exact_factorized.expected_log_loss.unwrap() - 0.4899123026529449).abs() < 1e-12);
+        assert!((report.naive_double_count_negative_control.expected_brier_score
+            - 0.1596401679441963)
+            .abs()
+            < 1e-12);
+        assert!((report.naive_double_count_negative_control.expected_log_loss.unwrap()
+            - 0.4991231437756762)
+            .abs()
+            < 1e-12);
+    }
+
+    #[test]
+    fn exact_methods_agree_and_double_count_bias_persists_across_synthetic_contexts() {
+        let cases = [
+            (0.3, [0.95, 0.8, 0.4, 0.65, 0.75], 0.02),
+            (0.45, [0.7, 0.5, 0.8, 0.75, 0.6], 0.08),
+            (0.1, [0.9, 0.9, 0.9, 0.4, 0.95], 0.01),
+        ];
+        for (index, (prior, p, false_positive)) in cases.into_iter().enumerate() {
+            let mut value = input();
+            value.scenario_id = format!("matrix-case-{index}");
+            value.prior_probability_originally_present = prior;
+            value.events = EventProbabilities {
+                survival: p[0],
+                exposure_given_survival: p[1],
+                observability_given_survival_and_exposure: p[2],
+                footprint_coverage_given_prior_stages: p[3],
+                conditional_detection_given_prior_stages: p[4],
+            };
+            value.joint_probability_of_detection_per_survey_unit =
+                p.into_iter().product::<f64>();
+            value.false_positive_probability_if_originally_absent = false_positive;
+
+            let report = evaluate_probability_composition_benchmark(&value).unwrap();
+            assert!(report.exact_factorized_and_composite_posterior_agree);
+            assert!(report.naive_double_count_has_nonzero_bias);
+            assert!(
+                report.naive_double_count_negative_control.expected_brier_score
+                    > report.exact_factorized.expected_brier_score
+            );
+            assert!(
+                report.naive_double_count_negative_control.expected_log_loss.unwrap()
+                    > report.exact_factorized.expected_log_loss.unwrap()
+            );
+        }
     }
 
     #[test]
