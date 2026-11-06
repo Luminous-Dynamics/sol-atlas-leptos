@@ -150,6 +150,7 @@ pub struct FieldSweepProfileBindingV1 {
     pub calibration_data_sha256: String,
     pub calibration_split_manifest_sha256: String,
     pub fit_receipt_sha256: String,
+    pub maximum_permitted_validation_brier_score: f64,
     pub target_feature_class_id: String,
     pub survey_method: FieldSweepMethod,
     pub method_id: String,
@@ -711,6 +712,9 @@ fn validate_field_sweep(
         || sweep_interval.lower_m > sweep_interval.upper_m
         || !report.validation_brier_score.is_finite()
         || !(0.0..=1.0).contains(&report.validation_brier_score)
+        || !profile.maximum_permitted_validation_brier_score.is_finite()
+        || !(0.0..=1.0).contains(&profile.maximum_permitted_validation_brier_score)
+        || report.validation_brier_score > profile.maximum_permitted_validation_brier_score
         || report.fit_transect_count < 3
         || report.validation_transect_count < 2
         || report.fit_seeded_target_count < 20
@@ -1123,6 +1127,7 @@ mod tests {
                 calibration_data_sha256: digest('7'),
                 calibration_split_manifest_sha256: digest('8'),
                 fit_receipt_sha256: digest('9'),
+                maximum_permitted_validation_brier_score: 0.2,
                 target_feature_class_id: "dry_stone_wall".to_owned(),
                 survey_method: FieldSweepMethod::FieldWalking,
                 method_id: "lateral-sweep-model-v1".to_owned(),
@@ -1409,6 +1414,17 @@ mod tests {
         );
     }
 
+
+
+    #[test]
+    fn hdb15_validation_brier_must_meet_the_bound_in_its_profile_binding() {
+        let mut value = input();
+        value.field_sweep_report.validation_brier_score = 0.25;
+        assert_eq!(
+            audit_heritage_probability_composition(&value),
+            Err(HeritageCompositionError::InvalidFieldSweepGeometry)
+        );
+    }
 
     #[test]
     fn hdb15_buffer_width_must_match_the_exact_sweep_width_used_in_geometry() {
