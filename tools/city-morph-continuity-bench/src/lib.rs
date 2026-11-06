@@ -158,6 +158,9 @@ pub fn evaluate_case(case: &Value) -> Value {
     if text(input, "scope_digest").is_empty() {
         errors.insert("TIMELINE_SCOPE_DIGEST_MISSING".to_owned());
     }
+    if text(input, "expected_source_revision").is_empty() {
+        errors.insert("EXPECTED_OWNER_SOURCE_REVISION_MISSING".to_owned());
+    }
     let Some(confirm) = tick(input, "recovery_confirmation_ticks") else {
         errors.insert("RECOVERY_CONFIRMATION_POLICY_INVALID".to_owned());
         return unsupported(case_id, errors);
@@ -192,6 +195,7 @@ pub fn evaluate_case(case: &Value) -> Value {
     }
 
     let mut phase_ids = BTreeSet::new();
+    let mut all_source_receipt_ids = BTreeSet::new();
     let mut ordered = Vec::<(&Value, i64, i64)>::new();
     for phase in phases {
         let id = text(phase, "phase_id");
@@ -228,7 +232,6 @@ pub fn evaluate_case(case: &Value) -> Value {
             continue;
         };
         let mut seen = BTreeSet::new();
-        let mut receipt_ids = BTreeSet::new();
         for receipt in receipts {
             let req_id = text(receipt, "requirement_id");
             if req_id.is_empty() || !seen.insert(req_id.to_owned()) {
@@ -238,7 +241,7 @@ pub fn evaluate_case(case: &Value) -> Value {
                 errors.insert("PHASE_REQUIREMENT_RECEIPT_UNEXPECTED".to_owned());
             }
             let receipt_id = text(receipt, "source_receipt_id");
-            if !receipt_id.is_empty() && !receipt_ids.insert(receipt_id.to_owned()) {
+            if !receipt_id.is_empty() && !all_source_receipt_ids.insert(receipt_id.to_owned()) {
                 errors.insert("DUPLICATE_SOURCE_RECEIPT_ID".to_owned());
             }
             if !matches!(
@@ -358,7 +361,7 @@ mod tests {
         assert_eq!(c["classification"], "synthetic_fixture_only");
         assert_eq!(c["corpus_id"], "CITY-MORPH-CONTINUITY-CORPUS-V0.1");
         let xs = c["cases"].as_array().unwrap();
-        assert_eq!(xs.len(), 27);
+        assert_eq!(xs.len(), 29);
         let ids = xs
             .iter()
             .map(|x| x["case_id"].as_str().unwrap().to_owned())
@@ -457,7 +460,8 @@ mod tests {
     #[test]
     fn malformed_timeline_structures_fail_closed() {
         for id in [
-            "CR-010", "CR-011", "CR-012", "CR-013", "CR-014", "CR-015", "CR-016",
+            "CR-010", "CR-011", "CR-012", "CR-013", "CR-014", "CR-015", "CR-016", "CR-028",
+            "CR-029",
         ] {
             assert_eq!(evaluate_case(&case(id))["disposition"], "Unsupported");
         }
