@@ -8,6 +8,8 @@
     "composition_id",
     "requested_mode",
     "hdb22_context_id",
+    "hdb11_analytical_rights",
+    "hdb15_analytical_rights",
     "observability_report_sha256",
     "observability",
     "field_sweep_report_sha256",
@@ -925,6 +927,78 @@
           "pattern": "^[a-fA-F0-9]{64}$"
         },
         "source_data_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        }
+      }
+    },
+    "hdb11_analytical_rights": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "rights_decision_id",
+        "purpose",
+        "decision",
+        "receipt_ref",
+        "receipt_sha256"
+      ],
+      "properties": {
+        "rights_decision_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "purpose": {
+          "const": "research_analysis"
+        },
+        "decision": {
+          "enum": [
+            "allowed",
+            "restricted",
+            "prohibited",
+            "undetermined"
+          ]
+        },
+        "receipt_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "receipt_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        }
+      }
+    },
+    "hdb15_analytical_rights": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "rights_decision_id",
+        "purpose",
+        "decision",
+        "receipt_ref",
+        "receipt_sha256"
+      ],
+      "properties": {
+        "rights_decision_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "purpose": {
+          "const": "research_analysis"
+        },
+        "decision": {
+          "enum": [
+            "allowed",
+            "restricted",
+            "prohibited",
+            "undetermined"
+          ]
+        },
+        "receipt_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "receipt_sha256": {
           "type": "string",
           "pattern": "^[a-fA-F0-9]{64}$"
         }
