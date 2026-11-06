@@ -46,8 +46,34 @@ pub enum FieldSweepMethod {
 #[serde(rename_all = "snake_case")]
 pub enum CompositionAnalyticalRights {
     Allowed,
+    Restricted,
     Denied,
     Undetermined,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum CompositionRightsPurpose {
+    ResearchAnalysis,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum CompositionRightsDecision {
+    Allowed,
+    Restricted,
+    Prohibited,
+    Undetermined,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct SourceRightsClearanceV1 {
+    pub rights_decision_id: String,
+    pub purpose: CompositionRightsPurpose,
+    pub decision: CompositionRightsDecision,
+    pub receipt_ref: String,
+    pub receipt_sha256: String,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -229,6 +255,8 @@ pub struct HeritageCompositionInputV1 {
     pub composition_id: String,
     pub requested_mode: RequestedCompositionMode,
     pub hdb22_context_id: String,
+    pub hdb11_analytical_rights: SourceRightsClearanceV1,
+    pub hdb15_analytical_rights: SourceRightsClearanceV1,
     pub observability_report_sha256: String,
     pub observability: HeritageObservabilityReport,
     pub field_sweep_report_sha256: String,
@@ -247,6 +275,8 @@ pub struct FactorReceiptReference {
     pub method_build_sha256: String,
     pub source_data_sha256: String,
     pub analytical_rights: CompositionAnalyticalRights,
+    pub rights_purpose: CompositionRightsPurpose,
+    pub rights_receipt_sha256: String,
     pub profile_id: String,
     pub profile_sha256: String,
     pub calibration_data_sha256: String,
@@ -278,6 +308,8 @@ pub struct FootprintCoverageFactorProposal {
     pub method_build_sha256: String,
     pub source_data_sha256: String,
     pub analytical_rights: CompositionAnalyticalRights,
+    pub rights_purpose: CompositionRightsPurpose,
+    pub rights_receipt_sha256: String,
     pub profile_id: String,
     pub profile_sha256: String,
     pub calibration_data_sha256: String,
@@ -367,6 +399,8 @@ pub enum HeritageCompositionError {
     InvalidDigest(&'static str),
     EmptyReceiptReference(&'static str),
     InvalidAccessTier,
+    RightsClearanceNotAllowed(&'static str),
+    RightsDecisionMismatch(&'static str),
 }
 
 impl fmt::Display for HeritageCompositionError {
@@ -398,6 +432,28 @@ fn validate_reference(
 ) -> Result<(), HeritageCompositionError> {
     if !non_empty(value) {
         return Err(HeritageCompositionError::EmptyReceiptReference(label));
+    }
+    Ok(())
+}
+
+fn validate_rights_clearance(
+    clearance: &SourceRightsClearanceV1,
+    expected_decision_id: &str,
+    expected_receipt_ref: &str,
+    source_label: &'static str,
+) -> Result<(), HeritageCompositionError> {
+    validate_reference(&clearance.rights_decision_id, "rights_decision_id")?;
+    validate_reference(&clearance.receipt_ref, "rights_receipt_ref")?;
+    validate_digest(&clearance.receipt_sha256, "rights_receipt_sha256")?;
+    if clearance.rights_decision_id != expected_decision_id
+        || clearance.receipt_ref != expected_receipt_ref
+    {
+        return Err(HeritageCompositionError::RightsDecisionMismatch(source_label));
+    }
+    if clearance.purpose != CompositionRightsPurpose::ResearchAnalysis
+        || clearance.decision != CompositionRightsDecision::Allowed
+    {
+        return Err(HeritageCompositionError::RightsClearanceNotAllowed(source_label));
     }
     Ok(())
 }
@@ -452,6 +508,12 @@ fn validate_observability(
     {
         return Err(HeritageCompositionError::ObservabilityRightsNotVerified);
     }
+    validate_rights_clearance(
+        &input.hdb11_analytical_rights,
+        &report.rights_decision_id,
+        &report.rights_receipt_ref,
+        "hdb11_research_analysis",
+    )?;
     let accounted_psus = report
         .calibration_eligible_independent_psu_count
         .checked_add(report.calibration_excluded_conditioning_psu_count);
@@ -555,6 +617,8 @@ fn validate_observability(
             method_build_sha256: report.calibration_context.processing_build_sha256.clone(),
             source_data_sha256: report.calibration_data_sha256.clone(),
             analytical_rights: CompositionAnalyticalRights::Allowed,
+            rights_purpose: CompositionRightsPurpose::ResearchAnalysis,
+            rights_receipt_sha256: input.hdb11_analytical_rights.receipt_sha256.clone(),
             profile_id: report.profile_id.clone(),
             profile_sha256: report.profile_sha256.clone(),
             calibration_data_sha256: report.calibration_data_sha256.clone(),
@@ -620,6 +684,12 @@ fn validate_field_sweep(
     if profile.access_tier == SurveyAccessTier::Unknown {
         return Err(HeritageCompositionError::InvalidAccessTier);
     }
+    validate_rights_clearance(
+        &input.hdb15_analytical_rights,
+        &profile.rights_decision_id,
+        &profile.rights_receipt_ref,
+        "hdb15_research_analysis",
+    )?;
     for (value, label) in [
         (&profile.profile_sha256, "hdb15_profile_sha256"),
         (&profile.calibration_data_sha256, "hdb15_calibration_data_sha256"),
@@ -915,6 +985,8 @@ fn validate_target_coverage(
         method_build_sha256: evidence.method_build_sha256.clone(),
         source_data_sha256: evidence.source_data_sha256.clone(),
         analytical_rights: CompositionAnalyticalRights::Allowed,
+        rights_purpose: CompositionRightsPurpose::ResearchAnalysis,
+        rights_receipt_sha256: input.hdb15_analytical_rights.receipt_sha256.clone(),
         profile_id: input.field_sweep_profile.profile_id.clone(),
         profile_sha256: input.field_sweep_profile.profile_sha256.clone(),
         calibration_data_sha256: report.calibration_data_sha256.clone(),
@@ -1092,6 +1164,20 @@ mod tests {
             composition_id: "composition-1".to_owned(),
             requested_mode: RequestedCompositionMode::FactorizedChain,
             hdb22_context_id: "context-1".to_owned(),
+            hdb11_analytical_rights: SourceRightsClearanceV1 {
+                rights_decision_id: "rights:hdb11".to_owned(),
+                purpose: CompositionRightsPurpose::ResearchAnalysis,
+                decision: CompositionRightsDecision::Allowed,
+                receipt_ref: "urn:rights:hdb11".to_owned(),
+                receipt_sha256: digest('0'),
+            },
+            hdb15_analytical_rights: SourceRightsClearanceV1 {
+                rights_decision_id: "rights:hdb15".to_owned(),
+                purpose: CompositionRightsPurpose::ResearchAnalysis,
+                decision: CompositionRightsDecision::Allowed,
+                receipt_ref: "urn:rights:hdb15".to_owned(),
+                receipt_sha256: digest('1'),
+            },
             observability_report_sha256: digest('6'),
             observability: observability(),
             field_sweep_report_sha256: report_digest.clone(),
@@ -1451,6 +1537,42 @@ mod tests {
         assert_eq!(
             audit_heritage_probability_composition(&value),
             Err(HeritageCompositionError::InvalidFieldSweepGeometry)
+        );
+    }
+
+
+    #[test]
+    fn verified_source_rights_receipt_is_not_enough_without_research_analysis_grant() {
+        let mut value = input();
+        value.hdb11_analytical_rights.decision = CompositionRightsDecision::Undetermined;
+        assert_eq!(
+            audit_heritage_probability_composition(&value),
+            Err(HeritageCompositionError::RightsClearanceNotAllowed("hdb11_research_analysis"))
+        );
+
+        let mut value = input();
+        value.hdb15_analytical_rights.purpose = CompositionRightsPurpose::ResearchAnalysis;
+        value.hdb15_analytical_rights.decision = CompositionRightsDecision::Restricted;
+        assert_eq!(
+            audit_heritage_probability_composition(&value),
+            Err(HeritageCompositionError::RightsClearanceNotAllowed("hdb15_research_analysis"))
+        );
+    }
+
+    #[test]
+    fn rights_clearance_must_match_the_source_decision_identifier_and_receipt() {
+        let mut value = input();
+        value.hdb11_analytical_rights.rights_decision_id = "different-rights-decision".to_owned();
+        assert_eq!(
+            audit_heritage_probability_composition(&value),
+            Err(HeritageCompositionError::RightsDecisionMismatch("hdb11_research_analysis"))
+        );
+
+        let mut value = input();
+        value.hdb15_analytical_rights.receipt_ref = "urn:rights:other".to_owned();
+        assert_eq!(
+            audit_heritage_probability_composition(&value),
+            Err(HeritageCompositionError::RightsDecisionMismatch("hdb15_research_analysis"))
         );
     }
 
