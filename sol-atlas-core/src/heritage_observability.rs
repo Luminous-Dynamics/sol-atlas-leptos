@@ -123,6 +123,8 @@ pub enum DetectionCondition {
 pub struct ConditioningEvidence {
     pub condition: DetectionCondition,
     pub satisfied: bool,
+    pub evidence_ref: String,
+    pub evidence_sha256: String,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -279,6 +281,8 @@ pub enum HeritageObservabilityError {
     TrialConditioningEvidenceMismatch { psu_id: String },
     DuplicateTrialConditioningEvidence { psu_id: String, condition: DetectionCondition },
     ConditioningEvidenceContradictsDetection { psu_id: String },
+    EmptyConditioningEvidenceRef { psu_id: String, condition: DetectionCondition },
+    InvalidConditioningEvidenceDigest { psu_id: String, condition: DetectionCondition },
     NoEligibleCalibrationTrials,
     MinimumCalibrationPsuCountBelowFloor,
     InvalidMinimumPodLowerBound,
@@ -480,6 +484,20 @@ fn validate_trials(
                         condition: evidence.condition,
                     },
                 );
+            }
+        }
+        for evidence in &trial.conditioning_evidence {
+            if !non_empty(&evidence.evidence_ref) {
+                return Err(HeritageObservabilityError::EmptyConditioningEvidenceRef {
+                    psu_id: trial.psu_id.clone(),
+                    condition: evidence.condition,
+                });
+            }
+            if !valid_sha256(&evidence.evidence_sha256) {
+                return Err(HeritageObservabilityError::InvalidConditioningEvidenceDigest {
+                    psu_id: trial.psu_id.clone(),
+                    condition: evidence.condition,
+                });
             }
         }
         let declared_conditions: Vec<DetectionCondition> = trial
@@ -800,6 +818,8 @@ mod tests {
             .map(|condition| ConditioningEvidence {
                 condition,
                 satisfied,
+                evidence_ref: format!("urn:synthetic:conditioning:{condition:?}"),
+                evidence_sha256: "d".repeat(64),
             })
             .collect()
     }
@@ -1285,6 +1305,37 @@ mod tests {
         assert!(matches!(
             evaluate_heritage_observability(&value),
             Err(HeritageObservabilityError::TrialConditioningEvidenceMismatch { .. })
+        ));
+    }
+
+
+    #[test]
+    fn conditioning_evidence_requires_a_reference_and_sha256_receipt() {
+        let mut value = input(ObservationOutcome::NotDetected);
+        let events = vec![
+            DetectionCondition::TargetSurvived,
+            DetectionCondition::TargetExposed,
+            DetectionCondition::TargetObservable,
+            DetectionCondition::TargetCoveredByActualFootprint,
+        ];
+        value.calibration_profile.detection_probability_scope =
+            DetectionProbabilityScope::ConditionalOnTargetSurvivedExposedObservableAndCovered;
+        value.calibration_profile.conditioning_events = events.clone();
+        for trial in &mut value.calibration_trials {
+            trial.conditioning_evidence = evidence(&events, true);
+        }
+        value.calibration_trials[0].conditioning_evidence[0].evidence_ref.clear();
+        assert!(matches!(
+            evaluate_heritage_observability(&value),
+            Err(HeritageObservabilityError::EmptyConditioningEvidenceRef { .. })
+        ));
+
+        value.calibration_trials[0].conditioning_evidence[0].evidence_ref =
+            "urn:synthetic:condition:target-survived".into();
+        value.calibration_trials[0].conditioning_evidence[0].evidence_sha256 = "bad".into();
+        assert!(matches!(
+            evaluate_heritage_observability(&value),
+            Err(HeritageObservabilityError::InvalidConditioningEvidenceDigest { .. })
         ));
     }
 
