@@ -1037,8 +1037,8 @@ mod tests {
     use crate::heritage_field_survey::SweepWidthInterval;
     use crate::heritage_non_detection::{PriorEvidence, StageEvidence};
     use crate::heritage_observability::{
-        NonDetectionReason, ObservationModality, RightsStatus, SurveyContext, VisibilityClass,
-        WilsonInterval,
+        NonDetectionReason, ObservationModality, RightsStatus, SurveyAccessTier, SurveyContext,
+        VisibilityClass, WilsonInterval,
     };
 
     fn digest(byte: char) -> String {
@@ -1070,7 +1070,7 @@ mod tests {
             validation_receipt_sha256: digest('f'),
             rights_decision_id: "rights-decision:hdb11".into(),
             rights_receipt_ref: "rights:hdb11".into(),
-            access_tier: AccessTier::Controlled,
+            access_tier: SurveyAccessTier::Controlled,
             conditioning_evidence_manifest_sha256: digest('m'),
             calibration_context: hdb11_context(),
             observed_context: hdb11_context(),
@@ -1304,6 +1304,7 @@ mod tests {
                 validation_receipt_sha256: digest('f'),
                 rights_decision_id: "rights-decision:location".into(),
                 analytical_rights: AnalyticalRights::Allowed,
+                rights_purpose: RightsPurpose::ResearchAnalysis,
                 rights_receipt_ref: "rights:location".into(),
                 access_tier: AccessTier::Controlled,
             },
