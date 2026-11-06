@@ -117,6 +117,7 @@
             "profile_sha256",
             "calibration_data_sha256",
             "validation_split_manifest_sha256",
+            "conditioning_evidence_manifest_sha256",
             "validation_receipt_ref",
             "validation_receipt_sha256",
             "rights_decision_id",
@@ -190,6 +191,10 @@
               "const": "research_analysis"
             },
             "rights_receipt_sha256": {
+              "type": "string",
+              "pattern": "^[a-fA-F0-9]{64}$"
+            },
+            "conditioning_evidence_manifest_sha256": {
               "type": "string",
               "pattern": "^[a-fA-F0-9]{64}$"
             }
