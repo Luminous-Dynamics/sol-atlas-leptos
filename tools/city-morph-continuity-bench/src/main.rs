@@ -13,7 +13,9 @@ fn valid_commit(value: &str) -> bool {
 fn main() -> ExitCode {
     let mut args = env::args().skip(1);
     let Some(corpus_path) = args.next() else {
-        eprintln!("usage: city-morph-continuity-reference CORPUS.json --source-commit <40-hex-sha>");
+        eprintln!(
+            "usage: city-morph-continuity-reference CORPUS.json --source-commit <40-hex-sha>"
+        );
         return ExitCode::from(2);
     };
     let Some(flag) = args.next() else {
@@ -25,7 +27,9 @@ fn main() -> ExitCode {
         return ExitCode::from(2);
     };
     if flag != "--source-commit" || !valid_commit(&source_commit) {
-        eprintln!("source commit must be supplied as --source-commit followed by 40 hex characters");
+        eprintln!(
+            "source commit must be supplied as --source-commit followed by 40 hex characters"
+        );
         return ExitCode::from(2);
     }
 
@@ -57,7 +61,10 @@ fn main() -> ExitCode {
     }
 
     let digest = Sha256::digest(&bytes);
-    let corpus_sha256 = digest.iter().map(|byte| format!("{byte:02x}")).collect::<String>();
+    let corpus_sha256 = digest
+        .iter()
+        .map(|byte| format!("{byte:02x}"))
+        .collect::<String>();
     let mut failures = 0usize;
     let mut scenario_receipts = Vec::with_capacity(cases.len());
 
@@ -65,7 +72,9 @@ fn main() -> ExitCode {
         let actual = evaluate_case(case);
         let expected = case.get("expected").unwrap_or(&serde_json::Value::Null);
         let passed = matches_expected(&actual, expected);
-        if !passed { failures += 1; }
+        if !passed {
+            failures += 1;
+        }
         scenario_receipts.push(json!({
             "case_id": case.get("case_id").and_then(serde_json::Value::as_str).unwrap_or("missing-case-id"),
             "status": if passed { "pass" } else { "fail" },
@@ -87,7 +96,14 @@ fn main() -> ExitCode {
         "claim_ceiling": "synthetic timeline aggregation and owner-receipt semantics only; not real city resilience, hazard probability, service performance or engineering qualification",
         "scenarios": scenario_receipts
     });
-    println!("{}", serde_json::to_string_pretty(&receipt).expect("receipt serializes"));
+    println!(
+        "{}",
+        serde_json::to_string_pretty(&receipt).expect("receipt serializes")
+    );
 
-    if failures == 0 { ExitCode::SUCCESS } else { ExitCode::FAILURE }
+    if failures == 0 {
+        ExitCode::SUCCESS
+    } else {
+        ExitCode::FAILURE
+    }
 }
