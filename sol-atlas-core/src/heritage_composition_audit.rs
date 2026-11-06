@@ -142,7 +142,7 @@ pub struct FieldSweepReportReceiptV1 {
 /// The crosswalk receipt binds the detailed field-survey context to the
 /// HDB-11 detection context; a matching feature-class string alone is not
 /// treated as sufficient context equivalence.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct FieldSweepProfileBindingV1 {
     pub profile_id: String,
@@ -664,7 +664,10 @@ fn validate_field_sweep(
     }
     for (value, label) in [
         (&report.profile_sha256, "report_profile_sha256"),
-        (&report.calibration_data_sha256, "report_calibration_data_sha256"),
+        (
+            &report.calibration_data_sha256,
+            "report_calibration_data_sha256",
+        ),
         (
             &report.calibration_split_manifest_sha256,
             "report_calibration_split_manifest_sha256",
@@ -756,8 +759,7 @@ fn validate_target_coverage(
     evidence
         .probability
         .validate("target_specific_coverage_probability")?;
-    if evidence.hdb11_coverage_condition_profile_sha256
-        != input.observability.profile_sha256
+    if evidence.hdb11_coverage_condition_profile_sha256 != input.observability.profile_sha256
     {
         return Err(HeritageCompositionError::TargetCoverageReceiptMismatch);
     }
@@ -833,7 +835,10 @@ fn validate_target_coverage(
             "hdb11_coverage_condition_alignment_receipt_ref",
         ),
         (&evidence.method_id, "coverage_method_id"),
-        (&evidence.validation_receipt_ref, "coverage_validation_receipt_ref"),
+        (
+            &evidence.validation_receipt_ref,
+            "coverage_validation_receipt_ref",
+        ),
     ] {
         validate_reference(value, label)?;
     }
@@ -871,8 +876,7 @@ fn validate_target_coverage(
         return Err(HeritageCompositionError::TargetCoverageReceiptMismatch);
     }
 
-    if evidence.probability_model == CoverageProbabilityModel::UniformAreaWeightedWithinSurveyUnit
-    {
+    if evidence.probability_model == CoverageProbabilityModel::UniformAreaWeightedWithinSurveyUnit {
         let reference = evidence
             .uniform_assumption_justification_ref
             .as_deref()
@@ -969,7 +973,11 @@ pub fn audit_heritage_probability_composition(
         schema_version: HERITAGE_COMPOSITION_AUDIT_SCHEMA_VERSION.to_owned(),
         composition_id: input.composition_id.clone(),
         hdb22_context_id: input.hdb22_context_id.clone(),
-        target_class_id: input.observability.calibration_context.feature_class_id.clone(),
+        target_class_id: input
+            .observability
+            .calibration_context
+            .feature_class_id
+            .clone(),
         survey_unit_id: input.field_sweep_report.survey_unit_id.clone(),
         disposition: "factorized_mapping_eligible_for_two_factors_only".to_owned(),
         factorization: vec![
@@ -978,8 +986,7 @@ pub fn audit_heritage_probability_composition(
             "observability_given_survival_and_exposure".to_owned(),
             "target_specific_footprint_coverage_given_survival_exposure_and_observability"
                 .to_owned(),
-            "conditional_detection_given_survival_exposure_observability_and_coverage"
-                .to_owned(),
+            "conditional_detection_given_survival_exposure_observability_and_coverage".to_owned(),
             "false_positive_given_originally_absent".to_owned(),
         ],
         conditional_detection,
@@ -1243,7 +1250,10 @@ mod tests {
         let mut value = input();
         value.observability.detection_probability_scope =
             DetectionProbabilityScope::ConditionalOnTargetPresentedToSensor;
-        value.observability.conditioning_events.push(DetectionCondition::TargetPresentedToSensor);
+        value
+            .observability
+            .conditioning_events
+            .push(DetectionCondition::TargetPresentedToSensor);
         assert_eq!(
             audit_heritage_probability_composition(&value),
             Err(HeritageCompositionError::DetectionScopeNotSupported)
@@ -1264,7 +1274,10 @@ mod tests {
             lower: value.field_sweep_report.receipt_reported_coverage_fraction,
             upper: value.field_sweep_report.receipt_reported_coverage_fraction,
         };
-        value.target_coverage.target_location_distribution_sha256.clear();
+        value
+            .target_coverage
+            .target_location_distribution_sha256
+            .clear();
         assert_eq!(
             audit_heritage_probability_composition(&value),
             Err(HeritageCompositionError::InvalidDigest(
@@ -1338,7 +1351,10 @@ mod tests {
         );
 
         let mut value = input();
-        value.field_sweep_profile.context_alignment_receipt_ref.clear();
+        value
+            .field_sweep_profile
+            .context_alignment_receipt_ref
+            .clear();
         assert_eq!(
             audit_heritage_probability_composition(&value),
             Err(HeritageCompositionError::EmptyReceiptReference(
@@ -1359,7 +1375,9 @@ mod tests {
 
         value.target_coverage.uniform_assumption_justification_ref =
             Some("urn:uniform-assumption:justification".to_owned());
-        value.target_coverage.uniform_assumption_justification_sha256 = Some(digest('l'));
+        value
+            .target_coverage
+            .uniform_assumption_justification_sha256 = Some(digest('l'));
         assert!(audit_heritage_probability_composition(&value).is_ok());
     }
 
@@ -1403,17 +1421,17 @@ mod tests {
         assert!(audit_heritage_probability_composition(&value).is_err());
     }
 
-
     #[test]
     fn target_coverage_must_bind_the_exact_hdb11_coverage_condition_event() {
         let mut value = input();
-        value.target_coverage.hdb11_coverage_condition_profile_sha256 = digest('z');
+        value
+            .target_coverage
+            .hdb11_coverage_condition_profile_sha256 = digest('z');
         assert_eq!(
             audit_heritage_probability_composition(&value),
             Err(HeritageCompositionError::TargetCoverageReceiptMismatch)
         );
     }
-
 
 
     #[test]
