@@ -791,7 +791,12 @@ mod tests {
         }
     }
 
-    fn provenance(method_id: &str, build: char, data: char, validation: char) -> CalibrationProvenanceBinding {
+    fn provenance(
+        method_id: &str,
+        build: char,
+        data: char,
+        validation: char,
+    ) -> CalibrationProvenanceBinding {
         CalibrationProvenanceBinding {
             method_id: method_id.into(),
             method_build_sha256: digest(build),
@@ -808,17 +813,11 @@ mod tests {
     }
 
     fn hdb22_stage(stage: EvidenceStage, probability: f64) -> StageEvidence {
-        let (conditioning, has_coverage) = match stage {
-            EvidenceStage::Survival => (Conditioning::OriginallyPresent, false),
-            EvidenceStage::Exposure => (Conditioning::SurvivedGivenOriginallyPresent, false),
-            EvidenceStage::Observability => (
-                Conditioning::ObservableGivenSurvivalAndExposure,
-                false,
-            ),
-            EvidenceStage::FalsePositive => (
-                Conditioning::FalsePositiveGivenOriginallyAbsent,
-                false,
-            ),
+        let conditioning = match stage {
+            EvidenceStage::Survival => Conditioning::OriginallyPresent,
+            EvidenceStage::Exposure => Conditioning::SurvivedGivenOriginallyPresent,
+            EvidenceStage::Observability => Conditioning::ObservableGivenSurvivalAndExposure,
+            EvidenceStage::FalsePositive => Conditioning::FalsePositiveGivenOriginallyAbsent,
             _ => unreachable!(),
         };
         StageEvidence {
@@ -944,7 +943,10 @@ mod tests {
     #[test]
     fn conditional_hdb11_pod_and_explicit_hdb15_location_receipt_adapt_into_hdb22() {
         let report = adapt_heritage_detection_factors(&input()).unwrap();
-        assert_eq!(report.schema_version, HERITAGE_FACTOR_ADAPTER_SCHEMA_VERSION);
+        assert_eq!(
+            report.schema_version,
+            HERITAGE_FACTOR_ADAPTER_SCHEMA_VERSION
+        );
         assert!(report.conditional_detection_stage_added);
         assert!(report.footprint_coverage_stage_added);
         assert!(!report.joint_pod_used);
@@ -957,7 +959,12 @@ mod tests {
         );
         assert_eq!(report.target_location_probability.lower, 0.97);
         assert_eq!(report.non_detection_input.stage_evidence.len(), 6);
-        assert!(report.non_detection_report.posterior_probability_originally_present.is_some());
+        assert!(
+            report
+                .non_detection_report
+                .posterior_probability_originally_present
+                .is_some()
+        );
     }
 
     #[test]
@@ -1004,8 +1011,10 @@ mod tests {
     #[test]
     fn geometric_coverage_fraction_without_matching_uniform_model_is_rejected() {
         let mut value = input();
-        value.target_location_coverage.target_location_probability =
-            ProbabilityBand { lower: 0.8, upper: 0.9 };
+        value.target_location_coverage.target_location_probability = ProbabilityBand {
+            lower: 0.8,
+            upper: 0.9,
+        };
         assert_eq!(
             adapt_heritage_detection_factors(&value),
             Err(HeritageFactorAdapterError::UniformLocationModelDoesNotMatchAreaFraction)
@@ -1017,8 +1026,10 @@ mod tests {
         let mut value = input();
         value.target_location_coverage.model =
             CoverageProbabilityModel::TargetSpecificSpatialDistribution;
-        value.target_location_coverage.target_location_probability =
-            ProbabilityBand { lower: 0.61, upper: 0.72 };
+        value.target_location_coverage.target_location_probability = ProbabilityBand {
+            lower: 0.61,
+            upper: 0.72,
+        };
         let report = adapt_heritage_detection_factors(&value).unwrap();
         assert_eq!(report.target_location_probability.lower, 0.61);
         assert_eq!(report.target_location_probability.upper, 0.72);
@@ -1068,22 +1079,25 @@ mod tests {
     #[test]
     fn preexisting_coverage_or_conditional_detection_cannot_be_overwritten() {
         let mut value = input();
-        value.non_detection_template.stage_evidence.push(hdb22_stage(
-            EvidenceStage::FootprintCoverage,
-            0.5,
-        ));
+        value
+            .non_detection_template
+            .stage_evidence
+            .push(hdb22_stage(EvidenceStage::FootprintCoverage, 0.5));
         assert_eq!(
             adapt_heritage_detection_factors(&value),
-            Err(HeritageFactorAdapterError::TemplateAlreadyContainsAdaptedStage(
-                EvidenceStage::FootprintCoverage
-            ))
+            Err(
+                HeritageFactorAdapterError::TemplateAlreadyContainsAdaptedStage(
+                    EvidenceStage::FootprintCoverage
+                )
+            )
         );
     }
 
     #[test]
     fn inaccessible_or_non_detection_observation_states_are_not_adapted() {
         let mut value = input();
-        value.non_detection_template.observation_state = ObservationState::NotObservableOrInaccessible;
+        value.non_detection_template.observation_state =
+            ObservationState::NotObservableOrInaccessible;
         assert_eq!(
             adapt_heritage_detection_factors(&value),
             Err(HeritageFactorAdapterError::TemplateMustBeSearchedNoDetection)
