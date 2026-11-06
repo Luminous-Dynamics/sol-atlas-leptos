@@ -1,0 +1,79 @@
+name: Heritage Exact Probability Composition Benchmark Qualification
+
+on:
+  pull_request:
+    paths:
+      - "sol-atlas-core/src/heritage_probability_benchmark.rs"
+      - "sol-atlas-core/src/lib.rs"
+      - "schemas/heritage-probability-benchmark-input-v0.1.schema.json"
+      - "schemas/heritage-probability-benchmark-report-v0.1.schema.json"
+      - "schemas/examples/heritage-probability-benchmark-input-synthetic-v0.1.json"
+      - "schemas/examples/heritage-probability-benchmark-report-synthetic-v0.1.json"
+      - "docs/research/heritage-probability-benchmark-v0.1.md"
+      - ".github/workflows/heritage-probability-benchmark.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  qualify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Verify exact checkout
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - name: Check core formatting
+        run: cargo fmt --manifest-path sol-atlas-core/Cargo.toml -- --check
+      - name: Run core unit tests
+        run: cargo test --manifest-path sol-atlas-core/Cargo.toml
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Validate Draft 2020-12 schemas and fixtures
+        run: |
+          python -m pip install --disable-pip-version-check jsonschema==4.23.0
+          python - <<'PY'
+          import copy
+          import json
+          from pathlib import Path
+          from jsonschema import Draft202012Validator
+
+          root = Path("schemas")
+          input_schema = json.loads((root / "heritage-probability-benchmark-input-v0.1.schema.json").read_text())
+          report_schema = json.loads((root / "heritage-probability-benchmark-report-v0.1.schema.json").read_text())
+          Draft202012Validator.check_schema(input_schema)
+          Draft202012Validator.check_schema(report_schema)
+          input_validator = Draft202012Validator(input_schema)
+          report_validator = Draft202012Validator(report_schema)
+
+          source_input = json.loads((root / "examples/heritage-probability-benchmark-input-synthetic-v0.1.json").read_text())
+          source_report = json.loads((root / "examples/heritage-probability-benchmark-report-synthetic-v0.1.json").read_text())
+          input_validator.validate(source_input)
+          report_validator.validate(source_report)
+
+          malformed = copy.deepcopy(source_input)
+          malformed["joint_probability_of_detection_per_survey_unit"] = 0.5
+          assert list(input_validator.iter_errors(malformed)) == [], "schema should allow a bounded but inconsistent joint value; Rust oracle rejects its algebra"
+
+          malformed = copy.deepcopy(source_input)
+          malformed["events"]["conditional_detection_given_prior_stages"] = 1.5
+          assert list(input_validator.iter_errors(malformed)), "out-of-range conditional probability passed"
+
+          malformed = copy.deepcopy(source_report)
+          malformed["mutual_independence_assumed"] = True
+          assert list(report_validator.iter_errors(malformed)), "report claimed mutual independence"
+
+          malformed = copy.deepcopy(source_report)
+          malformed["naive_double_count_has_nonzero_bias"] = False
+          assert list(report_validator.iter_errors(malformed)), "non-degenerate fixture lost the required negative-control bias"
+
+          print("Draft 2020-12 input/output schemas, 2 positive fixtures and 4 negative controls passed")
+          PY
