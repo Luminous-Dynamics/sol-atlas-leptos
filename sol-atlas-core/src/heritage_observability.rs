@@ -1483,6 +1483,54 @@ mod tests {
         ));
     }
 
+
+    #[test]
+    fn conditioning_evidence_manifest_is_order_invariant_and_commits_to_receipts() {
+        let mut value = input(ObservationOutcome::NotDetected);
+        let events = vec![
+            DetectionCondition::TargetSurvived,
+            DetectionCondition::TargetExposed,
+            DetectionCondition::TargetObservable,
+            DetectionCondition::TargetCoveredByActualFootprint,
+        ];
+        value.calibration_profile.detection_probability_scope =
+            DetectionProbabilityScope::ConditionalOnTargetSurvivedExposedObservableAndCovered;
+        value.calibration_profile.conditioning_events = events.clone();
+        for trial in &mut value.calibration_trials {
+            trial.conditioning_evidence = evidence(&events, true);
+        }
+
+        let first = evaluate_heritage_observability(&value).unwrap();
+        let mut reordered = value.clone();
+        reordered.calibration_trials.reverse();
+        let second = evaluate_heritage_observability(&reordered).unwrap();
+        assert_eq!(
+            first.conditioning_evidence_manifest_sha256,
+            second.conditioning_evidence_manifest_sha256
+        );
+
+        reordered.calibration_trials[0].conditioning_evidence[0].evidence_ref =
+            "urn:synthetic:conditioning:substituted".into();
+        let third = evaluate_heritage_observability(&reordered).unwrap();
+        assert_ne!(
+            first.conditioning_evidence_manifest_sha256,
+            third.conditioning_evidence_manifest_sha256
+        );
+        assert_eq!(first.conditioning_evidence_manifest_sha256.len(), 64);
+    }
+
+    #[test]
+    fn joint_scope_manifest_commits_to_detection_outcomes_even_without_condition_events() {
+        let mut value = input(ObservationOutcome::NotDetected);
+        let first = evaluate_heritage_observability(&value).unwrap();
+        value.calibration_trials[0].detected = !value.calibration_trials[0].detected;
+        let second = evaluate_heritage_observability(&value).unwrap();
+        assert_ne!(
+            first.conditioning_evidence_manifest_sha256,
+            second.conditioning_evidence_manifest_sha256
+        );
+    }
+
     #[test]
     fn malformed_coverage_and_non_finite_values_fail_closed() {
         let mut value = input(ObservationOutcome::NotDetected);
