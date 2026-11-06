@@ -1,0 +1,45 @@
+{
+  "schema_version": "luminous.heritage-probability-benchmark.v0.1",
+  "scenario_id": "non-degenerate-event-graph-1",
+  "scenario_manifest_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "evaluation_protocol_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "evaluator_build_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+  "upstream_event_chain_probability": 0.168,
+  "conditional_detection_probability": 0.9,
+  "exact_factorized_probability_of_detection": 0.1512,
+  "declared_joint_probability_of_detection": 0.1512,
+  "exact_factorization_residual": 0,
+  "false_positive_probability_if_originally_absent": 0.05,
+  "exact_factorized": {
+    "probability_of_detection_if_present": 0.1512,
+    "posterior_present_given_detection": 0.43052391799544415,
+    "posterior_present_given_no_detection": 0.18258475305455174,
+    "posterior_bias_given_detection": null,
+    "posterior_bias_given_no_detection": null,
+    "expected_brier_score": 0.1559853690412771,
+    "expected_log_loss": 0.4899123026529449
+  },
+  "exact_composite": {
+    "probability_of_detection_if_present": 0.1512,
+    "posterior_present_given_detection": 0.43052391799544415,
+    "posterior_present_given_no_detection": 0.18258475305455174,
+    "posterior_bias_given_detection": 0,
+    "posterior_bias_given_no_detection": 0,
+    "expected_brier_score": 0.1559853690412771,
+    "expected_log_loss": 0.4899123026529449
+  },
+  "naive_double_count_negative_control": {
+    "probability_of_detection_if_present": 0.0254016,
+    "posterior_present_given_detection": 0.11269485221045455,
+    "posterior_present_given_no_detection": 0.20412154454707646,
+    "posterior_bias_given_detection": -0.3178290657849896,
+    "posterior_bias_given_no_detection": 0.02153679149252472,
+    "expected_brier_score": 0.1596401679441963,
+    "expected_log_loss": 0.4991231437756762
+  },
+  "exact_factorized_and_composite_posterior_agree": true,
+  "naive_double_count_has_nonzero_bias": true,
+  "mutual_independence_assumed": false,
+  "archaeological_absence_claimed": false,
+  "claim_ceiling": "synthetic_probability_composition_correctness_only_no_field_calibration"
+}
