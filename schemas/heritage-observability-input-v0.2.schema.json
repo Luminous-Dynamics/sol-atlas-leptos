@@ -25,6 +25,14 @@
       "required": [
         "profile_id",
         "profile_sha256",
+        "method_id",
+        "calibration_data_sha256",
+        "calibration_split_manifest_sha256",
+        "validation_receipt_ref",
+        "validation_receipt_sha256",
+        "rights_decision_id",
+        "rights_receipt_ref",
+        "access_tier",
         "context",
         "sampling_design",
         "detection_probability_scope",
@@ -136,6 +144,42 @@
               "target_observation_data_valid"
             ]
           }
+        },
+        "method_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "calibration_data_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "calibration_split_manifest_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "validation_receipt_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "validation_receipt_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "rights_decision_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "rights_receipt_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "access_tier": {
+          "enum": [
+            "public",
+            "controlled",
+            "restricted",
+            "unknown"
+          ]
         }
       },
       "allOf": [
