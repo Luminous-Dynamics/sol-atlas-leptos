@@ -242,6 +242,10 @@ pub struct TargetCoverageProbabilityEvidenceV1 {
     /// from HDB-15's effective-sweep-width buffer.
     pub actual_observation_domain_basis: ActualObservationDomainBasis,
     pub actual_observation_domain_geometry_sha256: String,
+    /// Geometry digest used when HDB-11 trials adjudicated the covered condition.
+    pub hdb11_conditioned_observation_domain_geometry_sha256: String,
+    /// Target-location distribution digest used by HDB-11 coverage conditioning.
+    pub hdb11_conditioned_target_location_distribution_sha256: String,
     pub actual_observation_domain_receipt_ref: String,
     pub actual_observation_domain_receipt_sha256: String,
     /// A zero value means no observation could occur outside the declared domain.
@@ -341,6 +345,8 @@ pub struct FootprintCoverageFactorProposal {
     pub hdb11_coverage_condition_alignment_receipt_sha256: String,
     pub actual_observation_domain_basis: ActualObservationDomainBasis,
     pub actual_observation_domain_geometry_sha256: String,
+    pub hdb11_conditioned_observation_domain_geometry_sha256: String,
+    pub hdb11_conditioned_target_location_distribution_sha256: String,
     pub actual_observation_domain_receipt_ref: String,
     pub actual_observation_domain_receipt_sha256: String,
     pub outside_domain_detection_probability: f64,
@@ -886,6 +892,13 @@ fn validate_target_coverage(
     if evidence.outside_domain_detection_probability != 0.0 {
         return Err(HeritageCompositionError::OutsideDomainDetectionNotZero);
     }
+    if evidence.hdb11_conditioned_observation_domain_geometry_sha256
+        != evidence.actual_observation_domain_geometry_sha256
+        || evidence.hdb11_conditioned_target_location_distribution_sha256
+            != evidence.target_location_distribution_sha256
+    {
+        return Err(HeritageCompositionError::TargetCoverageReceiptMismatch);
+    }
     if evidence.survey_unit_id != report.survey_unit_id
         || evidence.survey_unit_crs_id != geometry.survey_unit_crs_id
         || evidence.transect_geometry_sha256 != report.transect_geometry_sha256
@@ -915,6 +928,14 @@ fn validate_target_coverage(
         (
             &evidence.actual_observation_domain_geometry_sha256,
             "actual_observation_domain_geometry_sha256",
+        ),
+        (
+            &evidence.hdb11_conditioned_observation_domain_geometry_sha256,
+            "hdb11_conditioned_observation_domain_geometry_sha256",
+        ),
+        (
+            &evidence.hdb11_conditioned_target_location_distribution_sha256,
+            "hdb11_conditioned_target_location_distribution_sha256",
         ),
         (
             &evidence.actual_observation_domain_receipt_sha256,
@@ -1075,6 +1096,12 @@ fn validate_target_coverage(
         actual_observation_domain_basis: evidence.actual_observation_domain_basis,
         actual_observation_domain_geometry_sha256: evidence
             .actual_observation_domain_geometry_sha256
+            .clone(),
+        hdb11_conditioned_observation_domain_geometry_sha256: evidence
+            .hdb11_conditioned_observation_domain_geometry_sha256
+            .clone(),
+        hdb11_conditioned_target_location_distribution_sha256: evidence
+            .hdb11_conditioned_target_location_distribution_sha256
             .clone(),
         actual_observation_domain_receipt_ref: evidence
             .actual_observation_domain_receipt_ref
@@ -1350,6 +1377,8 @@ mod tests {
                 actual_observation_domain_basis:
                     ActualObservationDomainBasis::RecordedObserverPathAndDeclaredViewBoundary,
                 actual_observation_domain_geometry_sha256: digest('o'),
+                hdb11_conditioned_observation_domain_geometry_sha256: digest('o'),
+                hdb11_conditioned_target_location_distribution_sha256: digest('f'),
                 actual_observation_domain_receipt_ref: "urn:actual-observation-domain:1".to_owned(),
                 actual_observation_domain_receipt_sha256: digest('p'),
                 outside_domain_detection_probability: 0.0,
@@ -1594,6 +1623,24 @@ mod tests {
         assert!(audit_heritage_probability_composition(&value).is_err());
     }
 
+
+
+    #[test]
+    fn hdb11_coverage_conditioning_must_use_the_exact_same_domain_and_distribution() {
+        let mut value = input();
+        value.target_coverage.hdb11_conditioned_observation_domain_geometry_sha256 = digest('z');
+        assert_eq!(
+            audit_heritage_probability_composition(&value),
+            Err(HeritageCompositionError::TargetCoverageReceiptMismatch)
+        );
+
+        let mut value = input();
+        value.target_coverage.hdb11_conditioned_target_location_distribution_sha256 = digest('z');
+        assert_eq!(
+            audit_heritage_probability_composition(&value),
+            Err(HeritageCompositionError::TargetCoverageReceiptMismatch)
+        );
+    }
 
     #[test]
     fn effective_sweep_width_buffer_is_not_accepted_as_the_physical_observation_domain() {
