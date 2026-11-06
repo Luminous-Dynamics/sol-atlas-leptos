@@ -8,8 +8,8 @@
 //! No output is a real-world accessibility, safety, affordability, planning,
 //! land-rights, community-consent, or city-quality determination.
 
+use serde_json::{Value, json};
 use std::collections::{BTreeMap, BTreeSet};
-use serde_json::{json, Value};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 enum Disposition {
@@ -36,7 +36,10 @@ fn string<'a>(value: &'a Value, key: &str) -> &'a str {
     value.get(key).and_then(Value::as_str).unwrap_or("")
 }
 fn number(value: &Value, key: &str) -> Option<f64> {
-    value.get(key).and_then(Value::as_f64).filter(|x| x.is_finite())
+    value
+        .get(key)
+        .and_then(Value::as_f64)
+        .filter(|x| x.is_finite())
 }
 fn nonnegative(value: &Value, key: &str) -> Option<f64> {
     number(value, key).filter(|x| *x >= 0.0)
@@ -45,7 +48,12 @@ fn bool_value(value: &Value, key: &str) -> Option<bool> {
     value.get(key).and_then(Value::as_bool)
 }
 fn string_array(value: &Value, key: &str) -> Option<Vec<&str>> {
-    value.get(key)?.as_array()?.iter().map(Value::as_str).collect()
+    value
+        .get(key)?
+        .as_array()?
+        .iter()
+        .map(Value::as_str)
+        .collect()
 }
 fn empty_result(disposition: Disposition, reasons: BTreeSet<String>) -> Value {
     json!({
@@ -214,7 +222,9 @@ pub fn evaluate_case(case: &Value) -> Value {
             unsupported.insert("NETWORK_EDGE_COST_INVALID".to_owned());
         }
         if edge.get("step_free").is_none()
-            || !(edge.get("step_free").is_some_and(|v| v.is_boolean() || v.is_null()))
+            || !(edge
+                .get("step_free")
+                .is_some_and(|v| v.is_boolean() || v.is_null()))
         {
             unsupported.insert("NETWORK_EDGE_STEP_FREE_STATE_INVALID".to_owned());
         }
@@ -250,7 +260,10 @@ pub fn evaluate_case(case: &Value) -> Value {
         {
             unsupported.insert("POPULATION_GROUP_SEMANTICS_MISSING".to_owned());
         }
-        if !group.get("population").and_then(Value::as_u64).is_some_and(|x| x > 0)
+        if !group
+            .get("population")
+            .and_then(Value::as_u64)
+            .is_some_and(|x| x > 0)
             || !number(group, "demand").is_some_and(|x| x > 0.0)
             || !nonnegative(group, "max_travel_minutes").is_some()
             || !nonnegative(group, "max_service_price").is_some()
@@ -275,7 +288,10 @@ pub fn evaluate_case(case: &Value) -> Value {
         {
             unsupported.insert("SERVICE_SEMANTICS_MISSING".to_owned());
         }
-        if !matches!(string(service, "capacity_state"), "current" | "stale" | "missing" | "unknown") {
+        if !matches!(
+            string(service, "capacity_state"),
+            "current" | "stale" | "missing" | "unknown"
+        ) {
             unsupported.insert("SERVICE_CAPACITY_STATE_UNSUPPORTED".to_owned());
         }
         if string(service, "capacity_state") == "current"
@@ -283,18 +299,22 @@ pub fn evaluate_case(case: &Value) -> Value {
         {
             unsupported.insert("SERVICE_CAPACITY_VALUE_INVALID".to_owned());
         }
-        if !matches!(string(service, "availability_state"), "open" | "closed" | "unknown") {
+        if !matches!(
+            string(service, "availability_state"),
+            "open" | "closed" | "unknown"
+        ) {
             unsupported.insert("SERVICE_AVAILABILITY_STATE_UNSUPPORTED".to_owned());
         }
         if array(service, "open_windows").is_none() {
             unsupported.insert("SERVICE_OPEN_WINDOWS_MISSING".to_owned());
         }
-        if !matches!(string(service, "price_state"), "current" | "unknown" | "stale") {
+        if !matches!(
+            string(service, "price_state"),
+            "current" | "unknown" | "stale"
+        ) {
             unsupported.insert("SERVICE_PRICE_STATE_UNSUPPORTED".to_owned());
         }
-        if string(service, "price_state") == "current"
-            && !nonnegative(service, "price").is_some()
-        {
+        if string(service, "price_state") == "current" && !nonnegative(service, "price").is_some() {
             unsupported.insert("SERVICE_PRICE_VALUE_INVALID".to_owned());
         }
         if !matches!(string(service, "eligibility_state"), "known" | "unknown") {
@@ -303,7 +323,10 @@ pub fn evaluate_case(case: &Value) -> Value {
         if string_array(service, "eligible_group_ids").is_none() {
             unsupported.insert("SERVICE_ELIGIBILITY_GROUPS_INVALID".to_owned());
         }
-        if !(service.get("step_free_status").is_some_and(|v| v.is_boolean() || v.is_null())) {
+        if !(service
+            .get("step_free_status")
+            .is_some_and(|v| v.is_boolean() || v.is_null()))
+        {
             unsupported.insert("SERVICE_STEP_FREE_STATE_INVALID".to_owned());
         }
     }
@@ -317,7 +340,9 @@ pub fn evaluate_case(case: &Value) -> Value {
         let category = string(group, "service_category").to_owned();
         let demand = number(group, "demand").unwrap();
         let unit = string(group, "demand_unit").to_owned();
-        let entry = category_demand.entry(category).or_insert((0.0, unit.clone()));
+        let entry = category_demand
+            .entry(category)
+            .or_insert((0.0, unit.clone()));
         if entry.1 != unit {
             unsupported.insert("CATEGORY_DEMAND_UNIT_MISMATCH".to_owned());
         }
@@ -344,10 +369,20 @@ pub fn evaluate_case(case: &Value) -> Value {
         let demand_unit = string(group, "demand_unit");
         let mut nearest = f64::INFINITY;
 
-        for service in services.iter().filter(|service| string(service, "category") == category) {
+        for service in services
+            .iter()
+            .filter(|service| string(service, "category") == category)
+        {
             let service_id = string(service, "id");
             let known_path = if network_state == "current" {
-                shortest_path(network, origin, string(service, "node"), mode, requires_step_free, false)
+                shortest_path(
+                    network,
+                    origin,
+                    string(service, "node"),
+                    mode,
+                    requires_step_free,
+                    false,
+                )
             } else {
                 None
             };
@@ -360,7 +395,8 @@ pub fn evaluate_case(case: &Value) -> Value {
                 true,
             );
             let route_known = known_path.is_some_and(|minutes| minutes <= budget);
-            let route_unknown = !route_known && possible_path.is_some_and(|minutes| minutes <= budget);
+            let route_unknown =
+                !route_known && possible_path.is_some_and(|minutes| minutes <= budget);
 
             if !route_known && !route_unknown {
                 continue;
@@ -372,7 +408,8 @@ pub fn evaluate_case(case: &Value) -> Value {
                         "NETWORK_EDGE_UNKNOWN"
                     } else {
                         "NETWORK_EVIDENCE_STALE"
-                    }.to_owned(),
+                    }
+                    .to_owned(),
                 );
                 continue;
             }
@@ -390,7 +427,9 @@ pub fn evaluate_case(case: &Value) -> Value {
                 excluded = true;
             } else if availability != "open" {
                 uncertain = true;
-                outcome.reason_codes.insert("SERVICE_AVAILABILITY_UNKNOWN".to_owned());
+                outcome
+                    .reason_codes
+                    .insert("SERVICE_AVAILABILITY_UNKNOWN".to_owned());
             }
 
             let eligibility_state = string(service, "eligibility_state");
@@ -401,7 +440,9 @@ pub fn evaluate_case(case: &Value) -> Value {
                 }
             } else {
                 uncertain = true;
-                outcome.reason_codes.insert("SERVICE_ELIGIBILITY_UNKNOWN".to_owned());
+                outcome
+                    .reason_codes
+                    .insert("SERVICE_ELIGIBILITY_UNKNOWN".to_owned());
             }
 
             match string(service, "price_state") {
@@ -414,7 +455,9 @@ pub fn evaluate_case(case: &Value) -> Value {
                 }
                 _ => {
                     uncertain = true;
-                    outcome.reason_codes.insert("SERVICE_PRICE_UNKNOWN".to_owned());
+                    outcome
+                        .reason_codes
+                        .insert("SERVICE_PRICE_UNKNOWN".to_owned());
                 }
             }
 
@@ -424,7 +467,9 @@ pub fn evaluate_case(case: &Value) -> Value {
                     Some(true) => {}
                     None => {
                         uncertain = true;
-                        outcome.reason_codes.insert("SERVICE_STEP_FREE_UNKNOWN".to_owned());
+                        outcome
+                            .reason_codes
+                            .insert("SERVICE_STEP_FREE_UNKNOWN".to_owned());
                     }
                 }
             }
@@ -440,7 +485,9 @@ pub fn evaluate_case(case: &Value) -> Value {
                 }
             } else {
                 uncertain = true;
-                outcome.reason_codes.insert("SERVICE_CAPACITY_EVIDENCE_UNKNOWN".to_owned());
+                outcome
+                    .reason_codes
+                    .insert("SERVICE_CAPACITY_EVIDENCE_UNKNOWN".to_owned());
                 if !excluded {
                     outcome.unknown_services.insert(service_id.to_owned());
                 }
@@ -460,20 +507,25 @@ pub fn evaluate_case(case: &Value) -> Value {
             if outcome.capacity >= demand {
                 "AccessibleAndAdequatePotential".to_owned()
             } else {
-                outcome.reason_codes.insert("REACHABLE_CAPACITY_BELOW_GROUP_DEMAND".to_owned());
+                outcome
+                    .reason_codes
+                    .insert("REACHABLE_CAPACITY_BELOW_GROUP_DEMAND".to_owned());
                 "AccessibleButCapacityConstrained".to_owned()
             }
         } else if !outcome.unknown_services.is_empty() {
             "Unknown".to_owned()
         } else {
-            outcome.reason_codes.insert("NO_USABLE_SERVICE_WITHIN_ACCESS_ENVELOPE".to_owned());
+            outcome
+                .reason_codes
+                .insert("NO_USABLE_SERVICE_WITHIN_ACCESS_ENVELOPE".to_owned());
             "Inaccessible".to_owned()
         };
 
         if outcome.status == "Unknown" {
             group_unknown = true;
         }
-        if outcome.status == "Inaccessible" || outcome.status == "AccessibleButCapacityConstrained" {
+        if outcome.status == "Inaccessible" || outcome.status == "AccessibleButCapacityConstrained"
+        {
             group_failed = true;
         }
         for reason in &outcome.reason_codes {
@@ -492,7 +544,10 @@ pub fn evaluate_case(case: &Value) -> Value {
     for (category, (demand, unit)) in &category_demand {
         let mut known_capacity = 0.0;
         let mut unknown_capacity_count = 0usize;
-        for service in services.iter().filter(|service| string(service, "category") == category) {
+        for service in services
+            .iter()
+            .filter(|service| string(service, "category") == category)
+        {
             let availability = string(service, "availability_state");
             let open_windows = string_array(service, "open_windows").unwrap();
             if availability == "closed"
@@ -550,9 +605,11 @@ pub fn evaluate_case(case: &Value) -> Value {
 }
 
 pub fn matches_expected(actual: &Value, expected: &Value) -> bool {
-    expected
-        .as_object()
-        .is_some_and(|fields| fields.iter().all(|(key, value)| actual.get(key) == Some(value)))
+    expected.as_object().is_some_and(|fields| {
+        fields
+            .iter()
+            .all(|(key, value)| actual.get(key) == Some(value))
+    })
 }
 
 #[cfg(test)]
@@ -576,7 +633,10 @@ mod tests {
         assert_eq!(corpus["corpus_id"], "CITY-MORPH-ACCESS-CORPUS-V0.1");
         let cases = corpus["cases"].as_array().unwrap();
         assert_eq!(cases.len(), 24);
-        let ids = cases.iter().map(|case| case["case_id"].as_str().unwrap().to_owned()).collect::<BTreeSet<_>>();
+        let ids = cases
+            .iter()
+            .map(|case| case["case_id"].as_str().unwrap().to_owned())
+            .collect::<BTreeSet<_>>();
         assert_eq!(ids.len(), cases.len());
     }
 
@@ -600,31 +660,62 @@ expected: {}",
     #[test]
     fn euclidean_nearness_without_network_route_is_inaccessible() {
         let corpus = corpus();
-        let case = corpus["cases"].as_array().unwrap().iter().find(|case| case["case_id"] == "MA-004").unwrap();
+        let case = corpus["cases"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|case| case["case_id"] == "MA-004")
+            .unwrap();
         let result = evaluate_case(case);
         assert_eq!(result["groups"][0]["status"], "Inaccessible");
-        assert_eq!(result["groups"][0]["accessible_service_ids"], serde_json::json!([]));
+        assert_eq!(
+            result["groups"][0]["accessible_service_ids"],
+            serde_json::json!([])
+        );
     }
 
     #[test]
     fn shared_capacity_is_counted_once_at_city_category_level() {
         let corpus = corpus();
-        let case = corpus["cases"].as_array().unwrap().iter().find(|case| case["case_id"] == "MA-019").unwrap();
+        let case = corpus["cases"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|case| case["case_id"] == "MA-019")
+            .unwrap();
         let result = evaluate_case(case);
-        assert_eq!(result["groups"][0]["status"], "AccessibleAndAdequatePotential");
-        assert_eq!(result["groups"][1]["status"], "AccessibleAndAdequatePotential");
+        assert_eq!(
+            result["groups"][0]["status"],
+            "AccessibleAndAdequatePotential"
+        );
+        assert_eq!(
+            result["groups"][1]["status"],
+            "AccessibleAndAdequatePotential"
+        );
         assert_eq!(result["category_totals"][0]["declared_open_capacity"], 120);
         assert_eq!(result["category_totals"][0]["demand"], 200);
-        assert_eq!(result["category_totals"][0]["status"], "AggregateCapacityShortfall");
+        assert_eq!(
+            result["category_totals"][0]["status"],
+            "AggregateCapacityShortfall"
+        );
         assert_eq!(result["disposition"], "Infeasible");
     }
 
     #[test]
     fn input_permutations_do_not_change_normalized_access_results() {
         let corpus = corpus();
-        let mut case = corpus["cases"].as_array().unwrap().iter().find(|case| case["case_id"] == "MA-020").unwrap().clone();
+        let mut case = corpus["cases"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|case| case["case_id"] == "MA-020")
+            .unwrap()
+            .clone();
         let baseline = evaluate_case(&case);
-        case["input"]["network"]["edges"].as_array_mut().unwrap().reverse();
+        case["input"]["network"]["edges"]
+            .as_array_mut()
+            .unwrap()
+            .reverse();
         case["input"]["services"].as_array_mut().unwrap().reverse();
         let permuted = evaluate_case(&case);
         assert_eq!(baseline, permuted);
@@ -634,7 +725,12 @@ expected: {}",
     fn duplicate_service_and_group_ids_fail_closed() {
         let corpus = corpus();
         for id in ["MA-023", "MA-024"] {
-            let case = corpus["cases"].as_array().unwrap().iter().find(|case| case["case_id"] == id).unwrap();
+            let case = corpus["cases"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .find(|case| case["case_id"] == id)
+                .unwrap();
             let result = evaluate_case(case);
             assert_eq!(result["disposition"], "Unsupported");
             assert_eq!(result["groups"], serde_json::json!([]));
