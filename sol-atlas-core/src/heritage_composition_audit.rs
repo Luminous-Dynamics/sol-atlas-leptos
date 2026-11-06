@@ -1624,18 +1624,21 @@ mod tests {
     }
 
 
-
     #[test]
     fn hdb11_coverage_conditioning_must_use_the_exact_same_domain_and_distribution() {
         let mut value = input();
-        value.target_coverage.hdb11_conditioned_observation_domain_geometry_sha256 = digest('z');
+        value
+            .target_coverage
+            .hdb11_conditioned_observation_domain_geometry_sha256 = digest('z');
         assert_eq!(
             audit_heritage_probability_composition(&value),
             Err(HeritageCompositionError::TargetCoverageReceiptMismatch)
         );
 
         let mut value = input();
-        value.target_coverage.hdb11_conditioned_target_location_distribution_sha256 = digest('z');
+        value
+            .target_coverage
+            .hdb11_conditioned_target_location_distribution_sha256 = digest('z');
         assert_eq!(
             audit_heritage_probability_composition(&value),
             Err(HeritageCompositionError::TargetCoverageReceiptMismatch)
@@ -1652,7 +1655,10 @@ mod tests {
         );
 
         let mut value = input();
-        value.target_coverage.actual_observation_domain_receipt_ref.clear();
+        value
+            .target_coverage
+            .actual_observation_domain_receipt_ref
+            .clear();
         assert_eq!(
             audit_heritage_probability_composition(&value),
             Err(HeritageCompositionError::ActualObservationDomainReceiptMissing)
