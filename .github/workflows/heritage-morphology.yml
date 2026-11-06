@@ -4,11 +4,15 @@ on:
   pull_request:
     paths:
       - "sol-atlas-core/src/heritage_morphology.rs"
+      - "sol-atlas-core/src/heritage_membership_sensitivity.rs"
       - "sol-atlas-core/src/lib.rs"
       - "sol-atlas-core/Cargo.toml"
       - "schemas/heritage-morphology-v0.1.schema.json"
       - "schemas/examples/heritage-morphology-synthetic-v0.1.json"
+      - "schemas/heritage-membership-sensitivity-v0.1.schema.json"
+      - "schemas/examples/heritage-membership-sensitivity-synthetic-v0.1.json"
       - "docs/research/heritage-morphology-v0.1.md"
+      - "docs/research/heritage-membership-sensitivity-v0.1.md"
       - ".github/workflows/heritage-morphology.yml"
   workflow_dispatch:
 
@@ -61,5 +65,23 @@ jobs:
           malformed["stones"][0]["memberships"][0]["status"] = "ambiguous"
           assert list(validator.iter_errors(malformed)), "invalid ambiguous membership passed"
 
-          print("Draft 2020-12 schema, 1 positive fixture and 2 negative controls passed")
+          sensitivity_schema = json.loads(
+              Path("schemas/heritage-membership-sensitivity-v0.1.schema.json").read_text()
+          )
+          Draft202012Validator.check_schema(sensitivity_schema)
+          sensitivity_validator = Draft202012Validator(sensitivity_schema)
+          sensitivity_fixture = json.loads(
+              Path("schemas/examples/heritage-membership-sensitivity-synthetic-v0.1.json").read_text()
+          )
+          sensitivity_validator.validate(sensitivity_fixture)
+
+          malformed_sensitivity = copy.deepcopy(sensitivity_fixture)
+          malformed_sensitivity["scenario_count"] = 0
+          assert list(sensitivity_validator.iter_errors(malformed_sensitivity)), "zero-scenario report passed"
+
+          malformed_sensitivity = copy.deepcopy(sensitivity_fixture)
+          malformed_sensitivity["scenario_semantics"] = "probabilistic_imputation"
+          assert list(sensitivity_validator.iter_errors(malformed_sensitivity)), "probabilistic semantics passed"
+
+          print("Draft 2020-12 morphology and membership-sensitivity schemas, 2 positive fixtures and 4 negative controls passed")
           PY
