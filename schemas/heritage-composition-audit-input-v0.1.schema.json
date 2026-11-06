@@ -769,6 +769,7 @@
         "coverage_probability_receipt_ref",
         "coverage_probability_receipt_sha256",
         "source_field_sweep_report_sha256",
+        "source_data_sha256",
         "transect_geometry_sha256",
         "survey_unit_geometry_sha256",
         "spatial_union_receipt_sha256",
@@ -914,6 +915,10 @@
           "pattern": "^[a-fA-F0-9]{64}$"
         },
         "hdb11_coverage_condition_profile_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "source_data_sha256": {
           "type": "string",
           "pattern": "^[a-fA-F0-9]{64}$"
         }
