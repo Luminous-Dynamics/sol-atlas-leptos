@@ -60,8 +60,6 @@
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "rights_purpose",
-        "rights_receipt_sha256",
         "stage",
         "conditioning_semantics",
         "probability",
@@ -187,13 +185,6 @@
               "const": "allowed"
             }
           }
-        },
-        "rights_purpose": {
-          "const": "research_analysis"
-        },
-        "rights_receipt_sha256": {
-          "type": "string",
-          "pattern": "^[a-fA-F0-9]{64}$"
         }
       }
     },
