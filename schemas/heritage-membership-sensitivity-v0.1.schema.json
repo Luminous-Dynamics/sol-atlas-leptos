@@ -1,0 +1,295 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/heritage-membership-sensitivity-v0.1.schema.json",
+  "title": "Heritage Membership Sensitivity Report v0.1",
+  "description": "Exhaustive unweighted Cartesian-product sensitivity envelopes for ambiguous stone memberships at one architecture hierarchy level. Not graph-constrained or probabilistic.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "sensitivity_id",
+    "site_id",
+    "snapshot_id",
+    "coordinate_reference_id",
+    "dataset_sha256",
+    "architecture_graph_sha256",
+    "measurement_protocol_sha256",
+    "rights_decision_id",
+    "rights_receipt_sha256",
+    "target_level",
+    "physical_stone_count",
+    "fixed_assigned_stone_count",
+    "ambiguous_stone_count",
+    "unassigned_stone_count",
+    "not_assessed_stone_count",
+    "scenario_count",
+    "maximum_scenarios",
+    "work_units_evaluated",
+    "maximum_work_units",
+    "groups",
+    "scenario_semantics",
+    "interval_interpretation",
+    "claim_ceiling"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "luminous.heritage-membership-sensitivity.v0.1"
+    },
+    "sensitivity_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "site_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "snapshot_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "coordinate_reference_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "dataset_sha256": {
+      "$ref": "#/$defs/digest"
+    },
+    "architecture_graph_sha256": {
+      "$ref": "#/$defs/digest"
+    },
+    "measurement_protocol_sha256": {
+      "$ref": "#/$defs/digest"
+    },
+    "rights_decision_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "rights_receipt_sha256": {
+      "$ref": "#/$defs/digest"
+    },
+    "target_level": {
+      "enum": [
+        "wall_segment",
+        "wall",
+        "building",
+        "household",
+        "compound",
+        "insula",
+        "neighbourhood",
+        "settlement"
+      ]
+    },
+    "physical_stone_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "fixed_assigned_stone_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "ambiguous_stone_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "unassigned_stone_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "not_assessed_stone_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "scenario_count": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 4096
+    },
+    "maximum_scenarios": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 4096
+    },
+    "work_units_evaluated": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 10000000
+    },
+    "maximum_work_units": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 10000000
+    },
+    "groups": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/groupSummary"
+      }
+    },
+    "scenario_semantics": {
+      "const": "unweighted_exhaustive_cartesian_product_of_per_stone_candidates_at_one_level_not_graph_constrained"
+    },
+    "interval_interpretation": {
+      "const": "outer_descriptive_envelopes_over_membership_scenarios_and_per_observation_measurement_bounds_not_confidence_or_credible_intervals"
+    },
+    "claim_ceiling": {
+      "const": "membership_sensitivity_of_descriptive_group_summaries_only_no_historical_or_social_inference"
+    }
+  },
+  "$defs": {
+    "digest": {
+      "type": "string",
+      "pattern": "^[0-9a-fA-F]{64}$"
+    },
+    "measurementInterval": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "lower",
+        "upper"
+      ],
+      "properties": {
+        "lower": {
+          "type": "number"
+        },
+        "upper": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "scalarRange": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "minimum",
+        "maximum"
+      ],
+      "properties": {
+        "minimum": {
+          "type": "number"
+        },
+        "maximum": {
+          "type": "number"
+        }
+      }
+    },
+    "metricEnvelope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "enclosing_interval",
+        "lower_endpoint_range",
+        "upper_endpoint_range"
+      ],
+      "properties": {
+        "enclosing_interval": {
+          "$ref": "#/$defs/measurementInterval"
+        },
+        "lower_endpoint_range": {
+          "$ref": "#/$defs/scalarRange"
+        },
+        "upper_endpoint_range": {
+          "$ref": "#/$defs/scalarRange"
+        }
+      }
+    },
+    "metricSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mean",
+        "p10",
+        "median",
+        "p90"
+      ],
+      "properties": {
+        "mean": {
+          "$ref": "#/$defs/metricEnvelope"
+        },
+        "p10": {
+          "$ref": "#/$defs/metricEnvelope"
+        },
+        "median": {
+          "$ref": "#/$defs/metricEnvelope"
+        },
+        "p90": {
+          "$ref": "#/$defs/metricEnvelope"
+        }
+      }
+    },
+    "groupSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "level",
+        "group_id",
+        "minimum_assigned_stone_count",
+        "maximum_assigned_stone_count",
+        "non_empty_scenario_count",
+        "plan_footprint_area_m2",
+        "mrr_area_ratio",
+        "elongation_ratio"
+      ],
+      "properties": {
+        "level": {
+          "enum": [
+            "wall_segment",
+            "wall",
+            "building",
+            "household",
+            "compound",
+            "insula",
+            "neighbourhood",
+            "settlement"
+          ]
+        },
+        "group_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "minimum_assigned_stone_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "maximum_assigned_stone_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "non_empty_scenario_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "plan_footprint_area_m2": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/metricSummary"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "mrr_area_ratio": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/metricSummary"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "elongation_ratio": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/metricSummary"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    }
+  }
+}
