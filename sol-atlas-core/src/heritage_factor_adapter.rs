@@ -143,6 +143,7 @@ pub enum HeritageFactorAdapterError {
     PodConditioningSetMismatch,
     PodMethodBuildMismatch,
     PodInsufficientEligibleCalibration,
+    PodStatisticMismatch,
     FieldSweepNotQualified,
     FieldSweepRightsNotVerified,
     FieldSweepTargetClassMismatch,
@@ -264,6 +265,21 @@ fn validate_context_binding(
     Ok(())
 }
 
+fn expected_wilson_95(successes: usize, trials: usize) -> Option<(f64, f64)> {
+    if trials == 0 || successes > trials {
+        return None;
+    }
+    const Z: f64 = 1.959_963_984_540_054;
+    let n = trials as f64;
+    let p = successes as f64 / n;
+    let z2 = Z * Z;
+    let denominator = 1.0 + z2 / n;
+    let center = (p + z2 / (2.0 * n)) / denominator;
+    let half_width = Z * ((p * (1.0 - p) / n) + (z2 / (4.0 * n * n))).sqrt()
+        / denominator;
+    Some(((center - half_width).max(0.0), (center + half_width).min(1.0)))
+}
+
 fn validate_hdb11(
     report: &HeritageObservabilityReport,
     provenance: &CalibrationProvenanceBinding,
@@ -287,6 +303,7 @@ fn validate_hdb11(
         || report.disposition != ObservabilityDisposition::QualifiedNonDetection
         || !report.reasons.is_empty()
         || !report.context_match
+        || report.calibration_context != report.observed_context
         || report.profile_sha256 != report.observation_profile_sha256
     {
         return Err(HeritageFactorAdapterError::PodObservationNotQualified);
@@ -300,7 +317,14 @@ fn validate_hdb11(
     {
         return Err(HeritageFactorAdapterError::PodInsufficientEligibleCalibration);
     }
+    let eligible = report.calibration_eligible_independent_psu_count;
+    let expected_empirical = report.calibration_detected_count as f64 / eligible as f64;
     let pod_interval = report.probability_of_detection_wilson_95;
+    let Some((expected_lower, expected_upper)) =
+        expected_wilson_95(report.calibration_detected_count, eligible)
+    else {
+        return Err(HeritageFactorAdapterError::PodStatisticMismatch);
+    };
     if pod_interval.confidence_level != 0.95
         || !pod_interval.lower.is_finite()
         || !pod_interval.upper.is_finite()
@@ -311,6 +335,13 @@ fn validate_hdb11(
         || !(0.0..=1.0).contains(&report.empirical_probability_of_detection)
     {
         return Err(HeritageFactorAdapterError::PodObservationNotQualified);
+    }
+    if (report.empirical_probability_of_detection - expected_empirical).abs()
+        > PROBABILITY_TOLERANCE
+        || (pod_interval.lower - expected_lower).abs() > PROBABILITY_TOLERANCE
+        || (pod_interval.upper - expected_upper).abs() > PROBABILITY_TOLERANCE
+    {
+        return Err(HeritageFactorAdapterError::PodStatisticMismatch);
     }
     if report.observed_context.modality != ObservationModality::FieldWalking {
         return Err(HeritageFactorAdapterError::PodContextNotFieldWalking);
@@ -592,10 +623,10 @@ fn make_stage(
             .map(|value| value.validation_split_manifest_sha256.clone())
             .unwrap_or_else(|| validation_split_manifest_sha256.into()),
         validation_receipt_ref: coverage
-            .map(|value| value.calculation_receipt_ref.clone())
+            .map(|value| value.validation_receipt_ref.clone())
             .unwrap_or_else(|| provenance.validation_receipt_ref.clone()),
         validation_receipt_sha256: coverage
-            .map(|value| value.calculation_receipt_sha256.clone())
+            .map(|value| value.validation_receipt_sha256.clone())
             .unwrap_or_else(|| provenance.validation_receipt_sha256.clone()),
         source_data_sha256: coverage
             .map(|value| value.source_data_sha256.clone())
@@ -1030,11 +1061,51 @@ mod tests {
         );
         assert_eq!(report.target_location_probability.lower, 0.97);
         assert_eq!(report.non_detection_input.stage_evidence.len(), 6);
+        let coverage_stage = report
+            .non_detection_input
+            .stage_evidence
+            .iter()
+            .find(|stage| stage.stage == EvidenceStage::FootprintCoverage)
+            .unwrap();
+        assert_eq!(
+            coverage_stage.validation_receipt_ref,
+            "receipt:location-validation"
+        );
+        assert_eq!(coverage_stage.validation_receipt_sha256, digest('f'));
         assert!(
             report
                 .non_detection_report
                 .posterior_probability_originally_present
                 .is_some()
+        );
+    }
+
+
+    #[test]
+    fn context_flags_cannot_override_mismatched_source_contexts() {
+        let mut value = input();
+        value.hdb11_report.calibration_context.feature_class_id = "different_feature".into();
+        value.hdb11_report.context_match = true;
+        assert_eq!(
+            adapt_heritage_detection_factors(&value),
+            Err(HeritageFactorAdapterError::PodObservationNotQualified)
+        );
+    }
+
+    #[test]
+    fn empirical_pod_and_wilson_interval_must_match_eligible_trial_counts() {
+        let mut value = input();
+        value.hdb11_report.empirical_probability_of_detection = 0.5;
+        assert_eq!(
+            adapt_heritage_detection_factors(&value),
+            Err(HeritageFactorAdapterError::PodStatisticMismatch)
+        );
+
+        let mut value = input();
+        value.hdb11_report.probability_of_detection_wilson_95.lower = 0.9;
+        assert_eq!(
+            adapt_heritage_detection_factors(&value),
+            Err(HeritageFactorAdapterError::PodStatisticMismatch)
         );
     }
 
