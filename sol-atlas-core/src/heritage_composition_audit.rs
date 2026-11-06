@@ -1376,11 +1376,11 @@ mod tests {
                 hdb11_coverage_condition_profile_sha256: digest('c'),
                 actual_observation_domain_basis:
                     ActualObservationDomainBasis::RecordedObserverPathAndDeclaredViewBoundary,
-                actual_observation_domain_geometry_sha256: digest('o'),
-                hdb11_conditioned_observation_domain_geometry_sha256: digest('o'),
+                actual_observation_domain_geometry_sha256: digest('6'),
+                hdb11_conditioned_observation_domain_geometry_sha256: digest('6'),
                 hdb11_conditioned_target_location_distribution_sha256: digest('f'),
                 actual_observation_domain_receipt_ref: "urn:actual-observation-domain:1".to_owned(),
-                actual_observation_domain_receipt_sha256: digest('p'),
+                actual_observation_domain_receipt_sha256: digest('7'),
                 outside_domain_detection_probability: 0.0,
                 coverage_probability_receipt_ref: "urn:coverage-probability:1".to_owned(),
                 coverage_probability_receipt_sha256: digest('1'),
@@ -1480,6 +1480,10 @@ mod tests {
         value
             .target_coverage
             .target_location_distribution_sha256
+            .clear();
+        value
+            .target_coverage
+            .hdb11_conditioned_target_location_distribution_sha256
             .clear();
         assert_eq!(
             audit_heritage_probability_composition(&value),
@@ -1622,7 +1626,6 @@ mod tests {
         value.target_coverage.confidence_level = None;
         assert!(audit_heritage_probability_composition(&value).is_err());
     }
-
 
     #[test]
     fn hdb11_coverage_conditioning_must_use_the_exact_same_domain_and_distribution() {
