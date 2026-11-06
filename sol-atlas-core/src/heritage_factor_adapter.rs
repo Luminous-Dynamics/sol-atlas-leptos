@@ -361,7 +361,10 @@ fn validate_hdb15(
         &report.survey_unit_geometry_sha256,
         "hdb15_survey_unit_geometry_sha256",
     )?;
-    require_digest(&report.transect_geometry_sha256, "hdb15_transect_geometry_sha256")?;
+    require_digest(
+        &report.transect_geometry_sha256,
+        "hdb15_transect_geometry_sha256",
+    )?;
     require_digest(
         &report.spatial_union_receipt_sha256,
         "hdb15_spatial_union_receipt_sha256",
@@ -379,8 +382,7 @@ fn validate_hdb15(
         return Err(HeritageFactorAdapterError::FieldSweepNotQualified);
     }
     if provenance.calibration_data_sha256 != report.calibration_data_sha256
-        || provenance.validation_split_manifest_sha256
-            != report.calibration_split_manifest_sha256
+        || provenance.validation_split_manifest_sha256 != report.calibration_split_manifest_sha256
         || provenance.validation_receipt_sha256 != report.fit_receipt_sha256
     {
         return Err(HeritageFactorAdapterError::FieldSweepProvenanceMismatch(
@@ -394,7 +396,10 @@ fn validate_hdb15(
     }
     require_digest(&provenance.method_build_sha256, "hdb15_method_build_sha256")?;
     require_digest(&provenance.source_data_sha256, "hdb15_source_data_sha256")?;
-    require_digest(&provenance.validation_receipt_sha256, "hdb15_validation_receipt_sha256")?;
+    require_digest(
+        &provenance.validation_receipt_sha256,
+        "hdb15_validation_receipt_sha256",
+    )?;
 
     // The context mapping manifest binds the non-identical HDB-11/HDB-15
     // context representations. The method-level contract requires exact
@@ -418,19 +423,46 @@ fn validate_target_location_coverage(
         return Err(HeritageFactorAdapterError::InvalidTargetLocationProbability);
     }
     for (digest, label) in [
-        (&receipt.survey_unit_geometry_sha256, "target_survey_unit_geometry_sha256"),
-        (&receipt.transect_geometry_sha256, "target_transect_geometry_sha256"),
-        (&receipt.coverage_geometry_sha256, "coverage_geometry_sha256"),
-        (&receipt.spatial_union_receipt_sha256, "target_spatial_union_receipt_sha256"),
+        (
+            &receipt.survey_unit_geometry_sha256,
+            "target_survey_unit_geometry_sha256",
+        ),
+        (
+            &receipt.transect_geometry_sha256,
+            "target_transect_geometry_sha256",
+        ),
+        (
+            &receipt.coverage_geometry_sha256,
+            "coverage_geometry_sha256",
+        ),
+        (
+            &receipt.spatial_union_receipt_sha256,
+            "target_spatial_union_receipt_sha256",
+        ),
         (
             &receipt.target_location_distribution_sha256,
             "target_location_distribution_sha256",
         ),
-        (&receipt.field_sweep_fit_receipt_sha256, "field_sweep_fit_receipt_sha256"),
-        (&receipt.method_build_sha256, "target_location_method_build_sha256"),
-        (&receipt.calibration_data_sha256, "target_location_calibration_data_sha256"),
-        (&receipt.calculation_receipt_sha256, "calculation_receipt_sha256"),
-        (&receipt.source_data_sha256, "target_location_source_data_sha256"),
+        (
+            &receipt.field_sweep_fit_receipt_sha256,
+            "field_sweep_fit_receipt_sha256",
+        ),
+        (
+            &receipt.method_build_sha256,
+            "target_location_method_build_sha256",
+        ),
+        (
+            &receipt.calibration_data_sha256,
+            "target_location_calibration_data_sha256",
+        ),
+        (
+            &receipt.calculation_receipt_sha256,
+            "calculation_receipt_sha256",
+        ),
+        (
+            &receipt.source_data_sha256,
+            "target_location_source_data_sha256",
+        ),
         (
             &receipt.validation_split_manifest_sha256,
             "target_location_validation_split_manifest_sha256",
