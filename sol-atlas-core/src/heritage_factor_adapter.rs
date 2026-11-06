@@ -277,8 +277,24 @@ fn validate_hdb11(
     }
     if report.calibration_eligible_independent_psu_count < report.minimum_independent_psus
         || report.calibration_detected_count > report.calibration_eligible_independent_psu_count
+        || report.calibration_total_independent_psu_count
+            != report.calibration_eligible_independent_psu_count
+                + report.calibration_excluded_conditioning_psu_count
+        || report.calibration_eligible_independent_psu_count == 0
     {
         return Err(HeritageFactorAdapterError::PodInsufficientEligibleCalibration);
+    }
+    let pod_interval = report.probability_of_detection_wilson_95;
+    if pod_interval.confidence_level != 0.95
+        || !pod_interval.lower.is_finite()
+        || !pod_interval.upper.is_finite()
+        || pod_interval.lower < 0.0
+        || pod_interval.upper > 1.0
+        || pod_interval.lower > pod_interval.upper
+        || !report.empirical_probability_of_detection.is_finite()
+        || !(0.0..=1.0).contains(&report.empirical_probability_of_detection)
+    {
+        return Err(HeritageFactorAdapterError::PodObservationNotQualified);
     }
     if report.observed_context.modality != ObservationModality::FieldWalking {
         return Err(HeritageFactorAdapterError::PodContextNotFieldWalking);
@@ -350,10 +366,15 @@ fn validate_hdb15(
         &report.spatial_union_receipt_sha256,
         "hdb15_spatial_union_receipt_sha256",
     )?;
-    if report.profile_sha256.is_empty()
-        || report.receipt_reported_coverage_fraction <= 0.0
+    if report.receipt_reported_coverage_fraction <= 0.0
         || report.receipt_reported_coverage_fraction > 1.0
         || !report.receipt_reported_coverage_fraction.is_finite()
+        || !report.effective_sweep_width_m.is_finite()
+        || report.effective_sweep_width_m <= 0.0
+        || !report.buffered_sweep_width_m.is_finite()
+        || (report.effective_sweep_width_m - report.buffered_sweep_width_m).abs()
+            > (report.effective_sweep_width_m.abs() * PROBABILITY_TOLERANCE)
+                .max(PROBABILITY_TOLERANCE)
     {
         return Err(HeritageFactorAdapterError::FieldSweepNotQualified);
     }
