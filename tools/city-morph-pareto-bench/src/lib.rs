@@ -153,11 +153,7 @@ pub fn evaluate_case(case: &Value) -> Value {
         let direction = string(objective, "direction");
         let definition_digest = string(objective, "definition_digest");
 
-        if metric_id.is_empty()
-            || unit.is_empty()
-            || definition_digest.is_empty()
-            || !matches!(direction, "minimize" | "maximize")
-        {
+        if metric_id.is_empty() || unit.is_empty() {
             unsupported.insert("OBJECTIVE_DEFINITION_INVALID".to_owned());
             continue;
         }
@@ -170,6 +166,10 @@ pub fn evaluate_case(case: &Value) -> Value {
             .is_some_and(|prior| prior != unit)
         {
             unsupported.insert("METRIC_DEFINITION_UNIT_CONFLICT".to_owned());
+        }
+        if definition_digest.is_empty() || !matches!(direction, "minimize" | "maximize") {
+            unsupported.insert("OBJECTIVE_DEFINITION_INVALID".to_owned());
+            continue;
         }
         objectives.push(Objective {
             metric_id: metric_id.to_owned(),
