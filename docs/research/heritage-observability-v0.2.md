@@ -15,7 +15,7 @@ v0.2 therefore makes the estimand explicit and binds every calibration trial to 
 - **conditional_on_target_presented_to_sensor** — probability of detection conditional on survival, exposure, observability, actual footprint coverage, and target presentation to the sensor. The profile requires all five explicit event records.
 - **other_declared_conditioning_set** — an explicitly specified, non-empty set for an estimand that does not match the predeclared scopes. Its events must be unique and canonically ordered.
 
-The profile event vector is canonically ordered by the enum order in the schema. Every trial must carry exactly one state for every declared event, in that same order. Missing, extra, duplicate or reordered event evidence fails closed.
+The profile event vector is canonically ordered by the enum order in the schema. Every trial must carry exactly one state for every declared event, in that same order. Each state also carries a non-empty source evidence reference and a SHA-256 digest of the evidence artifact. Missing, extra, duplicate or reordered event evidence fails closed.
 
 ## Estimation rules
 
@@ -25,7 +25,7 @@ Only eligible trials enter the empirical estimate and its Wilson interval:
 
 POD_S = (sum of eligible detected trials) / (number of eligible trials).
 
-The report separately records total independent PSUs, eligible PSUs, and PSUs excluded because their conditioning set was not satisfied. It also reports the scope and the exact event set. Zero eligible PSUs is a typed error. A trial attributed as a true detection while a declared conditioning event is false is rejected because it cannot be a true-positive calibration observation under that estimand; false-positive evidence belongs in its separate evaluation.
+The report separately records total independent PSUs, eligible PSUs, and PSUs excluded because their conditioning set was not satisfied. Each trial-level condition assertion is linked to an evidence reference and digest; the evaluator validates the reference structure and digest syntax but does not authenticate the source or rights. It also reports the scope and the exact event set. Zero eligible PSUs is a typed error. A trial attributed as a true detection while a declared conditioning event is false is rejected because it cannot be a true-positive calibration observation under that estimand; false-positive evidence belongs in its separate evaluation.
 
 The profile's minimum sample requirement is applied to eligible PSUs, not the raw input array length. The existing 20-PSU floor remains an engineering guard, not a universal power recommendation.
 
