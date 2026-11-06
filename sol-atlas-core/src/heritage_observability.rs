@@ -67,6 +67,15 @@ pub enum RightsStatus {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
+pub enum SurveyAccessTier {
+    Public,
+    Controlled,
+    Restricted,
+    Unknown,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub enum VisibilityClass {
     Adequate,
     Partial,
@@ -142,6 +151,14 @@ pub struct SurveyContext {
 pub struct CalibrationProfile {
     pub profile_id: String,
     pub profile_sha256: String,
+    pub method_id: String,
+    pub calibration_data_sha256: String,
+    pub calibration_split_manifest_sha256: String,
+    pub validation_receipt_ref: String,
+    pub validation_receipt_sha256: String,
+    pub rights_decision_id: String,
+    pub rights_receipt_ref: String,
+    pub access_tier: SurveyAccessTier,
     pub context: SurveyContext,
     pub sampling_design: CalibrationSamplingDesign,
     pub detection_probability_scope: DetectionProbabilityScope,
@@ -231,6 +248,14 @@ pub struct HeritageObservabilityReport {
     pub candidate_id: String,
     pub profile_id: String,
     pub profile_sha256: String,
+    pub method_id: String,
+    pub calibration_data_sha256: String,
+    pub calibration_split_manifest_sha256: String,
+    pub validation_receipt_ref: String,
+    pub validation_receipt_sha256: String,
+    pub rights_decision_id: String,
+    pub rights_receipt_ref: String,
+    pub access_tier: SurveyAccessTier,
     pub calibration_context: SurveyContext,
     pub observed_context: SurveyContext,
     pub observation_profile_sha256: String,
@@ -268,6 +293,7 @@ pub enum HeritageObservabilityError {
     WrongSchemaVersion,
     EmptyCandidateId,
     EmptyProfileId,
+    EmptyMethodId,
     InvalidProfileDigest,
     EmptyFeatureClassId,
     InvalidSensorConfigurationDigest,
@@ -416,6 +442,37 @@ fn validate_profile(profile: &CalibrationProfile) -> Result<(), HeritageObservab
     }
     if !valid_sha256(&profile.profile_sha256) {
         return Err(HeritageObservabilityError::InvalidProfileDigest);
+    }
+    if !non_empty(&profile.method_id) {
+        return Err(HeritageObservabilityError::EmptyMethodId);
+    }
+    for (value, label) in [
+        (&profile.calibration_data_sha256, "calibration_data_sha256"),
+        (
+            &profile.calibration_split_manifest_sha256,
+            "calibration_split_manifest_sha256",
+        ),
+        (&profile.validation_receipt_sha256, "validation_receipt_sha256"),
+    ] {
+        if !valid_sha256(value) {
+            return Err(HeritageObservabilityError::InvalidProfileDigest);
+        }
+        if !non_empty(label) {
+            return Err(HeritageObservabilityError::EmptyMethodId);
+        }
+    }
+    if !non_empty(&profile.validation_receipt_ref)
+        || !non_empty(&profile.rights_decision_id)
+        || !non_empty(&profile.rights_receipt_ref)
+    {
+        return Err(HeritageObservabilityError::CalibrationReferenceEvidenceMissing {
+            psu_id: "profile".into(),
+        });
+    }
+    if profile.access_tier == SurveyAccessTier::Unknown {
+        return Err(HeritageObservabilityError::CalibrationRightsNotVerified {
+            psu_id: "profile".into(),
+        });
     }
     if !non_empty(&profile.context.feature_class_id) {
         return Err(HeritageObservabilityError::EmptyFeatureClassId);
@@ -768,6 +825,14 @@ pub fn evaluate_heritage_observability(
         candidate_id: input.candidate_id.clone(),
         profile_id: input.calibration_profile.profile_id.clone(),
         profile_sha256: input.calibration_profile.profile_sha256.clone(),
+        method_id: input.calibration_profile.method_id.clone(),
+        calibration_data_sha256: input.calibration_profile.calibration_data_sha256.clone(),
+        calibration_split_manifest_sha256: input.calibration_profile.calibration_split_manifest_sha256.clone(),
+        validation_receipt_ref: input.calibration_profile.validation_receipt_ref.clone(),
+        validation_receipt_sha256: input.calibration_profile.validation_receipt_sha256.clone(),
+        rights_decision_id: input.calibration_profile.rights_decision_id.clone(),
+        rights_receipt_ref: input.calibration_profile.rights_receipt_ref.clone(),
+        access_tier: input.calibration_profile.access_tier,
         calibration_context: input.calibration_profile.context.clone(),
         observed_context: observation.context.clone(),
         observation_profile_sha256: observation.calibration_profile_sha256.clone(),
@@ -818,6 +883,14 @@ mod tests {
         CalibrationProfile {
             profile_id: "lidar-stone-enclosure-grassland-v1".into(),
             profile_sha256: "c".repeat(64),
+            method_id: "lidar-stonewall-classifier-v1".into(),
+            calibration_data_sha256: "a".repeat(64),
+            calibration_split_manifest_sha256: "b".repeat(64),
+            validation_receipt_ref: "urn:synthetic:validation:pod".into(),
+            validation_receipt_sha256: "d".repeat(64),
+            rights_decision_id: "rights:synthetic:pod".into(),
+            rights_receipt_ref: "urn:synthetic:rights:pod".into(),
+            access_tier: SurveyAccessTier::Controlled,
             context: context(),
             sampling_design: CalibrationSamplingDesign::ProbabilitySampledIndependentSites,
             detection_probability_scope: DetectionProbabilityScope::JointPerSurveyUnit,
