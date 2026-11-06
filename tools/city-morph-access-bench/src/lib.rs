@@ -766,8 +766,7 @@ expected: {}",
             .find(|case| case["case_id"] == "MA-001")
             .unwrap()
             .clone();
-        case["input"]["network"]["evidence_state"] =
-            serde_json::Value::String("stale".to_owned());
+        case["input"]["network"]["evidence_state"] = serde_json::Value::String("stale".to_owned());
         let result = evaluate_case(&case);
         assert_eq!(result["disposition"], "Unknown");
         assert_eq!(result["groups"][0]["status"], "Unknown");
