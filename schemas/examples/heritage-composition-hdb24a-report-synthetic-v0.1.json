@@ -46,7 +46,9 @@
     "coverage_probability_model": "target_specific_spatial_distribution",
     "coverage_geometry_sha256": "8888888888888888888888888888888888888888888888888888888888888888",
     "spatial_coverage_receipt_sha256": "9999999999999999999999999999999999999999999999999999999999999999",
-    "target_location_distribution_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    "target_location_distribution_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "coverage_evidence_basis": "actual_spatial_union_receipt",
+    "target_location_model_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
   },
   "conditional_detection_stage": {
     "stage": "conditional_detection",
@@ -72,11 +74,17 @@
     "coverage_probability_model": null,
     "coverage_geometry_sha256": null,
     "spatial_coverage_receipt_sha256": null,
-    "target_location_distribution_sha256": null
+    "target_location_distribution_sha256": null,
+    "coverage_evidence_basis": null,
+    "target_location_model_sha256": null
   },
   "area_fraction_used_as_probability": false,
   "repeated_visit_independence_assumed": false,
   "archaeological_absence_claimed": false,
   "archaeological_identification_claimed": false,
-  "action_authority": "none"
+  "action_authority": "none",
+  "hdb15_fit_receipt_sha256": "5555555555555555555555555555555555555555555555555555555555555555",
+  "hdb15_transect_geometry_sha256": "6666666666666666666666666666666666666666666666666666666666666666",
+  "hdb15_survey_unit_geometry_sha256": "7777777777777777777777777777777777777777777777777777777777777777",
+  "hdb15_coverage_union_geometry_sha256": "8888888888888888888888888888888888888888888888888888888888888888"
 }
