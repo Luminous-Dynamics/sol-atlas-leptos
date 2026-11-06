@@ -88,6 +88,16 @@ impl ProbabilityBand {
     }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct SweepWidthIntervalReceiptV1 {
+    pub confidence_level: f64,
+    pub z_value: f64,
+    pub standard_error_m: f64,
+    pub lower_m: f64,
+    pub upper_m: f64,
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct FieldSweepReportReceiptV1 {
@@ -103,8 +113,16 @@ pub struct FieldSweepReportReceiptV1 {
     pub survey_unit_geometry_sha256: String,
     pub spatial_union_receipt_sha256: String,
     pub context_match: bool,
+    pub effective_sweep_width_m: f64,
+    pub effective_sweep_width_interval_95: SweepWidthIntervalReceiptV1,
+    pub buffered_sweep_width_m: f64,
     pub receipt_reported_swept_area_m2: f64,
     pub receipt_reported_coverage_fraction: f64,
+    pub validation_brier_score: f64,
+    pub fit_transect_count: usize,
+    pub validation_transect_count: usize,
+    pub fit_seeded_target_count: usize,
+    pub validation_seeded_target_count: usize,
     pub rights_status: SourceRightsStatus,
     pub archaeological_absence_claimed: bool,
     pub archaeological_identification_claimed: bool,
@@ -643,7 +661,29 @@ fn validate_field_sweep(
         return Err(HeritageCompositionError::FieldSweepGeometryMismatch);
     }
 
-    if !geometry.survey_unit_area_m2.is_finite()
+    let sweep_interval = report.effective_sweep_width_interval_95;
+    if !report.effective_sweep_width_m.is_finite()
+        || report.effective_sweep_width_m <= 0.0
+        || !report.buffered_sweep_width_m.is_finite()
+        || report.buffered_sweep_width_m <= 0.0
+        || (report.buffered_sweep_width_m - geometry.buffered_sweep_width_m).abs()
+            > COVERAGE_RATIO_TOLERANCE.max(geometry.buffered_sweep_width_m.abs() * 1e-9)
+        || !sweep_interval.confidence_level.eq(&0.95)
+        || !sweep_interval.z_value.is_finite()
+        || sweep_interval.z_value <= 0.0
+        || !sweep_interval.standard_error_m.is_finite()
+        || sweep_interval.standard_error_m < 0.0
+        || !sweep_interval.lower_m.is_finite()
+        || !sweep_interval.upper_m.is_finite()
+        || sweep_interval.lower_m < 0.0
+        || sweep_interval.lower_m > sweep_interval.upper_m
+        || !report.validation_brier_score.is_finite()
+        || !(0.0..=1.0).contains(&report.validation_brier_score)
+        || report.fit_transect_count < 3
+        || report.validation_transect_count < 2
+        || report.fit_seeded_target_count < 20
+        || report.validation_seeded_target_count < 10
+        || !geometry.survey_unit_area_m2.is_finite()
         || geometry.survey_unit_area_m2 <= 0.0
         || !geometry.buffered_transect_union_area_m2.is_finite()
         || geometry.buffered_transect_union_area_m2 <= 0.0
@@ -1015,8 +1055,22 @@ mod tests {
                 survey_unit_geometry_sha256: unit_digest.clone(),
                 spatial_union_receipt_sha256: union_digest.clone(),
                 context_match: true,
+                effective_sweep_width_m: 2.0,
+                effective_sweep_width_interval_95: SweepWidthIntervalReceiptV1 {
+                    confidence_level: 0.95,
+                    z_value: 1.959963984540054,
+                    standard_error_m: 0.1,
+                    lower_m: 1.8,
+                    upper_m: 2.2,
+                },
+                buffered_sweep_width_m: 2.0,
                 receipt_reported_swept_area_m2: 500.0,
                 receipt_reported_coverage_fraction: 0.5,
+                validation_brier_score: 0.12,
+                fit_transect_count: 3,
+                validation_transect_count: 2,
+                fit_seeded_target_count: 20,
+                validation_seeded_target_count: 10,
                 rights_status: SourceRightsStatus::Verified,
                 archaeological_absence_claimed: false,
                 archaeological_identification_claimed: false,
@@ -1311,6 +1365,17 @@ mod tests {
         assert_eq!(
             audit_heritage_probability_composition(&value),
             Err(HeritageCompositionError::TargetCoverageReceiptMismatch)
+        );
+    }
+
+
+    #[test]
+    fn hdb15_buffer_width_must_match_the_exact_sweep_width_used_in_geometry() {
+        let mut value = input();
+        value.field_sweep_report.buffered_sweep_width_m = 2.5;
+        assert_eq!(
+            audit_heritage_probability_composition(&value),
+            Err(HeritageCompositionError::InvalidFieldSweepGeometry)
         );
     }
 
