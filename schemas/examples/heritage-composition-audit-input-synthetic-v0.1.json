@@ -169,7 +169,14 @@
     "hdb11_coverage_condition_alignment_receipt_ref": "urn:coverage-condition-alignment:1",
     "hdb11_coverage_condition_alignment_receipt_sha256": "6666666666666666666666666666666666666666666666666666666666666666",
     "hdb11_coverage_condition_profile_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
-    "source_data_sha256": "7777777777777777777777777777777777777777777777777777777777777777"
+    "source_data_sha256": "7777777777777777777777777777777777777777777777777777777777777777",
+    "actual_observation_domain_basis": "recorded_observer_path_and_declared_view_boundary",
+    "actual_observation_domain_geometry_sha256": "oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo",
+    "hdb11_conditioned_observation_domain_geometry_sha256": "oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo",
+    "hdb11_conditioned_target_location_distribution_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+    "actual_observation_domain_receipt_ref": "urn:actual-observation-domain:1",
+    "actual_observation_domain_receipt_sha256": "pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp",
+    "outside_domain_detection_probability": 0
   },
   "hdb11_analytical_rights": {
     "rights_decision_id": "rights:hdb11",
