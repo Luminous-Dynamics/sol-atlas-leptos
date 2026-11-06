@@ -68,7 +68,8 @@
     "reasons": [],
     "archaeological_absence_claimed": false,
     "archaeological_identification_claimed": false,
-    "combined_multi_observation_probability_reported": false
+    "combined_multi_observation_probability_reported": false,
+    "conditioning_evidence_manifest_sha256": "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm"
   },
   "field_sweep_report_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
   "field_sweep_report": {
