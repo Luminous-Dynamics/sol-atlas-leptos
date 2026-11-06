@@ -121,9 +121,15 @@ pub struct HardNegativeUnitReport {
     pub resolved_prediction_count: usize,
     pub candidate_resolution_fraction: Option<f64>,
     pub unresolved_prediction_count: usize,
-    pub false_positives_per_km2: f64,
+    /// Confirmed false-positive candidates per adequately assessed km².
+    pub confirmed_false_positives_per_km2: f64,
+    /// Conservative upper bound treating every unresolved candidate as a false positive.
+    pub upper_bound_false_positives_per_km2: f64,
     pub verified_findings_per_expert_hour: f64,
-    pub false_leads_per_expert_hour: f64,
+    /// Confirmed false leads per expert-hour.
+    pub confirmed_false_leads_per_expert_hour: f64,
+    /// Conservative upper bound treating every unresolved candidate as a false lead.
+    pub upper_bound_false_leads_per_expert_hour: f64,
     pub ambiguous_reference_count: usize,
     pub not_observable_reference_count: usize,
     pub not_assessed_reference_count: usize,
@@ -155,9 +161,15 @@ pub struct HeritageHardNegativeReport {
     pub worst_unit_recall: Option<f64>,
     pub adequately_assessed_area_km2: f64,
     pub total_expert_review_hours: f64,
-    pub false_positives_per_km2: f64,
+    /// Confirmed false-positive candidates per adequately assessed km².
+    pub confirmed_false_positives_per_km2: f64,
+    /// Conservative upper bound treating every unresolved candidate as a false positive.
+    pub upper_bound_false_positives_per_km2: f64,
     pub verified_findings_per_expert_hour: f64,
-    pub false_leads_per_expert_hour: f64,
+    /// Confirmed false leads per expert-hour.
+    pub confirmed_false_leads_per_expert_hour: f64,
+    /// Conservative upper bound treating every unresolved candidate as a false lead.
+    pub upper_bound_false_leads_per_expert_hour: f64,
     pub candidate_prediction_count: usize,
     pub resolved_prediction_count: usize,
     pub candidate_resolution_fraction: Option<f64>,
@@ -471,6 +483,7 @@ pub fn evaluate_heritage_hard_negative(
     let mut total_candidates = 0usize;
     let mut total_resolved = 0usize;
     let mut total_unresolved = 0usize;
+    let mut total_possible_false_positives = 0usize;
     let mut total_ambiguous = 0usize;
     let mut total_not_observable = 0usize;
     let mut total_not_assessed = 0usize;
@@ -520,11 +533,21 @@ pub fn evaluate_heritage_hard_negative(
             resolved_prediction_count: resolved_count,
             candidate_resolution_fraction,
             unresolved_prediction_count: unit.unresolved_prediction_count,
-            false_positives_per_km2: false_positive_count as f64
+            confirmed_false_positives_per_km2: false_positive_count as f64
+                / unit.adequately_assessed_area_km2,
+            upper_bound_false_positives_per_km2: (false_positive_count
+                .checked_add(unit.unresolved_prediction_count)
+                .ok_or(HeritageHardNegativeError::InvalidAggregateArithmetic)?)
+                as f64
                 / unit.adequately_assessed_area_km2,
             verified_findings_per_expert_hour: unit.true_positive_count as f64
                 / unit.expert_review_hours,
-            false_leads_per_expert_hour: false_positive_count as f64
+            confirmed_false_leads_per_expert_hour: false_positive_count as f64
+                / unit.expert_review_hours,
+            upper_bound_false_leads_per_expert_hour: (false_positive_count
+                .checked_add(unit.unresolved_prediction_count)
+                .ok_or(HeritageHardNegativeError::InvalidAggregateArithmetic)?)
+                as f64
                 / unit.expert_review_hours,
             ambiguous_reference_count: unit.ambiguous_reference_count,
             not_observable_reference_count: unit.not_observable_reference_count,
@@ -549,6 +572,10 @@ pub fn evaluate_heritage_hard_negative(
             .ok_or(HeritageHardNegativeError::InvalidAggregateArithmetic)?;
         total_unresolved = total_unresolved
             .checked_add(unit.unresolved_prediction_count)
+            .ok_or(HeritageHardNegativeError::InvalidAggregateArithmetic)?;
+        total_possible_false_positives = total_possible_false_positives
+            .checked_add(false_positive_count)
+            .and_then(|count| count.checked_add(unit.unresolved_prediction_count))
             .ok_or(HeritageHardNegativeError::InvalidAggregateArithmetic)?;
         total_ambiguous = total_ambiguous
             .checked_add(unit.ambiguous_reference_count)
@@ -607,9 +634,13 @@ pub fn evaluate_heritage_hard_negative(
         worst_unit_recall: worst.map(|item| item.0),
         adequately_assessed_area_km2: total_area,
         total_expert_review_hours: total_hours,
-        false_positives_per_km2: total_fp as f64 / total_area,
+        confirmed_false_positives_per_km2: total_fp as f64 / total_area,
+        upper_bound_false_positives_per_km2: total_possible_false_positives as f64
+            / total_area,
         verified_findings_per_expert_hour: total_tp as f64 / total_hours,
-        false_leads_per_expert_hour: total_fp as f64 / total_hours,
+        confirmed_false_leads_per_expert_hour: total_fp as f64 / total_hours,
+        upper_bound_false_leads_per_expert_hour: total_possible_false_positives as f64
+            / total_hours,
         candidate_prediction_count: total_candidates,
         resolved_prediction_count: total_resolved,
         candidate_resolution_fraction,
@@ -725,9 +756,11 @@ mod tests {
         assert!((report.macro_precision.unwrap() - 0.8).abs() < 1e-12);
         assert!((report.macro_recall.unwrap() - 0.875).abs() < 1e-12);
         assert_eq!(report.worst_unit_recall_id.as_deref(), Some("site-01"));
-        assert!((report.false_positives_per_km2 - (2.0 / 15.0)).abs() < 1e-12);
+        assert!((report.confirmed_false_positives_per_km2 - (2.0 / 15.0)).abs() < 1e-12);
+        assert!((report.upper_bound_false_positives_per_km2 - (4.0 / 15.0)).abs() < 1e-12);
         assert!((report.verified_findings_per_expert_hour - (5.0 / 3.0)).abs() < 1e-12);
-        assert!((report.false_leads_per_expert_hour - (2.0 / 3.0)).abs() < 1e-12);
+        assert!((report.confirmed_false_leads_per_expert_hour - (2.0 / 3.0)).abs() < 1e-12);
+        assert!((report.upper_bound_false_leads_per_expert_hour - (4.0 / 3.0)).abs() < 1e-12);
         assert_eq!(report.unresolved_prediction_count, 2);
         assert_eq!(report.ambiguous_reference_count, 2);
         assert_eq!(report.hard_negative_classes.len(), 2);
@@ -819,6 +852,43 @@ mod tests {
             evaluate_heritage_hard_negative(&value),
             Err(HeritageHardNegativeError::InconsistentModelOrProtocol)
         );
+    }
+
+
+    #[test]
+    fn empty_evaluation_unit_identity_fails_closed() {
+        let mut value = input();
+        value.units[0].provenance.evaluation_unit_id.clear();
+        assert!(matches!(
+            evaluate_heritage_hard_negative(&value),
+            Err(HeritageHardNegativeError::InvalidProvenance(_))
+        ));
+    }
+
+    #[test]
+    fn unresolved_predictions_expand_the_conservative_false_lead_upper_bound() {
+        let mut value = input();
+        let report = evaluate_heritage_hard_negative(&value).unwrap();
+        let baseline_upper = report.upper_bound_false_positives_per_km2;
+        value.units[0].unresolved_prediction_count += 1;
+        value.units[0].candidate_prediction_count += 1;
+        let updated = evaluate_heritage_hard_negative(&value).unwrap();
+        assert!(updated.upper_bound_false_positives_per_km2 > baseline_upper);
+        assert_eq!(
+            updated.confirmed_false_positives_per_km2,
+            report.confirmed_false_positives_per_km2
+        );
+    }
+
+    #[test]
+    fn unit_count_overflow_fails_closed() {
+        let mut value = input();
+        value.units[0].true_positive_count = usize::MAX;
+        value.units[0].false_negative_count = 1;
+        assert!(matches!(
+            evaluate_heritage_hard_negative(&value),
+            Err(HeritageHardNegativeError::InvalidWallCounts(_))
+        ));
     }
 
     #[test]

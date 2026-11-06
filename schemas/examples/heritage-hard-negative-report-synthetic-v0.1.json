@@ -28,9 +28,7 @@
   "worst_unit_recall": 0.75,
   "adequately_assessed_area_km2": 15,
   "total_expert_review_hours": 3,
-  "false_positives_per_km2": 0.13333333333333333,
   "verified_findings_per_expert_hour": 1.6666666666666667,
-  "false_leads_per_expert_hour": 0.6666666666666666,
   "candidate_prediction_count": 9,
   "resolved_prediction_count": 7,
   "candidate_resolution_fraction": 0.7777777777777778,
@@ -74,9 +72,7 @@
       "resolved_prediction_count": 5,
       "candidate_resolution_fraction": 0.8333333333333334,
       "unresolved_prediction_count": 1,
-      "false_positives_per_km2": 0.2,
       "verified_findings_per_expert_hour": 1.5,
-      "false_leads_per_expert_hour": 1,
       "ambiguous_reference_count": 1,
       "not_observable_reference_count": 1,
       "not_assessed_reference_count": 2,
@@ -93,7 +89,11 @@
           "false_positive_prediction_count": 0,
           "false_positive_candidates_per_reference_object": 0
         }
-      ]
+      ],
+      "confirmed_false_positives_per_km2": 0.2,
+      "upper_bound_false_positives_per_km2": 0.3,
+      "confirmed_false_leads_per_expert_hour": 1,
+      "upper_bound_false_leads_per_expert_hour": 1.5
     },
     {
       "evaluation_unit_id": "site-02",
@@ -116,9 +116,7 @@
       "resolved_prediction_count": 2,
       "candidate_resolution_fraction": 0.6666666666666666,
       "unresolved_prediction_count": 1,
-      "false_positives_per_km2": 0,
       "verified_findings_per_expert_hour": 2,
-      "false_leads_per_expert_hour": 0,
       "ambiguous_reference_count": 1,
       "not_observable_reference_count": 1,
       "not_assessed_reference_count": 2,
@@ -135,8 +133,16 @@
           "false_positive_prediction_count": 0,
           "false_positive_candidates_per_reference_object": 0
         }
-      ]
+      ],
+      "confirmed_false_positives_per_km2": 0,
+      "upper_bound_false_positives_per_km2": 0.2,
+      "confirmed_false_leads_per_expert_hour": 0,
+      "upper_bound_false_leads_per_expert_hour": 1
     }
   ],
-  "uncertainty_note": "no confidence intervals are computed; macro metrics are descriptive across the declared independent units. Use a preregistered site/region/acquisition-level bootstrap and spatial effective-information analysis before population-level claims."
+  "uncertainty_note": "no confidence intervals are computed; macro metrics are descriptive across the declared independent units. Use a preregistered site/region/acquisition-level bootstrap and spatial effective-information analysis before population-level claims.",
+  "confirmed_false_positives_per_km2": 0.13333333333333333,
+  "upper_bound_false_positives_per_km2": 0.26666666666666666,
+  "confirmed_false_leads_per_expert_hour": 0.6666666666666666,
+  "upper_bound_false_leads_per_expert_hour": 1.3333333333333333
 }

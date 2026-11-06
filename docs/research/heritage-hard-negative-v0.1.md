@@ -32,13 +32,13 @@ At the frozen threshold the report provides:
 - micro TP / FP / FN, resolved precision, recall and F1;
 - macro precision / recall / F1 across independent units, with the number of units contributing to each;
 - worst-unit recall and the complete per-unit scorecard;
-- false positives per adequately assessed km²;
+- confirmed false positives per adequately assessed km² plus a conservative upper bound that treats every unresolved prediction as a false positive;
 - verified findings per expert-review hour;
 - false leads per expert-review hour;
 - candidate resolution fraction and unresolved candidate count;
 - per-lookalike class reference count and false-positive candidate count.
 
-Precision is conditional on resolved predictions. The unresolved-prediction count and candidate-resolution fraction are always shown beside it. A model cannot improve reported precision by silently dropping difficult detections.
+Precision is conditional on resolved predictions. The unresolved-prediction count and candidate-resolution fraction are always shown beside it. False-positive density and false-lead productivity are reported both as confirmed-only values and conservative upper bounds that count every unresolved candidate as a false positive. A model cannot improve apparent precision or hide unresolved burden by silently dropping difficult detections.
 
 The per-class false-positive-candidates/reference-object ratio is a burden ratio, not a probability; multiple predictions can hit one negative object, so values above one are possible.
 
