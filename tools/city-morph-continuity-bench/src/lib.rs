@@ -241,7 +241,9 @@ pub fn evaluate_case(case: &Value) -> Value {
                 errors.insert("PHASE_REQUIREMENT_RECEIPT_UNEXPECTED".to_owned());
             }
             let receipt_id = text(receipt, "source_receipt_id");
-            if !receipt_id.is_empty() && !all_source_receipt_ids.insert(receipt_id.to_owned()) {
+            if !receipt_id.is_empty()
+                && !all_source_receipt_ids.insert(receipt_id.to_owned())
+            {
                 errors.insert("DUPLICATE_SOURCE_RECEIPT_ID".to_owned());
             }
             if !matches!(
