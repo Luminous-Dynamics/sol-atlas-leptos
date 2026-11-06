@@ -452,7 +452,10 @@ fn validate_profile(profile: &CalibrationProfile) -> Result<(), HeritageObservab
             &profile.calibration_split_manifest_sha256,
             "calibration_split_manifest_sha256",
         ),
-        (&profile.validation_receipt_sha256, "validation_receipt_sha256"),
+        (
+            &profile.validation_receipt_sha256,
+            "validation_receipt_sha256",
+        ),
     ] {
         if !valid_sha256(value) {
             return Err(HeritageObservabilityError::InvalidProfileDigest);
@@ -465,9 +468,11 @@ fn validate_profile(profile: &CalibrationProfile) -> Result<(), HeritageObservab
         || !non_empty(&profile.rights_decision_id)
         || !non_empty(&profile.rights_receipt_ref)
     {
-        return Err(HeritageObservabilityError::CalibrationReferenceEvidenceMissing {
-            psu_id: "profile".into(),
-        });
+        return Err(
+            HeritageObservabilityError::CalibrationReferenceEvidenceMissing {
+                psu_id: "profile".into(),
+            },
+        );
     }
     if profile.access_tier == SurveyAccessTier::Unknown {
         return Err(HeritageObservabilityError::CalibrationRightsNotVerified {
@@ -827,7 +832,10 @@ pub fn evaluate_heritage_observability(
         profile_sha256: input.calibration_profile.profile_sha256.clone(),
         method_id: input.calibration_profile.method_id.clone(),
         calibration_data_sha256: input.calibration_profile.calibration_data_sha256.clone(),
-        calibration_split_manifest_sha256: input.calibration_profile.calibration_split_manifest_sha256.clone(),
+        calibration_split_manifest_sha256: input
+            .calibration_profile
+            .calibration_split_manifest_sha256
+            .clone(),
         validation_receipt_ref: input.calibration_profile.validation_receipt_ref.clone(),
         validation_receipt_sha256: input.calibration_profile.validation_receipt_sha256.clone(),
         rights_decision_id: input.calibration_profile.rights_decision_id.clone(),
