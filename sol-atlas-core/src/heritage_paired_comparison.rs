@@ -14,7 +14,7 @@ use std::fmt;
 
 use super::heritage_benchmark_metrics::EvaluationUnitKind;
 use super::heritage_hard_negative::{
-    HardNegativeClass, HardNegativeUnitReport, HeritageHeritageHardNegativeReport,
+    HardNegativeClass, HardNegativeUnitReport, HeritageHardNegativeReport,
     HERITAGE_HARD_NEGATIVE_SCHEMA_VERSION,
 };
 
@@ -352,7 +352,7 @@ fn option_close(left: Option<f64>, right: Option<f64>) -> bool {
 }
 
 fn validate_report(
-    report: &HeritageHeritageHardNegativeReport,
+    report: &HeritageHardNegativeReport,
     expected_challenge_id: &str,
     expected_manifest_sha256: &str,
     expected_reference_protocol_sha256: &str,
@@ -977,9 +977,9 @@ mod tests {
             challenge_manifest_sha256: digest('c'),
             reference_adjudication_protocol_sha256: digest('d'),
             evaluation_unit_kind: EvaluationUnitKind::Site,
-            baseline_binding: binding("human-report", 'e'),
+            baseline_binding: binding("human", 'e'),
             baseline_report: report("human", 3, 2, 1, 1, 3.0, 2, 1, 0, 0, 3.0),
-            candidate_binding: binding("ai-report", 'f'),
+            candidate_binding: binding("ai", 'f'),
             candidate_report: report("ai", 3, 1, 1, 1, 1.0, 2, 0, 0, 0, 1.0),
             policy: PairedComparisonPolicy {
                 policy_id: "paired-policy-001".into(),
