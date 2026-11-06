@@ -446,8 +446,14 @@ fn validate_target_location_coverage(
         (&receipt.survey_unit_id, "survey_unit_id"),
         (&receipt.calculation_method_id, "calculation_method_id"),
         (&receipt.calculation_receipt_ref, "calculation_receipt_ref"),
-        (&receipt.validation_receipt_ref, "target_location_validation_receipt_ref"),
-        (&receipt.rights_receipt_ref, "target_location_rights_receipt_ref"),
+        (
+            &receipt.validation_receipt_ref,
+            "target_location_validation_receipt_ref",
+        ),
+        (
+            &receipt.rights_receipt_ref,
+            "target_location_rights_receipt_ref",
+        ),
     ] {
         require_ref(value, label)?;
     }
@@ -466,9 +472,11 @@ fn validate_target_location_coverage(
     if receipt.field_sweep_fit_receipt_sha256 != report.fit_receipt_sha256
         || receipt.calibration_data_sha256 != report.calibration_data_sha256
     {
-        return Err(HeritageFactorAdapterError::TargetLocationProvenanceMismatch(
-            "HDB-15 fit/calibration binding".into(),
-        ));
+        return Err(
+            HeritageFactorAdapterError::TargetLocationProvenanceMismatch(
+                "HDB-15 fit/calibration binding".into(),
+            ),
+        );
     }
     if receipt.access_tier == AccessTier::Unknown
         || receipt.analytical_rights != AnalyticalRights::Allowed
@@ -477,18 +485,20 @@ fn validate_target_location_coverage(
             "target_location_access_tier_or_rights".into(),
         ));
     }
-    require_ref(&receipt.rights_decision_id, "target_location_rights_decision_id")?;
-    require_ref(&receipt.rights_receipt_ref, "target_location_rights_receipt_ref")?;
+    require_ref(
+        &receipt.rights_decision_id,
+        "target_location_rights_decision_id",
+    )?;
+    require_ref(
+        &receipt.rights_receipt_ref,
+        "target_location_rights_receipt_ref",
+    )?;
     if receipt.model == CoverageProbabilityModel::UniformAreaWeightedWithinSurveyUnit {
         let observed = report.receipt_reported_coverage_fraction;
-        if (receipt.target_location_probability.lower - observed).abs()
-            > PROBABILITY_TOLERANCE
-            || (receipt.target_location_probability.upper - observed).abs()
-                > PROBABILITY_TOLERANCE
+        if (receipt.target_location_probability.lower - observed).abs() > PROBABILITY_TOLERANCE
+            || (receipt.target_location_probability.upper - observed).abs() > PROBABILITY_TOLERANCE
         {
-            return Err(
-                HeritageFactorAdapterError::UniformLocationModelDoesNotMatchAreaFraction,
-            );
+            return Err(HeritageFactorAdapterError::UniformLocationModelDoesNotMatchAreaFraction);
         }
     }
     Ok(receipt.target_location_probability)
@@ -592,9 +602,9 @@ pub fn adapt_heritage_detection_factors(
             stage.stage,
             EvidenceStage::FootprintCoverage | EvidenceStage::ConditionalDetection
         ) {
-            return Err(HeritageFactorAdapterError::TemplateAlreadyContainsAdaptedStage(
-                stage.stage,
-            ));
+            return Err(
+                HeritageFactorAdapterError::TemplateAlreadyContainsAdaptedStage(stage.stage),
+            );
         }
     }
     for expected in [
@@ -603,15 +613,22 @@ pub fn adapt_heritage_detection_factors(
         EvidenceStage::Observability,
         EvidenceStage::FalsePositive,
     ] {
-        if !template.stage_evidence.iter().any(|stage| stage.stage == expected) {
+        if !template
+            .stage_evidence
+            .iter()
+            .any(|stage| stage.stage == expected)
+        {
             return Err(HeritageFactorAdapterError::TemplateMissingUpstreamStage(
                 expected,
             ));
         }
     }
 
-    let detection_probability =
-        validate_hdb11(&input.hdb11_report, &input.hdb11_provenance, &input.context_binding)?;
+    let detection_probability = validate_hdb11(
+        &input.hdb11_report,
+        &input.hdb11_provenance,
+        &input.context_binding,
+    )?;
     validate_hdb15(
         &input.hdb15_report,
         &input.hdb15_provenance,
