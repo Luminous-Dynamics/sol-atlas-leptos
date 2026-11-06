@@ -14,7 +14,9 @@
     "hdb15_report",
     "hdb15_provenance",
     "target_location_coverage",
-    "non_detection_template"
+    "non_detection_template",
+    "hdb11_report_sha256",
+    "hdb15_report_sha256"
   ],
   "properties": {
     "schema_version": {
@@ -32,6 +34,11 @@
         "hdb22_context_id",
         "hdb11_profile_sha256",
         "hdb15_profile_sha256",
+        "survey_unit_crs_id",
+        "survey_unit_area_m2",
+        "buffered_transect_union_area_m2",
+        "buffered_sweep_width_m",
+        "spatial_union_method_id",
         "observability_context_sha256",
         "field_survey_context_sha256",
         "mapping_method_id",
@@ -74,18 +81,49 @@
         "mapping_receipt_sha256": {
           "type": "string",
           "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "survey_unit_crs_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "survey_unit_area_m2": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "buffered_transect_union_area_m2": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "buffered_sweep_width_m": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "spatial_union_method_id": {
+          "type": "string",
+          "minLength": 1
         }
       }
     },
     "hdb11_report": {
       "type": "object",
-      "additionalProperties": true,
+      "additionalProperties": false,
       "required": [
         "schema_version",
+        "candidate_id",
+        "profile_id",
         "profile_sha256",
+        "method_id",
+        "calibration_data_sha256",
+        "calibration_split_manifest_sha256",
+        "validation_receipt_ref",
+        "validation_receipt_sha256",
+        "rights_decision_id",
+        "rights_receipt_ref",
+        "access_tier",
         "calibration_context",
         "observed_context",
         "observation_profile_sha256",
+        "observation_id",
         "observation_outcome",
         "disposition",
         "detection_probability_scope",
@@ -93,21 +131,74 @@
         "calibration_total_independent_psu_count",
         "calibration_eligible_independent_psu_count",
         "calibration_excluded_conditioning_psu_count",
+        "conditioning_evidence_manifest_sha256",
         "calibration_detected_count",
         "empirical_probability_of_detection",
         "probability_of_detection_wilson_95",
         "minimum_independent_psus",
+        "minimum_pod_lower_bound",
+        "observed_coverage_fraction",
+        "minimum_coverage_fraction",
+        "observed_valid_data_fraction",
+        "minimum_valid_data_fraction",
+        "visibility",
         "context_match",
         "rights_status",
-        "reasons"
+        "reasons",
+        "archaeological_absence_claimed",
+        "archaeological_identification_claimed",
+        "combined_multi_observation_probability_reported"
       ],
       "properties": {
         "schema_version": {
           "const": "luminous.heritage-observability.v0.2"
         },
+        "candidate_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "profile_id": {
+          "type": "string",
+          "minLength": 1
+        },
         "profile_sha256": {
           "type": "string",
           "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "method_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "calibration_data_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "calibration_split_manifest_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "validation_receipt_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "validation_receipt_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "rights_decision_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "rights_receipt_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "access_tier": {
+          "enum": [
+            "public",
+            "controlled",
+            "restricted"
+          ]
         },
         "calibration_context": {
           "type": "object",
@@ -213,6 +304,13 @@
           "type": "string",
           "pattern": "^[a-fA-F0-9]{64}$"
         },
+        "observation_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        },
         "observation_outcome": {
           "const": "not_detected"
         },
@@ -232,19 +330,27 @@
         },
         "calibration_total_independent_psu_count": {
           "type": "integer",
-          "minimum": 20
+          "minimum": 20,
+          "maximum": 100000
         },
         "calibration_eligible_independent_psu_count": {
           "type": "integer",
-          "minimum": 20
+          "minimum": 20,
+          "maximum": 100000
         },
         "calibration_excluded_conditioning_psu_count": {
           "type": "integer",
-          "minimum": 0
+          "minimum": 0,
+          "maximum": 100000
+        },
+        "conditioning_evidence_manifest_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
         },
         "calibration_detected_count": {
           "type": "integer",
-          "minimum": 0
+          "minimum": 0,
+          "maximum": 100000
         },
         "empirical_probability_of_detection": {
           "type": "number",
@@ -253,14 +359,19 @@
         },
         "probability_of_detection_wilson_95": {
           "type": "object",
+          "additionalProperties": false,
           "required": [
             "confidence_level",
+            "z_value",
             "lower",
             "upper"
           ],
           "properties": {
             "confidence_level": {
               "const": 0.95
+            },
+            "z_value": {
+              "const": 1.959963984540054
             },
             "lower": {
               "type": "number",
@@ -276,7 +387,41 @@
         },
         "minimum_independent_psus": {
           "type": "integer",
-          "minimum": 20
+          "minimum": 20,
+          "maximum": 100000
+        },
+        "minimum_pod_lower_bound": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 1
+        },
+        "observed_coverage_fraction": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "minimum_coverage_fraction": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 1
+        },
+        "observed_valid_data_fraction": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "minimum_valid_data_fraction": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 1
+        },
+        "visibility": {
+          "enum": [
+            "adequate",
+            "partial",
+            "blocked",
+            "unknown"
+          ]
         },
         "context_match": {
           "const": true
@@ -287,6 +432,15 @@
         "reasons": {
           "type": "array",
           "maxItems": 0
+        },
+        "archaeological_absence_claimed": {
+          "const": false
+        },
+        "archaeological_identification_claimed": {
+          "const": false
+        },
+        "combined_multi_observation_probability_reported": {
+          "const": false
         }
       }
     },
@@ -303,8 +457,12 @@
         "validation_receipt_sha256",
         "rights_decision_id",
         "analytical_rights",
+        "rights_purpose",
         "rights_receipt_ref",
-        "access_tier"
+        "access_tier",
+        "conditioning_evidence_manifest_sha256",
+        "fit_receipt_sha256",
+        "maximum_permitted_validation_brier_score"
       ],
       "properties": {
         "method_id": {
@@ -352,14 +510,49 @@
             "controlled",
             "restricted"
           ]
+        },
+        "rights_purpose": {
+          "const": "research_analysis"
+        },
+        "conditioning_evidence_manifest_sha256": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^[a-fA-F0-9]{64}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "fit_receipt_sha256": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^[a-fA-F0-9]{64}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "maximum_permitted_validation_brier_score": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 1
         }
       }
     },
     "hdb15_report": {
       "type": "object",
-      "additionalProperties": true,
+      "additionalProperties": false,
       "required": [
         "schema_version",
+        "evaluation_id",
+        "profile_id",
         "profile_sha256",
         "calibration_data_sha256",
         "calibration_split_manifest_sha256",
@@ -370,13 +563,32 @@
         "spatial_union_receipt_sha256",
         "context_match",
         "effective_sweep_width_m",
+        "effective_sweep_width_interval_95",
         "buffered_sweep_width_m",
+        "receipt_reported_swept_area_m2",
         "receipt_reported_coverage_fraction",
-        "rights_status"
+        "validation_brier_score",
+        "fit_transect_count",
+        "validation_transect_count",
+        "fit_seeded_target_count",
+        "validation_seeded_target_count",
+        "rights_status",
+        "archaeological_absence_claimed",
+        "archaeological_identification_claimed",
+        "geomorphological_surface_survival_estimated",
+        "repeated_search_independence_assumed"
       ],
       "properties": {
         "schema_version": {
           "const": "luminous.heritage-field-sweep-report.v0.1"
+        },
+        "evaluation_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "profile_id": {
+          "type": "string",
+          "minLength": 1
         },
         "profile_sha256": {
           "type": "string",
@@ -417,7 +629,43 @@
           "type": "number",
           "exclusiveMinimum": 0
         },
+        "effective_sweep_width_interval_95": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "confidence_level",
+            "z_value",
+            "standard_error_m",
+            "lower_m",
+            "upper_m"
+          ],
+          "properties": {
+            "confidence_level": {
+              "const": 0.95
+            },
+            "z_value": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "standard_error_m": {
+              "type": "number",
+              "minimum": 0
+            },
+            "lower_m": {
+              "type": "number",
+              "minimum": 0
+            },
+            "upper_m": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          }
+        },
         "buffered_sweep_width_m": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "receipt_reported_swept_area_m2": {
           "type": "number",
           "exclusiveMinimum": 0
         },
@@ -425,6 +673,27 @@
           "type": "number",
           "exclusiveMinimum": 0,
           "maximum": 1
+        },
+        "validation_brier_score": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "fit_transect_count": {
+          "type": "integer",
+          "minimum": 3
+        },
+        "validation_transect_count": {
+          "type": "integer",
+          "minimum": 2
+        },
+        "fit_seeded_target_count": {
+          "type": "integer",
+          "minimum": 20
+        },
+        "validation_seeded_target_count": {
+          "type": "integer",
+          "minimum": 10
         },
         "rights_status": {
           "const": "verified"
@@ -456,8 +725,12 @@
         "validation_receipt_sha256",
         "rights_decision_id",
         "analytical_rights",
+        "rights_purpose",
         "rights_receipt_ref",
-        "access_tier"
+        "access_tier",
+        "conditioning_evidence_manifest_sha256",
+        "fit_receipt_sha256",
+        "maximum_permitted_validation_brier_score"
       ],
       "properties": {
         "method_id": {
@@ -505,6 +778,39 @@
             "controlled",
             "restricted"
           ]
+        },
+        "rights_purpose": {
+          "const": "research_analysis"
+        },
+        "conditioning_evidence_manifest_sha256": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^[a-fA-F0-9]{64}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "fit_receipt_sha256": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^[a-fA-F0-9]{64}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "maximum_permitted_validation_brier_score": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 1
         }
       }
     },
@@ -512,17 +818,38 @@
       "type": "object",
       "additionalProperties": false,
       "required": [
+        "event_id",
+        "target_class_id",
+        "hdb22_context_id",
         "survey_unit_id",
+        "survey_unit_crs_id",
+        "field_sweep_report_sha256",
         "survey_unit_geometry_sha256",
         "transect_geometry_sha256",
         "coverage_geometry_sha256",
+        "intersection_geometry_sha256",
         "spatial_union_receipt_sha256",
         "model",
         "target_location_probability",
+        "interval_semantics",
+        "confidence_level",
+        "uniform_assumption_justification_ref",
+        "uniform_assumption_justification_sha256",
         "field_sweep_fit_receipt_sha256",
         "method_build_sha256",
         "calibration_data_sha256",
         "target_location_distribution_sha256",
+        "hdb11_coverage_condition_alignment_receipt_ref",
+        "hdb11_coverage_condition_alignment_receipt_sha256",
+        "hdb11_coverage_condition_profile_sha256",
+        "hdb11_conditioning_evidence_manifest_sha256",
+        "hdb11_conditioned_observation_domain_geometry_sha256",
+        "hdb11_conditioned_target_location_distribution_sha256",
+        "actual_observation_domain_basis",
+        "actual_observation_domain_area_m2",
+        "actual_observation_domain_receipt_ref",
+        "actual_observation_domain_receipt_sha256",
+        "outside_domain_detection_probability",
         "calculation_method_id",
         "calculation_receipt_ref",
         "calculation_receipt_sha256",
@@ -532,13 +859,34 @@
         "validation_receipt_sha256",
         "rights_decision_id",
         "analytical_rights",
+        "rights_purpose",
         "rights_receipt_ref",
         "access_tier"
       ],
       "properties": {
+        "event_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "target_class_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "hdb22_context_id": {
+          "type": "string",
+          "minLength": 1
+        },
         "survey_unit_id": {
           "type": "string",
           "minLength": 1
+        },
+        "survey_unit_crs_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "field_sweep_report_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
         },
         "survey_unit_geometry_sha256": {
           "type": "string",
@@ -549,6 +897,10 @@
           "pattern": "^[a-fA-F0-9]{64}$"
         },
         "coverage_geometry_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "intersection_geometry_sha256": {
           "type": "string",
           "pattern": "^[a-fA-F0-9]{64}$"
         },
@@ -582,6 +934,40 @@
             }
           }
         },
+        "interval_semantics": {
+          "enum": [
+            "point_estimate",
+            "deterministic_bound",
+            "frequentist_confidence_interval",
+            "bayesian_credible_interval"
+          ]
+        },
+        "confidence_level": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "exclusiveMinimum": 0,
+          "exclusiveMaximum": 1
+        },
+        "uniform_assumption_justification_ref": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        },
+        "uniform_assumption_justification_sha256": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^[a-fA-F0-9]{64}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "field_sweep_fit_receipt_sha256": {
           "type": "string",
           "pattern": "^[a-fA-F0-9]{64}$"
@@ -597,6 +983,51 @@
         "target_location_distribution_sha256": {
           "type": "string",
           "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "hdb11_coverage_condition_alignment_receipt_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "hdb11_coverage_condition_alignment_receipt_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "hdb11_coverage_condition_profile_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "hdb11_conditioning_evidence_manifest_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "hdb11_conditioned_observation_domain_geometry_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "hdb11_conditioned_target_location_distribution_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "actual_observation_domain_basis": {
+          "enum": [
+            "recorded_observer_path_and_declared_view_boundary",
+            "sensor_valid_data_footprint"
+          ]
+        },
+        "actual_observation_domain_area_m2": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "actual_observation_domain_receipt_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "actual_observation_domain_receipt_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "outside_domain_detection_probability": {
+          "const": 0
         },
         "calculation_method_id": {
           "type": "string",
@@ -632,6 +1063,9 @@
         },
         "analytical_rights": {
           "const": "allowed"
+        },
+        "rights_purpose": {
+          "const": "research_analysis"
         },
         "rights_receipt_ref": {
           "type": "string",
@@ -840,6 +1274,84 @@
           }
         }
       }
+    },
+    "hdb11_report_sha256": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{64}$"
+    },
+    "hdb15_report_sha256": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{64}$"
     }
-  }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "target_location_coverage": {
+            "properties": {
+              "model": {
+                "const": "uniform_area_weighted_within_survey_unit"
+              }
+            },
+            "required": [
+              "model"
+            ]
+          }
+        },
+        "required": [
+          "target_location_coverage"
+        ]
+      },
+      "then": {
+        "properties": {
+          "target_location_coverage": {
+            "properties": {
+              "uniform_assumption_justification_ref": {
+                "type": "string",
+                "minLength": 1
+              },
+              "uniform_assumption_justification_sha256": {
+                "type": "string",
+                "pattern": "^[a-fA-F0-9]{64}$"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "target_location_coverage": {
+            "properties": {
+              "model": {
+                "const": "target_specific_spatial_distribution"
+              }
+            },
+            "required": [
+              "model"
+            ]
+          }
+        },
+        "required": [
+          "target_location_coverage"
+        ]
+      },
+      "then": {
+        "properties": {
+          "target_location_coverage": {
+            "properties": {
+              "uniform_assumption_justification_ref": {
+                "type": "null"
+              },
+              "uniform_assumption_justification_sha256": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
 }
