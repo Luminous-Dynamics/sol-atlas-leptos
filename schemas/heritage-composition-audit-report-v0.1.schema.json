@@ -231,15 +231,22 @@
         "validation_receipt_ref",
         "validation_receipt_sha256",
         "rights_receipt_ref",
-        "access_tier"
+        "access_tier",
+        "actual_observation_domain_basis",
+        "actual_observation_domain_geometry_sha256",
+        "hdb11_conditioned_observation_domain_geometry_sha256",
+        "hdb11_conditioned_target_location_distribution_sha256",
+        "actual_observation_domain_receipt_ref",
+        "actual_observation_domain_receipt_sha256",
+        "outside_domain_detection_probability",
+        "coverage_geometry_sha256"
       ],
       "properties": {
         "stage": {
           "const": "footprint_coverage"
         },
         "conditioning_semantics": {
-          "type": "string",
-          "minLength": 1
+          "const": "target_location_inside_independently_receipted_physical_observation_domain; detection_outside_domain_is_zero_by_protocol"
         },
         "probability_model": {
           "enum": [
@@ -356,7 +363,7 @@
           "pattern": "^[a-fA-F0-9]{64}$"
         },
         "evidence_basis": {
-          "const": "actual_spatial_union_receipt"
+          "const": "independent_physical_observation_domain_receipt"
         },
         "source_data_sha256": {
           "type": "string",
@@ -383,6 +390,39 @@
         "rights_receipt_sha256": {
           "type": "string",
           "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "actual_observation_domain_basis": {
+          "enum": [
+            "recorded_observer_path_and_declared_view_boundary",
+            "sensor_valid_data_footprint"
+          ]
+        },
+        "actual_observation_domain_geometry_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "hdb11_conditioned_observation_domain_geometry_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "hdb11_conditioned_target_location_distribution_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "actual_observation_domain_receipt_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "coverage_geometry_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "actual_observation_domain_receipt_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "outside_domain_detection_probability": {
+          "const": 0
         }
       }
     },
