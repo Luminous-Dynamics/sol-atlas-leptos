@@ -101,6 +101,14 @@ pub enum CoverageProbabilityIntervalSemantics {
     BayesianCredibleInterval,
 }
 
+/// Physical observation domain, not the HDB-15 equivalent perfect-detection band.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ActualObservationDomainBasis {
+    RecordedObserverPathAndDeclaredViewBoundary,
+    SensorValidDataFootprint,
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct ProbabilityBand {
@@ -230,6 +238,15 @@ pub struct TargetCoverageProbabilityEvidenceV1 {
     pub hdb11_coverage_condition_alignment_receipt_ref: String,
     pub hdb11_coverage_condition_alignment_receipt_sha256: String,
     pub hdb11_coverage_condition_profile_sha256: String,
+    /// Independently measured physical observation domain. This is not inferred
+    /// from HDB-15's effective-sweep-width buffer.
+    pub actual_observation_domain_basis: ActualObservationDomainBasis,
+    pub actual_observation_domain_geometry_sha256: String,
+    pub actual_observation_domain_receipt_ref: String,
+    pub actual_observation_domain_receipt_sha256: String,
+    /// A zero value means no observation could occur outside the declared domain.
+    /// Nonzero tails require a continuous spatial detection likelihood instead.
+    pub outside_domain_detection_probability: f64,
     pub coverage_probability_receipt_ref: String,
     pub coverage_probability_receipt_sha256: String,
     pub source_field_sweep_report_sha256: String,
@@ -322,6 +339,11 @@ pub struct FootprintCoverageFactorProposal {
     pub coverage_geometry_sha256: String,
     pub hdb11_coverage_condition_alignment_receipt_ref: String,
     pub hdb11_coverage_condition_alignment_receipt_sha256: String,
+    pub actual_observation_domain_basis: ActualObservationDomainBasis,
+    pub actual_observation_domain_geometry_sha256: String,
+    pub actual_observation_domain_receipt_ref: String,
+    pub actual_observation_domain_receipt_sha256: String,
+    pub outside_domain_detection_probability: f64,
     pub coverage_probability_receipt_ref: String,
     pub coverage_probability_receipt_sha256: String,
     pub field_sweep_report_sha256: String,
@@ -394,6 +416,8 @@ pub enum HeritageCompositionError {
     TargetCoverageReceiptMismatch,
     TargetLocationDistributionMissing,
     CoverageIntersectionReceiptMissing,
+    ActualObservationDomainReceiptMissing,
+    OutsideDomainDetectionNotZero,
     UniformAssumptionJustificationMissing,
     InvalidProbabilityBand(&'static str),
     InvalidDigest(&'static str),
@@ -859,6 +883,9 @@ fn validate_target_coverage(
     if evidence.hdb11_coverage_condition_profile_sha256 != input.observability.profile_sha256 {
         return Err(HeritageCompositionError::TargetCoverageReceiptMismatch);
     }
+    if evidence.outside_domain_detection_probability != 0.0 {
+        return Err(HeritageCompositionError::OutsideDomainDetectionNotZero);
+    }
     if evidence.survey_unit_id != report.survey_unit_id
         || evidence.survey_unit_crs_id != geometry.survey_unit_crs_id
         || evidence.transect_geometry_sha256 != report.transect_geometry_sha256
@@ -884,6 +911,14 @@ fn validate_target_coverage(
         (
             &evidence.hdb11_coverage_condition_profile_sha256,
             "hdb11_coverage_condition_profile_sha256",
+        ),
+        (
+            &evidence.actual_observation_domain_geometry_sha256,
+            "actual_observation_domain_geometry_sha256",
+        ),
+        (
+            &evidence.actual_observation_domain_receipt_sha256,
+            "actual_observation_domain_receipt_sha256",
         ),
         (
             &evidence.coverage_probability_receipt_sha256,
@@ -929,6 +964,10 @@ fn validate_target_coverage(
         (
             &evidence.hdb11_coverage_condition_alignment_receipt_ref,
             "hdb11_coverage_condition_alignment_receipt_ref",
+        ),
+        (
+            &evidence.actual_observation_domain_receipt_ref,
+            "actual_observation_domain_receipt_ref",
         ),
         (&evidence.method_id, "coverage_method_id"),
         (
@@ -998,13 +1037,19 @@ fn validate_target_coverage(
     {
         return Err(HeritageCompositionError::CoverageIntersectionReceiptMissing);
     }
+    if !valid_sha256(&evidence.actual_observation_domain_geometry_sha256)
+        || !valid_sha256(&evidence.actual_observation_domain_receipt_sha256)
+        || !non_empty(&evidence.actual_observation_domain_receipt_ref)
+    {
+        return Err(HeritageCompositionError::ActualObservationDomainReceiptMissing);
+    }
 
     Ok(FootprintCoverageFactorProposal {
         stage: "footprint_coverage".to_owned(),
         conditioning_semantics:
-            "target_location_covered_by_actual_survey_footprint_under_declared_distribution"
+            "target_location_inside_independently_receipted_physical_observation_domain; detection_outside_domain_is_zero_by_protocol"
                 .to_owned(),
-        evidence_basis: "actual_spatial_union_receipt".to_owned(),
+        evidence_basis: "independent_physical_observation_domain_receipt".to_owned(),
         method_id: evidence.method_id.clone(),
         method_build_sha256: evidence.method_build_sha256.clone(),
         source_data_sha256: evidence.source_data_sha256.clone(),
@@ -1020,13 +1065,24 @@ fn validate_target_coverage(
         probability: evidence.probability,
         target_location_distribution_sha256: evidence.target_location_distribution_sha256.clone(),
         intersection_geometry_sha256: evidence.intersection_geometry_sha256.clone(),
-        coverage_geometry_sha256: evidence.intersection_geometry_sha256.clone(),
+        coverage_geometry_sha256: evidence.actual_observation_domain_geometry_sha256.clone(),
         hdb11_coverage_condition_alignment_receipt_ref: evidence
             .hdb11_coverage_condition_alignment_receipt_ref
             .clone(),
         hdb11_coverage_condition_alignment_receipt_sha256: evidence
             .hdb11_coverage_condition_alignment_receipt_sha256
             .clone(),
+        actual_observation_domain_basis: evidence.actual_observation_domain_basis,
+        actual_observation_domain_geometry_sha256: evidence
+            .actual_observation_domain_geometry_sha256
+            .clone(),
+        actual_observation_domain_receipt_ref: evidence
+            .actual_observation_domain_receipt_ref
+            .clone(),
+        actual_observation_domain_receipt_sha256: evidence
+            .actual_observation_domain_receipt_sha256
+            .clone(),
+        outside_domain_detection_probability: evidence.outside_domain_detection_probability,
         coverage_probability_receipt_ref: evidence.coverage_probability_receipt_ref.clone(),
         coverage_probability_receipt_sha256: evidence.coverage_probability_receipt_sha256.clone(),
         field_sweep_report_sha256: input.field_sweep_report_sha256.clone(),
@@ -1291,6 +1347,12 @@ mod tests {
                     "urn:coverage-condition-alignment:1".to_owned(),
                 hdb11_coverage_condition_alignment_receipt_sha256: digest('6'),
                 hdb11_coverage_condition_profile_sha256: digest('c'),
+                actual_observation_domain_basis:
+                    ActualObservationDomainBasis::RecordedObserverPathAndDeclaredViewBoundary,
+                actual_observation_domain_geometry_sha256: digest('o'),
+                actual_observation_domain_receipt_ref: "urn:actual-observation-domain:1".to_owned(),
+                actual_observation_domain_receipt_sha256: digest('p'),
+                outside_domain_detection_probability: 0.0,
                 coverage_probability_receipt_ref: "urn:coverage-probability:1".to_owned(),
                 coverage_probability_receipt_sha256: digest('1'),
                 source_field_sweep_report_sha256: report_digest,
@@ -1530,6 +1592,24 @@ mod tests {
             CoverageProbabilityIntervalSemantics::PointEstimate;
         value.target_coverage.confidence_level = None;
         assert!(audit_heritage_probability_composition(&value).is_err());
+    }
+
+
+    #[test]
+    fn effective_sweep_width_buffer_is_not_accepted_as_the_physical_observation_domain() {
+        let mut value = input();
+        value.target_coverage.outside_domain_detection_probability = 0.01;
+        assert_eq!(
+            audit_heritage_probability_composition(&value),
+            Err(HeritageCompositionError::OutsideDomainDetectionNotZero)
+        );
+
+        let mut value = input();
+        value.target_coverage.actual_observation_domain_receipt_ref.clear();
+        assert_eq!(
+            audit_heritage_probability_composition(&value),
+            Err(HeritageCompositionError::ActualObservationDomainReceiptMissing)
+        );
     }
 
     #[test]
