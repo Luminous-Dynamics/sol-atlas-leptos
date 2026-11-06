@@ -31,11 +31,17 @@ fn string<'a>(value: &'a Value, key: &str) -> &'a str {
 }
 
 fn finite_number(value: &Value, key: &str) -> Option<f64> {
-    value.get(key).and_then(Value::as_f64).filter(|number| number.is_finite())
+    value
+        .get(key)
+        .and_then(Value::as_f64)
+        .filter(|number| number.is_finite())
 }
 
 fn allowed_evidence_state(value: &str) -> bool {
-    matches!(value, "current" | "unknown" | "missing" | "stale" | "revoked")
+    matches!(
+        value,
+        "current" | "unknown" | "missing" | "stale" | "revoked"
+    )
 }
 
 fn empty_unsupported(case_id: &str, reasons: BTreeSet<String>) -> Value {
@@ -515,7 +521,10 @@ mod tests {
         let result = evaluate_case(&case("MP-015"));
         assert_eq!(result["alternative_statuses"][0]["status"], "Infeasible");
         assert_eq!(result["pareto_frontier"], serde_json::json!(["B"]));
-        assert_eq!(result["infeasible_alternative_ids"], serde_json::json!(["A"]));
+        assert_eq!(
+            result["infeasible_alternative_ids"],
+            serde_json::json!(["A"])
+        );
     }
 
     #[test]
@@ -565,8 +574,14 @@ mod tests {
     fn input_permutation_does_not_change_normalized_result() {
         let mut item = case("MP-017");
         let baseline = evaluate_case(&item);
-        item["input"]["objectives"].as_array_mut().unwrap().reverse();
-        item["input"]["alternatives"].as_array_mut().unwrap().reverse();
+        item["input"]["objectives"]
+            .as_array_mut()
+            .unwrap()
+            .reverse();
+        item["input"]["alternatives"]
+            .as_array_mut()
+            .unwrap()
+            .reverse();
         for alternative in item["input"]["alternatives"].as_array_mut().unwrap() {
             alternative["metrics"].as_array_mut().unwrap().reverse();
         }
