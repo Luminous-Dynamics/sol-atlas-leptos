@@ -362,8 +362,11 @@ fn validate_hdb11(input: &Hdb24AdapterInput) -> Result<(), Hdb24CompositionError
     if report.disposition != ObservabilityDisposition::QualifiedNonDetection {
         return Err(Hdb24CompositionError::WrongHdb11Disposition);
     }
-    if !report.context_match {
+    if !report.context_match || !report.reasons.is_empty() {
         return Err(Hdb24CompositionError::Hdb11ContextNotQualified);
+    }
+    if report.archaeological_absence_claimed || report.archaeological_identification_claimed {
+        return Err(Hdb24CompositionError::WrongHdb11Disposition);
     }
     if report.rights_status != RightsStatus::Verified || report.access_tier == SurveyAccessTier::Unknown {
         return Err(Hdb24CompositionError::Hdb11RightsNotVerified);
@@ -383,7 +386,7 @@ fn validate_hdb11(input: &Hdb24AdapterInput) -> Result<(), Hdb24CompositionError
     {
         return Err(Hdb24CompositionError::Hdb11ProfileScopeNotFactorized);
     }
-    if report.conditioning_events.as_slice() != expected {
+    if report.conditioning_events != expected.to_vec() {
         return Err(Hdb24CompositionError::Hdb11ConditioningSetMismatch);
     }
     report
