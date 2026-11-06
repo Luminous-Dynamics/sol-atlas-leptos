@@ -539,7 +539,10 @@ mod tests {
     #[test]
     fn infeasible_alternative_stays_visible_but_outside_frontier() {
         let result = evaluate_case(&case("MP-021"));
-        assert_eq!(result["infeasible_alternative_ids"], serde_json::json!(["A"]));
+        assert_eq!(
+            result["infeasible_alternative_ids"],
+            serde_json::json!(["A"])
+        );
         assert_eq!(result["pareto_frontier"], serde_json::json!(["B"]));
     }
 
