@@ -1,0 +1,532 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/heritage-hard-negative-report-v0.1.schema.json",
+  "title": "Sol-Atlas Heritage Hard-Negative Challenge Report v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "claim_ceiling",
+    "challenge_id",
+    "model_id",
+    "confidence_threshold",
+    "threshold_selection_receipt_ref",
+    "threshold_selection_receipt_sha256",
+    "challenge_manifest_sha256",
+    "reference_adjudication_protocol_sha256",
+    "evaluation_unit_kind",
+    "independent_evaluation_unit_count",
+    "micro_counts",
+    "macro_precision",
+    "macro_precision_unit_count",
+    "macro_recall",
+    "macro_recall_unit_count",
+    "macro_f1",
+    "macro_f1_unit_count",
+    "worst_unit_recall_id",
+    "worst_unit_recall",
+    "adequately_assessed_area_km2",
+    "total_expert_review_hours",
+    "false_positives_per_km2",
+    "verified_findings_per_expert_hour",
+    "false_leads_per_expert_hour",
+    "candidate_prediction_count",
+    "resolved_prediction_count",
+    "candidate_resolution_fraction",
+    "unresolved_prediction_count",
+    "ambiguous_reference_count",
+    "not_observable_reference_count",
+    "not_assessed_reference_count",
+    "hard_negative_classes",
+    "units",
+    "uncertainty_note"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "luminous.heritage-hard-negative.v0.1"
+    },
+    "claim_ceiling": {
+      "const": "operational_hard_negative_scorecard_only_no_population_generalisation_or_archaeological_identification"
+    },
+    "challenge_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "model_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "confidence_threshold": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "threshold_selection_receipt_ref": {
+      "type": "string",
+      "minLength": 1
+    },
+    "threshold_selection_receipt_sha256": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{64}$"
+    },
+    "challenge_manifest_sha256": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{64}$"
+    },
+    "reference_adjudication_protocol_sha256": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{64}$"
+    },
+    "evaluation_unit_kind": {
+      "enum": [
+        "site",
+        "region",
+        "source_paper_test_partition"
+      ]
+    },
+    "independent_evaluation_unit_count": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "micro_counts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "true_positive",
+        "false_positive",
+        "false_negative",
+        "precision",
+        "recall",
+        "f1"
+      ],
+      "properties": {
+        "true_positive": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "false_positive": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "false_negative": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "precision": {
+          "oneOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "recall": {
+          "oneOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "f1": {
+          "oneOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "macro_precision": {
+      "oneOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "macro_precision_unit_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "macro_recall": {
+      "oneOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "macro_recall_unit_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "macro_f1": {
+      "oneOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "macro_f1_unit_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "worst_unit_recall_id": {
+      "oneOf": [
+        {
+          "type": "string",
+          "minLength": 1
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "worst_unit_recall": {
+      "oneOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "adequately_assessed_area_km2": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "total_expert_review_hours": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "false_positives_per_km2": {
+      "type": "number",
+      "minimum": 0
+    },
+    "verified_findings_per_expert_hour": {
+      "type": "number",
+      "minimum": 0
+    },
+    "false_leads_per_expert_hour": {
+      "type": "number",
+      "minimum": 0
+    },
+    "candidate_prediction_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "resolved_prediction_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "candidate_resolution_fraction": {
+      "oneOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "unresolved_prediction_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "ambiguous_reference_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "not_observable_reference_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "not_assessed_reference_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "hard_negative_classes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "class",
+          "reference_object_count",
+          "false_positive_prediction_count",
+          "false_positive_candidates_per_reference_object"
+        ],
+        "properties": {
+          "class": {
+            "enum": [
+              "eroded_rock_ledge",
+              "bedrock_scarp",
+              "geological_lineament",
+              "gully_or_erosion_channel",
+              "terrace_edge",
+              "road_cut_or_track",
+              "modern_retaining_wall",
+              "livestock_kraal_or_modern_enclosure",
+              "fence_or_modern_boundary",
+              "other_confirmed_lookalike"
+            ]
+          },
+          "reference_object_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "false_positive_prediction_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "false_positive_candidates_per_reference_object": {
+            "oneOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "units": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "evaluation_unit_id",
+          "evaluation_unit_kind",
+          "adequately_assessed_area_km2",
+          "expert_review_hours",
+          "confirmed_constructed_wall_count",
+          "true_positive_count",
+          "false_positive_count",
+          "false_negative_count",
+          "resolved_prediction_metrics",
+          "candidate_prediction_count",
+          "resolved_prediction_count",
+          "candidate_resolution_fraction",
+          "unresolved_prediction_count",
+          "false_positives_per_km2",
+          "verified_findings_per_expert_hour",
+          "false_leads_per_expert_hour",
+          "ambiguous_reference_count",
+          "not_observable_reference_count",
+          "not_assessed_reference_count",
+          "hard_negative_classes"
+        ],
+        "properties": {
+          "evaluation_unit_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "evaluation_unit_kind": {
+            "enum": [
+              "site",
+              "region",
+              "source_paper_test_partition"
+            ]
+          },
+          "adequately_assessed_area_km2": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "expert_review_hours": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "confirmed_constructed_wall_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "true_positive_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "false_positive_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "false_negative_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "resolved_prediction_metrics": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "true_positive",
+              "false_positive",
+              "false_negative",
+              "precision",
+              "recall",
+              "f1"
+            ],
+            "properties": {
+              "true_positive": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "false_positive": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "false_negative": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "precision": {
+                "oneOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "recall": {
+                "oneOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "f1": {
+                "oneOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            }
+          },
+          "candidate_prediction_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "resolved_prediction_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "candidate_resolution_fraction": {
+            "oneOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "unresolved_prediction_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "false_positives_per_km2": {
+            "type": "number",
+            "minimum": 0
+          },
+          "verified_findings_per_expert_hour": {
+            "type": "number",
+            "minimum": 0
+          },
+          "false_leads_per_expert_hour": {
+            "type": "number",
+            "minimum": 0
+          },
+          "ambiguous_reference_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "not_observable_reference_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "not_assessed_reference_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "hard_negative_classes": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "class",
+                "reference_object_count",
+                "false_positive_prediction_count",
+                "false_positive_candidates_per_reference_object"
+              ],
+              "properties": {
+                "class": {
+                  "enum": [
+                    "eroded_rock_ledge",
+                    "bedrock_scarp",
+                    "geological_lineament",
+                    "gully_or_erosion_channel",
+                    "terrace_edge",
+                    "road_cut_or_track",
+                    "modern_retaining_wall",
+                    "livestock_kraal_or_modern_enclosure",
+                    "fence_or_modern_boundary",
+                    "other_confirmed_lookalike"
+                  ]
+                },
+                "reference_object_count": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "false_positive_prediction_count": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "false_positive_candidates_per_reference_object": {
+                  "oneOf": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "uncertainty_note": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}

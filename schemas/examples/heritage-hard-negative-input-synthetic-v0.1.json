@@ -1,0 +1,110 @@
+{
+  "schema_version": "luminous.heritage-hard-negative.v0.1",
+  "challenge_id": "hdb-b9-synthetic",
+  "model_id": "model-synthetic",
+  "confidence_threshold": 0.5,
+  "threshold_selection_receipt_ref": "urn:synthetic:threshold",
+  "threshold_selection_receipt_sha256": "7777777777777777777777777777777777777777777777777777777777777777",
+  "challenge_manifest_sha256": "8888888888888888888888888888888888888888888888888888888888888888",
+  "reference_adjudication_protocol_sha256": "9999999999999999999999999999999999999999999999999999999999999999",
+  "units": [
+    {
+      "provenance": {
+        "source_doi_or_identifier": "urn:synthetic:hdb-b9",
+        "dataset_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "model_artifact_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "model_build_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "prediction_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "reference_label_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "split_manifest_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        "evaluator_build_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+        "metric_protocol_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+        "rights_receipt_ref": "urn:synthetic:rights",
+        "evaluation_unit_kind": "site",
+        "evaluation_unit_id": "site-01"
+      },
+      "adequately_assessed_area_km2": 10,
+      "assessment_receipt_ref": "urn:synthetic:assessment:site-01",
+      "assessment_receipt_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+      "candidate_adjudication_complete": true,
+      "candidate_adjudication_receipt_ref": "urn:synthetic:candidate-review:site-01",
+      "candidate_adjudication_receipt_sha256": "4444444444444444444444444444444444444444444444444444444444444444",
+      "reference_coverage_complete": true,
+      "reference_completeness_receipt_ref": "urn:synthetic:reference-complete:site-01",
+      "reference_completeness_receipt_sha256": "5555555555555555555555555555555555555555555555555555555555555555",
+      "review_time_receipt_ref": "urn:synthetic:review-time:site-01",
+      "review_time_receipt_sha256": "6666666666666666666666666666666666666666666666666666666666666666",
+      "expert_review_hours": 2,
+      "confirmed_constructed_wall_count": 4,
+      "true_positive_count": 3,
+      "false_negative_count": 1,
+      "hard_negative_classes": [
+        {
+          "class": "eroded_rock_ledge",
+          "reference_object_count": 2,
+          "false_positive_prediction_count": 1
+        },
+        {
+          "class": "livestock_kraal_or_modern_enclosure",
+          "reference_object_count": 1,
+          "false_positive_prediction_count": 0
+        }
+      ],
+      "background_false_positive_prediction_count": 1,
+      "unresolved_prediction_count": 1,
+      "candidate_prediction_count": 6,
+      "ambiguous_reference_count": 1,
+      "not_observable_reference_count": 1,
+      "not_assessed_reference_count": 2
+    },
+    {
+      "provenance": {
+        "source_doi_or_identifier": "urn:synthetic:hdb-b9",
+        "dataset_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "model_artifact_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "model_build_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "prediction_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "reference_label_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "split_manifest_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        "evaluator_build_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+        "metric_protocol_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+        "rights_receipt_ref": "urn:synthetic:rights",
+        "evaluation_unit_kind": "site",
+        "evaluation_unit_id": "site-02"
+      },
+      "adequately_assessed_area_km2": 5,
+      "assessment_receipt_ref": "urn:synthetic:assessment:site-02",
+      "assessment_receipt_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+      "candidate_adjudication_complete": true,
+      "candidate_adjudication_receipt_ref": "urn:synthetic:candidate-review:site-02",
+      "candidate_adjudication_receipt_sha256": "4444444444444444444444444444444444444444444444444444444444444444",
+      "reference_coverage_complete": true,
+      "reference_completeness_receipt_ref": "urn:synthetic:reference-complete:site-02",
+      "reference_completeness_receipt_sha256": "5555555555555555555555555555555555555555555555555555555555555555",
+      "review_time_receipt_ref": "urn:synthetic:review-time:site-02",
+      "review_time_receipt_sha256": "6666666666666666666666666666666666666666666666666666666666666666",
+      "expert_review_hours": 1,
+      "confirmed_constructed_wall_count": 2,
+      "true_positive_count": 2,
+      "false_negative_count": 0,
+      "hard_negative_classes": [
+        {
+          "class": "eroded_rock_ledge",
+          "reference_object_count": 2,
+          "false_positive_prediction_count": 0
+        },
+        {
+          "class": "livestock_kraal_or_modern_enclosure",
+          "reference_object_count": 1,
+          "false_positive_prediction_count": 0
+        }
+      ],
+      "background_false_positive_prediction_count": 0,
+      "unresolved_prediction_count": 1,
+      "candidate_prediction_count": 3,
+      "ambiguous_reference_count": 1,
+      "not_observable_reference_count": 1,
+      "not_assessed_reference_count": 2
+    }
+  ]
+}
