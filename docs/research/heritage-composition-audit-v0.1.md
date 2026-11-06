@@ -58,7 +58,8 @@ The remaining survival, exposure, observability and false-positive factors must 
 
 - HDB-11 calibration and observed contexts must match exactly; the observation must use the profile digest and be qualified.
 - HDB-11 empirical POD must equal detected eligible PSUs / eligible PSUs; total = eligible + excluded; the Wilson 95% bounds must contain the empirical estimate.
-- HDB-11 rights must be verified and its access tier cannot be unknown.
+- HDB-11 rights must be verified and its access tier cannot be unknown; a separate rights decision receipt must explicitly permit research analysis and match the source decision identifier/reference.
+- HDB-15 requires the same purpose-specific research-analysis decision; `verified` is not treated as equivalent to `allowed`.
 - HDB-15 report/profile/geometry digests and the source-report digest must be present and consistent.
 - HDB-15 effective and buffered sweep widths must be finite and the buffered width must match the geometry receipt; its held-out Brier score, transect counts and seeded-target counts must be valid and the Brier score must meet the threshold in the profile binding.
 - A context-alignment receipt binds HDB-11 profile/context to HDB-15 profile and the exact HDB-22 context identifier.
@@ -67,7 +68,7 @@ The remaining survival, exposure, observability and false-positive factors must 
 - Target-location probability evidence must bind the source report and exact geometry digests.
 - Probability interval semantics are explicit: point estimate, deterministic bound, frequentist confidence interval or Bayesian credible interval. Confidence levels are required only for the last two.
 
-Digest syntax is checked, not cryptographic authenticity. The evaluator cannot authenticate issuers or inspect source bytes.
+Digest syntax is checked, not cryptographic authenticity. The evaluator cannot authenticate issuers or inspect source bytes. Importantly, a generic verified-rights status does not itself establish that research reuse is permitted: this audit requires separate, source-bound decision receipts for the exact research_analysis purpose for both HDB-11 and HDB-15. Restricted, prohibited or undetermined decisions fail closed, even when the upstream survey report says the receipt was verified.
 
 ## Explicit rejection controls
 
