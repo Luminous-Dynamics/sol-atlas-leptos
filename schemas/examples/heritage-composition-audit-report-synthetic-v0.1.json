@@ -1,0 +1,75 @@
+{
+  "schema_version": "luminous.heritage-composition-audit.v0.1",
+  "composition_id": "composition-1",
+  "hdb22_context_id": "context-1",
+  "target_class_id": "dry_stone_wall",
+  "survey_unit_id": "survey-unit-1",
+  "disposition": "factorized_mapping_eligible_for_two_factors_only",
+  "factorization": [
+    "survival",
+    "exposure_given_survival",
+    "observability_given_survival_and_exposure",
+    "target_specific_footprint_coverage_given_survival_exposure_and_observability",
+    "conditional_detection_given_survival_exposure_observability_and_coverage",
+    "false_positive_given_originally_absent"
+  ],
+  "conditional_detection": {
+    "stage": "conditional_detection",
+    "conditioning_semantics": [
+      "target_survived",
+      "target_exposed",
+      "target_observable",
+      "target_covered_by_actual_footprint"
+    ],
+    "probability": {
+      "lower": 0.699,
+      "upper": 0.972
+    },
+    "confidence_level": 0.95,
+    "receipt": {
+      "source_schema_version": "luminous.heritage-observability.v0.2",
+      "source_report_sha256": "6666666666666666666666666666666666666666666666666666666666666666",
+      "profile_id": "pod-profile-1",
+      "profile_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "calibration_data_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "validation_split_manifest_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "validation_receipt_ref": "urn:validation:hdb11",
+      "validation_receipt_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "rights_decision_id": "rights:hdb11",
+      "rights_receipt_ref": "urn:rights:hdb11",
+      "access_tier": "controlled"
+    }
+  },
+  "footprint_coverage": {
+    "stage": "footprint_coverage",
+    "conditioning_semantics": "target_location_covered_by_actual_survey_footprint_under_declared_distribution",
+    "probability_model": "target_specific_spatial_distribution",
+    "probability": {
+      "lower": 0.72,
+      "upper": 0.81
+    },
+    "target_location_distribution_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+    "intersection_geometry_sha256": "gggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggg",
+    "coverage_probability_receipt_ref": "urn:coverage-probability:1",
+    "coverage_probability_receipt_sha256": "hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh",
+    "field_sweep_report_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+    "transect_geometry_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+    "survey_unit_geometry_sha256": "4444444444444444444444444444444444444444444444444444444444444444",
+    "spatial_union_receipt_sha256": "5555555555555555555555555555555555555555555555555555555555555555",
+    "method_id": "target-location-intersection-v1",
+    "method_build_sha256": "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+    "validation_split_manifest_sha256": "jjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjj",
+    "validation_receipt_ref": "urn:coverage-validation:1",
+    "validation_receipt_sha256": "kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk",
+    "rights_receipt_ref": "urn:rights:hdb15",
+    "access_tier": "controlled"
+  },
+  "hdb15_geometric_coverage_fraction": 0.5,
+  "joint_detection_factor_used": false,
+  "area_fraction_used_as_probability": false,
+  "complete_hdb22_stage_set_present": false,
+  "posterior_computed": false,
+  "archaeological_absence_claimed": false,
+  "archaeological_identification_claimed": false,
+  "action_authority": "none"
+}
