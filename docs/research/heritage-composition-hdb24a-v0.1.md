@@ -42,7 +42,7 @@ The adapter emits:
 - a HDB-22-compatible `FootprintCoverage` stage projection;
 - a HDB-22-compatible `ConditionalDetection` stage projection.
 
-Both retain method/profile/build/calibration/split/validation/source/rights/access provenance. The coverage stage points at the GIS union geometry and spatial receipt, plus the target-location distribution and candidate-specific intersection validation receipt. The sensor stage preserves the HDB-11 Wilson interval without changing its endpoints.
+Both retain method/profile/build/calibration/split/validation/source/rights/access provenance. The coverage stage points at the GIS union geometry and spatial receipt, plus the target-location model/profile digest, distribution digest and candidate-specific intersection method/validation receipt. It also declares the exact `ActualSpatialUnionReceipt` basis required by HDB-22. The sensor stage preserves the HDB-11 Wilson interval without changing its endpoints.
 
 These projections mirror HDB-22's stage fields while HDB-11A, HDB-15 and HDB-22 remain in separately stacked PRs. A later integration change should convert the projections to the native `StageEvidence` type rather than maintaining duplicate contracts indefinitely.
 
