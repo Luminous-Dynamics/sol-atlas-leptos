@@ -46,9 +46,6 @@ pub struct HardNegativeClassCount {
 #[serde(deny_unknown_fields)]
 pub struct HardNegativeEvaluationUnit {
     pub provenance: EvaluationProvenance,
-    pub site_id: String,
-    pub region_id: String,
-    pub acquisition_id: String,
     /// Area that was actually surveyed and adequately adjudicated. Unsurveyed,
     /// inaccessible, unobservable or rights-withheld area is not in this total.
     pub adequately_assessed_area_km2: f64,
@@ -111,9 +108,6 @@ pub struct HardNegativeClassReport {
 pub struct HardNegativeUnitReport {
     pub evaluation_unit_id: String,
     pub evaluation_unit_kind: EvaluationUnitKind,
-    pub site_id: String,
-    pub region_id: String,
-    pub acquisition_id: String,
     pub adequately_assessed_area_km2: f64,
     pub expert_review_hours: f64,
     pub confirmed_constructed_wall_count: usize,
@@ -231,9 +225,17 @@ fn validate_digest_and_ref(
     Ok(())
 }
 
-fn count_metrics(tp: usize, fp: usize, fn_count: usize) -> CountMetrics {
-    let precision_denominator = tp + fp;
-    let recall_denominator = tp + fn_count;
+fn count_metrics(
+    tp: usize,
+    fp: usize,
+    fn_count: usize,
+) -> Result<CountMetrics, HeritageHardNegativeError> {
+    let precision_denominator = tp
+        .checked_add(fp)
+        .ok_or(HeritageHardNegativeError::InvalidAggregateArithmetic)?;
+    let recall_denominator = tp
+        .checked_add(fn_count)
+        .ok_or(HeritageHardNegativeError::InvalidAggregateArithmetic)?;
     let precision = (precision_denominator > 0)
         .then(|| tp as f64 / precision_denominator as f64);
     let recall = (recall_denominator > 0).then(|| tp as f64 / recall_denominator as f64);
@@ -248,14 +250,14 @@ fn count_metrics(tp: usize, fp: usize, fn_count: usize) -> CountMetrics {
             _ => None,
         }
     };
-    CountMetrics {
+    Ok(CountMetrics {
         true_positive: tp,
         false_positive: fp,
         false_negative: fn_count,
         precision,
         recall,
         f1,
-    }
+    })
 }
 
 fn mean(values: impl Iterator<Item = f64>) -> Option<f64> {
@@ -391,7 +393,7 @@ fn validate_unit(
 
 fn aggregate_classes(
     units: &[HardNegativeEvaluationUnit],
-) -> Vec<HardNegativeClassReport> {
+) -> Result<Vec<HardNegativeClassReport>, HeritageHardNegativeError> {
     let mut totals = BTreeMap::<HardNegativeClass, (usize, usize)>::new();
     for unit in units {
         for item in &unit.hard_negative_classes {
@@ -399,14 +401,14 @@ fn aggregate_classes(
             entry.0 = entry
                 .0
                 .checked_add(item.reference_object_count)
-                .expect("validated aggregate class reference count");
+                .ok_or(HeritageHardNegativeError::InvalidAggregateArithmetic)?;
             entry.1 = entry
                 .1
                 .checked_add(item.false_positive_prediction_count)
-                .expect("validated aggregate class prediction count");
+                .ok_or(HeritageHardNegativeError::InvalidAggregateArithmetic)?;
         }
     }
-    totals
+    Ok(totals
         .into_iter()
         .map(|(class, (reference_count, false_positive_count))| HardNegativeClassReport {
             class,
@@ -415,7 +417,7 @@ fn aggregate_classes(
             false_positive_candidates_per_reference_object: (reference_count > 0)
                 .then(|| false_positive_count as f64 / reference_count as f64),
         })
-        .collect()
+        .collect())
 }
 
 /// Scores a hard-negative challenge using only complete, independently
@@ -509,16 +511,13 @@ pub fn evaluate_heritage_hard_negative(
             unit.true_positive_count,
             false_positive_count,
             unit.false_negative_count,
-        );
+        )?;
 
         let candidate_resolution_fraction = (unit.candidate_prediction_count > 0)
             .then(|| resolved_count as f64 / unit.candidate_prediction_count as f64);
         reports.push(HardNegativeUnitReport {
             evaluation_unit_id: unit_id.clone(),
             evaluation_unit_kind: unit.provenance.evaluation_unit_kind,
-            site_id: unit.site_id.clone(),
-            region_id: unit.region_id.clone(),
-            acquisition_id: unit.acquisition_id.clone(),
             adequately_assessed_area_km2: unit.adequately_assessed_area_km2,
             expert_review_hours: unit.expert_review_hours,
             confirmed_constructed_wall_count: unit.confirmed_constructed_wall_count,
@@ -577,7 +576,7 @@ pub fn evaluate_heritage_hard_negative(
         return Err(HeritageHardNegativeError::InvalidAggregateArithmetic);
     }
 
-    let micro = count_metrics(total_tp, total_fp, total_fn);
+    let micro = count_metrics(total_tp, total_fp, total_fn)?;
     let macro_precision = mean(reports.iter().filter_map(|unit| unit.resolved_prediction_metrics.precision));
     let macro_recall = mean(reports.iter().filter_map(|unit| unit.resolved_prediction_metrics.recall));
     let macro_f1 = mean(reports.iter().filter_map(|unit| unit.resolved_prediction_metrics.f1));
@@ -627,7 +626,7 @@ pub fn evaluate_heritage_hard_negative(
         ambiguous_reference_count: total_ambiguous,
         not_observable_reference_count: total_not_observable,
         not_assessed_reference_count: total_not_assessed,
-        hard_negative_classes: aggregate_classes(&ordered_units),
+        hard_negative_classes: aggregate_classes(&ordered_units)?,
         units: reports,
         uncertainty_note: "no confidence intervals are computed; macro metrics are descriptive across the declared independent units. Use a preregistered site/region/acquisition-level bootstrap and spatial effective-information analysis before population-level claims."
             .to_owned(),
@@ -659,12 +658,17 @@ mod tests {
         }
     }
 
-    fn unit(id: &str, site: &str, tp: usize, fp_rock: usize, fp_background: usize, fns: usize, area: f64, hours: f64) -> HardNegativeEvaluationUnit {
+    fn unit(
+        id: &str,
+        tp: usize,
+        fp_rock: usize,
+        fp_background: usize,
+        fns: usize,
+        area: f64,
+        hours: f64,
+    ) -> HardNegativeEvaluationUnit {
         HardNegativeEvaluationUnit {
             provenance: provenance(id),
-            site_id: site.into(),
-            region_id: "region-west".into(),
-            acquisition_id: format!("acq-{id}"),
             adequately_assessed_area_km2: area,
             assessment_receipt_ref: format!("urn:synthetic:assessment:{id}"),
             assessment_receipt_sha256: digest('3'),
@@ -712,8 +716,8 @@ mod tests {
             challenge_manifest_sha256: digest('8'),
             reference_adjudication_protocol_sha256: digest('9'),
             units: vec![
-                unit("site-01", "site-01", 3, 1, 1, 1, 10.0, 2.0),
-                unit("site-02", "site-02", 2, 0, 0, 0, 5.0, 1.0),
+                unit("site-01", 3, 1, 1, 1, 10.0, 2.0),
+                unit("site-02", 2, 0, 0, 0, 5.0, 1.0),
             ],
         }
     }
