@@ -33,3 +33,69 @@ jobs:
         run: cargo fmt --manifest-path sol-atlas-core/Cargo.toml -- --check
       - name: Run complete core test suite
         run: cargo test --manifest-path sol-atlas-core/Cargo.toml
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Validate Draft 2020-12 adapter schemas
+        run: |
+          python -m pip install --disable-pip-version-check jsonschema==4.23.0
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from jsonschema import Draft202012Validator
+
+          for name in [
+              "heritage-factor-adapter-input-v0.1.schema.json",
+              "heritage-factor-adapter-report-v0.1.schema.json",
+          ]:
+              schema = json.loads((Path("schemas") / name).read_text())
+              Draft202012Validator.check_schema(schema)
+
+          input_schema = json.loads(Path("schemas/heritage-factor-adapter-input-v0.1.schema.json").read_text())
+          report_schema = json.loads(Path("schemas/heritage-factor-adapter-report-v0.1.schema.json").read_text())
+
+          unsupported = {
+              "schema_version": "luminous.heritage-factor-adapter.v0.1",
+              "adapter_id": "synthetic-adapter",
+              "context_binding": {
+                  "target_class_id": "dry_stone_wall",
+                  "hdb22_context_id": "context-1",
+                  "hdb11_profile_sha256": "a" * 64,
+                  "hdb15_profile_sha256": "b" * 64,
+                  "observability_context_sha256": "c" * 64,
+                  "field_survey_context_sha256": "d" * 64,
+                  "mapping_method_id": "context-map-v1",
+                  "mapping_receipt_ref": "receipt:context",
+                  "mapping_receipt_sha256": "e" * 64
+              },
+              "hdb11_report": {
+                  "schema_version": "luminous.heritage-observability.v0.2",
+                  "profile_sha256": "a" * 64,
+                  "calibration_context": {},
+                  "observed_context": {},
+                  "observation_profile_sha256": "a" * 64,
+                  "observation_outcome": "not_detected",
+                  "disposition": "qualified_non_detection",
+                  "detection_probability_scope": "joint_per_survey_unit",
+                  "conditioning_events": [],
+                  "calibration_total_independent_psu_count": 20,
+                  "calibration_eligible_independent_psu_count": 20,
+                  "calibration_excluded_conditioning_psu_count": 0,
+                  "calibration_detected_count": 20,
+                  "empirical_probability_of_detection": 1.0,
+                  "probability_of_detection_wilson_95": {"confidence_level": 0.95, "lower": 0.8, "upper": 1.0},
+                  "minimum_independent_psus": 20,
+                  "context_match": True,
+                  "rights_status": "verified",
+                  "reasons": []
+              },
+              "hdb11_provenance": {},
+              "hdb15_report": {},
+              "hdb15_provenance": {},
+              "target_location_coverage": {},
+              "non_detection_template": {}
+          }
+          validator = Draft202012Validator(input_schema)
+          assert list(validator.iter_errors(unsupported)), "joint POD must not satisfy the HDB-24A factorized adapter schema"
+          print("Draft 2020-12 input/output schemas valid; joint-POD negative control rejected")
+          PY
