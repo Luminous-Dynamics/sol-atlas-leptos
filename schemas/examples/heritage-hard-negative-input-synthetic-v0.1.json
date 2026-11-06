@@ -23,9 +23,6 @@
         "evaluation_unit_kind": "site",
         "evaluation_unit_id": "site-01"
       },
-      "site_id": "site-01",
-      "region_id": "region-west",
-      "acquisition_id": "acq-site-01",
       "adequately_assessed_area_km2": 10,
       "assessment_receipt_ref": "urn:synthetic:assessment:site-01",
       "assessment_receipt_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
@@ -75,9 +72,6 @@
         "evaluation_unit_kind": "site",
         "evaluation_unit_id": "site-02"
       },
-      "site_id": "site-02",
-      "region_id": "region-west",
-      "acquisition_id": "acq-site-02",
       "adequately_assessed_area_km2": 5,
       "assessment_receipt_ref": "urn:synthetic:assessment:site-02",
       "assessment_receipt_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
