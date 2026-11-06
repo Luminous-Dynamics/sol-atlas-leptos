@@ -38,6 +38,12 @@ pub struct AdapterContextBinding {
     pub hdb22_context_id: String,
     pub hdb11_profile_sha256: String,
     pub hdb15_profile_sha256: String,
+    /// CRS and geometry metadata retained from the HDB-15 spatial union receipt.
+    pub survey_unit_crs_id: String,
+    pub survey_unit_area_m2: f64,
+    pub buffered_transect_union_area_m2: f64,
+    pub buffered_sweep_width_m: f64,
+    pub spatial_union_method_id: String,
     /// Digest of the HDB-11 observed context serialized under the declared
     /// canonical context-mapping protocol.
     pub observability_context_sha256: String,
@@ -46,6 +52,28 @@ pub struct AdapterContextBinding {
     pub mapping_method_id: String,
     pub mapping_receipt_ref: String,
     pub mapping_receipt_sha256: String,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum RightsPurpose {
+    ResearchAnalysis,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum CoverageProbabilityIntervalSemantics {
+    PointEstimate,
+    DeterministicBound,
+    FrequentistConfidenceInterval,
+    BayesianCredibleInterval,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ActualObservationDomainBasis {
+    RecordedObserverPathAndDeclaredViewBoundary,
+    SensorValidDataFootprint,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -60,24 +88,49 @@ pub struct CalibrationProvenanceBinding {
     pub validation_receipt_sha256: String,
     pub rights_decision_id: String,
     pub analytical_rights: AnalyticalRights,
+    pub rights_purpose: RightsPurpose,
     pub rights_receipt_ref: String,
     pub access_tier: AccessTier,
+    /// HDB-15 only: the fit receipt is distinct from its held-out validation receipt.
+    pub fit_receipt_sha256: Option<String>,
+    /// HDB-15 only: preregistered ceiling for the held-out Brier score.
+    pub maximum_permitted_validation_brier_score: Option<f64>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct TargetLocationCoverageReceipt {
+    pub event_id: String,
+    pub target_class_id: String,
+    pub hdb22_context_id: String,
     pub survey_unit_id: String,
+    pub survey_unit_crs_id: String,
+    pub field_sweep_report_sha256: String,
     pub survey_unit_geometry_sha256: String,
     pub transect_geometry_sha256: String,
     pub coverage_geometry_sha256: String,
     pub spatial_union_receipt_sha256: String,
     pub model: CoverageProbabilityModel,
     pub target_location_probability: ProbabilityBand,
+    pub interval_semantics: CoverageProbabilityIntervalSemantics,
+    pub confidence_level: Option<f64>,
+    pub uniform_assumption_justification_ref: Option<String>,
+    pub uniform_assumption_justification_sha256: Option<String>,
     pub field_sweep_fit_receipt_sha256: String,
     pub method_build_sha256: String,
     pub calibration_data_sha256: String,
     pub target_location_distribution_sha256: String,
+    /// The HDB-11 covered-condition trials must refer to this same distribution and
+    /// the same physical observation-domain geometry.
+    pub hdb11_coverage_condition_alignment_receipt_ref: String,
+    pub hdb11_coverage_condition_alignment_receipt_sha256: String,
+    pub hdb11_coverage_condition_profile_sha256: String,
+    pub hdb11_conditioned_observation_domain_geometry_sha256: String,
+    pub hdb11_conditioned_target_location_distribution_sha256: String,
+    pub actual_observation_domain_basis: ActualObservationDomainBasis,
+    pub actual_observation_domain_receipt_ref: String,
+    pub actual_observation_domain_receipt_sha256: String,
+    pub outside_domain_detection_probability: f64,
     pub calculation_method_id: String,
     pub calculation_receipt_ref: String,
     pub calculation_receipt_sha256: String,
