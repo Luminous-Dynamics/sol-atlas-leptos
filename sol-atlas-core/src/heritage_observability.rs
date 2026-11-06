@@ -10,6 +10,7 @@
 //! conditioning set and computes PoD only over trials satisfying that set.
 
 use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
 use std::collections::BTreeSet;
 use std::fmt;
 
@@ -267,6 +268,8 @@ pub struct HeritageObservabilityReport {
     pub calibration_total_independent_psu_count: usize,
     pub calibration_eligible_independent_psu_count: usize,
     pub calibration_excluded_conditioning_psu_count: usize,
+    /// SHA-256 of the complete calibration-trial manifest in canonical PSU order.
+    pub conditioning_evidence_manifest_sha256: String,
     pub calibration_detected_count: usize,
     pub empirical_probability_of_detection: f64,
     pub probability_of_detection_wilson_95: WilsonInterval,
@@ -323,6 +326,7 @@ pub enum HeritageObservabilityError {
         condition: DetectionCondition,
     },
     NoEligibleCalibrationTrials,
+    ConditioningManifestSerializationFailed,
     MinimumCalibrationPsuCountBelowFloor,
     InvalidMinimumPodLowerBound,
     InvalidMinimumCoverageFraction,
@@ -434,6 +438,16 @@ fn trial_is_conditioning_eligible(trial: &CalibrationTrial) -> bool {
         .conditioning_evidence
         .iter()
         .all(|evidence| evidence.satisfied)
+}
+
+fn conditioning_evidence_manifest_sha256(
+    trials: &[CalibrationTrial],
+) -> Result<String, HeritageObservabilityError> {
+    let mut ordered_trials: Vec<&CalibrationTrial> = trials.iter().collect();
+    ordered_trials.sort_by(|left, right| left.psu_id.cmp(&right.psu_id));
+    let canonical_bytes = serde_json::to_vec(&ordered_trials)
+        .map_err(|_| HeritageObservabilityError::ConditioningManifestSerializationFailed)?;
+    Ok(format!("{:x}", Sha256::digest(canonical_bytes)))
 }
 
 fn validate_profile(profile: &CalibrationProfile) -> Result<(), HeritageObservabilityError> {
@@ -762,6 +776,8 @@ pub fn evaluate_heritage_observability(
 
     validate_profile(&input.calibration_profile)?;
     validate_trials(&input.calibration_profile, &input.calibration_trials)?;
+    let conditioning_manifest_digest =
+        conditioning_evidence_manifest_sha256(&input.calibration_trials)?;
     let eligible_trials: Vec<&CalibrationTrial> = input
         .calibration_trials
         .iter()
@@ -852,6 +868,7 @@ pub fn evaluate_heritage_observability(
         calibration_total_independent_psu_count: total_trial_count,
         calibration_eligible_independent_psu_count: eligible_trial_count,
         calibration_excluded_conditioning_psu_count: excluded_conditioning_count,
+        conditioning_evidence_manifest_sha256: conditioning_manifest_digest,
         calibration_detected_count: detected_count,
         empirical_probability_of_detection: empirical_pod,
         probability_of_detection_wilson_95: interval,
@@ -1464,6 +1481,54 @@ mod tests {
             evaluate_heritage_observability(&value),
             Err(HeritageObservabilityError::InvalidConditioningEvidenceDigest { .. })
         ));
+    }
+
+
+    #[test]
+    fn conditioning_evidence_manifest_is_order_invariant_and_commits_to_receipts() {
+        let mut value = input(ObservationOutcome::NotDetected);
+        let events = vec![
+            DetectionCondition::TargetSurvived,
+            DetectionCondition::TargetExposed,
+            DetectionCondition::TargetObservable,
+            DetectionCondition::TargetCoveredByActualFootprint,
+        ];
+        value.calibration_profile.detection_probability_scope =
+            DetectionProbabilityScope::ConditionalOnTargetSurvivedExposedObservableAndCovered;
+        value.calibration_profile.conditioning_events = events.clone();
+        for trial in &mut value.calibration_trials {
+            trial.conditioning_evidence = evidence(&events, true);
+        }
+
+        let first = evaluate_heritage_observability(&value).unwrap();
+        let mut reordered = value.clone();
+        reordered.calibration_trials.reverse();
+        let second = evaluate_heritage_observability(&reordered).unwrap();
+        assert_eq!(
+            first.conditioning_evidence_manifest_sha256,
+            second.conditioning_evidence_manifest_sha256
+        );
+
+        reordered.calibration_trials[0].conditioning_evidence[0].evidence_ref =
+            "urn:synthetic:conditioning:substituted".into();
+        let third = evaluate_heritage_observability(&reordered).unwrap();
+        assert_ne!(
+            first.conditioning_evidence_manifest_sha256,
+            third.conditioning_evidence_manifest_sha256
+        );
+        assert_eq!(first.conditioning_evidence_manifest_sha256.len(), 64);
+    }
+
+    #[test]
+    fn joint_scope_manifest_commits_to_detection_outcomes_even_without_condition_events() {
+        let mut value = input(ObservationOutcome::NotDetected);
+        let first = evaluate_heritage_observability(&value).unwrap();
+        value.calibration_trials[0].detected = !value.calibration_trials[0].detected;
+        let second = evaluate_heritage_observability(&value).unwrap();
+        assert_ne!(
+            first.conditioning_evidence_manifest_sha256,
+            second.conditioning_evidence_manifest_sha256
+        );
     }
 
     #[test]
