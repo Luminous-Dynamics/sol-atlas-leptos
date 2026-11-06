@@ -278,11 +278,24 @@ pub enum HeritageObservabilityError {
     UnsupportedSamplingDesign,
     InvalidConditioningEventSet,
     DuplicateConditioningEvent,
-    TrialConditioningEvidenceMismatch { psu_id: String },
-    DuplicateTrialConditioningEvidence { psu_id: String, condition: DetectionCondition },
-    ConditioningEvidenceContradictsDetection { psu_id: String },
-    EmptyConditioningEvidenceRef { psu_id: String, condition: DetectionCondition },
-    InvalidConditioningEvidenceDigest { psu_id: String, condition: DetectionCondition },
+    TrialConditioningEvidenceMismatch {
+        psu_id: String,
+    },
+    DuplicateTrialConditioningEvidence {
+        psu_id: String,
+        condition: DetectionCondition,
+    },
+    ConditioningEvidenceContradictsDetection {
+        psu_id: String,
+    },
+    EmptyConditioningEvidenceRef {
+        psu_id: String,
+        condition: DetectionCondition,
+    },
+    InvalidConditioningEvidenceDigest {
+        psu_id: String,
+        condition: DetectionCondition,
+    },
     NoEligibleCalibrationTrials,
     MinimumCalibrationPsuCountBelowFloor,
     InvalidMinimumPodLowerBound,
@@ -294,12 +307,24 @@ pub enum HeritageObservabilityError {
     EmptyCalibrationSiteId,
     DuplicateCalibrationPsuId(String),
     DuplicateCalibrationSiteId(String),
-    CalibrationProfileDigestMismatch { psu_id: String },
-    CalibrationContextMismatch { psu_id: String },
-    CalibrationReferenceEvidenceInsufficient { psu_id: String },
-    CalibrationRightsNotVerified { psu_id: String },
-    CalibrationReferenceEvidenceMissing { psu_id: String },
-    CalibrationRightsReceiptMissing { psu_id: String },
+    CalibrationProfileDigestMismatch {
+        psu_id: String,
+    },
+    CalibrationContextMismatch {
+        psu_id: String,
+    },
+    CalibrationReferenceEvidenceInsufficient {
+        psu_id: String,
+    },
+    CalibrationRightsNotVerified {
+        psu_id: String,
+    },
+    CalibrationReferenceEvidenceMissing {
+        psu_id: String,
+    },
+    CalibrationRightsReceiptMissing {
+        psu_id: String,
+    },
     InvalidObservationId,
     ObservationIdRequired,
     ObservationIdForbiddenWhenNotSurveyed,
@@ -379,7 +404,10 @@ fn validate_conditioning_event_set(
 }
 
 fn trial_is_conditioning_eligible(trial: &CalibrationTrial) -> bool {
-    trial.conditioning_evidence.iter().all(|evidence| evidence.satisfied)
+    trial
+        .conditioning_evidence
+        .iter()
+        .all(|evidence| evidence.satisfied)
 }
 
 fn validate_profile(profile: &CalibrationProfile) -> Result<(), HeritageObservabilityError> {
