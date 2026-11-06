@@ -332,6 +332,28 @@ mod tests {
         assert_eq!(r["requirements"][0]["recovery_state"],"Recovered");
         assert_eq!(r["requirements"][0]["recovery_time_ticks"],2);
     }
+    #[test]
+    fn pre_outage_unknown_does_not_poison_recovery_status() {
+        let before = evaluate_case(&case("CR-027"));
+        assert_eq!(
+            before["requirements"][0]["recovery_state"],
+            "NotRecovered"
+        );
+        assert_eq!(
+            before["requirements"][0]["unknown_after_first_degradation_ticks"],
+            0
+        );
+        let after = evaluate_case(&case("CR-020"));
+        assert_eq!(
+            after["requirements"][0]["recovery_state"],
+            "RecoveryUnknown"
+        );
+        assert_eq!(
+            after["requirements"][0]["unknown_after_first_degradation_ticks"],
+            3
+        );
+    }
+
     #[test] fn adjacent_degraded_phases_form_one_streak() {
         assert_eq!(evaluate_case(&case("CR-005"))["requirements"][0]["max_contiguous_degraded_ticks"],5);
     }
