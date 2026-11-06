@@ -58,6 +58,15 @@ pub enum CoverageProbabilityModel {
     TargetSpecificSpatialDistribution,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum CoverageProbabilityIntervalSemantics {
+    PointEstimate,
+    DeterministicBound,
+    FrequentistConfidenceInterval,
+    BayesianCredibleInterval,
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct ProbabilityBand {
@@ -112,6 +121,9 @@ pub struct FieldSweepReportReceiptV1 {
 pub struct FieldSweepProfileBindingV1 {
     pub profile_id: String,
     pub profile_sha256: String,
+    pub calibration_data_sha256: String,
+    pub calibration_split_manifest_sha256: String,
+    pub fit_receipt_sha256: String,
     pub target_feature_class_id: String,
     pub survey_method: FieldSweepMethod,
     pub method_id: String,
@@ -123,6 +135,7 @@ pub struct FieldSweepProfileBindingV1 {
     pub access_tier: SurveyAccessTier,
     pub hdb11_profile_sha256: String,
     pub hdb11_context_sha256: String,
+    pub hdb22_context_id: String,
     pub context_alignment_receipt_ref: String,
     pub context_alignment_receipt_sha256: String,
 }
@@ -154,6 +167,8 @@ pub struct TargetCoverageProbabilityEvidenceV1 {
     pub survey_unit_id: String,
     pub survey_unit_crs_id: String,
     pub probability_model: CoverageProbabilityModel,
+    pub interval_semantics: CoverageProbabilityIntervalSemantics,
+    pub confidence_level: Option<f64>,
     pub probability: ProbabilityBand,
     pub target_location_distribution_sha256: String,
     pub intersection_geometry_sha256: String,
@@ -222,6 +237,8 @@ pub struct FootprintCoverageFactorProposal {
     pub stage: String,
     pub conditioning_semantics: String,
     pub probability_model: CoverageProbabilityModel,
+    pub interval_semantics: CoverageProbabilityIntervalSemantics,
+    pub confidence_level: Option<f64>,
     pub probability: ProbabilityBand,
     pub target_location_distribution_sha256: String,
     pub intersection_geometry_sha256: String,
@@ -281,6 +298,7 @@ pub enum HeritageCompositionError {
     ObservabilityRightsNotVerified,
     ObservabilitySampleAccountingInvalid,
     ObservabilityProbabilityAccountingInvalid,
+    ObservabilityMeasurementInvalid,
     ObservabilityFlagsInvalid,
     DetectionScopeIsComposite,
     DetectionScopeNotSupported,
@@ -363,6 +381,21 @@ fn validate_observability(
     if report.calibration_context != report.observed_context {
         return Err(HeritageCompositionError::ObservabilityContextMismatch);
     }
+    if [
+        report.minimum_pod_lower_bound,
+        report.observed_coverage_fraction,
+        report.minimum_coverage_fraction,
+        report.observed_valid_data_fraction,
+        report.minimum_valid_data_fraction,
+    ]
+    .iter()
+    .any(|value| !value.is_finite() || !(0.0..=1.0).contains(value))
+        || report.observed_coverage_fraction < report.minimum_coverage_fraction
+        || report.observed_valid_data_fraction < report.minimum_valid_data_fraction
+        || report.minimum_independent_psus < 20
+    {
+        return Err(HeritageCompositionError::ObservabilityMeasurementInvalid);
+    }
     if report.observation_profile_sha256 != report.profile_sha256 {
         return Err(HeritageCompositionError::ObservabilityProfileMismatch);
     }
@@ -390,6 +423,8 @@ fn validate_observability(
         || !interval.lower.is_finite()
         || !interval.upper.is_finite()
         || interval.confidence_level != 0.95
+        || !interval.z_value.is_finite()
+        || interval.z_value <= 0.0
         || interval.lower < 0.0
         || interval.upper > 1.0
         || interval.lower > expected_empirical
@@ -503,6 +538,9 @@ fn validate_field_sweep(
     if report.profile_id != profile.profile_id
         || report.profile_sha256 != profile.profile_sha256
         || report.profile_sha256 != geometry.calibration_profile_sha256
+        || report.calibration_data_sha256 != profile.calibration_data_sha256
+        || report.calibration_split_manifest_sha256 != profile.calibration_split_manifest_sha256
+        || report.fit_receipt_sha256 != profile.fit_receipt_sha256
     {
         return Err(HeritageCompositionError::FieldSweepProfileMismatch);
     }
@@ -514,6 +552,9 @@ fn validate_field_sweep(
     if profile.hdb11_profile_sha256 != input.observability.profile_sha256 {
         return Err(HeritageCompositionError::FieldSweepProfileMismatch);
     }
+    if profile.hdb22_context_id != input.hdb22_context_id {
+        return Err(HeritageCompositionError::FieldSweepContextNotAligned);
+    }
     if profile.survey_method != FieldSweepMethod::FieldWalking
         || input.observability.calibration_context.modality != ObservationModality::FieldWalking
     {
@@ -524,6 +565,12 @@ fn validate_field_sweep(
     }
     for (value, label) in [
         (&profile.profile_sha256, "hdb15_profile_sha256"),
+        (&profile.calibration_data_sha256, "hdb15_calibration_data_sha256"),
+        (
+            &profile.calibration_split_manifest_sha256,
+            "hdb15_calibration_split_manifest_sha256",
+        ),
+        (&profile.fit_receipt_sha256, "hdb15_fit_receipt_sha256"),
         (&profile.method_build_sha256, "hdb15_method_build_sha256"),
         (
             &profile.validation_receipt_sha256,
@@ -686,6 +733,40 @@ fn validate_target_coverage(
     ] {
         validate_reference(value, label)?;
     }
+    match evidence.interval_semantics {
+        CoverageProbabilityIntervalSemantics::PointEstimate => {
+            if evidence.probability.lower != evidence.probability.upper
+                || evidence.confidence_level.is_some()
+            {
+                return Err(HeritageCompositionError::InvalidProbabilityBand(
+                    "point_estimate_semantics",
+                ));
+            }
+        }
+        CoverageProbabilityIntervalSemantics::DeterministicBound => {
+            if evidence.confidence_level.is_some() {
+                return Err(HeritageCompositionError::InvalidProbabilityBand(
+                    "deterministic_bound_confidence_level",
+                ));
+            }
+        }
+        CoverageProbabilityIntervalSemantics::FrequentistConfidenceInterval
+        | CoverageProbabilityIntervalSemantics::BayesianCredibleInterval => {
+            let level = evidence.confidence_level.ok_or(
+                HeritageCompositionError::InvalidProbabilityBand("interval_confidence_level"),
+            )?;
+            if !level.is_finite() || !(0.0..1.0).contains(&level) {
+                return Err(HeritageCompositionError::InvalidProbabilityBand(
+                    "interval_confidence_level",
+                ));
+            }
+        }
+    }
+
+    if !non_empty(&evidence.survey_unit_crs_id) {
+        return Err(HeritageCompositionError::TargetCoverageReceiptMismatch);
+    }
+
     if evidence.probability_model == CoverageProbabilityModel::UniformAreaWeightedWithinSurveyUnit
     {
         let reference = evidence
@@ -720,6 +801,8 @@ fn validate_target_coverage(
             "target_location_covered_by_actual_survey_footprint_under_declared_distribution"
                 .to_owned(),
         probability_model: evidence.probability_model,
+        interval_semantics: evidence.interval_semantics,
+        confidence_level: evidence.confidence_level,
         probability: evidence.probability,
         target_location_distribution_sha256: evidence.target_location_distribution_sha256.clone(),
         intersection_geometry_sha256: evidence.intersection_geometry_sha256.clone(),
@@ -910,6 +993,9 @@ mod tests {
             field_sweep_profile: FieldSweepProfileBindingV1 {
                 profile_id: "sweep-profile-1".to_owned(),
                 profile_sha256: sweep_profile_digest.clone(),
+                calibration_data_sha256: digest('7'),
+                calibration_split_manifest_sha256: digest('8'),
+                fit_receipt_sha256: digest('9'),
                 target_feature_class_id: "dry_stone_wall".to_owned(),
                 survey_method: FieldSweepMethod::FieldWalking,
                 method_id: "lateral-sweep-model-v1".to_owned(),
@@ -921,6 +1007,7 @@ mod tests {
                 access_tier: SurveyAccessTier::Controlled,
                 hdb11_profile_sha256: digest('c'),
                 hdb11_context_sha256: digest('d'),
+                hdb22_context_id: "context-1".to_owned(),
                 context_alignment_receipt_ref: "urn:context-alignment:1".to_owned(),
                 context_alignment_receipt_sha256: digest('e'),
             },
@@ -941,6 +1028,8 @@ mod tests {
                 survey_unit_id: "survey-unit-1".to_owned(),
                 survey_unit_crs_id: "EPSG:32735".to_owned(),
                 probability_model: CoverageProbabilityModel::TargetSpecificSpatialDistribution,
+                interval_semantics: CoverageProbabilityIntervalSemantics::DeterministicBound,
+                confidence_level: None,
                 probability: ProbabilityBand {
                     lower: 0.72,
                     upper: 0.81,
@@ -1135,6 +1224,46 @@ mod tests {
             Some("urn:uniform-assumption:justification".to_owned());
         value.target_coverage.uniform_assumption_justification_sha256 = Some(digest('l'));
         assert!(audit_heritage_probability_composition(&value).is_ok());
+    }
+
+
+    #[test]
+    fn hdb22_context_identifier_must_be_bound_by_the_crosswalk_receipt() {
+        let mut value = input();
+        value.hdb22_context_id = "other-context".to_owned();
+        assert_eq!(
+            audit_heritage_probability_composition(&value),
+            Err(HeritageCompositionError::FieldSweepContextNotAligned)
+        );
+    }
+
+    #[test]
+    fn non_finite_observed_coverage_is_rejected_even_if_upstream_report_claims_qualified() {
+        let mut value = input();
+        value.observability.observed_coverage_fraction = f64::NAN;
+        assert_eq!(
+            audit_heritage_probability_composition(&value),
+            Err(HeritageCompositionError::ObservabilityMeasurementInvalid)
+        );
+    }
+
+    #[test]
+    fn coverage_interval_semantics_must_be_explicit_and_consistent() {
+        let mut value = input();
+        value.target_coverage.interval_semantics =
+            CoverageProbabilityIntervalSemantics::FrequentistConfidenceInterval;
+        value.target_coverage.confidence_level = None;
+        assert_eq!(
+            audit_heritage_probability_composition(&value),
+            Err(HeritageCompositionError::InvalidProbabilityBand(
+                "interval_confidence_level"
+            ))
+        );
+
+        value.target_coverage.interval_semantics =
+            CoverageProbabilityIntervalSemantics::PointEstimate;
+        value.target_coverage.confidence_level = None;
+        assert!(audit_heritage_probability_composition(&value).is_err());
     }
 
     #[test]
