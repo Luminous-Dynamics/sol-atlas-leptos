@@ -199,7 +199,7 @@ fn extend_envelope(
     }
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug)]
 struct GroupSensitivityAccumulator {
     minimum_assigned_stone_count: usize,
     maximum_assigned_stone_count: usize,
@@ -207,6 +207,19 @@ struct GroupSensitivityAccumulator {
     area: MetricEnvelopeAccumulator,
     regularity: MetricEnvelopeAccumulator,
     elongation: MetricEnvelopeAccumulator,
+}
+
+impl Default for GroupSensitivityAccumulator {
+    fn default() -> Self {
+        Self {
+            minimum_assigned_stone_count: usize::MAX,
+            maximum_assigned_stone_count: 0,
+            non_empty_scenario_count: 0,
+            area: MetricEnvelopeAccumulator::default(),
+            regularity: MetricEnvelopeAccumulator::default(),
+            elongation: MetricEnvelopeAccumulator::default(),
+        }
+    }
 }
 
 impl GroupSensitivityAccumulator {
@@ -265,6 +278,16 @@ impl GroupSensitivityAccumulator {
     }
 }
 
+fn stable_mean(values: impl Iterator<Item = f64>) -> f64 {
+    let mut mean = 0.0;
+    for (index, value) in values.enumerate() {
+        // Online mean avoids overflowing a sum of large, finite positive
+        // measurement bounds.
+        mean += (value - mean) / (index + 1) as f64;
+    }
+    mean
+}
+
 fn summarize_intervals_safely(
     intervals: Vec<MeasurementInterval>,
 ) -> Option<IntervalDistributionSummary> {
@@ -273,15 +296,6 @@ fn summarize_intervals_safely(
     }
 
     let count = intervals.len();
-    let stable_mean = |values: impl Iterator<Item = f64>| {
-        let mut mean = 0.0;
-        for (index, value) in values.enumerate() {
-            // Online mean avoids overflowing a sum of large, finite positive
-            // measurement bounds.
-            mean += (value - mean) / (index + 1) as f64;
-        }
-        mean
-    };
 
     let mut lower = intervals.iter().map(|value| value.lower).collect::<Vec<_>>();
     let mut upper = intervals.iter().map(|value| value.upper).collect::<Vec<_>>();
@@ -676,7 +690,7 @@ mod tests {
         };
         assert_eq!(
             evaluate_membership_sensitivity(
-                &input,
+                &malformed,
                 "sensitivity-1",
                 ArchitectureGroupLevel::Wall,
                 limits,
@@ -763,8 +777,8 @@ mod tests {
 
     #[test]
     fn malformed_input_and_empty_identifier_fail_closed() {
-        let mut input = input();
-        input.stones[0].memberships[0].candidate_group_ids.push("unexpected".into());
+        let mut malformed = input();
+        malformed.stones[0].memberships[0].candidate_group_ids.push("unexpected".into());
         assert!(matches!(
             evaluate_membership_sensitivity(
                 &input,
