@@ -24,13 +24,11 @@ use super::heritage_non_detection::{
     evaluate_non_detection,
 };
 use super::heritage_observability::{
-    DetectionCondition, DetectionProbabilityScope, HeritageObservabilityReport,
-    ObservationModality, ObservationOutcome, ObservabilityDisposition, RightsStatus,
-    NonDetectionReason,
+    DetectionCondition, DetectionProbabilityScope, HeritageObservabilityReport, NonDetectionReason,
+    ObservabilityDisposition, ObservationModality, ObservationOutcome, RightsStatus,
 };
 
-pub const HERITAGE_FACTOR_ADAPTER_SCHEMA_VERSION: &str =
-    "luminous.heritage-factor-adapter.v0.1";
+pub const HERITAGE_FACTOR_ADAPTER_SCHEMA_VERSION: &str = "luminous.heritage-factor-adapter.v0.1";
 const PROBABILITY_TOLERANCE: f64 = 1e-9;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -205,7 +203,10 @@ fn validate_provenance(
     for (digest, field) in [
         (&value.method_build_sha256, "method_build_sha256"),
         (&value.calibration_data_sha256, "calibration_data_sha256"),
-        (&value.validation_split_manifest_sha256, "validation_split_manifest_sha256"),
+        (
+            &value.validation_split_manifest_sha256,
+            "validation_split_manifest_sha256",
+        ),
         (&value.source_data_sha256, "source_data_sha256"),
         (
             &value.validation_receipt_sha256,
