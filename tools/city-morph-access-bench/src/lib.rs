@@ -623,7 +623,7 @@ mod tests {
         let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .join("../../docs/research/city-morph-access/CITY_MORPH_ACCESS_CORPUS_V0_1.json");
         let bytes = std::fs::read(path).expect("city-morph corpus must exist");
-        serde_json::from_slice(&bytes).expect("city-morph corpus must parse");
+        serde_json::from_slice(&bytes).expect("city-morph corpus must parse")
     }
 
     #[test]
