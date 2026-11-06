@@ -1,0 +1,406 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/spatial-economic-intervention-comparison-v0.1.schema.json",
+  "title": "Spatial-Economic Intervention Comparison",
+  "description": "Versioned qualitative scenario comparison. It records assumptions and state deltas; it does not establish that an intervention occurred or caused an outcome.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "intervention_id",
+    "intervention_rationale",
+    "baseline_scenario_id",
+    "intervention_scenario_id",
+    "as_of",
+    "baseline_conditions",
+    "intervention_overrides",
+    "group_deltas",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "intervention_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "intervention_rationale": {
+      "type": "string",
+      "minLength": 1
+    },
+    "baseline_scenario_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "intervention_scenario_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "as_of": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
+    },
+    "baseline_conditions": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/scenario_condition"
+      }
+    },
+    "intervention_overrides": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/intervention_condition"
+      }
+    },
+    "group_deltas": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/delta"
+      }
+    },
+    "summary": {
+      "$ref": "#/$defs/summary"
+    }
+  },
+  "$defs": {
+    "scenario_condition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "basis",
+        "rationale"
+      ],
+      "properties": {
+        "state": {
+          "enum": [
+            "available",
+            "unavailable",
+            "unknown"
+          ]
+        },
+        "basis": {
+          "enum": [
+            "assumed",
+            "observed"
+          ]
+        },
+        "rationale": {
+          "type": "string",
+          "minLength": 1
+        },
+        "supporting_evidence_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        }
+      }
+    },
+    "intervention_condition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "basis",
+        "rationale"
+      ],
+      "properties": {
+        "state": {
+          "enum": [
+            "available",
+            "unavailable",
+            "unknown"
+          ]
+        },
+        "basis": {
+          "const": "assumed"
+        },
+        "rationale": {
+          "type": "string",
+          "minLength": 1
+        },
+        "supporting_evidence_ids": {
+          "type": "array",
+          "maxItems": 0
+        }
+      }
+    },
+    "logic": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "mode"
+          ],
+          "properties": {
+            "mode": {
+              "const": "all_required"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "mode"
+          ],
+          "properties": {
+            "mode": {
+              "const": "any_one"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "mode",
+            "minimum"
+          ],
+          "properties": {
+            "mode": {
+              "const": "at_least"
+            },
+            "minimum": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        }
+      ]
+    },
+    "blocker": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "evidence_id",
+        "reason"
+      ],
+      "properties": {
+        "evidence_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reason": {
+          "enum": [
+            "proposed_evidence",
+            "disputed_evidence",
+            "superseded_evidence",
+            "withdrawn_evidence",
+            "outside_evidence_validity",
+            "invalid_evidence_validity"
+          ]
+        }
+      }
+    },
+    "member": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "relation_id",
+        "supporting_evidence_ids",
+        "prerequisite_entity_id",
+        "state",
+        "evidence_blockers"
+      ],
+      "properties": {
+        "relation_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "prerequisite_entity_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "state": {
+          "enum": [
+            "available",
+            "unavailable",
+            "unknown",
+            "inactive"
+          ]
+        },
+        "evidence_readiness": {
+          "enum": [
+            "asserted_only",
+            "includes_corroborated_evidence",
+            "blocked"
+          ]
+        },
+        "evidence_blockers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/blocker"
+          }
+        },
+        "unknown_reason": {
+          "enum": [
+            "evidence_blocked",
+            "missing_scenario_condition",
+            "explicitly_unknown"
+          ]
+        },
+        "supporting_evidence_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        }
+      }
+    },
+    "assessment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "group_id",
+        "dependent_entity_id",
+        "logic",
+        "as_of",
+        "state",
+        "required_count",
+        "active_count",
+        "available_count",
+        "unavailable_count",
+        "unknown_count",
+        "members"
+      ],
+      "properties": {
+        "group_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "dependent_entity_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "logic": {
+          "$ref": "#/$defs/logic"
+        },
+        "as_of": {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
+        },
+        "state": {
+          "enum": [
+            "satisfied",
+            "disrupted",
+            "indeterminate"
+          ]
+        },
+        "required_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "active_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "available_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "unavailable_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "unknown_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "members": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/member"
+          }
+        }
+      }
+    },
+    "delta": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "group_id",
+        "dependent_entity_id",
+        "change",
+        "baseline",
+        "with_intervention"
+      ],
+      "properties": {
+        "group_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "dependent_entity_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "change": {
+          "enum": [
+            "unchanged",
+            "recovered",
+            "degraded",
+            "resolved_to_satisfied",
+            "resolved_to_disrupted",
+            "became_indeterminate"
+          ]
+        },
+        "baseline": {
+          "$ref": "#/$defs/assessment"
+        },
+        "with_intervention": {
+          "$ref": "#/$defs/assessment"
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "groups_compared",
+        "recovered",
+        "degraded",
+        "resolved_to_satisfied",
+        "resolved_to_disrupted",
+        "became_indeterminate",
+        "unchanged"
+      ],
+      "properties": {
+        "groups_compared": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "recovered": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "degraded": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "resolved_to_satisfied": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "resolved_to_disrupted": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "became_indeterminate": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "unchanged": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    }
+  }
+}

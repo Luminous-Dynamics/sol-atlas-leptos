@@ -1,0 +1,11 @@
+{
+  "domains": [
+    {
+      "id": "domain:shared-feeder",
+      "cause_entity_id": "feeder:grid-1",
+      "mechanism": "shared_power",
+      "member_entity_ids": ["pump:a", "pump:b"],
+      "supporting_evidence_ids": ["ev:domain"]
+    }
+  ]
+}

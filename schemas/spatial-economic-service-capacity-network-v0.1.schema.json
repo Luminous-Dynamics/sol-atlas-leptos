@@ -1,0 +1,262 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/spatial-economic-service-capacity-network-v0.1.schema.json",
+  "title": "Spatial-Economic Service Capacity Network Scenario",
+  "description": "Directed link-capacity network with explicit source entities, target service, topology completeness, unit, uncertainty and evidence. Incomplete topology cannot support service-wide adequacy or outage conclusions.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "id",
+    "as_of",
+    "service_entity_id",
+    "topology_completeness",
+    "source_entity_ids",
+    "required_capacity",
+    "links"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "as_of": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
+    },
+    "service_entity_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "topology_completeness": {
+      "enum": [
+        "complete",
+        "partial",
+        "unknown"
+      ]
+    },
+    "source_entity_ids": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "required_capacity": {
+      "$ref": "#/$defs/measurement"
+    },
+    "links": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/link"
+      }
+    }
+  },
+  "$defs": {
+    "quantity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "value",
+        "unit"
+      ],
+      "properties": {
+        "value": {
+          "type": "number",
+          "minimum": 0
+        },
+        "unit": {
+          "type": "string",
+          "minLength": 1
+        },
+        "uncertainty_abs": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "measurement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "entity_id",
+        "quantity",
+        "basis",
+        "rationale"
+      ],
+      "properties": {
+        "entity_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "quantity": {
+          "$ref": "#/$defs/quantity"
+        },
+        "basis": {
+          "enum": [
+            "assumed",
+            "observed"
+          ]
+        },
+        "rationale": {
+          "type": "string",
+          "minLength": 1
+        },
+        "supporting_evidence_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "basis": {
+                "const": "observed"
+              }
+            },
+            "required": [
+              "basis"
+            ]
+          },
+          "then": {
+            "required": [
+              "supporting_evidence_ids"
+            ],
+            "properties": {
+              "supporting_evidence_ids": {
+                "minItems": 1
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "basis": {
+                "const": "assumed"
+              }
+            },
+            "required": [
+              "basis"
+            ]
+          },
+          "then": {
+            "properties": {
+              "supporting_evidence_ids": {
+                "maxItems": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    "link": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "from_entity_id",
+        "to_entity_id",
+        "capacity",
+        "availability",
+        "availability_basis",
+        "availability_rationale"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "from_entity_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "to_entity_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "capacity": {
+          "$ref": "#/$defs/measurement"
+        },
+        "availability": {
+          "enum": [
+            "active",
+            "inactive",
+            "unknown"
+          ]
+        },
+        "availability_basis": {
+          "enum": [
+            "assumed",
+            "observed"
+          ]
+        },
+        "availability_rationale": {
+          "type": "string",
+          "minLength": 1
+        },
+        "availability_supporting_evidence_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "availability_basis": {
+                "const": "observed"
+              }
+            },
+            "required": [
+              "availability_basis"
+            ]
+          },
+          "then": {
+            "required": [
+              "availability_supporting_evidence_ids"
+            ],
+            "properties": {
+              "availability_supporting_evidence_ids": {
+                "minItems": 1
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "availability_basis": {
+                "const": "assumed"
+              }
+            },
+            "required": [
+              "availability_basis"
+            ]
+          },
+          "then": {
+            "properties": {
+              "availability_supporting_evidence_ids": {
+                "maxItems": 0
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

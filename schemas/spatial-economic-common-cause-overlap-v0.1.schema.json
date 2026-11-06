@@ -1,0 +1,85 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/spatial-economic-common-cause-overlap-v0.1.schema.json",
+  "title": "Spatial-Economic Common-Cause / Dependency-Group Overlap",
+  "description": "Reports structurally shared prerequisites and active exposure across a dependency group's alternatives. Warnings do not establish failure, causal impact, or probability.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["overlaps"],
+  "properties": {
+    "overlaps": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/overlap" }
+    }
+  },
+  "$defs": {
+    "logic": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["mode"],
+          "properties": { "mode": { "const": "all_required" } }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["mode"],
+          "properties": { "mode": { "const": "any_one" } }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["mode", "minimum"],
+          "properties": {
+            "mode": { "const": "at_least" },
+            "minimum": { "type": "integer", "minimum": 1 }
+          }
+        }
+      ]
+    },
+    "overlap": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "domain_id",
+        "group_id",
+        "as_of",
+        "domain_state",
+        "logic",
+        "domain_evidence_admissible",
+        "shared_relation_ids",
+        "shared_prerequisite_entity_ids",
+        "currently_exposed_relation_ids",
+        "independent_redundancy_warning"
+      ],
+      "properties": {
+        "domain_id": { "type": "string", "minLength": 1 },
+        "group_id": { "type": "string", "minLength": 1 },
+        "as_of": {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
+        },
+        "domain_state": { "enum": ["active", "inactive", "unknown"] },
+        "logic": { "$ref": "#/$defs/logic" },
+        "domain_evidence_admissible": { "type": "boolean" },
+        "shared_relation_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "shared_prerequisite_entity_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "currently_exposed_relation_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "independent_redundancy_warning": { "type": "boolean" }
+      }
+    }
+  }
+}

@@ -1,0 +1,86 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/spatial-economic-availability-scenario-v0.1.schema.json",
+  "title": "Spatial-Economic Availability Scenario",
+  "description": "Explicit qualitative scenario inputs. Assumptions are not observations; unknown or missing operational state must remain unknown.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "as_of",
+    "entity_conditions"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "as_of": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
+    },
+    "entity_conditions": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "state",
+          "basis",
+          "rationale"
+        ],
+        "properties": {
+          "state": {
+            "enum": [
+              "available",
+              "unavailable",
+              "unknown"
+            ]
+          },
+          "basis": {
+            "enum": [
+              "assumed",
+              "observed"
+            ]
+          },
+          "rationale": {
+            "type": "string",
+            "minLength": 1
+          },
+          "supporting_evidence_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "uniqueItems": true
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "basis": {
+                  "const": "observed"
+                }
+              },
+              "required": [
+                "basis"
+              ]
+            },
+            "then": {
+              "required": [
+                "supporting_evidence_ids"
+              ],
+              "properties": {
+                "supporting_evidence_ids": {
+                  "minItems": 1
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}

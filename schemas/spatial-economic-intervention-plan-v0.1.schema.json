@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/spatial-economic-intervention-plan-v0.1.schema.json",
+  "title": "Spatial-Economic Intervention Plan",
+  "description": "A hypothetical intervention overlay for scenario comparison. Overrides are assumptions, not observed or achieved changes.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "rationale",
+    "condition_overrides"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "rationale": {
+      "type": "string",
+      "minLength": 1
+    },
+    "condition_overrides": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "state",
+          "basis",
+          "rationale"
+        ],
+        "properties": {
+          "state": {
+            "enum": [
+              "available",
+              "unavailable",
+              "unknown"
+            ]
+          },
+          "basis": {
+            "const": "assumed"
+          },
+          "rationale": {
+            "type": "string",
+            "minLength": 1
+          },
+          "supporting_evidence_ids": {
+            "type": "array",
+            "maxItems": 0
+          }
+        }
+      }
+    }
+  }
+}

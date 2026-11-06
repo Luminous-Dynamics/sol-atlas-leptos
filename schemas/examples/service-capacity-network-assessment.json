@@ -1,0 +1,28 @@
+{
+  "schema_version": "0.1.0",
+  "scenario_id": "synthetic:shared-trunk-capacity",
+  "service_entity_id": "service:irrigation",
+  "as_of": "2026-10-16T10:00:00Z",
+  "topology_completeness": "complete",
+  "state": "degraded",
+  "unit": "m3/h",
+  "required_capacity_value": 8,
+  "required_capacity_lower_bound": 8,
+  "required_capacity_upper_bound": 8,
+  "conservative_available_capacity": 5,
+  "optimistic_available_capacity": 5,
+  "coverage_lower_bound": 0.625,
+  "coverage_upper_bound": 0.625,
+  "conservative_min_cut_link_ids": [
+    "supply"
+  ],
+  "active_link_ids": [
+    "route-a",
+    "route-b",
+    "supply"
+  ],
+  "inactive_link_ids": [],
+  "unknown_link_ids": [],
+  "capacity_evidence_ids": [],
+  "availability_evidence_ids": []
+}

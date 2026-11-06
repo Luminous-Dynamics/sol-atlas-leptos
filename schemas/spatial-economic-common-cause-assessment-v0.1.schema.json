@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/spatial-economic-common-cause-assessment-v0.1.schema.json",
+  "title": "Spatial-Economic Common-Cause Assessment",
+  "description": "Evidence-gated exposure assessments. Exposed does not mean failed; out-of-scope does not mean safe.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["assessments"],
+  "properties": {
+    "assessments": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/assessment" }
+    }
+  },
+  "$defs": {
+    "assessment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["domain_id", "cause_entity_id", "mechanism", "as_of", "state", "domain_evidence_blockers", "condition_evidence_ids", "entity_exposures"],
+      "properties": {
+        "domain_id": { "type": "string", "minLength": 1 },
+        "cause_entity_id": { "type": "string", "minLength": 1 },
+        "mechanism": {
+          "enum": ["shared_power", "shared_control", "shared_network", "shared_site", "flood", "heat", "fire", "shared_supplier", "shared_workforce", "cyber", "other"]
+        },
+        "as_of": {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
+        },
+        "state": { "enum": ["active", "inactive", "unknown"] },
+        "basis": { "enum": ["assumed", "observed"] },
+        "domain_evidence_blockers": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["evidence_id", "reason"],
+            "properties": {
+              "evidence_id": { "type": "string", "minLength": 1 },
+              "reason": {
+                "enum": ["proposed_evidence", "disputed_evidence", "superseded_evidence", "withdrawn_evidence", "wrong_kind", "wrong_subject", "invalid_evidence_validity", "outside_evidence_validity"]
+              }
+            }
+          }
+        },
+        "condition_evidence_ids": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "entity_exposures": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["entity_id", "exposure"],
+            "properties": {
+              "entity_id": { "type": "string", "minLength": 1 },
+              "exposure": { "enum": ["exposed", "not_triggered", "indeterminate", "evidence_blocked", "outside_domain_validity"] }
+            }
+          }
+        }
+      }
+    }
+  }
+}

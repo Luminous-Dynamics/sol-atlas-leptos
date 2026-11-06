@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/spatial-economic-dependency-graph-v0.1.schema.json",
+  "title": "Spatial-Economic Dependency Graph",
+  "description": "A collection of typed spatial-economic relationship claims. The graph itself does not prove its relationships true.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "relations"
+  ],
+  "properties": {
+    "relations": {
+      "type": "array",
+      "items": {
+        "$ref": "https://luminousdynamics.io/schemas/spatial-economic-relation-v0.1.schema.json"
+      }
+    }
+  }
+}

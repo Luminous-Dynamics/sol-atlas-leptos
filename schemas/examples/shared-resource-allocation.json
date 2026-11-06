@@ -1,0 +1,127 @@
+{
+  "schema_version": "0.1.0",
+  "id": "synthetic-shared-water-pump-power",
+  "as_of": "2026-10-16T00:00:00Z",
+  "policy": "equal_coverage_progressive_fill",
+  "services": [
+    {
+      "id": "service-a",
+      "service_entity_id": "service-entity-service-a",
+      "community_id": "community-a",
+      "beneficiary_weight": 60,
+      "delivery_rate_unit": "m3/h",
+      "demand_rate": {
+        "entity_id": "service-entity-service-a",
+        "quantity": {
+          "value": 100,
+          "unit": "m3/h"
+        },
+        "basis": "assumed",
+        "rationale": "Synthetic assumption for deterministic contract fixture."
+      },
+      "essential_coverage_floor": 0.3
+    },
+    {
+      "id": "service-b",
+      "service_entity_id": "service-entity-service-b",
+      "community_id": "community-b",
+      "beneficiary_weight": 40,
+      "delivery_rate_unit": "m3/h",
+      "demand_rate": {
+        "entity_id": "service-entity-service-b",
+        "quantity": {
+          "value": 100,
+          "unit": "m3/h"
+        },
+        "basis": "assumed",
+        "rationale": "Synthetic assumption for deterministic contract fixture."
+      },
+      "essential_coverage_floor": 0.8
+    }
+  ],
+  "resources": [
+    {
+      "id": "shared-water",
+      "capacity": {
+        "entity_id": "shared-water",
+        "quantity": {
+          "value": 100,
+          "unit": "m3/h"
+        },
+        "basis": "assumed",
+        "rationale": "Synthetic assumption for deterministic contract fixture."
+      }
+    },
+    {
+      "id": "shared-pump-power",
+      "capacity": {
+        "entity_id": "shared-pump-power",
+        "quantity": {
+          "value": 40,
+          "unit": "kW"
+        },
+        "basis": "assumed",
+        "rationale": "Synthetic assumption for deterministic contract fixture."
+      }
+    }
+  ],
+  "usages": [
+    {
+      "id": "water-a",
+      "resource_id": "shared-water",
+      "service_id": "service-a",
+      "resource_use_per_delivery_rate": {
+        "entity_id": "water-a",
+        "quantity": {
+          "value": 1,
+          "unit": "m3/h per (m3/h)"
+        },
+        "basis": "assumed",
+        "rationale": "Synthetic assumption for deterministic contract fixture."
+      }
+    },
+    {
+      "id": "water-b",
+      "resource_id": "shared-water",
+      "service_id": "service-b",
+      "resource_use_per_delivery_rate": {
+        "entity_id": "water-b",
+        "quantity": {
+          "value": 1,
+          "unit": "m3/h per (m3/h)"
+        },
+        "basis": "assumed",
+        "rationale": "Synthetic assumption for deterministic contract fixture."
+      }
+    },
+    {
+      "id": "power-a",
+      "resource_id": "shared-pump-power",
+      "service_id": "service-a",
+      "resource_use_per_delivery_rate": {
+        "entity_id": "power-a",
+        "quantity": {
+          "value": 0.5,
+          "unit": "kW per (m3/h)"
+        },
+        "basis": "assumed",
+        "rationale": "Synthetic assumption for deterministic contract fixture."
+      }
+    },
+    {
+      "id": "power-b",
+      "resource_id": "shared-pump-power",
+      "service_id": "service-b",
+      "resource_use_per_delivery_rate": {
+        "entity_id": "power-b",
+        "quantity": {
+          "value": 0.5,
+          "unit": "kW per (m3/h)"
+        },
+        "basis": "assumed",
+        "rationale": "Synthetic assumption for deterministic contract fixture."
+      }
+    }
+  ],
+  "max_work_units": 60000000
+}

@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/spatial-economic-service-network-stress-v0.1.schema.json",
+  "title": "Spatial-Economic Bounded Network Stress Request",
+  "description": "Request an exhaustive single-, double-, or triple-link-failure experiment over a complete directed service-capacity topology, plus optional explicitly declared common-cause or hazard bundles. The implementation caps exhaustive cases at 10,000 and total cloned scenario-link references at 2,000,000. Over-budget sweeps fail closed and are never silently truncated.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "id",
+    "baseline_scenario",
+    "max_simultaneous_failures",
+    "max_failure_cases"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "baseline_scenario": {
+      "$ref": "https://luminousdynamics.io/schemas/spatial-economic-service-capacity-network-v0.1.schema.json"
+    },
+    "max_simultaneous_failures": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 3
+    },
+    "max_failure_cases": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 10000
+    },
+    "declared_failure_sets": {
+      "type": "array",
+      "description": "Optional caller-declared events that jointly disable multiple known links. These are explicit hypotheses; the model does not infer physical causation.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "kind",
+          "rationale",
+          "failed_link_ids"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "kind": {
+            "enum": [
+              "common_cause",
+              "hazard_bundle",
+              "other"
+            ]
+          },
+          "rationale": {
+            "type": "string",
+            "minLength": 1
+          },
+          "failed_link_ids": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        }
+      }
+    }
+  }
+}

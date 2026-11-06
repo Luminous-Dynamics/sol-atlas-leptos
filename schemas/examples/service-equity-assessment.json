@@ -1,0 +1,91 @@
+{
+  "schema_version": "0.1.0",
+  "scenario_id": "equity:water-floor",
+  "as_of": "2026-10-17T10:00:00Z",
+  "community_count": 3,
+  "cell_count": 3,
+  "total_beneficiary_weight": 10,
+  "meets_floor_weight": 6,
+  "below_floor_weight": 2,
+  "indeterminate_weight": 2,
+  "overall_floor_compliance_lower_bound": 0.6,
+  "overall_floor_compliance_upper_bound": 0.8,
+  "community_compliance_gap_lower_bound": 1,
+  "community_compliance_gap_upper_bound": 1,
+  "communities": [
+    {
+      "community_id": "east",
+      "cell_count": 1,
+      "total_beneficiary_weight": 2,
+      "meets_floor_weight": 0,
+      "below_floor_weight": 0,
+      "indeterminate_weight": 2,
+      "floor_compliance_lower_bound": 0,
+      "floor_compliance_upper_bound": 1
+    },
+    {
+      "community_id": "north",
+      "cell_count": 1,
+      "total_beneficiary_weight": 6,
+      "meets_floor_weight": 6,
+      "below_floor_weight": 0,
+      "indeterminate_weight": 0,
+      "floor_compliance_lower_bound": 1,
+      "floor_compliance_upper_bound": 1
+    },
+    {
+      "community_id": "south",
+      "cell_count": 1,
+      "total_beneficiary_weight": 2,
+      "meets_floor_weight": 0,
+      "below_floor_weight": 2,
+      "indeterminate_weight": 0,
+      "floor_compliance_lower_bound": 0,
+      "floor_compliance_upper_bound": 0
+    }
+  ],
+  "cells": [
+    {
+      "cell_id": "east-cell",
+      "service_scenario_id": "service:c",
+      "service_entity_id": "water:east",
+      "community_id": "east",
+      "beneficiary_weight": 2,
+      "essential_coverage_floor": 0.8,
+      "service_state": "indeterminate",
+      "coverage_lower_bound": 0.45454545454545453,
+      "coverage_upper_bound": 1,
+      "floor_status": "indeterminate",
+      "available_capacity_evidence_ids": [],
+      "required_capacity_evidence_ids": []
+    },
+    {
+      "cell_id": "north-cell",
+      "service_scenario_id": "service:a",
+      "service_entity_id": "water:north",
+      "community_id": "north",
+      "beneficiary_weight": 6,
+      "essential_coverage_floor": 0.8,
+      "service_state": "degraded",
+      "coverage_lower_bound": 0.9,
+      "coverage_upper_bound": 0.9,
+      "floor_status": "meets_floor",
+      "available_capacity_evidence_ids": [],
+      "required_capacity_evidence_ids": []
+    },
+    {
+      "cell_id": "south-cell",
+      "service_scenario_id": "service:b",
+      "service_entity_id": "water:south",
+      "community_id": "south",
+      "beneficiary_weight": 2,
+      "essential_coverage_floor": 0.8,
+      "service_state": "degraded",
+      "coverage_lower_bound": 0.2,
+      "coverage_upper_bound": 0.2,
+      "floor_status": "below_floor",
+      "available_capacity_evidence_ids": [],
+      "required_capacity_evidence_ids": []
+    }
+  ]
+}

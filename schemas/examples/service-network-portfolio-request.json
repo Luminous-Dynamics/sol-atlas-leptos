@@ -1,0 +1,202 @@
+{
+  "comparison_id": "portfolio:irrigation-robustness",
+  "scenarios": [
+    {
+      "schema_version": "0.1.0",
+      "id": "scenario:normal",
+      "as_of": "2026-10-16T10:00:00Z",
+      "service_entity_id": "service:irrigation",
+      "topology_completeness": "complete",
+      "source_entity_ids": [
+        "source:reservoir"
+      ],
+      "required_capacity": {
+        "entity_id": "service:irrigation",
+        "quantity": {
+          "value": 8,
+          "unit": "m3/h"
+        },
+        "basis": "assumed",
+        "rationale": "Synthetic irrigation demand.",
+        "supporting_evidence_ids": []
+      },
+      "links": [
+        {
+          "id": "supply",
+          "from_entity_id": "source:reservoir",
+          "to_entity_id": "junction",
+          "capacity": {
+            "entity_id": "supply",
+            "quantity": {
+              "value": 10,
+              "unit": "m3/h"
+            },
+            "basis": "assumed",
+            "rationale": "Synthetic normal supply capacity.",
+            "supporting_evidence_ids": []
+          },
+          "availability": "active",
+          "availability_basis": "assumed",
+          "availability_rationale": "Synthetic normal state.",
+          "availability_supporting_evidence_ids": []
+        },
+        {
+          "id": "route-a",
+          "from_entity_id": "junction",
+          "to_entity_id": "service:irrigation",
+          "capacity": {
+            "entity_id": "route-a",
+            "quantity": {
+              "value": 4,
+              "unit": "m3/h"
+            },
+            "basis": "assumed",
+            "rationale": "Synthetic route capacity.",
+            "supporting_evidence_ids": []
+          },
+          "availability": "active",
+          "availability_basis": "assumed",
+          "availability_rationale": "Synthetic route state.",
+          "availability_supporting_evidence_ids": []
+        },
+        {
+          "id": "route-b",
+          "from_entity_id": "junction",
+          "to_entity_id": "service:irrigation",
+          "capacity": {
+            "entity_id": "route-b",
+            "quantity": {
+              "value": 4,
+              "unit": "m3/h"
+            },
+            "basis": "assumed",
+            "rationale": "Synthetic backup route capacity.",
+            "supporting_evidence_ids": []
+          },
+          "availability": "inactive",
+          "availability_basis": "assumed",
+          "availability_rationale": "Synthetic backup route is inactive in normal case.",
+          "availability_supporting_evidence_ids": []
+        }
+      ]
+    },
+    {
+      "schema_version": "0.1.0",
+      "id": "scenario:drought",
+      "as_of": "2026-10-16T10:00:00Z",
+      "service_entity_id": "service:irrigation",
+      "topology_completeness": "complete",
+      "source_entity_ids": [
+        "source:reservoir"
+      ],
+      "required_capacity": {
+        "entity_id": "service:irrigation",
+        "quantity": {
+          "value": 8,
+          "unit": "m3/h"
+        },
+        "basis": "assumed",
+        "rationale": "Synthetic irrigation demand.",
+        "supporting_evidence_ids": []
+      },
+      "links": [
+        {
+          "id": "supply",
+          "from_entity_id": "source:reservoir",
+          "to_entity_id": "junction",
+          "capacity": {
+            "entity_id": "supply",
+            "quantity": {
+              "value": 4,
+              "unit": "m3/h"
+            },
+            "basis": "assumed",
+            "rationale": "Synthetic drought supply constraint.",
+            "supporting_evidence_ids": []
+          },
+          "availability": "active",
+          "availability_basis": "assumed",
+          "availability_rationale": "Synthetic drought state.",
+          "availability_supporting_evidence_ids": []
+        },
+        {
+          "id": "route-a",
+          "from_entity_id": "junction",
+          "to_entity_id": "service:irrigation",
+          "capacity": {
+            "entity_id": "route-a",
+            "quantity": {
+              "value": 4,
+              "unit": "m3/h"
+            },
+            "basis": "assumed",
+            "rationale": "Synthetic route capacity.",
+            "supporting_evidence_ids": []
+          },
+          "availability": "active",
+          "availability_basis": "assumed",
+          "availability_rationale": "Synthetic route state.",
+          "availability_supporting_evidence_ids": []
+        },
+        {
+          "id": "route-b",
+          "from_entity_id": "junction",
+          "to_entity_id": "service:irrigation",
+          "capacity": {
+            "entity_id": "route-b",
+            "quantity": {
+              "value": 4,
+              "unit": "m3/h"
+            },
+            "basis": "assumed",
+            "rationale": "Synthetic backup route capacity.",
+            "supporting_evidence_ids": []
+          },
+          "availability": "active",
+          "availability_basis": "assumed",
+          "availability_rationale": "Synthetic backup route remains active in drought case.",
+          "availability_supporting_evidence_ids": []
+        }
+      ]
+    }
+  ],
+  "plans": [
+    {
+      "schema_version": "0.1.0",
+      "id": "open-backup",
+      "rationale": "Hypothetically activate the backup route.",
+      "link_overrides": {
+        "route-b": {
+          "availability": "active",
+          "rationale": "Synthetic scenario assumption: activate the backup route."
+        }
+      }
+    },
+    {
+      "schema_version": "0.1.0",
+      "id": "upgrade-supply",
+      "rationale": "Hypothetically increase supply trunk capacity.",
+      "link_overrides": {
+        "supply": {
+          "capacity_value": 8,
+          "rationale": "Synthetic scenario assumption: set supply capacity to 8 m3/h."
+        }
+      }
+    },
+    {
+      "schema_version": "0.1.0",
+      "id": "robust-combined",
+      "rationale": "Hypothetically activate the backup and increase supply capacity.",
+      "link_overrides": {
+        "route-b": {
+          "availability": "active",
+          "rationale": "Synthetic scenario assumption: activate the backup route."
+        },
+        "supply": {
+          "capacity_value": 8,
+          "rationale": "Synthetic scenario assumption: set supply capacity to 8 m3/h."
+        }
+      }
+    }
+  ]
+}

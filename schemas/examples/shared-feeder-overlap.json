@@ -1,0 +1,27 @@
+{
+  "overlaps": [
+    {
+      "domain_id": "domain:shared-feeder",
+      "group_id": "synthetic:pump-alternatives",
+      "as_of": "2026-10-15T10:00:00Z",
+      "domain_state": "active",
+      "logic": {
+        "mode": "any_one"
+      },
+      "domain_evidence_admissible": true,
+      "shared_relation_ids": [
+        "synthetic:pump-a",
+        "synthetic:pump-b"
+      ],
+      "shared_prerequisite_entity_ids": [
+        "pump:a",
+        "pump:b"
+      ],
+      "currently_exposed_relation_ids": [
+        "synthetic:pump-a",
+        "synthetic:pump-b"
+      ],
+      "independent_redundancy_warning": true
+    }
+  ]
+}

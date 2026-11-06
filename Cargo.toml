@@ -61,3 +61,44 @@ opt-level = "z"
 lto = true
 codegen-units = 1
 strip = true
+
+
+[[bench]]
+name = "spatial_economic_intervention"
+harness = false
+
+[[bench]]
+name = "water_service_balance"
+harness = false
+
+[[bench]]
+name = "water_service_trajectory"
+harness = false
+
+[[bench]]
+name = "water_trajectory_intervention"
+harness = false
+
+[[bench]]
+name = "water_energy_coupling"
+harness = false
+
+[[bench]]
+name = "water_energy_intervention"
+harness = false
+
+[[bench]]
+name = "water_energy_stress_sweep"
+harness = false
+
+[[bench]]
+name = "water_energy_stress_intervention"
+harness = false
+
+[[bench]]
+name = "water_energy_stress_intervention_batch"
+harness = false
+
+[[bench]]
+name = "shared_resource_allocation"
+harness = false

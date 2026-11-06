@@ -1,0 +1,124 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/spatial-economic-service-recovery-trajectory-assessment-v0.1.schema.json",
+  "title": "Spatial-Economic Service Recovery Trajectory Assessment",
+  "description": "Recovery sample brackets and trapezoid-integrated normalized service-deficit bounds. These metrics describe sampled/modelled service only, not the exact physical recovery instant or causal impact.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "trajectory_id",
+    "service_entity_id",
+    "unit",
+    "disruption_started_at",
+    "observation_ended_at",
+    "sample_count",
+    "maximum_observed_sample_gap_seconds",
+    "initial_state",
+    "final_state",
+    "observed_adequacy_maintained_through_end",
+    "normalized_deficit_seconds_lower_bound",
+    "normalized_deficit_seconds_upper_bound",
+    "maximum_normalized_deficit_lower_bound",
+    "maximum_normalized_deficit_upper_bound",
+    "evidence_ids"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "trajectory_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "service_entity_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "unit": {
+      "type": "string",
+      "minLength": 1
+    },
+    "disruption_started_at": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
+    },
+    "observation_ended_at": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
+    },
+    "sample_count": {
+      "type": "integer",
+      "minimum": 2
+    },
+    "maximum_observed_sample_gap_seconds": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "initial_state": {
+      "enum": [
+        "adequate",
+        "degraded",
+        "unavailable",
+        "indeterminate"
+      ]
+    },
+    "final_state": {
+      "enum": [
+        "adequate",
+        "degraded",
+        "unavailable",
+        "indeterminate"
+      ]
+    },
+    "preceding_sample_at": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
+    },
+    "preceding_sample_elapsed_seconds": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "first_adequate_sample_at": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
+    },
+    "first_adequate_sample_elapsed_seconds": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "observed_adequacy_maintained_through_end": {
+      "type": "boolean"
+    },
+    "observed_adequacy_duration_seconds": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "normalized_deficit_seconds_lower_bound": {
+      "type": "number",
+      "minimum": 0
+    },
+    "normalized_deficit_seconds_upper_bound": {
+      "type": "number",
+      "minimum": 0
+    },
+    "maximum_normalized_deficit_lower_bound": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "maximum_normalized_deficit_upper_bound": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "evidence_ids": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    }
+  }
+}

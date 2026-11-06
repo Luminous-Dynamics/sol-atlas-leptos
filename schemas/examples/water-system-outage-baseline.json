@@ -1,0 +1,18 @@
+{
+  "id": "synthetic-outage-baseline",
+  "as_of": "2026-10-15T12:00:00Z",
+  "entity_conditions": {
+    "synthetic-feeder-east": {
+      "state": "unavailable",
+      "basis": "assumed",
+      "rationale": "Synthetic baseline assumption: primary feeder unavailable.",
+      "supporting_evidence_ids": []
+    },
+    "synthetic-feeder-west": {
+      "state": "unavailable",
+      "basis": "assumed",
+      "rationale": "Synthetic baseline assumption: backup feeder unavailable.",
+      "supporting_evidence_ids": []
+    }
+  }
+}
