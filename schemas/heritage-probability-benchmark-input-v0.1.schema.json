@@ -1,0 +1,88 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/heritage-probability-benchmark-input-v0.1.schema.json",
+  "title": "Sol-Atlas Heritage Probability Benchmark Input v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "scenario_id",
+    "scenario_manifest_sha256",
+    "evaluation_protocol_sha256",
+    "evaluator_build_sha256",
+    "prior_probability_originally_present",
+    "events",
+    "joint_probability_of_detection_per_survey_unit",
+    "false_positive_probability_if_originally_absent"
+  ],
+  "properties": {
+    "scenario_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "scenario_manifest_sha256": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{64}$"
+    },
+    "evaluation_protocol_sha256": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{64}$"
+    },
+    "evaluator_build_sha256": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{64}$"
+    },
+    "prior_probability_originally_present": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "events": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "survival",
+        "exposure_given_survival",
+        "observability_given_survival_and_exposure",
+        "footprint_coverage_given_prior_stages",
+        "conditional_detection_given_prior_stages"
+      ],
+      "properties": {
+        "survival": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "exposure_given_survival": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "observability_given_survival_and_exposure": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "footprint_coverage_given_prior_stages": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "conditional_detection_given_prior_stages": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      }
+    },
+    "joint_probability_of_detection_per_survey_unit": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "false_positive_probability_if_originally_absent": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    }
+  }
+}
