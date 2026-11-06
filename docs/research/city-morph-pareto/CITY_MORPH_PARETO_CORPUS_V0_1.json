@@ -1,0 +1,2455 @@
+{
+  "schema_id": "org.luminousdynamics.city-morph-pareto.synthetic-corpus",
+  "schema_version": "0.1.0",
+  "corpus_id": "CITY-MORPH-PARETO-CORPUS-V0.1",
+  "classification": "synthetic_fixture_only",
+  "policy_note": "No scalar score or total ranking is computed. Hard constraints are non-compensable. Robust dominance requires separation of uncertainty intervals for each objective.",
+  "semantics": {
+    "objective_directions": [
+      "minimize",
+      "maximize"
+    ],
+    "constraints": [
+      "le",
+      "ge"
+    ],
+    "evidence_states": [
+      "current",
+      "unknown",
+      "missing",
+      "stale",
+      "revoked"
+    ],
+    "alternative_statuses": [
+      "Feasible",
+      "Infeasible",
+      "Unknown"
+    ],
+    "case_dispositions": [
+      "Comparable",
+      "Unsupported"
+    ],
+    "robust_dominance": "For minimize, A.upper <= B.lower; for maximize A.lower >= B.upper on every objective, with strict separation on at least one. Overlap does not establish dominance.",
+    "frontier": "Only fully evidenced feasible alternatives can enter the Pareto frontier. Infeasible and Unknown alternatives remain visible in separate lists."
+  },
+  "cases": [
+    {
+      "case_id": "MP-001",
+      "description": "One feasible alternative is strictly better on all objectives.",
+      "input": {
+        "scope_digest": "scope:metro-v0.1",
+        "objectives": [
+          {
+            "metric_id": "travel",
+            "unit": "min",
+            "direction": "minimize",
+            "definition_digest": "def:travel:v1"
+          },
+          {
+            "metric_id": "affordability",
+            "unit": "index",
+            "direction": "maximize",
+            "definition_digest": "def:affordability:v1"
+          }
+        ],
+        "constraints": [],
+        "alternatives": [
+          {
+            "id": "A",
+            "scope_digest": "scope:metro-v0.1",
+            "metrics": [
+              {
+                "metric_id": "travel",
+                "unit": "min",
+                "lower": 8,
+                "upper": 8,
+                "evidence_state": "current"
+              },
+              {
+                "metric_id": "affordability",
+                "unit": "index",
+                "lower": 80,
+                "upper": 80,
+                "evidence_state": "current"
+              }
+            ]
+          },
+          {
+            "id": "B",
+            "scope_digest": "scope:metro-v0.1",
+            "metrics": [
+              {
+                "metric_id": "travel",
+                "unit": "min",
+                "lower": 10,
+                "upper": 10,
+                "evidence_state": "current"
+              },
+              {
+                "metric_id": "affordability",
+                "unit": "index",
+                "lower": 60,
+                "upper": 60,
+                "evidence_state": "current"
+              }
+            ]
+          }
+        ]
+      },
+      "expected": {
+        "case_id": "MP-001",
+        "disposition": "Comparable",
+        "reason_codes": [],
+        "alternative_statuses": [
+          {
+            "alternative_id": "A",
+            "status": "Feasible",
+            "reason_codes": []
+          },
+          {
+            "alternative_id": "B",
+            "status": "Feasible",
+            "reason_codes": []
+          }
+        ],
+        "feasible_alternative_ids": [
+          "A",
+          "B"
+        ],
+        "infeasible_alternative_ids": [],
+        "unknown_alternative_ids": [],
+        "dominance_relations": [
+          {
+            "dominator": "A",
+            "dominated": "B"
+          }
+        ],
+        "pareto_frontier": [
+          "A"
+        ],
+        "incomparable_pairs": []
+      }
+    },
+    {
+      "case_id": "MP-002",
+      "description": "Travel time and affordability trade off; neither option dominates.",
+      "input": {
+        "scope_digest": "scope:metro-v0.1",
+        "objectives": [
+          {
+            "metric_id": "travel",
+            "unit": "min",
+            "direction": "minimize",
+            "definition_digest": "def:travel:v1"
+          },
+          {
+            "metric_id": "affordability",
+            "unit": "index",
+            "direction": "maximize",
+            "definition_digest": "def:affordability:v1"
+          }
+        ],
+        "constraints": [],
+        "alternatives": [
+          {
+            "id": "A",
+            "scope_digest": "scope:metro-v0.1",
+            "metrics": [
+              {
+                "metric_id": "travel",
+                "unit": "min",
+                "lower": 8,
+                "upper": 8,
+                "evidence_state": "current"
+              },
+              {
+                "metric_id": "affordability",
+                "unit": "index",
+                "lower": 50,
+                "upper": 50,
+                "evidence_state": "current"
+              }
+            ]
+          },
+          {
+            "id": "B",
+            "scope_digest": "scope:metro-v0.1",
+            "metrics": [
+              {
+                "metric_id": "travel",
+                "unit": "min",
+                "lower": 10,
+                "upper": 10,
+                "evidence_state": "current"
+              },
+              {
+                "metric_id": "affordability",
+                "unit": "index",
+                "lower": 70,
+                "upper": 70,
+                "evidence_state": "current"
+              }
+            ]
+          }
+        ]
+      },
+      "expected": {
+        "case_id": "MP-002",
+        "disposition": "Comparable",
+        "reason_codes": [],
+        "alternative_statuses": [
+          {
+            "alternative_id": "A",
+            "status": "Feasible",
+            "reason_codes": []
+          },
+          {
+            "alternative_id": "B",
+            "status": "Feasible",
+            "reason_codes": []
+          }
+        ],
+        "feasible_alternative_ids": [
+          "A",
+          "B"
+        ],
+        "infeasible_alternative_ids": [],
+        "unknown_alternative_ids": [],
+        "dominance_relations": [],
+        "pareto_frontier": [
+          "A",
+          "B"
+        ],
+        "incomparable_pairs": [
+          {
+            "alternative_a": "A",
+            "alternative_b": "B",
+            "reason": "TRADEOFF_OR_OVERLAPPING_UNCERTAINTY_OR_TIE"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "MP-003",
+      "description": "A high-yield alternative violates an ecological land-take hard constraint.",
+      "input": {
+        "scope_digest": "scope:metro-v0.1",
+        "objectives": [
+          {
+            "metric_id": "travel",
+            "unit": "min",
+            "direction": "minimize",
+            "definition_digest": "def:travel:v1"
+          },
+          {
+            "metric_id": "housing_yield",
+            "unit": "units",
+            "direction": "maximize",
+            "definition_digest": "def:housing_yield:v1"
+          }
+        ],
+        "constraints": [
+          {
+            "metric_id": "eco_land_take",
+            "unit": "ha",
+            "comparator": "le",
+            "threshold": 40,
+            "definition_digest": "constraint:eco_land_take:v1"
+          }
+        ],
+        "alternatives": [
+          {
+            "id": "A",
+            "scope_digest": "scope:metro-v0.1",
+            "metrics": [
+              {
+                "metric_id": "travel",
+                "unit": "min",
+                "lower": 5,
+                "upper": 5,
+                "evidence_state": "current"
+              },
+              {
+                "metric_id": "housing_yield",
+                "unit": "units",
+                "lower": 800,
+                "upper": 800,
+                "evidence_state": "current"
+              },
+              {
+                "metric_id": "eco_land_take",
+                "unit": "ha",
+                "lower": 55,
+                "upper": 55,
+                "evidence_state": "current"
+              }
+            ]
+          },
+          {
+            "id": "B",
+            "scope_digest": "scope:metro-v0.1",
+            "metrics": [
+              {
+                "metric_id": "travel",
+                "unit": "min",
+                "lower": 8,
+                "upper": 8,
+                "evidence_state": "current"
+              },
+              {
+                "metric_id": "housing_yield",
+                "unit": "units",
+                "lower": 650,
+                "upper": 650,
+                "evidence_state": "current"
+              },
+              {
+                "metric_id": "eco_land_take",
+                "unit": "ha",
+                "lower": 35,
+                "upper": 35,
+                "evidence_state": "current"
+              }
+            ]
+          }
+        ]
+      },
+      "expected": {
+        "case_id": "MP-003",
+        "disposition": "Comparable",
+        "reason_codes": [],
+        "alternative_statuses": [
+          {
+            "alternative_id": "A",
+            "status": "Infeasible",
+            "reason_codes": [
+              "HARD_CONSTRAINT_VIOLATED:eco_land_take"
+            ]
+          },
+          {
+            "alternative_id": "B",
+            "status": "Feasible",
+            "reason_codes": []
+          }
+        ],
+        "feasible_alternative_ids": [
+          "B"
+        ],
+        "infeasible_alternative_ids": [
+          "A"
+        ],
+        "unknown_alternative_ids": [],
+        "dominance_relations": [],
+        "pareto_frontier": [
+          "B"
+        ],
+        "incomparable_pairs": []
+      }
+    },
+    {
+      "case_id": "MP-004",
+      "description": "A low-cost option violates the minimum effective-access service floor.",
+      "input": {
+        "scope_digest": "scope:metro-v0.1",
+        "objectives": [
+          {
+            "metric_id": "capex",
+            "unit": "million",
+            "direction": "minimize",
+            "definition_digest": "def:capex:v1"
+          },
+          {
+            "metric_id": "access_coverage",
+            "unit": "fraction",
+            "direction": "maximize",
+            "definition_digest": "def:access_coverage:v1"
+          }
+        ],
+        "constraints": [
+          {
+            "metric_id": "access_coverage",
+            "unit": "fraction",
+            "comparator": "ge",
+            "threshold": 0.8,
+            "definition_digest": "constraint:access_coverage:v1"
+          }
+        ],
+        "alternatives": [
+          {
+            "id": "A",
+            "scope_digest": "scope:metro-v0.1",
+            "metrics": [
+              {
+                "metric_id": "capex",
+                "unit": "million",
+                "lower": 10,
+                "upper": 10,
+                "evidence_state": "current"
+              },
+              {
+                "metric_id": "access_coverage",
+                "unit": "fraction",
+                "lower": 0.5,
+                "upper": 0.5,
+                "evidence_state": "current"
+              }
+            ]
+          },
+          {
+            "id": "B",
+            "scope_digest": "scope:metro-v0.1",
+            "metrics": [
+              {
+                "metric_id": "capex",
+                "unit": "million",
+                "lower": 18,
+                "upper": 18,
+                "evidence_state": "current"
+              },
+              {
+                "metric_id": "access_coverage",
+                "unit": "fraction",
+                "lower": 0.9,
+                "upper": 0.9,
+                "evidence_state": "current"
+              }
+            ]
+          }
+        ]
+      },
+      "expected": {
+        "case_id": "MP-004",
+        "disposition": "Comparable",
+        "reason_codes": [],
+        "alternative_statuses": [
+          {
+            "alternative_id": "A",
+            "status": "Infeasible",
+            "reason_codes": [
+              "HARD_CONSTRAINT_VIOLATED:access_coverage"
+            ]
+          },
+          {
+            "alternative_id": "B",
+            "status": "Feasible",
+            "reason_codes": []
+          }
+        ],
+        "feasible_alternative_ids": [
+          "B"
+        ],
+        "infeasible_alternative_ids": [
+          "A"
+        ],
+        "unknown_alternative_ids": [],
+        "dominance_relations": [],
+        "pareto_frontier": [
+          "B"
+        ],
+        "incomparable_pairs": []
+      }
+    },
+    {
+      "case_id": "MP-005",
+      "description": "Identical objective vectors are tied and neither strictly dominates.",
+      "input": {
+        "scope_digest": "scope:metro-v0.1",
+        "objectives": [
+          {
+            "metric_id": "travel",
+            "unit": "min",
+            "direction": "minimize",
+            "definition_digest": "def:travel:v1"
+          },
+          {
+            "metric_id": "affordability",
+            "unit": "index",
+            "direction": "maximize",
+            "definition_digest": "def:affordability:v1"
+          }
+        ],
+        "constraints": [],
+        "alternatives": [
+          {
+            "id": "A",
+            "scope_digest": "scope:metro-v0.1",
+            "metrics": [
+              {
+                "metric_id": "travel",
+                "unit": "min",
+                "lower": 8,
+                "upper": 8,
+                "evidence_state": "current"
+              },
+              {
+                "metric_id": "affordability",
+                "unit": "index",
+                "lower": 70,
+                "upper": 70,
+                "evidence_state": "current"
+              }
+            ]
+          },
+          {
+            "id": "B",
+            "scope_digest": "scope:metro-v0.1",
+            "metrics": [
+              {
+                "metric_id": "travel",
+                "unit": "min",
+                "lower": 8,
+                "upper": 8,
+                "evidence_state": "current"
+              },
+              {
+                "metric_id": "affordability",
+                "unit": "index",
+                "lower": 70,
+                "upper": 70,
+                "evidence_state": "current"
+              }
+            ]
+          }
+        ]
+      },
+      "expected": {
+        "case_id": "MP-005",
+        "disposition": "Comparable",
+        "reason_codes": [],
+        "alternative_statuses": [
+          {
+            "alternative_id": "A",
+            "status": "Feasible",
+            "reason_codes": []
+          },
+          {
+            "alternative_id": "B",
+            "status": "Feasible",
+            "reason_codes": []
+          }
+        ],
+        "feasible_alternative_ids": [
+          "A",
+          "B"
+        ],
+        "infeasible_alternative_ids": [],
+        "unknown_alternative_ids": [],
+        "dominance_relations": [],
+        "pareto_frontier": [
+          "A",
+          "B"
+        ],
+        "incomparable_pairs": [
+          {
+            "alternative_a": "A",
+            "alternative_b": "B",
+            "reason": "TRADEOFF_OR_OVERLAPPING_UNCERTAINTY_OR_TIE"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "MP-006",
+      "description": "One candidate is dominated by a second across all declared objectives.",
+      "input": {
+        "scope_digest": "scope:metro-v0.1",
+        "objectives": [
+          {
+            "metric_id": "travel",
+            "unit": "min",
+            "direction": "minimize",
+            "definition_digest": "def:travel:v1"
+          },
+          {
+            "metric_id": "carbon",
+            "unit": "tCO2e",
+            "direction": "minimize",
+            "definition_digest": "def:carbon:v1"
+          },
+          {
+            "metric_id": "affordability",
+            "unit": "index",
+            "direction": "maximize",
+            "definition_digest": "def:affordability:v1"
+          }
+        ],
+        "constraints": [],
+        "alternatives": [
+          {
+            "id": "A",
+            "scope_digest": "scope:metro-v0.1",
+            "metrics": [
+              {
+                "metric_id": "travel",
+                "unit": "min",
+                "lower": 8,
+                "upper": 8,
+                "evidence_state": "current"
+              },
+              {
+                "metric_id": "carbon",
+                "unit": "tCO2e",
+                "lower": 40,
+                "upper": 40,
+                "evidence_state": "current"
+              },
+              {
+                "metric_id": "affordability",
+                "unit": "index",
+                "lower": 80,
+                "upper": 80,
+                "evidence_state": "current"
+              }
+            ]
+          },
+          {
+            "id": "B",
+            "scope_digest": "scope:metro-v0.1",
+            "metrics": [
+              {
+                "metric_id": "travel",
+                "unit": "min",
+                "lower": 11,
+                "upper": 11,
+                "evidence_state": "current"
+              },
+              {
+                "metric_id": "carbon",
+                "unit": "tCO2e",
+                "lower": 55,
+                "upper": 55,
+                "evidence_state": "current"
+              },
+              {
+                "metric_id": "affordability",
+                "unit": "index",
+                "lower": 65,
+                "upper": 65,
+                "evidence_state": "current"
+              }
+            ]
+          },
+          {
+            "id": "C",
+            "scope_digest": "scope:metro-v0.1",
+            "metrics": [
+              {
+                "metric_id": "travel",
+                "unit": "min",
+                "lower": 9,
+                "upper": 9,
+                "evidence_state": "current"
+              },
+              {
+                "metric_id": "carbon",
+                "unit": "tCO2e",
+                "lower": 35,
+                "upper": 35,
+                "evidence_state": "current"
+              },
+              {
+                "metric_id": "affordability",
+                "unit": "index",
+                "lower": 90,
+                "upper": 90,
+                "evidence_state": "current"
+              }
+            ]
+          }
+        ]
+      },
+      "expected": {
+        "case_id": "MP-006",
+        "disposition": "Comparable",
+        "reason_codes": [],
+        "alternative_statuses": [
+          {
+            "alternative_id": "A",
+            "status": "Feasible",
+            "reason_codes": []
+          },
+          {
+            "alternative_id": "B",
+            "status": "Feasible",
+            "reason_codes": []
+          },
+          {
+            "alternative_id": "C",
+            "status": "Feasible",
+            "reason_codes": []
+          }
+        ],
+        "feasible_alternative_ids": [
+          "A",
+          "B",
+          "C"
+        ],
+        "infeasible_alternative_ids": [],
+        "unknown_alternative_ids": [],
+        "dominance_relations": [
+          {
+            "dominator": "A",
+            "dominated": "B"
+          },
+          {
+            "dominator": "C",
+            "dominated": "B"
+          }
+        ],
+        "pareto_frontier": [
+          "A",
+          "C"
+        ],
+        "incomparable_pairs": [
+          {
+            "alternative_a": "A",
+            "alternative_b": "C",
+            "reason": "TRADEOFF_OR_OVERLAPPING_UNCERTAINTY_OR_TIE"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "MP-007",
+      "description": "Overlapping uncertainty intervals do not establish robust dominance.",
+      "input": {
+        "scope_digest": "scope:metro-v0.1",
+        "objectives": [
+          {
+            "metric_id": "travel",
+            "unit": "min",
+            "direction": "minimize",
+            "definition_digest": "def:travel:v1"
+          },
+          {
+            "metric_id": "affordability",
+            "unit": "index",
+            "direction": "maximize",
+            "definition_digest": "def:affordability:v1"
+          }
+        ],
+        "constraints": [],
+        "alternatives": [
+          {
+            "id": "A",
+            "scope_digest": "scope:metro-v0.1",
+            "metrics": [
+              {
+                "metric_id": "travel",
+                "unit": "min",
+                "lower": 5,
+                "upper": 9,
+                "evidence_state": "current"
+              },
+              {
+                "metric_id": "affordability",
+                "unit": "index",
+                "lower": 50,
+                "upper": 70,
+                "evidence_state": "current"
+              }
+            ]
+          },
+          {
+            "id": "B",
+            "scope_digest": "scope:metro-v0.1",
+            "metrics": [
+              {
+                "metric_id": "travel",
+                "unit": "min",
+                "lower": 6,
+                "upper": 10,
+                "evidence_state": "current"
+              },
+              {
+                "metric_id": "affordability",
+                "unit": "index",
+                "lower": 60,
+                "upper": 80,
+                "evidence_state": "current"
+              }
+            ]
+          }
+        ]
+      },
+      "expected": {
+        "case_id": "MP-007",
+        "disposition": "Comparable",
+        "reason_codes": [],
+        "alternative_statuses": [
+          {
+            "alternative_id": "A",
+            "status": "Feasible",
+            "reason_codes": []
+          },
+          {
+            "alternative_id": "B",
+            "status": "Feasible",
+            "reason_codes": []
+          }
+        ],
+        "feasible_alternative_ids": [
+          "A",
+          "B"
+        ],
+        "infeasible_alternative_ids": [],
+        "unknown_alternative_ids": [],
+        "dominance_relations": [],
+        "pareto_frontier": [
+          "A",
+          "B"
+        ],
+        "incomparable_pairs": [
+          {
+            "alternative_a": "A",
+            "alternative_b": "B",
+            "reason": "TRADEOFF_OR_OVERLAPPING_UNCERTAINTY_OR_TIE"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "MP-008",
+      "description": "Separated uncertainty intervals establish robust dominance.",
+      "input": {
+        "scope_digest": "scope:metro-v0.1",
+        "objectives": [
+          {
+            "metric_id": "travel",
+            "unit": "min",
+            "direction": "minimize",
+            "definition_digest": "def:travel:v1"
+          },
+          {
+            "metric_id": "affordability",
+            "unit": "index",
+            "direction": "maximize",
+            "definition_digest": "def:affordability:v1"
+          }
+        ],
+        "constraints": [],
+        "alternatives": [
+          {
+            "id": "A",
+            "scope_digest": "scope:metro-v0.1",
+            "metrics": [
+              {
+                "metric_id": "travel",
+                "unit": "min",
+                "lower": 4,
+                "upper": 5,
+                "evidence_state": "current"
+              },
+              {
+                "metric_id": "affordability",
+                "unit": "index",
+                "lower": 80,
+                "upper": 90,
+                "evidence_state": "current"
+              }
+            ]
+          },
+          {
+            "id": "B",
+            "scope_digest": "scope:metro-v0.1",
+            "metrics": [
+              {
+                "metric_id": "travel",
+                "unit": "min",
+                "lower": 7,
+                "upper": 8,
+                "evidence_state": "current"
+              },
+              {
+                "metric_id": "affordability",
+                "unit": "index",
+                "lower": 60,
+                "upper": 70,
+                "evidence_state": "current"
+              }
+            ]
+          }
+        ]
+      },
+      "expected": {
+        "case_id": "MP-008",
+        "disposition": "Comparable",
+        "reason_codes": [],
+        "alternative_statuses": [
+          {
+            "alternative_id": "A",
+            "status": "Feasible",
+            "reason_codes": []
+          },
+          {
+            "alternative_id": "B",
+            "status": "Feasible",
+            "reason_codes": []
+          }
+        ],
+        "feasible_alternative_ids": [
+          "A",
+          "B"
+        ],
+        "infeasible_alternative_ids": [],
+        "unknown_alternative_ids": [],
+        "dominance_relations": [
+          {
+            "dominator": "A",
+            "dominated": "B"
+          }
+        ],
+        "pareto_frontier": [
+          "A"
+        ],
+        "incomparable_pairs": []
+      }
+    },
+    {
+      "case_id": "MP-009",
+      "description": "A missing required objective value leaves the alternative Unknown.",
+      "input": {
+        "scope_digest": "scope:metro-v0.1",
+        "objectives": [
+          {
+            "metric_id": "travel",
+            "unit": "min",
+            "direction": "minimize",
+            "definition_digest": "def:travel:v1"
+          },
+          {
+            "metric_id": "affordability",
+            "unit": "index",
+            "direction": "maximize",
+            "definition_digest": "def:affordability:v1"
+          }
+        ],
+        "constraints": [],
+        "alternatives": [
+          {
+            "id": "A",
+            "scope_digest": "scope:metro-v0.1",
+            "metrics": [
+              {
+                "metric_id": "travel",
+                "unit": "min",
+                "lower": 5,
+                "upper": 5,
+                "evidence_state": "current"
+              }
+            ]
+          },
+          {
+            "id": "B",
+            "scope_digest": "scope:metro-v0.1",
+            "metrics": [
+              {
+                "metric_id": "travel",
+                "unit": "min",
+                "lower": 7,
+                "upper": 7,
+                "evidence_state": "current"
+              },
+              {
+                "metric_id": "affordability",
+                "unit": "index",
+                "lower": 60,
+                "upper": 60,
+                "evidence_state": "current"
+              }
+            ]
+          }
+        ]
+      },
+      "expected": {
+        "case_id": "MP-009",
+        "disposition": "Comparable",
+        "reason_codes": [],
+        "alternative_statuses": [
+          {
+            "alternative_id": "A",
+            "status": "Unknown",
+            "reason_codes": [
+              "OBJECTIVE_EVIDENCE_UNKNOWN:affordability"
+            ]
+          },
+          {
+            "alternative_id": "B",
+            "status": "Feasible",
+            "reason_codes": []
+          }
+        ],
+        "feasible_alternative_ids": [
+          "B"
+        ],
+        "infeasible_alternative_ids": [],
+        "unknown_alternative_ids": [
+          "A"
+        ],
+        "dominance_relations": [],
+        "pareto_frontier": [
+          "B"
+        ],
+        "incomparable_pairs": []
+      }
+    },
+    {
+      "case_id": "MP-010",
+      "description": "Stale cost evidence cannot establish a dominance claim.",
+      "input": {
+        "scope_digest": "scope:metro-v0.1",
+        "objectives": [
+          {
+            "metric_id": "travel",
+            "unit": "min",
+            "direction": "minimize",
+            "definition_digest": "def:travel:v1"
+          },
+          {
+            "metric_id": "capex",
+            "unit": "million",
+            "direction": "minimize",
+            "definition_digest": "def:capex:v1"
+          }
+        ],
+        "constraints": [],
+        "alternatives": [
+          {
+            "id": "A",
+            "scope_digest": "scope:metro-v0.1",
+            "metrics": [
+              {
+                "metric_id": "travel",
+                "unit": "min",
+                "lower": 5,
+                "upper": 5,
+                "evidence_state": "current"
+              },
+              {
+                "metric_id": "capex",
+                "unit": "million",
+                "evidence_state": "stale"
+              }
+            ]
+          },
+          {
+            "id": "B",
+            "scope_digest": "scope:metro-v0.1",
+            "metrics": [
+              {
+                "metric_id": "travel",
+                "unit": "min",
+                "lower": 8,
+                "upper": 8,
+                "evidence_state": "current"
+              },
+              {
+                "metric_id": "capex",
+                "unit": "million",
+                "lower": 20,
+                "upper": 20,
+                "evidence_state": "current"
+              }
+            ]
+          }
+        ]
+      },
+      "expected": {
+        "case_id": "MP-010",
+        "disposition": "Comparable",
+        "reason_codes": [],
+        "alternative_statuses": [
+          {
+            "alternative_id": "A",
+            "status": "Unknown",
+            "reason_codes": [
+              "OBJECTIVE_EVIDENCE_UNKNOWN:capex"
+            ]
+          },
+          {
+            "alternative_id": "B",
+            "status": "Feasible",
+            "reason_codes": []
+          }
+        ],
+        "feasible_alternative_ids": [
+          "B"
+        ],
+        "infeasible_alternative_ids": [],
+        "unknown_alternative_ids": [
+          "A"
+        ],
+        "dominance_relations": [],
+        "pareto_frontier": [
+          "B"
+        ],
+        "incomparable_pairs": []
+      }
+    },
+    {
+      "case_id": "MP-011",
+      "description": "Metric unit mismatch makes the entire comparison Unsupported.",
+      "input": {
+        "scope_digest": "scope:metro-v0.1",
+        "objectives": [
+          {
+            "metric_id": "travel",
+            "unit": "min",
+            "direction": "minimize",
+            "definition_digest": "def:travel:v1"
+          },
+          {
+            "metric_id": "affordability",
+            "unit": "index",
+            "direction": "maximize",
+            "definition_digest": "def:affordability:v1"
+          }
+        ],
+        "constraints": [],
+        "alternatives": [
+          {
+            "id": "A",
+            "scope_digest": "scope:metro-v0.1",
+            "metrics": [
+              {
+                "metric_id": "travel",
+                "unit": "km",
+                "lower": 5,
+                "upper": 5,
+                "evidence_state": "current"
+              },
+              {
+                "metric_id": "affordability",
+                "unit": "index",
+                "lower": 80,
+                "upper": 80,
+                "evidence_state": "current"
+              }
+            ]
+          },
+          {
+            "id": "B",
+            "scope_digest": "scope:metro-v0.1",
+            "metrics": [
+              {
+                "metric_id": "travel",
+                "unit": "min",
+                "lower": 8,
+                "upper": 8,
+                "evidence_state": "current"
+              },
+              {
+                "metric_id": "affordability",
+                "unit": "index",
+                "lower": 70,
+                "upper": 70,
+                "evidence_state": "current"
+              }
+            ]
+          }
+        ]
+      },
+      "expected": {
+        "case_id": "MP-011",
+        "disposition": "Unsupported",
+        "reason_codes": [
+          "ALTERNATIVE_METRIC_UNIT_MISMATCH"
+        ],
+        "alternative_statuses": [],
+        "feasible_alternative_ids": [],
+        "infeasible_alternative_ids": [],
+        "unknown_alternative_ids": [],
+        "dominance_relations": [],
+        "pareto_frontier": [],
+        "incomparable_pairs": []
+      }
+    },
+    {
+      "case_id": "MP-012",
+      "description": "Alternative scope digest mismatch makes the comparison Unsupported.",
+      "input": {
+        "scope_digest": "scope:metro-v0.1",
+        "objectives": [
+          {
+            "metric_id": "travel",
+            "unit": "min",
+            "direction": "minimize",
+            "definition_digest": "def:travel:v1"
+          }
+        ],
+        "constraints": [],
+        "alternatives": [
+          {
+            "id": "A",
+            "scope_digest": "scope:metro-v0.1",
+            "metrics": [
+              {
+                "metric_id": "travel",
+                "unit": "min",
+                "lower": 5,
+                "upper": 5,
+                "evidence_state": "current"
+              }
+            ]
+          },
+          {
+            "id": "B",
+            "scope_digest": "scope:other-v0.1",
+            "metrics": [
+              {
+                "metric_id": "travel",
+                "unit": "min",
+                "lower": 8,
+                "upper": 8,
+                "evidence_state": "current"
+              }
+            ]
+          }
+        ]
+      },
+      "expected": {
+        "case_id": "MP-012",
+        "disposition": "Unsupported",
+        "reason_codes": [
+          "ALTERNATIVE_SCOPE_MISMATCH"
+        ],
+        "alternative_statuses": [],
+        "feasible_alternative_ids": [],
+        "infeasible_alternative_ids": [],
+        "unknown_alternative_ids": [],
+        "dominance_relations": [],
+        "pareto_frontier": [],
+        "incomparable_pairs": []
+      }
+    },
+    {
+      "case_id": "MP-013",
+      "description": "Good mean access cannot compensate for failing a worst-served group hard floor.",
+      "input": {
+        "scope_digest": "scope:metro-v0.1",
+        "objectives": [
+          {
+            "metric_id": "mean_travel",
+            "unit": "min",
+            "direction": "minimize",
+            "definition_digest": "def:mean_travel:v1"
+          },
+          {
+            "metric_id": "housing_yield",
+            "unit": "units",
+            "direction": "maximize",
+            "definition_digest": "def:housing_yield:v1"
+          }
+        ],
+        "constraints": [
+          {
+            "metric_id": "worst_decile_travel",
+            "unit": "min",
+            "comparator": "le",
+            "threshold": 20,
+            "definition_digest": "constraint:worst_decile_travel:v1"
+          }
+        ],
+        "alternatives": [
+          {
+            "id": "A",
+            "scope_digest": "scope:metro-v0.1",
+            "metrics": [
+              {
+                "metric_id": "mean_travel",
+                "unit": "min",
+                "lower": 6,
+                "upper": 6,
+                "evidence_state": "current"
+              },
+              {
+                "metric_id": "housing_yield",
+                "unit": "units",
+                "lower": 900,
+                "upper": 900,
+                "evidence_state": "current"
+              },
+              {
+                "metric_id": "worst_decile_travel",
+                "unit": "min",
+                "lower": 28,
+                "upper": 28,
+                "evidence_state": "current"
+              }
+            ]
+          },
+          {
+            "id": "B",
+            "scope_digest": "scope:metro-v0.1",
+            "metrics": [
+              {
+                "metric_id": "mean_travel",
+                "unit": "min",
+                "lower": 9,
+                "upper": 9,
+                "evidence_state": "current"
+              },
+              {
+                "metric_id": "housing_yield",
+                "unit": "units",
+                "lower": 700,
+                "upper": 700,
+                "evidence_state": "current"
+              },
+              {
+                "metric_id": "worst_decile_travel",
+                "unit": "min",
+                "lower": 17,
+                "upper": 17,
+                "evidence_state": "current"
+              }
+            ]
+          }
+        ]
+      },
+      "expected": {
+        "case_id": "MP-013",
+        "disposition": "Comparable",
+        "reason_codes": [],
+        "alternative_statuses": [
+          {
+            "alternative_id": "A",
+            "status": "Infeasible",
+            "reason_codes": [
+              "HARD_CONSTRAINT_VIOLATED:worst_decile_travel"
+            ]
+          },
+          {
+            "alternative_id": "B",
+            "status": "Feasible",
+            "reason_codes": []
+          }
+        ],
+        "feasible_alternative_ids": [
+          "B"
+        ],
+        "infeasible_alternative_ids": [
+          "A"
+        ],
+        "unknown_alternative_ids": [],
+        "dominance_relations": [],
+        "pareto_frontier": [
+          "B"
+        ],
+        "incomparable_pairs": []
+      }
+    },
+    {
+      "case_id": "MP-014",
+      "description": "An average-access gain trades off against worse worst-decile access.",
+      "input": {
+        "scope_digest": "scope:metro-v0.1",
+        "objectives": [
+          {
+            "metric_id": "mean_travel",
+            "unit": "min",
+            "direction": "minimize",
+            "definition_digest": "def:mean_travel:v1"
+          },
+          {
+            "metric_id": "worst_decile_travel",
+            "unit": "min",
+            "direction": "minimize",
+            "definition_digest": "def:worst_decile_travel:v1"
+          }
+        ],
+        "constraints": [],
+        "alternatives": [
+          {
+            "id": "A",
+            "scope_digest": "scope:metro-v0.1",
+            "metrics": [
+              {
+                "metric_id": "mean_travel",
+                "unit": "min",
+                "lower": 6,
+                "upper": 6,
+                "evidence_state": "current"
+              },
+              {
+                "metric_id": "worst_decile_travel",
+                "unit": "min",
+                "lower": 30,
+                "upper": 30,
+                "evidence_state": "current"
+              }
+            ]
+          },
+          {
+            "id": "B",
+            "scope_digest": "scope:metro-v0.1",
+            "metrics": [
+              {
+                "metric_id": "mean_travel",
+                "unit": "min",
+                "lower": 9,
+                "upper": 9,
+                "evidence_state": "current"
+              },
+              {
+                "metric_id": "worst_decile_travel",
+                "unit": "min",
+                "lower": 18,
+                "upper": 18,
+                "evidence_state": "current"
+              }
+            ]
+          }
+        ]
+      },
+      "expected": {
+        "case_id": "MP-014",
+        "disposition": "Comparable",
+        "reason_codes": [],
+        "alternative_statuses": [
+          {
+            "alternative_id": "A",
+            "status": "Feasible",
+            "reason_codes": []
+          },
+          {
+            "alternative_id": "B",
+            "status": "Feasible",
+            "reason_codes": []
+          }
+        ],
+        "feasible_alternative_ids": [
+          "A",
+          "B"
+        ],
+        "infeasible_alternative_ids": [],
+        "unknown_alternative_ids": [],
+        "dominance_relations": [],
+        "pareto_frontier": [
+          "A",
+          "B"
+        ],
+        "incomparable_pairs": [
+          {
+            "alternative_a": "A",
+            "alternative_b": "B",
+            "reason": "TRADEOFF_OR_OVERLAPPING_UNCERTAINTY_OR_TIE"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "MP-015",
+      "description": "Excellent objective values cannot compensate for a known carbon constraint violation.",
+      "input": {
+        "scope_digest": "scope:metro-v0.1",
+        "objectives": [
+          {
+            "metric_id": "travel",
+            "unit": "min",
+            "direction": "minimize",
+            "definition_digest": "def:travel:v1"
+          },
+          {
+            "metric_id": "affordability",
+            "unit": "index",
+            "direction": "maximize",
+            "definition_digest": "def:affordability:v1"
+          }
+        ],
+        "constraints": [
+          {
+            "metric_id": "carbon",
+            "unit": "tCO2e",
+            "comparator": "le",
+            "threshold": 50,
+            "definition_digest": "constraint:carbon:v1"
+          }
+        ],
+        "alternatives": [
+          {
+            "id": "A",
+            "scope_digest": "scope:metro-v0.1",
+            "metrics": [
+              {
+                "metric_id": "travel",
+                "unit": "min",
+                "lower": 3,
+                "upper": 3,
+                "evidence_state": "current"
+              },
+              {
+                "metric_id": "affordability",
+                "unit": "index",
+                "lower": 95,
+                "upper": 95,
+                "evidence_state": "current"
+              },
+              {
+                "metric_id": "carbon",
+                "unit": "tCO2e",
+                "lower": 60,
+                "upper": 60,
+                "evidence_state": "current"
+              }
+            ]
+          },
+          {
+            "id": "B",
+            "scope_digest": "scope:metro-v0.1",
+            "metrics": [
+              {
+                "metric_id": "travel",
+                "unit": "min",
+                "lower": 8,
+                "upper": 8,
+                "evidence_state": "current"
+              },
+              {
+                "metric_id": "affordability",
+                "unit": "index",
+                "lower": 70,
+                "upper": 70,
+                "evidence_state": "current"
+              },
+              {
+                "metric_id": "carbon",
+                "unit": "tCO2e",
+                "lower": 40,
+                "upper": 40,
+                "evidence_state": "current"
+              }
+            ]
+          }
+        ]
+      },
+      "expected": {
+        "case_id": "MP-015",
+        "disposition": "Comparable",
+        "reason_codes": [],
+        "alternative_statuses": [
+          {
+            "alternative_id": "A",
+            "status": "Infeasible",
+            "reason_codes": [
+              "HARD_CONSTRAINT_VIOLATED:carbon"
+            ]
+          },
+          {
+            "alternative_id": "B",
+            "status": "Feasible",
+            "reason_codes": []
+          }
+        ],
+        "feasible_alternative_ids": [
+          "B"
+        ],
+        "infeasible_alternative_ids": [
+          "A"
+        ],
+        "unknown_alternative_ids": [],
+        "dominance_relations": [],
+        "pareto_frontier": [
+          "B"
+        ],
+        "incomparable_pairs": []
+      }
+    },
+    {
+      "case_id": "MP-016",
+      "description": "Zero-width uncertainty intervals behave like exact values.",
+      "input": {
+        "scope_digest": "scope:metro-v0.1",
+        "objectives": [
+          {
+            "metric_id": "travel",
+            "unit": "min",
+            "direction": "minimize",
+            "definition_digest": "def:travel:v1"
+          },
+          {
+            "metric_id": "affordability",
+            "unit": "index",
+            "direction": "maximize",
+            "definition_digest": "def:affordability:v1"
+          }
+        ],
+        "constraints": [],
+        "alternatives": [
+          {
+            "id": "A",
+            "scope_digest": "scope:metro-v0.1",
+            "metrics": [
+              {
+                "metric_id": "travel",
+                "unit": "min",
+                "lower": 5,
+                "upper": 5,
+                "evidence_state": "current"
+              },
+              {
+                "metric_id": "affordability",
+                "unit": "index",
+                "lower": 80,
+                "upper": 80,
+                "evidence_state": "current"
+              }
+            ]
+          },
+          {
+            "id": "B",
+            "scope_digest": "scope:metro-v0.1",
+            "metrics": [
+              {
+                "metric_id": "travel",
+                "unit": "min",
+                "lower": 7,
+                "upper": 7,
+                "evidence_state": "current"
+              },
+              {
+                "metric_id": "affordability",
+                "unit": "index",
+                "lower": 70,
+                "upper": 70,
+                "evidence_state": "current"
+              }
+            ]
+          }
+        ]
+      },
+      "expected": {
+        "case_id": "MP-016",
+        "disposition": "Comparable",
+        "reason_codes": [],
+        "alternative_statuses": [
+          {
+            "alternative_id": "A",
+            "status": "Feasible",
+            "reason_codes": []
+          },
+          {
+            "alternative_id": "B",
+            "status": "Feasible",
+            "reason_codes": []
+          }
+        ],
+        "feasible_alternative_ids": [
+          "A",
+          "B"
+        ],
+        "infeasible_alternative_ids": [],
+        "unknown_alternative_ids": [],
+        "dominance_relations": [
+          {
+            "dominator": "A",
+            "dominated": "B"
+          }
+        ],
+        "pareto_frontier": [
+          "A"
+        ],
+        "incomparable_pairs": []
+      }
+    },
+    {
+      "case_id": "MP-017",
+      "description": "Input ordering does not affect the normalized Pareto result.",
+      "input": {
+        "scope_digest": "scope:metro-v0.1",
+        "objectives": [
+          {
+            "metric_id": "travel",
+            "unit": "min",
+            "direction": "minimize",
+            "definition_digest": "def:travel:v1"
+          },
+          {
+            "metric_id": "affordability",
+            "unit": "index",
+            "direction": "maximize",
+            "definition_digest": "def:affordability:v1"
+          }
+        ],
+        "constraints": [],
+        "alternatives": [
+          {
+            "id": "B",
+            "scope_digest": "scope:metro-v0.1",
+            "metrics": [
+              {
+                "metric_id": "travel",
+                "unit": "min",
+                "lower": 10,
+                "upper": 10,
+                "evidence_state": "current"
+              },
+              {
+                "metric_id": "affordability",
+                "unit": "index",
+                "lower": 60,
+                "upper": 60,
+                "evidence_state": "current"
+              }
+            ]
+          },
+          {
+            "id": "A",
+            "scope_digest": "scope:metro-v0.1",
+            "metrics": [
+              {
+                "metric_id": "travel",
+                "unit": "min",
+                "lower": 8,
+                "upper": 8,
+                "evidence_state": "current"
+              },
+              {
+                "metric_id": "affordability",
+                "unit": "index",
+                "lower": 80,
+                "upper": 80,
+                "evidence_state": "current"
+              }
+            ]
+          }
+        ]
+      },
+      "expected": {
+        "case_id": "MP-017",
+        "disposition": "Comparable",
+        "reason_codes": [],
+        "alternative_statuses": [
+          {
+            "alternative_id": "A",
+            "status": "Feasible",
+            "reason_codes": []
+          },
+          {
+            "alternative_id": "B",
+            "status": "Feasible",
+            "reason_codes": []
+          }
+        ],
+        "feasible_alternative_ids": [
+          "A",
+          "B"
+        ],
+        "infeasible_alternative_ids": [],
+        "unknown_alternative_ids": [],
+        "dominance_relations": [
+          {
+            "dominator": "A",
+            "dominated": "B"
+          }
+        ],
+        "pareto_frontier": [
+          "A"
+        ],
+        "incomparable_pairs": []
+      }
+    },
+    {
+      "case_id": "MP-018",
+      "description": "Weak no-worse dimensions plus one strict improvement establish dominance.",
+      "input": {
+        "scope_digest": "scope:metro-v0.1",
+        "objectives": [
+          {
+            "metric_id": "travel",
+            "unit": "min",
+            "direction": "minimize",
+            "definition_digest": "def:travel:v1"
+          },
+          {
+            "metric_id": "affordability",
+            "unit": "index",
+            "direction": "maximize",
+            "definition_digest": "def:affordability:v1"
+          }
+        ],
+        "constraints": [],
+        "alternatives": [
+          {
+            "id": "A",
+            "scope_digest": "scope:metro-v0.1",
+            "metrics": [
+              {
+                "metric_id": "travel",
+                "unit": "min",
+                "lower": 5,
+                "upper": 5,
+                "evidence_state": "current"
+              },
+              {
+                "metric_id": "affordability",
+                "unit": "index",
+                "lower": 90,
+                "upper": 90,
+                "evidence_state": "current"
+              }
+            ]
+          },
+          {
+            "id": "B",
+            "scope_digest": "scope:metro-v0.1",
+            "metrics": [
+              {
+                "metric_id": "travel",
+                "unit": "min",
+                "lower": 5,
+                "upper": 5,
+                "evidence_state": "current"
+              },
+              {
+                "metric_id": "affordability",
+                "unit": "index",
+                "lower": 70,
+                "upper": 70,
+                "evidence_state": "current"
+              }
+            ]
+          }
+        ]
+      },
+      "expected": {
+        "case_id": "MP-018",
+        "disposition": "Comparable",
+        "reason_codes": [],
+        "alternative_statuses": [
+          {
+            "alternative_id": "A",
+            "status": "Feasible",
+            "reason_codes": []
+          },
+          {
+            "alternative_id": "B",
+            "status": "Feasible",
+            "reason_codes": []
+          }
+        ],
+        "feasible_alternative_ids": [
+          "A",
+          "B"
+        ],
+        "infeasible_alternative_ids": [],
+        "unknown_alternative_ids": [],
+        "dominance_relations": [
+          {
+            "dominator": "A",
+            "dominated": "B"
+          }
+        ],
+        "pareto_frontier": [
+          "A"
+        ],
+        "incomparable_pairs": []
+      }
+    },
+    {
+      "case_id": "MP-019",
+      "description": "An Unknown alternative cannot dominate a fully evidenced alternative.",
+      "input": {
+        "scope_digest": "scope:metro-v0.1",
+        "objectives": [
+          {
+            "metric_id": "travel",
+            "unit": "min",
+            "direction": "minimize",
+            "definition_digest": "def:travel:v1"
+          },
+          {
+            "metric_id": "affordability",
+            "unit": "index",
+            "direction": "maximize",
+            "definition_digest": "def:affordability:v1"
+          }
+        ],
+        "constraints": [],
+        "alternatives": [
+          {
+            "id": "A",
+            "scope_digest": "scope:metro-v0.1",
+            "metrics": [
+              {
+                "metric_id": "travel",
+                "unit": "min",
+                "lower": 1,
+                "upper": 1,
+                "evidence_state": "current"
+              },
+              {
+                "metric_id": "affordability",
+                "unit": "index",
+                "evidence_state": "unknown"
+              }
+            ]
+          },
+          {
+            "id": "B",
+            "scope_digest": "scope:metro-v0.1",
+            "metrics": [
+              {
+                "metric_id": "travel",
+                "unit": "min",
+                "lower": 7,
+                "upper": 7,
+                "evidence_state": "current"
+              },
+              {
+                "metric_id": "affordability",
+                "unit": "index",
+                "lower": 70,
+                "upper": 70,
+                "evidence_state": "current"
+              }
+            ]
+          }
+        ]
+      },
+      "expected": {
+        "case_id": "MP-019",
+        "disposition": "Comparable",
+        "reason_codes": [],
+        "alternative_statuses": [
+          {
+            "alternative_id": "A",
+            "status": "Unknown",
+            "reason_codes": [
+              "OBJECTIVE_EVIDENCE_UNKNOWN:affordability"
+            ]
+          },
+          {
+            "alternative_id": "B",
+            "status": "Feasible",
+            "reason_codes": []
+          }
+        ],
+        "feasible_alternative_ids": [
+          "B"
+        ],
+        "infeasible_alternative_ids": [],
+        "unknown_alternative_ids": [
+          "A"
+        ],
+        "dominance_relations": [],
+        "pareto_frontier": [
+          "B"
+        ],
+        "incomparable_pairs": []
+      }
+    },
+    {
+      "case_id": "MP-020",
+      "description": "All feasible alternatives with cross-cutting trade-offs remain on the Pareto frontier.",
+      "input": {
+        "scope_digest": "scope:metro-v0.1",
+        "objectives": [
+          {
+            "metric_id": "travel",
+            "unit": "min",
+            "direction": "minimize",
+            "definition_digest": "def:travel:v1"
+          },
+          {
+            "metric_id": "affordability",
+            "unit": "index",
+            "direction": "maximize",
+            "definition_digest": "def:affordability:v1"
+          },
+          {
+            "metric_id": "carbon",
+            "unit": "tCO2e",
+            "direction": "minimize",
+            "definition_digest": "def:carbon:v1"
+          }
+        ],
+        "constraints": [],
+        "alternatives": [
+          {
+            "id": "A",
+            "scope_digest": "scope:metro-v0.1",
+            "metrics": [
+              {
+                "metric_id": "travel",
+                "unit": "min",
+                "lower": 5,
+                "upper": 5,
+                "evidence_state": "current"
+              },
+              {
+                "metric_id": "affordability",
+                "unit": "index",
+                "lower": 50,
+                "upper": 50,
+                "evidence_state": "current"
+              },
+              {
+                "metric_id": "carbon",
+                "unit": "tCO2e",
+                "lower": 20,
+                "upper": 20,
+                "evidence_state": "current"
+              }
+            ]
+          },
+          {
+            "id": "B",
+            "scope_digest": "scope:metro-v0.1",
+            "metrics": [
+              {
+                "metric_id": "travel",
+                "unit": "min",
+                "lower": 8,
+                "upper": 8,
+                "evidence_state": "current"
+              },
+              {
+                "metric_id": "affordability",
+                "unit": "index",
+                "lower": 90,
+                "upper": 90,
+                "evidence_state": "current"
+              },
+              {
+                "metric_id": "carbon",
+                "unit": "tCO2e",
+                "lower": 30,
+                "upper": 30,
+                "evidence_state": "current"
+              }
+            ]
+          },
+          {
+            "id": "C",
+            "scope_digest": "scope:metro-v0.1",
+            "metrics": [
+              {
+                "metric_id": "travel",
+                "unit": "min",
+                "lower": 7,
+                "upper": 7,
+                "evidence_state": "current"
+              },
+              {
+                "metric_id": "affordability",
+                "unit": "index",
+                "lower": 70,
+                "upper": 70,
+                "evidence_state": "current"
+              },
+              {
+                "metric_id": "carbon",
+                "unit": "tCO2e",
+                "lower": 10,
+                "upper": 10,
+                "evidence_state": "current"
+              }
+            ]
+          }
+        ]
+      },
+      "expected": {
+        "case_id": "MP-020",
+        "disposition": "Comparable",
+        "reason_codes": [],
+        "alternative_statuses": [
+          {
+            "alternative_id": "A",
+            "status": "Feasible",
+            "reason_codes": []
+          },
+          {
+            "alternative_id": "B",
+            "status": "Feasible",
+            "reason_codes": []
+          },
+          {
+            "alternative_id": "C",
+            "status": "Feasible",
+            "reason_codes": []
+          }
+        ],
+        "feasible_alternative_ids": [
+          "A",
+          "B",
+          "C"
+        ],
+        "infeasible_alternative_ids": [],
+        "unknown_alternative_ids": [],
+        "dominance_relations": [],
+        "pareto_frontier": [
+          "A",
+          "B",
+          "C"
+        ],
+        "incomparable_pairs": [
+          {
+            "alternative_a": "A",
+            "alternative_b": "B",
+            "reason": "TRADEOFF_OR_OVERLAPPING_UNCERTAINTY_OR_TIE"
+          },
+          {
+            "alternative_a": "A",
+            "alternative_b": "C",
+            "reason": "TRADEOFF_OR_OVERLAPPING_UNCERTAINTY_OR_TIE"
+          },
+          {
+            "alternative_a": "B",
+            "alternative_b": "C",
+            "reason": "TRADEOFF_OR_OVERLAPPING_UNCERTAINTY_OR_TIE"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "MP-021",
+      "description": "Known infeasible alternatives remain visible but are excluded from the frontier.",
+      "input": {
+        "scope_digest": "scope:metro-v0.1",
+        "objectives": [
+          {
+            "metric_id": "travel",
+            "unit": "min",
+            "direction": "minimize",
+            "definition_digest": "def:travel:v1"
+          },
+          {
+            "metric_id": "affordability",
+            "unit": "index",
+            "direction": "maximize",
+            "definition_digest": "def:affordability:v1"
+          }
+        ],
+        "constraints": [
+          {
+            "metric_id": "carbon",
+            "unit": "tCO2e",
+            "comparator": "le",
+            "threshold": 50,
+            "definition_digest": "constraint:carbon:v1"
+          }
+        ],
+        "alternatives": [
+          {
+            "id": "A",
+            "scope_digest": "scope:metro-v0.1",
+            "metrics": [
+              {
+                "metric_id": "travel",
+                "unit": "min",
+                "lower": 2,
+                "upper": 2,
+                "evidence_state": "current"
+              },
+              {
+                "metric_id": "affordability",
+                "unit": "index",
+                "lower": 95,
+                "upper": 95,
+                "evidence_state": "current"
+              },
+              {
+                "metric_id": "carbon",
+                "unit": "tCO2e",
+                "lower": 80,
+                "upper": 80,
+                "evidence_state": "current"
+              }
+            ]
+          },
+          {
+            "id": "B",
+            "scope_digest": "scope:metro-v0.1",
+            "metrics": [
+              {
+                "metric_id": "travel",
+                "unit": "min",
+                "lower": 7,
+                "upper": 7,
+                "evidence_state": "current"
+              },
+              {
+                "metric_id": "affordability",
+                "unit": "index",
+                "lower": 70,
+                "upper": 70,
+                "evidence_state": "current"
+              },
+              {
+                "metric_id": "carbon",
+                "unit": "tCO2e",
+                "lower": 40,
+                "upper": 40,
+                "evidence_state": "current"
+              }
+            ]
+          },
+          {
+            "id": "C",
+            "scope_digest": "scope:metro-v0.1",
+            "metrics": [
+              {
+                "metric_id": "travel",
+                "unit": "min",
+                "lower": 9,
+                "upper": 9,
+                "evidence_state": "current"
+              },
+              {
+                "metric_id": "affordability",
+                "unit": "index",
+                "lower": 60,
+                "upper": 60,
+                "evidence_state": "current"
+              },
+              {
+                "metric_id": "carbon",
+                "unit": "tCO2e",
+                "lower": 45,
+                "upper": 45,
+                "evidence_state": "current"
+              }
+            ]
+          }
+        ]
+      },
+      "expected": {
+        "case_id": "MP-021",
+        "disposition": "Comparable",
+        "reason_codes": [],
+        "alternative_statuses": [
+          {
+            "alternative_id": "A",
+            "status": "Infeasible",
+            "reason_codes": [
+              "HARD_CONSTRAINT_VIOLATED:carbon"
+            ]
+          },
+          {
+            "alternative_id": "B",
+            "status": "Feasible",
+            "reason_codes": []
+          },
+          {
+            "alternative_id": "C",
+            "status": "Feasible",
+            "reason_codes": []
+          }
+        ],
+        "feasible_alternative_ids": [
+          "B",
+          "C"
+        ],
+        "infeasible_alternative_ids": [
+          "A"
+        ],
+        "unknown_alternative_ids": [],
+        "dominance_relations": [
+          {
+            "dominator": "B",
+            "dominated": "C"
+          }
+        ],
+        "pareto_frontier": [
+          "B"
+        ],
+        "incomparable_pairs": []
+      }
+    },
+    {
+      "case_id": "MP-022",
+      "description": "Duplicate alternative IDs make the comparison Unsupported.",
+      "input": {
+        "scope_digest": "scope:metro-v0.1",
+        "objectives": [
+          {
+            "metric_id": "travel",
+            "unit": "min",
+            "direction": "minimize",
+            "definition_digest": "def:travel:v1"
+          }
+        ],
+        "constraints": [],
+        "alternatives": [
+          {
+            "id": "A",
+            "scope_digest": "scope:metro-v0.1",
+            "metrics": [
+              {
+                "metric_id": "travel",
+                "unit": "min",
+                "lower": 5,
+                "upper": 5,
+                "evidence_state": "current"
+              }
+            ]
+          },
+          {
+            "id": "A",
+            "scope_digest": "scope:metro-v0.1",
+            "metrics": [
+              {
+                "metric_id": "travel",
+                "unit": "min",
+                "lower": 8,
+                "upper": 8,
+                "evidence_state": "current"
+              }
+            ]
+          }
+        ]
+      },
+      "expected": {
+        "case_id": "MP-022",
+        "disposition": "Unsupported",
+        "reason_codes": [
+          "DUPLICATE_OR_MISSING_ALTERNATIVE_ID"
+        ],
+        "alternative_statuses": [],
+        "feasible_alternative_ids": [],
+        "infeasible_alternative_ids": [],
+        "unknown_alternative_ids": [],
+        "dominance_relations": [],
+        "pareto_frontier": [],
+        "incomparable_pairs": []
+      }
+    },
+    {
+      "case_id": "MP-023",
+      "description": "A missing objective definition digest makes the comparison Unsupported.",
+      "input": {
+        "scope_digest": "scope:metro-v0.1",
+        "objectives": [
+          {
+            "metric_id": "travel",
+            "unit": "min",
+            "direction": "minimize",
+            "definition_digest": ""
+          }
+        ],
+        "constraints": [],
+        "alternatives": [
+          {
+            "id": "A",
+            "scope_digest": "scope:metro-v0.1",
+            "metrics": [
+              {
+                "metric_id": "travel",
+                "unit": "min",
+                "lower": 5,
+                "upper": 5,
+                "evidence_state": "current"
+              }
+            ]
+          },
+          {
+            "id": "B",
+            "scope_digest": "scope:metro-v0.1",
+            "metrics": [
+              {
+                "metric_id": "travel",
+                "unit": "min",
+                "lower": 8,
+                "upper": 8,
+                "evidence_state": "current"
+              }
+            ]
+          }
+        ]
+      },
+      "expected": {
+        "case_id": "MP-023",
+        "disposition": "Unsupported",
+        "reason_codes": [
+          "OBJECTIVE_DEFINITION_INVALID"
+        ],
+        "alternative_statuses": [],
+        "feasible_alternative_ids": [],
+        "infeasible_alternative_ids": [],
+        "unknown_alternative_ids": [],
+        "dominance_relations": [],
+        "pareto_frontier": [],
+        "incomparable_pairs": []
+      }
+    },
+    {
+      "case_id": "MP-024",
+      "description": "Inverted uncertainty bounds make the comparison Unsupported.",
+      "input": {
+        "scope_digest": "scope:metro-v0.1",
+        "objectives": [
+          {
+            "metric_id": "travel",
+            "unit": "min",
+            "direction": "minimize",
+            "definition_digest": "def:travel:v1"
+          },
+          {
+            "metric_id": "affordability",
+            "unit": "index",
+            "direction": "maximize",
+            "definition_digest": "def:affordability:v1"
+          }
+        ],
+        "constraints": [],
+        "alternatives": [
+          {
+            "id": "A",
+            "scope_digest": "scope:metro-v0.1",
+            "metrics": [
+              {
+                "metric_id": "travel",
+                "unit": "min",
+                "lower": 9,
+                "upper": 4,
+                "evidence_state": "current"
+              },
+              {
+                "metric_id": "affordability",
+                "unit": "index",
+                "lower": 80,
+                "upper": 80,
+                "evidence_state": "current"
+              }
+            ]
+          },
+          {
+            "id": "B",
+            "scope_digest": "scope:metro-v0.1",
+            "metrics": [
+              {
+                "metric_id": "travel",
+                "unit": "min",
+                "lower": 8,
+                "upper": 8,
+                "evidence_state": "current"
+              },
+              {
+                "metric_id": "affordability",
+                "unit": "index",
+                "lower": 70,
+                "upper": 70,
+                "evidence_state": "current"
+              }
+            ]
+          }
+        ]
+      },
+      "expected": {
+        "case_id": "MP-024",
+        "disposition": "Unsupported",
+        "reason_codes": [
+          "METRIC_INTERVAL_INVALID"
+        ],
+        "alternative_statuses": [],
+        "feasible_alternative_ids": [],
+        "infeasible_alternative_ids": [],
+        "unknown_alternative_ids": [],
+        "dominance_relations": [],
+        "pareto_frontier": [],
+        "incomparable_pairs": []
+      }
+    }
+  ]
+}
