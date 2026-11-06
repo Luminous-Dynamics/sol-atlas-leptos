@@ -17,9 +17,9 @@ use serde::{Deserialize, Serialize};
 use std::fmt;
 
 use super::heritage_observability::{
-    DetectionCondition, DetectionProbabilityScope, HeritageObservabilityReport,
-    ObservationModality, ObservationOutcome, ObservabilityDisposition, RightsStatus,
-    SurveyAccessTier, VisibilityClass, HERITAGE_OBSERVABILITY_SCHEMA_VERSION,
+    DetectionCondition, DetectionProbabilityScope, HERITAGE_OBSERVABILITY_SCHEMA_VERSION,
+    HeritageObservabilityReport, ObservabilityDisposition, ObservationModality, ObservationOutcome,
+    RightsStatus, SurveyAccessTier, VisibilityClass,
 };
 
 pub const HERITAGE_COMPOSITION_AUDIT_SCHEMA_VERSION: &str =
@@ -426,10 +426,7 @@ fn validate_digest(value: &str, label: &'static str) -> Result<(), HeritageCompo
     Ok(())
 }
 
-fn validate_reference(
-    value: &str,
-    label: &'static str,
-) -> Result<(), HeritageCompositionError> {
+fn validate_reference(value: &str, label: &'static str) -> Result<(), HeritageCompositionError> {
     if !non_empty(value) {
         return Err(HeritageCompositionError::EmptyReceiptReference(label));
     }
@@ -448,7 +445,9 @@ fn validate_rights_clearance(
     if clearance.rights_decision_id != expected_decision_id
         || clearance.receipt_ref != expected_receipt_ref
     {
-        return Err(HeritageCompositionError::RightsDecisionMismatch(source_label));
+        return Err(HeritageCompositionError::RightsDecisionMismatch(
+            source_label,
+        ));
     }
     if clearance.purpose != CompositionRightsPurpose::ResearchAnalysis
         || clearance.decision != CompositionRightsDecision::Allowed
