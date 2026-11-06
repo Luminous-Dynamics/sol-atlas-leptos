@@ -1,6 +1,6 @@
 # CityMorph continuity corpus v0.1
 
-27 synthetic scenarios test time-dependent continuity and recovery using owner-native access-state receipts. The evaluator does not recompute routing or service capacities; it consumes outputs from CityMorph #555 and CityKit #3768.
+29 synthetic scenarios test time-dependent continuity and recovery using owner-native access-state receipts. The evaluator does not recompute routing or service capacities; it consumes outputs from CityMorph #555 and CityKit #3768.
 
 ## Contract
 
@@ -29,3 +29,8 @@ Every fixture receipt now carries the evaluation-scope digest and source revisio
 
 
 Unknown evidence before the first known degradation does not invalidate later recovery assessment. The evaluator counts unknown ticks separately before and after the first known degradation; only post-degradation unknown periods can leave recovery unresolved. Case CR-027 is the negative control.
+
+
+## Global receipt identity and required revision
+
+Each source receipt ID must be unique across the entire scenario timeline, not merely within one phase. The evaluation request must also declare an expected owner source revision. Case CR-028 reuses one receipt ID across two phases and must be Unsupported; CR-029 omits the expected revision and must be Unsupported. This prevents one owner receipt from being replayed as multiple observations and prevents a missing revision contract from being treated as a valid comparison.
