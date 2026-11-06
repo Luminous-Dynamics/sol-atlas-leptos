@@ -6,14 +6,15 @@
 //! This evaluator asks whether a non-detection is informative under a
 //! context-matched, independently calibrated survey regime. It never turns a
 //! non-detection into proof of absence or an observation into an archaeological
-//! identification. v0.1 supports only probability-sampled independent site PSUs
-//! and reports a Wilson score interval for the empirical probability of detection.
+//! identification. v0.2 binds the detection-probability estimand to an explicit
+//! conditioning set and computes PoD only over trials satisfying that set.
 
 use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
 use std::collections::BTreeSet;
 use std::fmt;
 
-pub const HERITAGE_OBSERVABILITY_SCHEMA_VERSION: &str = "luminous.heritage-observability.v0.1";
+pub const HERITAGE_OBSERVABILITY_SCHEMA_VERSION: &str = "luminous.heritage-observability.v0.2";
 pub const MINIMUM_CALIBRATION_PSUS_FLOOR: usize = 20;
 pub const MAX_CALIBRATION_TRIALS: usize = 100_000;
 pub const WILSON_95_Z: f64 = 1.959_963_984_540_054;
@@ -67,6 +68,15 @@ pub enum RightsStatus {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
+pub enum SurveyAccessTier {
+    Public,
+    Controlled,
+    Restricted,
+    Unknown,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub enum VisibilityClass {
     Adequate,
     Partial,
@@ -91,6 +101,42 @@ pub enum ObservabilityDisposition {
     NotSurveyed,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum DetectionProbabilityScope {
+    /// Probability of detection across the complete survey-unit process.
+    /// No upstream conditioning events are removed from the denominator.
+    JointPerSurveyUnit,
+    /// Probability of sensor detection conditional on target survival, exposure,
+    /// observability and actual footprint coverage.
+    ConditionalOnTargetSurvivedExposedObservableAndCovered,
+    /// Probability of sensor detection conditional on the target being presented
+    /// to the sensor, with the upstream stages explicitly evidenced as well.
+    ConditionalOnTargetPresentedToSensor,
+    /// A non-standard, explicitly declared conditioning set.
+    OtherDeclaredConditioningSet,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum DetectionCondition {
+    TargetSurvived,
+    TargetExposed,
+    TargetObservable,
+    TargetCoveredByActualFootprint,
+    TargetPresentedToSensor,
+    TargetObservationDataValid,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ConditioningEvidence {
+    pub condition: DetectionCondition,
+    pub satisfied: bool,
+    pub evidence_ref: String,
+    pub evidence_sha256: String,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct SurveyContext {
     pub feature_class_id: String,
@@ -106,10 +152,22 @@ pub struct SurveyContext {
 pub struct CalibrationProfile {
     pub profile_id: String,
     pub profile_sha256: String,
+    pub method_id: String,
+    pub calibration_data_sha256: String,
+    pub calibration_split_manifest_sha256: String,
+    pub validation_receipt_ref: String,
+    pub validation_receipt_sha256: String,
+    pub rights_decision_id: String,
+    pub rights_receipt_ref: String,
+    pub access_tier: SurveyAccessTier,
     pub context: SurveyContext,
     pub sampling_design: CalibrationSamplingDesign,
-    /// Preregistered minimum independent positive-site PSUs. Values below 20
-    /// are rejected as a policy floor for this v0.1 evaluator.
+    pub detection_probability_scope: DetectionProbabilityScope,
+    /// Canonically ordered conditioning events. The declared set defines the
+    /// calibration denominator; only trials satisfying every event are eligible.
+    pub conditioning_events: Vec<DetectionCondition>,
+    /// Preregistered minimum eligible independent positive-site PSUs. Values below 20
+    /// are rejected as a policy floor for this v0.2 evaluator.
     pub minimum_independent_psus: usize,
     /// Required lower endpoint of the two-sided 95% Wilson interval.
     pub minimum_pod_lower_bound: f64,
@@ -125,6 +183,8 @@ pub struct CalibrationTrial {
     pub site_id: String,
     pub profile_sha256: String,
     pub context: SurveyContext,
+    /// Exactly one value per declared profile conditioning event, in canonical order.
+    pub conditioning_evidence: Vec<ConditioningEvidence>,
     /// True when this independent, known-positive PSU's target feature was detected.
     pub detected: bool,
     pub reference_evidence_tier: ReferenceEvidenceTier,
@@ -189,13 +249,27 @@ pub struct HeritageObservabilityReport {
     pub candidate_id: String,
     pub profile_id: String,
     pub profile_sha256: String,
+    pub method_id: String,
+    pub calibration_data_sha256: String,
+    pub calibration_split_manifest_sha256: String,
+    pub validation_receipt_ref: String,
+    pub validation_receipt_sha256: String,
+    pub rights_decision_id: String,
+    pub rights_receipt_ref: String,
+    pub access_tier: SurveyAccessTier,
     pub calibration_context: SurveyContext,
     pub observed_context: SurveyContext,
     pub observation_profile_sha256: String,
     pub observation_id: Option<String>,
     pub observation_outcome: ObservationOutcome,
     pub disposition: ObservabilityDisposition,
-    pub calibration_independent_psu_count: usize,
+    pub detection_probability_scope: DetectionProbabilityScope,
+    pub conditioning_events: Vec<DetectionCondition>,
+    pub calibration_total_independent_psu_count: usize,
+    pub calibration_eligible_independent_psu_count: usize,
+    pub calibration_excluded_conditioning_psu_count: usize,
+    /// SHA-256 of the complete calibration-trial manifest in canonical PSU order.
+    pub conditioning_evidence_manifest_sha256: String,
     pub calibration_detected_count: usize,
     pub empirical_probability_of_detection: f64,
     pub probability_of_detection_wilson_95: WilsonInterval,
@@ -222,6 +296,7 @@ pub enum HeritageObservabilityError {
     WrongSchemaVersion,
     EmptyCandidateId,
     EmptyProfileId,
+    EmptyMethodId,
     InvalidProfileDigest,
     EmptyFeatureClassId,
     InvalidSensorConfigurationDigest,
@@ -230,6 +305,28 @@ pub enum HeritageObservabilityError {
     EmptySeasonStratumId,
     EmptyResolutionClassId,
     UnsupportedSamplingDesign,
+    InvalidConditioningEventSet,
+    DuplicateConditioningEvent,
+    TrialConditioningEvidenceMismatch {
+        psu_id: String,
+    },
+    DuplicateTrialConditioningEvidence {
+        psu_id: String,
+        condition: DetectionCondition,
+    },
+    ConditioningEvidenceContradictsDetection {
+        psu_id: String,
+    },
+    EmptyConditioningEvidenceRef {
+        psu_id: String,
+        condition: DetectionCondition,
+    },
+    InvalidConditioningEvidenceDigest {
+        psu_id: String,
+        condition: DetectionCondition,
+    },
+    NoEligibleCalibrationTrials,
+    ConditioningManifestSerializationFailed,
     MinimumCalibrationPsuCountBelowFloor,
     InvalidMinimumPodLowerBound,
     InvalidMinimumCoverageFraction,
@@ -240,12 +337,24 @@ pub enum HeritageObservabilityError {
     EmptyCalibrationSiteId,
     DuplicateCalibrationPsuId(String),
     DuplicateCalibrationSiteId(String),
-    CalibrationProfileDigestMismatch { psu_id: String },
-    CalibrationContextMismatch { psu_id: String },
-    CalibrationReferenceEvidenceInsufficient { psu_id: String },
-    CalibrationRightsNotVerified { psu_id: String },
-    CalibrationReferenceEvidenceMissing { psu_id: String },
-    CalibrationRightsReceiptMissing { psu_id: String },
+    CalibrationProfileDigestMismatch {
+        psu_id: String,
+    },
+    CalibrationContextMismatch {
+        psu_id: String,
+    },
+    CalibrationReferenceEvidenceInsufficient {
+        psu_id: String,
+    },
+    CalibrationRightsNotVerified {
+        psu_id: String,
+    },
+    CalibrationReferenceEvidenceMissing {
+        psu_id: String,
+    },
+    CalibrationRightsReceiptMissing {
+        psu_id: String,
+    },
     InvalidObservationId,
     ObservationIdRequired,
     ObservationIdForbiddenWhenNotSurveyed,
@@ -275,12 +384,114 @@ fn valid_fraction(value: f64) -> bool {
     value.is_finite() && (0.0..=1.0).contains(&value)
 }
 
+fn validate_conditioning_event_set(
+    profile: &CalibrationProfile,
+) -> Result<(), HeritageObservabilityError> {
+    let mut unique = BTreeSet::new();
+    for condition in &profile.conditioning_events {
+        if !unique.insert(*condition) {
+            return Err(HeritageObservabilityError::DuplicateConditioningEvent);
+        }
+    }
+    if profile
+        .conditioning_events
+        .windows(2)
+        .any(|pair| pair[0] >= pair[1])
+    {
+        return Err(HeritageObservabilityError::InvalidConditioningEventSet);
+    }
+
+    let expected: BTreeSet<DetectionCondition> = match profile.detection_probability_scope {
+        DetectionProbabilityScope::JointPerSurveyUnit => BTreeSet::new(),
+        DetectionProbabilityScope::ConditionalOnTargetSurvivedExposedObservableAndCovered => [
+            DetectionCondition::TargetSurvived,
+            DetectionCondition::TargetExposed,
+            DetectionCondition::TargetObservable,
+            DetectionCondition::TargetCoveredByActualFootprint,
+        ]
+        .into_iter()
+        .collect(),
+        DetectionProbabilityScope::ConditionalOnTargetPresentedToSensor => [
+            DetectionCondition::TargetSurvived,
+            DetectionCondition::TargetExposed,
+            DetectionCondition::TargetObservable,
+            DetectionCondition::TargetCoveredByActualFootprint,
+            DetectionCondition::TargetPresentedToSensor,
+        ]
+        .into_iter()
+        .collect(),
+        DetectionProbabilityScope::OtherDeclaredConditioningSet => {
+            if profile.conditioning_events.is_empty() {
+                return Err(HeritageObservabilityError::InvalidConditioningEventSet);
+            }
+            unique.clone()
+        }
+    };
+    if unique != expected {
+        return Err(HeritageObservabilityError::InvalidConditioningEventSet);
+    }
+    Ok(())
+}
+
+fn trial_is_conditioning_eligible(trial: &CalibrationTrial) -> bool {
+    trial
+        .conditioning_evidence
+        .iter()
+        .all(|evidence| evidence.satisfied)
+}
+
+fn conditioning_evidence_manifest_sha256(
+    trials: &[CalibrationTrial],
+) -> Result<String, HeritageObservabilityError> {
+    let mut ordered_trials: Vec<&CalibrationTrial> = trials.iter().collect();
+    ordered_trials.sort_by(|left, right| left.psu_id.cmp(&right.psu_id));
+    let canonical_bytes = serde_json::to_vec(&ordered_trials)
+        .map_err(|_| HeritageObservabilityError::ConditioningManifestSerializationFailed)?;
+    Ok(format!("{:x}", Sha256::digest(canonical_bytes)))
+}
+
 fn validate_profile(profile: &CalibrationProfile) -> Result<(), HeritageObservabilityError> {
     if !non_empty(&profile.profile_id) {
         return Err(HeritageObservabilityError::EmptyProfileId);
     }
     if !valid_sha256(&profile.profile_sha256) {
         return Err(HeritageObservabilityError::InvalidProfileDigest);
+    }
+    if !non_empty(&profile.method_id) {
+        return Err(HeritageObservabilityError::EmptyMethodId);
+    }
+    for (value, label) in [
+        (&profile.calibration_data_sha256, "calibration_data_sha256"),
+        (
+            &profile.calibration_split_manifest_sha256,
+            "calibration_split_manifest_sha256",
+        ),
+        (
+            &profile.validation_receipt_sha256,
+            "validation_receipt_sha256",
+        ),
+    ] {
+        if !valid_sha256(value) {
+            return Err(HeritageObservabilityError::InvalidProfileDigest);
+        }
+        if !non_empty(label) {
+            return Err(HeritageObservabilityError::EmptyMethodId);
+        }
+    }
+    if !non_empty(&profile.validation_receipt_ref)
+        || !non_empty(&profile.rights_decision_id)
+        || !non_empty(&profile.rights_receipt_ref)
+    {
+        return Err(
+            HeritageObservabilityError::CalibrationReferenceEvidenceMissing {
+                psu_id: "profile".into(),
+            },
+        );
+    }
+    if profile.access_tier == SurveyAccessTier::Unknown {
+        return Err(HeritageObservabilityError::CalibrationRightsNotVerified {
+            psu_id: "profile".into(),
+        });
     }
     if !non_empty(&profile.context.feature_class_id) {
         return Err(HeritageObservabilityError::EmptyFeatureClassId);
@@ -303,6 +514,7 @@ fn validate_profile(profile: &CalibrationProfile) -> Result<(), HeritageObservab
     if profile.sampling_design != CalibrationSamplingDesign::ProbabilitySampledIndependentSites {
         return Err(HeritageObservabilityError::UnsupportedSamplingDesign);
     }
+    validate_conditioning_event_set(profile)?;
     if profile.minimum_independent_psus < MINIMUM_CALIBRATION_PSUS_FLOOR {
         return Err(HeritageObservabilityError::MinimumCalibrationPsuCountBelowFloor);
     }
@@ -366,6 +578,52 @@ fn validate_trials(
             return Err(HeritageObservabilityError::CalibrationContextMismatch {
                 psu_id: trial.psu_id.clone(),
             });
+        }
+        let mut evidence_conditions = BTreeSet::new();
+        for evidence in &trial.conditioning_evidence {
+            if !evidence_conditions.insert(evidence.condition) {
+                return Err(
+                    HeritageObservabilityError::DuplicateTrialConditioningEvidence {
+                        psu_id: trial.psu_id.clone(),
+                        condition: evidence.condition,
+                    },
+                );
+            }
+        }
+        for evidence in &trial.conditioning_evidence {
+            if !non_empty(&evidence.evidence_ref) {
+                return Err(HeritageObservabilityError::EmptyConditioningEvidenceRef {
+                    psu_id: trial.psu_id.clone(),
+                    condition: evidence.condition,
+                });
+            }
+            if !valid_sha256(&evidence.evidence_sha256) {
+                return Err(
+                    HeritageObservabilityError::InvalidConditioningEvidenceDigest {
+                        psu_id: trial.psu_id.clone(),
+                        condition: evidence.condition,
+                    },
+                );
+            }
+        }
+        let declared_conditions: Vec<DetectionCondition> = trial
+            .conditioning_evidence
+            .iter()
+            .map(|evidence| evidence.condition)
+            .collect();
+        if declared_conditions != profile.conditioning_events {
+            return Err(
+                HeritageObservabilityError::TrialConditioningEvidenceMismatch {
+                    psu_id: trial.psu_id.clone(),
+                },
+            );
+        }
+        if trial.detected && !trial_is_conditioning_eligible(trial) {
+            return Err(
+                HeritageObservabilityError::ConditioningEvidenceContradictsDetection {
+                    psu_id: trial.psu_id.clone(),
+                },
+            );
         }
         if !trial.reference_evidence_tier.supports_presence_reference() {
             return Err(
@@ -467,7 +725,12 @@ fn non_detection_reasons(
     if observation.calibration_profile_sha256 != profile.profile_sha256 {
         reasons.push(NonDetectionReason::CalibrationProfileDigestMismatch);
     }
-    if input.calibration_trials.len() < profile.minimum_independent_psus {
+    let eligible_count = input
+        .calibration_trials
+        .iter()
+        .filter(|trial| trial_is_conditioning_eligible(trial))
+        .count();
+    if eligible_count < profile.minimum_independent_psus {
         reasons.push(NonDetectionReason::CalibrationSampleBelowMinimum);
     }
     if interval.lower < profile.minimum_pod_lower_bound {
@@ -513,6 +776,16 @@ pub fn evaluate_heritage_observability(
 
     validate_profile(&input.calibration_profile)?;
     validate_trials(&input.calibration_profile, &input.calibration_trials)?;
+    let conditioning_manifest_digest =
+        conditioning_evidence_manifest_sha256(&input.calibration_trials)?;
+    let eligible_trials: Vec<&CalibrationTrial> = input
+        .calibration_trials
+        .iter()
+        .filter(|trial| trial_is_conditioning_eligible(trial))
+        .collect();
+    if eligible_trials.is_empty() {
+        return Err(HeritageObservabilityError::NoEligibleCalibrationTrials);
+    }
 
     let observation = &input.observation;
     match observation.outcome {
@@ -540,14 +813,15 @@ pub fn evaluate_heritage_observability(
         return Err(HeritageObservabilityError::InvalidValidDataFraction);
     }
 
-    let detected_count = input
-        .calibration_trials
+    let detected_count = eligible_trials
         .iter()
         .filter(|trial| trial.detected)
         .count();
-    let trial_count = input.calibration_trials.len();
-    let empirical_pod = detected_count as f64 / trial_count as f64;
-    let interval = wilson_interval(detected_count, trial_count)?;
+    let total_trial_count = input.calibration_trials.len();
+    let eligible_trial_count = eligible_trials.len();
+    let excluded_conditioning_count = total_trial_count - eligible_trial_count;
+    let empirical_pod = detected_count as f64 / eligible_trial_count as f64;
+    let interval = wilson_interval(detected_count, eligible_trial_count)?;
     let reasons = if observation.outcome == ObservationOutcome::NotDetected {
         non_detection_reasons(input, interval)
     } else {
@@ -572,13 +846,29 @@ pub fn evaluate_heritage_observability(
         candidate_id: input.candidate_id.clone(),
         profile_id: input.calibration_profile.profile_id.clone(),
         profile_sha256: input.calibration_profile.profile_sha256.clone(),
+        method_id: input.calibration_profile.method_id.clone(),
+        calibration_data_sha256: input.calibration_profile.calibration_data_sha256.clone(),
+        calibration_split_manifest_sha256: input
+            .calibration_profile
+            .calibration_split_manifest_sha256
+            .clone(),
+        validation_receipt_ref: input.calibration_profile.validation_receipt_ref.clone(),
+        validation_receipt_sha256: input.calibration_profile.validation_receipt_sha256.clone(),
+        rights_decision_id: input.calibration_profile.rights_decision_id.clone(),
+        rights_receipt_ref: input.calibration_profile.rights_receipt_ref.clone(),
+        access_tier: input.calibration_profile.access_tier,
         calibration_context: input.calibration_profile.context.clone(),
         observed_context: observation.context.clone(),
         observation_profile_sha256: observation.calibration_profile_sha256.clone(),
         observation_id: observation.observation_id.clone(),
         observation_outcome: observation.outcome,
         disposition,
-        calibration_independent_psu_count: trial_count,
+        detection_probability_scope: input.calibration_profile.detection_probability_scope,
+        conditioning_events: input.calibration_profile.conditioning_events.clone(),
+        calibration_total_independent_psu_count: total_trial_count,
+        calibration_eligible_independent_psu_count: eligible_trial_count,
+        calibration_excluded_conditioning_psu_count: excluded_conditioning_count,
+        conditioning_evidence_manifest_sha256: conditioning_manifest_digest,
         calibration_detected_count: detected_count,
         empirical_probability_of_detection: empirical_pod,
         probability_of_detection_wilson_95: interval,
@@ -618,8 +908,18 @@ mod tests {
         CalibrationProfile {
             profile_id: "lidar-stone-enclosure-grassland-v1".into(),
             profile_sha256: "c".repeat(64),
+            method_id: "lidar-stonewall-classifier-v1".into(),
+            calibration_data_sha256: "a".repeat(64),
+            calibration_split_manifest_sha256: "b".repeat(64),
+            validation_receipt_ref: "urn:synthetic:validation:pod".into(),
+            validation_receipt_sha256: "d".repeat(64),
+            rights_decision_id: "rights:synthetic:pod".into(),
+            rights_receipt_ref: "urn:synthetic:rights:pod".into(),
+            access_tier: SurveyAccessTier::Controlled,
             context: context(),
             sampling_design: CalibrationSamplingDesign::ProbabilitySampledIndependentSites,
+            detection_probability_scope: DetectionProbabilityScope::JointPerSurveyUnit,
+            conditioning_events: Vec::new(),
             minimum_independent_psus: 20,
             minimum_pod_lower_bound: 0.80,
             minimum_coverage_fraction: 0.95,
@@ -628,17 +928,35 @@ mod tests {
     }
 
     fn trials(detections: usize) -> Vec<CalibrationTrial> {
-        (0..20)
+        trials_with_count(detections, 20)
+    }
+
+    fn trials_with_count(detections: usize, count: usize) -> Vec<CalibrationTrial> {
+        (0..count)
             .map(|index| CalibrationTrial {
                 psu_id: format!("psu-{index}"),
                 site_id: format!("site-{index}"),
                 profile_sha256: "c".repeat(64),
                 context: context(),
+                conditioning_evidence: Vec::new(),
                 detected: index < detections,
                 reference_evidence_tier: ReferenceEvidenceTier::FieldAssessed,
                 reference_evidence_ref: format!("urn:synthetic:field-reference:{index}"),
                 rights_status: RightsStatus::Verified,
                 rights_receipt_ref: format!("urn:synthetic:rights:{index}"),
+            })
+            .collect()
+    }
+
+    fn evidence(events: &[DetectionCondition], satisfied: bool) -> Vec<ConditioningEvidence> {
+        events
+            .iter()
+            .copied()
+            .map(|condition| ConditioningEvidence {
+                condition,
+                satisfied,
+                evidence_ref: format!("urn:synthetic:conditioning:{condition:?}"),
+                evidence_sha256: "d".repeat(64),
             })
             .collect()
     }
@@ -918,6 +1236,299 @@ mod tests {
         assert!((interval.lower - 0.838_874_841_947_311_1).abs() < 1e-12);
         assert_eq!(interval.upper, 1.0);
         assert_eq!(interval.confidence_level, 0.95);
+    }
+
+    #[test]
+    fn conditional_scope_uses_only_trials_that_satisfy_the_declared_conditioning_set() {
+        let mut value = input(ObservationOutcome::NotDetected);
+        let events = vec![
+            DetectionCondition::TargetSurvived,
+            DetectionCondition::TargetExposed,
+            DetectionCondition::TargetObservable,
+            DetectionCondition::TargetCoveredByActualFootprint,
+        ];
+        value.calibration_profile.detection_probability_scope =
+            DetectionProbabilityScope::ConditionalOnTargetSurvivedExposedObservableAndCovered;
+        value.calibration_profile.conditioning_events = events.clone();
+        value.calibration_trials = trials_with_count(20, 25);
+        for (index, trial) in value.calibration_trials.iter_mut().enumerate() {
+            trial.conditioning_evidence = evidence(&events, index < 20);
+        }
+
+        let report = evaluate_heritage_observability(&value).unwrap();
+        assert_eq!(
+            report.detection_probability_scope,
+            DetectionProbabilityScope::ConditionalOnTargetSurvivedExposedObservableAndCovered
+        );
+        assert_eq!(report.calibration_total_independent_psu_count, 25);
+        assert_eq!(report.calibration_eligible_independent_psu_count, 20);
+        assert_eq!(report.calibration_excluded_conditioning_psu_count, 5);
+        assert_eq!(report.calibration_detected_count, 20);
+        assert!((report.empirical_probability_of_detection - 1.0).abs() < 1e-12);
+        assert!(report.probability_of_detection_wilson_95.lower > 0.80);
+        assert_eq!(
+            report.disposition,
+            ObservabilityDisposition::QualifiedNonDetection
+        );
+    }
+
+    #[test]
+    fn conditional_detection_scope_requires_the_exact_upstream_condition_set() {
+        let mut value = input(ObservationOutcome::NotDetected);
+        value.calibration_profile.detection_probability_scope =
+            DetectionProbabilityScope::ConditionalOnTargetPresentedToSensor;
+        value.calibration_profile.conditioning_events = vec![
+            DetectionCondition::TargetSurvived,
+            DetectionCondition::TargetExposed,
+            DetectionCondition::TargetObservable,
+            DetectionCondition::TargetCoveredByActualFootprint,
+        ];
+        assert_eq!(
+            evaluate_heritage_observability(&value),
+            Err(HeritageObservabilityError::InvalidConditioningEventSet)
+        );
+    }
+
+    #[test]
+    fn trial_evidence_must_match_profile_conditioning_set_exactly() {
+        let mut value = input(ObservationOutcome::NotDetected);
+        value.calibration_profile.detection_probability_scope =
+            DetectionProbabilityScope::ConditionalOnTargetSurvivedExposedObservableAndCovered;
+        value.calibration_profile.conditioning_events = vec![
+            DetectionCondition::TargetSurvived,
+            DetectionCondition::TargetExposed,
+            DetectionCondition::TargetObservable,
+            DetectionCondition::TargetCoveredByActualFootprint,
+        ];
+        assert!(matches!(
+            evaluate_heritage_observability(&value),
+            Err(HeritageObservabilityError::TrialConditioningEvidenceMismatch { .. })
+        ));
+    }
+
+    #[test]
+    fn detected_trial_with_failed_declared_condition_is_rejected() {
+        let mut value = input(ObservationOutcome::NotDetected);
+        let events = vec![
+            DetectionCondition::TargetSurvived,
+            DetectionCondition::TargetExposed,
+            DetectionCondition::TargetObservable,
+            DetectionCondition::TargetCoveredByActualFootprint,
+        ];
+        value.calibration_profile.detection_probability_scope =
+            DetectionProbabilityScope::ConditionalOnTargetSurvivedExposedObservableAndCovered;
+        value.calibration_profile.conditioning_events = events.clone();
+        value.calibration_trials = trials_with_count(20, 20);
+        for trial in &mut value.calibration_trials {
+            trial.conditioning_evidence = evidence(&events, true);
+        }
+        value.calibration_trials[0].conditioning_evidence[3].satisfied = false;
+        assert!(matches!(
+            evaluate_heritage_observability(&value),
+            Err(HeritageObservabilityError::ConditioningEvidenceContradictsDetection { .. })
+        ));
+    }
+
+    #[test]
+    fn zero_eligible_trials_fail_closed() {
+        let mut value = input(ObservationOutcome::NotDetected);
+        let events = vec![
+            DetectionCondition::TargetSurvived,
+            DetectionCondition::TargetExposed,
+            DetectionCondition::TargetObservable,
+            DetectionCondition::TargetCoveredByActualFootprint,
+        ];
+        value.calibration_profile.detection_probability_scope =
+            DetectionProbabilityScope::ConditionalOnTargetSurvivedExposedObservableAndCovered;
+        value.calibration_profile.conditioning_events = events.clone();
+        for trial in &mut value.calibration_trials {
+            trial.detected = false;
+            trial.conditioning_evidence = evidence(&events, false);
+        }
+        assert_eq!(
+            evaluate_heritage_observability(&value),
+            Err(HeritageObservabilityError::NoEligibleCalibrationTrials)
+        );
+    }
+
+    #[test]
+    fn presented_to_sensor_scope_requires_all_upstream_events_and_presentation() {
+        let mut value = input(ObservationOutcome::NotDetected);
+        let events = vec![
+            DetectionCondition::TargetSurvived,
+            DetectionCondition::TargetExposed,
+            DetectionCondition::TargetObservable,
+            DetectionCondition::TargetCoveredByActualFootprint,
+            DetectionCondition::TargetPresentedToSensor,
+        ];
+        value.calibration_profile.detection_probability_scope =
+            DetectionProbabilityScope::ConditionalOnTargetPresentedToSensor;
+        value.calibration_profile.conditioning_events = events.clone();
+        for trial in &mut value.calibration_trials {
+            trial.conditioning_evidence = evidence(&events, true);
+        }
+        let report = evaluate_heritage_observability(&value).unwrap();
+        assert_eq!(report.calibration_eligible_independent_psu_count, 20);
+        assert_eq!(report.conditioning_events, events);
+    }
+
+    #[test]
+    fn custom_conditioning_set_must_be_nonempty_and_is_explicitly_reported() {
+        let mut value = input(ObservationOutcome::NotDetected);
+        let events = vec![DetectionCondition::TargetObservationDataValid];
+        value.calibration_profile.detection_probability_scope =
+            DetectionProbabilityScope::OtherDeclaredConditioningSet;
+        value.calibration_profile.conditioning_events = events.clone();
+        for trial in &mut value.calibration_trials {
+            trial.conditioning_evidence = evidence(&events, true);
+        }
+        let report = evaluate_heritage_observability(&value).unwrap();
+        assert_eq!(
+            report.detection_probability_scope,
+            DetectionProbabilityScope::OtherDeclaredConditioningSet
+        );
+        assert_eq!(report.conditioning_events, events);
+
+        value.calibration_profile.conditioning_events.clear();
+        for trial in &mut value.calibration_trials {
+            trial.conditioning_evidence.clear();
+        }
+        assert_eq!(
+            evaluate_heritage_observability(&value),
+            Err(HeritageObservabilityError::InvalidConditioningEventSet)
+        );
+    }
+
+    #[test]
+    fn joint_scope_rejects_any_conditioning_events() {
+        let mut value = input(ObservationOutcome::NotDetected);
+        value.calibration_profile.conditioning_events =
+            vec![DetectionCondition::TargetObservationDataValid];
+        for trial in &mut value.calibration_trials {
+            trial.conditioning_evidence =
+                evidence(&[DetectionCondition::TargetObservationDataValid], true);
+        }
+        assert_eq!(
+            evaluate_heritage_observability(&value),
+            Err(HeritageObservabilityError::InvalidConditioningEventSet)
+        );
+    }
+
+    #[test]
+    fn duplicated_profile_conditioning_events_are_rejected() {
+        let mut value = input(ObservationOutcome::NotDetected);
+        value.calibration_profile.detection_probability_scope =
+            DetectionProbabilityScope::OtherDeclaredConditioningSet;
+        value.calibration_profile.conditioning_events = vec![
+            DetectionCondition::TargetObservationDataValid,
+            DetectionCondition::TargetObservationDataValid,
+        ];
+        assert_eq!(
+            evaluate_heritage_observability(&value),
+            Err(HeritageObservabilityError::DuplicateConditioningEvent)
+        );
+    }
+
+    #[test]
+    fn trial_conditioning_evidence_order_must_be_canonical() {
+        let mut value = input(ObservationOutcome::NotDetected);
+        let events = vec![
+            DetectionCondition::TargetSurvived,
+            DetectionCondition::TargetExposed,
+            DetectionCondition::TargetObservable,
+            DetectionCondition::TargetCoveredByActualFootprint,
+        ];
+        value.calibration_profile.detection_probability_scope =
+            DetectionProbabilityScope::ConditionalOnTargetSurvivedExposedObservableAndCovered;
+        value.calibration_profile.conditioning_events = events.clone();
+        for trial in &mut value.calibration_trials {
+            trial.conditioning_evidence = evidence(&events, true);
+            trial.conditioning_evidence.swap(0, 1);
+        }
+        assert!(matches!(
+            evaluate_heritage_observability(&value),
+            Err(HeritageObservabilityError::TrialConditioningEvidenceMismatch { .. })
+        ));
+    }
+
+    #[test]
+    fn conditioning_evidence_requires_a_reference_and_sha256_receipt() {
+        let mut value = input(ObservationOutcome::NotDetected);
+        let events = vec![
+            DetectionCondition::TargetSurvived,
+            DetectionCondition::TargetExposed,
+            DetectionCondition::TargetObservable,
+            DetectionCondition::TargetCoveredByActualFootprint,
+        ];
+        value.calibration_profile.detection_probability_scope =
+            DetectionProbabilityScope::ConditionalOnTargetSurvivedExposedObservableAndCovered;
+        value.calibration_profile.conditioning_events = events.clone();
+        for trial in &mut value.calibration_trials {
+            trial.conditioning_evidence = evidence(&events, true);
+        }
+        value.calibration_trials[0].conditioning_evidence[0]
+            .evidence_ref
+            .clear();
+        assert!(matches!(
+            evaluate_heritage_observability(&value),
+            Err(HeritageObservabilityError::EmptyConditioningEvidenceRef { .. })
+        ));
+
+        value.calibration_trials[0].conditioning_evidence[0].evidence_ref =
+            "urn:synthetic:condition:target-survived".into();
+        value.calibration_trials[0].conditioning_evidence[0].evidence_sha256 = "bad".into();
+        assert!(matches!(
+            evaluate_heritage_observability(&value),
+            Err(HeritageObservabilityError::InvalidConditioningEvidenceDigest { .. })
+        ));
+    }
+
+
+    #[test]
+    fn conditioning_evidence_manifest_is_order_invariant_and_commits_to_receipts() {
+        let mut value = input(ObservationOutcome::NotDetected);
+        let events = vec![
+            DetectionCondition::TargetSurvived,
+            DetectionCondition::TargetExposed,
+            DetectionCondition::TargetObservable,
+            DetectionCondition::TargetCoveredByActualFootprint,
+        ];
+        value.calibration_profile.detection_probability_scope =
+            DetectionProbabilityScope::ConditionalOnTargetSurvivedExposedObservableAndCovered;
+        value.calibration_profile.conditioning_events = events.clone();
+        for trial in &mut value.calibration_trials {
+            trial.conditioning_evidence = evidence(&events, true);
+        }
+
+        let first = evaluate_heritage_observability(&value).unwrap();
+        let mut reordered = value.clone();
+        reordered.calibration_trials.reverse();
+        let second = evaluate_heritage_observability(&reordered).unwrap();
+        assert_eq!(
+            first.conditioning_evidence_manifest_sha256,
+            second.conditioning_evidence_manifest_sha256
+        );
+
+        reordered.calibration_trials[0].conditioning_evidence[0].evidence_ref =
+            "urn:synthetic:conditioning:substituted".into();
+        let third = evaluate_heritage_observability(&reordered).unwrap();
+        assert_ne!(
+            first.conditioning_evidence_manifest_sha256,
+            third.conditioning_evidence_manifest_sha256
+        );
+        assert_eq!(first.conditioning_evidence_manifest_sha256.len(), 64);
+    }
+
+    #[test]
+    fn joint_scope_manifest_commits_to_detection_outcomes_even_without_condition_events() {
+        let mut value = input(ObservationOutcome::NotDetected);
+        let first = evaluate_heritage_observability(&value).unwrap();
+        value.calibration_trials[0].detected = !value.calibration_trials[0].detected;
+        let second = evaluate_heritage_observability(&value).unwrap();
+        assert_ne!(
+            first.conditioning_evidence_manifest_sha256,
+            second.conditioning_evidence_manifest_sha256
+        );
     }
 
     #[test]

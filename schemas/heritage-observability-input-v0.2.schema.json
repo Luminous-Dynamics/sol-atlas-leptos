@@ -1,0 +1,588 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/heritage-observability-input-v0.2.schema.json",
+  "title": "Sol-Atlas Heritage Observability Input v0.2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "candidate_id",
+    "calibration_profile",
+    "calibration_trials",
+    "observation"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "luminous.heritage-observability.v0.2"
+    },
+    "candidate_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "calibration_profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "profile_id",
+        "profile_sha256",
+        "method_id",
+        "calibration_data_sha256",
+        "calibration_split_manifest_sha256",
+        "validation_receipt_ref",
+        "validation_receipt_sha256",
+        "rights_decision_id",
+        "rights_receipt_ref",
+        "access_tier",
+        "context",
+        "sampling_design",
+        "detection_probability_scope",
+        "conditioning_events",
+        "minimum_independent_psus",
+        "minimum_pod_lower_bound",
+        "minimum_coverage_fraction",
+        "minimum_valid_data_fraction"
+      ],
+      "properties": {
+        "profile_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "profile_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "context": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "feature_class_id",
+            "modality",
+            "sensor_configuration_sha256",
+            "processing_build_sha256",
+            "environment_stratum_id",
+            "season_stratum_id",
+            "resolution_class_id"
+          ],
+          "properties": {
+            "feature_class_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "modality": {
+              "enum": [
+                "airborne_lidar",
+                "satellite_optical",
+                "satellite_sar",
+                "uav_photogrammetry",
+                "ground_geophysics",
+                "field_walking",
+                "other"
+              ]
+            },
+            "sensor_configuration_sha256": {
+              "type": "string",
+              "pattern": "^[a-fA-F0-9]{64}$"
+            },
+            "processing_build_sha256": {
+              "type": "string",
+              "pattern": "^[a-fA-F0-9]{64}$"
+            },
+            "environment_stratum_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "season_stratum_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "resolution_class_id": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "sampling_design": {
+          "const": "probability_sampled_independent_sites"
+        },
+        "minimum_independent_psus": {
+          "type": "integer",
+          "minimum": 20
+        },
+        "minimum_pod_lower_bound": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 1
+        },
+        "minimum_coverage_fraction": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 1
+        },
+        "minimum_valid_data_fraction": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 1
+        },
+        "detection_probability_scope": {
+          "enum": [
+            "joint_per_survey_unit",
+            "conditional_on_target_survived_exposed_observable_and_covered",
+            "conditional_on_target_presented_to_sensor",
+            "other_declared_conditioning_set"
+          ]
+        },
+        "conditioning_events": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "target_survived",
+              "target_exposed",
+              "target_observable",
+              "target_covered_by_actual_footprint",
+              "target_presented_to_sensor",
+              "target_observation_data_valid"
+            ]
+          }
+        },
+        "method_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "calibration_data_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "calibration_split_manifest_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "validation_receipt_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "validation_receipt_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "rights_decision_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "rights_receipt_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "access_tier": {
+          "enum": [
+            "public",
+            "controlled",
+            "restricted",
+            "unknown"
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "detection_probability_scope": {
+                "const": "joint_per_survey_unit"
+              }
+            },
+            "required": [
+              "detection_probability_scope"
+            ]
+          },
+          "then": {
+            "properties": {
+              "conditioning_events": {
+                "maxItems": 0
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "detection_probability_scope": {
+                "const": "conditional_on_target_survived_exposed_observable_and_covered"
+              }
+            },
+            "required": [
+              "detection_probability_scope"
+            ]
+          },
+          "then": {
+            "properties": {
+              "conditioning_events": {
+                "const": [
+                  "target_survived",
+                  "target_exposed",
+                  "target_observable",
+                  "target_covered_by_actual_footprint"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "detection_probability_scope": {
+                "const": "conditional_on_target_presented_to_sensor"
+              }
+            },
+            "required": [
+              "detection_probability_scope"
+            ]
+          },
+          "then": {
+            "properties": {
+              "conditioning_events": {
+                "const": [
+                  "target_survived",
+                  "target_exposed",
+                  "target_observable",
+                  "target_covered_by_actual_footprint",
+                  "target_presented_to_sensor"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "detection_probability_scope": {
+                "const": "other_declared_conditioning_set"
+              }
+            },
+            "required": [
+              "detection_probability_scope"
+            ]
+          },
+          "then": {
+            "properties": {
+              "conditioning_events": {
+                "minItems": 1
+              }
+            }
+          }
+        }
+      ]
+    },
+    "calibration_trials": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 100000,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "psu_id",
+          "site_id",
+          "profile_sha256",
+          "context",
+          "conditioning_evidence",
+          "detected",
+          "reference_evidence_tier",
+          "reference_evidence_ref",
+          "rights_status",
+          "rights_receipt_ref"
+        ],
+        "properties": {
+          "psu_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "site_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "profile_sha256": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{64}$"
+          },
+          "detected": {
+            "type": "boolean"
+          },
+          "reference_evidence_tier": {
+            "enum": [
+              "field_assessed",
+              "independent_expert_review",
+              "instrument_observation",
+              "catalogue_only",
+              "model_only"
+            ]
+          },
+          "reference_evidence_ref": {
+            "type": "string",
+            "minLength": 1
+          },
+          "rights_status": {
+            "enum": [
+              "verified",
+              "pending",
+              "denied",
+              "unknown"
+            ]
+          },
+          "rights_receipt_ref": {
+            "type": "string",
+            "minLength": 1
+          },
+          "context": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "feature_class_id",
+              "modality",
+              "sensor_configuration_sha256",
+              "processing_build_sha256",
+              "environment_stratum_id",
+              "season_stratum_id",
+              "resolution_class_id"
+            ],
+            "properties": {
+              "feature_class_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "modality": {
+                "enum": [
+                  "airborne_lidar",
+                  "satellite_optical",
+                  "satellite_sar",
+                  "uav_photogrammetry",
+                  "ground_geophysics",
+                  "field_walking",
+                  "other"
+                ]
+              },
+              "sensor_configuration_sha256": {
+                "type": "string",
+                "pattern": "^[a-fA-F0-9]{64}$"
+              },
+              "processing_build_sha256": {
+                "type": "string",
+                "pattern": "^[a-fA-F0-9]{64}$"
+              },
+              "environment_stratum_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "season_stratum_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "resolution_class_id": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "conditioning_evidence": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "condition",
+                "satisfied",
+                "evidence_ref",
+                "evidence_sha256"
+              ],
+              "properties": {
+                "condition": {
+                  "enum": [
+                    "target_survived",
+                    "target_exposed",
+                    "target_observable",
+                    "target_covered_by_actual_footprint",
+                    "target_presented_to_sensor",
+                    "target_observation_data_valid"
+                  ]
+                },
+                "satisfied": {
+                  "type": "boolean"
+                },
+                "evidence_ref": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "evidence_sha256": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{64}$"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "observation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "observation_id",
+        "outcome",
+        "context",
+        "calibration_profile_sha256",
+        "coverage_fraction",
+        "valid_data_fraction",
+        "visibility",
+        "rights_status",
+        "rights_receipt_ref"
+      ],
+      "properties": {
+        "observation_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        },
+        "outcome": {
+          "enum": [
+            "not_surveyed",
+            "detected",
+            "not_detected"
+          ]
+        },
+        "context": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "feature_class_id",
+            "modality",
+            "sensor_configuration_sha256",
+            "processing_build_sha256",
+            "environment_stratum_id",
+            "season_stratum_id",
+            "resolution_class_id"
+          ],
+          "properties": {
+            "feature_class_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "modality": {
+              "enum": [
+                "airborne_lidar",
+                "satellite_optical",
+                "satellite_sar",
+                "uav_photogrammetry",
+                "ground_geophysics",
+                "field_walking",
+                "other"
+              ]
+            },
+            "sensor_configuration_sha256": {
+              "type": "string",
+              "pattern": "^[a-fA-F0-9]{64}$"
+            },
+            "processing_build_sha256": {
+              "type": "string",
+              "pattern": "^[a-fA-F0-9]{64}$"
+            },
+            "environment_stratum_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "season_stratum_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "resolution_class_id": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "calibration_profile_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "coverage_fraction": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "valid_data_fraction": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "visibility": {
+          "enum": [
+            "adequate",
+            "partial",
+            "blocked",
+            "unknown"
+          ]
+        },
+        "rights_status": {
+          "enum": [
+            "verified",
+            "pending",
+            "denied",
+            "unknown"
+          ]
+        },
+        "rights_receipt_ref": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "outcome": {
+                "const": "not_surveyed"
+              }
+            },
+            "required": [
+              "outcome"
+            ]
+          },
+          "then": {
+            "properties": {
+              "observation_id": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "outcome": {
+                "enum": [
+                  "detected",
+                  "not_detected"
+                ]
+              }
+            },
+            "required": [
+              "outcome"
+            ]
+          },
+          "then": {
+            "properties": {
+              "observation_id": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
