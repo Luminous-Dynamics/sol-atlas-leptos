@@ -15,7 +15,7 @@ v0.2 therefore makes the estimand explicit and binds every calibration trial to 
 - **conditional_on_target_presented_to_sensor** — probability of detection conditional on survival, exposure, observability, actual footprint coverage, and target presentation to the sensor. The profile requires all five explicit event records.
 - **other_declared_conditioning_set** — an explicitly specified, non-empty set for an estimand that does not match the predeclared scopes. Its events must be unique and canonically ordered.
 
-The profile event vector is canonically ordered by the enum order in the schema. Every trial must carry exactly one state for every declared event, in that same order. Each state also carries a non-empty source evidence reference and a SHA-256 digest of the evidence artifact. Missing, extra, duplicate or reordered event evidence fails closed.
+The profile event vector is canonically ordered by the enum order in the schema. The calibration profile and every resulting report also carry method identity, calibration-data and split-manifest digests, validation receipt, rights decision and receipt, and access tier; these are required to construct a later HDB-22 evidence stage without inventing missing provenance. Every trial must carry exactly one state for every declared event, in that same order. Each state also carries a non-empty source evidence reference and a SHA-256 digest of the evidence artifact. Missing, extra, duplicate or reordered event evidence fails closed.
 
 ## Estimation rules
 
@@ -25,7 +25,7 @@ Only eligible trials enter the empirical estimate and its Wilson interval:
 
 POD_S = (sum of eligible detected trials) / (number of eligible trials).
 
-The report separately records total independent PSUs, eligible PSUs, and PSUs excluded because their conditioning set was not satisfied. Each trial-level condition assertion is linked to an evidence reference and digest; the evaluator validates the reference structure and digest syntax but does not authenticate the source or rights. It also reports the scope and the exact event set. Zero eligible PSUs is a typed error. A trial attributed as a true detection while a declared conditioning event is false is rejected because it cannot be a true-positive calibration observation under that estimand; false-positive evidence belongs in its separate evaluation.
+The report separately records total independent PSUs, eligible PSUs, and PSUs excluded because their conditioning set was not satisfied. It also emits a SHA-256 commitment to the complete calibration-trial manifest (canonical PSU order, including each detection outcome, conditioning assertion, evidence reference/digest, reference tier and rights receipt). Each trial-level condition assertion is linked to an evidence reference and digest; the evaluator validates the reference structure and digest syntax but does not authenticate the source or rights. It also reports the scope and the exact event set. Zero eligible PSUs is a typed error. A trial attributed as a true detection while a declared conditioning event is false is rejected because it cannot be a true-positive calibration observation under that estimand; false-positive evidence belongs in its separate evaluation.
 
 The profile's minimum sample requirement is applied to eligible PSUs, not the raw input array length. The existing 20-PSU floor remains an engineering guard, not a universal power recommendation.
 
@@ -34,7 +34,7 @@ The profile's minimum sample requirement is applied to eligible PSUs, not the ra
 - A joint_per_survey_unit POD is a **composite** survey-process probability. Do not multiply separate survival, exposure, observability or footprint-coverage factors into it again.
 - A conditional POD can be used as the sensor-detection factor only when HDB-22 receipts independently establish every conditioning event required by the declared scope.
 - other_declared_conditioning_set is not automatically mappable to HDB-22. It requires an explicit reviewed mapping for every event.
-- The scope enum does not authenticate trial evidence, prove the target-location distribution, or prove independence between upstream stages.
+- The scope enum does not authenticate trial evidence, prove the target-location distribution, or prove independence between upstream stages. The manifest digest establishes byte-level commitment to the serialized trial set, not issuer authenticity or correctness of the underlying evidence.
 - HDB-15 swept-area fraction remains a geometric fraction of a survey unit. It is not a target-location coverage probability without candidate-specific geometry or an explicit target-location distribution.
 
 This report is a source-level estimand description, not yet a complete HDB-24 adapter receipt.
