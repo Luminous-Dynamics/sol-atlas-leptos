@@ -1,0 +1,67 @@
+name: Heritage Fitness-for-Purpose Qualification
+
+on:
+  pull_request:
+    paths:
+      - "sol-atlas-core/src/heritage_fitness_for_purpose.rs"
+      - "sol-atlas-core/src/lib.rs"
+      - "sol-atlas-core/Cargo.toml"
+      - "schemas/heritage-fitness-for-purpose-report-v0.1.schema.json"
+      - "schemas/examples/heritage-fitness-for-purpose-report-synthetic-v0.1.json"
+      - "docs/research/heritage-fitness-for-purpose-v0.1.md"
+      - ".github/workflows/heritage-fitness-for-purpose.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  qualify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Verify exact checkout
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - name: Check core formatting
+        run: cargo fmt --manifest-path sol-atlas-core/Cargo.toml -- --check
+      - name: Run core unit tests
+        run: cargo test --manifest-path sol-atlas-core/Cargo.toml
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Validate Draft 2020-12 report schema, fixture and negative controls
+        run: |
+          python -m pip install --disable-pip-version-check jsonschema==4.23.0
+          python - <<'PY'
+          import copy
+          import json
+          from pathlib import Path
+          from jsonschema import Draft202012Validator
+
+          schema = json.loads(Path("schemas/heritage-fitness-for-purpose-report-v0.1.schema.json").read_text())
+          Draft202012Validator.check_schema(schema)
+          validator = Draft202012Validator(schema)
+          fixture = json.loads(Path("schemas/examples/heritage-fitness-for-purpose-report-synthetic-v0.1.json").read_text())
+          validator.validate(fixture)
+
+          bad = copy.deepcopy(fixture)
+          bad["macro_f1"] = 1.2
+          assert list(validator.iter_errors(bad)), "out-of-range F1 accepted"
+
+          bad = copy.deepcopy(fixture)
+          bad["population_uncertainty_claimed"] = True
+          assert list(validator.iter_errors(bad)), "population uncertainty claim accepted"
+
+          bad = copy.deepcopy(fixture)
+          bad["independent_unit_kind"] = "pixel"
+          assert list(validator.iter_errors(bad)), "pixel accepted as independent unit"
+
+          print("Draft 2020-12 report schema, 1 positive fixture and 3 negative controls passed")
+          PY
