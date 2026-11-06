@@ -91,6 +91,8 @@ pub struct CalibrationProvenanceBinding {
     pub rights_purpose: RightsPurpose,
     pub rights_receipt_ref: String,
     pub access_tier: AccessTier,
+    /// HDB-11 only: commitment to the complete calibration-trial manifest.
+    pub conditioning_evidence_manifest_sha256: Option<String>,
     /// HDB-15 only: the fit receipt is distinct from its held-out validation receipt.
     pub fit_receipt_sha256: Option<String>,
     /// HDB-15 only: preregistered ceiling for the held-out Brier score.
@@ -169,6 +171,7 @@ pub struct HeritageFactorAdapterReport {
     pub hdb11_profile_sha256: String,
     pub hdb15_profile_sha256: String,
     pub target_location_receipt_sha256: String,
+    pub conditioning_evidence_manifest_sha256: String,
     pub target_location_probability: ProbabilityBand,
     pub detection_probability_wilson_95: ProbabilityBand,
     pub hdb15_geometric_coverage_fraction: f64,
@@ -188,6 +191,14 @@ pub enum HeritageFactorAdapterError {
     InvalidDigest(String),
     InvalidEvidenceReference(String),
     RightsNotAllowed(String),
+    CalibrationManifestMismatch,
+    Hdb15FitValidationReceiptMismatch,
+    Hdb15ValidationQualityBelowThreshold,
+    Hdb15GeometryReceiptMismatch,
+    TargetLocationEventMismatch,
+    PhysicalObservationDomainMismatch,
+    OutsideDomainDetectionNotZero,
+    InvalidCoverageIntervalSemantics,
     UnsupportedPodScope,
     PodObservationNotQualified,
     PodContextMismatch,
@@ -277,7 +288,9 @@ fn validate_provenance(
         &value.rights_decision_id,
         &format!("{label}.rights_decision_id"),
     )?;
-    if value.analytical_rights != AnalyticalRights::Allowed {
+    if value.analytical_rights != AnalyticalRights::Allowed
+        || value.rights_purpose != RightsPurpose::ResearchAnalysis
+    {
         return Err(HeritageFactorAdapterError::RightsNotAllowed(label.into()));
     }
     require_ref(
@@ -292,8 +305,28 @@ fn validate_context_binding(
     hdb11: &HeritageObservabilityReport,
     hdb15: &FieldSweepEvaluationReport,
 ) -> Result<(), HeritageFactorAdapterError> {
-    if !non_empty(&binding.target_class_id) || !non_empty(&binding.hdb22_context_id) {
+    if !non_empty(&binding.target_class_id)
+        || !non_empty(&binding.hdb22_context_id)
+        || !non_empty(&binding.survey_unit_crs_id)
+        || !non_empty(&binding.spatial_union_method_id)
+    {
         return Err(HeritageFactorAdapterError::EmptyContextBinding);
+    }
+    if !binding.survey_unit_area_m2.is_finite()
+        || binding.survey_unit_area_m2 <= 0.0
+        || !binding.buffered_transect_union_area_m2.is_finite()
+        || binding.buffered_transect_union_area_m2 <= 0.0
+        || binding.buffered_transect_union_area_m2
+            > binding.survey_unit_area_m2 * (1.0 + PROBABILITY_TOLERANCE)
+        || !binding.buffered_sweep_width_m.is_finite()
+        || binding.buffered_sweep_width_m <= 0.0
+        || (binding.buffered_transect_union_area_m2 / binding.survey_unit_area_m2
+            - hdb15.receipt_reported_coverage_fraction).abs()
+            > PROBABILITY_TOLERANCE
+        || (binding.buffered_sweep_width_m - hdb15.buffered_sweep_width_m).abs()
+            > PROBABILITY_TOLERANCE.max(binding.buffered_sweep_width_m.abs() * 1e-9)
+    {
+        return Err(HeritageFactorAdapterError::Hdb15GeometryReceiptMismatch);
     }
     for (digest, label) in [
         (
@@ -361,11 +394,13 @@ fn validate_hdb11(
     {
         return Err(HeritageFactorAdapterError::PodObservationNotQualified);
     }
-    if report.calibration_eligible_independent_psu_count < report.minimum_independent_psus
+    let accounted_psus = report
+        .calibration_eligible_independent_psu_count
+        .checked_add(report.calibration_excluded_conditioning_psu_count);
+    if report.calibration_total_independent_psu_count > 100_000
+        || report.calibration_eligible_independent_psu_count < report.minimum_independent_psus
         || report.calibration_detected_count > report.calibration_eligible_independent_psu_count
-        || report.calibration_total_independent_psu_count
-            != report.calibration_eligible_independent_psu_count
-                + report.calibration_excluded_conditioning_psu_count
+        || accounted_psus != Some(report.calibration_total_independent_psu_count)
         || report.calibration_eligible_independent_psu_count == 0
     {
         return Err(HeritageFactorAdapterError::PodInsufficientEligibleCalibration);
@@ -379,6 +414,8 @@ fn validate_hdb11(
         return Err(HeritageFactorAdapterError::PodStatisticMismatch);
     };
     if pod_interval.confidence_level != 0.95
+        || !pod_interval.z_value.is_finite()
+        || (pod_interval.z_value - 1.959_963_984_540_054).abs() > PROBABILITY_TOLERANCE
         || !pod_interval.lower.is_finite()
         || !pod_interval.upper.is_finite()
         || pod_interval.lower < 0.0
@@ -393,6 +430,9 @@ fn validate_hdb11(
         > PROBABILITY_TOLERANCE
         || (pod_interval.lower - expected_lower).abs() > PROBABILITY_TOLERANCE
         || (pod_interval.upper - expected_upper).abs() > PROBABILITY_TOLERANCE
+        || !report.minimum_pod_lower_bound.is_finite()
+        || !(0.0..=1.0).contains(&report.minimum_pod_lower_bound)
+        || pod_interval.lower < report.minimum_pod_lower_bound
     {
         return Err(HeritageFactorAdapterError::PodStatisticMismatch);
     }
@@ -404,6 +444,14 @@ fn validate_hdb11(
     }
     if report.observed_context.processing_build_sha256 != provenance.method_build_sha256 {
         return Err(HeritageFactorAdapterError::PodMethodBuildMismatch);
+    }
+    if report.method_id != provenance.method_id
+        || report.calibration_data_sha256 != provenance.calibration_data_sha256
+        || report.calibration_split_manifest_sha256 != provenance.validation_split_manifest_sha256
+        || report.rights_decision_id != provenance.rights_decision_id
+        || report.rights_receipt_ref != provenance.rights_receipt_ref
+    {
+        return Err(HeritageFactorAdapterError::CalibrationManifestMismatch);
     }
     if report.rights_status != RightsStatus::Verified {
         return Err(HeritageFactorAdapterError::RightsNotAllowed("hdb11".into()));
@@ -423,6 +471,15 @@ fn validate_hdb11(
         &provenance.validation_split_manifest_sha256,
         "hdb11_validation_split_manifest_sha256",
     )?;
+    require_digest(
+        &report.conditioning_evidence_manifest_sha256,
+        "hdb11_conditioning_evidence_manifest_sha256",
+    )?;
+    if provenance.conditioning_evidence_manifest_sha256.as_deref()
+        != Some(report.conditioning_evidence_manifest_sha256.as_str())
+    {
+        return Err(HeritageFactorAdapterError::CalibrationManifestMismatch);
+    }
 
     Ok(ProbabilityBand {
         lower: report.probability_of_detection_wilson_95.lower,
@@ -489,7 +546,8 @@ fn validate_hdb15(
     }
     if provenance.calibration_data_sha256 != report.calibration_data_sha256
         || provenance.validation_split_manifest_sha256 != report.calibration_split_manifest_sha256
-        || provenance.validation_receipt_sha256 != report.fit_receipt_sha256
+        || provenance.fit_receipt_sha256.as_deref() != Some(report.fit_receipt_sha256.as_str())
+        || provenance.conditioning_evidence_manifest_sha256.is_some()
     {
         return Err(HeritageFactorAdapterError::FieldSweepProvenanceMismatch(
             "profile/fit receipt binding".into(),
@@ -497,8 +555,30 @@ fn validate_hdb15(
     }
     if !non_empty(&provenance.method_id) || !non_empty(&provenance.validation_receipt_ref) {
         return Err(HeritageFactorAdapterError::FieldSweepProvenanceMismatch(
-            "method/fit receipt reference".into(),
+            "method/validation receipt reference".into(),
         ));
+    }
+    let Some(maximum_brier) = provenance.maximum_permitted_validation_brier_score else {
+        return Err(HeritageFactorAdapterError::FieldSweepProvenanceMismatch(
+            "missing preregistered validation Brier ceiling".into(),
+        ));
+    };
+    if !maximum_brier.is_finite()
+        || !(0.0..=1.0).contains(&maximum_brier)
+        || !report.validation_brier_score.is_finite()
+        || !(0.0..=1.0).contains(&report.validation_brier_score)
+        || report.validation_brier_score > maximum_brier
+        || report.fit_transect_count < 3
+        || report.validation_transect_count < 2
+        || report.fit_seeded_target_count < 20
+        || report.validation_seeded_target_count < 10
+    {
+        return Err(HeritageFactorAdapterError::Hdb15ValidationQualityBelowThreshold);
+    }
+    if provenance.rights_decision_id.trim().is_empty()
+        || provenance.rights_receipt_ref.trim().is_empty()
+    {
+        return Err(HeritageFactorAdapterError::RightsNotAllowed("hdb15".into()));
     }
     require_digest(&provenance.method_build_sha256, "hdb15_method_build_sha256")?;
     require_digest(&provenance.source_data_sha256, "hdb15_source_data_sha256")?;
