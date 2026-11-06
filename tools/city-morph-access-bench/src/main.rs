@@ -25,7 +25,9 @@ fn main() -> ExitCode {
         return ExitCode::from(2);
     };
     if flag != "--source-commit" || !valid_commit(&source_commit) {
-        eprintln!("source commit must be supplied as --source-commit followed by 40 hex characters");
+        eprintln!(
+            "source commit must be supplied as --source-commit followed by 40 hex characters"
+        );
         return ExitCode::from(2);
     }
 
@@ -57,7 +59,10 @@ fn main() -> ExitCode {
     }
 
     let digest = Sha256::digest(&bytes);
-    let corpus_sha256 = digest.iter().map(|byte| format!("{byte:02x}")).collect::<String>();
+    let corpus_sha256 = digest
+        .iter()
+        .map(|byte| format!("{byte:02x}"))
+        .collect::<String>();
     let mut scenario_receipts = Vec::with_capacity(cases.len());
     let mut failures = 0usize;
 
@@ -89,7 +94,14 @@ fn main() -> ExitCode {
         "claim_ceiling": "synthetic effective-access reference agreement only; not real city access, safety, affordability, service quality, planning, or community-consent qualification",
         "scenarios": scenario_receipts,
     });
-    println!("{}", serde_json::to_string_pretty(&receipt).expect("receipt serializes"));
+    println!(
+        "{}",
+        serde_json::to_string_pretty(&receipt).expect("receipt serializes")
+    );
 
-    if failures == 0 { ExitCode::SUCCESS } else { ExitCode::FAILURE }
+    if failures == 0 {
+        ExitCode::SUCCESS
+    } else {
+        ExitCode::FAILURE
+    }
 }
