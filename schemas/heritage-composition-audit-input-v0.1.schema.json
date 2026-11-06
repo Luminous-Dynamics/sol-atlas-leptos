@@ -520,6 +520,9 @@
       "required": [
         "profile_id",
         "profile_sha256",
+        "calibration_data_sha256",
+        "calibration_split_manifest_sha256",
+        "fit_receipt_sha256",
         "target_feature_class_id",
         "survey_method",
         "method_id",
@@ -531,6 +534,7 @@
         "access_tier",
         "hdb11_profile_sha256",
         "hdb11_context_sha256",
+        "hdb22_context_id",
         "context_alignment_receipt_ref",
         "context_alignment_receipt_sha256"
       ],
@@ -600,6 +604,22 @@
         "context_alignment_receipt_sha256": {
           "type": "string",
           "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "calibration_data_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "calibration_split_manifest_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "fit_receipt_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "hdb22_context_id": {
+          "type": "string",
+          "minLength": 1
         }
       }
     },
@@ -669,6 +689,8 @@
         "survey_unit_id",
         "survey_unit_crs_id",
         "probability_model",
+        "interval_semantics",
+        "confidence_level",
         "probability",
         "target_location_distribution_sha256",
         "intersection_geometry_sha256",
@@ -794,6 +816,22 @@
         "validation_receipt_sha256": {
           "type": "string",
           "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "interval_semantics": {
+          "enum": [
+            "point_estimate",
+            "deterministic_bound",
+            "frequentist_confidence_interval",
+            "bayesian_credible_interval"
+          ]
+        },
+        "confidence_level": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "exclusiveMinimum": 0,
+          "exclusiveMaximum": 1
         }
       }
     }
@@ -841,6 +879,111 @@
               "uniform_assumption_justification_sha256": {
                 "type": "string",
                 "pattern": "^[a-fA-F0-9]{64}$"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "target_coverage": {
+            "properties": {
+              "interval_semantics": {
+                "const": "point_estimate"
+              }
+            },
+            "required": [
+              "interval_semantics"
+            ]
+          }
+        },
+        "required": [
+          "target_coverage"
+        ]
+      },
+      "then": {
+        "properties": {
+          "target_coverage": {
+            "properties": {
+              "confidence_level": {
+                "type": "null"
+              },
+              "probability": {
+                "properties": {
+                  "lower": {
+                    "const": 0.72
+                  },
+                  "upper": {
+                    "const": 0.81
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "target_coverage": {
+            "properties": {
+              "interval_semantics": {
+                "const": "deterministic_bound"
+              }
+            },
+            "required": [
+              "interval_semantics"
+            ]
+          }
+        },
+        "required": [
+          "target_coverage"
+        ]
+      },
+      "then": {
+        "properties": {
+          "target_coverage": {
+            "properties": {
+              "confidence_level": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "target_coverage": {
+            "properties": {
+              "interval_semantics": {
+                "enum": [
+                  "frequentist_confidence_interval",
+                  "bayesian_credible_interval"
+                ]
+              }
+            },
+            "required": [
+              "interval_semantics"
+            ]
+          }
+        },
+        "required": [
+          "target_coverage"
+        ]
+      },
+      "then": {
+        "properties": {
+          "target_coverage": {
+            "properties": {
+              "confidence_level": {
+                "type": "number",
+                "exclusiveMinimum": 0,
+                "exclusiveMaximum": 1
               }
             }
           }
