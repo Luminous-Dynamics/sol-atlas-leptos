@@ -606,9 +606,10 @@ pub fn evaluate_case(case: &Value) -> Value {
 
 fn json_equivalent(actual: &Value, expected: &Value) -> bool {
     match (actual, expected) {
-        (Value::Number(left), Value::Number(right)) => {
-            left.as_f64().zip(right.as_f64()).is_some_and(|(a, b)| a == b)
-        }
+        (Value::Number(left), Value::Number(right)) => left
+            .as_f64()
+            .zip(right.as_f64())
+            .is_some_and(|(a, b)| a == b),
         (Value::Array(left), Value::Array(right)) => {
             left.len() == right.len()
                 && left
@@ -631,15 +632,13 @@ fn json_equivalent(actual: &Value, expected: &Value) -> bool {
 /// representations compare by exact numeric value (e.g. 120 and 120.0);
 /// strings, booleans, arrays, object keys and all other values remain exact.
 pub fn matches_expected(actual: &Value, expected: &Value) -> bool {
-    expected
-        .as_object()
-        .is_some_and(|fields| {
-            fields.iter().all(|(key, expected_value)| {
-                actual
-                    .get(key)
-                    .is_some_and(|actual_value| json_equivalent(actual_value, expected_value))
-            })
+    expected.as_object().is_some_and(|fields| {
+        fields.iter().all(|(key, expected_value)| {
+            actual
+                .get(key)
+                .is_some_and(|actual_value| json_equivalent(actual_value, expected_value))
         })
+    })
 }
 
 #[cfg(test)]
@@ -726,10 +725,7 @@ expected: {}",
             result["category_totals"][0]["declared_open_capacity"].as_f64(),
             Some(120.0)
         );
-        assert_eq!(
-            result["category_totals"][0]["demand"].as_f64(),
-            Some(200.0)
-        );
+        assert_eq!(result["category_totals"][0]["demand"].as_f64(), Some(200.0));
         assert_eq!(
             result["category_totals"][0]["status"],
             "AggregateCapacityShortfall"
