@@ -1,0 +1,114 @@
+{
+  "schema_version": "luminous.heritage-fitness-for-purpose.v0.1",
+  "profile_id": "fitness-profile-001",
+  "profile_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "intended_use": "feature_extraction",
+  "intended_claim": "Feature geometries are sufficiently reproduced for candidate cataloguing.",
+  "independent_unit_kind": "site",
+  "descriptor_id": null,
+  "descriptor_units": null,
+  "submitted_unit_count": 2,
+  "evaluated_unit_count": 2,
+  "not_assessed_unit_count": 0,
+  "scored_detection_unit_count": 2,
+  "macro_precision": 0.945,
+  "macro_recall": 0.945,
+  "macro_f1": 0.945,
+  "pooled_precision": 0.945,
+  "pooled_recall": 0.945,
+  "pooled_f1": 0.945,
+  "macro_matched_iou": 0.935,
+  "descriptor_mean_absolute_error": null,
+  "descriptor_mean_signed_error": null,
+  "descriptor_rank_spearman": null,
+  "gates": [
+    {
+      "gate": "minimum_independent_unit_count",
+      "passed": true,
+      "observed_value": 2,
+      "threshold_value": 1,
+      "explanation": "Number of evaluated independent units must meet the preregistered minimum."
+    },
+    {
+      "gate": "minimum_macro_precision",
+      "passed": true,
+      "observed_value": 0.945,
+      "threshold_value": 0.8,
+      "explanation": "Macro precision must meet the feature-extraction threshold."
+    },
+    {
+      "gate": "minimum_macro_recall",
+      "passed": true,
+      "observed_value": 0.945,
+      "threshold_value": 0.8,
+      "explanation": "Macro recall must meet the feature-extraction threshold."
+    },
+    {
+      "gate": "minimum_macro_f1",
+      "passed": true,
+      "observed_value": 0.945,
+      "threshold_value": 0.8,
+      "explanation": "Macro F1 must meet the feature-extraction threshold."
+    },
+    {
+      "gate": "minimum_macro_matched_iou",
+      "passed": true,
+      "observed_value": 0.935,
+      "threshold_value": 0.8,
+      "explanation": "Matched-detection geometry IoU is a separate gate; it cannot substitute for F1."
+    },
+    {
+      "gate": "minimum_scored_detection_unit_count",
+      "passed": true,
+      "observed_value": 2,
+      "threshold_value": 1,
+      "explanation": "Sufficient independent units must have a defined detection F1 score."
+    }
+  ],
+  "passed": true,
+  "maximum_claim_ceiling": "feature_extraction_only",
+  "population_uncertainty_claimed": false,
+  "metric_definition_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "reference_dataset_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+  "prediction_dataset_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+  "split_manifest_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+  "validation_receipt_ref": "urn:fitness:validation",
+  "validation_receipt_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+  "method_build_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+  "rights_decision_id": "rights:fitness",
+  "rights_receipt_ref": "urn:rights:fitness",
+  "unit_metrics": [
+    {
+      "unit_id": "site-a",
+      "true_positives": 95,
+      "false_positives": 5,
+      "false_negatives": 5,
+      "precision": 0.95,
+      "recall": 0.95,
+      "f1": 0.95,
+      "mean_matched_iou": 0.94,
+      "reference_descriptor": null,
+      "predicted_descriptor": null,
+      "descriptor_absolute_error": null,
+      "descriptor_signed_error": null,
+      "assessment_state": "evaluated",
+      "not_assessed_reason": null
+    },
+    {
+      "unit_id": "site-b",
+      "true_positives": 94,
+      "false_positives": 6,
+      "false_negatives": 6,
+      "precision": 0.94,
+      "recall": 0.94,
+      "f1": 0.94,
+      "mean_matched_iou": 0.93,
+      "reference_descriptor": null,
+      "predicted_descriptor": null,
+      "descriptor_absolute_error": null,
+      "descriptor_signed_error": null,
+      "assessment_state": "evaluated",
+      "not_assessed_reason": null
+    }
+  ]
+}
