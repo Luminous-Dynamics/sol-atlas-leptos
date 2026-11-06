@@ -773,7 +773,11 @@ mod tests {
     }
 
     fn trials(detections: usize) -> Vec<CalibrationTrial> {
-        (0..20)
+        trials_with_count(detections, 20)
+    }
+
+    fn trials_with_count(detections: usize, count: usize) -> Vec<CalibrationTrial> {
+        (0..count)
             .map(|index| CalibrationTrial {
                 psu_id: format!("psu-{index}"),
                 site_id: format!("site-{index}"),
@@ -785,6 +789,17 @@ mod tests {
                 reference_evidence_ref: format!("urn:synthetic:field-reference:{index}"),
                 rights_status: RightsStatus::Verified,
                 rights_receipt_ref: format!("urn:synthetic:rights:{index}"),
+            })
+            .collect()
+    }
+
+    fn evidence(events: &[DetectionCondition], satisfied: bool) -> Vec<ConditioningEvidence> {
+        events
+            .iter()
+            .copied()
+            .map(|condition| ConditioningEvidence {
+                condition,
+                satisfied,
             })
             .collect()
     }
@@ -1064,6 +1079,213 @@ mod tests {
         assert!((interval.lower - 0.838_874_841_947_311_1).abs() < 1e-12);
         assert_eq!(interval.upper, 1.0);
         assert_eq!(interval.confidence_level, 0.95);
+    }
+
+
+    #[test]
+    fn conditional_scope_uses_only_trials_that_satisfy_the_declared_conditioning_set() {
+        let mut value = input(ObservationOutcome::NotDetected);
+        let events = vec![
+            DetectionCondition::TargetSurvived,
+            DetectionCondition::TargetExposed,
+            DetectionCondition::TargetObservable,
+            DetectionCondition::TargetCoveredByActualFootprint,
+        ];
+        value.calibration_profile.detection_probability_scope =
+            DetectionProbabilityScope::ConditionalOnTargetSurvivedExposedObservableAndCovered;
+        value.calibration_profile.conditioning_events = events.clone();
+        value.calibration_trials = trials_with_count(20, 25);
+        for (index, trial) in value.calibration_trials.iter_mut().enumerate() {
+            trial.conditioning_evidence = evidence(&events, index < 20);
+        }
+
+        let report = evaluate_heritage_observability(&value).unwrap();
+        assert_eq!(report.detection_probability_scope, DetectionProbabilityScope::ConditionalOnTargetSurvivedExposedObservableAndCovered);
+        assert_eq!(report.calibration_total_independent_psu_count, 25);
+        assert_eq!(report.calibration_eligible_independent_psu_count, 20);
+        assert_eq!(report.calibration_excluded_conditioning_psu_count, 5);
+        assert_eq!(report.calibration_detected_count, 20);
+        assert!((report.empirical_probability_of_detection - 1.0).abs() < 1e-12);
+        assert!(report.probability_of_detection_wilson_95.lower > 0.80);
+        assert_eq!(report.disposition, ObservabilityDisposition::QualifiedNonDetection);
+    }
+
+    #[test]
+    fn conditional_detection_scope_requires_the_exact_upstream_condition_set() {
+        let mut value = input(ObservationOutcome::NotDetected);
+        value.calibration_profile.detection_probability_scope =
+            DetectionProbabilityScope::ConditionalOnTargetPresentedToSensor;
+        value.calibration_profile.conditioning_events = vec![
+            DetectionCondition::TargetSurvived,
+            DetectionCondition::TargetExposed,
+            DetectionCondition::TargetObservable,
+            DetectionCondition::TargetCoveredByActualFootprint,
+        ];
+        assert_eq!(
+            evaluate_heritage_observability(&value),
+            Err(HeritageObservabilityError::InvalidConditioningEventSet)
+        );
+    }
+
+    #[test]
+    fn trial_evidence_must_match_profile_conditioning_set_exactly() {
+        let mut value = input(ObservationOutcome::NotDetected);
+        value.calibration_profile.detection_probability_scope =
+            DetectionProbabilityScope::ConditionalOnTargetSurvivedExposedObservableAndCovered;
+        value.calibration_profile.conditioning_events = vec![
+            DetectionCondition::TargetSurvived,
+            DetectionCondition::TargetExposed,
+            DetectionCondition::TargetObservable,
+            DetectionCondition::TargetCoveredByActualFootprint,
+        ];
+        assert!(matches!(
+            evaluate_heritage_observability(&value),
+            Err(HeritageObservabilityError::TrialConditioningEvidenceMismatch { .. })
+        ));
+    }
+
+    #[test]
+    fn detected_trial_with_failed_declared_condition_is_rejected() {
+        let mut value = input(ObservationOutcome::NotDetected);
+        let events = vec![
+            DetectionCondition::TargetSurvived,
+            DetectionCondition::TargetExposed,
+            DetectionCondition::TargetObservable,
+            DetectionCondition::TargetCoveredByActualFootprint,
+        ];
+        value.calibration_profile.detection_probability_scope =
+            DetectionProbabilityScope::ConditionalOnTargetSurvivedExposedObservableAndCovered;
+        value.calibration_profile.conditioning_events = events.clone();
+        value.calibration_trials = trials_with_count(20, 20);
+        for trial in &mut value.calibration_trials {
+            trial.conditioning_evidence = evidence(&events, true);
+        }
+        value.calibration_trials[0].conditioning_evidence[3].satisfied = false;
+        assert!(matches!(
+            evaluate_heritage_observability(&value),
+            Err(HeritageObservabilityError::ConditioningEvidenceContradictsDetection { .. })
+        ));
+    }
+
+    #[test]
+    fn zero_eligible_trials_fail_closed() {
+        let mut value = input(ObservationOutcome::NotDetected);
+        let events = vec![
+            DetectionCondition::TargetSurvived,
+            DetectionCondition::TargetExposed,
+            DetectionCondition::TargetObservable,
+            DetectionCondition::TargetCoveredByActualFootprint,
+        ];
+        value.calibration_profile.detection_probability_scope =
+            DetectionProbabilityScope::ConditionalOnTargetSurvivedExposedObservableAndCovered;
+        value.calibration_profile.conditioning_events = events.clone();
+        for trial in &mut value.calibration_trials {
+            trial.detected = false;
+            trial.conditioning_evidence = evidence(&events, false);
+        }
+        assert_eq!(
+            evaluate_heritage_observability(&value),
+            Err(HeritageObservabilityError::NoEligibleCalibrationTrials)
+        );
+    }
+
+    #[test]
+    fn presented_to_sensor_scope_requires_all_upstream_events_and_presentation() {
+        let mut value = input(ObservationOutcome::NotDetected);
+        let events = vec![
+            DetectionCondition::TargetSurvived,
+            DetectionCondition::TargetExposed,
+            DetectionCondition::TargetObservable,
+            DetectionCondition::TargetCoveredByActualFootprint,
+            DetectionCondition::TargetPresentedToSensor,
+        ];
+        value.calibration_profile.detection_probability_scope =
+            DetectionProbabilityScope::ConditionalOnTargetPresentedToSensor;
+        value.calibration_profile.conditioning_events = events.clone();
+        for trial in &mut value.calibration_trials {
+            trial.conditioning_evidence = evidence(&events, true);
+        }
+        let report = evaluate_heritage_observability(&value).unwrap();
+        assert_eq!(report.calibration_eligible_independent_psu_count, 20);
+        assert_eq!(report.conditioning_events, events);
+    }
+
+    #[test]
+    fn custom_conditioning_set_must_be_nonempty_and_is_explicitly_reported() {
+        let mut value = input(ObservationOutcome::NotDetected);
+        let events = vec![DetectionCondition::TargetObservationDataValid];
+        value.calibration_profile.detection_probability_scope =
+            DetectionProbabilityScope::OtherDeclaredConditioningSet;
+        value.calibration_profile.conditioning_events = events.clone();
+        for trial in &mut value.calibration_trials {
+            trial.conditioning_evidence = evidence(&events, true);
+        }
+        let report = evaluate_heritage_observability(&value).unwrap();
+        assert_eq!(report.detection_probability_scope, DetectionProbabilityScope::OtherDeclaredConditioningSet);
+        assert_eq!(report.conditioning_events, events);
+
+        value.calibration_profile.conditioning_events.clear();
+        for trial in &mut value.calibration_trials {
+            trial.conditioning_evidence.clear();
+        }
+        assert_eq!(
+            evaluate_heritage_observability(&value),
+            Err(HeritageObservabilityError::InvalidConditioningEventSet)
+        );
+    }
+
+    #[test]
+    fn joint_scope_rejects_any_conditioning_events() {
+        let mut value = input(ObservationOutcome::NotDetected);
+        value.calibration_profile.conditioning_events =
+            vec![DetectionCondition::TargetObservationDataValid];
+        for trial in &mut value.calibration_trials {
+            trial.conditioning_evidence = evidence(
+                &[DetectionCondition::TargetObservationDataValid],
+                true,
+            );
+        }
+        assert_eq!(
+            evaluate_heritage_observability(&value),
+            Err(HeritageObservabilityError::InvalidConditioningEventSet)
+        );
+    }
+
+    #[test]
+    fn duplicated_profile_conditioning_events_are_rejected() {
+        let mut value = input(ObservationOutcome::NotDetected);
+        value.calibration_profile.detection_probability_scope =
+            DetectionProbabilityScope::OtherDeclaredConditioningSet;
+        value.calibration_profile.conditioning_events = vec![
+            DetectionCondition::TargetObservationDataValid,
+            DetectionCondition::TargetObservationDataValid,
+        ];
+        assert_eq!(
+            evaluate_heritage_observability(&value),
+            Err(HeritageObservabilityError::DuplicateConditioningEvent)
+        );
+    }
+
+    #[test]
+    fn trial_conditioning_evidence_order_must_be_canonical() {
+        let mut value = input(ObservationOutcome::NotDetected);
+        let events = vec![
+            DetectionCondition::TargetSurvived,
+            DetectionCondition::TargetExposed,
+            DetectionCondition::TargetObservable,
+            DetectionCondition::TargetCoveredByActualFootprint,
+        ];
+        value.calibration_profile.detection_probability_scope =
+            DetectionProbabilityScope::ConditionalOnTargetSurvivedExposedObservableAndCovered;
+        value.calibration_profile.conditioning_events = events.clone();
+        for trial in &mut value.calibration_trials {
+            trial.conditioning_evidence = evidence(&events, true);
+            trial.conditioning_evidence.swap(0, 1);
+        }
+        assert!(matches!(
+            evaluate_heritage_observability(&value),
+            Err(HeritageObservabilityError::TrialConditioningEvidenceMismatch { .. })
+        ));
     }
 
     #[test]
