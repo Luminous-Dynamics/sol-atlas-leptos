@@ -1664,7 +1664,9 @@ mod tests {
             .clear();
         assert_eq!(
             audit_heritage_probability_composition(&value),
-            Err(HeritageCompositionError::ActualObservationDomainReceiptMissing)
+            Err(HeritageCompositionError::EmptyReceiptReference(
+                "actual_observation_domain_receipt_ref"
+            ))
         );
     }
 
