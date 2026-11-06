@@ -604,12 +604,42 @@ pub fn evaluate_case(case: &Value) -> Value {
     })
 }
 
+fn json_equivalent(actual: &Value, expected: &Value) -> bool {
+    match (actual, expected) {
+        (Value::Number(left), Value::Number(right)) => {
+            left.as_f64().zip(right.as_f64()).is_some_and(|(a, b)| a == b)
+        }
+        (Value::Array(left), Value::Array(right)) => {
+            left.len() == right.len()
+                && left
+                    .iter()
+                    .zip(right.iter())
+                    .all(|(a, b)| json_equivalent(a, b))
+        }
+        (Value::Object(left), Value::Object(right)) => {
+            left.len() == right.len()
+                && right.iter().all(|(key, expected_value)| {
+                    left.get(key)
+                        .is_some_and(|actual_value| json_equivalent(actual_value, expected_value))
+                })
+        }
+        _ => actual == expected,
+    }
+}
+
+/// Compare the declared oracle fields structurally. JSON integer and floating
+/// representations compare by exact numeric value (e.g. 120 and 120.0);
+/// strings, booleans, arrays, object keys and all other values remain exact.
 pub fn matches_expected(actual: &Value, expected: &Value) -> bool {
-    expected.as_object().is_some_and(|fields| {
-        fields
-            .iter()
-            .all(|(key, value)| actual.get(key) == Some(value))
-    })
+    expected
+        .as_object()
+        .is_some_and(|fields| {
+            fields.iter().all(|(key, expected_value)| {
+                actual
+                    .get(key)
+                    .is_some_and(|actual_value| json_equivalent(actual_value, expected_value))
+            })
+        })
 }
 
 #[cfg(test)]
@@ -692,8 +722,14 @@ expected: {}",
             result["groups"][1]["status"],
             "AccessibleAndAdequatePotential"
         );
-        assert_eq!(result["category_totals"][0]["declared_open_capacity"], 120);
-        assert_eq!(result["category_totals"][0]["demand"], 200);
+        assert_eq!(
+            result["category_totals"][0]["declared_open_capacity"].as_f64(),
+            Some(120.0)
+        );
+        assert_eq!(
+            result["category_totals"][0]["demand"].as_f64(),
+            Some(200.0)
+        );
         assert_eq!(
             result["category_totals"][0]["status"],
             "AggregateCapacityShortfall"
