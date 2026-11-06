@@ -668,7 +668,7 @@ fn validate_field_sweep(
         || report.buffered_sweep_width_m <= 0.0
         || (report.buffered_sweep_width_m - geometry.buffered_sweep_width_m).abs()
             > COVERAGE_RATIO_TOLERANCE.max(geometry.buffered_sweep_width_m.abs() * 1e-9)
-        || !sweep_interval.confidence_level.eq(&0.95)
+        || sweep_interval.confidence_level != 0.95
         || !sweep_interval.z_value.is_finite()
         || sweep_interval.z_value <= 0.0
         || !sweep_interval.standard_error_m.is_finite()
