@@ -41,7 +41,9 @@
       "method_id": "field-walk-detection-v1",
       "method_build_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
       "source_data_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
-      "analytical_rights": "allowed"
+      "analytical_rights": "allowed",
+      "rights_purpose": "research_analysis",
+      "rights_receipt_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
     }
   },
   "footprint_coverage": {
@@ -74,7 +76,9 @@
     "analytical_rights": "allowed",
     "profile_id": "sweep-profile-1",
     "profile_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
-    "calibration_data_sha256": "7777777777777777777777777777777777777777777777777777777777777777"
+    "calibration_data_sha256": "7777777777777777777777777777777777777777777777777777777777777777",
+    "rights_purpose": "research_analysis",
+    "rights_receipt_sha256": "1111111111111111111111111111111111111111111111111111111111111111"
   },
   "hdb15_geometric_coverage_fraction": 0.5,
   "joint_detection_factor_used": false,
