@@ -734,6 +734,34 @@ expected: {}",
     }
 
     #[test]
+    fn group_specific_travel_time_budgets_are_applied_independently() {
+        let corpus = corpus();
+        let case = corpus["cases"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|case| case["case_id"] == "MA-018")
+            .unwrap();
+        let result = evaluate_case(case);
+        assert_eq!(
+            result["groups"][0]["nearest_known_service_minutes"].as_f64(),
+            Some(6.0)
+        );
+        assert_eq!(
+            result["groups"][1]["nearest_known_service_minutes"].as_f64(),
+            Some(17.0)
+        );
+        assert_eq!(
+            result["groups"][0]["status"],
+            "AccessibleAndAdequatePotential"
+        );
+        assert_eq!(
+            result["groups"][1]["status"],
+            "AccessibleAndAdequatePotential"
+        );
+    }
+
+    #[test]
     fn input_permutations_do_not_change_normalized_access_results() {
         let corpus = corpus();
         let mut case = corpus["cases"]
