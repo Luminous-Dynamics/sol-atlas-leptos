@@ -111,6 +111,8 @@ pub struct TargetLocationCoverageReceipt {
     pub survey_unit_geometry_sha256: String,
     pub transect_geometry_sha256: String,
     pub coverage_geometry_sha256: String,
+    /// Resulting geometry of the target-location/footprint intersection.
+    pub intersection_geometry_sha256: String,
     pub spatial_union_receipt_sha256: String,
     pub model: CoverageProbabilityModel,
     pub target_location_probability: ProbabilityBand,
@@ -127,6 +129,7 @@ pub struct TargetLocationCoverageReceipt {
     pub hdb11_coverage_condition_alignment_receipt_ref: String,
     pub hdb11_coverage_condition_alignment_receipt_sha256: String,
     pub hdb11_coverage_condition_profile_sha256: String,
+    pub hdb11_conditioning_evidence_manifest_sha256: String,
     pub hdb11_conditioned_observation_domain_geometry_sha256: String,
     pub hdb11_conditioned_target_location_distribution_sha256: String,
     pub actual_observation_domain_basis: ActualObservationDomainBasis,
@@ -633,6 +636,10 @@ fn validate_target_location_coverage(
             "coverage_geometry_sha256",
         ),
         (
+            &receipt.intersection_geometry_sha256,
+            "intersection_geometry_sha256",
+        ),
+        (
             &receipt.spatial_union_receipt_sha256,
             "target_spatial_union_receipt_sha256",
         ),
@@ -647,6 +654,10 @@ fn validate_target_location_coverage(
         (
             &receipt.hdb11_coverage_condition_profile_sha256,
             "hdb11_coverage_condition_profile_sha256",
+        ),
+        (
+            &receipt.hdb11_conditioning_evidence_manifest_sha256,
+            "hdb11_conditioning_evidence_manifest_sha256",
         ),
         (
             &receipt.field_sweep_fit_receipt_sha256,
@@ -775,8 +786,10 @@ fn validate_target_location_coverage(
     {
         return Err(HeritageFactorAdapterError::OutsideDomainDetectionNotZero);
     }
-    if receipt.hdb11_conditioned_observation_domain_geometry_sha256
-        != receipt.coverage_geometry_sha256
+    if receipt.hdb11_conditioning_evidence_manifest_sha256
+        != hdb11.conditioning_evidence_manifest_sha256
+        || receipt.hdb11_conditioned_observation_domain_geometry_sha256
+            != receipt.coverage_geometry_sha256
         || receipt.hdb11_conditioned_target_location_distribution_sha256
             != receipt.target_location_distribution_sha256
     {
@@ -1285,6 +1298,7 @@ mod tests {
                 survey_unit_geometry_sha256: hdb15.survey_unit_geometry_sha256.clone(),
                 transect_geometry_sha256: hdb15.transect_geometry_sha256.clone(),
                 coverage_geometry_sha256: digest('a'),
+                intersection_geometry_sha256: digest('9'),
                 spatial_union_receipt_sha256: hdb15.spatial_union_receipt_sha256.clone(),
                 model: CoverageProbabilityModel::UniformAreaWeightedWithinSurveyUnit,
                 target_location_probability: ProbabilityBand {
@@ -1302,9 +1316,11 @@ mod tests {
                 hdb11_coverage_condition_alignment_receipt_ref: "receipt:hdb11-coverage-alignment".into(),
                 hdb11_coverage_condition_alignment_receipt_sha256: digest('0'),
                 hdb11_coverage_condition_profile_sha256: digest('c'),
+                hdb11_conditioning_evidence_manifest_sha256: digest('m'),
                 hdb11_conditioned_observation_domain_geometry_sha256: digest('a'),
                 hdb11_conditioned_target_location_distribution_sha256: digest('b'),
                 actual_observation_domain_basis: ActualObservationDomainBasis::RecordedObserverPathAndDeclaredViewBoundary,
+                actual_observation_domain_area_m2: 9_700.0,
                 actual_observation_domain_receipt_ref: "receipt:actual-observation-domain".into(),
                 actual_observation_domain_receipt_sha256: digest('6'),
                 outside_domain_detection_probability: 0.0,
