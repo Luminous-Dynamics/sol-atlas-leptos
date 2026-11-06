@@ -48,7 +48,7 @@
   },
   "footprint_coverage": {
     "stage": "footprint_coverage",
-    "conditioning_semantics": "target_location_covered_by_actual_survey_footprint_under_declared_distribution",
+    "conditioning_semantics": "target_location_inside_independently_receipted_physical_observation_domain; detection_outside_domain_is_zero_by_protocol",
     "probability_model": "target_specific_spatial_distribution",
     "probability": {
       "lower": 0.72,
@@ -71,14 +71,22 @@
     "access_tier": "controlled",
     "interval_semantics": "deterministic_bound",
     "confidence_level": null,
-    "evidence_basis": "actual_spatial_union_receipt",
+    "evidence_basis": "independent_physical_observation_domain_receipt",
     "source_data_sha256": "7777777777777777777777777777777777777777777777777777777777777777",
     "analytical_rights": "allowed",
     "profile_id": "sweep-profile-1",
     "profile_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
     "calibration_data_sha256": "7777777777777777777777777777777777777777777777777777777777777777",
     "rights_purpose": "research_analysis",
-    "rights_receipt_sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+    "rights_receipt_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+    "actual_observation_domain_basis": "recorded_observer_path_and_declared_view_boundary",
+    "actual_observation_domain_geometry_sha256": "oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo",
+    "coverage_geometry_sha256": "oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo",
+    "hdb11_conditioned_observation_domain_geometry_sha256": "oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo",
+    "hdb11_conditioned_target_location_distribution_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+    "actual_observation_domain_receipt_ref": "urn:actual-observation-domain:1",
+    "actual_observation_domain_receipt_sha256": "pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp",
+    "outside_domain_detection_probability": 0
   },
   "hdb15_geometric_coverage_fraction": 0.5,
   "joint_detection_factor_used": false,
