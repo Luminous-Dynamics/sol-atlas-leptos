@@ -21,6 +21,7 @@ pub mod mycelix_flows;
 pub mod geometry;
 pub mod heritage_architecture;
 pub mod heritage_benchmark_metrics;
+pub mod heritage_hard_negative;
 pub mod math;
 pub mod picking;
 pub mod simulation;
