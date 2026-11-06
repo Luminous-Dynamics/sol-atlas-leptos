@@ -506,6 +506,11 @@ pub fn evaluate_case(case: &Value) -> Value {
         outcome.status = if !outcome.accessible_services.is_empty() {
             if outcome.capacity >= demand {
                 "AccessibleAndAdequatePotential".to_owned()
+            } else if !outcome.unknown_services.is_empty() {
+                outcome
+                    .reason_codes
+                    .insert("ACCESSIBLE_CAPACITY_ADEQUACY_UNKNOWN".to_owned());
+                "Unknown".to_owned()
             } else {
                 outcome
                     .reason_codes
@@ -753,6 +758,54 @@ expected: {}",
         assert_eq!(
             result["groups"][0]["status"],
             "AccessibleAndAdequatePotential"
+        );
+    }
+
+    #[test]
+    fn unknown_usable_service_prevents_false_capacity_shortfall() {
+        let mut case = corpus()["cases"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|case| case["case_id"] == "MA-002")
+            .unwrap()
+            .clone();
+        case["input"]["services"]
+            .as_array_mut()
+            .unwrap()
+            .push(serde_json::json!({
+                "id": "unknown-price-clinic",
+                "node": "s",
+                "category": "health",
+                "capacity": 200,
+                "capacity_unit": "visits/day",
+                "capacity_state": "current",
+                "availability_state": "open",
+                "open_windows": ["weekday_day"],
+                "price": 0,
+                "price_unit": "credits/visit",
+                "price_state": "unknown",
+                "eligibility_state": "known",
+                "eligible_group_ids": ["*"],
+                "step_free_status": true
+            }));
+        let result = evaluate_case(&case);
+        assert_eq!(result["groups"][0]["status"], "Unknown");
+        assert_eq!(
+            result["groups"][0]["accessible_service_ids"],
+            serde_json::json!(["clinic"])
+        );
+        assert_eq!(
+            result["groups"][0]["unknown_service_ids"],
+            serde_json::json!(["unknown-price-clinic"])
+        );
+        assert_eq!(result["disposition"], "Unknown");
+        assert!(
+            result["groups"][0]["reason_codes"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|reason| reason == "ACCESSIBLE_CAPACITY_ADEQUACY_UNKNOWN")
         );
     }
 
