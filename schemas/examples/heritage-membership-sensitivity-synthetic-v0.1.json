@@ -1,0 +1,389 @@
+{
+  "schema_version": "luminous.heritage-membership-sensitivity.v0.1",
+  "sensitivity_id": "synthetic-wall-membership-sensitivity-1",
+  "site_id": "synthetic-site-1",
+  "snapshot_id": "synthetic-snapshot-1",
+  "coordinate_reference_id": "EPSG:32735",
+  "dataset_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+  "architecture_graph_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+  "measurement_protocol_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+  "rights_decision_id": "rights:synthetic",
+  "rights_receipt_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+  "target_level": "wall",
+  "physical_stone_count": 3,
+  "fixed_assigned_stone_count": 2,
+  "ambiguous_stone_count": 1,
+  "unassigned_stone_count": 0,
+  "not_assessed_stone_count": 0,
+  "scenario_count": 2,
+  "maximum_scenarios": 4096,
+  "groups": [
+    {
+      "level": "wall",
+      "group_id": "group:Wall",
+      "minimum_assigned_stone_count": 2,
+      "maximum_assigned_stone_count": 3,
+      "non_empty_scenario_count": 2,
+      "plan_footprint_area_m2": {
+        "mean": {
+          "enclosing_interval": {
+            "lower": 0.06,
+            "upper": 0.08
+          },
+          "lower_endpoint_range": {
+            "minimum": 0.06,
+            "maximum": 0.07
+          },
+          "upper_endpoint_range": {
+            "minimum": 0.07,
+            "maximum": 0.08
+          }
+        },
+        "p10": {
+          "enclosing_interval": {
+            "lower": 0.04,
+            "upper": 0.09
+          },
+          "lower_endpoint_range": {
+            "minimum": 0.04,
+            "maximum": 0.06
+          },
+          "upper_endpoint_range": {
+            "minimum": 0.05,
+            "maximum": 0.09
+          }
+        },
+        "median": {
+          "enclosing_interval": {
+            "lower": 0.06,
+            "upper": 0.08
+          },
+          "lower_endpoint_range": {
+            "minimum": 0.06,
+            "maximum": 0.08
+          },
+          "upper_endpoint_range": {
+            "minimum": 0.07,
+            "maximum": 0.09
+          }
+        },
+        "p90": {
+          "enclosing_interval": {
+            "lower": 0.08,
+            "upper": 0.09
+          },
+          "lower_endpoint_range": {
+            "minimum": 0.08,
+            "maximum": 0.08
+          },
+          "upper_endpoint_range": {
+            "minimum": 0.09,
+            "maximum": 0.09
+          }
+        }
+      },
+      "mrr_area_ratio": {
+        "mean": {
+          "enclosing_interval": {
+            "lower": 0.8,
+            "upper": 0.9
+          },
+          "lower_endpoint_range": {
+            "minimum": 0.8,
+            "maximum": 0.8
+          },
+          "upper_endpoint_range": {
+            "minimum": 0.9,
+            "maximum": 0.9
+          }
+        },
+        "p10": {
+          "enclosing_interval": {
+            "lower": 0.8,
+            "upper": 0.9
+          },
+          "lower_endpoint_range": {
+            "minimum": 0.8,
+            "maximum": 0.8
+          },
+          "upper_endpoint_range": {
+            "minimum": 0.9,
+            "maximum": 0.9
+          }
+        },
+        "median": {
+          "enclosing_interval": {
+            "lower": 0.8,
+            "upper": 0.9
+          },
+          "lower_endpoint_range": {
+            "minimum": 0.8,
+            "maximum": 0.8
+          },
+          "upper_endpoint_range": {
+            "minimum": 0.9,
+            "maximum": 0.9
+          }
+        },
+        "p90": {
+          "enclosing_interval": {
+            "lower": 0.8,
+            "upper": 0.9
+          },
+          "lower_endpoint_range": {
+            "minimum": 0.8,
+            "maximum": 0.8
+          },
+          "upper_endpoint_range": {
+            "minimum": 0.9,
+            "maximum": 0.9
+          }
+        }
+      },
+      "elongation_ratio": {
+        "mean": {
+          "enclosing_interval": {
+            "lower": 1.1,
+            "upper": 1.3
+          },
+          "lower_endpoint_range": {
+            "minimum": 1.1,
+            "maximum": 1.1
+          },
+          "upper_endpoint_range": {
+            "minimum": 1.3,
+            "maximum": 1.3
+          }
+        },
+        "p10": {
+          "enclosing_interval": {
+            "lower": 1.1,
+            "upper": 1.3
+          },
+          "lower_endpoint_range": {
+            "minimum": 1.1,
+            "maximum": 1.1
+          },
+          "upper_endpoint_range": {
+            "minimum": 1.3,
+            "maximum": 1.3
+          }
+        },
+        "median": {
+          "enclosing_interval": {
+            "lower": 1.1,
+            "upper": 1.3
+          },
+          "lower_endpoint_range": {
+            "minimum": 1.1,
+            "maximum": 1.1
+          },
+          "upper_endpoint_range": {
+            "minimum": 1.3,
+            "maximum": 1.3
+          }
+        },
+        "p90": {
+          "enclosing_interval": {
+            "lower": 1.1,
+            "upper": 1.3
+          },
+          "lower_endpoint_range": {
+            "minimum": 1.1,
+            "maximum": 1.1
+          },
+          "upper_endpoint_range": {
+            "minimum": 1.3,
+            "maximum": 1.3
+          }
+        }
+      }
+    },
+    {
+      "level": "wall",
+      "group_id": "alternate-wall",
+      "minimum_assigned_stone_count": 0,
+      "maximum_assigned_stone_count": 1,
+      "non_empty_scenario_count": 1,
+      "plan_footprint_area_m2": {
+        "mean": {
+          "enclosing_interval": {
+            "lower": 0.04,
+            "upper": 0.05
+          },
+          "lower_endpoint_range": {
+            "minimum": 0.04,
+            "maximum": 0.04
+          },
+          "upper_endpoint_range": {
+            "minimum": 0.05,
+            "maximum": 0.05
+          }
+        },
+        "p10": {
+          "enclosing_interval": {
+            "lower": 0.04,
+            "upper": 0.05
+          },
+          "lower_endpoint_range": {
+            "minimum": 0.04,
+            "maximum": 0.04
+          },
+          "upper_endpoint_range": {
+            "minimum": 0.05,
+            "maximum": 0.05
+          }
+        },
+        "median": {
+          "enclosing_interval": {
+            "lower": 0.04,
+            "upper": 0.05
+          },
+          "lower_endpoint_range": {
+            "minimum": 0.04,
+            "maximum": 0.04
+          },
+          "upper_endpoint_range": {
+            "minimum": 0.05,
+            "maximum": 0.05
+          }
+        },
+        "p90": {
+          "enclosing_interval": {
+            "lower": 0.04,
+            "upper": 0.05
+          },
+          "lower_endpoint_range": {
+            "minimum": 0.04,
+            "maximum": 0.04
+          },
+          "upper_endpoint_range": {
+            "minimum": 0.05,
+            "maximum": 0.05
+          }
+        }
+      },
+      "mrr_area_ratio": {
+        "mean": {
+          "enclosing_interval": {
+            "lower": 0.8,
+            "upper": 0.9
+          },
+          "lower_endpoint_range": {
+            "minimum": 0.8,
+            "maximum": 0.8
+          },
+          "upper_endpoint_range": {
+            "minimum": 0.9,
+            "maximum": 0.9
+          }
+        },
+        "p10": {
+          "enclosing_interval": {
+            "lower": 0.8,
+            "upper": 0.9
+          },
+          "lower_endpoint_range": {
+            "minimum": 0.8,
+            "maximum": 0.8
+          },
+          "upper_endpoint_range": {
+            "minimum": 0.9,
+            "maximum": 0.9
+          }
+        },
+        "median": {
+          "enclosing_interval": {
+            "lower": 0.8,
+            "upper": 0.9
+          },
+          "lower_endpoint_range": {
+            "minimum": 0.8,
+            "maximum": 0.8
+          },
+          "upper_endpoint_range": {
+            "minimum": 0.9,
+            "maximum": 0.9
+          }
+        },
+        "p90": {
+          "enclosing_interval": {
+            "lower": 0.8,
+            "upper": 0.9
+          },
+          "lower_endpoint_range": {
+            "minimum": 0.8,
+            "maximum": 0.8
+          },
+          "upper_endpoint_range": {
+            "minimum": 0.9,
+            "maximum": 0.9
+          }
+        }
+      },
+      "elongation_ratio": {
+        "mean": {
+          "enclosing_interval": {
+            "lower": 1.1,
+            "upper": 1.3
+          },
+          "lower_endpoint_range": {
+            "minimum": 1.1,
+            "maximum": 1.1
+          },
+          "upper_endpoint_range": {
+            "minimum": 1.3,
+            "maximum": 1.3
+          }
+        },
+        "p10": {
+          "enclosing_interval": {
+            "lower": 1.1,
+            "upper": 1.3
+          },
+          "lower_endpoint_range": {
+            "minimum": 1.1,
+            "maximum": 1.1
+          },
+          "upper_endpoint_range": {
+            "minimum": 1.3,
+            "maximum": 1.3
+          }
+        },
+        "median": {
+          "enclosing_interval": {
+            "lower": 1.1,
+            "upper": 1.3
+          },
+          "lower_endpoint_range": {
+            "minimum": 1.1,
+            "maximum": 1.1
+          },
+          "upper_endpoint_range": {
+            "minimum": 1.3,
+            "maximum": 1.3
+          }
+        },
+        "p90": {
+          "enclosing_interval": {
+            "lower": 1.1,
+            "upper": 1.3
+          },
+          "lower_endpoint_range": {
+            "minimum": 1.1,
+            "maximum": 1.1
+          },
+          "upper_endpoint_range": {
+            "minimum": 1.3,
+            "maximum": 1.3
+          }
+        }
+      }
+    }
+  ],
+  "scenario_semantics": "unweighted_exhaustive_cartesian_product_of_per_stone_candidates_at_one_level_not_graph_constrained",
+  "interval_interpretation": "outer_descriptive_envelopes_over_membership_scenarios_and_per_observation_measurement_bounds_not_confidence_or_credible_intervals",
+  "claim_ceiling": "membership_sensitivity_of_descriptive_group_summaries_only_no_historical_or_social_inference",
+  "preflight_work_units": 106,
+  "maximum_preflight_work_units": 100000000
+}
