@@ -38,6 +38,8 @@ const PROBABILITY_TOLERANCE: f64 = 1e-9;
 pub struct AdapterContextBinding {
     pub target_class_id: String,
     pub hdb22_context_id: String,
+    pub hdb11_profile_sha256: String,
+    pub hdb15_profile_sha256: String,
     /// Digest of the HDB-11 observed context serialized under the declared
     /// canonical context-mapping protocol.
     pub observability_context_sha256: String,
@@ -53,6 +55,8 @@ pub struct AdapterContextBinding {
 pub struct CalibrationProvenanceBinding {
     pub method_id: String,
     pub method_build_sha256: String,
+    pub calibration_data_sha256: String,
+    pub validation_split_manifest_sha256: String,
     pub source_data_sha256: String,
     pub validation_receipt_ref: String,
     pub validation_receipt_sha256: String,
@@ -70,6 +74,9 @@ pub struct TargetLocationCoverageReceipt {
     pub spatial_union_receipt_sha256: String,
     pub model: CoverageProbabilityModel,
     pub target_location_probability: ProbabilityBand,
+    pub field_sweep_fit_receipt_sha256: String,
+    pub method_build_sha256: String,
+    pub calibration_data_sha256: String,
     pub target_location_distribution_sha256: String,
     pub calculation_method_id: String,
     pub calculation_receipt_ref: String,
@@ -193,6 +200,8 @@ fn validate_provenance(
     require_ref(&value.method_id, &format!("{label}.method_id"))?;
     for (digest, field) in [
         (&value.method_build_sha256, "method_build_sha256"),
+        (&value.calibration_data_sha256, "calibration_data_sha256"),
+        (&value.validation_split_manifest_sha256, "validation_split_manifest_sha256"),
         (&value.source_data_sha256, "source_data_sha256"),
         (&value.validation_receipt_sha256, "validation_receipt_sha256"),
     ] {
@@ -208,6 +217,8 @@ fn validate_provenance(
 
 fn validate_context_binding(
     binding: &AdapterContextBinding,
+    hdb11: &HeritageObservabilityReport,
+    hdb15: &FieldSweepEvaluationReport,
 ) -> Result<(), HeritageFactorAdapterError> {
     if !non_empty(&binding.target_class_id) || !non_empty(&binding.hdb22_context_id) {
         return Err(HeritageFactorAdapterError::EmptyContextBinding);
@@ -221,6 +232,11 @@ fn validate_context_binding(
     }
     require_ref(&binding.mapping_method_id, "mapping_method_id")?;
     require_ref(&binding.mapping_receipt_ref, "mapping_receipt_ref")?;
+    if binding.hdb11_profile_sha256 != hdb11.profile_sha256
+        || binding.hdb15_profile_sha256 != hdb15.profile_sha256
+    {
+        return Err(HeritageFactorAdapterError::EmptyContextBinding);
+    }
     Ok(())
 }
 
@@ -275,6 +291,11 @@ fn validate_hdb11(
     }
     require_digest(&report.profile_sha256, "hdb11_profile_sha256")?;
     require_digest(&provenance.method_build_sha256, "hdb11_method_build_sha256")?;
+    require_digest(&provenance.calibration_data_sha256, "hdb11_calibration_data_sha256")?;
+    require_digest(
+        &provenance.validation_split_manifest_sha256,
+        "hdb11_validation_split_manifest_sha256",
+    )?;
 
     Ok(ProbabilityBand {
         lower: report.probability_of_detection_wilson_95.lower,
@@ -300,12 +321,12 @@ fn validate_hdb15(
     {
         return Err(HeritageFactorAdapterError::FieldSweepRightsNotVerified);
     }
-    if report.profile_sha256.is_empty()
-        || report.calibration_data_sha256 != report.calibration_data_sha256
-    {
-        return Err(HeritageFactorAdapterError::FieldSweepNotQualified);
-    }
     require_digest(&report.profile_sha256, "hdb15_profile_sha256")?;
+    if report.profile_sha256 != binding.hdb15_profile_sha256 {
+        return Err(HeritageFactorAdapterError::FieldSweepProvenanceMismatch(
+            "profile digest does not match context binding".into(),
+        ));
+    }
     require_digest(&report.calibration_data_sha256, "hdb15_calibration_data_sha256")?;
     require_digest(
         &report.calibration_split_manifest_sha256,
@@ -328,8 +349,9 @@ fn validate_hdb15(
     {
         return Err(HeritageFactorAdapterError::FieldSweepNotQualified);
     }
-    if provenance.method_build_sha256.is_empty()
-        || provenance.source_data_sha256.is_empty()
+    if provenance.calibration_data_sha256 != report.calibration_data_sha256
+        || provenance.validation_split_manifest_sha256
+            != report.calibration_split_manifest_sha256
         || provenance.validation_receipt_sha256 != report.fit_receipt_sha256
     {
         return Err(HeritageFactorAdapterError::FieldSweepProvenanceMismatch(
@@ -358,10 +380,14 @@ fn validate_target_location_coverage(
     report: &FieldSweepEvaluationReport,
     receipt: &TargetLocationCoverageReceipt,
 ) -> Result<ProbabilityBand, HeritageFactorAdapterError> {
-    receipt
-        .target_location_probability
-        .validate("target_location_probability")
-        .map_err(|_| HeritageFactorAdapterError::InvalidTargetLocationProbability)?;
+    if !receipt.target_location_probability.lower.is_finite()
+        || !receipt.target_location_probability.upper.is_finite()
+        || receipt.target_location_probability.lower < 0.0
+        || receipt.target_location_probability.upper > 1.0
+        || receipt.target_location_probability.lower > receipt.target_location_probability.upper
+    {
+        return Err(HeritageFactorAdapterError::InvalidTargetLocationProbability);
+    }
     for (digest, label) in [
         (&receipt.survey_unit_geometry_sha256, "target_survey_unit_geometry_sha256"),
         (&receipt.transect_geometry_sha256, "target_transect_geometry_sha256"),
@@ -371,6 +397,9 @@ fn validate_target_location_coverage(
             &receipt.target_location_distribution_sha256,
             "target_location_distribution_sha256",
         ),
+        (&receipt.field_sweep_fit_receipt_sha256, "field_sweep_fit_receipt_sha256"),
+        (&receipt.method_build_sha256, "target_location_method_build_sha256"),
+        (&receipt.calibration_data_sha256, "target_location_calibration_data_sha256"),
         (&receipt.calculation_receipt_sha256, "calculation_receipt_sha256"),
         (&receipt.source_data_sha256, "target_location_source_data_sha256"),
         (
@@ -404,6 +433,13 @@ fn validate_target_location_coverage(
     }
     if receipt.spatial_union_receipt_sha256 != report.spatial_union_receipt_sha256 {
         return Err(HeritageFactorAdapterError::SpatialUnionReceiptMismatch);
+    }
+    if receipt.field_sweep_fit_receipt_sha256 != report.fit_receipt_sha256
+        || receipt.calibration_data_sha256 != report.calibration_data_sha256
+    {
+        return Err(HeritageFactorAdapterError::TargetLocationProvenanceMismatch(
+            "HDB-15 fit/calibration binding".into(),
+        ));
     }
     if receipt.access_tier == AccessTier::Unknown {
         return Err(HeritageFactorAdapterError::RightsNotAllowed(
@@ -445,17 +481,35 @@ fn make_stage(
         target_class_id: target_class_id.into(),
         context_id: context_id.into(),
         conditioning,
-        method_id: provenance.method_id.clone(),
+        method_id: coverage
+            .map(|value| value.calculation_method_id.clone())
+            .unwrap_or_else(|| provenance.method_id.clone()),
         profile_sha256: profile_sha256.into(),
-        method_build_sha256: provenance.method_build_sha256.clone(),
-        calibration_data_sha256: calibration_data_sha256.into(),
-        validation_split_manifest_sha256: validation_split_manifest_sha256.into(),
-        validation_receipt_ref: provenance.validation_receipt_ref.clone(),
-        validation_receipt_sha256: provenance.validation_receipt_sha256.clone(),
-        source_data_sha256: provenance.source_data_sha256.clone(),
+        method_build_sha256: coverage
+            .map(|value| value.method_build_sha256.clone())
+            .unwrap_or_else(|| provenance.method_build_sha256.clone()),
+        calibration_data_sha256: coverage
+            .map(|value| value.calibration_data_sha256.clone())
+            .unwrap_or_else(|| calibration_data_sha256.into()),
+        validation_split_manifest_sha256: coverage
+            .map(|value| value.validation_split_manifest_sha256.clone())
+            .unwrap_or_else(|| validation_split_manifest_sha256.into()),
+        validation_receipt_ref: coverage
+            .map(|value| value.calculation_receipt_ref.clone())
+            .unwrap_or_else(|| provenance.validation_receipt_ref.clone()),
+        validation_receipt_sha256: coverage
+            .map(|value| value.calculation_receipt_sha256.clone())
+            .unwrap_or_else(|| provenance.validation_receipt_sha256.clone()),
+        source_data_sha256: coverage
+            .map(|value| value.source_data_sha256.clone())
+            .unwrap_or_else(|| provenance.source_data_sha256.clone()),
         analytical_rights: AnalyticalRights::Allowed,
-        rights_receipt_ref: provenance.rights_receipt_ref.clone(),
-        access_tier: provenance.access_tier,
+        rights_receipt_ref: coverage
+            .map(|value| value.rights_receipt_ref.clone())
+            .unwrap_or_else(|| provenance.rights_receipt_ref.clone()),
+        access_tier: coverage
+            .map(|value| value.access_tier)
+            .unwrap_or(provenance.access_tier),
         coverage_evidence_basis: coverage.map(|_| CoverageEvidenceBasis::ActualSpatialUnionReceipt),
         coverage_geometry_sha256: coverage.map(|value| value.coverage_geometry_sha256.clone()),
         spatial_coverage_receipt_sha256: hdb15_report
@@ -480,7 +534,11 @@ pub fn adapt_heritage_detection_factors(
     if !non_empty(&input.adapter_id) {
         return Err(HeritageFactorAdapterError::EmptyAdapterId);
     }
-    validate_context_binding(&input.context_binding)?;
+    validate_context_binding(
+        &input.context_binding,
+        &input.hdb11_report,
+        &input.hdb15_report,
+    )?;
     validate_provenance(&input.hdb11_provenance, "hdb11")?;
     validate_provenance(&input.hdb15_provenance, "hdb15")?;
 
@@ -554,8 +612,8 @@ pub fn adapt_heritage_detection_factors(
         Conditioning::DetectedGivenSurvivalExposureObservabilityAndCoverage,
         &input.hdb11_provenance,
         &input.hdb11_report.profile_sha256,
-        &input.hdb11_provenance.source_data_sha256,
-        &input.hdb11_provenance.validation_receipt_sha256,
+        &input.hdb11_provenance.calibration_data_sha256,
+        &input.hdb11_provenance.validation_split_manifest_sha256,
         None,
         None,
     );
@@ -704,6 +762,8 @@ mod tests {
         CalibrationProvenanceBinding {
             method_id: method_id.into(),
             method_build_sha256: digest(build),
+            calibration_data_sha256: digest('9'),
+            validation_split_manifest_sha256: digest('8'),
             source_data_sha256: digest(data),
             validation_receipt_ref: format!("receipt:{method_id}"),
             validation_receipt_sha256: digest(validation),
@@ -762,6 +822,8 @@ mod tests {
             context_binding: AdapterContextBinding {
                 target_class_id: "dry_stone_wall".into(),
                 hdb22_context_id: "context-1".into(),
+                hdb11_profile_sha256: digest('c'),
+                hdb15_profile_sha256: digest('d'),
                 observability_context_sha256: digest('b'),
                 field_survey_context_sha256: digest('c'),
                 mapping_method_id: "explicit-context-map-v1".into(),
@@ -774,6 +836,8 @@ mod tests {
             hdb15_provenance: CalibrationProvenanceBinding {
                 method_id: "hdb15-sweep-width".into(),
                 method_build_sha256: digest('a'),
+                calibration_data_sha256: hdb15.calibration_data_sha256.clone(),
+                validation_split_manifest_sha256: hdb15.calibration_split_manifest_sha256.clone(),
                 source_data_sha256: digest('b'),
                 validation_receipt_ref: "receipt:hdb15-fit".into(),
                 validation_receipt_sha256: hdb15.fit_receipt_sha256.clone(),
@@ -791,6 +855,9 @@ mod tests {
                     lower: 0.97,
                     upper: 0.97,
                 },
+                field_sweep_fit_receipt_sha256: hdb15.fit_receipt_sha256.clone(),
+                method_build_sha256: digest('a'),
+                calibration_data_sha256: hdb15.calibration_data_sha256.clone(),
                 target_location_distribution_sha256: digest('b'),
                 calculation_method_id: "uniform-area-location-model".into(),
                 calculation_receipt_ref: "receipt:location-probability".into(),
