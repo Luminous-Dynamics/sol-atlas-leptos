@@ -172,6 +172,11 @@ pub struct TargetCoverageProbabilityEvidenceV1 {
     pub probability: ProbabilityBand,
     pub target_location_distribution_sha256: String,
     pub intersection_geometry_sha256: String,
+    /// Aligns HDB-11's TargetCoveredByActualFootprint event to this exact
+    /// HDB-15 geometry/distribution probability receipt.
+    pub hdb11_coverage_condition_alignment_receipt_ref: String,
+    pub hdb11_coverage_condition_alignment_receipt_sha256: String,
+    pub hdb11_coverage_condition_profile_sha256: String,
     pub coverage_probability_receipt_ref: String,
     pub coverage_probability_receipt_sha256: String,
     pub source_field_sweep_report_sha256: String,
@@ -242,6 +247,8 @@ pub struct FootprintCoverageFactorProposal {
     pub probability: ProbabilityBand,
     pub target_location_distribution_sha256: String,
     pub intersection_geometry_sha256: String,
+    pub hdb11_coverage_condition_alignment_receipt_ref: String,
+    pub hdb11_coverage_condition_alignment_receipt_sha256: String,
     pub coverage_probability_receipt_ref: String,
     pub coverage_probability_receipt_sha256: String,
     pub field_sweep_report_sha256: String,
@@ -406,10 +413,12 @@ fn validate_observability(
     {
         return Err(HeritageCompositionError::ObservabilityRightsNotVerified);
     }
-    if report.calibration_eligible_independent_psu_count < report.minimum_independent_psus
-        || report.calibration_total_independent_psu_count
-            != report.calibration_eligible_independent_psu_count
-                + report.calibration_excluded_conditioning_psu_count
+    let accounted_psus = report
+        .calibration_eligible_independent_psu_count
+        .checked_add(report.calibration_excluded_conditioning_psu_count);
+    if report.calibration_total_independent_psu_count > 100_000
+        || report.calibration_eligible_independent_psu_count < report.minimum_independent_psus
+        || accounted_psus != Some(report.calibration_total_independent_psu_count)
         || report.calibration_detected_count > report.calibration_eligible_independent_psu_count
     {
         return Err(HeritageCompositionError::ObservabilitySampleAccountingInvalid);
@@ -429,6 +438,7 @@ fn validate_observability(
         || interval.upper > 1.0
         || interval.lower > expected_empirical
         || interval.upper < expected_empirical
+        || interval.lower < report.minimum_pod_lower_bound
     {
         return Err(HeritageCompositionError::ObservabilityProbabilityAccountingInvalid);
     }
@@ -670,6 +680,11 @@ fn validate_target_coverage(
     evidence
         .probability
         .validate("target_specific_coverage_probability")?;
+    if evidence.hdb11_coverage_condition_profile_sha256
+        != input.observability.profile_sha256
+    {
+        return Err(HeritageCompositionError::TargetCoverageReceiptMismatch);
+    }
     if evidence.survey_unit_id != report.survey_unit_id
         || evidence.survey_unit_crs_id != geometry.survey_unit_crs_id
         || evidence.transect_geometry_sha256 != report.transect_geometry_sha256
@@ -687,6 +702,14 @@ fn validate_target_coverage(
         (
             &evidence.intersection_geometry_sha256,
             "intersection_geometry_sha256",
+        ),
+        (
+            &evidence.hdb11_coverage_condition_alignment_receipt_sha256,
+            "hdb11_coverage_condition_alignment_receipt_sha256",
+        ),
+        (
+            &evidence.hdb11_coverage_condition_profile_sha256,
+            "hdb11_coverage_condition_profile_sha256",
         ),
         (
             &evidence.coverage_probability_receipt_sha256,
@@ -727,6 +750,10 @@ fn validate_target_coverage(
         (
             &evidence.coverage_probability_receipt_ref,
             "coverage_probability_receipt_ref",
+        ),
+        (
+            &evidence.hdb11_coverage_condition_alignment_receipt_ref,
+            "hdb11_coverage_condition_alignment_receipt_ref",
         ),
         (&evidence.method_id, "coverage_method_id"),
         (&evidence.validation_receipt_ref, "coverage_validation_receipt_ref"),
@@ -806,6 +833,12 @@ fn validate_target_coverage(
         probability: evidence.probability,
         target_location_distribution_sha256: evidence.target_location_distribution_sha256.clone(),
         intersection_geometry_sha256: evidence.intersection_geometry_sha256.clone(),
+        hdb11_coverage_condition_alignment_receipt_ref: evidence
+            .hdb11_coverage_condition_alignment_receipt_ref
+            .clone(),
+        hdb11_coverage_condition_alignment_receipt_sha256: evidence
+            .hdb11_coverage_condition_alignment_receipt_sha256
+            .clone(),
         coverage_probability_receipt_ref: evidence.coverage_probability_receipt_ref.clone(),
         coverage_probability_receipt_sha256: evidence.coverage_probability_receipt_sha256.clone(),
         field_sweep_report_sha256: input.field_sweep_report_sha256.clone(),
@@ -1036,6 +1069,10 @@ mod tests {
                 },
                 target_location_distribution_sha256: digest('f'),
                 intersection_geometry_sha256: digest('g'),
+                hdb11_coverage_condition_alignment_receipt_ref:
+                    "urn:coverage-condition-alignment:1".to_owned(),
+                hdb11_coverage_condition_alignment_receipt_sha256: digest('m'),
+                hdb11_coverage_condition_profile_sha256: digest('c'),
                 coverage_probability_receipt_ref: "urn:coverage-probability:1".to_owned(),
                 coverage_probability_receipt_sha256: digest('h'),
                 source_field_sweep_report_sha256: report_digest,
@@ -1264,6 +1301,17 @@ mod tests {
             CoverageProbabilityIntervalSemantics::PointEstimate;
         value.target_coverage.confidence_level = None;
         assert!(audit_heritage_probability_composition(&value).is_err());
+    }
+
+
+    #[test]
+    fn target_coverage_must_bind_the_exact_hdb11_coverage_condition_event() {
+        let mut value = input();
+        value.target_coverage.hdb11_coverage_condition_profile_sha256 = digest('z');
+        assert_eq!(
+            audit_heritage_probability_composition(&value),
+            Err(HeritageCompositionError::TargetCoverageReceiptMismatch)
+        );
     }
 
     #[test]
