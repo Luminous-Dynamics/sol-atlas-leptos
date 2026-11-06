@@ -1,0 +1,406 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/heritage-factor-adapter-report-v0.1.schema.json",
+  "title": "Sol-Atlas Heritage Factor Adapter Report v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "adapter_id",
+    "hdb15_report_sha256",
+    "target_location_coverage_receipt",
+    "conditioning_evidence_manifest_sha256",
+    "hdb11_report_sha256",
+    "factorization",
+    "hdb11_profile_sha256",
+    "hdb15_profile_sha256",
+    "target_location_receipt_sha256",
+    "target_location_probability",
+    "detection_probability_wilson_95",
+    "hdb15_geometric_coverage_fraction",
+    "conditional_detection_stage_added",
+    "footprint_coverage_stage_added",
+    "joint_pod_used",
+    "double_counting_guard",
+    "non_detection_input",
+    "non_detection_report"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "luminous.heritage-factor-adapter.v0.1"
+    },
+    "adapter_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "factorization": {
+      "const": "factorized_survival_exposure_observability_coverage_then_conditional_sensor_detection"
+    },
+    "hdb11_profile_sha256": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{64}$"
+    },
+    "hdb15_profile_sha256": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{64}$"
+    },
+    "target_location_receipt_sha256": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{64}$"
+    },
+    "target_location_probability": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "lower",
+        "upper"
+      ],
+      "properties": {
+        "lower": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "upper": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      }
+    },
+    "detection_probability_wilson_95": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "lower",
+        "upper"
+      ],
+      "properties": {
+        "lower": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "upper": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      }
+    },
+    "hdb15_geometric_coverage_fraction": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "maximum": 1
+    },
+    "conditional_detection_stage_added": {
+      "const": true
+    },
+    "footprint_coverage_stage_added": {
+      "const": true
+    },
+    "joint_pod_used": {
+      "const": false
+    },
+    "double_counting_guard": {
+      "type": "string",
+      "minLength": 1
+    },
+    "non_detection_input": {
+      "type": "object"
+    },
+    "non_detection_report": {
+      "type": "object",
+      "required": [
+        "disposition",
+        "posterior_probability_originally_present"
+      ],
+      "properties": {
+        "disposition": {
+          "const": "qualified_negative_evidence_update"
+        },
+        "posterior_probability_originally_present": {
+          "type": "object"
+        }
+      }
+    },
+    "hdb11_report_sha256": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{64}$"
+    },
+    "conditioning_evidence_manifest_sha256": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{64}$"
+    },
+    "hdb15_report_sha256": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{64}$"
+    },
+    "target_location_coverage_receipt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "event_id",
+        "target_class_id",
+        "hdb22_context_id",
+        "survey_unit_id",
+        "survey_unit_crs_id",
+        "field_sweep_report_sha256",
+        "survey_unit_geometry_sha256",
+        "transect_geometry_sha256",
+        "coverage_geometry_sha256",
+        "intersection_geometry_sha256",
+        "spatial_union_receipt_sha256",
+        "model",
+        "target_location_probability",
+        "interval_semantics",
+        "confidence_level",
+        "uniform_assumption_justification_ref",
+        "uniform_assumption_justification_sha256",
+        "field_sweep_fit_receipt_sha256",
+        "method_build_sha256",
+        "calibration_data_sha256",
+        "target_location_distribution_sha256",
+        "hdb11_coverage_condition_alignment_receipt_ref",
+        "hdb11_coverage_condition_alignment_receipt_sha256",
+        "hdb11_coverage_condition_profile_sha256",
+        "hdb11_conditioning_evidence_manifest_sha256",
+        "hdb11_conditioned_observation_domain_geometry_sha256",
+        "hdb11_conditioned_target_location_distribution_sha256",
+        "actual_observation_domain_basis",
+        "actual_observation_domain_area_m2",
+        "actual_observation_domain_receipt_ref",
+        "actual_observation_domain_receipt_sha256",
+        "outside_domain_detection_probability",
+        "calculation_method_id",
+        "calculation_receipt_ref",
+        "calculation_receipt_sha256",
+        "source_data_sha256",
+        "validation_split_manifest_sha256",
+        "validation_receipt_ref",
+        "validation_receipt_sha256",
+        "rights_decision_id",
+        "analytical_rights",
+        "rights_purpose",
+        "rights_receipt_ref",
+        "access_tier"
+      ],
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "target_class_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "hdb22_context_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "survey_unit_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "survey_unit_crs_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "field_sweep_report_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "survey_unit_geometry_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "transect_geometry_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "coverage_geometry_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "intersection_geometry_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "spatial_union_receipt_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "model": {
+          "enum": [
+            "uniform_area_weighted_within_survey_unit",
+            "target_specific_spatial_distribution"
+          ]
+        },
+        "target_location_probability": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "lower",
+            "upper"
+          ],
+          "properties": {
+            "lower": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "upper": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            }
+          }
+        },
+        "interval_semantics": {
+          "enum": [
+            "point_estimate",
+            "deterministic_bound",
+            "frequentist_confidence_interval",
+            "bayesian_credible_interval"
+          ]
+        },
+        "confidence_level": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "exclusiveMinimum": 0,
+          "exclusiveMaximum": 1
+        },
+        "uniform_assumption_justification_ref": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        },
+        "uniform_assumption_justification_sha256": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^[a-fA-F0-9]{64}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "field_sweep_fit_receipt_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "method_build_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "calibration_data_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "target_location_distribution_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "hdb11_coverage_condition_alignment_receipt_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "hdb11_coverage_condition_alignment_receipt_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "hdb11_coverage_condition_profile_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "hdb11_conditioning_evidence_manifest_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "hdb11_conditioned_observation_domain_geometry_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "hdb11_conditioned_target_location_distribution_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "actual_observation_domain_basis": {
+          "enum": [
+            "recorded_observer_path_and_declared_view_boundary",
+            "sensor_valid_data_footprint"
+          ]
+        },
+        "actual_observation_domain_area_m2": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "actual_observation_domain_receipt_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "actual_observation_domain_receipt_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "outside_domain_detection_probability": {
+          "const": 0
+        },
+        "calculation_method_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "calculation_receipt_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "calculation_receipt_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "source_data_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "validation_split_manifest_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "validation_receipt_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "validation_receipt_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "rights_decision_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "analytical_rights": {
+          "const": "allowed"
+        },
+        "rights_purpose": {
+          "const": "research_analysis"
+        },
+        "rights_receipt_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "access_tier": {
+          "enum": [
+            "public",
+            "controlled",
+            "restricted"
+          ]
+        }
+      }
+    }
+  }
+}
