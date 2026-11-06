@@ -7,6 +7,10 @@
   "required": [
     "schema_version",
     "adapter_id",
+    "hdb15_report_sha256",
+    "target_location_coverage_receipt",
+    "conditioning_evidence_manifest_sha256",
+    "hdb11_report_sha256",
     "factorization",
     "hdb11_profile_sha256",
     "hdb15_profile_sha256",
@@ -117,6 +121,284 @@
         },
         "posterior_probability_originally_present": {
           "type": "object"
+        }
+      }
+    },
+    "hdb11_report_sha256": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{64}$"
+    },
+    "conditioning_evidence_manifest_sha256": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{64}$"
+    },
+    "hdb15_report_sha256": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{64}$"
+    },
+    "target_location_coverage_receipt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "event_id",
+        "target_class_id",
+        "hdb22_context_id",
+        "survey_unit_id",
+        "survey_unit_crs_id",
+        "field_sweep_report_sha256",
+        "survey_unit_geometry_sha256",
+        "transect_geometry_sha256",
+        "coverage_geometry_sha256",
+        "intersection_geometry_sha256",
+        "spatial_union_receipt_sha256",
+        "model",
+        "target_location_probability",
+        "interval_semantics",
+        "confidence_level",
+        "uniform_assumption_justification_ref",
+        "uniform_assumption_justification_sha256",
+        "field_sweep_fit_receipt_sha256",
+        "method_build_sha256",
+        "calibration_data_sha256",
+        "target_location_distribution_sha256",
+        "hdb11_coverage_condition_alignment_receipt_ref",
+        "hdb11_coverage_condition_alignment_receipt_sha256",
+        "hdb11_coverage_condition_profile_sha256",
+        "hdb11_conditioning_evidence_manifest_sha256",
+        "hdb11_conditioned_observation_domain_geometry_sha256",
+        "hdb11_conditioned_target_location_distribution_sha256",
+        "actual_observation_domain_basis",
+        "actual_observation_domain_area_m2",
+        "actual_observation_domain_receipt_ref",
+        "actual_observation_domain_receipt_sha256",
+        "outside_domain_detection_probability",
+        "calculation_method_id",
+        "calculation_receipt_ref",
+        "calculation_receipt_sha256",
+        "source_data_sha256",
+        "validation_split_manifest_sha256",
+        "validation_receipt_ref",
+        "validation_receipt_sha256",
+        "rights_decision_id",
+        "analytical_rights",
+        "rights_purpose",
+        "rights_receipt_ref",
+        "access_tier"
+      ],
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "target_class_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "hdb22_context_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "survey_unit_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "survey_unit_crs_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "field_sweep_report_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "survey_unit_geometry_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "transect_geometry_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "coverage_geometry_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "intersection_geometry_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "spatial_union_receipt_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "model": {
+          "enum": [
+            "uniform_area_weighted_within_survey_unit",
+            "target_specific_spatial_distribution"
+          ]
+        },
+        "target_location_probability": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "lower",
+            "upper"
+          ],
+          "properties": {
+            "lower": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "upper": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            }
+          }
+        },
+        "interval_semantics": {
+          "enum": [
+            "point_estimate",
+            "deterministic_bound",
+            "frequentist_confidence_interval",
+            "bayesian_credible_interval"
+          ]
+        },
+        "confidence_level": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "exclusiveMinimum": 0,
+          "exclusiveMaximum": 1
+        },
+        "uniform_assumption_justification_ref": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        },
+        "uniform_assumption_justification_sha256": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^[a-fA-F0-9]{64}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "field_sweep_fit_receipt_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "method_build_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "calibration_data_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "target_location_distribution_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "hdb11_coverage_condition_alignment_receipt_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "hdb11_coverage_condition_alignment_receipt_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "hdb11_coverage_condition_profile_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "hdb11_conditioning_evidence_manifest_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "hdb11_conditioned_observation_domain_geometry_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "hdb11_conditioned_target_location_distribution_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "actual_observation_domain_basis": {
+          "enum": [
+            "recorded_observer_path_and_declared_view_boundary",
+            "sensor_valid_data_footprint"
+          ]
+        },
+        "actual_observation_domain_area_m2": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "actual_observation_domain_receipt_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "actual_observation_domain_receipt_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "outside_domain_detection_probability": {
+          "const": 0
+        },
+        "calculation_method_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "calculation_receipt_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "calculation_receipt_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "source_data_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "validation_split_manifest_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "validation_receipt_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "validation_receipt_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "rights_decision_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "analytical_rights": {
+          "const": "allowed"
+        },
+        "rights_purpose": {
+          "const": "research_analysis"
+        },
+        "rights_receipt_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "access_tier": {
+          "enum": [
+            "public",
+            "controlled",
+            "restricted"
+          ]
         }
       }
     }
