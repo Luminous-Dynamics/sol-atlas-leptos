@@ -511,6 +511,15 @@ fn validate_units(
                         ));
                     }
                 }
+                if let (Some(reference), Some(predicted)) =
+                    (unit.reference_descriptor, unit.predicted_descriptor)
+                {
+                    if !(predicted - reference).is_finite() {
+                        return Err(HeritageFitnessError::InvalidDescriptor(
+                            unit.unit_id.clone(),
+                        ));
+                    }
+                }
             }
         }
     }
@@ -518,23 +527,31 @@ fn validate_units(
 }
 
 fn precision(tp: usize, fp: usize) -> Option<f64> {
-    let denominator = tp + fp;
-    (denominator > 0).then_some(tp as f64 / denominator as f64)
+    let numerator = tp as f64;
+    let denominator = numerator + fp as f64;
+    (denominator > 0.0).then_some(numerator / denominator)
 }
 
 fn recall(tp: usize, r#fn: usize) -> Option<f64> {
-    let denominator = tp + r#fn;
-    (denominator > 0).then_some(tp as f64 / denominator as f64)
+    let numerator = tp as f64;
+    let denominator = numerator + r#fn as f64;
+    (denominator > 0.0).then_some(numerator / denominator)
 }
 
 fn f1(tp: usize, fp: usize, r#fn: usize) -> Option<f64> {
-    let denominator = 2 * tp + fp + r#fn;
-    (denominator > 0).then_some(2.0 * tp as f64 / denominator as f64)
+    let numerator = 2.0 * tp as f64;
+    let denominator = numerator + fp as f64 + r#fn as f64;
+    (denominator > 0.0).then_some(numerator / denominator)
 }
 
 fn mean(values: impl Iterator<Item = f64>) -> Option<f64> {
-    let values = values.collect::<Vec<_>>();
-    (!values.is_empty()).then(|| values.iter().sum::<f64>() / values.len() as f64)
+    let mut count = 0usize;
+    let mut current = 0.0;
+    for value in values {
+        count += 1;
+        current += (value - current) / count as f64;
+    }
+    (count > 0).then_some(current)
 }
 
 fn average_ranks(values: &[f64]) -> Vec<f64> {
@@ -673,18 +690,27 @@ pub fn evaluate_heritage_fitness(
     let total_tp = unit_metrics
         .iter()
         .filter_map(|unit| unit.true_positives)
-        .sum::<usize>();
+        .map(|value| value as u128)
+        .sum::<u128>();
     let total_fp = unit_metrics
         .iter()
         .filter_map(|unit| unit.false_positives)
-        .sum::<usize>();
+        .map(|value| value as u128)
+        .sum::<u128>();
     let total_fn = unit_metrics
         .iter()
         .filter_map(|unit| unit.false_negatives)
-        .sum::<usize>();
-    let pooled_precision = precision(total_tp, total_fp);
-    let pooled_recall = recall(total_tp, total_fn);
-    let pooled_f1 = f1(total_tp, total_fp, total_fn);
+        .map(|value| value as u128)
+        .sum::<u128>();
+    let pooled_tp = total_tp as f64;
+    let pooled_fp = total_fp as f64;
+    let pooled_fn = total_fn as f64;
+    let pooled_precision = (pooled_tp + pooled_fp > 0.0)
+        .then_some(pooled_tp / (pooled_tp + pooled_fp));
+    let pooled_recall =
+        (pooled_tp + pooled_fn > 0.0).then_some(pooled_tp / (pooled_tp + pooled_fn));
+    let pooled_f1 = (2.0 * pooled_tp + pooled_fp + pooled_fn > 0.0)
+        .then_some(2.0 * pooled_tp / (2.0 * pooled_tp + pooled_fp + pooled_fn));
 
     let descriptor_mean_absolute_error = mean(
         unit_metrics
@@ -767,9 +793,13 @@ pub fn evaluate_heritage_fitness(
             ));
         }
         IntendedUse::SiteDescriptorEstimation | IntendedUse::BetweenSiteComparison => {
+            let descriptor_unit_count = evaluated_units
+            .iter()
+            .filter(|unit| unit.reference_descriptor.is_some() && unit.predicted_descriptor.is_some())
+            .count();
             gates.push(gate(
                 FitnessGate::AllUnitsHaveDescriptorValues,
-                (evaluated_count == evaluated_units.len()).then_some(1.0),
+                (descriptor_unit_count == evaluated_count).then_some(1.0),
                 Some(1.0),
                 |observed, threshold| observed >= threshold,
                 "Every evaluated unit must have both reference and predicted descriptor values.",
@@ -1017,9 +1047,9 @@ mod tests {
         let input = HeritageFitnessInput {
             profile: descriptor_profile(IntendedUse::BetweenSiteComparison),
             units: vec![
-                descriptor_unit("site-a", 1.0, 0.1),
-                descriptor_unit("site-b", 2.0, 0.2),
-                descriptor_unit("site-c", 3.0, 0.3),
+                descriptor_unit("site-a", 0.20, 0.22),
+                descriptor_unit("site-b", 0.21, 0.21),
+                descriptor_unit("site-c", 0.22, 0.20),
             ],
         };
         // This fixture actually preserves ordering. Reverse it to create the
