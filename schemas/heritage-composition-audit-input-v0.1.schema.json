@@ -428,8 +428,16 @@
         "survey_unit_geometry_sha256",
         "spatial_union_receipt_sha256",
         "context_match",
+        "effective_sweep_width_m",
+        "effective_sweep_width_interval_95",
+        "buffered_sweep_width_m",
         "receipt_reported_swept_area_m2",
         "receipt_reported_coverage_fraction",
+        "validation_brier_score",
+        "fit_transect_count",
+        "validation_transect_count",
+        "fit_seeded_target_count",
+        "validation_seeded_target_count",
         "rights_status",
         "archaeological_absence_claimed",
         "archaeological_identification_claimed",
@@ -511,6 +519,67 @@
         },
         "repeated_search_independence_assumed": {
           "const": false
+        },
+        "effective_sweep_width_m": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "effective_sweep_width_interval_95": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "confidence_level",
+            "z_value",
+            "standard_error_m",
+            "lower_m",
+            "upper_m"
+          ],
+          "properties": {
+            "confidence_level": {
+              "const": 0.95
+            },
+            "z_value": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "standard_error_m": {
+              "type": "number",
+              "minimum": 0
+            },
+            "lower_m": {
+              "type": "number",
+              "minimum": 0
+            },
+            "upper_m": {
+              "type": "number",
+              "minimum": 0
+            }
+          }
+        },
+        "buffered_sweep_width_m": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "validation_brier_score": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "fit_transect_count": {
+          "type": "integer",
+          "minimum": 3
+        },
+        "validation_transect_count": {
+          "type": "integer",
+          "minimum": 2
+        },
+        "fit_seeded_target_count": {
+          "type": "integer",
+          "minimum": 20
+        },
+        "validation_seeded_target_count": {
+          "type": "integer",
+          "minimum": 10
         }
       }
     },
