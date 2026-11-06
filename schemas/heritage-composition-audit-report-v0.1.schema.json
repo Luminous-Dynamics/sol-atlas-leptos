@@ -181,6 +181,8 @@
         "probability",
         "target_location_distribution_sha256",
         "intersection_geometry_sha256",
+        "hdb11_coverage_condition_alignment_receipt_ref",
+        "hdb11_coverage_condition_alignment_receipt_sha256",
         "coverage_probability_receipt_ref",
         "coverage_probability_receipt_sha256",
         "field_sweep_report_sha256",
@@ -308,6 +310,14 @@
           ],
           "exclusiveMinimum": 0,
           "exclusiveMaximum": 1
+        },
+        "hdb11_coverage_condition_alignment_receipt_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "hdb11_coverage_condition_alignment_receipt_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
         }
       }
     },
