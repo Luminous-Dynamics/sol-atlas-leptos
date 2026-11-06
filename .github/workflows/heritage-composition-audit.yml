@@ -69,6 +69,10 @@ jobs:
           assert list(input_validator.iter_errors(malformed)), "out-of-range target coverage probability passed"
 
           malformed = copy.deepcopy(source_input)
+          malformed["target_coverage"]["outside_domain_detection_probability"] = 0.01
+          assert list(input_validator.iter_errors(malformed)), "nonzero detection outside the declared coverage domain passed"
+
+          malformed = copy.deepcopy(source_input)
           malformed["field_sweep_profile"]["hdb22_context_id"] = ""
           assert list(input_validator.iter_errors(malformed)), "empty HDB-22 context binding passed"
 
@@ -84,5 +88,9 @@ jobs:
           malformed["posterior_computed"] = True
           assert list(report_validator.iter_errors(malformed)), "audit report claimed posterior computation"
 
-          print("Draft 2020-12 input/output schemas, 2 positive fixtures and 6 negative controls passed")
+          malformed = copy.deepcopy(source_report)
+          malformed["footprint_coverage"]["outside_domain_detection_probability"] = 0.01
+          assert list(report_validator.iter_errors(malformed)), "report retained a bounded-domain claim with nonzero outside-domain detection"
+
+          print("Draft 2020-12 input/output schemas, 2 positive fixtures and 8 negative controls passed")
           PY
