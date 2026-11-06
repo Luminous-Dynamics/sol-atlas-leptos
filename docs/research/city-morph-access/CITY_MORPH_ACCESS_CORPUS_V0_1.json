@@ -181,6 +181,7 @@
       "expected": {
         "disposition": "Infeasible",
         "reason_codes": [
+          "AGGREGATE_CAPACITY_SHORTFALL",
           "REACHABLE_CAPACITY_BELOW_GROUP_DEMAND"
         ],
         "groups": [
@@ -644,6 +645,7 @@
       "expected": {
         "disposition": "Infeasible",
         "reason_codes": [
+          "AGGREGATE_CAPACITY_SHORTFALL",
           "NO_USABLE_SERVICE_WITHIN_ACCESS_ENVELOPE"
         ],
         "groups": [
@@ -1855,7 +1857,9 @@
       },
       "expected": {
         "disposition": "Infeasible",
-        "reason_codes": [],
+        "reason_codes": [
+          "AGGREGATE_CAPACITY_SHORTFALL"
+        ],
         "groups": [
           {
             "group_id": "g1",
