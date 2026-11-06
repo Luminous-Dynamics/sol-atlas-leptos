@@ -50,7 +50,7 @@ For a factorized request, the audit emits two proposals only:
 - HDB-11 Wilson 95% interval → HDB-22 ConditionalDetection, provided the HDB-11 scope equals the exact four-event conditioning set;
 - separate target-location intersection probability → HDB-22 FootprintCoverage, provided its receipt binds to the exact HDB-15 geometry.
 
-It preserves source profile, calibration, split, validation and rights receipt references. The HDB-15 geometric area fraction is reported separately. The report explicitly states that the complete HDB-22 stage set is not present and no posterior was calculated.
+It preserves source profile, calibration, method/build, source-data, split, validation, analytical-rights and rights receipt fields required by HDB-22. The HDB-15 geometric area fraction is reported separately. The report explicitly states that the complete HDB-22 stage set is not present and no posterior was calculated.
 
 The remaining survival, exposure, observability and false-positive factors must come from their own compatible evidence. This adapter does not estimate them.
 
@@ -60,7 +60,9 @@ The remaining survival, exposure, observability and false-positive factors must 
 - HDB-11 empirical POD must equal detected eligible PSUs / eligible PSUs; total = eligible + excluded; the Wilson 95% bounds must contain the empirical estimate.
 - HDB-11 rights must be verified and its access tier cannot be unknown.
 - HDB-15 report/profile/geometry digests and the source-report digest must be present and consistent.
+- HDB-15 effective and buffered sweep widths must be finite and the buffered width must match the geometry receipt; its held-out Brier score, transect counts and seeded-target counts must be valid and the Brier score must meet the threshold in the profile binding.
 - A context-alignment receipt binds HDB-11 profile/context to HDB-15 profile and the exact HDB-22 context identifier.
+- A second event-alignment receipt binds HDB-11's exact covered-by-actual-footprint conditioning event to the HDB-15 geometry and target-location probability.
 - HDB-15 swept area / survey-unit area must reproduce its reported geometric coverage fraction.
 - Target-location probability evidence must bind the source report and exact geometry digests.
 - Probability interval semantics are explicit: point estimate, deterministic bound, frequentist confidence interval or Bayesian credible interval. Confidence levels are required only for the last two.
