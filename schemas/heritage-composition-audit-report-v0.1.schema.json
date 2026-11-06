@@ -176,6 +176,8 @@
         "stage",
         "conditioning_semantics",
         "probability_model",
+        "interval_semantics",
+        "confidence_level",
         "probability",
         "target_location_distribution_sha256",
         "intersection_geometry_sha256",
@@ -290,6 +292,22 @@
             "restricted",
             "unknown"
           ]
+        },
+        "interval_semantics": {
+          "enum": [
+            "point_estimate",
+            "deterministic_bound",
+            "frequentist_confidence_interval",
+            "bayesian_credible_interval"
+          ]
+        },
+        "confidence_level": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "exclusiveMinimum": 0,
+          "exclusiveMaximum": 1
         }
       }
     },
