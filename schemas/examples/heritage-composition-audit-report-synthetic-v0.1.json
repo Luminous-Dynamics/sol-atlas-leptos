@@ -43,7 +43,8 @@
       "source_data_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
       "analytical_rights": "allowed",
       "rights_purpose": "research_analysis",
-      "rights_receipt_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+      "rights_receipt_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+      "conditioning_evidence_manifest_sha256": "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm"
     }
   },
   "footprint_coverage": {
