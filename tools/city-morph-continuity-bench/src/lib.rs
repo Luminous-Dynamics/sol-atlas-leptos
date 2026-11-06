@@ -2,8 +2,8 @@
 //! Consumes owner-native access-state receipts; does not recompute routes,
 //! service capacity, productive closure, or hazard probabilities.
 
-use std::collections::BTreeSet;
 use serde_json::{Value, json};
+use std::collections::BTreeSet;
 
 const CURRENT: &str = "synthetic_current";
 const OWNER: &str = "sol-atlas";
@@ -97,7 +97,9 @@ impl Summary {
         } else {
             "NotRecovered"
         };
-        let recovery_time = self.first_degradation.zip(self.recovered_start)
+        let recovery_time = self
+            .first_degradation
+            .zip(self.recovered_start)
             .map(|(first, recovered)| recovered - first);
         json!({
             "requirement_id": text(req, "requirement_id"),
@@ -121,7 +123,13 @@ impl Summary {
     }
 }
 
-fn admitted_state(case_id: &str, input: &Value, phase_id: &str, req_id: &str, r: &Value) -> &'static str {
+fn admitted_state(
+    case_id: &str,
+    input: &Value,
+    phase_id: &str,
+    req_id: &str,
+    r: &Value,
+) -> &'static str {
     let expected = format!("synthetic-subject:{case_id}:{phase_id}:{req_id}");
     if text(input, "evidence_state") != CURRENT
         || text(r, "evidence_state") != CURRENT
@@ -165,8 +173,12 @@ pub fn evaluate_case(case: &Value) -> Value {
         errors.insert("PHASES_MISSING".to_owned());
         return unsupported(case_id, errors);
     };
-    if reqs.is_empty() { errors.insert("REQUIREMENTS_EMPTY".to_owned()); }
-    if phases.is_empty() { errors.insert("PHASES_EMPTY".to_owned()); }
+    if reqs.is_empty() {
+        errors.insert("REQUIREMENTS_EMPTY".to_owned());
+    }
+    if phases.is_empty() {
+        errors.insert("PHASES_EMPTY".to_owned());
+    }
 
     let mut req_ids = BTreeSet::new();
     for req in reqs {
@@ -229,7 +241,10 @@ pub fn evaluate_case(case: &Value) -> Value {
             if !receipt_id.is_empty() && !receipt_ids.insert(receipt_id.to_owned()) {
                 errors.insert("DUPLICATE_SOURCE_RECEIPT_ID".to_owned());
             }
-            if !matches!(text(receipt, "outcome"), "Adequate" | "Constrained" | "Inaccessible" | "Unknown") {
+            if !matches!(
+                text(receipt, "outcome"),
+                "Adequate" | "Constrained" | "Inaccessible" | "Unknown"
+            ) {
                 errors.insert("ACCESS_OUTCOME_UNSUPPORTED".to_owned());
             }
         }
@@ -239,9 +254,14 @@ pub fn evaluate_case(case: &Value) -> Value {
             }
         }
     }
-    ordered.sort_by(|a,b| a.1.cmp(&b.1).then_with(|| text(a.0,"phase_id").cmp(text(b.0,"phase_id"))));
+    ordered.sort_by(|a, b| {
+        a.1.cmp(&b.1)
+            .then_with(|| text(a.0, "phase_id").cmp(text(b.0, "phase_id")))
+    });
     if let Some((_, first, _)) = ordered.first() {
-        if *first != 0 { errors.insert("TIMELINE_MUST_START_AT_ZERO".to_owned()); }
+        if *first != 0 {
+            errors.insert("TIMELINE_MUST_START_AT_ZERO".to_owned());
+        }
     }
     for pair in ordered.windows(2) {
         if pair[1].1 < pair[0].2 {
@@ -250,25 +270,30 @@ pub fn evaluate_case(case: &Value) -> Value {
             errors.insert("PHASE_TIMELINE_GAP".to_owned());
         }
     }
-    if !errors.is_empty() { return unsupported(case_id, errors); }
+    if !errors.is_empty() {
+        return unsupported(case_id, errors);
+    }
 
     let horizon_start = ordered.first().map(|p| p.1).unwrap_or(0);
     let horizon_end = ordered.last().map(|p| p.2).unwrap_or(0);
     let mut reqs_sorted = reqs.iter().collect::<Vec<_>>();
-    reqs_sorted.sort_by(|a,b| text(a,"requirement_id").cmp(text(b,"requirement_id")));
+    reqs_sorted.sort_by(|a, b| text(a, "requirement_id").cmp(text(b, "requirement_id")));
     let mut outputs = Vec::new();
 
     for req in reqs_sorted {
         let req_id = text(req, "requirement_id");
         let mut summary = Summary::default();
-        for (phase,start,end) in &ordered {
+        for (phase, start, end) in &ordered {
             let phase_id = text(phase, "phase_id");
-            let receipt = array(phase, "access_receipts").unwrap().iter()
-                .find(|r| text(r, "requirement_id") == req_id).unwrap();
-            let state = admitted_state(case_id,input,phase_id,req_id,receipt);
-            summary.consume(state,*start,*end,confirm);
+            let receipt = array(phase, "access_receipts")
+                .unwrap()
+                .iter()
+                .find(|r| text(r, "requirement_id") == req_id)
+                .unwrap();
+            let state = admitted_state(case_id, input, phase_id, req_id, receipt);
+            summary.consume(state, *start, *end, confirm);
         }
-        outputs.push(summary.finish(req,horizon_start,horizon_end));
+        outputs.push(summary.finish(req, horizon_start, horizon_end));
     }
     json!({
         "case_id": case_id,
@@ -279,59 +304,109 @@ pub fn evaluate_case(case: &Value) -> Value {
 }
 
 fn equivalent(a: &Value, b: &Value) -> bool {
-    match (a,b) {
-        (Value::Number(x),Value::Number(y)) => x.as_f64().zip(y.as_f64()).is_some_and(|(x,y)|x==y),
-        (Value::Array(x),Value::Array(y)) => x.len()==y.len() && x.iter().zip(y).all(|(a,b)|equivalent(a,b)),
-        (Value::Object(x),Value::Object(y)) => x.len()==y.len() && y.iter().all(|(k,v)|x.get(k).is_some_and(|a|equivalent(a,v))),
-        _ => a==b,
+    match (a, b) {
+        (Value::Number(x), Value::Number(y)) => {
+            x.as_f64().zip(y.as_f64()).is_some_and(|(x, y)| x == y)
+        }
+        (Value::Array(x), Value::Array(y)) => {
+            x.len() == y.len() && x.iter().zip(y).all(|(a, b)| equivalent(a, b))
+        }
+        (Value::Object(x), Value::Object(y)) => {
+            x.len() == y.len()
+                && y.iter()
+                    .all(|(k, v)| x.get(k).is_some_and(|a| equivalent(a, v)))
+        }
+        _ => a == b,
     }
 }
-pub fn matches_expected(actual:&Value, expected:&Value)->bool {
-    expected.as_object().is_some_and(|fields|fields.iter().all(|(k,v)|actual.get(k).is_some_and(|a|equivalent(a,v))))
+pub fn matches_expected(actual: &Value, expected: &Value) -> bool {
+    expected.as_object().is_some_and(|fields| {
+        fields
+            .iter()
+            .all(|(k, v)| actual.get(k).is_some_and(|a| equivalent(a, v)))
+    })
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{evaluate_case,matches_expected};
+    use super::{evaluate_case, matches_expected};
     use serde_json::Value;
     use std::collections::BTreeSet;
     use std::path::PathBuf;
 
-    fn corpus()->Value {
-        let path=PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../docs/research/city-morph-continuity/CITY_MORPH_CONTINUITY_CORPUS_V0_1.json");
-        let bytes=std::fs::read(path).expect("continuity corpus must exist");
+    fn corpus() -> Value {
+        let path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join(
+            "../../docs/research/city-morph-continuity/CITY_MORPH_CONTINUITY_CORPUS_V0_1.json",
+        );
+        let bytes = std::fs::read(path).expect("continuity corpus must exist");
         serde_json::from_slice(&bytes).expect("continuity corpus must parse")
     }
-    fn case(id:&str)->Value {
-        corpus()["cases"].as_array().unwrap().iter().find(|x|x["case_id"]==id).unwrap().clone()
+
+    fn case(id: &str) -> Value {
+        corpus()["cases"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|x| x["case_id"] == id)
+            .unwrap()
+            .clone()
     }
-    #[test] fn corpus_has_24_unique_synthetic_cases() {
-        let c=corpus();
-        assert_eq!(c["classification"],"synthetic_fixture_only");
-        assert_eq!(c["corpus_id"],"CITY-MORPH-CONTINUITY-CORPUS-V0.1");
-        let xs=c["cases"].as_array().unwrap(); assert_eq!(xs.len(),27);
-        let ids=xs.iter().map(|x|x["case_id"].as_str().unwrap().to_owned()).collect::<BTreeSet<_>>();
-        assert_eq!(ids.len(),xs.len());
+
+    #[test]
+    fn corpus_has_27_unique_synthetic_cases() {
+        let c = corpus();
+        assert_eq!(c["classification"], "synthetic_fixture_only");
+        assert_eq!(c["corpus_id"], "CITY-MORPH-CONTINUITY-CORPUS-V0.1");
+        let xs = c["cases"].as_array().unwrap();
+        assert_eq!(xs.len(), 27);
+        let ids = xs
+            .iter()
+            .map(|x| x["case_id"].as_str().unwrap().to_owned())
+            .collect::<BTreeSet<_>>();
+        assert_eq!(ids.len(), xs.len());
     }
-    #[test] fn oracle_matches_every_known_answer() {
+
+    #[test]
+    fn oracle_matches_every_known_answer() {
         for x in corpus()["cases"].as_array().unwrap() {
-            let actual=evaluate_case(x);
-            assert!(matches_expected(&actual,&x["expected"]),"{} mismatch\nactual: {}\nexpected: {}",x["case_id"],serde_json::to_string_pretty(&actual).unwrap(),serde_json::to_string_pretty(&x["expected"]).unwrap());
+            let actual = evaluate_case(x);
+            assert!(
+                matches_expected(&actual, &x["expected"]),
+                "{} mismatch\nactual: {}\nexpected: {}",
+                x["case_id"],
+                serde_json::to_string_pretty(&actual).unwrap(),
+                serde_json::to_string_pretty(&x["expected"]).unwrap()
+            );
         }
     }
-    #[test] fn stale_and_mismatched_receipts_are_unknown_not_adequate() {
-        for id in ["CR-008","CR-009","CR-023","CR-024","CR-025","CR-026"] {
-            let r=evaluate_case(&case(id));
-            assert_eq!(r["requirements"][0]["adequate_ticks"],0);
-            assert_eq!(r["requirements"][0]["unknown_ticks"], if id == "CR-025" || id == "CR-026" { 5 } else { 4 });
+
+    #[test]
+    fn stale_and_mismatched_receipts_are_unknown_not_adequate() {
+        for id in ["CR-008", "CR-009", "CR-023", "CR-024", "CR-025", "CR-026"] {
+            let r = evaluate_case(&case(id));
+            assert_eq!(r["requirements"][0]["adequate_ticks"], 0);
+            assert_eq!(
+                r["requirements"][0]["unknown_ticks"],
+                if id == "CR-025" || id == "CR-026" {
+                    5
+                } else {
+                    4
+                }
+            );
         }
     }
-    #[test] fn recovery_requires_the_declared_confirmation_duration() {
-        assert_eq!(evaluate_case(&case("CR-003"))["requirements"][0]["recovery_state"],"NotRecovered");
-        let r=evaluate_case(&case("CR-002"));
-        assert_eq!(r["requirements"][0]["recovery_state"],"Recovered");
-        assert_eq!(r["requirements"][0]["recovery_time_ticks"],2);
+
+    #[test]
+    fn recovery_requires_the_declared_confirmation_duration() {
+        assert_eq!(
+            evaluate_case(&case("CR-003"))["requirements"][0]["recovery_state"],
+            "NotRecovered"
+        );
+        let r = evaluate_case(&case("CR-002"));
+        assert_eq!(r["requirements"][0]["recovery_state"], "Recovered");
+        assert_eq!(r["requirements"][0]["recovery_time_ticks"], 2);
     }
+
     #[test]
     fn pre_outage_unknown_does_not_poison_recovery_status() {
         let before = evaluate_case(&case("CR-027"));
@@ -354,31 +429,47 @@ mod tests {
         );
     }
 
-    #[test] fn adjacent_degraded_phases_form_one_streak() {
-        assert_eq!(evaluate_case(&case("CR-005"))["requirements"][0]["max_contiguous_degraded_ticks"],5);
+    #[test]
+    fn adjacent_degraded_phases_form_one_streak() {
+        assert_eq!(
+            evaluate_case(&case("CR-005"))["requirements"][0]
+                ["max_contiguous_degraded_ticks"],
+            5
+        );
     }
-    #[test] fn unknown_duration_is_not_counted_as_adequate_or_degraded() {
-        let r=evaluate_case(&case("CR-004"));
-        assert_eq!(r["requirements"][0]["adequate_ticks"],5);
-        assert_eq!(r["requirements"][0]["unknown_ticks"],2);
-        assert_eq!(r["requirements"][0]["constrained_ticks"],0);
+
+    #[test]
+    fn unknown_duration_is_not_counted_as_adequate_or_degraded() {
+        let r = evaluate_case(&case("CR-004"));
+        assert_eq!(r["requirements"][0]["adequate_ticks"], 5);
+        assert_eq!(r["requirements"][0]["unknown_ticks"], 2);
+        assert_eq!(r["requirements"][0]["constrained_ticks"], 0);
     }
-    #[test] fn phase_permutation_does_not_change_result() {
-        let mut x=case("CR-017"); let before=evaluate_case(&x);
+
+    #[test]
+    fn phase_permutation_does_not_change_result() {
+        let mut x = case("CR-017");
+        let before = evaluate_case(&x);
         x["input"]["phases"].as_array_mut().unwrap().reverse();
-        assert_eq!(before,evaluate_case(&x));
+        assert_eq!(before, evaluate_case(&x));
     }
-    #[test] fn malformed_timeline_structures_fail_closed() {
-        for id in ["CR-010","CR-011","CR-012","CR-013","CR-014","CR-015","CR-016"] {
-            assert_eq!(evaluate_case(&case(id))["disposition"],"Unsupported");
+
+    #[test]
+    fn malformed_timeline_structures_fail_closed() {
+        for id in [
+            "CR-010", "CR-011", "CR-012", "CR-013", "CR-014", "CR-015", "CR-016",
+        ] {
+            assert_eq!(evaluate_case(&case(id))["disposition"], "Unsupported");
         }
     }
-    #[test] fn group_requirements_remain_separate_during_common_cause_events() {
-        let r=evaluate_case(&case("CR-007"));
-        assert_eq!(r["requirements"][0]["inaccessible_ticks"],3);
-        assert_eq!(r["requirements"][1]["adequate_ticks"],8);
-        let r=evaluate_case(&case("CR-018"));
-        assert_eq!(r["requirements"][0]["inaccessible_ticks"],4);
-        assert_eq!(r["requirements"][1]["inaccessible_ticks"],4);
+
+    #[test]
+    fn group_requirements_remain_separate_during_common_cause_events() {
+        let r = evaluate_case(&case("CR-007"));
+        assert_eq!(r["requirements"][0]["inaccessible_ticks"], 3);
+        assert_eq!(r["requirements"][1]["adequate_ticks"], 8);
+        let r = evaluate_case(&case("CR-018"));
+        assert_eq!(r["requirements"][0]["inaccessible_ticks"], 4);
+        assert_eq!(r["requirements"][1]["inaccessible_ticks"], 4);
     }
 }
