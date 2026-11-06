@@ -33,7 +33,7 @@ Do not interpret a scenario as a validated architectural reconstruction. A follo
 The evaluator refuses to sample, truncate, or silently drop alternatives:
 
 - at most 4,096 complete assignment scenarios;
-- at most 10,000,000 declared work units, where work units are scenario_count multiplied by physical_stone_count plus possible_group_count;
+- at most 100,000,000 preflight work units, where the preflight estimate accounts for stone dispatch/group lookup and a conservative six n·ceil(log2(n)) endpoint-sort budget across the three descriptors;
 - checked multiplication for scenario and work estimates;
 - deterministic candidate and physical-identity ordering.
 
@@ -51,7 +51,7 @@ The Rust tests cover:
 6. one exact scenario when no ambiguity exists;
 7. malformed input and empty-ID rejection.
 
-The synthetic report fixture is validated against Draft 2020-12. These are software-contract tests, not archaeological field validation.
+The synthetic report fixture is validated against Draft 2020-12. The preflight budget is a conservative deterministic complexity proxy, not a wall-clock guarantee. These are software-contract tests, not archaeological field validation.
 
 ## Research and benchmark programme
 
