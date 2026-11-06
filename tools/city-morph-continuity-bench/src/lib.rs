@@ -33,6 +33,7 @@ struct Summary {
     constrained: i64,
     inaccessible: i64,
     unknown: i64,
+    unknown_after_degradation: i64,
     max_degraded: i64,
     degraded_streak: i64,
     first_degradation: Option<i64>,
@@ -70,6 +71,9 @@ impl Summary {
             }
             _ => {
                 self.unknown += duration;
+                if self.first_degradation.is_some() {
+                    self.unknown_after_degradation += duration;
+                }
                 self.degraded_streak = 0;
                 self.adequate_run = 0;
                 self.adequate_run_start = None;
@@ -88,7 +92,7 @@ impl Summary {
             "NoKnownInterruption"
         } else if self.recovered_start.is_some() {
             "Recovered"
-        } else if self.unknown > 0 {
+        } else if self.unknown_after_degradation > 0 {
             "RecoveryUnknown"
         } else {
             "NotRecovered"
@@ -106,6 +110,7 @@ impl Summary {
             "constrained_ticks": self.constrained,
             "inaccessible_ticks": self.inaccessible,
             "unknown_ticks": self.unknown,
+            "unknown_after_first_degradation_ticks": self.unknown_after_degradation,
             "max_contiguous_degraded_ticks": self.max_degraded,
             "first_degradation_tick": self.first_degradation,
             "recovery_state": state,
@@ -304,7 +309,7 @@ mod tests {
         let c=corpus();
         assert_eq!(c["classification"],"synthetic_fixture_only");
         assert_eq!(c["corpus_id"],"CITY-MORPH-CONTINUITY-CORPUS-V0.1");
-        let xs=c["cases"].as_array().unwrap(); assert_eq!(xs.len(),24);
+        let xs=c["cases"].as_array().unwrap(); assert_eq!(xs.len(),27);
         let ids=xs.iter().map(|x|x["case_id"].as_str().unwrap().to_owned()).collect::<BTreeSet<_>>();
         assert_eq!(ids.len(),xs.len());
     }
