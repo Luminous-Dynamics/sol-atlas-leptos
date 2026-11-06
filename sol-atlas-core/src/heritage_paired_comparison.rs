@@ -14,7 +14,7 @@ use std::fmt;
 
 use super::heritage_benchmark_metrics::EvaluationUnitKind;
 use super::heritage_hard_negative::{
-    HardNegativeClass, HardNegativeUnitReport, HeritageHardNegativeReport,
+    HardNegativeClass, HardNegativeUnitReport, HeritageHeritageHardNegativeReport,
     HERITAGE_HARD_NEGATIVE_SCHEMA_VERSION,
 };
 
@@ -59,9 +59,9 @@ pub struct HeritagePairedComparisonInput {
     pub reference_adjudication_protocol_sha256: String,
     pub evaluation_unit_kind: EvaluationUnitKind,
     pub baseline_binding: FrozenReportBinding,
-    pub baseline_report: HardNegativeReport,
+    pub baseline_report: HeritageHardNegativeReport,
     pub candidate_binding: FrozenReportBinding,
-    pub candidate_report: HardNegativeReport,
+    pub candidate_report: HeritageHardNegativeReport,
     pub policy: PairedComparisonPolicy,
 }
 
@@ -293,6 +293,34 @@ fn validate_unit_metrics(
         return Err(HeritagePairedComparisonError::InvalidReportMetrics(label));
     }
 
+    let mut seen_classes = BTreeSet::new();
+    let mut class_false_positives = 0usize;
+    for class in &unit.hard_negative_classes {
+        if !seen_classes.insert(class.class) {
+            return Err(HeritagePairedComparisonError::InvalidReportMetrics(
+                label.clone(),
+            ));
+        }
+        class_false_positives = class_false_positives
+            .checked_add(class.false_positive_prediction_count)
+            .ok_or(HeritagePairedComparisonError::InvalidAggregateArithmetic)?;
+        let expected_ratio = (class.reference_object_count > 0)
+            .then(|| class.false_positive_prediction_count as f64 / class.reference_object_count as f64);
+        if !option_close(
+            class.false_positive_candidates_per_reference_object,
+            expected_ratio,
+        ) {
+            return Err(HeritagePairedComparisonError::InvalidReportMetrics(
+                label.clone(),
+            ));
+        }
+    }
+    if class_false_positives > unit.false_positive_count {
+        return Err(HeritagePairedComparisonError::InvalidReportMetrics(
+            label,
+        ));
+    }
+
     let confirmed_fp_density =
         unit.false_positive_count as f64 / unit.adequately_assessed_area_km2;
     let possible_fp_count = unit
@@ -324,7 +352,7 @@ fn option_close(left: Option<f64>, right: Option<f64>) -> bool {
 }
 
 fn validate_report(
-    report: &HeritageHardNegativeReport,
+    report: &HeritageHeritageHardNegativeReport,
     expected_challenge_id: &str,
     expected_manifest_sha256: &str,
     expected_reference_protocol_sha256: &str,
@@ -865,7 +893,7 @@ mod tests {
         fn2: usize,
         unresolved2: usize,
         hours2: f64,
-    ) -> HardNegativeReport {
+    ) -> HeritageHardNegativeReport {
         let units = vec![
             unit("site-01", tp1, fp1, fn1, unresolved1, 10.0, hours1),
             unit("site-02", tp2, fp2, fn2, unresolved2, 5.0, hours2),
@@ -888,7 +916,7 @@ mod tests {
             .iter()
             .filter_map(|u| u.resolved_prediction_metrics.recall.map(|r| (r, u.evaluation_unit_id.as_str())))
             .min_by(|a, b| a.0.total_cmp(&b.0).then_with(|| a.1.cmp(b.1)));
-        HardNegativeReport {
+        HeritageHardNegativeReport {
             schema_version: HERITAGE_HARD_NEGATIVE_SCHEMA_VERSION.into(),
             claim_ceiling: "operational_hard_negative_scorecard_only_no_population_generalisation_or_archaeological_identification".into(),
             challenge_id: "hdb-b9-paired-synthetic".into(),
@@ -1011,8 +1039,7 @@ mod tests {
     #[test]
     fn mismatched_unit_set_or_reference_coverage_fails_closed() {
         let mut value = input();
-        value.candidate_report.units.pop();
-        value.candidate_report.independent_evaluation_unit_count = 1;
+        value.candidate_report.units[0].evaluation_unit_id = "other-site".into();
         assert_eq!(
             evaluate_heritage_paired_comparison(&value),
             Err(HeritagePairedComparisonError::MismatchedEvaluationUnitSet)
