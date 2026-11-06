@@ -42,10 +42,10 @@ jobs:
         run: cargo fmt --manifest-path tools/city-morph-access-bench/Cargo.toml --all -- --check
 
       - name: Run reference-oracle and hostile-control tests
-        run: cargo test --manifest-path tools/city-morph-access-bench/Cargo.toml
+        run: cargo test --locked --manifest-path tools/city-morph-access-bench/Cargo.toml
 
       - name: Run strict Clippy
-        run: cargo clippy --manifest-path tools/city-morph-access-bench/Cargo.toml --all-targets -- -D warnings
+        run: cargo clippy --locked --manifest-path tools/city-morph-access-bench/Cargo.toml --all-targets -- -D warnings
 
       - name: Emit exact-head, exact-corpus reference receipt
         shell: bash
@@ -53,7 +53,7 @@ jobs:
           set -euo pipefail
           source_commit="$(git rev-parse HEAD)"
           test "$source_commit" = "${{ github.event.pull_request.head.sha || github.sha }}"
-          cargo run --quiet --manifest-path tools/city-morph-access-bench/Cargo.toml -- \
+          cargo run --locked --quiet --manifest-path tools/city-morph-access-bench/Cargo.toml -- \
             docs/research/city-morph-access/CITY_MORPH_ACCESS_CORPUS_V0_1.json \
             --source-commit "$source_commit" > city-morph-access-receipt.json
           jq -e '
