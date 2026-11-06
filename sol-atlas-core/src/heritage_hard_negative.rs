@@ -12,8 +12,7 @@ use std::fmt;
 
 use super::heritage_benchmark_metrics::{CountMetrics, EvaluationProvenance, EvaluationUnitKind};
 
-pub const HERITAGE_HARD_NEGATIVE_SCHEMA_VERSION: &str =
-    "luminous.heritage-hard-negative.v0.1";
+pub const HERITAGE_HARD_NEGATIVE_SCHEMA_VERSION: &str = "luminous.heritage-hard-negative.v0.1";
 pub const MAX_HARD_NEGATIVE_EVALUATION_UNITS: usize = 100_000;
 pub const MAX_EXPERT_REVIEW_HOURS: f64 = 1_000_000.0;
 
@@ -235,8 +234,7 @@ fn count_metrics(
     let recall_denominator = tp
         .checked_add(fn_count)
         .ok_or(HeritageHardNegativeError::InvalidAggregateArithmetic)?;
-    let precision = (precision_denominator > 0)
-        .then(|| tp as f64 / precision_denominator as f64);
+    let precision = (precision_denominator > 0).then(|| tp as f64 / precision_denominator as f64);
     let recall = (recall_denominator > 0).then(|| tp as f64 / recall_denominator as f64);
     let f1 = if recall_denominator == 0 {
         None
@@ -278,9 +276,9 @@ fn validate_unit(
         .map_err(|error| HeritageHardNegativeError::InvalidProvenance(error.to_string()))?;
 
     if !unit.candidate_adjudication_complete {
-        return Err(
-            HeritageHardNegativeError::IncompleteCandidateAdjudication(unit_id.clone()),
-        );
+        return Err(HeritageHardNegativeError::IncompleteCandidateAdjudication(
+            unit_id.clone(),
+        ));
     }
     if !unit.reference_coverage_complete {
         return Err(HeritageHardNegativeError::IncompleteReferenceCoverage(
@@ -308,9 +306,7 @@ fn validate_unit(
         unit_id,
     )?;
 
-    if !unit.adequately_assessed_area_km2.is_finite()
-        || unit.adequately_assessed_area_km2 <= 0.0
-    {
+    if !unit.adequately_assessed_area_km2.is_finite() || unit.adequately_assessed_area_km2 <= 0.0 {
         return Err(HeritageHardNegativeError::InvalidArea(unit_id.clone()));
     }
     if !unit.expert_review_hours.is_finite()
@@ -352,11 +348,9 @@ fn validate_unit(
             class: item.class,
             reference_object_count: item.reference_object_count,
             false_positive_prediction_count: item.false_positive_prediction_count,
-            false_positive_candidates_per_reference_object: (item.reference_object_count > 0)
-                .then(|| {
-                    item.false_positive_prediction_count as f64
-                        / item.reference_object_count as f64
-                }),
+            false_positive_candidates_per_reference_object: (item.reference_object_count > 0).then(
+                || item.false_positive_prediction_count as f64 / item.reference_object_count as f64,
+            ),
         });
     }
     class_reports.sort_by_key(|item| item.class);
@@ -372,11 +366,7 @@ fn validate_unit(
         .checked_add(unit.unresolved_prediction_count)
         .ok_or(HeritageHardNegativeError::InvalidAggregateArithmetic)?;
     if disposition_count != unit.candidate_prediction_count {
-        return Err(
-            HeritageHardNegativeError::InvalidPredictionDispositionCounts(
-                unit_id.clone(),
-            ),
-        );
+        return Err(HeritageHardNegativeError::InvalidPredictionDispositionCounts(unit_id.clone()));
     }
 
     Ok((false_positive_count, class_reports))
