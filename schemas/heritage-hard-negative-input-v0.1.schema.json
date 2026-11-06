@@ -57,9 +57,6 @@
         "additionalProperties": false,
         "required": [
           "provenance",
-          "site_id",
-          "region_id",
-          "acquisition_id",
           "adequately_assessed_area_km2",
           "assessment_receipt_ref",
           "assessment_receipt_sha256",
@@ -154,18 +151,6 @@
                 "minLength": 1
               }
             }
-          },
-          "site_id": {
-            "type": "string",
-            "minLength": 1
-          },
-          "region_id": {
-            "type": "string",
-            "minLength": 1
-          },
-          "acquisition_id": {
-            "type": "string",
-            "minLength": 1
           },
           "adequately_assessed_area_km2": {
             "type": "number",
