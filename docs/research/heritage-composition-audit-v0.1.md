@@ -34,14 +34,20 @@ buffered transect union area / survey unit area.
 
 That is a geometric diagnostic. The adapter recomputes the ratio from the supplied geometry receipt and checks it against the HDB-15 report, but never copies it into the HDB-22 probability field.
 
-Instead, the adapter requires separate target-location evidence that:
-- binds to the exact HDB-15 source report, survey unit, CRS, transect geometry, survey-unit geometry and spatial-union receipt;
+A more subtle distinction also matters: HDB-15's effective sweep width is the integral of a lateral detection-probability curve, an equivalent perfect-detection width. It is not a hard physical boundary, and it does not mean that detection is certain inside the buffer or impossible outside it. Consequently, the HDB-15 effective-sweep buffer cannot itself define HDB-22's binary footprint-coverage event.
+
+Instead, the adapter requires a separate, independently receipted physical observation domain and target-location evidence that:
+- binds to the exact HDB-15 source report and profile as calibration provenance;
+- contains its own physical observation-domain geometry digest and receipt, based on the recorded observer path and declared view boundary or a sensor's valid-data footprint—not the effective-sweep-width buffer;
+- binds to the survey unit, CRS, raw transect geometry and survey-unit geometry;
 - states either a uniform-area target-location model or a target-specific spatial distribution;
 - includes a target-location distribution digest, intersection geometry digest, and coverage probability receipt reference/digest;
+- proves that HDB-11's calibration conditioning used the exact same physical observation-domain digest and target-location distribution digest;
+- declares zero detection outside that domain under the observation protocol; if detection tails remain outside it, this six-stage factorization is not valid and a spatial detection-likelihood integral is required;
 - declares the coverage probability interval semantics;
 - justifies the uniform-area assumption for the target class and sampling frame when that model is selected.
 
-A candidate-specific or non-uniform location model must be supported by its own intersection receipt. A geometric union ratio is never silently substituted.
+A candidate-specific or non-uniform location model must be supported by its own intersection receipt. A geometric union ratio is never silently substituted. HDB-15's effective-sweep-width union remains a separate diagnostic/provenance object and is not used as the physical observation-domain geometry.
 
 ## v0.1 accepted mapping
 
@@ -63,7 +69,9 @@ The remaining survival, exposure, observability and false-positive factors must 
 - HDB-15 report/profile/geometry digests and the source-report digest must be present and consistent.
 - HDB-15 effective and buffered sweep widths must be finite and the buffered width must match the geometry receipt; its held-out Brier score, transect counts and seeded-target counts must be valid and the Brier score must meet the threshold in the profile binding.
 - A context-alignment receipt binds HDB-11 profile/context to HDB-15 profile and the exact HDB-22 context identifier.
-- A second event-alignment receipt binds HDB-11's exact covered-by-actual-footprint conditioning event to the HDB-15 geometry and target-location probability.
+- A second event-alignment receipt binds HDB-11's exact covered-by-actual-footprint conditioning event to the same independently receipted physical observation domain and target-location distribution used by HDB-24A.
+- HDB-11's conditioning-domain and target-location distribution digests must exactly equal the target-coverage receipt digests.
+- The declared physical domain must have zero observation probability outside it; otherwise a separate spatial detection-likelihood integral is required and HDB-24A refuses the factorization.
 - HDB-15 swept area / survey-unit area must reproduce its reported geometric coverage fraction.
 - Target-location probability evidence must bind the source report and exact geometry digests.
 - Probability interval semantics are explicit: point estimate, deterministic bound, frequentist confidence interval or Bayesian credible interval. Confidence levels are required only for the last two.
@@ -81,13 +89,15 @@ The Rust tests reject:
 - non-finite coverage measurements;
 - mismatched target class, HDB-11 profile, HDB-22 context, survey unit, CRS or geometry;
 - HDB-15 area-ratio arithmetic drift;
+- attempts to use its effective-sweep-width buffer as the physical observation domain;
+- missing physical observation-domain receipt, nonzero detection outside the domain, or mismatch between HDB-11's conditioned domain/distribution and the coverage model;
 - absent target-location distribution / intersection receipts;
 - unjustified uniform-area assumptions;
 - invalid or underspecified probability interval semantics.
 
 ## Benchmark programme
 
-The next HDB-24B step should compare the naïve product (negative control), correct factorized chain, and composite joint model on synthetic event graphs with known dependence and controlled misspecification.
+The next HDB-24B step should compare the naïve product (negative control), correct factorized chain, and composite joint model on synthetic event graphs with known dependence and controlled misspecification. If the actual observation process has nonzero detection outside a chosen geometric domain, HDB-24C must instead integrate a spatial detection function over the target-location distribution and surveyed path, including lateral detection tails.
 
 Measure posterior bias, Brier/log score, interval coverage and width, false-absence rate, calibration by context, and the impact of removing or swapping each receipt. The adapter must achieve 100% exact factor-mapping agreement with a hand-authored oracle across the finite contract corpus, and zero acceptance of each P0 negative control.
 
