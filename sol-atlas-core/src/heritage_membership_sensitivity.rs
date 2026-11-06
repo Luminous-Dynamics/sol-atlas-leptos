@@ -16,9 +16,9 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::fmt;
 
 use super::heritage_morphology::{
-    ArchitectureGroupLevel, GroupMembership, HeritageMorphologyInput, HeritageMorphologyError,
-    IntervalDistributionSummary, MeasurementInterval, MembershipStatus,
-    StoneMorphologyObservation, aggregate_architecture_morphology,
+    ArchitectureGroupLevel, GroupMembership, HeritageMorphologyError, HeritageMorphologyInput,
+    IntervalDistributionSummary, MeasurementInterval, MembershipStatus, StoneMorphologyObservation,
+    aggregate_architecture_morphology,
 };
 
 pub const HERITAGE_MEMBERSHIP_SENSITIVITY_SCHEMA_VERSION: &str =
@@ -160,10 +160,7 @@ impl MetricEnvelopeAccumulator {
     }
 }
 
-fn extend_envelope(
-    current: &mut Option<MembershipMetricEnvelope>,
-    interval: MeasurementInterval,
-) {
+fn extend_envelope(current: &mut Option<MembershipMetricEnvelope>, interval: MeasurementInterval) {
     match current {
         Some(envelope) => {
             envelope.lower_endpoint_range.minimum =
@@ -174,14 +171,10 @@ fn extend_envelope(
                 envelope.upper_endpoint_range.minimum.min(interval.upper);
             envelope.upper_endpoint_range.maximum =
                 envelope.upper_endpoint_range.maximum.max(interval.upper);
-            envelope.enclosing_interval.lower = envelope
-                .enclosing_interval
-                .lower
-                .min(interval.lower);
-            envelope.enclosing_interval.upper = envelope
-                .enclosing_interval
-                .upper
-                .max(interval.upper);
+            envelope.enclosing_interval.lower =
+                envelope.enclosing_interval.lower.min(interval.lower);
+            envelope.enclosing_interval.upper =
+                envelope.enclosing_interval.upper.max(interval.upper);
         }
         None => {
             *current = Some(MembershipMetricEnvelope {
