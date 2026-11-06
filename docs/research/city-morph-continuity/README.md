@@ -1,6 +1,6 @@
 # CityMorph continuity corpus v0.1
 
-24 synthetic scenarios test time-dependent continuity and recovery using owner-native access-state receipts. The evaluator does not recompute routing or service capacities; it consumes outputs from CityMorph #555 and CityKit #3768.
+26 synthetic scenarios test time-dependent continuity and recovery using owner-native access-state receipts. The evaluator does not recompute routing or service capacities; it consumes outputs from CityMorph #555 and CityKit #3768.
 
 ## Contract
 
@@ -21,3 +21,8 @@ Per requirement, report total horizon ticks, adequate/constrained/inaccessible/u
 ## Claim ceiling
 
 This corpus validates timeline and receipt semantics only. It does not certify actual service resilience, hazard probability, engineering adequacy, municipal performance or community resilience.
+
+
+## Exact owner-revision and scope binding
+
+Every fixture receipt now carries the evaluation-scope digest and source revision. The input declares the expected owner revision, and the oracle requires exact equality for both revision and scope. Two additional hostile controls verify that a non-empty but incorrect source revision, and a valid-looking receipt from another scope, are counted as Unknown rather than Adequate. These are identity/contract checks; the synthetic strings are not cryptographic authentication or proof of a real upstream producer.
