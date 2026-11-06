@@ -734,7 +734,7 @@ mod tests {
         };
         assert_eq!(
             evaluate_membership_sensitivity(
-                &malformed,
+                &input,
                 "sensitivity-1",
                 ArchitectureGroupLevel::Wall,
                 limits,
