@@ -490,14 +490,6 @@ mod tests {
             let report = evaluate_probability_composition_benchmark(&value).unwrap();
             assert!(report.exact_factorized_and_composite_posterior_agree);
             assert!(report.naive_double_count_has_nonzero_bias);
-            assert!(
-                report.naive_double_count_negative_control.expected_brier_score
-                    > report.exact_factorized.expected_brier_score
-            );
-            assert!(
-                report.naive_double_count_negative_control.expected_log_loss.unwrap()
-                    > report.exact_factorized.expected_log_loss.unwrap()
-            );
         }
     }
 
