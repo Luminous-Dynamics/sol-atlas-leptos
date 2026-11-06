@@ -781,7 +781,7 @@ mod tests {
         malformed.stones[0].memberships[0].candidate_group_ids.push("unexpected".into());
         assert!(matches!(
             evaluate_membership_sensitivity(
-                &input,
+                &malformed,
                 "sensitivity-1",
                 ArchitectureGroupLevel::Wall,
                 MembershipSensitivityLimits::default(),
