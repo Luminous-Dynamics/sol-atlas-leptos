@@ -207,7 +207,10 @@ fn validate_provenance(
         (&value.calibration_data_sha256, "calibration_data_sha256"),
         (&value.validation_split_manifest_sha256, "validation_split_manifest_sha256"),
         (&value.source_data_sha256, "source_data_sha256"),
-        (&value.validation_receipt_sha256, "validation_receipt_sha256"),
+        (
+            &value.validation_receipt_sha256,
+            "validation_receipt_sha256",
+        ),
     ] {
         require_digest(digest, &format!("{label}.{field}"))?;
     }
@@ -215,11 +218,17 @@ fn validate_provenance(
         &value.validation_receipt_ref,
         &format!("{label}.validation_receipt_ref"),
     )?;
-    require_ref(&value.rights_decision_id, &format!("{label}.rights_decision_id"))?;
+    require_ref(
+        &value.rights_decision_id,
+        &format!("{label}.rights_decision_id"),
+    )?;
     if value.analytical_rights != AnalyticalRights::Allowed {
         return Err(HeritageFactorAdapterError::RightsNotAllowed(label.into()));
     }
-    require_ref(&value.rights_receipt_ref, &format!("{label}.rights_receipt_ref"))?;
+    require_ref(
+        &value.rights_receipt_ref,
+        &format!("{label}.rights_receipt_ref"),
+    )?;
     Ok(())
 }
 
@@ -232,8 +241,14 @@ fn validate_context_binding(
         return Err(HeritageFactorAdapterError::EmptyContextBinding);
     }
     for (digest, label) in [
-        (&binding.observability_context_sha256, "observability_context_sha256"),
-        (&binding.field_survey_context_sha256, "field_survey_context_sha256"),
+        (
+            &binding.observability_context_sha256,
+            "observability_context_sha256",
+        ),
+        (
+            &binding.field_survey_context_sha256,
+            "field_survey_context_sha256",
+        ),
         (&binding.mapping_receipt_sha256, "mapping_receipt_sha256"),
     ] {
         require_digest(digest, label)?;
@@ -315,7 +330,10 @@ fn validate_hdb11(
     }
     require_digest(&report.profile_sha256, "hdb11_profile_sha256")?;
     require_digest(&provenance.method_build_sha256, "hdb11_method_build_sha256")?;
-    require_digest(&provenance.calibration_data_sha256, "hdb11_calibration_data_sha256")?;
+    require_digest(
+        &provenance.calibration_data_sha256,
+        "hdb11_calibration_data_sha256",
+    )?;
     require_digest(
         &provenance.validation_split_manifest_sha256,
         "hdb11_validation_split_manifest_sha256",
@@ -351,7 +369,10 @@ fn validate_hdb15(
             "profile digest does not match context binding".into(),
         ));
     }
-    require_digest(&report.calibration_data_sha256, "hdb15_calibration_data_sha256")?;
+    require_digest(
+        &report.calibration_data_sha256,
+        "hdb15_calibration_data_sha256",
+    )?;
     require_digest(
         &report.calibration_split_manifest_sha256,
         "hdb15_calibration_split_manifest_sha256",
