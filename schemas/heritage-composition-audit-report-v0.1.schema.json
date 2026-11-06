@@ -227,8 +227,6 @@
         "transect_geometry_sha256",
         "survey_unit_geometry_sha256",
         "spatial_union_receipt_sha256",
-        "method_id",
-        "method_build_sha256",
         "validation_split_manifest_sha256",
         "validation_receipt_ref",
         "validation_receipt_sha256",
