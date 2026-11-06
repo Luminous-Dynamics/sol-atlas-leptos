@@ -362,6 +362,11 @@ fn validate_report<'a>(
     if report.schema_version != HERITAGE_HARD_NEGATIVE_SCHEMA_VERSION
         || report.claim_ceiling
             != "operational_hard_negative_scorecard_only_no_population_generalisation_or_archaeological_identification"
+        || !non_empty(&report.model_id)
+        || !report.confidence_threshold.is_finite()
+        || !(0.0..=1.0).contains(&report.confidence_threshold)
+        || !non_empty(&report.threshold_selection_receipt_ref)
+        || !valid_sha256(&report.threshold_selection_receipt_sha256)
     {
         return Err(HeritagePairedComparisonError::ReportSchemaMismatch(
             label.to_owned(),
