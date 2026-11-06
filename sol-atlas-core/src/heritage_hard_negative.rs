@@ -328,8 +328,10 @@ fn validate_unit(
             unit_id.clone(),
         ));
     }
-    if unit.true_positive_count + unit.false_negative_count
-        != unit.confirmed_constructed_wall_count
+    if unit
+        .true_positive_count
+        .checked_add(unit.false_negative_count)
+        != Some(unit.confirmed_constructed_wall_count)
     {
         return Err(HeritageHardNegativeError::InvalidWallCounts(
             unit_id.clone(),
@@ -394,8 +396,14 @@ fn aggregate_classes(
     for unit in units {
         for item in &unit.hard_negative_classes {
             let entry = totals.entry(item.class).or_default();
-            entry.0 += item.reference_object_count;
-            entry.1 += item.false_positive_prediction_count;
+            entry.0 = entry
+                .0
+                .checked_add(item.reference_object_count)
+                .expect("validated aggregate class reference count");
+            entry.1 = entry
+                .1
+                .checked_add(item.false_positive_prediction_count)
+                .expect("validated aggregate class prediction count");
         }
     }
     totals
@@ -493,7 +501,10 @@ pub fn evaluate_heritage_hard_negative(
             return Err(HeritageHardNegativeError::InconsistentModelOrProtocol);
         }
         let (false_positive_count, class_reports) = validate_unit(unit)?;
-        let resolved_count = unit.true_positive_count + false_positive_count;
+        let resolved_count = unit
+            .true_positive_count
+            .checked_add(false_positive_count)
+            .ok_or(HeritageHardNegativeError::InvalidAggregateArithmetic)?;
         let count_metrics = count_metrics(
             unit.true_positive_count,
             false_positive_count,
