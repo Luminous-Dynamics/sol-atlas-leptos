@@ -72,9 +72,17 @@ jobs:
           malformed["field_sweep_profile"]["hdb22_context_id"] = ""
           assert list(input_validator.iter_errors(malformed)), "empty HDB-22 context binding passed"
 
+          malformed = copy.deepcopy(source_input)
+          malformed["hdb11_analytical_rights"]["decision"] = "undetermined"
+          assert list(input_validator.iter_errors(malformed)), "unresolved HDB-11 analytical rights passed"
+
+          malformed = copy.deepcopy(source_input)
+          malformed["hdb15_analytical_rights"]["purpose"] = "model_training"
+          assert list(input_validator.iter_errors(malformed)), "non-research HDB-15 purpose passed"
+
           malformed = copy.deepcopy(source_report)
           malformed["posterior_computed"] = True
           assert list(report_validator.iter_errors(malformed)), "audit report claimed posterior computation"
 
-          print("Draft 2020-12 input/output schemas, 2 positive fixtures and 4 negative controls passed")
+          print("Draft 2020-12 input/output schemas, 2 positive fixtures and 6 negative controls passed")
           PY
