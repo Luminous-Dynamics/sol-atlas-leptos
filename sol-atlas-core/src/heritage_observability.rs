@@ -118,7 +118,7 @@ pub enum DetectionCondition {
     TargetObservationDataValid,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct ConditioningEvidence {
     pub condition: DetectionCondition,
@@ -494,10 +494,12 @@ fn validate_trials(
                 });
             }
             if !valid_sha256(&evidence.evidence_sha256) {
-                return Err(HeritageObservabilityError::InvalidConditioningEvidenceDigest {
-                    psu_id: trial.psu_id.clone(),
-                    condition: evidence.condition,
-                });
+                return Err(
+                    HeritageObservabilityError::InvalidConditioningEvidenceDigest {
+                        psu_id: trial.psu_id.clone(),
+                        condition: evidence.condition,
+                    },
+                );
             }
         }
         let declared_conditions: Vec<DetectionCondition> = trial
@@ -506,9 +508,11 @@ fn validate_trials(
             .map(|evidence| evidence.condition)
             .collect();
         if declared_conditions != profile.conditioning_events {
-            return Err(HeritageObservabilityError::TrialConditioningEvidenceMismatch {
-                psu_id: trial.psu_id.clone(),
-            });
+            return Err(
+                HeritageObservabilityError::TrialConditioningEvidenceMismatch {
+                    psu_id: trial.psu_id.clone(),
+                },
+            );
         }
         if trial.detected && !trial_is_conditioning_eligible(trial) {
             return Err(
@@ -617,7 +621,11 @@ fn non_detection_reasons(
     if observation.calibration_profile_sha256 != profile.profile_sha256 {
         reasons.push(NonDetectionReason::CalibrationProfileDigestMismatch);
     }
-    let eligible_count = input.calibration_trials.iter().filter(|trial| trial_is_conditioning_eligible(trial)).count();
+    let eligible_count = input
+        .calibration_trials
+        .iter()
+        .filter(|trial| trial_is_conditioning_eligible(trial))
+        .count();
     if eligible_count < profile.minimum_independent_psus {
         reasons.push(NonDetectionReason::CalibrationSampleBelowMinimum);
     }
@@ -699,7 +707,10 @@ pub fn evaluate_heritage_observability(
         return Err(HeritageObservabilityError::InvalidValidDataFraction);
     }
 
-    let detected_count = eligible_trials.iter().filter(|trial| trial.detected).count();
+    let detected_count = eligible_trials
+        .iter()
+        .filter(|trial| trial.detected)
+        .count();
     let total_trial_count = input.calibration_trials.len();
     let eligible_trial_count = eligible_trials.len();
     let excluded_conditioning_count = total_trial_count - eligible_trial_count;
@@ -1101,7 +1112,6 @@ mod tests {
         assert_eq!(interval.confidence_level, 0.95);
     }
 
-
     #[test]
     fn conditional_scope_uses_only_trials_that_satisfy_the_declared_conditioning_set() {
         let mut value = input(ObservationOutcome::NotDetected);
@@ -1120,14 +1130,20 @@ mod tests {
         }
 
         let report = evaluate_heritage_observability(&value).unwrap();
-        assert_eq!(report.detection_probability_scope, DetectionProbabilityScope::ConditionalOnTargetSurvivedExposedObservableAndCovered);
+        assert_eq!(
+            report.detection_probability_scope,
+            DetectionProbabilityScope::ConditionalOnTargetSurvivedExposedObservableAndCovered
+        );
         assert_eq!(report.calibration_total_independent_psu_count, 25);
         assert_eq!(report.calibration_eligible_independent_psu_count, 20);
         assert_eq!(report.calibration_excluded_conditioning_psu_count, 5);
         assert_eq!(report.calibration_detected_count, 20);
         assert!((report.empirical_probability_of_detection - 1.0).abs() < 1e-12);
         assert!(report.probability_of_detection_wilson_95.lower > 0.80);
-        assert_eq!(report.disposition, ObservabilityDisposition::QualifiedNonDetection);
+        assert_eq!(
+            report.disposition,
+            ObservabilityDisposition::QualifiedNonDetection
+        );
     }
 
     #[test]
@@ -1241,7 +1257,10 @@ mod tests {
             trial.conditioning_evidence = evidence(&events, true);
         }
         let report = evaluate_heritage_observability(&value).unwrap();
-        assert_eq!(report.detection_probability_scope, DetectionProbabilityScope::OtherDeclaredConditioningSet);
+        assert_eq!(
+            report.detection_probability_scope,
+            DetectionProbabilityScope::OtherDeclaredConditioningSet
+        );
         assert_eq!(report.conditioning_events, events);
 
         value.calibration_profile.conditioning_events.clear();
@@ -1260,10 +1279,8 @@ mod tests {
         value.calibration_profile.conditioning_events =
             vec![DetectionCondition::TargetObservationDataValid];
         for trial in &mut value.calibration_trials {
-            trial.conditioning_evidence = evidence(
-                &[DetectionCondition::TargetObservationDataValid],
-                true,
-            );
+            trial.conditioning_evidence =
+                evidence(&[DetectionCondition::TargetObservationDataValid], true);
         }
         assert_eq!(
             evaluate_heritage_observability(&value),
@@ -1308,7 +1325,6 @@ mod tests {
         ));
     }
 
-
     #[test]
     fn conditioning_evidence_requires_a_reference_and_sha256_receipt() {
         let mut value = input(ObservationOutcome::NotDetected);
@@ -1324,7 +1340,9 @@ mod tests {
         for trial in &mut value.calibration_trials {
             trial.conditioning_evidence = evidence(&events, true);
         }
-        value.calibration_trials[0].conditioning_evidence[0].evidence_ref.clear();
+        value.calibration_trials[0].conditioning_evidence[0]
+            .evidence_ref
+            .clear();
         assert!(matches!(
             evaluate_heritage_observability(&value),
             Err(HeritageObservabilityError::EmptyConditioningEvidenceRef { .. })
