@@ -1,0 +1,367 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/heritage-paired-comparison-report-v0.1.schema.json",
+  "title": "Sol-Atlas Heritage Paired Operational Comparison Report v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "claim_ceiling",
+    "comparison_id",
+    "challenge_id",
+    "challenge_manifest_sha256",
+    "reference_adjudication_protocol_sha256",
+    "evaluation_unit_kind",
+    "baseline_report_id",
+    "baseline_report_sha256",
+    "candidate_report_id",
+    "candidate_report_sha256",
+    "policy_id",
+    "policy_sha256",
+    "independent_evaluation_unit_count",
+    "recall_eligible_unit_count",
+    "baseline_micro_recall",
+    "candidate_micro_recall",
+    "micro_recall_delta",
+    "baseline_macro_recall",
+    "candidate_macro_recall",
+    "macro_recall_delta",
+    "recall_non_inferiority_pass",
+    "baseline_confirmed_false_positives_per_km2",
+    "candidate_confirmed_false_positives_per_km2",
+    "confirmed_false_positive_density_delta_per_km2",
+    "confirmed_false_positive_density_non_inferiority_pass",
+    "baseline_upper_bound_false_positives_per_km2",
+    "candidate_upper_bound_false_positives_per_km2",
+    "upper_bound_false_positive_density_delta_per_km2",
+    "upper_bound_false_positive_density_non_inferiority_pass",
+    "baseline_verified_findings_per_expert_hour",
+    "candidate_verified_findings_per_expert_hour",
+    "verified_findings_per_expert_hour_ratio",
+    "productivity_target_pass",
+    "overall_operational_pass",
+    "population_superiority_claim_authorized",
+    "uncertainty_note",
+    "units"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "luminous.heritage-paired-comparison.v0.1"
+    },
+    "claim_ceiling": {
+      "const": "paired_operational_comparison_only_no_population_superiority_or_archaeological_truth_claim"
+    },
+    "comparison_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "challenge_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "challenge_manifest_sha256": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{64}$"
+    },
+    "reference_adjudication_protocol_sha256": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{64}$"
+    },
+    "evaluation_unit_kind": {
+      "enum": [
+        "site",
+        "region",
+        "source_paper_test_partition"
+      ]
+    },
+    "baseline_report_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "baseline_report_sha256": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{64}$"
+    },
+    "candidate_report_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "candidate_report_sha256": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{64}$"
+    },
+    "policy_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "policy_sha256": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{64}$"
+    },
+    "independent_evaluation_unit_count": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "recall_eligible_unit_count": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "baseline_micro_recall": {
+      "oneOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "candidate_micro_recall": {
+      "oneOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "micro_recall_delta": {
+      "oneOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "baseline_macro_recall": {
+      "oneOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "candidate_macro_recall": {
+      "oneOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "macro_recall_delta": {
+      "oneOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "recall_non_inferiority_pass": {
+      "type": "boolean"
+    },
+    "baseline_confirmed_false_positives_per_km2": {
+      "type": "number",
+      "minimum": 0
+    },
+    "candidate_confirmed_false_positives_per_km2": {
+      "type": "number",
+      "minimum": 0
+    },
+    "confirmed_false_positive_density_delta_per_km2": {
+      "type": "number"
+    },
+    "confirmed_false_positive_density_non_inferiority_pass": {
+      "type": "boolean"
+    },
+    "baseline_upper_bound_false_positives_per_km2": {
+      "type": "number",
+      "minimum": 0
+    },
+    "candidate_upper_bound_false_positives_per_km2": {
+      "type": "number",
+      "minimum": 0
+    },
+    "upper_bound_false_positive_density_delta_per_km2": {
+      "type": "number"
+    },
+    "upper_bound_false_positive_density_non_inferiority_pass": {
+      "type": "boolean"
+    },
+    "baseline_verified_findings_per_expert_hour": {
+      "type": "number",
+      "minimum": 0
+    },
+    "candidate_verified_findings_per_expert_hour": {
+      "type": "number",
+      "minimum": 0
+    },
+    "verified_findings_per_expert_hour_ratio": {
+      "oneOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "productivity_target_pass": {
+      "oneOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "overall_operational_pass": {
+      "type": "boolean"
+    },
+    "population_superiority_claim_authorized": {
+      "const": false
+    },
+    "uncertainty_note": {
+      "type": "string",
+      "minLength": 1
+    },
+    "units": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "evaluation_unit_id",
+          "confirmed_constructed_wall_count",
+          "adequately_assessed_area_km2",
+          "baseline_recall",
+          "candidate_recall",
+          "recall_delta",
+          "recall_non_inferior",
+          "baseline_confirmed_false_positives_per_km2",
+          "candidate_confirmed_false_positives_per_km2",
+          "confirmed_false_positive_density_delta_per_km2",
+          "confirmed_false_positive_density_non_inferior",
+          "baseline_upper_bound_false_positives_per_km2",
+          "candidate_upper_bound_false_positives_per_km2",
+          "upper_bound_false_positive_density_delta_per_km2",
+          "upper_bound_false_positive_density_non_inferior",
+          "baseline_verified_findings_per_expert_hour",
+          "candidate_verified_findings_per_expert_hour",
+          "verified_findings_per_expert_hour_ratio"
+        ],
+        "properties": {
+          "evaluation_unit_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "confirmed_constructed_wall_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "adequately_assessed_area_km2": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "baseline_recall": {
+            "oneOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "candidate_recall": {
+            "oneOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "recall_delta": {
+            "oneOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "recall_non_inferior": {
+            "oneOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "baseline_confirmed_false_positives_per_km2": {
+            "type": "number",
+            "minimum": 0
+          },
+          "candidate_confirmed_false_positives_per_km2": {
+            "type": "number",
+            "minimum": 0
+          },
+          "confirmed_false_positive_density_delta_per_km2": {
+            "type": "number"
+          },
+          "confirmed_false_positive_density_non_inferior": {
+            "type": "boolean"
+          },
+          "baseline_upper_bound_false_positives_per_km2": {
+            "type": "number",
+            "minimum": 0
+          },
+          "candidate_upper_bound_false_positives_per_km2": {
+            "type": "number",
+            "minimum": 0
+          },
+          "upper_bound_false_positive_density_delta_per_km2": {
+            "type": "number"
+          },
+          "upper_bound_false_positive_density_non_inferior": {
+            "type": "boolean"
+          },
+          "baseline_verified_findings_per_expert_hour": {
+            "type": "number",
+            "minimum": 0
+          },
+          "candidate_verified_findings_per_expert_hour": {
+            "type": "number",
+            "minimum": 0
+          },
+          "verified_findings_per_expert_hour_ratio": {
+            "oneOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        }
+      }
+    }
+  }
+}
