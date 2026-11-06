@@ -99,3 +99,14 @@ No single metric substitutes for the others. Any weighted score must publish its
 ## Claim ceiling
 
 CityMorph should not claim SOTA superiority from a synthetic corpus or an interface feature comparison. A defensible claim requires matched inputs, published reference implementations, exact method reproduction, independent validation and clear uncertainty. The planned differentiator is a more complete evidence/decision layer, not a blanket claim that one engine routes better than R5 or OTP.
+
+
+## Repository ownership correction (2026-11-06)
+
+A repository-wide audit found existing robust multi-objective owners:
+- Sol-Atlas #131 owns site-selection Pareto, sensitivity and value-of-information.
+- Symtropy #1874 / RDO-002 owns the base robust frontier and dominance certificates.
+- Symtropy #2529 defines guaranteed interval dominance for mixed minimize/maximize objectives, with uncertainty semantics kept explicit (first implementation admits deterministic envelopes only).
+- Sol-Atlas #214 owns staged portfolio selection under budgets and dependencies.
+
+CityMorph will not implement another Pareto solver. Urban alternatives will be mapped to the owner-native interval-frontier contract with scope, metric, hard-floor and uncertainty-semantic bindings. Statistical confidence intervals, vendor ranges and scenario quantiles must not be relabelled deterministic envelopes.
