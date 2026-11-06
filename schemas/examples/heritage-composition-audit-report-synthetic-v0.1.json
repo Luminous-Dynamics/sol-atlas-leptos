@@ -37,7 +37,11 @@
       "validation_receipt_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
       "rights_decision_id": "rights:hdb11",
       "rights_receipt_ref": "urn:rights:hdb11",
-      "access_tier": "controlled"
+      "access_tier": "controlled",
+      "method_id": "field-walk-detection-v1",
+      "method_build_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "source_data_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "analytical_rights": "allowed"
     }
   },
   "footprint_coverage": {
