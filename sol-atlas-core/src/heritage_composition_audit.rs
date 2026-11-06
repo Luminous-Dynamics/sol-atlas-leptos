@@ -44,6 +44,14 @@ pub enum FieldSweepMethod {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
+pub enum CompositionAnalyticalRights {
+    Allowed,
+    Denied,
+    Undetermined,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub enum SourceRightsStatus {
     Verified,
     Pending,
@@ -233,6 +241,10 @@ pub struct HeritageCompositionInputV1 {
 pub struct FactorReceiptReference {
     pub source_schema_version: String,
     pub source_report_sha256: String,
+    pub method_id: String,
+    pub method_build_sha256: String,
+    pub source_data_sha256: String,
+    pub analytical_rights: CompositionAnalyticalRights,
     pub profile_id: String,
     pub profile_sha256: String,
     pub calibration_data_sha256: String,
@@ -259,12 +271,21 @@ pub struct ConditionalDetectionFactorProposal {
 pub struct FootprintCoverageFactorProposal {
     pub stage: String,
     pub conditioning_semantics: String,
+    pub evidence_basis: String,
+    pub method_id: String,
+    pub method_build_sha256: String,
+    pub source_data_sha256: String,
+    pub analytical_rights: CompositionAnalyticalRights,
+    pub profile_id: String,
+    pub profile_sha256: String,
+    pub calibration_data_sha256: String,
     pub probability_model: CoverageProbabilityModel,
     pub interval_semantics: CoverageProbabilityIntervalSemantics,
     pub confidence_level: Option<f64>,
     pub probability: ProbabilityBand,
     pub target_location_distribution_sha256: String,
     pub intersection_geometry_sha256: String,
+    pub coverage_geometry_sha256: String,
     pub hdb11_coverage_condition_alignment_receipt_ref: String,
     pub hdb11_coverage_condition_alignment_receipt_sha256: String,
     pub coverage_probability_receipt_ref: String,
@@ -492,6 +513,10 @@ fn validate_observability(
     }
 
     for (value, label) in [
+        (
+            &report.calibration_context.processing_build_sha256,
+            "hdb11_method_build_sha256",
+        ),
         (&report.profile_sha256, "hdb11_profile_sha256"),
         (&report.calibration_data_sha256, "hdb11_calibration_data_sha256"),
         (
@@ -526,6 +551,10 @@ fn validate_observability(
         receipt: FactorReceiptReference {
             source_schema_version: report.schema_version.clone(),
             source_report_sha256: input.observability_report_sha256.clone(),
+            method_id: report.method_id.clone(),
+            method_build_sha256: report.calibration_context.processing_build_sha256.clone(),
+            source_data_sha256: report.calibration_data_sha256.clone(),
+            analytical_rights: CompositionAnalyticalRights::Allowed,
             profile_id: report.profile_id.clone(),
             profile_sha256: report.profile_sha256.clone(),
             calibration_data_sha256: report.calibration_data_sha256.clone(),
@@ -608,6 +637,8 @@ fn validate_field_sweep(
             &profile.context_alignment_receipt_sha256,
             "context_alignment_receipt_sha256",
         ),
+        (&profile.hdb11_profile_sha256, "hdb15_hdb11_profile_sha256"),
+        (&profile.hdb11_context_sha256, "hdb15_hdb11_context_sha256"),
     ] {
         validate_digest(value, label)?;
     }
@@ -662,7 +693,9 @@ fn validate_field_sweep(
     }
 
     let sweep_interval = report.effective_sweep_width_interval_95;
-    if !report.effective_sweep_width_m.is_finite()
+    if !non_empty(&geometry.survey_unit_crs_id)
+        || !non_empty(&geometry.spatial_union_method_id)
+        || !report.effective_sweep_width_m.is_finite()
         || report.effective_sweep_width_m <= 0.0
         || !report.buffered_sweep_width_m.is_finite()
         || report.buffered_sweep_width_m <= 0.0
@@ -867,12 +900,21 @@ fn validate_target_coverage(
         conditioning_semantics:
             "target_location_covered_by_actual_survey_footprint_under_declared_distribution"
                 .to_owned(),
+        evidence_basis: "actual_spatial_union_receipt".to_owned(),
+        method_id: evidence.method_id.clone(),
+        method_build_sha256: evidence.method_build_sha256.clone(),
+        source_data_sha256: evidence.source_field_sweep_report_sha256.clone(),
+        analytical_rights: CompositionAnalyticalRights::Allowed,
+        profile_id: input.field_sweep_profile.profile_id.clone(),
+        profile_sha256: input.field_sweep_profile.profile_sha256.clone(),
+        calibration_data_sha256: report.calibration_data_sha256.clone(),
         probability_model: evidence.probability_model,
         interval_semantics: evidence.interval_semantics,
         confidence_level: evidence.confidence_level,
         probability: evidence.probability,
         target_location_distribution_sha256: evidence.target_location_distribution_sha256.clone(),
         intersection_geometry_sha256: evidence.intersection_geometry_sha256.clone(),
+        coverage_geometry_sha256: evidence.intersection_geometry_sha256.clone(),
         hdb11_coverage_condition_alignment_receipt_ref: evidence
             .hdb11_coverage_condition_alignment_receipt_ref
             .clone(),
