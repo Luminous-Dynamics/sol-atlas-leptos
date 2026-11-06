@@ -1,0 +1,148 @@
+{
+  "schema_version": "luminous.heritage-hard-negative.v0.1",
+  "claim_ceiling": "operational_hard_negative_scorecard_only_no_population_generalisation_or_archaeological_identification",
+  "challenge_id": "hdb-b9-synthetic",
+  "model_id": "model-synthetic",
+  "confidence_threshold": 0.5,
+  "threshold_selection_receipt_ref": "urn:synthetic:threshold",
+  "threshold_selection_receipt_sha256": "7777777777777777777777777777777777777777777777777777777777777777",
+  "challenge_manifest_sha256": "8888888888888888888888888888888888888888888888888888888888888888",
+  "reference_adjudication_protocol_sha256": "9999999999999999999999999999999999999999999999999999999999999999",
+  "evaluation_unit_kind": "site",
+  "independent_evaluation_unit_count": 2,
+  "micro_counts": {
+    "true_positive": 5,
+    "false_positive": 2,
+    "false_negative": 1,
+    "precision": 0.7142857142857143,
+    "recall": 0.8333333333333334,
+    "f1": 0.7692307692307692
+  },
+  "macro_precision": 0.8,
+  "macro_precision_unit_count": 2,
+  "macro_recall": 0.875,
+  "macro_recall_unit_count": 2,
+  "macro_f1": 0.8333333333333333,
+  "macro_f1_unit_count": 2,
+  "worst_unit_recall_id": "site-01",
+  "worst_unit_recall": 0.75,
+  "adequately_assessed_area_km2": 15,
+  "total_expert_review_hours": 3,
+  "false_positives_per_km2": 0.13333333333333333,
+  "verified_findings_per_expert_hour": 1.6666666666666667,
+  "false_leads_per_expert_hour": 0.6666666666666666,
+  "candidate_prediction_count": 9,
+  "resolved_prediction_count": 7,
+  "candidate_resolution_fraction": 0.7777777777777778,
+  "unresolved_prediction_count": 2,
+  "ambiguous_reference_count": 2,
+  "not_observable_reference_count": 2,
+  "not_assessed_reference_count": 4,
+  "hard_negative_classes": [
+    {
+      "class": "eroded_rock_ledge",
+      "reference_object_count": 4,
+      "false_positive_prediction_count": 1,
+      "false_positive_candidates_per_reference_object": 0.25
+    },
+    {
+      "class": "livestock_kraal_or_modern_enclosure",
+      "reference_object_count": 2,
+      "false_positive_prediction_count": 0,
+      "false_positive_candidates_per_reference_object": 0
+    }
+  ],
+  "units": [
+    {
+      "evaluation_unit_id": "site-01",
+      "evaluation_unit_kind": "site",
+      "site_id": "site-01",
+      "region_id": "region-west",
+      "acquisition_id": "acq-site-01",
+      "adequately_assessed_area_km2": 10,
+      "expert_review_hours": 2,
+      "confirmed_constructed_wall_count": 4,
+      "true_positive_count": 3,
+      "false_positive_count": 2,
+      "false_negative_count": 1,
+      "resolved_prediction_metrics": {
+        "true_positive": 3,
+        "false_positive": 2,
+        "false_negative": 1,
+        "precision": 0.6,
+        "recall": 0.75,
+        "f1": 0.6666666666666665
+      },
+      "candidate_prediction_count": 6,
+      "resolved_prediction_count": 5,
+      "candidate_resolution_fraction": 0.8333333333333334,
+      "unresolved_prediction_count": 1,
+      "false_positives_per_km2": 0.2,
+      "verified_findings_per_expert_hour": 1.5,
+      "false_leads_per_expert_hour": 1,
+      "ambiguous_reference_count": 1,
+      "not_observable_reference_count": 1,
+      "not_assessed_reference_count": 2,
+      "hard_negative_classes": [
+        {
+          "class": "eroded_rock_ledge",
+          "reference_object_count": 2,
+          "false_positive_prediction_count": 1,
+          "false_positive_candidates_per_reference_object": 0.5
+        },
+        {
+          "class": "livestock_kraal_or_modern_enclosure",
+          "reference_object_count": 1,
+          "false_positive_prediction_count": 0,
+          "false_positive_candidates_per_reference_object": 0
+        }
+      ]
+    },
+    {
+      "evaluation_unit_id": "site-02",
+      "evaluation_unit_kind": "site",
+      "site_id": "site-02",
+      "region_id": "region-west",
+      "acquisition_id": "acq-site-02",
+      "adequately_assessed_area_km2": 5,
+      "expert_review_hours": 1,
+      "confirmed_constructed_wall_count": 2,
+      "true_positive_count": 2,
+      "false_positive_count": 0,
+      "false_negative_count": 0,
+      "resolved_prediction_metrics": {
+        "true_positive": 2,
+        "false_positive": 0,
+        "false_negative": 0,
+        "precision": 1,
+        "recall": 1,
+        "f1": 1
+      },
+      "candidate_prediction_count": 3,
+      "resolved_prediction_count": 2,
+      "candidate_resolution_fraction": 0.6666666666666666,
+      "unresolved_prediction_count": 1,
+      "false_positives_per_km2": 0,
+      "verified_findings_per_expert_hour": 2,
+      "false_leads_per_expert_hour": 0,
+      "ambiguous_reference_count": 1,
+      "not_observable_reference_count": 1,
+      "not_assessed_reference_count": 2,
+      "hard_negative_classes": [
+        {
+          "class": "eroded_rock_ledge",
+          "reference_object_count": 2,
+          "false_positive_prediction_count": 0,
+          "false_positive_candidates_per_reference_object": 0
+        },
+        {
+          "class": "livestock_kraal_or_modern_enclosure",
+          "reference_object_count": 1,
+          "false_positive_prediction_count": 0,
+          "false_positive_candidates_per_reference_object": 0
+        }
+      ]
+    }
+  ],
+  "uncertainty_note": "no confidence intervals are computed; macro metrics are descriptive across the declared independent units. Use a preregistered site/region/acquisition-level bootstrap and spatial effective-information analysis before population-level claims."
+}
