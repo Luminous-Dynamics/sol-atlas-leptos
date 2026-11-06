@@ -225,10 +225,8 @@ impl Default for GroupSensitivityAccumulator {
 impl GroupSensitivityAccumulator {
     fn observe(&mut self, stones: &[&StoneMorphologyObservation]) {
         let count = stones.len();
-        self.minimum_assigned_stone_count =
-            self.minimum_assigned_stone_count.min(count);
-        self.maximum_assigned_stone_count =
-            self.maximum_assigned_stone_count.max(count);
+        self.minimum_assigned_stone_count = self.minimum_assigned_stone_count.min(count);
+        self.maximum_assigned_stone_count = self.maximum_assigned_stone_count.max(count);
         if count == 0 {
             return;
         }
@@ -305,8 +303,14 @@ fn summarize_intervals_safely(
 
     let count = intervals.len();
 
-    let mut lower = intervals.iter().map(|value| value.lower).collect::<Vec<_>>();
-    let mut upper = intervals.iter().map(|value| value.upper).collect::<Vec<_>>();
+    let mut lower = intervals
+        .iter()
+        .map(|value| value.lower)
+        .collect::<Vec<_>>();
+    let mut upper = intervals
+        .iter()
+        .map(|value| value.upper)
+        .collect::<Vec<_>>();
     lower.sort_by(f64::total_cmp);
     upper.sort_by(f64::total_cmp);
 
@@ -377,14 +381,10 @@ pub fn evaluate_membership_sensitivity(
     }
 
     let mut stones = input.stones.iter().collect::<Vec<_>>();
-    stones.sort_by(|left, right| {
-        left.physical_identity_id
-            .cmp(&right.physical_identity_id)
-    });
+    stones.sort_by(|left, right| left.physical_identity_id.cmp(&right.physical_identity_id));
 
     let mut fixed_assignments = Vec::<(&StoneMorphologyObservation, String)>::new();
-    let mut ambiguous_assignments =
-        Vec::<(&StoneMorphologyObservation, Vec<String>)>::new();
+    let mut ambiguous_assignments = Vec::<(&StoneMorphologyObservation, Vec<String>)>::new();
     let mut group_ids = BTreeSet::new();
     let mut unassigned_stone_count = 0usize;
     let mut not_assessed_stone_count = 0usize;
@@ -422,12 +422,10 @@ pub fn evaluate_membership_sensitivity(
             .ok_or(HeritageMembershipSensitivityError::ScenarioCountOverflow)?;
     }
     if scenario_count > limits.maximum_scenarios {
-        return Err(
-            HeritageMembershipSensitivityError::ScenarioLimitExceeded {
-                required: scenario_count,
-                maximum: limits.maximum_scenarios,
-            },
-        );
+        return Err(HeritageMembershipSensitivityError::ScenarioLimitExceeded {
+            required: scenario_count,
+            maximum: limits.maximum_scenarios,
+        });
     }
 
     // Upper-bound group sizes across all candidate assignments. Each group
@@ -485,8 +483,7 @@ pub fn evaluate_membership_sensitivity(
         .collect::<BTreeMap<_, _>>();
 
     for scenario_index in 0..scenario_count {
-        let mut assigned_by_group =
-            BTreeMap::<String, Vec<&StoneMorphologyObservation>>::new();
+        let mut assigned_by_group = BTreeMap::<String, Vec<&StoneMorphologyObservation>>::new();
 
         for (stone, group_id) in &fixed_assignments {
             assigned_by_group
@@ -565,8 +562,7 @@ pub fn evaluate_membership_sensitivity(
 mod tests {
     use super::*;
     use crate::heritage_morphology::{
-        ARCHITECTURE_GROUP_LEVELS, GroupMembership, MeasurementInterval,
-        StoneMorphologyObservation,
+        ARCHITECTURE_GROUP_LEVELS, GroupMembership, MeasurementInterval, StoneMorphologyObservation,
     };
 
     fn digest(byte: char) -> String {
@@ -639,8 +635,10 @@ mod tests {
             .unwrap();
         membership.status = MembershipStatus::Ambiguous;
         membership.group_id = None;
-        membership.candidate_group_ids =
-            candidates.iter().map(|candidate| (*candidate).to_owned()).collect();
+        membership.candidate_group_ids = candidates
+            .iter()
+            .map(|candidate| (*candidate).to_owned())
+            .collect();
     }
 
     #[test]
@@ -685,7 +683,16 @@ mod tests {
         assert_eq!(alternate.minimum_assigned_stone_count, 0);
         assert_eq!(alternate.maximum_assigned_stone_count, 1);
         assert_eq!(alternate.non_empty_scenario_count, 1);
-        assert_eq!(alternate.plan_footprint_area_m2.as_ref().unwrap().mean.enclosing_interval.lower, 0.04);
+        assert_eq!(
+            alternate
+                .plan_footprint_area_m2
+                .as_ref()
+                .unwrap()
+                .mean
+                .enclosing_interval
+                .lower,
+            0.04
+        );
     }
 
     #[test]
@@ -702,7 +709,8 @@ mod tests {
 
         let mut second = first.clone();
         second.stones.reverse();
-        second.stones
+        second
+            .stones
             .iter_mut()
             .find(|stone| stone.physical_identity_id == "physical:a")
             .unwrap()
@@ -821,7 +829,9 @@ mod tests {
     #[test]
     fn malformed_input_and_empty_identifier_fail_closed() {
         let mut malformed = input();
-        malformed.stones[0].memberships[0].candidate_group_ids.push("unexpected".into());
+        malformed.stones[0].memberships[0]
+            .candidate_group_ids
+            .push("unexpected".into());
         assert!(matches!(
             evaluate_membership_sensitivity(
                 &malformed,
