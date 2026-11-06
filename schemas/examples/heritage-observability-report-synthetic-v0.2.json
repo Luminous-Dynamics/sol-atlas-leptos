@@ -50,5 +50,14 @@
   "conditioning_events": [],
   "calibration_total_independent_psu_count": 20,
   "calibration_eligible_independent_psu_count": 20,
-  "calibration_excluded_conditioning_psu_count": 0
+  "calibration_excluded_conditioning_psu_count": 0,
+  "method_id": "lidar-stonewall-classifier-v1",
+  "calibration_data_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "calibration_split_manifest_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "validation_receipt_ref": "urn:synthetic:validation:pod",
+  "validation_receipt_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+  "rights_decision_id": "rights:synthetic:pod",
+  "rights_receipt_ref": "urn:synthetic:rights:pod",
+  "access_tier": "controlled",
+  "conditioning_evidence_manifest_sha256": "9999999999999999999999999999999999999999999999999999999999999999"
 }
