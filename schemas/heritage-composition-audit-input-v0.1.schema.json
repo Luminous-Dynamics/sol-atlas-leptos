@@ -592,6 +592,7 @@
         "calibration_data_sha256",
         "calibration_split_manifest_sha256",
         "fit_receipt_sha256",
+        "maximum_permitted_validation_brier_score",
         "target_feature_class_id",
         "survey_method",
         "method_id",
@@ -689,6 +690,11 @@
         "hdb22_context_id": {
           "type": "string",
           "minLength": 1
+        },
+        "maximum_permitted_validation_brier_score": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
         }
       }
     },
