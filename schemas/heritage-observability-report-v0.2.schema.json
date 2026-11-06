@@ -28,6 +28,7 @@
     "calibration_total_independent_psu_count",
     "calibration_eligible_independent_psu_count",
     "calibration_excluded_conditioning_psu_count",
+    "conditioning_evidence_manifest_sha256",
     "calibration_detected_count",
     "empirical_probability_of_detection",
     "probability_of_detection_wilson_95",
@@ -376,6 +377,10 @@
         "restricted",
         "unknown"
       ]
+    },
+    "conditioning_evidence_manifest_sha256": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{64}$"
     }
   }
 }
