@@ -150,6 +150,9 @@
     "validation_receipt_ref": "urn:coverage-validation:1",
     "validation_receipt_sha256": "kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk",
     "interval_semantics": "deterministic_bound",
-    "confidence_level": null
+    "confidence_level": null,
+    "hdb11_coverage_condition_alignment_receipt_ref": "urn:coverage-condition-alignment:1",
+    "hdb11_coverage_condition_alignment_receipt_sha256": "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm",
+    "hdb11_coverage_condition_profile_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
   }
 }
