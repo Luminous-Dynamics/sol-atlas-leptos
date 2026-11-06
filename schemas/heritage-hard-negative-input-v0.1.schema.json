@@ -1,0 +1,293 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/heritage-hard-negative-input-v0.1.schema.json",
+  "title": "Sol-Atlas Heritage Hard-Negative Challenge Input v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "challenge_id",
+    "model_id",
+    "confidence_threshold",
+    "threshold_selection_receipt_ref",
+    "threshold_selection_receipt_sha256",
+    "challenge_manifest_sha256",
+    "reference_adjudication_protocol_sha256",
+    "units"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "luminous.heritage-hard-negative.v0.1"
+    },
+    "challenge_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "model_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "confidence_threshold": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "threshold_selection_receipt_ref": {
+      "type": "string",
+      "minLength": 1
+    },
+    "threshold_selection_receipt_sha256": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{64}$"
+    },
+    "challenge_manifest_sha256": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{64}$"
+    },
+    "reference_adjudication_protocol_sha256": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{64}$"
+    },
+    "units": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 100000,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "provenance",
+          "site_id",
+          "region_id",
+          "acquisition_id",
+          "adequately_assessed_area_km2",
+          "assessment_receipt_ref",
+          "assessment_receipt_sha256",
+          "candidate_adjudication_complete",
+          "candidate_adjudication_receipt_ref",
+          "candidate_adjudication_receipt_sha256",
+          "reference_coverage_complete",
+          "reference_completeness_receipt_ref",
+          "reference_completeness_receipt_sha256",
+          "review_time_receipt_ref",
+          "review_time_receipt_sha256",
+          "expert_review_hours",
+          "confirmed_constructed_wall_count",
+          "true_positive_count",
+          "false_negative_count",
+          "hard_negative_classes",
+          "background_false_positive_prediction_count",
+          "unresolved_prediction_count",
+          "candidate_prediction_count",
+          "ambiguous_reference_count",
+          "not_observable_reference_count",
+          "not_assessed_reference_count"
+        ],
+        "properties": {
+          "provenance": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "source_doi_or_identifier",
+              "dataset_sha256",
+              "model_artifact_sha256",
+              "model_build_sha256",
+              "prediction_sha256",
+              "reference_label_sha256",
+              "split_manifest_sha256",
+              "evaluator_build_sha256",
+              "metric_protocol_sha256",
+              "rights_receipt_ref",
+              "evaluation_unit_kind",
+              "evaluation_unit_id"
+            ],
+            "properties": {
+              "source_doi_or_identifier": {
+                "type": "string",
+                "minLength": 1
+              },
+              "dataset_sha256": {
+                "type": "string",
+                "pattern": "^[a-fA-F0-9]{64}$"
+              },
+              "model_artifact_sha256": {
+                "type": "string",
+                "pattern": "^[a-fA-F0-9]{64}$"
+              },
+              "model_build_sha256": {
+                "type": "string",
+                "pattern": "^[a-fA-F0-9]{64}$"
+              },
+              "prediction_sha256": {
+                "type": "string",
+                "pattern": "^[a-fA-F0-9]{64}$"
+              },
+              "reference_label_sha256": {
+                "type": "string",
+                "pattern": "^[a-fA-F0-9]{64}$"
+              },
+              "split_manifest_sha256": {
+                "type": "string",
+                "pattern": "^[a-fA-F0-9]{64}$"
+              },
+              "evaluator_build_sha256": {
+                "type": "string",
+                "pattern": "^[a-fA-F0-9]{64}$"
+              },
+              "metric_protocol_sha256": {
+                "type": "string",
+                "pattern": "^[a-fA-F0-9]{64}$"
+              },
+              "rights_receipt_ref": {
+                "type": "string",
+                "minLength": 1
+              },
+              "evaluation_unit_kind": {
+                "enum": [
+                  "site",
+                  "region",
+                  "source_paper_test_partition"
+                ]
+              },
+              "evaluation_unit_id": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "site_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "region_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "acquisition_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "adequately_assessed_area_km2": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "assessment_receipt_ref": {
+            "type": "string",
+            "minLength": 1
+          },
+          "assessment_receipt_sha256": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{64}$"
+          },
+          "candidate_adjudication_complete": {
+            "const": true
+          },
+          "candidate_adjudication_receipt_ref": {
+            "type": "string",
+            "minLength": 1
+          },
+          "candidate_adjudication_receipt_sha256": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{64}$"
+          },
+          "reference_coverage_complete": {
+            "const": true
+          },
+          "reference_completeness_receipt_ref": {
+            "type": "string",
+            "minLength": 1
+          },
+          "reference_completeness_receipt_sha256": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{64}$"
+          },
+          "review_time_receipt_ref": {
+            "type": "string",
+            "minLength": 1
+          },
+          "review_time_receipt_sha256": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{64}$"
+          },
+          "expert_review_hours": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "maximum": 1000000
+          },
+          "confirmed_constructed_wall_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "true_positive_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "false_negative_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "hard_negative_classes": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "class",
+                "reference_object_count",
+                "false_positive_prediction_count"
+              ],
+              "properties": {
+                "class": {
+                  "enum": [
+                    "eroded_rock_ledge",
+                    "bedrock_scarp",
+                    "geological_lineament",
+                    "gully_or_erosion_channel",
+                    "terrace_edge",
+                    "road_cut_or_track",
+                    "modern_retaining_wall",
+                    "livestock_kraal_or_modern_enclosure",
+                    "fence_or_modern_boundary",
+                    "other_confirmed_lookalike"
+                  ]
+                },
+                "reference_object_count": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "false_positive_prediction_count": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            }
+          },
+          "background_false_positive_prediction_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "unresolved_prediction_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "candidate_prediction_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "ambiguous_reference_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "not_observable_reference_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "not_assessed_reference_count": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      }
+    }
+  }
+}
