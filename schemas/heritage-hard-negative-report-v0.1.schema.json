@@ -317,9 +317,6 @@
         "required": [
           "evaluation_unit_id",
           "evaluation_unit_kind",
-          "site_id",
-          "region_id",
-          "acquisition_id",
           "adequately_assessed_area_km2",
           "expert_review_hours",
           "confirmed_constructed_wall_count",
@@ -350,18 +347,6 @@
               "region",
               "source_paper_test_partition"
             ]
-          },
-          "site_id": {
-            "type": "string",
-            "minLength": 1
-          },
-          "region_id": {
-            "type": "string",
-            "minLength": 1
-          },
-          "acquisition_id": {
-            "type": "string",
-            "minLength": 1
           },
           "adequately_assessed_area_km2": {
             "type": "number",
