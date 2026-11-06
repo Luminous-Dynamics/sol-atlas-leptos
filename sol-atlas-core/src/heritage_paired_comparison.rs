@@ -810,6 +810,7 @@ pub fn evaluate_heritage_paired_comparison(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::heritage_benchmark_metrics::CountMetrics;
     use crate::heritage_hard_negative::{
         HardNegativeClassReport, HardNegativeUnitReport,
     };
