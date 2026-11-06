@@ -47,7 +47,7 @@ fn nonnegative(value: &Value, key: &str) -> Option<f64> {
 fn bool_value(value: &Value, key: &str) -> Option<bool> {
     value.get(key).and_then(Value::as_bool)
 }
-fn string_array(value: &Value, key: &str) -> Option<Vec<&str>> {
+fn string_array<'a>(value: &'a Value, key: &str) -> Option<Vec<&'a str>> {
     value
         .get(key)?
         .as_array()?
