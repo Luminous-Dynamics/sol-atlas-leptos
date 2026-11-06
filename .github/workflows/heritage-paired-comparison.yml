@@ -1,0 +1,77 @@
+name: Heritage Paired Productivity Comparison Qualification
+
+on:
+  pull_request:
+    paths:
+      - "sol-atlas-core/src/heritage_paired_comparison.rs"
+      - "sol-atlas-core/src/heritage_hard_negative.rs"
+      - "sol-atlas-core/src/heritage_benchmark_metrics.rs"
+      - "sol-atlas-core/src/lib.rs"
+      - "sol-atlas-core/Cargo.toml"
+      - "schemas/heritage-paired-comparison-input-v0.1.schema.json"
+      - "schemas/heritage-paired-comparison-report-v0.1.schema.json"
+      - "schemas/examples/heritage-paired-comparison-input-synthetic-v0.1.json"
+      - "schemas/examples/heritage-paired-comparison-report-synthetic-v0.1.json"
+      - "docs/research/heritage-paired-comparison-v0.1.md"
+      - ".github/workflows/heritage-paired-comparison.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  qualify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Verify exact checkout
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - name: Check core formatting
+        run: cargo fmt --manifest-path sol-atlas-core/Cargo.toml -- --check
+      - name: Run core unit tests
+        run: cargo test --manifest-path sol-atlas-core/Cargo.toml
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Validate Draft 2020-12 schemas, fixtures and negative controls
+        run: |
+          python -m pip install --disable-pip-version-check jsonschema==4.23.0
+          python - <<'PY'
+          import copy
+          import json
+          from pathlib import Path
+          from jsonschema import Draft202012Validator
+
+          base = Path("schemas")
+          input_schema = json.loads((base / "heritage-paired-comparison-input-v0.1.schema.json").read_text())
+          output_schema = json.loads((base / "heritage-paired-comparison-report-v0.1.schema.json").read_text())
+          Draft202012Validator.check_schema(input_schema)
+          Draft202012Validator.check_schema(output_schema)
+          input_validator = Draft202012Validator(input_schema)
+          output_validator = Draft202012Validator(output_schema)
+          input_fixture = json.loads((base / "examples/heritage-paired-comparison-input-synthetic-v0.1.json").read_text())
+          output_fixture = json.loads((base / "examples/heritage-paired-comparison-report-synthetic-v0.1.json").read_text())
+          input_validator.validate(input_fixture)
+          output_validator.validate(output_fixture)
+
+          bad = copy.deepcopy(input_fixture)
+          bad["policy"]["minimum_verified_findings_per_expert_hour_ratio"] = 0
+          assert list(input_validator.iter_errors(bad)), "zero productivity target passed"
+
+          bad = copy.deepcopy(input_fixture)
+          bad["candidate_binding"]["report_sha256"] = "invalid"
+          assert list(input_validator.iter_errors(bad)), "invalid report digest passed"
+
+          bad = copy.deepcopy(output_fixture)
+          bad["population_superiority_claim_authorized"] = True
+          assert list(output_validator.iter_errors(bad)), "population claim was authorized"
+
+          print("Draft 2020-12 paired input/output schemas, 2 positive fixtures and 3 negative controls passed")
+          PY
