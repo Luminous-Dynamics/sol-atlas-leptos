@@ -125,7 +125,8 @@
     "calibration_data_sha256": "7777777777777777777777777777777777777777777777777777777777777777",
     "calibration_split_manifest_sha256": "8888888888888888888888888888888888888888888888888888888888888888",
     "fit_receipt_sha256": "9999999999999999999999999999999999999999999999999999999999999999",
-    "hdb22_context_id": "context-1"
+    "hdb22_context_id": "context-1",
+    "maximum_permitted_validation_brier_score": 0.2
   },
   "field_sweep_geometry": {
     "survey_unit_id": "survey-unit-1",
