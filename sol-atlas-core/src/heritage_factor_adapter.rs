@@ -155,6 +155,7 @@ pub struct HeritageFactorAdapterInput {
     pub hdb11_report: HeritageObservabilityReport,
     pub hdb11_provenance: CalibrationProvenanceBinding,
     pub hdb15_report: FieldSweepEvaluationReport,
+    pub hdb15_report_sha256: String,
     pub hdb15_provenance: CalibrationProvenanceBinding,
     pub target_location_coverage: TargetLocationCoverageReceipt,
     /// HDB-22 prior plus already-qualified Survival, Exposure, Observability
@@ -598,7 +599,11 @@ fn validate_hdb15(
 
 fn validate_target_location_coverage(
     report: &FieldSweepEvaluationReport,
+    report_sha256: &str,
     receipt: &TargetLocationCoverageReceipt,
+    binding: &AdapterContextBinding,
+    hdb11: &HeritageObservabilityReport,
+    template: &HeritageNonDetectionInput,
 ) -> Result<ProbabilityBand, HeritageFactorAdapterError> {
     if !receipt.target_location_probability.lower.is_finite()
         || !receipt.target_location_probability.upper.is_finite()
@@ -675,8 +680,21 @@ fn validate_target_location_coverage(
     ] {
         require_ref(value, label)?;
     }
-    if receipt.survey_unit_id != report.survey_unit_id {
-        return Err(HeritageFactorAdapterError::SurveyUnitMismatch);
+    if receipt.event_id != template.event_id
+        || receipt.target_class_id != template.target_class_id
+        || receipt.hdb22_context_id != template.context_id
+        || receipt.target_class_id != binding.target_class_id
+    {
+        return Err(HeritageFactorAdapterError::TargetLocationEventMismatch);
+    }
+    require_digest(report_sha256, "hdb15_report_sha256")?;
+    if receipt.field_sweep_report_sha256 != report_sha256
+        || receipt.survey_unit_crs_id != binding.survey_unit_crs_id
+        || receipt.survey_unit_id != report.survey_unit_id
+    {
+        return Err(HeritageFactorAdapterError::TargetLocationProvenanceMismatch(
+            "event/report/CRS/survey-unit binding".into(),
+        ));
     }
     if receipt.survey_unit_geometry_sha256 != report.survey_unit_geometry_sha256 {
         return Err(HeritageFactorAdapterError::SurveyGeometryMismatch);
@@ -689,6 +707,7 @@ fn validate_target_location_coverage(
     }
     if receipt.field_sweep_fit_receipt_sha256 != report.fit_receipt_sha256
         || receipt.calibration_data_sha256 != report.calibration_data_sha256
+        || receipt.hdb11_coverage_condition_profile_sha256 != hdb11.profile_sha256
     {
         return Err(
             HeritageFactorAdapterError::TargetLocationProvenanceMismatch(
@@ -711,13 +730,86 @@ fn validate_target_location_coverage(
         &receipt.rights_receipt_ref,
         "target_location_rights_receipt_ref",
     )?;
+    require_digest(
+        &receipt.hdb11_coverage_condition_alignment_receipt_sha256,
+        "hdb11_coverage_condition_alignment_receipt_sha256",
+    )?;
+    require_ref(
+        &receipt.hdb11_coverage_condition_alignment_receipt_ref,
+        "hdb11_coverage_condition_alignment_receipt_ref",
+    )?;
+    require_digest(
+        &receipt.hdb11_conditioned_observation_domain_geometry_sha256,
+        "hdb11_conditioned_observation_domain_geometry_sha256",
+    )?;
+    require_digest(
+        &receipt.hdb11_conditioned_target_location_distribution_sha256,
+        "hdb11_conditioned_target_location_distribution_sha256",
+    )?;
+    require_digest(
+        &receipt.actual_observation_domain_receipt_sha256,
+        "actual_observation_domain_receipt_sha256",
+    )?;
+    require_ref(
+        &receipt.actual_observation_domain_receipt_ref,
+        "actual_observation_domain_receipt_ref",
+    )?;
+    if !receipt.outside_domain_detection_probability.is_finite()
+        || receipt.outside_domain_detection_probability != 0.0
+    {
+        return Err(HeritageFactorAdapterError::OutsideDomainDetectionNotZero);
+    }
+    if receipt.hdb11_conditioned_observation_domain_geometry_sha256
+        != receipt.coverage_geometry_sha256
+        || receipt.hdb11_conditioned_target_location_distribution_sha256
+            != receipt.target_location_distribution_sha256
+    {
+        return Err(HeritageFactorAdapterError::PhysicalObservationDomainMismatch);
+    }
+    match receipt.interval_semantics {
+        CoverageProbabilityIntervalSemantics::PointEstimate => {
+            if receipt.target_location_probability.lower != receipt.target_location_probability.upper
+                || receipt.confidence_level.is_some()
+            {
+                return Err(HeritageFactorAdapterError::InvalidCoverageIntervalSemantics);
+            }
+        }
+        CoverageProbabilityIntervalSemantics::DeterministicBound => {
+            if receipt.confidence_level.is_some() {
+                return Err(HeritageFactorAdapterError::InvalidCoverageIntervalSemantics);
+            }
+        }
+        CoverageProbabilityIntervalSemantics::FrequentistConfidenceInterval
+        | CoverageProbabilityIntervalSemantics::BayesianCredibleInterval => {
+            let level = receipt.confidence_level.ok_or(
+                HeritageFactorAdapterError::InvalidCoverageIntervalSemantics,
+            )?;
+            if !level.is_finite() || !(0.0..1.0).contains(&level) {
+                return Err(HeritageFactorAdapterError::InvalidCoverageIntervalSemantics);
+            }
+        }
+    }
     if receipt.model == CoverageProbabilityModel::UniformAreaWeightedWithinSurveyUnit {
+        let uniform_ref = receipt
+            .uniform_assumption_justification_ref
+            .as_deref()
+            .ok_or(HeritageFactorAdapterError::InvalidCoverageIntervalSemantics)?;
+        let uniform_sha = receipt
+            .uniform_assumption_justification_sha256
+            .as_deref()
+            .ok_or(HeritageFactorAdapterError::InvalidCoverageIntervalSemantics)?;
+        require_ref(uniform_ref, "uniform_assumption_justification_ref")?;
+        require_digest(uniform_sha, "uniform_assumption_justification_sha256")?;
         let observed = report.receipt_reported_coverage_fraction;
         if (receipt.target_location_probability.lower - observed).abs() > PROBABILITY_TOLERANCE
             || (receipt.target_location_probability.upper - observed).abs() > PROBABILITY_TOLERANCE
         {
             return Err(HeritageFactorAdapterError::UniformLocationModelDoesNotMatchAreaFraction);
         }
+    } else if receipt.uniform_assumption_justification_ref.is_some()
+        || receipt.uniform_assumption_justification_sha256.is_some()
+    {
+        return Err(HeritageFactorAdapterError::InvalidCoverageIntervalSemantics);
     }
     Ok(receipt.target_location_probability)
 }
@@ -773,8 +865,9 @@ fn make_stage(
             .unwrap_or(provenance.access_tier),
         coverage_evidence_basis: coverage.map(|_| CoverageEvidenceBasis::ActualSpatialUnionReceipt),
         coverage_geometry_sha256: coverage.map(|value| value.coverage_geometry_sha256.clone()),
-        spatial_coverage_receipt_sha256: hdb15_report
-            .map(|value| value.spatial_union_receipt_sha256.clone()),
+        spatial_coverage_receipt_sha256: coverage
+            .map(|value| value.actual_observation_domain_receipt_sha256.clone())
+            .or_else(|| hdb15_report.map(|value| value.spatial_union_receipt_sha256.clone())),
         coverage_probability_model: coverage_model,
         target_location_distribution_sha256: coverage
             .map(|value| value.target_location_distribution_sha256.clone()),
@@ -852,8 +945,15 @@ pub fn adapt_heritage_detection_factors(
         &input.hdb15_provenance,
         &input.context_binding,
     )?;
-    let coverage_probability =
-        validate_target_location_coverage(&input.hdb15_report, &input.target_location_coverage)?;
+    require_digest(&input.hdb15_report_sha256, "hdb15_report_sha256")?;
+    let coverage_probability = validate_target_location_coverage(
+        &input.hdb15_report,
+        &input.hdb15_report_sha256,
+        &input.target_location_coverage,
+        &input.context_binding,
+        &input.hdb11_report,
+        template,
+    )?;
 
     let context_id = &template.context_id;
     let target_class_id = &template.target_class_id;
@@ -901,6 +1001,7 @@ pub fn adapt_heritage_detection_factors(
         hdb11_profile_sha256: input.hdb11_report.profile_sha256.clone(),
         hdb15_profile_sha256: input.hdb15_report.profile_sha256.clone(),
         target_location_receipt_sha256: input.target_location_coverage.calculation_receipt_sha256.clone(),
+        conditioning_evidence_manifest_sha256: input.hdb11_report.conditioning_evidence_manifest_sha256.clone(),
         target_location_probability: coverage_probability,
         detection_probability_wilson_95: detection_probability,
         hdb15_geometric_coverage_fraction: input.hdb15_report.receipt_reported_coverage_fraction,
