@@ -175,6 +175,14 @@
       "required": [
         "stage",
         "conditioning_semantics",
+        "evidence_basis",
+        "method_id",
+        "method_build_sha256",
+        "source_data_sha256",
+        "analytical_rights",
+        "profile_id",
+        "profile_sha256",
+        "calibration_data_sha256",
         "probability_model",
         "interval_semantics",
         "confidence_level",
@@ -316,6 +324,28 @@
           "minLength": 1
         },
         "hdb11_coverage_condition_alignment_receipt_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "evidence_basis": {
+          "const": "actual_spatial_union_receipt"
+        },
+        "source_data_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "analytical_rights": {
+          "const": "allowed"
+        },
+        "profile_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "profile_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "calibration_data_sha256": {
           "type": "string",
           "pattern": "^[a-fA-F0-9]{64}$"
         }
