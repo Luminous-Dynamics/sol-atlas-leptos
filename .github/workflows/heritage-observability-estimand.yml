@@ -61,6 +61,12 @@ jobs:
           report_validator.validate(report_fixture)
 
           malformed = copy.deepcopy(input_fixture)
+          malformed["calibration_profile"]["detection_probability_scope"] = "other_declared_conditioning_set"
+          malformed["calibration_profile"]["conditioning_events"] = ["target_observation_data_valid"]
+          malformed["calibration_trials"][0]["conditioning_evidence"] = [{"condition":"target_observation_data_valid","satisfied":True}]
+          assert list(input_validator.iter_errors(malformed)), "conditioning evidence without a source receipt passed"
+
+          malformed = copy.deepcopy(input_fixture)
           malformed["calibration_profile"]["conditioning_events"] = ["target_observation_data_valid"]
           assert list(input_validator.iter_errors(malformed)), "joint scope accepted a non-empty conditioning set"
 
