@@ -92,6 +92,7 @@ pub struct Hdb24Hdb15SourceBinding {
     pub survey_unit_geometry_sha256: String,
     /// Digest of the actual union geometry, supplied by the GIS receipt.
     pub coverage_union_geometry_sha256: String,
+    pub coverage_calibration_profile_sha256: String,
     pub spatial_union_receipt_sha256: String,
     pub spatial_union_method_id: String,
     pub spatial_union_method_build_sha256: String,
@@ -132,6 +133,7 @@ pub struct Hdb24TargetCoverageReceipt {
     pub survey_unit_crs_id: String,
     pub coverage_probability: Option<Hdb24ProbabilityBand>,
     pub model: Option<Hdb24CoverageProbabilityModel>,
+    pub intersection_method_id: String,
     /// Digest of the target-location distribution (or explicit uniform-area
     /// assumption model) used for the intersection computation.
     pub target_location_distribution_sha256: Option<String>,
@@ -170,6 +172,12 @@ pub enum Hdb22ProjectedStage {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
+pub enum Hdb22ProjectedCoverageEvidenceBasis {
+    ActualSpatialUnionReceipt,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub enum Hdb22ProjectedConditioning {
     CoveredGivenSurvivalExposureAndObservability,
     DetectedGivenSurvivalExposureObservabilityAndCoverage,
@@ -195,6 +203,7 @@ pub struct Hdb22StageProjection {
     pub analytical_rights_allowed: bool,
     pub rights_receipt_ref: String,
     pub access_tier: SurveyAccessTier,
+    pub coverage_evidence_basis: Option<Hdb22ProjectedCoverageEvidenceBasis>,
     pub coverage_probability_model: Option<Hdb24CoverageProbabilityModel>,
     pub coverage_geometry_sha256: Option<String>,
     pub spatial_coverage_receipt_sha256: Option<String>,
@@ -220,7 +229,11 @@ pub struct Hdb24CompositionReport {
     pub hdb11_validation_receipt_sha256: String,
     pub hdb15_report_sha256: String,
     pub hdb15_profile_sha256: String,
+    pub hdb15_fit_receipt_sha256: String,
     pub hdb15_calibration_split_manifest_sha256: String,
+    pub hdb15_transect_geometry_sha256: String,
+    pub hdb15_survey_unit_geometry_sha256: String,
+    pub hdb15_coverage_union_geometry_sha256: String,
     pub hdb15_spatial_union_receipt_sha256: String,
     /// Kept for descriptive GIS QA only. It is never used as the target
     /// coverage probability in either stage projection.
@@ -453,6 +466,9 @@ fn validate_hdb15(input: &Hdb24AdapterInput) -> Result<(), Hdb24CompositionError
     if source.survey_unit_id != input.context.survey_unit_id {
         return Err(Hdb24CompositionError::Hdb15SurveyUnitMismatch);
     }
+    if source.coverage_calibration_profile_sha256 != source.profile_sha256 {
+        return Err(Hdb24CompositionError::TargetCoverageReceiptMismatch);
+    }
     if source.survey_unit_crs_id != input.context.survey_unit_crs_id {
         return Err(Hdb24CompositionError::Hdb15CrsMismatch);
     }
@@ -489,6 +505,7 @@ fn validate_target_coverage(input: &Hdb24AdapterInput) -> Result<(), Hdb24Compos
     require_text(&receipt.survey_unit_id, "target_coverage_survey_unit_id")?;
     require_text(&receipt.survey_unit_crs_id, "target_coverage_survey_unit_crs_id")?;
     require_text(&receipt.intersection_receipt_ref, "target_coverage_intersection_receipt_ref")?;
+    require_text(&receipt.intersection_method_id, "target_coverage_intersection_method_id")?;
     require_text(&receipt.rights_decision_id, "target_coverage_rights_decision_id")?;
     require_text(&receipt.rights_receipt_ref, "target_coverage_rights_receipt_ref")?;
     for (value, label) in [
@@ -545,8 +562,9 @@ fn project_coverage_stage(input: &Hdb24AdapterInput) -> Hdb22StageProjection {
         target_class_id: input.context.target_class_id.clone(),
         context_id: input.context.context_id.clone(),
         conditioning: Hdb22ProjectedConditioning::CoveredGivenSurvivalExposureAndObservability,
-        method_id: source.spatial_union_method_id.clone(),
-        profile_sha256: source.profile_sha256.clone(),
+        method_id: receipt.intersection_method_id.clone(),
+        profile_sha256: receipt.target_location_distribution_sha256.clone().expect("validated target location model"),
+
         method_build_sha256: receipt.method_build_sha256.clone(),
         calibration_data_sha256: source.calibration_data_sha256.clone(),
         validation_split_manifest_sha256: receipt.validation_split_manifest_sha256.clone(),
@@ -557,6 +575,7 @@ fn project_coverage_stage(input: &Hdb24AdapterInput) -> Hdb22StageProjection {
         analytical_rights_allowed: true,
         rights_receipt_ref: receipt.rights_receipt_ref.clone(),
         access_tier: receipt.access_tier,
+        coverage_evidence_basis: Some(Hdb22ProjectedCoverageEvidenceBasis::ActualSpatialUnionReceipt),
         coverage_probability_model: receipt.model,
         coverage_geometry_sha256: Some(receipt.coverage_union_geometry_sha256.clone()),
         spatial_coverage_receipt_sha256: Some(receipt.spatial_union_receipt_sha256.clone()),
@@ -587,6 +606,7 @@ fn project_detection_stage(input: &Hdb24AdapterInput) -> Hdb22StageProjection {
         analytical_rights_allowed: true,
         rights_receipt_ref: report.rights_receipt_ref.clone(),
         access_tier: report.access_tier,
+        coverage_evidence_basis: None,
         coverage_probability_model: None,
         coverage_geometry_sha256: None,
         spatial_coverage_receipt_sha256: None,
@@ -640,10 +660,14 @@ pub fn adapt_hdb11_hdb15_to_hdb22(
         hdb11_validation_receipt_sha256: input.hdb11_report.validation_receipt_sha256.clone(),
         hdb15_report_sha256: input.hdb15.report_sha256.clone(),
         hdb15_profile_sha256: input.hdb15.profile_sha256.clone(),
+        hdb15_fit_receipt_sha256: input.hdb15.fit_receipt_sha256.clone(),
         hdb15_calibration_split_manifest_sha256: input
             .hdb15
             .calibration_split_manifest_sha256
             .clone(),
+        hdb15_transect_geometry_sha256: input.hdb15.transect_geometry_sha256.clone(),
+        hdb15_survey_unit_geometry_sha256: input.hdb15.survey_unit_geometry_sha256.clone(),
+        hdb15_coverage_union_geometry_sha256: input.hdb15.coverage_union_geometry_sha256.clone(),
         hdb15_spatial_union_receipt_sha256: input.hdb15.spatial_union_receipt_sha256.clone(),
         hdb15_area_fraction_descriptive_only: input.hdb15.receipt_reported_coverage_fraction,
         target_coverage_probability,
@@ -752,6 +776,7 @@ mod tests {
             transect_geometry_sha256: digest('6'),
             survey_unit_geometry_sha256: digest('7'),
             coverage_union_geometry_sha256: digest('8'),
+            coverage_calibration_profile_sha256: digest('2'),
             spatial_union_receipt_sha256: digest('9'),
             spatial_union_method_id: "buffer-union-v1".into(),
             spatial_union_method_build_sha256: digest('a'),
@@ -778,6 +803,7 @@ mod tests {
                 upper: 0.84,
             }),
             model: Some(Hdb24CoverageProbabilityModel::TargetSpecificSpatialDistribution),
+            intersection_method_id: "target-location-intersection-v1".into(),
             target_location_distribution_sha256: Some(digest('b')),
             coverage_union_geometry_sha256: digest('8'),
             spatial_union_receipt_sha256: digest('9'),
