@@ -28,9 +28,7 @@
   "worst_unit_recall": 0.75,
   "adequately_assessed_area_km2": 15,
   "total_expert_review_hours": 3,
-  "false_positives_per_km2": 0.13333333333333333,
   "verified_findings_per_expert_hour": 1.6666666666666667,
-  "false_leads_per_expert_hour": 0.6666666666666666,
   "candidate_prediction_count": 9,
   "resolved_prediction_count": 7,
   "candidate_resolution_fraction": 0.7777777777777778,
@@ -138,5 +136,9 @@
       ]
     }
   ],
-  "uncertainty_note": "no confidence intervals are computed; macro metrics are descriptive across the declared independent units. Use a preregistered site/region/acquisition-level bootstrap and spatial effective-information analysis before population-level claims."
+  "uncertainty_note": "no confidence intervals are computed; macro metrics are descriptive across the declared independent units. Use a preregistered site/region/acquisition-level bootstrap and spatial effective-information analysis before population-level claims.",
+  "confirmed_false_positives_per_km2": 0.13333333333333333,
+  "upper_bound_false_positives_per_km2": 0.26666666666666666,
+  "confirmed_false_leads_per_expert_hour": 0.6666666666666666,
+  "upper_bound_false_leads_per_expert_hour": 1.3333333333333333
 }
