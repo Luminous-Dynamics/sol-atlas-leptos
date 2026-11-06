@@ -44,11 +44,13 @@
                 "source_revision": "fixture-v0.1",
                 "source_receipt_id": "synthetic:p0:clinic",
                 "scenario_id": "CR-001",
-                "source_subject_digest": "synthetic-subject:CR-001:p0:clinic"
+                "source_subject_digest": "synthetic-subject:CR-001:p0:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
               }
             ]
           }
-        ]
+        ],
+        "expected_source_revision": "fixture-v0.1"
       },
       "expected": {
         "case_id": "CR-001",
@@ -106,7 +108,8 @@
                 "source_revision": "fixture-v0.1",
                 "source_receipt_id": "synthetic:p0:clinic",
                 "scenario_id": "CR-002",
-                "source_subject_digest": "synthetic-subject:CR-002:p0:clinic"
+                "source_subject_digest": "synthetic-subject:CR-002:p0:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
               }
             ]
           },
@@ -127,7 +130,8 @@
                 "source_revision": "fixture-v0.1",
                 "source_receipt_id": "synthetic:p1:clinic",
                 "scenario_id": "CR-002",
-                "source_subject_digest": "synthetic-subject:CR-002:p1:clinic"
+                "source_subject_digest": "synthetic-subject:CR-002:p1:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
               }
             ]
           },
@@ -146,11 +150,13 @@
                 "source_revision": "fixture-v0.1",
                 "source_receipt_id": "synthetic:p2:clinic",
                 "scenario_id": "CR-002",
-                "source_subject_digest": "synthetic-subject:CR-002:p2:clinic"
+                "source_subject_digest": "synthetic-subject:CR-002:p2:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
               }
             ]
           }
-        ]
+        ],
+        "expected_source_revision": "fixture-v0.1"
       },
       "expected": {
         "case_id": "CR-002",
@@ -208,7 +214,8 @@
                 "source_revision": "fixture-v0.1",
                 "source_receipt_id": "synthetic:p0:clinic",
                 "scenario_id": "CR-003",
-                "source_subject_digest": "synthetic-subject:CR-003:p0:clinic"
+                "source_subject_digest": "synthetic-subject:CR-003:p0:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
               }
             ]
           },
@@ -227,7 +234,8 @@
                 "source_revision": "fixture-v0.1",
                 "source_receipt_id": "synthetic:p1:clinic",
                 "scenario_id": "CR-003",
-                "source_subject_digest": "synthetic-subject:CR-003:p1:clinic"
+                "source_subject_digest": "synthetic-subject:CR-003:p1:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
               }
             ]
           },
@@ -246,11 +254,13 @@
                 "source_revision": "fixture-v0.1",
                 "source_receipt_id": "synthetic:p2:clinic",
                 "scenario_id": "CR-003",
-                "source_subject_digest": "synthetic-subject:CR-003:p2:clinic"
+                "source_subject_digest": "synthetic-subject:CR-003:p2:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
               }
             ]
           }
-        ]
+        ],
+        "expected_source_revision": "fixture-v0.1"
       },
       "expected": {
         "case_id": "CR-003",
@@ -308,7 +318,8 @@
                 "source_revision": "fixture-v0.1",
                 "source_receipt_id": "synthetic:p0:clinic",
                 "scenario_id": "CR-004",
-                "source_subject_digest": "synthetic-subject:CR-004:p0:clinic"
+                "source_subject_digest": "synthetic-subject:CR-004:p0:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
               }
             ]
           },
@@ -327,7 +338,8 @@
                 "source_revision": "fixture-v0.1",
                 "source_receipt_id": "synthetic:p1:clinic",
                 "scenario_id": "CR-004",
-                "source_subject_digest": "synthetic-subject:CR-004:p1:clinic"
+                "source_subject_digest": "synthetic-subject:CR-004:p1:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
               }
             ]
           },
@@ -346,11 +358,13 @@
                 "source_revision": "fixture-v0.1",
                 "source_receipt_id": "synthetic:p2:clinic",
                 "scenario_id": "CR-004",
-                "source_subject_digest": "synthetic-subject:CR-004:p2:clinic"
+                "source_subject_digest": "synthetic-subject:CR-004:p2:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
               }
             ]
           }
-        ]
+        ],
+        "expected_source_revision": "fixture-v0.1"
       },
       "expected": {
         "case_id": "CR-004",
@@ -408,7 +422,8 @@
                 "source_revision": "fixture-v0.1",
                 "source_receipt_id": "synthetic:p0:clinic",
                 "scenario_id": "CR-005",
-                "source_subject_digest": "synthetic-subject:CR-005:p0:clinic"
+                "source_subject_digest": "synthetic-subject:CR-005:p0:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
               }
             ]
           },
@@ -427,7 +442,8 @@
                 "source_revision": "fixture-v0.1",
                 "source_receipt_id": "synthetic:p1:clinic",
                 "scenario_id": "CR-005",
-                "source_subject_digest": "synthetic-subject:CR-005:p1:clinic"
+                "source_subject_digest": "synthetic-subject:CR-005:p1:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
               }
             ]
           },
@@ -446,7 +462,8 @@
                 "source_revision": "fixture-v0.1",
                 "source_receipt_id": "synthetic:p2:clinic",
                 "scenario_id": "CR-005",
-                "source_subject_digest": "synthetic-subject:CR-005:p2:clinic"
+                "source_subject_digest": "synthetic-subject:CR-005:p2:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
               }
             ]
           },
@@ -465,11 +482,13 @@
                 "source_revision": "fixture-v0.1",
                 "source_receipt_id": "synthetic:p3:clinic",
                 "scenario_id": "CR-005",
-                "source_subject_digest": "synthetic-subject:CR-005:p3:clinic"
+                "source_subject_digest": "synthetic-subject:CR-005:p3:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
               }
             ]
           }
-        ]
+        ],
+        "expected_source_revision": "fixture-v0.1"
       },
       "expected": {
         "case_id": "CR-005",
@@ -527,7 +546,8 @@
                 "source_revision": "fixture-v0.1",
                 "source_receipt_id": "synthetic:p0:clinic",
                 "scenario_id": "CR-006",
-                "source_subject_digest": "synthetic-subject:CR-006:p0:clinic"
+                "source_subject_digest": "synthetic-subject:CR-006:p0:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
               }
             ]
           },
@@ -546,7 +566,8 @@
                 "source_revision": "fixture-v0.1",
                 "source_receipt_id": "synthetic:p1:clinic",
                 "scenario_id": "CR-006",
-                "source_subject_digest": "synthetic-subject:CR-006:p1:clinic"
+                "source_subject_digest": "synthetic-subject:CR-006:p1:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
               }
             ]
           },
@@ -565,7 +586,8 @@
                 "source_revision": "fixture-v0.1",
                 "source_receipt_id": "synthetic:p2:clinic",
                 "scenario_id": "CR-006",
-                "source_subject_digest": "synthetic-subject:CR-006:p2:clinic"
+                "source_subject_digest": "synthetic-subject:CR-006:p2:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
               }
             ]
           },
@@ -584,11 +606,13 @@
                 "source_revision": "fixture-v0.1",
                 "source_receipt_id": "synthetic:p3:clinic",
                 "scenario_id": "CR-006",
-                "source_subject_digest": "synthetic-subject:CR-006:p3:clinic"
+                "source_subject_digest": "synthetic-subject:CR-006:p3:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
               }
             ]
           }
-        ]
+        ],
+        "expected_source_revision": "fixture-v0.1"
       },
       "expected": {
         "case_id": "CR-006",
@@ -651,7 +675,8 @@
                 "source_revision": "fixture-v0.1",
                 "source_receipt_id": "synthetic:p0:clinic-a",
                 "scenario_id": "CR-007",
-                "source_subject_digest": "synthetic-subject:CR-007:p0:clinic-a"
+                "source_subject_digest": "synthetic-subject:CR-007:p0:clinic-a",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
               },
               {
                 "requirement_id": "clinic-b",
@@ -662,7 +687,8 @@
                 "source_revision": "fixture-v0.1",
                 "source_receipt_id": "synthetic:p0:clinic-b",
                 "scenario_id": "CR-007",
-                "source_subject_digest": "synthetic-subject:CR-007:p0:clinic-b"
+                "source_subject_digest": "synthetic-subject:CR-007:p0:clinic-b",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
               }
             ]
           },
@@ -683,7 +709,8 @@
                 "source_revision": "fixture-v0.1",
                 "source_receipt_id": "synthetic:p1:clinic-a",
                 "scenario_id": "CR-007",
-                "source_subject_digest": "synthetic-subject:CR-007:p1:clinic-a"
+                "source_subject_digest": "synthetic-subject:CR-007:p1:clinic-a",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
               },
               {
                 "requirement_id": "clinic-b",
@@ -694,7 +721,8 @@
                 "source_revision": "fixture-v0.1",
                 "source_receipt_id": "synthetic:p1:clinic-b",
                 "scenario_id": "CR-007",
-                "source_subject_digest": "synthetic-subject:CR-007:p1:clinic-b"
+                "source_subject_digest": "synthetic-subject:CR-007:p1:clinic-b",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
               }
             ]
           },
@@ -713,7 +741,8 @@
                 "source_revision": "fixture-v0.1",
                 "source_receipt_id": "synthetic:p2:clinic-a",
                 "scenario_id": "CR-007",
-                "source_subject_digest": "synthetic-subject:CR-007:p2:clinic-a"
+                "source_subject_digest": "synthetic-subject:CR-007:p2:clinic-a",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
               },
               {
                 "requirement_id": "clinic-b",
@@ -724,11 +753,13 @@
                 "source_revision": "fixture-v0.1",
                 "source_receipt_id": "synthetic:p2:clinic-b",
                 "scenario_id": "CR-007",
-                "source_subject_digest": "synthetic-subject:CR-007:p2:clinic-b"
+                "source_subject_digest": "synthetic-subject:CR-007:p2:clinic-b",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
               }
             ]
           }
-        ]
+        ],
+        "expected_source_revision": "fixture-v0.1"
       },
       "expected": {
         "case_id": "CR-007",
@@ -804,11 +835,13 @@
                 "source_revision": "fixture-v0.1",
                 "source_receipt_id": "synthetic:p0:clinic",
                 "scenario_id": "CR-008",
-                "source_subject_digest": "synthetic-subject:CR-008:p0:clinic"
+                "source_subject_digest": "synthetic-subject:CR-008:p0:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
               }
             ]
           }
-        ]
+        ],
+        "expected_source_revision": "fixture-v0.1"
       },
       "expected": {
         "case_id": "CR-008",
@@ -866,11 +899,13 @@
                 "source_revision": "fixture-v0.1",
                 "source_receipt_id": "synthetic:p0:clinic",
                 "scenario_id": "CR-009",
-                "source_subject_digest": "synthetic-subject:wrong-case"
+                "source_subject_digest": "synthetic-subject:wrong-case",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
               }
             ]
           }
-        ]
+        ],
+        "expected_source_revision": "fixture-v0.1"
       },
       "expected": {
         "case_id": "CR-009",
@@ -933,11 +968,13 @@
                 "source_revision": "fixture-v0.1",
                 "source_receipt_id": "synthetic:p0:clinic",
                 "scenario_id": "CR-010",
-                "source_subject_digest": "synthetic-subject:CR-010:p0:clinic"
+                "source_subject_digest": "synthetic-subject:CR-010:p0:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
               }
             ]
           }
-        ]
+        ],
+        "expected_source_revision": "fixture-v0.1"
       },
       "expected": {
         "case_id": "CR-010",
@@ -978,7 +1015,8 @@
                 "source_revision": "fixture-v0.1",
                 "source_receipt_id": "synthetic:p0:clinic",
                 "scenario_id": "CR-011",
-                "source_subject_digest": "synthetic-subject:CR-011:p0:clinic"
+                "source_subject_digest": "synthetic-subject:CR-011:p0:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
               }
             ]
           },
@@ -997,11 +1035,13 @@
                 "source_revision": "fixture-v0.1",
                 "source_receipt_id": "synthetic:p0:clinic",
                 "scenario_id": "CR-011",
-                "source_subject_digest": "synthetic-subject:CR-011:p0:clinic"
+                "source_subject_digest": "synthetic-subject:CR-011:p0:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
               }
             ]
           }
-        ]
+        ],
+        "expected_source_revision": "fixture-v0.1"
       },
       "expected": {
         "case_id": "CR-011",
@@ -1042,7 +1082,8 @@
                 "source_revision": "fixture-v0.1",
                 "source_receipt_id": "synthetic:p0:clinic",
                 "scenario_id": "CR-012",
-                "source_subject_digest": "synthetic-subject:CR-012:p0:clinic"
+                "source_subject_digest": "synthetic-subject:CR-012:p0:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
               }
             ]
           },
@@ -1061,11 +1102,13 @@
                 "source_revision": "fixture-v0.1",
                 "source_receipt_id": "synthetic:p1:clinic",
                 "scenario_id": "CR-012",
-                "source_subject_digest": "synthetic-subject:CR-012:p1:clinic"
+                "source_subject_digest": "synthetic-subject:CR-012:p1:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
               }
             ]
           }
-        ]
+        ],
+        "expected_source_revision": "fixture-v0.1"
       },
       "expected": {
         "case_id": "CR-012",
@@ -1106,7 +1149,8 @@
                 "source_revision": "fixture-v0.1",
                 "source_receipt_id": "synthetic:p0:clinic",
                 "scenario_id": "CR-013",
-                "source_subject_digest": "synthetic-subject:CR-013:p0:clinic"
+                "source_subject_digest": "synthetic-subject:CR-013:p0:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
               }
             ]
           },
@@ -1125,11 +1169,13 @@
                 "source_revision": "fixture-v0.1",
                 "source_receipt_id": "synthetic:p1:clinic",
                 "scenario_id": "CR-013",
-                "source_subject_digest": "synthetic-subject:CR-013:p1:clinic"
+                "source_subject_digest": "synthetic-subject:CR-013:p1:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
               }
             ]
           }
-        ]
+        ],
+        "expected_source_revision": "fixture-v0.1"
       },
       "expected": {
         "case_id": "CR-013",
@@ -1170,11 +1216,13 @@
                 "source_revision": "fixture-v0.1",
                 "source_receipt_id": "synthetic:p0:clinic",
                 "scenario_id": "CR-014",
-                "source_subject_digest": "synthetic-subject:CR-014:p0:clinic"
+                "source_subject_digest": "synthetic-subject:CR-014:p0:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
               }
             ]
           }
-        ]
+        ],
+        "expected_source_revision": "fixture-v0.1"
       },
       "expected": {
         "case_id": "CR-014",
@@ -1220,11 +1268,13 @@
                 "source_revision": "fixture-v0.1",
                 "source_receipt_id": "synthetic:p0:clinic",
                 "scenario_id": "CR-015",
-                "source_subject_digest": "synthetic-subject:CR-015:p0:clinic"
+                "source_subject_digest": "synthetic-subject:CR-015:p0:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
               }
             ]
           }
-        ]
+        ],
+        "expected_source_revision": "fixture-v0.1"
       },
       "expected": {
         "case_id": "CR-015",
@@ -1265,7 +1315,8 @@
                 "source_revision": "fixture-v0.1",
                 "source_receipt_id": "synthetic:p0:clinic",
                 "scenario_id": "CR-016",
-                "source_subject_digest": "synthetic-subject:CR-016:p0:clinic"
+                "source_subject_digest": "synthetic-subject:CR-016:p0:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
               },
               {
                 "requirement_id": "clinic",
@@ -1276,11 +1327,13 @@
                 "source_revision": "fixture-v0.1",
                 "source_receipt_id": "synthetic:p0:clinic",
                 "scenario_id": "CR-016",
-                "source_subject_digest": "synthetic-subject:CR-016:p0:clinic"
+                "source_subject_digest": "synthetic-subject:CR-016:p0:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
               }
             ]
           }
-        ]
+        ],
+        "expected_source_revision": "fixture-v0.1"
       },
       "expected": {
         "case_id": "CR-016",
@@ -1321,7 +1374,8 @@
                 "source_revision": "fixture-v0.1",
                 "source_receipt_id": "synthetic:p2:clinic",
                 "scenario_id": "CR-017",
-                "source_subject_digest": "synthetic-subject:CR-017:p2:clinic"
+                "source_subject_digest": "synthetic-subject:CR-017:p2:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
               }
             ]
           },
@@ -1340,7 +1394,8 @@
                 "source_revision": "fixture-v0.1",
                 "source_receipt_id": "synthetic:p0:clinic",
                 "scenario_id": "CR-017",
-                "source_subject_digest": "synthetic-subject:CR-017:p0:clinic"
+                "source_subject_digest": "synthetic-subject:CR-017:p0:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
               }
             ]
           },
@@ -1359,11 +1414,13 @@
                 "source_revision": "fixture-v0.1",
                 "source_receipt_id": "synthetic:p1:clinic",
                 "scenario_id": "CR-017",
-                "source_subject_digest": "synthetic-subject:CR-017:p1:clinic"
+                "source_subject_digest": "synthetic-subject:CR-017:p1:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
               }
             ]
           }
-        ]
+        ],
+        "expected_source_revision": "fixture-v0.1"
       },
       "expected": {
         "case_id": "CR-017",
@@ -1426,7 +1483,8 @@
                 "source_revision": "fixture-v0.1",
                 "source_receipt_id": "synthetic:p0:clinic",
                 "scenario_id": "CR-018",
-                "source_subject_digest": "synthetic-subject:CR-018:p0:clinic"
+                "source_subject_digest": "synthetic-subject:CR-018:p0:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
               },
               {
                 "requirement_id": "water",
@@ -1437,7 +1495,8 @@
                 "source_revision": "fixture-v0.1",
                 "source_receipt_id": "synthetic:p0:water",
                 "scenario_id": "CR-018",
-                "source_subject_digest": "synthetic-subject:CR-018:p0:water"
+                "source_subject_digest": "synthetic-subject:CR-018:p0:water",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
               }
             ]
           },
@@ -1458,7 +1517,8 @@
                 "source_revision": "fixture-v0.1",
                 "source_receipt_id": "synthetic:p1:clinic",
                 "scenario_id": "CR-018",
-                "source_subject_digest": "synthetic-subject:CR-018:p1:clinic"
+                "source_subject_digest": "synthetic-subject:CR-018:p1:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
               },
               {
                 "requirement_id": "water",
@@ -1469,7 +1529,8 @@
                 "source_revision": "fixture-v0.1",
                 "source_receipt_id": "synthetic:p1:water",
                 "scenario_id": "CR-018",
-                "source_subject_digest": "synthetic-subject:CR-018:p1:water"
+                "source_subject_digest": "synthetic-subject:CR-018:p1:water",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
               }
             ]
           },
@@ -1488,7 +1549,8 @@
                 "source_revision": "fixture-v0.1",
                 "source_receipt_id": "synthetic:p2:clinic",
                 "scenario_id": "CR-018",
-                "source_subject_digest": "synthetic-subject:CR-018:p2:clinic"
+                "source_subject_digest": "synthetic-subject:CR-018:p2:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
               },
               {
                 "requirement_id": "water",
@@ -1499,11 +1561,13 @@
                 "source_revision": "fixture-v0.1",
                 "source_receipt_id": "synthetic:p2:water",
                 "scenario_id": "CR-018",
-                "source_subject_digest": "synthetic-subject:CR-018:p2:water"
+                "source_subject_digest": "synthetic-subject:CR-018:p2:water",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
               }
             ]
           }
-        ]
+        ],
+        "expected_source_revision": "fixture-v0.1"
       },
       "expected": {
         "case_id": "CR-018",
@@ -1579,7 +1643,8 @@
                 "source_revision": "fixture-v0.1",
                 "source_receipt_id": "synthetic:p0:clinic",
                 "scenario_id": "CR-019",
-                "source_subject_digest": "synthetic-subject:CR-019:p0:clinic"
+                "source_subject_digest": "synthetic-subject:CR-019:p0:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
               }
             ]
           },
@@ -1598,11 +1663,13 @@
                 "source_revision": "fixture-v0.1",
                 "source_receipt_id": "synthetic:p1:clinic",
                 "scenario_id": "CR-019",
-                "source_subject_digest": "synthetic-subject:CR-019:p1:clinic"
+                "source_subject_digest": "synthetic-subject:CR-019:p1:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
               }
             ]
           }
-        ]
+        ],
+        "expected_source_revision": "fixture-v0.1"
       },
       "expected": {
         "case_id": "CR-019",
@@ -1660,7 +1727,8 @@
                 "source_revision": "fixture-v0.1",
                 "source_receipt_id": "synthetic:p0:clinic",
                 "scenario_id": "CR-020",
-                "source_subject_digest": "synthetic-subject:CR-020:p0:clinic"
+                "source_subject_digest": "synthetic-subject:CR-020:p0:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
               }
             ]
           },
@@ -1679,7 +1747,8 @@
                 "source_revision": "fixture-v0.1",
                 "source_receipt_id": "synthetic:p1:clinic",
                 "scenario_id": "CR-020",
-                "source_subject_digest": "synthetic-subject:CR-020:p1:clinic"
+                "source_subject_digest": "synthetic-subject:CR-020:p1:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
               }
             ]
           },
@@ -1698,11 +1767,13 @@
                 "source_revision": "fixture-v0.1",
                 "source_receipt_id": "synthetic:p2:clinic",
                 "scenario_id": "CR-020",
-                "source_subject_digest": "synthetic-subject:CR-020:p2:clinic"
+                "source_subject_digest": "synthetic-subject:CR-020:p2:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
               }
             ]
           }
-        ]
+        ],
+        "expected_source_revision": "fixture-v0.1"
       },
       "expected": {
         "case_id": "CR-020",
@@ -1760,7 +1831,8 @@
                 "source_revision": "fixture-v0.1",
                 "source_receipt_id": "synthetic:p0:clinic",
                 "scenario_id": "CR-021",
-                "source_subject_digest": "synthetic-subject:CR-021:p0:clinic"
+                "source_subject_digest": "synthetic-subject:CR-021:p0:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
               }
             ]
           },
@@ -1779,7 +1851,8 @@
                 "source_revision": "fixture-v0.1",
                 "source_receipt_id": "synthetic:p1:clinic",
                 "scenario_id": "CR-021",
-                "source_subject_digest": "synthetic-subject:CR-021:p1:clinic"
+                "source_subject_digest": "synthetic-subject:CR-021:p1:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
               }
             ]
           },
@@ -1798,11 +1871,13 @@
                 "source_revision": "fixture-v0.1",
                 "source_receipt_id": "synthetic:p2:clinic",
                 "scenario_id": "CR-021",
-                "source_subject_digest": "synthetic-subject:CR-021:p2:clinic"
+                "source_subject_digest": "synthetic-subject:CR-021:p2:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
               }
             ]
           }
-        ]
+        ],
+        "expected_source_revision": "fixture-v0.1"
       },
       "expected": {
         "case_id": "CR-021",
@@ -1860,7 +1935,8 @@
                 "source_revision": "fixture-v0.1",
                 "source_receipt_id": "synthetic:p0:clinic",
                 "scenario_id": "CR-022",
-                "source_subject_digest": "synthetic-subject:CR-022:p0:clinic"
+                "source_subject_digest": "synthetic-subject:CR-022:p0:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
               }
             ]
           },
@@ -1879,7 +1955,8 @@
                 "source_revision": "fixture-v0.1",
                 "source_receipt_id": "synthetic:p1:clinic",
                 "scenario_id": "CR-022",
-                "source_subject_digest": "synthetic-subject:CR-022:p1:clinic"
+                "source_subject_digest": "synthetic-subject:CR-022:p1:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
               }
             ]
           },
@@ -1898,11 +1975,13 @@
                 "source_revision": "fixture-v0.1",
                 "source_receipt_id": "synthetic:p2:clinic",
                 "scenario_id": "CR-022",
-                "source_subject_digest": "synthetic-subject:CR-022:p2:clinic"
+                "source_subject_digest": "synthetic-subject:CR-022:p2:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
               }
             ]
           }
-        ]
+        ],
+        "expected_source_revision": "fixture-v0.1"
       },
       "expected": {
         "case_id": "CR-022",
@@ -1960,11 +2039,13 @@
                 "source_revision": "fixture-v0.1",
                 "source_receipt_id": "synthetic:p0:clinic",
                 "scenario_id": "CR-023",
-                "source_subject_digest": "synthetic-subject:CR-023:p0:clinic"
+                "source_subject_digest": "synthetic-subject:CR-023:p0:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
               }
             ]
           }
-        ]
+        ],
+        "expected_source_revision": "fixture-v0.1"
       },
       "expected": {
         "case_id": "CR-023",
@@ -2022,11 +2103,13 @@
                 "source_revision": "fixture-v0.1",
                 "source_receipt_id": "synthetic:p0:clinic",
                 "scenario_id": "OTHER-SCENARIO",
-                "source_subject_digest": "synthetic-subject:CR-024:p0:clinic"
+                "source_subject_digest": "synthetic-subject:CR-024:p0:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
               }
             ]
           }
-        ]
+        ],
+        "expected_source_revision": "fixture-v0.1"
       },
       "expected": {
         "case_id": "CR-024",
@@ -2044,6 +2127,134 @@
             "constrained_ticks": 0,
             "inaccessible_ticks": 0,
             "unknown_ticks": 4,
+            "max_contiguous_degraded_ticks": 0,
+            "first_degradation_tick": null,
+            "recovery_state": "NoKnownInterruption",
+            "recovered_start_tick": null,
+            "recovery_confirmed_at_tick": null,
+            "recovery_time_ticks": null
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "CR-025",
+      "description": "An owner receipt from an unexpected source revision cannot establish known service continuity.",
+      "input": {
+        "scope_digest": "city-morph-scope:synthetic-v0.1",
+        "evidence_state": "synthetic_current",
+        "recovery_confirmation_ticks": 2,
+        "requirements": [
+          {
+            "requirement_id": "clinic",
+            "group_id": "district-residents",
+            "service_category": "health"
+          }
+        ],
+        "phases": [
+          {
+            "phase_id": "p0",
+            "start_tick": 0,
+            "end_tick": 5,
+            "event_ids": [],
+            "access_receipts": [
+              {
+                "requirement_id": "clinic",
+                "outcome": "Adequate",
+                "evidence_state": "synthetic_current",
+                "source_owner": "sol-atlas",
+                "source_contract": "CITY-MORPH-ACCESS-001",
+                "source_revision": "fixture-v0.0",
+                "source_receipt_id": "synthetic:p0:clinic",
+                "scenario_id": "CR-025",
+                "source_subject_digest": "synthetic-subject:CR-025:p0:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
+              }
+            ]
+          }
+        ],
+        "expected_source_revision": "fixture-v0.1"
+      },
+      "expected": {
+        "case_id": "CR-025",
+        "disposition": "Evaluated",
+        "reason_codes": [],
+        "requirements": [
+          {
+            "requirement_id": "clinic",
+            "group_id": "district-residents",
+            "service_category": "health",
+            "horizon_start_tick": 0,
+            "horizon_end_tick": 5,
+            "total_ticks": 5,
+            "adequate_ticks": 0,
+            "constrained_ticks": 0,
+            "inaccessible_ticks": 0,
+            "unknown_ticks": 5,
+            "max_contiguous_degraded_ticks": 0,
+            "first_degradation_tick": null,
+            "recovery_state": "NoKnownInterruption",
+            "recovered_start_tick": null,
+            "recovery_confirmed_at_tick": null,
+            "recovery_time_ticks": null
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "CR-026",
+      "description": "An owner receipt bound to a different evaluation scope cannot establish known service continuity.",
+      "input": {
+        "scope_digest": "city-morph-scope:synthetic-v0.1",
+        "evidence_state": "synthetic_current",
+        "recovery_confirmation_ticks": 2,
+        "requirements": [
+          {
+            "requirement_id": "clinic",
+            "group_id": "district-residents",
+            "service_category": "health"
+          }
+        ],
+        "phases": [
+          {
+            "phase_id": "p0",
+            "start_tick": 0,
+            "end_tick": 5,
+            "event_ids": [],
+            "access_receipts": [
+              {
+                "requirement_id": "clinic",
+                "outcome": "Adequate",
+                "evidence_state": "synthetic_current",
+                "source_owner": "sol-atlas",
+                "source_contract": "CITY-MORPH-ACCESS-001",
+                "source_revision": "fixture-v0.1",
+                "source_receipt_id": "synthetic:p0:clinic",
+                "scenario_id": "CR-026",
+                "source_subject_digest": "synthetic-subject:CR-026:p0:clinic",
+                "source_scope_digest": "other-scope"
+              }
+            ]
+          }
+        ],
+        "expected_source_revision": "fixture-v0.1"
+      },
+      "expected": {
+        "case_id": "CR-026",
+        "disposition": "Evaluated",
+        "reason_codes": [],
+        "requirements": [
+          {
+            "requirement_id": "clinic",
+            "group_id": "district-residents",
+            "service_category": "health",
+            "horizon_start_tick": 0,
+            "horizon_end_tick": 5,
+            "total_ticks": 5,
+            "adequate_ticks": 0,
+            "constrained_ticks": 0,
+            "inaccessible_ticks": 0,
+            "unknown_ticks": 5,
             "max_contiguous_degraded_ticks": 0,
             "first_degradation_tick": null,
             "recovery_state": "NoKnownInterruption",
