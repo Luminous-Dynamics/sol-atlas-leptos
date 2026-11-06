@@ -56,9 +56,6 @@
     {
       "evaluation_unit_id": "site-01",
       "evaluation_unit_kind": "site",
-      "site_id": "site-01",
-      "region_id": "region-west",
-      "acquisition_id": "acq-site-01",
       "adequately_assessed_area_km2": 10,
       "expert_review_hours": 2,
       "confirmed_constructed_wall_count": 4,
@@ -101,9 +98,6 @@
     {
       "evaluation_unit_id": "site-02",
       "evaluation_unit_kind": "site",
-      "site_id": "site-02",
-      "region_id": "region-west",
-      "acquisition_id": "acq-site-02",
       "adequately_assessed_area_km2": 5,
       "expert_review_hours": 1,
       "confirmed_constructed_wall_count": 2,
