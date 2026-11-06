@@ -228,7 +228,7 @@ pub enum HeritageFactorAdapterError {
     TransectGeometryMismatch,
     SpatialUnionReceiptMismatch,
     InvalidTargetLocationProbability,
-    UniformLocationModelDoesNotMatchAreaFraction,
+    UniformLocationModelDoesNotMatchDomainArea,
     TargetLocationProvenanceMismatch(String),
     TemplateMustBeSearchedNoDetection,
     TemplateTargetClassMismatch,
@@ -788,6 +788,13 @@ fn validate_target_location_coverage(
         || receipt.outside_domain_detection_probability != 0.0
     {
         return Err(HeritageFactorAdapterError::OutsideDomainDetectionNotZero);
+    }
+    if !receipt.actual_observation_domain_area_m2.is_finite()
+        || receipt.actual_observation_domain_area_m2 <= 0.0
+        || receipt.actual_observation_domain_area_m2
+            > binding.survey_unit_area_m2 * (1.0 + PROBABILITY_TOLERANCE)
+    {
+        return Err(HeritageFactorAdapterError::InvalidTargetLocationProbability);
     }
     if receipt.hdb11_conditioning_evidence_manifest_sha256
         != hdb11.conditioning_evidence_manifest_sha256
