@@ -111,6 +111,8 @@
             "method_build_sha256",
             "source_data_sha256",
             "analytical_rights",
+            "rights_purpose",
+            "rights_receipt_sha256",
             "profile_id",
             "profile_sha256",
             "calibration_data_sha256",
@@ -183,6 +185,13 @@
             },
             "analytical_rights": {
               "const": "allowed"
+            },
+            "rights_purpose": {
+              "const": "research_analysis"
+            },
+            "rights_receipt_sha256": {
+              "type": "string",
+              "pattern": "^[a-fA-F0-9]{64}$"
             }
           }
         }
