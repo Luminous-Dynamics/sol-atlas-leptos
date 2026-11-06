@@ -60,6 +60,8 @@ pub struct CalibrationProvenanceBinding {
     pub source_data_sha256: String,
     pub validation_receipt_ref: String,
     pub validation_receipt_sha256: String,
+    pub rights_decision_id: String,
+    pub analytical_rights: AnalyticalRights,
     pub rights_receipt_ref: String,
     pub access_tier: AccessTier,
 }
@@ -85,6 +87,8 @@ pub struct TargetLocationCoverageReceipt {
     pub validation_split_manifest_sha256: String,
     pub validation_receipt_ref: String,
     pub validation_receipt_sha256: String,
+    pub rights_decision_id: String,
+    pub analytical_rights: AnalyticalRights,
     pub rights_receipt_ref: String,
     pub access_tier: AccessTier,
 }
@@ -211,6 +215,10 @@ fn validate_provenance(
         &value.validation_receipt_ref,
         &format!("{label}.validation_receipt_ref"),
     )?;
+    require_ref(&value.rights_decision_id, &format!("{label}.rights_decision_id"))?;
+    if value.analytical_rights != AnalyticalRights::Allowed {
+        return Err(HeritageFactorAdapterError::RightsNotAllowed(label.into()));
+    }
     require_ref(&value.rights_receipt_ref, &format!("{label}.rights_receipt_ref"))?;
     Ok(())
 }
@@ -441,11 +449,15 @@ fn validate_target_location_coverage(
             "HDB-15 fit/calibration binding".into(),
         ));
     }
-    if receipt.access_tier == AccessTier::Unknown {
+    if receipt.access_tier == AccessTier::Unknown
+        || receipt.analytical_rights != AnalyticalRights::Allowed
+    {
         return Err(HeritageFactorAdapterError::RightsNotAllowed(
-            "target_location_access_tier".into(),
+            "target_location_access_tier_or_rights".into(),
         ));
     }
+    require_ref(&receipt.rights_decision_id, "target_location_rights_decision_id")?;
+    require_ref(&receipt.rights_receipt_ref, "target_location_rights_receipt_ref")?;
     if receipt.model == CoverageProbabilityModel::UniformAreaWeightedWithinSurveyUnit {
         let observed = report.receipt_reported_coverage_fraction;
         if (receipt.target_location_probability.lower - observed).abs()
@@ -767,6 +779,8 @@ mod tests {
             source_data_sha256: digest(data),
             validation_receipt_ref: format!("receipt:{method_id}"),
             validation_receipt_sha256: digest(validation),
+            rights_decision_id: format!("rights-decision:{method_id}"),
+            analytical_rights: AnalyticalRights::Allowed,
             rights_receipt_ref: format!("rights:{method_id}"),
             access_tier: AccessTier::Controlled,
         }
@@ -841,6 +855,8 @@ mod tests {
                 source_data_sha256: digest('b'),
                 validation_receipt_ref: "receipt:hdb15-fit".into(),
                 validation_receipt_sha256: hdb15.fit_receipt_sha256.clone(),
+                rights_decision_id: "rights-decision:hdb15".into(),
+                analytical_rights: AnalyticalRights::Allowed,
                 rights_receipt_ref: "rights:hdb15".into(),
                 access_tier: AccessTier::Controlled,
             },
@@ -866,6 +882,8 @@ mod tests {
                 validation_split_manifest_sha256: digest('e'),
                 validation_receipt_ref: "receipt:location-validation".into(),
                 validation_receipt_sha256: digest('f'),
+                rights_decision_id: "rights-decision:location".into(),
+                analytical_rights: AnalyticalRights::Allowed,
                 rights_receipt_ref: "rights:location".into(),
                 access_tier: AccessTier::Controlled,
             },
