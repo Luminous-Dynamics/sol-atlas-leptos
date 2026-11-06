@@ -1,0 +1,16 @@
+{
+  "scenario_id": "non-degenerate-event-graph-1",
+  "scenario_manifest_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "evaluation_protocol_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "evaluator_build_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+  "prior_probability_originally_present": 0.2,
+  "events": {
+    "survival": 0.8,
+    "exposure_given_survival": 0.6,
+    "observability_given_survival_and_exposure": 0.7,
+    "footprint_coverage_given_prior_stages": 0.5,
+    "conditional_detection_given_prior_stages": 0.9
+  },
+  "joint_probability_of_detection_per_survey_unit": 0.1512,
+  "false_positive_probability_if_originally_absent": 0.05
+}
