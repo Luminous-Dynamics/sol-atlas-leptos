@@ -644,7 +644,10 @@ fn validate_field_sweep(
     }
     for (value, label) in [
         (&profile.method_id, "hdb15_method_id"),
-        (&profile.validation_receipt_ref, "hdb15_validation_receipt_ref"),
+        (
+            &profile.validation_receipt_ref,
+            "hdb15_validation_receipt_ref",
+        ),
         (&profile.rights_decision_id, "hdb15_rights_decision_id"),
         (&profile.rights_receipt_ref, "hdb15_rights_receipt_ref"),
         (
@@ -759,8 +762,7 @@ fn validate_target_coverage(
     evidence
         .probability
         .validate("target_specific_coverage_probability")?;
-    if evidence.hdb11_coverage_condition_profile_sha256 != input.observability.profile_sha256
-    {
+    if evidence.hdb11_coverage_condition_profile_sha256 != input.observability.profile_sha256 {
         return Err(HeritageCompositionError::TargetCoverageReceiptMismatch);
     }
     if evidence.survey_unit_id != report.survey_unit_id
@@ -1174,25 +1176,25 @@ mod tests {
                     upper: 0.81,
                 },
                 target_location_distribution_sha256: digest('f'),
-                intersection_geometry_sha256: digest('g'),
+                intersection_geometry_sha256: digest('0'),
                 hdb11_coverage_condition_alignment_receipt_ref:
                     "urn:coverage-condition-alignment:1".to_owned(),
-                hdb11_coverage_condition_alignment_receipt_sha256: digest('m'),
+                hdb11_coverage_condition_alignment_receipt_sha256: digest('6'),
                 hdb11_coverage_condition_profile_sha256: digest('c'),
                 coverage_probability_receipt_ref: "urn:coverage-probability:1".to_owned(),
-                coverage_probability_receipt_sha256: digest('h'),
+                coverage_probability_receipt_sha256: digest('1'),
                 source_field_sweep_report_sha256: report_digest,
-                source_data_sha256: digest('n'),
+                source_data_sha256: digest('7'),
                 transect_geometry_sha256: transect_digest,
                 survey_unit_geometry_sha256: unit_digest,
                 spatial_union_receipt_sha256: union_digest,
                 uniform_assumption_justification_ref: None,
                 uniform_assumption_justification_sha256: None,
                 method_id: "target-location-intersection-v1".to_owned(),
-                method_build_sha256: digest('i'),
-                validation_split_manifest_sha256: digest('j'),
+                method_build_sha256: digest('2'),
+                validation_split_manifest_sha256: digest('3'),
                 validation_receipt_ref: "urn:coverage-validation:1".to_owned(),
-                validation_receipt_sha256: digest('k'),
+                validation_receipt_sha256: digest('4'),
             },
         }
     }
@@ -1377,10 +1379,9 @@ mod tests {
             Some("urn:uniform-assumption:justification".to_owned());
         value
             .target_coverage
-            .uniform_assumption_justification_sha256 = Some(digest('l'));
+            .uniform_assumption_justification_sha256 = Some(digest('5'));
         assert!(audit_heritage_probability_composition(&value).is_ok());
     }
-
 
     #[test]
     fn hdb22_context_identifier_must_be_bound_by_the_crosswalk_receipt() {
@@ -1432,7 +1433,6 @@ mod tests {
             Err(HeritageCompositionError::TargetCoverageReceiptMismatch)
         );
     }
-
 
     #[test]
     fn hdb15_validation_brier_must_meet_the_bound_in_its_profile_binding() {
