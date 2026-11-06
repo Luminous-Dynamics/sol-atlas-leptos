@@ -122,7 +122,8 @@ fn admitted_state(case_id: &str, input: &Value, phase_id: &str, req_id: &str, r:
         || text(r, "evidence_state") != CURRENT
         || text(r, "source_owner") != OWNER
         || text(r, "source_contract") != CONTRACT
-        || text(r, "source_revision").is_empty()
+        || text(r, "source_revision") != text(input, "expected_source_revision")
+        || text(r, "source_scope_digest") != text(input, "scope_digest")
         || text(r, "source_receipt_id").is_empty()
         || text(r, "scenario_id") != case_id
         || text(r, "source_subject_digest") != expected
@@ -314,10 +315,10 @@ mod tests {
         }
     }
     #[test] fn stale_and_mismatched_receipts_are_unknown_not_adequate() {
-        for id in ["CR-008","CR-009","CR-023","CR-024"] {
+        for id in ["CR-008","CR-009","CR-023","CR-024","CR-025","CR-026"] {
             let r=evaluate_case(&case(id));
             assert_eq!(r["requirements"][0]["adequate_ticks"],0);
-            assert_eq!(r["requirements"][0]["unknown_ticks"],4);
+            assert_eq!(r["requirements"][0]["unknown_ticks"], if id == "CR-025" || id == "CR-026" { 5 } else { 4 });
         }
     }
     #[test] fn recovery_requires_the_declared_confirmation_duration() {
