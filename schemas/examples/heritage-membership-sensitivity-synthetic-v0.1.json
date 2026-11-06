@@ -17,8 +17,6 @@
   "not_assessed_stone_count": 0,
   "scenario_count": 2,
   "maximum_scenarios": 4096,
-  "work_units_evaluated": 10,
-  "maximum_work_units": 10000000,
   "groups": [
     {
       "level": "wall",
@@ -385,5 +383,7 @@
   ],
   "scenario_semantics": "unweighted_exhaustive_cartesian_product_of_per_stone_candidates_at_one_level_not_graph_constrained",
   "interval_interpretation": "outer_descriptive_envelopes_over_membership_scenarios_and_per_observation_measurement_bounds_not_confidence_or_credible_intervals",
-  "claim_ceiling": "membership_sensitivity_of_descriptive_group_summaries_only_no_historical_or_social_inference"
+  "claim_ceiling": "membership_sensitivity_of_descriptive_group_summaries_only_no_historical_or_social_inference",
+  "preflight_work_units": 106,
+  "maximum_preflight_work_units": 100000000
 }
