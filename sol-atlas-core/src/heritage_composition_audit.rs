@@ -692,7 +692,10 @@ fn validate_field_sweep(
     )?;
     for (value, label) in [
         (&profile.profile_sha256, "hdb15_profile_sha256"),
-        (&profile.calibration_data_sha256, "hdb15_calibration_data_sha256"),
+        (
+            &profile.calibration_data_sha256,
+            "hdb15_calibration_data_sha256",
+        ),
         (
             &profile.calibration_split_manifest_sha256,
             "hdb15_calibration_split_manifest_sha256",
@@ -1540,14 +1543,15 @@ mod tests {
         );
     }
 
-
     #[test]
     fn verified_source_rights_receipt_is_not_enough_without_research_analysis_grant() {
         let mut value = input();
         value.hdb11_analytical_rights.decision = CompositionRightsDecision::Undetermined;
         assert_eq!(
             audit_heritage_probability_composition(&value),
-            Err(HeritageCompositionError::RightsClearanceNotAllowed("hdb11_research_analysis"))
+            Err(HeritageCompositionError::RightsClearanceNotAllowed(
+                "hdb11_research_analysis"
+            ))
         );
 
         let mut value = input();
@@ -1555,7 +1559,9 @@ mod tests {
         value.hdb15_analytical_rights.decision = CompositionRightsDecision::Restricted;
         assert_eq!(
             audit_heritage_probability_composition(&value),
-            Err(HeritageCompositionError::RightsClearanceNotAllowed("hdb15_research_analysis"))
+            Err(HeritageCompositionError::RightsClearanceNotAllowed(
+                "hdb15_research_analysis"
+            ))
         );
     }
 
@@ -1565,14 +1571,18 @@ mod tests {
         value.hdb11_analytical_rights.rights_decision_id = "different-rights-decision".to_owned();
         assert_eq!(
             audit_heritage_probability_composition(&value),
-            Err(HeritageCompositionError::RightsDecisionMismatch("hdb11_research_analysis"))
+            Err(HeritageCompositionError::RightsDecisionMismatch(
+                "hdb11_research_analysis"
+            ))
         );
 
         let mut value = input();
         value.hdb15_analytical_rights.receipt_ref = "urn:rights:other".to_owned();
         assert_eq!(
             audit_heritage_probability_composition(&value),
-            Err(HeritageCompositionError::RightsDecisionMismatch("hdb15_research_analysis"))
+            Err(HeritageCompositionError::RightsDecisionMismatch(
+                "hdb15_research_analysis"
+            ))
         );
     }
 
