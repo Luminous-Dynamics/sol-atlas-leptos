@@ -1,0 +1,261 @@
+{
+  "schema_id": "org.luminousdynamics.citymorph.source-register",
+  "schema_version": "0.1.0",
+  "register_id": "JOHANNESBURG-SOURCE-REGISTER-V0.1",
+  "classification": "research_inventory_not_ingested_data",
+  "as_of": "2026-11-06",
+  "claim_ceiling": "This register records discoverable candidate sources and known access/rights facts. No live GIS, population, service, public-space or timetable layer has been ingested or qualified by this register.",
+  "access_status_values": [
+    "VerifiedPublic",
+    "PublicWithConditions",
+    "RequestRequired",
+    "Restricted",
+    "Unavailable",
+    "Unknown"
+  ],
+  "rights_status_values": [
+    "VerifiedOpenLicense",
+    "PublicWithConditions",
+    "Unknown",
+    "Restricted",
+    "NotApplicable"
+  ],
+  "sources": [
+    {
+      "source_id": "GCRO-DATA-PORTAL",
+      "name": "Gauteng City-Region Observatory Data Portal",
+      "publisher": "Gauteng City-Region Observatory",
+      "url": "https://www.gcro.ac.za/outputs/dataportal/",
+      "source_type": "catalogue",
+      "candidate_layers": [
+        "Quality of Life survey data",
+        "Gauteng administrative boundaries",
+        "public infrastructure",
+        "South Africa land use/land cover and urban footprint",
+        "demographics",
+        "biodiversity"
+      ],
+      "access_status": "VerifiedPublic",
+      "rights_status": "PublicWithConditions",
+      "geography": "Gauteng City-Region; per-layer extent must be confirmed",
+      "temporal_resolution": "Per-layer; not uniform",
+      "known_facts": [
+        "Portal lists the candidate subject areas.",
+        "Portal states that some datasets download directly, while some lead to landing/menu pages and may require registration."
+      ],
+      "unknowns": [
+        "Per-layer direct download/API",
+        "Per-layer licence and redistribution rights",
+        "Version/effective dates and refresh cadence",
+        "CRS, resolution, schema and missingness"
+      ],
+      "required_checks": [
+        "Capture catalogue metadata and direct links per layer",
+        "Record rights notice for each data file",
+        "Hash source snapshot and retain retrieval date",
+        "Confirm exact Johannesburg coverage and boundary vintage"
+      ],
+      "evidence_urls": [
+        "https://www.gcro.ac.za/outputs/dataportal/",
+        "https://www.gcro.ac.za/outputs/dataportal/detail/"
+      ]
+    },
+    {
+      "source_id": "GCRO-QOL7-2023-24",
+      "name": "GCRO Quality of Life Survey 7 (2023/24)",
+      "publisher": "GCRO; distributed by DataFirst, University of Cape Town",
+      "url": "https://datafirst.uct.ac.za/dataportal/index.php/catalog/995",
+      "source_type": "anonymised_household_sample_survey",
+      "access_status": "VerifiedPublic",
+      "rights_status": "VerifiedOpenLicense",
+      "license": "Creative Commons Attribution 4.0 (CC BY 4.0), public-use anonymised dataset as stated by GCRO/DataFirst",
+      "collection_period_start": "2023-09-11",
+      "collection_period_end": "2024-04-19",
+      "sample_size": 13795,
+      "unit_of_analysis": [
+        "adult respondents",
+        "households"
+      ],
+      "geography": "Gauteng; ward-representative survey design as documented by GCRO",
+      "temporal_resolution": "Survey round (not continuous)",
+      "known_facts": [
+        "Latest round surfaced in the GCRO/DataFirst catalogue at register creation.",
+        "Questionnaire covers transport, services, health, economy, environment, safety, governance and social dimensions.",
+        "Survey data have weights and technical documentation that must be used."
+      ],
+      "unknowns": [
+        "Exact spatial fields and usable geographic precision in public-use release",
+        "Whether any selected variables support Johannesburg-only disaggregation without unacceptable sampling error"
+      ],
+      "required_checks": [
+        "Read questionnaire, sampling, weighting and fieldwork reports before analysis",
+        "Use survey weights and report standard errors/design effects",
+        "Do not geocode or publish respondent coordinates",
+        "Do not interpret adult respondents as a complete census of all residents"
+      ],
+      "evidence_urls": [
+        "https://datafirst.uct.ac.za/dataportal/index.php/catalog/995",
+        "https://www.gcro.ac.za/outputs/data-briefs/detail/overview-qol7/",
+        "https://www.gcro.ac.za/outputs/policy-and-other-outputs/detail/qol-7-202324-data-report/"
+      ]
+    },
+    {
+      "source_id": "STATSSA-WARD-SAPE-2022",
+      "name": "Stats SA Ward-level Small Area Population Estimates, 2022",
+      "publisher": "Statistics South Africa",
+      "url": "https://www.statssa.gov.za/?p=18967",
+      "source_type": "official_small_area_population_estimates",
+      "access_status": "VerifiedPublic",
+      "rights_status": "Unknown",
+      "reference_year": 2022,
+      "boundary_vintage": "2020 electoral ward boundaries",
+      "method": "Raking / iterative proportional fitting using Census 2011 and Census 2022",
+      "spatial_resolution": "electoral ward",
+      "known_facts": [
+        "Stats SA states that spreadsheets, a technical note, ward shapefiles and provincial/district maps are available.",
+        "Stats SA warns that very small-area census values can be unstable due to variability, bias and undercount; the release is described as the last lowest-level ward estimate product."
+      ],
+      "unknowns": [
+        "Explicit reuse/redistribution licence for each downloadable file",
+        "CRS and exact schema for each file",
+        "Methodological uncertainty measures and reliability by ward"
+      ],
+      "required_checks": [
+        "Download technical note, spreadsheets and ward boundaries",
+        "Record the 2020 boundary crosswalk and population totals",
+        "Preserve age/sex and population-group definitions exactly as published",
+        "Do not downscale ward totals to buildings without a separately validated model"
+      ],
+      "evidence_urls": [
+        "https://www.statssa.gov.za/?p=18967",
+        "https://isibaloweb.statssa.gov.za/pages/surveys/pss/censuses/censusp.php"
+      ]
+    },
+    {
+      "source_id": "COJ-ISDP-SPMS",
+      "name": "City of Johannesburg Integrated Spatial Data Platform and Spatial Plan Management System",
+      "publisher": "City of Johannesburg; Development Planning / Corporate Geo-Informatics / Johannesburg Development Agency",
+      "url": "https://joburg.org.za/media_/Newsroom/Pages/2025-News-Articles/Joburg-launches-SA%E2%80%99s-first-integrated-Spatial-Data-and-Planning-system.aspx",
+      "source_type": "municipal_spatial_data_platform",
+      "announcement_date": "2025-08-29",
+      "access_status": "Unknown",
+      "rights_status": "Unknown",
+      "known_facts": [
+        "City announcement says municipal and municipal-entity spatial data are being consolidated into a web-based repository.",
+        "Announcement says the Spatial Plan Management System makes spatial plans accessible online."
+      ],
+      "unknowns": [
+        "Actual public portal/API endpoints",
+        "Anonymous public access vs login",
+        "Download/export availability and rate limits",
+        "Per-layer ownership, licence, publication date, effective date and update cadence",
+        "Whether a web map layer can be redistributed or only viewed"
+      ],
+      "required_checks": [
+        "Locate the live platform and its catalogue",
+        "Test public access without privileged credentials",
+        "Record each layer's metadata and rights",
+        "Request permission where export or reuse rights are unclear",
+        "Do not scrape access-controlled or restricted information"
+      ],
+      "evidence_urls": [
+        "https://joburg.org.za/media_/Newsroom/Pages/2025-News-Articles/Joburg-launches-SA%E2%80%99s-first-integrated-Spatial-Data-and-Planning-system.aspx",
+        "https://www.jda.org.za/"
+      ]
+    },
+    {
+      "source_id": "OPENSTREETMAP-SOUTH-AFRICA",
+      "name": "OpenStreetMap road, path, crossing and point-of-interest data",
+      "publisher": "OpenStreetMap contributors; OpenStreetMap Foundation",
+      "url": "https://www.openstreetmap.org/copyright",
+      "source_type": "volunteer_contributed_geospatial_database",
+      "access_status": "PublicWithConditions",
+      "rights_status": "VerifiedOpenLicense",
+      "license": "Open Database License (ODbL) 1.0; attribution required and share-alike obligations apply to distributed derivative databases",
+      "known_facts": [
+        "OSM data include roads, trails, railway stations and mapped points of interest.",
+        "The OSM Foundation requires attribution and clear indication that the data are available under ODbL."
+      ],
+      "unknowns": [
+        "Local completeness and positional accuracy by neighborhood and feature class",
+        "Missing sidewalks, crossings, informal paths, gates and service locations",
+        "Temporal freshness and edit-history quality"
+      ],
+      "required_checks": [
+        "Use a dated regional extract or replication snapshot; store timestamp and checksum",
+        "Retain ODbL attribution and assess database share-alike obligations before distribution",
+        "Run topology, connectivity and coverage audits",
+        "Ground-truth critical barriers and step-free crossings with safe, consent-based field checks",
+        "Do not treat mapped presence or absence as proof that a facility exists or is absent"
+      ],
+      "evidence_urls": [
+        "https://www.openstreetmap.org/copyright",
+        "https://osmfoundation.org/wiki/Attribution_Guidelines"
+      ]
+    },
+    {
+      "source_id": "JOHANNESBURG-TRANSIT-GTFS",
+      "name": "Johannesburg-area public transport schedule feeds (candidate GTFS sources)",
+      "publisher": "Potentially Rea Vaya, Gautrain, Metrobus and other operators; not yet established",
+      "url": null,
+      "source_type": "scheduled_public_transport",
+      "access_status": "Unknown",
+      "rights_status": "Unknown",
+      "candidate_operators": [
+        "Rea Vaya",
+        "Gautrain",
+        "Metrobus",
+        "other municipal and contracted operators"
+      ],
+      "required_standard": "GTFS Schedule; GTFS Realtime only where actually published",
+      "known_facts": [
+        "No specific current operator-published feed has been verified in this inventory."
+      ],
+      "unknowns": [
+        "Whether each operator publishes GTFS",
+        "Feed URL and authentication",
+        "Agency/route/stop coverage",
+        "Calendar and exception completeness",
+        "Effective dates, last-modified and update cadence",
+        "Licence and redistribution rights",
+        "Observed service reliability and accessibility information"
+      ],
+      "required_checks": [
+        "Locate official operator source, not an unofficial scrape",
+        "Validate feed with canonical GTFS validator",
+        "Check service dates cover the analysis period",
+        "Check stop/route coverage against known services",
+        "Capture calendars, exceptions and feed digest",
+        "Treat absence of a feed as a data gap; do not synthesize headways from stop locations"
+      ],
+      "evidence_urls": [
+        "https://gtfs.org/documentation/schedule/schedule-best-practices/"
+      ]
+    }
+  ],
+  "minimum_ingestion_contract": {
+    "each_layer_requires": [
+      "source_id",
+      "publisher",
+      "source_url",
+      "retrieved_at",
+      "source_version_or_effective_date",
+      "license_id",
+      "rights_status",
+      "geographic_extent",
+      "boundary_vintage",
+      "crs",
+      "spatial_resolution",
+      "temporal_resolution",
+      "schema_digest",
+      "content_digest",
+      "transformation_digest",
+      "coverage_report",
+      "uncertainty_or_quality_note"
+    ],
+    "unresolved_values": "Unknown",
+    "privacy_default": "No individual survey coordinates, household addresses or person-level mobility traces in the public benchmark",
+    "raw_normalized_separation": true,
+    "deterministic_rebuild": true
+  }
+}
