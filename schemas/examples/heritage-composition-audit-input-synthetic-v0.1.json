@@ -150,9 +150,9 @@
       "upper": 0.81
     },
     "target_location_distribution_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-    "intersection_geometry_sha256": "gggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggg",
+    "intersection_geometry_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
     "coverage_probability_receipt_ref": "urn:coverage-probability:1",
-    "coverage_probability_receipt_sha256": "hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh",
+    "coverage_probability_receipt_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
     "source_field_sweep_report_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
     "transect_geometry_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
     "survey_unit_geometry_sha256": "4444444444444444444444444444444444444444444444444444444444444444",
@@ -160,16 +160,16 @@
     "uniform_assumption_justification_ref": null,
     "uniform_assumption_justification_sha256": null,
     "method_id": "target-location-intersection-v1",
-    "method_build_sha256": "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
-    "validation_split_manifest_sha256": "jjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjj",
+    "method_build_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+    "validation_split_manifest_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
     "validation_receipt_ref": "urn:coverage-validation:1",
-    "validation_receipt_sha256": "kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk",
+    "validation_receipt_sha256": "4444444444444444444444444444444444444444444444444444444444444444",
     "interval_semantics": "deterministic_bound",
     "confidence_level": null,
     "hdb11_coverage_condition_alignment_receipt_ref": "urn:coverage-condition-alignment:1",
-    "hdb11_coverage_condition_alignment_receipt_sha256": "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm",
+    "hdb11_coverage_condition_alignment_receipt_sha256": "6666666666666666666666666666666666666666666666666666666666666666",
     "hdb11_coverage_condition_profile_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
-    "source_data_sha256": "nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn"
+    "source_data_sha256": "7777777777777777777777777777777777777777777777777777777777777777"
   },
   "hdb11_analytical_rights": {
     "rights_decision_id": "rights:hdb11",
