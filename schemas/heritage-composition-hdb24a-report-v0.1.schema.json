@@ -1,0 +1,444 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/heritage-composition-hdb24a-report-v0.1.schema.json",
+  "title": "HDB-24A Factorized Heritage Probability Composition Report v0.1",
+  "description": "Projects HDB-11A conditional sensor detection and HDB-15 target-location coverage into HDB-22 v0.1 factorized stage semantics. Does not compute a posterior.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "composition_mode",
+    "event_id",
+    "candidate_id",
+    "target_class_id",
+    "context_id",
+    "context_manifest_sha256",
+    "survey_unit_id",
+    "survey_unit_crs_id",
+    "hdb11_report_sha256",
+    "hdb11_profile_sha256",
+    "hdb11_calibration_data_sha256",
+    "hdb11_calibration_split_manifest_sha256",
+    "hdb11_validation_receipt_sha256",
+    "hdb15_report_sha256",
+    "hdb15_profile_sha256",
+    "hdb15_fit_receipt_sha256",
+    "hdb15_calibration_split_manifest_sha256",
+    "hdb15_transect_geometry_sha256",
+    "hdb15_survey_unit_geometry_sha256",
+    "hdb15_coverage_union_geometry_sha256",
+    "hdb15_spatial_union_receipt_sha256",
+    "hdb15_area_fraction_descriptive_only",
+    "target_coverage_probability",
+    "coverage_stage",
+    "conditional_detection_stage",
+    "area_fraction_used_as_probability",
+    "repeated_visit_independence_assumed",
+    "archaeological_absence_claimed",
+    "archaeological_identification_claimed",
+    "action_authority"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "luminous.heritage-composition-hdb24a.v0.1"
+    },
+    "composition_mode": {
+      "const": "factorized_conditional"
+    },
+    "event_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "candidate_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "target_class_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "context_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "context_manifest_sha256": {
+      "$ref": "#/$defs/digest"
+    },
+    "survey_unit_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "survey_unit_crs_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "hdb11_report_sha256": {
+      "$ref": "#/$defs/digest"
+    },
+    "hdb11_profile_sha256": {
+      "$ref": "#/$defs/digest"
+    },
+    "hdb11_calibration_data_sha256": {
+      "$ref": "#/$defs/digest"
+    },
+    "hdb11_calibration_split_manifest_sha256": {
+      "$ref": "#/$defs/digest"
+    },
+    "hdb11_validation_receipt_sha256": {
+      "$ref": "#/$defs/digest"
+    },
+    "hdb15_report_sha256": {
+      "$ref": "#/$defs/digest"
+    },
+    "hdb15_profile_sha256": {
+      "$ref": "#/$defs/digest"
+    },
+    "hdb15_calibration_split_manifest_sha256": {
+      "$ref": "#/$defs/digest"
+    },
+    "hdb15_spatial_union_receipt_sha256": {
+      "$ref": "#/$defs/digest"
+    },
+    "hdb15_area_fraction_descriptive_only": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "maximum": 1
+    },
+    "target_coverage_probability": {
+      "$ref": "#/$defs/probabilityBand"
+    },
+    "coverage_stage": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/stage"
+        },
+        {
+          "properties": {
+            "stage": {
+              "const": "footprint_coverage"
+            }
+          }
+        }
+      ]
+    },
+    "conditional_detection_stage": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/stage"
+        },
+        {
+          "properties": {
+            "stage": {
+              "const": "conditional_detection"
+            }
+          }
+        }
+      ]
+    },
+    "area_fraction_used_as_probability": {
+      "const": false
+    },
+    "repeated_visit_independence_assumed": {
+      "const": false
+    },
+    "archaeological_absence_claimed": {
+      "const": false
+    },
+    "archaeological_identification_claimed": {
+      "const": false
+    },
+    "action_authority": {
+      "const": "none"
+    },
+    "hdb15_fit_receipt_sha256": {
+      "$ref": "#/$defs/digest"
+    },
+    "hdb15_transect_geometry_sha256": {
+      "$ref": "#/$defs/digest"
+    },
+    "hdb15_survey_unit_geometry_sha256": {
+      "$ref": "#/$defs/digest"
+    },
+    "hdb15_coverage_union_geometry_sha256": {
+      "$ref": "#/$defs/digest"
+    }
+  },
+  "$defs": {
+    "digest": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{64}$"
+    },
+    "probabilityBand": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "lower",
+        "upper"
+      ],
+      "properties": {
+        "lower": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "upper": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      },
+      "allOf": [
+        {
+          "properties": {
+            "lower": {
+              "maximum": 1
+            },
+            "upper": {
+              "minimum": 0
+            }
+          }
+        }
+      ]
+    },
+    "stage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "stage",
+        "probability",
+        "target_class_id",
+        "context_id",
+        "conditioning",
+        "method_id",
+        "profile_sha256",
+        "method_build_sha256",
+        "calibration_data_sha256",
+        "validation_split_manifest_sha256",
+        "validation_receipt_ref",
+        "validation_receipt_sha256",
+        "source_data_sha256",
+        "rights_decision_id",
+        "analytical_rights_allowed",
+        "rights_receipt_ref",
+        "access_tier",
+        "coverage_evidence_basis",
+        "coverage_probability_model",
+        "target_location_model_sha256",
+        "coverage_geometry_sha256",
+        "spatial_coverage_receipt_sha256",
+        "target_location_distribution_sha256"
+      ],
+      "properties": {
+        "stage": {
+          "enum": [
+            "footprint_coverage",
+            "conditional_detection"
+          ]
+        },
+        "probability": {
+          "$ref": "#/$defs/probabilityBand"
+        },
+        "target_class_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "context_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "conditioning": {
+          "enum": [
+            "covered_given_survival_exposure_and_observability",
+            "detected_given_survival_exposure_observability_and_coverage"
+          ]
+        },
+        "method_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "profile_sha256": {
+          "$ref": "#/$defs/digest"
+        },
+        "method_build_sha256": {
+          "$ref": "#/$defs/digest"
+        },
+        "calibration_data_sha256": {
+          "$ref": "#/$defs/digest"
+        },
+        "validation_split_manifest_sha256": {
+          "$ref": "#/$defs/digest"
+        },
+        "validation_receipt_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "validation_receipt_sha256": {
+          "$ref": "#/$defs/digest"
+        },
+        "source_data_sha256": {
+          "$ref": "#/$defs/digest"
+        },
+        "rights_decision_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "analytical_rights_allowed": {
+          "const": true
+        },
+        "rights_receipt_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "access_tier": {
+          "enum": [
+            "public",
+            "controlled",
+            "restricted"
+          ]
+        },
+        "coverage_probability_model": {
+          "oneOf": [
+            {
+              "enum": [
+                "uniform_area_weighted_within_survey_unit",
+                "target_specific_spatial_distribution"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "coverage_geometry_sha256": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/digest"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "spatial_coverage_receipt_sha256": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/digest"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "target_location_distribution_sha256": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/digest"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "coverage_evidence_basis": {
+          "oneOf": [
+            {
+              "const": "actual_spatial_union_receipt"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "target_location_model_sha256": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/digest"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "stage": {
+                "const": "footprint_coverage"
+              }
+            },
+            "required": [
+              "stage"
+            ]
+          },
+          "then": {
+            "properties": {
+              "conditioning": {
+                "const": "covered_given_survival_exposure_and_observability"
+              },
+              "coverage_probability_model": {
+                "enum": [
+                  "uniform_area_weighted_within_survey_unit",
+                  "target_specific_spatial_distribution"
+                ]
+              },
+              "coverage_geometry_sha256": {
+                "$ref": "#/$defs/digest"
+              },
+              "spatial_coverage_receipt_sha256": {
+                "$ref": "#/$defs/digest"
+              },
+              "target_location_distribution_sha256": {
+                "$ref": "#/$defs/digest"
+              },
+              "coverage_evidence_basis": {
+                "const": "actual_spatial_union_receipt"
+              },
+              "target_location_model_sha256": {
+                "$ref": "#/$defs/digest"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "stage": {
+                "const": "conditional_detection"
+              }
+            },
+            "required": [
+              "stage"
+            ]
+          },
+          "then": {
+            "properties": {
+              "conditioning": {
+                "const": "detected_given_survival_exposure_observability_and_coverage"
+              },
+              "coverage_probability_model": {
+                "type": "null"
+              },
+              "coverage_geometry_sha256": {
+                "type": "null"
+              },
+              "spatial_coverage_receipt_sha256": {
+                "type": "null"
+              },
+              "target_location_distribution_sha256": {
+                "type": "null"
+              },
+              "coverage_evidence_basis": {
+                "type": "null"
+              },
+              "target_location_model_sha256": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
