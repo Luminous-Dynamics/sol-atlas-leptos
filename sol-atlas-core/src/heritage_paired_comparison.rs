@@ -351,14 +351,14 @@ fn option_close(left: Option<f64>, right: Option<f64>) -> bool {
     }
 }
 
-fn validate_report(
-    report: &HeritageHardNegativeReport,
+fn validate_report<'a>(
+    report: &'a HeritageHardNegativeReport,
     expected_challenge_id: &str,
     expected_manifest_sha256: &str,
     expected_reference_protocol_sha256: &str,
     expected_unit_kind: EvaluationUnitKind,
     label: &str,
-) -> Result<BTreeMap<String, &HardNegativeUnitReport>, HeritagePairedComparisonError> {
+) -> Result<BTreeMap<String, &'a HardNegativeUnitReport>, HeritagePairedComparisonError> {
     if report.schema_version != HERITAGE_HARD_NEGATIVE_SCHEMA_VERSION
         || report.claim_ceiling
             != "operational_hard_negative_scorecard_only_no_population_generalisation_or_archaeological_identification"
@@ -1040,6 +1040,7 @@ mod tests {
     fn mismatched_unit_set_or_reference_coverage_fails_closed() {
         let mut value = input();
         value.candidate_report.units[0].evaluation_unit_id = "other-site".into();
+        value.candidate_report.worst_unit_recall_id = Some("other-site".into());
         assert_eq!(
             evaluate_heritage_paired_comparison(&value),
             Err(HeritagePairedComparisonError::MismatchedEvaluationUnitSet)
