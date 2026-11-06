@@ -1,0 +1,300 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/heritage-observability-report-v0.1.schema.json",
+  "title": "Sol-Atlas Heritage Observability Report v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "candidate_id",
+    "profile_id",
+    "profile_sha256",
+    "calibration_context",
+    "observed_context",
+    "observation_profile_sha256",
+    "observation_id",
+    "observation_outcome",
+    "disposition",
+    "calibration_independent_psu_count",
+    "calibration_detected_count",
+    "empirical_probability_of_detection",
+    "probability_of_detection_wilson_95",
+    "minimum_independent_psus",
+    "minimum_pod_lower_bound",
+    "observed_coverage_fraction",
+    "minimum_coverage_fraction",
+    "observed_valid_data_fraction",
+    "minimum_valid_data_fraction",
+    "visibility",
+    "context_match",
+    "rights_status",
+    "reasons",
+    "archaeological_absence_claimed",
+    "archaeological_identification_claimed",
+    "combined_multi_observation_probability_reported"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "luminous.heritage-observability.v0.1"
+    },
+    "candidate_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "profile_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "profile_sha256": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{64}$"
+    },
+    "observation_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "observation_outcome": {
+      "enum": [
+        "not_surveyed",
+        "detected",
+        "not_detected"
+      ]
+    },
+    "disposition": {
+      "enum": [
+        "detected",
+        "qualified_non_detection",
+        "indeterminate_non_detection",
+        "not_surveyed"
+      ]
+    },
+    "calibration_independent_psu_count": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "calibration_detected_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "empirical_probability_of_detection": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "probability_of_detection_wilson_95": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "confidence_level",
+        "z_value",
+        "lower",
+        "upper"
+      ],
+      "properties": {
+        "confidence_level": {
+          "const": 0.95
+        },
+        "z_value": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "lower": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "upper": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      }
+    },
+    "minimum_independent_psus": {
+      "type": "integer",
+      "minimum": 20
+    },
+    "minimum_pod_lower_bound": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "maximum": 1
+    },
+    "observed_coverage_fraction": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "minimum_coverage_fraction": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "maximum": 1
+    },
+    "observed_valid_data_fraction": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "minimum_valid_data_fraction": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "maximum": 1
+    },
+    "visibility": {
+      "enum": [
+        "adequate",
+        "partial",
+        "blocked",
+        "unknown"
+      ]
+    },
+    "context_match": {
+      "type": "boolean"
+    },
+    "rights_status": {
+      "enum": [
+        "verified",
+        "pending",
+        "denied",
+        "unknown"
+      ]
+    },
+    "reasons": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "calibration_sample_below_minimum",
+          "detection_probability_lower_bound_below_threshold",
+          "calibration_profile_digest_mismatch",
+          "feature_class_mismatch",
+          "modality_mismatch",
+          "sensor_configuration_mismatch",
+          "processing_build_mismatch",
+          "environment_stratum_mismatch",
+          "season_stratum_mismatch",
+          "resolution_class_mismatch",
+          "coverage_below_threshold",
+          "valid_data_below_threshold",
+          "visibility_not_adequate",
+          "rights_not_verified",
+          "rights_receipt_missing"
+        ]
+      }
+    },
+    "archaeological_absence_claimed": {
+      "const": false
+    },
+    "archaeological_identification_claimed": {
+      "const": false
+    },
+    "combined_multi_observation_probability_reported": {
+      "const": false
+    },
+    "calibration_context": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "feature_class_id",
+        "modality",
+        "sensor_configuration_sha256",
+        "processing_build_sha256",
+        "environment_stratum_id",
+        "season_stratum_id",
+        "resolution_class_id"
+      ],
+      "properties": {
+        "feature_class_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "modality": {
+          "enum": [
+            "airborne_lidar",
+            "satellite_optical",
+            "satellite_sar",
+            "uav_photogrammetry",
+            "ground_geophysics",
+            "field_walking",
+            "other"
+          ]
+        },
+        "sensor_configuration_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "processing_build_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "environment_stratum_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "season_stratum_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "resolution_class_id": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "observed_context": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "feature_class_id",
+        "modality",
+        "sensor_configuration_sha256",
+        "processing_build_sha256",
+        "environment_stratum_id",
+        "season_stratum_id",
+        "resolution_class_id"
+      ],
+      "properties": {
+        "feature_class_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "modality": {
+          "enum": [
+            "airborne_lidar",
+            "satellite_optical",
+            "satellite_sar",
+            "uav_photogrammetry",
+            "ground_geophysics",
+            "field_walking",
+            "other"
+          ]
+        },
+        "sensor_configuration_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "processing_build_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "environment_stratum_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "season_stratum_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "resolution_class_id": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "observation_profile_sha256": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{64}$"
+    }
+  }
+}
