@@ -260,13 +260,13 @@ pub fn evaluate_case(case: &Value) -> Value {
         {
             unsupported.insert("POPULATION_GROUP_SEMANTICS_MISSING".to_owned());
         }
-        if !group
+        if group
             .get("population")
             .and_then(Value::as_u64)
-            .is_some_and(|x| x > 0)
+            .is_none_or(|x| x == 0)
             || !number(group, "demand").is_some_and(|x| x > 0.0)
-            || !nonnegative(group, "max_travel_minutes").is_some()
-            || !nonnegative(group, "max_service_price").is_some()
+            || nonnegative(group, "max_travel_minutes").is_none()
+            || nonnegative(group, "max_service_price").is_none()
             || bool_value(group, "requires_step_free").is_none()
         {
             unsupported.insert("POPULATION_GROUP_QUANTITY_OR_ACCESS_PROFILE_INVALID".to_owned());
@@ -295,7 +295,7 @@ pub fn evaluate_case(case: &Value) -> Value {
             unsupported.insert("SERVICE_CAPACITY_STATE_UNSUPPORTED".to_owned());
         }
         if string(service, "capacity_state") == "current"
-            && !nonnegative(service, "capacity").is_some()
+            && nonnegative(service, "capacity").is_none()
         {
             unsupported.insert("SERVICE_CAPACITY_VALUE_INVALID".to_owned());
         }
@@ -314,7 +314,7 @@ pub fn evaluate_case(case: &Value) -> Value {
         ) {
             unsupported.insert("SERVICE_PRICE_STATE_UNSUPPORTED".to_owned());
         }
-        if string(service, "price_state") == "current" && !nonnegative(service, "price").is_some() {
+        if string(service, "price_state") == "current" && nonnegative(service, "price").is_none() {
             unsupported.insert("SERVICE_PRICE_VALUE_INVALID".to_owned());
         }
         if !matches!(string(service, "eligibility_state"), "known" | "unknown") {
