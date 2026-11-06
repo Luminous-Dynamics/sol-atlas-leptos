@@ -453,7 +453,9 @@ fn validate_rights_clearance(
     if clearance.purpose != CompositionRightsPurpose::ResearchAnalysis
         || clearance.decision != CompositionRightsDecision::Allowed
     {
-        return Err(HeritageCompositionError::RightsClearanceNotAllowed(source_label));
+        return Err(HeritageCompositionError::RightsClearanceNotAllowed(
+            source_label,
+        ));
     }
     Ok(())
 }
@@ -465,9 +467,15 @@ fn validate_observability(
     if report.schema_version != HERITAGE_OBSERVABILITY_SCHEMA_VERSION {
         return Err(HeritageCompositionError::WrongObservabilitySchemaVersion);
     }
-    validate_digest(&input.observability_report_sha256, "observability_report_sha256")?;
+    validate_digest(
+        &input.observability_report_sha256,
+        "observability_report_sha256",
+    )?;
     if report.observation_outcome != ObservationOutcome::NotDetected
-        || report.observation_id.as_deref().is_none_or(|id| !non_empty(id))
+        || report
+            .observation_id
+            .as_deref()
+            .is_none_or(|id| !non_empty(id))
     {
         return Err(HeritageCompositionError::ObservabilityNotASearchedNonDetection);
     }
@@ -549,7 +557,12 @@ fn validate_observability(
     {
         return Err(HeritageCompositionError::ObservabilityFlagsInvalid);
     }
-    if report.calibration_context.feature_class_id.trim().is_empty() {
+    if report
+        .calibration_context
+        .feature_class_id
+        .trim()
+        .is_empty()
+    {
         return Err(HeritageCompositionError::TargetClassMismatch);
     }
 
@@ -580,7 +593,10 @@ fn validate_observability(
             "hdb11_method_build_sha256",
         ),
         (&report.profile_sha256, "hdb11_profile_sha256"),
-        (&report.calibration_data_sha256, "hdb11_calibration_data_sha256"),
+        (
+            &report.calibration_data_sha256,
+            "hdb11_calibration_data_sha256",
+        ),
         (
             &report.calibration_split_manifest_sha256,
             "hdb11_calibration_split_manifest_sha256",
@@ -595,7 +611,10 @@ fn validate_observability(
     for (value, label) in [
         (&report.method_id, "hdb11_method_id"),
         (&report.profile_id, "hdb11_profile_id"),
-        (&report.validation_receipt_ref, "hdb11_validation_receipt_ref"),
+        (
+            &report.validation_receipt_ref,
+            "hdb11_validation_receipt_ref",
+        ),
         (&report.rights_decision_id, "hdb11_rights_decision_id"),
         (&report.rights_receipt_ref, "hdb11_rights_receipt_ref"),
     ] {
@@ -642,7 +661,10 @@ fn validate_field_sweep(
     if report.schema_version != FIELD_SWEEP_REPORT_SCHEMA_VERSION {
         return Err(HeritageCompositionError::WrongFieldSweepSchemaVersion);
     }
-    validate_digest(&input.field_sweep_report_sha256, "field_sweep_report_sha256")?;
+    validate_digest(
+        &input.field_sweep_report_sha256,
+        "field_sweep_report_sha256",
+    )?;
     if !report.context_match {
         return Err(HeritageCompositionError::FieldSweepReportNotQualified);
     }
