@@ -1,0 +1,35 @@
+name: Heritage Factor Adapter Qualification
+
+on:
+  pull_request:
+    paths:
+      - "sol-atlas-core/src/heritage_factor_adapter.rs"
+      - "sol-atlas-core/src/heritage_field_survey.rs"
+      - "sol-atlas-core/src/heritage_non_detection.rs"
+      - "sol-atlas-core/src/heritage_observability.rs"
+      - "sol-atlas-core/src/lib.rs"
+      - "sol-atlas-core/Cargo.toml"
+      - ".github/workflows/heritage-factor-adapter.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  qualify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Verify exact checkout
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - name: Check core formatting
+        run: cargo fmt --manifest-path sol-atlas-core/Cargo.toml -- --check
+      - name: Run complete core test suite
+        run: cargo test --manifest-path sol-atlas-core/Cargo.toml
