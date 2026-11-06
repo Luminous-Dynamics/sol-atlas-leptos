@@ -170,5 +170,19 @@
     "hdb11_coverage_condition_alignment_receipt_sha256": "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm",
     "hdb11_coverage_condition_profile_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
     "source_data_sha256": "nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn"
+  },
+  "hdb11_analytical_rights": {
+    "rights_decision_id": "rights:hdb11",
+    "purpose": "research_analysis",
+    "decision": "allowed",
+    "receipt_ref": "urn:rights:hdb11",
+    "receipt_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "hdb15_analytical_rights": {
+    "rights_decision_id": "rights:hdb15",
+    "purpose": "research_analysis",
+    "decision": "allowed",
+    "receipt_ref": "urn:rights:hdb15",
+    "receipt_sha256": "1111111111111111111111111111111111111111111111111111111111111111"
   }
 }
