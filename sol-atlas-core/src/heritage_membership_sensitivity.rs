@@ -24,7 +24,7 @@ use super::heritage_morphology::{
 pub const HERITAGE_MEMBERSHIP_SENSITIVITY_SCHEMA_VERSION: &str =
     "luminous.heritage-membership-sensitivity.v0.1";
 pub const MAX_MEMBERSHIP_SENSITIVITY_SCENARIOS: usize = 4_096;
-pub const MAX_MEMBERSHIP_SENSITIVITY_WORK_UNITS: usize = 10_000_000;
+pub const MAX_MEMBERSHIP_SENSITIVITY_WORK_UNITS: usize = 100_000_000;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct MembershipSensitivityLimits {
@@ -107,8 +107,8 @@ pub struct HeritageMembershipSensitivityReport {
     pub not_assessed_stone_count: usize,
     pub scenario_count: usize,
     pub maximum_scenarios: usize,
-    pub work_units_evaluated: usize,
-    pub maximum_work_units: usize,
+    pub preflight_work_units: usize,
+    pub maximum_preflight_work_units: usize,
     pub groups: Vec<GroupMembershipSensitivitySummary>,
     pub scenario_semantics: String,
     pub interval_interpretation: String,
@@ -278,6 +278,14 @@ impl GroupSensitivityAccumulator {
     }
 }
 
+fn ceil_log2(value: usize) -> usize {
+    if value <= 1 {
+        0
+    } else {
+        usize::BITS as usize - (value - 1).leading_zeros() as usize
+    }
+}
+
 fn stable_mean(values: impl Iterator<Item = f64>) -> f64 {
     let mut mean = 0.0;
     for (index, value) in values.enumerate() {
@@ -422,14 +430,49 @@ pub fn evaluate_membership_sensitivity(
         );
     }
 
-    let work_units = stones
-        .len()
-        .checked_add(group_ids.len())
-        .and_then(|per_scenario| per_scenario.checked_mul(scenario_count))
+    // Upper-bound group sizes across all candidate assignments. Each group
+    // can receive every fixed member plus every ambiguous stone that lists it.
+    let mut maximum_group_sizes = BTreeMap::<String, usize>::new();
+    for (_, group_id) in &fixed_assignments {
+        *maximum_group_sizes.entry(group_id.clone()).or_default() += 1;
+    }
+    for (_, candidates) in &ambiguous_assignments {
+        for candidate in candidates {
+            *maximum_group_sizes.entry(candidate.clone()).or_default() += 1;
+        }
+    }
+
+    // Preflight proxy includes stone dispatch/map insertion, one visit per
+    // possible group, and a conservative six n*ceil(log2(n)) comparison
+    // budget for lower/upper endpoint sorts across three descriptors.
+    let group_lookup_factor = ceil_log2(group_ids.len().max(1));
+    let assignment_factor = 4usize
+        .checked_add(group_lookup_factor)
         .ok_or(HeritageMembershipSensitivityError::WorkEstimateOverflow)?;
-    if work_units > limits.maximum_work_units {
+    let assignment_work = stones
+        .len()
+        .checked_mul(assignment_factor)
+        .ok_or(HeritageMembershipSensitivityError::WorkEstimateOverflow)?;
+    let mut sorting_work = 0usize;
+    for group_size in maximum_group_sizes.values().copied() {
+        let group_sort_work = group_size
+            .checked_mul(ceil_log2(group_size))
+            .and_then(|value| value.checked_mul(6))
+            .ok_or(HeritageMembershipSensitivityError::WorkEstimateOverflow)?;
+        sorting_work = sorting_work
+            .checked_add(group_sort_work)
+            .ok_or(HeritageMembershipSensitivityError::WorkEstimateOverflow)?;
+    }
+    let per_scenario_work = assignment_work
+        .checked_add(group_ids.len())
+        .and_then(|value| value.checked_add(sorting_work))
+        .ok_or(HeritageMembershipSensitivityError::WorkEstimateOverflow)?;
+    let preflight_work_units = per_scenario_work
+        .checked_mul(scenario_count)
+        .ok_or(HeritageMembershipSensitivityError::WorkEstimateOverflow)?;
+    if preflight_work_units > limits.maximum_work_units {
         return Err(HeritageMembershipSensitivityError::WorkLimitExceeded {
-            required: work_units,
+            required: preflight_work_units,
             maximum: limits.maximum_work_units,
         });
     }
@@ -503,8 +546,8 @@ pub fn evaluate_membership_sensitivity(
         not_assessed_stone_count,
         scenario_count,
         maximum_scenarios: limits.maximum_scenarios,
-        work_units_evaluated: work_units,
-        maximum_work_units: limits.maximum_work_units,
+        preflight_work_units,
+        maximum_preflight_work_units: limits.maximum_work_units,
         groups,
         scenario_semantics:
             "unweighted_exhaustive_cartesian_product_of_per_stone_candidates_at_one_level_not_graph_constrained"
