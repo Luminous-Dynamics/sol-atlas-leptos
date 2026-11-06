@@ -401,13 +401,15 @@ fn aggregate_classes(
     }
     Ok(totals
         .into_iter()
-        .map(|(class, (reference_count, false_positive_count))| HardNegativeClassReport {
-            class,
-            reference_object_count: reference_count,
-            false_positive_prediction_count: false_positive_count,
-            false_positive_candidates_per_reference_object: (reference_count > 0)
-                .then(|| false_positive_count as f64 / reference_count as f64),
-        })
+        .map(
+            |(class, (reference_count, false_positive_count))| HardNegativeClassReport {
+                class,
+                reference_object_count: reference_count,
+                false_positive_prediction_count: false_positive_count,
+                false_positive_candidates_per_reference_object: (reference_count > 0)
+                    .then(|| false_positive_count as f64 / reference_count as f64),
+            },
+        )
         .collect())
 }
 
@@ -424,8 +426,7 @@ pub fn evaluate_heritage_hard_negative(
     if !non_empty(&input.challenge_id) || !non_empty(&input.model_id) {
         return Err(HeritageHardNegativeError::EmptyChallengeOrModelId);
     }
-    if !input.confidence_threshold.is_finite()
-        || !(0.0..=1.0).contains(&input.confidence_threshold)
+    if !input.confidence_threshold.is_finite() || !(0.0..=1.0).contains(&input.confidence_threshold)
     {
         return Err(HeritageHardNegativeError::InvalidThreshold);
     }
@@ -524,8 +525,7 @@ pub fn evaluate_heritage_hard_negative(
                 / unit.adequately_assessed_area_km2,
             verified_findings_per_expert_hour: unit.true_positive_count as f64
                 / unit.expert_review_hours,
-            false_leads_per_expert_hour: false_positive_count as f64
-                / unit.expert_review_hours,
+            false_leads_per_expert_hour: false_positive_count as f64 / unit.expert_review_hours,
             ambiguous_reference_count: unit.ambiguous_reference_count,
             not_observable_reference_count: unit.not_observable_reference_count,
             not_assessed_reference_count: unit.not_assessed_reference_count,
@@ -563,25 +563,54 @@ pub fn evaluate_heritage_hard_negative(
         total_hours += unit.expert_review_hours;
     }
 
-    if !total_area.is_finite() || total_area <= 0.0 || !total_hours.is_finite() || total_hours <= 0.0 {
+    if !total_area.is_finite()
+        || total_area <= 0.0
+        || !total_hours.is_finite()
+        || total_hours <= 0.0
+    {
         return Err(HeritageHardNegativeError::InvalidAggregateArithmetic);
     }
 
     let micro = count_metrics(total_tp, total_fp, total_fn)?;
-    let macro_precision = mean(reports.iter().filter_map(|unit| unit.resolved_prediction_metrics.precision));
-    let macro_recall = mean(reports.iter().filter_map(|unit| unit.resolved_prediction_metrics.recall));
-    let macro_f1 = mean(reports.iter().filter_map(|unit| unit.resolved_prediction_metrics.f1));
-    let macro_precision_unit_count = reports.iter().filter(|unit| unit.resolved_prediction_metrics.precision.is_some()).count();
-    let macro_recall_unit_count = reports.iter().filter(|unit| unit.resolved_prediction_metrics.recall.is_some()).count();
-    let macro_f1_unit_count = reports.iter().filter(|unit| unit.resolved_prediction_metrics.f1.is_some()).count();
+    let macro_precision = mean(
+        reports
+            .iter()
+            .filter_map(|unit| unit.resolved_prediction_metrics.precision),
+    );
+    let macro_recall = mean(
+        reports
+            .iter()
+            .filter_map(|unit| unit.resolved_prediction_metrics.recall),
+    );
+    let macro_f1 = mean(
+        reports
+            .iter()
+            .filter_map(|unit| unit.resolved_prediction_metrics.f1),
+    );
+    let macro_precision_unit_count = reports
+        .iter()
+        .filter(|unit| unit.resolved_prediction_metrics.precision.is_some())
+        .count();
+    let macro_recall_unit_count = reports
+        .iter()
+        .filter(|unit| unit.resolved_prediction_metrics.recall.is_some())
+        .count();
+    let macro_f1_unit_count = reports
+        .iter()
+        .filter(|unit| unit.resolved_prediction_metrics.f1.is_some())
+        .count();
 
     let worst = reports
         .iter()
-        .filter_map(|unit| unit.resolved_prediction_metrics.recall.map(|value| (value, unit.evaluation_unit_id.as_str())))
+        .filter_map(|unit| {
+            unit.resolved_prediction_metrics
+                .recall
+                .map(|value| (value, unit.evaluation_unit_id.as_str()))
+        })
         .min_by(|left, right| left.0.total_cmp(&right.0).then_with(|| left.1.cmp(right.1)));
 
-    let candidate_resolution_fraction = (total_candidates > 0)
-        .then(|| total_resolved as f64 / total_candidates as f64);
+    let candidate_resolution_fraction =
+        (total_candidates > 0).then(|| total_resolved as f64 / total_candidates as f64);
 
     Ok(HeritageHardNegativeReport {
         schema_version: HERITAGE_HARD_NEGATIVE_SCHEMA_VERSION.to_owned(),
