@@ -15,7 +15,7 @@ v0.2 therefore makes the estimand explicit and binds every calibration trial to 
 - **conditional_on_target_presented_to_sensor** — probability of detection conditional on survival, exposure, observability, actual footprint coverage, and target presentation to the sensor. The profile requires all five explicit event records.
 - **other_declared_conditioning_set** — an explicitly specified, non-empty set for an estimand that does not match the predeclared scopes. Its events must be unique and canonically ordered.
 
-The profile event vector is canonically ordered by the enum order in the schema. Every trial must carry exactly one state for every declared event, in that same order. Each state also carries a non-empty source evidence reference and a SHA-256 digest of the evidence artifact. Missing, extra, duplicate or reordered event evidence fails closed.
+The profile event vector is canonically ordered by the enum order in the schema. The calibration profile and every resulting report also carry method identity, calibration-data and split-manifest digests, validation receipt, rights decision and receipt, and access tier; these are required to construct a later HDB-22 evidence stage without inventing missing provenance. Every trial must carry exactly one state for every declared event, in that same order. Each state also carries a non-empty source evidence reference and a SHA-256 digest of the evidence artifact. Missing, extra, duplicate or reordered event evidence fails closed.
 
 ## Estimation rules
 
