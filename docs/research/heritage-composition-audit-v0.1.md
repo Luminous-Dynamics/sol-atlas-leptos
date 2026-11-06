@@ -102,3 +102,30 @@ The next HDB-24B step should compare the naïve product (negative control), corr
 Measure posterior bias, Brier/log score, interval coverage and width, false-absence rate, calibration by context, and the impact of removing or swapping each receipt. The adapter must achieve 100% exact factor-mapping agreement with a hand-authored oracle across the finite contract corpus, and zero acceptance of each P0 negative control.
 
 No field data or real archaeological probability is included here.
+
+
+## v0.1 hardening addendum — calibration identity, observation domain and rights
+
+### Calibration-manifest commitment
+
+HDB-11A v0.2 now emits `conditioning_evidence_manifest_sha256`, computed over the complete validated calibration-trial set in canonical PSU-ID order. The serialized entries commit to PSU/site IDs, profile/context, detection outcomes, condition states, each condition evidence reference and digest, reference evidence tier/reference, and rights status/receipt.
+
+HDB-24 requires that digest to be syntactically valid and carries it through the ConditionalDetection factor receipt. This lets downstream reports bind to the exact trial population that determined the conditional denominator. The digest is a byte-fixity commitment, not a signature or adjudication of the evidence.
+
+### Exact Wilson verification
+
+The adapter recomputes the two-sided 95% Wilson score interval from the reported detected count and eligible calibration denominator. It verifies the z constant, empirical POD, lower/upper values (within numerical tolerance) and the profile's minimum lower-bound gate. A caller cannot make an arbitrary interval appear valid merely by making it contain the empirical estimate.
+
+### Physical observation domain versus sweep-width buffer
+
+The HDB-15 effective sweep width is a calibration-derived distance used to construct the GIS transect-buffer union. It is not automatically the physical observation boundary of the actual search or sensor.
+
+HDB-24 therefore requires a separate, independently receipted actual observation-domain geometry and a declared domain basis (recorded observer path/view boundary or sensor valid-data footprint). HDB-11's conditioned covered-event evidence must bind to the same domain geometry and target-location distribution used in the HDB-24 coverage calculation. The current binary factorization is accepted only when the declared outside-domain detection probability is exactly zero; a nonzero tail requires a continuous spatial detection likelihood and is rejected by v0.1.
+
+### Purpose-specific rights
+
+Both HDB-11 and HDB-15 inputs need an explicit source rights clearance for the `research_analysis` purpose. It must match the source report's rights decision ID and receipt reference, and the decision must be `allowed`. A general status of verified, a public/controlled access tier or a non-empty receipt is not by itself a research-analysis grant.
+
+### Explicit claim ceiling
+
+The audit proposes two compatible factors only. It does not establish the other four HDB-22 factors, compute a posterior, infer archaeological absence, or authorize field action. All source receipts are structurally validated; their issuers, underlying bytes, and truth are not cryptographically authenticated by this module.
