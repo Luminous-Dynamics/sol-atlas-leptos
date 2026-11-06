@@ -294,8 +294,6 @@ pub struct FootprintCoverageFactorProposal {
     pub transect_geometry_sha256: String,
     pub survey_unit_geometry_sha256: String,
     pub spatial_union_receipt_sha256: String,
-    pub method_id: String,
-    pub method_build_sha256: String,
     pub validation_split_manifest_sha256: String,
     pub validation_receipt_ref: String,
     pub validation_receipt_sha256: String,
