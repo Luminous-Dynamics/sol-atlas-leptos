@@ -107,7 +107,11 @@
     "hdb11_profile_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
     "hdb11_context_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
     "context_alignment_receipt_ref": "urn:context-alignment:1",
-    "context_alignment_receipt_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+    "context_alignment_receipt_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+    "calibration_data_sha256": "7777777777777777777777777777777777777777777777777777777777777777",
+    "calibration_split_manifest_sha256": "8888888888888888888888888888888888888888888888888888888888888888",
+    "fit_receipt_sha256": "9999999999999999999999999999999999999999999999999999999999999999",
+    "hdb22_context_id": "context-1"
   },
   "field_sweep_geometry": {
     "survey_unit_id": "survey-unit-1",
@@ -144,6 +148,8 @@
     "method_build_sha256": "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
     "validation_split_manifest_sha256": "jjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjj",
     "validation_receipt_ref": "urn:coverage-validation:1",
-    "validation_receipt_sha256": "kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk"
+    "validation_receipt_sha256": "kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk",
+    "interval_semantics": "deterministic_bound",
+    "confidence_level": null
   }
 }
