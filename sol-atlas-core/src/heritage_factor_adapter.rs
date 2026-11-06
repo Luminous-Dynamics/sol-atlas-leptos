@@ -1072,7 +1072,7 @@ mod tests {
     #[test]
     fn mismatched_build_rights_or_unqualified_pod_is_rejected() {
         let mut value = input();
-        value.hdb11_provenance.method_build_sha256 = digest('z');
+        value.hdb11_provenance.method_build_sha256 = digest('0');
         assert_eq!(
             adapt_heritage_detection_factors(&value),
             Err(HeritageFactorAdapterError::PodMethodBuildMismatch)
@@ -1096,10 +1096,12 @@ mod tests {
     #[test]
     fn preexisting_coverage_or_conditional_detection_cannot_be_overwritten() {
         let mut value = input();
+        let mut preexisting_coverage = hdb22_stage(EvidenceStage::Survival, 0.5);
+        preexisting_coverage.stage = EvidenceStage::FootprintCoverage;
         value
             .non_detection_template
             .stage_evidence
-            .push(hdb22_stage(EvidenceStage::FootprintCoverage, 0.5));
+            .push(preexisting_coverage);
         assert_eq!(
             adapt_heritage_detection_factors(&value),
             Err(
