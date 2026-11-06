@@ -346,7 +346,9 @@
               "additionalProperties": false,
               "required": [
                 "condition",
-                "satisfied"
+                "satisfied",
+                "evidence_ref",
+                "evidence_sha256"
               ],
               "properties": {
                 "condition": {
@@ -361,6 +363,14 @@
                 },
                 "satisfied": {
                   "type": "boolean"
+                },
+                "evidence_ref": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "evidence_sha256": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{64}$"
                 }
               }
             }
