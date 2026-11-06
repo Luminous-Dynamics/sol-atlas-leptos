@@ -2368,6 +2368,141 @@
           }
         ]
       }
+    },
+    {
+      "case_id": "CR-028",
+      "description": "A source receipt ID reused across phases is unsupported, not independent phase evidence.",
+      "input": {
+        "scope_digest": "city-morph-scope:synthetic-v0.1",
+        "evidence_state": "synthetic_current",
+        "recovery_confirmation_ticks": 2,
+        "requirements": [
+          {
+            "requirement_id": "clinic",
+            "group_id": "district-residents",
+            "service_category": "health"
+          }
+        ],
+        "phases": [
+          {
+            "phase_id": "p0",
+            "start_tick": 0,
+            "end_tick": 3,
+            "event_ids": [],
+            "access_receipts": [
+              {
+                "requirement_id": "clinic",
+                "outcome": "Adequate",
+                "evidence_state": "synthetic_current",
+                "source_owner": "sol-atlas",
+                "source_contract": "CITY-MORPH-ACCESS-001",
+                "source_revision": "fixture-v0.1",
+                "source_receipt_id": "synthetic:p0:clinic",
+                "scenario_id": "CR-028",
+                "source_subject_digest": "synthetic-subject:CR-028:p0:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
+              }
+            ]
+          },
+          {
+            "phase_id": "p1",
+            "start_tick": 3,
+            "end_tick": 5,
+            "event_ids": [
+              "bridge-closure"
+            ],
+            "access_receipts": [
+              {
+                "requirement_id": "clinic",
+                "outcome": "Inaccessible",
+                "evidence_state": "synthetic_current",
+                "source_owner": "sol-atlas",
+                "source_contract": "CITY-MORPH-ACCESS-001",
+                "source_revision": "fixture-v0.1",
+                "source_receipt_id": "synthetic:p1:clinic",
+                "scenario_id": "CR-028",
+                "source_subject_digest": "synthetic-subject:CR-028:p1:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
+              }
+            ]
+          },
+          {
+            "phase_id": "p2",
+            "start_tick": 5,
+            "end_tick": 8,
+            "event_ids": [],
+            "access_receipts": [
+              {
+                "requirement_id": "clinic",
+                "outcome": "Adequate",
+                "evidence_state": "synthetic_current",
+                "source_owner": "sol-atlas",
+                "source_contract": "CITY-MORPH-ACCESS-001",
+                "source_revision": "fixture-v0.1",
+                "source_receipt_id": "synthetic:p0:clinic",
+                "scenario_id": "CR-028",
+                "source_subject_digest": "synthetic-subject:CR-028:p2:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
+              }
+            ]
+          }
+        ],
+        "expected_source_revision": "fixture-v0.1"
+      },
+      "expected": {
+        "case_id": "CR-028",
+        "disposition": "Unsupported",
+        "reason_codes": [
+          "DUPLICATE_SOURCE_RECEIPT_ID"
+        ],
+        "requirements": []
+      }
+    },
+    {
+      "case_id": "CR-029",
+      "description": "Missing expected owner revision is an unsupported evaluation request.",
+      "input": {
+        "scope_digest": "city-morph-scope:synthetic-v0.1",
+        "evidence_state": "synthetic_current",
+        "recovery_confirmation_ticks": 2,
+        "requirements": [
+          {
+            "requirement_id": "clinic",
+            "group_id": "district-residents",
+            "service_category": "health"
+          }
+        ],
+        "phases": [
+          {
+            "phase_id": "p0",
+            "start_tick": 0,
+            "end_tick": 5,
+            "event_ids": [],
+            "access_receipts": [
+              {
+                "requirement_id": "clinic",
+                "outcome": "Adequate",
+                "evidence_state": "synthetic_current",
+                "source_owner": "sol-atlas",
+                "source_contract": "CITY-MORPH-ACCESS-001",
+                "source_revision": "fixture-v0.1",
+                "source_receipt_id": "synthetic:p0:clinic",
+                "scenario_id": "CR-029",
+                "source_subject_digest": "synthetic-subject:CR-029:p0:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
+              }
+            ]
+          }
+        ]
+      },
+      "expected": {
+        "case_id": "CR-029",
+        "disposition": "Unsupported",
+        "reason_codes": [
+          "EXPECTED_OWNER_SOURCE_REVISION_MISSING"
+        ],
+        "requirements": []
+      }
     }
   ]
 }
