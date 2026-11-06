@@ -734,6 +734,78 @@ expected: {}",
     }
 
     #[test]
+    fn cycle_mode_uses_cycle_impedance() {
+        let corpus = corpus();
+        let mut case = corpus["cases"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|case| case["case_id"] == "MA-006")
+            .unwrap()
+            .clone();
+        case["input"]["population_groups"][0]["mode"] =
+            serde_json::Value::String("cycle".to_owned());
+        let result = evaluate_case(&case);
+        assert_eq!(
+            result["groups"][0]["nearest_known_service_minutes"].as_f64(),
+            Some(10.0)
+        );
+        assert_eq!(
+            result["groups"][0]["status"],
+            "AccessibleAndAdequatePotential"
+        );
+    }
+
+    #[test]
+    fn stale_network_evidence_cannot_produce_known_access() {
+        let corpus = corpus();
+        let mut case = corpus["cases"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|case| case["case_id"] == "MA-001")
+            .unwrap()
+            .clone();
+        case["input"]["network"]["evidence_state"] =
+            serde_json::Value::String("stale".to_owned());
+        let result = evaluate_case(&case);
+        assert_eq!(result["disposition"], "Unknown");
+        assert_eq!(result["groups"][0]["status"], "Unknown");
+        assert_eq!(
+            result["groups"][0]["accessible_service_ids"],
+            serde_json::json!([])
+        );
+        assert_eq!(
+            result["groups"][0]["unknown_service_ids"],
+            serde_json::json!(["clinic"])
+        );
+    }
+
+    #[test]
+    fn incompatible_affordability_units_are_unsupported() {
+        let corpus = corpus();
+        let mut case = corpus["cases"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|case| case["case_id"] == "MA-001")
+            .unwrap()
+            .clone();
+        case["input"]["population_groups"][0]["price_unit"] =
+            serde_json::Value::String("USD/visit".to_owned());
+        let result = evaluate_case(&case);
+        assert_eq!(result["disposition"], "Unsupported");
+        assert_eq!(result["groups"], serde_json::json!([]));
+        assert!(
+            result["reason_codes"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|reason| reason == "SERVICE_PRICE_UNIT_MISMATCH")
+        );
+    }
+
+    #[test]
     fn group_specific_travel_time_budgets_are_applied_independently() {
         let corpus = corpus();
         let case = corpus["cases"]
