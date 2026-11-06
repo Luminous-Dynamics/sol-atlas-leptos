@@ -37,6 +37,7 @@ pub struct AdapterContextBinding {
     pub target_class_id: String,
     pub hdb22_context_id: String,
     pub hdb11_profile_sha256: String,
+    pub hdb11_report_sha256: String,
     pub hdb15_profile_sha256: String,
     /// CRS and geometry metadata retained from the HDB-15 spatial union receipt.
     pub survey_unit_crs_id: String,
@@ -157,6 +158,7 @@ pub struct HeritageFactorAdapterInput {
     pub schema_version: String,
     pub adapter_id: String,
     pub context_binding: AdapterContextBinding,
+    pub hdb11_report_sha256: String,
     pub hdb11_report: HeritageObservabilityReport,
     pub hdb11_provenance: CalibrationProvenanceBinding,
     pub hdb15_report: FieldSweepEvaluationReport,
@@ -557,6 +559,7 @@ fn validate_hdb15(
     if provenance.calibration_data_sha256 != report.calibration_data_sha256
         || provenance.validation_split_manifest_sha256 != report.calibration_split_manifest_sha256
         || provenance.fit_receipt_sha256.as_deref() != Some(report.fit_receipt_sha256.as_str())
+        || provenance.validation_receipt_sha256 == report.fit_receipt_sha256
         || provenance.conditioning_evidence_manifest_sha256.is_some()
     {
         return Err(HeritageFactorAdapterError::FieldSweepProvenanceMismatch(
@@ -934,6 +937,7 @@ pub fn adapt_heritage_detection_factors(
     )?;
     validate_provenance(&input.hdb11_provenance, "hdb11")?;
     validate_provenance(&input.hdb15_provenance, "hdb15")?;
+    require_digest(&input.hdb11_report_sha256, "hdb11_report_sha256")?;
 
     let template = &input.non_detection_template;
     if template.observation_state != ObservationState::SearchedNoDetection {
@@ -1038,6 +1042,7 @@ pub fn adapt_heritage_detection_factors(
         factorization: "factorized_survival_exposure_observability_coverage_then_conditional_sensor_detection"
             .into(),
         hdb11_profile_sha256: input.hdb11_report.profile_sha256.clone(),
+        hdb11_report_sha256: input.hdb11_report_sha256.clone(),
         hdb15_profile_sha256: input.hdb15_report.profile_sha256.clone(),
         target_location_receipt_sha256: input.target_location_coverage.calculation_receipt_sha256.clone(),
         conditioning_evidence_manifest_sha256: input.hdb11_report.conditioning_evidence_manifest_sha256.clone(),
@@ -1283,6 +1288,7 @@ mod tests {
                 mapping_receipt_ref: "receipt:context-map".into(),
                 mapping_receipt_sha256: digest('d'),
             },
+            hdb11_report_sha256: digest('4'),
             hdb11_report: hdb11_report(),
             hdb11_provenance,
             hdb15_report: hdb15.clone(),
@@ -1408,6 +1414,71 @@ mod tests {
         );
     }
 
+
+
+    #[test]
+    fn nonzero_detection_outside_the_declared_physical_domain_is_rejected() {
+        let mut value = input();
+        value.target_location_coverage.outside_domain_detection_probability = 0.01;
+        assert_eq!(
+            adapt_heritage_detection_factors(&value),
+            Err(HeritageFactorAdapterError::OutsideDomainDetectionNotZero)
+        );
+    }
+
+    #[test]
+    fn coverage_alignment_must_reference_the_exact_hdb11_trial_manifest() {
+        let mut value = input();
+        value.target_location_coverage.hdb11_conditioning_evidence_manifest_sha256 = digest('z');
+        assert_eq!(
+            adapt_heritage_detection_factors(&value),
+            Err(HeritageFactorAdapterError::PhysicalObservationDomainMismatch)
+        );
+    }
+
+    #[test]
+    fn fit_receipt_and_held_out_validation_receipt_cannot_be_the_same_artifact() {
+        let mut value = input();
+        value.hdb15_provenance.validation_receipt_sha256 =
+            value.hdb15_report.fit_receipt_sha256.clone();
+        assert_eq!(
+            adapt_heritage_detection_factors(&value),
+            Err(HeritageFactorAdapterError::FieldSweepProvenanceMismatch(
+                "profile/fit receipt binding".into()
+            ))
+        );
+    }
+
+    #[test]
+    fn hdb15_validation_brier_must_meet_the_preregistered_ceiling() {
+        let mut value = input();
+        value.hdb15_report.validation_brier_score = 0.25;
+        assert_eq!(
+            adapt_heritage_detection_factors(&value),
+            Err(HeritageFactorAdapterError::Hdb15ValidationQualityBelowThreshold)
+        );
+    }
+
+    #[test]
+    fn source_analysis_rights_must_be_purpose_specific() {
+        let mut value = input();
+        value.hdb11_provenance.rights_purpose = RightsPurpose::ResearchAnalysis;
+        value.hdb11_provenance.analytical_rights = AnalyticalRights::Undetermined;
+        assert_eq!(
+            adapt_heritage_detection_factors(&value),
+            Err(HeritageFactorAdapterError::RightsNotAllowed("hdb11".into()))
+        );
+
+        let mut value = input();
+        value.target_location_coverage.rights_purpose = RightsPurpose::ResearchAnalysis;
+        value.target_location_coverage.analytical_rights = AnalyticalRights::Undetermined;
+        assert_eq!(
+            adapt_heritage_detection_factors(&value),
+            Err(HeritageFactorAdapterError::RightsNotAllowed(
+                "target_location_access_tier_or_rights".into()
+            ))
+        );
+    }
 
     #[test]
     fn context_flags_cannot_override_mismatched_source_contexts() {
