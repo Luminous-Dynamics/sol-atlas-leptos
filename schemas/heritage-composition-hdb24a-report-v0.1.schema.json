@@ -22,7 +22,11 @@
     "hdb11_validation_receipt_sha256",
     "hdb15_report_sha256",
     "hdb15_profile_sha256",
+    "hdb15_fit_receipt_sha256",
     "hdb15_calibration_split_manifest_sha256",
+    "hdb15_transect_geometry_sha256",
+    "hdb15_survey_unit_geometry_sha256",
+    "hdb15_coverage_union_geometry_sha256",
     "hdb15_spatial_union_receipt_sha256",
     "hdb15_area_fraction_descriptive_only",
     "target_coverage_probability",
@@ -145,6 +149,18 @@
     },
     "action_authority": {
       "const": "none"
+    },
+    "hdb15_fit_receipt_sha256": {
+      "$ref": "#/$defs/digest"
+    },
+    "hdb15_transect_geometry_sha256": {
+      "$ref": "#/$defs/digest"
+    },
+    "hdb15_survey_unit_geometry_sha256": {
+      "$ref": "#/$defs/digest"
+    },
+    "hdb15_coverage_union_geometry_sha256": {
+      "$ref": "#/$defs/digest"
     }
   },
   "$defs": {
@@ -205,7 +221,9 @@
         "analytical_rights_allowed",
         "rights_receipt_ref",
         "access_tier",
+        "coverage_evidence_basis",
         "coverage_probability_model",
+        "target_location_model_sha256",
         "coverage_geometry_sha256",
         "spatial_coverage_receipt_sha256",
         "target_location_distribution_sha256"
@@ -320,6 +338,26 @@
               "type": "null"
             }
           ]
+        },
+        "coverage_evidence_basis": {
+          "oneOf": [
+            {
+              "const": "actual_spatial_union_receipt"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "target_location_model_sha256": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/digest"
+            },
+            {
+              "type": "null"
+            }
+          ]
         }
       },
       "allOf": [
@@ -353,6 +391,12 @@
               },
               "target_location_distribution_sha256": {
                 "$ref": "#/$defs/digest"
+              },
+              "coverage_evidence_basis": {
+                "const": "actual_spatial_union_receipt"
+              },
+              "target_location_model_sha256": {
+                "$ref": "#/$defs/digest"
               }
             }
           }
@@ -383,6 +427,12 @@
                 "type": "null"
               },
               "target_location_distribution_sha256": {
+                "type": "null"
+              },
+              "coverage_evidence_basis": {
+                "type": "null"
+              },
+              "target_location_model_sha256": {
                 "type": "null"
               }
             }
