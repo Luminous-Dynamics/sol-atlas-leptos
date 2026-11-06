@@ -180,7 +180,6 @@ pub enum HeritageHardNegativeError {
     InvalidUnitLimit,
     NoEvaluationUnits,
     InvalidProvenance(String),
-    InvalidUnitIdentity(String),
     DuplicateEvaluationUnit(String),
     MixedEvaluationUnitKind,
     IncompleteCandidateAdjudication(String),
@@ -278,14 +277,6 @@ fn validate_unit(
         .validate()
         .map_err(|error| HeritageHardNegativeError::InvalidProvenance(error.to_string()))?;
 
-    if !non_empty(&unit.site_id)
-        || !non_empty(&unit.region_id)
-        || !non_empty(&unit.acquisition_id)
-    {
-        return Err(HeritageHardNegativeError::InvalidUnitIdentity(
-            unit_id.clone(),
-        ));
-    }
     if !unit.candidate_adjudication_complete {
         return Err(
             HeritageHardNegativeError::IncompleteCandidateAdjudication(unit_id.clone()),
