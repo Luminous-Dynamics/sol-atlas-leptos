@@ -27,9 +27,11 @@
     "worst_unit_recall",
     "adequately_assessed_area_km2",
     "total_expert_review_hours",
-    "false_positives_per_km2",
+    "confirmed_false_positives_per_km2",
+    "upper_bound_false_positives_per_km2",
     "verified_findings_per_expert_hour",
-    "false_leads_per_expert_hour",
+    "confirmed_false_leads_per_expert_hour",
+    "upper_bound_false_leads_per_expert_hour",
     "candidate_prediction_count",
     "resolved_prediction_count",
     "candidate_resolution_fraction",
@@ -215,15 +217,7 @@
       "type": "number",
       "exclusiveMinimum": 0
     },
-    "false_positives_per_km2": {
-      "type": "number",
-      "minimum": 0
-    },
     "verified_findings_per_expert_hour": {
-      "type": "number",
-      "minimum": 0
-    },
-    "false_leads_per_expert_hour": {
       "type": "number",
       "minimum": 0
     },
@@ -327,10 +321,12 @@
           "candidate_prediction_count",
           "resolved_prediction_count",
           "candidate_resolution_fraction",
+          "confirmed_false_leads_per_expert_hour",
+          "upper_bound_false_leads_per_expert_hour",
           "unresolved_prediction_count",
-          "false_positives_per_km2",
+          "confirmed_false_positives_per_km2",
+          "upper_bound_false_positives_per_km2",
           "verified_findings_per_expert_hour",
-          "false_leads_per_expert_hour",
           "ambiguous_reference_count",
           "not_observable_reference_count",
           "not_assessed_reference_count",
@@ -450,15 +446,7 @@
             "type": "integer",
             "minimum": 0
           },
-          "false_positives_per_km2": {
-            "type": "number",
-            "minimum": 0
-          },
           "verified_findings_per_expert_hour": {
-            "type": "number",
-            "minimum": 0
-          },
-          "false_leads_per_expert_hour": {
             "type": "number",
             "minimum": 0
           },
@@ -520,6 +508,22 @@
                 }
               }
             }
+          },
+          "confirmed_false_positives_per_km2": {
+            "type": "number",
+            "minimum": 0
+          },
+          "upper_bound_false_positives_per_km2": {
+            "type": "number",
+            "minimum": 0
+          },
+          "confirmed_false_leads_per_expert_hour": {
+            "type": "number",
+            "minimum": 0
+          },
+          "upper_bound_false_leads_per_expert_hour": {
+            "type": "number",
+            "minimum": 0
           }
         }
       }
@@ -527,6 +531,22 @@
     "uncertainty_note": {
       "type": "string",
       "minLength": 1
+    },
+    "confirmed_false_positives_per_km2": {
+      "type": "number",
+      "minimum": 0
+    },
+    "upper_bound_false_positives_per_km2": {
+      "type": "number",
+      "minimum": 0
+    },
+    "confirmed_false_leads_per_expert_hour": {
+      "type": "number",
+      "minimum": 0
+    },
+    "upper_bound_false_leads_per_expert_hour": {
+      "type": "number",
+      "minimum": 0
     }
   }
 }
