@@ -9,6 +9,14 @@
     "candidate_id",
     "profile_id",
     "profile_sha256",
+    "method_id",
+    "calibration_data_sha256",
+    "calibration_split_manifest_sha256",
+    "validation_receipt_ref",
+    "validation_receipt_sha256",
+    "rights_decision_id",
+    "rights_receipt_ref",
+    "access_tier",
     "calibration_context",
     "observed_context",
     "observation_profile_sha256",
@@ -20,6 +28,7 @@
     "calibration_total_independent_psu_count",
     "calibration_eligible_independent_psu_count",
     "calibration_excluded_conditioning_psu_count",
+    "conditioning_evidence_manifest_sha256",
     "calibration_detected_count",
     "empirical_probability_of_detection",
     "probability_of_detection_wilson_95",
@@ -332,6 +341,46 @@
       "type": "integer",
       "minimum": 0,
       "maximum": 100000
+    },
+    "method_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "calibration_data_sha256": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{64}$"
+    },
+    "calibration_split_manifest_sha256": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{64}$"
+    },
+    "validation_receipt_ref": {
+      "type": "string",
+      "minLength": 1
+    },
+    "validation_receipt_sha256": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{64}$"
+    },
+    "rights_decision_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "rights_receipt_ref": {
+      "type": "string",
+      "minLength": 1
+    },
+    "access_tier": {
+      "enum": [
+        "public",
+        "controlled",
+        "restricted",
+        "unknown"
+      ]
+    },
+    "conditioning_evidence_manifest_sha256": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{64}$"
     }
   }
 }
