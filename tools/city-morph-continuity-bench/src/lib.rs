@@ -241,9 +241,7 @@ pub fn evaluate_case(case: &Value) -> Value {
                 errors.insert("PHASE_REQUIREMENT_RECEIPT_UNEXPECTED".to_owned());
             }
             let receipt_id = text(receipt, "source_receipt_id");
-            if !receipt_id.is_empty()
-                && !all_source_receipt_ids.insert(receipt_id.to_owned())
-            {
+            if !receipt_id.is_empty() && !all_source_receipt_ids.insert(receipt_id.to_owned()) {
                 errors.insert("DUPLICATE_SOURCE_RECEIPT_ID".to_owned());
             }
             if !matches!(
@@ -358,7 +356,7 @@ mod tests {
     }
 
     #[test]
-    fn corpus_has_27_unique_synthetic_cases() {
+    fn corpus_has_29_unique_synthetic_cases() {
         let c = corpus();
         assert_eq!(c["classification"], "synthetic_fixture_only");
         assert_eq!(c["corpus_id"], "CITY-MORPH-CONTINUITY-CORPUS-V0.1");
@@ -415,10 +413,7 @@ mod tests {
     #[test]
     fn pre_outage_unknown_does_not_poison_recovery_status() {
         let before = evaluate_case(&case("CR-027"));
-        assert_eq!(
-            before["requirements"][0]["recovery_state"],
-            "NotRecovered"
-        );
+        assert_eq!(before["requirements"][0]["recovery_state"], "NotRecovered");
         assert_eq!(
             before["requirements"][0]["unknown_after_first_degradation_ticks"],
             0
@@ -437,8 +432,7 @@ mod tests {
     #[test]
     fn adjacent_degraded_phases_form_one_streak() {
         assert_eq!(
-            evaluate_case(&case("CR-005"))["requirements"][0]
-                ["max_contiguous_degraded_ticks"],
+            evaluate_case(&case("CR-005"))["requirements"][0]["max_contiguous_degraded_ticks"],
             5
         );
     }
