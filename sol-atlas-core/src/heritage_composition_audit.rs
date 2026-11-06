@@ -302,6 +302,7 @@ pub struct FactorReceiptReference {
     pub profile_sha256: String,
     pub calibration_data_sha256: String,
     pub validation_split_manifest_sha256: String,
+    pub conditioning_evidence_manifest_sha256: String,
     pub validation_receipt_ref: String,
     pub validation_receipt_sha256: String,
     pub rights_decision_id: String,
@@ -489,6 +490,18 @@ fn validate_rights_clearance(
     Ok(())
 }
 
+fn wilson_95_bounds(successes: usize, total: usize) -> (f64, f64) {
+    let n = total as f64;
+    let p = successes as f64 / n;
+    let z = 1.959_963_984_540_054;
+    let z_squared = z * z;
+    let denominator = 1.0 + z_squared / n;
+    let center = (p + z_squared / (2.0 * n)) / denominator;
+    let half_width =
+        z * ((p * (1.0 - p) / n + z_squared / (4.0 * n * n)).sqrt()) / denominator;
+    (center - half_width, center + half_width)
+}
+
 fn validate_observability(
     input: &HeritageCompositionInputV1,
 ) -> Result<ConditionalDetectionFactorProposal, HeritageCompositionError> {
@@ -564,6 +577,10 @@ fn validate_observability(
     let expected_empirical = report.calibration_detected_count as f64
         / report.calibration_eligible_independent_psu_count as f64;
     let interval = report.probability_of_detection_wilson_95;
+    let (expected_wilson_lower, expected_wilson_upper) = wilson_95_bounds(
+        report.calibration_detected_count,
+        report.calibration_eligible_independent_psu_count,
+    );
     if !report.empirical_probability_of_detection.is_finite()
         || (report.empirical_probability_of_detection - expected_empirical).abs()
             > POD_ARITHMETIC_TOLERANCE
@@ -571,11 +588,13 @@ fn validate_observability(
         || !interval.upper.is_finite()
         || interval.confidence_level != 0.95
         || !interval.z_value.is_finite()
-        || interval.z_value <= 0.0
+        || (interval.z_value - 1.959_963_984_540_054).abs() > POD_ARITHMETIC_TOLERANCE
+        || !interval.lower.is_finite()
+        || !interval.upper.is_finite()
+        || (interval.lower - expected_wilson_lower).abs() > POD_ARITHMETIC_TOLERANCE
+        || (interval.upper - expected_wilson_upper).abs() > POD_ARITHMETIC_TOLERANCE
         || interval.lower < 0.0
         || interval.upper > 1.0
-        || interval.lower > expected_empirical
-        || interval.upper < expected_empirical
         || interval.lower < report.minimum_pod_lower_bound
     {
         return Err(HeritageCompositionError::ObservabilityProbabilityAccountingInvalid);
@@ -631,6 +650,10 @@ fn validate_observability(
             "hdb11_calibration_split_manifest_sha256",
         ),
         (
+            &report.conditioning_evidence_manifest_sha256,
+            "hdb11_conditioning_evidence_manifest_sha256",
+        ),
+        (
             &report.validation_receipt_sha256,
             "hdb11_validation_receipt_sha256",
         ),
@@ -671,6 +694,9 @@ fn validate_observability(
             profile_sha256: report.profile_sha256.clone(),
             calibration_data_sha256: report.calibration_data_sha256.clone(),
             validation_split_manifest_sha256: report.calibration_split_manifest_sha256.clone(),
+            conditioning_evidence_manifest_sha256: report
+                .conditioning_evidence_manifest_sha256
+                .clone(),
             validation_receipt_ref: report.validation_receipt_ref.clone(),
             validation_receipt_sha256: report.validation_receipt_sha256.clone(),
             rights_decision_id: report.rights_decision_id.clone(),
@@ -1215,6 +1241,7 @@ mod tests {
             method_id: "field-walk-detection-v1".to_owned(),
             calibration_data_sha256: digest('d'),
             calibration_split_manifest_sha256: digest('e'),
+            conditioning_evidence_manifest_sha256: digest('m'),
             validation_receipt_ref: "urn:validation:hdb11".to_owned(),
             validation_receipt_sha256: digest('f'),
             rights_decision_id: "rights:hdb11".to_owned(),
@@ -1242,8 +1269,8 @@ mod tests {
             probability_of_detection_wilson_95: WilsonInterval {
                 confidence_level: 0.95,
                 z_value: 1.959963984540054,
-                lower: 0.699,
-                upper: 0.972,
+                lower: 0.6989663547715128,
+                upper: 0.9721335187862319,
             },
             minimum_independent_psus: 20,
             minimum_pod_lower_bound: 0.65,
@@ -1528,6 +1555,36 @@ mod tests {
         assert_eq!(
             audit_heritage_probability_composition(&value),
             Err(HeritageCompositionError::ObservabilityContextMismatch)
+        );
+    }
+
+
+    #[test]
+    fn conditioning_manifest_digest_is_required_and_preserved_in_the_factor_receipt() {
+        let value = input();
+        let report = audit_heritage_probability_composition(&value).unwrap();
+        assert_eq!(
+            report.conditional_detection.receipt.conditioning_evidence_manifest_sha256,
+            value.observability.conditioning_evidence_manifest_sha256
+        );
+
+        let mut malformed = input();
+        malformed.observability.conditioning_evidence_manifest_sha256 = "not-a-digest".into();
+        assert_eq!(
+            audit_heritage_probability_composition(&malformed),
+            Err(HeritageCompositionError::InvalidDigest(
+                "hdb11_conditioning_evidence_manifest_sha256"
+            ))
+        );
+    }
+
+    #[test]
+    fn wilson_interval_is_recomputed_from_the_declared_eligible_denominator() {
+        let mut value = input();
+        value.observability.probability_of_detection_wilson_95.lower = 0.69;
+        assert_eq!(
+            audit_heritage_probability_composition(&value),
+            Err(HeritageCompositionError::ObservabilityProbabilityAccountingInvalid)
         );
     }
 
