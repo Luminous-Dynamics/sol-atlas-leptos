@@ -142,6 +142,7 @@ pub struct TargetLocationCoverageReceipt {
     pub validation_receipt_sha256: String,
     pub rights_decision_id: String,
     pub analytical_rights: AnalyticalRights,
+    pub rights_purpose: RightsPurpose,
     pub rights_receipt_ref: String,
     pub access_tier: AccessTier,
 }
@@ -174,6 +175,8 @@ pub struct HeritageFactorAdapterReport {
     pub target_location_receipt_sha256: String,
     pub conditioning_evidence_manifest_sha256: String,
     pub target_location_probability: ProbabilityBand,
+    pub target_location_coverage_receipt: TargetLocationCoverageReceipt,
+    pub hdb15_report_sha256: String,
     pub detection_probability_wilson_95: ProbabilityBand,
     pub hdb15_geometric_coverage_fraction: f64,
     pub conditional_detection_stage_added: bool,
@@ -635,6 +638,14 @@ fn validate_target_location_coverage(
             "target_location_distribution_sha256",
         ),
         (
+            &receipt.field_sweep_report_sha256,
+            "field_sweep_report_sha256",
+        ),
+        (
+            &receipt.hdb11_coverage_condition_profile_sha256,
+            "hdb11_coverage_condition_profile_sha256",
+        ),
+        (
             &receipt.field_sweep_fit_receipt_sha256,
             "field_sweep_fit_receipt_sha256",
         ),
@@ -708,6 +719,7 @@ fn validate_target_location_coverage(
     if receipt.field_sweep_fit_receipt_sha256 != report.fit_receipt_sha256
         || receipt.calibration_data_sha256 != report.calibration_data_sha256
         || receipt.hdb11_coverage_condition_profile_sha256 != hdb11.profile_sha256
+        || receipt.survey_unit_crs_id != binding.survey_unit_crs_id
     {
         return Err(
             HeritageFactorAdapterError::TargetLocationProvenanceMismatch(
@@ -717,6 +729,7 @@ fn validate_target_location_coverage(
     }
     if receipt.access_tier == AccessTier::Unknown
         || receipt.analytical_rights != AnalyticalRights::Allowed
+        || receipt.rights_purpose != RightsPurpose::ResearchAnalysis
     {
         return Err(HeritageFactorAdapterError::RightsNotAllowed(
             "target_location_access_tier_or_rights".into(),
@@ -1003,6 +1016,8 @@ pub fn adapt_heritage_detection_factors(
         target_location_receipt_sha256: input.target_location_coverage.calculation_receipt_sha256.clone(),
         conditioning_evidence_manifest_sha256: input.hdb11_report.conditioning_evidence_manifest_sha256.clone(),
         target_location_probability: coverage_probability,
+        target_location_coverage_receipt: input.target_location_coverage.clone(),
+        hdb15_report_sha256: input.hdb15_report_sha256.clone(),
         detection_probability_wilson_95: detection_probability,
         hdb15_geometric_coverage_fraction: input.hdb15_report.receipt_reported_coverage_fraction,
         conditional_detection_stage_added: true,
