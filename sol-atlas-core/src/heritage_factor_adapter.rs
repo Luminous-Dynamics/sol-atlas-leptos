@@ -130,6 +130,7 @@ pub struct TargetLocationCoverageReceipt {
     pub hdb11_conditioned_observation_domain_geometry_sha256: String,
     pub hdb11_conditioned_target_location_distribution_sha256: String,
     pub actual_observation_domain_basis: ActualObservationDomainBasis,
+    pub actual_observation_domain_area_m2: f64,
     pub actual_observation_domain_receipt_ref: String,
     pub actual_observation_domain_receipt_sha256: String,
     pub outside_domain_detection_probability: f64,
@@ -329,6 +330,8 @@ fn validate_context_binding(
             > PROBABILITY_TOLERANCE
         || (binding.buffered_sweep_width_m - hdb15.buffered_sweep_width_m).abs()
             > PROBABILITY_TOLERANCE.max(binding.buffered_sweep_width_m.abs() * 1e-9)
+        || (binding.buffered_transect_union_area_m2 - hdb15.receipt_reported_swept_area_m2).abs()
+            > PROBABILITY_TOLERANCE.max(binding.buffered_transect_union_area_m2.abs() * 1e-9)
     {
         return Err(HeritageFactorAdapterError::Hdb15GeometryReceiptMismatch);
     }
@@ -803,6 +806,15 @@ fn validate_target_location_coverage(
         }
     }
     if receipt.model == CoverageProbabilityModel::UniformAreaWeightedWithinSurveyUnit {
+        if !receipt.actual_observation_domain_area_m2.is_finite()
+            || receipt.actual_observation_domain_area_m2 <= 0.0
+            || receipt.actual_observation_domain_area_m2
+                > binding.survey_unit_area_m2 * (1.0 + PROBABILITY_TOLERANCE)
+        {
+            return Err(HeritageFactorAdapterError::InvalidTargetLocationProbability);
+        }
+        let uniform_area_probability =
+            receipt.actual_observation_domain_area_m2 / binding.survey_unit_area_m2;
         let uniform_ref = receipt
             .uniform_assumption_justification_ref
             .as_deref()
@@ -813,9 +825,10 @@ fn validate_target_location_coverage(
             .ok_or(HeritageFactorAdapterError::InvalidCoverageIntervalSemantics)?;
         require_ref(uniform_ref, "uniform_assumption_justification_ref")?;
         require_digest(uniform_sha, "uniform_assumption_justification_sha256")?;
-        let observed = report.receipt_reported_coverage_fraction;
-        if (receipt.target_location_probability.lower - observed).abs() > PROBABILITY_TOLERANCE
-            || (receipt.target_location_probability.upper - observed).abs() > PROBABILITY_TOLERANCE
+        if (receipt.target_location_probability.lower - uniform_area_probability).abs()
+            > PROBABILITY_TOLERANCE
+            || (receipt.target_location_probability.upper - uniform_area_probability).abs()
+                > PROBABILITY_TOLERANCE
         {
             return Err(HeritageFactorAdapterError::UniformLocationModelDoesNotMatchAreaFraction);
         }
