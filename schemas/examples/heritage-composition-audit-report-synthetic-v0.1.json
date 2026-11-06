@@ -64,7 +64,13 @@
     "rights_receipt_ref": "urn:rights:hdb15",
     "access_tier": "controlled",
     "interval_semantics": "deterministic_bound",
-    "confidence_level": null
+    "confidence_level": null,
+    "evidence_basis": "actual_spatial_union_receipt",
+    "source_data_sha256": "nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn",
+    "analytical_rights": "allowed",
+    "profile_id": "sweep-profile-1",
+    "profile_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+    "calibration_data_sha256": "7777777777777777777777777777777777777777777777777777777777777777"
   },
   "hdb15_geometric_coverage_fraction": 0.5,
   "joint_detection_factor_used": false,
