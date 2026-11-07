@@ -420,5 +420,48 @@
       "requirement_class": "preference",
       "reason": "Repair/work activities may benefit from convenient service access, subject to noise and safety separation."
     }
+  ],
+  "alternative_climate_provider_methodologies": [
+    {
+      "id": "EPW_TOOLS_STATION_REANALYSIS_FUSION",
+      "provider": "EPW.tools",
+      "methodology_source": "https://epw.tools/methodology",
+      "validation_source": "https://epw.tools/validation",
+      "actual_year_source": "https://epw.tools/amy-weather-files",
+      "products_described_by_provider": [
+        "actual_meteorological_year",
+        "typical_meteorological_year",
+        "future_climate_epw"
+      ],
+      "provider_method_claim": "station observations (NOAA ISD via Meteostat) prioritized, ERA5/MERRA-2 gap filling, satellite-derived solar where available, physical-plausibility checks",
+      "provider_validation_claim": "published design-condition comparisons against ASHRAE across 15,857 station-edition comparisons and hourly validation at seven NOAA SURFRAD sites",
+      "local_validation_status": "NOT_INDEPENDENTLY_REVIEWED_FOR_JOHANNESBURG_OR_A_HIGHVELD_PARCEL",
+      "source_file_downloaded": false,
+      "file_digest": null,
+      "reuse_rights": "UNKNOWN",
+      "licence_and_terms_checked": false,
+      "status": "RESEARCH_ONLY_NOT_INGESTED_OR_QUALIFIED",
+      "allowed_use_in_v0_1": "compare provider methodology and define a future controlled source-qualification experiment",
+      "prohibited_use_in_v0_1": [
+        "claim_local_validation",
+        "replace_climate_onebuilding_candidates",
+        "treat_vendor_validation_as_independent_luminous_validation",
+        "merge_amy_tmy_and_future_as_one_evidence_class"
+      ]
+    },
+    {
+      "id": "JOHANNESBURG_GRID_TREND_EPWT",
+      "provider": "EPW.tools",
+      "source": "https://epw.tools/climate-johannesburg",
+      "method": "NASA POWER daily 2m temperature from MERRA-2 reanalysis",
+      "spatial_resolution": "0.5_degree_grid_cell",
+      "cell_center_approximate_latitude": -26.14,
+      "cell_center_approximate_longitude": 28.24,
+      "period": "1981-2025",
+      "computed_date": "2026-10-21",
+      "provider_reported_trend": "annual mean 16.46 C (1981-1990) to 17.3 C (2016-2025), +0.84 C",
+      "scope_limit": "grid cell averages Johannesburg and surroundings; not an airport station, central-city thermometer or parcel measurement",
+      "status": "REGIONAL_RESEARCH_CONTEXT_ONLY_NOT_DESIGN_WEATHER"
+    }
   ]
 }
