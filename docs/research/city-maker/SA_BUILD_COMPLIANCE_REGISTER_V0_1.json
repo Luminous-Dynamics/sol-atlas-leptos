@@ -50,13 +50,25 @@
       "publisher": "South African Bureau of Standards",
       "url": "https://store.sabs.co.za/",
       "state": "Version_or_Applicability_Unknown",
-      "known_position": "Candidate energy compliance pathway. Applicable edition and any project-specific scope need confirmation from SABS and relevant building-control authority.",
+      "known_position": "SAIAT's professional CPD portal identifies SANS 10400-XA:2026 Edition 3 and says it was published early in 2026, noting a change to the method for satisfying energy-efficient hot-water requirements. This is specialist secondary evidence, not a substitute for the SABS catalogue or copyrighted standard. The exact SABS publication metadata, effective/transition dates, full text and project applicability have not been independently verified. Do not treat Edition 2 (2021) as the latest edition.",
       "required_checks": [
-        "Verify current edition/amendment and applicable building classes",
-        "Bind calculations and product declarations to exact project and design revision",
-        "Record professional responsibility and municipal approval evidence where applicable"
+        "Retrieve the exact SABS catalogue record for SANS 10400-XA:2026 Edition 3 and confirm its approval/publication date, status, effective date and any transition arrangements",
+        "Acquire and review the official standard under lawful access; do not reconstruct copyrighted clause text from secondary summaries",
+        "Compare Edition 3 with Edition 2 and verify all changes, including the hot-water compliance route identified by SAIAT",
+        "Confirm applicable occupancy/building classes, compliance route and project/municipal treatment with the responsible qualified person and authority",
+        "Bind calculations, equipment/product declarations, source/weather inputs and professional responsibility to the exact project and design revision"
       ],
-      "scope": "Where energy provisions apply; project-dependent"
+      "scope": "Where energy provisions apply; project-dependent",
+      "latest_identified_edition": "SANS 10400-XA:2026 Edition 3",
+      "latest_edition_evidence": {
+        "source": "SAIAT professional CPD portal",
+        "source_url": "https://cpd.saiat.org.za/sans-10400-xa-3rd-edition-cc",
+        "observation_date": "2026-11-07",
+        "reported_publication_timing": "early 2026",
+        "reported_change_focus": "method for satisfying energy-efficient hot-water requirements",
+        "source_quality": "specialist_secondary_source; presenter identified as chair of SABS TC060 and member of the latest review workgroup",
+        "primary_sabs_catalogue_and_full_text_independently_verified": false
+      }
     },
     {
       "source_id": "SA-AGREMENT-CERTIFICATION",
