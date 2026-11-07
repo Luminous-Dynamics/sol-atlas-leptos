@@ -13,7 +13,9 @@ fn valid_commit(value: &str) -> bool {
 fn main() -> ExitCode {
     let mut args = env::args().skip(1);
     let Some(corpus_path) = args.next() else {
-        eprintln!("usage: city-production-geography-reference CORPUS.json --source-commit <40-hex-sha>");
+        eprintln!(
+            "usage: city-production-geography-reference CORPUS.json --source-commit <40-hex-sha>"
+        );
         return ExitCode::from(2);
     };
     let Some(flag) = args.next() else {
@@ -25,7 +27,9 @@ fn main() -> ExitCode {
         return ExitCode::from(2);
     };
     if flag != "--source-commit" || !valid_commit(&source_commit) {
-        eprintln!("source commit must be supplied as --source-commit followed by 40 hex characters");
+        eprintln!(
+            "source commit must be supplied as --source-commit followed by 40 hex characters"
+        );
         return ExitCode::from(2);
     }
 
@@ -52,12 +56,17 @@ fn main() -> ExitCode {
         || corpus["classification"] != "synthetic_fixture_only"
         || cases.len() != 24
     {
-        eprintln!("unexpected production geography corpus identity, schema, classification or case count");
+        eprintln!(
+            "unexpected production geography corpus identity, schema, classification or case count"
+        );
         return ExitCode::from(2);
     }
 
     let digest = Sha256::digest(&bytes);
-    let corpus_sha256 = digest.iter().map(|byte| format!("{byte:02x}")).collect::<String>();
+    let corpus_sha256 = digest
+        .iter()
+        .map(|byte| format!("{byte:02x}"))
+        .collect::<String>();
     let mut failures = 0usize;
     let mut scenario_receipts = Vec::with_capacity(cases.len());
 
@@ -89,7 +98,10 @@ fn main() -> ExitCode {
         "claim_ceiling": "synthetic owner-receipt conformance and hard-gate aggregation only; not site selection, productive capacity, routing, utility engineering, statutory approval or community consent",
         "scenarios": scenario_receipts
     });
-    println!("{}", serde_json::to_string_pretty(&receipt).expect("receipt serializes"));
+    println!(
+        "{}",
+        serde_json::to_string_pretty(&receipt).expect("receipt serializes")
+    );
 
     if failures == 0 {
         ExitCode::SUCCESS
