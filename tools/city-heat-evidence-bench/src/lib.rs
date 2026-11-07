@@ -199,11 +199,11 @@ mod tests {
         corpus()["cases"].as_array().unwrap().iter().find(|x| x["case_id"]==id).unwrap().clone()
     }
     #[test]
-    fn corpus_has_26_unique_synthetic_cases() {
+    fn corpus_has_27_unique_synthetic_cases() {
         let c=corpus();
         assert_eq!(c["classification"],"synthetic_fixture_only");
         assert_eq!(c["corpus_id"],"CITY-HEAT-EVIDENCE-CORPUS-V0.1");
-        let xs=c["cases"].as_array().unwrap();assert_eq!(xs.len(),26);
+        let xs=c["cases"].as_array().unwrap();assert_eq!(xs.len(),27);
         let ids=xs.iter().map(|x|x["case_id"].as_str().unwrap().to_owned()).collect::<BTreeSet<_>>();
         assert_eq!(ids.len(),xs.len());
     }
@@ -214,6 +214,18 @@ mod tests {
             assert!(matches_expected(&actual,&x["expected"]),"{} mismatch\nactual: {}\nexpected: {}",x["case_id"],serde_json::to_string_pretty(&actual).unwrap(),serde_json::to_string_pretty(&x["expected"]).unwrap());
         }
     }
+    #[test]
+    fn programme_impact_claim_is_reserved_and_cannot_pass_as_h5() {
+        let result = evaluate_case(&case("HA-027"));
+        assert_eq!(result["disposition"], "Unsupported");
+        assert_eq!(result["claim_level"], "H6");
+        assert_eq!(result["allowed"], false);
+        assert_eq!(
+            result["reason_codes"],
+            serde_json::json!(["CLAIM_LEVEL_UNSUPPORTED"])
+        );
+    }
+
     #[test]
     fn ward_and_sample_evidence_cannot_be_promoted() {
         for id in ["HA-007","HA-008"] {assert_eq!(evaluate_case(&case(id))["disposition"],"Blocked");}
