@@ -599,7 +599,10 @@ mod tests {
     #[test]
     fn owner_schema_and_source_revision_mismatches_are_not_comparable() {
         for id in ["SB-009", "SB-023"] {
-            assert_eq!(evaluate_case(&case(id))["binding_disposition"], "NotComparable");
+            assert_eq!(
+                evaluate_case(&case(id))["binding_disposition"],
+                "NotComparable"
+            );
         }
     }
 
