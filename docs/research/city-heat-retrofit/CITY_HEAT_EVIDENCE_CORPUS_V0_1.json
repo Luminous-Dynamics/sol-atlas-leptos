@@ -2035,6 +2035,95 @@
         ],
         "reported_unknown_cohort_fraction": null
       }
+    },
+    {
+      "case_id": "HA-027",
+      "description": "Programme-impact claim is reserved until a population-level causal evaluation contract is implemented.",
+      "input": {
+        "requested_level": "H6",
+        "source": {
+          "exists": true,
+          "rights_state": "verified"
+        },
+        "weather": {
+          "class": "observed_reanalysis",
+          "use": "coarse_exposure",
+          "period_start": "2025-01-01",
+          "period_end": "2025-12-31",
+          "scenario_id": null
+        },
+        "spatial": {
+          "native_level": "ward",
+          "target_level": "ward",
+          "boundary_match": true,
+          "coverage_fraction": 1,
+          "require_full_coverage": false
+        },
+        "population": {
+          "kind": "ward_estimate",
+          "native_level": "ward",
+          "claim_mode": "aggregate_estimate",
+          "weights_documented": true,
+          "uncertainty_documented": true
+        },
+        "cohort": {
+          "coverage_fraction": 1,
+          "require_full_coverage": false
+        },
+        "model": {
+          "required": false,
+          "process_exit": "success",
+          "convergence": "converged",
+          "scope_match": true,
+          "validation_scope": "in_scope",
+          "evidence_state": "current",
+          "outputs": [
+            "operative_temperature",
+            "overheating_degree_hours"
+          ]
+        },
+        "measurement": {
+          "required": false,
+          "source_kind": "measured",
+          "calibration_state": "current",
+          "quality_state": "valid",
+          "consent_state": "approved",
+          "spatial_aggregation_allowed": true
+        },
+        "intervention": {
+          "status": "not_applicable",
+          "installation_receipt": false,
+          "inspection_receipt": false,
+          "commissioning_receipt": false,
+          "pre_post_measurements": false,
+          "comparison_design": false
+        },
+        "strategy": {
+          "uses_natural_ventilation": false,
+          "ventilation_available": true
+        }
+      },
+      "expected": {
+        "case_id": "HA-027",
+        "disposition": "Unsupported",
+        "claim_level": "H6",
+        "allowed": false,
+        "reason_codes": [
+          "CLAIM_LEVEL_UNSUPPORTED"
+        ],
+        "reported_unknown_cohort_fraction": null
+      }
     }
+  ],
+  "reserved_claim_levels": [
+    "H6_programme_impact_not_implemented_in_v0_1"
+  ],
+  "implemented_claim_levels": [
+    "H0",
+    "H1",
+    "H2",
+    "H3",
+    "H4",
+    "H5"
   ]
 }
