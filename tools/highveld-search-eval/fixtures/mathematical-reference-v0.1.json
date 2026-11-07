@@ -494,7 +494,7 @@
               "reported_feasible": false,
               "dependency_status": "current",
               "verification": {
-                "kind": "high_fidelity",
+                "kind": "surrogate_only",
                 "converged": true,
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
@@ -683,7 +683,7 @@
               "reported_feasible": false,
               "dependency_status": "current",
               "verification": {
-                "kind": "high_fidelity",
+                "kind": "surrogate_only",
                 "converged": true,
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
@@ -872,7 +872,7 @@
               "reported_feasible": false,
               "dependency_status": "current",
               "verification": {
-                "kind": "high_fidelity",
+                "kind": "surrogate_only",
                 "converged": true,
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
@@ -1061,7 +1061,7 @@
               "reported_feasible": false,
               "dependency_status": "current",
               "verification": {
-                "kind": "high_fidelity",
+                "kind": "surrogate_only",
                 "converged": true,
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
@@ -1250,7 +1250,7 @@
               "reported_feasible": false,
               "dependency_status": "current",
               "verification": {
-                "kind": "high_fidelity",
+                "kind": "surrogate_only",
                 "converged": true,
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
@@ -1439,7 +1439,7 @@
               "reported_feasible": false,
               "dependency_status": "current",
               "verification": {
-                "kind": "high_fidelity",
+                "kind": "surrogate_only",
                 "converged": true,
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
@@ -1628,7 +1628,7 @@
               "reported_feasible": false,
               "dependency_status": "current",
               "verification": {
-                "kind": "high_fidelity",
+                "kind": "surrogate_only",
                 "converged": true,
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
@@ -1817,7 +1817,7 @@
               "reported_feasible": false,
               "dependency_status": "current",
               "verification": {
-                "kind": "high_fidelity",
+                "kind": "surrogate_only",
                 "converged": true,
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
@@ -2006,7 +2006,7 @@
               "reported_feasible": false,
               "dependency_status": "current",
               "verification": {
-                "kind": "high_fidelity",
+                "kind": "surrogate_only",
                 "converged": true,
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
@@ -2195,7 +2195,7 @@
               "reported_feasible": false,
               "dependency_status": "current",
               "verification": {
-                "kind": "high_fidelity",
+                "kind": "surrogate_only",
                 "converged": true,
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
@@ -2384,7 +2384,7 @@
               "reported_feasible": false,
               "dependency_status": "current",
               "verification": {
-                "kind": "high_fidelity",
+                "kind": "surrogate_only",
                 "converged": true,
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
@@ -2573,7 +2573,7 @@
               "reported_feasible": false,
               "dependency_status": "current",
               "verification": {
-                "kind": "high_fidelity",
+                "kind": "surrogate_only",
                 "converged": true,
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
@@ -2762,7 +2762,7 @@
               "reported_feasible": false,
               "dependency_status": "current",
               "verification": {
-                "kind": "high_fidelity",
+                "kind": "surrogate_only",
                 "converged": true,
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
@@ -2951,7 +2951,7 @@
               "reported_feasible": false,
               "dependency_status": "current",
               "verification": {
-                "kind": "high_fidelity",
+                "kind": "surrogate_only",
                 "converged": true,
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
@@ -3140,7 +3140,7 @@
               "reported_feasible": false,
               "dependency_status": "current",
               "verification": {
-                "kind": "high_fidelity",
+                "kind": "surrogate_only",
                 "converged": true,
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
@@ -3329,7 +3329,7 @@
               "reported_feasible": false,
               "dependency_status": "current",
               "verification": {
-                "kind": "high_fidelity",
+                "kind": "surrogate_only",
                 "converged": true,
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
@@ -3518,7 +3518,7 @@
               "reported_feasible": false,
               "dependency_status": "current",
               "verification": {
-                "kind": "high_fidelity",
+                "kind": "surrogate_only",
                 "converged": true,
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
@@ -3707,7 +3707,7 @@
               "reported_feasible": false,
               "dependency_status": "current",
               "verification": {
-                "kind": "high_fidelity",
+                "kind": "surrogate_only",
                 "converged": true,
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
@@ -3896,7 +3896,7 @@
               "reported_feasible": false,
               "dependency_status": "current",
               "verification": {
-                "kind": "high_fidelity",
+                "kind": "surrogate_only",
                 "converged": true,
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
@@ -4085,7 +4085,7 @@
               "reported_feasible": false,
               "dependency_status": "current",
               "verification": {
-                "kind": "high_fidelity",
+                "kind": "surrogate_only",
                 "converged": true,
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
