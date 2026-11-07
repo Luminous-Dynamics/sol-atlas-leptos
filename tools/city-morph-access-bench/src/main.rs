@@ -1,8 +1,9 @@
 use std::env;
 use std::fs;
 use std::process::ExitCode;
+use std::path::PathBuf;
 
-use city_morph_access_reference::{evaluate_case, matches_expected};
+use city_morph_access_reference::{evaluate_case, matches_expected, validate_source_register};
 use serde_json::json;
 use sha2::{Digest, Sha256};
 
@@ -58,6 +59,35 @@ fn main() -> ExitCode {
         return ExitCode::from(2);
     }
 
+    let register_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("../../docs/research/city-morph-access/JOHANNESBURG_SOURCE_REGISTER_V0_1.json");
+    let register_bytes = match fs::read(&register_path) {
+        Ok(bytes) => bytes,
+        Err(error) => {
+            eprintln!("failed to read Johannesburg source register: {error}");
+            return ExitCode::from(2);
+        }
+    };
+    let source_register: serde_json::Value = match serde_json::from_slice(&register_bytes) {
+        Ok(value) => value,
+        Err(error) => {
+            eprintln!("invalid Johannesburg source register JSON: {error}");
+            return ExitCode::from(2);
+        }
+    };
+    let source_count = match validate_source_register(&source_register) {
+        Ok(count) => count,
+        Err(errors) => {
+            eprintln!("invalid Johannesburg source register: {}", errors.join(", "));
+            return ExitCode::from(2);
+        }
+    };
+    let source_register_digest = Sha256::digest(&register_bytes);
+    let source_register_sha256 = source_register_digest
+        .iter()
+        .map(|byte| format!("{byte:02x}"))
+        .collect::<String>();
+
     let digest = Sha256::digest(&bytes);
     let corpus_sha256 = digest
         .iter()
@@ -90,6 +120,11 @@ fn main() -> ExitCode {
         "scenario_count": cases.len(),
         "failure_count": failures,
         "corpus_sha256": corpus_sha256,
+        "source_register_id": source_register["register_id"],
+        "source_register_as_of": source_register["as_of"],
+        "source_register_classification": source_register["classification"],
+        "source_register_count": source_count,
+        "source_register_sha256": source_register_sha256,
         "source_commit": source_commit,
         "claim_ceiling": "synthetic effective-access reference agreement only; not real city access, safety, affordability, service quality, planning, or community-consent qualification",
         "scenarios": scenario_receipts,
