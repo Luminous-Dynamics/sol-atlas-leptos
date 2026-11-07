@@ -25,6 +25,10 @@ fn main() -> ExitCode {
                 "station_metadata_crosscheck_count={}",
                 report.station_metadata_crosschecks
             );
+            println!(
+                "station_network_profile_count={}",
+                report.station_network_profiles
+            );
             println!("violation_count=0");
             println!("result=definition_valid_synthetic_only");
             println!("claim_ceiling=no_geometry_buildability_safety_or_compliance_validation");
