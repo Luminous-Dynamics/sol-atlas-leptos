@@ -1000,7 +1000,8 @@ mod tests {
                 "evidence_tier": "E1",
                 "claim_ceiling": CLAIM_CEILING,
                 "enumeration_complete": true,
-                "reference_method_id": "exact"
+                "reference_method_id": "exact",
+                "reference_point_normalized": [1.2, 1.2]
             },
             "objective_schema_sha256": objective_digest,
             "objectives": [
@@ -1019,7 +1020,6 @@ mod tests {
                     "normalization_upper": 10.0
                 }
             ],
-            "reference_point_normalized": [1.2, 1.2],
             "hard_gates": [
                 {"id": "step_free_task_fixture", "authority_scope": "synthetic_boolean_gate_only"},
                 {"id": "life_safety_task_fixture", "authority_scope": "synthetic_boolean_gate_only"}
@@ -1209,7 +1209,7 @@ mod tests {
     #[test]
     fn malformed_reference_point_is_rejected() {
         let mut bundle = valid_bundle();
-        bundle["reference_point_normalized"] = json!([0.8, 1.2]);
+        bundle["fixture"]["reference_point_normalized"] = json!([0.8, 1.2]);
         let report = evaluate_bundle(&bundle);
         assert!(has_violation(
             &report,
