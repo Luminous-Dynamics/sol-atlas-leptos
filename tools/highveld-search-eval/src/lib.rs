@@ -707,7 +707,7 @@ pub fn evaluate_bundle(bundle: &Value) -> EvaluationReport {
         reference_method_id = None;
     }
 
-    let mut budget_signature: Option<(u64, u64, u64)> = None;
+    let mut budget_signature: Option<(u64, u64, u64, u64, u64)> = None;
     let mut reports = Vec::new();
     let mut exact_reference_front_ids = Vec::new();
     let mut exact_reference_found = false;
