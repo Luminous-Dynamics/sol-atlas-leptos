@@ -255,3 +255,39 @@ Do not infer local productive capability from a map pin or declared warehouse. U
 ## Claim boundary
 
 This matrix is a method-selection and experiment-design aid. It does not recommend one material/system for Johannesburg, establish actual costs or productivity, certify a building/robot, validate local supply chains, or represent community preference. A defensible claim of superiority needs identical functional requirements, full boundaries, measured outcomes, uncertainty, independent acceptance and review by the appropriate professionals and affected people.
+
+
+## 12. Thermal service and climate resilience must be a first-class design output
+
+Construction-method comparisons cannot end at embodied carbon, annual energy or nominal U-value. Each functionally equivalent assembly and building alternative must be evaluated in the context of its climate, occupant/service profile and operating constraints.
+
+Report, where the qualified method supports them:
+- summer daytime peak and hot-night persistence;
+- indoor operative temperature and overheating duration/degree-hours under a declared method;
+- winter nighttime comfort and heating need;
+- humidity/moisture and condensation risk;
+- natural-ventilation availability when outdoor air quality, temperature, wind, security and noise permit it;
+- peak cooling demand and grid-outage behaviour;
+- water demand for any evaporative strategy;
+- maintenance, cleaning, repair and component replacement;
+- uncertainty under observed, typical, extreme and future weather profiles.
+
+A typical meteorological year is useful for energy screening but does not establish performance during an observed heatwave or a future climate. Modelled trajectories and measured indoor outcomes must retain separate evidence labels.
+
+Use the existing Symtropy thermal and resilience owners:
+- #1766 resident-led spatial design;
+- #1848 time-dependent habitability under heat/cold and utility outages;
+- #1900 version-pinned EnergyPlus adapter;
+- #1790 solver-neutral simulation boundary.
+
+Sol-Atlas [CITY-HEAT-RETROFIT-ATLAS-001 #593](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/593) will spatially project outdoor exposure, building cohorts, modelled thermal trajectories, measured outcomes and retrofit delivery capacity. It must not replace those solvers or turn ward-scale population/weather evidence into per-building indoor temperatures.
+
+Recent research reinforces the need for evidence-rich field comparison:
+- A 2026 passive-cooling evidence map synthesizes 197 studies but finds climate context missing in 52, numerical outcomes unrecoverable in 85 and only one experimental/test-cell/prototype design. This points to the value of measured, climate-contextual prototype testing rather than simulation-only rankings.
+- A randomized pilot in 40 rural African houses found different day/night responses across cool roofs, mat ceilings and cross-ventilation; its effects are specific to that study's climate and housing, not transferable Johannesburg coefficients.
+
+References:
+- https://doi.org/10.1016/j.rineng.2026.112105
+- https://doi.org/10.1038/s41591-025-04104-9
+- https://climate.onebuilding.org/
+- https://data.ashrae.org/standard140/
