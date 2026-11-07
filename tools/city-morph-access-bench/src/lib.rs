@@ -55,6 +55,115 @@ fn string_array<'a>(value: &'a Value, key: &str) -> Option<Vec<&'a str>> {
         .map(Value::as_str)
         .collect()
 }
+/// Validate the Johannesburg source inventory without implying that any
+/// layer has been acquired, licensed for redistribution, or qualified.
+pub fn validate_source_register(register: &Value) -> Result<usize, Vec<String>> {
+    let mut errors = BTreeSet::<String>::new();
+
+    if string(register, "schema_id") != "org.luminousdynamics.citymorph.source-register"
+        || string(register, "schema_version") != "0.1.0"
+        || string(register, "register_id") != "JOHANNESBURG-SOURCE-REGISTER-V0.1"
+        || string(register, "classification") != "research_inventory_not_ingested_data"
+        || string(register, "as_of").is_empty()
+    {
+        errors.insert("SOURCE_REGISTER_IDENTITY_INVALID".to_owned());
+    }
+
+    let access_states = array(register, "access_status_values")
+        .unwrap_or_default()
+        .iter()
+        .filter_map(Value::as_str)
+        .collect::<BTreeSet<_>>();
+    let rights_states = array(register, "rights_status_values")
+        .unwrap_or_default()
+        .iter()
+        .filter_map(Value::as_str)
+        .collect::<BTreeSet<_>>();
+
+    if access_states.is_empty() {
+        errors.insert("SOURCE_REGISTER_ACCESS_STATES_MISSING".to_owned());
+    }
+    if rights_states.is_empty() {
+        errors.insert("SOURCE_REGISTER_RIGHTS_STATES_MISSING".to_owned());
+    }
+
+    let Some(sources) = array(register, "sources") else {
+        errors.insert("SOURCE_REGISTER_SOURCES_MISSING".to_owned());
+        return Err(errors.into_iter().collect());
+    };
+    if sources.is_empty() {
+        errors.insert("SOURCE_REGISTER_SOURCES_EMPTY".to_owned());
+    }
+
+    let mut source_ids = BTreeSet::<String>::new();
+    for source in sources {
+        let source_id = string(source, "source_id");
+        if source_id.is_empty() || !source_ids.insert(source_id.to_owned()) {
+            errors.insert("SOURCE_ID_MISSING_OR_DUPLICATE".to_owned());
+        }
+        if string(source, "name").is_empty() || string(source, "source_type").is_empty() {
+            errors.insert(format!("SOURCE_METADATA_MISSING:{source_id}"));
+        }
+
+        let access_status = string(source, "access_status");
+        let rights_status = string(source, "rights_status");
+        if !access_states.contains(access_status) {
+            errors.insert(format!("SOURCE_ACCESS_STATUS_UNSUPPORTED:{source_id}"));
+        }
+        if !rights_states.contains(rights_status) {
+            errors.insert(format!("SOURCE_RIGHTS_STATUS_UNSUPPORTED:{source_id}"));
+        }
+
+        match source.get("url") {
+            Some(Value::String(url)) if url.starts_with("https://") || url.starts_with("http://") => {}
+            Some(Value::Null) if access_status == "Unknown" => {}
+            _ => {
+                errors.insert(format!("SOURCE_URL_INVALID_OR_UNVERIFIED:{source_id}"));
+            }
+        }
+
+        if rights_status == "VerifiedOpenLicense" && string(source, "license").is_empty() {
+            errors.insert(format!("OPEN_LICENSE_WITHOUT_TERMS:{source_id}"));
+        }
+
+        let Some(required_checks) = array(source, "required_checks") else {
+            errors.insert(format!("SOURCE_REQUIRED_CHECKS_MISSING:{source_id}"));
+            continue;
+        };
+        if required_checks.is_empty()
+            || required_checks
+                .iter()
+                .any(|value| value.as_str().is_none_or(str::is_empty))
+        {
+            errors.insert(format!("SOURCE_REQUIRED_CHECKS_INVALID:{source_id}"));
+        }
+
+        let Some(evidence_urls) = array(source, "evidence_urls") else {
+            errors.insert(format!("SOURCE_EVIDENCE_URLS_MISSING:{source_id}"));
+            continue;
+        };
+        if evidence_urls.is_empty()
+            || evidence_urls.iter().any(|value| {
+                !value
+                    .as_str()
+                    .is_some_and(|url| url.starts_with("https://") || url.starts_with("http://"))
+            })
+        {
+            errors.insert(format!("SOURCE_EVIDENCE_URLS_INVALID:{source_id}"));
+        }
+    }
+
+    if string(register, "claim_ceiling").is_empty() {
+        errors.insert("SOURCE_REGISTER_CLAIM_CEILING_MISSING".to_owned());
+    }
+
+    if errors.is_empty() {
+        Ok(sources.len())
+    } else {
+        Err(errors.into_iter().collect())
+    }
+}
+
 fn empty_result(disposition: Disposition, reasons: BTreeSet<String>) -> Value {
     json!({
         "disposition": disposition.as_str(),
@@ -658,6 +767,75 @@ mod tests {
             .join("../../docs/research/city-morph-access/CITY_MORPH_ACCESS_CORPUS_V0_1.json");
         let bytes = std::fs::read(path).expect("city-morph corpus must exist");
         serde_json::from_slice(&bytes).expect("city-morph corpus must parse")
+    }
+
+    fn source_register() -> Value {
+        let path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join(
+            "../../docs/research/city-morph-access/JOHANNESBURG_SOURCE_REGISTER_V0_1.json",
+        );
+        let bytes = std::fs::read(path).expect("Johannesburg source register must exist");
+        serde_json::from_slice(&bytes).expect("Johannesburg source register must parse")
+    }
+
+    #[test]
+    fn source_register_is_rights_aware_and_keeps_access_separate() {
+        let register = source_register();
+        let count = super::validate_source_register(&register)
+            .expect("source register must satisfy its evidence contract");
+        assert_eq!(count, 18);
+
+        let sources = register["sources"].as_array().unwrap();
+        let online_maps = sources
+            .iter()
+            .find(|source| source["source_id"] == "COJ-EXTERNAL-ONLINE-MAPS")
+            .unwrap();
+        assert_eq!(online_maps["access_status"], "VerifiedPublic");
+        assert_eq!(online_maps["rights_status"], "PublicWithConditions");
+
+        let transit = sources
+            .iter()
+            .find(|source| source["source_id"] == "JOHANNESBURG-TRANSIT-GTFS")
+            .unwrap();
+        assert_eq!(transit["access_status"], "Unknown");
+        assert_eq!(transit["rights_status"], "Unknown");
+        assert!(transit["url"].is_null());
+
+        let survey = sources
+            .iter()
+            .find(|source| source["source_id"] == "GCRO-QOL7-2023-24")
+            .unwrap();
+        assert_eq!(survey["rights_status"], "VerifiedOpenLicense");
+        assert!(survey["license"].as_str().unwrap().contains("CC BY 4.0"));
+    }
+
+    #[test]
+    fn verified_open_license_requires_explicit_license_terms() {
+        let mut register = source_register();
+        let osm = register["sources"]
+            .as_array_mut()
+            .unwrap()
+            .iter_mut()
+            .find(|source| source["source_id"] == "OPENSTREETMAP-SOUTH-AFRICA")
+            .unwrap();
+        osm.as_object_mut().unwrap().remove("license");
+        let errors = super::validate_source_register(&register)
+            .expect_err("open-license status without terms must fail closed");
+        assert!(errors.iter().any(|error| error == "OPEN_LICENSE_WITHOUT_TERMS:OPENSTREETMAP-SOUTH-AFRICA"));
+    }
+
+    #[test]
+    fn public_access_without_a_verified_url_or_rights_is_not_promoted() {
+        let mut register = source_register();
+        let transit = register["sources"]
+            .as_array_mut()
+            .unwrap()
+            .iter_mut()
+            .find(|source| source["source_id"] == "JOHANNESBURG-TRANSIT-GTFS")
+            .unwrap();
+        transit["access_status"] = serde_json::Value::String("VerifiedPublic".to_owned());
+        let errors = super::validate_source_register(&register)
+            .expect_err("a feed with no URL cannot be marked publicly verified");
+        assert!(errors.iter().any(|error| error == "SOURCE_URL_INVALID_OR_UNVERIFIED:JOHANNESBURG-TRANSIT-GTFS"));
     }
 
     #[test]
