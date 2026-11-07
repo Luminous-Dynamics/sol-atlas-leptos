@@ -79,6 +79,16 @@ The project is in Johannesburg, so the review team should use the actual City of
 
 This desk review is not legal advice. The project team must obtain a dated applicability opinion from its South African professionals and relevant authorities.
 
+## 5A. Professional registration scope clarification — checked 7 November 2026
+
+The review matrix uses discipline- and task-matched practitioners; it does not assume that every architectural task must be signed by a Professional Architect or that every engineering task requires a Professional Engineer specifically.
+
+- SACAP lists four architectural professional registration categories: Professional Architect, Professional Senior Architectural Technologist, Professional Architectural Technologist and Professional Architectural Draughtsperson. The actual service, project type, scale/complexity and legal submission role must be allocated within the person’s registered category and competence: https://sacapsa.com/registration/categories.
+- ECSA’s Identification of Engineering Work Rules define and demarcate engineering activities within registration categories and disciplines. ECSA states those Rules and the Enforcement Rules are gazetted and in effect; the official Rules PDF gives an effective date of 19 September 2025. The appointment must therefore match the relevant category, discipline and actual identified work, not rely on a job title alone: https://www.ecsa.co.za/about-ecsa/idoew-and-enforcement-rules/ and https://www.ecsa.co.za/enforcement-and-conduct/identification-of-engineering-work/.
+- The Government's registration page confirms that ECSA registration is statutory for consulting engineering work, taking responsibility for engineering work and specified statutory functions (including the National Building Regulations): https://www.gov.za/services/services-residents/world-work/professional-registration/register-professional-engineer.
+
+The professional appointment schedule should record the exact registration category, discipline, IDoEW scope, competence evidence and any specialist registration or authority separately for each work package. Where a service lies outside the reviewer's scope, record the appropriate additional competent professional/authority rather than stretching the first reviewer's remit.
+
 ## 6. Required independent review panel
 
 Reviewers should be independent of the design author where practical, appropriately registered/competent for the work, and explicitly appointed to a bounded scope.
