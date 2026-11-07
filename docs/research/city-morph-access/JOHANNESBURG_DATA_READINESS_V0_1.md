@@ -11,6 +11,44 @@ This file is a research inventory of candidate sources, not an ingested or quali
 - OSM is usable under ODbL with attribution and share-alike obligations; completeness and local positional correctness must be audited.
 - No current official Johannesburg-area GTFS feed has been verified here. This is an explicit unresolved source gap, not a claim that no feed exists.
 
+## Johannesburg municipal spatial-data path (verified public description)
+
+The City of Johannesburg Corporate Geo-Informatics page provides a more actionable starting point than a generic municipal map reference:
+
+- The City publishes a link to its **Spatial Data Inventory 2024**. The page says the inventory lists dataset descriptions, data type/format, creation date, data owner/contact and usage limitations. The inventory PDF itself has not yet been retrieved and parsed in this work; per-layer metadata remain unverified.
+- The City says its external eServices Online Maps viewer is accessible without registering as an eServices client. Its user guidance says **some** map layers can be extracted as shapefile, KML or DXF. It also says CGIS is not the data custodian for all published layers and directs users to each layer's owner.
+- The City's 2023 aerial product is reported to cover 1,644 km² and includes 15 cm pixel-resolution orthophotos, LiDAR with a minimum 4 points/m² and derived 25 cm contours. Orthophotos were made available on the Online Map Viewers from 2024-04-09. Orthophotos, contours and ground/non-ground LiDAR point data are available on request from CGIS Projects. Accuracy report, CRS/vertical datum, per-tile capture date and reuse terms must be confirmed before use.
+- Contact points published by the City include cgisprojects@joburg.org.za (digital data/mapping) and ims@joburg.org.za (Online Maps/imagery queries). These are data-discovery routes, not permission to reuse a layer.
+
+**Rules:** anonymous viewer access does not prove redistribution permission; a visible layer does not prove it is complete/current; orthophotos/LiDAR can support bounded geometry/massing analysis but cannot establish roof/wall materials, insulation, ownership, occupancy or indoor temperature.
+
+Source: https://eservices.joburg.org.za/sites/cgismaps/Pages/default.aspx  
+Extraction guidance: https://edit.eservices.joburg.org.za/Pages/OnlineMaps.aspx
+
+## GreenBook MetroView climate-risk source
+
+GreenBook publicly describes MetroView as providing quantified spatial climate-risk information up to **ward level**, covering current and 2050 climate projections and components for hazard likelihood, exposure and vulnerability. The Johannesburg-specific link opens a JavaScript web application.
+
+What is not yet verified: direct data export/API, underlying climate model/scenario/period/ensemble, boundary vintage, uncertainty, data update cadence and licence/redistribution. Treat this as a candidate ward-level context source only until its technical documentation and reuse rights are acquired. Never disaggregate its ward-level risk to individual buildings or households.
+
+- Overview: https://greenbook.co.za/tool-landing-page.html
+- Johannesburg profile application: https://joburg-riskprofile.greenbook.co.za/
+
+## Exact Gauteng TMYx candidates (listed, not ingested)
+
+The 2026 Gauteng listing includes two Johannesburg TMYx files for 2011–2025:
+
+| Candidate | Listed filename | Listing size | State |
+|---|---|---:|---|
+| Johannesburg-Tambo International Airport (WMO 683680) | `ZAF_GT_Johannesburg-Tambo.Intl.AP.683680_TMYx.2011-2025.zip` | 433 KiB | Listed only; not downloaded or header-validated |
+| Johannesburg Botanical Gardens (WMO 683610) | `ZAF_GT_Johannesburg.Botanical.Gardens.683610_TMYx.2011-2025.zip` | 385 KiB | Listed only; not downloaded or header-validated |
+
+Retain both candidates for station-representativeness comparison. Do not assume the airport station represents dense built-up or valley microclimates, or that botanical-garden conditions represent all neighbourhoods. For each file, inspect EPW/STAT/COMMENT1 metadata, coordinates, elevation, period of record, missingness, time conventions, solar provenance and rights before selecting any reference profile. TMYx remains a typical-weather energy-screening source—not an observed heatwave, design extreme or future projection.
+
+Sources:
+- Gauteng/South Africa listing: https://climate.onebuilding.org/WMO_Region_1_Africa/ZAF_South_Africa/index.html
+- TMYx sources and release notes: https://climate.onebuilding.org/sources/default.html
+
 ## Rules
 
 1. No data file enters the pilot without a publisher, source URL, rights state, retrieved-at timestamp, version/effective date and content digest.
