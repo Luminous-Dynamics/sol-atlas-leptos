@@ -68,6 +68,33 @@ The initial program includes:
 
 Actual occupancy, room count, care requirements, mobility, privacy, work patterns and cultural practices must be supplied by real residents at a later stage. Do not infer these from age, gender, ethnicity or other demographic proxies.
 
+## 3A. Functional relationship graph — task-level, not geometric
+
+The machine-readable scenario now includes 11 explicit relationships among the synthetic functional-programme nodes. This is a small requirements graph for Symthaea #7790 and the downstream spatial-design owner #1766 to consume; it is **not** a new room ontology, circulation solver or exact geometry representation.
+
+Hard relationships in v0.1:
+- Arrival to great hall, kitchen/dining, work/making and outdoor living must have step-free routes.
+- Arrival to the accessible washroom must provide arrival-level access.
+- Visitor routing from arrival to the great hall must not require passage through sleeping rooms.
+- Maintenance/service access between plant and arrival must not require passage through sleeping rooms.
+
+Negotiable preferences in v0.1:
+- Kitchen/dining should be adjacent to outdoor living.
+- Library/quiet and sleeping rooms should be acoustically separated from the great hall.
+- Work/making should be adjacent to service/plant functions.
+
+These links express the *kind of relationship to evaluate*, not a distance, dimension, shortest path, floor-plan layout or approved accessibility standard. A hard relationship is a requirement to be verified by an appropriate spatial/accessibility analysis; a preference may be negotiated with actual residents. Neither is proof that a design satisfies it.
+
+The graph must preserve:
+- stable relationship IDs;
+- source and target function IDs that exist in the declared programme;
+- requirement class (`hard` versus `preference`);
+- explicit excluded intermediate functions where privacy/maintenance routes require them;
+- reason and provenance;
+- uncertainty or stakeholder disagreement when a real household replaces the synthetic brief.
+
+Do not infer paths from adjacency alone, or infer acoustic separation from a room name. Geometry, distances, gradients, door clearances, travel paths, fire egress and acoustics require separate exact geometry and specialist review. The task graph is an input contract for search, not an engineering result.
+
 ## 4. Four architectural families
 
 All alternatives must satisfy the same functional program and share the same synthetic site envelope, weather inputs, budget interval and evaluation assumptions.
