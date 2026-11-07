@@ -138,6 +138,36 @@ Add exact mutation fixtures:
 
 The v0.1 manifest checker covers cross-file graph integrity and type mapping only. The remaining geometry, route, accessibility and acoustic evaluation requires later qualified providers and reviewers.
 
+## 3C. Climate-source comparison and data-fitness protocol
+
+The first source candidates are the two Climate.OneBuilding Johannesburg 2011–2025 TMYx files. A second provider methodology, EPW.tools, is recorded separately as research-only. Its own pages describe station-first fusion, ERA5/MERRA-2 gap filling, satellite solar where available, and AMY/TMY/future products; its published ASHRAE and SURFRAD validation is provider-reported and has not been independently reproduced locally.
+
+Compare source methods without collapsing their product classes:
+
+| Product class | Proper role | Not a substitute for |
+|---|---|---|
+| TMY / TMYx | Typical-year energy/design screening | Heatwave, hottest-year, future climate or operational calibration |
+| AMY | Exact-hour historical model calibration and measurement/verification when the same year has metered building observations | Typical design year, design extreme or future scenario |
+| Historical heatwave/extreme episode | Stress testing against an explicitly sourced actual episode | TMY average, future projection or statutory design condition |
+| Future climate series | Lifecycle sensitivity under declared GCM/SSP/period/method | Observed future weather or guaranteed forecast |
+| Site/station measurements | Local validation and calibration, subject to sensor quality and coverage | A citywide trend or distant station without a representativeness analysis |
+
+For every provider/file, record:
+- provider and file/product identity;
+- source datasets and source period;
+- exact coordinates, elevation, time zone and spatial grid/station;
+- hourly variables, units, missingness, substitutions and solar provenance;
+- EPW/STAT/DDY headers and all comments;
+- archive and extracted-file SHA-256;
+- reuse licence and redistribution restrictions;
+- station-to-site distance/elevation and representativeness uncertainty;
+- independent comparison to local station measurements where possible;
+- exact downstream model and claim using the file.
+
+EPW.tools' Johannesburg trend page is based on a 0.5-degree NASA POWER/MERRA-2 grid cell and explicitly notes that it averages the city and surroundings; do not treat its reported +0.84 °C 1981–1990 to 2016–2025 change as a central-city thermometer or parcel-specific trend. Its published station validation should be reported with its actual scope (e.g. the seven NOAA SURFRAD sites for hourly checks), not generalized to South Africa.
+
+The source benchmark should score file fitness/coverage and uncertainty, not decide a provider winner by marketing claims. Do not average two TMY files from different locations or providers without an explicit, justified method and sensitivity analysis.
+
 ## 4. Frozen inputs
 
 Before scoring:
