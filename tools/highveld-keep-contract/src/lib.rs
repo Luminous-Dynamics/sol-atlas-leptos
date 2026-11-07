@@ -401,7 +401,7 @@ pub fn validate_values(scenario: &Value, parameters: &Value) -> ValidationReport
 
     // Station identity/coordinate records are metadata cross-checks only.
     // They are not weather observations and cannot qualify a weather file or site.
-    const STATION_METADATA_STATUS: [(&str, &str); 4] = [
+    const STATION_METADATA_STATUS: [(&str, &str); 7] = [
         (
             "JOHANNESBURG_BOTANICAL_ASHRAE_2021",
             "METADATA_CROSSCHECK_ONLY_NOT_SERIES_OR_SITE_QUALIFICATION",
@@ -418,6 +418,18 @@ pub fn validate_values(scenario: &Value, parameters: &Value) -> ValidationReport
             "JOHANNESBURG_TAMBO_SAWS_WIGOS_OSCAR",
             "SECONDARY_REFERENCE_TO_WMO_OSCAR_NOT_DIRECTLY_VERIFIED",
         ),
+        (
+            "JOBURG_GRAND_CENTRAL_TMYX_CATALOGUE_ONLY",
+            "CATALOGUE_ID_ONLY_STATION_METADATA_NOT_RETRIEVED",
+        ),
+        (
+            "JOBURG_RAND_AIRPORT_TMYX_CATALOGUE_ONLY",
+            "CATALOGUE_ID_ONLY_STATION_METADATA_NOT_RETRIEVED",
+        ),
+        (
+            "JOBURG_LANSERIA_TMYX_CATALOGUE_ONLY",
+            "CATALOGUE_ID_ONLY_STATION_METADATA_NOT_RETRIEVED",
+        ),
     ];
     if let Some(items) = station_metadata {
         station_metadata_count = items.len();
@@ -432,6 +444,24 @@ pub fn validate_values(scenario: &Value, parameters: &Value) -> ValidationReport
             });
             if !valid {
                 violations.push("STATION_METADATA_CROSSCHECK_PROMOTED_OR_INCOMPLETE");
+            }
+        }
+
+        for id in [
+            "JOBURG_GRAND_CENTRAL_TMYX_CATALOGUE_ONLY",
+            "JOBURG_RAND_AIRPORT_TMYX_CATALOGUE_ONLY",
+            "JOBURG_LANSERIA_TMYX_CATALOGUE_ONLY",
+        ] {
+            let record_is_catalogue_only = find_by_id(items, id).is_some_and(|item| {
+                item.get("authority_scope").and_then(Value::as_str)
+                    == Some("filename_station_code_only")
+                    && item.get("history_and_instrument_metadata").and_then(Value::as_str)
+                        == Some("not_retrieved")
+                    && item.get("latitude_deg").is_none()
+                    && item.get("longitude_deg").is_none()
+            });
+            if !record_is_catalogue_only {
+                violations.push("GAUTENG_STATION_METADATA_INVENTED_OR_PROMOTED");
             }
         }
 
@@ -462,7 +492,7 @@ pub fn validate_values(scenario: &Value, parameters: &Value) -> ValidationReport
     }
     push_if(
         &mut violations,
-        station_metadata_count != 4,
+        station_metadata_count != 7,
         "STATION_METADATA_CROSSCHECK_COUNT_CHANGED",
     );
 
@@ -1365,6 +1395,17 @@ mod tests {
         assert!(contains(
             &report,
             "ALTERNATIVE_CLIMATE_PROVIDER_PROMOTED_OR_INCOMPLETE"
+        ));
+    }
+
+    #[test]
+    fn catalogue_only_station_codes_cannot_gain_unverified_coordinates() {
+        let (mut scenario, parameters) = documents();
+        scenario["station_metadata_crosschecks"][4]["latitude_deg"] = json!(-26.0);
+        let report = validate_values(&scenario, &parameters);
+        assert!(contains(
+            &report,
+            "GAUTENG_STATION_METADATA_INVENTED_OR_PROMOTED"
         ));
     }
 
