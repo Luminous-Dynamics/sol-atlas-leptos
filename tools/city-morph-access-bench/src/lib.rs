@@ -115,7 +115,8 @@ pub fn validate_source_register(register: &Value) -> Result<usize, Vec<String>> 
         }
 
         match source.get("url") {
-            Some(Value::String(url)) if url.starts_with("https://") || url.starts_with("http://") => {}
+            Some(Value::String(url))
+                if url.starts_with("https://") || url.starts_with("http://") => {}
             Some(Value::Null) if access_status == "Unknown" => {}
             _ => {
                 errors.insert(format!("SOURCE_URL_INVALID_OR_UNVERIFIED:{source_id}"));
@@ -770,9 +771,8 @@ mod tests {
     }
 
     fn source_register() -> Value {
-        let path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join(
-            "../../docs/research/city-morph-access/JOHANNESBURG_SOURCE_REGISTER_V0_1.json",
-        );
+        let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("../../docs/research/city-morph-access/JOHANNESBURG_SOURCE_REGISTER_V0_1.json");
         let bytes = std::fs::read(path).expect("Johannesburg source register must exist");
         serde_json::from_slice(&bytes).expect("Johannesburg source register must parse")
     }
@@ -820,7 +820,11 @@ mod tests {
         osm.as_object_mut().unwrap().remove("license");
         let errors = super::validate_source_register(&register)
             .expect_err("open-license status without terms must fail closed");
-        assert!(errors.iter().any(|error| error == "OPEN_LICENSE_WITHOUT_TERMS:OPENSTREETMAP-SOUTH-AFRICA"));
+        assert!(
+            errors
+                .iter()
+                .any(|error| error == "OPEN_LICENSE_WITHOUT_TERMS:OPENSTREETMAP-SOUTH-AFRICA")
+        );
     }
 
     #[test]
@@ -835,7 +839,11 @@ mod tests {
         transit["access_status"] = serde_json::Value::String("VerifiedPublic".to_owned());
         let errors = super::validate_source_register(&register)
             .expect_err("a feed with no URL cannot be marked publicly verified");
-        assert!(errors.iter().any(|error| error == "SOURCE_URL_INVALID_OR_UNVERIFIED:JOHANNESBURG-TRANSIT-GTFS"));
+        assert!(
+            errors
+                .iter()
+                .any(|error| error == "SOURCE_URL_INVALID_OR_UNVERIFIED:JOHANNESBURG-TRANSIT-GTFS")
+        );
     }
 
     #[test]
