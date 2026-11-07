@@ -1,0 +1,253 @@
+# Highveld Keep — Computational Design Basis v0.1
+
+**Programme:** Luminous Habitats / CityMaker  
+**Execution issue:** [HIGHVELD-KEEP-001 #607](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/607)  
+**Parent:** [CITY-MAKER-001 #549](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/549)  
+**Research cut-off:** 7 November 2026  
+**Status:** E0 concept/design brief; synthetic scenario only  
+**Geography:** Johannesburg/Highveld regional reference; no parcel selected
+
+## 1. Design thesis
+
+Highveld Keep is the first South African computational reference dwelling for Luminous Habitats. Its architectural character draws on the experience of a *living citadel*: a generous communal heart, crafted stone-and-timber expression, sheltered galleries, gardens, thresholds and a strong relationship with the land.
+
+It is not a medieval replica, a militarized bunker, a luxury render exercise or a parcel-specific proposal. The design objective is to explore how architecture can be simultaneously:
+
+- beautiful, locally meaningful and human-scaled;
+- accessible and usable by a diverse household;
+- climate-responsive and comfortable across warm days, cool nights and winter conditions;
+- resilient to power, water and communications interruptions;
+- proportionately secure without hostile public/private interfaces;
+- structurally and fire/life-safety verifiable by qualified professionals;
+- manufacturable, inspectable, repairable and adaptable;
+- economically and ecologically assessable over its whole life.
+
+The first release defines the design problem, alternatives, inputs, owner boundaries and benchmark. It does **not** define approved construction geometry or engineering results.
+
+## 2. Paradigm shifts to test
+
+### 2.1 From castle object to living habitat
+
+Do not optimize a single dramatic silhouette. Optimize the relationships among arrival, shared life, rest, work, service, landscape, utility systems, maintenance and emergency operation. The building should feel protective because its spaces are legible, welcoming and resilient—not because it looks threatening.
+
+### 2.2 From room lists to task and relationship models
+
+A room name is not proof that a resident can perform a task. Represent activities, reach/access requirements, privacy, acoustics, daylight, service needs and adjacencies separately. Keep residents' different preferences visible; do not collapse them into one household preference vector.
+
+### 2.3 From one preferred design to a Pareto family
+
+Compare at least four genuinely different spatial organizations under identical functional requirements. Keep aesthetic, accessibility, energy, water, safety, carbon, cost, constructability and repairability separate. Hard constraints cannot be traded against a visual or cost score.
+
+### 2.4 From architecture first, production later to design-for-lifecycle
+
+Every expressive feature should have a plausible construction route, inspection point, repair approach and replacement strategy. Structural rhythm, daylight, orientation, wayfinding, drainage and craft can reinforce one another, but a multifunctional feature is not automatically superior; test the trade-offs.
+
+### 2.5 From generic "smart home" to local autonomy and graceful degradation
+
+Smart functions must not depend on cloud connectivity or continuous surveillance. Essential functions should have safe manual operation, privacy-preserving local control and clear fallback states. Automation assists occupants; it does not gain independent authority over physical security or life safety.
+
+### 2.6 From imported style to attributable South African design grammar
+
+Use site ecology, geology, climate, local craft, materials and resident-authored stories. Work with South African architects, artists, craftspeople and communities. Do not copy or assign symbolic meanings to indigenous, religious or cultural motifs without attribution, permission and context.
+
+## 3. Synthetic reference household and program
+
+The first design study assumes a **synthetic household of 4–6 residents**. This is a benchmark fixture, not a claim about the eventual occupants.
+
+The initial program includes:
+- four sleeping rooms, including one flexible guest/care room;
+- a shared great hall / living and gathering space;
+- kitchen, dining and food-storage workflows;
+- library / quiet study space;
+- work / making / repair space;
+- an accessible arrival-level washroom and essential daily-task route;
+- laundry, utility, plant, storage and waste/service access;
+- vehicle and bicycle arrival;
+- shaded outdoor living, courtyard/garden and step-free connections;
+- inspectable maintenance access to roof, drainage, services, energy and water plant.
+
+Actual occupancy, room count, care requirements, mobility, privacy, work patterns and cultural practices must be supplied by real residents at a later stage. Do not infer these from age, gender, ethnicity or other demographic proxies.
+
+## 4. Four architectural families
+
+All alternatives must satisfy the same functional program and share the same synthetic site envelope, weather inputs, budget interval and evaluation assumptions.
+
+### A — Courtyard Cloister
+
+A central, accessible garden court with inhabited galleries and a shared great hall. Explore how the courtyard can provide orientation, daylight, shared outdoor living, passive shade and community without creating hidden or unmaintainable spaces. Vary openness, aspect ratio, courtyard depth, shading, planting and public/private thresholds.
+
+### B — Winged Great Hall
+
+A central communal hall with residential wings and a sheltered garden court. Explore a clear social heart, compact service routes and a legible transition between shared and private zones. Test whether the massing creates difficult circulation, inaccessible level changes or excessive envelope area.
+
+### C — Compact Keep
+
+A compact form, potentially two storeys, that tests envelope efficiency, service concentration and material use. Verticality is not presumed to be better: assess step-free access, accessible daily tasks, evacuation, lift dependence if any, maintenance access, heat stratification and family adaptability.
+
+### D — Garden Pavilions
+
+Lower-volume wings joined by covered circulation and arranged around one or more gardens. Test phasing, accessibility, daylight and robotic/panelized production. Evaluate the potential penalties of increased external envelope, longer service runs, weather exposure and maintenance.
+
+These are spatial archetypes, not finished geometry. No exact building dimensions, structural spans, wall thicknesses or room areas are established in v0.1.
+
+## 5. Design grammar
+
+Explore a consistent vocabulary through functional architectural elements:
+- a clear arrival threshold and sheltered entrance;
+- a generous shared hall with daylight and strong spatial orientation;
+- arcades, verandas and covered galleries;
+- courtyard or garden sequences;
+- a strong roof silhouette where it serves climate, structure or wayfinding;
+- local stone or masonry expression paired with a professionally designed structural system;
+- timber roof or upper elements only where the species, grade, durability, moisture, fire and supply chain are qualified;
+- exposed, legible and maintainable connections where appropriate;
+- restrained ornament derived from craft and building logic rather than pasted-on fantasy detail;
+- accessible paths integrated into the main spatial composition, not relegated to a secondary route.
+
+Aesthetic intent and poetic composition belong to Symthaea #6091/#6096. Do not create a universal beauty or meaning score. Use blind resident, architect, artist and craft review, and preserve disagreement.
+
+## 6. South African site and climate basis
+
+The initial context is Johannesburg/Highveld at regional scale only. No precise parcel, coordinate, cadastral boundary, slope, north point, zoning or geotechnical condition is assumed.
+
+### 6.1 Candidate weather files
+
+Sol-Atlas #593 records two Climate.OneBuilding 2011–2025 TMYx candidates:
+- `ZAF_GT_Johannesburg-Tambo.Intl.AP.683680_TMYx.2011-2025.zip`
+- `ZAF_GT_Johannesburg.Botanical.Gardens.683610_TMYx.2011-2025.zip`
+
+They are **catalogued candidates only**. The actual archives have not been header-inspected, hashed, licence-cleared or qualified as representative of a particular parcel. Preserve both and compare station metadata. TMY is a typical-weather file for screening, not a heatwave, extreme design event, future climate projection, wind design file or substitute for local measurement.
+
+Before use, capture exact source, station coordinates/elevation, period, time zone, hourly variables, missingness, file SHA-256, reuse rights and representativeness uncertainty. Also create separate historical hot/cold/storm/hail event cases and future climate cases where qualified data exist.
+
+### 6.2 Climate hypotheses, not conclusions
+
+Compare:
+- orientation and winter solar access with summer shading;
+- east/west solar control, daylight and glare;
+- thermal-mass/insulation combinations and night-time heat rejection;
+- roof/ceiling insulation, moisture and condensation details;
+- natural ventilation only when outdoor temperature, air quality, security, noise and weather permit;
+- hail-resistant, maintainable roof systems and stormwater details;
+- passive-first comfort with powered systems represented as separate dependencies;
+- rainwater harvesting/storage/reuse with potable/non-potable separation and appropriate protection;
+- PV, battery and load management with safe manual fallback;
+- indigenous/climate-appropriate shade and habitat planting with low irrigation demand;
+- stormwater attenuation, rain gardens and swales as engineered landscape infrastructure.
+
+Use Symtropy #1900's version-pinned EnergyPlus adapter and #1790's solver boundary. A successful software run is not measured comfort, model calibration, health assessment or regulatory approval.
+
+### 6.3 Site gates
+
+Before a real site is selected or any site-specific design claim is admitted, obtain:
+- title, zoning, land-use, servitudes, setbacks, height, coverage and municipal approvals context;
+- survey, orientation, contours, slope, hydrology, access, adjoining conditions and utility records;
+- geotechnical investigation, foundation recommendations and dolomite hazard review where relevant;
+- site-specific stormwater, flood, wind, hail, wildfire and ecological constraints as applicable;
+- current municipal building-plan process and the applicable versioned South African approval register in Sol-Atlas #604;
+- resident/community requirements and any environmental/heritage permissions.
+
+Johannesburg's dolomitic conditions make geotechnical evidence an early hard gate where relevant. The 2003 national dolomite guideline is a historical technical reference, not a substitute for current site-specific professional advice or authority requirements.
+
+## 7. Security, accessibility and life safety
+
+The goal is a home that feels welcoming and is demonstrably well considered—not a militarized residence.
+
+Design for:
+- clearly legible public, visitor, shared, family, private and service thresholds;
+- proportionate professional door/window/perimeter specifications;
+- natural visibility balanced with privacy;
+- maintainable lighting and landscape;
+- responder access, address legibility and emergency approach;
+- accessible daily routes and independent emergency egress;
+- manual operation during grid, network or control failure;
+- fire detection, compartmentation, escape and suppression as determined by qualified fire professionals;
+- flood, storm, medical, smoke, power, water and communications failure cases.
+
+A room is not automatically a refuge because it has a strong door. Refuge provisions require an explicit qualified fire strategy. No traps, weapons, hazardous deterrents, autonomous enforcement or default resident surveillance.
+
+## 8. Materials and structural pathways
+
+Compare, without presuming a winner:
+1. conventional masonry / reinforced concrete / steel baseline;
+2. stone/masonry architectural expression with a conventional professionally designed load-bearing system;
+3. timber or timber-hybrid roof/upper structure where grade, durability, moisture, fire, pest strategy and qualified supply support it;
+4. panelized or precast elements;
+5. guarded robotic timber/panel fabrication;
+6. additive construction only for specifically qualified components or formwork.
+
+Foundations, load paths, retaining elements, roof structures, connections, fire resistance, durability and non-standard products remain with qualified specialist engineers and the applicable approval pathway in #604. Do not assume locally available material is structurally or environmentally suitable without testing and provenance.
+
+## 9. Design-for-production and repair
+
+Every future component should have:
+- stable component ID and geometry revision;
+- declared material, grade, source/lot and allowable variation;
+- connection, tolerance and inspection requirements;
+- manufacturing route, exact tool/workcell capability and calibration;
+- handling/lifting/fixture prerequisites;
+- assembly sequence and safe access;
+- independent measurement and acceptance method;
+- repair, replacement and disassembly path;
+- manual recovery and safe work method.
+
+First physical work should be a guarded off-site timber/panel cell for metrology, fixtures and dry-run assembly. No autonomous heavy lifting, cutting or public-site work is authorized by this design brief. Use Symtropy #1818/#1834 and Symthaea #4795.
+
+## 10. Four-system architecture
+
+| System | Highveld Keep contribution | Authority limit |
+|---|---|---|
+| Symthaea | Resident-stated intent, task requirements, alternatives, design grammar, conflict explanation, value-of-information and Pareto exploration | No engineering or statutory certification |
+| Symtropy | Exact geometry/topology under #683, deterministic scenario/trajectory orchestration, qualified specialist solver adapters and validity propagation | Generic physics is not structural/fire/thermal certification |
+| Sol-Atlas | Site/climate source evidence, parcel and municipal context, utilities, regional comparison and construction-delivery projection | Map is not survey, title, permit or building approval |
+| Mycelix | Consent, resident decisions, material provenance, supplier/inspection receipts, corrections/revocation and lifecycle custody | Receipt is not professional sign-off, permit or title |
+
+Third-party solvers retain their specific physical model authority. Qualified architects, structural and civil engineers, fire professionals, quantity surveyors, access professionals, contractors and municipal authorities retain professional and statutory responsibilities.
+
+## 11. First comparison metrics
+
+Keep outcomes as a vector:
+- blind aesthetic / experiential / place-identity review;
+- task completion, accessibility and wayfinding;
+- usable area, circulation and spatial legibility;
+- daylight, glare and views;
+- thermal trajectories, HVAC energy and passive-service hours;
+- ventilation and indoor air quality where supported;
+- potable/non-potable water demand, storage and outage behavior;
+- fire, egress, emergency approach and security review;
+- structural solver error within declared model scope;
+- initial and whole-life cost, carbon and water;
+- fabrication completeness, tolerance, first-pass yield, defects and rework;
+- installation, inspection and commissioning;
+- maintenance, repair, replacement, adaptation and disassembly.
+
+No single weighted score can hide hard-gate failure, uncertainty, resident disagreement or unequal outcomes.
+
+## 12. Evidence tiers
+
+- E0: design concept and assumptions.
+- E1: deterministic synthetic geometry/requirements fixtures and independent checker.
+- E2: version-pinned specialist solver result within independently validated scope.
+- E3: calibrated physical component/mock-up measurements.
+- E4: supervised site pilot, consent, independent inspection and professional review.
+- E5: sustained operation, maintenance, longitudinal outcomes and external replication.
+
+A tier applies per claim, model, revision, site and time. It is not a universal maturity badge.
+
+## 13. References and source notes
+
+- Sol-Atlas #593 Johannesburg heat/source readiness register, including the two candidate TMYx files.
+- Sol-Atlas #604 South African building-system/product approval crosswalk.
+- Symtropy #1766 spatial design, #1790 adapter boundary, #1848 resilience, #1900 EnergyPlus qualification, #683 geometry provider and #1818/#1834 robotics.
+- Symthaea #7790 intent-to-design, #6091/#6096 aesthetic/poetic engineering intent and #7801 robustness/lifecycle qualification.
+- DHS/CSIR Red Book: https://www.dhs.gov.za/node/154 and https://www.csir.co.za/neighbourhood-planning-and-design-guide-red-book
+- City of Johannesburg building plans: https://joburg.org.za/work_/Pages/Work%20in%20Joburg/Building%20Plans/Building-Plans.aspx
+- NHBRC home enrolment: https://www.nhbrc.org.za/why-enrol/
+- Climate.OneBuilding 2026 TMYx methodology: https://climate.onebuilding.org/sources/
+- South African dolomite guideline (2003, historical reference): https://www.gov.za/sites/default/files/gcis_document/201409/dolomitemanual0.pdf
+- IFC 4.3.2.0: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/
+- NIST Assembly Performance Metrics: https://www.nist.gov/el/intelligent-systems-division-73500/robotic-grasping-and-manipulation-assembly/assembly
+
+## 14. Claim ceiling
+
+This v0.1 package defines a synthetic computational reference design only. It does not establish parcel suitability, buildability, code compliance, structural/fire performance, security efficacy, measured energy/water performance, resident benefit, robot qualification or construction cost. Site, climate, material, geometry and solver evidence remain Unknown until exact sources and validations are attached.
