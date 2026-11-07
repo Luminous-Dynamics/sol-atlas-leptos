@@ -38,6 +38,30 @@ References: [Forma Building Design](https://www.autodesk.com/products/forma-buil
 
 The proposed Luminous differentiation is therefore not "we generate more shapes." It is to test whether an open, evidence-carrying workflow can connect local requirements and source data, plural resident intent, verified geometry, domain solvers, product approvals, fabrication acceptance, as-built records and maintenance without losing authority or provenance. Current Highveld work is only E0/E1 and has not demonstrated that advantage yet.
 
+## 1B. Research-led paradigm shifts
+
+Recent reviews help identify where a genuinely useful step-change may exist:
+
+- A 2025 systematic review of 153 performance-driven building-design studies found a strong concentration on façade/envelope and single-building massing problems, with energy/daylight/thermal-comfort objectives prominent. It identified fragmented metrics, limited cross-case or field validation and reproducibility risks. The field already has parametric evolutionary, surrogate/Bayesian and data-driven workflow families; using those names is not innovation by itself.
+- A 2025 review of 161 generative-AI architectural-design papers found that image inputs/outputs dominate and most AI use is concentrated in early schematic phases; graph and multimodal representations are a developing direction. Subjective comparison remains common.
+- A 2026 review of 114 AI-surrogate building-design studies describes limited exploration of uncertainty-aware optimization and interpretability, alongside challenges in integrating surrogate prediction and optimization.
+
+The Highveld research bets should therefore be:
+
+1. **Intent/requirement graph before image generation.** Compile task requirements, hard routes, privacy zones, preferences and unresolved evidence into a versioned, testable design contract. Images and renders are explanatory views, not the authoritative design.
+2. **Evidence-carrying alternatives.** Every candidate carries exact sources, assumptions, geometry revision, solver scope, uncertainty and invalidation dependencies. A visually persuasive option with missing evidence stays E0.
+3. **Multi-fidelity search with calibrated uncertainty.** Use cheap geometry/rule checks and surrogate estimates for exploration; spend expensive specialist solver calls where they have the highest expected value of information; re-run every promoted candidate with the exact qualified solver. Detect out-of-domain candidates.
+4. **Robustness-first, not typical-year-only optimization.** Design for ordinary conditions and adverse trajectories: heatwave, cold, poor air quality, grid/water interruption, storm/hail, component failure and future climate. Keep scenario uncertainty visible and optimize lower-tail resilience as a separate decision dimension.
+5. **Open standards plus independent geometry proof.** Use IFC/IDS contracts for information requirements, but separately validate geometry, route/access constraints, clearances, clashes, topology and as-built equivalence.
+6. **Buildability from the first design generation.** Include material source/grade, connection logic, fabrication route, tooling capability, inspection and repair in the search problem. Do not wait for a later contractor to discover the design cannot be made.
+7. **Plural resident agency.** Preserve different household preferences and contested interpretations rather than reducing them to a single inferred utility or beauty score.
+8. **Operational learning without surveillance by default.** Use opt-in, purpose-limited, locally controlled measurement and maintenance data to calibrate models after occupation; retain manual fallback and resident control.
+
+Sources:
+- Huang et al. (2025), 153-study performance-driven building-design review: https://doi.org/10.3390/buildings15244556
+- Jang et al. (2025), 161-paper generative-AI architectural-design review: https://doi.org/10.1016/j.autcon.2025.106174
+- Zhang et al. (2026), 114-study AI-surrogate modelling review: https://doi.org/10.1016/j.enbuild.2026.117238
+
 ## 2. Paradigm shifts to test
 
 ### 2.1 From castle object to living habitat
