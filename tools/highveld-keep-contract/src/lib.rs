@@ -294,14 +294,13 @@ pub fn validate_values(scenario: &Value, parameters: &Value) -> ValidationReport
         weather_count != 5,
         "WEATHER_CANDIDATE_COUNT_CHANGED",
     );
-    let station_ensemble = path(
-        scenario,
-        &["climate_inputs", "station_ensemble_policy"],
-    );
+    let station_ensemble = path(scenario, &["climate_inputs", "station_ensemble_policy"]);
     let ensemble_policy_valid = station_ensemble.is_some_and(|policy| {
         policy.get("status").and_then(Value::as_str)
             == Some("REGIONAL_CANDIDATE_ENSEMBLE_NOT_LOCAL_SITE_WEATHER")
-            && policy.get("selected_site_station").is_some_and(Value::is_null)
+            && policy
+                .get("selected_site_station")
+                .is_some_and(Value::is_null)
             && policy.get("rule").and_then(Value::as_str)
                 == Some("preserve_each_file_as_a_distinct_source_and_model_scenario")
             && [
@@ -455,7 +454,9 @@ pub fn validate_values(scenario: &Value, parameters: &Value) -> ValidationReport
             let record_is_catalogue_only = find_by_id(items, id).is_some_and(|item| {
                 item.get("authority_scope").and_then(Value::as_str)
                     == Some("filename_station_code_only")
-                    && item.get("history_and_instrument_metadata").and_then(Value::as_str)
+                    && item
+                        .get("history_and_instrument_metadata")
+                        .and_then(Value::as_str)
                         == Some("not_retrieved")
                     && item.get("latitude_deg").is_none()
                     && item.get("longitude_deg").is_none()
@@ -1310,8 +1311,7 @@ mod tests {
     #[test]
     fn weather_reuse_rights_cannot_be_silently_promoted() {
         let (mut scenario, parameters) = documents();
-        scenario["climate_inputs"]["candidate_weather_files"][0]["reuse_rights"] =
-            json!("CC-BY");
+        scenario["climate_inputs"]["candidate_weather_files"][0]["reuse_rights"] = json!("CC-BY");
         let report = validate_values(&scenario, &parameters);
         assert!(contains(
             &report,
