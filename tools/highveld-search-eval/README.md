@@ -54,7 +54,7 @@ A candidate only enters the feasible Pareto set when:
 
 A reported-feasible candidate that does not satisfy these conditions raises `FALSE_FEASIBLE_DECLARATION`. A candidate that passes actual checks but is labelled infeasible is counted as a false reject, not silently removed. Failed/unknown hard gates are never traded against a better objective value.
 
-Matched comparison requires the same fixture digest, objective schema digest, candidate budget, high-fidelity call budget and human-time budget. High-fidelity training/tuning/validation/final calls must all be accounted for and stay within budget. Stochastic methods require at least 20 unique seeds in this initial protocol.
+Matched comparison requires the same fixture digest, objective schema digest, candidate budget, high-fidelity call budget and human-time budget. High-fidelity training/tuning/validation/final calls must all be accounted for and stay within budget. The final-call ledger must contain at least one final call for every candidate labelled as high-fidelity. Stochastic methods require at least 20 unique seeds in this initial protocol.
 
 ### Metrics included
 
