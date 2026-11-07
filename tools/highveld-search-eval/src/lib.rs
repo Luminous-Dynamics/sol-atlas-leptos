@@ -263,13 +263,9 @@ fn gate_evidence_is_complete(candidate: &Value, gate_ids: &[String]) -> bool {
         return false;
     };
     evidence.len() == gate_ids.len()
-        && gate_ids.iter().all(|gate_id| {
-            is_sha256(
-                evidence
-                    .get(gate_id)
-                    .and_then(Value::as_str),
-            )
-        })
+        && gate_ids
+            .iter()
+            .all(|gate_id| is_sha256(evidence.get(gate_id).and_then(Value::as_str)))
 }
 
 fn evaluate_candidate(
@@ -321,10 +317,7 @@ fn evaluate_candidate(
     {
         exclusion_reasons.push("SOLVER_VALIDATION_SCOPE_MISSING");
     }
-    if !is_sha256(
-        verification
-            .and_then(|value| get_str(value, "result_sha256")),
-    ) {
+    if !is_sha256(verification.and_then(|value| get_str(value, "result_sha256"))) {
         exclusion_reasons.push("SOLVER_RESULT_DIGEST_INVALID");
     }
     let warnings = verification
@@ -859,9 +852,9 @@ pub fn evaluate_bundle(bundle: &Value) -> EvaluationReport {
                         .and_then(Value::as_array);
                     let warnings_acknowledged = warnings.is_some_and(|items| {
                         items.is_empty()
-                            || verification.and_then(|value| {
-                                get_bool(value, "warnings_acknowledged")
-                            }) == Some(true)
+                            || verification
+                                .and_then(|value| get_bool(value, "warnings_acknowledged"))
+                                == Some(true)
                     });
                     let full_fidelity = is_sha256(get_str(candidate, "input_sha256"))
                         && is_sha256(get_str(candidate, "candidate_revision_sha256"))
@@ -871,7 +864,7 @@ pub fn evaluate_bundle(bundle: &Value) -> EvaluationReport {
                             verification.and_then(|value| get_str(value, "result_sha256")),
                         )
                         && verification.and_then(|value| get_str(value, "kind"))
-                        == Some("high_fidelity")
+                            == Some("high_fidelity")
                         && verification.and_then(|value| get_bool(value, "converged"))
                             == Some(true)
                         && verification
@@ -1205,9 +1198,14 @@ mod tests {
             json!("passed");
         let report = evaluate_bundle(&bundle);
         assert!(has_violation(&report, "FALSE_FEASIBLE_DECLARATION"));
-        assert!(report.methods[0].runs[0].excluded.iter().any(|(id, reasons)| {
-            id == "A" && reasons.contains(&"UNDECLARED_HARD_GATE_RESULT")
-        }));
+        assert!(
+            report.methods[0].runs[0]
+                .excluded
+                .iter()
+                .any(|(id, reasons)| {
+                    id == "A" && reasons.contains(&"UNDECLARED_HARD_GATE_RESULT")
+                })
+        );
     }
 
     #[test]
