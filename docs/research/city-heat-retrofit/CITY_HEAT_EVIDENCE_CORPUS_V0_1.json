@@ -1,0 +1,2130 @@
+{
+  "schema_id": "org.luminousdynamics.city-heat-retrofit.synthetic-evidence-corpus",
+  "schema_version": "0.1.0",
+  "corpus_id": "CITY-HEAT-EVIDENCE-CORPUS-V0.1",
+  "classification": "synthetic_fixture_only",
+  "policy_note": "Tests spatial/temporal/evidence claim admission only. Does not calculate exposure, indoor temperature, hazard risk or retrofit efficacy.",
+  "levels": [
+    "H0",
+    "H1",
+    "H2",
+    "H3",
+    "H4",
+    "H5"
+  ],
+  "spatial_levels": [
+    "metro",
+    "region",
+    "ward",
+    "building",
+    "room"
+  ],
+  "cases": [
+    {
+      "case_id": "HA-001",
+      "description": "Source inventory with verified public rights.",
+      "input": {
+        "requested_level": "H0",
+        "source": {
+          "exists": true,
+          "rights_state": "verified"
+        },
+        "weather": {
+          "class": "observed_reanalysis",
+          "use": "coarse_exposure",
+          "period_start": "2025-01-01",
+          "period_end": "2025-12-31",
+          "scenario_id": null
+        },
+        "spatial": {
+          "native_level": "ward",
+          "target_level": "ward",
+          "boundary_match": true,
+          "coverage_fraction": 1,
+          "require_full_coverage": false
+        },
+        "population": {
+          "kind": "ward_estimate",
+          "native_level": "ward",
+          "claim_mode": "aggregate_estimate",
+          "weights_documented": true,
+          "uncertainty_documented": true
+        },
+        "cohort": {
+          "coverage_fraction": 1,
+          "require_full_coverage": false
+        },
+        "model": {
+          "required": false,
+          "process_exit": "success",
+          "convergence": "converged",
+          "scope_match": true,
+          "validation_scope": "in_scope",
+          "evidence_state": "current",
+          "outputs": [
+            "operative_temperature",
+            "overheating_degree_hours"
+          ]
+        },
+        "measurement": {
+          "required": false,
+          "source_kind": "measured",
+          "calibration_state": "current",
+          "quality_state": "valid",
+          "consent_state": "approved",
+          "spatial_aggregation_allowed": true
+        },
+        "intervention": {
+          "status": "not_applicable",
+          "installation_receipt": false,
+          "inspection_receipt": false,
+          "commissioning_receipt": false,
+          "pre_post_measurements": false,
+          "comparison_design": false
+        },
+        "strategy": {
+          "uses_natural_ventilation": false,
+          "ventilation_available": true
+        }
+      },
+      "expected": {
+        "case_id": "HA-001",
+        "disposition": "Admissible",
+        "claim_level": "H0",
+        "allowed": true,
+        "reason_codes": [],
+        "reported_unknown_cohort_fraction": null
+      }
+    },
+    {
+      "case_id": "HA-002",
+      "description": "TMY used only for typical energy-screening exposure.",
+      "input": {
+        "requested_level": "H1",
+        "source": {
+          "exists": true,
+          "rights_state": "verified"
+        },
+        "weather": {
+          "class": "typical_meteorological_year",
+          "use": "energy_screening",
+          "period_start": "2025-01-01",
+          "period_end": "2025-12-31",
+          "scenario_id": null
+        },
+        "spatial": {
+          "native_level": "ward",
+          "target_level": "ward",
+          "boundary_match": true,
+          "coverage_fraction": 1,
+          "require_full_coverage": false
+        },
+        "population": {
+          "kind": "ward_estimate",
+          "native_level": "ward",
+          "claim_mode": "aggregate_estimate",
+          "weights_documented": true,
+          "uncertainty_documented": true
+        },
+        "cohort": {
+          "coverage_fraction": 1,
+          "require_full_coverage": false
+        },
+        "model": {
+          "required": false,
+          "process_exit": "success",
+          "convergence": "converged",
+          "scope_match": true,
+          "validation_scope": "in_scope",
+          "evidence_state": "current",
+          "outputs": [
+            "operative_temperature",
+            "overheating_degree_hours"
+          ]
+        },
+        "measurement": {
+          "required": false,
+          "source_kind": "measured",
+          "calibration_state": "current",
+          "quality_state": "valid",
+          "consent_state": "approved",
+          "spatial_aggregation_allowed": true
+        },
+        "intervention": {
+          "status": "not_applicable",
+          "installation_receipt": false,
+          "inspection_receipt": false,
+          "commissioning_receipt": false,
+          "pre_post_measurements": false,
+          "comparison_design": false
+        },
+        "strategy": {
+          "uses_natural_ventilation": false,
+          "ventilation_available": true
+        }
+      },
+      "expected": {
+        "case_id": "HA-002",
+        "disposition": "Admissible",
+        "claim_level": "H1",
+        "allowed": true,
+        "reason_codes": [],
+        "reported_unknown_cohort_fraction": null
+      }
+    },
+    {
+      "case_id": "HA-003",
+      "description": "TMY cannot support an observed heatwave claim.",
+      "input": {
+        "requested_level": "H1",
+        "source": {
+          "exists": true,
+          "rights_state": "verified"
+        },
+        "weather": {
+          "class": "typical_meteorological_year",
+          "use": "heatwave",
+          "period_start": "2025-01-01",
+          "period_end": "2025-12-31",
+          "scenario_id": null
+        },
+        "spatial": {
+          "native_level": "ward",
+          "target_level": "ward",
+          "boundary_match": true,
+          "coverage_fraction": 1,
+          "require_full_coverage": false
+        },
+        "population": {
+          "kind": "ward_estimate",
+          "native_level": "ward",
+          "claim_mode": "aggregate_estimate",
+          "weights_documented": true,
+          "uncertainty_documented": true
+        },
+        "cohort": {
+          "coverage_fraction": 1,
+          "require_full_coverage": false
+        },
+        "model": {
+          "required": false,
+          "process_exit": "success",
+          "convergence": "converged",
+          "scope_match": true,
+          "validation_scope": "in_scope",
+          "evidence_state": "current",
+          "outputs": [
+            "operative_temperature",
+            "overheating_degree_hours"
+          ]
+        },
+        "measurement": {
+          "required": false,
+          "source_kind": "measured",
+          "calibration_state": "current",
+          "quality_state": "valid",
+          "consent_state": "approved",
+          "spatial_aggregation_allowed": true
+        },
+        "intervention": {
+          "status": "not_applicable",
+          "installation_receipt": false,
+          "inspection_receipt": false,
+          "commissioning_receipt": false,
+          "pre_post_measurements": false,
+          "comparison_design": false
+        },
+        "strategy": {
+          "uses_natural_ventilation": false,
+          "ventilation_available": true
+        }
+      },
+      "expected": {
+        "case_id": "HA-003",
+        "disposition": "Blocked",
+        "claim_level": "H1",
+        "allowed": false,
+        "reason_codes": [
+          "TMY_NOT_EXTREME_OR_EVENT_WEATHER"
+        ],
+        "reported_unknown_cohort_fraction": null
+      }
+    },
+    {
+      "case_id": "HA-004",
+      "description": "Future projection missing scenario and period is unresolved.",
+      "input": {
+        "requested_level": "H1",
+        "source": {
+          "exists": true,
+          "rights_state": "verified"
+        },
+        "weather": {
+          "class": "future_projection",
+          "use": "future_climate",
+          "period_start": null,
+          "period_end": null,
+          "scenario_id": null
+        },
+        "spatial": {
+          "native_level": "ward",
+          "target_level": "ward",
+          "boundary_match": true,
+          "coverage_fraction": 1,
+          "require_full_coverage": false
+        },
+        "population": {
+          "kind": "ward_estimate",
+          "native_level": "ward",
+          "claim_mode": "aggregate_estimate",
+          "weights_documented": true,
+          "uncertainty_documented": true
+        },
+        "cohort": {
+          "coverage_fraction": 1,
+          "require_full_coverage": false
+        },
+        "model": {
+          "required": false,
+          "process_exit": "success",
+          "convergence": "converged",
+          "scope_match": true,
+          "validation_scope": "in_scope",
+          "evidence_state": "current",
+          "outputs": [
+            "operative_temperature",
+            "overheating_degree_hours"
+          ]
+        },
+        "measurement": {
+          "required": false,
+          "source_kind": "measured",
+          "calibration_state": "current",
+          "quality_state": "valid",
+          "consent_state": "approved",
+          "spatial_aggregation_allowed": true
+        },
+        "intervention": {
+          "status": "not_applicable",
+          "installation_receipt": false,
+          "inspection_receipt": false,
+          "commissioning_receipt": false,
+          "pre_post_measurements": false,
+          "comparison_design": false
+        },
+        "strategy": {
+          "uses_natural_ventilation": false,
+          "ventilation_available": true
+        }
+      },
+      "expected": {
+        "case_id": "HA-004",
+        "disposition": "Unknown",
+        "claim_level": "H1",
+        "allowed": false,
+        "reason_codes": [
+          "FUTURE_PROJECTION_SCOPE_INCOMPLETE"
+        ],
+        "reported_unknown_cohort_fraction": null
+      }
+    },
+    {
+      "case_id": "HA-005",
+      "description": "Observed heatwave with exact event dates and source class.",
+      "input": {
+        "requested_level": "H1",
+        "source": {
+          "exists": true,
+          "rights_state": "verified"
+        },
+        "weather": {
+          "class": "observed_event",
+          "use": "heatwave",
+          "period_start": "2025-01-10",
+          "period_end": "2025-01-16",
+          "scenario_id": null
+        },
+        "spatial": {
+          "native_level": "ward",
+          "target_level": "ward",
+          "boundary_match": true,
+          "coverage_fraction": 1,
+          "require_full_coverage": false
+        },
+        "population": {
+          "kind": "ward_estimate",
+          "native_level": "ward",
+          "claim_mode": "aggregate_estimate",
+          "weights_documented": true,
+          "uncertainty_documented": true
+        },
+        "cohort": {
+          "coverage_fraction": 1,
+          "require_full_coverage": false
+        },
+        "model": {
+          "required": false,
+          "process_exit": "success",
+          "convergence": "converged",
+          "scope_match": true,
+          "validation_scope": "in_scope",
+          "evidence_state": "current",
+          "outputs": [
+            "operative_temperature",
+            "overheating_degree_hours"
+          ]
+        },
+        "measurement": {
+          "required": false,
+          "source_kind": "measured",
+          "calibration_state": "current",
+          "quality_state": "valid",
+          "consent_state": "approved",
+          "spatial_aggregation_allowed": true
+        },
+        "intervention": {
+          "status": "not_applicable",
+          "installation_receipt": false,
+          "inspection_receipt": false,
+          "commissioning_receipt": false,
+          "pre_post_measurements": false,
+          "comparison_design": false
+        },
+        "strategy": {
+          "uses_natural_ventilation": false,
+          "ventilation_available": true
+        }
+      },
+      "expected": {
+        "case_id": "HA-005",
+        "disposition": "Admissible",
+        "claim_level": "H1",
+        "allowed": true,
+        "reason_codes": [],
+        "reported_unknown_cohort_fraction": null
+      }
+    },
+    {
+      "case_id": "HA-006",
+      "description": "Ward population estimate joined at ward resolution.",
+      "input": {
+        "requested_level": "H2",
+        "source": {
+          "exists": true,
+          "rights_state": "verified"
+        },
+        "weather": {
+          "class": "observed_reanalysis",
+          "use": "coarse_exposure",
+          "period_start": "2025-01-01",
+          "period_end": "2025-12-31",
+          "scenario_id": null
+        },
+        "spatial": {
+          "native_level": "ward",
+          "target_level": "ward",
+          "boundary_match": true,
+          "coverage_fraction": 1,
+          "require_full_coverage": false
+        },
+        "population": {
+          "kind": "ward_estimate",
+          "native_level": "ward",
+          "claim_mode": "aggregate_estimate",
+          "weights_documented": true,
+          "uncertainty_documented": true
+        },
+        "cohort": {
+          "coverage_fraction": 1,
+          "require_full_coverage": false
+        },
+        "model": {
+          "required": false,
+          "process_exit": "success",
+          "convergence": "converged",
+          "scope_match": true,
+          "validation_scope": "in_scope",
+          "evidence_state": "current",
+          "outputs": [
+            "operative_temperature",
+            "overheating_degree_hours"
+          ]
+        },
+        "measurement": {
+          "required": false,
+          "source_kind": "measured",
+          "calibration_state": "current",
+          "quality_state": "valid",
+          "consent_state": "approved",
+          "spatial_aggregation_allowed": true
+        },
+        "intervention": {
+          "status": "not_applicable",
+          "installation_receipt": false,
+          "inspection_receipt": false,
+          "commissioning_receipt": false,
+          "pre_post_measurements": false,
+          "comparison_design": false
+        },
+        "strategy": {
+          "uses_natural_ventilation": false,
+          "ventilation_available": true
+        }
+      },
+      "expected": {
+        "case_id": "HA-006",
+        "disposition": "Admissible",
+        "claim_level": "H2",
+        "allowed": true,
+        "reason_codes": [],
+        "reported_unknown_cohort_fraction": null
+      }
+    },
+    {
+      "case_id": "HA-007",
+      "description": "Ward estimate cannot be promoted to building population.",
+      "input": {
+        "requested_level": "H2",
+        "source": {
+          "exists": true,
+          "rights_state": "verified"
+        },
+        "weather": {
+          "class": "observed_reanalysis",
+          "use": "coarse_exposure",
+          "period_start": "2025-01-01",
+          "period_end": "2025-12-31",
+          "scenario_id": null
+        },
+        "spatial": {
+          "native_level": "ward",
+          "target_level": "building",
+          "boundary_match": true,
+          "coverage_fraction": 1,
+          "require_full_coverage": false
+        },
+        "population": {
+          "kind": "ward_estimate",
+          "native_level": "ward",
+          "claim_mode": "aggregate_estimate",
+          "weights_documented": true,
+          "uncertainty_documented": true
+        },
+        "cohort": {
+          "coverage_fraction": 1,
+          "require_full_coverage": false
+        },
+        "model": {
+          "required": false,
+          "process_exit": "success",
+          "convergence": "converged",
+          "scope_match": true,
+          "validation_scope": "in_scope",
+          "evidence_state": "current",
+          "outputs": [
+            "operative_temperature",
+            "overheating_degree_hours"
+          ]
+        },
+        "measurement": {
+          "required": false,
+          "source_kind": "measured",
+          "calibration_state": "current",
+          "quality_state": "valid",
+          "consent_state": "approved",
+          "spatial_aggregation_allowed": true
+        },
+        "intervention": {
+          "status": "not_applicable",
+          "installation_receipt": false,
+          "inspection_receipt": false,
+          "commissioning_receipt": false,
+          "pre_post_measurements": false,
+          "comparison_design": false
+        },
+        "strategy": {
+          "uses_natural_ventilation": false,
+          "ventilation_available": true
+        }
+      },
+      "expected": {
+        "case_id": "HA-007",
+        "disposition": "Blocked",
+        "claim_level": "H2",
+        "allowed": false,
+        "reason_codes": [
+          "SPATIAL_PRECISION_PROMOTION",
+          "WARD_ESTIMATE_TO_BUILDING_PROMOTION"
+        ],
+        "reported_unknown_cohort_fraction": null
+      }
+    },
+    {
+      "case_id": "HA-008",
+      "description": "Survey sample cannot be presented as a census.",
+      "input": {
+        "requested_level": "H2",
+        "source": {
+          "exists": true,
+          "rights_state": "verified"
+        },
+        "weather": {
+          "class": "observed_reanalysis",
+          "use": "coarse_exposure",
+          "period_start": "2025-01-01",
+          "period_end": "2025-12-31",
+          "scenario_id": null
+        },
+        "spatial": {
+          "native_level": "ward",
+          "target_level": "ward",
+          "boundary_match": true,
+          "coverage_fraction": 1,
+          "require_full_coverage": false
+        },
+        "population": {
+          "kind": "survey_sample",
+          "native_level": "ward",
+          "claim_mode": "census",
+          "weights_documented": true,
+          "uncertainty_documented": true
+        },
+        "cohort": {
+          "coverage_fraction": 1,
+          "require_full_coverage": false
+        },
+        "model": {
+          "required": false,
+          "process_exit": "success",
+          "convergence": "converged",
+          "scope_match": true,
+          "validation_scope": "in_scope",
+          "evidence_state": "current",
+          "outputs": [
+            "operative_temperature",
+            "overheating_degree_hours"
+          ]
+        },
+        "measurement": {
+          "required": false,
+          "source_kind": "measured",
+          "calibration_state": "current",
+          "quality_state": "valid",
+          "consent_state": "approved",
+          "spatial_aggregation_allowed": true
+        },
+        "intervention": {
+          "status": "not_applicable",
+          "installation_receipt": false,
+          "inspection_receipt": false,
+          "commissioning_receipt": false,
+          "pre_post_measurements": false,
+          "comparison_design": false
+        },
+        "strategy": {
+          "uses_natural_ventilation": false,
+          "ventilation_available": true
+        }
+      },
+      "expected": {
+        "case_id": "HA-008",
+        "disposition": "Blocked",
+        "claim_level": "H2",
+        "allowed": false,
+        "reason_codes": [
+          "SURVEY_DESIGN_OR_UNCERTAINTY_INCOMPLETE",
+          "SURVEY_SAMPLE_PROMOTED_TO_CENSUS"
+        ],
+        "reported_unknown_cohort_fraction": null
+      }
+    },
+    {
+      "case_id": "HA-009",
+      "description": "Weighted survey estimate with design uncertainty remains a sample estimate.",
+      "input": {
+        "requested_level": "H2",
+        "source": {
+          "exists": true,
+          "rights_state": "verified"
+        },
+        "weather": {
+          "class": "observed_reanalysis",
+          "use": "coarse_exposure",
+          "period_start": "2025-01-01",
+          "period_end": "2025-12-31",
+          "scenario_id": null
+        },
+        "spatial": {
+          "native_level": "ward",
+          "target_level": "ward",
+          "boundary_match": true,
+          "coverage_fraction": 1,
+          "require_full_coverage": false
+        },
+        "population": {
+          "kind": "survey_sample",
+          "native_level": "ward",
+          "claim_mode": "sample_estimate",
+          "weights_documented": true,
+          "uncertainty_documented": true
+        },
+        "cohort": {
+          "coverage_fraction": 1,
+          "require_full_coverage": false
+        },
+        "model": {
+          "required": false,
+          "process_exit": "success",
+          "convergence": "converged",
+          "scope_match": true,
+          "validation_scope": "in_scope",
+          "evidence_state": "current",
+          "outputs": [
+            "operative_temperature",
+            "overheating_degree_hours"
+          ]
+        },
+        "measurement": {
+          "required": false,
+          "source_kind": "measured",
+          "calibration_state": "current",
+          "quality_state": "valid",
+          "consent_state": "approved",
+          "spatial_aggregation_allowed": true
+        },
+        "intervention": {
+          "status": "not_applicable",
+          "installation_receipt": false,
+          "inspection_receipt": false,
+          "commissioning_receipt": false,
+          "pre_post_measurements": false,
+          "comparison_design": false
+        },
+        "strategy": {
+          "uses_natural_ventilation": false,
+          "ventilation_available": true
+        }
+      },
+      "expected": {
+        "case_id": "HA-009",
+        "disposition": "Admissible",
+        "claim_level": "H2",
+        "allowed": true,
+        "reason_codes": [],
+        "reported_unknown_cohort_fraction": null
+      }
+    },
+    {
+      "case_id": "HA-010",
+      "description": "Boundary vintage mismatch makes join unresolved.",
+      "input": {
+        "requested_level": "H2",
+        "source": {
+          "exists": true,
+          "rights_state": "verified"
+        },
+        "weather": {
+          "class": "observed_reanalysis",
+          "use": "coarse_exposure",
+          "period_start": "2025-01-01",
+          "period_end": "2025-12-31",
+          "scenario_id": null
+        },
+        "spatial": {
+          "native_level": "ward",
+          "target_level": "ward",
+          "boundary_match": false,
+          "coverage_fraction": 1,
+          "require_full_coverage": false
+        },
+        "population": {
+          "kind": "ward_estimate",
+          "native_level": "ward",
+          "claim_mode": "aggregate_estimate",
+          "weights_documented": true,
+          "uncertainty_documented": true
+        },
+        "cohort": {
+          "coverage_fraction": 1,
+          "require_full_coverage": false
+        },
+        "model": {
+          "required": false,
+          "process_exit": "success",
+          "convergence": "converged",
+          "scope_match": true,
+          "validation_scope": "in_scope",
+          "evidence_state": "current",
+          "outputs": [
+            "operative_temperature",
+            "overheating_degree_hours"
+          ]
+        },
+        "measurement": {
+          "required": false,
+          "source_kind": "measured",
+          "calibration_state": "current",
+          "quality_state": "valid",
+          "consent_state": "approved",
+          "spatial_aggregation_allowed": true
+        },
+        "intervention": {
+          "status": "not_applicable",
+          "installation_receipt": false,
+          "inspection_receipt": false,
+          "commissioning_receipt": false,
+          "pre_post_measurements": false,
+          "comparison_design": false
+        },
+        "strategy": {
+          "uses_natural_ventilation": false,
+          "ventilation_available": true
+        }
+      },
+      "expected": {
+        "case_id": "HA-010",
+        "disposition": "Unknown",
+        "claim_level": "H2",
+        "allowed": false,
+        "reason_codes": [
+          "BOUNDARY_VINTAGE_MISMATCH"
+        ],
+        "reported_unknown_cohort_fraction": null
+      }
+    },
+    {
+      "case_id": "HA-011",
+      "description": "Partial cohort coverage is reported with the unknown share visible.",
+      "input": {
+        "requested_level": "H2",
+        "source": {
+          "exists": true,
+          "rights_state": "verified"
+        },
+        "weather": {
+          "class": "observed_reanalysis",
+          "use": "coarse_exposure",
+          "period_start": "2025-01-01",
+          "period_end": "2025-12-31",
+          "scenario_id": null
+        },
+        "spatial": {
+          "native_level": "ward",
+          "target_level": "ward",
+          "boundary_match": true,
+          "coverage_fraction": 1,
+          "require_full_coverage": false
+        },
+        "population": {
+          "kind": "ward_estimate",
+          "native_level": "ward",
+          "claim_mode": "aggregate_estimate",
+          "weights_documented": true,
+          "uncertainty_documented": true
+        },
+        "cohort": {
+          "coverage_fraction": 0.7,
+          "require_full_coverage": false
+        },
+        "model": {
+          "required": false,
+          "process_exit": "success",
+          "convergence": "converged",
+          "scope_match": true,
+          "validation_scope": "in_scope",
+          "evidence_state": "current",
+          "outputs": [
+            "operative_temperature",
+            "overheating_degree_hours"
+          ]
+        },
+        "measurement": {
+          "required": false,
+          "source_kind": "measured",
+          "calibration_state": "current",
+          "quality_state": "valid",
+          "consent_state": "approved",
+          "spatial_aggregation_allowed": true
+        },
+        "intervention": {
+          "status": "not_applicable",
+          "installation_receipt": false,
+          "inspection_receipt": false,
+          "commissioning_receipt": false,
+          "pre_post_measurements": false,
+          "comparison_design": false
+        },
+        "strategy": {
+          "uses_natural_ventilation": false,
+          "ventilation_available": true
+        }
+      },
+      "expected": {
+        "case_id": "HA-011",
+        "disposition": "Admissible",
+        "claim_level": "H2",
+        "allowed": true,
+        "reason_codes": [
+          "INCOMPLETE_COHORT_COVERAGE_REPORTED"
+        ],
+        "reported_unknown_cohort_fraction": 0.30000000000000004
+      }
+    },
+    {
+      "case_id": "HA-012",
+      "description": "Incomplete cohort cannot support a full-coverage claim.",
+      "input": {
+        "requested_level": "H2",
+        "source": {
+          "exists": true,
+          "rights_state": "verified"
+        },
+        "weather": {
+          "class": "observed_reanalysis",
+          "use": "coarse_exposure",
+          "period_start": "2025-01-01",
+          "period_end": "2025-12-31",
+          "scenario_id": null
+        },
+        "spatial": {
+          "native_level": "ward",
+          "target_level": "ward",
+          "boundary_match": true,
+          "coverage_fraction": 1,
+          "require_full_coverage": false
+        },
+        "population": {
+          "kind": "ward_estimate",
+          "native_level": "ward",
+          "claim_mode": "aggregate_estimate",
+          "weights_documented": true,
+          "uncertainty_documented": true
+        },
+        "cohort": {
+          "coverage_fraction": 0.7,
+          "require_full_coverage": true
+        },
+        "model": {
+          "required": false,
+          "process_exit": "success",
+          "convergence": "converged",
+          "scope_match": true,
+          "validation_scope": "in_scope",
+          "evidence_state": "current",
+          "outputs": [
+            "operative_temperature",
+            "overheating_degree_hours"
+          ]
+        },
+        "measurement": {
+          "required": false,
+          "source_kind": "measured",
+          "calibration_state": "current",
+          "quality_state": "valid",
+          "consent_state": "approved",
+          "spatial_aggregation_allowed": true
+        },
+        "intervention": {
+          "status": "not_applicable",
+          "installation_receipt": false,
+          "inspection_receipt": false,
+          "commissioning_receipt": false,
+          "pre_post_measurements": false,
+          "comparison_design": false
+        },
+        "strategy": {
+          "uses_natural_ventilation": false,
+          "ventilation_available": true
+        }
+      },
+      "expected": {
+        "case_id": "HA-012",
+        "disposition": "Blocked",
+        "claim_level": "H2",
+        "allowed": false,
+        "reason_codes": [
+          "INCOMPLETE_COHORT_COVERAGE"
+        ],
+        "reported_unknown_cohort_fraction": 0.30000000000000004
+      }
+    },
+    {
+      "case_id": "HA-013",
+      "description": "Qualified in-scope converged model includes thermal-service outputs.",
+      "input": {
+        "requested_level": "H3",
+        "source": {
+          "exists": true,
+          "rights_state": "verified"
+        },
+        "weather": {
+          "class": "observed_reanalysis",
+          "use": "coarse_exposure",
+          "period_start": "2025-01-01",
+          "period_end": "2025-12-31",
+          "scenario_id": null
+        },
+        "spatial": {
+          "native_level": "ward",
+          "target_level": "ward",
+          "boundary_match": true,
+          "coverage_fraction": 1,
+          "require_full_coverage": false
+        },
+        "population": {
+          "kind": "ward_estimate",
+          "native_level": "ward",
+          "claim_mode": "aggregate_estimate",
+          "weights_documented": true,
+          "uncertainty_documented": true
+        },
+        "cohort": {
+          "coverage_fraction": 1,
+          "require_full_coverage": false
+        },
+        "model": {
+          "required": true,
+          "process_exit": "success",
+          "convergence": "converged",
+          "scope_match": true,
+          "validation_scope": "in_scope",
+          "evidence_state": "current",
+          "outputs": [
+            "operative_temperature",
+            "overheating_degree_hours"
+          ]
+        },
+        "measurement": {
+          "required": false,
+          "source_kind": "measured",
+          "calibration_state": "current",
+          "quality_state": "valid",
+          "consent_state": "approved",
+          "spatial_aggregation_allowed": true
+        },
+        "intervention": {
+          "status": "not_applicable",
+          "installation_receipt": false,
+          "inspection_receipt": false,
+          "commissioning_receipt": false,
+          "pre_post_measurements": false,
+          "comparison_design": false
+        },
+        "strategy": {
+          "uses_natural_ventilation": false,
+          "ventilation_available": true
+        }
+      },
+      "expected": {
+        "case_id": "HA-013",
+        "disposition": "Admissible",
+        "claim_level": "H3",
+        "allowed": true,
+        "reason_codes": [],
+        "reported_unknown_cohort_fraction": null
+      }
+    },
+    {
+      "case_id": "HA-014",
+      "description": "Failed EnergyPlus process cannot support a thermal claim.",
+      "input": {
+        "requested_level": "H3",
+        "source": {
+          "exists": true,
+          "rights_state": "verified"
+        },
+        "weather": {
+          "class": "observed_reanalysis",
+          "use": "coarse_exposure",
+          "period_start": "2025-01-01",
+          "period_end": "2025-12-31",
+          "scenario_id": null
+        },
+        "spatial": {
+          "native_level": "ward",
+          "target_level": "ward",
+          "boundary_match": true,
+          "coverage_fraction": 1,
+          "require_full_coverage": false
+        },
+        "population": {
+          "kind": "ward_estimate",
+          "native_level": "ward",
+          "claim_mode": "aggregate_estimate",
+          "weights_documented": true,
+          "uncertainty_documented": true
+        },
+        "cohort": {
+          "coverage_fraction": 1,
+          "require_full_coverage": false
+        },
+        "model": {
+          "required": true,
+          "process_exit": "failed",
+          "convergence": "converged",
+          "scope_match": true,
+          "validation_scope": "in_scope",
+          "evidence_state": "current",
+          "outputs": [
+            "operative_temperature",
+            "overheating_degree_hours"
+          ]
+        },
+        "measurement": {
+          "required": false,
+          "source_kind": "measured",
+          "calibration_state": "current",
+          "quality_state": "valid",
+          "consent_state": "approved",
+          "spatial_aggregation_allowed": true
+        },
+        "intervention": {
+          "status": "not_applicable",
+          "installation_receipt": false,
+          "inspection_receipt": false,
+          "commissioning_receipt": false,
+          "pre_post_measurements": false,
+          "comparison_design": false
+        },
+        "strategy": {
+          "uses_natural_ventilation": false,
+          "ventilation_available": true
+        }
+      },
+      "expected": {
+        "case_id": "HA-014",
+        "disposition": "Blocked",
+        "claim_level": "H3",
+        "allowed": false,
+        "reason_codes": [
+          "THERMAL_MODEL_PROCESS_NOT_SUCCESS"
+        ],
+        "reported_unknown_cohort_fraction": null
+      }
+    },
+    {
+      "case_id": "HA-015",
+      "description": "Non-converged model cannot support a thermal claim.",
+      "input": {
+        "requested_level": "H3",
+        "source": {
+          "exists": true,
+          "rights_state": "verified"
+        },
+        "weather": {
+          "class": "observed_reanalysis",
+          "use": "coarse_exposure",
+          "period_start": "2025-01-01",
+          "period_end": "2025-12-31",
+          "scenario_id": null
+        },
+        "spatial": {
+          "native_level": "ward",
+          "target_level": "ward",
+          "boundary_match": true,
+          "coverage_fraction": 1,
+          "require_full_coverage": false
+        },
+        "population": {
+          "kind": "ward_estimate",
+          "native_level": "ward",
+          "claim_mode": "aggregate_estimate",
+          "weights_documented": true,
+          "uncertainty_documented": true
+        },
+        "cohort": {
+          "coverage_fraction": 1,
+          "require_full_coverage": false
+        },
+        "model": {
+          "required": true,
+          "process_exit": "success",
+          "convergence": "not_converged",
+          "scope_match": true,
+          "validation_scope": "in_scope",
+          "evidence_state": "current",
+          "outputs": [
+            "operative_temperature",
+            "overheating_degree_hours"
+          ]
+        },
+        "measurement": {
+          "required": false,
+          "source_kind": "measured",
+          "calibration_state": "current",
+          "quality_state": "valid",
+          "consent_state": "approved",
+          "spatial_aggregation_allowed": true
+        },
+        "intervention": {
+          "status": "not_applicable",
+          "installation_receipt": false,
+          "inspection_receipt": false,
+          "commissioning_receipt": false,
+          "pre_post_measurements": false,
+          "comparison_design": false
+        },
+        "strategy": {
+          "uses_natural_ventilation": false,
+          "ventilation_available": true
+        }
+      },
+      "expected": {
+        "case_id": "HA-015",
+        "disposition": "Blocked",
+        "claim_level": "H3",
+        "allowed": false,
+        "reason_codes": [
+          "THERMAL_MODEL_NOT_CONVERGED"
+        ],
+        "reported_unknown_cohort_fraction": null
+      }
+    },
+    {
+      "case_id": "HA-016",
+      "description": "Model built for a different scope is not comparable.",
+      "input": {
+        "requested_level": "H3",
+        "source": {
+          "exists": true,
+          "rights_state": "verified"
+        },
+        "weather": {
+          "class": "observed_reanalysis",
+          "use": "coarse_exposure",
+          "period_start": "2025-01-01",
+          "period_end": "2025-12-31",
+          "scenario_id": null
+        },
+        "spatial": {
+          "native_level": "ward",
+          "target_level": "ward",
+          "boundary_match": true,
+          "coverage_fraction": 1,
+          "require_full_coverage": false
+        },
+        "population": {
+          "kind": "ward_estimate",
+          "native_level": "ward",
+          "claim_mode": "aggregate_estimate",
+          "weights_documented": true,
+          "uncertainty_documented": true
+        },
+        "cohort": {
+          "coverage_fraction": 1,
+          "require_full_coverage": false
+        },
+        "model": {
+          "required": true,
+          "process_exit": "success",
+          "convergence": "converged",
+          "scope_match": false,
+          "validation_scope": "in_scope",
+          "evidence_state": "current",
+          "outputs": [
+            "operative_temperature",
+            "overheating_degree_hours"
+          ]
+        },
+        "measurement": {
+          "required": false,
+          "source_kind": "measured",
+          "calibration_state": "current",
+          "quality_state": "valid",
+          "consent_state": "approved",
+          "spatial_aggregation_allowed": true
+        },
+        "intervention": {
+          "status": "not_applicable",
+          "installation_receipt": false,
+          "inspection_receipt": false,
+          "commissioning_receipt": false,
+          "pre_post_measurements": false,
+          "comparison_design": false
+        },
+        "strategy": {
+          "uses_natural_ventilation": false,
+          "ventilation_available": true
+        }
+      },
+      "expected": {
+        "case_id": "HA-016",
+        "disposition": "Unknown",
+        "claim_level": "H3",
+        "allowed": false,
+        "reason_codes": [
+          "THERMAL_MODEL_SCOPE_MISMATCH"
+        ],
+        "reported_unknown_cohort_fraction": null
+      }
+    },
+    {
+      "case_id": "HA-017",
+      "description": "Annual energy output without overheating output is insufficient for heat-service claim.",
+      "input": {
+        "requested_level": "H3",
+        "source": {
+          "exists": true,
+          "rights_state": "verified"
+        },
+        "weather": {
+          "class": "observed_reanalysis",
+          "use": "coarse_exposure",
+          "period_start": "2025-01-01",
+          "period_end": "2025-12-31",
+          "scenario_id": null
+        },
+        "spatial": {
+          "native_level": "ward",
+          "target_level": "ward",
+          "boundary_match": true,
+          "coverage_fraction": 1,
+          "require_full_coverage": false
+        },
+        "population": {
+          "kind": "ward_estimate",
+          "native_level": "ward",
+          "claim_mode": "aggregate_estimate",
+          "weights_documented": true,
+          "uncertainty_documented": true
+        },
+        "cohort": {
+          "coverage_fraction": 1,
+          "require_full_coverage": false
+        },
+        "model": {
+          "required": true,
+          "process_exit": "success",
+          "convergence": "converged",
+          "scope_match": true,
+          "validation_scope": "in_scope",
+          "evidence_state": "current",
+          "outputs": [
+            "annual_energy_kwh"
+          ]
+        },
+        "measurement": {
+          "required": false,
+          "source_kind": "measured",
+          "calibration_state": "current",
+          "quality_state": "valid",
+          "consent_state": "approved",
+          "spatial_aggregation_allowed": true
+        },
+        "intervention": {
+          "status": "not_applicable",
+          "installation_receipt": false,
+          "inspection_receipt": false,
+          "commissioning_receipt": false,
+          "pre_post_measurements": false,
+          "comparison_design": false
+        },
+        "strategy": {
+          "uses_natural_ventilation": false,
+          "ventilation_available": true
+        }
+      },
+      "expected": {
+        "case_id": "HA-017",
+        "disposition": "Blocked",
+        "claim_level": "H3",
+        "allowed": false,
+        "reason_codes": [
+          "THERMAL_SERVICE_OUTPUTS_INCOMPLETE"
+        ],
+        "reported_unknown_cohort_fraction": null
+      }
+    },
+    {
+      "case_id": "HA-018",
+      "description": "Calibrated, consented sensor data with allowed aggregation supports measured claim.",
+      "input": {
+        "requested_level": "H4",
+        "source": {
+          "exists": true,
+          "rights_state": "verified"
+        },
+        "weather": {
+          "class": "observed_reanalysis",
+          "use": "coarse_exposure",
+          "period_start": "2025-01-01",
+          "period_end": "2025-12-31",
+          "scenario_id": null
+        },
+        "spatial": {
+          "native_level": "ward",
+          "target_level": "ward",
+          "boundary_match": true,
+          "coverage_fraction": 1,
+          "require_full_coverage": false
+        },
+        "population": {
+          "kind": "ward_estimate",
+          "native_level": "ward",
+          "claim_mode": "aggregate_estimate",
+          "weights_documented": true,
+          "uncertainty_documented": true
+        },
+        "cohort": {
+          "coverage_fraction": 1,
+          "require_full_coverage": false
+        },
+        "model": {
+          "required": false,
+          "process_exit": "success",
+          "convergence": "converged",
+          "scope_match": true,
+          "validation_scope": "in_scope",
+          "evidence_state": "current",
+          "outputs": [
+            "operative_temperature",
+            "overheating_degree_hours"
+          ]
+        },
+        "measurement": {
+          "required": true,
+          "source_kind": "measured",
+          "calibration_state": "current",
+          "quality_state": "valid",
+          "consent_state": "approved",
+          "spatial_aggregation_allowed": true
+        },
+        "intervention": {
+          "status": "not_applicable",
+          "installation_receipt": false,
+          "inspection_receipt": false,
+          "commissioning_receipt": false,
+          "pre_post_measurements": false,
+          "comparison_design": false
+        },
+        "strategy": {
+          "uses_natural_ventilation": false,
+          "ventilation_available": true
+        }
+      },
+      "expected": {
+        "case_id": "HA-018",
+        "disposition": "Admissible",
+        "claim_level": "H4",
+        "allowed": true,
+        "reason_codes": [],
+        "reported_unknown_cohort_fraction": null
+      }
+    },
+    {
+      "case_id": "HA-019",
+      "description": "Expired sensor calibration leaves measured condition unknown.",
+      "input": {
+        "requested_level": "H4",
+        "source": {
+          "exists": true,
+          "rights_state": "verified"
+        },
+        "weather": {
+          "class": "observed_reanalysis",
+          "use": "coarse_exposure",
+          "period_start": "2025-01-01",
+          "period_end": "2025-12-31",
+          "scenario_id": null
+        },
+        "spatial": {
+          "native_level": "ward",
+          "target_level": "ward",
+          "boundary_match": true,
+          "coverage_fraction": 1,
+          "require_full_coverage": false
+        },
+        "population": {
+          "kind": "ward_estimate",
+          "native_level": "ward",
+          "claim_mode": "aggregate_estimate",
+          "weights_documented": true,
+          "uncertainty_documented": true
+        },
+        "cohort": {
+          "coverage_fraction": 1,
+          "require_full_coverage": false
+        },
+        "model": {
+          "required": false,
+          "process_exit": "success",
+          "convergence": "converged",
+          "scope_match": true,
+          "validation_scope": "in_scope",
+          "evidence_state": "current",
+          "outputs": [
+            "operative_temperature",
+            "overheating_degree_hours"
+          ]
+        },
+        "measurement": {
+          "required": true,
+          "source_kind": "measured",
+          "calibration_state": "expired",
+          "quality_state": "valid",
+          "consent_state": "approved",
+          "spatial_aggregation_allowed": true
+        },
+        "intervention": {
+          "status": "not_applicable",
+          "installation_receipt": false,
+          "inspection_receipt": false,
+          "commissioning_receipt": false,
+          "pre_post_measurements": false,
+          "comparison_design": false
+        },
+        "strategy": {
+          "uses_natural_ventilation": false,
+          "ventilation_available": true
+        }
+      },
+      "expected": {
+        "case_id": "HA-019",
+        "disposition": "Unknown",
+        "claim_level": "H4",
+        "allowed": false,
+        "reason_codes": [
+          "SENSOR_CALIBRATION_NOT_CURRENT"
+        ],
+        "reported_unknown_cohort_fraction": null
+      }
+    },
+    {
+      "case_id": "HA-020",
+      "description": "Modelled values cannot be relabelled as measured observations.",
+      "input": {
+        "requested_level": "H4",
+        "source": {
+          "exists": true,
+          "rights_state": "verified"
+        },
+        "weather": {
+          "class": "observed_reanalysis",
+          "use": "coarse_exposure",
+          "period_start": "2025-01-01",
+          "period_end": "2025-12-31",
+          "scenario_id": null
+        },
+        "spatial": {
+          "native_level": "ward",
+          "target_level": "ward",
+          "boundary_match": true,
+          "coverage_fraction": 1,
+          "require_full_coverage": false
+        },
+        "population": {
+          "kind": "ward_estimate",
+          "native_level": "ward",
+          "claim_mode": "aggregate_estimate",
+          "weights_documented": true,
+          "uncertainty_documented": true
+        },
+        "cohort": {
+          "coverage_fraction": 1,
+          "require_full_coverage": false
+        },
+        "model": {
+          "required": false,
+          "process_exit": "success",
+          "convergence": "converged",
+          "scope_match": true,
+          "validation_scope": "in_scope",
+          "evidence_state": "current",
+          "outputs": [
+            "operative_temperature",
+            "overheating_degree_hours"
+          ]
+        },
+        "measurement": {
+          "required": true,
+          "source_kind": "modelled",
+          "calibration_state": "current",
+          "quality_state": "valid",
+          "consent_state": "approved",
+          "spatial_aggregation_allowed": true
+        },
+        "intervention": {
+          "status": "not_applicable",
+          "installation_receipt": false,
+          "inspection_receipt": false,
+          "commissioning_receipt": false,
+          "pre_post_measurements": false,
+          "comparison_design": false
+        },
+        "strategy": {
+          "uses_natural_ventilation": false,
+          "ventilation_available": true
+        }
+      },
+      "expected": {
+        "case_id": "HA-020",
+        "disposition": "Blocked",
+        "claim_level": "H4",
+        "allowed": false,
+        "reason_codes": [
+          "MODELLED_DATA_CLAIMED_AS_MEASURED"
+        ],
+        "reported_unknown_cohort_fraction": null
+      }
+    },
+    {
+      "case_id": "HA-021",
+      "description": "Accepted intervention with installation, inspection, commissioning, pre/post and comparison evidence.",
+      "input": {
+        "requested_level": "H5",
+        "source": {
+          "exists": true,
+          "rights_state": "verified"
+        },
+        "weather": {
+          "class": "observed_reanalysis",
+          "use": "coarse_exposure",
+          "period_start": "2025-01-01",
+          "period_end": "2025-12-31",
+          "scenario_id": null
+        },
+        "spatial": {
+          "native_level": "ward",
+          "target_level": "ward",
+          "boundary_match": true,
+          "coverage_fraction": 1,
+          "require_full_coverage": false
+        },
+        "population": {
+          "kind": "ward_estimate",
+          "native_level": "ward",
+          "claim_mode": "aggregate_estimate",
+          "weights_documented": true,
+          "uncertainty_documented": true
+        },
+        "cohort": {
+          "coverage_fraction": 1,
+          "require_full_coverage": false
+        },
+        "model": {
+          "required": true,
+          "process_exit": "success",
+          "convergence": "converged",
+          "scope_match": true,
+          "validation_scope": "in_scope",
+          "evidence_state": "current",
+          "outputs": [
+            "operative_temperature",
+            "overheating_degree_hours"
+          ]
+        },
+        "measurement": {
+          "required": true,
+          "source_kind": "measured",
+          "calibration_state": "current",
+          "quality_state": "valid",
+          "consent_state": "approved",
+          "spatial_aggregation_allowed": true
+        },
+        "intervention": {
+          "status": "accepted",
+          "installation_receipt": true,
+          "inspection_receipt": true,
+          "commissioning_receipt": true,
+          "pre_post_measurements": true,
+          "comparison_design": true
+        },
+        "strategy": {
+          "uses_natural_ventilation": false,
+          "ventilation_available": true
+        }
+      },
+      "expected": {
+        "case_id": "HA-021",
+        "disposition": "Admissible",
+        "claim_level": "H5",
+        "allowed": true,
+        "reason_codes": [],
+        "reported_unknown_cohort_fraction": null
+      }
+    },
+    {
+      "case_id": "HA-022",
+      "description": "Installed but not inspected intervention is not accepted effect evidence.",
+      "input": {
+        "requested_level": "H5",
+        "source": {
+          "exists": true,
+          "rights_state": "verified"
+        },
+        "weather": {
+          "class": "observed_reanalysis",
+          "use": "coarse_exposure",
+          "period_start": "2025-01-01",
+          "period_end": "2025-12-31",
+          "scenario_id": null
+        },
+        "spatial": {
+          "native_level": "ward",
+          "target_level": "ward",
+          "boundary_match": true,
+          "coverage_fraction": 1,
+          "require_full_coverage": false
+        },
+        "population": {
+          "kind": "ward_estimate",
+          "native_level": "ward",
+          "claim_mode": "aggregate_estimate",
+          "weights_documented": true,
+          "uncertainty_documented": true
+        },
+        "cohort": {
+          "coverage_fraction": 1,
+          "require_full_coverage": false
+        },
+        "model": {
+          "required": false,
+          "process_exit": "success",
+          "convergence": "converged",
+          "scope_match": true,
+          "validation_scope": "in_scope",
+          "evidence_state": "current",
+          "outputs": [
+            "operative_temperature",
+            "overheating_degree_hours"
+          ]
+        },
+        "measurement": {
+          "required": true,
+          "source_kind": "measured",
+          "calibration_state": "current",
+          "quality_state": "valid",
+          "consent_state": "approved",
+          "spatial_aggregation_allowed": true
+        },
+        "intervention": {
+          "status": "installed",
+          "installation_receipt": true,
+          "inspection_receipt": false,
+          "commissioning_receipt": true,
+          "pre_post_measurements": true,
+          "comparison_design": true
+        },
+        "strategy": {
+          "uses_natural_ventilation": false,
+          "ventilation_available": true
+        }
+      },
+      "expected": {
+        "case_id": "HA-022",
+        "disposition": "Unknown",
+        "claim_level": "H5",
+        "allowed": false,
+        "reason_codes": [
+          "INSTALLATION_INSPECTION_OR_COMMISSIONING_EVIDENCE_MISSING",
+          "INTERVENTION_NOT_ACCEPTED"
+        ],
+        "reported_unknown_cohort_fraction": null
+      }
+    },
+    {
+      "case_id": "HA-023",
+      "description": "Predicted retrofit performance is not an observed intervention effect.",
+      "input": {
+        "requested_level": "H5",
+        "source": {
+          "exists": true,
+          "rights_state": "verified"
+        },
+        "weather": {
+          "class": "observed_reanalysis",
+          "use": "coarse_exposure",
+          "period_start": "2025-01-01",
+          "period_end": "2025-12-31",
+          "scenario_id": null
+        },
+        "spatial": {
+          "native_level": "ward",
+          "target_level": "ward",
+          "boundary_match": true,
+          "coverage_fraction": 1,
+          "require_full_coverage": false
+        },
+        "population": {
+          "kind": "ward_estimate",
+          "native_level": "ward",
+          "claim_mode": "aggregate_estimate",
+          "weights_documented": true,
+          "uncertainty_documented": true
+        },
+        "cohort": {
+          "coverage_fraction": 1,
+          "require_full_coverage": false
+        },
+        "model": {
+          "required": false,
+          "process_exit": "success",
+          "convergence": "converged",
+          "scope_match": true,
+          "validation_scope": "in_scope",
+          "evidence_state": "current",
+          "outputs": [
+            "operative_temperature",
+            "overheating_degree_hours"
+          ]
+        },
+        "measurement": {
+          "required": true,
+          "source_kind": "measured",
+          "calibration_state": "current",
+          "quality_state": "valid",
+          "consent_state": "approved",
+          "spatial_aggregation_allowed": true
+        },
+        "intervention": {
+          "status": "predicted",
+          "installation_receipt": false,
+          "inspection_receipt": false,
+          "commissioning_receipt": false,
+          "pre_post_measurements": false,
+          "comparison_design": false
+        },
+        "strategy": {
+          "uses_natural_ventilation": false,
+          "ventilation_available": true
+        }
+      },
+      "expected": {
+        "case_id": "HA-023",
+        "disposition": "Blocked",
+        "claim_level": "H5",
+        "allowed": false,
+        "reason_codes": [
+          "INSTALLATION_INSPECTION_OR_COMMISSIONING_EVIDENCE_MISSING",
+          "INTERVENTION_NOT_ACCEPTED",
+          "PREDICTED_INTERVENTION_CLAIMED_AS_EFFECT",
+          "PRE_POST_OR_COMPARISON_EVIDENCE_MISSING"
+        ],
+        "reported_unknown_cohort_fraction": null
+      }
+    },
+    {
+      "case_id": "HA-024",
+      "description": "Natural ventilation unavailable during polluted-air period cannot be claimed as cooling service.",
+      "input": {
+        "requested_level": "H3",
+        "source": {
+          "exists": true,
+          "rights_state": "verified"
+        },
+        "weather": {
+          "class": "observed_reanalysis",
+          "use": "coarse_exposure",
+          "period_start": "2025-01-01",
+          "period_end": "2025-12-31",
+          "scenario_id": null
+        },
+        "spatial": {
+          "native_level": "ward",
+          "target_level": "ward",
+          "boundary_match": true,
+          "coverage_fraction": 1,
+          "require_full_coverage": false
+        },
+        "population": {
+          "kind": "ward_estimate",
+          "native_level": "ward",
+          "claim_mode": "aggregate_estimate",
+          "weights_documented": true,
+          "uncertainty_documented": true
+        },
+        "cohort": {
+          "coverage_fraction": 1,
+          "require_full_coverage": false
+        },
+        "model": {
+          "required": true,
+          "process_exit": "success",
+          "convergence": "converged",
+          "scope_match": true,
+          "validation_scope": "in_scope",
+          "evidence_state": "current",
+          "outputs": [
+            "operative_temperature",
+            "overheating_degree_hours"
+          ]
+        },
+        "measurement": {
+          "required": false,
+          "source_kind": "measured",
+          "calibration_state": "current",
+          "quality_state": "valid",
+          "consent_state": "approved",
+          "spatial_aggregation_allowed": true
+        },
+        "intervention": {
+          "status": "not_applicable",
+          "installation_receipt": false,
+          "inspection_receipt": false,
+          "commissioning_receipt": false,
+          "pre_post_measurements": false,
+          "comparison_design": false
+        },
+        "strategy": {
+          "uses_natural_ventilation": true,
+          "ventilation_available": false
+        }
+      },
+      "expected": {
+        "case_id": "HA-024",
+        "disposition": "Blocked",
+        "claim_level": "H3",
+        "allowed": false,
+        "reason_codes": [
+          "VENTILATION_UNAVAILABLE_IN_SCENARIO"
+        ],
+        "reported_unknown_cohort_fraction": null
+      }
+    },
+    {
+      "case_id": "HA-025",
+      "description": "Source rights are unresolved, so the layer cannot be redistributed.",
+      "input": {
+        "requested_level": "H0",
+        "source": {
+          "exists": true,
+          "rights_state": "unknown"
+        },
+        "weather": {
+          "class": "observed_reanalysis",
+          "use": "coarse_exposure",
+          "period_start": "2025-01-01",
+          "period_end": "2025-12-31",
+          "scenario_id": null
+        },
+        "spatial": {
+          "native_level": "ward",
+          "target_level": "ward",
+          "boundary_match": true,
+          "coverage_fraction": 1,
+          "require_full_coverage": false
+        },
+        "population": {
+          "kind": "ward_estimate",
+          "native_level": "ward",
+          "claim_mode": "aggregate_estimate",
+          "weights_documented": true,
+          "uncertainty_documented": true
+        },
+        "cohort": {
+          "coverage_fraction": 1,
+          "require_full_coverage": false
+        },
+        "model": {
+          "required": false,
+          "process_exit": "success",
+          "convergence": "converged",
+          "scope_match": true,
+          "validation_scope": "in_scope",
+          "evidence_state": "current",
+          "outputs": [
+            "operative_temperature",
+            "overheating_degree_hours"
+          ]
+        },
+        "measurement": {
+          "required": false,
+          "source_kind": "measured",
+          "calibration_state": "current",
+          "quality_state": "valid",
+          "consent_state": "approved",
+          "spatial_aggregation_allowed": true
+        },
+        "intervention": {
+          "status": "not_applicable",
+          "installation_receipt": false,
+          "inspection_receipt": false,
+          "commissioning_receipt": false,
+          "pre_post_measurements": false,
+          "comparison_design": false
+        },
+        "strategy": {
+          "uses_natural_ventilation": false,
+          "ventilation_available": true
+        }
+      },
+      "expected": {
+        "case_id": "HA-025",
+        "disposition": "Blocked",
+        "claim_level": "H0",
+        "allowed": false,
+        "reason_codes": [
+          "SOURCE_RIGHTS_NOT_VERIFIED"
+        ],
+        "reported_unknown_cohort_fraction": null
+      }
+    },
+    {
+      "case_id": "HA-026",
+      "description": "Observed event without exact period is not a qualified event profile.",
+      "input": {
+        "requested_level": "H1",
+        "source": {
+          "exists": true,
+          "rights_state": "verified"
+        },
+        "weather": {
+          "class": "observed_event",
+          "use": "heatwave",
+          "period_start": null,
+          "period_end": null,
+          "scenario_id": null
+        },
+        "spatial": {
+          "native_level": "ward",
+          "target_level": "ward",
+          "boundary_match": true,
+          "coverage_fraction": 1,
+          "require_full_coverage": false
+        },
+        "population": {
+          "kind": "ward_estimate",
+          "native_level": "ward",
+          "claim_mode": "aggregate_estimate",
+          "weights_documented": true,
+          "uncertainty_documented": true
+        },
+        "cohort": {
+          "coverage_fraction": 1,
+          "require_full_coverage": false
+        },
+        "model": {
+          "required": false,
+          "process_exit": "success",
+          "convergence": "converged",
+          "scope_match": true,
+          "validation_scope": "in_scope",
+          "evidence_state": "current",
+          "outputs": [
+            "operative_temperature",
+            "overheating_degree_hours"
+          ]
+        },
+        "measurement": {
+          "required": false,
+          "source_kind": "measured",
+          "calibration_state": "current",
+          "quality_state": "valid",
+          "consent_state": "approved",
+          "spatial_aggregation_allowed": true
+        },
+        "intervention": {
+          "status": "not_applicable",
+          "installation_receipt": false,
+          "inspection_receipt": false,
+          "commissioning_receipt": false,
+          "pre_post_measurements": false,
+          "comparison_design": false
+        },
+        "strategy": {
+          "uses_natural_ventilation": false,
+          "ventilation_available": true
+        }
+      },
+      "expected": {
+        "case_id": "HA-026",
+        "disposition": "Unknown",
+        "claim_level": "H1",
+        "allowed": false,
+        "reason_codes": [
+          "OBSERVED_EVENT_PERIOD_MISSING"
+        ],
+        "reported_unknown_cohort_fraction": null
+      }
+    },
+    {
+      "case_id": "HA-027",
+      "description": "Programme-impact claim is reserved until a population-level causal evaluation contract is implemented.",
+      "input": {
+        "requested_level": "H6",
+        "source": {
+          "exists": true,
+          "rights_state": "verified"
+        },
+        "weather": {
+          "class": "observed_reanalysis",
+          "use": "coarse_exposure",
+          "period_start": "2025-01-01",
+          "period_end": "2025-12-31",
+          "scenario_id": null
+        },
+        "spatial": {
+          "native_level": "ward",
+          "target_level": "ward",
+          "boundary_match": true,
+          "coverage_fraction": 1,
+          "require_full_coverage": false
+        },
+        "population": {
+          "kind": "ward_estimate",
+          "native_level": "ward",
+          "claim_mode": "aggregate_estimate",
+          "weights_documented": true,
+          "uncertainty_documented": true
+        },
+        "cohort": {
+          "coverage_fraction": 1,
+          "require_full_coverage": false
+        },
+        "model": {
+          "required": false,
+          "process_exit": "success",
+          "convergence": "converged",
+          "scope_match": true,
+          "validation_scope": "in_scope",
+          "evidence_state": "current",
+          "outputs": [
+            "operative_temperature",
+            "overheating_degree_hours"
+          ]
+        },
+        "measurement": {
+          "required": false,
+          "source_kind": "measured",
+          "calibration_state": "current",
+          "quality_state": "valid",
+          "consent_state": "approved",
+          "spatial_aggregation_allowed": true
+        },
+        "intervention": {
+          "status": "not_applicable",
+          "installation_receipt": false,
+          "inspection_receipt": false,
+          "commissioning_receipt": false,
+          "pre_post_measurements": false,
+          "comparison_design": false
+        },
+        "strategy": {
+          "uses_natural_ventilation": false,
+          "ventilation_available": true
+        }
+      },
+      "expected": {
+        "case_id": "HA-027",
+        "disposition": "Unsupported",
+        "claim_level": "H6",
+        "allowed": false,
+        "reason_codes": [
+          "CLAIM_LEVEL_UNSUPPORTED"
+        ],
+        "reported_unknown_cohort_fraction": null
+      }
+    }
+  ],
+  "reserved_claim_levels": [
+    "H6_programme_impact_not_implemented_in_v0_1"
+  ],
+  "implemented_claim_levels": [
+    "H0",
+    "H1",
+    "H2",
+    "H3",
+    "H4",
+    "H5"
+  ]
+}
