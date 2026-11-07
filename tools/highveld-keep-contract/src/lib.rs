@@ -374,7 +374,9 @@ pub fn validate_values(scenario: &Value, parameters: &Value) -> ValidationReport
         for (id, required_status) in STATION_METADATA_STATUS {
             let valid = find_by_id(items, id).is_some_and(|item| {
                 item.get("status").and_then(Value::as_str) == Some(required_status)
-                    && item.get("measurement_series_downloaded").and_then(Value::as_bool)
+                    && item
+                        .get("measurement_series_downloaded")
+                        .and_then(Value::as_bool)
                         == Some(false)
                     && item.get("file_digest").is_some_and(Value::is_null)
             });
@@ -385,18 +387,23 @@ pub fn validate_values(scenario: &Value, parameters: &Value) -> ValidationReport
 
         let noaa_record = find_by_id(items, "JOHANNESBURG_TAMBO_NOAA_GHCND");
         if !noaa_record.is_some_and(|item| {
-            item.get("daily_summary_period_end").and_then(Value::as_str)
-                == Some("2020-05-27")
-                && item.get("hourly_series_downloaded").and_then(Value::as_bool) == Some(false)
+            item.get("daily_summary_period_end").and_then(Value::as_str) == Some("2020-05-27")
+                && item
+                    .get("hourly_series_downloaded")
+                    .and_then(Value::as_bool)
+                    == Some(false)
         }) {
             violations.push("NOAA_GHCND_DAILY_RECORD_SCOPE_CHANGED");
         }
 
         let wigos_record = find_by_id(items, "JOHANNESBURG_TAMBO_SAWS_WIGOS_OSCAR");
         if !wigos_record.is_some_and(|item| {
-            item.get("history_and_instrument_metadata").and_then(Value::as_str)
+            item.get("history_and_instrument_metadata")
+                .and_then(Value::as_str)
                 == Some("must_retrieve_directly_from_wmo_oscar_and_saws")
-                && item.get("reported_previous_to_current_distance_km").is_some()
+                && item
+                    .get("reported_previous_to_current_distance_km")
+                    .is_some()
         }) {
             violations.push("WIGOS_STATION_HISTORY_RECONCILIATION_GATE_REMOVED");
         }
@@ -1069,10 +1076,7 @@ mod tests {
         let (mut scenario, parameters) = documents();
         scenario["station_metadata_crosschecks"][2]["hourly_series_downloaded"] = json!(true);
         let report = validate_values(&scenario, &parameters);
-        assert!(contains(
-            &report,
-            "NOAA_GHCND_DAILY_RECORD_SCOPE_CHANGED"
-        ));
+        assert!(contains(&report, "NOAA_GHCND_DAILY_RECORD_SCOPE_CHANGED"));
     }
 
     #[test]
