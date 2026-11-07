@@ -184,6 +184,52 @@ Before using any station series:
 
 A source coordinate update or station move must invalidate dependent representativeness assessments and any weather model using the affected station snapshot. Never rewrite historic coordinates to the current station point without evidence of instrument continuity or a homogenization method.
 
+## 3E. 2026 industry baseline and fair comparison
+
+The Luminous workflow must be compared with working industry capabilities, not a deliberately weak manual baseline. Product capabilities below are drawn from vendor/standards-owner publications checked 7 November 2026. They are evidence of advertised/current product workflows, not independent proof of performance, regional availability or fitness for a specific South African project.
+
+| Industry baseline | Publicly documented capability | Highveld comparison target |
+|---|---|---|
+| Autodesk Forma Building Design | Cloud schematic design; site context; automated floor plans, modular façades and unit mix/area metrics; integrated sun-hours, façade/window daylight potential and total-carbon analysis; geolocated native Revit handoff. | Match the same task/site input; compare option throughput, data fidelity into detailed BIM, uncertainty/source lineage, and local climate/regulatory fit. Do not claim Forma lacks early performance analysis. |
+| Autodesk Forma Building Design, 4 Nov 2026 update | Indoor Daylight public beta; indoor daylight analysis over typical occupied hours; AutoCAD DXF import and DWG floor-plan export; updated parking/furniture workflows. | Include the current release, not an obsolete Forma baseline; independently verify the same indoor daylight cases and transfer fidelity. |
+| Autodesk Forma Site Design | Area, sun-hours, daylight potential, wind, microclimate and embodied-carbon analyses in pre-design/schematic workflows. | Compare site/context/environmental screening on matched inputs. Do not claim Luminous invents these analyses. |
+| TestFit Generative Design | Vendor documents zoning filters including height, FAR, building coverage, impervious coverage and dwelling units/acre; unit and parking mix targets. | Compare constraint capture, jurisdiction-specific source provenance, constraint-version updates, and ability to keep unknown or conflicting zoning rules from becoming inferred passes. |
+| Autodesk Revit | Detailed model-based BIM remains a central authoring workflow; Autodesk describes Forma as extending connected, outcome-based work earlier while keeping Revit for detailed model workflows. | Treat Revit as a serious detailed-authoring baseline and test lossless/explicitly-bounded transfer rather than positioning Luminous as a Revit replacement. |
+| OpenBIM / buildingSMART IFC and IDS | IFC 4.3.2.0 is an official IFC release (ISO 16739-1:2024). IDS 1.0 is an approved information-requirements standard for IFC alphanumeric attributes, classifications, values, units and relations; IDS does not cover geometric checks. | Use IFC/IDS as interoperability contracts; separately test geometry, topology, clashes, coordinate frames, as-built correspondence and calculated values. Do not reinvent IDS or pretend IDS proves geometry. |
+| Specialist performance software | Dedicated thermal/energy, daylight, structural, fire, wind and acoustics solvers retain their domain-specific model and validation authority. | Orchestrate exact pinned versions, complete inputs, warnings/convergence, scope and independent benchmarks; do not replace them with a generic model score. |
+
+Primary references:
+- Autodesk Forma Building Design capability overview: https://www.autodesk.com/products/forma-building-design/overview
+- Autodesk Forma Building Design 4 November 2026 update: https://blogs.autodesk.com/forma/2026/11/04/whats-new-in-forma-building-design-indoor-daylight-parking-furniture-and-autocad-workflows/
+- Autodesk Forma environmental analysis: https://www.autodesk.com/products/forma-site-design/environmental-impact-analysis
+- Autodesk/Forma and Revit direction, 30 June 2026: https://adsknews.autodesk.com/en/views/forma-revit-evolution/
+- TestFit Generative Design zoning and unit/parking mix: https://www.testfit.io/blog/testfit-5-2-better-data-brings-better-generative-design
+- IFC release register: https://technical.buildingsmart.org/standards/ifc/ifc-schema-specifications/
+- IDS standard scope and limitations: https://www.buildingsmart.org/standards/bsi-standards/information-delivery-specification-ids/
+
+### What Luminous must not claim
+
+- "We invented generative building design" — false; the industry already has mature optioneering and performance-analysis workflows.
+- "Our AI is more accurate" — unproven until matched solver/measurement comparisons exist.
+- "Our BIM is more interoperable" — unproven until round-trip and as-built comparisons demonstrate it.
+- "Our designs are code-compliant" — unproven without current jurisdiction-specific requirements, competent professionals and authority review.
+- "Our climate data is better" — unproven until exact South African station/file identity, quality, rights and representativeness are qualified.
+- "Our buildings are safer, cheaper or greener" — unproven until independent design and physical/operational evidence supports those specific claims.
+
+### Credible differentiation to test
+
+The strongest hypothesis is not another all-in-one authoring tool. It is an **evidence-carrying, authority-preserving design-to-operation compiler**:
+
+1. Compile resident task intent and hard requirements into versioned machine-readable contracts.
+2. Generate genuinely different alternatives while preserving conflict and uncertainty.
+3. Carry source, station, material, solver and approval provenance into each candidate and dependent claim.
+4. Use market-leading authoring and domain solvers through explicit exchanges rather than replacing them.
+5. Keep a claim-specific proof graph from input -> geometry revision -> analysis -> approval -> fabrication -> inspection -> as-built -> maintenance.
+6. Invalidate only evidence whose dependencies changed, while retaining unaffected evidence with exact dependency receipts.
+7. Close the loop with measured indoor conditions, water/energy use, defect and maintenance outcomes—using consent and privacy-preserving telemetry.
+
+The product advantage must therefore be shown as lower evidence loss, fewer false passes, better uncertainty calibration, faster detection of infeasible alternatives, more complete delivery packages and stronger as-built continuity under matched project budgets.
+
 ## 4. Frozen inputs
 
 Before scoring:
