@@ -534,5 +534,83 @@
       "measurement_series_downloaded": false,
       "file_digest": null
     }
+  ],
+  "station_network_source_profiles": [
+    {
+      "id": "ARC_OPERATIONAL_AGROCLIMATE_NETWORK",
+      "provider": "Agricultural Research Council ARC-ISCW Agrometeorology",
+      "source": "https://www.arc.agric.za/arc-iscw/Pages/Climate-Monitoring-Services.aspx",
+      "inventory_scope": "operational_national_agroclimate_network",
+      "reported_station_count_approx": 500,
+      "parameters_reported": [
+        "temperature",
+        "rainfall",
+        "humidity",
+        "radiation",
+        "wind_speed",
+        "wind_direction",
+        "wind_gust"
+      ],
+      "reported_temporal_products": [
+        "hourly",
+        "daily",
+        "monthly",
+        "yearly",
+        "long_term_average"
+      ],
+      "data_access_status": "contact_provider_for_availability_terms",
+      "status": "NETWORK_SCOPE_METADATA_ONLY_NOT_STATION_QUALIFICATION",
+      "not_evidence_of": [
+        "all_stations_active",
+        "all_stations_hourly",
+        "Johannesburg_parcel_representativeness",
+        "free_redistribution"
+      ]
+    },
+    {
+      "id": "ARC_AGROCLIMATE_WEB_PORTAL_ARCHIVE",
+      "provider": "ARC Agrometeorology Web Data Portal",
+      "source": "https://www.agroclimate.agric.za/WP/WP/About.php",
+      "inventory_scope": "historical_and_active_portal_archive",
+      "reported_total_stations_approx": 1900,
+      "reported_manual_stations": 1100,
+      "reported_automatic_weather_stations": 763,
+      "reported_active_automatic_stations": 460,
+      "reported_active_collection_cadence": "daily",
+      "reported_period_note": "some historical rainfall records extend to January 1900",
+      "data_access_status": "paid_ad_hoc_or_subscription",
+      "status": "ARCHIVE_INVENTORY_METADATA_ONLY_NOT_STATION_QUALIFICATION",
+      "not_evidence_of": [
+        "1900_currently_active_stations",
+        "all_stations_hourly",
+        "all_variables_available_at_each_station",
+        "Johannesburg_parcel_representativeness",
+        "free_redistribution"
+      ]
+    },
+    {
+      "id": "SAWS_WIS2_FIXED_LAND_SYNOP",
+      "provider": "South African Weather Service",
+      "source": "https://wis.weathersa.co.za/",
+      "product": "hourly_synoptic_observations_fixed_land_stations",
+      "public_topic": "origin/a/wis2/za-weathersa/data/core/weather/surface-based-observations/synop",
+      "public_metadata_identifier": "urn:wmo:md:za-weathersa:xoeh2t",
+      "recommended_topic": "origin/a/wis2/za-weathersa/data/recommended/weather/surface-based-observations/synop",
+      "recommended_metadata_identifier": "urn:wmo:md:za-weathersa:76h87o",
+      "access_and_license_status": "must_check_product_topic_specific_license_and_reuse_terms",
+      "station_identity_history": "not_yet_reconciled",
+      "measurement_messages_downloaded": false,
+      "status": "PORTAL_PRODUCT_METADATA_ONLY_NOT_STATION_QUALIFICATION"
+    },
+    {
+      "id": "NOAA_NCEI_GLOBAL_HOURLY_ISD",
+      "provider": "NOAA National Centers for Environmental Information",
+      "source": "https://www.ncei.noaa.gov/products/land-based-station/integrated-surface-database",
+      "product": "global_hourly_integrated_surface_database",
+      "reported_global_station_scope": "more_than_20000_stations; coverage varies by station and period",
+      "local_johannesburg_series_downloaded": false,
+      "local_station_history_reconciled": false,
+      "status": "GLOBAL_ARCHIVE_PRODUCT_METADATA_ONLY_NOT_LOCAL_SERIES_QUALIFICATION"
+    }
   ]
 }
