@@ -11,6 +11,23 @@ The rule is **evidence for the exact scope**, not a generic “approved technolo
 
 ## Critical current status findings
 
+### SANS 10400-XA:2026, Edition 3 — edition-status correction (7 November 2026)
+
+The earlier 2021 Edition 2 references are no longer a safe default for the latest edition. SAIAT's professional CPD portal identifies an event on **SANS 10400-XA 3rd Edition 2026**, states that Edition 3 was published early in 2026, and identifies the presenter as chair of SABS TC 060 and a member of the latest review workgroup. The course description specifically flags changes to the method for satisfying energy-efficient hot-water requirements. [SAIAT CPD source](https://cpd.saiat.org.za/sans-10400-xa-3rd-edition-cc)
+
+This is credible specialist secondary evidence of a published 2026 Edition 3, but it is not a substitute for the copyrighted SABS publication or a project-specific legal/applicability determination. The exact SABS catalogue record, publication/approval metadata, effective date, transition treatment and full text have **not** been independently retrieved for this register.
+
+Required treatment:
+
+- Record **SANS 10400-XA:2026, Edition 3** as the latest identified edition candidate; do not describe the 2021 Edition 2 as the latest edition.
+- Keep the compliance state **Version_or_Applicability_Unknown** until the exact SABS catalogue record and lawful copy are checked and the applicable building use/project date are known.
+- Acquire and review the official SABS edition under appropriate access rights before encoding clause-level checks. Do not reconstruct copyrighted requirements from course notes or secondary summaries.
+- Compare Edition 3 with Edition 2, paying particular attention to the hot-water compliance route identified by SAIAT; verify every other change from the official text rather than assuming there are none.
+- Bind each compliance decision to the exact edition, effective/transition dates, building class, calculation method, qualified responsible person, project/design revision and relevant building-control decision.
+- Treat older municipal or international policy summaries that still say 2021 as historical evidence until their edition references are refreshed.
+
+This correction does not claim that the standard itself amends the National Building Regulations, that every project must use the same compliance route, or that any Highveld Keep design is compliant.
+
 ### Public procurement: important September 2026 correction
 
 The Constitutional Court's judgment in *Premier of the Western Cape Government and Another v Speaker of the National Assembly and Others; City of Cape Town and Others v Speaker of the National Assembly and Others* [2026] ZACC 37, delivered 17 September 2026, declared the Public Procurement Act 28 of 2024 invalid because the public-participation process was constitutionally inadequate. The declaration was not suspended; the judgment notes the Act had not been brought into operation and that existing legislation continued to govern. Therefore CityMaker must **not** use the 2024 Act as if it were the operative public-procurement statute. Each project must bind its governing framework as at the procurement date. [Judgment](https://www3.saflii.org/za/cases/ZACC/2026/37.html) [Finance Minister statement](https://www.gov.za/news/media-statements/minister-enoch-godongwana-notes-and-respects-judgement-constitutional-court-i)
