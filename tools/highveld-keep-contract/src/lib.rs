@@ -34,6 +34,7 @@ pub struct ValidationReport {
     pub continuous_variables: usize,
     pub categorical_variables: usize,
     pub functional_relationships: usize,
+    pub alternative_climate_methods: usize,
     pub violations: Vec<&'static str>,
 }
 
@@ -287,6 +288,60 @@ pub fn validate_values(scenario: &Value, parameters: &Value) -> ValidationReport
             .iter()
             .any(|required| !array_contains(profiles, required)),
         "WEATHER_PROFILE_SEPARATION_INCOMPLETE",
+    );
+
+    // Preserve the second climate-provider methodology as research only.
+    // Provider-published global validation and a coarse regional grid trend are
+    // not local Highveld file qualification.
+    let alternative_methods =
+        array_at(scenario, &["alternative_climate_provider_methodologies"]);
+    let mut alternative_method_count = 0usize;
+    if let Some(items) = alternative_methods {
+        alternative_method_count = items.len();
+        let fusion = find_by_id(items, "EPW_TOOLS_STATION_REANALYSIS_FUSION");
+        let fusion_is_research_only = fusion.is_some_and(|item| {
+            item.get("provider").and_then(Value::as_str) == Some("EPW.tools")
+                && item.get("status").and_then(Value::as_str)
+                    == Some("RESEARCH_ONLY_NOT_INGESTED_OR_QUALIFIED")
+                && item.get("source_file_downloaded").and_then(Value::as_bool) == Some(false)
+                && item.get("file_digest").is_some_and(Value::is_null)
+                && item.get("reuse_rights").and_then(Value::as_str) == Some("UNKNOWN")
+                && item.get("licence_and_terms_checked").and_then(Value::as_bool) == Some(false)
+                && item.get("local_validation_status").and_then(Value::as_str)
+                    == Some("NOT_INDEPENDENTLY_REVIEWED_FOR_JOHANNESBURG_OR_A_HIGHVELD_PARCEL")
+        });
+        push_if(
+            &mut violations,
+            !fusion_is_research_only,
+            "ALTERNATIVE_CLIMATE_PROVIDER_PROMOTED_OR_INCOMPLETE",
+        );
+
+        let regional_trend = find_by_id(items, "JOHANNESBURG_GRID_TREND_EPWT");
+        let regional_scope_is_bounded = regional_trend.is_some_and(|item| {
+            item.get("spatial_resolution").and_then(Value::as_str)
+                == Some("0.5_degree_grid_cell")
+                && item.get("status").and_then(Value::as_str)
+                    == Some("REGIONAL_RESEARCH_CONTEXT_ONLY_NOT_DESIGN_WEATHER")
+                && item
+                    .get("scope_limit")
+                    .and_then(Value::as_str)
+                    .is_some_and(|value| {
+                        value.contains("not an airport thermometer")
+                            && value.contains("not a parcel measurement")
+                    })
+        });
+        push_if(
+            &mut violations,
+            !regional_scope_is_bounded,
+            "REGIONAL_CLIMATE_TREND_SCOPE_PROMOTED",
+        );
+    } else {
+        violations.push("ALTERNATIVE_CLIMATE_METHODS_MISSING");
+    }
+    push_if(
+        &mut violations,
+        alternative_method_count != 2,
+        "ALTERNATIVE_CLIMATE_METHOD_COUNT_CHANGED",
     );
 
     // Preserve the existing geometry and solver authority gates.
@@ -628,6 +683,7 @@ pub fn validate_values(scenario: &Value, parameters: &Value) -> ValidationReport
         continuous_variables: continuous_count,
         categorical_variables: categorical_count,
         functional_relationships: functional_relationship_count,
+        alternative_climate_methods: alternative_method_count,
         violations,
     }
 }
@@ -916,6 +972,29 @@ mod tests {
             .remove("unit");
         let report = validate_values(&scenario, &parameters);
         assert!(contains(&report, "CONTINUOUS_PARAMETER_BOUNDS_INVALID"));
+    }
+
+    #[test]
+    fn alternate_provider_remains_unqualified_until_local_source_review() {
+        let (mut scenario, parameters) = documents();
+        scenario["alternative_climate_provider_methodologies"][0]["status"] =
+            json!("QUALIFIED");
+        scenario["alternative_climate_provider_methodologies"][0]["local_validation_status"] =
+            json!("VERIFIED");
+        let report = validate_values(&scenario, &parameters);
+        assert!(contains(
+            &report,
+            "ALTERNATIVE_CLIMATE_PROVIDER_PROMOTED_OR_INCOMPLETE"
+        ));
+    }
+
+    #[test]
+    fn grid_climate_trend_cannot_be_promoted_to_site_design_weather() {
+        let (mut scenario, parameters) = documents();
+        scenario["alternative_climate_provider_methodologies"][1]["status"] =
+            json!("SITE_DESIGN_WEATHER");
+        let report = validate_values(&scenario, &parameters);
+        assert!(contains(&report, "REGIONAL_CLIMATE_TREND_SCOPE_PROMOTED"));
     }
 
     #[test]
