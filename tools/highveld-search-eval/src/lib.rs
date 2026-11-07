@@ -775,25 +775,45 @@ pub fn evaluate_bundle(bundle: &Value) -> EvaluationReport {
                 exact_reference_front_ids = run.pareto_ids.clone();
             }
             // Exact enumeration is an oracle only if every enumerated candidate
-            // has a current, complete, high-fidelity result and known hard gates.
+            // has a current, complete, exact evaluation and known hard gates.
             let reference_run = runs.first();
             let reference_candidates = reference_run
                 .and_then(|value| value.get("candidates"))
                 .and_then(Value::as_array);
-            if reference_candidates.is_none_or(|candidates| {
-                candidates.iter().any(|candidate| {
+            let mut exact_reference_complete = reference_candidates.is_some();
+            if let Some(candidates) = reference_candidates {
+                for candidate in candidates {
+                    if get_str(candidate, "dependency_status") != Some("current") {
+                        push_unique(
+                            &mut violations,
+                            "EXACT_REFERENCE_DEPENDENCY_NOT_CURRENT",
+                        );
+                        exact_reference_complete = false;
+                    }
+                    if normalize_objectives(candidate, &objectives).is_err() {
+                        push_unique(
+                            &mut violations,
+                            "EXACT_REFERENCE_OBJECTIVE_VALUES_INCOMPLETE",
+                        );
+                        exact_reference_complete = false;
+                    }
                     let gate_map = candidate.get("hard_gates").and_then(Value::as_object);
                     let all_gates_known = gate_ids.iter().all(|gate_id| {
                         matches!(
-                            gate_map
-                                .and_then(|map| map.get(gate_id))
-                                .and_then(Value::as_str),
+                            gate_map.and_then(|map| map.get(gate_id)).and_then(Value::as_str),
                             Some("passed" | "failed")
                         )
                     });
-                    let normalized = normalize_objectives(candidate, &objectives).is_ok();
+                    if !all_gates_known {
+                        push_unique(
+                            &mut violations,
+                            "EXACT_REFERENCE_HARD_GATE_STATE_UNKNOWN",
+                        );
+                        exact_reference_complete = false;
+                    }
                     let verification = candidate.get("verification");
-                    let full_fidelity = verification.and_then(|value| get_str(value, "kind"))
+                    let full_fidelity = verification
+                        .and_then(|value| get_str(value, "kind"))
                         == Some("high_fidelity")
                         && verification.and_then(|value| get_bool(value, "converged"))
                             == Some(true)
@@ -803,12 +823,16 @@ pub fn evaluate_bundle(bundle: &Value) -> EvaluationReport {
                         && verification
                             .and_then(|value| get_str(value, "validation_scope"))
                             .is_some_and(|scope| !scope.is_empty());
-                    get_str(candidate, "dependency_status") != Some("current")
-                        || !normalized
-                        || !all_gates_known
-                        || !full_fidelity
-                })
-            }) {
+                    if !full_fidelity {
+                        push_unique(
+                            &mut violations,
+                            "EXACT_REFERENCE_EVALUATION_SCOPE_INCOMPLETE",
+                        );
+                        exact_reference_complete = false;
+                    }
+                }
+            }
+            if !exact_reference_complete {
                 push_unique(
                     &mut violations,
                     "EXACT_REFERENCE_ENUMERATION_NOT_FULLY_QUALIFIED",
