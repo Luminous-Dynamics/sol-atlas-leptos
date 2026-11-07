@@ -1076,7 +1076,7 @@ mod tests {
         assert!(report.is_valid(), "{:?}", report.violations);
         assert_eq!(report.scenario_id, SCENARIO_ID);
         assert_eq!(report.alternatives, 4);
-        assert_eq!(report.weather_candidates, 2);
+        assert_eq!(report.weather_candidates, 5);
         assert!(report.continuous_variables > 0);
         assert!(report.categorical_variables > 0);
     }
