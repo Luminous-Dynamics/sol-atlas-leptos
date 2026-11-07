@@ -35,8 +35,8 @@ From repository root:
 
 ```sh
 cargo fmt --manifest-path tools/highveld-keep-contract/Cargo.toml --all -- --check
-cargo test --offline --manifest-path tools/highveld-keep-contract/Cargo.toml
-cargo run --offline --manifest-path tools/highveld-keep-contract/Cargo.toml
+cargo test --locked --offline --manifest-path tools/highveld-keep-contract/Cargo.toml
+cargo run --locked --offline --manifest-path tools/highveld-keep-contract/Cargo.toml
 ```
 
 The nested `[workspace]` isolates the package from the parent Leptos crate. `serde_json` is the only third-party dependency and is pinned in the manifest. The package requires no network, GIS, rendering, database, specialist solver or model call.
