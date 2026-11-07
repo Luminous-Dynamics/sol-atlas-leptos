@@ -378,14 +378,20 @@ pub const SCENARIOS: [Scenario; EXPECTED_CASE_COUNT] = [
         title: "crime count supplied without a valid denominator",
         integrity: IntegrityState::InvalidDenominator,
         expected: Disposition::Blocked,
-        ..baseline("SAFE-018", "crime count supplied without a valid denominator")
+        ..baseline(
+            "SAFE-018",
+            "crime count supplied without a valid denominator",
+        )
     },
     Scenario {
         id: "SAFE-019",
         title: "candidate geography does not match assessment scope",
         integrity: IntegrityState::ScopeMismatch,
         expected: Disposition::Unknown,
-        ..baseline("SAFE-019", "candidate geography does not match assessment scope")
+        ..baseline(
+            "SAFE-019",
+            "candidate geography does not match assessment scope",
+        )
     },
     Scenario {
         id: "SAFE-020",
@@ -420,21 +426,30 @@ pub const SCENARIOS: [Scenario; EXPECTED_CASE_COUNT] = [
         title: "camera detections requested as crime-reduction proof",
         requested_output: RequestedOutput::CrimeReductionCertification,
         expected: Disposition::Blocked,
-        ..baseline("SAFE-024", "camera detections requested as crime-reduction proof")
+        ..baseline(
+            "SAFE-024",
+            "camera detections requested as crime-reduction proof",
+        )
     },
     Scenario {
         id: "SAFE-025",
         title: "rendering-only request for automated safety classification",
         requested_output: RequestedOutput::AutomatedSafetyClassification,
         expected: Disposition::Blocked,
-        ..baseline("SAFE-025", "rendering-only request for automated safety classification")
+        ..baseline(
+            "SAFE-025",
+            "rendering-only request for automated safety classification",
+        )
     },
     Scenario {
         id: "SAFE-026",
         title: "model-confidence-only request for safety classification",
         requested_output: RequestedOutput::AutomatedSafetyClassification,
         expected: Disposition::Blocked,
-        ..baseline("SAFE-026", "model-confidence-only request for safety classification")
+        ..baseline(
+            "SAFE-026",
+            "model-confidence-only request for safety classification",
+        )
     },
     Scenario {
         id: "SAFE-027",
@@ -448,7 +463,10 @@ pub const SCENARIOS: [Scenario; EXPECTED_CASE_COUNT] = [
         title: "automatic code-compliance certification requested",
         requested_output: RequestedOutput::CodeComplianceCertification,
         expected: Disposition::Blocked,
-        ..baseline("SAFE-028", "automatic code-compliance certification requested")
+        ..baseline(
+            "SAFE-028",
+            "automatic code-compliance certification requested",
+        )
     },
     Scenario {
         id: "SAFE-029",
@@ -483,7 +501,11 @@ pub fn evaluate(case: &Scenario) -> Disposition {
         return Disposition::Blocked;
     }
 
-    if case.evidence.as_array().contains(&EvidenceState::Restricted) {
+    if case
+        .evidence
+        .as_array()
+        .contains(&EvidenceState::Restricted)
+    {
         return Disposition::Blocked;
     }
 
@@ -666,14 +688,7 @@ mod tests {
     fn output_vocabulary_has_no_real_world_safety_certification() {
         for case in SCENARIOS {
             let output = evaluate(&case).as_str();
-            assert!(
-                [
-                    "blocked",
-                    "unknown",
-                    "eligible_for_professional_review"
-                ]
-                .contains(&output)
-            );
+            assert!(["blocked", "unknown", "eligible_for_professional_review"].contains(&output));
         }
     }
 }
