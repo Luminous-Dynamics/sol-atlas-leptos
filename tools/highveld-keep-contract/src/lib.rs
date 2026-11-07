@@ -132,6 +132,10 @@ pub fn validate_values(scenario: &Value, parameters: &Value) -> ValidationReport
         path(scenario, &["geography", "reference_only"]).and_then(Value::as_bool) != Some(true)
             || !is_null_at(scenario, &["geography", "parcel_id"])
             || !is_null_at(scenario, &["geography", "coordinates"])
+            || !is_null_at(scenario, &["geography", "survey"])
+            || !is_null_at(scenario, &["geography", "zoning"])
+            || !is_null_at(scenario, &["geography", "geotechnical_report"])
+            || !is_null_at(scenario, &["geography", "dolomite_assessment"])
             || string_at(scenario, &["geography", "status"])
                 != Some("UNKNOWN_NO_REAL_PARCEL_SELECTED"),
         "REAL_SITE_EVIDENCE_PROMOTED",
@@ -148,16 +152,34 @@ pub fn validate_values(scenario: &Value, parameters: &Value) -> ValidationReport
         "SYNTHETIC_SITE_LABEL_MISSING_OR_CHANGED",
     );
 
-    // Require the exact four declared design families, exactly once.
+    // Require the exact four declared design families, exactly once, and bind
+    // each architecture candidate to the matching parameter-space family.
+    let family_map = [
+        ("A_COURTYARD_CLOISTER", "courtyard_cloister"),
+        ("B_WINGED_GREAT_HALL", "winged_great_hall"),
+        ("C_COMPACT_KEEP", "compact_keep"),
+        ("D_GARDEN_PAVILIONS", "garden_pavilions"),
+    ];
     let mut alternative_ids = Vec::new();
     let mut family_count = 0usize;
+    let mut family_bindings_valid = true;
     if let Some(items) = alternatives {
+        family_count = items.len();
         for item in items {
             if let Some(id) = item.get("id").and_then(Value::as_str) {
                 alternative_ids.push(id.to_owned());
+                let expected_family = family_map
+                    .iter()
+                    .find(|(expected_id, _)| *expected_id == id)
+                    .map(|(_, family)| *family);
+                let actual_family = item.get("family").and_then(Value::as_str);
+                if expected_family != actual_family {
+                    family_bindings_valid = false;
+                }
+            } else {
+                family_bindings_valid = false;
             }
         }
-        family_count = items.len();
     }
     let unique_alternative_ids: std::collections::HashSet<&str> =
         alternative_ids.iter().map(String::as_str).collect();
@@ -170,15 +192,23 @@ pub fn validate_values(scenario: &Value, parameters: &Value) -> ValidationReport
                 .any(|expected| !unique_alternative_ids.contains(expected)),
         "ALTERNATIVE_FAMILY_SET_INVALID",
     );
+    push_if(
+        &mut violations,
+        !family_bindings_valid,
+        "ALTERNATIVE_TO_PARAMETER_FAMILY_BINDING_INVALID",
+    );
 
     let family_parameter = topology.and_then(|items| find_by_id(items, "spatial_family"));
-    let family_values = family_parameter.and_then(|item| item.get("values")).and_then(Value::as_array);
+    let family_values = family_parameter
+        .and_then(|item| item.get("values"))
+        .and_then(Value::as_array);
     let family_strings: Vec<&str> = family_values
         .into_iter()
         .flatten()
         .filter_map(Value::as_str)
         .collect();
-    let unique_families: std::collections::HashSet<&str> = family_strings.iter().copied().collect();
+    let unique_families: std::collections::HashSet<&str> =
+        family_strings.iter().copied().collect();
     push_if(
         &mut violations,
         family_strings.len() != EXPECTED_FAMILIES.len()
@@ -240,6 +270,14 @@ pub fn validate_values(scenario: &Value, parameters: &Value) -> ValidationReport
     );
     push_if(
         &mut violations,
+        string_at(scenario, &["solver_contracts", "thermal_energy", "status"])
+            != Some("USE_VERSION_PINNED_QUALIFIED_ADAPTER")
+            || string_at(scenario, &["solver_contracts", "thermal_energy", "engine_candidate"])
+                != Some("EnergyPlus 26.2.0"),
+        "THERMAL_ADAPTER_REQUIREMENT_CHANGED",
+    );
+    push_if(
+        &mut violations,
         string_at(scenario, &["solver_contracts", "structural", "status"])
             != Some("NOT_SELECTED_REQUIRES_REFERENCE_CASE_AND_PROFESSIONAL_OWNER")
             || !is_null_at(scenario, &["solver_contracts", "structural", "engine"]),
@@ -279,55 +317,83 @@ pub fn validate_values(scenario: &Value, parameters: &Value) -> ValidationReport
         "PARAMETER_BOUNDS_PROHIBITION_INCOMPLETE",
     );
 
-    if let Some(items) = topology {
-        for item in items {
-            match item.get("kind").and_then(Value::as_str) {
-                Some("continuous_design_variable") => {
-                    continuous_count += 1;
-                    let min = item.get("minimum").and_then(Value::as_f64);
-                    let max = item.get("maximum").and_then(Value::as_f64);
-                    let unit = item.get("unit").and_then(Value::as_str);
-                    if !matches!((min, max), (Some(a), Some(b)) if a.is_finite() && b.is_finite() && a <= b)
-                        || unit.is_none_or(str::is_empty)
-                    {
-                        violations.push("CONTINUOUS_PARAMETER_BOUNDS_INVALID");
-                    }
+    // Check every typed variable collection, not just the topology block.
+    // This prevents invalid dimensions in envelope, materials or building systems
+    // from escaping validation.
+    let variable_collections = [
+        "topology_variables",
+        "envelope_variables",
+        "materials_and_production_variables",
+        "building_system_variables",
+    ];
+    let mut variable_ids = std::collections::HashSet::new();
+    for collection in variable_collections {
+        if let Some(items) = array_at(parameters, &[collection]) {
+            for item in items {
+                let id = item.get("id").and_then(Value::as_str);
+                if id.is_none_or(str::is_empty) || !variable_ids.insert(id.unwrap_or_default()) {
+                    violations.push("PARAMETER_ID_MISSING_OR_DUPLICATED");
                 }
-                Some("categorical_design_variable") => {
-                    categorical_count += 1;
-                    if item
-                        .get("values")
-                        .and_then(Value::as_array)
-                        .is_none_or(Vec::is_empty)
-                    {
-                        violations.push("CATEGORICAL_PARAMETER_VALUES_EMPTY");
+                match item.get("kind").and_then(Value::as_str) {
+                    Some("continuous_design_variable") => {
+                        continuous_count += 1;
+                        let min = item.get("minimum").and_then(Value::as_f64);
+                        let max = item.get("maximum").and_then(Value::as_f64);
+                        let unit = item.get("unit").and_then(Value::as_str);
+                        if !matches!((min, max), (Some(a), Some(b)) if a.is_finite() && b.is_finite() && a <= b)
+                            || unit.is_none_or(str::is_empty)
+                        {
+                            violations.push("CONTINUOUS_PARAMETER_BOUNDS_INVALID");
+                        }
                     }
+                    Some("categorical_design_variable")
+                    | Some("categorical_preference")
+                    | Some("categorical_hard_requirement") => {
+                        categorical_count += 1;
+                        if item
+                            .get("values")
+                            .and_then(Value::as_array)
+                            .is_none_or(Vec::is_empty)
+                        {
+                            violations.push("CATEGORICAL_PARAMETER_VALUES_EMPTY");
+                        }
+                    }
+                    Some("qualified_product_reference") => {
+                        let values_empty = item
+                            .get("values")
+                            .and_then(Value::as_array)
+                            .is_some_and(Vec::is_empty);
+                        if !values_empty
+                            || item.get("status").and_then(Value::as_str)
+                                != Some("UNKNOWN_UNTIL_PRODUCT_AND_ASSEMBLY_EVIDENCE")
+                        {
+                            violations.push("UNQUALIFIED_PRODUCT_REFERENCE_PROMOTED");
+                        }
+                    }
+                    Some("qualified_evidence_reference") => {
+                        let values_empty = item
+                            .get("values")
+                            .and_then(Value::as_array)
+                            .is_some_and(Vec::is_empty);
+                        if !values_empty
+                            || item.get("status").and_then(Value::as_str)
+                                != Some("UNKNOWN_UNTIL_SUPPLIER_LOT_AND_QUALIFICATION")
+                        {
+                            violations.push("UNQUALIFIED_MATERIAL_EVIDENCE_PROMOTED");
+                        }
+                    }
+                    _ => violations.push("UNKNOWN_PARAMETER_KIND"),
                 }
-                _ => {}
             }
+        } else {
+            violations.push("PARAMETER_COLLECTION_MISSING");
         }
-    } else {
-        violations.push("TOPOLOGY_PARAMETER_ARRAY_MISSING");
     }
     push_if(
         &mut violations,
         continuous_count == 0 || categorical_count == 0,
         "PARAMETER_SPACE_INCOMPLETE",
     );
-
-    if let Some(items) = topology {
-        if let Some(product_ref) = find_by_id(items, "insulation_assembly") {
-            push_if(
-                &mut violations,
-                product_ref.get("values").and_then(Value::as_array).is_none_or(|v| !v.is_empty())
-                    || product_ref.get("status").and_then(Value::as_str)
-                        != Some("UNKNOWN_UNTIL_PRODUCT_AND_ASSEMBLY_EVIDENCE"),
-                "UNQUALIFIED_PRODUCT_REFERENCE_PROMOTED",
-            );
-        } else {
-            violations.push("QUALIFIED_PRODUCT_REFERENCE_FIELD_MISSING");
-        }
-    }
 
     // Hard requirements remain a separate authority class.
     let hard_requirements = array_at(parameters, &["hard_requirements"]);
@@ -478,6 +544,33 @@ mod tests {
     }
 
     #[test]
+    fn alternative_id_must_bind_to_its_declared_spatial_family() {
+        let (mut scenario, parameters) = documents();
+        scenario["architectural_alternatives"][0]["family"] = json!("garden_pavilions");
+        let report = validate_values(&scenario, &parameters);
+        assert!(contains(
+            &report,
+            "ALTERNATIVE_TO_PARAMETER_FAMILY_BINDING_INVALID"
+        ));
+    }
+
+    #[test]
+    fn envelope_continuous_variables_are_checked_too() {
+        let (scenario, mut parameters) = documents();
+        let items = parameters["envelope_variables"]
+            .as_array_mut()
+            .expect("envelope variable array");
+        let idx = items
+            .iter()
+            .position(|item| item["id"] == "north_facade_glazing_ratio")
+            .expect("north glazing variable");
+        items[idx]["minimum"] = json!(0.9);
+        items[idx]["maximum"] = json!(0.1);
+        let report = validate_values(&scenario, &parameters);
+        assert!(contains(&report, "CONTINUOUS_PARAMETER_BOUNDS_INVALID"));
+    }
+
+    #[test]
     fn reversed_or_non_finite_continuous_bounds_are_rejected() {
         let (scenario, mut parameters) = documents();
         let items = parameters["topology_variables"]
@@ -558,9 +651,9 @@ mod tests {
     #[test]
     fn unqualified_product_assembly_cannot_be_assumed() {
         let (scenario, mut parameters) = documents();
-        let items = parameters["topology_variables"]
+        let items = parameters["envelope_variables"]
             .as_array_mut()
-            .expect("topology variable array");
+            .expect("envelope variable array");
         let idx = items
             .iter()
             .position(|item| item["id"] == "insulation_assembly")
