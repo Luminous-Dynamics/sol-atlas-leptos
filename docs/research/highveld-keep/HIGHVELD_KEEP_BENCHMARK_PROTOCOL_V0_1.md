@@ -457,6 +457,24 @@ The first competitive question should be: can Luminous deliver a more complete, 
 7. Independent inspection and as-built comparison.
 8. Only later, a real site/pilot with resident consent, legal/site diligence, professional design and statutory approvals.
 
+## 9A. Reproducible benchmark-result auditing
+
+The implementation work is tracked in [HIGHVELD-SEARCH-EVAL-001 #619](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/619), with the first offline Rust auditor in [draft PR #621](https://github.com/Luminous-Dynamics/sol-atlas-leptos/pull/621).
+
+The v0.1 evaluator consumes a versioned benchmark-result bundle. It is designed to make false superiority claims harder by checking:
+- identical fixture and objective-schema digests across methods;
+- equal per-run candidate, high-fidelity-call and human-time budgets;
+- explicit accounting for high-fidelity training, tuning, validation and final calls, plus low-fidelity calls and human minutes;
+- 20 or more unique seeds for stochastic methods;
+- required hard-gate status, current dependencies, high-fidelity/exact result, convergence, complete inputs and validation scope before a candidate enters the feasible Pareto set;
+- false-feasible declarations and false-reject counts;
+- explicit complete-enumeration provenance before an exact reference front is emitted;
+- a predeclared, normalized reference point for 2D hypervolume.
+
+**Current limitation:** v0.1 computes exact two-objective hypervolume and the feasible Pareto set. IGD+, GD+ and epsilon are deliberately reported as unavailable; higher-dimensional hypervolume is also unavailable. The unit fixture uses mathematical objective vectors only and is not an architectural performance simulation. It validates the auditor's rules and arithmetic, not NSGA-II or any competitor.
+
+A real Highveld benchmark bundle must wait for qualified geometry and exact specialist-solver results, and every objective must carry its own units, evidence scope, input revision and validation authority. Never transfer the E1 mathematical fixture's metric results into a building-performance claim.
+
 ## 10. Evidence tiers
 
 - E0: concept and synthetic assumptions.
