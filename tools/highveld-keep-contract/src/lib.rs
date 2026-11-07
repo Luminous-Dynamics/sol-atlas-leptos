@@ -36,6 +36,7 @@ pub struct ValidationReport {
     pub functional_relationships: usize,
     pub alternative_climate_methods: usize,
     pub station_metadata_crosschecks: usize,
+    pub station_network_profiles: usize,
     pub violations: Vec<&'static str>,
 }
 
@@ -416,6 +417,74 @@ pub fn validate_values(scenario: &Value, parameters: &Value) -> ValidationReport
         "STATION_METADATA_CROSSCHECK_COUNT_CHANGED",
     );
 
+    // Network/archive summaries are separate from station observations.
+    // In particular, ARC's operational network (~500) and wider archive (~1900)
+    // must not be conflated, nor may any network total imply local station fitness.
+    let station_network_profiles =
+        array_at(scenario, &["station_network_source_profiles"]);
+    let mut station_network_profile_count = 0usize;
+    if let Some(items) = station_network_profiles {
+        station_network_profile_count = items.len();
+
+        let operational_arc = find_by_id(items, "ARC_OPERATIONAL_AGROCLIMATE_NETWORK");
+        if !operational_arc.is_some_and(|item| {
+            item.get("inventory_scope").and_then(Value::as_str)
+                == Some("operational_national_agroclimate_network")
+                && item.get("reported_station_count_approx").and_then(Value::as_u64) == Some(500)
+                && item.get("status").and_then(Value::as_str)
+                    == Some("NETWORK_SCOPE_METADATA_ONLY_NOT_STATION_QUALIFICATION")
+        }) {
+            violations.push("ARC_OPERATIONAL_NETWORK_SCOPE_CHANGED");
+        }
+
+        let arc_archive = find_by_id(items, "ARC_AGROCLIMATE_WEB_PORTAL_ARCHIVE");
+        if !arc_archive.is_some_and(|item| {
+            item.get("reported_total_stations_approx").and_then(Value::as_u64) == Some(1900)
+                && item.get("reported_manual_stations").and_then(Value::as_u64) == Some(1100)
+                && item.get("reported_automatic_weather_stations").and_then(Value::as_u64)
+                    == Some(763)
+                && item.get("reported_active_automatic_stations").and_then(Value::as_u64)
+                    == Some(460)
+                && item.get("status").and_then(Value::as_str)
+                    == Some("ARCHIVE_INVENTORY_METADATA_ONLY_NOT_STATION_QUALIFICATION")
+                && item.get("data_access_status").and_then(Value::as_str)
+                    == Some("paid_ad_hoc_or_subscription")
+        }) {
+            violations.push("ARC_ARCHIVE_INVENTORY_SCOPE_OR_ACCESS_CHANGED");
+        }
+
+        let saws = find_by_id(items, "SAWS_WIS2_FIXED_LAND_SYNOP");
+        if !saws.is_some_and(|item| {
+            item.get("product").and_then(Value::as_str)
+                == Some("hourly_synoptic_observations_fixed_land_stations")
+                && item.get("access_and_license_status").and_then(Value::as_str)
+                    == Some("must_check_product_topic_specific_license_and_reuse_terms")
+                && item.get("measurement_messages_downloaded").and_then(Value::as_bool)
+                    == Some(false)
+        }) {
+            violations.push("SAWS_WIS_PRODUCT_OR_LICENSE_SCOPE_CHANGED");
+        }
+
+        let noaa = find_by_id(items, "NOAA_NCEI_GLOBAL_HOURLY_ISD");
+        if !noaa.is_some_and(|item| {
+            item.get("local_johannesburg_series_downloaded").and_then(Value::as_bool)
+                == Some(false)
+                && item.get("local_station_history_reconciled").and_then(Value::as_bool)
+                    == Some(false)
+                && item.get("status").and_then(Value::as_str)
+                    == Some("GLOBAL_ARCHIVE_PRODUCT_METADATA_ONLY_NOT_LOCAL_SERIES_QUALIFICATION")
+        }) {
+            violations.push("NOAA_GLOBAL_ARCHIVE_PROMOTED_TO_LOCAL_SERIES");
+        }
+    } else {
+        violations.push("STATION_NETWORK_PROFILES_MISSING");
+    }
+    push_if(
+        &mut violations,
+        station_network_profile_count != 4,
+        "STATION_NETWORK_PROFILE_COUNT_CHANGED",
+    );
+
     // Preserve the existing geometry and solver authority gates.
     push_if(
         &mut violations,
@@ -757,6 +826,7 @@ pub fn validate_values(scenario: &Value, parameters: &Value) -> ValidationReport
         functional_relationships: functional_relationship_count,
         alternative_climate_methods: alternative_method_count,
         station_metadata_crosschecks: station_metadata_count,
+        station_network_profiles: station_network_profile_count,
         violations,
     }
 }
@@ -1057,6 +1127,39 @@ mod tests {
         assert!(contains(
             &report,
             "ALTERNATIVE_CLIMATE_PROVIDER_PROMOTED_OR_INCOMPLETE"
+        ));
+    }
+
+    #[test]
+    fn arc_operational_network_and_archive_inventory_are_not_conflated() {
+        let (mut scenario, parameters) = documents();
+        scenario["station_network_source_profiles"][1]["reported_active_automatic_stations"] =
+            json!(763);
+        let report = validate_values(&scenario, &parameters);
+        assert!(contains(
+            &report,
+            "ARC_ARCHIVE_INVENTORY_SCOPE_OR_ACCESS_CHANGED"
+        ));
+    }
+
+    #[test]
+    fn station_network_summaries_cannot_be_promoted_to_local_measurements() {
+        let (mut scenario, parameters) = documents();
+        scenario["station_network_source_profiles"][2]["measurement_messages_downloaded"] =
+            json!(true);
+        let report = validate_values(&scenario, &parameters);
+        assert!(contains(
+            &report,
+            "SAWS_WIS_PRODUCT_OR_LICENSE_SCOPE_CHANGED"
+        ));
+
+        let (mut scenario, parameters) = documents();
+        scenario["station_network_source_profiles"][3]["local_johannesburg_series_downloaded"] =
+            json!(true);
+        let report = validate_values(&scenario, &parameters);
+        assert!(contains(
+            &report,
+            "NOAA_GLOBAL_ARCHIVE_PROMOTED_TO_LOCAL_SERIES"
         ));
     }
 
