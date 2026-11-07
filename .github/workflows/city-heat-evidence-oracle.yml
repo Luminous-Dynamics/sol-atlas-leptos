@@ -54,11 +54,11 @@ jobs:
             .result == "pass"
             and .corpus_id == "CITY-HEAT-EVIDENCE-CORPUS-V0.1"
             and .corpus_classification == "synthetic_fixture_only"
-            and .scenario_count == 26
+            and .scenario_count == 27
             and .failure_count == 0
             and (.corpus_sha256 | test("^[0-9a-f]{64}$"))
             and (.source_commit | test("^[0-9a-f]{40}$"))
-            and (.scenarios | length == 26)
+            and (.scenarios | length == 27)
             and (.scenarios | all(.status == "pass"))
           ' city-heat-evidence-receipt.json
       - name: Upload exact-head heat evidence receipt
