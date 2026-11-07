@@ -1,0 +1,51 @@
+name: Highveld Keep Contract
+
+on:
+  push:
+    paths:
+      - "docs/research/highveld-keep/HIGHVELD_KEEP_SCENARIO_V0_1.json"
+      - "docs/research/highveld-keep/HIGHVELD_KEEP_PARAMETER_SPACE_V0_1.json"
+      - "tools/highveld-keep-contract/**"
+      - ".github/workflows/highveld-keep-contract.yml"
+  pull_request:
+    paths:
+      - "docs/research/highveld-keep/HIGHVELD_KEEP_SCENARIO_V0_1.json"
+      - "docs/research/highveld-keep/HIGHVELD_KEEP_PARAMETER_SPACE_V0_1.json"
+      - "tools/highveld-keep-contract/**"
+      - ".github/workflows/highveld-keep-contract.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: highveld-keep-contract-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  synthetic-definition-e1:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install stable Rust and rustfmt
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - name: Cache Cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-highveld-contract-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-highveld-contract-
+            ${{ runner.os }}-cargo-native-
+      - name: Check isolated package formatting
+        run: cargo fmt --manifest-path tools/highveld-keep-contract/Cargo.toml --all -- --check
+      - name: Run locked offline unit and mutation tests
+        run: cargo test --locked --offline --manifest-path tools/highveld-keep-contract/Cargo.toml
+      - name: Validate tracked synthetic definition package
+        run: cargo run --locked --offline --manifest-path tools/highveld-keep-contract/Cargo.toml
