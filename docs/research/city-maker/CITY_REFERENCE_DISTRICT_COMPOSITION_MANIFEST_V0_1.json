@@ -175,7 +175,7 @@
       "contract": "CIV-BOOT productive capability assessment",
       "owner_ref": "https://github.com/Luminous-Dynamics/symthaea/issues/5774",
       "consumed_by": "Symtropy #3768 and Sol-Atlas #603/#606",
-      "schema_status": "field_contract_documented_in_CityMaker_owner_adapter_issue",
+      "schema_status": "consumer_field_surface_observed_no_canonical_owner_schema_pinned",
       "known_identity_fields": [
         "target_id",
         "scenario_id",
@@ -189,14 +189,23 @@
         "operationally_reachable",
         "locally_closed"
       ],
-      "mapping_boundary": "CityMaker consumes the owner result. It does not calculate the AND/OR closure theorem. Import-dependent capability is not local capability."
+      "mapping_boundary": "CityMaker consumes the owner result. It does not calculate the AND/OR closure theorem. Import-dependent capability is not local capability.",
+      "owner_schema_artifact": null,
+      "consumer_evidence": {
+        "repository": "Luminous-Dynamics/symtropy",
+        "pull_request": 3800,
+        "source_revision": "678f2c496486096cda311337e98e6c9f336101ff",
+        "path": "crates/tools/citykit-benchmark/src/lib.rs",
+        "git_blob_sha": "32217062db71d63785caad7cdc614af3b0530e39",
+        "role": "CityKit reads and checks owner-native receipt identity/status; it does not calculate CIV-BOOT closure."
+      }
     },
     {
       "owner": "Mycelix",
       "contract": "living-city-metabolism/0.1",
       "owner_ref": "https://github.com/Luminous-Dynamics/mycelix/pull/5035",
       "consumed_by": "Sol-Atlas #569/#615 and Symtropy CityKit integration",
-      "schema_status": "versioned_contract_identified_in_owner_PR",
+      "schema_status": "draft_versioned_json_schema_pinned_unmerged",
       "known_semantics": [
         "system_boundary",
         "spatial_temporal_scope",
@@ -210,14 +219,25 @@
         "calibration_receipt",
         "distributional_coverage"
       ],
-      "mapping_boundary": "Physical flow/model-evidence accounting is not product inventory, qualified batch, supplier stock or lot custody."
+      "mapping_boundary": "Physical flow/model-evidence accounting is not product inventory, qualified batch, supplier stock or lot custody.",
+      "schema_artifact": {
+        "repository": "Luminous-Dynamics/mycelix",
+        "pull_request": 5035,
+        "source_revision": "0aae2f0a7625304c9a7eab0c3528e02fe5d57567",
+        "path": "schemas/living-city-metabolism-v0.1.schema.json",
+        "git_blob_sha": "4f7f3eeee4e91964a6422d2aba9f59e3c3aff57b",
+        "json_schema_draft": "2020-12",
+        "schema_id": "https://luminousdynamics.io/schemas/living-city-metabolism-v0.1.schema.json",
+        "schema_version": "living-city-metabolism/0.1",
+        "status": "draft_pr_unmerged"
+      }
     },
     {
       "owner": "Mycelix",
       "contract": "CIV-ECON-005 production/input-output network",
       "owner_ref": "https://github.com/Luminous-Dynamics/mycelix/issues/4814",
       "consumed_by": "Sol-Atlas #569/#573/#613",
-      "schema_status": "schema_native_projection_required",
+      "schema_status": "owner_issue_contract_only_schema_native_projection_required",
       "known_semantics": [
         "supplier",
         "inventory",
@@ -227,14 +247,15 @@
         "logistics_dependency",
         "critical_supply"
       ],
-      "mapping_boundary": "Do not infer production capacity, available inventory or deliverability from map proximity. Pin exact schema before field mapping."
+      "mapping_boundary": "Do not infer production capacity, available inventory or deliverability from map proximity. Pin exact schema before field mapping.",
+      "owner_schema_artifact": null
     },
     {
       "owner": "Mycelix",
       "contract": "construction project and batch provenance",
       "owner_ref": "https://github.com/Luminous-Dynamics/mycelix/issues/5149",
       "consumed_by": "Sol-Atlas #573/#603/#606/#615",
-      "schema_status": "schema_native_projection_required",
+      "schema_status": "owner_issue_contract_only_schema_native_projection_required",
       "known_semantics": [
         "batch_identity",
         "custody",
@@ -246,14 +267,15 @@
         "revocation",
         "dispute"
       ],
-      "mapping_boundary": "A passport, catalogue entry or supplier offer is not proof of physical lot identity, custody, inspection or accepted receipt."
+      "mapping_boundary": "A passport, catalogue entry or supplier offer is not proof of physical lot identity, custody, inspection or accepted receipt.",
+      "owner_schema_artifact": null
     },
     {
       "owner": "Symtropy",
       "contract": "CONSTRUCTION-ACCEPTED-OUTPUT-001",
       "owner_ref": "https://github.com/Luminous-Dynamics/symtropy/issues/3605",
       "consumer": "ABOVEGROUND-PANELCELL-001 #3773",
-      "schema_status": "owner_contract_identified_exact_schema_registration_required",
+      "schema_status": "owner_issue_contract_only_formal_schema_not_pinned",
       "known_semantics": [
         "task_family_functional_unit",
         "independent_acceptance_predicate",
@@ -263,21 +285,34 @@
         "rework",
         "full_workflow_labour_time"
       ],
-      "mapping_boundary": "Keep task-family functional units and all labour/rework denominators. Do not create a second construction productivity ontology."
+      "mapping_boundary": "Keep task-family functional units and all labour/rework denominators. Do not create a second construction productivity ontology.",
+      "owner_schema_artifact": null
     },
     {
       "owner": "Symtropy",
       "contract": "CITYKIT-SYNTH-001",
       "owner_ref": "https://github.com/Luminous-Dynamics/symtropy/issues/3768",
       "consumer": "Sol-Atlas #615",
-      "schema_status": "synthetic_reference_oracle_qualified_owner_native_integration_pending",
+      "schema_status": "synthetic_consumer_qualified_owner_schema_registration_pending",
       "known_semantics": [
         "service_capacity",
         "resource_balance",
         "capability_receipt_consistency",
         "resource_unit_compatibility"
       ],
-      "mapping_boundary": "CityKit checks receipt consistency and resource/service feasibility. Symthaea remains capability-closure authority."
+      "mapping_boundary": "CityKit checks receipt consistency and resource/service feasibility. Symthaea remains capability-closure authority.",
+      "consumer_implementation": {
+        "repository": "Luminous-Dynamics/symtropy",
+        "pull_request": 3800,
+        "source_revision": "678f2c496486096cda311337e98e6c9f336101ff",
+        "code_path": "crates/tools/citykit-benchmark/src/lib.rs",
+        "code_git_blob_sha": "32217062db71d63785caad7cdc614af3b0530e39",
+        "corpus_path": "docs/research/citykit/CITYKIT_SYNTH_CORPUS_V0_1.json",
+        "corpus_git_blob_sha": "944a0b2ea73f9424be72ff26dca1d1c830fcada0",
+        "corpus_case_count": 18,
+        "exact_head_workflow": "https://github.com/Luminous-Dynamics/symtropy/actions/runs/42160625679",
+        "claim_ceiling": "E1 synthetic CityKit reference checks only; not owner-native CIV-BOOT schema publication or physical city capability"
+      }
     },
     {
       "owner": "Symtropy",
@@ -304,7 +339,7 @@
       "owner_ref": "https://github.com/Luminous-Dynamics/symthaea/issues/6036",
       "related_ref": "https://github.com/Luminous-Dynamics/symthaea/issues/6040",
       "consumer": "Sol-Atlas #602/#603/#615",
-      "schema_status": "external_projection_profiles_identified_exact_adapter_registration_required",
+      "schema_status": "external_exchange_standards_pinned_owner_receipt_adapter_not_yet",
       "known_semantics": [
         "IFC_identity",
         "IDS_information_requirements",
@@ -315,7 +350,23 @@
         "change",
         "recommissioning"
       ],
-      "mapping_boundary": "IFC/IDS conformance is information exchange only. Model existence, IDS pass or BCF issue closure does not prove as-built condition, physical conformance or commissioning."
+      "mapping_boundary": "IFC/IDS conformance is information exchange only. Model existence, IDS pass or BCF issue closure does not prove as-built condition, physical conformance or commissioning.",
+      "external_exchange_standards": [
+        {
+          "standard": "IFC",
+          "version": "4.3.2.0",
+          "status": "published",
+          "authority": "buildingSMART / ISO 16739-1:2024",
+          "note": "External exchange model; not the project-specific owner receipt schema."
+        },
+        {
+          "standard": "IDS",
+          "version": "1.0",
+          "status": "published_buildingSMART_standard",
+          "authority": "buildingSMART International",
+          "note": "Information requirement validation only; not physical qualification."
+        }
+      ]
     },
     {
       "owner": "Symtropy",
@@ -398,7 +449,7 @@
     },
     {
       "gate_id": "G1_SCHEMA_REGISTRATION",
-      "state": "in_progress",
+      "state": "in_progress_partial",
       "owner_issue": "Sol-Atlas #606",
       "required": [
         "exact_owner_schema_id",
@@ -408,7 +459,29 @@
         "subject_identity_mapping",
         "state_mapping",
         "revocation_semantics"
+      ],
+      "completed_subtasks": [
+        "living-city-metabolism/0.1 artifact pin",
+        "CityKit consumer implementation/corpus pin"
       ]
+    },
+    {
+      "gate_id": "G1A_OWNER_SCHEMA_ARTIFACT_PINNING",
+      "state": "partially_advanced",
+      "verified": [
+        "Mycelix living-city-metabolism/0.1 JSON Schema artifact and draft revision pinned",
+        "Symtropy CityKit consumer implementation and 18-case synthetic corpus artifacts pinned",
+        "IFC 4.3.2.0 and IDS 1.0 identified as external published exchange standards"
+      ],
+      "unresolved": [
+        "Canonical Symthaea CIV-BOOT owner schema/version/revision",
+        "Mycelix CIV-ECON production-network schema/version/revision",
+        "Mycelix #5149 custody/inspection schema/version/revision",
+        "Symtropy #3605 accepted-output schema/version/revision",
+        "Symthaea BUILT-ROB-PILOT owner receipt schema/version/revision",
+        "Symtropy panel-cell physical evidence schema and actual measurements"
+      ],
+      "rule": "Consumer observations and issue descriptions do not substitute for owner-published schema artifacts. Missing schema registrations remain Unknown and block cross-owner composition for the affected claim."
     },
     {
       "gate_id": "G2_SYNTHETIC_COMMON_INSTANCE",
