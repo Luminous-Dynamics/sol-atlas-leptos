@@ -1,0 +1,324 @@
+{
+  "schema_version": "luminous.habitat.reference-scenario/0.1",
+  "scenario_id": "HIGHVELD-KEEP-SYNTHETIC-001",
+  "programme": "Luminous Habitats / CityMaker",
+  "issue": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/607",
+  "revision_status": "E0_CONCEPT_SYNTHETIC",
+  "created_date": "2026-11-07",
+  "claim_ceiling": "synthetic_requirements_and_design_space_only",
+  "geography": {
+    "reference_region": "Johannesburg / Highveld, South Africa",
+    "reference_only": true,
+    "parcel_id": null,
+    "coordinates": null,
+    "survey": null,
+    "zoning": null,
+    "title_conditions": null,
+    "geotechnical_report": null,
+    "dolomite_assessment": null,
+    "status": "UNKNOWN_NO_REAL_PARCEL_SELECTED"
+  },
+  "synthetic_site_envelope": {
+    "enabled_for_fixture_search_only": true,
+    "shape": "rectangle",
+    "width_m": 60.0,
+    "depth_m": 80.0,
+    "local_coordinate_frame": "ENU_SYNTHETIC",
+    "orientation_deg_from_true_north": null,
+    "slope": null,
+    "setbacks_m": null,
+    "coverage_limit": null,
+    "height_limit_m": null,
+    "label": "SYNTHETIC_NOT_A_SURVEY_OR_ZONING_ENVELOPE",
+    "status": "ASSUMPTION_NOT_SITE_EVIDENCE"
+  },
+  "household": {
+    "occupants_min": 4,
+    "occupants_max": 6,
+    "status": "SYNTHETIC_BENCHMARK_ASSUMPTION",
+    "real_resident_requirements": "NOT_YET_COLLECTED",
+    "privacy_rule": "do_not_infer_care_mobility_cultural_or_household_preferences_from_demographic_proxies"
+  },
+  "functional_programme": [
+    {
+      "id": "arrival",
+      "function": "accessible arrival, sheltered entrance and legible visitor transition",
+      "requirement_class": "HARD_INTENT",
+      "level": "arrival_level",
+      "geometry_status": "NOT_MODELED"
+    },
+    {
+      "id": "great_hall",
+      "function": "shared living, gathering and communal heart",
+      "requirement_class": "SOFT_WITH_MINIMUM_FUNCTION",
+      "level": "arrival_level",
+      "geometry_status": "NOT_MODELED"
+    },
+    {
+      "id": "kitchen_dining",
+      "function": "food preparation, storage and dining tasks",
+      "requirement_class": "HARD_TASK_COVERAGE",
+      "level": "arrival_level",
+      "geometry_status": "NOT_MODELED"
+    },
+    {
+      "id": "library_quiet",
+      "function": "quiet study, reading and retreat",
+      "requirement_class": "PREFERENCE",
+      "level": "TBD",
+      "geometry_status": "NOT_MODELED"
+    },
+    {
+      "id": "work_making",
+      "function": "workshop, making, repair and focused work",
+      "requirement_class": "HARD_TASK_COVERAGE",
+      "level": "arrival_level_or_step_free_access",
+      "geometry_status": "NOT_MODELED"
+    },
+    {
+      "id": "sleeping_rooms",
+      "count": 4,
+      "function": "sleeping and personal privacy, including one flexible guest/care room",
+      "requirement_class": "HARD_PROGRAMME_ASSUMPTION",
+      "level": "TBD",
+      "geometry_status": "NOT_MODELED"
+    },
+    {
+      "id": "accessible_washroom",
+      "function": "accessible essential daily tasks",
+      "requirement_class": "HARD_INTENT",
+      "level": "arrival_level",
+      "geometry_status": "NOT_MODELED"
+    },
+    {
+      "id": "service_plant",
+      "function": "laundry, utilities, plant, storage, waste and maintenance access",
+      "requirement_class": "HARD_TASK_COVERAGE",
+      "level": "service_accessible",
+      "geometry_status": "NOT_MODELED"
+    },
+    {
+      "id": "outdoor_living",
+      "function": "shaded, step-free outdoor living, courtyard or garden",
+      "requirement_class": "HARD_ACCESS_PLUS_PREFERENCE",
+      "level": "arrival_level",
+      "geometry_status": "NOT_MODELED"
+    },
+    {
+      "id": "vehicle_bicycle_arrival",
+      "function": "vehicle and bicycle arrival with responder approach preserved",
+      "requirement_class": "HARD_SITE_DEPENDENT",
+      "level": "site",
+      "geometry_status": "NOT_MODELED"
+    }
+  ],
+  "architectural_alternatives": [
+    {
+      "id": "A_COURTYARD_CLOISTER",
+      "description": "central accessible garden court, inhabited galleries and great hall",
+      "questions": [
+        "courtyard daylight and seasonal solar access",
+        "privacy and overlooking",
+        "external envelope and heat loss/gain",
+        "accessible circulation continuity",
+        "maintenance and drainage",
+        "fabrication and roof span feasibility"
+      ],
+      "status": "HYPOTHESIS_NOT_GEOMETRY"
+    },
+    {
+      "id": "B_WINGED_GREAT_HALL",
+      "description": "central communal hall with residential wings and sheltered garden court",
+      "questions": [
+        "communal/private threshold quality",
+        "circulation distance and legibility",
+        "roof and structural system efficiency",
+        "passive shading and cross ventilation",
+        "phasing and fabrication"
+      ],
+      "status": "HYPOTHESIS_NOT_GEOMETRY"
+    },
+    {
+      "id": "C_COMPACT_KEEP",
+      "description": "compact potentially two-storey form with concentrated services",
+      "questions": [
+        "envelope compactness versus accessible daily tasks",
+        "step-free access and vertical dependence",
+        "fire strategy and evacuation",
+        "stack effect and summer overheating",
+        "maintenance access and adaptation"
+      ],
+      "status": "HYPOTHESIS_NOT_GEOMETRY"
+    },
+    {
+      "id": "D_GARDEN_PAVILIONS",
+      "description": "lower-volume wings linked by covered circulation around gardens",
+      "questions": [
+        "accessible covered circulation",
+        "envelope-area and service-run penalty",
+        "daylight and garden connection",
+        "phased fabrication and repair",
+        "weather exposure and maintenance"
+      ],
+      "status": "HYPOTHESIS_NOT_GEOMETRY"
+    }
+  ],
+  "climate_inputs": {
+    "reference_profile": "JOHANNESBURG_HIGHVELD_REGIONAL_REFERENCE",
+    "candidate_weather_files": [
+      {
+        "id": "JOBURG_TAMBO_TMYX_2011_2025",
+        "filename": "ZAF_GT_Johannesburg-Tambo.Intl.AP.683680_TMYx.2011-2025.zip",
+        "source": "https://climate.onebuilding.org/WMO_Region_1_Africa/ZAF_South_Africa/index.html",
+        "dataset_type": "TYPICAL_METEOROLOGICAL_YEAR",
+        "status": "CATALOGUED_NOT_HEADER_INSPECTED_OR_QUALIFIED",
+        "sha256": null,
+        "reuse_rights": "UNKNOWN",
+        "site_representativeness": "UNKNOWN"
+      },
+      {
+        "id": "JOBURG_BOTANICAL_GARDENS_TMYX_2011_2025",
+        "filename": "ZAF_GT_Johannesburg.Botanical.Gardens.683610_TMYx.2011-2025.zip",
+        "source": "https://climate.onebuilding.org/WMO_Region_1_Africa/ZAF_South_Africa/index.html",
+        "dataset_type": "TYPICAL_METEOROLOGICAL_YEAR",
+        "status": "CATALOGUED_NOT_HEADER_INSPECTED_OR_QUALIFIED",
+        "sha256": null,
+        "reuse_rights": "UNKNOWN",
+        "site_representativeness": "UNKNOWN"
+      }
+    ],
+    "separate_required_profiles": [
+      "historical_hot_spell_and_hot_night",
+      "historical_cold_night",
+      "hail_and_intense_rainfall",
+      "site_specific_wind_and_storm",
+      "future_climate_scenario_with_model_period_and_quantile",
+      "grid_outage_during_hot_spell",
+      "water_supply_disruption",
+      "air_quality_constrained_ventilation"
+    ],
+    "prohibited_substitutions": [
+      "TMY_AS_HEATWAVE",
+      "REGIONAL_WEATHER_AS_PARCEL_WEATHER",
+      "MODELLED_AS_MEASURED",
+      "UNQUALIFIED_FILE_AS_VALIDATED_INPUT"
+    ]
+  },
+  "design_hypotheses": {
+    "solar_control": "compare orientation, winter solar access and summer shading; do not hardcode orientation before site survey",
+    "thermal": "compare mass, insulation, shading, glazing and night purge as interacting variables",
+    "ventilation": "admit only where outdoor temperature, air quality, noise, security and weather conditions support it",
+    "water": "consider harvesting, storage and safe reuse; keep potable and non-potable systems separated",
+    "energy": "consider PV, battery, load management and local/manual fallback; no capacity selected",
+    "landscape": "use locally appropriate low-irrigation shade and habitat planting with site-specific fire/maintenance review",
+    "stormwater": "design drainage, overflow, rain gardens and swales as engineered infrastructure",
+    "materials": "compare conventional masonry/concrete/steel, stone expression, qualified timber/hybrid, panelized/precast and narrowly qualified additive components"
+  },
+  "life_safety_and_security": {
+    "principles": [
+      "welcoming_not_militarized",
+      "proportionate_access_control",
+      "privacy_balanced_with_natural_visibility",
+      "accessible_everyday_routes",
+      "independent_emergency_egress",
+      "responder_access",
+      "manual_operation_during_outages",
+      "site_specific_fire_and_flood_review"
+    ],
+    "qualified_reviews_required": [
+      "structural",
+      "fire_and_egress",
+      "accessibility",
+      "geotechnical",
+      "stormwater",
+      "security",
+      "electrical_and_energy",
+      "water_and_sanitation"
+    ],
+    "prohibited": [
+      "traps_or_hazardous_deterrents",
+      "weapons",
+      "autonomous_enforcement",
+      "surveillance_dependent_safety_claims"
+    ]
+  },
+  "solver_contracts": {
+    "geometry_authority": {
+      "owner": "Symtropy",
+      "reference": "https://github.com/Luminous-Dynamics/symtropy/issues/683",
+      "status": "EXACT_GEOMETRY_PROVIDER_REQUIRED"
+    },
+    "solver_boundary": {
+      "owner": "Symtropy",
+      "reference": "https://github.com/Luminous-Dynamics/symtropy/issues/1790",
+      "status": "SPECIALIST_ADAPTERS_ONLY"
+    },
+    "thermal_energy": {
+      "owner": "Symtropy",
+      "reference": "https://github.com/Luminous-Dynamics/symtropy/issues/1900",
+      "engine_candidate": "EnergyPlus 26.2.0",
+      "status": "USE_VERSION_PINNED_QUALIFIED_ADAPTER"
+    },
+    "structural": {
+      "engine": null,
+      "status": "NOT_SELECTED_REQUIRES_REFERENCE_CASE_AND_PROFESSIONAL_OWNER"
+    },
+    "fire_egress": {
+      "engine": null,
+      "status": "QUALIFIED_FIRE_PROFESSIONAL_REVIEW_REQUIRED"
+    },
+    "daylight": {
+      "engine": null,
+      "status": "SPECIALIST_ADAPTER_AND_SCOPE_NOT_SELECTED"
+    },
+    "wind_geotechnical_stormwater": {
+      "engine": null,
+      "status": "SITE_SPECIFIC_QUALIFIED_ANALYSIS_REQUIRED"
+    }
+  },
+  "approval_context": {
+    "south_african_register": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/604",
+    "municipal_planning": "https://joburg.org.za/work_/Pages/Work%20in%20Joburg/Building%20Plans/Building-Plans.aspx",
+    "nhbrc": "https://www.nhbrc.org.za/why-enrol/",
+    "status": "NO_APPROVAL_OR_COMPLIANCE_CLAIM"
+  },
+  "benchmark_outcomes": [
+    "blind_aesthetic_and_place_identity_review",
+    "resident_task_completion_and_accessibility",
+    "area_and_circulation",
+    "daylight_glare_and_views",
+    "thermal_trajectories_and_energy",
+    "ventilation_and_indoor_air_quality",
+    "water_demand_and_outage_behavior",
+    "fire_egress_and_responder_access_review",
+    "structural_solver_reference_error_within_scope",
+    "initial_and_whole_life_cost",
+    "whole_life_carbon_and_water",
+    "fabrication_completeness_tolerance_first_pass_yield_and_rework",
+    "maintenance_repair_replacement_and_adaptation",
+    "privacy_perceived_safety_and_resident_control"
+  ],
+  "hard_constraints": [
+    "no_accessibility_hard_gate_failure",
+    "no_fire_or_egress_hard_gate_failure",
+    "no_responder_access_failure",
+    "no_missing_or_nonconverged_solver_pass",
+    "no_unqualified_material_or_system_approval",
+    "no_autonomous_robot_execution_without_physical_safety_case",
+    "no_real_site_claim_from_synthetic_assumptions"
+  ],
+  "evidence_tier": "E0",
+  "unresolved_inputs": [
+    "real_site_and_title",
+    "survey_and_orientation",
+    "geotechnical_and_dolomite_assessment",
+    "qualified_weather_file_and_extreme_event_data",
+    "resident_requirements",
+    "zoning_and_setbacks",
+    "material_sources_and_grades",
+    "structural_system_and_solver_reference",
+    "fire_strategy",
+    "water_and_energy_capacity",
+    "budget_and_whole_life_cost_basis"
+  ]
+}
