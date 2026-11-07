@@ -290,3 +290,69 @@ References:
 - https://doi.org/10.1038/s44359-026-00177-y
 - https://climate.onebuilding.org/
 - https://data.ashrae.org/standard140/
+
+
+## 12. South African approval and current standards watch (checked 7 November 2026)
+
+This method matrix is global in its research comparisons, but any actual Johannesburg building or construction-system choice must follow the South African regulatory, municipal and product-assessment pathway. The software must therefore store **jurisdiction + rule/standard edition + effective date + building/use class + approving authority + design responsibility + evidence references** as part of every hard gate. Do not apply a UK/EU/US method or certificate as if it were South African approval.
+
+### National and local building approval
+
+- The National Building Regulations and Building Standards Act 103 of 1977 is the national statutory basis. A local authority's building-control process and current applicable parts of SANS 10400 / referenced design standards must be checked for the actual building and use. The official South African Government Act page is an entry point, not a complete live register of every amended standard: https://www.gov.za/documents/national-building-regulations-and-building-standards-act-16-apr-2015-1302
+- Do not assume a single "latest SANS 10400" date applies to all parts. The applicable edition and referenced standards are part-specific. Verify against SABS catalogue and the municipality before a design gate is closed.
+- National Building Regulations A14 expressly requires the constructed work not to compromise the design intent of a compliant design solution; this is a reminder that as-built execution and construction QA are part of code compliance, not a separate visual handover exercise. Use the current official regulation text and qualified local professionals for interpretation: https://www.acts.co.za/national-building-regulations-and-standards-act-/r2378_a14__construction
+- South African energy-efficiency requirements include SANS 10400-XA. Verify the current published edition and local submission requirements; do not use a secondary explainer as the final legal source.
+
+### Agrément South Africa — alternative and non-standardized systems
+
+Agrément South Africa's published notice says its performance criteria for building systems, walling systems and building products were under review across structural strength/stability/serviceability, fire, water penetration/damp-proofing, acoustics, thermal/energy/condensation, durability and technical drawings, with a target completion date of **31 October 2026**. As checked on **7 November 2026**, the public notification page still states the target date but does not itself provide confirmation that revised criteria have been issued. Therefore:
+- criteria revision status = **Unknown / verify directly with Agrément South Africa**;
+- do not assume the deadline means the revisions are published or effective;
+- do not infer that a new construction system is approved because it resembles a previously certified product;
+- retrieve the actual active certificate and conditions for the exact system, manufacturing site, design, application and use;
+- confirm whether the system falls within a deemed-to-satisfy pathway or requires an Agrément assessment, and record any limitations and validity reviews.
+
+Agrément's process states that it evaluates the fitness for purpose of non-standardized construction products/materials/systems using performance-based criteria and monitors the certificate holder's quality system after approval. A certificate is scoped evidence, not an unrestricted approval for every configuration or site: https://agrement.co.za/certification-process/
+
+Primary status pages:
+- performance-criteria review notice: https://agrement.co.za/important-notification-review-of-agrement-south-africa-performance-criteria/
+- current criteria index: https://agrement.co.za/asa-performance-criteria/
+- certificate process: https://agrement.co.za/certification-process/
+
+### International productivity guidance — PAS 4010:2026
+
+BSI's project page identifies PAS 4010:2026 as a specification for improving productivity in infrastructure development and delivery and lists a publication start date of 5 November 2026. The ICE's public launch event is scheduled for **9 November 2026**. As of 7 November, it is therefore reasonable to align our research crosswalk with its stated lifecycle-productivity themes, but we should not claim formal conformity, certification or completed adoption. Retrieve the published specification before a clause-by-clause crosswalk; do not rely on the consultation draft.
+
+Its stated scope includes productivity management for new and adapted infrastructure and the lifecycle of maintained, repurposed and retrofitted assets. It is UK infrastructure guidance, not South African building law:
+- BSI project: https://standardsdevelopment.bsigroup.com/projects/2024-03460
+- BSI product page: https://www.bsigroup.com/en-GB/insights-and-media/insights/brochures/pas-4010-improving-productivity-in-infrastructure-development-and-delivery-specification/
+- ICE launch: https://www.ice.org.uk/events/upcoming-events/launching-pas-4010-the-new-standard-for-infrastructure-productivity-register-interest
+
+### Environmental performance and information management
+
+- CEN describes EN 15978:2026 as harmonizing whole-life environmental assessment for new, existing and refurbished buildings, including circularity information, system boundaries and use of EPD information. It is a useful cross-method reference, not automatically the South African regulatory pathway: https://www.cencenelec.eu/news-events/news/2026/en-in-the-spotlight/2026-04-17-en-15978-2026/
+- ISO 19650-1 and -2 second editions are surfaced in ISO's catalogue as DIS (Draft International Standard) records. Do not cite the drafts as published replacements for the current editions. The general principle remains useful: information management is broader than 3D geometry and should be driven by the decision/use and asset lifecycle, but current normative editions must be checked at procurement/contract date: https://www.iso.org/obp/ui?_escaped_fragment_=iso%3Astd%3Aiso%3A19650%3A-1%3Adis%3Aed-2%3Av1%3Aen
+
+### Required machine-readable gate fields
+
+Every method/system evidence record should include:
+
+```text
+jurisdiction
+authority
+building_use_class
+rule_or_standard_id
+edition_or_revision
+publication_status
+effective_from / effective_to
+deemed_to_satisfy_or_alternative_solution
+certificate_id + exact scope + conditions + expiry/validity
+design_professional + responsibility
+tested_configuration + manufacturing_site
+site_conditions + climate/exposure class
+inspection_and_commissioning_records
+source_url + retrieval_date + digest
+status = current | stale | draft | unknown | superseded | revoked
+```
+
+If any legally or technically required gate is unresolved, the method remains Unknown/Blocked for that use. A strong synthetic result, a foreign certificate or a vendor declaration cannot override this.
