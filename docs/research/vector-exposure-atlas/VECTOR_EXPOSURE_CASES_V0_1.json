@@ -1,0 +1,72 @@
+{
+  "schema": "luminous.vector_exposure_atlas_cases.v0.1",
+  "status": "synthetic_only_no_personal_health_data",
+  "cases": [
+    {
+      "id": "VA-001",
+      "name": "ward_resolution_not_household_resolution",
+      "expected_state": "household_projection_rejected",
+      "assertions": ["source_spatial_scale_preserved", "no_false_precision"]
+    },
+    {
+      "id": "VA-002",
+      "name": "stale_vector_observation",
+      "expected_state": "stale_or_unknown",
+      "assertions": ["observation_time_preserved", "stale_not_zero"]
+    },
+    {
+      "id": "VA-003",
+      "name": "environmental_suitability_without_vector_capture",
+      "expected_state": "environmental_covariate_only",
+      "assertions": ["no_vector_presence_claim"]
+    },
+    {
+      "id": "VA-004",
+      "name": "vector_capture_without_clinical_data",
+      "expected_state": "vector_presence_only",
+      "assertions": ["no_infection_or_disease_claim"]
+    },
+    {
+      "id": "VA-005",
+      "name": "unequal_sampling_effort",
+      "expected_state": "coverage_bias_disclosed",
+      "assertions": ["effort_denominator_preserved", "no_raw_count_ranking"]
+    },
+    {
+      "id": "VA-006",
+      "name": "wrong_coordinate_reference_system",
+      "expected_state": "rejected_or_quarantined",
+      "assertions": ["crs_validated", "transformation_provenance_retained"]
+    },
+    {
+      "id": "VA-007",
+      "name": "conflicting_species_records",
+      "expected_state": "species_conflict_preserved",
+      "assertions": ["taxonomic_confidence_preserved", "no_species_coalescence"]
+    },
+    {
+      "id": "VA-008",
+      "name": "protected_household_observation",
+      "expected_state": "generalized_or_omitted_from_public_view",
+      "assertions": ["sensitivity_policy_applied", "small_cell_suppression"]
+    },
+    {
+      "id": "VA-009",
+      "name": "licence_incompatible_dataset",
+      "expected_state": "quarantined",
+      "assertions": ["licence_checked_before_ingest", "no_public_redistribution"]
+    },
+    {
+      "id": "VA-010",
+      "name": "before_after_intervention_without_comparable_effort",
+      "expected_state": "causal_effect_not_admitted",
+      "assertions": ["sampling_protocol_difference_exposed", "no_causal_claim"]
+    },
+    {
+      "id": "VA-011",
+      "name": "sparse_sample_promoted_to_population_estimate",
+      "expected_state": "rejected",
+      "assertions": ["population_completeness_required", "missingness_visible"]
+    }
+  ]
+}

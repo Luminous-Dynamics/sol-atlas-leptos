@@ -1,0 +1,28 @@
+name: Vector exposure atlas verifier
+
+on:
+  pull_request:
+    paths:
+      - "docs/research/vector-exposure-atlas/**"
+      - "tools/vector-exposure-atlas-verifier/**"
+      - ".github/workflows/vector-exposure-atlas-verifier.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: vector-exposure-atlas-verifier-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  strict-fixture-verification:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Test independent verifier
+        run: cargo test --manifest-path tools/vector-exposure-atlas-verifier/Cargo.toml
+      - name: Verify committed corpus
+        run: cargo run --manifest-path tools/vector-exposure-atlas-verifier/Cargo.toml -- docs/research/vector-exposure-atlas/VECTOR_EXPOSURE_CASES_V0_1.json
