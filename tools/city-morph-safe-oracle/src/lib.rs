@@ -511,8 +511,6 @@ pub fn evaluate(case: &Scenario) -> Disposition {
 /// corpus drift; it is NOT a cryptographic digest or a provenance signature.
 pub fn fixture_fingerprint() -> u64 {
     const OFFSET: u64 = 0xcbf29ce484222325;
-    const PRIME: u64 = 0x00000100000001b3;
-
     fn feed(hash: &mut u64, bytes: &[u8]) {
         const PRIME: u64 = 0x00000100000001b3;
         for byte in bytes {
@@ -541,8 +539,6 @@ pub fn fixture_fingerprint() -> u64 {
         feed(&mut hash, case.expected.as_str().as_bytes());
     }
 
-    // Keep PRIME in this scope as an explicit part of the named fingerprint profile.
-    let _ = PRIME;
     hash
 }
 
