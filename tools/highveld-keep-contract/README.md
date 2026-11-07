@@ -53,6 +53,7 @@ The nested `[workspace]` isolates the package from the parent Leptos crate. `ser
 - Hard requirements remain separate from soft objective vectors.
 - E0 evidence tier and unresolved site/resident/solver/approval inputs remain visible.
 - The exact 11-edge functional relationship graph and functional-programme nodes have unique IDs; endpoints and required excluded intermediate functions exist; relation types map strictly to hard versus preference classes; unversioned geometry/distance fields are rejected.
+- Every functional relationship ID is bound to its exact source, target, relation type, hard/preference class and exclusion set; IDs cannot be repurposed while preserving a green result.
 - The EPW.tools alternative provider-method record remains research-only/unqualified, and its Johannesburg 0.5-degree MERRA-2 grid trend cannot be promoted to parcel/station design weather.
 - Four ASHRAE / NOAA GHCND / SAWS-WMO station metadata cross-checks remain metadata-only, with no observation-series download or identity/history qualification; daily GHCND records cannot be promoted to hourly series.
 - ARC operational-network (~500 station) summaries remain separate from its wider ~1,900-station portal archive (1,100 manual / 763 AWS / 460 active AWS); SAWS WIS product topics retain licence gates; NOAA ISD global archive metadata is not promoted to a local Johannesburg series.
