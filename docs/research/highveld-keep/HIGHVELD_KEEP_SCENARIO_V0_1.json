@@ -21,8 +21,8 @@
   "synthetic_site_envelope": {
     "enabled_for_fixture_search_only": true,
     "shape": "rectangle",
-    "width_m": 60.0,
-    "depth_m": 80.0,
+    "width_m": 60,
+    "depth_m": 80,
     "local_coordinate_frame": "ENU_SYNTHETIC",
     "orientation_deg_from_true_north": null,
     "slope": null,
@@ -124,7 +124,8 @@
         "maintenance and drainage",
         "fabrication and roof span feasibility"
       ],
-      "status": "HYPOTHESIS_NOT_GEOMETRY"
+      "status": "HYPOTHESIS_NOT_GEOMETRY",
+      "family": "courtyard_cloister"
     },
     {
       "id": "B_WINGED_GREAT_HALL",
@@ -136,7 +137,8 @@
         "passive shading and cross ventilation",
         "phasing and fabrication"
       ],
-      "status": "HYPOTHESIS_NOT_GEOMETRY"
+      "status": "HYPOTHESIS_NOT_GEOMETRY",
+      "family": "winged_great_hall"
     },
     {
       "id": "C_COMPACT_KEEP",
@@ -148,7 +150,8 @@
         "stack effect and summer overheating",
         "maintenance access and adaptation"
       ],
-      "status": "HYPOTHESIS_NOT_GEOMETRY"
+      "status": "HYPOTHESIS_NOT_GEOMETRY",
+      "family": "compact_keep"
     },
     {
       "id": "D_GARDEN_PAVILIONS",
@@ -160,7 +163,8 @@
         "phased fabrication and repair",
         "weather exposure and maintenance"
       ],
-      "status": "HYPOTHESIS_NOT_GEOMETRY"
+      "status": "HYPOTHESIS_NOT_GEOMETRY",
+      "family": "garden_pavilions"
     }
   ],
   "climate_inputs": {
