@@ -660,12 +660,23 @@ pub fn validate_values(scenario: &Value, parameters: &Value) -> ValidationReport
         "FUNCTIONAL_PROGRAMME_IDS_MISSING_OR_DUPLICATED",
     );
     let mut relationship_ids = std::collections::HashSet::new();
-    const EXPECTED_RELATIONSHIPS: [
-        (&str, &str, &str, &str, &str, Option<&str>);
-        11
-    ] = [
-        ("REL-001", "arrival", "great_hall", "must_have_step_free_route", "hard", None),
-        ("REL-002", "arrival", "kitchen_dining", "must_have_step_free_route", "hard", None),
+    const EXPECTED_RELATIONSHIPS: [(&str, &str, &str, &str, &str, Option<&str>); 11] = [
+        (
+            "REL-001",
+            "arrival",
+            "great_hall",
+            "must_have_step_free_route",
+            "hard",
+            None,
+        ),
+        (
+            "REL-002",
+            "arrival",
+            "kitchen_dining",
+            "must_have_step_free_route",
+            "hard",
+            None,
+        ),
         (
             "REL-003",
             "arrival",
@@ -674,8 +685,22 @@ pub fn validate_values(scenario: &Value, parameters: &Value) -> ValidationReport
             "hard",
             None,
         ),
-        ("REL-004", "arrival", "work_making", "must_have_step_free_route", "hard", None),
-        ("REL-005", "arrival", "outdoor_living", "must_have_step_free_route", "hard", None),
+        (
+            "REL-004",
+            "arrival",
+            "work_making",
+            "must_have_step_free_route",
+            "hard",
+            None,
+        ),
+        (
+            "REL-005",
+            "arrival",
+            "outdoor_living",
+            "must_have_step_free_route",
+            "hard",
+            None,
+        ),
         (
             "REL-006",
             "arrival",
@@ -780,12 +805,7 @@ pub fn validate_values(scenario: &Value, parameters: &Value) -> ValidationReport
                 let actual_excluded = item
                     .get("via_excluded")
                     .and_then(Value::as_array)
-                    .map(|values| {
-                        values
-                            .iter()
-                            .filter_map(Value::as_str)
-                            .collect::<Vec<_>>()
-                    })
+                    .map(|values| values.iter().filter_map(Value::as_str).collect::<Vec<_>>())
                     .unwrap_or_default();
                 let exclusions_match = match expected.5 {
                     Some(function_id) => actual_excluded.as_slice() == [function_id],
@@ -1024,7 +1044,8 @@ mod tests {
     #[test]
     fn private_route_exclusion_set_must_match_the_declared_contract() {
         let (mut scenario, parameters) = documents();
-        scenario["functional_relationships"][5]["via_excluded"] = json!(["sleeping_rooms", "library_quiet"]);
+        scenario["functional_relationships"][5]["via_excluded"] =
+            json!(["sleeping_rooms", "library_quiet"]);
         let report = validate_values(&scenario, &parameters);
         assert!(contains(
             &report,
