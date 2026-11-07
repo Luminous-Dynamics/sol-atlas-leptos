@@ -33,6 +33,7 @@ pub struct ValidationReport {
     pub weather_candidates: usize,
     pub continuous_variables: usize,
     pub categorical_variables: usize,
+    pub functional_relationships: usize,
     pub violations: Vec<&'static str>,
 }
 
@@ -87,6 +88,9 @@ pub fn validate_values(scenario: &Value, parameters: &Value) -> ValidationReport
     let topology = array_at(parameters, &["topology_variables"]);
     let mut continuous_count = 0usize;
     let mut categorical_count = 0usize;
+    let functional_relationships =
+        array_at(scenario, &["functional_relationships"]);
+    let mut functional_relationship_count = 0usize;
 
     push_if(
         &mut violations,
@@ -424,6 +428,109 @@ pub fn validate_values(scenario: &Value, parameters: &Value) -> ValidationReport
         "PARAMETER_SPACE_INCOMPLETE",
     );
 
+    // Validate the task-level relationship graph without interpreting it as geometry.
+    // The graph may state a route or adjacency requirement, but this checker does
+    // not calculate distances, paths, gradients, acoustic isolation or clearances.
+    let functional_programme = array_at(scenario, &["functional_programme"]);
+    let known_functions: std::collections::HashSet<&str> = functional_programme
+        .into_iter()
+        .flatten()
+        .filter_map(|item| item.get("id").and_then(Value::as_str))
+        .collect();
+    let mut relationship_ids = std::collections::HashSet::new();
+    const HARD_RELATIONS: [&str; 4] = [
+        "must_have_step_free_route",
+        "must_have_arrival_level_access",
+        "visitor_route_must_avoid_private_zone",
+        "maintenance_access_must_avoid_private_zone",
+    ];
+    const PREFERENCE_RELATIONS: [&str; 2] = [
+        "should_be_adjacent",
+        "should_be_acoustically_separated",
+    ];
+    const ALLOWED_RELATIONSHIP_KEYS: [&str; 7] = [
+        "id",
+        "source",
+        "target",
+        "relation",
+        "via_excluded",
+        "requirement_class",
+        "reason",
+    ];
+
+    if let Some(items) = functional_relationships {
+        functional_relationship_count = items.len();
+        for item in items {
+            let id = item.get("id").and_then(Value::as_str);
+            let source = item.get("source").and_then(Value::as_str);
+            let target = item.get("target").and_then(Value::as_str);
+            let relation = item.get("relation").and_then(Value::as_str);
+            let requirement_class = item.get("requirement_class").and_then(Value::as_str);
+            let reason = item.get("reason").and_then(Value::as_str);
+
+            if id.is_none_or(str::is_empty)
+                || !relationship_ids.insert(id.unwrap_or_default())
+            {
+                violations.push("FUNCTIONAL_RELATIONSHIP_ID_MISSING_OR_DUPLICATED");
+            }
+            if source.is_none_or(|value| !known_functions.contains(value))
+                || target.is_none_or(|value| !known_functions.contains(value))
+            {
+                violations.push("FUNCTIONAL_RELATIONSHIP_ENDPOINT_UNKNOWN");
+            }
+            if reason.is_none_or(str::is_empty) {
+                violations.push("FUNCTIONAL_RELATIONSHIP_REASON_MISSING");
+            }
+
+            let class_matches = match relation {
+                Some(value) if HARD_RELATIONS.contains(&value) => {
+                    requirement_class == Some("hard")
+                }
+                Some(value) if PREFERENCE_RELATIONS.contains(&value) => {
+                    requirement_class == Some("preference")
+                }
+                _ => false,
+            };
+            if !class_matches {
+                violations.push("FUNCTIONAL_RELATIONSHIP_CLASS_OR_TYPE_INVALID");
+            }
+
+            if let Some(excluded) = item.get("via_excluded") {
+                if let Some(excluded_items) = excluded.as_array() {
+                    if excluded_items.iter().any(|entry| {
+                        entry
+                            .as_str()
+                            .is_none_or(|value| !known_functions.contains(value))
+                    }) {
+                        violations.push("FUNCTIONAL_RELATIONSHIP_EXCLUDED_FUNCTION_UNKNOWN");
+                    }
+                } else {
+                    violations.push("FUNCTIONAL_RELATIONSHIP_EXCLUDED_FUNCTIONS_INVALID");
+                }
+            }
+
+            if let Some(object) = item.as_object() {
+                if object
+                    .keys()
+                    .any(|key| !ALLOWED_RELATIONSHIP_KEYS.contains(&key.as_str()))
+                {
+                    violations.push("FUNCTIONAL_RELATIONSHIP_GEOMETRY_OR_UNVERSIONED_FIELD");
+                }
+            } else {
+                violations.push("FUNCTIONAL_RELATIONSHIP_RECORD_NOT_OBJECT");
+            }
+        }
+    } else {
+        violations.push("FUNCTIONAL_RELATIONSHIP_GRAPH_MISSING");
+    }
+
+    push_if(
+        &mut violations,
+        functional_relationship_count == 0
+            || relationship_ids.len() != functional_relationship_count,
+        "FUNCTIONAL_RELATIONSHIP_GRAPH_EMPTY_OR_DUPLICATED",
+    );
+
     // Hard requirements remain a separate authority class.
     let hard_requirements = array_at(parameters, &["hard_requirements"]);
     push_if(
@@ -501,6 +608,7 @@ pub fn validate_values(scenario: &Value, parameters: &Value) -> ValidationReport
         weather_candidates: weather_count,
         continuous_variables: continuous_count,
         categorical_variables: categorical_count,
+        functional_relationships: functional_relationship_count,
         violations,
     }
 }
@@ -539,6 +647,66 @@ mod tests {
         assert_eq!(report.weather_candidates, 2);
         assert!(report.continuous_variables > 0);
         assert!(report.categorical_variables > 0);
+    }
+
+    #[test]
+    fn tracked_functional_relationship_graph_has_eleven_relationships() {
+        let report = validate_tracked_documents().expect("tracked JSON should parse");
+        assert!(report.is_valid(), "{:?}", report.violations);
+        assert_eq!(report.functional_relationships, 11);
+    }
+
+    #[test]
+    fn functional_relationship_unknown_endpoint_is_rejected() {
+        let (mut scenario, parameters) = documents();
+        scenario["functional_relationships"][0]["target"] = json!("nonexistent_room");
+        let report = validate_values(&scenario, &parameters);
+        assert!(contains(&report, "FUNCTIONAL_RELATIONSHIP_ENDPOINT_UNKNOWN"));
+    }
+
+    #[test]
+    fn functional_relationship_ids_must_be_unique() {
+        let (mut scenario, parameters) = documents();
+        scenario["functional_relationships"][1]["id"] = json!("REL-001");
+        let report = validate_values(&scenario, &parameters);
+        assert!(contains(
+            &report,
+            "FUNCTIONAL_RELATIONSHIP_ID_MISSING_OR_DUPLICATED"
+        ));
+    }
+
+    #[test]
+    fn hard_and_preference_relationships_cannot_be_reclassified() {
+        let (mut scenario, parameters) = documents();
+        scenario["functional_relationships"][0]["requirement_class"] = json!("preference");
+        let report = validate_values(&scenario, &parameters);
+        assert!(contains(
+            &report,
+            "FUNCTIONAL_RELATIONSHIP_CLASS_OR_TYPE_INVALID"
+        ));
+    }
+
+    #[test]
+    fn excluded_private_functions_must_exist_in_the_programme() {
+        let (mut scenario, parameters) = documents();
+        scenario["functional_relationships"][5]["via_excluded"][0] =
+            json!("unknown_private_room");
+        let report = validate_values(&scenario, &parameters);
+        assert!(contains(
+            &report,
+            "FUNCTIONAL_RELATIONSHIP_EXCLUDED_FUNCTION_UNKNOWN"
+        ));
+    }
+
+    #[test]
+    fn relationship_graph_does_not_accept_unversioned_geometry_fields() {
+        let (mut scenario, parameters) = documents();
+        scenario["functional_relationships"][0]["distance_m"] = json!(4.5);
+        let report = validate_values(&scenario, &parameters);
+        assert!(contains(
+            &report,
+            "FUNCTIONAL_RELATIONSHIP_GEOMETRY_OR_UNVERSIONED_FIELD"
+        ));
     }
 
     #[test]
