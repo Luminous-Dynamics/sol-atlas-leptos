@@ -53,6 +53,7 @@ The nested `[workspace]` isolates the package from the parent Leptos crate. `ser
 - Hard requirements remain separate from soft objective vectors.
 - E0 evidence tier and unresolved site/resident/solver/approval inputs remain visible.
 - The exact 11-edge functional relationship graph and functional-programme nodes have unique IDs; endpoints and required excluded intermediate functions exist; relation types map strictly to hard versus preference classes; unversioned geometry/distance fields are rejected.
+- The EPW.tools alternative provider-method record remains research-only/unqualified, and its Johannesburg 0.5-degree MERRA-2 grid trend cannot be promoted to parcel/station design weather.
 
 ## Tests
 
