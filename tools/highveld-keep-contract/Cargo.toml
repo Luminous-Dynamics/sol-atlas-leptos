@@ -1,0 +1,19 @@
+[package]
+name = "highveld-keep-contract"
+version = "0.1.0"
+edition = "2024"
+publish = false
+description = "Synthetic-only consistency checker for the Highveld Keep reference-design package"
+
+[workspace]
+resolver = "3"
+
+[dependencies]
+serde_json = "=1.0.150"
+
+[lib]
+path = "src/lib.rs"
+
+[[bin]]
+name = "highveld-keep-contract"
+path = "src/main.rs"
