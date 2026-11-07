@@ -21,6 +21,10 @@ fn main() -> ExitCode {
                 "alternative_climate_method_count={}",
                 report.alternative_climate_methods
             );
+            println!(
+                "station_metadata_crosscheck_count={}",
+                report.station_metadata_crosschecks
+            );
             println!("violation_count=0");
             println!("result=definition_valid_synthetic_only");
             println!("claim_ceiling=no_geometry_buildability_safety_or_compliance_validation");
