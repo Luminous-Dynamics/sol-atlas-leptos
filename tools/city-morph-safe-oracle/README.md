@@ -12,6 +12,14 @@ The evaluator returns exactly one of:
 
 **This does not mean safe.** The evaluator cannot issue crime-reduction, fire-safety, structural, code-compliance, building approval, or professional certification findings. It does not model crime, fire, evacuation, structures, lighting, accessibility geometry, or physical security. Those require domain-specific data, validated tools, professionals and field evidence.
 
+## Input trust boundary
+
+This first slice evaluates **declared evidence states**, not raw evidence documents. A caller supplies `Verified`, `Missing`, `Stale`, `Unsupported`, `ScopeMismatch`, `Restricted` or `Conflicting`. The oracle enforces policy over those states and the supplied integrity flags; it does not authenticate the upstream source, verify a publication date, inspect a spatial polygon, calculate crime rates from source records, or independently prove that an upstream `Verified` assertion is true.
+
+Likewise, `IntegrityState::InvalidDenominator` is a pre-classified negative input in v0.1, not a calculation over a raw numerator/denominator record. The duplicate-ID check is performed by `evaluate_batch()` over the packet itself. Source-specific adapters must establish source identity, publication/revision time, jurisdiction/geometry scope, denominator semantics and legal data-use status before passing an evidence state. That adapter validation is not implemented by this crate.
+
+The fixture fingerprint is FNV-1a and intentionally non-cryptographic. It detects accidental fixture drift; it does not authenticate source documents, candidate geometry or a signed receipt.
+
 ## Synthetic scope
 
 The v0.1 profile requires six distinct evidence classes:
@@ -43,7 +51,7 @@ The CLI exits non-zero if any fixture differs from its expected disposition. It 
 
 ## Corpus and tests
 
-The frozen suite has 30 explicitly synthetic cases. Unit tests cover exact expected dispositions, ID uniqueness, hard-gate dominance, missing/stale/restricted evidence, invalid denominators, scope/revision mismatch, forbidden automatic certification requests and deterministic output.
+The frozen suite has 30 explicitly synthetic cases. Unit tests cover exact expected dispositions, canonical corpus ID uniqueness, duplicate IDs detected across a submitted batch, hard-gate dominance, missing/stale/restricted evidence, pre-classified invalid-denominator states, scope/revision mismatch, forbidden automatic certification requests, batch-order invariance and a pinned fixture fingerprint.
 
 Expected outputs live next to the fixtures, while `evaluate()` does not read the expected field. These tests are a first internal E1 harness, not an independently audited benchmark. Independent review of fixture labels and evaluator logic is still required.
 
