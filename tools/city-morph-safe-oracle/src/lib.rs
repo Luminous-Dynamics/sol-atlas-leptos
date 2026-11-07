@@ -515,10 +515,10 @@ pub fn fixture_fingerprint() -> u64 {
         const PRIME: u64 = 0x00000100000001b3;
         for byte in bytes {
             *hash ^= u64::from(*byte);
-            *hash = hash.wrapping_mul(PRIME);
+            *hash = (*hash).wrapping_mul(PRIME);
         }
         *hash ^= 0xff;
-        *hash = hash.wrapping_mul(PRIME);
+        *hash = (*hash).wrapping_mul(PRIME);
     }
 
     let mut hash = OFFSET;
