@@ -487,7 +487,7 @@ mod tests {
     fn baseline_is_bound_without_claiming_payload_digest_verified() {
         let result = evaluate_case(&case("SB-001"));
         assert_eq!(result["binding_disposition"], "Bound");
-        assert_eq!(result["artifact_bindings"][0]["payload_bytes_verified"], false);
+        assert!(!result["artifact_bindings"][0]["payload_bytes_verified"].as_bool().unwrap());
     }
 
     #[test]
