@@ -283,11 +283,10 @@ Use the existing Symtropy thermal and resilience owners:
 Sol-Atlas [CITY-HEAT-RETROFIT-ATLAS-001 #593](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/593) will spatially project outdoor exposure, building cohorts, modelled thermal trajectories, measured outcomes and retrofit delivery capacity. It must not replace those solvers or turn ward-scale population/weather evidence into per-building indoor temperatures.
 
 Recent research reinforces the need for evidence-rich field comparison:
-- A 2026 passive-cooling evidence map synthesizes 197 studies but finds climate context missing in 52, numerical outcomes unrecoverable in 85 and only one experimental/test-cell/prototype design. This points to the value of measured, climate-contextual prototype testing rather than simulation-only rankings.
-- A randomized pilot in 40 rural African houses found different day/night responses across cool roofs, mat ceilings and cross-ventilation; its effects are specific to that study's climate and housing, not transferable Johannesburg coefficients.
+- A randomized pilot published on 5 January 2026 in 40 rural African houses found different day/night responses across cool roofs, mat ceilings and cross-ventilation; its effects are specific to that study's climate and housing, not transferable Johannesburg coefficients. This strengthens the case for measured local prototype trials rather than simulation-only rankings.
 
 References:
-- https://doi.org/10.1016/j.rineng.2026.112105
 - https://doi.org/10.1038/s41591-025-04104-9
+- https://doi.org/10.1038/s44359-026-00177-y
 - https://climate.onebuilding.org/
 - https://data.ashrae.org/standard140/
