@@ -1,0 +1,36 @@
+name: City Heat Rustfmt Export (temporary authoring helper)
+
+on:
+  push:
+    branches: ["research/city-heat-retrofit-atlas-v0.1"]
+    paths:
+      - "tools/city-heat-evidence-bench/**"
+      - ".github/workflows/city-heat-rustfmt-export.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  format-export:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: 1.96.0
+          components: rustfmt
+      - name: Format standalone crate in ephemeral checkout
+        run: cargo fmt --manifest-path tools/city-heat-evidence-bench/Cargo.toml --all
+      - name: Export formatted source
+        run: |
+          mkdir -p formatted
+          cp tools/city-heat-evidence-bench/src/lib.rs formatted/lib.rs
+          cp tools/city-heat-evidence-bench/src/main.rs formatted/main.rs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: city-heat-rustfmt-export
+          path: formatted/
+          if-no-files-found: error
+          retention-days: 2
