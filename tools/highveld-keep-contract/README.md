@@ -48,7 +48,7 @@ The nested `[workspace]` isolates the package from the parent Leptos crate. `ser
 - Exact four spatial alternatives and explicit alternative-ID-to-family bindings.
 - All typed variable collections: finite ordered numeric ranges with units, non-empty categorical sets, unique variable IDs, and unresolved product/material evidence references.
 - Synthetic parameter-bound status and explicit prohibition against treating bounds as engineering/legal/code limits.
-- The two Johannesburg TMYx files remain catalogued but unqualified; no TMY/heatwave substitution.
+- Five Gauteng TMYx files (Tambo, Botanical Gardens, Grand Central, Rand Airport and Lanseria) remain distinct catalogued candidates; the source page says All Rights Reserved and file-specific reuse terms remain unknown, so no redistribution rights are presumed and no TMY/heatwave substitution is allowed.
 - Geometry, thermal, structural and fire specialist gates remain unqualified/owned by their existing authorities.
 - Hard requirements remain separate from soft objective vectors.
 - E0 evidence tier and unresolved site/resident/solver/approval inputs remain visible.
