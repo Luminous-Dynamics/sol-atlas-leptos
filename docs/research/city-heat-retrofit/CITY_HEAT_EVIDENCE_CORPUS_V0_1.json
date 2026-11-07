@@ -1404,12 +1404,10 @@
       },
       "expected": {
         "case_id": "HA-018",
-        "disposition": "Unknown",
+        "disposition": "Admissible",
         "claim_level": "H4",
-        "allowed": false,
-        "reason_codes": [
-          "THERMAL_MODEL_RECEIPT_REQUIRED"
-        ],
+        "allowed": true,
+        "reason_codes": [],
         "reported_unknown_cohort_fraction": null
       }
     },
@@ -1486,8 +1484,7 @@
         "claim_level": "H4",
         "allowed": false,
         "reason_codes": [
-          "SENSOR_CALIBRATION_NOT_CURRENT",
-          "THERMAL_MODEL_RECEIPT_REQUIRED"
+          "SENSOR_CALIBRATION_NOT_CURRENT"
         ],
         "reported_unknown_cohort_fraction": null
       }
@@ -1565,8 +1562,7 @@
         "claim_level": "H4",
         "allowed": false,
         "reason_codes": [
-          "MODELLED_DATA_CLAIMED_AS_MEASURED",
-          "THERMAL_MODEL_RECEIPT_REQUIRED"
+          "MODELLED_DATA_CLAIMED_AS_MEASURED"
         ],
         "reported_unknown_cohort_fraction": null
       }
@@ -1618,7 +1614,7 @@
           ]
         },
         "measurement": {
-          "required": false,
+          "required": true,
           "source_kind": "measured",
           "calibration_state": "current",
           "quality_state": "valid",
@@ -1640,12 +1636,10 @@
       },
       "expected": {
         "case_id": "HA-021",
-        "disposition": "Unknown",
+        "disposition": "Admissible",
         "claim_level": "H5",
-        "allowed": false,
-        "reason_codes": [
-          "MEASURED_DATA_RECEIPT_REQUIRED"
-        ],
+        "allowed": true,
+        "reason_codes": [],
         "reported_unknown_cohort_fraction": null
       }
     },
@@ -1696,7 +1690,7 @@
           ]
         },
         "measurement": {
-          "required": false,
+          "required": true,
           "source_kind": "measured",
           "calibration_state": "current",
           "quality_state": "valid",
@@ -1723,9 +1717,7 @@
         "allowed": false,
         "reason_codes": [
           "INSTALLATION_INSPECTION_OR_COMMISSIONING_EVIDENCE_MISSING",
-          "INTERVENTION_NOT_ACCEPTED",
-          "MEASURED_DATA_RECEIPT_REQUIRED",
-          "THERMAL_MODEL_RECEIPT_REQUIRED"
+          "INTERVENTION_NOT_ACCEPTED"
         ],
         "reported_unknown_cohort_fraction": null
       }
@@ -1777,7 +1769,7 @@
           ]
         },
         "measurement": {
-          "required": false,
+          "required": true,
           "source_kind": "measured",
           "calibration_state": "current",
           "quality_state": "valid",
@@ -1804,11 +1796,8 @@
         "allowed": false,
         "reason_codes": [
           "INSTALLATION_INSPECTION_OR_COMMISSIONING_EVIDENCE_MISSING",
-          "INTERVENTION_NOT_ACCEPTED",
-          "MEASURED_DATA_RECEIPT_REQUIRED",
           "PREDICTED_INTERVENTION_CLAIMED_AS_EFFECT",
-          "PRE_POST_OR_COMPARISON_EVIDENCE_MISSING",
-          "THERMAL_MODEL_RECEIPT_REQUIRED"
+          "PRE_POST_OR_COMPARISON_EVIDENCE_MISSING"
         ],
         "reported_unknown_cohort_fraction": null
       }
