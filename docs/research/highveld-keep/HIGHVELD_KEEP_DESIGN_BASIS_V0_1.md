@@ -278,6 +278,22 @@ References:
 - NHBRC home-builder registration obligations: https://www.nhbrc.org.za/why-register/
 - Ministerial launch of National Built Environment and Construction Safety Framework, 3 July 2026: https://www.gov.za/news/speeches/minister-dean-macpherson-launch-national-built-environment-and-construction-safety
 
+## 6D. Secure night ventilation and vector-exclusion evidence
+
+The building brief now composes Symtropy [VECTOR-HABITAT-001 #4095](https://github.com/Luminous-Dynamics/symtropy/issues/4095) and Sol-Atlas [VECTOR-EXPOSURE-ATLAS-001 #618](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/618). These are research contracts, not local efficacy claims.
+
+Do not infer that a designed opening produces useful ventilation in occupied conditions. Secure night ventilation must be tested with the actual screen/mesh and security arrangement, measured airflow, resident-operated state and outdoor air-quality/weather constraints. The new VH-012 negative control requires paired physical-security and airflow evidence and awards no ventilation credit when the opening is closed during occupied night use.
+
+The 2026 randomized 40-house Kenyan pilot provides a rationale for testing screening, cool roofs and actual window-use barriers, but its results are not transferable effect sizes for Johannesburg. Local vector species, seasonal ecology, house construction, occupancy and sampling effort require independent qualification. Vector captures are not clinical disease-incidence outcomes.
+
+Required evidence before any local claim:
+- exact screen/mesh product, aperture, installation detail, defect/repair inspection and maintenance plan;
+- fire, egress, accessibility, security and ventilation review of the same assembly;
+- measured airflow and indoor/outdoor conditions with doors/windows in observed resident-use states;
+- locally defined vector species and trap protocol, species identification confidence and captures per trap-night;
+- privacy/consent and resident acceptance, with household-level public disclosure prohibited;
+- explicit separation of environmental suitability, vector presence, exposure, infection and clinical disease outcomes.
+
 ## 7. Security, accessibility and life safety
 
 The goal is a home that feels welcoming and is demonstrably well considered—not a militarized residence.
