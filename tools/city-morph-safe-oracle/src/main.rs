@@ -1,6 +1,6 @@
 use city_morph_safe_oracle::{
-    CORPUS_REVISION, Disposition, EXPECTED_CASE_COUNT, PROFILE_REVISION, SCENARIOS, evaluate,
-    fixture_fingerprint,
+    CORPUS_REVISION, Disposition, EXPECTED_CASE_COUNT, PROFILE_REVISION, SCENARIOS,
+    evaluate_batch, fixture_fingerprint,
 };
 use std::process::ExitCode;
 
@@ -10,8 +10,8 @@ fn main() -> ExitCode {
     let mut review_eligible = 0usize;
     let mut mismatches = 0usize;
 
-    for case in SCENARIOS {
-        let actual = evaluate(&case);
+    let results = evaluate_batch(&SCENARIOS);
+    for (case, actual) in SCENARIOS.iter().zip(results) {
         match actual {
             Disposition::Blocked => blocked += 1,
             Disposition::Unknown => unknown += 1,
