@@ -55,6 +55,7 @@ The nested `[workspace]` isolates the package from the parent Leptos crate. `ser
 - The exact 11-edge functional relationship graph and functional-programme nodes have unique IDs; endpoints and required excluded intermediate functions exist; relation types map strictly to hard versus preference classes; unversioned geometry/distance fields are rejected.
 - The EPW.tools alternative provider-method record remains research-only/unqualified, and its Johannesburg 0.5-degree MERRA-2 grid trend cannot be promoted to parcel/station design weather.
 - Four ASHRAE / NOAA GHCND / SAWS-WMO station metadata cross-checks remain metadata-only, with no observation-series download or identity/history qualification; daily GHCND records cannot be promoted to hourly series.
+- ARC operational-network (~500 station) summaries remain separate from its wider ~1,900-station portal archive (1,100 manual / 763 AWS / 460 active AWS); SAWS WIS product topics retain licence gates; NOAA ISD global archive metadata is not promoted to a local Johannesburg series.
 
 ## Tests
 
