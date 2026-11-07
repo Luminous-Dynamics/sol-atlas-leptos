@@ -43,6 +43,57 @@ Compare the same task brief, inputs and output acceptance requirements across:
 
 Do not compare a Luminous render with an industry-approved construction package and call it a fair contest. Each workflow must deliver the same declared package, or its missing deliverables must remain visible.
 
+## 3A. Design-search algorithm benchmark
+
+The generative-search comparison must test the *quality and cost of decisions*, not the number of rendered alternatives.
+
+A 2026 comparative study of building-performance optimization compares multi-objective algorithms using Hypervolume, IGD+, GD+, epsilon indicators, repeated stochastic runs and matched problem settings. It reports that algorithm suitability varies with the building optimization problem; its reported RBFMOpt/HypE results are not evidence that either is universally best or will win on Highveld Keep. A 2025 systematic review of 153 performance-driven building-design studies identifies fragmented metric conventions, strong emphasis on envelopes/massing and energy/daylight/thermal comfort, and limited cross-case/field validation. These findings support a matched, reproducible benchmark rather than a claim based on design count or visual novelty.
+
+### Algorithm families to compare
+
+Choose only methods appropriate to the declared variable/objective structure; pin implementation and settings:
+- transparent baselines: exhaustive enumeration on tiny discrete cases, random sampling and space-filling designs;
+- evolutionary multi-objective: NSGA-II, NSGA-III, SPEA2 and HypE;
+- decomposition-based: MOEA/D;
+- surrogate-assisted: RBFMOpt or an explicitly documented RBF workflow, Gaussian-process, radial-basis, random-forest or neural-network surrogates;
+- a transparent human/architect-led candidate set from the same design brief.
+
+Do not choose an algorithm based on reputation. Pre-register the comparison and publish failures, exclusions and hyperparameter/seed settings.
+
+### Fair budget protocol
+
+- Give all algorithms the same candidate variable bounds, hard constraints, objective definitions, initial-design budget and high-fidelity solver-call budget.
+- Count all high-fidelity calls used for surrogate training, tuning, validation and final verification. Report low-fidelity calls separately.
+- Report wall time, CPU/GPU resources, peak memory, solver-license limits, failed runs and human intervention; do not hide surrogate training or failed evaluations.
+- Run stochastic methods across at least 20 fixed, published seeds as an initial comparison; increase the sample size where power/variance analysis requires it.
+- Use identical exact high-fidelity re-evaluation for every candidate entering the final comparison. A surrogate prediction is never a final building-performance result.
+- Keep training, calibration and held-out cases separate. A surrogate that performs well on its training weather/material/site envelope may still be out of domain on another.
+- On small synthetic subproblems, calculate an exact feasible Pareto reference by exhaustive enumeration. Do not treat an optimizer's own output as the reference front.
+
+### Optimization and diversity metrics
+
+Report the following as a vector, with metric normalization and reference points frozen before each run:
+- feasible-candidate fraction and hard-gate violations (hard failures cannot be repaired by the objective score);
+- Hypervolume with a predeclared reference point;
+- IGD+ and GD+ only when a defensible reference Pareto set exists;
+- epsilon indicator and spread/distribution indicators where suitable;
+- Pareto coverage and regret on exact small fixtures;
+- high-fidelity evaluations to first feasible candidate and to stable Pareto coverage;
+- total simulation calls, compute time, failures and repeat-run variability;
+- sensitivity to seeds, objective scaling, preference perturbations and uncertain inputs.
+
+Also evaluate **architectural diversity**, separately from optimizer-distribution diversity. Cosmetic changes to colour, texture or facade material alone do not count as structurally distinct alternatives. Use inspectable signatures such as spatial topology/adjacency, courtyard organization, circulation sequence, storey count, massing decomposition, service routing and structural/material family. A diverse front that contains inaccessible or infeasible candidates is not a successful design-search result.
+
+### Multi-fidelity verification
+
+1. Use geometry-only and cheap rule checks to screen malformed or clearly infeasible candidates.
+2. Use inexpensive approximations for exploratory ranking, with model/domain/version and uncertainty attached.
+3. Promote only candidates with a declared reason to specialist structural, thermal/energy, daylight or other solvers.
+4. Re-evaluate final Pareto candidates with the exact pinned high-fidelity tools and complete input manifests.
+5. If a high-fidelity result changes feasibility or ranking, update the Pareto set and preserve the discrepancy; do not overwrite the surrogate result as if it had been correct.
+
+A surrogate is a resource-allocation tool for deciding which candidates deserve expensive evaluation. It is not a substitute engineering authority.
+
 ## 4. Frozen inputs
 
 Before scoring:
@@ -207,6 +258,13 @@ The first competitive question should be: can Luminous deliver a more complete, 
 - E5: sustained operational measurements and external replication.
 
 Evidence tiers apply claim-by-claim and revision-by-revision. A successful E1 suite does not qualify a building.
+
+## 10A. Design-search research references
+
+- Lu et al. (2026), *Comparative Study of Multi-Objective Optimization Processes for Building Performance*, Buildings 16(21), 4192: https://doi.org/10.3390/buildings16214192. The paper discusses problem-dependent algorithm performance and metrics including Hypervolume, IGD+, GD+, epsilon indicators, repeated runs and matched evaluation settings.
+- Huang et al. (2025), *Performance-Driven Generative Design in Buildings: A Systematic Review*, Buildings 15(24), 4556: https://doi.org/10.3390/buildings15244556. The review maps 153 core studies and identifies fragmented metrics, concentration on particular scales/objectives and limits to cross-case/field validation.
+- Zhang et al. (2026), *AI-driven surrogate modeling for performance-oriented parametric optimization in sustainable building design: a systematic review*, Energy and Buildings 358, 117238: https://doi.org/10.1016/j.enbuild.2026.117238. The review covers 114 studies; surrogate-model selection should remain problem- and output-dependent.
+- Silva et al. (2026 issue; article first online 23 October 2024), *Multi-objective optimization algorithms for building performance assessment – A benchmark*, International Journal of Architectural Computing 24(1), 35–59: https://doi.org/10.1177/14780771241296263. It compares seven algorithms across nine building-related problems.
 
 ## 11. Competitive claim
 
