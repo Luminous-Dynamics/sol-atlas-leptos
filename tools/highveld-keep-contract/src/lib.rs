@@ -660,6 +660,72 @@ pub fn validate_values(scenario: &Value, parameters: &Value) -> ValidationReport
         "FUNCTIONAL_PROGRAMME_IDS_MISSING_OR_DUPLICATED",
     );
     let mut relationship_ids = std::collections::HashSet::new();
+    const EXPECTED_RELATIONSHIPS: [
+        (&str, &str, &str, &str, &str, Option<&str>);
+        11
+    ] = [
+        ("REL-001", "arrival", "great_hall", "must_have_step_free_route", "hard", None),
+        ("REL-002", "arrival", "kitchen_dining", "must_have_step_free_route", "hard", None),
+        (
+            "REL-003",
+            "arrival",
+            "accessible_washroom",
+            "must_have_arrival_level_access",
+            "hard",
+            None,
+        ),
+        ("REL-004", "arrival", "work_making", "must_have_step_free_route", "hard", None),
+        ("REL-005", "arrival", "outdoor_living", "must_have_step_free_route", "hard", None),
+        (
+            "REL-006",
+            "arrival",
+            "great_hall",
+            "visitor_route_must_avoid_private_zone",
+            "hard",
+            Some("sleeping_rooms"),
+        ),
+        (
+            "REL-007",
+            "service_plant",
+            "arrival",
+            "maintenance_access_must_avoid_private_zone",
+            "hard",
+            Some("sleeping_rooms"),
+        ),
+        (
+            "REL-008",
+            "kitchen_dining",
+            "outdoor_living",
+            "should_be_adjacent",
+            "preference",
+            None,
+        ),
+        (
+            "REL-009",
+            "library_quiet",
+            "great_hall",
+            "should_be_acoustically_separated",
+            "preference",
+            None,
+        ),
+        (
+            "REL-010",
+            "sleeping_rooms",
+            "great_hall",
+            "should_be_acoustically_separated",
+            "preference",
+            None,
+        ),
+        (
+            "REL-011",
+            "work_making",
+            "service_plant",
+            "should_be_adjacent",
+            "preference",
+            None,
+        ),
+    ];
+
     const HARD_RELATIONS: [&str; 4] = [
         "must_have_step_free_route",
         "must_have_arrival_level_access",
@@ -695,6 +761,39 @@ pub fn validate_values(scenario: &Value, parameters: &Value) -> ValidationReport
                 || target.is_none_or(|value| !known_functions.contains(value))
             {
                 violations.push("FUNCTIONAL_RELATIONSHIP_ENDPOINT_UNKNOWN");
+            }
+            let expected = id.and_then(|relationship_id| {
+                EXPECTED_RELATIONSHIPS
+                    .iter()
+                    .find(|expected| expected.0 == relationship_id)
+            });
+            let identity_matches = expected.is_some_and(|expected| {
+                source == Some(expected.1)
+                    && target == Some(expected.2)
+                    && relation == Some(expected.3)
+                    && requirement_class == Some(expected.4)
+            });
+            if !identity_matches {
+                violations.push("FUNCTIONAL_RELATIONSHIP_STABLE_ID_CONTRACT_CHANGED");
+            }
+            if let Some(expected) = expected {
+                let actual_excluded = item
+                    .get("via_excluded")
+                    .and_then(Value::as_array)
+                    .map(|values| {
+                        values
+                            .iter()
+                            .filter_map(Value::as_str)
+                            .collect::<Vec<_>>()
+                    })
+                    .unwrap_or_default();
+                let exclusions_match = match expected.5 {
+                    Some(function_id) => actual_excluded.as_slice() == [function_id],
+                    None => actual_excluded.is_empty(),
+                };
+                if !exclusions_match {
+                    violations.push("FUNCTIONAL_RELATIONSHIP_EXCLUSION_CONTRACT_CHANGED");
+                }
             }
             if reason.is_none_or(str::is_empty) {
                 violations.push("FUNCTIONAL_RELATIONSHIP_REASON_MISSING");
@@ -908,6 +1007,28 @@ mod tests {
         assert!(contains(
             &report,
             "FUNCTIONAL_PROGRAMME_IDS_MISSING_OR_DUPLICATED"
+        ));
+    }
+
+    #[test]
+    fn stable_relationship_id_cannot_be_repurposed_for_another_target() {
+        let (mut scenario, parameters) = documents();
+        scenario["functional_relationships"][0]["target"] = json!("kitchen_dining");
+        let report = validate_values(&scenario, &parameters);
+        assert!(contains(
+            &report,
+            "FUNCTIONAL_RELATIONSHIP_STABLE_ID_CONTRACT_CHANGED"
+        ));
+    }
+
+    #[test]
+    fn private_route_exclusion_set_must_match_the_declared_contract() {
+        let (mut scenario, parameters) = documents();
+        scenario["functional_relationships"][5]["via_excluded"] = json!(["sleeping_rooms", "library_quiet"]);
+        let report = validate_values(&scenario, &parameters);
+        assert!(contains(
+            &report,
+            "FUNCTIONAL_RELATIONSHIP_EXCLUSION_CONTRACT_CHANGED"
         ));
     }
 
