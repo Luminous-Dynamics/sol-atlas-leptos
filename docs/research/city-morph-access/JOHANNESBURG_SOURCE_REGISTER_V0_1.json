@@ -31,15 +31,15 @@
       "access_status": "VerifiedPublic",
       "rights_status": "Unknown",
       "known_facts": [
-        "Portal describes hourly TMY weather data in EPW and associated simulation formats.",
-        "2026 release includes TMYx all-data files and 2011-2025 / 2009-2023 / 2007-2021 periods where available.",
-        "Portal states 2026 TMYx solar data use ERA5 reanalysis."
+        "The Gauteng listing includes Johannesburg-Tambo International Airport WMO 683680 and Johannesburg Botanical Gardens WMO 683610 TMYx files for 2011-2025.",
+        "Climate.OneBuilding says its 2026 TMYx solar data use ERA5 reanalysis, while the underlying hourly weather TMYx series derive from NOAA ISD.",
+        "TMYx data are for typical-weather building-simulation screening, not observed heatwave or future climate events."
       ],
       "unknowns": [
-        "Exact Johannesburg or nearest-station file and station representativeness",
-        "Per-file source record, period, missingness and data-quality flags",
-        "Per-file redistribution/licence terms",
-        "Suitability for extreme-event or future-climate design"
+        "The two specific files have not been downloaded or header-inspected in this register",
+        "Exact coordinates, elevation, station representativeness and per-file missingness",
+        "Specific file redistribution rights",
+        "Suitability for Johannesburg microclimates or compliance calculation"
       ],
       "required_checks": [
         "Locate exact Johannesburg-area file and source metadata",
@@ -47,7 +47,8 @@
         "Check rights for redistribution",
         "Use only as TMY screening; never label a TMY sequence an observed heatwave or future projection",
         "Inspect both candidate EPW/STAT/COMMENT1 headers and compare station coordinates/elevation/period before choosing a reference profile",
-        "Retain both candidates for sensitivity/representativeness comparison; do not choose the airport or botanical garden simply by proximity or name"
+        "Retain both candidates for sensitivity/representativeness comparison; do not choose the airport or botanical garden simply by proximity or name",
+        "Download both exact Gauteng candidate files, inspect EPW/STAT/COMMENT1 headers and compare station metadata before selecting a local reference profile"
       ],
       "evidence_urls": [
         "https://climate.onebuilding.org/"
@@ -59,11 +60,10 @@
           "wmo_id": "683680",
           "listed_size_kib": 433,
           "status": "candidate_listed_not_downloaded_or_validated",
-          "listing_url": "https://climate.onebuilding.org/WMO_Region_1_Africa/ZAF_South_Africa/index.html",
           "notes": [
-            "TMYx 2011-2025 candidate on Climate.OneBuilding Gauteng list.",
-            "Airport exposure may not represent dense urban or valley microclimates.",
-            "Requires EPW/STAT/COMMENT1 inspection, exact lat/lon/elevation, period and solar metadata, time-zone checks, missingness and licence review."
+            "Exact filename shown in the Gauteng station list.",
+            "Airport exposure is not assumed to represent dense urban or valley microclimates.",
+            "Inspect EPW/STAT/COMMENT1, coordinates/elevation, period, source variables, time zone, missingness and licence."
           ]
         },
         {
@@ -72,13 +72,77 @@
           "wmo_id": "683610",
           "listed_size_kib": 385,
           "status": "candidate_listed_not_downloaded_or_validated",
-          "listing_url": "https://climate.onebuilding.org/WMO_Region_1_Africa/ZAF_South_Africa/index.html",
           "notes": [
-            "TMYx 2011-2025 candidate on Climate.OneBuilding Gauteng list.",
-            "Potentially more urban/vegetated site context than the airport; representativeness must be independently evaluated.",
-            "Requires EPW/STAT/COMMENT1 inspection, exact lat/lon/elevation, period and solar metadata, time-zone checks, missingness and licence review."
+            "Exact filename shown in the Gauteng station list.",
+            "Potentially distinct urban/vegetated exposure; representativeness requires evaluation.",
+            "Inspect EPW/STAT/COMMENT1, coordinates/elevation, period, source variables, time zone, missingness and licence."
           ]
         }
+      ],
+      "listing_url": "https://climate.onebuilding.org/WMO_Region_1_Africa/ZAF_South_Africa/index.html"
+    },
+    {
+      "source_id": "COJ-AERIAL-ORTHO-LIDAR-2023",
+      "name": "City of Johannesburg 2023 aerial orthophotos, LiDAR and derived contours",
+      "publisher": "City of Johannesburg Corporate Geo-Informatics Directorate",
+      "url": "https://eservices.joburg.org.za/sites/cgismaps/Pages/default.aspx",
+      "source_type": "municipal_aerial_imagery_and_point_cloud",
+      "acquisition_year": 2023,
+      "coverage_km2": 1644,
+      "orthophoto_pixel_resolution_cm": 15,
+      "lidar_minimum_points_per_m2": 4,
+      "derived_contour_interval_cm": 25,
+      "access_status": "PublicWithConditions",
+      "rights_status": "Unknown",
+      "known_facts": [
+        "City states the 2023 aerial products cover its 1,644 km² jurisdiction.",
+        "Products include 15 cm pixel-resolution colour orthophotos, LiDAR with minimum 4 points/m² and 25 cm derived contours.",
+        "City states the imagery became available on Online Map Viewers from 2024-04-09.",
+        "City states orthophotos, derived contours and LiDAR ground/non-ground points are available on request from its CGIS Projects Section."
+      ],
+      "unknowns": [
+        "Exact orthophoto/LiDAR product licence and redistribution rights",
+        "Per-tile capture date, vertical datum, horizontal/vertical accuracy, classification and QA report",
+        "Current endpoint or download package and request approval",
+        "Whether private structures or sensitive sites require aggregation or access constraints"
+      ],
+      "required_checks": [
+        "Request product metadata, accuracy report, tile index and permitted-use terms from cgisprojects@joburg.org.za",
+        "Verify CRS, vertical datum, ground/non-ground classification and per-tile capture date",
+        "Use as-built geometry/massing evidence only within declared positional/temporal accuracy; do not infer roof/wall material, insulation, occupancy, tenure or indoor conditions from imagery",
+        "Retain exact tile/point-cloud digests and transformation lineage; respect any public-release restrictions"
+      ],
+      "evidence_urls": [
+        "https://eservices.joburg.org.za/sites/cgismaps/Pages/default.aspx"
+      ]
+    },
+    {
+      "source_id": "COJ-CGIS-SPATIAL-DATA-INVENTORY-2024",
+      "name": "City of Johannesburg Corporate Geo-Informatics Spatial Data Inventory 2024",
+      "publisher": "City of Johannesburg, Corporate Geo-Informatics Directorate / Development Planning",
+      "url": "https://eservices.joburg.org.za/sites/cgismaps/Pages/default.aspx",
+      "source_type": "municipal_spatial_metadata_inventory",
+      "inventory_document": "Spatial Data Inventory 2024.pdf",
+      "access_status": "VerifiedPublic",
+      "rights_status": "PublicWithConditions",
+      "known_facts": [
+        "City page links a downloadable Spatial Data Inventory 2024.",
+        "The City says the inventory records dataset name/description, data type/distribution format/date created, data owner/contact details and usage limitations.",
+        "The City says the inventory is reviewed annually and is intended to support data sharing and avoid duplicate collection."
+      ],
+      "unknowns": [
+        "Exact per-layer content and whether the PDF was successfully retrieved for this review",
+        "Per-layer source file or service URLs",
+        "Per-layer licence and redistribution terms",
+        "Whether usage limitation permits derivative layers, commercial use or public republication"
+      ],
+      "required_checks": [
+        "Retrieve Spatial Data Inventory 2024 PDF and parse its dataset rows, custodians, dates, formats and usage limitations",
+        "Contact listed data custodian for authoritative current layer and permitted use",
+        "Treat the inventory as metadata, not as proof of access to the underlying layer"
+      ],
+      "evidence_urls": [
+        "https://eservices.joburg.org.za/sites/cgismaps/Pages/default.aspx"
       ]
     },
     {
@@ -110,6 +174,35 @@
       ],
       "evidence_urls": [
         "https://joburg.org.za/media_/Newsroom/Pages/2026-News-Articles/Joburg-undertakes-comprehensive-review-of-Climate-Action-Plan.aspx"
+      ]
+    },
+    {
+      "source_id": "COJ-EXTERNAL-ONLINE-MAPS",
+      "name": "City of Johannesburg external GeoLIS/eServices Online Maps viewer",
+      "publisher": "City of Johannesburg Corporate Geo-Informatics Directorate",
+      "url": "https://eservices.joburg.org.za/sites/cgismaps/Pages/default.aspx",
+      "source_type": "municipal_web_gis_viewer",
+      "access_status": "VerifiedPublic",
+      "rights_status": "PublicWithConditions",
+      "known_facts": [
+        "City says external clients can access its HTML5 Online Maps Viewer through eServices; no eServices client registration is required.",
+        "City guidance says some layers can be extracted as shapefile, KML or DXF; extraction is layer-dependent.",
+        "City page directs users to the relevant data custodians because CGIS does not own all layers shown in map viewers."
+      ],
+      "unknowns": [
+        "Per-layer extraction availability, licence, scale restrictions and usage limitations",
+        "Layer service endpoints, metadata, dates, coverage and authoritative owner",
+        "Whether a displayed layer can be redistributed or used in a derivative public dataset"
+      ],
+      "required_checks": [
+        "Inventory candidate layer IDs and exact publisher/custodian before extraction",
+        "Capture per-layer metadata and rights notice; do not infer reuse rights from anonymous viewer access",
+        "Prefer custodian-issued source data and documented permissions over scraping map tiles",
+        "Retain extract timestamp, layer revision, CRS, digest and any transformations"
+      ],
+      "evidence_urls": [
+        "https://eservices.joburg.org.za/sites/cgismaps/Pages/default.aspx",
+        "https://edit.eservices.joburg.org.za/Pages/OnlineMaps.aspx"
       ]
     },
     {
@@ -220,6 +313,42 @@
         "https://datafirst.uct.ac.za/dataportal/index.php/catalog/995",
         "https://www.gcro.ac.za/outputs/data-briefs/detail/overview-qol7/",
         "https://www.gcro.ac.za/outputs/policy-and-other-outputs/detail/qol-7-202324-data-report/"
+      ]
+    },
+    {
+      "source_id": "GREENBOOK-METROVIEW-JOHANNESBURG",
+      "name": "GreenBook MetroView — City of Johannesburg Climate Risk Profile Tool",
+      "publisher": "CSIR GreenBook / MetroView project partners",
+      "url": "https://joburg-riskprofile.greenbook.co.za/",
+      "source_type": "municipal_climate_risk_profile_web_application",
+      "access_status": "VerifiedPublic",
+      "rights_status": "Unknown",
+      "geography": "Johannesburg metropolitan area; published tool description says spatial results up to ward level",
+      "time_horizons": [
+        "current",
+        "2050 projection"
+      ],
+      "known_facts": [
+        "GreenBook MetroView describes its Climate Risk Profile Tool as providing quantified spatial information up to ward level for current and 2050 climate projections.",
+        "Tool description says the risk zones combine hazard likelihood, exposure and vulnerabilities.",
+        "The Johannesburg-specific profile link resolves to a JavaScript web application titled Green Book 2.0."
+      ],
+      "unknowns": [
+        "Download/API/export endpoints and whether raw raster/vector layers are available",
+        "Underlying climate-model ensemble, scenarios, reference periods, downscaling, bias correction and uncertainty",
+        "Ward boundary vintage, layer metadata and precise aggregation methods",
+        "Licence, attribution and redistribution terms for each layer",
+        "Independent validation and update cadence"
+      ],
+      "required_checks": [
+        "Inspect the interactive tool and its public data/export options without assuming an API exists",
+        "Request technical methodology, layer metadata, uncertainty and licence terms from the project/CSIR",
+        "Preserve current versus 2050 projection, hazard likelihood, exposure and vulnerability as separate fields",
+        "Keep all outputs at their declared ward-level support; do not derive building-level temperatures or individual household risk"
+      ],
+      "evidence_urls": [
+        "https://greenbook.co.za/tool-landing-page.html",
+        "https://joburg-riskprofile.greenbook.co.za/"
       ]
     },
     {
@@ -506,6 +635,17 @@
       "exact station/grid, period, variables, units, timezone, quality and spatial representativeness must be recorded"
     ],
     "spatial_claim_policy": "No join may increase native spatial precision or turn ward/sample context into building/household attributes.",
-    "thermal_claim_policy": "Modelled, calibrated-modelled, measured and independently accepted remain distinct; require owner-native model/sensor receipts."
+    "thermal_claim_policy": "Modelled, calibrated-modelled, measured and independently accepted remain distinct; require owner-native model/sensor receipts.",
+    "climate_source_classes": [
+      "observed_station",
+      "observed_reanalysis",
+      "typical_meteorological_year",
+      "design_extreme",
+      "observed_event",
+      "future_projection",
+      "synthetic_fixture"
+    ],
+    "metroview_policy": "MetroView is a public web application with a description of ward-level current/2050 risk. Until underlying layers, methods, endpoints, rights and uncertainties are verified, consume only as attributed ward-level context; do not repackage or upscale.",
+    "municipal_gis_policy": "CoJ Online Maps viewer access and layer-specific data extraction do not imply layer redistribution rights. Use the 2024 Spatial Data Inventory and custodian contacts to verify per-layer use restrictions."
   }
 }
