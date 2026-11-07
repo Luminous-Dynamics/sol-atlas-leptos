@@ -241,6 +241,18 @@ pub fn validate_values(scenario: &Value, parameters: &Value) -> ValidationReport
                 "JOBURG_BOTANICAL_GARDENS_TMYX_2011_2025",
                 "ZAF_GT_Johannesburg.Botanical.Gardens.683610_TMYx.2011-2025.zip",
             ),
+            (
+                "JOBURG_GRAND_CENTRAL_TMYX_2011_2025",
+                "ZAF_GT_Grand.Central.AP.682650_TMYx.2011-2025.zip",
+            ),
+            (
+                "JOBURG_RAND_AIRPORT_TMYX_2011_2025",
+                "ZAF_GT_Rand.AP.683463_TMYx.2011-2025.zip",
+            ),
+            (
+                "JOBURG_LANSERIA_INTL_TMYX_2011_2025",
+                "ZAF_GT_Lanseria.Intl.AP.682635_TMYx.2011-2025.zip",
+            ),
         ];
         for item in items {
             let identity_is_expected = item
@@ -257,6 +269,13 @@ pub fn validate_values(scenario: &Value, parameters: &Value) -> ValidationReport
                 && item.get("reuse_rights").and_then(Value::as_str) == Some("UNKNOWN")
                 && item.get("site_representativeness").and_then(Value::as_str) == Some("UNKNOWN")
                 && item
+                    .get("source_page_rights_note")
+                    .and_then(Value::as_str)
+                    .is_some_and(|note| {
+                        note.contains("all_rights_reserved")
+                            && note.contains("no_file_specific_license")
+                    })
+                && item
                     .get("source")
                     .and_then(Value::as_str)
                     .is_some_and(|source| {
@@ -272,9 +291,39 @@ pub fn validate_values(scenario: &Value, parameters: &Value) -> ValidationReport
     }
     push_if(
         &mut violations,
-        weather_count != 2,
+        weather_count != 5,
         "WEATHER_CANDIDATE_COUNT_CHANGED",
     );
+    let station_ensemble = path(
+        scenario,
+        &["climate_inputs", "station_ensemble_policy"],
+    );
+    let ensemble_policy_valid = station_ensemble.is_some_and(|policy| {
+        policy.get("status").and_then(Value::as_str)
+            == Some("REGIONAL_CANDIDATE_ENSEMBLE_NOT_LOCAL_SITE_WEATHER")
+            && policy.get("selected_site_station").is_some_and(Value::is_null)
+            && policy.get("rule").and_then(Value::as_str)
+                == Some("preserve_each_file_as_a_distinct_source_and_model_scenario")
+            && [
+                "blind_average_of_station_files",
+                "choose_nearest_station_without_exposure_review",
+                "infer_parcel_representativeness_from_city_name",
+                "use_tmy_as_extreme_or_future_climate",
+            ]
+            .iter()
+            .all(|prohibited| {
+                array_contains(
+                    policy.get("prohibited").and_then(Value::as_array),
+                    prohibited,
+                )
+            })
+    });
+    push_if(
+        &mut violations,
+        !ensemble_policy_valid,
+        "STATION_ENSEMBLE_POLICY_INVALID",
+    );
+
     let required_profiles = [
         "historical_hot_spell_and_hot_night",
         "historical_cold_night",
@@ -1215,6 +1264,38 @@ mod tests {
             &report,
             "WEATHER_CANDIDATE_PROMOTED_OR_INCOMPLETE"
         ));
+    }
+
+    #[test]
+    fn all_five_joburg_tmyx_candidates_are_required() {
+        let (mut scenario, parameters) = documents();
+        scenario["climate_inputs"]["candidate_weather_files"]
+            .as_array_mut()
+            .expect("weather candidates")
+            .pop();
+        let report = validate_values(&scenario, &parameters);
+        assert!(contains(&report, "WEATHER_CANDIDATE_COUNT_CHANGED"));
+    }
+
+    #[test]
+    fn weather_reuse_rights_cannot_be_silently_promoted() {
+        let (mut scenario, parameters) = documents();
+        scenario["climate_inputs"]["candidate_weather_files"][0]["reuse_rights"] =
+            json!("CC-BY");
+        let report = validate_values(&scenario, &parameters);
+        assert!(contains(
+            &report,
+            "WEATHER_CANDIDATE_PROMOTED_OR_INCOMPLETE"
+        ));
+    }
+
+    #[test]
+    fn candidate_weather_ensemble_cannot_be_collapsed_to_a_parcel_station() {
+        let (mut scenario, parameters) = documents();
+        scenario["climate_inputs"]["station_ensemble_policy"]["selected_site_station"] =
+            json!("JOBURG_TAMBO_TMYX_2011_2025");
+        let report = validate_values(&scenario, &parameters);
+        assert!(contains(&report, "STATION_ENSEMBLE_POLICY_INVALID"));
     }
 
     #[test]
