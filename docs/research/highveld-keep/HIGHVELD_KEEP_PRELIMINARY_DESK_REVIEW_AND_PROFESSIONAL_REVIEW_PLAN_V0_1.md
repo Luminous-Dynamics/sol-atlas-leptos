@@ -60,6 +60,12 @@ These runs establish code/package checks only. They do not independently verify 
 | HK-PR-13 | Major | Cultural, aesthetic and resident acceptance are design intentions, not validated outcomes. | Conduct paid, consented resident/community and local creative-practitioner reviews; document dissent and trade-offs rather than compute a universal beauty score. |
 | HK-PR-14 | Major | Statutory and regulatory status can change between this research cut and submission. | At each gate, obtain a dated legal/approval register from the local professional team and confirm municipal, SACAP, ECSA, SANS, fire, environmental/heritage and home-builder obligations. |
 
+## 4A. Additional software-assurance finding
+
+A review of the companion checker PR #610 confirmed its stated 38 passing tests and exact claim ceiling, but identified a gap in the parser boundary: the implementation deserializes into generic `serde_json::Value` and validates selected paths. The current tests do not prove that unknown fields at arbitrary nested depths or duplicate raw JSON object member names are rejected.
+
+Follow-up [HIGHVELD-KEEP-STRICT-JSON-001 #626](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/626) now defines the strict-schema and duplicate-key work. This does not mean the current Highveld files contain malformed or hostile JSON; it means the validator should not yet be represented as a complete strict JSON schema boundary. Preserve the current E1 package-integrity claim ceiling until #626 closes.
+
 ## 5. South African professional and statutory review pathway
 
 The project is in Johannesburg, so the review team should use the actual City of Johannesburg submission process and current national/municipal rules rather than a generic international checklist.
