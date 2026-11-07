@@ -184,7 +184,7 @@ Sol-Atlas #593 and the current South Africa index identify five Gauteng 2011–2
 - `ZAF_GT_Rand.AP.683463_TMYx.2011-2025.zip`
 - `ZAF_GT_Lanseria.Intl.AP.682635_TMYx.2011-2025.zip`
 
-They are **catalogued candidates only**. The actual archives have not been header-inspected, hashed, licence-cleared or qualified as representative of a particular parcel. Preserve both and compare station metadata. TMY is a typical-weather file for screening, not a heatwave, extreme design event, future climate projection, wind design file or substitute for local measurement.
+They are **catalogued candidates only**. The actual archives have not been header-inspected or hashed, and their station histories/representativeness are not qualified. The Climate.OneBuilding source page footer states "All Rights Reserved"; I did not locate a file-specific redistribution licence or reuse terms on that page. Therefore the source-rights state remains Unknown, and no archive is redistributed or admitted as an engineering input until terms/permission are confirmed. Preserve all five as separate station-exposure scenarios; do not average them blindly or select one by distance alone. TMY is a typical-weather file for screening, not a heatwave, extreme design event, future climate projection, wind design file or substitute for local measurement.
 
 Before use, capture exact source, station coordinates/elevation, period, time zone, hourly variables, missingness, file SHA-256, reuse rights and representativeness uncertainty. Also create separate historical hot/cold/storm/hail event cases and future climate cases where qualified data exist.
 
