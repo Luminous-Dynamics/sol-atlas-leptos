@@ -1,7 +1,7 @@
 use std::env;
 use std::fs;
-use std::process::ExitCode;
 use std::path::PathBuf;
+use std::process::ExitCode;
 
 use city_morph_access_reference::{evaluate_case, matches_expected, validate_source_register};
 use serde_json::json;
@@ -78,7 +78,10 @@ fn main() -> ExitCode {
     let source_count = match validate_source_register(&source_register) {
         Ok(count) => count,
         Err(errors) => {
-            eprintln!("invalid Johannesburg source register: {}", errors.join(", "));
+            eprintln!(
+                "invalid Johannesburg source register: {}",
+                errors.join(", ")
+            );
             return ExitCode::from(2);
         }
     };
