@@ -1,0 +1,4431 @@
+{
+  "schema_id": "org.luminousdynamics.citymaker.scope-binding-corpus",
+  "schema_version": "0.1.0",
+  "corpus_id": "CITY-SCOPE-BINDING-CORPUS-V0.1",
+  "classification": "synthetic_fixture_only",
+  "policy_note": "This corpus checks common scope and owner-envelope binding only. Owner payloads remain opaque; payload digests are supplied but their bytes are not fetched or verified.",
+  "scope_digest_algorithm": "sha256-canonical-json-v1",
+  "owner_schema_registry": [
+    {
+      "owner_repo": "Luminous-Dynamics/mycelix",
+      "contract_id": "living-city-metabolism",
+      "contract_version": "living-city-metabolism/0.1",
+      "schema_artifact_uri": "schemas/living-city-metabolism-v0.1.schema.json",
+      "schema_digest_algorithm": "git_blob_sha1",
+      "schema_artifact_digest": "4f7f3eeee4e91964a6422d2aba9f59e3c3aff57b",
+      "source_revision": "0aae2f0a7625304c9a7eab0c3528e02fe5d57567",
+      "registration_status": "draft_pr_unmerged",
+      "claim_ceiling": "synthetic envelope binding to a pinned draft flow/model schema; not product lot, inventory or custody qualification"
+    }
+  ],
+  "cases": [
+    {
+      "case_id": "SB-001",
+      "description": "One current owner artifact exactly matches the declared synthetic scope.",
+      "input": {
+        "scope": {
+          "scope_id": "CITYREF-SYNTH-001",
+          "schema_version": "citymaker-evaluation-scope/0.1",
+          "classification": "synthetic_fixture_only",
+          "spatial_scope": {
+            "kind": "synthetic_grid",
+            "boundary_id": "SYNTH-GRID-4X4",
+            "boundary_revision": "GRID-V1",
+            "coordinate_reference": "unitless-local-grid",
+            "spatial_resolution_ceiling": "grid-cell",
+            "real_world_coordinates_present": true,
+            "latitude": -26.2,
+            "longitude": 28
+          },
+          "population_frame": {
+            "frame_id": "POP-FRAME-SYNTH-01",
+            "method": "synthetic_fixture",
+            "supported_resolution": "grid-cell",
+            "group_ids": [
+              "households-general",
+              "households-step-free"
+            ]
+          },
+          "time_horizon": {
+            "horizon_id": "HORIZON-SYNTH-12T",
+            "start_tick": 0,
+            "end_tick": 12,
+            "tick_unit": "month",
+            "temporal_resolution": "monthly"
+          },
+          "scenarios": [
+            {
+              "scenario_id": "baseline",
+              "event_ids": []
+            },
+            {
+              "scenario_id": "bridge-closure",
+              "event_ids": [
+                "bridge-closure"
+              ]
+            }
+          ],
+          "weather_profile": {
+            "profile_id": "WEATHER-SYNTH-V1",
+            "revision": "1",
+            "applicability": "synthetic_only"
+          },
+          "service_requirements": [
+            {
+              "requirement_id": "clinic-service",
+              "group_id": "households-general",
+              "category": "health"
+            },
+            {
+              "requirement_id": "step-free-clinic-service",
+              "group_id": "households-step-free",
+              "category": "health"
+            }
+          ],
+          "functional_units": [
+            {
+              "functional_unit_id": "FU-CLINIC-V1",
+              "definition_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "quantity": 100,
+              "unit": "visits/day",
+              "service_definition": "synthetic clinic visit capacity over the declared operating day",
+              "lifecycle_boundary": "service-operation"
+            },
+            {
+              "functional_unit_id": "FU-DISTRICT-SERVICE-YEAR-V1",
+              "definition_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "quantity": 1,
+              "unit": "district_service_year",
+              "service_definition": "synthetic neighbourhood service bundle over one declared service year",
+              "lifecycle_boundary": "operation-maintenance"
+            }
+          ],
+          "currency": {
+            "comparison_enabled": false,
+            "code": null,
+            "base_year": null,
+            "note": "No monetary comparison in v0.1 scope."
+          },
+          "design_revisions": [
+            {
+              "subject_id": "clinic-building",
+              "design_revision": "CLINIC-DESIGN-V1",
+              "bom_revision": "CLINIC-BOM-V1"
+            }
+          ],
+          "evidence_policy": {
+            "schema_pin_required": true,
+            "source_revision_required": true,
+            "receipt_id_unique": true,
+            "content_digest_required": true,
+            "subject_digest_required": true,
+            "stale_or_revoked_abstain": true,
+            "owner_disposition_preserved": true,
+            "payload_bytes_must_be_fetched_before_claiming_digest_verified": true
+          }
+        },
+        "scope_digest": "bb733b294ec864bd3f5a7ce8ab92783babd6b23c67f5e3871976e2a33fee92ab",
+        "owner_schema_registry": [
+          {
+            "owner_repo": "Luminous-Dynamics/mycelix",
+            "contract_id": "living-city-metabolism",
+            "contract_version": "living-city-metabolism/0.1",
+            "schema_artifact_uri": "schemas/living-city-metabolism-v0.1.schema.json",
+            "schema_digest_algorithm": "git_blob_sha1",
+            "schema_artifact_digest": "4f7f3eeee4e91964a6422d2aba9f59e3c3aff57b",
+            "source_revision": "0aae2f0a7625304c9a7eab0c3528e02fe5d57567",
+            "registration_status": "draft_pr_unmerged",
+            "claim_ceiling": "synthetic envelope binding to a pinned draft flow/model schema; not product lot, inventory or custody qualification"
+          }
+        ],
+        "required_artifact_ids": [
+          "LC-CORRIDOR-BASELINE"
+        ],
+        "artifacts": [
+          {
+            "artifact_id": "LC-CORRIDOR-BASELINE",
+            "owner_repo": "Luminous-Dynamics/mycelix",
+            "contract_id": "living-city-metabolism",
+            "contract_version": "living-city-metabolism/0.1",
+            "schema_artifact_digest": "4f7f3eeee4e91964a6422d2aba9f59e3c3aff57b",
+            "schema_digest_algorithm": "git_blob_sha1",
+            "source_revision": "0aae2f0a7625304c9a7eab0c3528e02fe5d57567",
+            "receipt_id": "lc-receipt-0001",
+            "content_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "subject_id": "synthetic-corridor-metabolism",
+            "subject_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scope_digest": "bb733b294ec864bd3f5a7ce8ab92783babd6b23c67f5e3871976e2a33fee92ab",
+            "boundary_id": "SYNTH-GRID-4X4",
+            "boundary_revision": "GRID-V1",
+            "population_frame_id": "POP-FRAME-SYNTH-01",
+            "horizon_id": "HORIZON-SYNTH-12T",
+            "scenario_id": "baseline",
+            "window_start_tick": 0,
+            "window_end_tick": 12,
+            "weather_profile_id": "WEATHER-SYNTH-V1",
+            "functional_unit_ref": "FU-DISTRICT-SERVICE-YEAR-V1",
+            "design_subject_id": "clinic-building",
+            "design_revision": "CLINIC-DESIGN-V1",
+            "bom_revision": "CLINIC-BOM-V1",
+            "evidence_state": "current",
+            "raw_owner_disposition": "synthetic_test_only",
+            "payload_bytes_verified": false
+          }
+        ]
+      },
+      "expected": {
+        "case_id": "SB-001",
+        "binding_disposition": "Unsupported",
+        "scope_digest": "1205f7a841b36d6251de250ff2185422c4a8b24234c597e7cd4aeb5fbd0f8b20",
+        "reason_codes": [
+          "OWNER_ARTIFACT_SCOPE_MISMATCH",
+          "SCOPE_DIGEST_DECLARATION_MISMATCH",
+          "SYNTHETIC_SCOPE_HAS_REAL_WORLD_COORDINATES"
+        ],
+        "required_artifact_ids": [
+          "LC-CORRIDOR-BASELINE"
+        ],
+        "artifact_bindings": [
+          {
+            "artifact_id": "LC-CORRIDOR-BASELINE",
+            "binding_state": "NotComparable",
+            "raw_owner_disposition": "synthetic_test_only",
+            "payload_bytes_verified": false
+          }
+        ],
+        "owner_result_promotion": "none"
+      }
+    },
+    {
+      "case_id": "SB-002",
+      "description": "A valid artifact refers to another scope digest.",
+      "input": {
+        "scope": {
+          "scope_id": "CITYREF-SYNTH-001",
+          "schema_version": "citymaker-evaluation-scope/0.1",
+          "classification": "synthetic_fixture_only",
+          "spatial_scope": {
+            "kind": "synthetic_grid",
+            "boundary_id": "SYNTH-GRID-4X4",
+            "boundary_revision": "GRID-V1",
+            "coordinate_reference": "unitless-local-grid",
+            "spatial_resolution_ceiling": "grid-cell",
+            "real_world_coordinates_present": true,
+            "latitude": -26.2,
+            "longitude": 28
+          },
+          "population_frame": {
+            "frame_id": "POP-FRAME-SYNTH-01",
+            "method": "synthetic_fixture",
+            "supported_resolution": "grid-cell",
+            "group_ids": [
+              "households-general",
+              "households-step-free"
+            ]
+          },
+          "time_horizon": {
+            "horizon_id": "HORIZON-SYNTH-12T",
+            "start_tick": 0,
+            "end_tick": 12,
+            "tick_unit": "month",
+            "temporal_resolution": "monthly"
+          },
+          "scenarios": [
+            {
+              "scenario_id": "baseline",
+              "event_ids": []
+            },
+            {
+              "scenario_id": "bridge-closure",
+              "event_ids": [
+                "bridge-closure"
+              ]
+            }
+          ],
+          "weather_profile": {
+            "profile_id": "WEATHER-SYNTH-V1",
+            "revision": "1",
+            "applicability": "synthetic_only"
+          },
+          "service_requirements": [
+            {
+              "requirement_id": "clinic-service",
+              "group_id": "households-general",
+              "category": "health"
+            },
+            {
+              "requirement_id": "step-free-clinic-service",
+              "group_id": "households-step-free",
+              "category": "health"
+            }
+          ],
+          "functional_units": [
+            {
+              "functional_unit_id": "FU-CLINIC-V1",
+              "definition_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "quantity": 100,
+              "unit": "visits/day",
+              "service_definition": "synthetic clinic visit capacity over the declared operating day",
+              "lifecycle_boundary": "service-operation"
+            },
+            {
+              "functional_unit_id": "FU-DISTRICT-SERVICE-YEAR-V1",
+              "definition_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "quantity": 1,
+              "unit": "district_service_year",
+              "service_definition": "synthetic neighbourhood service bundle over one declared service year",
+              "lifecycle_boundary": "operation-maintenance"
+            }
+          ],
+          "currency": {
+            "comparison_enabled": false,
+            "code": null,
+            "base_year": null,
+            "note": "No monetary comparison in v0.1 scope."
+          },
+          "design_revisions": [
+            {
+              "subject_id": "clinic-building",
+              "design_revision": "CLINIC-DESIGN-V1",
+              "bom_revision": "CLINIC-BOM-V1"
+            }
+          ],
+          "evidence_policy": {
+            "schema_pin_required": true,
+            "source_revision_required": true,
+            "receipt_id_unique": true,
+            "content_digest_required": true,
+            "subject_digest_required": true,
+            "stale_or_revoked_abstain": true,
+            "owner_disposition_preserved": true,
+            "payload_bytes_must_be_fetched_before_claiming_digest_verified": true
+          }
+        },
+        "scope_digest": "bb733b294ec864bd3f5a7ce8ab92783babd6b23c67f5e3871976e2a33fee92ab",
+        "owner_schema_registry": [
+          {
+            "owner_repo": "Luminous-Dynamics/mycelix",
+            "contract_id": "living-city-metabolism",
+            "contract_version": "living-city-metabolism/0.1",
+            "schema_artifact_uri": "schemas/living-city-metabolism-v0.1.schema.json",
+            "schema_digest_algorithm": "git_blob_sha1",
+            "schema_artifact_digest": "4f7f3eeee4e91964a6422d2aba9f59e3c3aff57b",
+            "source_revision": "0aae2f0a7625304c9a7eab0c3528e02fe5d57567",
+            "registration_status": "draft_pr_unmerged",
+            "claim_ceiling": "synthetic envelope binding to a pinned draft flow/model schema; not product lot, inventory or custody qualification"
+          }
+        ],
+        "required_artifact_ids": [
+          "LC-CORRIDOR-BASELINE"
+        ],
+        "artifacts": [
+          {
+            "artifact_id": "LC-CORRIDOR-BASELINE",
+            "owner_repo": "Luminous-Dynamics/mycelix",
+            "contract_id": "living-city-metabolism",
+            "contract_version": "living-city-metabolism/0.1",
+            "schema_artifact_digest": "4f7f3eeee4e91964a6422d2aba9f59e3c3aff57b",
+            "schema_digest_algorithm": "git_blob_sha1",
+            "source_revision": "0aae2f0a7625304c9a7eab0c3528e02fe5d57567",
+            "receipt_id": "lc-receipt-0001",
+            "content_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "subject_id": "synthetic-corridor-metabolism",
+            "subject_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scope_digest": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "boundary_id": "SYNTH-GRID-4X4",
+            "boundary_revision": "GRID-V1",
+            "population_frame_id": "POP-FRAME-SYNTH-01",
+            "horizon_id": "HORIZON-SYNTH-12T",
+            "scenario_id": "baseline",
+            "window_start_tick": 0,
+            "window_end_tick": 12,
+            "weather_profile_id": "WEATHER-SYNTH-V1",
+            "functional_unit_ref": "FU-DISTRICT-SERVICE-YEAR-V1",
+            "design_subject_id": "clinic-building",
+            "design_revision": "CLINIC-DESIGN-V1",
+            "bom_revision": "CLINIC-BOM-V1",
+            "evidence_state": "current",
+            "raw_owner_disposition": "synthetic_test_only",
+            "payload_bytes_verified": false
+          }
+        ]
+      },
+      "expected": {
+        "case_id": "SB-002",
+        "binding_disposition": "Unsupported",
+        "scope_digest": "1205f7a841b36d6251de250ff2185422c4a8b24234c597e7cd4aeb5fbd0f8b20",
+        "reason_codes": [
+          "OWNER_ARTIFACT_SCOPE_MISMATCH",
+          "SCOPE_DIGEST_DECLARATION_MISMATCH",
+          "SYNTHETIC_SCOPE_HAS_REAL_WORLD_COORDINATES"
+        ],
+        "required_artifact_ids": [
+          "LC-CORRIDOR-BASELINE"
+        ],
+        "artifact_bindings": [
+          {
+            "artifact_id": "LC-CORRIDOR-BASELINE",
+            "binding_state": "NotComparable",
+            "raw_owner_disposition": "synthetic_test_only",
+            "payload_bytes_verified": false
+          }
+        ],
+        "owner_result_promotion": "none"
+      }
+    },
+    {
+      "case_id": "SB-003",
+      "description": "A spatial boundary revision mismatch is not comparable.",
+      "input": {
+        "scope": {
+          "scope_id": "CITYREF-SYNTH-001",
+          "schema_version": "citymaker-evaluation-scope/0.1",
+          "classification": "synthetic_fixture_only",
+          "spatial_scope": {
+            "kind": "synthetic_grid",
+            "boundary_id": "SYNTH-GRID-4X4",
+            "boundary_revision": "GRID-V1",
+            "coordinate_reference": "unitless-local-grid",
+            "spatial_resolution_ceiling": "grid-cell",
+            "real_world_coordinates_present": true,
+            "latitude": -26.2,
+            "longitude": 28
+          },
+          "population_frame": {
+            "frame_id": "POP-FRAME-SYNTH-01",
+            "method": "synthetic_fixture",
+            "supported_resolution": "grid-cell",
+            "group_ids": [
+              "households-general",
+              "households-step-free"
+            ]
+          },
+          "time_horizon": {
+            "horizon_id": "HORIZON-SYNTH-12T",
+            "start_tick": 0,
+            "end_tick": 12,
+            "tick_unit": "month",
+            "temporal_resolution": "monthly"
+          },
+          "scenarios": [
+            {
+              "scenario_id": "baseline",
+              "event_ids": []
+            },
+            {
+              "scenario_id": "bridge-closure",
+              "event_ids": [
+                "bridge-closure"
+              ]
+            }
+          ],
+          "weather_profile": {
+            "profile_id": "WEATHER-SYNTH-V1",
+            "revision": "1",
+            "applicability": "synthetic_only"
+          },
+          "service_requirements": [
+            {
+              "requirement_id": "clinic-service",
+              "group_id": "households-general",
+              "category": "health"
+            },
+            {
+              "requirement_id": "step-free-clinic-service",
+              "group_id": "households-step-free",
+              "category": "health"
+            }
+          ],
+          "functional_units": [
+            {
+              "functional_unit_id": "FU-CLINIC-V1",
+              "definition_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "quantity": 100,
+              "unit": "visits/day",
+              "service_definition": "synthetic clinic visit capacity over the declared operating day",
+              "lifecycle_boundary": "service-operation"
+            },
+            {
+              "functional_unit_id": "FU-DISTRICT-SERVICE-YEAR-V1",
+              "definition_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "quantity": 1,
+              "unit": "district_service_year",
+              "service_definition": "synthetic neighbourhood service bundle over one declared service year",
+              "lifecycle_boundary": "operation-maintenance"
+            }
+          ],
+          "currency": {
+            "comparison_enabled": false,
+            "code": null,
+            "base_year": null,
+            "note": "No monetary comparison in v0.1 scope."
+          },
+          "design_revisions": [
+            {
+              "subject_id": "clinic-building",
+              "design_revision": "CLINIC-DESIGN-V1",
+              "bom_revision": "CLINIC-BOM-V1"
+            }
+          ],
+          "evidence_policy": {
+            "schema_pin_required": true,
+            "source_revision_required": true,
+            "receipt_id_unique": true,
+            "content_digest_required": true,
+            "subject_digest_required": true,
+            "stale_or_revoked_abstain": true,
+            "owner_disposition_preserved": true,
+            "payload_bytes_must_be_fetched_before_claiming_digest_verified": true
+          }
+        },
+        "scope_digest": "bb733b294ec864bd3f5a7ce8ab92783babd6b23c67f5e3871976e2a33fee92ab",
+        "owner_schema_registry": [
+          {
+            "owner_repo": "Luminous-Dynamics/mycelix",
+            "contract_id": "living-city-metabolism",
+            "contract_version": "living-city-metabolism/0.1",
+            "schema_artifact_uri": "schemas/living-city-metabolism-v0.1.schema.json",
+            "schema_digest_algorithm": "git_blob_sha1",
+            "schema_artifact_digest": "4f7f3eeee4e91964a6422d2aba9f59e3c3aff57b",
+            "source_revision": "0aae2f0a7625304c9a7eab0c3528e02fe5d57567",
+            "registration_status": "draft_pr_unmerged",
+            "claim_ceiling": "synthetic envelope binding to a pinned draft flow/model schema; not product lot, inventory or custody qualification"
+          }
+        ],
+        "required_artifact_ids": [
+          "LC-CORRIDOR-BASELINE"
+        ],
+        "artifacts": [
+          {
+            "artifact_id": "LC-CORRIDOR-BASELINE",
+            "owner_repo": "Luminous-Dynamics/mycelix",
+            "contract_id": "living-city-metabolism",
+            "contract_version": "living-city-metabolism/0.1",
+            "schema_artifact_digest": "4f7f3eeee4e91964a6422d2aba9f59e3c3aff57b",
+            "schema_digest_algorithm": "git_blob_sha1",
+            "source_revision": "0aae2f0a7625304c9a7eab0c3528e02fe5d57567",
+            "receipt_id": "lc-receipt-0001",
+            "content_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "subject_id": "synthetic-corridor-metabolism",
+            "subject_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scope_digest": "bb733b294ec864bd3f5a7ce8ab92783babd6b23c67f5e3871976e2a33fee92ab",
+            "boundary_id": "SYNTH-GRID-4X4",
+            "boundary_revision": "GRID-V2",
+            "population_frame_id": "POP-FRAME-SYNTH-01",
+            "horizon_id": "HORIZON-SYNTH-12T",
+            "scenario_id": "baseline",
+            "window_start_tick": 0,
+            "window_end_tick": 12,
+            "weather_profile_id": "WEATHER-SYNTH-V1",
+            "functional_unit_ref": "FU-DISTRICT-SERVICE-YEAR-V1",
+            "design_subject_id": "clinic-building",
+            "design_revision": "CLINIC-DESIGN-V1",
+            "bom_revision": "CLINIC-BOM-V1",
+            "evidence_state": "current",
+            "raw_owner_disposition": "synthetic_test_only",
+            "payload_bytes_verified": false
+          }
+        ]
+      },
+      "expected": {
+        "case_id": "SB-003",
+        "binding_disposition": "Unsupported",
+        "scope_digest": "1205f7a841b36d6251de250ff2185422c4a8b24234c597e7cd4aeb5fbd0f8b20",
+        "reason_codes": [
+          "OWNER_ARTIFACT_SCOPE_MISMATCH",
+          "SCOPE_DIGEST_DECLARATION_MISMATCH",
+          "SYNTHETIC_SCOPE_HAS_REAL_WORLD_COORDINATES"
+        ],
+        "required_artifact_ids": [
+          "LC-CORRIDOR-BASELINE"
+        ],
+        "artifact_bindings": [
+          {
+            "artifact_id": "LC-CORRIDOR-BASELINE",
+            "binding_state": "NotComparable",
+            "raw_owner_disposition": "synthetic_test_only",
+            "payload_bytes_verified": false
+          }
+        ],
+        "owner_result_promotion": "none"
+      }
+    },
+    {
+      "case_id": "SB-004",
+      "description": "A different population frame is not comparable.",
+      "input": {
+        "scope": {
+          "scope_id": "CITYREF-SYNTH-001",
+          "schema_version": "citymaker-evaluation-scope/0.1",
+          "classification": "synthetic_fixture_only",
+          "spatial_scope": {
+            "kind": "synthetic_grid",
+            "boundary_id": "SYNTH-GRID-4X4",
+            "boundary_revision": "GRID-V1",
+            "coordinate_reference": "unitless-local-grid",
+            "spatial_resolution_ceiling": "grid-cell",
+            "real_world_coordinates_present": true,
+            "latitude": -26.2,
+            "longitude": 28
+          },
+          "population_frame": {
+            "frame_id": "POP-FRAME-SYNTH-01",
+            "method": "synthetic_fixture",
+            "supported_resolution": "grid-cell",
+            "group_ids": [
+              "households-general",
+              "households-step-free"
+            ]
+          },
+          "time_horizon": {
+            "horizon_id": "HORIZON-SYNTH-12T",
+            "start_tick": 0,
+            "end_tick": 12,
+            "tick_unit": "month",
+            "temporal_resolution": "monthly"
+          },
+          "scenarios": [
+            {
+              "scenario_id": "baseline",
+              "event_ids": []
+            },
+            {
+              "scenario_id": "bridge-closure",
+              "event_ids": [
+                "bridge-closure"
+              ]
+            }
+          ],
+          "weather_profile": {
+            "profile_id": "WEATHER-SYNTH-V1",
+            "revision": "1",
+            "applicability": "synthetic_only"
+          },
+          "service_requirements": [
+            {
+              "requirement_id": "clinic-service",
+              "group_id": "households-general",
+              "category": "health"
+            },
+            {
+              "requirement_id": "step-free-clinic-service",
+              "group_id": "households-step-free",
+              "category": "health"
+            }
+          ],
+          "functional_units": [
+            {
+              "functional_unit_id": "FU-CLINIC-V1",
+              "definition_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "quantity": 100,
+              "unit": "visits/day",
+              "service_definition": "synthetic clinic visit capacity over the declared operating day",
+              "lifecycle_boundary": "service-operation"
+            },
+            {
+              "functional_unit_id": "FU-DISTRICT-SERVICE-YEAR-V1",
+              "definition_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "quantity": 1,
+              "unit": "district_service_year",
+              "service_definition": "synthetic neighbourhood service bundle over one declared service year",
+              "lifecycle_boundary": "operation-maintenance"
+            }
+          ],
+          "currency": {
+            "comparison_enabled": false,
+            "code": null,
+            "base_year": null,
+            "note": "No monetary comparison in v0.1 scope."
+          },
+          "design_revisions": [
+            {
+              "subject_id": "clinic-building",
+              "design_revision": "CLINIC-DESIGN-V1",
+              "bom_revision": "CLINIC-BOM-V1"
+            }
+          ],
+          "evidence_policy": {
+            "schema_pin_required": true,
+            "source_revision_required": true,
+            "receipt_id_unique": true,
+            "content_digest_required": true,
+            "subject_digest_required": true,
+            "stale_or_revoked_abstain": true,
+            "owner_disposition_preserved": true,
+            "payload_bytes_must_be_fetched_before_claiming_digest_verified": true
+          }
+        },
+        "scope_digest": "bb733b294ec864bd3f5a7ce8ab92783babd6b23c67f5e3871976e2a33fee92ab",
+        "owner_schema_registry": [
+          {
+            "owner_repo": "Luminous-Dynamics/mycelix",
+            "contract_id": "living-city-metabolism",
+            "contract_version": "living-city-metabolism/0.1",
+            "schema_artifact_uri": "schemas/living-city-metabolism-v0.1.schema.json",
+            "schema_digest_algorithm": "git_blob_sha1",
+            "schema_artifact_digest": "4f7f3eeee4e91964a6422d2aba9f59e3c3aff57b",
+            "source_revision": "0aae2f0a7625304c9a7eab0c3528e02fe5d57567",
+            "registration_status": "draft_pr_unmerged",
+            "claim_ceiling": "synthetic envelope binding to a pinned draft flow/model schema; not product lot, inventory or custody qualification"
+          }
+        ],
+        "required_artifact_ids": [
+          "LC-CORRIDOR-BASELINE"
+        ],
+        "artifacts": [
+          {
+            "artifact_id": "LC-CORRIDOR-BASELINE",
+            "owner_repo": "Luminous-Dynamics/mycelix",
+            "contract_id": "living-city-metabolism",
+            "contract_version": "living-city-metabolism/0.1",
+            "schema_artifact_digest": "4f7f3eeee4e91964a6422d2aba9f59e3c3aff57b",
+            "schema_digest_algorithm": "git_blob_sha1",
+            "source_revision": "0aae2f0a7625304c9a7eab0c3528e02fe5d57567",
+            "receipt_id": "lc-receipt-0001",
+            "content_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "subject_id": "synthetic-corridor-metabolism",
+            "subject_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scope_digest": "bb733b294ec864bd3f5a7ce8ab92783babd6b23c67f5e3871976e2a33fee92ab",
+            "boundary_id": "SYNTH-GRID-4X4",
+            "boundary_revision": "GRID-V1",
+            "population_frame_id": "POP-FRAME-OTHER",
+            "horizon_id": "HORIZON-SYNTH-12T",
+            "scenario_id": "baseline",
+            "window_start_tick": 0,
+            "window_end_tick": 12,
+            "weather_profile_id": "WEATHER-SYNTH-V1",
+            "functional_unit_ref": "FU-DISTRICT-SERVICE-YEAR-V1",
+            "design_subject_id": "clinic-building",
+            "design_revision": "CLINIC-DESIGN-V1",
+            "bom_revision": "CLINIC-BOM-V1",
+            "evidence_state": "current",
+            "raw_owner_disposition": "synthetic_test_only",
+            "payload_bytes_verified": false
+          }
+        ]
+      },
+      "expected": {
+        "case_id": "SB-004",
+        "binding_disposition": "Unsupported",
+        "scope_digest": "1205f7a841b36d6251de250ff2185422c4a8b24234c597e7cd4aeb5fbd0f8b20",
+        "reason_codes": [
+          "OWNER_ARTIFACT_SCOPE_MISMATCH",
+          "SCOPE_DIGEST_DECLARATION_MISMATCH",
+          "SYNTHETIC_SCOPE_HAS_REAL_WORLD_COORDINATES"
+        ],
+        "required_artifact_ids": [
+          "LC-CORRIDOR-BASELINE"
+        ],
+        "artifact_bindings": [
+          {
+            "artifact_id": "LC-CORRIDOR-BASELINE",
+            "binding_state": "NotComparable",
+            "raw_owner_disposition": "synthetic_test_only",
+            "payload_bytes_verified": false
+          }
+        ],
+        "owner_result_promotion": "none"
+      }
+    },
+    {
+      "case_id": "SB-005",
+      "description": "A different scenario is not comparable.",
+      "input": {
+        "scope": {
+          "scope_id": "CITYREF-SYNTH-001",
+          "schema_version": "citymaker-evaluation-scope/0.1",
+          "classification": "synthetic_fixture_only",
+          "spatial_scope": {
+            "kind": "synthetic_grid",
+            "boundary_id": "SYNTH-GRID-4X4",
+            "boundary_revision": "GRID-V1",
+            "coordinate_reference": "unitless-local-grid",
+            "spatial_resolution_ceiling": "grid-cell",
+            "real_world_coordinates_present": true,
+            "latitude": -26.2,
+            "longitude": 28
+          },
+          "population_frame": {
+            "frame_id": "POP-FRAME-SYNTH-01",
+            "method": "synthetic_fixture",
+            "supported_resolution": "grid-cell",
+            "group_ids": [
+              "households-general",
+              "households-step-free"
+            ]
+          },
+          "time_horizon": {
+            "horizon_id": "HORIZON-SYNTH-12T",
+            "start_tick": 0,
+            "end_tick": 12,
+            "tick_unit": "month",
+            "temporal_resolution": "monthly"
+          },
+          "scenarios": [
+            {
+              "scenario_id": "baseline",
+              "event_ids": []
+            },
+            {
+              "scenario_id": "bridge-closure",
+              "event_ids": [
+                "bridge-closure"
+              ]
+            }
+          ],
+          "weather_profile": {
+            "profile_id": "WEATHER-SYNTH-V1",
+            "revision": "1",
+            "applicability": "synthetic_only"
+          },
+          "service_requirements": [
+            {
+              "requirement_id": "clinic-service",
+              "group_id": "households-general",
+              "category": "health"
+            },
+            {
+              "requirement_id": "step-free-clinic-service",
+              "group_id": "households-step-free",
+              "category": "health"
+            }
+          ],
+          "functional_units": [
+            {
+              "functional_unit_id": "FU-CLINIC-V1",
+              "definition_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "quantity": 100,
+              "unit": "visits/day",
+              "service_definition": "synthetic clinic visit capacity over the declared operating day",
+              "lifecycle_boundary": "service-operation"
+            },
+            {
+              "functional_unit_id": "FU-DISTRICT-SERVICE-YEAR-V1",
+              "definition_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "quantity": 1,
+              "unit": "district_service_year",
+              "service_definition": "synthetic neighbourhood service bundle over one declared service year",
+              "lifecycle_boundary": "operation-maintenance"
+            }
+          ],
+          "currency": {
+            "comparison_enabled": false,
+            "code": null,
+            "base_year": null,
+            "note": "No monetary comparison in v0.1 scope."
+          },
+          "design_revisions": [
+            {
+              "subject_id": "clinic-building",
+              "design_revision": "CLINIC-DESIGN-V1",
+              "bom_revision": "CLINIC-BOM-V1"
+            }
+          ],
+          "evidence_policy": {
+            "schema_pin_required": true,
+            "source_revision_required": true,
+            "receipt_id_unique": true,
+            "content_digest_required": true,
+            "subject_digest_required": true,
+            "stale_or_revoked_abstain": true,
+            "owner_disposition_preserved": true,
+            "payload_bytes_must_be_fetched_before_claiming_digest_verified": true
+          }
+        },
+        "scope_digest": "bb733b294ec864bd3f5a7ce8ab92783babd6b23c67f5e3871976e2a33fee92ab",
+        "owner_schema_registry": [
+          {
+            "owner_repo": "Luminous-Dynamics/mycelix",
+            "contract_id": "living-city-metabolism",
+            "contract_version": "living-city-metabolism/0.1",
+            "schema_artifact_uri": "schemas/living-city-metabolism-v0.1.schema.json",
+            "schema_digest_algorithm": "git_blob_sha1",
+            "schema_artifact_digest": "4f7f3eeee4e91964a6422d2aba9f59e3c3aff57b",
+            "source_revision": "0aae2f0a7625304c9a7eab0c3528e02fe5d57567",
+            "registration_status": "draft_pr_unmerged",
+            "claim_ceiling": "synthetic envelope binding to a pinned draft flow/model schema; not product lot, inventory or custody qualification"
+          }
+        ],
+        "required_artifact_ids": [
+          "LC-CORRIDOR-BASELINE"
+        ],
+        "artifacts": [
+          {
+            "artifact_id": "LC-CORRIDOR-BASELINE",
+            "owner_repo": "Luminous-Dynamics/mycelix",
+            "contract_id": "living-city-metabolism",
+            "contract_version": "living-city-metabolism/0.1",
+            "schema_artifact_digest": "4f7f3eeee4e91964a6422d2aba9f59e3c3aff57b",
+            "schema_digest_algorithm": "git_blob_sha1",
+            "source_revision": "0aae2f0a7625304c9a7eab0c3528e02fe5d57567",
+            "receipt_id": "lc-receipt-0001",
+            "content_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "subject_id": "synthetic-corridor-metabolism",
+            "subject_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scope_digest": "bb733b294ec864bd3f5a7ce8ab92783babd6b23c67f5e3871976e2a33fee92ab",
+            "boundary_id": "SYNTH-GRID-4X4",
+            "boundary_revision": "GRID-V1",
+            "population_frame_id": "POP-FRAME-SYNTH-01",
+            "horizon_id": "HORIZON-SYNTH-12T",
+            "scenario_id": "bridge-closure",
+            "window_start_tick": 0,
+            "window_end_tick": 12,
+            "weather_profile_id": "WEATHER-SYNTH-V1",
+            "functional_unit_ref": "FU-DISTRICT-SERVICE-YEAR-V1",
+            "design_subject_id": "clinic-building",
+            "design_revision": "CLINIC-DESIGN-V1",
+            "bom_revision": "CLINIC-BOM-V1",
+            "evidence_state": "current",
+            "raw_owner_disposition": "synthetic_test_only",
+            "payload_bytes_verified": false
+          }
+        ]
+      },
+      "expected": {
+        "case_id": "SB-005",
+        "binding_disposition": "Unsupported",
+        "scope_digest": "1205f7a841b36d6251de250ff2185422c4a8b24234c597e7cd4aeb5fbd0f8b20",
+        "reason_codes": [
+          "OWNER_ARTIFACT_SCOPE_MISMATCH",
+          "SCOPE_DIGEST_DECLARATION_MISMATCH",
+          "SYNTHETIC_SCOPE_HAS_REAL_WORLD_COORDINATES"
+        ],
+        "required_artifact_ids": [
+          "LC-CORRIDOR-BASELINE"
+        ],
+        "artifact_bindings": [
+          {
+            "artifact_id": "LC-CORRIDOR-BASELINE",
+            "binding_state": "NotComparable",
+            "raw_owner_disposition": "synthetic_test_only",
+            "payload_bytes_verified": false
+          }
+        ],
+        "owner_result_promotion": "none"
+      }
+    },
+    {
+      "case_id": "SB-006",
+      "description": "A different analysis window is not comparable.",
+      "input": {
+        "scope": {
+          "scope_id": "CITYREF-SYNTH-001",
+          "schema_version": "citymaker-evaluation-scope/0.1",
+          "classification": "synthetic_fixture_only",
+          "spatial_scope": {
+            "kind": "synthetic_grid",
+            "boundary_id": "SYNTH-GRID-4X4",
+            "boundary_revision": "GRID-V1",
+            "coordinate_reference": "unitless-local-grid",
+            "spatial_resolution_ceiling": "grid-cell",
+            "real_world_coordinates_present": true,
+            "latitude": -26.2,
+            "longitude": 28
+          },
+          "population_frame": {
+            "frame_id": "POP-FRAME-SYNTH-01",
+            "method": "synthetic_fixture",
+            "supported_resolution": "grid-cell",
+            "group_ids": [
+              "households-general",
+              "households-step-free"
+            ]
+          },
+          "time_horizon": {
+            "horizon_id": "HORIZON-SYNTH-12T",
+            "start_tick": 0,
+            "end_tick": 12,
+            "tick_unit": "month",
+            "temporal_resolution": "monthly"
+          },
+          "scenarios": [
+            {
+              "scenario_id": "baseline",
+              "event_ids": []
+            },
+            {
+              "scenario_id": "bridge-closure",
+              "event_ids": [
+                "bridge-closure"
+              ]
+            }
+          ],
+          "weather_profile": {
+            "profile_id": "WEATHER-SYNTH-V1",
+            "revision": "1",
+            "applicability": "synthetic_only"
+          },
+          "service_requirements": [
+            {
+              "requirement_id": "clinic-service",
+              "group_id": "households-general",
+              "category": "health"
+            },
+            {
+              "requirement_id": "step-free-clinic-service",
+              "group_id": "households-step-free",
+              "category": "health"
+            }
+          ],
+          "functional_units": [
+            {
+              "functional_unit_id": "FU-CLINIC-V1",
+              "definition_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "quantity": 100,
+              "unit": "visits/day",
+              "service_definition": "synthetic clinic visit capacity over the declared operating day",
+              "lifecycle_boundary": "service-operation"
+            },
+            {
+              "functional_unit_id": "FU-DISTRICT-SERVICE-YEAR-V1",
+              "definition_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "quantity": 1,
+              "unit": "district_service_year",
+              "service_definition": "synthetic neighbourhood service bundle over one declared service year",
+              "lifecycle_boundary": "operation-maintenance"
+            }
+          ],
+          "currency": {
+            "comparison_enabled": false,
+            "code": null,
+            "base_year": null,
+            "note": "No monetary comparison in v0.1 scope."
+          },
+          "design_revisions": [
+            {
+              "subject_id": "clinic-building",
+              "design_revision": "CLINIC-DESIGN-V1",
+              "bom_revision": "CLINIC-BOM-V1"
+            }
+          ],
+          "evidence_policy": {
+            "schema_pin_required": true,
+            "source_revision_required": true,
+            "receipt_id_unique": true,
+            "content_digest_required": true,
+            "subject_digest_required": true,
+            "stale_or_revoked_abstain": true,
+            "owner_disposition_preserved": true,
+            "payload_bytes_must_be_fetched_before_claiming_digest_verified": true
+          }
+        },
+        "scope_digest": "bb733b294ec864bd3f5a7ce8ab92783babd6b23c67f5e3871976e2a33fee92ab",
+        "owner_schema_registry": [
+          {
+            "owner_repo": "Luminous-Dynamics/mycelix",
+            "contract_id": "living-city-metabolism",
+            "contract_version": "living-city-metabolism/0.1",
+            "schema_artifact_uri": "schemas/living-city-metabolism-v0.1.schema.json",
+            "schema_digest_algorithm": "git_blob_sha1",
+            "schema_artifact_digest": "4f7f3eeee4e91964a6422d2aba9f59e3c3aff57b",
+            "source_revision": "0aae2f0a7625304c9a7eab0c3528e02fe5d57567",
+            "registration_status": "draft_pr_unmerged",
+            "claim_ceiling": "synthetic envelope binding to a pinned draft flow/model schema; not product lot, inventory or custody qualification"
+          }
+        ],
+        "required_artifact_ids": [
+          "LC-CORRIDOR-BASELINE"
+        ],
+        "artifacts": [
+          {
+            "artifact_id": "LC-CORRIDOR-BASELINE",
+            "owner_repo": "Luminous-Dynamics/mycelix",
+            "contract_id": "living-city-metabolism",
+            "contract_version": "living-city-metabolism/0.1",
+            "schema_artifact_digest": "4f7f3eeee4e91964a6422d2aba9f59e3c3aff57b",
+            "schema_digest_algorithm": "git_blob_sha1",
+            "source_revision": "0aae2f0a7625304c9a7eab0c3528e02fe5d57567",
+            "receipt_id": "lc-receipt-0001",
+            "content_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "subject_id": "synthetic-corridor-metabolism",
+            "subject_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scope_digest": "bb733b294ec864bd3f5a7ce8ab92783babd6b23c67f5e3871976e2a33fee92ab",
+            "boundary_id": "SYNTH-GRID-4X4",
+            "boundary_revision": "GRID-V1",
+            "population_frame_id": "POP-FRAME-SYNTH-01",
+            "horizon_id": "HORIZON-SYNTH-12T",
+            "scenario_id": "baseline",
+            "window_start_tick": 0,
+            "window_end_tick": 10,
+            "weather_profile_id": "WEATHER-SYNTH-V1",
+            "functional_unit_ref": "FU-DISTRICT-SERVICE-YEAR-V1",
+            "design_subject_id": "clinic-building",
+            "design_revision": "CLINIC-DESIGN-V1",
+            "bom_revision": "CLINIC-BOM-V1",
+            "evidence_state": "current",
+            "raw_owner_disposition": "synthetic_test_only",
+            "payload_bytes_verified": false
+          }
+        ]
+      },
+      "expected": {
+        "case_id": "SB-006",
+        "binding_disposition": "Unsupported",
+        "scope_digest": "1205f7a841b36d6251de250ff2185422c4a8b24234c597e7cd4aeb5fbd0f8b20",
+        "reason_codes": [
+          "OWNER_ARTIFACT_SCOPE_MISMATCH",
+          "SCOPE_DIGEST_DECLARATION_MISMATCH",
+          "SYNTHETIC_SCOPE_HAS_REAL_WORLD_COORDINATES"
+        ],
+        "required_artifact_ids": [
+          "LC-CORRIDOR-BASELINE"
+        ],
+        "artifact_bindings": [
+          {
+            "artifact_id": "LC-CORRIDOR-BASELINE",
+            "binding_state": "NotComparable",
+            "raw_owner_disposition": "synthetic_test_only",
+            "payload_bytes_verified": false
+          }
+        ],
+        "owner_result_promotion": "none"
+      }
+    },
+    {
+      "case_id": "SB-007",
+      "description": "A different functional unit is not comparable.",
+      "input": {
+        "scope": {
+          "scope_id": "CITYREF-SYNTH-001",
+          "schema_version": "citymaker-evaluation-scope/0.1",
+          "classification": "synthetic_fixture_only",
+          "spatial_scope": {
+            "kind": "synthetic_grid",
+            "boundary_id": "SYNTH-GRID-4X4",
+            "boundary_revision": "GRID-V1",
+            "coordinate_reference": "unitless-local-grid",
+            "spatial_resolution_ceiling": "grid-cell",
+            "real_world_coordinates_present": true,
+            "latitude": -26.2,
+            "longitude": 28
+          },
+          "population_frame": {
+            "frame_id": "POP-FRAME-SYNTH-01",
+            "method": "synthetic_fixture",
+            "supported_resolution": "grid-cell",
+            "group_ids": [
+              "households-general",
+              "households-step-free"
+            ]
+          },
+          "time_horizon": {
+            "horizon_id": "HORIZON-SYNTH-12T",
+            "start_tick": 0,
+            "end_tick": 12,
+            "tick_unit": "month",
+            "temporal_resolution": "monthly"
+          },
+          "scenarios": [
+            {
+              "scenario_id": "baseline",
+              "event_ids": []
+            },
+            {
+              "scenario_id": "bridge-closure",
+              "event_ids": [
+                "bridge-closure"
+              ]
+            }
+          ],
+          "weather_profile": {
+            "profile_id": "WEATHER-SYNTH-V1",
+            "revision": "1",
+            "applicability": "synthetic_only"
+          },
+          "service_requirements": [
+            {
+              "requirement_id": "clinic-service",
+              "group_id": "households-general",
+              "category": "health"
+            },
+            {
+              "requirement_id": "step-free-clinic-service",
+              "group_id": "households-step-free",
+              "category": "health"
+            }
+          ],
+          "functional_units": [
+            {
+              "functional_unit_id": "FU-CLINIC-V1",
+              "definition_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "quantity": 100,
+              "unit": "visits/day",
+              "service_definition": "synthetic clinic visit capacity over the declared operating day",
+              "lifecycle_boundary": "service-operation"
+            },
+            {
+              "functional_unit_id": "FU-DISTRICT-SERVICE-YEAR-V1",
+              "definition_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "quantity": 1,
+              "unit": "district_service_year",
+              "service_definition": "synthetic neighbourhood service bundle over one declared service year",
+              "lifecycle_boundary": "operation-maintenance"
+            }
+          ],
+          "currency": {
+            "comparison_enabled": false,
+            "code": null,
+            "base_year": null,
+            "note": "No monetary comparison in v0.1 scope."
+          },
+          "design_revisions": [
+            {
+              "subject_id": "clinic-building",
+              "design_revision": "CLINIC-DESIGN-V1",
+              "bom_revision": "CLINIC-BOM-V1"
+            }
+          ],
+          "evidence_policy": {
+            "schema_pin_required": true,
+            "source_revision_required": true,
+            "receipt_id_unique": true,
+            "content_digest_required": true,
+            "subject_digest_required": true,
+            "stale_or_revoked_abstain": true,
+            "owner_disposition_preserved": true,
+            "payload_bytes_must_be_fetched_before_claiming_digest_verified": true
+          }
+        },
+        "scope_digest": "bb733b294ec864bd3f5a7ce8ab92783babd6b23c67f5e3871976e2a33fee92ab",
+        "owner_schema_registry": [
+          {
+            "owner_repo": "Luminous-Dynamics/mycelix",
+            "contract_id": "living-city-metabolism",
+            "contract_version": "living-city-metabolism/0.1",
+            "schema_artifact_uri": "schemas/living-city-metabolism-v0.1.schema.json",
+            "schema_digest_algorithm": "git_blob_sha1",
+            "schema_artifact_digest": "4f7f3eeee4e91964a6422d2aba9f59e3c3aff57b",
+            "source_revision": "0aae2f0a7625304c9a7eab0c3528e02fe5d57567",
+            "registration_status": "draft_pr_unmerged",
+            "claim_ceiling": "synthetic envelope binding to a pinned draft flow/model schema; not product lot, inventory or custody qualification"
+          }
+        ],
+        "required_artifact_ids": [
+          "LC-CORRIDOR-BASELINE"
+        ],
+        "artifacts": [
+          {
+            "artifact_id": "LC-CORRIDOR-BASELINE",
+            "owner_repo": "Luminous-Dynamics/mycelix",
+            "contract_id": "living-city-metabolism",
+            "contract_version": "living-city-metabolism/0.1",
+            "schema_artifact_digest": "4f7f3eeee4e91964a6422d2aba9f59e3c3aff57b",
+            "schema_digest_algorithm": "git_blob_sha1",
+            "source_revision": "0aae2f0a7625304c9a7eab0c3528e02fe5d57567",
+            "receipt_id": "lc-receipt-0001",
+            "content_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "subject_id": "synthetic-corridor-metabolism",
+            "subject_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scope_digest": "bb733b294ec864bd3f5a7ce8ab92783babd6b23c67f5e3871976e2a33fee92ab",
+            "boundary_id": "SYNTH-GRID-4X4",
+            "boundary_revision": "GRID-V1",
+            "population_frame_id": "POP-FRAME-SYNTH-01",
+            "horizon_id": "HORIZON-SYNTH-12T",
+            "scenario_id": "baseline",
+            "window_start_tick": 0,
+            "window_end_tick": 12,
+            "weather_profile_id": "WEATHER-SYNTH-V1",
+            "functional_unit_ref": "FU-CLINIC-V1",
+            "design_subject_id": "clinic-building",
+            "design_revision": "CLINIC-DESIGN-V1",
+            "bom_revision": "CLINIC-BOM-V1",
+            "evidence_state": "current",
+            "raw_owner_disposition": "synthetic_test_only",
+            "payload_bytes_verified": false
+          }
+        ]
+      },
+      "expected": {
+        "case_id": "SB-007",
+        "binding_disposition": "Unsupported",
+        "scope_digest": "1205f7a841b36d6251de250ff2185422c4a8b24234c597e7cd4aeb5fbd0f8b20",
+        "reason_codes": [
+          "OWNER_ARTIFACT_SCOPE_MISMATCH",
+          "SCOPE_DIGEST_DECLARATION_MISMATCH",
+          "SYNTHETIC_SCOPE_HAS_REAL_WORLD_COORDINATES"
+        ],
+        "required_artifact_ids": [
+          "LC-CORRIDOR-BASELINE"
+        ],
+        "artifact_bindings": [
+          {
+            "artifact_id": "LC-CORRIDOR-BASELINE",
+            "binding_state": "NotComparable",
+            "raw_owner_disposition": "synthetic_test_only",
+            "payload_bytes_verified": false
+          }
+        ],
+        "owner_result_promotion": "none"
+      }
+    },
+    {
+      "case_id": "SB-008",
+      "description": "A missing schema artifact digest leaves the owner evidence unknown.",
+      "input": {
+        "scope": {
+          "scope_id": "CITYREF-SYNTH-001",
+          "schema_version": "citymaker-evaluation-scope/0.1",
+          "classification": "synthetic_fixture_only",
+          "spatial_scope": {
+            "kind": "synthetic_grid",
+            "boundary_id": "SYNTH-GRID-4X4",
+            "boundary_revision": "GRID-V1",
+            "coordinate_reference": "unitless-local-grid",
+            "spatial_resolution_ceiling": "grid-cell",
+            "real_world_coordinates_present": true,
+            "latitude": -26.2,
+            "longitude": 28
+          },
+          "population_frame": {
+            "frame_id": "POP-FRAME-SYNTH-01",
+            "method": "synthetic_fixture",
+            "supported_resolution": "grid-cell",
+            "group_ids": [
+              "households-general",
+              "households-step-free"
+            ]
+          },
+          "time_horizon": {
+            "horizon_id": "HORIZON-SYNTH-12T",
+            "start_tick": 0,
+            "end_tick": 12,
+            "tick_unit": "month",
+            "temporal_resolution": "monthly"
+          },
+          "scenarios": [
+            {
+              "scenario_id": "baseline",
+              "event_ids": []
+            },
+            {
+              "scenario_id": "bridge-closure",
+              "event_ids": [
+                "bridge-closure"
+              ]
+            }
+          ],
+          "weather_profile": {
+            "profile_id": "WEATHER-SYNTH-V1",
+            "revision": "1",
+            "applicability": "synthetic_only"
+          },
+          "service_requirements": [
+            {
+              "requirement_id": "clinic-service",
+              "group_id": "households-general",
+              "category": "health"
+            },
+            {
+              "requirement_id": "step-free-clinic-service",
+              "group_id": "households-step-free",
+              "category": "health"
+            }
+          ],
+          "functional_units": [
+            {
+              "functional_unit_id": "FU-CLINIC-V1",
+              "definition_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "quantity": 100,
+              "unit": "visits/day",
+              "service_definition": "synthetic clinic visit capacity over the declared operating day",
+              "lifecycle_boundary": "service-operation"
+            },
+            {
+              "functional_unit_id": "FU-DISTRICT-SERVICE-YEAR-V1",
+              "definition_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "quantity": 1,
+              "unit": "district_service_year",
+              "service_definition": "synthetic neighbourhood service bundle over one declared service year",
+              "lifecycle_boundary": "operation-maintenance"
+            }
+          ],
+          "currency": {
+            "comparison_enabled": false,
+            "code": null,
+            "base_year": null,
+            "note": "No monetary comparison in v0.1 scope."
+          },
+          "design_revisions": [
+            {
+              "subject_id": "clinic-building",
+              "design_revision": "CLINIC-DESIGN-V1",
+              "bom_revision": "CLINIC-BOM-V1"
+            }
+          ],
+          "evidence_policy": {
+            "schema_pin_required": true,
+            "source_revision_required": true,
+            "receipt_id_unique": true,
+            "content_digest_required": true,
+            "subject_digest_required": true,
+            "stale_or_revoked_abstain": true,
+            "owner_disposition_preserved": true,
+            "payload_bytes_must_be_fetched_before_claiming_digest_verified": true
+          }
+        },
+        "scope_digest": "bb733b294ec864bd3f5a7ce8ab92783babd6b23c67f5e3871976e2a33fee92ab",
+        "owner_schema_registry": [
+          {
+            "owner_repo": "Luminous-Dynamics/mycelix",
+            "contract_id": "living-city-metabolism",
+            "contract_version": "living-city-metabolism/0.1",
+            "schema_artifact_uri": "schemas/living-city-metabolism-v0.1.schema.json",
+            "schema_digest_algorithm": "git_blob_sha1",
+            "schema_artifact_digest": "4f7f3eeee4e91964a6422d2aba9f59e3c3aff57b",
+            "source_revision": "0aae2f0a7625304c9a7eab0c3528e02fe5d57567",
+            "registration_status": "draft_pr_unmerged",
+            "claim_ceiling": "synthetic envelope binding to a pinned draft flow/model schema; not product lot, inventory or custody qualification"
+          }
+        ],
+        "required_artifact_ids": [
+          "LC-CORRIDOR-BASELINE"
+        ],
+        "artifacts": [
+          {
+            "artifact_id": "LC-CORRIDOR-BASELINE",
+            "owner_repo": "Luminous-Dynamics/mycelix",
+            "contract_id": "living-city-metabolism",
+            "contract_version": "living-city-metabolism/0.1",
+            "schema_artifact_digest": "",
+            "schema_digest_algorithm": "git_blob_sha1",
+            "source_revision": "0aae2f0a7625304c9a7eab0c3528e02fe5d57567",
+            "receipt_id": "lc-receipt-0001",
+            "content_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "subject_id": "synthetic-corridor-metabolism",
+            "subject_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scope_digest": "bb733b294ec864bd3f5a7ce8ab92783babd6b23c67f5e3871976e2a33fee92ab",
+            "boundary_id": "SYNTH-GRID-4X4",
+            "boundary_revision": "GRID-V1",
+            "population_frame_id": "POP-FRAME-SYNTH-01",
+            "horizon_id": "HORIZON-SYNTH-12T",
+            "scenario_id": "baseline",
+            "window_start_tick": 0,
+            "window_end_tick": 12,
+            "weather_profile_id": "WEATHER-SYNTH-V1",
+            "functional_unit_ref": "FU-DISTRICT-SERVICE-YEAR-V1",
+            "design_subject_id": "clinic-building",
+            "design_revision": "CLINIC-DESIGN-V1",
+            "bom_revision": "CLINIC-BOM-V1",
+            "evidence_state": "current",
+            "raw_owner_disposition": "synthetic_test_only",
+            "payload_bytes_verified": false
+          }
+        ]
+      },
+      "expected": {
+        "case_id": "SB-008",
+        "binding_disposition": "Unsupported",
+        "scope_digest": "1205f7a841b36d6251de250ff2185422c4a8b24234c597e7cd4aeb5fbd0f8b20",
+        "reason_codes": [
+          "OWNER_ARTIFACT_IDENTITY_INCOMPLETE",
+          "SCOPE_DIGEST_DECLARATION_MISMATCH",
+          "SYNTHETIC_SCOPE_HAS_REAL_WORLD_COORDINATES"
+        ],
+        "required_artifact_ids": [
+          "LC-CORRIDOR-BASELINE"
+        ],
+        "artifact_bindings": [
+          {
+            "artifact_id": "LC-CORRIDOR-BASELINE",
+            "binding_state": "Unknown",
+            "raw_owner_disposition": "synthetic_test_only",
+            "payload_bytes_verified": false
+          }
+        ],
+        "owner_result_promotion": "none"
+      }
+    },
+    {
+      "case_id": "SB-009",
+      "description": "An unknown owner schema digest cannot be silently substituted.",
+      "input": {
+        "scope": {
+          "scope_id": "CITYREF-SYNTH-001",
+          "schema_version": "citymaker-evaluation-scope/0.1",
+          "classification": "synthetic_fixture_only",
+          "spatial_scope": {
+            "kind": "synthetic_grid",
+            "boundary_id": "SYNTH-GRID-4X4",
+            "boundary_revision": "GRID-V1",
+            "coordinate_reference": "unitless-local-grid",
+            "spatial_resolution_ceiling": "grid-cell",
+            "real_world_coordinates_present": true,
+            "latitude": -26.2,
+            "longitude": 28
+          },
+          "population_frame": {
+            "frame_id": "POP-FRAME-SYNTH-01",
+            "method": "synthetic_fixture",
+            "supported_resolution": "grid-cell",
+            "group_ids": [
+              "households-general",
+              "households-step-free"
+            ]
+          },
+          "time_horizon": {
+            "horizon_id": "HORIZON-SYNTH-12T",
+            "start_tick": 0,
+            "end_tick": 12,
+            "tick_unit": "month",
+            "temporal_resolution": "monthly"
+          },
+          "scenarios": [
+            {
+              "scenario_id": "baseline",
+              "event_ids": []
+            },
+            {
+              "scenario_id": "bridge-closure",
+              "event_ids": [
+                "bridge-closure"
+              ]
+            }
+          ],
+          "weather_profile": {
+            "profile_id": "WEATHER-SYNTH-V1",
+            "revision": "1",
+            "applicability": "synthetic_only"
+          },
+          "service_requirements": [
+            {
+              "requirement_id": "clinic-service",
+              "group_id": "households-general",
+              "category": "health"
+            },
+            {
+              "requirement_id": "step-free-clinic-service",
+              "group_id": "households-step-free",
+              "category": "health"
+            }
+          ],
+          "functional_units": [
+            {
+              "functional_unit_id": "FU-CLINIC-V1",
+              "definition_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "quantity": 100,
+              "unit": "visits/day",
+              "service_definition": "synthetic clinic visit capacity over the declared operating day",
+              "lifecycle_boundary": "service-operation"
+            },
+            {
+              "functional_unit_id": "FU-DISTRICT-SERVICE-YEAR-V1",
+              "definition_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "quantity": 1,
+              "unit": "district_service_year",
+              "service_definition": "synthetic neighbourhood service bundle over one declared service year",
+              "lifecycle_boundary": "operation-maintenance"
+            }
+          ],
+          "currency": {
+            "comparison_enabled": false,
+            "code": null,
+            "base_year": null,
+            "note": "No monetary comparison in v0.1 scope."
+          },
+          "design_revisions": [
+            {
+              "subject_id": "clinic-building",
+              "design_revision": "CLINIC-DESIGN-V1",
+              "bom_revision": "CLINIC-BOM-V1"
+            }
+          ],
+          "evidence_policy": {
+            "schema_pin_required": true,
+            "source_revision_required": true,
+            "receipt_id_unique": true,
+            "content_digest_required": true,
+            "subject_digest_required": true,
+            "stale_or_revoked_abstain": true,
+            "owner_disposition_preserved": true,
+            "payload_bytes_must_be_fetched_before_claiming_digest_verified": true
+          }
+        },
+        "scope_digest": "bb733b294ec864bd3f5a7ce8ab92783babd6b23c67f5e3871976e2a33fee92ab",
+        "owner_schema_registry": [
+          {
+            "owner_repo": "Luminous-Dynamics/mycelix",
+            "contract_id": "living-city-metabolism",
+            "contract_version": "living-city-metabolism/0.1",
+            "schema_artifact_uri": "schemas/living-city-metabolism-v0.1.schema.json",
+            "schema_digest_algorithm": "git_blob_sha1",
+            "schema_artifact_digest": "4f7f3eeee4e91964a6422d2aba9f59e3c3aff57b",
+            "source_revision": "0aae2f0a7625304c9a7eab0c3528e02fe5d57567",
+            "registration_status": "draft_pr_unmerged",
+            "claim_ceiling": "synthetic envelope binding to a pinned draft flow/model schema; not product lot, inventory or custody qualification"
+          }
+        ],
+        "required_artifact_ids": [
+          "LC-CORRIDOR-BASELINE"
+        ],
+        "artifacts": [
+          {
+            "artifact_id": "LC-CORRIDOR-BASELINE",
+            "owner_repo": "Luminous-Dynamics/mycelix",
+            "contract_id": "living-city-metabolism",
+            "contract_version": "living-city-metabolism/0.1",
+            "schema_artifact_digest": "ffffffffffffffffffffffffffffffffffffffff",
+            "schema_digest_algorithm": "git_blob_sha1",
+            "source_revision": "0aae2f0a7625304c9a7eab0c3528e02fe5d57567",
+            "receipt_id": "lc-receipt-0001",
+            "content_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "subject_id": "synthetic-corridor-metabolism",
+            "subject_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scope_digest": "bb733b294ec864bd3f5a7ce8ab92783babd6b23c67f5e3871976e2a33fee92ab",
+            "boundary_id": "SYNTH-GRID-4X4",
+            "boundary_revision": "GRID-V1",
+            "population_frame_id": "POP-FRAME-SYNTH-01",
+            "horizon_id": "HORIZON-SYNTH-12T",
+            "scenario_id": "baseline",
+            "window_start_tick": 0,
+            "window_end_tick": 12,
+            "weather_profile_id": "WEATHER-SYNTH-V1",
+            "functional_unit_ref": "FU-DISTRICT-SERVICE-YEAR-V1",
+            "design_subject_id": "clinic-building",
+            "design_revision": "CLINIC-DESIGN-V1",
+            "bom_revision": "CLINIC-BOM-V1",
+            "evidence_state": "current",
+            "raw_owner_disposition": "synthetic_test_only",
+            "payload_bytes_verified": false
+          }
+        ]
+      },
+      "expected": {
+        "case_id": "SB-009",
+        "binding_disposition": "Unsupported",
+        "scope_digest": "1205f7a841b36d6251de250ff2185422c4a8b24234c597e7cd4aeb5fbd0f8b20",
+        "reason_codes": [
+          "OWNER_SCHEMA_OR_SOURCE_REVISION_MISMATCH",
+          "SCOPE_DIGEST_DECLARATION_MISMATCH",
+          "SYNTHETIC_SCOPE_HAS_REAL_WORLD_COORDINATES"
+        ],
+        "required_artifact_ids": [
+          "LC-CORRIDOR-BASELINE"
+        ],
+        "artifact_bindings": [
+          {
+            "artifact_id": "LC-CORRIDOR-BASELINE",
+            "binding_state": "NotComparable",
+            "raw_owner_disposition": "synthetic_test_only",
+            "payload_bytes_verified": false
+          }
+        ],
+        "owner_result_promotion": "none"
+      }
+    },
+    {
+      "case_id": "SB-010",
+      "description": "A missing source revision leaves the owner artifact unknown.",
+      "input": {
+        "scope": {
+          "scope_id": "CITYREF-SYNTH-001",
+          "schema_version": "citymaker-evaluation-scope/0.1",
+          "classification": "synthetic_fixture_only",
+          "spatial_scope": {
+            "kind": "synthetic_grid",
+            "boundary_id": "SYNTH-GRID-4X4",
+            "boundary_revision": "GRID-V1",
+            "coordinate_reference": "unitless-local-grid",
+            "spatial_resolution_ceiling": "grid-cell",
+            "real_world_coordinates_present": true,
+            "latitude": -26.2,
+            "longitude": 28
+          },
+          "population_frame": {
+            "frame_id": "POP-FRAME-SYNTH-01",
+            "method": "synthetic_fixture",
+            "supported_resolution": "grid-cell",
+            "group_ids": [
+              "households-general",
+              "households-step-free"
+            ]
+          },
+          "time_horizon": {
+            "horizon_id": "HORIZON-SYNTH-12T",
+            "start_tick": 0,
+            "end_tick": 12,
+            "tick_unit": "month",
+            "temporal_resolution": "monthly"
+          },
+          "scenarios": [
+            {
+              "scenario_id": "baseline",
+              "event_ids": []
+            },
+            {
+              "scenario_id": "bridge-closure",
+              "event_ids": [
+                "bridge-closure"
+              ]
+            }
+          ],
+          "weather_profile": {
+            "profile_id": "WEATHER-SYNTH-V1",
+            "revision": "1",
+            "applicability": "synthetic_only"
+          },
+          "service_requirements": [
+            {
+              "requirement_id": "clinic-service",
+              "group_id": "households-general",
+              "category": "health"
+            },
+            {
+              "requirement_id": "step-free-clinic-service",
+              "group_id": "households-step-free",
+              "category": "health"
+            }
+          ],
+          "functional_units": [
+            {
+              "functional_unit_id": "FU-CLINIC-V1",
+              "definition_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "quantity": 100,
+              "unit": "visits/day",
+              "service_definition": "synthetic clinic visit capacity over the declared operating day",
+              "lifecycle_boundary": "service-operation"
+            },
+            {
+              "functional_unit_id": "FU-DISTRICT-SERVICE-YEAR-V1",
+              "definition_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "quantity": 1,
+              "unit": "district_service_year",
+              "service_definition": "synthetic neighbourhood service bundle over one declared service year",
+              "lifecycle_boundary": "operation-maintenance"
+            }
+          ],
+          "currency": {
+            "comparison_enabled": false,
+            "code": null,
+            "base_year": null,
+            "note": "No monetary comparison in v0.1 scope."
+          },
+          "design_revisions": [
+            {
+              "subject_id": "clinic-building",
+              "design_revision": "CLINIC-DESIGN-V1",
+              "bom_revision": "CLINIC-BOM-V1"
+            }
+          ],
+          "evidence_policy": {
+            "schema_pin_required": true,
+            "source_revision_required": true,
+            "receipt_id_unique": true,
+            "content_digest_required": true,
+            "subject_digest_required": true,
+            "stale_or_revoked_abstain": true,
+            "owner_disposition_preserved": true,
+            "payload_bytes_must_be_fetched_before_claiming_digest_verified": true
+          }
+        },
+        "scope_digest": "bb733b294ec864bd3f5a7ce8ab92783babd6b23c67f5e3871976e2a33fee92ab",
+        "owner_schema_registry": [
+          {
+            "owner_repo": "Luminous-Dynamics/mycelix",
+            "contract_id": "living-city-metabolism",
+            "contract_version": "living-city-metabolism/0.1",
+            "schema_artifact_uri": "schemas/living-city-metabolism-v0.1.schema.json",
+            "schema_digest_algorithm": "git_blob_sha1",
+            "schema_artifact_digest": "4f7f3eeee4e91964a6422d2aba9f59e3c3aff57b",
+            "source_revision": "0aae2f0a7625304c9a7eab0c3528e02fe5d57567",
+            "registration_status": "draft_pr_unmerged",
+            "claim_ceiling": "synthetic envelope binding to a pinned draft flow/model schema; not product lot, inventory or custody qualification"
+          }
+        ],
+        "required_artifact_ids": [
+          "LC-CORRIDOR-BASELINE"
+        ],
+        "artifacts": [
+          {
+            "artifact_id": "LC-CORRIDOR-BASELINE",
+            "owner_repo": "Luminous-Dynamics/mycelix",
+            "contract_id": "living-city-metabolism",
+            "contract_version": "living-city-metabolism/0.1",
+            "schema_artifact_digest": "4f7f3eeee4e91964a6422d2aba9f59e3c3aff57b",
+            "schema_digest_algorithm": "git_blob_sha1",
+            "source_revision": "",
+            "receipt_id": "lc-receipt-0001",
+            "content_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "subject_id": "synthetic-corridor-metabolism",
+            "subject_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scope_digest": "bb733b294ec864bd3f5a7ce8ab92783babd6b23c67f5e3871976e2a33fee92ab",
+            "boundary_id": "SYNTH-GRID-4X4",
+            "boundary_revision": "GRID-V1",
+            "population_frame_id": "POP-FRAME-SYNTH-01",
+            "horizon_id": "HORIZON-SYNTH-12T",
+            "scenario_id": "baseline",
+            "window_start_tick": 0,
+            "window_end_tick": 12,
+            "weather_profile_id": "WEATHER-SYNTH-V1",
+            "functional_unit_ref": "FU-DISTRICT-SERVICE-YEAR-V1",
+            "design_subject_id": "clinic-building",
+            "design_revision": "CLINIC-DESIGN-V1",
+            "bom_revision": "CLINIC-BOM-V1",
+            "evidence_state": "current",
+            "raw_owner_disposition": "synthetic_test_only",
+            "payload_bytes_verified": false
+          }
+        ]
+      },
+      "expected": {
+        "case_id": "SB-010",
+        "binding_disposition": "Unsupported",
+        "scope_digest": "1205f7a841b36d6251de250ff2185422c4a8b24234c597e7cd4aeb5fbd0f8b20",
+        "reason_codes": [
+          "OWNER_ARTIFACT_IDENTITY_INCOMPLETE",
+          "SCOPE_DIGEST_DECLARATION_MISMATCH",
+          "SYNTHETIC_SCOPE_HAS_REAL_WORLD_COORDINATES"
+        ],
+        "required_artifact_ids": [
+          "LC-CORRIDOR-BASELINE"
+        ],
+        "artifact_bindings": [
+          {
+            "artifact_id": "LC-CORRIDOR-BASELINE",
+            "binding_state": "Unknown",
+            "raw_owner_disposition": "synthetic_test_only",
+            "payload_bytes_verified": false
+          }
+        ],
+        "owner_result_promotion": "none"
+      }
+    },
+    {
+      "case_id": "SB-011",
+      "description": "Stale owner evidence remains unknown.",
+      "input": {
+        "scope": {
+          "scope_id": "CITYREF-SYNTH-001",
+          "schema_version": "citymaker-evaluation-scope/0.1",
+          "classification": "synthetic_fixture_only",
+          "spatial_scope": {
+            "kind": "synthetic_grid",
+            "boundary_id": "SYNTH-GRID-4X4",
+            "boundary_revision": "GRID-V1",
+            "coordinate_reference": "unitless-local-grid",
+            "spatial_resolution_ceiling": "grid-cell",
+            "real_world_coordinates_present": true,
+            "latitude": -26.2,
+            "longitude": 28
+          },
+          "population_frame": {
+            "frame_id": "POP-FRAME-SYNTH-01",
+            "method": "synthetic_fixture",
+            "supported_resolution": "grid-cell",
+            "group_ids": [
+              "households-general",
+              "households-step-free"
+            ]
+          },
+          "time_horizon": {
+            "horizon_id": "HORIZON-SYNTH-12T",
+            "start_tick": 0,
+            "end_tick": 12,
+            "tick_unit": "month",
+            "temporal_resolution": "monthly"
+          },
+          "scenarios": [
+            {
+              "scenario_id": "baseline",
+              "event_ids": []
+            },
+            {
+              "scenario_id": "bridge-closure",
+              "event_ids": [
+                "bridge-closure"
+              ]
+            }
+          ],
+          "weather_profile": {
+            "profile_id": "WEATHER-SYNTH-V1",
+            "revision": "1",
+            "applicability": "synthetic_only"
+          },
+          "service_requirements": [
+            {
+              "requirement_id": "clinic-service",
+              "group_id": "households-general",
+              "category": "health"
+            },
+            {
+              "requirement_id": "step-free-clinic-service",
+              "group_id": "households-step-free",
+              "category": "health"
+            }
+          ],
+          "functional_units": [
+            {
+              "functional_unit_id": "FU-CLINIC-V1",
+              "definition_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "quantity": 100,
+              "unit": "visits/day",
+              "service_definition": "synthetic clinic visit capacity over the declared operating day",
+              "lifecycle_boundary": "service-operation"
+            },
+            {
+              "functional_unit_id": "FU-DISTRICT-SERVICE-YEAR-V1",
+              "definition_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "quantity": 1,
+              "unit": "district_service_year",
+              "service_definition": "synthetic neighbourhood service bundle over one declared service year",
+              "lifecycle_boundary": "operation-maintenance"
+            }
+          ],
+          "currency": {
+            "comparison_enabled": false,
+            "code": null,
+            "base_year": null,
+            "note": "No monetary comparison in v0.1 scope."
+          },
+          "design_revisions": [
+            {
+              "subject_id": "clinic-building",
+              "design_revision": "CLINIC-DESIGN-V1",
+              "bom_revision": "CLINIC-BOM-V1"
+            }
+          ],
+          "evidence_policy": {
+            "schema_pin_required": true,
+            "source_revision_required": true,
+            "receipt_id_unique": true,
+            "content_digest_required": true,
+            "subject_digest_required": true,
+            "stale_or_revoked_abstain": true,
+            "owner_disposition_preserved": true,
+            "payload_bytes_must_be_fetched_before_claiming_digest_verified": true
+          }
+        },
+        "scope_digest": "bb733b294ec864bd3f5a7ce8ab92783babd6b23c67f5e3871976e2a33fee92ab",
+        "owner_schema_registry": [
+          {
+            "owner_repo": "Luminous-Dynamics/mycelix",
+            "contract_id": "living-city-metabolism",
+            "contract_version": "living-city-metabolism/0.1",
+            "schema_artifact_uri": "schemas/living-city-metabolism-v0.1.schema.json",
+            "schema_digest_algorithm": "git_blob_sha1",
+            "schema_artifact_digest": "4f7f3eeee4e91964a6422d2aba9f59e3c3aff57b",
+            "source_revision": "0aae2f0a7625304c9a7eab0c3528e02fe5d57567",
+            "registration_status": "draft_pr_unmerged",
+            "claim_ceiling": "synthetic envelope binding to a pinned draft flow/model schema; not product lot, inventory or custody qualification"
+          }
+        ],
+        "required_artifact_ids": [
+          "LC-CORRIDOR-BASELINE"
+        ],
+        "artifacts": [
+          {
+            "artifact_id": "LC-CORRIDOR-BASELINE",
+            "owner_repo": "Luminous-Dynamics/mycelix",
+            "contract_id": "living-city-metabolism",
+            "contract_version": "living-city-metabolism/0.1",
+            "schema_artifact_digest": "4f7f3eeee4e91964a6422d2aba9f59e3c3aff57b",
+            "schema_digest_algorithm": "git_blob_sha1",
+            "source_revision": "0aae2f0a7625304c9a7eab0c3528e02fe5d57567",
+            "receipt_id": "lc-receipt-0001",
+            "content_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "subject_id": "synthetic-corridor-metabolism",
+            "subject_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scope_digest": "bb733b294ec864bd3f5a7ce8ab92783babd6b23c67f5e3871976e2a33fee92ab",
+            "boundary_id": "SYNTH-GRID-4X4",
+            "boundary_revision": "GRID-V1",
+            "population_frame_id": "POP-FRAME-SYNTH-01",
+            "horizon_id": "HORIZON-SYNTH-12T",
+            "scenario_id": "baseline",
+            "window_start_tick": 0,
+            "window_end_tick": 12,
+            "weather_profile_id": "WEATHER-SYNTH-V1",
+            "functional_unit_ref": "FU-DISTRICT-SERVICE-YEAR-V1",
+            "design_subject_id": "clinic-building",
+            "design_revision": "CLINIC-DESIGN-V1",
+            "bom_revision": "CLINIC-BOM-V1",
+            "evidence_state": "stale",
+            "raw_owner_disposition": "synthetic_test_only",
+            "payload_bytes_verified": false
+          }
+        ]
+      },
+      "expected": {
+        "case_id": "SB-011",
+        "binding_disposition": "Unsupported",
+        "scope_digest": "1205f7a841b36d6251de250ff2185422c4a8b24234c597e7cd4aeb5fbd0f8b20",
+        "reason_codes": [
+          "OWNER_ARTIFACT_SCOPE_MISMATCH",
+          "SCOPE_DIGEST_DECLARATION_MISMATCH",
+          "SYNTHETIC_SCOPE_HAS_REAL_WORLD_COORDINATES"
+        ],
+        "required_artifact_ids": [
+          "LC-CORRIDOR-BASELINE"
+        ],
+        "artifact_bindings": [
+          {
+            "artifact_id": "LC-CORRIDOR-BASELINE",
+            "binding_state": "NotComparable",
+            "raw_owner_disposition": "synthetic_test_only",
+            "payload_bytes_verified": false
+          }
+        ],
+        "owner_result_promotion": "none"
+      }
+    },
+    {
+      "case_id": "SB-012",
+      "description": "Revoked owner evidence remains unknown.",
+      "input": {
+        "scope": {
+          "scope_id": "CITYREF-SYNTH-001",
+          "schema_version": "citymaker-evaluation-scope/0.1",
+          "classification": "synthetic_fixture_only",
+          "spatial_scope": {
+            "kind": "synthetic_grid",
+            "boundary_id": "SYNTH-GRID-4X4",
+            "boundary_revision": "GRID-V1",
+            "coordinate_reference": "unitless-local-grid",
+            "spatial_resolution_ceiling": "grid-cell",
+            "real_world_coordinates_present": true,
+            "latitude": -26.2,
+            "longitude": 28
+          },
+          "population_frame": {
+            "frame_id": "POP-FRAME-SYNTH-01",
+            "method": "synthetic_fixture",
+            "supported_resolution": "grid-cell",
+            "group_ids": [
+              "households-general",
+              "households-step-free"
+            ]
+          },
+          "time_horizon": {
+            "horizon_id": "HORIZON-SYNTH-12T",
+            "start_tick": 0,
+            "end_tick": 12,
+            "tick_unit": "month",
+            "temporal_resolution": "monthly"
+          },
+          "scenarios": [
+            {
+              "scenario_id": "baseline",
+              "event_ids": []
+            },
+            {
+              "scenario_id": "bridge-closure",
+              "event_ids": [
+                "bridge-closure"
+              ]
+            }
+          ],
+          "weather_profile": {
+            "profile_id": "WEATHER-SYNTH-V1",
+            "revision": "1",
+            "applicability": "synthetic_only"
+          },
+          "service_requirements": [
+            {
+              "requirement_id": "clinic-service",
+              "group_id": "households-general",
+              "category": "health"
+            },
+            {
+              "requirement_id": "step-free-clinic-service",
+              "group_id": "households-step-free",
+              "category": "health"
+            }
+          ],
+          "functional_units": [
+            {
+              "functional_unit_id": "FU-CLINIC-V1",
+              "definition_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "quantity": 100,
+              "unit": "visits/day",
+              "service_definition": "synthetic clinic visit capacity over the declared operating day",
+              "lifecycle_boundary": "service-operation"
+            },
+            {
+              "functional_unit_id": "FU-DISTRICT-SERVICE-YEAR-V1",
+              "definition_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "quantity": 1,
+              "unit": "district_service_year",
+              "service_definition": "synthetic neighbourhood service bundle over one declared service year",
+              "lifecycle_boundary": "operation-maintenance"
+            }
+          ],
+          "currency": {
+            "comparison_enabled": false,
+            "code": null,
+            "base_year": null,
+            "note": "No monetary comparison in v0.1 scope."
+          },
+          "design_revisions": [
+            {
+              "subject_id": "clinic-building",
+              "design_revision": "CLINIC-DESIGN-V1",
+              "bom_revision": "CLINIC-BOM-V1"
+            }
+          ],
+          "evidence_policy": {
+            "schema_pin_required": true,
+            "source_revision_required": true,
+            "receipt_id_unique": true,
+            "content_digest_required": true,
+            "subject_digest_required": true,
+            "stale_or_revoked_abstain": true,
+            "owner_disposition_preserved": true,
+            "payload_bytes_must_be_fetched_before_claiming_digest_verified": true
+          }
+        },
+        "scope_digest": "bb733b294ec864bd3f5a7ce8ab92783babd6b23c67f5e3871976e2a33fee92ab",
+        "owner_schema_registry": [
+          {
+            "owner_repo": "Luminous-Dynamics/mycelix",
+            "contract_id": "living-city-metabolism",
+            "contract_version": "living-city-metabolism/0.1",
+            "schema_artifact_uri": "schemas/living-city-metabolism-v0.1.schema.json",
+            "schema_digest_algorithm": "git_blob_sha1",
+            "schema_artifact_digest": "4f7f3eeee4e91964a6422d2aba9f59e3c3aff57b",
+            "source_revision": "0aae2f0a7625304c9a7eab0c3528e02fe5d57567",
+            "registration_status": "draft_pr_unmerged",
+            "claim_ceiling": "synthetic envelope binding to a pinned draft flow/model schema; not product lot, inventory or custody qualification"
+          }
+        ],
+        "required_artifact_ids": [
+          "LC-CORRIDOR-BASELINE"
+        ],
+        "artifacts": [
+          {
+            "artifact_id": "LC-CORRIDOR-BASELINE",
+            "owner_repo": "Luminous-Dynamics/mycelix",
+            "contract_id": "living-city-metabolism",
+            "contract_version": "living-city-metabolism/0.1",
+            "schema_artifact_digest": "4f7f3eeee4e91964a6422d2aba9f59e3c3aff57b",
+            "schema_digest_algorithm": "git_blob_sha1",
+            "source_revision": "0aae2f0a7625304c9a7eab0c3528e02fe5d57567",
+            "receipt_id": "lc-receipt-0001",
+            "content_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "subject_id": "synthetic-corridor-metabolism",
+            "subject_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scope_digest": "bb733b294ec864bd3f5a7ce8ab92783babd6b23c67f5e3871976e2a33fee92ab",
+            "boundary_id": "SYNTH-GRID-4X4",
+            "boundary_revision": "GRID-V1",
+            "population_frame_id": "POP-FRAME-SYNTH-01",
+            "horizon_id": "HORIZON-SYNTH-12T",
+            "scenario_id": "baseline",
+            "window_start_tick": 0,
+            "window_end_tick": 12,
+            "weather_profile_id": "WEATHER-SYNTH-V1",
+            "functional_unit_ref": "FU-DISTRICT-SERVICE-YEAR-V1",
+            "design_subject_id": "clinic-building",
+            "design_revision": "CLINIC-DESIGN-V1",
+            "bom_revision": "CLINIC-BOM-V1",
+            "evidence_state": "revoked",
+            "raw_owner_disposition": "synthetic_test_only",
+            "payload_bytes_verified": false
+          }
+        ]
+      },
+      "expected": {
+        "case_id": "SB-012",
+        "binding_disposition": "Unsupported",
+        "scope_digest": "1205f7a841b36d6251de250ff2185422c4a8b24234c597e7cd4aeb5fbd0f8b20",
+        "reason_codes": [
+          "OWNER_ARTIFACT_SCOPE_MISMATCH",
+          "SCOPE_DIGEST_DECLARATION_MISMATCH",
+          "SYNTHETIC_SCOPE_HAS_REAL_WORLD_COORDINATES"
+        ],
+        "required_artifact_ids": [
+          "LC-CORRIDOR-BASELINE"
+        ],
+        "artifact_bindings": [
+          {
+            "artifact_id": "LC-CORRIDOR-BASELINE",
+            "binding_state": "NotComparable",
+            "raw_owner_disposition": "synthetic_test_only",
+            "payload_bytes_verified": false
+          }
+        ],
+        "owner_result_promotion": "none"
+      }
+    },
+    {
+      "case_id": "SB-013",
+      "description": "Duplicate receipt identity is unsupported.",
+      "input": {
+        "scope": {
+          "scope_id": "CITYREF-SYNTH-001",
+          "schema_version": "citymaker-evaluation-scope/0.1",
+          "classification": "synthetic_fixture_only",
+          "spatial_scope": {
+            "kind": "synthetic_grid",
+            "boundary_id": "SYNTH-GRID-4X4",
+            "boundary_revision": "GRID-V1",
+            "coordinate_reference": "unitless-local-grid",
+            "spatial_resolution_ceiling": "grid-cell",
+            "real_world_coordinates_present": true,
+            "latitude": -26.2,
+            "longitude": 28
+          },
+          "population_frame": {
+            "frame_id": "POP-FRAME-SYNTH-01",
+            "method": "synthetic_fixture",
+            "supported_resolution": "grid-cell",
+            "group_ids": [
+              "households-general",
+              "households-step-free"
+            ]
+          },
+          "time_horizon": {
+            "horizon_id": "HORIZON-SYNTH-12T",
+            "start_tick": 0,
+            "end_tick": 12,
+            "tick_unit": "month",
+            "temporal_resolution": "monthly"
+          },
+          "scenarios": [
+            {
+              "scenario_id": "baseline",
+              "event_ids": []
+            },
+            {
+              "scenario_id": "bridge-closure",
+              "event_ids": [
+                "bridge-closure"
+              ]
+            }
+          ],
+          "weather_profile": {
+            "profile_id": "WEATHER-SYNTH-V1",
+            "revision": "1",
+            "applicability": "synthetic_only"
+          },
+          "service_requirements": [
+            {
+              "requirement_id": "clinic-service",
+              "group_id": "households-general",
+              "category": "health"
+            },
+            {
+              "requirement_id": "step-free-clinic-service",
+              "group_id": "households-step-free",
+              "category": "health"
+            }
+          ],
+          "functional_units": [
+            {
+              "functional_unit_id": "FU-CLINIC-V1",
+              "definition_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "quantity": 100,
+              "unit": "visits/day",
+              "service_definition": "synthetic clinic visit capacity over the declared operating day",
+              "lifecycle_boundary": "service-operation"
+            },
+            {
+              "functional_unit_id": "FU-DISTRICT-SERVICE-YEAR-V1",
+              "definition_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "quantity": 1,
+              "unit": "district_service_year",
+              "service_definition": "synthetic neighbourhood service bundle over one declared service year",
+              "lifecycle_boundary": "operation-maintenance"
+            }
+          ],
+          "currency": {
+            "comparison_enabled": false,
+            "code": null,
+            "base_year": null,
+            "note": "No monetary comparison in v0.1 scope."
+          },
+          "design_revisions": [
+            {
+              "subject_id": "clinic-building",
+              "design_revision": "CLINIC-DESIGN-V1",
+              "bom_revision": "CLINIC-BOM-V1"
+            }
+          ],
+          "evidence_policy": {
+            "schema_pin_required": true,
+            "source_revision_required": true,
+            "receipt_id_unique": true,
+            "content_digest_required": true,
+            "subject_digest_required": true,
+            "stale_or_revoked_abstain": true,
+            "owner_disposition_preserved": true,
+            "payload_bytes_must_be_fetched_before_claiming_digest_verified": true
+          }
+        },
+        "scope_digest": "bb733b294ec864bd3f5a7ce8ab92783babd6b23c67f5e3871976e2a33fee92ab",
+        "owner_schema_registry": [
+          {
+            "owner_repo": "Luminous-Dynamics/mycelix",
+            "contract_id": "living-city-metabolism",
+            "contract_version": "living-city-metabolism/0.1",
+            "schema_artifact_uri": "schemas/living-city-metabolism-v0.1.schema.json",
+            "schema_digest_algorithm": "git_blob_sha1",
+            "schema_artifact_digest": "4f7f3eeee4e91964a6422d2aba9f59e3c3aff57b",
+            "source_revision": "0aae2f0a7625304c9a7eab0c3528e02fe5d57567",
+            "registration_status": "draft_pr_unmerged",
+            "claim_ceiling": "synthetic envelope binding to a pinned draft flow/model schema; not product lot, inventory or custody qualification"
+          }
+        ],
+        "required_artifact_ids": [
+          "LC-CORRIDOR-BASELINE",
+          "LC-CORRIDOR-SECOND"
+        ],
+        "artifacts": [
+          {
+            "artifact_id": "LC-CORRIDOR-BASELINE",
+            "owner_repo": "Luminous-Dynamics/mycelix",
+            "contract_id": "living-city-metabolism",
+            "contract_version": "living-city-metabolism/0.1",
+            "schema_artifact_digest": "4f7f3eeee4e91964a6422d2aba9f59e3c3aff57b",
+            "schema_digest_algorithm": "git_blob_sha1",
+            "source_revision": "0aae2f0a7625304c9a7eab0c3528e02fe5d57567",
+            "receipt_id": "lc-receipt-0001",
+            "content_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "subject_id": "synthetic-corridor-metabolism",
+            "subject_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scope_digest": "bb733b294ec864bd3f5a7ce8ab92783babd6b23c67f5e3871976e2a33fee92ab",
+            "boundary_id": "SYNTH-GRID-4X4",
+            "boundary_revision": "GRID-V1",
+            "population_frame_id": "POP-FRAME-SYNTH-01",
+            "horizon_id": "HORIZON-SYNTH-12T",
+            "scenario_id": "baseline",
+            "window_start_tick": 0,
+            "window_end_tick": 12,
+            "weather_profile_id": "WEATHER-SYNTH-V1",
+            "functional_unit_ref": "FU-DISTRICT-SERVICE-YEAR-V1",
+            "design_subject_id": "clinic-building",
+            "design_revision": "CLINIC-DESIGN-V1",
+            "bom_revision": "CLINIC-BOM-V1",
+            "evidence_state": "current",
+            "raw_owner_disposition": "synthetic_test_only",
+            "payload_bytes_verified": false
+          },
+          {
+            "artifact_id": "LC-CORRIDOR-SECOND",
+            "owner_repo": "Luminous-Dynamics/mycelix",
+            "contract_id": "living-city-metabolism",
+            "contract_version": "living-city-metabolism/0.1",
+            "schema_artifact_digest": "4f7f3eeee4e91964a6422d2aba9f59e3c3aff57b",
+            "schema_digest_algorithm": "git_blob_sha1",
+            "source_revision": "0aae2f0a7625304c9a7eab0c3528e02fe5d57567",
+            "receipt_id": "lc-receipt-0001",
+            "content_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "subject_id": "synthetic-corridor-metabolism",
+            "subject_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scope_digest": "bb733b294ec864bd3f5a7ce8ab92783babd6b23c67f5e3871976e2a33fee92ab",
+            "boundary_id": "SYNTH-GRID-4X4",
+            "boundary_revision": "GRID-V1",
+            "population_frame_id": "POP-FRAME-SYNTH-01",
+            "horizon_id": "HORIZON-SYNTH-12T",
+            "scenario_id": "baseline",
+            "window_start_tick": 0,
+            "window_end_tick": 12,
+            "weather_profile_id": "WEATHER-SYNTH-V1",
+            "functional_unit_ref": "FU-DISTRICT-SERVICE-YEAR-V1",
+            "design_subject_id": "clinic-building",
+            "design_revision": "CLINIC-DESIGN-V1",
+            "bom_revision": "CLINIC-BOM-V1",
+            "evidence_state": "current",
+            "raw_owner_disposition": "synthetic_test_only",
+            "payload_bytes_verified": false
+          }
+        ]
+      },
+      "expected": {
+        "case_id": "SB-013",
+        "binding_disposition": "Unsupported",
+        "scope_digest": "1205f7a841b36d6251de250ff2185422c4a8b24234c597e7cd4aeb5fbd0f8b20",
+        "reason_codes": [
+          "DUPLICATE_OR_MISSING_RECEIPT_ID",
+          "OWNER_ARTIFACT_SCOPE_MISMATCH",
+          "SCOPE_DIGEST_DECLARATION_MISMATCH",
+          "SYNTHETIC_SCOPE_HAS_REAL_WORLD_COORDINATES"
+        ],
+        "required_artifact_ids": [
+          "LC-CORRIDOR-BASELINE",
+          "LC-CORRIDOR-SECOND"
+        ],
+        "artifact_bindings": [
+          {
+            "artifact_id": "LC-CORRIDOR-BASELINE",
+            "binding_state": "NotComparable",
+            "raw_owner_disposition": "synthetic_test_only",
+            "payload_bytes_verified": false
+          }
+        ],
+        "owner_result_promotion": "none"
+      }
+    },
+    {
+      "case_id": "SB-014",
+      "description": "An unsupported schema version is rejected.",
+      "input": {
+        "scope": {
+          "scope_id": "CITYREF-SYNTH-001",
+          "schema_version": "citymaker-evaluation-scope/0.1",
+          "classification": "synthetic_fixture_only",
+          "spatial_scope": {
+            "kind": "synthetic_grid",
+            "boundary_id": "SYNTH-GRID-4X4",
+            "boundary_revision": "GRID-V1",
+            "coordinate_reference": "unitless-local-grid",
+            "spatial_resolution_ceiling": "grid-cell",
+            "real_world_coordinates_present": true,
+            "latitude": -26.2,
+            "longitude": 28
+          },
+          "population_frame": {
+            "frame_id": "POP-FRAME-SYNTH-01",
+            "method": "synthetic_fixture",
+            "supported_resolution": "grid-cell",
+            "group_ids": [
+              "households-general",
+              "households-step-free"
+            ]
+          },
+          "time_horizon": {
+            "horizon_id": "HORIZON-SYNTH-12T",
+            "start_tick": 0,
+            "end_tick": 12,
+            "tick_unit": "month",
+            "temporal_resolution": "monthly"
+          },
+          "scenarios": [
+            {
+              "scenario_id": "baseline",
+              "event_ids": []
+            },
+            {
+              "scenario_id": "bridge-closure",
+              "event_ids": [
+                "bridge-closure"
+              ]
+            }
+          ],
+          "weather_profile": {
+            "profile_id": "WEATHER-SYNTH-V1",
+            "revision": "1",
+            "applicability": "synthetic_only"
+          },
+          "service_requirements": [
+            {
+              "requirement_id": "clinic-service",
+              "group_id": "households-general",
+              "category": "health"
+            },
+            {
+              "requirement_id": "step-free-clinic-service",
+              "group_id": "households-step-free",
+              "category": "health"
+            }
+          ],
+          "functional_units": [
+            {
+              "functional_unit_id": "FU-CLINIC-V1",
+              "definition_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "quantity": 100,
+              "unit": "visits/day",
+              "service_definition": "synthetic clinic visit capacity over the declared operating day",
+              "lifecycle_boundary": "service-operation"
+            },
+            {
+              "functional_unit_id": "FU-DISTRICT-SERVICE-YEAR-V1",
+              "definition_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "quantity": 1,
+              "unit": "district_service_year",
+              "service_definition": "synthetic neighbourhood service bundle over one declared service year",
+              "lifecycle_boundary": "operation-maintenance"
+            }
+          ],
+          "currency": {
+            "comparison_enabled": false,
+            "code": null,
+            "base_year": null,
+            "note": "No monetary comparison in v0.1 scope."
+          },
+          "design_revisions": [
+            {
+              "subject_id": "clinic-building",
+              "design_revision": "CLINIC-DESIGN-V1",
+              "bom_revision": "CLINIC-BOM-V1"
+            }
+          ],
+          "evidence_policy": {
+            "schema_pin_required": true,
+            "source_revision_required": true,
+            "receipt_id_unique": true,
+            "content_digest_required": true,
+            "subject_digest_required": true,
+            "stale_or_revoked_abstain": true,
+            "owner_disposition_preserved": true,
+            "payload_bytes_must_be_fetched_before_claiming_digest_verified": true
+          }
+        },
+        "scope_digest": "bb733b294ec864bd3f5a7ce8ab92783babd6b23c67f5e3871976e2a33fee92ab",
+        "owner_schema_registry": [
+          {
+            "owner_repo": "Luminous-Dynamics/mycelix",
+            "contract_id": "living-city-metabolism",
+            "contract_version": "living-city-metabolism/0.1",
+            "schema_artifact_uri": "schemas/living-city-metabolism-v0.1.schema.json",
+            "schema_digest_algorithm": "git_blob_sha1",
+            "schema_artifact_digest": "4f7f3eeee4e91964a6422d2aba9f59e3c3aff57b",
+            "source_revision": "0aae2f0a7625304c9a7eab0c3528e02fe5d57567",
+            "registration_status": "draft_pr_unmerged",
+            "claim_ceiling": "synthetic envelope binding to a pinned draft flow/model schema; not product lot, inventory or custody qualification"
+          }
+        ],
+        "required_artifact_ids": [
+          "LC-CORRIDOR-BASELINE"
+        ],
+        "artifacts": [
+          {
+            "artifact_id": "LC-CORRIDOR-BASELINE",
+            "owner_repo": "Luminous-Dynamics/mycelix",
+            "contract_id": "living-city-metabolism",
+            "contract_version": "living-city-metabolism/9.9",
+            "schema_artifact_digest": "4f7f3eeee4e91964a6422d2aba9f59e3c3aff57b",
+            "schema_digest_algorithm": "git_blob_sha1",
+            "source_revision": "0aae2f0a7625304c9a7eab0c3528e02fe5d57567",
+            "receipt_id": "lc-receipt-0001",
+            "content_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "subject_id": "synthetic-corridor-metabolism",
+            "subject_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scope_digest": "bb733b294ec864bd3f5a7ce8ab92783babd6b23c67f5e3871976e2a33fee92ab",
+            "boundary_id": "SYNTH-GRID-4X4",
+            "boundary_revision": "GRID-V1",
+            "population_frame_id": "POP-FRAME-SYNTH-01",
+            "horizon_id": "HORIZON-SYNTH-12T",
+            "scenario_id": "baseline",
+            "window_start_tick": 0,
+            "window_end_tick": 12,
+            "weather_profile_id": "WEATHER-SYNTH-V1",
+            "functional_unit_ref": "FU-DISTRICT-SERVICE-YEAR-V1",
+            "design_subject_id": "clinic-building",
+            "design_revision": "CLINIC-DESIGN-V1",
+            "bom_revision": "CLINIC-BOM-V1",
+            "evidence_state": "current",
+            "raw_owner_disposition": "synthetic_test_only",
+            "payload_bytes_verified": false
+          }
+        ]
+      },
+      "expected": {
+        "case_id": "SB-014",
+        "binding_disposition": "Unsupported",
+        "scope_digest": "1205f7a841b36d6251de250ff2185422c4a8b24234c597e7cd4aeb5fbd0f8b20",
+        "reason_codes": [
+          "OWNER_SCHEMA_REGISTRY_ENTRY_MISSING",
+          "SCOPE_DIGEST_DECLARATION_MISMATCH",
+          "SYNTHETIC_SCOPE_HAS_REAL_WORLD_COORDINATES"
+        ],
+        "required_artifact_ids": [
+          "LC-CORRIDOR-BASELINE"
+        ],
+        "artifact_bindings": [
+          {
+            "artifact_id": "LC-CORRIDOR-BASELINE",
+            "binding_state": "Unknown",
+            "raw_owner_disposition": "synthetic_test_only",
+            "payload_bytes_verified": false
+          }
+        ],
+        "owner_result_promotion": "none"
+      }
+    },
+    {
+      "case_id": "SB-015",
+      "description": "A scope-bound artifact with raw owner Blocked status remains bound but blocked.",
+      "input": {
+        "scope": {
+          "scope_id": "CITYREF-SYNTH-001",
+          "schema_version": "citymaker-evaluation-scope/0.1",
+          "classification": "synthetic_fixture_only",
+          "spatial_scope": {
+            "kind": "synthetic_grid",
+            "boundary_id": "SYNTH-GRID-4X4",
+            "boundary_revision": "GRID-V1",
+            "coordinate_reference": "unitless-local-grid",
+            "spatial_resolution_ceiling": "grid-cell",
+            "real_world_coordinates_present": true,
+            "latitude": -26.2,
+            "longitude": 28
+          },
+          "population_frame": {
+            "frame_id": "POP-FRAME-SYNTH-01",
+            "method": "synthetic_fixture",
+            "supported_resolution": "grid-cell",
+            "group_ids": [
+              "households-general",
+              "households-step-free"
+            ]
+          },
+          "time_horizon": {
+            "horizon_id": "HORIZON-SYNTH-12T",
+            "start_tick": 0,
+            "end_tick": 12,
+            "tick_unit": "month",
+            "temporal_resolution": "monthly"
+          },
+          "scenarios": [
+            {
+              "scenario_id": "baseline",
+              "event_ids": []
+            },
+            {
+              "scenario_id": "bridge-closure",
+              "event_ids": [
+                "bridge-closure"
+              ]
+            }
+          ],
+          "weather_profile": {
+            "profile_id": "WEATHER-SYNTH-V1",
+            "revision": "1",
+            "applicability": "synthetic_only"
+          },
+          "service_requirements": [
+            {
+              "requirement_id": "clinic-service",
+              "group_id": "households-general",
+              "category": "health"
+            },
+            {
+              "requirement_id": "step-free-clinic-service",
+              "group_id": "households-step-free",
+              "category": "health"
+            }
+          ],
+          "functional_units": [
+            {
+              "functional_unit_id": "FU-CLINIC-V1",
+              "definition_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "quantity": 100,
+              "unit": "visits/day",
+              "service_definition": "synthetic clinic visit capacity over the declared operating day",
+              "lifecycle_boundary": "service-operation"
+            },
+            {
+              "functional_unit_id": "FU-DISTRICT-SERVICE-YEAR-V1",
+              "definition_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "quantity": 1,
+              "unit": "district_service_year",
+              "service_definition": "synthetic neighbourhood service bundle over one declared service year",
+              "lifecycle_boundary": "operation-maintenance"
+            }
+          ],
+          "currency": {
+            "comparison_enabled": false,
+            "code": null,
+            "base_year": null,
+            "note": "No monetary comparison in v0.1 scope."
+          },
+          "design_revisions": [
+            {
+              "subject_id": "clinic-building",
+              "design_revision": "CLINIC-DESIGN-V1",
+              "bom_revision": "CLINIC-BOM-V1"
+            }
+          ],
+          "evidence_policy": {
+            "schema_pin_required": true,
+            "source_revision_required": true,
+            "receipt_id_unique": true,
+            "content_digest_required": true,
+            "subject_digest_required": true,
+            "stale_or_revoked_abstain": true,
+            "owner_disposition_preserved": true,
+            "payload_bytes_must_be_fetched_before_claiming_digest_verified": true
+          }
+        },
+        "scope_digest": "bb733b294ec864bd3f5a7ce8ab92783babd6b23c67f5e3871976e2a33fee92ab",
+        "owner_schema_registry": [
+          {
+            "owner_repo": "Luminous-Dynamics/mycelix",
+            "contract_id": "living-city-metabolism",
+            "contract_version": "living-city-metabolism/0.1",
+            "schema_artifact_uri": "schemas/living-city-metabolism-v0.1.schema.json",
+            "schema_digest_algorithm": "git_blob_sha1",
+            "schema_artifact_digest": "4f7f3eeee4e91964a6422d2aba9f59e3c3aff57b",
+            "source_revision": "0aae2f0a7625304c9a7eab0c3528e02fe5d57567",
+            "registration_status": "draft_pr_unmerged",
+            "claim_ceiling": "synthetic envelope binding to a pinned draft flow/model schema; not product lot, inventory or custody qualification"
+          }
+        ],
+        "required_artifact_ids": [
+          "LC-CORRIDOR-BASELINE"
+        ],
+        "artifacts": [
+          {
+            "artifact_id": "LC-CORRIDOR-BASELINE",
+            "owner_repo": "Luminous-Dynamics/mycelix",
+            "contract_id": "living-city-metabolism",
+            "contract_version": "living-city-metabolism/0.1",
+            "schema_artifact_digest": "4f7f3eeee4e91964a6422d2aba9f59e3c3aff57b",
+            "schema_digest_algorithm": "git_blob_sha1",
+            "source_revision": "0aae2f0a7625304c9a7eab0c3528e02fe5d57567",
+            "receipt_id": "lc-receipt-0001",
+            "content_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "subject_id": "synthetic-corridor-metabolism",
+            "subject_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scope_digest": "bb733b294ec864bd3f5a7ce8ab92783babd6b23c67f5e3871976e2a33fee92ab",
+            "boundary_id": "SYNTH-GRID-4X4",
+            "boundary_revision": "GRID-V1",
+            "population_frame_id": "POP-FRAME-SYNTH-01",
+            "horizon_id": "HORIZON-SYNTH-12T",
+            "scenario_id": "baseline",
+            "window_start_tick": 0,
+            "window_end_tick": 12,
+            "weather_profile_id": "WEATHER-SYNTH-V1",
+            "functional_unit_ref": "FU-DISTRICT-SERVICE-YEAR-V1",
+            "design_subject_id": "clinic-building",
+            "design_revision": "CLINIC-DESIGN-V1",
+            "bom_revision": "CLINIC-BOM-V1",
+            "evidence_state": "current",
+            "raw_owner_disposition": "Blocked",
+            "payload_bytes_verified": false
+          }
+        ]
+      },
+      "expected": {
+        "case_id": "SB-015",
+        "binding_disposition": "Unsupported",
+        "scope_digest": "1205f7a841b36d6251de250ff2185422c4a8b24234c597e7cd4aeb5fbd0f8b20",
+        "reason_codes": [
+          "OWNER_ARTIFACT_SCOPE_MISMATCH",
+          "SCOPE_DIGEST_DECLARATION_MISMATCH",
+          "SYNTHETIC_SCOPE_HAS_REAL_WORLD_COORDINATES"
+        ],
+        "required_artifact_ids": [
+          "LC-CORRIDOR-BASELINE"
+        ],
+        "artifact_bindings": [
+          {
+            "artifact_id": "LC-CORRIDOR-BASELINE",
+            "binding_state": "NotComparable",
+            "raw_owner_disposition": "Blocked",
+            "payload_bytes_verified": false
+          }
+        ],
+        "owner_result_promotion": "none"
+      }
+    },
+    {
+      "case_id": "SB-016",
+      "description": "A missing required artifact leaves the common scope incomplete.",
+      "input": {
+        "scope": {
+          "scope_id": "CITYREF-SYNTH-001",
+          "schema_version": "citymaker-evaluation-scope/0.1",
+          "classification": "synthetic_fixture_only",
+          "spatial_scope": {
+            "kind": "synthetic_grid",
+            "boundary_id": "SYNTH-GRID-4X4",
+            "boundary_revision": "GRID-V1",
+            "coordinate_reference": "unitless-local-grid",
+            "spatial_resolution_ceiling": "grid-cell",
+            "real_world_coordinates_present": true,
+            "latitude": -26.2,
+            "longitude": 28
+          },
+          "population_frame": {
+            "frame_id": "POP-FRAME-SYNTH-01",
+            "method": "synthetic_fixture",
+            "supported_resolution": "grid-cell",
+            "group_ids": [
+              "households-general",
+              "households-step-free"
+            ]
+          },
+          "time_horizon": {
+            "horizon_id": "HORIZON-SYNTH-12T",
+            "start_tick": 0,
+            "end_tick": 12,
+            "tick_unit": "month",
+            "temporal_resolution": "monthly"
+          },
+          "scenarios": [
+            {
+              "scenario_id": "baseline",
+              "event_ids": []
+            },
+            {
+              "scenario_id": "bridge-closure",
+              "event_ids": [
+                "bridge-closure"
+              ]
+            }
+          ],
+          "weather_profile": {
+            "profile_id": "WEATHER-SYNTH-V1",
+            "revision": "1",
+            "applicability": "synthetic_only"
+          },
+          "service_requirements": [
+            {
+              "requirement_id": "clinic-service",
+              "group_id": "households-general",
+              "category": "health"
+            },
+            {
+              "requirement_id": "step-free-clinic-service",
+              "group_id": "households-step-free",
+              "category": "health"
+            }
+          ],
+          "functional_units": [
+            {
+              "functional_unit_id": "FU-CLINIC-V1",
+              "definition_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "quantity": 100,
+              "unit": "visits/day",
+              "service_definition": "synthetic clinic visit capacity over the declared operating day",
+              "lifecycle_boundary": "service-operation"
+            },
+            {
+              "functional_unit_id": "FU-DISTRICT-SERVICE-YEAR-V1",
+              "definition_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "quantity": 1,
+              "unit": "district_service_year",
+              "service_definition": "synthetic neighbourhood service bundle over one declared service year",
+              "lifecycle_boundary": "operation-maintenance"
+            }
+          ],
+          "currency": {
+            "comparison_enabled": false,
+            "code": null,
+            "base_year": null,
+            "note": "No monetary comparison in v0.1 scope."
+          },
+          "design_revisions": [
+            {
+              "subject_id": "clinic-building",
+              "design_revision": "CLINIC-DESIGN-V1",
+              "bom_revision": "CLINIC-BOM-V1"
+            }
+          ],
+          "evidence_policy": {
+            "schema_pin_required": true,
+            "source_revision_required": true,
+            "receipt_id_unique": true,
+            "content_digest_required": true,
+            "subject_digest_required": true,
+            "stale_or_revoked_abstain": true,
+            "owner_disposition_preserved": true,
+            "payload_bytes_must_be_fetched_before_claiming_digest_verified": true
+          }
+        },
+        "scope_digest": "bb733b294ec864bd3f5a7ce8ab92783babd6b23c67f5e3871976e2a33fee92ab",
+        "owner_schema_registry": [
+          {
+            "owner_repo": "Luminous-Dynamics/mycelix",
+            "contract_id": "living-city-metabolism",
+            "contract_version": "living-city-metabolism/0.1",
+            "schema_artifact_uri": "schemas/living-city-metabolism-v0.1.schema.json",
+            "schema_digest_algorithm": "git_blob_sha1",
+            "schema_artifact_digest": "4f7f3eeee4e91964a6422d2aba9f59e3c3aff57b",
+            "source_revision": "0aae2f0a7625304c9a7eab0c3528e02fe5d57567",
+            "registration_status": "draft_pr_unmerged",
+            "claim_ceiling": "synthetic envelope binding to a pinned draft flow/model schema; not product lot, inventory or custody qualification"
+          }
+        ],
+        "required_artifact_ids": [
+          "LC-CORRIDOR-BASELINE"
+        ],
+        "artifacts": []
+      },
+      "expected": {
+        "case_id": "SB-016",
+        "binding_disposition": "Unsupported",
+        "scope_digest": "1205f7a841b36d6251de250ff2185422c4a8b24234c597e7cd4aeb5fbd0f8b20",
+        "reason_codes": [
+          "REQUIRED_ARTIFACT_MISSING",
+          "SCOPE_DIGEST_DECLARATION_MISMATCH",
+          "SYNTHETIC_SCOPE_HAS_REAL_WORLD_COORDINATES"
+        ],
+        "required_artifact_ids": [
+          "LC-CORRIDOR-BASELINE"
+        ],
+        "artifact_bindings": [],
+        "owner_result_promotion": "none"
+      }
+    },
+    {
+      "case_id": "SB-017",
+      "description": "The binder must not claim payload digest verification without retrieving bytes.",
+      "input": {
+        "scope": {
+          "scope_id": "CITYREF-SYNTH-001",
+          "schema_version": "citymaker-evaluation-scope/0.1",
+          "classification": "synthetic_fixture_only",
+          "spatial_scope": {
+            "kind": "synthetic_grid",
+            "boundary_id": "SYNTH-GRID-4X4",
+            "boundary_revision": "GRID-V1",
+            "coordinate_reference": "unitless-local-grid",
+            "spatial_resolution_ceiling": "grid-cell",
+            "real_world_coordinates_present": true,
+            "latitude": -26.2,
+            "longitude": 28
+          },
+          "population_frame": {
+            "frame_id": "POP-FRAME-SYNTH-01",
+            "method": "synthetic_fixture",
+            "supported_resolution": "grid-cell",
+            "group_ids": [
+              "households-general",
+              "households-step-free"
+            ]
+          },
+          "time_horizon": {
+            "horizon_id": "HORIZON-SYNTH-12T",
+            "start_tick": 0,
+            "end_tick": 12,
+            "tick_unit": "month",
+            "temporal_resolution": "monthly"
+          },
+          "scenarios": [
+            {
+              "scenario_id": "baseline",
+              "event_ids": []
+            },
+            {
+              "scenario_id": "bridge-closure",
+              "event_ids": [
+                "bridge-closure"
+              ]
+            }
+          ],
+          "weather_profile": {
+            "profile_id": "WEATHER-SYNTH-V1",
+            "revision": "1",
+            "applicability": "synthetic_only"
+          },
+          "service_requirements": [
+            {
+              "requirement_id": "clinic-service",
+              "group_id": "households-general",
+              "category": "health"
+            },
+            {
+              "requirement_id": "step-free-clinic-service",
+              "group_id": "households-step-free",
+              "category": "health"
+            }
+          ],
+          "functional_units": [
+            {
+              "functional_unit_id": "FU-CLINIC-V1",
+              "definition_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "quantity": 100,
+              "unit": "visits/day",
+              "service_definition": "synthetic clinic visit capacity over the declared operating day",
+              "lifecycle_boundary": "service-operation"
+            },
+            {
+              "functional_unit_id": "FU-DISTRICT-SERVICE-YEAR-V1",
+              "definition_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "quantity": 1,
+              "unit": "district_service_year",
+              "service_definition": "synthetic neighbourhood service bundle over one declared service year",
+              "lifecycle_boundary": "operation-maintenance"
+            }
+          ],
+          "currency": {
+            "comparison_enabled": false,
+            "code": null,
+            "base_year": null,
+            "note": "No monetary comparison in v0.1 scope."
+          },
+          "design_revisions": [
+            {
+              "subject_id": "clinic-building",
+              "design_revision": "CLINIC-DESIGN-V1",
+              "bom_revision": "CLINIC-BOM-V1"
+            }
+          ],
+          "evidence_policy": {
+            "schema_pin_required": true,
+            "source_revision_required": true,
+            "receipt_id_unique": true,
+            "content_digest_required": true,
+            "subject_digest_required": true,
+            "stale_or_revoked_abstain": true,
+            "owner_disposition_preserved": true,
+            "payload_bytes_must_be_fetched_before_claiming_digest_verified": true
+          }
+        },
+        "scope_digest": "bb733b294ec864bd3f5a7ce8ab92783babd6b23c67f5e3871976e2a33fee92ab",
+        "owner_schema_registry": [
+          {
+            "owner_repo": "Luminous-Dynamics/mycelix",
+            "contract_id": "living-city-metabolism",
+            "contract_version": "living-city-metabolism/0.1",
+            "schema_artifact_uri": "schemas/living-city-metabolism-v0.1.schema.json",
+            "schema_digest_algorithm": "git_blob_sha1",
+            "schema_artifact_digest": "4f7f3eeee4e91964a6422d2aba9f59e3c3aff57b",
+            "source_revision": "0aae2f0a7625304c9a7eab0c3528e02fe5d57567",
+            "registration_status": "draft_pr_unmerged",
+            "claim_ceiling": "synthetic envelope binding to a pinned draft flow/model schema; not product lot, inventory or custody qualification"
+          }
+        ],
+        "required_artifact_ids": [
+          "LC-CORRIDOR-BASELINE"
+        ],
+        "artifacts": [
+          {
+            "artifact_id": "LC-CORRIDOR-BASELINE",
+            "owner_repo": "Luminous-Dynamics/mycelix",
+            "contract_id": "living-city-metabolism",
+            "contract_version": "living-city-metabolism/0.1",
+            "schema_artifact_digest": "4f7f3eeee4e91964a6422d2aba9f59e3c3aff57b",
+            "schema_digest_algorithm": "git_blob_sha1",
+            "source_revision": "0aae2f0a7625304c9a7eab0c3528e02fe5d57567",
+            "receipt_id": "lc-receipt-0001",
+            "content_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "subject_id": "synthetic-corridor-metabolism",
+            "subject_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scope_digest": "bb733b294ec864bd3f5a7ce8ab92783babd6b23c67f5e3871976e2a33fee92ab",
+            "boundary_id": "SYNTH-GRID-4X4",
+            "boundary_revision": "GRID-V1",
+            "population_frame_id": "POP-FRAME-SYNTH-01",
+            "horizon_id": "HORIZON-SYNTH-12T",
+            "scenario_id": "baseline",
+            "window_start_tick": 0,
+            "window_end_tick": 12,
+            "weather_profile_id": "WEATHER-SYNTH-V1",
+            "functional_unit_ref": "FU-DISTRICT-SERVICE-YEAR-V1",
+            "design_subject_id": "clinic-building",
+            "design_revision": "CLINIC-DESIGN-V1",
+            "bom_revision": "CLINIC-BOM-V1",
+            "evidence_state": "current",
+            "raw_owner_disposition": "synthetic_test_only",
+            "payload_bytes_verified": false
+          }
+        ]
+      },
+      "expected": {
+        "case_id": "SB-017",
+        "binding_disposition": "Unsupported",
+        "scope_digest": "1205f7a841b36d6251de250ff2185422c4a8b24234c597e7cd4aeb5fbd0f8b20",
+        "reason_codes": [
+          "OWNER_ARTIFACT_SCOPE_MISMATCH",
+          "SCOPE_DIGEST_DECLARATION_MISMATCH",
+          "SYNTHETIC_SCOPE_HAS_REAL_WORLD_COORDINATES"
+        ],
+        "required_artifact_ids": [
+          "LC-CORRIDOR-BASELINE"
+        ],
+        "artifact_bindings": [
+          {
+            "artifact_id": "LC-CORRIDOR-BASELINE",
+            "binding_state": "NotComparable",
+            "raw_owner_disposition": "synthetic_test_only",
+            "payload_bytes_verified": false
+          }
+        ],
+        "owner_result_promotion": "none"
+      }
+    },
+    {
+      "case_id": "SB-018",
+      "description": "A different climate/weather profile is not comparable when the scope requires it.",
+      "input": {
+        "scope": {
+          "scope_id": "CITYREF-SYNTH-001",
+          "schema_version": "citymaker-evaluation-scope/0.1",
+          "classification": "synthetic_fixture_only",
+          "spatial_scope": {
+            "kind": "synthetic_grid",
+            "boundary_id": "SYNTH-GRID-4X4",
+            "boundary_revision": "GRID-V1",
+            "coordinate_reference": "unitless-local-grid",
+            "spatial_resolution_ceiling": "grid-cell",
+            "real_world_coordinates_present": true,
+            "latitude": -26.2,
+            "longitude": 28
+          },
+          "population_frame": {
+            "frame_id": "POP-FRAME-SYNTH-01",
+            "method": "synthetic_fixture",
+            "supported_resolution": "grid-cell",
+            "group_ids": [
+              "households-general",
+              "households-step-free"
+            ]
+          },
+          "time_horizon": {
+            "horizon_id": "HORIZON-SYNTH-12T",
+            "start_tick": 0,
+            "end_tick": 12,
+            "tick_unit": "month",
+            "temporal_resolution": "monthly"
+          },
+          "scenarios": [
+            {
+              "scenario_id": "baseline",
+              "event_ids": []
+            },
+            {
+              "scenario_id": "bridge-closure",
+              "event_ids": [
+                "bridge-closure"
+              ]
+            }
+          ],
+          "weather_profile": {
+            "profile_id": "WEATHER-SYNTH-V1",
+            "revision": "1",
+            "applicability": "synthetic_only"
+          },
+          "service_requirements": [
+            {
+              "requirement_id": "clinic-service",
+              "group_id": "households-general",
+              "category": "health"
+            },
+            {
+              "requirement_id": "step-free-clinic-service",
+              "group_id": "households-step-free",
+              "category": "health"
+            }
+          ],
+          "functional_units": [
+            {
+              "functional_unit_id": "FU-CLINIC-V1",
+              "definition_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "quantity": 100,
+              "unit": "visits/day",
+              "service_definition": "synthetic clinic visit capacity over the declared operating day",
+              "lifecycle_boundary": "service-operation"
+            },
+            {
+              "functional_unit_id": "FU-DISTRICT-SERVICE-YEAR-V1",
+              "definition_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "quantity": 1,
+              "unit": "district_service_year",
+              "service_definition": "synthetic neighbourhood service bundle over one declared service year",
+              "lifecycle_boundary": "operation-maintenance"
+            }
+          ],
+          "currency": {
+            "comparison_enabled": false,
+            "code": null,
+            "base_year": null,
+            "note": "No monetary comparison in v0.1 scope."
+          },
+          "design_revisions": [
+            {
+              "subject_id": "clinic-building",
+              "design_revision": "CLINIC-DESIGN-V1",
+              "bom_revision": "CLINIC-BOM-V1"
+            }
+          ],
+          "evidence_policy": {
+            "schema_pin_required": true,
+            "source_revision_required": true,
+            "receipt_id_unique": true,
+            "content_digest_required": true,
+            "subject_digest_required": true,
+            "stale_or_revoked_abstain": true,
+            "owner_disposition_preserved": true,
+            "payload_bytes_must_be_fetched_before_claiming_digest_verified": true
+          }
+        },
+        "scope_digest": "bb733b294ec864bd3f5a7ce8ab92783babd6b23c67f5e3871976e2a33fee92ab",
+        "owner_schema_registry": [
+          {
+            "owner_repo": "Luminous-Dynamics/mycelix",
+            "contract_id": "living-city-metabolism",
+            "contract_version": "living-city-metabolism/0.1",
+            "schema_artifact_uri": "schemas/living-city-metabolism-v0.1.schema.json",
+            "schema_digest_algorithm": "git_blob_sha1",
+            "schema_artifact_digest": "4f7f3eeee4e91964a6422d2aba9f59e3c3aff57b",
+            "source_revision": "0aae2f0a7625304c9a7eab0c3528e02fe5d57567",
+            "registration_status": "draft_pr_unmerged",
+            "claim_ceiling": "synthetic envelope binding to a pinned draft flow/model schema; not product lot, inventory or custody qualification"
+          }
+        ],
+        "required_artifact_ids": [
+          "LC-CORRIDOR-BASELINE"
+        ],
+        "artifacts": [
+          {
+            "artifact_id": "LC-CORRIDOR-BASELINE",
+            "owner_repo": "Luminous-Dynamics/mycelix",
+            "contract_id": "living-city-metabolism",
+            "contract_version": "living-city-metabolism/0.1",
+            "schema_artifact_digest": "4f7f3eeee4e91964a6422d2aba9f59e3c3aff57b",
+            "schema_digest_algorithm": "git_blob_sha1",
+            "source_revision": "0aae2f0a7625304c9a7eab0c3528e02fe5d57567",
+            "receipt_id": "lc-receipt-0001",
+            "content_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "subject_id": "synthetic-corridor-metabolism",
+            "subject_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scope_digest": "bb733b294ec864bd3f5a7ce8ab92783babd6b23c67f5e3871976e2a33fee92ab",
+            "boundary_id": "SYNTH-GRID-4X4",
+            "boundary_revision": "GRID-V1",
+            "population_frame_id": "POP-FRAME-SYNTH-01",
+            "horizon_id": "HORIZON-SYNTH-12T",
+            "scenario_id": "baseline",
+            "window_start_tick": 0,
+            "window_end_tick": 12,
+            "weather_profile_id": "WEATHER-SYNTH-V2",
+            "functional_unit_ref": "FU-DISTRICT-SERVICE-YEAR-V1",
+            "design_subject_id": "clinic-building",
+            "design_revision": "CLINIC-DESIGN-V1",
+            "bom_revision": "CLINIC-BOM-V1",
+            "evidence_state": "current",
+            "raw_owner_disposition": "synthetic_test_only",
+            "payload_bytes_verified": false
+          }
+        ]
+      },
+      "expected": {
+        "case_id": "SB-018",
+        "binding_disposition": "Unsupported",
+        "scope_digest": "1205f7a841b36d6251de250ff2185422c4a8b24234c597e7cd4aeb5fbd0f8b20",
+        "reason_codes": [
+          "OWNER_ARTIFACT_SCOPE_MISMATCH",
+          "SCOPE_DIGEST_DECLARATION_MISMATCH",
+          "SYNTHETIC_SCOPE_HAS_REAL_WORLD_COORDINATES"
+        ],
+        "required_artifact_ids": [
+          "LC-CORRIDOR-BASELINE"
+        ],
+        "artifact_bindings": [
+          {
+            "artifact_id": "LC-CORRIDOR-BASELINE",
+            "binding_state": "NotComparable",
+            "raw_owner_disposition": "synthetic_test_only",
+            "payload_bytes_verified": false
+          }
+        ],
+        "owner_result_promotion": "none"
+      }
+    },
+    {
+      "case_id": "SB-019",
+      "description": "A superseded design revision is not comparable for a design-bound artifact.",
+      "input": {
+        "scope": {
+          "scope_id": "CITYREF-SYNTH-001",
+          "schema_version": "citymaker-evaluation-scope/0.1",
+          "classification": "synthetic_fixture_only",
+          "spatial_scope": {
+            "kind": "synthetic_grid",
+            "boundary_id": "SYNTH-GRID-4X4",
+            "boundary_revision": "GRID-V1",
+            "coordinate_reference": "unitless-local-grid",
+            "spatial_resolution_ceiling": "grid-cell",
+            "real_world_coordinates_present": true,
+            "latitude": -26.2,
+            "longitude": 28
+          },
+          "population_frame": {
+            "frame_id": "POP-FRAME-SYNTH-01",
+            "method": "synthetic_fixture",
+            "supported_resolution": "grid-cell",
+            "group_ids": [
+              "households-general",
+              "households-step-free"
+            ]
+          },
+          "time_horizon": {
+            "horizon_id": "HORIZON-SYNTH-12T",
+            "start_tick": 0,
+            "end_tick": 12,
+            "tick_unit": "month",
+            "temporal_resolution": "monthly"
+          },
+          "scenarios": [
+            {
+              "scenario_id": "baseline",
+              "event_ids": []
+            },
+            {
+              "scenario_id": "bridge-closure",
+              "event_ids": [
+                "bridge-closure"
+              ]
+            }
+          ],
+          "weather_profile": {
+            "profile_id": "WEATHER-SYNTH-V1",
+            "revision": "1",
+            "applicability": "synthetic_only"
+          },
+          "service_requirements": [
+            {
+              "requirement_id": "clinic-service",
+              "group_id": "households-general",
+              "category": "health"
+            },
+            {
+              "requirement_id": "step-free-clinic-service",
+              "group_id": "households-step-free",
+              "category": "health"
+            }
+          ],
+          "functional_units": [
+            {
+              "functional_unit_id": "FU-CLINIC-V1",
+              "definition_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "quantity": 100,
+              "unit": "visits/day",
+              "service_definition": "synthetic clinic visit capacity over the declared operating day",
+              "lifecycle_boundary": "service-operation"
+            },
+            {
+              "functional_unit_id": "FU-DISTRICT-SERVICE-YEAR-V1",
+              "definition_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "quantity": 1,
+              "unit": "district_service_year",
+              "service_definition": "synthetic neighbourhood service bundle over one declared service year",
+              "lifecycle_boundary": "operation-maintenance"
+            }
+          ],
+          "currency": {
+            "comparison_enabled": false,
+            "code": null,
+            "base_year": null,
+            "note": "No monetary comparison in v0.1 scope."
+          },
+          "design_revisions": [
+            {
+              "subject_id": "clinic-building",
+              "design_revision": "CLINIC-DESIGN-V1",
+              "bom_revision": "CLINIC-BOM-V1"
+            }
+          ],
+          "evidence_policy": {
+            "schema_pin_required": true,
+            "source_revision_required": true,
+            "receipt_id_unique": true,
+            "content_digest_required": true,
+            "subject_digest_required": true,
+            "stale_or_revoked_abstain": true,
+            "owner_disposition_preserved": true,
+            "payload_bytes_must_be_fetched_before_claiming_digest_verified": true
+          }
+        },
+        "scope_digest": "bb733b294ec864bd3f5a7ce8ab92783babd6b23c67f5e3871976e2a33fee92ab",
+        "owner_schema_registry": [
+          {
+            "owner_repo": "Luminous-Dynamics/mycelix",
+            "contract_id": "living-city-metabolism",
+            "contract_version": "living-city-metabolism/0.1",
+            "schema_artifact_uri": "schemas/living-city-metabolism-v0.1.schema.json",
+            "schema_digest_algorithm": "git_blob_sha1",
+            "schema_artifact_digest": "4f7f3eeee4e91964a6422d2aba9f59e3c3aff57b",
+            "source_revision": "0aae2f0a7625304c9a7eab0c3528e02fe5d57567",
+            "registration_status": "draft_pr_unmerged",
+            "claim_ceiling": "synthetic envelope binding to a pinned draft flow/model schema; not product lot, inventory or custody qualification"
+          }
+        ],
+        "required_artifact_ids": [
+          "LC-CORRIDOR-BASELINE"
+        ],
+        "artifacts": [
+          {
+            "artifact_id": "LC-CORRIDOR-BASELINE",
+            "owner_repo": "Luminous-Dynamics/mycelix",
+            "contract_id": "living-city-metabolism",
+            "contract_version": "living-city-metabolism/0.1",
+            "schema_artifact_digest": "4f7f3eeee4e91964a6422d2aba9f59e3c3aff57b",
+            "schema_digest_algorithm": "git_blob_sha1",
+            "source_revision": "0aae2f0a7625304c9a7eab0c3528e02fe5d57567",
+            "receipt_id": "lc-receipt-0001",
+            "content_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "subject_id": "synthetic-corridor-metabolism",
+            "subject_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scope_digest": "bb733b294ec864bd3f5a7ce8ab92783babd6b23c67f5e3871976e2a33fee92ab",
+            "boundary_id": "SYNTH-GRID-4X4",
+            "boundary_revision": "GRID-V1",
+            "population_frame_id": "POP-FRAME-SYNTH-01",
+            "horizon_id": "HORIZON-SYNTH-12T",
+            "scenario_id": "baseline",
+            "window_start_tick": 0,
+            "window_end_tick": 12,
+            "weather_profile_id": "WEATHER-SYNTH-V1",
+            "functional_unit_ref": "FU-DISTRICT-SERVICE-YEAR-V1",
+            "design_subject_id": "clinic-building",
+            "design_revision": "CLINIC-DESIGN-V0",
+            "bom_revision": "CLINIC-BOM-V1",
+            "evidence_state": "current",
+            "raw_owner_disposition": "synthetic_test_only",
+            "payload_bytes_verified": false
+          }
+        ]
+      },
+      "expected": {
+        "case_id": "SB-019",
+        "binding_disposition": "Unsupported",
+        "scope_digest": "1205f7a841b36d6251de250ff2185422c4a8b24234c597e7cd4aeb5fbd0f8b20",
+        "reason_codes": [
+          "OWNER_ARTIFACT_SCOPE_MISMATCH",
+          "SCOPE_DIGEST_DECLARATION_MISMATCH",
+          "SYNTHETIC_SCOPE_HAS_REAL_WORLD_COORDINATES"
+        ],
+        "required_artifact_ids": [
+          "LC-CORRIDOR-BASELINE"
+        ],
+        "artifact_bindings": [
+          {
+            "artifact_id": "LC-CORRIDOR-BASELINE",
+            "binding_state": "NotComparable",
+            "raw_owner_disposition": "synthetic_test_only",
+            "payload_bytes_verified": false
+          }
+        ],
+        "owner_result_promotion": "none"
+      }
+    },
+    {
+      "case_id": "SB-020",
+      "description": "A scope marked synthetic cannot contain real-world coordinates.",
+      "input": {
+        "scope": {
+          "scope_id": "CITYREF-SYNTH-001",
+          "schema_version": "citymaker-evaluation-scope/0.1",
+          "classification": "synthetic_fixture_only",
+          "spatial_scope": {
+            "kind": "synthetic_grid",
+            "boundary_id": "SYNTH-GRID-4X4",
+            "boundary_revision": "GRID-V1",
+            "coordinate_reference": "unitless-local-grid",
+            "spatial_resolution_ceiling": "grid-cell",
+            "real_world_coordinates_present": true,
+            "latitude": -26.2,
+            "longitude": 28
+          },
+          "population_frame": {
+            "frame_id": "POP-FRAME-SYNTH-01",
+            "method": "synthetic_fixture",
+            "supported_resolution": "grid-cell",
+            "group_ids": [
+              "households-general",
+              "households-step-free"
+            ]
+          },
+          "time_horizon": {
+            "horizon_id": "HORIZON-SYNTH-12T",
+            "start_tick": 0,
+            "end_tick": 12,
+            "tick_unit": "month",
+            "temporal_resolution": "monthly"
+          },
+          "scenarios": [
+            {
+              "scenario_id": "baseline",
+              "event_ids": []
+            },
+            {
+              "scenario_id": "bridge-closure",
+              "event_ids": [
+                "bridge-closure"
+              ]
+            }
+          ],
+          "weather_profile": {
+            "profile_id": "WEATHER-SYNTH-V1",
+            "revision": "1",
+            "applicability": "synthetic_only"
+          },
+          "service_requirements": [
+            {
+              "requirement_id": "clinic-service",
+              "group_id": "households-general",
+              "category": "health"
+            },
+            {
+              "requirement_id": "step-free-clinic-service",
+              "group_id": "households-step-free",
+              "category": "health"
+            }
+          ],
+          "functional_units": [
+            {
+              "functional_unit_id": "FU-CLINIC-V1",
+              "definition_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "quantity": 100,
+              "unit": "visits/day",
+              "service_definition": "synthetic clinic visit capacity over the declared operating day",
+              "lifecycle_boundary": "service-operation"
+            },
+            {
+              "functional_unit_id": "FU-DISTRICT-SERVICE-YEAR-V1",
+              "definition_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "quantity": 1,
+              "unit": "district_service_year",
+              "service_definition": "synthetic neighbourhood service bundle over one declared service year",
+              "lifecycle_boundary": "operation-maintenance"
+            }
+          ],
+          "currency": {
+            "comparison_enabled": false,
+            "code": null,
+            "base_year": null,
+            "note": "No monetary comparison in v0.1 scope."
+          },
+          "design_revisions": [
+            {
+              "subject_id": "clinic-building",
+              "design_revision": "CLINIC-DESIGN-V1",
+              "bom_revision": "CLINIC-BOM-V1"
+            }
+          ],
+          "evidence_policy": {
+            "schema_pin_required": true,
+            "source_revision_required": true,
+            "receipt_id_unique": true,
+            "content_digest_required": true,
+            "subject_digest_required": true,
+            "stale_or_revoked_abstain": true,
+            "owner_disposition_preserved": true,
+            "payload_bytes_must_be_fetched_before_claiming_digest_verified": true
+          }
+        },
+        "scope_digest": "bb733b294ec864bd3f5a7ce8ab92783babd6b23c67f5e3871976e2a33fee92ab",
+        "owner_schema_registry": [
+          {
+            "owner_repo": "Luminous-Dynamics/mycelix",
+            "contract_id": "living-city-metabolism",
+            "contract_version": "living-city-metabolism/0.1",
+            "schema_artifact_uri": "schemas/living-city-metabolism-v0.1.schema.json",
+            "schema_digest_algorithm": "git_blob_sha1",
+            "schema_artifact_digest": "4f7f3eeee4e91964a6422d2aba9f59e3c3aff57b",
+            "source_revision": "0aae2f0a7625304c9a7eab0c3528e02fe5d57567",
+            "registration_status": "draft_pr_unmerged",
+            "claim_ceiling": "synthetic envelope binding to a pinned draft flow/model schema; not product lot, inventory or custody qualification"
+          }
+        ],
+        "required_artifact_ids": [
+          "LC-CORRIDOR-BASELINE"
+        ],
+        "artifacts": [
+          {
+            "artifact_id": "LC-CORRIDOR-BASELINE",
+            "owner_repo": "Luminous-Dynamics/mycelix",
+            "contract_id": "living-city-metabolism",
+            "contract_version": "living-city-metabolism/0.1",
+            "schema_artifact_digest": "4f7f3eeee4e91964a6422d2aba9f59e3c3aff57b",
+            "schema_digest_algorithm": "git_blob_sha1",
+            "source_revision": "0aae2f0a7625304c9a7eab0c3528e02fe5d57567",
+            "receipt_id": "lc-receipt-0001",
+            "content_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "subject_id": "synthetic-corridor-metabolism",
+            "subject_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scope_digest": "bb733b294ec864bd3f5a7ce8ab92783babd6b23c67f5e3871976e2a33fee92ab",
+            "boundary_id": "SYNTH-GRID-4X4",
+            "boundary_revision": "GRID-V1",
+            "population_frame_id": "POP-FRAME-SYNTH-01",
+            "horizon_id": "HORIZON-SYNTH-12T",
+            "scenario_id": "baseline",
+            "window_start_tick": 0,
+            "window_end_tick": 12,
+            "weather_profile_id": "WEATHER-SYNTH-V1",
+            "functional_unit_ref": "FU-DISTRICT-SERVICE-YEAR-V1",
+            "design_subject_id": "clinic-building",
+            "design_revision": "CLINIC-DESIGN-V1",
+            "bom_revision": "CLINIC-BOM-V1",
+            "evidence_state": "current",
+            "raw_owner_disposition": "synthetic_test_only",
+            "payload_bytes_verified": false
+          }
+        ]
+      },
+      "expected": {
+        "case_id": "SB-020",
+        "binding_disposition": "Unsupported",
+        "scope_digest": "1205f7a841b36d6251de250ff2185422c4a8b24234c597e7cd4aeb5fbd0f8b20",
+        "reason_codes": [
+          "OWNER_ARTIFACT_SCOPE_MISMATCH",
+          "SCOPE_DIGEST_DECLARATION_MISMATCH",
+          "SYNTHETIC_SCOPE_HAS_REAL_WORLD_COORDINATES"
+        ],
+        "required_artifact_ids": [
+          "LC-CORRIDOR-BASELINE"
+        ],
+        "artifact_bindings": [
+          {
+            "artifact_id": "LC-CORRIDOR-BASELINE",
+            "binding_state": "NotComparable",
+            "raw_owner_disposition": "synthetic_test_only",
+            "payload_bytes_verified": false
+          }
+        ],
+        "owner_result_promotion": "none"
+      }
+    },
+    {
+      "case_id": "SB-021",
+      "description": "A malformed content digest is unsupported.",
+      "input": {
+        "scope": {
+          "scope_id": "CITYREF-SYNTH-001",
+          "schema_version": "citymaker-evaluation-scope/0.1",
+          "classification": "synthetic_fixture_only",
+          "spatial_scope": {
+            "kind": "synthetic_grid",
+            "boundary_id": "SYNTH-GRID-4X4",
+            "boundary_revision": "GRID-V1",
+            "coordinate_reference": "unitless-local-grid",
+            "spatial_resolution_ceiling": "grid-cell",
+            "real_world_coordinates_present": true,
+            "latitude": -26.2,
+            "longitude": 28
+          },
+          "population_frame": {
+            "frame_id": "POP-FRAME-SYNTH-01",
+            "method": "synthetic_fixture",
+            "supported_resolution": "grid-cell",
+            "group_ids": [
+              "households-general",
+              "households-step-free"
+            ]
+          },
+          "time_horizon": {
+            "horizon_id": "HORIZON-SYNTH-12T",
+            "start_tick": 0,
+            "end_tick": 12,
+            "tick_unit": "month",
+            "temporal_resolution": "monthly"
+          },
+          "scenarios": [
+            {
+              "scenario_id": "baseline",
+              "event_ids": []
+            },
+            {
+              "scenario_id": "bridge-closure",
+              "event_ids": [
+                "bridge-closure"
+              ]
+            }
+          ],
+          "weather_profile": {
+            "profile_id": "WEATHER-SYNTH-V1",
+            "revision": "1",
+            "applicability": "synthetic_only"
+          },
+          "service_requirements": [
+            {
+              "requirement_id": "clinic-service",
+              "group_id": "households-general",
+              "category": "health"
+            },
+            {
+              "requirement_id": "step-free-clinic-service",
+              "group_id": "households-step-free",
+              "category": "health"
+            }
+          ],
+          "functional_units": [
+            {
+              "functional_unit_id": "FU-CLINIC-V1",
+              "definition_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "quantity": 100,
+              "unit": "visits/day",
+              "service_definition": "synthetic clinic visit capacity over the declared operating day",
+              "lifecycle_boundary": "service-operation"
+            },
+            {
+              "functional_unit_id": "FU-DISTRICT-SERVICE-YEAR-V1",
+              "definition_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "quantity": 1,
+              "unit": "district_service_year",
+              "service_definition": "synthetic neighbourhood service bundle over one declared service year",
+              "lifecycle_boundary": "operation-maintenance"
+            }
+          ],
+          "currency": {
+            "comparison_enabled": false,
+            "code": null,
+            "base_year": null,
+            "note": "No monetary comparison in v0.1 scope."
+          },
+          "design_revisions": [
+            {
+              "subject_id": "clinic-building",
+              "design_revision": "CLINIC-DESIGN-V1",
+              "bom_revision": "CLINIC-BOM-V1"
+            }
+          ],
+          "evidence_policy": {
+            "schema_pin_required": true,
+            "source_revision_required": true,
+            "receipt_id_unique": true,
+            "content_digest_required": true,
+            "subject_digest_required": true,
+            "stale_or_revoked_abstain": true,
+            "owner_disposition_preserved": true,
+            "payload_bytes_must_be_fetched_before_claiming_digest_verified": true
+          }
+        },
+        "scope_digest": "bb733b294ec864bd3f5a7ce8ab92783babd6b23c67f5e3871976e2a33fee92ab",
+        "owner_schema_registry": [
+          {
+            "owner_repo": "Luminous-Dynamics/mycelix",
+            "contract_id": "living-city-metabolism",
+            "contract_version": "living-city-metabolism/0.1",
+            "schema_artifact_uri": "schemas/living-city-metabolism-v0.1.schema.json",
+            "schema_digest_algorithm": "git_blob_sha1",
+            "schema_artifact_digest": "4f7f3eeee4e91964a6422d2aba9f59e3c3aff57b",
+            "source_revision": "0aae2f0a7625304c9a7eab0c3528e02fe5d57567",
+            "registration_status": "draft_pr_unmerged",
+            "claim_ceiling": "synthetic envelope binding to a pinned draft flow/model schema; not product lot, inventory or custody qualification"
+          }
+        ],
+        "required_artifact_ids": [
+          "LC-CORRIDOR-BASELINE"
+        ],
+        "artifacts": [
+          {
+            "artifact_id": "LC-CORRIDOR-BASELINE",
+            "owner_repo": "Luminous-Dynamics/mycelix",
+            "contract_id": "living-city-metabolism",
+            "contract_version": "living-city-metabolism/0.1",
+            "schema_artifact_digest": "4f7f3eeee4e91964a6422d2aba9f59e3c3aff57b",
+            "schema_digest_algorithm": "git_blob_sha1",
+            "source_revision": "0aae2f0a7625304c9a7eab0c3528e02fe5d57567",
+            "receipt_id": "lc-receipt-0001",
+            "content_digest": "not-a-digest",
+            "subject_id": "synthetic-corridor-metabolism",
+            "subject_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scope_digest": "bb733b294ec864bd3f5a7ce8ab92783babd6b23c67f5e3871976e2a33fee92ab",
+            "boundary_id": "SYNTH-GRID-4X4",
+            "boundary_revision": "GRID-V1",
+            "population_frame_id": "POP-FRAME-SYNTH-01",
+            "horizon_id": "HORIZON-SYNTH-12T",
+            "scenario_id": "baseline",
+            "window_start_tick": 0,
+            "window_end_tick": 12,
+            "weather_profile_id": "WEATHER-SYNTH-V1",
+            "functional_unit_ref": "FU-DISTRICT-SERVICE-YEAR-V1",
+            "design_subject_id": "clinic-building",
+            "design_revision": "CLINIC-DESIGN-V1",
+            "bom_revision": "CLINIC-BOM-V1",
+            "evidence_state": "current",
+            "raw_owner_disposition": "synthetic_test_only",
+            "payload_bytes_verified": false
+          }
+        ]
+      },
+      "expected": {
+        "case_id": "SB-021",
+        "binding_disposition": "Unsupported",
+        "scope_digest": "1205f7a841b36d6251de250ff2185422c4a8b24234c597e7cd4aeb5fbd0f8b20",
+        "reason_codes": [
+          "OWNER_ARTIFACT_DIGEST_OR_REVISION_MALFORMED",
+          "SCOPE_DIGEST_DECLARATION_MISMATCH",
+          "SYNTHETIC_SCOPE_HAS_REAL_WORLD_COORDINATES"
+        ],
+        "required_artifact_ids": [
+          "LC-CORRIDOR-BASELINE"
+        ],
+        "artifact_bindings": [
+          {
+            "artifact_id": "LC-CORRIDOR-BASELINE",
+            "binding_state": "Unsupported",
+            "raw_owner_disposition": "synthetic_test_only",
+            "payload_bytes_verified": false
+          }
+        ],
+        "owner_result_promotion": "none"
+      }
+    },
+    {
+      "case_id": "SB-022",
+      "description": "A missing required schema registry entry leaves the artifact unknown.",
+      "input": {
+        "scope": {
+          "scope_id": "CITYREF-SYNTH-001",
+          "schema_version": "citymaker-evaluation-scope/0.1",
+          "classification": "synthetic_fixture_only",
+          "spatial_scope": {
+            "kind": "synthetic_grid",
+            "boundary_id": "SYNTH-GRID-4X4",
+            "boundary_revision": "GRID-V1",
+            "coordinate_reference": "unitless-local-grid",
+            "spatial_resolution_ceiling": "grid-cell",
+            "real_world_coordinates_present": true,
+            "latitude": -26.2,
+            "longitude": 28
+          },
+          "population_frame": {
+            "frame_id": "POP-FRAME-SYNTH-01",
+            "method": "synthetic_fixture",
+            "supported_resolution": "grid-cell",
+            "group_ids": [
+              "households-general",
+              "households-step-free"
+            ]
+          },
+          "time_horizon": {
+            "horizon_id": "HORIZON-SYNTH-12T",
+            "start_tick": 0,
+            "end_tick": 12,
+            "tick_unit": "month",
+            "temporal_resolution": "monthly"
+          },
+          "scenarios": [
+            {
+              "scenario_id": "baseline",
+              "event_ids": []
+            },
+            {
+              "scenario_id": "bridge-closure",
+              "event_ids": [
+                "bridge-closure"
+              ]
+            }
+          ],
+          "weather_profile": {
+            "profile_id": "WEATHER-SYNTH-V1",
+            "revision": "1",
+            "applicability": "synthetic_only"
+          },
+          "service_requirements": [
+            {
+              "requirement_id": "clinic-service",
+              "group_id": "households-general",
+              "category": "health"
+            },
+            {
+              "requirement_id": "step-free-clinic-service",
+              "group_id": "households-step-free",
+              "category": "health"
+            }
+          ],
+          "functional_units": [
+            {
+              "functional_unit_id": "FU-CLINIC-V1",
+              "definition_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "quantity": 100,
+              "unit": "visits/day",
+              "service_definition": "synthetic clinic visit capacity over the declared operating day",
+              "lifecycle_boundary": "service-operation"
+            },
+            {
+              "functional_unit_id": "FU-DISTRICT-SERVICE-YEAR-V1",
+              "definition_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "quantity": 1,
+              "unit": "district_service_year",
+              "service_definition": "synthetic neighbourhood service bundle over one declared service year",
+              "lifecycle_boundary": "operation-maintenance"
+            }
+          ],
+          "currency": {
+            "comparison_enabled": false,
+            "code": null,
+            "base_year": null,
+            "note": "No monetary comparison in v0.1 scope."
+          },
+          "design_revisions": [
+            {
+              "subject_id": "clinic-building",
+              "design_revision": "CLINIC-DESIGN-V1",
+              "bom_revision": "CLINIC-BOM-V1"
+            }
+          ],
+          "evidence_policy": {
+            "schema_pin_required": true,
+            "source_revision_required": true,
+            "receipt_id_unique": true,
+            "content_digest_required": true,
+            "subject_digest_required": true,
+            "stale_or_revoked_abstain": true,
+            "owner_disposition_preserved": true,
+            "payload_bytes_must_be_fetched_before_claiming_digest_verified": true
+          }
+        },
+        "scope_digest": "bb733b294ec864bd3f5a7ce8ab92783babd6b23c67f5e3871976e2a33fee92ab",
+        "owner_schema_registry": [],
+        "required_artifact_ids": [
+          "LC-CORRIDOR-BASELINE"
+        ],
+        "artifacts": [
+          {
+            "artifact_id": "LC-CORRIDOR-BASELINE",
+            "owner_repo": "Luminous-Dynamics/mycelix",
+            "contract_id": "living-city-metabolism",
+            "contract_version": "living-city-metabolism/0.1",
+            "schema_artifact_digest": "4f7f3eeee4e91964a6422d2aba9f59e3c3aff57b",
+            "schema_digest_algorithm": "git_blob_sha1",
+            "source_revision": "0aae2f0a7625304c9a7eab0c3528e02fe5d57567",
+            "receipt_id": "lc-receipt-0001",
+            "content_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "subject_id": "synthetic-corridor-metabolism",
+            "subject_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scope_digest": "bb733b294ec864bd3f5a7ce8ab92783babd6b23c67f5e3871976e2a33fee92ab",
+            "boundary_id": "SYNTH-GRID-4X4",
+            "boundary_revision": "GRID-V1",
+            "population_frame_id": "POP-FRAME-SYNTH-01",
+            "horizon_id": "HORIZON-SYNTH-12T",
+            "scenario_id": "baseline",
+            "window_start_tick": 0,
+            "window_end_tick": 12,
+            "weather_profile_id": "WEATHER-SYNTH-V1",
+            "functional_unit_ref": "FU-DISTRICT-SERVICE-YEAR-V1",
+            "design_subject_id": "clinic-building",
+            "design_revision": "CLINIC-DESIGN-V1",
+            "bom_revision": "CLINIC-BOM-V1",
+            "evidence_state": "current",
+            "raw_owner_disposition": "synthetic_test_only",
+            "payload_bytes_verified": false
+          }
+        ]
+      },
+      "expected": {
+        "case_id": "SB-022",
+        "binding_disposition": "Unsupported",
+        "scope_digest": "1205f7a841b36d6251de250ff2185422c4a8b24234c597e7cd4aeb5fbd0f8b20",
+        "reason_codes": [
+          "OWNER_SCHEMA_REGISTRY_ENTRY_MISSING",
+          "SCOPE_DIGEST_DECLARATION_MISMATCH",
+          "SYNTHETIC_SCOPE_HAS_REAL_WORLD_COORDINATES"
+        ],
+        "required_artifact_ids": [
+          "LC-CORRIDOR-BASELINE"
+        ],
+        "artifact_bindings": [
+          {
+            "artifact_id": "LC-CORRIDOR-BASELINE",
+            "binding_state": "Unknown",
+            "raw_owner_disposition": "synthetic_test_only",
+            "payload_bytes_verified": false
+          }
+        ],
+        "owner_result_promotion": "none"
+      }
+    },
+    {
+      "case_id": "SB-023",
+      "description": "A mismatched source revision is not comparable with the pinned schema artifact.",
+      "input": {
+        "scope": {
+          "scope_id": "CITYREF-SYNTH-001",
+          "schema_version": "citymaker-evaluation-scope/0.1",
+          "classification": "synthetic_fixture_only",
+          "spatial_scope": {
+            "kind": "synthetic_grid",
+            "boundary_id": "SYNTH-GRID-4X4",
+            "boundary_revision": "GRID-V1",
+            "coordinate_reference": "unitless-local-grid",
+            "spatial_resolution_ceiling": "grid-cell",
+            "real_world_coordinates_present": true,
+            "latitude": -26.2,
+            "longitude": 28
+          },
+          "population_frame": {
+            "frame_id": "POP-FRAME-SYNTH-01",
+            "method": "synthetic_fixture",
+            "supported_resolution": "grid-cell",
+            "group_ids": [
+              "households-general",
+              "households-step-free"
+            ]
+          },
+          "time_horizon": {
+            "horizon_id": "HORIZON-SYNTH-12T",
+            "start_tick": 0,
+            "end_tick": 12,
+            "tick_unit": "month",
+            "temporal_resolution": "monthly"
+          },
+          "scenarios": [
+            {
+              "scenario_id": "baseline",
+              "event_ids": []
+            },
+            {
+              "scenario_id": "bridge-closure",
+              "event_ids": [
+                "bridge-closure"
+              ]
+            }
+          ],
+          "weather_profile": {
+            "profile_id": "WEATHER-SYNTH-V1",
+            "revision": "1",
+            "applicability": "synthetic_only"
+          },
+          "service_requirements": [
+            {
+              "requirement_id": "clinic-service",
+              "group_id": "households-general",
+              "category": "health"
+            },
+            {
+              "requirement_id": "step-free-clinic-service",
+              "group_id": "households-step-free",
+              "category": "health"
+            }
+          ],
+          "functional_units": [
+            {
+              "functional_unit_id": "FU-CLINIC-V1",
+              "definition_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "quantity": 100,
+              "unit": "visits/day",
+              "service_definition": "synthetic clinic visit capacity over the declared operating day",
+              "lifecycle_boundary": "service-operation"
+            },
+            {
+              "functional_unit_id": "FU-DISTRICT-SERVICE-YEAR-V1",
+              "definition_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "quantity": 1,
+              "unit": "district_service_year",
+              "service_definition": "synthetic neighbourhood service bundle over one declared service year",
+              "lifecycle_boundary": "operation-maintenance"
+            }
+          ],
+          "currency": {
+            "comparison_enabled": false,
+            "code": null,
+            "base_year": null,
+            "note": "No monetary comparison in v0.1 scope."
+          },
+          "design_revisions": [
+            {
+              "subject_id": "clinic-building",
+              "design_revision": "CLINIC-DESIGN-V1",
+              "bom_revision": "CLINIC-BOM-V1"
+            }
+          ],
+          "evidence_policy": {
+            "schema_pin_required": true,
+            "source_revision_required": true,
+            "receipt_id_unique": true,
+            "content_digest_required": true,
+            "subject_digest_required": true,
+            "stale_or_revoked_abstain": true,
+            "owner_disposition_preserved": true,
+            "payload_bytes_must_be_fetched_before_claiming_digest_verified": true
+          }
+        },
+        "scope_digest": "bb733b294ec864bd3f5a7ce8ab92783babd6b23c67f5e3871976e2a33fee92ab",
+        "owner_schema_registry": [
+          {
+            "owner_repo": "Luminous-Dynamics/mycelix",
+            "contract_id": "living-city-metabolism",
+            "contract_version": "living-city-metabolism/0.1",
+            "schema_artifact_uri": "schemas/living-city-metabolism-v0.1.schema.json",
+            "schema_digest_algorithm": "git_blob_sha1",
+            "schema_artifact_digest": "4f7f3eeee4e91964a6422d2aba9f59e3c3aff57b",
+            "source_revision": "0aae2f0a7625304c9a7eab0c3528e02fe5d57567",
+            "registration_status": "draft_pr_unmerged",
+            "claim_ceiling": "synthetic envelope binding to a pinned draft flow/model schema; not product lot, inventory or custody qualification"
+          }
+        ],
+        "required_artifact_ids": [
+          "LC-CORRIDOR-BASELINE"
+        ],
+        "artifacts": [
+          {
+            "artifact_id": "LC-CORRIDOR-BASELINE",
+            "owner_repo": "Luminous-Dynamics/mycelix",
+            "contract_id": "living-city-metabolism",
+            "contract_version": "living-city-metabolism/0.1",
+            "schema_artifact_digest": "4f7f3eeee4e91964a6422d2aba9f59e3c3aff57b",
+            "schema_digest_algorithm": "git_blob_sha1",
+            "source_revision": "1111111111111111111111111111111111111111",
+            "receipt_id": "lc-receipt-0001",
+            "content_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "subject_id": "synthetic-corridor-metabolism",
+            "subject_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scope_digest": "bb733b294ec864bd3f5a7ce8ab92783babd6b23c67f5e3871976e2a33fee92ab",
+            "boundary_id": "SYNTH-GRID-4X4",
+            "boundary_revision": "GRID-V1",
+            "population_frame_id": "POP-FRAME-SYNTH-01",
+            "horizon_id": "HORIZON-SYNTH-12T",
+            "scenario_id": "baseline",
+            "window_start_tick": 0,
+            "window_end_tick": 12,
+            "weather_profile_id": "WEATHER-SYNTH-V1",
+            "functional_unit_ref": "FU-DISTRICT-SERVICE-YEAR-V1",
+            "design_subject_id": "clinic-building",
+            "design_revision": "CLINIC-DESIGN-V1",
+            "bom_revision": "CLINIC-BOM-V1",
+            "evidence_state": "current",
+            "raw_owner_disposition": "synthetic_test_only",
+            "payload_bytes_verified": false
+          }
+        ]
+      },
+      "expected": {
+        "case_id": "SB-023",
+        "binding_disposition": "Unsupported",
+        "scope_digest": "1205f7a841b36d6251de250ff2185422c4a8b24234c597e7cd4aeb5fbd0f8b20",
+        "reason_codes": [
+          "OWNER_SCHEMA_OR_SOURCE_REVISION_MISMATCH",
+          "SCOPE_DIGEST_DECLARATION_MISMATCH",
+          "SYNTHETIC_SCOPE_HAS_REAL_WORLD_COORDINATES"
+        ],
+        "required_artifact_ids": [
+          "LC-CORRIDOR-BASELINE"
+        ],
+        "artifact_bindings": [
+          {
+            "artifact_id": "LC-CORRIDOR-BASELINE",
+            "binding_state": "NotComparable",
+            "raw_owner_disposition": "synthetic_test_only",
+            "payload_bytes_verified": false
+          }
+        ],
+        "owner_result_promotion": "none"
+      }
+    },
+    {
+      "case_id": "SB-024",
+      "description": "A scope-bound imported or externally dependent result remains exactly as the owner reported it.",
+      "input": {
+        "scope": {
+          "scope_id": "CITYREF-SYNTH-001",
+          "schema_version": "citymaker-evaluation-scope/0.1",
+          "classification": "synthetic_fixture_only",
+          "spatial_scope": {
+            "kind": "synthetic_grid",
+            "boundary_id": "SYNTH-GRID-4X4",
+            "boundary_revision": "GRID-V1",
+            "coordinate_reference": "unitless-local-grid",
+            "spatial_resolution_ceiling": "grid-cell",
+            "real_world_coordinates_present": true,
+            "latitude": -26.2,
+            "longitude": 28
+          },
+          "population_frame": {
+            "frame_id": "POP-FRAME-SYNTH-01",
+            "method": "synthetic_fixture",
+            "supported_resolution": "grid-cell",
+            "group_ids": [
+              "households-general",
+              "households-step-free"
+            ]
+          },
+          "time_horizon": {
+            "horizon_id": "HORIZON-SYNTH-12T",
+            "start_tick": 0,
+            "end_tick": 12,
+            "tick_unit": "month",
+            "temporal_resolution": "monthly"
+          },
+          "scenarios": [
+            {
+              "scenario_id": "baseline",
+              "event_ids": []
+            },
+            {
+              "scenario_id": "bridge-closure",
+              "event_ids": [
+                "bridge-closure"
+              ]
+            }
+          ],
+          "weather_profile": {
+            "profile_id": "WEATHER-SYNTH-V1",
+            "revision": "1",
+            "applicability": "synthetic_only"
+          },
+          "service_requirements": [
+            {
+              "requirement_id": "clinic-service",
+              "group_id": "households-general",
+              "category": "health"
+            },
+            {
+              "requirement_id": "step-free-clinic-service",
+              "group_id": "households-step-free",
+              "category": "health"
+            }
+          ],
+          "functional_units": [
+            {
+              "functional_unit_id": "FU-CLINIC-V1",
+              "definition_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "quantity": 100,
+              "unit": "visits/day",
+              "service_definition": "synthetic clinic visit capacity over the declared operating day",
+              "lifecycle_boundary": "service-operation"
+            },
+            {
+              "functional_unit_id": "FU-DISTRICT-SERVICE-YEAR-V1",
+              "definition_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "quantity": 1,
+              "unit": "district_service_year",
+              "service_definition": "synthetic neighbourhood service bundle over one declared service year",
+              "lifecycle_boundary": "operation-maintenance"
+            }
+          ],
+          "currency": {
+            "comparison_enabled": false,
+            "code": null,
+            "base_year": null,
+            "note": "No monetary comparison in v0.1 scope."
+          },
+          "design_revisions": [
+            {
+              "subject_id": "clinic-building",
+              "design_revision": "CLINIC-DESIGN-V1",
+              "bom_revision": "CLINIC-BOM-V1"
+            }
+          ],
+          "evidence_policy": {
+            "schema_pin_required": true,
+            "source_revision_required": true,
+            "receipt_id_unique": true,
+            "content_digest_required": true,
+            "subject_digest_required": true,
+            "stale_or_revoked_abstain": true,
+            "owner_disposition_preserved": true,
+            "payload_bytes_must_be_fetched_before_claiming_digest_verified": true
+          }
+        },
+        "scope_digest": "bb733b294ec864bd3f5a7ce8ab92783babd6b23c67f5e3871976e2a33fee92ab",
+        "owner_schema_registry": [
+          {
+            "owner_repo": "Luminous-Dynamics/mycelix",
+            "contract_id": "living-city-metabolism",
+            "contract_version": "living-city-metabolism/0.1",
+            "schema_artifact_uri": "schemas/living-city-metabolism-v0.1.schema.json",
+            "schema_digest_algorithm": "git_blob_sha1",
+            "schema_artifact_digest": "4f7f3eeee4e91964a6422d2aba9f59e3c3aff57b",
+            "source_revision": "0aae2f0a7625304c9a7eab0c3528e02fe5d57567",
+            "registration_status": "draft_pr_unmerged",
+            "claim_ceiling": "synthetic envelope binding to a pinned draft flow/model schema; not product lot, inventory or custody qualification"
+          }
+        ],
+        "required_artifact_ids": [
+          "LC-CORRIDOR-BASELINE"
+        ],
+        "artifacts": [
+          {
+            "artifact_id": "LC-CORRIDOR-BASELINE",
+            "owner_repo": "Luminous-Dynamics/mycelix",
+            "contract_id": "living-city-metabolism",
+            "contract_version": "living-city-metabolism/0.1",
+            "schema_artifact_digest": "4f7f3eeee4e91964a6422d2aba9f59e3c3aff57b",
+            "schema_digest_algorithm": "git_blob_sha1",
+            "source_revision": "0aae2f0a7625304c9a7eab0c3528e02fe5d57567",
+            "receipt_id": "lc-receipt-0001",
+            "content_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "subject_id": "synthetic-corridor-metabolism",
+            "subject_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scope_digest": "bb733b294ec864bd3f5a7ce8ab92783babd6b23c67f5e3871976e2a33fee92ab",
+            "boundary_id": "SYNTH-GRID-4X4",
+            "boundary_revision": "GRID-V1",
+            "population_frame_id": "POP-FRAME-SYNTH-01",
+            "horizon_id": "HORIZON-SYNTH-12T",
+            "scenario_id": "baseline",
+            "window_start_tick": 0,
+            "window_end_tick": 12,
+            "weather_profile_id": "WEATHER-SYNTH-V1",
+            "functional_unit_ref": "FU-DISTRICT-SERVICE-YEAR-V1",
+            "design_subject_id": "clinic-building",
+            "design_revision": "CLINIC-DESIGN-V1",
+            "bom_revision": "CLINIC-BOM-V1",
+            "evidence_state": "current",
+            "raw_owner_disposition": "ImportDependent",
+            "payload_bytes_verified": false
+          }
+        ]
+      },
+      "expected": {
+        "case_id": "SB-024",
+        "binding_disposition": "Unsupported",
+        "scope_digest": "1205f7a841b36d6251de250ff2185422c4a8b24234c597e7cd4aeb5fbd0f8b20",
+        "reason_codes": [
+          "OWNER_ARTIFACT_SCOPE_MISMATCH",
+          "SCOPE_DIGEST_DECLARATION_MISMATCH",
+          "SYNTHETIC_SCOPE_HAS_REAL_WORLD_COORDINATES"
+        ],
+        "required_artifact_ids": [
+          "LC-CORRIDOR-BASELINE"
+        ],
+        "artifact_bindings": [
+          {
+            "artifact_id": "LC-CORRIDOR-BASELINE",
+            "binding_state": "NotComparable",
+            "raw_owner_disposition": "ImportDependent",
+            "payload_bytes_verified": false
+          }
+        ],
+        "owner_result_promotion": "none"
+      }
+    },
+    {
+      "case_id": "SB-025",
+      "description": "An object-key/input-artifact permutation does not change the normalized binding result.",
+      "input": {
+        "scope": {
+          "scope_id": "CITYREF-SYNTH-001",
+          "schema_version": "citymaker-evaluation-scope/0.1",
+          "classification": "synthetic_fixture_only",
+          "spatial_scope": {
+            "kind": "synthetic_grid",
+            "boundary_id": "SYNTH-GRID-4X4",
+            "boundary_revision": "GRID-V1",
+            "coordinate_reference": "unitless-local-grid",
+            "spatial_resolution_ceiling": "grid-cell",
+            "real_world_coordinates_present": true,
+            "latitude": -26.2,
+            "longitude": 28
+          },
+          "population_frame": {
+            "frame_id": "POP-FRAME-SYNTH-01",
+            "method": "synthetic_fixture",
+            "supported_resolution": "grid-cell",
+            "group_ids": [
+              "households-general",
+              "households-step-free"
+            ]
+          },
+          "time_horizon": {
+            "horizon_id": "HORIZON-SYNTH-12T",
+            "start_tick": 0,
+            "end_tick": 12,
+            "tick_unit": "month",
+            "temporal_resolution": "monthly"
+          },
+          "scenarios": [
+            {
+              "scenario_id": "baseline",
+              "event_ids": []
+            },
+            {
+              "scenario_id": "bridge-closure",
+              "event_ids": [
+                "bridge-closure"
+              ]
+            }
+          ],
+          "weather_profile": {
+            "profile_id": "WEATHER-SYNTH-V1",
+            "revision": "1",
+            "applicability": "synthetic_only"
+          },
+          "service_requirements": [
+            {
+              "requirement_id": "clinic-service",
+              "group_id": "households-general",
+              "category": "health"
+            },
+            {
+              "requirement_id": "step-free-clinic-service",
+              "group_id": "households-step-free",
+              "category": "health"
+            }
+          ],
+          "functional_units": [
+            {
+              "functional_unit_id": "FU-CLINIC-V1",
+              "definition_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "quantity": 100,
+              "unit": "visits/day",
+              "service_definition": "synthetic clinic visit capacity over the declared operating day",
+              "lifecycle_boundary": "service-operation"
+            },
+            {
+              "functional_unit_id": "FU-DISTRICT-SERVICE-YEAR-V1",
+              "definition_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "quantity": 1,
+              "unit": "district_service_year",
+              "service_definition": "synthetic neighbourhood service bundle over one declared service year",
+              "lifecycle_boundary": "operation-maintenance"
+            }
+          ],
+          "currency": {
+            "comparison_enabled": false,
+            "code": null,
+            "base_year": null,
+            "note": "No monetary comparison in v0.1 scope."
+          },
+          "design_revisions": [
+            {
+              "subject_id": "clinic-building",
+              "design_revision": "CLINIC-DESIGN-V1",
+              "bom_revision": "CLINIC-BOM-V1"
+            }
+          ],
+          "evidence_policy": {
+            "schema_pin_required": true,
+            "source_revision_required": true,
+            "receipt_id_unique": true,
+            "content_digest_required": true,
+            "subject_digest_required": true,
+            "stale_or_revoked_abstain": true,
+            "owner_disposition_preserved": true,
+            "payload_bytes_must_be_fetched_before_claiming_digest_verified": true
+          }
+        },
+        "scope_digest": "bb733b294ec864bd3f5a7ce8ab92783babd6b23c67f5e3871976e2a33fee92ab",
+        "owner_schema_registry": [
+          {
+            "owner_repo": "Luminous-Dynamics/mycelix",
+            "contract_id": "living-city-metabolism",
+            "contract_version": "living-city-metabolism/0.1",
+            "schema_artifact_uri": "schemas/living-city-metabolism-v0.1.schema.json",
+            "schema_digest_algorithm": "git_blob_sha1",
+            "schema_artifact_digest": "4f7f3eeee4e91964a6422d2aba9f59e3c3aff57b",
+            "source_revision": "0aae2f0a7625304c9a7eab0c3528e02fe5d57567",
+            "registration_status": "draft_pr_unmerged",
+            "claim_ceiling": "synthetic envelope binding to a pinned draft flow/model schema; not product lot, inventory or custody qualification"
+          }
+        ],
+        "required_artifact_ids": [
+          "LC-CORRIDOR-BASELINE"
+        ],
+        "artifacts": [
+          {
+            "artifact_id": "LC-CORRIDOR-BASELINE",
+            "owner_repo": "Luminous-Dynamics/mycelix",
+            "contract_id": "living-city-metabolism",
+            "contract_version": "living-city-metabolism/0.1",
+            "schema_artifact_digest": "4f7f3eeee4e91964a6422d2aba9f59e3c3aff57b",
+            "schema_digest_algorithm": "git_blob_sha1",
+            "source_revision": "0aae2f0a7625304c9a7eab0c3528e02fe5d57567",
+            "receipt_id": "lc-receipt-0001",
+            "content_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "subject_id": "synthetic-corridor-metabolism",
+            "subject_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scope_digest": "bb733b294ec864bd3f5a7ce8ab92783babd6b23c67f5e3871976e2a33fee92ab",
+            "boundary_id": "SYNTH-GRID-4X4",
+            "boundary_revision": "GRID-V1",
+            "population_frame_id": "POP-FRAME-SYNTH-01",
+            "horizon_id": "HORIZON-SYNTH-12T",
+            "scenario_id": "baseline",
+            "window_start_tick": 0,
+            "window_end_tick": 12,
+            "weather_profile_id": "WEATHER-SYNTH-V1",
+            "functional_unit_ref": "FU-DISTRICT-SERVICE-YEAR-V1",
+            "design_subject_id": "clinic-building",
+            "design_revision": "CLINIC-DESIGN-V1",
+            "bom_revision": "CLINIC-BOM-V1",
+            "evidence_state": "current",
+            "raw_owner_disposition": "synthetic_test_only",
+            "payload_bytes_verified": false
+          }
+        ]
+      },
+      "expected": {
+        "case_id": "SB-025",
+        "binding_disposition": "Unsupported",
+        "scope_digest": "1205f7a841b36d6251de250ff2185422c4a8b24234c597e7cd4aeb5fbd0f8b20",
+        "reason_codes": [
+          "OWNER_ARTIFACT_SCOPE_MISMATCH",
+          "SCOPE_DIGEST_DECLARATION_MISMATCH",
+          "SYNTHETIC_SCOPE_HAS_REAL_WORLD_COORDINATES"
+        ],
+        "required_artifact_ids": [
+          "LC-CORRIDOR-BASELINE"
+        ],
+        "artifact_bindings": [
+          {
+            "artifact_id": "LC-CORRIDOR-BASELINE",
+            "binding_state": "NotComparable",
+            "raw_owner_disposition": "synthetic_test_only",
+            "payload_bytes_verified": false
+          }
+        ],
+        "owner_result_promotion": "none"
+      }
+    }
+  ]
+}
