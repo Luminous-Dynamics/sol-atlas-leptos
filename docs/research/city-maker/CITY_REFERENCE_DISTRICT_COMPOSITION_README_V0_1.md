@@ -36,3 +36,15 @@ The composition manifest now records exact consumer/schema artifacts rather than
 - **IFC 4.3.2.0** and **IDS 1.0** are published external exchange standards; they validate model/information exchange, not physical product qualification, custody or commissioning.
 
 The manifest adds gate `G1A_OWNER_SCHEMA_ARTIFACT_PINNING`. Its unresolved entries remain blocking/Unknown; no shared district scope has been bound.
+
+
+## Four-layer urban digital-twin synchronization architecture (7 November 2026)
+
+The district manifest now separates four responsibilities based on a 2026 review of 114 urban digital-twin publications:
+
+1. Reference/scope — #623 common scope binder.
+2. Entity/semantics — #606 exact owner schema and persistent entity registration.
+3. State synchronization — #625 valid time, observation time, record time, source-specific freshness, corrections, revocations and disputes.
+4. Feedback synchronization — #603 product/service lifecycle and owner-native approval, execution, inspection, commissioning and measured outcome links.
+
+A visual 3D model or a recent timestamp does not qualify a digital twin. Each source has its own update cadence and claim ceiling. No universal TTL or latest-timestamp-wins is admitted. See the manifest gate G1B and https://www.sciencedirect.com/science/article/abs/pii/S2210670726009455.
