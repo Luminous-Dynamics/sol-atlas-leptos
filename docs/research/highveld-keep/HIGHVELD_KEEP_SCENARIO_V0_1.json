@@ -593,6 +593,42 @@
       "history_and_instrument_metadata": "must_retrieve_directly_from_wmo_oscar_and_saws",
       "measurement_series_downloaded": false,
       "file_digest": null
+    },
+    {
+      "id": "JOBURG_GRAND_CENTRAL_TMYX_CATALOGUE_ONLY",
+      "station_name": "GRAND CENTRAL AIRPORT",
+      "network_code": "WMO_682650",
+      "source": "https://climate.onebuilding.org/WMO_Region_1_Africa/ZAF_South_Africa/index.html",
+      "metadata_vintage": "climate_onebuilding_south_africa_index_accessed_2026-11-07",
+      "authority_scope": "filename_station_code_only",
+      "status": "CATALOGUE_ID_ONLY_STATION_METADATA_NOT_RETRIEVED",
+      "history_and_instrument_metadata": "not_retrieved",
+      "measurement_series_downloaded": false,
+      "file_digest": null
+    },
+    {
+      "id": "JOBURG_RAND_AIRPORT_TMYX_CATALOGUE_ONLY",
+      "station_name": "RAND AIRPORT",
+      "network_code": "WMO_683463",
+      "source": "https://climate.onebuilding.org/WMO_Region_1_Africa/ZAF_South_Africa/index.html",
+      "metadata_vintage": "climate_onebuilding_south_africa_index_accessed_2026-11-07",
+      "authority_scope": "filename_station_code_only",
+      "status": "CATALOGUE_ID_ONLY_STATION_METADATA_NOT_RETRIEVED",
+      "history_and_instrument_metadata": "not_retrieved",
+      "measurement_series_downloaded": false,
+      "file_digest": null
+    },
+    {
+      "id": "JOBURG_LANSERIA_TMYX_CATALOGUE_ONLY",
+      "station_name": "LANSERIA INTERNATIONAL AIRPORT",
+      "network_code": "WMO_682635",
+      "source": "https://climate.onebuilding.org/WMO_Region_1_Africa/ZAF_South_Africa/index.html",
+      "metadata_vintage": "climate_onebuilding_south_africa_index_accessed_2026-11-07",
+      "authority_scope": "filename_station_code_only",
+      "status": "CATALOGUE_ID_ONLY_STATION_METADATA_NOT_RETRIEVED",
+      "history_and_instrument_metadata": "not_retrieved",
+      "measurement_series_downloaded": false,
+      "file_digest": null
     }
   ],
   "station_network_source_profiles": [
