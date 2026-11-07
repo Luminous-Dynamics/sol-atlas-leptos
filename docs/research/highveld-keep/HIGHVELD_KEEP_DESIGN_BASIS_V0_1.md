@@ -24,6 +24,20 @@ It is not a medieval replica, a militarized bunker, a luxury render exercise or 
 
 The first release defines the design problem, alternatives, inputs, owner boundaries and benchmark. It does **not** define approved construction geometry or engineering results.
 
+## 1A. Industry reality and the programme's position
+
+Highveld Keep is not competing against an industry that only draws static models. By 7 November 2026:
+- Autodesk Forma Building Design publicly documents schematic modelling, design automations for floor plans/facades/unit layouts, area metrics, integrated sun-hours/daylight/carbon analysis, and geolocated native Revit handoff.
+- Its 4 November 2026 update adds Indoor Daylight in public beta, occupied-hours daylight analysis over a typical year, DXF import/DWG export and additional parking/furniture workflows.
+- Forma Site Design already advertises site area, sun-hours, daylight potential, wind, microclimate and embodied-carbon analyses.
+- TestFit documents generative zoning filters (height, FAR, building coverage, impervious coverage and dwelling units/acre) plus unit and parking-mix goals.
+- Revit remains a detailed model-based BIM authoring baseline; Autodesk describes Forma as extending connected, outcome-based workflows earlier rather than replacing Revit overnight.
+- IFC 4.3 and IDS 1.0 already establish important open exchange and information-requirement standards. IDS covers alphanumeric IFC information; it does not prove geometric correctness.
+
+References: [Forma Building Design](https://www.autodesk.com/products/forma-building-design/overview), [Forma November 4, 2026 update](https://blogs.autodesk.com/forma/2026/11/04/whats-new-in-forma-building-design-indoor-daylight-parking-furniture-and-autocad-workflows/), [Forma environmental analysis](https://www.autodesk.com/products/forma-site-design/environmental-impact-analysis), [TestFit Generative Design](https://www.testfit.io/blog/testfit-5-2-better-data-brings-better-generative-design), [IFC specification register](https://technical.buildingsmart.org/standards/ifc/ifc-schema-specifications/), [IDS scope](https://www.buildingsmart.org/standards/bsi-standards/information-delivery-specification-ids/).
+
+The proposed Luminous differentiation is therefore not "we generate more shapes." It is to test whether an open, evidence-carrying workflow can connect local requirements and source data, plural resident intent, verified geometry, domain solvers, product approvals, fabrication acceptance, as-built records and maintenance without losing authority or provenance. Current Highveld work is only E0/E1 and has not demonstrated that advantage yet.
+
 ## 2. Paradigm shifts to test
 
 ### 2.1 From castle object to living habitat
