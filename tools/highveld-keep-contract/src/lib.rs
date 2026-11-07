@@ -223,16 +223,34 @@ pub fn validate_values(scenario: &Value, parameters: &Value) -> ValidationReport
     let mut weather_count = 0usize;
     if let Some(items) = weather {
         weather_count = items.len();
+        let expected_weather = [
+            (
+                "JOBURG_TAMBO_TMYX_2011_2025",
+                "ZAF_GT_Johannesburg-Tambo.Intl.AP.683680_TMYx.2011-2025.zip",
+            ),
+            (
+                "JOBURG_BOTANICAL_GARDENS_TMYX_2011_2025",
+                "ZAF_GT_Johannesburg.Botanical.Gardens.683610_TMYx.2011-2025.zip",
+            ),
+        ];
         for item in items {
-            let valid_candidate = item.get("dataset_type").and_then(Value::as_str)
-                == Some("TYPICAL_METEOROLOGICAL_YEAR")
+            let identity_is_expected = item
+                .get("id")
+                .and_then(Value::as_str)
+                .zip(item.get("filename").and_then(Value::as_str))
+                .is_some_and(|identity| expected_weather.contains(&identity));
+            let valid_candidate = identity_is_expected
+                && item.get("dataset_type").and_then(Value::as_str)
+                    == Some("TYPICAL_METEOROLOGICAL_YEAR")
                 && item.get("status").and_then(Value::as_str)
                     == Some("CATALOGUED_NOT_HEADER_INSPECTED_OR_QUALIFIED")
                 && item.get("sha256").is_some_and(Value::is_null)
                 && item.get("reuse_rights").and_then(Value::as_str) == Some("UNKNOWN")
                 && item.get("site_representativeness").and_then(Value::as_str)
                     == Some("UNKNOWN")
-                && item.get("filename").and_then(Value::as_str).is_some_and(|name| name.contains("TMYx"));
+                && item.get("source").and_then(Value::as_str).is_some_and(|source| {
+                    source.contains("climate.onebuilding.org/WMO_Region_1_Africa/ZAF_South_Africa")
+                });
             if !valid_candidate {
                 violations.push("WEATHER_CANDIDATE_PROMOTED_OR_INCOMPLETE");
                 break;
@@ -571,7 +589,7 @@ mod tests {
     }
 
     #[test]
-    fn reversed_or_non_finite_continuous_bounds_are_rejected() {
+    fn reversed_continuous_bounds_are_rejected() {
         let (scenario, mut parameters) = documents();
         let items = parameters["topology_variables"]
             .as_array_mut()
@@ -607,6 +625,63 @@ mod tests {
             &report,
             "WEATHER_CANDIDATE_PROMOTED_OR_INCOMPLETE"
         ));
+    }
+
+    #[test]
+    fn arbitrary_tmy_file_cannot_replace_the_two_catalogued_candidates() {
+        let (mut scenario, parameters) = documents();
+        scenario["climate_inputs"]["candidate_weather_files"][0]["filename"] =
+            json!("OTHER_CITY_TMYx.zip");
+        let report = validate_values(&scenario, &parameters);
+        assert!(contains(
+            &report,
+            "WEATHER_CANDIDATE_PROMOTED_OR_INCOMPLETE"
+        ));
+    }
+
+    #[test]
+    fn qualified_material_reference_cannot_be_assumed_without_lot_evidence() {
+        let (scenario, mut parameters) = documents();
+        let items = parameters["materials_and_production_variables"]
+            .as_array_mut()
+            .expect("materials and production variables");
+        let idx = items
+            .iter()
+            .position(|item| item["id"] == "material_source_and_grade")
+            .expect("material source and grade reference");
+        items[idx]["status"] = json!("APPROVED");
+        let report = validate_values(&scenario, &parameters);
+        assert!(contains(
+            &report,
+            "UNQUALIFIED_MATERIAL_EVIDENCE_PROMOTED"
+        ));
+    }
+
+    #[test]
+    fn non_finite_or_unitless_continuous_values_are_rejected() {
+        let (scenario, mut parameters) = documents();
+        let items = parameters["envelope_variables"]
+            .as_array_mut()
+            .expect("envelope variable array");
+        let idx = items
+            .iter()
+            .position(|item| item["id"] == "north_facade_glazing_ratio")
+            .expect("north glazing variable");
+        items[idx]["maximum"] = Value::Null;
+        let report = validate_values(&scenario, &parameters);
+        assert!(contains(&report, "CONTINUOUS_PARAMETER_BOUNDS_INVALID"));
+
+        let (scenario, mut parameters) = documents();
+        let items = parameters["envelope_variables"]
+            .as_array_mut()
+            .expect("envelope variable array");
+        let idx = items
+            .iter()
+            .position(|item| item["id"] == "north_facade_glazing_ratio")
+            .expect("north glazing variable");
+        items[idx].as_object_mut().expect("parameter object").remove("unit");
+        let report = validate_values(&scenario, &parameters);
+        assert!(contains(&report, "CONTINUOUS_PARAMETER_BOUNDS_INVALID"));
     }
 
     #[test]
