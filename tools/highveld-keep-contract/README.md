@@ -52,7 +52,7 @@ The nested `[workspace]` isolates the package from the parent Leptos crate. `ser
 - Geometry, thermal, structural and fire specialist gates remain unqualified/owned by their existing authorities.
 - Hard requirements remain separate from soft objective vectors.
 - E0 evidence tier and unresolved site/resident/solver/approval inputs remain visible.
-- The 11-node-edge functional relationship graph has unique IDs, endpoints inside the declared functional programme, a strict hard/preference relation mapping, valid excluded intermediate functions and no geometry/distance fields.
+- The exact 11-edge functional relationship graph and functional-programme nodes have unique IDs; endpoints and required excluded intermediate functions exist; relation types map strictly to hard versus preference classes; unversioned geometry/distance fields are rejected.
 
 ## Tests
 
