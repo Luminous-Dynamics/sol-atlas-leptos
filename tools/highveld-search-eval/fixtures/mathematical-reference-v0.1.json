@@ -75,7 +75,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "5555555555555555555555555555555555555555555555555555555555555555"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -84,6 +85,11 @@
               "objectives": {
                 "synthetic_cost": 1,
                 "synthetic_discomfort": 9
+              },
+              "candidate_revision_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "3333333333333333333333333333333333333333333333333333333333333333",
+                "life_safety_task_fixture": "4444444444444444444444444444444444444444444444444444444444444444"
               }
             },
             {
@@ -97,7 +103,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "6666666666666666666666666666666666666666666666666666666666666666"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -106,6 +113,11 @@
               "objectives": {
                 "synthetic_cost": 2,
                 "synthetic_discomfort": 7
+              },
+              "candidate_revision_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "4444444444444444444444444444444444444444444444444444444444444444",
+                "life_safety_task_fixture": "5555555555555555555555555555555555555555555555555555555555555555"
               }
             },
             {
@@ -119,7 +131,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "7777777777777777777777777777777777777777777777777777777777777777"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -128,6 +141,11 @@
               "objectives": {
                 "synthetic_cost": 3,
                 "synthetic_discomfort": 5
+              },
+              "candidate_revision_sha256": "4444444444444444444444444444444444444444444444444444444444444444",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "5555555555555555555555555555555555555555555555555555555555555555",
+                "life_safety_task_fixture": "6666666666666666666666666666666666666666666666666666666666666666"
               }
             },
             {
@@ -141,7 +159,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "8888888888888888888888888888888888888888888888888888888888888888"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -150,6 +169,11 @@
               "objectives": {
                 "synthetic_cost": 5,
                 "synthetic_discomfort": 4
+              },
+              "candidate_revision_sha256": "5555555555555555555555555555555555555555555555555555555555555555",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "6666666666666666666666666666666666666666666666666666666666666666",
+                "life_safety_task_fixture": "7777777777777777777777777777777777777777777777777777777777777777"
               }
             },
             {
@@ -163,7 +187,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "9999999999999999999999999999999999999999999999999999999999999999"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -172,6 +197,11 @@
               "objectives": {
                 "synthetic_cost": 7,
                 "synthetic_discomfort": 2
+              },
+              "candidate_revision_sha256": "6666666666666666666666666666666666666666666666666666666666666666",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "7777777777777777777777777777777777777777777777777777777777777777",
+                "life_safety_task_fixture": "8888888888888888888888888888888888888888888888888888888888888888"
               }
             },
             {
@@ -185,7 +215,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -194,6 +225,11 @@
               "objectives": {
                 "synthetic_cost": 9,
                 "synthetic_discomfort": 1
+              },
+              "candidate_revision_sha256": "7777777777777777777777777777777777777777777777777777777777777777",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "8888888888888888888888888888888888888888888888888888888888888888",
+                "life_safety_task_fixture": "9999999999999999999999999999999999999999999999999999999999999999"
               }
             },
             {
@@ -207,7 +243,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -216,6 +253,11 @@
               "objectives": {
                 "synthetic_cost": 4,
                 "synthetic_discomfort": 8
+              },
+              "candidate_revision_sha256": "8888888888888888888888888888888888888888888888888888888888888888",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "9999999999999999999999999999999999999999999999999999999999999999",
+                "life_safety_task_fixture": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
               }
             },
             {
@@ -229,7 +271,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -238,6 +281,11 @@
               "objectives": {
                 "synthetic_cost": 6,
                 "synthetic_discomfort": 6
+              },
+              "candidate_revision_sha256": "9999999999999999999999999999999999999999999999999999999999999999",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "life_safety_task_fixture": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
               }
             },
             {
@@ -251,7 +299,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
               },
               "hard_gates": {
                 "step_free_task_fixture": "failed",
@@ -260,6 +309,11 @@
               "objectives": {
                 "synthetic_cost": 0,
                 "synthetic_discomfort": 0
+              },
+              "candidate_revision_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "life_safety_task_fixture": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
               }
             },
             {
@@ -273,7 +327,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -282,6 +337,11 @@
               "objectives": {
                 "synthetic_cost": 10,
                 "synthetic_discomfort": 10
+              },
+              "candidate_revision_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+                "life_safety_task_fixture": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
               }
             },
             {
@@ -295,7 +355,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -304,6 +365,11 @@
               "objectives": {
                 "synthetic_cost": 10,
                 "synthetic_discomfort": 9
+              },
+              "candidate_revision_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+                "life_safety_task_fixture": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
               }
             }
           ]
@@ -345,7 +411,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "6666666666666666666666666666666666666666666666666666666666666666"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -354,6 +421,11 @@
               "objectives": {
                 "synthetic_cost": 1,
                 "synthetic_discomfort": 9
+              },
+              "candidate_revision_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "4444444444444444444444444444444444444444444444444444444444444444",
+                "life_safety_task_fixture": "5555555555555555555555555555555555555555555555555555555555555555"
               }
             },
             {
@@ -367,7 +439,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "8888888888888888888888888888888888888888888888888888888888888888"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -376,6 +449,11 @@
               "objectives": {
                 "synthetic_cost": 3,
                 "synthetic_discomfort": 5
+              },
+              "candidate_revision_sha256": "5555555555555555555555555555555555555555555555555555555555555555",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "6666666666666666666666666666666666666666666666666666666666666666",
+                "life_safety_task_fixture": "7777777777777777777777777777777777777777777777777777777777777777"
               }
             },
             {
@@ -389,7 +467,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -398,6 +477,11 @@
               "objectives": {
                 "synthetic_cost": 7,
                 "synthetic_discomfort": 2
+              },
+              "candidate_revision_sha256": "7777777777777777777777777777777777777777777777777777777777777777",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "8888888888888888888888888888888888888888888888888888888888888888",
+                "life_safety_task_fixture": "9999999999999999999999999999999999999999999999999999999999999999"
               }
             },
             {
@@ -411,7 +495,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -420,6 +505,11 @@
               "objectives": {
                 "synthetic_cost": 4,
                 "synthetic_discomfort": 8
+              },
+              "candidate_revision_sha256": "9999999999999999999999999999999999999999999999999999999999999999",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "life_safety_task_fixture": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
               }
             },
             {
@@ -433,7 +523,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
               },
               "hard_gates": {
                 "step_free_task_fixture": "failed",
@@ -442,6 +533,11 @@
               "objectives": {
                 "synthetic_cost": 0.1,
                 "synthetic_discomfort": 0.1
+              },
+              "candidate_revision_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+                "life_safety_task_fixture": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
               }
             },
             {
@@ -455,7 +551,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -464,6 +561,11 @@
               "objectives": {
                 "synthetic_cost": 0.2,
                 "synthetic_discomfort": 0.2
+              },
+              "candidate_revision_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+                "life_safety_task_fixture": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
               }
             },
             {
@@ -477,7 +579,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -486,6 +589,11 @@
               "objectives": {
                 "synthetic_cost": 8.5,
                 "synthetic_discomfort": 1.5
+              },
+              "candidate_revision_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+                "life_safety_task_fixture": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
               }
             },
             {
@@ -499,7 +607,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -508,6 +617,11 @@
               "objectives": {
                 "synthetic_cost": 0.3,
                 "synthetic_discomfort": 0.3
+              },
+              "candidate_revision_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+                "life_safety_task_fixture": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
               }
             }
           ]
@@ -534,7 +648,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "6666666666666666666666666666666666666666666666666666666666666666"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -543,6 +658,11 @@
               "objectives": {
                 "synthetic_cost": 1,
                 "synthetic_discomfort": 9
+              },
+              "candidate_revision_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "4444444444444444444444444444444444444444444444444444444444444444",
+                "life_safety_task_fixture": "5555555555555555555555555555555555555555555555555555555555555555"
               }
             },
             {
@@ -556,7 +676,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "8888888888888888888888888888888888888888888888888888888888888888"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -565,6 +686,11 @@
               "objectives": {
                 "synthetic_cost": 3,
                 "synthetic_discomfort": 5
+              },
+              "candidate_revision_sha256": "5555555555555555555555555555555555555555555555555555555555555555",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "6666666666666666666666666666666666666666666666666666666666666666",
+                "life_safety_task_fixture": "7777777777777777777777777777777777777777777777777777777777777777"
               }
             },
             {
@@ -578,7 +704,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -587,6 +714,11 @@
               "objectives": {
                 "synthetic_cost": 7,
                 "synthetic_discomfort": 2
+              },
+              "candidate_revision_sha256": "7777777777777777777777777777777777777777777777777777777777777777",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "8888888888888888888888888888888888888888888888888888888888888888",
+                "life_safety_task_fixture": "9999999999999999999999999999999999999999999999999999999999999999"
               }
             },
             {
@@ -600,7 +732,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -609,6 +742,11 @@
               "objectives": {
                 "synthetic_cost": 4,
                 "synthetic_discomfort": 8
+              },
+              "candidate_revision_sha256": "9999999999999999999999999999999999999999999999999999999999999999",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "life_safety_task_fixture": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
               }
             },
             {
@@ -622,7 +760,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
               },
               "hard_gates": {
                 "step_free_task_fixture": "failed",
@@ -631,6 +770,11 @@
               "objectives": {
                 "synthetic_cost": 0.1,
                 "synthetic_discomfort": 0.1
+              },
+              "candidate_revision_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+                "life_safety_task_fixture": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
               }
             },
             {
@@ -644,7 +788,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -653,6 +798,11 @@
               "objectives": {
                 "synthetic_cost": 0.2,
                 "synthetic_discomfort": 0.2
+              },
+              "candidate_revision_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+                "life_safety_task_fixture": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
               }
             },
             {
@@ -666,7 +816,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -675,6 +826,11 @@
               "objectives": {
                 "synthetic_cost": 8.5,
                 "synthetic_discomfort": 1.5
+              },
+              "candidate_revision_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+                "life_safety_task_fixture": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
               }
             },
             {
@@ -688,7 +844,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -697,6 +854,11 @@
               "objectives": {
                 "synthetic_cost": 0.3,
                 "synthetic_discomfort": 0.3
+              },
+              "candidate_revision_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+                "life_safety_task_fixture": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
               }
             }
           ]
@@ -723,7 +885,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "6666666666666666666666666666666666666666666666666666666666666666"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -732,6 +895,11 @@
               "objectives": {
                 "synthetic_cost": 1,
                 "synthetic_discomfort": 9
+              },
+              "candidate_revision_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "4444444444444444444444444444444444444444444444444444444444444444",
+                "life_safety_task_fixture": "5555555555555555555555555555555555555555555555555555555555555555"
               }
             },
             {
@@ -745,7 +913,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "8888888888888888888888888888888888888888888888888888888888888888"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -754,6 +923,11 @@
               "objectives": {
                 "synthetic_cost": 3,
                 "synthetic_discomfort": 5
+              },
+              "candidate_revision_sha256": "5555555555555555555555555555555555555555555555555555555555555555",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "6666666666666666666666666666666666666666666666666666666666666666",
+                "life_safety_task_fixture": "7777777777777777777777777777777777777777777777777777777777777777"
               }
             },
             {
@@ -767,7 +941,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -776,6 +951,11 @@
               "objectives": {
                 "synthetic_cost": 7,
                 "synthetic_discomfort": 2
+              },
+              "candidate_revision_sha256": "7777777777777777777777777777777777777777777777777777777777777777",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "8888888888888888888888888888888888888888888888888888888888888888",
+                "life_safety_task_fixture": "9999999999999999999999999999999999999999999999999999999999999999"
               }
             },
             {
@@ -789,7 +969,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -798,6 +979,11 @@
               "objectives": {
                 "synthetic_cost": 4,
                 "synthetic_discomfort": 8
+              },
+              "candidate_revision_sha256": "9999999999999999999999999999999999999999999999999999999999999999",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "life_safety_task_fixture": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
               }
             },
             {
@@ -811,7 +997,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
               },
               "hard_gates": {
                 "step_free_task_fixture": "failed",
@@ -820,6 +1007,11 @@
               "objectives": {
                 "synthetic_cost": 0.1,
                 "synthetic_discomfort": 0.1
+              },
+              "candidate_revision_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+                "life_safety_task_fixture": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
               }
             },
             {
@@ -833,7 +1025,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -842,6 +1035,11 @@
               "objectives": {
                 "synthetic_cost": 0.2,
                 "synthetic_discomfort": 0.2
+              },
+              "candidate_revision_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+                "life_safety_task_fixture": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
               }
             },
             {
@@ -855,7 +1053,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -864,6 +1063,11 @@
               "objectives": {
                 "synthetic_cost": 8.5,
                 "synthetic_discomfort": 1.5
+              },
+              "candidate_revision_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+                "life_safety_task_fixture": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
               }
             },
             {
@@ -877,7 +1081,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -886,6 +1091,11 @@
               "objectives": {
                 "synthetic_cost": 0.3,
                 "synthetic_discomfort": 0.3
+              },
+              "candidate_revision_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+                "life_safety_task_fixture": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
               }
             }
           ]
@@ -912,7 +1122,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "6666666666666666666666666666666666666666666666666666666666666666"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -921,6 +1132,11 @@
               "objectives": {
                 "synthetic_cost": 1,
                 "synthetic_discomfort": 9
+              },
+              "candidate_revision_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "4444444444444444444444444444444444444444444444444444444444444444",
+                "life_safety_task_fixture": "5555555555555555555555555555555555555555555555555555555555555555"
               }
             },
             {
@@ -934,7 +1150,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "8888888888888888888888888888888888888888888888888888888888888888"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -943,6 +1160,11 @@
               "objectives": {
                 "synthetic_cost": 3,
                 "synthetic_discomfort": 5
+              },
+              "candidate_revision_sha256": "5555555555555555555555555555555555555555555555555555555555555555",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "6666666666666666666666666666666666666666666666666666666666666666",
+                "life_safety_task_fixture": "7777777777777777777777777777777777777777777777777777777777777777"
               }
             },
             {
@@ -956,7 +1178,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -965,6 +1188,11 @@
               "objectives": {
                 "synthetic_cost": 7,
                 "synthetic_discomfort": 2
+              },
+              "candidate_revision_sha256": "7777777777777777777777777777777777777777777777777777777777777777",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "8888888888888888888888888888888888888888888888888888888888888888",
+                "life_safety_task_fixture": "9999999999999999999999999999999999999999999999999999999999999999"
               }
             },
             {
@@ -978,7 +1206,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -987,6 +1216,11 @@
               "objectives": {
                 "synthetic_cost": 4,
                 "synthetic_discomfort": 8
+              },
+              "candidate_revision_sha256": "9999999999999999999999999999999999999999999999999999999999999999",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "life_safety_task_fixture": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
               }
             },
             {
@@ -1000,7 +1234,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
               },
               "hard_gates": {
                 "step_free_task_fixture": "failed",
@@ -1009,6 +1244,11 @@
               "objectives": {
                 "synthetic_cost": 0.1,
                 "synthetic_discomfort": 0.1
+              },
+              "candidate_revision_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+                "life_safety_task_fixture": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
               }
             },
             {
@@ -1022,7 +1262,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -1031,6 +1272,11 @@
               "objectives": {
                 "synthetic_cost": 0.2,
                 "synthetic_discomfort": 0.2
+              },
+              "candidate_revision_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+                "life_safety_task_fixture": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
               }
             },
             {
@@ -1044,7 +1290,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -1053,6 +1300,11 @@
               "objectives": {
                 "synthetic_cost": 8.5,
                 "synthetic_discomfort": 1.5
+              },
+              "candidate_revision_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+                "life_safety_task_fixture": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
               }
             },
             {
@@ -1066,7 +1318,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -1075,6 +1328,11 @@
               "objectives": {
                 "synthetic_cost": 0.3,
                 "synthetic_discomfort": 0.3
+              },
+              "candidate_revision_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+                "life_safety_task_fixture": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
               }
             }
           ]
@@ -1101,7 +1359,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "6666666666666666666666666666666666666666666666666666666666666666"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -1110,6 +1369,11 @@
               "objectives": {
                 "synthetic_cost": 1,
                 "synthetic_discomfort": 9
+              },
+              "candidate_revision_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "4444444444444444444444444444444444444444444444444444444444444444",
+                "life_safety_task_fixture": "5555555555555555555555555555555555555555555555555555555555555555"
               }
             },
             {
@@ -1123,7 +1387,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "8888888888888888888888888888888888888888888888888888888888888888"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -1132,6 +1397,11 @@
               "objectives": {
                 "synthetic_cost": 3,
                 "synthetic_discomfort": 5
+              },
+              "candidate_revision_sha256": "5555555555555555555555555555555555555555555555555555555555555555",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "6666666666666666666666666666666666666666666666666666666666666666",
+                "life_safety_task_fixture": "7777777777777777777777777777777777777777777777777777777777777777"
               }
             },
             {
@@ -1145,7 +1415,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -1154,6 +1425,11 @@
               "objectives": {
                 "synthetic_cost": 7,
                 "synthetic_discomfort": 2
+              },
+              "candidate_revision_sha256": "7777777777777777777777777777777777777777777777777777777777777777",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "8888888888888888888888888888888888888888888888888888888888888888",
+                "life_safety_task_fixture": "9999999999999999999999999999999999999999999999999999999999999999"
               }
             },
             {
@@ -1167,7 +1443,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -1176,6 +1453,11 @@
               "objectives": {
                 "synthetic_cost": 4,
                 "synthetic_discomfort": 8
+              },
+              "candidate_revision_sha256": "9999999999999999999999999999999999999999999999999999999999999999",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "life_safety_task_fixture": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
               }
             },
             {
@@ -1189,7 +1471,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
               },
               "hard_gates": {
                 "step_free_task_fixture": "failed",
@@ -1198,6 +1481,11 @@
               "objectives": {
                 "synthetic_cost": 0.1,
                 "synthetic_discomfort": 0.1
+              },
+              "candidate_revision_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+                "life_safety_task_fixture": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
               }
             },
             {
@@ -1211,7 +1499,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -1220,6 +1509,11 @@
               "objectives": {
                 "synthetic_cost": 0.2,
                 "synthetic_discomfort": 0.2
+              },
+              "candidate_revision_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+                "life_safety_task_fixture": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
               }
             },
             {
@@ -1233,7 +1527,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -1242,6 +1537,11 @@
               "objectives": {
                 "synthetic_cost": 8.5,
                 "synthetic_discomfort": 1.5
+              },
+              "candidate_revision_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+                "life_safety_task_fixture": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
               }
             },
             {
@@ -1255,7 +1555,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -1264,6 +1565,11 @@
               "objectives": {
                 "synthetic_cost": 0.3,
                 "synthetic_discomfort": 0.3
+              },
+              "candidate_revision_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+                "life_safety_task_fixture": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
               }
             }
           ]
@@ -1290,7 +1596,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "6666666666666666666666666666666666666666666666666666666666666666"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -1299,6 +1606,11 @@
               "objectives": {
                 "synthetic_cost": 1,
                 "synthetic_discomfort": 9
+              },
+              "candidate_revision_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "4444444444444444444444444444444444444444444444444444444444444444",
+                "life_safety_task_fixture": "5555555555555555555555555555555555555555555555555555555555555555"
               }
             },
             {
@@ -1312,7 +1624,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "8888888888888888888888888888888888888888888888888888888888888888"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -1321,6 +1634,11 @@
               "objectives": {
                 "synthetic_cost": 3,
                 "synthetic_discomfort": 5
+              },
+              "candidate_revision_sha256": "5555555555555555555555555555555555555555555555555555555555555555",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "6666666666666666666666666666666666666666666666666666666666666666",
+                "life_safety_task_fixture": "7777777777777777777777777777777777777777777777777777777777777777"
               }
             },
             {
@@ -1334,7 +1652,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -1343,6 +1662,11 @@
               "objectives": {
                 "synthetic_cost": 7,
                 "synthetic_discomfort": 2
+              },
+              "candidate_revision_sha256": "7777777777777777777777777777777777777777777777777777777777777777",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "8888888888888888888888888888888888888888888888888888888888888888",
+                "life_safety_task_fixture": "9999999999999999999999999999999999999999999999999999999999999999"
               }
             },
             {
@@ -1356,7 +1680,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -1365,6 +1690,11 @@
               "objectives": {
                 "synthetic_cost": 4,
                 "synthetic_discomfort": 8
+              },
+              "candidate_revision_sha256": "9999999999999999999999999999999999999999999999999999999999999999",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "life_safety_task_fixture": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
               }
             },
             {
@@ -1378,7 +1708,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
               },
               "hard_gates": {
                 "step_free_task_fixture": "failed",
@@ -1387,6 +1718,11 @@
               "objectives": {
                 "synthetic_cost": 0.1,
                 "synthetic_discomfort": 0.1
+              },
+              "candidate_revision_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+                "life_safety_task_fixture": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
               }
             },
             {
@@ -1400,7 +1736,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -1409,6 +1746,11 @@
               "objectives": {
                 "synthetic_cost": 0.2,
                 "synthetic_discomfort": 0.2
+              },
+              "candidate_revision_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+                "life_safety_task_fixture": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
               }
             },
             {
@@ -1422,7 +1764,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -1431,6 +1774,11 @@
               "objectives": {
                 "synthetic_cost": 8.5,
                 "synthetic_discomfort": 1.5
+              },
+              "candidate_revision_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+                "life_safety_task_fixture": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
               }
             },
             {
@@ -1444,7 +1792,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -1453,6 +1802,11 @@
               "objectives": {
                 "synthetic_cost": 0.3,
                 "synthetic_discomfort": 0.3
+              },
+              "candidate_revision_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+                "life_safety_task_fixture": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
               }
             }
           ]
@@ -1479,7 +1833,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "6666666666666666666666666666666666666666666666666666666666666666"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -1488,6 +1843,11 @@
               "objectives": {
                 "synthetic_cost": 1,
                 "synthetic_discomfort": 9
+              },
+              "candidate_revision_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "4444444444444444444444444444444444444444444444444444444444444444",
+                "life_safety_task_fixture": "5555555555555555555555555555555555555555555555555555555555555555"
               }
             },
             {
@@ -1501,7 +1861,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "8888888888888888888888888888888888888888888888888888888888888888"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -1510,6 +1871,11 @@
               "objectives": {
                 "synthetic_cost": 3,
                 "synthetic_discomfort": 5
+              },
+              "candidate_revision_sha256": "5555555555555555555555555555555555555555555555555555555555555555",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "6666666666666666666666666666666666666666666666666666666666666666",
+                "life_safety_task_fixture": "7777777777777777777777777777777777777777777777777777777777777777"
               }
             },
             {
@@ -1523,7 +1889,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -1532,6 +1899,11 @@
               "objectives": {
                 "synthetic_cost": 7,
                 "synthetic_discomfort": 2
+              },
+              "candidate_revision_sha256": "7777777777777777777777777777777777777777777777777777777777777777",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "8888888888888888888888888888888888888888888888888888888888888888",
+                "life_safety_task_fixture": "9999999999999999999999999999999999999999999999999999999999999999"
               }
             },
             {
@@ -1545,7 +1917,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -1554,6 +1927,11 @@
               "objectives": {
                 "synthetic_cost": 4,
                 "synthetic_discomfort": 8
+              },
+              "candidate_revision_sha256": "9999999999999999999999999999999999999999999999999999999999999999",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "life_safety_task_fixture": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
               }
             },
             {
@@ -1567,7 +1945,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
               },
               "hard_gates": {
                 "step_free_task_fixture": "failed",
@@ -1576,6 +1955,11 @@
               "objectives": {
                 "synthetic_cost": 0.1,
                 "synthetic_discomfort": 0.1
+              },
+              "candidate_revision_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+                "life_safety_task_fixture": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
               }
             },
             {
@@ -1589,7 +1973,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -1598,6 +1983,11 @@
               "objectives": {
                 "synthetic_cost": 0.2,
                 "synthetic_discomfort": 0.2
+              },
+              "candidate_revision_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+                "life_safety_task_fixture": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
               }
             },
             {
@@ -1611,7 +2001,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -1620,6 +2011,11 @@
               "objectives": {
                 "synthetic_cost": 8.5,
                 "synthetic_discomfort": 1.5
+              },
+              "candidate_revision_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+                "life_safety_task_fixture": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
               }
             },
             {
@@ -1633,7 +2029,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -1642,6 +2039,11 @@
               "objectives": {
                 "synthetic_cost": 0.3,
                 "synthetic_discomfort": 0.3
+              },
+              "candidate_revision_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+                "life_safety_task_fixture": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
               }
             }
           ]
@@ -1668,7 +2070,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "6666666666666666666666666666666666666666666666666666666666666666"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -1677,6 +2080,11 @@
               "objectives": {
                 "synthetic_cost": 1,
                 "synthetic_discomfort": 9
+              },
+              "candidate_revision_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "4444444444444444444444444444444444444444444444444444444444444444",
+                "life_safety_task_fixture": "5555555555555555555555555555555555555555555555555555555555555555"
               }
             },
             {
@@ -1690,7 +2098,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "8888888888888888888888888888888888888888888888888888888888888888"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -1699,6 +2108,11 @@
               "objectives": {
                 "synthetic_cost": 3,
                 "synthetic_discomfort": 5
+              },
+              "candidate_revision_sha256": "5555555555555555555555555555555555555555555555555555555555555555",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "6666666666666666666666666666666666666666666666666666666666666666",
+                "life_safety_task_fixture": "7777777777777777777777777777777777777777777777777777777777777777"
               }
             },
             {
@@ -1712,7 +2126,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -1721,6 +2136,11 @@
               "objectives": {
                 "synthetic_cost": 7,
                 "synthetic_discomfort": 2
+              },
+              "candidate_revision_sha256": "7777777777777777777777777777777777777777777777777777777777777777",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "8888888888888888888888888888888888888888888888888888888888888888",
+                "life_safety_task_fixture": "9999999999999999999999999999999999999999999999999999999999999999"
               }
             },
             {
@@ -1734,7 +2154,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -1743,6 +2164,11 @@
               "objectives": {
                 "synthetic_cost": 4,
                 "synthetic_discomfort": 8
+              },
+              "candidate_revision_sha256": "9999999999999999999999999999999999999999999999999999999999999999",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "life_safety_task_fixture": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
               }
             },
             {
@@ -1756,7 +2182,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
               },
               "hard_gates": {
                 "step_free_task_fixture": "failed",
@@ -1765,6 +2192,11 @@
               "objectives": {
                 "synthetic_cost": 0.1,
                 "synthetic_discomfort": 0.1
+              },
+              "candidate_revision_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+                "life_safety_task_fixture": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
               }
             },
             {
@@ -1778,7 +2210,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -1787,6 +2220,11 @@
               "objectives": {
                 "synthetic_cost": 0.2,
                 "synthetic_discomfort": 0.2
+              },
+              "candidate_revision_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+                "life_safety_task_fixture": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
               }
             },
             {
@@ -1800,7 +2238,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -1809,6 +2248,11 @@
               "objectives": {
                 "synthetic_cost": 8.5,
                 "synthetic_discomfort": 1.5
+              },
+              "candidate_revision_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+                "life_safety_task_fixture": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
               }
             },
             {
@@ -1822,7 +2266,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -1831,6 +2276,11 @@
               "objectives": {
                 "synthetic_cost": 0.3,
                 "synthetic_discomfort": 0.3
+              },
+              "candidate_revision_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+                "life_safety_task_fixture": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
               }
             }
           ]
@@ -1857,7 +2307,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "6666666666666666666666666666666666666666666666666666666666666666"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -1866,6 +2317,11 @@
               "objectives": {
                 "synthetic_cost": 1,
                 "synthetic_discomfort": 9
+              },
+              "candidate_revision_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "4444444444444444444444444444444444444444444444444444444444444444",
+                "life_safety_task_fixture": "5555555555555555555555555555555555555555555555555555555555555555"
               }
             },
             {
@@ -1879,7 +2335,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "8888888888888888888888888888888888888888888888888888888888888888"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -1888,6 +2345,11 @@
               "objectives": {
                 "synthetic_cost": 3,
                 "synthetic_discomfort": 5
+              },
+              "candidate_revision_sha256": "5555555555555555555555555555555555555555555555555555555555555555",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "6666666666666666666666666666666666666666666666666666666666666666",
+                "life_safety_task_fixture": "7777777777777777777777777777777777777777777777777777777777777777"
               }
             },
             {
@@ -1901,7 +2363,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -1910,6 +2373,11 @@
               "objectives": {
                 "synthetic_cost": 7,
                 "synthetic_discomfort": 2
+              },
+              "candidate_revision_sha256": "7777777777777777777777777777777777777777777777777777777777777777",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "8888888888888888888888888888888888888888888888888888888888888888",
+                "life_safety_task_fixture": "9999999999999999999999999999999999999999999999999999999999999999"
               }
             },
             {
@@ -1923,7 +2391,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -1932,6 +2401,11 @@
               "objectives": {
                 "synthetic_cost": 4,
                 "synthetic_discomfort": 8
+              },
+              "candidate_revision_sha256": "9999999999999999999999999999999999999999999999999999999999999999",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "life_safety_task_fixture": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
               }
             },
             {
@@ -1945,7 +2419,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
               },
               "hard_gates": {
                 "step_free_task_fixture": "failed",
@@ -1954,6 +2429,11 @@
               "objectives": {
                 "synthetic_cost": 0.1,
                 "synthetic_discomfort": 0.1
+              },
+              "candidate_revision_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+                "life_safety_task_fixture": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
               }
             },
             {
@@ -1967,7 +2447,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -1976,6 +2457,11 @@
               "objectives": {
                 "synthetic_cost": 0.2,
                 "synthetic_discomfort": 0.2
+              },
+              "candidate_revision_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+                "life_safety_task_fixture": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
               }
             },
             {
@@ -1989,7 +2475,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -1998,6 +2485,11 @@
               "objectives": {
                 "synthetic_cost": 8.5,
                 "synthetic_discomfort": 1.5
+              },
+              "candidate_revision_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+                "life_safety_task_fixture": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
               }
             },
             {
@@ -2011,7 +2503,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -2020,6 +2513,11 @@
               "objectives": {
                 "synthetic_cost": 0.3,
                 "synthetic_discomfort": 0.3
+              },
+              "candidate_revision_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+                "life_safety_task_fixture": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
               }
             }
           ]
@@ -2046,7 +2544,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "6666666666666666666666666666666666666666666666666666666666666666"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -2055,6 +2554,11 @@
               "objectives": {
                 "synthetic_cost": 1,
                 "synthetic_discomfort": 9
+              },
+              "candidate_revision_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "4444444444444444444444444444444444444444444444444444444444444444",
+                "life_safety_task_fixture": "5555555555555555555555555555555555555555555555555555555555555555"
               }
             },
             {
@@ -2068,7 +2572,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "8888888888888888888888888888888888888888888888888888888888888888"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -2077,6 +2582,11 @@
               "objectives": {
                 "synthetic_cost": 3,
                 "synthetic_discomfort": 5
+              },
+              "candidate_revision_sha256": "5555555555555555555555555555555555555555555555555555555555555555",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "6666666666666666666666666666666666666666666666666666666666666666",
+                "life_safety_task_fixture": "7777777777777777777777777777777777777777777777777777777777777777"
               }
             },
             {
@@ -2090,7 +2600,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -2099,6 +2610,11 @@
               "objectives": {
                 "synthetic_cost": 7,
                 "synthetic_discomfort": 2
+              },
+              "candidate_revision_sha256": "7777777777777777777777777777777777777777777777777777777777777777",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "8888888888888888888888888888888888888888888888888888888888888888",
+                "life_safety_task_fixture": "9999999999999999999999999999999999999999999999999999999999999999"
               }
             },
             {
@@ -2112,7 +2628,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -2121,6 +2638,11 @@
               "objectives": {
                 "synthetic_cost": 4,
                 "synthetic_discomfort": 8
+              },
+              "candidate_revision_sha256": "9999999999999999999999999999999999999999999999999999999999999999",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "life_safety_task_fixture": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
               }
             },
             {
@@ -2134,7 +2656,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
               },
               "hard_gates": {
                 "step_free_task_fixture": "failed",
@@ -2143,6 +2666,11 @@
               "objectives": {
                 "synthetic_cost": 0.1,
                 "synthetic_discomfort": 0.1
+              },
+              "candidate_revision_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+                "life_safety_task_fixture": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
               }
             },
             {
@@ -2156,7 +2684,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -2165,6 +2694,11 @@
               "objectives": {
                 "synthetic_cost": 0.2,
                 "synthetic_discomfort": 0.2
+              },
+              "candidate_revision_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+                "life_safety_task_fixture": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
               }
             },
             {
@@ -2178,7 +2712,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -2187,6 +2722,11 @@
               "objectives": {
                 "synthetic_cost": 8.5,
                 "synthetic_discomfort": 1.5
+              },
+              "candidate_revision_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+                "life_safety_task_fixture": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
               }
             },
             {
@@ -2200,7 +2740,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -2209,6 +2750,11 @@
               "objectives": {
                 "synthetic_cost": 0.3,
                 "synthetic_discomfort": 0.3
+              },
+              "candidate_revision_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+                "life_safety_task_fixture": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
               }
             }
           ]
@@ -2235,7 +2781,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "6666666666666666666666666666666666666666666666666666666666666666"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -2244,6 +2791,11 @@
               "objectives": {
                 "synthetic_cost": 1,
                 "synthetic_discomfort": 9
+              },
+              "candidate_revision_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "4444444444444444444444444444444444444444444444444444444444444444",
+                "life_safety_task_fixture": "5555555555555555555555555555555555555555555555555555555555555555"
               }
             },
             {
@@ -2257,7 +2809,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "8888888888888888888888888888888888888888888888888888888888888888"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -2266,6 +2819,11 @@
               "objectives": {
                 "synthetic_cost": 3,
                 "synthetic_discomfort": 5
+              },
+              "candidate_revision_sha256": "5555555555555555555555555555555555555555555555555555555555555555",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "6666666666666666666666666666666666666666666666666666666666666666",
+                "life_safety_task_fixture": "7777777777777777777777777777777777777777777777777777777777777777"
               }
             },
             {
@@ -2279,7 +2837,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -2288,6 +2847,11 @@
               "objectives": {
                 "synthetic_cost": 7,
                 "synthetic_discomfort": 2
+              },
+              "candidate_revision_sha256": "7777777777777777777777777777777777777777777777777777777777777777",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "8888888888888888888888888888888888888888888888888888888888888888",
+                "life_safety_task_fixture": "9999999999999999999999999999999999999999999999999999999999999999"
               }
             },
             {
@@ -2301,7 +2865,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -2310,6 +2875,11 @@
               "objectives": {
                 "synthetic_cost": 4,
                 "synthetic_discomfort": 8
+              },
+              "candidate_revision_sha256": "9999999999999999999999999999999999999999999999999999999999999999",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "life_safety_task_fixture": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
               }
             },
             {
@@ -2323,7 +2893,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
               },
               "hard_gates": {
                 "step_free_task_fixture": "failed",
@@ -2332,6 +2903,11 @@
               "objectives": {
                 "synthetic_cost": 0.1,
                 "synthetic_discomfort": 0.1
+              },
+              "candidate_revision_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+                "life_safety_task_fixture": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
               }
             },
             {
@@ -2345,7 +2921,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -2354,6 +2931,11 @@
               "objectives": {
                 "synthetic_cost": 0.2,
                 "synthetic_discomfort": 0.2
+              },
+              "candidate_revision_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+                "life_safety_task_fixture": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
               }
             },
             {
@@ -2367,7 +2949,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -2376,6 +2959,11 @@
               "objectives": {
                 "synthetic_cost": 8.5,
                 "synthetic_discomfort": 1.5
+              },
+              "candidate_revision_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+                "life_safety_task_fixture": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
               }
             },
             {
@@ -2389,7 +2977,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -2398,6 +2987,11 @@
               "objectives": {
                 "synthetic_cost": 0.3,
                 "synthetic_discomfort": 0.3
+              },
+              "candidate_revision_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+                "life_safety_task_fixture": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
               }
             }
           ]
@@ -2424,7 +3018,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "6666666666666666666666666666666666666666666666666666666666666666"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -2433,6 +3028,11 @@
               "objectives": {
                 "synthetic_cost": 1,
                 "synthetic_discomfort": 9
+              },
+              "candidate_revision_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "4444444444444444444444444444444444444444444444444444444444444444",
+                "life_safety_task_fixture": "5555555555555555555555555555555555555555555555555555555555555555"
               }
             },
             {
@@ -2446,7 +3046,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "8888888888888888888888888888888888888888888888888888888888888888"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -2455,6 +3056,11 @@
               "objectives": {
                 "synthetic_cost": 3,
                 "synthetic_discomfort": 5
+              },
+              "candidate_revision_sha256": "5555555555555555555555555555555555555555555555555555555555555555",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "6666666666666666666666666666666666666666666666666666666666666666",
+                "life_safety_task_fixture": "7777777777777777777777777777777777777777777777777777777777777777"
               }
             },
             {
@@ -2468,7 +3074,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -2477,6 +3084,11 @@
               "objectives": {
                 "synthetic_cost": 7,
                 "synthetic_discomfort": 2
+              },
+              "candidate_revision_sha256": "7777777777777777777777777777777777777777777777777777777777777777",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "8888888888888888888888888888888888888888888888888888888888888888",
+                "life_safety_task_fixture": "9999999999999999999999999999999999999999999999999999999999999999"
               }
             },
             {
@@ -2490,7 +3102,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -2499,6 +3112,11 @@
               "objectives": {
                 "synthetic_cost": 4,
                 "synthetic_discomfort": 8
+              },
+              "candidate_revision_sha256": "9999999999999999999999999999999999999999999999999999999999999999",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "life_safety_task_fixture": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
               }
             },
             {
@@ -2512,7 +3130,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
               },
               "hard_gates": {
                 "step_free_task_fixture": "failed",
@@ -2521,6 +3140,11 @@
               "objectives": {
                 "synthetic_cost": 0.1,
                 "synthetic_discomfort": 0.1
+              },
+              "candidate_revision_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+                "life_safety_task_fixture": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
               }
             },
             {
@@ -2534,7 +3158,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -2543,6 +3168,11 @@
               "objectives": {
                 "synthetic_cost": 0.2,
                 "synthetic_discomfort": 0.2
+              },
+              "candidate_revision_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+                "life_safety_task_fixture": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
               }
             },
             {
@@ -2556,7 +3186,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -2565,6 +3196,11 @@
               "objectives": {
                 "synthetic_cost": 8.5,
                 "synthetic_discomfort": 1.5
+              },
+              "candidate_revision_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+                "life_safety_task_fixture": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
               }
             },
             {
@@ -2578,7 +3214,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -2587,6 +3224,11 @@
               "objectives": {
                 "synthetic_cost": 0.3,
                 "synthetic_discomfort": 0.3
+              },
+              "candidate_revision_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+                "life_safety_task_fixture": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
               }
             }
           ]
@@ -2613,7 +3255,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "6666666666666666666666666666666666666666666666666666666666666666"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -2622,6 +3265,11 @@
               "objectives": {
                 "synthetic_cost": 1,
                 "synthetic_discomfort": 9
+              },
+              "candidate_revision_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "4444444444444444444444444444444444444444444444444444444444444444",
+                "life_safety_task_fixture": "5555555555555555555555555555555555555555555555555555555555555555"
               }
             },
             {
@@ -2635,7 +3283,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "8888888888888888888888888888888888888888888888888888888888888888"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -2644,6 +3293,11 @@
               "objectives": {
                 "synthetic_cost": 3,
                 "synthetic_discomfort": 5
+              },
+              "candidate_revision_sha256": "5555555555555555555555555555555555555555555555555555555555555555",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "6666666666666666666666666666666666666666666666666666666666666666",
+                "life_safety_task_fixture": "7777777777777777777777777777777777777777777777777777777777777777"
               }
             },
             {
@@ -2657,7 +3311,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -2666,6 +3321,11 @@
               "objectives": {
                 "synthetic_cost": 7,
                 "synthetic_discomfort": 2
+              },
+              "candidate_revision_sha256": "7777777777777777777777777777777777777777777777777777777777777777",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "8888888888888888888888888888888888888888888888888888888888888888",
+                "life_safety_task_fixture": "9999999999999999999999999999999999999999999999999999999999999999"
               }
             },
             {
@@ -2679,7 +3339,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -2688,6 +3349,11 @@
               "objectives": {
                 "synthetic_cost": 4,
                 "synthetic_discomfort": 8
+              },
+              "candidate_revision_sha256": "9999999999999999999999999999999999999999999999999999999999999999",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "life_safety_task_fixture": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
               }
             },
             {
@@ -2701,7 +3367,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
               },
               "hard_gates": {
                 "step_free_task_fixture": "failed",
@@ -2710,6 +3377,11 @@
               "objectives": {
                 "synthetic_cost": 0.1,
                 "synthetic_discomfort": 0.1
+              },
+              "candidate_revision_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+                "life_safety_task_fixture": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
               }
             },
             {
@@ -2723,7 +3395,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -2732,6 +3405,11 @@
               "objectives": {
                 "synthetic_cost": 0.2,
                 "synthetic_discomfort": 0.2
+              },
+              "candidate_revision_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+                "life_safety_task_fixture": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
               }
             },
             {
@@ -2745,7 +3423,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -2754,6 +3433,11 @@
               "objectives": {
                 "synthetic_cost": 8.5,
                 "synthetic_discomfort": 1.5
+              },
+              "candidate_revision_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+                "life_safety_task_fixture": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
               }
             },
             {
@@ -2767,7 +3451,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -2776,6 +3461,11 @@
               "objectives": {
                 "synthetic_cost": 0.3,
                 "synthetic_discomfort": 0.3
+              },
+              "candidate_revision_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+                "life_safety_task_fixture": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
               }
             }
           ]
@@ -2802,7 +3492,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "6666666666666666666666666666666666666666666666666666666666666666"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -2811,6 +3502,11 @@
               "objectives": {
                 "synthetic_cost": 1,
                 "synthetic_discomfort": 9
+              },
+              "candidate_revision_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "4444444444444444444444444444444444444444444444444444444444444444",
+                "life_safety_task_fixture": "5555555555555555555555555555555555555555555555555555555555555555"
               }
             },
             {
@@ -2824,7 +3520,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "8888888888888888888888888888888888888888888888888888888888888888"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -2833,6 +3530,11 @@
               "objectives": {
                 "synthetic_cost": 3,
                 "synthetic_discomfort": 5
+              },
+              "candidate_revision_sha256": "5555555555555555555555555555555555555555555555555555555555555555",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "6666666666666666666666666666666666666666666666666666666666666666",
+                "life_safety_task_fixture": "7777777777777777777777777777777777777777777777777777777777777777"
               }
             },
             {
@@ -2846,7 +3548,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -2855,6 +3558,11 @@
               "objectives": {
                 "synthetic_cost": 7,
                 "synthetic_discomfort": 2
+              },
+              "candidate_revision_sha256": "7777777777777777777777777777777777777777777777777777777777777777",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "8888888888888888888888888888888888888888888888888888888888888888",
+                "life_safety_task_fixture": "9999999999999999999999999999999999999999999999999999999999999999"
               }
             },
             {
@@ -2868,7 +3576,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -2877,6 +3586,11 @@
               "objectives": {
                 "synthetic_cost": 4,
                 "synthetic_discomfort": 8
+              },
+              "candidate_revision_sha256": "9999999999999999999999999999999999999999999999999999999999999999",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "life_safety_task_fixture": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
               }
             },
             {
@@ -2890,7 +3604,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
               },
               "hard_gates": {
                 "step_free_task_fixture": "failed",
@@ -2899,6 +3614,11 @@
               "objectives": {
                 "synthetic_cost": 0.1,
                 "synthetic_discomfort": 0.1
+              },
+              "candidate_revision_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+                "life_safety_task_fixture": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
               }
             },
             {
@@ -2912,7 +3632,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -2921,6 +3642,11 @@
               "objectives": {
                 "synthetic_cost": 0.2,
                 "synthetic_discomfort": 0.2
+              },
+              "candidate_revision_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+                "life_safety_task_fixture": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
               }
             },
             {
@@ -2934,7 +3660,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -2943,6 +3670,11 @@
               "objectives": {
                 "synthetic_cost": 8.5,
                 "synthetic_discomfort": 1.5
+              },
+              "candidate_revision_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+                "life_safety_task_fixture": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
               }
             },
             {
@@ -2956,7 +3688,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -2965,6 +3698,11 @@
               "objectives": {
                 "synthetic_cost": 0.3,
                 "synthetic_discomfort": 0.3
+              },
+              "candidate_revision_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+                "life_safety_task_fixture": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
               }
             }
           ]
@@ -2991,7 +3729,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "6666666666666666666666666666666666666666666666666666666666666666"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -3000,6 +3739,11 @@
               "objectives": {
                 "synthetic_cost": 1,
                 "synthetic_discomfort": 9
+              },
+              "candidate_revision_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "4444444444444444444444444444444444444444444444444444444444444444",
+                "life_safety_task_fixture": "5555555555555555555555555555555555555555555555555555555555555555"
               }
             },
             {
@@ -3013,7 +3757,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "8888888888888888888888888888888888888888888888888888888888888888"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -3022,6 +3767,11 @@
               "objectives": {
                 "synthetic_cost": 3,
                 "synthetic_discomfort": 5
+              },
+              "candidate_revision_sha256": "5555555555555555555555555555555555555555555555555555555555555555",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "6666666666666666666666666666666666666666666666666666666666666666",
+                "life_safety_task_fixture": "7777777777777777777777777777777777777777777777777777777777777777"
               }
             },
             {
@@ -3035,7 +3785,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -3044,6 +3795,11 @@
               "objectives": {
                 "synthetic_cost": 7,
                 "synthetic_discomfort": 2
+              },
+              "candidate_revision_sha256": "7777777777777777777777777777777777777777777777777777777777777777",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "8888888888888888888888888888888888888888888888888888888888888888",
+                "life_safety_task_fixture": "9999999999999999999999999999999999999999999999999999999999999999"
               }
             },
             {
@@ -3057,7 +3813,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -3066,6 +3823,11 @@
               "objectives": {
                 "synthetic_cost": 4,
                 "synthetic_discomfort": 8
+              },
+              "candidate_revision_sha256": "9999999999999999999999999999999999999999999999999999999999999999",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "life_safety_task_fixture": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
               }
             },
             {
@@ -3079,7 +3841,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
               },
               "hard_gates": {
                 "step_free_task_fixture": "failed",
@@ -3088,6 +3851,11 @@
               "objectives": {
                 "synthetic_cost": 0.1,
                 "synthetic_discomfort": 0.1
+              },
+              "candidate_revision_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+                "life_safety_task_fixture": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
               }
             },
             {
@@ -3101,7 +3869,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -3110,6 +3879,11 @@
               "objectives": {
                 "synthetic_cost": 0.2,
                 "synthetic_discomfort": 0.2
+              },
+              "candidate_revision_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+                "life_safety_task_fixture": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
               }
             },
             {
@@ -3123,7 +3897,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -3132,6 +3907,11 @@
               "objectives": {
                 "synthetic_cost": 8.5,
                 "synthetic_discomfort": 1.5
+              },
+              "candidate_revision_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+                "life_safety_task_fixture": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
               }
             },
             {
@@ -3145,7 +3925,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -3154,6 +3935,11 @@
               "objectives": {
                 "synthetic_cost": 0.3,
                 "synthetic_discomfort": 0.3
+              },
+              "candidate_revision_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+                "life_safety_task_fixture": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
               }
             }
           ]
@@ -3180,7 +3966,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "6666666666666666666666666666666666666666666666666666666666666666"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -3189,6 +3976,11 @@
               "objectives": {
                 "synthetic_cost": 1,
                 "synthetic_discomfort": 9
+              },
+              "candidate_revision_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "4444444444444444444444444444444444444444444444444444444444444444",
+                "life_safety_task_fixture": "5555555555555555555555555555555555555555555555555555555555555555"
               }
             },
             {
@@ -3202,7 +3994,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "8888888888888888888888888888888888888888888888888888888888888888"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -3211,6 +4004,11 @@
               "objectives": {
                 "synthetic_cost": 3,
                 "synthetic_discomfort": 5
+              },
+              "candidate_revision_sha256": "5555555555555555555555555555555555555555555555555555555555555555",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "6666666666666666666666666666666666666666666666666666666666666666",
+                "life_safety_task_fixture": "7777777777777777777777777777777777777777777777777777777777777777"
               }
             },
             {
@@ -3224,7 +4022,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -3233,6 +4032,11 @@
               "objectives": {
                 "synthetic_cost": 7,
                 "synthetic_discomfort": 2
+              },
+              "candidate_revision_sha256": "7777777777777777777777777777777777777777777777777777777777777777",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "8888888888888888888888888888888888888888888888888888888888888888",
+                "life_safety_task_fixture": "9999999999999999999999999999999999999999999999999999999999999999"
               }
             },
             {
@@ -3246,7 +4050,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -3255,6 +4060,11 @@
               "objectives": {
                 "synthetic_cost": 4,
                 "synthetic_discomfort": 8
+              },
+              "candidate_revision_sha256": "9999999999999999999999999999999999999999999999999999999999999999",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "life_safety_task_fixture": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
               }
             },
             {
@@ -3268,7 +4078,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
               },
               "hard_gates": {
                 "step_free_task_fixture": "failed",
@@ -3277,6 +4088,11 @@
               "objectives": {
                 "synthetic_cost": 0.1,
                 "synthetic_discomfort": 0.1
+              },
+              "candidate_revision_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+                "life_safety_task_fixture": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
               }
             },
             {
@@ -3290,7 +4106,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -3299,6 +4116,11 @@
               "objectives": {
                 "synthetic_cost": 0.2,
                 "synthetic_discomfort": 0.2
+              },
+              "candidate_revision_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+                "life_safety_task_fixture": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
               }
             },
             {
@@ -3312,7 +4134,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -3321,6 +4144,11 @@
               "objectives": {
                 "synthetic_cost": 8.5,
                 "synthetic_discomfort": 1.5
+              },
+              "candidate_revision_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+                "life_safety_task_fixture": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
               }
             },
             {
@@ -3334,7 +4162,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -3343,6 +4172,11 @@
               "objectives": {
                 "synthetic_cost": 0.3,
                 "synthetic_discomfort": 0.3
+              },
+              "candidate_revision_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+                "life_safety_task_fixture": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
               }
             }
           ]
@@ -3369,7 +4203,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "6666666666666666666666666666666666666666666666666666666666666666"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -3378,6 +4213,11 @@
               "objectives": {
                 "synthetic_cost": 1,
                 "synthetic_discomfort": 9
+              },
+              "candidate_revision_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "4444444444444444444444444444444444444444444444444444444444444444",
+                "life_safety_task_fixture": "5555555555555555555555555555555555555555555555555555555555555555"
               }
             },
             {
@@ -3391,7 +4231,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "8888888888888888888888888888888888888888888888888888888888888888"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -3400,6 +4241,11 @@
               "objectives": {
                 "synthetic_cost": 3,
                 "synthetic_discomfort": 5
+              },
+              "candidate_revision_sha256": "5555555555555555555555555555555555555555555555555555555555555555",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "6666666666666666666666666666666666666666666666666666666666666666",
+                "life_safety_task_fixture": "7777777777777777777777777777777777777777777777777777777777777777"
               }
             },
             {
@@ -3413,7 +4259,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -3422,6 +4269,11 @@
               "objectives": {
                 "synthetic_cost": 7,
                 "synthetic_discomfort": 2
+              },
+              "candidate_revision_sha256": "7777777777777777777777777777777777777777777777777777777777777777",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "8888888888888888888888888888888888888888888888888888888888888888",
+                "life_safety_task_fixture": "9999999999999999999999999999999999999999999999999999999999999999"
               }
             },
             {
@@ -3435,7 +4287,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -3444,6 +4297,11 @@
               "objectives": {
                 "synthetic_cost": 4,
                 "synthetic_discomfort": 8
+              },
+              "candidate_revision_sha256": "9999999999999999999999999999999999999999999999999999999999999999",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "life_safety_task_fixture": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
               }
             },
             {
@@ -3457,7 +4315,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
               },
               "hard_gates": {
                 "step_free_task_fixture": "failed",
@@ -3466,6 +4325,11 @@
               "objectives": {
                 "synthetic_cost": 0.1,
                 "synthetic_discomfort": 0.1
+              },
+              "candidate_revision_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+                "life_safety_task_fixture": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
               }
             },
             {
@@ -3479,7 +4343,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -3488,6 +4353,11 @@
               "objectives": {
                 "synthetic_cost": 0.2,
                 "synthetic_discomfort": 0.2
+              },
+              "candidate_revision_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+                "life_safety_task_fixture": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
               }
             },
             {
@@ -3501,7 +4371,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -3510,6 +4381,11 @@
               "objectives": {
                 "synthetic_cost": 8.5,
                 "synthetic_discomfort": 1.5
+              },
+              "candidate_revision_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+                "life_safety_task_fixture": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
               }
             },
             {
@@ -3523,7 +4399,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -3532,6 +4409,11 @@
               "objectives": {
                 "synthetic_cost": 0.3,
                 "synthetic_discomfort": 0.3
+              },
+              "candidate_revision_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+                "life_safety_task_fixture": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
               }
             }
           ]
@@ -3558,7 +4440,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "6666666666666666666666666666666666666666666666666666666666666666"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -3567,6 +4450,11 @@
               "objectives": {
                 "synthetic_cost": 1,
                 "synthetic_discomfort": 9
+              },
+              "candidate_revision_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "4444444444444444444444444444444444444444444444444444444444444444",
+                "life_safety_task_fixture": "5555555555555555555555555555555555555555555555555555555555555555"
               }
             },
             {
@@ -3580,7 +4468,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "8888888888888888888888888888888888888888888888888888888888888888"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -3589,6 +4478,11 @@
               "objectives": {
                 "synthetic_cost": 3,
                 "synthetic_discomfort": 5
+              },
+              "candidate_revision_sha256": "5555555555555555555555555555555555555555555555555555555555555555",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "6666666666666666666666666666666666666666666666666666666666666666",
+                "life_safety_task_fixture": "7777777777777777777777777777777777777777777777777777777777777777"
               }
             },
             {
@@ -3602,7 +4496,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -3611,6 +4506,11 @@
               "objectives": {
                 "synthetic_cost": 7,
                 "synthetic_discomfort": 2
+              },
+              "candidate_revision_sha256": "7777777777777777777777777777777777777777777777777777777777777777",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "8888888888888888888888888888888888888888888888888888888888888888",
+                "life_safety_task_fixture": "9999999999999999999999999999999999999999999999999999999999999999"
               }
             },
             {
@@ -3624,7 +4524,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -3633,6 +4534,11 @@
               "objectives": {
                 "synthetic_cost": 4,
                 "synthetic_discomfort": 8
+              },
+              "candidate_revision_sha256": "9999999999999999999999999999999999999999999999999999999999999999",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "life_safety_task_fixture": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
               }
             },
             {
@@ -3646,7 +4552,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
               },
               "hard_gates": {
                 "step_free_task_fixture": "failed",
@@ -3655,6 +4562,11 @@
               "objectives": {
                 "synthetic_cost": 0.1,
                 "synthetic_discomfort": 0.1
+              },
+              "candidate_revision_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+                "life_safety_task_fixture": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
               }
             },
             {
@@ -3668,7 +4580,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -3677,6 +4590,11 @@
               "objectives": {
                 "synthetic_cost": 0.2,
                 "synthetic_discomfort": 0.2
+              },
+              "candidate_revision_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+                "life_safety_task_fixture": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
               }
             },
             {
@@ -3690,7 +4608,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -3699,6 +4618,11 @@
               "objectives": {
                 "synthetic_cost": 8.5,
                 "synthetic_discomfort": 1.5
+              },
+              "candidate_revision_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+                "life_safety_task_fixture": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
               }
             },
             {
@@ -3712,7 +4636,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -3721,6 +4646,11 @@
               "objectives": {
                 "synthetic_cost": 0.3,
                 "synthetic_discomfort": 0.3
+              },
+              "candidate_revision_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+                "life_safety_task_fixture": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
               }
             }
           ]
@@ -3747,7 +4677,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "6666666666666666666666666666666666666666666666666666666666666666"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -3756,6 +4687,11 @@
               "objectives": {
                 "synthetic_cost": 1,
                 "synthetic_discomfort": 9
+              },
+              "candidate_revision_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "4444444444444444444444444444444444444444444444444444444444444444",
+                "life_safety_task_fixture": "5555555555555555555555555555555555555555555555555555555555555555"
               }
             },
             {
@@ -3769,7 +4705,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "8888888888888888888888888888888888888888888888888888888888888888"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -3778,6 +4715,11 @@
               "objectives": {
                 "synthetic_cost": 3,
                 "synthetic_discomfort": 5
+              },
+              "candidate_revision_sha256": "5555555555555555555555555555555555555555555555555555555555555555",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "6666666666666666666666666666666666666666666666666666666666666666",
+                "life_safety_task_fixture": "7777777777777777777777777777777777777777777777777777777777777777"
               }
             },
             {
@@ -3791,7 +4733,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -3800,6 +4743,11 @@
               "objectives": {
                 "synthetic_cost": 7,
                 "synthetic_discomfort": 2
+              },
+              "candidate_revision_sha256": "7777777777777777777777777777777777777777777777777777777777777777",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "8888888888888888888888888888888888888888888888888888888888888888",
+                "life_safety_task_fixture": "9999999999999999999999999999999999999999999999999999999999999999"
               }
             },
             {
@@ -3813,7 +4761,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -3822,6 +4771,11 @@
               "objectives": {
                 "synthetic_cost": 4,
                 "synthetic_discomfort": 8
+              },
+              "candidate_revision_sha256": "9999999999999999999999999999999999999999999999999999999999999999",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "life_safety_task_fixture": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
               }
             },
             {
@@ -3835,7 +4789,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
               },
               "hard_gates": {
                 "step_free_task_fixture": "failed",
@@ -3844,6 +4799,11 @@
               "objectives": {
                 "synthetic_cost": 0.1,
                 "synthetic_discomfort": 0.1
+              },
+              "candidate_revision_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+                "life_safety_task_fixture": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
               }
             },
             {
@@ -3857,7 +4817,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -3866,6 +4827,11 @@
               "objectives": {
                 "synthetic_cost": 0.2,
                 "synthetic_discomfort": 0.2
+              },
+              "candidate_revision_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+                "life_safety_task_fixture": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
               }
             },
             {
@@ -3879,7 +4845,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -3888,6 +4855,11 @@
               "objectives": {
                 "synthetic_cost": 8.5,
                 "synthetic_discomfort": 1.5
+              },
+              "candidate_revision_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+                "life_safety_task_fixture": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
               }
             },
             {
@@ -3901,7 +4873,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -3910,6 +4883,11 @@
               "objectives": {
                 "synthetic_cost": 0.3,
                 "synthetic_discomfort": 0.3
+              },
+              "candidate_revision_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+                "life_safety_task_fixture": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
               }
             }
           ]
@@ -3936,7 +4914,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "6666666666666666666666666666666666666666666666666666666666666666"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -3945,6 +4924,11 @@
               "objectives": {
                 "synthetic_cost": 1,
                 "synthetic_discomfort": 9
+              },
+              "candidate_revision_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "4444444444444444444444444444444444444444444444444444444444444444",
+                "life_safety_task_fixture": "5555555555555555555555555555555555555555555555555555555555555555"
               }
             },
             {
@@ -3958,7 +4942,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "8888888888888888888888888888888888888888888888888888888888888888"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -3967,6 +4952,11 @@
               "objectives": {
                 "synthetic_cost": 3,
                 "synthetic_discomfort": 5
+              },
+              "candidate_revision_sha256": "5555555555555555555555555555555555555555555555555555555555555555",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "6666666666666666666666666666666666666666666666666666666666666666",
+                "life_safety_task_fixture": "7777777777777777777777777777777777777777777777777777777777777777"
               }
             },
             {
@@ -3980,7 +4970,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -3989,6 +4980,11 @@
               "objectives": {
                 "synthetic_cost": 7,
                 "synthetic_discomfort": 2
+              },
+              "candidate_revision_sha256": "7777777777777777777777777777777777777777777777777777777777777777",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "8888888888888888888888888888888888888888888888888888888888888888",
+                "life_safety_task_fixture": "9999999999999999999999999999999999999999999999999999999999999999"
               }
             },
             {
@@ -4002,7 +4998,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -4011,6 +5008,11 @@
               "objectives": {
                 "synthetic_cost": 4,
                 "synthetic_discomfort": 8
+              },
+              "candidate_revision_sha256": "9999999999999999999999999999999999999999999999999999999999999999",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "life_safety_task_fixture": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
               }
             },
             {
@@ -4024,7 +5026,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
               },
               "hard_gates": {
                 "step_free_task_fixture": "failed",
@@ -4033,6 +5036,11 @@
               "objectives": {
                 "synthetic_cost": 0.1,
                 "synthetic_discomfort": 0.1
+              },
+              "candidate_revision_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+                "life_safety_task_fixture": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
               }
             },
             {
@@ -4046,7 +5054,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -4055,6 +5064,11 @@
               "objectives": {
                 "synthetic_cost": 0.2,
                 "synthetic_discomfort": 0.2
+              },
+              "candidate_revision_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+                "life_safety_task_fixture": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
               }
             },
             {
@@ -4068,7 +5082,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -4077,6 +5092,11 @@
               "objectives": {
                 "synthetic_cost": 8.5,
                 "synthetic_discomfort": 1.5
+              },
+              "candidate_revision_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+                "life_safety_task_fixture": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
               }
             },
             {
@@ -4090,7 +5110,8 @@
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
                 "warnings": [],
-                "warnings_acknowledged": true
+                "warnings_acknowledged": true,
+                "result_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
               },
               "hard_gates": {
                 "step_free_task_fixture": "passed",
@@ -4099,6 +5120,11 @@
               "objectives": {
                 "synthetic_cost": 0.3,
                 "synthetic_discomfort": 0.3
+              },
+              "candidate_revision_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+                "life_safety_task_fixture": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
               }
             }
           ]
