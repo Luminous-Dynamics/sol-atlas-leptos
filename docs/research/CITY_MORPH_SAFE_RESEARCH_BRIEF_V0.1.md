@@ -256,7 +256,7 @@ Do not create another universal building ontology if the current IFC/ISO, jurisd
 - Department of Human Settlements, *Neighbourhood Planning and Design Guide (Red Book)*: https://www.dhs.gov.za/node/154
 - CSIR, Red Book overview: https://www.csir.co.za/neighbourhood-planning-and-design-guide-red-book
 - Widmark, J. (2026), *Crime Prevention in Residential Areas: A Systematic Review and Meta-Analysis of Environmental Design Approaches*: https://doi.org/10.1007/s10610-026-09659-y
-- UN-Habitat, *Public Space Assessment, Design and Management Methodology*: https://unhabitat.org/public-space-site-specific-assessment-urban-planning-tool
+- UN-Habitat, *Public Space Assessment, Design and Management Methodology*: https://unhabitat.org/the-public-space-assessment-design-and-management-methodology
 - buildingSMART, Information Delivery Specification (IDS): https://www.buildingsmart.org/Standards/Bsi-Standards/Information-Delivery-Specification-Ids/
 - ISO 16739-1:2024, IFC data schema: https://www.iso.org/standard/84123.html
 - Xu et al. (2026), *Construction robotics: a systematic review of robot types, applications and human robot collaborations*: https://doi.org/10.1016/j.rineng.2026.110406
