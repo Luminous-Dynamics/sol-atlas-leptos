@@ -1,0 +1,16 @@
+[package]
+name = "city-morph-safe-oracle"
+version = "0.1.0"
+edition = "2024"
+publish = false
+description = "Deterministic synthetic evidence-gate oracle for City Morph Safety"
+
+[workspace]
+resolver = "3"
+
+[lib]
+path = "src/lib.rs"
+
+[[bin]]
+name = "city-morph-safe-oracle"
+path = "src/main.rs"

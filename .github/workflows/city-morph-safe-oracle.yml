@@ -1,0 +1,35 @@
+name: City Morph Safe Oracle
+
+on:
+  push:
+    paths:
+      - "tools/city-morph-safe-oracle/**"
+      - ".github/workflows/city-morph-safe-oracle.yml"
+  pull_request:
+    paths:
+      - "tools/city-morph-safe-oracle/**"
+      - ".github/workflows/city-morph-safe-oracle.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: city-morph-safe-oracle-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  synthetic-e1:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install stable Rust and rustfmt
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - name: Format isolated package
+        run: cargo fmt --manifest-path tools/city-morph-safe-oracle/Cargo.toml --all -- --check
+      - name: Run offline unit and metamorphic tests
+        run: cargo test --offline --manifest-path tools/city-morph-safe-oracle/Cargo.toml
+      - name: Execute frozen synthetic corpus
+        run: cargo run --offline --manifest-path tools/city-morph-safe-oracle/Cargo.toml
