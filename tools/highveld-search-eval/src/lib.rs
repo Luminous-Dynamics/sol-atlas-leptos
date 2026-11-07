@@ -536,20 +536,16 @@ fn evaluate_run(
     violations: &mut Vec<&'static str>,
 ) -> RunReport {
     let seed = run.get("seed").and_then(Value::as_u64);
-    let (
-        high_fidelity_calls_used,
-        low_fidelity_calls,
-        wall_time_ms_used,
-        human_minutes_used,
-    ) = validate_run_accounting(
-        run,
-        high_fidelity_budget,
-        low_fidelity_budget,
-        wall_time_ms_budget,
-        human_minutes_budget,
-        candidate_budget,
-        violations,
-    );
+    let (high_fidelity_calls_used, low_fidelity_calls, wall_time_ms_used, human_minutes_used) =
+        validate_run_accounting(
+            run,
+            high_fidelity_budget,
+            low_fidelity_budget,
+            wall_time_ms_budget,
+            human_minutes_budget,
+            candidate_budget,
+            violations,
+        );
     let Some(candidates) = run.get("candidates").and_then(Value::as_array) else {
         push_unique(violations, "CANDIDATE_LIST_MISSING");
         return RunReport {
@@ -739,13 +735,13 @@ pub fn evaluate_bundle(bundle: &Value) -> EvaluationReport {
                 push_unique(&mut violations, "HIGH_FIDELITY_BUDGET_MISSING");
                 0
             });
-        let low_fidelity_budget =
-            get_u64(method, "low_fidelity_call_budget_per_run").unwrap_or_else(|| {
+        let low_fidelity_budget = get_u64(method, "low_fidelity_call_budget_per_run")
+            .unwrap_or_else(|| {
                 push_unique(&mut violations, "LOW_FIDELITY_BUDGET_MISSING");
                 0
             });
-        let wall_time_ms_budget = get_u64(method, "wall_time_ms_budget_per_run")
-            .unwrap_or_else(|| {
+        let wall_time_ms_budget =
+            get_u64(method, "wall_time_ms_budget_per_run").unwrap_or_else(|| {
                 push_unique(&mut violations, "WALL_TIME_BUDGET_MISSING");
                 0
             });
