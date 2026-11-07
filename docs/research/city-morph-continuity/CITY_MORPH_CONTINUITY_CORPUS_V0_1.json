@@ -1043,7 +1043,7 @@
                 "source_owner": "sol-atlas",
                 "source_contract": "CITY-MORPH-ACCESS-001",
                 "source_revision": "fixture-v0.1",
-                "source_receipt_id": "synthetic:p0:clinic",
+                "source_receipt_id": "synthetic:CR-011:p0:clinic:second-observation",
                 "scenario_id": "CR-011",
                 "source_subject_digest": "synthetic-subject:CR-011:p0:clinic",
                 "source_scope_digest": "city-morph-scope:synthetic-v0.1"
