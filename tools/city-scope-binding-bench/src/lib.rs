@@ -621,12 +621,17 @@ mod tests {
 
         let result = evaluate_case(&item);
         assert_eq!(result["binding_disposition"], "Unsupported");
-        assert_eq!(result["artifact_bindings"][0]["binding_state"], "Unsupported");
-        assert!(result["reason_codes"]
-            .as_array()
-            .unwrap()
-            .iter()
-            .any(|reason| reason == "OWNER_SCHEMA_REGISTRY_AMBIGUOUS"));
+        assert_eq!(
+            result["artifact_bindings"][0]["binding_state"],
+            "Unsupported"
+        );
+        assert!(
+            result["reason_codes"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|reason| reason == "OWNER_SCHEMA_REGISTRY_AMBIGUOUS")
+        );
     }
 
     #[test]
