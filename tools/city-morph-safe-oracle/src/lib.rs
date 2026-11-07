@@ -5,6 +5,8 @@
 //! classifies whether a bounded synthetic review packet is blocked, unknown, or
 //! eligible to be passed to qualified professionals for review.
 
+use std::collections::HashSet;
+
 pub const CORPUS_REVISION: &str = "city-morph-safe-v0.1";
 pub const PROFILE_REVISION: &str = "neighbourhood-intervention-review-v0.1";
 pub const EXPECTED_CASE_COUNT: usize = 30;
@@ -485,6 +487,31 @@ pub const SCENARIOS: [Scenario; EXPECTED_CASE_COUNT] = [
 ///
 /// This function is intentionally incapable of producing a real-world safety,
 /// crime-reduction, fire-safety, or code-compliance finding.
+/// Evaluate a batch while detecting duplicate scenario identifiers across the
+/// packet. Every occurrence of a duplicated identifier is blocked. Output order
+/// matches input order; reordering unique cases cannot change their dispositions.
+pub fn evaluate_batch(cases: &[Scenario]) -> Vec<Disposition> {
+    let mut seen = HashSet::with_capacity(cases.len());
+    let mut duplicates = HashSet::new();
+
+    for case in cases {
+        if !seen.insert(case.id) {
+            duplicates.insert(case.id);
+        }
+    }
+
+    cases
+        .iter()
+        .map(|case| {
+            if duplicates.contains(case.id) {
+                Disposition::Blocked
+            } else {
+                evaluate(case)
+            }
+        })
+        .collect()
+}
+
 pub fn evaluate(case: &Scenario) -> Disposition {
     if case.requested_output != RequestedOutput::ProfessionalReviewPacket {
         return Disposition::Blocked;
@@ -671,7 +698,7 @@ mod tests {
         let first: Vec<Disposition> = SCENARIOS.iter().map(evaluate).collect();
         let second: Vec<Disposition> = SCENARIOS.iter().map(evaluate).collect();
         assert_eq!(first, second);
-        assert_eq!(fixture_fingerprint(), fixture_fingerprint());
+        assert_eq!(fixture_fingerprint(), 0xc02f_4c9c_dc36_38b6);
     }
 
     #[test]
@@ -682,6 +709,37 @@ mod tests {
         missing.evidence.route_audit = EvidenceState::Missing;
         assert_eq!(evaluate(&stale), Disposition::Unknown);
         assert_eq!(evaluate(&missing), Disposition::Unknown);
+    }
+
+    #[test]
+    fn batch_evaluator_detects_duplicate_ids_instead_of_trusting_a_fixture_flag() {
+        let duplicate_packet = [SCENARIOS[0], SCENARIOS[0]];
+        assert_eq!(
+            evaluate_batch(&duplicate_packet),
+            [Disposition::Blocked, Disposition::Blocked]
+        );
+    }
+
+    #[test]
+    fn batch_order_does_not_change_per_scenario_dispositions() {
+        let original = SCENARIOS.to_vec();
+        let mut reversed = original.clone();
+        reversed.reverse();
+
+        let mut original_pairs: Vec<(&str, Disposition)> = original
+            .iter()
+            .zip(evaluate_batch(&original))
+            .map(|(case, result)| (case.id, result))
+            .collect();
+        let mut reversed_pairs: Vec<(&str, Disposition)> = reversed
+            .iter()
+            .zip(evaluate_batch(&reversed))
+            .map(|(case, result)| (case.id, result))
+            .collect();
+
+        original_pairs.sort_by_key(|(id, _)| *id);
+        reversed_pairs.sort_by_key(|(id, _)| *id);
+        assert_eq!(original_pairs, reversed_pairs);
     }
 
     #[test]
