@@ -511,7 +511,8 @@
       "rendered_location_history": "not_available_in_rendered_station_table",
       "rendered_equipment_history": "not_available_in_rendered_station_table",
       "hourly_series_downloaded": false,
-      "file_digest": null
+      "file_digest": null,
+      "measurement_series_downloaded": false
     },
     {
       "id": "JOHANNESBURG_TAMBO_SAWS_WIGOS_OSCAR",
