@@ -207,9 +207,9 @@ pub fn evaluate_case(case: &Value) -> Value {
             }));
         }
 
-        let has_hard_gate_failure = dimension_results.iter().any(|result| {
-            result["hard_gate"] == true && result["status"] == "Fail"
-        });
+        let has_hard_gate_failure = dimension_results
+            .iter()
+            .any(|result| result["hard_gate"] == true && result["status"] == "Fail");
         let has_unknown = dimension_results
             .iter()
             .any(|result| result["status"] == "Unknown");
@@ -282,9 +282,8 @@ mod tests {
     use std::path::PathBuf;
 
     fn corpus() -> Value {
-        let path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join(
-            "../../docs/research/city-maker/CITY_PRODUCTION_GEOGRAPHY_CORPUS_V0_1.json",
-        );
+        let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("../../docs/research/city-maker/CITY_PRODUCTION_GEOGRAPHY_CORPUS_V0_1.json");
         let bytes = std::fs::read(path).expect("production geography corpus must exist");
         serde_json::from_slice(&bytes).expect("production geography corpus must parse")
     }
@@ -303,10 +302,7 @@ mod tests {
     fn corpus_has_24_unique_synthetic_cases() {
         let corpus = corpus();
         assert_eq!(corpus["classification"], "synthetic_fixture_only");
-        assert_eq!(
-            corpus["corpus_id"],
-            "CITY-PRODUCTION-GEOGRAPHY-CORPUS-V0.1"
-        );
+        assert_eq!(corpus["corpus_id"], "CITY-PRODUCTION-GEOGRAPHY-CORPUS-V0.1");
         let cases = corpus["cases"].as_array().unwrap();
         assert_eq!(cases.len(), 24);
         let ids = cases
@@ -378,19 +374,23 @@ mod tests {
     #[test]
     fn duplicate_and_unregistered_receipts_fail_closed() {
         for id in ["PG-017", "PG-018", "PG-019", "PG-020"] {
-            assert_eq!(evaluate_case(&case(id))["disposition"], "Unsupported", "{id}");
+            assert_eq!(
+                evaluate_case(&case(id))["disposition"],
+                "Unsupported",
+                "{id}"
+            );
         }
     }
 
     #[test]
     fn all_current_pass_receipts_are_eligible_for_owner_frontier_comparison() {
         let result = evaluate_case(&case("PG-001"));
+        assert_eq!(result["alternatives"][0]["status"], "EligibleForComparison");
         assert_eq!(
-            result["alternatives"][0]["status"],
-            "EligibleForComparison"
-        );
-        assert_eq!(
-            result["alternatives"][0]["dimension_results"].as_array().unwrap().len(),
+            result["alternatives"][0]["dimension_results"]
+                .as_array()
+                .unwrap()
+                .len(),
             8
         );
     }
@@ -399,8 +399,14 @@ mod tests {
     fn input_permutation_does_not_change_normalized_owner_gating() {
         let mut item = case("PG-021");
         let baseline = evaluate_case(&item);
-        item["input"]["dimensions"].as_array_mut().unwrap().reverse();
-        item["input"]["alternatives"].as_array_mut().unwrap().reverse();
+        item["input"]["dimensions"]
+            .as_array_mut()
+            .unwrap()
+            .reverse();
+        item["input"]["alternatives"]
+            .as_array_mut()
+            .unwrap()
+            .reverse();
         for alternative in item["input"]["alternatives"].as_array_mut().unwrap() {
             alternative["receipts"].as_array_mut().unwrap().reverse();
         }
