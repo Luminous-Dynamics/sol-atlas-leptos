@@ -293,8 +293,7 @@ pub fn validate_values(scenario: &Value, parameters: &Value) -> ValidationReport
     // Preserve the second climate-provider methodology as research only.
     // Provider-published global validation and a coarse regional grid trend are
     // not local Highveld file qualification.
-    let alternative_methods =
-        array_at(scenario, &["alternative_climate_provider_methodologies"]);
+    let alternative_methods = array_at(scenario, &["alternative_climate_provider_methodologies"]);
     let mut alternative_method_count = 0usize;
     if let Some(items) = alternative_methods {
         alternative_method_count = items.len();
@@ -306,7 +305,10 @@ pub fn validate_values(scenario: &Value, parameters: &Value) -> ValidationReport
                 && item.get("source_file_downloaded").and_then(Value::as_bool) == Some(false)
                 && item.get("file_digest").is_some_and(Value::is_null)
                 && item.get("reuse_rights").and_then(Value::as_str) == Some("UNKNOWN")
-                && item.get("licence_and_terms_checked").and_then(Value::as_bool) == Some(false)
+                && item
+                    .get("licence_and_terms_checked")
+                    .and_then(Value::as_bool)
+                    == Some(false)
                 && item.get("local_validation_status").and_then(Value::as_str)
                     == Some("NOT_INDEPENDENTLY_REVIEWED_FOR_JOHANNESBURG_OR_A_HIGHVELD_PARCEL")
         });
@@ -318,8 +320,7 @@ pub fn validate_values(scenario: &Value, parameters: &Value) -> ValidationReport
 
         let regional_trend = find_by_id(items, "JOHANNESBURG_GRID_TREND_EPWT");
         let regional_scope_is_bounded = regional_trend.is_some_and(|item| {
-            item.get("spatial_resolution").and_then(Value::as_str)
-                == Some("0.5_degree_grid_cell")
+            item.get("spatial_resolution").and_then(Value::as_str) == Some("0.5_degree_grid_cell")
                 && item.get("status").and_then(Value::as_str)
                     == Some("REGIONAL_RESEARCH_CONTEXT_ONLY_NOT_DESIGN_WEATHER")
                 && item
@@ -977,8 +978,7 @@ mod tests {
     #[test]
     fn alternate_provider_remains_unqualified_until_local_source_review() {
         let (mut scenario, parameters) = documents();
-        scenario["alternative_climate_provider_methodologies"][0]["status"] =
-            json!("QUALIFIED");
+        scenario["alternative_climate_provider_methodologies"][0]["status"] = json!("QUALIFIED");
         scenario["alternative_climate_provider_methodologies"][0]["local_validation_status"] =
             json!("VERIFIED");
         let report = validate_values(&scenario, &parameters);
