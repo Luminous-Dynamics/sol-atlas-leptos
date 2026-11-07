@@ -148,9 +148,7 @@ A ward-level population estimate joined to a 100 m heat grid remains a ward-leve
 
 ## 5. Climate and thermal benchmark strategy
 
-The passive-cooling literature should motivate a measurement-first benchmark, not a giant simulation-only search. A 2026 evidence map reports 197 studies but finds that 52 do not identify a climate context, 85 lack recoverable numerical outcomes, and only one uses an experimental/test-cell/prototype design. This points to an important gap: well-described climate-contextual experiments with both thermal service and implementation feasibility outcomes.
-
-A 2026 randomized pilot in 40 rural African houses compared cool roofs, cross-ventilation, mat ceilings and controls. It reported lower daytime/nighttime heat index in the cool-roof arm, while the mat-ceiling arm had a day/night trade-off and cross-ventilation had no detected heat-index difference in that setting. This is useful for hypothesis generation, not a Johannesburg effect size or a universal ranking.
+The passive-cooling literature should motivate a measurement-first benchmark, not a giant simulation-only search. A randomized pilot published on 5 January 2026 in 40 rural African houses compared cool roofs, cross-ventilation, mat ceilings and controls. It reported lower daytime/nighttime heat index in the cool-roof arm, while the mat-ceiling arm had a day/night trade-off and cross-ventilation had no detected heat-index difference in that setting. This is useful for hypothesis generation, not a Johannesburg effect size or a universal ranking. The study supports a matched, instrumented test-cell/pilot approach in which local climate, housing type, installation quality, occupancy, hot nights and water/power availability are recorded.
 
 Therefore:
 - reproduce published results in their own context before transferring;
