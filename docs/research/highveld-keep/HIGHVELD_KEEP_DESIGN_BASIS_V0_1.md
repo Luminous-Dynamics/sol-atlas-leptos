@@ -216,6 +216,20 @@ Before a real site is selected or any site-specific design claim is admitted, ob
 
 Johannesburg's dolomitic conditions make geotechnical evidence an early hard gate where relevant. The 2003 national dolomite guideline is a historical technical reference, not a substitute for current site-specific professional advice or authority requirements.
 
+## 6C. South African approval pathway and policy watch
+
+The National Building Regulations and Building Standards Act 103 of 1977 remains the core national statutory framework for building standards and local-authority jurisdiction. The actual approval pathway must be determined against the selected parcel, municipality, building classification, current regulations/SANS editions, professional scope and the South African crosswalk in Sol-Atlas #604. This design basis is not legal advice and does not encode remembered SANS clauses as current law.
+
+For a real home project, verify the current NHBRC applicability, builder-registration and home-enrolment obligations. The NHBRC currently states that the home builder enrols the home at least 15 days before construction, and that enrolment enables stage inspections and the described consumer warranty protections. Applicability and any exemption must be resolved by the project’s qualified South African compliance/legal professionals; do not treat the design brief as a determination.
+
+**2026 policy watch:** On 3 July 2026 the Minister of Public Works and Infrastructure launched the National Built Environment and Construction Safety Framework and announced that CBE Public Interest and Safety Regulations would be gazetted, with focus areas including structural and dolomitic occurrences, improved building compliance and certification aligned to SANS 17024. That announcement is a policy-development signal, not proof that the proposed regulations have already been gazetted or are in force. Sol-Atlas #604 should verify the actual Gazette publication, commencement date, final text, transitional provisions and competent-person requirements before any compliance rule is implemented.
+
+References:
+- National Building Regulations and Building Standards Act 103 of 1977: https://www.gov.za/documents/national-building-regulations-and-building-standards-act-16-apr-2015-1302
+- NHBRC home enrolment: https://www.nhbrc.org.za/why-enrol/
+- NHBRC home-builder registration obligations: https://www.nhbrc.org.za/why-register/
+- Ministerial launch of National Built Environment and Construction Safety Framework, 3 July 2026: https://www.gov.za/news/speeches/minister-dean-macpherson-launch-national-built-environment-and-construction-safety
+
 ## 7. Security, accessibility and life safety
 
 The goal is a home that feels welcoming and is demonstrably well considered—not a militarized residence.
