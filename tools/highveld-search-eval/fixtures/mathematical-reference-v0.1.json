@@ -372,9 +372,12 @@
                 "life_safety_task_fixture": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
               }
             }
-          ]
+          ],
+          "wall_time_ms_used": 1000
         }
-      ]
+      ],
+      "low_fidelity_call_budget_per_run": 8,
+      "wall_time_ms_budget_per_run": 5000
     },
     {
       "id": "nsga2",
@@ -624,7 +627,8 @@
                 "life_safety_task_fixture": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
               }
             }
-          ]
+          ],
+          "wall_time_ms_used": 1000
         },
         {
           "seed": 1,
@@ -861,7 +865,8 @@
                 "life_safety_task_fixture": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
               }
             }
-          ]
+          ],
+          "wall_time_ms_used": 1000
         },
         {
           "seed": 2,
@@ -1098,7 +1103,8 @@
                 "life_safety_task_fixture": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
               }
             }
-          ]
+          ],
+          "wall_time_ms_used": 1000
         },
         {
           "seed": 3,
@@ -1335,7 +1341,8 @@
                 "life_safety_task_fixture": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
               }
             }
-          ]
+          ],
+          "wall_time_ms_used": 1000
         },
         {
           "seed": 4,
@@ -1572,7 +1579,8 @@
                 "life_safety_task_fixture": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
               }
             }
-          ]
+          ],
+          "wall_time_ms_used": 1000
         },
         {
           "seed": 5,
@@ -1809,7 +1817,8 @@
                 "life_safety_task_fixture": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
               }
             }
-          ]
+          ],
+          "wall_time_ms_used": 1000
         },
         {
           "seed": 6,
@@ -2046,7 +2055,8 @@
                 "life_safety_task_fixture": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
               }
             }
-          ]
+          ],
+          "wall_time_ms_used": 1000
         },
         {
           "seed": 7,
@@ -2283,7 +2293,8 @@
                 "life_safety_task_fixture": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
               }
             }
-          ]
+          ],
+          "wall_time_ms_used": 1000
         },
         {
           "seed": 8,
@@ -2520,7 +2531,8 @@
                 "life_safety_task_fixture": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
               }
             }
-          ]
+          ],
+          "wall_time_ms_used": 1000
         },
         {
           "seed": 9,
@@ -2757,7 +2769,8 @@
                 "life_safety_task_fixture": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
               }
             }
-          ]
+          ],
+          "wall_time_ms_used": 1000
         },
         {
           "seed": 10,
@@ -2994,7 +3007,8 @@
                 "life_safety_task_fixture": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
               }
             }
-          ]
+          ],
+          "wall_time_ms_used": 1000
         },
         {
           "seed": 11,
@@ -3231,7 +3245,8 @@
                 "life_safety_task_fixture": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
               }
             }
-          ]
+          ],
+          "wall_time_ms_used": 1000
         },
         {
           "seed": 12,
@@ -3468,7 +3483,8 @@
                 "life_safety_task_fixture": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
               }
             }
-          ]
+          ],
+          "wall_time_ms_used": 1000
         },
         {
           "seed": 13,
@@ -3705,7 +3721,8 @@
                 "life_safety_task_fixture": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
               }
             }
-          ]
+          ],
+          "wall_time_ms_used": 1000
         },
         {
           "seed": 14,
@@ -3942,7 +3959,8 @@
                 "life_safety_task_fixture": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
               }
             }
-          ]
+          ],
+          "wall_time_ms_used": 1000
         },
         {
           "seed": 15,
@@ -4179,7 +4197,8 @@
                 "life_safety_task_fixture": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
               }
             }
-          ]
+          ],
+          "wall_time_ms_used": 1000
         },
         {
           "seed": 16,
@@ -4416,7 +4435,8 @@
                 "life_safety_task_fixture": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
               }
             }
-          ]
+          ],
+          "wall_time_ms_used": 1000
         },
         {
           "seed": 17,
@@ -4653,7 +4673,8 @@
                 "life_safety_task_fixture": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
               }
             }
-          ]
+          ],
+          "wall_time_ms_used": 1000
         },
         {
           "seed": 18,
@@ -4890,7 +4911,8 @@
                 "life_safety_task_fixture": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
               }
             }
-          ]
+          ],
+          "wall_time_ms_used": 1000
         },
         {
           "seed": 19,
@@ -5127,9 +5149,12 @@
                 "life_safety_task_fixture": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
               }
             }
-          ]
+          ],
+          "wall_time_ms_used": 1000
         }
-      ]
+      ],
+      "low_fidelity_call_budget_per_run": 8,
+      "wall_time_ms_budget_per_run": 5000
     }
   ]
 }
