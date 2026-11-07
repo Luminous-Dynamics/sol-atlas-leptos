@@ -4,7 +4,7 @@
 //! deterministic set of mathematical metrics. It is not a building simulator,
 //! geometry engine, climate validator or engineering approval authority.
 
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 use std::collections::{BTreeMap, HashSet};
 
 const CLAIM_CEILING: &str = "mathematical_synthetic_metric_audit_only";
@@ -143,9 +143,7 @@ fn get_bool(value: &Value, key: &str) -> Option<bool> {
 }
 
 fn is_sha256(value: Option<&str>) -> bool {
-    value.is_some_and(|s| {
-        s.len() == 64 && s.bytes().all(|byte| byte.is_ascii_hexdigit())
-    })
+    value.is_some_and(|s| s.len() == 64 && s.bytes().all(|byte| byte.is_ascii_hexdigit()))
 }
 
 fn push_unique(violations: &mut Vec<&'static str>, id: &'static str) {
@@ -175,12 +173,8 @@ fn objectives_from(bundle: &Value, violations: &mut Vec<&'static str>) -> Vec<Ob
             push_unique(violations, "OBJECTIVE_DIRECTION_INVALID");
             continue;
         }
-        let lower = item
-            .get("normalization_lower")
-            .and_then(Value::as_f64);
-        let upper = item
-            .get("normalization_upper")
-            .and_then(Value::as_f64);
+        let lower = item.get("normalization_lower").and_then(Value::as_f64);
+        let upper = item.get("normalization_upper").and_then(Value::as_f64);
         let unit = get_str(item, "unit");
         match (lower, upper) {
             (Some(lo), Some(hi))
@@ -317,7 +311,10 @@ fn evaluate_candidate(
         exclusion_reasons.push("HARD_GATE_RESULTS_MISSING");
     }
     for gate_id in gate_ids {
-        match gates.and_then(|map| map.get(gate_id)).and_then(Value::as_str) {
+        match gates
+            .and_then(|map| map.get(gate_id))
+            .and_then(Value::as_str)
+        {
             Some("passed") => {}
             Some("failed") => exclusion_reasons.push("HARD_GATE_FAILED"),
             Some("unknown") => exclusion_reasons.push("HARD_GATE_UNKNOWN"),
@@ -372,11 +369,7 @@ pub fn hypervolume_2d(points: &[[f64; 2]], reference: [f64; 2]) -> Option<f64> {
     if !reference.iter().all(|value| value.is_finite()) {
         return None;
     }
-    if points
-        .iter()
-        .flatten()
-        .any(|value| !value.is_finite())
-    {
+    if points.iter().flatten().any(|value| !value.is_finite()) {
         return None;
     }
 
@@ -385,11 +378,7 @@ pub fn hypervolume_2d(points: &[[f64; 2]], reference: [f64; 2]) -> Option<f64> {
         .copied()
         .filter(|point| point[0] < reference[0] && point[1] < reference[1])
         .collect();
-    points.sort_by(|a, b| {
-        a[0]
-            .total_cmp(&b[0])
-            .then_with(|| a[1].total_cmp(&b[1]))
-    });
+    points.sort_by(|a, b| a[0].total_cmp(&b[0]).then_with(|| a[1].total_cmp(&b[1])));
 
     let mut best_y = reference[1];
     let mut area = 0.0;
@@ -409,10 +398,7 @@ fn hypervolume_for_front(points: &[Vec<f64>], reference: &[f64]) -> Option<f64> 
     if reference.len() != 2 {
         return None;
     }
-    let fixed: Vec<[f64; 2]> = points
-        .iter()
-        .map(|point| [point[0], point[1]])
-        .collect();
+    let fixed: Vec<[f64; 2]> = points.iter().map(|point| [point[0], point[1]]).collect();
     hypervolume_2d(&fixed, [reference[0], reference[1]])
 }
 
@@ -522,8 +508,10 @@ fn evaluate_run(
         evaluations.push(evaluation);
     }
 
-    let feasible: Vec<&CandidateEvaluation> =
-        evaluations.iter().filter(|candidate| candidate.feasible).collect();
+    let feasible: Vec<&CandidateEvaluation> = evaluations
+        .iter()
+        .filter(|candidate| candidate.feasible)
+        .collect();
     let vectors: Vec<Vec<f64>> = feasible
         .iter()
         .filter_map(|candidate| candidate.normalized.clone())
@@ -593,7 +581,9 @@ pub fn evaluate_bundle(bundle: &Value) -> EvaluationReport {
         .map(|values| values.iter().filter_map(Value::as_f64).collect())
         .unwrap_or_default();
     if reference_point.len() != objectives.len()
-        || reference_point.iter().any(|value| !value.is_finite() || *value <= 1.0)
+        || reference_point
+            .iter()
+            .any(|value| !value.is_finite() || *value <= 1.0)
     {
         push_unique(&mut violations, "HYPERVOLUME_REFERENCE_POINT_INVALID");
     }
@@ -627,7 +617,10 @@ pub fn evaluate_bundle(bundle: &Value) -> EvaluationReport {
         push_unique(&mut violations, "EXACT_REFERENCE_METHOD_MISSING");
     }
     if !enumeration_complete && reference_method_id.is_some() {
-        push_unique(&mut violations, "EXACT_REFERENCE_CLAIM_WITHOUT_COMPLETE_ENUMERATION");
+        push_unique(
+            &mut violations,
+            "EXACT_REFERENCE_CLAIM_WITHOUT_COMPLETE_ENUMERATION",
+        );
         reference_method_id = None;
     }
 
@@ -641,7 +634,9 @@ pub fn evaluate_bundle(bundle: &Value) -> EvaluationReport {
         if id == "UNKNOWN_METHOD" || !method_ids.insert(id.clone()) {
             push_unique(&mut violations, "METHOD_ID_MISSING_OR_DUPLICATED");
         }
-        let algorithm = get_str(method, "algorithm").unwrap_or("UNKNOWN_ALGORITHM").to_owned();
+        let algorithm = get_str(method, "algorithm")
+            .unwrap_or("UNKNOWN_ALGORITHM")
+            .to_owned();
         if algorithm == "UNKNOWN_ALGORITHM" {
             push_unique(&mut violations, "ALGORITHM_IDENTITY_MISSING");
         }
@@ -656,8 +651,8 @@ pub fn evaluate_bundle(bundle: &Value) -> EvaluationReport {
             push_unique(&mut violations, "CANDIDATE_BUDGET_MISSING");
             0
         });
-        let high_fidelity_budget =
-            get_u64(method, "high_fidelity_call_budget_per_run").unwrap_or_else(|| {
+        let high_fidelity_budget = get_u64(method, "high_fidelity_call_budget_per_run")
+            .unwrap_or_else(|| {
                 push_unique(&mut violations, "HIGH_FIDELITY_BUDGET_MISSING");
                 0
             });
@@ -679,10 +674,16 @@ pub fn evaluate_bundle(bundle: &Value) -> EvaluationReport {
         let enumeration_complete_for_method =
             get_bool(method, "enumeration_complete").unwrap_or(false);
         if enumeration_complete_for_method && algorithm != "EXHAUSTIVE_ENUMERATION" {
-            push_unique(&mut violations, "NON_EXHAUSTIVE_METHOD_CLAIMS_EXACT_ENUMERATION");
+            push_unique(
+                &mut violations,
+                "NON_EXHAUSTIVE_METHOD_CLAIMS_EXACT_ENUMERATION",
+            );
         }
         if !enumeration_complete_for_method && algorithm == "EXHAUSTIVE_ENUMERATION" {
-            push_unique(&mut violations, "EXHAUSTIVE_METHOD_MISSING_ENUMERATION_FLAG");
+            push_unique(
+                &mut violations,
+                "EXHAUSTIVE_METHOD_MISSING_ENUMERATION_FLAG",
+            );
         }
 
         let Some(runs) = method.get("runs").and_then(Value::as_array) else {
@@ -764,16 +765,18 @@ pub fn evaluate_bundle(bundle: &Value) -> EvaluationReport {
                     let gate_map = candidate.get("hard_gates").and_then(Value::as_object);
                     let all_gates_known = gate_ids.iter().all(|gate_id| {
                         matches!(
-                            gate_map.and_then(|map| map.get(gate_id)).and_then(Value::as_str),
+                            gate_map
+                                .and_then(|map| map.get(gate_id))
+                                .and_then(Value::as_str),
                             Some("passed" | "failed")
                         )
                     });
                     let normalized = normalize_objectives(candidate, &objectives).is_ok();
                     let verification = candidate.get("verification");
-                    let full_fidelity = verification
-                        .and_then(|value| get_str(value, "kind"))
+                    let full_fidelity = verification.and_then(|value| get_str(value, "kind"))
                         == Some("high_fidelity")
-                        && verification.and_then(|value| get_bool(value, "converged")) == Some(true)
+                        && verification.and_then(|value| get_bool(value, "converged"))
+                            == Some(true)
                         && verification
                             .and_then(|value| get_bool(value, "required_inputs_complete"))
                             == Some(true)
@@ -786,7 +789,10 @@ pub fn evaluate_bundle(bundle: &Value) -> EvaluationReport {
                         || !full_fidelity
                 })
             }) {
-                push_unique(&mut violations, "EXACT_REFERENCE_ENUMERATION_NOT_FULLY_QUALIFIED");
+                push_unique(
+                    &mut violations,
+                    "EXACT_REFERENCE_ENUMERATION_NOT_FULLY_QUALIFIED",
+                );
             }
         }
 
@@ -949,13 +955,7 @@ mod tests {
         ));
 
         let runs: Vec<Value> = (0..20)
-            .map(|seed| {
-                make_run(
-                    Some(seed),
-                    nsga_candidates.clone(),
-                    calls(3, 1, 1, 6),
-                )
-            })
+            .map(|seed| make_run(Some(seed), nsga_candidates.clone(), calls(3, 1, 1, 6)))
             .collect();
         let nsga = json!({
             "id": "nsga2",
@@ -1034,10 +1034,12 @@ mod tests {
         assert!(report.is_valid(), "{:?}", report.violations);
         let exact = &report.methods[0].runs[0];
         assert!(!exact.pareto_ids.iter().any(|id| id == "I"));
-        assert!(exact
-            .excluded
-            .iter()
-            .any(|(id, reasons)| id == "I" && reasons.contains(&"HARD_GATE_FAILED")));
+        assert!(
+            exact
+                .excluded
+                .iter()
+                .any(|(id, reasons)| id == "I" && reasons.contains(&"HARD_GATE_FAILED"))
+        );
     }
 
     #[test]
@@ -1057,7 +1059,11 @@ mod tests {
         bundle["methods"][0]["runs"][0]["candidates"][10]["reported_feasible"] = json!(true);
         let report = evaluate_bundle(&bundle);
         assert!(has_violation(&report, "FALSE_FEASIBLE_DECLARATION"));
-        assert!(!report.methods[0].runs[0].pareto_ids.contains(&"K".to_owned()));
+        assert!(
+            !report.methods[0].runs[0]
+                .pareto_ids
+                .contains(&"K".to_owned())
+        );
     }
 
     #[test]
@@ -1065,11 +1071,10 @@ mod tests {
         let report = evaluate_bundle(&valid_bundle());
         let run = &report.methods[1].runs[0];
         assert!(!run.pareto_ids.contains(&"N-J".to_owned()));
-        assert!(run
-            .excluded
-            .iter()
-            .any(|(id, reasons)| id == "N-J"
-                && reasons.contains(&"SURROGATE_ONLY_NOT_FINAL_EVIDENCE")));
+        assert!(
+            run.excluded.iter().any(|(id, reasons)| id == "N-J"
+                && reasons.contains(&"SURROGATE_ONLY_NOT_FINAL_EVIDENCE"))
+        );
     }
 
     #[test]
@@ -1093,10 +1098,8 @@ mod tests {
     #[test]
     fn stale_dependencies_are_excluded_and_false_pass_detected() {
         let mut bundle = valid_bundle();
-        bundle["methods"][0]["runs"][0]["candidates"][0]["dependency_status"] =
-            json!("stale");
-        bundle["methods"][0]["runs"][0]["candidates"][0]["reported_feasible"] =
-            json!(true);
+        bundle["methods"][0]["runs"][0]["candidates"][0]["dependency_status"] = json!("stale");
+        bundle["methods"][0]["runs"][0]["candidates"][0]["reported_feasible"] = json!(true);
         let report = evaluate_bundle(&bundle);
         assert!(has_violation(&report, "FALSE_FEASIBLE_DECLARATION"));
     }
@@ -1106,7 +1109,10 @@ mod tests {
         let mut bundle = valid_bundle();
         bundle["methods"][1]["fixture_sha256"] = json!(digest('f'));
         let report = evaluate_bundle(&bundle);
-        assert!(has_violation(&report, "METHOD_INPUT_OR_CODE_DIGEST_MISMATCH"));
+        assert!(has_violation(
+            &report,
+            "METHOD_INPUT_OR_CODE_DIGEST_MISMATCH"
+        ));
         assert!(!report.matched_comparison);
     }
 
@@ -1139,14 +1145,20 @@ mod tests {
         let mut bundle = valid_bundle();
         bundle["methods"][1]["runs"][1]["seed"] = json!(0);
         let report = evaluate_bundle(&bundle);
-        assert!(has_violation(&report, "STOCHASTIC_SEED_MISSING_OR_DUPLICATED"));
+        assert!(has_violation(
+            &report,
+            "STOCHASTIC_SEED_MISSING_OR_DUPLICATED"
+        ));
     }
 
     #[test]
     fn exact_front_is_not_claimed_without_complete_enumeration() {
         let mut bundle = valid_bundle();
         bundle["fixture"]["enumeration_complete"] = json!(false);
-        bundle["fixture"].as_object_mut().unwrap().remove("reference_method_id");
+        bundle["fixture"]
+            .as_object_mut()
+            .unwrap()
+            .remove("reference_method_id");
         let report = evaluate_bundle(&bundle);
         assert!(has_violation(
             &report,
@@ -1182,10 +1194,7 @@ mod tests {
         let mut bundle = valid_bundle();
         bundle["methods"][0]["runs"][0]["candidates"][1]["id"] = json!("A");
         let report = evaluate_bundle(&bundle);
-        assert!(has_violation(
-            &report,
-            "CANDIDATE_ID_DUPLICATED_WITHIN_RUN"
-        ));
+        assert!(has_violation(&report, "CANDIDATE_ID_DUPLICATED_WITHIN_RUN"));
     }
 
     #[test]
@@ -1228,6 +1237,9 @@ mod tests {
             output["claim_limit"],
             "no_building_performance_or_sota_superiority_claim"
         );
-        assert_eq!(output["result"], "benchmark_bundle_valid_mathematical_fixture_only");
+        assert_eq!(
+            output["result"],
+            "benchmark_bundle_valid_mathematical_fixture_only"
+        );
     }
 }
