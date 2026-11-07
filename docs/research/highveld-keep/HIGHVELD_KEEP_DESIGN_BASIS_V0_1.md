@@ -147,6 +147,21 @@ They are **catalogued candidates only**. The actual archives have not been heade
 
 Before use, capture exact source, station coordinates/elevation, period, time zone, hourly variables, missingness, file SHA-256, reuse rights and representativeness uncertainty. Also create separate historical hot/cold/storm/hail event cases and future climate cases where qualified data exist.
 
+### 6.1A Alternative source-provider research
+
+EPW.tools is recorded as an alternative provider methodology to compare, not as a qualified replacement. Its published description says it prioritizes station observations, uses ERA5/MERRA-2 for gap filling, uses satellite solar products where available, and offers actual-year (AMY), typical-year and future-climate file products. Its validation page reports broad comparisons against ASHRAE design conditions and an hourly validation set based on seven NOAA SURFRAD stations. These are provider-published methods/results and have not been independently reproduced by Luminous or shown to validate a Johannesburg parcel.
+
+Its Johannesburg temperature-trend page reports a 1981–2025 trend from a 0.5-degree NASA POWER/MERRA-2 grid cell; that is regional context, not a station or parcel measurement. Keep its grid trend out of design-weather input until source/variable/uncertainty checks are complete.
+
+The source/methodology comparison is recorded in the scenario JSON as `RESEARCH_ONLY_NOT_INGESTED_OR_QUALIFIED`. The controlled evaluation should compare:
+- Climate.OneBuilding TMYx candidates for typical-year screening;
+- EPW.tools TMY products, if downloaded and qualified, as a competing typical-year pipeline;
+- EPW.tools AMY for an exact measured operational year only when calibrating against that same year's metered indoor/utility observations;
+- future-climate files only with explicit model, emissions scenario, horizon, baseline and morphing method;
+- independently obtained station observations, where available, as an external comparison authority.
+
+Do not mix TMY, AMY, historical extremes and future projections. A provider's global validation is not local Highveld validation.
+
 ### 6.2 Climate hypotheses, not conclusions
 
 Compare:
