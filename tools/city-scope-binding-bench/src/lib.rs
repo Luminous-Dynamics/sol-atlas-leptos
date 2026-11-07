@@ -49,12 +49,14 @@ fn canonical_scope(scope: &Value) -> Value {
         .get_mut("service_requirements")
         .and_then(Value::as_array_mut)
     {
-        requirements.sort_by(|left, right| {
-            text(left, "requirement_id").cmp(text(right, "requirement_id"))
-        });
+        requirements
+            .sort_by(|left, right| text(left, "requirement_id").cmp(text(right, "requirement_id")));
     }
 
-    if let Some(units) = value.get_mut("functional_units").and_then(Value::as_array_mut) {
+    if let Some(units) = value
+        .get_mut("functional_units")
+        .and_then(Value::as_array_mut)
+    {
         units.sort_by(|left, right| {
             text(left, "functional_unit_id").cmp(text(right, "functional_unit_id"))
         });
@@ -192,7 +194,11 @@ pub fn evaluate_case(case: &Value) -> Value {
             errors.insert("DUPLICATE_OR_MISSING_RECEIPT_ID".to_owned());
             artifact_bindings.insert(
                 artifact_id.to_owned(),
-                binding_entry(artifact_id, "Unsupported", text(artifact, "raw_owner_disposition")),
+                binding_entry(
+                    artifact_id,
+                    "Unsupported",
+                    text(artifact, "raw_owner_disposition"),
+                ),
             );
             continue;
         }
@@ -215,13 +221,21 @@ pub fn evaluate_case(case: &Value) -> Value {
                 unknown.insert("OWNER_SCHEMA_REGISTRY_ENTRY_MISSING".to_owned());
                 artifact_bindings.insert(
                     artifact_id.to_owned(),
-                    binding_entry(artifact_id, "Unknown", text(artifact, "raw_owner_disposition")),
+                    binding_entry(
+                        artifact_id,
+                        "Unknown",
+                        text(artifact, "raw_owner_disposition"),
+                    ),
                 );
             } else {
                 errors.insert("OWNER_CONTRACT_VERSION_UNSUPPORTED".to_owned());
                 artifact_bindings.insert(
                     artifact_id.to_owned(),
-                    binding_entry(artifact_id, "Unsupported", text(artifact, "raw_owner_disposition")),
+                    binding_entry(
+                        artifact_id,
+                        "Unsupported",
+                        text(artifact, "raw_owner_disposition"),
+                    ),
                 );
             }
             continue;
@@ -240,7 +254,11 @@ pub fn evaluate_case(case: &Value) -> Value {
             unknown.insert("OWNER_ARTIFACT_IDENTITY_INCOMPLETE".to_owned());
             artifact_bindings.insert(
                 artifact_id.to_owned(),
-                binding_entry(artifact_id, "Unknown", text(artifact, "raw_owner_disposition")),
+                binding_entry(
+                    artifact_id,
+                    "Unknown",
+                    text(artifact, "raw_owner_disposition"),
+                ),
             );
             continue;
         }
@@ -259,7 +277,11 @@ pub fn evaluate_case(case: &Value) -> Value {
             errors.insert("OWNER_ARTIFACT_DIGEST_OR_REVISION_MALFORMED".to_owned());
             artifact_bindings.insert(
                 artifact_id.to_owned(),
-                binding_entry(artifact_id, "Unsupported", text(artifact, "raw_owner_disposition")),
+                binding_entry(
+                    artifact_id,
+                    "Unsupported",
+                    text(artifact, "raw_owner_disposition"),
+                ),
             );
             continue;
         }
@@ -271,7 +293,11 @@ pub fn evaluate_case(case: &Value) -> Value {
             not_comparable.insert("OWNER_SCHEMA_OR_SOURCE_REVISION_MISMATCH".to_owned());
             artifact_bindings.insert(
                 artifact_id.to_owned(),
-                binding_entry(artifact_id, "NotComparable", text(artifact, "raw_owner_disposition")),
+                binding_entry(
+                    artifact_id,
+                    "NotComparable",
+                    text(artifact, "raw_owner_disposition"),
+                ),
             );
             continue;
         }
@@ -291,29 +317,45 @@ pub fn evaluate_case(case: &Value) -> Value {
             not_comparable.insert("OWNER_ARTIFACT_SCOPE_MISMATCH".to_owned());
             artifact_bindings.insert(
                 artifact_id.to_owned(),
-                binding_entry(artifact_id, "NotComparable", text(artifact, "raw_owner_disposition")),
+                binding_entry(
+                    artifact_id,
+                    "NotComparable",
+                    text(artifact, "raw_owner_disposition"),
+                ),
             );
             continue;
         }
 
-        if !array(scope, "scenarios").unwrap_or(&[]).iter().any(|scenario| {
-            text(scenario, "scenario_id") == text(artifact, "scenario_id")
-        }) {
+        if !array(scope, "scenarios")
+            .unwrap_or(&[])
+            .iter()
+            .any(|scenario| text(scenario, "scenario_id") == text(artifact, "scenario_id"))
+        {
             not_comparable.insert("SCENARIO_NOT_IN_SCOPE".to_owned());
             artifact_bindings.insert(
                 artifact_id.to_owned(),
-                binding_entry(artifact_id, "NotComparable", text(artifact, "raw_owner_disposition")),
+                binding_entry(
+                    artifact_id,
+                    "NotComparable",
+                    text(artifact, "raw_owner_disposition"),
+                ),
             );
             continue;
         }
 
-        if !array(scope, "functional_units").unwrap_or(&[]).iter().any(|unit| {
-            text(unit, "functional_unit_id") == text(artifact, "functional_unit_ref")
-        }) {
+        if !array(scope, "functional_units")
+            .unwrap_or(&[])
+            .iter()
+            .any(|unit| text(unit, "functional_unit_id") == text(artifact, "functional_unit_ref"))
+        {
             not_comparable.insert("FUNCTIONAL_UNIT_NOT_IN_SCOPE".to_owned());
             artifact_bindings.insert(
                 artifact_id.to_owned(),
-                binding_entry(artifact_id, "NotComparable", text(artifact, "raw_owner_disposition")),
+                binding_entry(
+                    artifact_id,
+                    "NotComparable",
+                    text(artifact, "raw_owner_disposition"),
+                ),
             );
             continue;
         }
@@ -323,7 +365,11 @@ pub fn evaluate_case(case: &Value) -> Value {
                 not_comparable.insert("WEATHER_PROFILE_MISMATCH".to_owned());
                 artifact_bindings.insert(
                     artifact_id.to_owned(),
-                    binding_entry(artifact_id, "NotComparable", text(artifact, "raw_owner_disposition")),
+                    binding_entry(
+                        artifact_id,
+                        "NotComparable",
+                        text(artifact, "raw_owner_disposition"),
+                    ),
                 );
                 continue;
             }
@@ -342,7 +388,11 @@ pub fn evaluate_case(case: &Value) -> Value {
                 not_comparable.insert("DESIGN_OR_BOM_REVISION_MISMATCH".to_owned());
                 artifact_bindings.insert(
                     artifact_id.to_owned(),
-                    binding_entry(artifact_id, "NotComparable", text(artifact, "raw_owner_disposition")),
+                    binding_entry(
+                        artifact_id,
+                        "NotComparable",
+                        text(artifact, "raw_owner_disposition"),
+                    ),
                 );
                 continue;
             }
@@ -352,14 +402,22 @@ pub fn evaluate_case(case: &Value) -> Value {
             unknown.insert("OWNER_ARTIFACT_EVIDENCE_NOT_CURRENT".to_owned());
             artifact_bindings.insert(
                 artifact_id.to_owned(),
-                binding_entry(artifact_id, "Unknown", text(artifact, "raw_owner_disposition")),
+                binding_entry(
+                    artifact_id,
+                    "Unknown",
+                    text(artifact, "raw_owner_disposition"),
+                ),
             );
             continue;
         }
 
         artifact_bindings.insert(
             artifact_id.to_owned(),
-            binding_entry(artifact_id, "Bound", text(artifact, "raw_owner_disposition")),
+            binding_entry(
+                artifact_id,
+                "Bound",
+                text(artifact, "raw_owner_disposition"),
+            ),
         );
     }
 
@@ -487,13 +545,20 @@ mod tests {
     fn baseline_is_bound_without_claiming_payload_digest_verified() {
         let result = evaluate_case(&case("SB-001"));
         assert_eq!(result["binding_disposition"], "Bound");
-        assert!(!result["artifact_bindings"][0]["payload_bytes_verified"].as_bool().unwrap());
+        assert!(
+            !result["artifact_bindings"][0]["payload_bytes_verified"]
+                .as_bool()
+                .unwrap()
+        );
     }
 
     #[test]
     fn mismatched_scope_is_not_comparable() {
         for id in ["SB-002", "SB-003", "SB-004", "SB-006"] {
-            assert_eq!(evaluate_case(&case(id))["binding_disposition"], "NotComparable");
+            assert_eq!(
+                evaluate_case(&case(id))["binding_disposition"],
+                "NotComparable"
+            );
         }
     }
 
@@ -507,7 +572,10 @@ mod tests {
     #[test]
     fn duplicate_and_malformed_identities_are_unsupported() {
         for id in ["SB-013", "SB-014", "SB-020", "SB-021"] {
-            assert_eq!(evaluate_case(&case(id))["binding_disposition"], "Unsupported");
+            assert_eq!(
+                evaluate_case(&case(id))["binding_disposition"],
+                "Unsupported"
+            );
         }
     }
 
@@ -515,10 +583,16 @@ mod tests {
     fn raw_blocked_or_import_dependent_results_are_preserved() {
         let blocked = evaluate_case(&case("SB-015"));
         assert_eq!(blocked["binding_disposition"], "Bound");
-        assert_eq!(blocked["artifact_bindings"][0]["raw_owner_disposition"], "Blocked");
+        assert_eq!(
+            blocked["artifact_bindings"][0]["raw_owner_disposition"],
+            "Blocked"
+        );
         let imported = evaluate_case(&case("SB-024"));
         assert_eq!(imported["binding_disposition"], "Bound");
-        assert_eq!(imported["artifact_bindings"][0]["raw_owner_disposition"], "ImportDependent");
+        assert_eq!(
+            imported["artifact_bindings"][0]["raw_owner_disposition"],
+            "ImportDependent"
+        );
         assert_eq!(imported["owner_result_promotion"], "none");
     }
 
@@ -533,11 +607,26 @@ mod tests {
     fn canonical_scope_digest_is_invariant_to_declared_set_order() {
         let mut item = case("SB-001");
         let before = scope_digest(&item["input"]["scope"]);
-        item["input"]["scope"]["scenarios"].as_array_mut().unwrap().reverse();
-        item["input"]["scope"]["service_requirements"].as_array_mut().unwrap().reverse();
-        item["input"]["scope"]["functional_units"].as_array_mut().unwrap().reverse();
-        item["input"]["scope"]["population_frame"]["group_ids"].as_array_mut().unwrap().reverse();
-        item["input"]["scope"]["design_revisions"].as_array_mut().unwrap().reverse();
+        item["input"]["scope"]["scenarios"]
+            .as_array_mut()
+            .unwrap()
+            .reverse();
+        item["input"]["scope"]["service_requirements"]
+            .as_array_mut()
+            .unwrap()
+            .reverse();
+        item["input"]["scope"]["functional_units"]
+            .as_array_mut()
+            .unwrap()
+            .reverse();
+        item["input"]["scope"]["population_frame"]["group_ids"]
+            .as_array_mut()
+            .unwrap()
+            .reverse();
+        item["input"]["scope"]["design_revisions"]
+            .as_array_mut()
+            .unwrap()
+            .reverse();
         assert_eq!(before, scope_digest(&item["input"]["scope"]));
     }
 
@@ -547,7 +636,10 @@ mod tests {
         item["input"]["scope"]["custom_ordered_timeline"] =
             serde_json::json!([{"tick":1},{"tick":2}]);
         let first = scope_digest(&item["input"]["scope"]);
-        item["input"]["scope"]["custom_ordered_timeline"].as_array_mut().unwrap().reverse();
+        item["input"]["scope"]["custom_ordered_timeline"]
+            .as_array_mut()
+            .unwrap()
+            .reverse();
         assert_ne!(first, scope_digest(&item["input"]["scope"]));
     }
 }
