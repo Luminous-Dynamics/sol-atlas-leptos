@@ -1,0 +1,457 @@
+{
+  "schema_id": "org.luminousdynamics.citymaker.reference-district-composition-manifest",
+  "schema_version": "0.1.0",
+  "manifest_id": "CITY-REFERENCE-DISTRICT-COMPOSITION-MANIFEST-V0.1",
+  "classification": "synthetic_integration_plan_only",
+  "claim_ceiling": "Records composition boundaries and owner-contract readiness only. It does not instantiate a district, authenticate owner receipts, establish local capacity, or qualify a building, service or city.",
+  "as_of": "2026-11-07",
+  "profile_ref": {
+    "repository": "Luminous-Dynamics/sol-atlas-leptos",
+    "pull_request": 616,
+    "branch": "research/citymaker-reference-district-v0.1",
+    "path": "docs/research/city-maker/CITY_REFERENCE_DISTRICT_PROFILE_V0_1.json",
+    "blob_sha": "38cbfd05b615594377a4699a629f50e75cb6cc9e",
+    "profile_id": "CITY-REFERENCE-DISTRICT-PROFILE-V0.1",
+    "schema_version": "0.1.0",
+    "service_contract_count": 10,
+    "asset_archetype_count": 5,
+    "required_parameter_count": 15,
+    "state": "parameterized_template_uninstantiated"
+  },
+  "evaluation_scope": {
+    "state": "Unbound",
+    "scope_digest": null,
+    "geography": null,
+    "site_boundary_revision": null,
+    "population_frame": null,
+    "service_horizon": null,
+    "scenario_family": null,
+    "weather_profile": null,
+    "functional_units": null,
+    "cost_base_year_currency": null,
+    "design_and_bom_revisions": null,
+    "evidence_policy": null,
+    "binding_rule": "No cross-owner result may be composed until all contributing receipts resolve to the same declared scope, scenario, time horizon, product/design revision and compatible functional unit. A null field is not a default."
+  },
+  "service_contracts": [
+    {
+      "service_id": "housing",
+      "beneficiary_frame": "household-and-accessibility-groups",
+      "status": "profile_defined_not_instantiated",
+      "owner_refs": [
+        "Symthaea #6032",
+        "#6036",
+        "#6037",
+        "#6040",
+        "#5949",
+        "Mycelix #5149",
+        "Symtropy #3605"
+      ],
+      "functional_unit": "dwelling-service-year"
+    },
+    {
+      "service_id": "health",
+      "beneficiary_frame": "declared_population_groups",
+      "status": "profile_defined_not_instantiated",
+      "owner_refs": [
+        "Symthaea #5949",
+        "#6032",
+        "Symtropy #3768",
+        "Mycelix #4814",
+        "#5149"
+      ],
+      "functional_unit": null
+    },
+    {
+      "service_id": "education_childcare",
+      "beneficiary_frame": "declared_age_and_accessibility_groups",
+      "status": "profile_defined_not_instantiated",
+      "owner_refs": [
+        "Symthaea #5949",
+        "#6032",
+        "Symtropy #3768",
+        "Sol-Atlas #555"
+      ],
+      "functional_unit": null
+    },
+    {
+      "service_id": "food",
+      "beneficiary_frame": "declared_population_groups",
+      "status": "profile_defined_not_instantiated",
+      "owner_refs": [
+        "Mycelix #4814",
+        "#5035",
+        "#5149",
+        "Symtropy #3768",
+        "Sol-Atlas #573"
+      ],
+      "functional_unit": null
+    },
+    {
+      "service_id": "water_sanitation",
+      "beneficiary_frame": "declared_population_groups",
+      "status": "profile_defined_not_instantiated",
+      "owner_refs": [
+        "Symthaea #5959",
+        "#5966",
+        "#6032",
+        "Mycelix #5035",
+        "Symtropy #3768"
+      ],
+      "functional_unit": "m3-by-quality-class-and-time"
+    },
+    {
+      "service_id": "energy_thermal",
+      "beneficiary_frame": "declared_population_groups_and_critical_assets",
+      "status": "profile_defined_not_instantiated",
+      "owner_refs": [
+        "Symthaea #5968",
+        "#6032",
+        "Mycelix #5035",
+        "Symtropy #1848",
+        "#1900"
+      ],
+      "functional_unit": "kWh-by-source-and-time"
+    },
+    {
+      "service_id": "mobility_freight",
+      "beneficiary_frame": "people-groups-and-goods-flows",
+      "status": "profile_defined_not_instantiated",
+      "owner_refs": [
+        "Sol-Atlas #555",
+        "#569",
+        "#573",
+        "#613",
+        "Symtropy #1834",
+        "Mycelix #4814"
+      ],
+      "functional_unit": "person-trips-and-tonne-km-by-mode-time"
+    },
+    {
+      "service_id": "public_space_ecology",
+      "beneficiary_frame": "declared_population_groups_and_ecological_receptors",
+      "status": "profile_defined_not_instantiated",
+      "owner_refs": [
+        "Sol-Atlas #591",
+        "#555",
+        "#563",
+        "Symtropy #1766",
+        "Mycelix #5035"
+      ],
+      "functional_unit": null
+    },
+    {
+      "service_id": "waste_repair_recovery",
+      "beneficiary_frame": "district-material-flows-and-receiving-facilities",
+      "status": "profile_defined_not_instantiated",
+      "owner_refs": [
+        "Mycelix #5035",
+        "#4814",
+        "#5149",
+        "Symtropy #1856",
+        "#1984",
+        "Sol-Atlas #569"
+      ],
+      "functional_unit": "kg-by-material-grade-destination-and-period"
+    },
+    {
+      "service_id": "emergency_maintenance",
+      "beneficiary_frame": "all-residents_workers_and_critical_assets",
+      "status": "profile_defined_not_instantiated",
+      "owner_refs": [
+        "Symthaea #5949",
+        "#6032",
+        "#5774",
+        "Symtropy #3768",
+        "#1834",
+        "Sol-Atlas #563"
+      ],
+      "functional_unit": null
+    }
+  ],
+  "owner_contract_registry": [
+    {
+      "owner": "Symthaea",
+      "contract": "CIV-BOOT productive capability assessment",
+      "owner_ref": "https://github.com/Luminous-Dynamics/symthaea/issues/5774",
+      "consumed_by": "Symtropy #3768 and Sol-Atlas #603/#606",
+      "schema_status": "field_contract_documented_in_CityMaker_owner_adapter_issue",
+      "known_identity_fields": [
+        "target_id",
+        "scenario_id",
+        "source_owner",
+        "source_contract",
+        "source_revision",
+        "source_receipt_id",
+        "source_subject_digest",
+        "evidence_state",
+        "status",
+        "operationally_reachable",
+        "locally_closed"
+      ],
+      "mapping_boundary": "CityMaker consumes the owner result. It does not calculate the AND/OR closure theorem. Import-dependent capability is not local capability."
+    },
+    {
+      "owner": "Mycelix",
+      "contract": "living-city-metabolism/0.1",
+      "owner_ref": "https://github.com/Luminous-Dynamics/mycelix/pull/5035",
+      "consumed_by": "Sol-Atlas #569/#615 and Symtropy CityKit integration",
+      "schema_status": "versioned_contract_identified_in_owner_PR",
+      "known_semantics": [
+        "system_boundary",
+        "spatial_temporal_scope",
+        "functional_unit",
+        "scenario",
+        "physical_flow",
+        "evidence_kind",
+        "lifecycle_stage",
+        "model_run",
+        "input_manifest_digest",
+        "calibration_receipt",
+        "distributional_coverage"
+      ],
+      "mapping_boundary": "Physical flow/model-evidence accounting is not product inventory, qualified batch, supplier stock or lot custody."
+    },
+    {
+      "owner": "Mycelix",
+      "contract": "CIV-ECON-005 production/input-output network",
+      "owner_ref": "https://github.com/Luminous-Dynamics/mycelix/issues/4814",
+      "consumed_by": "Sol-Atlas #569/#573/#613",
+      "schema_status": "schema_native_projection_required",
+      "known_semantics": [
+        "supplier",
+        "inventory",
+        "production_capability",
+        "substitution",
+        "lead_time",
+        "logistics_dependency",
+        "critical_supply"
+      ],
+      "mapping_boundary": "Do not infer production capacity, available inventory or deliverability from map proximity. Pin exact schema before field mapping."
+    },
+    {
+      "owner": "Mycelix",
+      "contract": "construction project and batch provenance",
+      "owner_ref": "https://github.com/Luminous-Dynamics/mycelix/issues/5149",
+      "consumed_by": "Sol-Atlas #573/#603/#606/#615",
+      "schema_status": "schema_native_projection_required",
+      "known_semantics": [
+        "batch_identity",
+        "custody",
+        "inspection",
+        "approval",
+        "responsible_decision_owner",
+        "revision_supersession",
+        "correction",
+        "revocation",
+        "dispute"
+      ],
+      "mapping_boundary": "A passport, catalogue entry or supplier offer is not proof of physical lot identity, custody, inspection or accepted receipt."
+    },
+    {
+      "owner": "Symtropy",
+      "contract": "CONSTRUCTION-ACCEPTED-OUTPUT-001",
+      "owner_ref": "https://github.com/Luminous-Dynamics/symtropy/issues/3605",
+      "consumer": "ABOVEGROUND-PANELCELL-001 #3773",
+      "schema_status": "owner_contract_identified_exact_schema_registration_required",
+      "known_semantics": [
+        "task_family_functional_unit",
+        "independent_acceptance_predicate",
+        "first_pass_acceptance",
+        "final_acceptance",
+        "defects",
+        "rework",
+        "full_workflow_labour_time"
+      ],
+      "mapping_boundary": "Keep task-family functional units and all labour/rework denominators. Do not create a second construction productivity ontology."
+    },
+    {
+      "owner": "Symtropy",
+      "contract": "CITYKIT-SYNTH-001",
+      "owner_ref": "https://github.com/Luminous-Dynamics/symtropy/issues/3768",
+      "consumer": "Sol-Atlas #615",
+      "schema_status": "synthetic_reference_oracle_qualified_owner_native_integration_pending",
+      "known_semantics": [
+        "service_capacity",
+        "resource_balance",
+        "capability_receipt_consistency",
+        "resource_unit_compatibility"
+      ],
+      "mapping_boundary": "CityKit checks receipt consistency and resource/service feasibility. Symthaea remains capability-closure authority."
+    },
+    {
+      "owner": "Symtropy",
+      "contract": "ABOVEGROUND-PANELCELL-001",
+      "owner_ref": "https://github.com/Luminous-Dynamics/symtropy/issues/3773",
+      "consumer": "Sol-Atlas #602/#615 and Symthaea #6040",
+      "schema_status": "benchmark_profile_defined_physical_evidence_pending",
+      "known_semantics": [
+        "B0_conventional",
+        "B1_productized_prefabricated",
+        "B2_assisted",
+        "B3_guarded_automation",
+        "accepted_output",
+        "human_factors",
+        "quality",
+        "labour",
+        "lifecycle"
+      ],
+      "mapping_boundary": "Industry maturity and synthetic results do not establish physical productivity. Physical pilot needs matched article, baseline and independent acceptance."
+    },
+    {
+      "owner": "Symthaea",
+      "contract": "BUILT-BIM-001 and BUILT-ROB-PILOT-001",
+      "owner_ref": "https://github.com/Luminous-Dynamics/symthaea/issues/6036",
+      "related_ref": "https://github.com/Luminous-Dynamics/symthaea/issues/6040",
+      "consumer": "Sol-Atlas #602/#603/#615",
+      "schema_status": "external_projection_profiles_identified_exact_adapter_registration_required",
+      "known_semantics": [
+        "IFC_identity",
+        "IDS_information_requirements",
+        "design_revision",
+        "as_built_metrology",
+        "commissioning",
+        "discrepancy",
+        "change",
+        "recommissioning"
+      ],
+      "mapping_boundary": "IFC/IDS conformance is information exchange only. Model existence, IDS pass or BCF issue closure does not prove as-built condition, physical conformance or commissioning."
+    },
+    {
+      "owner": "Symtropy",
+      "contract": "CIRC-BUILD-001 and CIRC-MFG-001",
+      "owner_ref": "https://github.com/Luminous-Dynamics/symtropy/issues/1856",
+      "related_ref": "https://github.com/Luminous-Dynamics/symtropy/issues/1984",
+      "consumer": "Sol-Atlas #569/#602/#615",
+      "schema_status": "owner_contracts_identified_exact_adapter_registration_required",
+      "known_semantics": [
+        "preserve",
+        "repair",
+        "reuse",
+        "refurbish",
+        "remanufacture",
+        "recycle",
+        "replace",
+        "material_flow",
+        "qualification_gate"
+      ],
+      "mapping_boundary": "Spatial candidate matching does not approve demolition, reuse, structural substitution, recycling destination or product qualification."
+    },
+    {
+      "owner": "Sol-Atlas",
+      "contract": "CITY-MORPH-ACCESS-001",
+      "owner_ref": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/pull/564",
+      "consumer": "CITY-MORPH-ROBUST-001 and district composition",
+      "schema_status": "synthetic_reference_oracle_qualified",
+      "known_semantics": [
+        "group",
+        "mode",
+        "network_access",
+        "service_usability",
+        "capacity_potential",
+        "uncertainty",
+        "source_register_digest"
+      ],
+      "mapping_boundary": "Consumes route/service evidence; synthetic benchmark does not establish Johannesburg access or real service capacity."
+    },
+    {
+      "owner": "Sol-Atlas",
+      "contract": "CITY-MORPH-ROBUST-001",
+      "owner_ref": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/pull/574",
+      "consumer": "district composition",
+      "schema_status": "synthetic_reference_oracle_qualified",
+      "known_semantics": [
+        "phase_timeline",
+        "adequate_time",
+        "constrained_time",
+        "inaccessible_time",
+        "unknown_time",
+        "recovery_confirmation"
+      ],
+      "mapping_boundary": "Consumes exact access receipts; no hazard probabilities or real-world resilience claim are generated."
+    }
+  ],
+  "composition_invariants": [
+    "No integration scope digest exists until geography, population frame, service horizon, scenario family, weather profile, functional units, cost basis, design/BOM revisions and evidence policy are explicitly bound.",
+    "Each owner-native contract remains authoritative for its own facts; CityMaker adapters are read-only projections and may not strengthen the source claim ceiling.",
+    "Unknown, stale, revoked, disputed, unsupported and not-comparable evidence remains distinct. No positive default or silent fallback.",
+    "Every receipt must bind the intended subject, scope, scenario, source revision, owner contract and content digest using that owner's actual schema.",
+    "A material passport or IFC/IDS object does not replace physical batch identity, custody, inspection, installation acceptance or commissioning.",
+    "Mycelix flow accounting does not imply qualified inventory, local production capability, supplier availability or a deliverable shipment.",
+    "A component acceptance does not imply a complete building, commissioned service or adequate neighbourhood service basket.",
+    "All population, service, cost, climate, utility, production and capacity inputs remain null/Unknown until sourced or labelled synthetic."
+  ],
+  "next_integration_gates": [
+    {
+      "gate_id": "G0_SCOPE_BINDING",
+      "state": "blocked_until_declared",
+      "required": [
+        "geography",
+        "population_frame",
+        "service_horizon",
+        "scenario_family",
+        "functional_units",
+        "cost_base_year_currency",
+        "evidence_policy",
+        "design_BOM_revisions"
+      ]
+    },
+    {
+      "gate_id": "G1_SCHEMA_REGISTRATION",
+      "state": "in_progress",
+      "owner_issue": "Sol-Atlas #606",
+      "required": [
+        "exact_owner_schema_id",
+        "schema_version",
+        "source_revision",
+        "schema_content_digest",
+        "subject_identity_mapping",
+        "state_mapping",
+        "revocation_semantics"
+      ]
+    },
+    {
+      "gate_id": "G2_SYNTHETIC_COMMON_INSTANCE",
+      "state": "not_started",
+      "required": [
+        "one_shared_scope_digest",
+        "one_shared_scenario",
+        "fixture_owner_receipts",
+        "negative_controls",
+        "known_answer_expected_outputs"
+      ]
+    },
+    {
+      "gate_id": "G3_INTEGRATED_REPLAY",
+      "state": "not_started",
+      "required": [
+        "exact_head",
+        "all_owner_artifact_digests",
+        "scope_bound_receipt",
+        "unknown_propagation",
+        "no_cross_owner_authority_promotion"
+      ]
+    },
+    {
+      "gate_id": "G4_REAL_DATA_PILOT",
+      "state": "blocked_until_rights_and_field_evidence",
+      "required": [
+        "rights_cleared_snapshots",
+        "validated_local_network",
+        "population_sampling_uncertainty",
+        "verified_service_capacity",
+        "community_and_professional_review"
+      ]
+    }
+  ],
+  "non_goals": [
+    "new universal receipt schema",
+    "new GIS/routing engine",
+    "new material or inventory ledger",
+    "new production-network ontology",
+    "new capability closure or scheduler",
+    "new general Pareto solver",
+    "robot dispatch or physical actuation",
+    "building-code or statutory approval"
+  ]
+}
