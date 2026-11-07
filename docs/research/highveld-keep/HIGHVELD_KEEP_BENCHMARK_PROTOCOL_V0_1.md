@@ -428,6 +428,43 @@ A claim must name the task and metric, not claim universal superiority. Acceptab
 
 A claim is not acceptable if it compares different sites, weather files, geometry, budgets, tool versions, quality gates or human effort; uses a proprietary solver's output as its own validation oracle; or improves cost/speed while hiding accessibility, safety, privacy, worker-health or durability regression.
 
+## 7B. Social/environmental parity and bidirectional resilience benchmark
+
+The 2026 literature establishes a useful challenge. In 123 reviewed LP/MILP construction-optimization studies (1985–2024), 89% optimized exclusively for economic outcomes, 11% incorporated environmental metrics and 0% explicit social metrics; 53% were deterministic. These findings are limited to the review's LP/MILP selection, not every AEC product or optimization workflow. A separate 2026 building sustainability/resilience review reports sequential integration as common and dynamic bidirectional coupling as rare.
+
+Highveld's comparison should require declared measures from five distinct domains:
+
+| Domain | Example measurable outputs | Non-compensatory constraints |
+|---|---|---|
+| Resident/social | step-free task fulfillment, accessible service reach, indoor habitability distribution, privacy conflicts, resident preference satisfaction by household member, affordability burden, adaptation effort | life-safety, rights, accessibility requirements and consent/privacy boundaries |
+| Workforce | full workflow labor, hazardous exposure, ergonomic workload, safe-abort / near-miss rate, human interventions, training and skill requirements | occupational health/safety; no productivity claim that hides human labor or unsafe exposure |
+| Environment | whole-life embodied + operational carbon, water use/runoff, material reuse/repair, waste, biodiversity/soil disturbance, transport impact | no unapproved material/toxic exposure; declared LCA/system boundary |
+| Economics | CAPEX, NPV/LCC, maintenance/replacement, local supplier risk, schedule variance, accepted output per full-workflow labor-hour | transparent discount horizon, prices/escalation and cost omissions |
+| Resilience | time series of thermal/air/water/energy/access service, outage duration, lower-tail habitability, recovery time and failed-service episodes | minimum essential service and life-safety floors |
+
+Do not aggregate these into a universal “best home” scalar. Report Pareto vectors, subgroup distributions and trade-off explanations. Apply hard constraints before preference scoring. Where residents disagree, preserve the disagreement and show the affected options; never infer one household utility from a majority or a demographic profile.
+
+### Dynamic coupling test
+
+A design alternative must be evaluated as a time-varying system, not a stack of independent static reports. Example coupling paths:
+- shading -> daylight/solar gains -> cooling demand -> ventilation constraints -> indoor air quality;
+- water storage -> supply resilience -> hygiene/maintenance -> embodied material and space use;
+- material substitution -> thermal/moisture behavior -> carbon/cost -> repairability -> robot tool compatibility;
+- power outage -> ventilation/filtration availability -> overheating/air quality -> habitability trajectory.
+
+Record model identity/version, units, coupling variables, time step, boundary conditions, exchange cadence, convergence/stability criteria, lag/iteration limits, numerical errors, uncertainty and dependency graph. A converged coupling loop does not by itself validate the component models. Each solver retains its independent validation authority.
+
+### New benchmark metrics
+
+- **Social distribution:** median and lower-tail access/habitability outcomes by resident task, with privacy-safe aggregation and resident validation; do not publish individual sensitive traces.
+- **Worker burden:** task-attributed labor, exposure, ergonomic risk, safe-abort/near-miss and intervention rates per accepted functional unit.
+- **Environmental completeness:** percentage of lifecycle stages/material quantities with source-qualified factors and uncertainty; explicit unmodeled boundary share.
+- **Dynamic consistency:** coupling convergence/failure rate, energy/water/mass balance residuals where applicable, time-step sensitivity and event-order robustness.
+- **Change propagation:** recall of affected evidence invalidated after a cross-domain model/material change, and precision of unaffected evidence retained.
+- **Decision value of information:** fraction of measurements that change candidate admission or decision ranking, value gained versus measurement cost, and unresolved uncertainty after measurement.
+
+P0: no social/workforce/environmental dimension may be silently omitted from the benchmark manifest; Unknown must remain visible. P1: at least one coupled, time-dependent heat/energy/ventilation case and one material/production/repair coupling case must be executed on qualified model interfaces before any integrated superiority claim.
+
 ## 8. P1 comparative superiority protocol
 
 Do not choose arbitrary improvement percentages before a benchmark baseline exists.
