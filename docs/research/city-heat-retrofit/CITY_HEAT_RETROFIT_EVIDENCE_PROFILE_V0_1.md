@@ -130,7 +130,7 @@ A predicted retrofit is not an installed intervention. An installed measure with
 | H5 — intervention effect | A retrofit changed measured outcomes relative to an admissible comparison | H4 pre/post, installed/accepted intervention, matched/staggered comparison, uncertainty and confounder plan |
 | H6 — programme impact | A programme changed population-level outcomes | Sampling/causal design, displacement and distribution analysis, external review |
 
-The map must show claim level. It must not visually blend H1 exposure and H4 measured indoor conditions as if they were equivalent.
+The map must show claim level. It must not visually blend H1 exposure and H4 measured indoor conditions as if they were equivalent. H6 programme-impact analysis is reserved and unsupported in v0.1; do not infer programme causality from mapped exposure, modelled trajectories or simple pre/post change.
 
 ## 4. Spatial and temporal joins
 
@@ -215,4 +215,4 @@ The first 24-case corpus is specified in [CITY-HEAT-RETROFIT-ATLAS-001 #593](htt
 
 ## 10. Claim boundary
 
-The v0.1 profile specifies how evidence is admitted and joined. It does not establish any Johannesburg indoor heat map or retrofit effect. H3 claims require the exact qualified EnergyPlus/Symtropy receipt; H4 requires valid sensors; H5 requires a measured intervention comparison; H6 requires population-level causal evidence and governance safeguards.
+The v0.1 profile implements H0–H5 evidence admission and joining. H6 is explicitly reserved and returns Unsupported until a dedicated population-level causal design and governance contract is qualified. It does not establish any Johannesburg indoor heat map or retrofit effect. H3 claims require the exact qualified EnergyPlus/Symtropy receipt; H4 requires valid sensors; H5 requires a measured intervention comparison; H6 requires population-level causal evidence and governance safeguards.
