@@ -463,5 +463,75 @@
       "scope_limit": "grid cell averages Johannesburg and surroundings; not an airport station, central-city thermometer or parcel measurement",
       "status": "REGIONAL_RESEARCH_CONTEXT_ONLY_NOT_DESIGN_WEATHER"
     }
+  ],
+  "station_metadata_crosschecks": [
+    {
+      "id": "JOHANNESBURG_BOTANICAL_ASHRAE_2021",
+      "station_name": "JOHANNESBURG BOTANICAL",
+      "network_code": "WMO_683610",
+      "source": "https://www.ashrae.org/file%20library/technical%20resources/bookstore/stnlist_ip.pdf",
+      "metadata_vintage": "ASHRAE_HOF_2021",
+      "latitude_deg": -26.157,
+      "longitude_deg": 27.999,
+      "elevation_ft": 5328,
+      "authority_scope": "published_station_list_metadata_only",
+      "status": "METADATA_CROSSCHECK_ONLY_NOT_SERIES_OR_SITE_QUALIFICATION",
+      "history_and_instrument_metadata": "not_reconciled",
+      "measurement_series_downloaded": false,
+      "file_digest": null
+    },
+    {
+      "id": "JOHANNESBURG_TAMBO_ASHRAE_2021",
+      "station_name": "JOHANNESBURG INTL",
+      "network_code": "WMO_683680",
+      "source": "https://www.ashrae.org/file%20library/technical%20resources/bookstore/stnlist_ip.pdf",
+      "metadata_vintage": "ASHRAE_HOF_2021",
+      "latitude_deg": -26.143,
+      "longitude_deg": 28.235,
+      "elevation_ft": 5561,
+      "authority_scope": "published_station_list_metadata_only",
+      "status": "METADATA_CROSSCHECK_ONLY_NOT_SERIES_OR_SITE_QUALIFICATION",
+      "history_and_instrument_metadata": "not_reconciled",
+      "measurement_series_downloaded": false,
+      "file_digest": null
+    },
+    {
+      "id": "JOHANNESBURG_TAMBO_NOAA_GHCND",
+      "station_name": "JOHANNESBURG INTERNATIONAL SF",
+      "network_code": "GHCND:SFM00068368",
+      "source": "https://www.ncdc.noaa.gov/cdo-web/datasets/GHCND/stations/GHCND%3ASFM00068368/detail",
+      "metadata_vintage": "page_accessed_2026-11-07",
+      "latitude_deg": -26.139,
+      "longitude_deg": 28.246,
+      "elevation_m": 1694.1,
+      "daily_summary_period_start": "1973-01-17",
+      "daily_summary_period_end": "2020-05-27",
+      "authority_scope": "NCEI_GHCND_STATION_METADATA_AND_DAILY_SUMMARY_INVENTORY",
+      "status": "METADATA_CROSSCHECK_ONLY_IDENTITY_AND_HISTORY_NOT_RECONCILED",
+      "rendered_location_history": "not_available_in_rendered_station_table",
+      "rendered_equipment_history": "not_available_in_rendered_station_table",
+      "hourly_series_downloaded": false,
+      "file_digest": null
+    },
+    {
+      "id": "JOHANNESBURG_TAMBO_SAWS_WIGOS_OSCAR",
+      "station_name": "JOHANNESBURG INT WO",
+      "network_code": "0-20000-0-68368",
+      "source": "https://capetowndata.com/en/data/daily-rainfall/stations/johannesburg-int-wo/",
+      "primary_metadata_registry": "https://oscar.tools.wmo.int/web-client/",
+      "metadata_vintage": "secondary_index_accessed_2026-11-07",
+      "latitude_deg": -26.143,
+      "longitude_deg": 28.2346,
+      "elevation_m": 1695,
+      "status": "SECONDARY_REFERENCE_TO_WMO_OSCAR_NOT_DIRECTLY_VERIFIED",
+      "reported_registry_rebuild_date": "2026-10-29",
+      "reported_previous_town_level_latitude_deg": -26.2041,
+      "reported_previous_town_level_longitude_deg": 28.0473,
+      "reported_previous_to_current_distance_km": 19.9,
+      "authority_scope": "current_station_reference_metadata_candidate_only",
+      "history_and_instrument_metadata": "must_retrieve_directly_from_wmo_oscar_and_saws",
+      "measurement_series_downloaded": false,
+      "file_digest": null
+    }
   ]
 }
