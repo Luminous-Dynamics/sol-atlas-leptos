@@ -39,9 +39,11 @@ The JSON fixture shows the complete first schema:
 - methods with algorithm/version/code digest, fixture/objective digest, stochastic state, candidate budget, high-fidelity call budget and human-time budget;
 - deterministic or repeated per-seed runs;
 - per-run call accounting split into training, tuning, validation and final calls, low-fidelity calls, human minutes and candidate records;
-- candidate input digest, reported feasibility, dependency state, verification kind, convergence, complete-input flag, validation scope, warnings, hard-gate states and objective values.
+- candidate input and revision digests, explicit reported-feasibility declaration, dependency state, verification kind, solver-result digest, convergence, complete-input flag, validation scope, an explicit warnings array, hard-gate states, per-gate evidence-reference digests and objective values.
 
 ### Fail-closed evaluation
+
+Candidate feasibility declarations are mandatory; missing declarations are not silently interpreted as false. Every candidate must include an explicit warnings array (empty only when no warnings are reported), exact revision/result digest-shaped identifiers, and exactly the declared hard-gate set. Each hard-gate status must have a corresponding evidence-reference digest-shaped identifier. These identifiers are not cryptographically verified against underlying artifacts in v0.1; the evaluator checks format and presence only.
 
 A candidate only enters the feasible Pareto set when:
 1. all required hard gates are explicitly `passed`;
