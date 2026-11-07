@@ -784,10 +784,7 @@ pub fn evaluate_bundle(bundle: &Value) -> EvaluationReport {
             if let Some(candidates) = reference_candidates {
                 for candidate in candidates {
                     if get_str(candidate, "dependency_status") != Some("current") {
-                        push_unique(
-                            &mut violations,
-                            "EXACT_REFERENCE_DEPENDENCY_NOT_CURRENT",
-                        );
+                        push_unique(&mut violations, "EXACT_REFERENCE_DEPENDENCY_NOT_CURRENT");
                         exact_reference_complete = false;
                     }
                     if normalize_objectives(candidate, &objectives).is_err() {
@@ -800,20 +797,18 @@ pub fn evaluate_bundle(bundle: &Value) -> EvaluationReport {
                     let gate_map = candidate.get("hard_gates").and_then(Value::as_object);
                     let all_gates_known = gate_ids.iter().all(|gate_id| {
                         matches!(
-                            gate_map.and_then(|map| map.get(gate_id)).and_then(Value::as_str),
+                            gate_map
+                                .and_then(|map| map.get(gate_id))
+                                .and_then(Value::as_str),
                             Some("passed" | "failed")
                         )
                     });
                     if !all_gates_known {
-                        push_unique(
-                            &mut violations,
-                            "EXACT_REFERENCE_HARD_GATE_STATE_UNKNOWN",
-                        );
+                        push_unique(&mut violations, "EXACT_REFERENCE_HARD_GATE_STATE_UNKNOWN");
                         exact_reference_complete = false;
                     }
                     let verification = candidate.get("verification");
-                    let full_fidelity = verification
-                        .and_then(|value| get_str(value, "kind"))
+                    let full_fidelity = verification.and_then(|value| get_str(value, "kind"))
                         == Some("high_fidelity")
                         && verification.and_then(|value| get_bool(value, "converged"))
                             == Some(true)
