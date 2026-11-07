@@ -1083,7 +1083,15 @@ mod tests {
             candidate("N-G", 4.0, 8.0, "passed", "passed", "high_fidelity", true),
             candidate("N-I", 0.1, 0.1, "failed", "passed", "high_fidelity", false),
             candidate("N-J", 0.2, 0.2, "passed", "passed", "surrogate_only", false),
-            candidate("N-K", 0.3, 0.3, "passed", "unknown", "surrogate_only", false),
+            candidate(
+                "N-K",
+                0.3,
+                0.3,
+                "passed",
+                "unknown",
+                "surrogate_only",
+                false,
+            ),
         ];
         // Make one candidate a deliberately conservative false reject. It is
         // actually feasible, and the auditor reports rather than hides it.
