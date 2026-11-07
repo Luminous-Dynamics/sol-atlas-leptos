@@ -46,8 +46,6 @@ jobs:
       - name: Check isolated package formatting
         run: cargo fmt --manifest-path tools/highveld-keep-contract/Cargo.toml --all -- --check
       - name: Run locked offline unit and mutation tests
-        run: cargo test --offline --manifest-path tools/highveld-keep-contract/Cargo.toml
+        run: cargo test --locked --offline --manifest-path tools/highveld-keep-contract/Cargo.toml
       - name: Validate tracked synthetic definition package
-        run: cargo run --offline --manifest-path tools/highveld-keep-contract/Cargo.toml
-      - name: Print Cargo-resolved lock graph for exact commit-back
-        run: cat tools/highveld-keep-contract/Cargo.lock
+        run: cargo run --locked --offline --manifest-path tools/highveld-keep-contract/Cargo.toml
