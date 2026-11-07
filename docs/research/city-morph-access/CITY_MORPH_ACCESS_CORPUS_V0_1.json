@@ -1,0 +1,2432 @@
+{
+  "schema_id": "org.luminousdynamics.city-morph-access.synthetic-corpus",
+  "schema_version": "0.1.0",
+  "corpus_id": "CITY-MORPH-ACCESS-CORPUS-V0.1",
+  "classification": "synthetic_fixture_only",
+  "policy_note": "All values are synthetic. Group-level reachable_capacity_potential is not an allocation. Category totals count each facility once. No composite accessibility score is computed.",
+  "semantics": {
+    "shortest_known_path": "Only current network evidence, open edges and known step-free edges when required establish a known path.",
+    "shortest_possible_path": "Unknown edge/step-free states may produce Unknown when no known path meets the group's budget; closed edges are never traversed.",
+    "service_usability": "Opening window, eligibility, price and step-free requirements are filters. Unknown required fields produce Unknown, not a pass.",
+    "capacity": "Only current capacity evidence with matching units contributes to known reachable capacity. Capacity is potential, not assigned supply.",
+    "aggregate_capacity": "Each facility contributes once to its category's declared-open capacity total; group demands are summed separately. No allocation/rationing policy is implemented.",
+    "dispositions": [
+      "FeasibleForSyntheticCase",
+      "Infeasible",
+      "Unknown",
+      "Unsupported"
+    ],
+    "group_statuses": [
+      "AccessibleAndAdequatePotential",
+      "AccessibleButCapacityConstrained",
+      "Unknown",
+      "Inaccessible"
+    ]
+  },
+  "cases": [
+    {
+      "case_id": "MA-001",
+      "description": "Open walking route, usable clinic and adequate evidenced capacity.",
+      "input": {
+        "requested_window": "weekday_day",
+        "network": {
+          "nodes": [
+            "o",
+            "s"
+          ],
+          "edges": [
+            {
+              "id": "e",
+              "from": "o",
+              "to": "s",
+              "walk_minutes": 5,
+              "cycle_minutes": 3,
+              "status": "open",
+              "step_free": true,
+              "one_way": false
+            }
+          ],
+          "evidence_state": "current"
+        },
+        "population_groups": [
+          {
+            "id": "g",
+            "origin_node": "o",
+            "service_category": "health",
+            "population": 100,
+            "demand": 100,
+            "demand_unit": "visits/day",
+            "mode": "walk",
+            "max_travel_minutes": 15,
+            "max_service_price": 10,
+            "price_unit": "credits/visit",
+            "requires_step_free": false
+          }
+        ],
+        "services": [
+          {
+            "id": "clinic",
+            "node": "s",
+            "category": "health",
+            "capacity": 150,
+            "capacity_unit": "visits/day",
+            "capacity_state": "current",
+            "availability_state": "open",
+            "open_windows": [
+              "weekday_day"
+            ],
+            "price": 0,
+            "price_unit": "credits/visit",
+            "price_state": "current",
+            "eligibility_state": "known",
+            "eligible_group_ids": [
+              "*"
+            ],
+            "step_free_status": true
+          }
+        ]
+      },
+      "expected": {
+        "disposition": "FeasibleForSyntheticCase",
+        "reason_codes": [],
+        "groups": [
+          {
+            "group_id": "g",
+            "status": "AccessibleAndAdequatePotential",
+            "nearest_known_service_minutes": 5,
+            "accessible_service_ids": [
+              "clinic"
+            ],
+            "unknown_service_ids": [],
+            "reachable_capacity_potential": 150,
+            "demand": 100,
+            "demand_unit": "visits/day",
+            "reason_codes": []
+          }
+        ],
+        "category_totals": [
+          {
+            "category": "health",
+            "demand": 100,
+            "demand_unit": "visits/day",
+            "declared_open_capacity": 150,
+            "unknown_capacity_service_count": 0,
+            "status": "KnownAggregateCapacityAdequate"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "MA-002",
+      "description": "Open route but reachable service capacity is below group demand.",
+      "input": {
+        "requested_window": "weekday_day",
+        "network": {
+          "nodes": [
+            "o",
+            "s"
+          ],
+          "edges": [
+            {
+              "id": "e",
+              "from": "o",
+              "to": "s",
+              "walk_minutes": 4,
+              "cycle_minutes": 2,
+              "status": "open",
+              "step_free": true,
+              "one_way": false
+            }
+          ],
+          "evidence_state": "current"
+        },
+        "population_groups": [
+          {
+            "id": "g",
+            "origin_node": "o",
+            "service_category": "health",
+            "population": 100,
+            "demand": 100,
+            "demand_unit": "visits/day",
+            "mode": "walk",
+            "max_travel_minutes": 15,
+            "max_service_price": 10,
+            "price_unit": "credits/visit",
+            "requires_step_free": false
+          }
+        ],
+        "services": [
+          {
+            "id": "clinic",
+            "node": "s",
+            "category": "health",
+            "capacity": 40,
+            "capacity_unit": "visits/day",
+            "capacity_state": "current",
+            "availability_state": "open",
+            "open_windows": [
+              "weekday_day"
+            ],
+            "price": 0,
+            "price_unit": "credits/visit",
+            "price_state": "current",
+            "eligibility_state": "known",
+            "eligible_group_ids": [
+              "*"
+            ],
+            "step_free_status": true
+          }
+        ]
+      },
+      "expected": {
+        "disposition": "Infeasible",
+        "reason_codes": [
+          "AGGREGATE_CAPACITY_SHORTFALL",
+          "REACHABLE_CAPACITY_BELOW_GROUP_DEMAND"
+        ],
+        "groups": [
+          {
+            "group_id": "g",
+            "status": "AccessibleButCapacityConstrained",
+            "nearest_known_service_minutes": 4,
+            "accessible_service_ids": [
+              "clinic"
+            ],
+            "unknown_service_ids": [],
+            "reachable_capacity_potential": 40,
+            "demand": 100,
+            "demand_unit": "visits/day",
+            "reason_codes": [
+              "REACHABLE_CAPACITY_BELOW_GROUP_DEMAND"
+            ]
+          }
+        ],
+        "category_totals": [
+          {
+            "category": "health",
+            "demand": 100,
+            "demand_unit": "visits/day",
+            "declared_open_capacity": 40,
+            "unknown_capacity_service_count": 0,
+            "status": "AggregateCapacityShortfall"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "MA-003",
+      "description": "Nearby facility is separated by a known closed network barrier.",
+      "input": {
+        "requested_window": "weekday_day",
+        "network": {
+          "nodes": [
+            "o",
+            "s"
+          ],
+          "edges": [
+            {
+              "id": "bridge",
+              "from": "o",
+              "to": "s",
+              "walk_minutes": 3,
+              "cycle_minutes": 2,
+              "status": "closed",
+              "step_free": true,
+              "one_way": false
+            }
+          ],
+          "evidence_state": "current"
+        },
+        "population_groups": [
+          {
+            "id": "g",
+            "origin_node": "o",
+            "service_category": "health",
+            "population": 100,
+            "demand": 100,
+            "demand_unit": "visits/day",
+            "mode": "walk",
+            "max_travel_minutes": 15,
+            "max_service_price": 10,
+            "price_unit": "credits/visit",
+            "requires_step_free": false
+          }
+        ],
+        "services": [
+          {
+            "id": "clinic",
+            "node": "s",
+            "category": "health",
+            "capacity": 200,
+            "capacity_unit": "visits/day",
+            "capacity_state": "current",
+            "availability_state": "open",
+            "open_windows": [
+              "weekday_day"
+            ],
+            "price": 0,
+            "price_unit": "credits/visit",
+            "price_state": "current",
+            "eligibility_state": "known",
+            "eligible_group_ids": [
+              "*"
+            ],
+            "step_free_status": true
+          }
+        ]
+      },
+      "expected": {
+        "disposition": "Infeasible",
+        "reason_codes": [
+          "NO_USABLE_SERVICE_WITHIN_ACCESS_ENVELOPE"
+        ],
+        "groups": [
+          {
+            "group_id": "g",
+            "status": "Inaccessible",
+            "nearest_known_service_minutes": null,
+            "accessible_service_ids": [],
+            "unknown_service_ids": [],
+            "reachable_capacity_potential": 0,
+            "demand": 100,
+            "demand_unit": "visits/day",
+            "reason_codes": [
+              "NO_USABLE_SERVICE_WITHIN_ACCESS_ENVELOPE"
+            ]
+          }
+        ],
+        "category_totals": [
+          {
+            "category": "health",
+            "demand": 100,
+            "demand_unit": "visits/day",
+            "declared_open_capacity": 200,
+            "unknown_capacity_service_count": 0,
+            "status": "KnownAggregateCapacityAdequate"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "MA-004",
+      "description": "Geographically nearby facility has no declared pedestrian network connection.",
+      "input": {
+        "requested_window": "weekday_day",
+        "network": {
+          "nodes": [
+            "o",
+            "s"
+          ],
+          "edges": [],
+          "evidence_state": "current"
+        },
+        "population_groups": [
+          {
+            "id": "g",
+            "origin_node": "o",
+            "service_category": "health",
+            "population": 100,
+            "demand": 100,
+            "demand_unit": "visits/day",
+            "mode": "walk",
+            "max_travel_minutes": 15,
+            "max_service_price": 10,
+            "price_unit": "credits/visit",
+            "requires_step_free": false
+          }
+        ],
+        "services": [
+          {
+            "id": "clinic",
+            "node": "s",
+            "category": "health",
+            "capacity": 200,
+            "capacity_unit": "visits/day",
+            "capacity_state": "current",
+            "availability_state": "open",
+            "open_windows": [
+              "weekday_day"
+            ],
+            "price": 0,
+            "price_unit": "credits/visit",
+            "price_state": "current",
+            "eligibility_state": "known",
+            "eligible_group_ids": [
+              "*"
+            ],
+            "step_free_status": true
+          }
+        ]
+      },
+      "expected": {
+        "disposition": "Infeasible",
+        "reason_codes": [
+          "NO_USABLE_SERVICE_WITHIN_ACCESS_ENVELOPE"
+        ],
+        "groups": [
+          {
+            "group_id": "g",
+            "status": "Inaccessible",
+            "nearest_known_service_minutes": null,
+            "accessible_service_ids": [],
+            "unknown_service_ids": [],
+            "reachable_capacity_potential": 0,
+            "demand": 100,
+            "demand_unit": "visits/day",
+            "reason_codes": [
+              "NO_USABLE_SERVICE_WITHIN_ACCESS_ENVELOPE"
+            ]
+          }
+        ],
+        "category_totals": [
+          {
+            "category": "health",
+            "demand": 100,
+            "demand_unit": "visits/day",
+            "declared_open_capacity": 200,
+            "unknown_capacity_service_count": 0,
+            "status": "KnownAggregateCapacityAdequate"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "MA-005",
+      "description": "The only route within the group budget depends on an unknown edge.",
+      "input": {
+        "requested_window": "weekday_day",
+        "network": {
+          "nodes": [
+            "o",
+            "s"
+          ],
+          "edges": [
+            {
+              "id": "e",
+              "from": "o",
+              "to": "s",
+              "walk_minutes": 6,
+              "cycle_minutes": 4,
+              "status": "unknown",
+              "step_free": true,
+              "one_way": false
+            }
+          ],
+          "evidence_state": "current"
+        },
+        "population_groups": [
+          {
+            "id": "g",
+            "origin_node": "o",
+            "service_category": "health",
+            "population": 100,
+            "demand": 100,
+            "demand_unit": "visits/day",
+            "mode": "walk",
+            "max_travel_minutes": 15,
+            "max_service_price": 10,
+            "price_unit": "credits/visit",
+            "requires_step_free": false
+          }
+        ],
+        "services": [
+          {
+            "id": "clinic",
+            "node": "s",
+            "category": "health",
+            "capacity": 200,
+            "capacity_unit": "visits/day",
+            "capacity_state": "current",
+            "availability_state": "open",
+            "open_windows": [
+              "weekday_day"
+            ],
+            "price": 0,
+            "price_unit": "credits/visit",
+            "price_state": "current",
+            "eligibility_state": "known",
+            "eligible_group_ids": [
+              "*"
+            ],
+            "step_free_status": true
+          }
+        ]
+      },
+      "expected": {
+        "disposition": "Unknown",
+        "reason_codes": [
+          "NETWORK_EDGE_UNKNOWN"
+        ],
+        "groups": [
+          {
+            "group_id": "g",
+            "status": "Unknown",
+            "nearest_known_service_minutes": null,
+            "accessible_service_ids": [],
+            "unknown_service_ids": [
+              "clinic"
+            ],
+            "reachable_capacity_potential": 0,
+            "demand": 100,
+            "demand_unit": "visits/day",
+            "reason_codes": [
+              "NETWORK_EDGE_UNKNOWN"
+            ]
+          }
+        ],
+        "category_totals": [
+          {
+            "category": "health",
+            "demand": 100,
+            "demand_unit": "visits/day",
+            "declared_open_capacity": 200,
+            "unknown_capacity_service_count": 0,
+            "status": "KnownAggregateCapacityAdequate"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "MA-006",
+      "description": "Known open route exceeds the declared walking-time budget.",
+      "input": {
+        "requested_window": "weekday_day",
+        "network": {
+          "nodes": [
+            "o",
+            "s"
+          ],
+          "edges": [
+            {
+              "id": "e",
+              "from": "o",
+              "to": "s",
+              "walk_minutes": 22,
+              "cycle_minutes": 10,
+              "status": "open",
+              "step_free": true,
+              "one_way": false
+            }
+          ],
+          "evidence_state": "current"
+        },
+        "population_groups": [
+          {
+            "id": "g",
+            "origin_node": "o",
+            "service_category": "health",
+            "population": 100,
+            "demand": 100,
+            "demand_unit": "visits/day",
+            "mode": "walk",
+            "max_travel_minutes": 15,
+            "max_service_price": 10,
+            "price_unit": "credits/visit",
+            "requires_step_free": false
+          }
+        ],
+        "services": [
+          {
+            "id": "clinic",
+            "node": "s",
+            "category": "health",
+            "capacity": 200,
+            "capacity_unit": "visits/day",
+            "capacity_state": "current",
+            "availability_state": "open",
+            "open_windows": [
+              "weekday_day"
+            ],
+            "price": 0,
+            "price_unit": "credits/visit",
+            "price_state": "current",
+            "eligibility_state": "known",
+            "eligible_group_ids": [
+              "*"
+            ],
+            "step_free_status": true
+          }
+        ]
+      },
+      "expected": {
+        "disposition": "Infeasible",
+        "reason_codes": [
+          "NO_USABLE_SERVICE_WITHIN_ACCESS_ENVELOPE"
+        ],
+        "groups": [
+          {
+            "group_id": "g",
+            "status": "Inaccessible",
+            "nearest_known_service_minutes": null,
+            "accessible_service_ids": [],
+            "unknown_service_ids": [],
+            "reachable_capacity_potential": 0,
+            "demand": 100,
+            "demand_unit": "visits/day",
+            "reason_codes": [
+              "NO_USABLE_SERVICE_WITHIN_ACCESS_ENVELOPE"
+            ]
+          }
+        ],
+        "category_totals": [
+          {
+            "category": "health",
+            "demand": 100,
+            "demand_unit": "visits/day",
+            "declared_open_capacity": 200,
+            "unknown_capacity_service_count": 0,
+            "status": "KnownAggregateCapacityAdequate"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "MA-007",
+      "description": "Facility is reachable but closed in the requested time window.",
+      "input": {
+        "requested_window": "weekday_day",
+        "network": {
+          "nodes": [
+            "o",
+            "s"
+          ],
+          "edges": [
+            {
+              "id": "e",
+              "from": "o",
+              "to": "s",
+              "walk_minutes": 5,
+              "cycle_minutes": 3,
+              "status": "open",
+              "step_free": true,
+              "one_way": false
+            }
+          ],
+          "evidence_state": "current"
+        },
+        "population_groups": [
+          {
+            "id": "g",
+            "origin_node": "o",
+            "service_category": "health",
+            "population": 100,
+            "demand": 100,
+            "demand_unit": "visits/day",
+            "mode": "walk",
+            "max_travel_minutes": 15,
+            "max_service_price": 10,
+            "price_unit": "credits/visit",
+            "requires_step_free": false
+          }
+        ],
+        "services": [
+          {
+            "id": "clinic",
+            "node": "s",
+            "category": "health",
+            "capacity": 200,
+            "capacity_unit": "visits/day",
+            "capacity_state": "current",
+            "availability_state": "closed",
+            "open_windows": [
+              "weekday_day"
+            ],
+            "price": 0,
+            "price_unit": "credits/visit",
+            "price_state": "current",
+            "eligibility_state": "known",
+            "eligible_group_ids": [
+              "*"
+            ],
+            "step_free_status": true
+          }
+        ]
+      },
+      "expected": {
+        "disposition": "Infeasible",
+        "reason_codes": [
+          "AGGREGATE_CAPACITY_SHORTFALL",
+          "NO_USABLE_SERVICE_WITHIN_ACCESS_ENVELOPE"
+        ],
+        "groups": [
+          {
+            "group_id": "g",
+            "status": "Inaccessible",
+            "nearest_known_service_minutes": 5,
+            "accessible_service_ids": [],
+            "unknown_service_ids": [],
+            "reachable_capacity_potential": 0,
+            "demand": 100,
+            "demand_unit": "visits/day",
+            "reason_codes": [
+              "NO_USABLE_SERVICE_WITHIN_ACCESS_ENVELOPE"
+            ]
+          }
+        ],
+        "category_totals": [
+          {
+            "category": "health",
+            "demand": 100,
+            "demand_unit": "visits/day",
+            "declared_open_capacity": 0,
+            "unknown_capacity_service_count": 0,
+            "status": "AggregateCapacityShortfall"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "MA-008",
+      "description": "Facility reachability is known but opening status is unknown.",
+      "input": {
+        "requested_window": "weekday_day",
+        "network": {
+          "nodes": [
+            "o",
+            "s"
+          ],
+          "edges": [
+            {
+              "id": "e",
+              "from": "o",
+              "to": "s",
+              "walk_minutes": 5,
+              "cycle_minutes": 3,
+              "status": "open",
+              "step_free": true,
+              "one_way": false
+            }
+          ],
+          "evidence_state": "current"
+        },
+        "population_groups": [
+          {
+            "id": "g",
+            "origin_node": "o",
+            "service_category": "health",
+            "population": 100,
+            "demand": 100,
+            "demand_unit": "visits/day",
+            "mode": "walk",
+            "max_travel_minutes": 15,
+            "max_service_price": 10,
+            "price_unit": "credits/visit",
+            "requires_step_free": false
+          }
+        ],
+        "services": [
+          {
+            "id": "clinic",
+            "node": "s",
+            "category": "health",
+            "capacity": 200,
+            "capacity_unit": "visits/day",
+            "capacity_state": "current",
+            "availability_state": "unknown",
+            "open_windows": [
+              "weekday_day"
+            ],
+            "price": 0,
+            "price_unit": "credits/visit",
+            "price_state": "current",
+            "eligibility_state": "known",
+            "eligible_group_ids": [
+              "*"
+            ],
+            "step_free_status": true
+          }
+        ]
+      },
+      "expected": {
+        "disposition": "Unknown",
+        "reason_codes": [
+          "SERVICE_AVAILABILITY_UNKNOWN"
+        ],
+        "groups": [
+          {
+            "group_id": "g",
+            "status": "Unknown",
+            "nearest_known_service_minutes": 5,
+            "accessible_service_ids": [],
+            "unknown_service_ids": [
+              "clinic"
+            ],
+            "reachable_capacity_potential": 0,
+            "demand": 100,
+            "demand_unit": "visits/day",
+            "reason_codes": [
+              "SERVICE_AVAILABILITY_UNKNOWN"
+            ]
+          }
+        ],
+        "category_totals": [
+          {
+            "category": "health",
+            "demand": 100,
+            "demand_unit": "visits/day",
+            "declared_open_capacity": 0,
+            "unknown_capacity_service_count": 1,
+            "status": "AggregateCapacityUnknown"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "MA-009",
+      "description": "Facility is reachable and open but price exceeds the group's affordability ceiling.",
+      "input": {
+        "requested_window": "weekday_day",
+        "network": {
+          "nodes": [
+            "o",
+            "s"
+          ],
+          "edges": [
+            {
+              "id": "e",
+              "from": "o",
+              "to": "s",
+              "walk_minutes": 5,
+              "cycle_minutes": 3,
+              "status": "open",
+              "step_free": true,
+              "one_way": false
+            }
+          ],
+          "evidence_state": "current"
+        },
+        "population_groups": [
+          {
+            "id": "g",
+            "origin_node": "o",
+            "service_category": "health",
+            "population": 100,
+            "demand": 100,
+            "demand_unit": "visits/day",
+            "mode": "walk",
+            "max_travel_minutes": 15,
+            "max_service_price": 5,
+            "price_unit": "credits/visit",
+            "requires_step_free": false
+          }
+        ],
+        "services": [
+          {
+            "id": "clinic",
+            "node": "s",
+            "category": "health",
+            "capacity": 200,
+            "capacity_unit": "visits/day",
+            "capacity_state": "current",
+            "availability_state": "open",
+            "open_windows": [
+              "weekday_day"
+            ],
+            "price": 8,
+            "price_unit": "credits/visit",
+            "price_state": "current",
+            "eligibility_state": "known",
+            "eligible_group_ids": [
+              "*"
+            ],
+            "step_free_status": true
+          }
+        ]
+      },
+      "expected": {
+        "disposition": "Infeasible",
+        "reason_codes": [
+          "NO_USABLE_SERVICE_WITHIN_ACCESS_ENVELOPE"
+        ],
+        "groups": [
+          {
+            "group_id": "g",
+            "status": "Inaccessible",
+            "nearest_known_service_minutes": 5,
+            "accessible_service_ids": [],
+            "unknown_service_ids": [],
+            "reachable_capacity_potential": 0,
+            "demand": 100,
+            "demand_unit": "visits/day",
+            "reason_codes": [
+              "NO_USABLE_SERVICE_WITHIN_ACCESS_ENVELOPE"
+            ]
+          }
+        ],
+        "category_totals": [
+          {
+            "category": "health",
+            "demand": 100,
+            "demand_unit": "visits/day",
+            "declared_open_capacity": 200,
+            "unknown_capacity_service_count": 0,
+            "status": "KnownAggregateCapacityAdequate"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "MA-010",
+      "description": "Affordability cannot be established because price evidence is unknown.",
+      "input": {
+        "requested_window": "weekday_day",
+        "network": {
+          "nodes": [
+            "o",
+            "s"
+          ],
+          "edges": [
+            {
+              "id": "e",
+              "from": "o",
+              "to": "s",
+              "walk_minutes": 5,
+              "cycle_minutes": 3,
+              "status": "open",
+              "step_free": true,
+              "one_way": false
+            }
+          ],
+          "evidence_state": "current"
+        },
+        "population_groups": [
+          {
+            "id": "g",
+            "origin_node": "o",
+            "service_category": "health",
+            "population": 100,
+            "demand": 100,
+            "demand_unit": "visits/day",
+            "mode": "walk",
+            "max_travel_minutes": 15,
+            "max_service_price": 5,
+            "price_unit": "credits/visit",
+            "requires_step_free": false
+          }
+        ],
+        "services": [
+          {
+            "id": "clinic",
+            "node": "s",
+            "category": "health",
+            "capacity": 200,
+            "capacity_unit": "visits/day",
+            "capacity_state": "current",
+            "availability_state": "open",
+            "open_windows": [
+              "weekday_day"
+            ],
+            "price": 0,
+            "price_unit": "credits/visit",
+            "price_state": "unknown",
+            "eligibility_state": "known",
+            "eligible_group_ids": [
+              "*"
+            ],
+            "step_free_status": true
+          }
+        ]
+      },
+      "expected": {
+        "disposition": "Unknown",
+        "reason_codes": [
+          "SERVICE_PRICE_UNKNOWN"
+        ],
+        "groups": [
+          {
+            "group_id": "g",
+            "status": "Unknown",
+            "nearest_known_service_minutes": 5,
+            "accessible_service_ids": [],
+            "unknown_service_ids": [
+              "clinic"
+            ],
+            "reachable_capacity_potential": 0,
+            "demand": 100,
+            "demand_unit": "visits/day",
+            "reason_codes": [
+              "SERVICE_PRICE_UNKNOWN"
+            ]
+          }
+        ],
+        "category_totals": [
+          {
+            "category": "health",
+            "demand": 100,
+            "demand_unit": "visits/day",
+            "declared_open_capacity": 200,
+            "unknown_capacity_service_count": 0,
+            "status": "KnownAggregateCapacityAdequate"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "MA-011",
+      "description": "Facility is not eligible to serve this population group.",
+      "input": {
+        "requested_window": "weekday_day",
+        "network": {
+          "nodes": [
+            "o",
+            "s"
+          ],
+          "edges": [
+            {
+              "id": "e",
+              "from": "o",
+              "to": "s",
+              "walk_minutes": 5,
+              "cycle_minutes": 3,
+              "status": "open",
+              "step_free": true,
+              "one_way": false
+            }
+          ],
+          "evidence_state": "current"
+        },
+        "population_groups": [
+          {
+            "id": "g",
+            "origin_node": "o",
+            "service_category": "health",
+            "population": 100,
+            "demand": 100,
+            "demand_unit": "visits/day",
+            "mode": "walk",
+            "max_travel_minutes": 15,
+            "max_service_price": 10,
+            "price_unit": "credits/visit",
+            "requires_step_free": false
+          }
+        ],
+        "services": [
+          {
+            "id": "clinic",
+            "node": "s",
+            "category": "health",
+            "capacity": 200,
+            "capacity_unit": "visits/day",
+            "capacity_state": "current",
+            "availability_state": "open",
+            "open_windows": [
+              "weekday_day"
+            ],
+            "price": 0,
+            "price_unit": "credits/visit",
+            "price_state": "current",
+            "eligibility_state": "known",
+            "eligible_group_ids": [
+              "other-group"
+            ],
+            "step_free_status": true
+          }
+        ]
+      },
+      "expected": {
+        "disposition": "Infeasible",
+        "reason_codes": [
+          "NO_USABLE_SERVICE_WITHIN_ACCESS_ENVELOPE"
+        ],
+        "groups": [
+          {
+            "group_id": "g",
+            "status": "Inaccessible",
+            "nearest_known_service_minutes": 5,
+            "accessible_service_ids": [],
+            "unknown_service_ids": [],
+            "reachable_capacity_potential": 0,
+            "demand": 100,
+            "demand_unit": "visits/day",
+            "reason_codes": [
+              "NO_USABLE_SERVICE_WITHIN_ACCESS_ENVELOPE"
+            ]
+          }
+        ],
+        "category_totals": [
+          {
+            "category": "health",
+            "demand": 100,
+            "demand_unit": "visits/day",
+            "declared_open_capacity": 200,
+            "unknown_capacity_service_count": 0,
+            "status": "KnownAggregateCapacityAdequate"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "MA-012",
+      "description": "Facility eligibility rules are unknown for the population group.",
+      "input": {
+        "requested_window": "weekday_day",
+        "network": {
+          "nodes": [
+            "o",
+            "s"
+          ],
+          "edges": [
+            {
+              "id": "e",
+              "from": "o",
+              "to": "s",
+              "walk_minutes": 5,
+              "cycle_minutes": 3,
+              "status": "open",
+              "step_free": true,
+              "one_way": false
+            }
+          ],
+          "evidence_state": "current"
+        },
+        "population_groups": [
+          {
+            "id": "g",
+            "origin_node": "o",
+            "service_category": "health",
+            "population": 100,
+            "demand": 100,
+            "demand_unit": "visits/day",
+            "mode": "walk",
+            "max_travel_minutes": 15,
+            "max_service_price": 10,
+            "price_unit": "credits/visit",
+            "requires_step_free": false
+          }
+        ],
+        "services": [
+          {
+            "id": "clinic",
+            "node": "s",
+            "category": "health",
+            "capacity": 200,
+            "capacity_unit": "visits/day",
+            "capacity_state": "current",
+            "availability_state": "open",
+            "open_windows": [
+              "weekday_day"
+            ],
+            "price": 0,
+            "price_unit": "credits/visit",
+            "price_state": "current",
+            "eligibility_state": "unknown",
+            "eligible_group_ids": [
+              "*"
+            ],
+            "step_free_status": true
+          }
+        ]
+      },
+      "expected": {
+        "disposition": "Unknown",
+        "reason_codes": [
+          "SERVICE_ELIGIBILITY_UNKNOWN"
+        ],
+        "groups": [
+          {
+            "group_id": "g",
+            "status": "Unknown",
+            "nearest_known_service_minutes": 5,
+            "accessible_service_ids": [],
+            "unknown_service_ids": [
+              "clinic"
+            ],
+            "reachable_capacity_potential": 0,
+            "demand": 100,
+            "demand_unit": "visits/day",
+            "reason_codes": [
+              "SERVICE_ELIGIBILITY_UNKNOWN"
+            ]
+          }
+        ],
+        "category_totals": [
+          {
+            "category": "health",
+            "demand": 100,
+            "demand_unit": "visits/day",
+            "declared_open_capacity": 200,
+            "unknown_capacity_service_count": 0,
+            "status": "KnownAggregateCapacityAdequate"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "MA-013",
+      "description": "Step-free-required group reaches a facility known not to be step-free.",
+      "input": {
+        "requested_window": "weekday_day",
+        "network": {
+          "nodes": [
+            "o",
+            "s"
+          ],
+          "edges": [
+            {
+              "id": "e",
+              "from": "o",
+              "to": "s",
+              "walk_minutes": 5,
+              "cycle_minutes": 3,
+              "status": "open",
+              "step_free": true,
+              "one_way": false
+            }
+          ],
+          "evidence_state": "current"
+        },
+        "population_groups": [
+          {
+            "id": "g",
+            "origin_node": "o",
+            "service_category": "health",
+            "population": 100,
+            "demand": 100,
+            "demand_unit": "visits/day",
+            "mode": "walk",
+            "max_travel_minutes": 15,
+            "max_service_price": 10,
+            "price_unit": "credits/visit",
+            "requires_step_free": true
+          }
+        ],
+        "services": [
+          {
+            "id": "clinic",
+            "node": "s",
+            "category": "health",
+            "capacity": 200,
+            "capacity_unit": "visits/day",
+            "capacity_state": "current",
+            "availability_state": "open",
+            "open_windows": [
+              "weekday_day"
+            ],
+            "price": 0,
+            "price_unit": "credits/visit",
+            "price_state": "current",
+            "eligibility_state": "known",
+            "eligible_group_ids": [
+              "*"
+            ],
+            "step_free_status": false
+          }
+        ]
+      },
+      "expected": {
+        "disposition": "Infeasible",
+        "reason_codes": [
+          "NO_USABLE_SERVICE_WITHIN_ACCESS_ENVELOPE"
+        ],
+        "groups": [
+          {
+            "group_id": "g",
+            "status": "Inaccessible",
+            "nearest_known_service_minutes": 5,
+            "accessible_service_ids": [],
+            "unknown_service_ids": [],
+            "reachable_capacity_potential": 0,
+            "demand": 100,
+            "demand_unit": "visits/day",
+            "reason_codes": [
+              "NO_USABLE_SERVICE_WITHIN_ACCESS_ENVELOPE"
+            ]
+          }
+        ],
+        "category_totals": [
+          {
+            "category": "health",
+            "demand": 100,
+            "demand_unit": "visits/day",
+            "declared_open_capacity": 200,
+            "unknown_capacity_service_count": 0,
+            "status": "KnownAggregateCapacityAdequate"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "MA-014",
+      "description": "Step-free-required group reaches a facility with unknown step-free status.",
+      "input": {
+        "requested_window": "weekday_day",
+        "network": {
+          "nodes": [
+            "o",
+            "s"
+          ],
+          "edges": [
+            {
+              "id": "e",
+              "from": "o",
+              "to": "s",
+              "walk_minutes": 5,
+              "cycle_minutes": 3,
+              "status": "open",
+              "step_free": true,
+              "one_way": false
+            }
+          ],
+          "evidence_state": "current"
+        },
+        "population_groups": [
+          {
+            "id": "g",
+            "origin_node": "o",
+            "service_category": "health",
+            "population": 100,
+            "demand": 100,
+            "demand_unit": "visits/day",
+            "mode": "walk",
+            "max_travel_minutes": 15,
+            "max_service_price": 10,
+            "price_unit": "credits/visit",
+            "requires_step_free": true
+          }
+        ],
+        "services": [
+          {
+            "id": "clinic",
+            "node": "s",
+            "category": "health",
+            "capacity": 200,
+            "capacity_unit": "visits/day",
+            "capacity_state": "current",
+            "availability_state": "open",
+            "open_windows": [
+              "weekday_day"
+            ],
+            "price": 0,
+            "price_unit": "credits/visit",
+            "price_state": "current",
+            "eligibility_state": "known",
+            "eligible_group_ids": [
+              "*"
+            ],
+            "step_free_status": null
+          }
+        ]
+      },
+      "expected": {
+        "disposition": "Unknown",
+        "reason_codes": [
+          "SERVICE_STEP_FREE_UNKNOWN"
+        ],
+        "groups": [
+          {
+            "group_id": "g",
+            "status": "Unknown",
+            "nearest_known_service_minutes": 5,
+            "accessible_service_ids": [],
+            "unknown_service_ids": [
+              "clinic"
+            ],
+            "reachable_capacity_potential": 0,
+            "demand": 100,
+            "demand_unit": "visits/day",
+            "reason_codes": [
+              "SERVICE_STEP_FREE_UNKNOWN"
+            ]
+          }
+        ],
+        "category_totals": [
+          {
+            "category": "health",
+            "demand": 100,
+            "demand_unit": "visits/day",
+            "declared_open_capacity": 200,
+            "unknown_capacity_service_count": 0,
+            "status": "KnownAggregateCapacityAdequate"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "MA-015",
+      "description": "The only walking path contains a known non-step-free edge.",
+      "input": {
+        "requested_window": "weekday_day",
+        "network": {
+          "nodes": [
+            "o",
+            "m",
+            "s"
+          ],
+          "edges": [
+            {
+              "id": "e1",
+              "from": "o",
+              "to": "m",
+              "walk_minutes": 2,
+              "cycle_minutes": 1,
+              "status": "open",
+              "step_free": false,
+              "one_way": false
+            },
+            {
+              "id": "e2",
+              "from": "m",
+              "to": "s",
+              "walk_minutes": 2,
+              "cycle_minutes": 1,
+              "status": "open",
+              "step_free": true,
+              "one_way": false
+            }
+          ],
+          "evidence_state": "current"
+        },
+        "population_groups": [
+          {
+            "id": "g",
+            "origin_node": "o",
+            "service_category": "health",
+            "population": 100,
+            "demand": 100,
+            "demand_unit": "visits/day",
+            "mode": "walk",
+            "max_travel_minutes": 15,
+            "max_service_price": 10,
+            "price_unit": "credits/visit",
+            "requires_step_free": true
+          }
+        ],
+        "services": [
+          {
+            "id": "clinic",
+            "node": "s",
+            "category": "health",
+            "capacity": 200,
+            "capacity_unit": "visits/day",
+            "capacity_state": "current",
+            "availability_state": "open",
+            "open_windows": [
+              "weekday_day"
+            ],
+            "price": 0,
+            "price_unit": "credits/visit",
+            "price_state": "current",
+            "eligibility_state": "known",
+            "eligible_group_ids": [
+              "*"
+            ],
+            "step_free_status": true
+          }
+        ]
+      },
+      "expected": {
+        "disposition": "Infeasible",
+        "reason_codes": [
+          "NO_USABLE_SERVICE_WITHIN_ACCESS_ENVELOPE"
+        ],
+        "groups": [
+          {
+            "group_id": "g",
+            "status": "Inaccessible",
+            "nearest_known_service_minutes": null,
+            "accessible_service_ids": [],
+            "unknown_service_ids": [],
+            "reachable_capacity_potential": 0,
+            "demand": 100,
+            "demand_unit": "visits/day",
+            "reason_codes": [
+              "NO_USABLE_SERVICE_WITHIN_ACCESS_ENVELOPE"
+            ]
+          }
+        ],
+        "category_totals": [
+          {
+            "category": "health",
+            "demand": 100,
+            "demand_unit": "visits/day",
+            "declared_open_capacity": 200,
+            "unknown_capacity_service_count": 0,
+            "status": "KnownAggregateCapacityAdequate"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "MA-016",
+      "description": "Capacity record is stale and cannot support an adequacy claim.",
+      "input": {
+        "requested_window": "weekday_day",
+        "network": {
+          "nodes": [
+            "o",
+            "s"
+          ],
+          "edges": [
+            {
+              "id": "e",
+              "from": "o",
+              "to": "s",
+              "walk_minutes": 5,
+              "cycle_minutes": 3,
+              "status": "open",
+              "step_free": true,
+              "one_way": false
+            }
+          ],
+          "evidence_state": "current"
+        },
+        "population_groups": [
+          {
+            "id": "g",
+            "origin_node": "o",
+            "service_category": "health",
+            "population": 100,
+            "demand": 100,
+            "demand_unit": "visits/day",
+            "mode": "walk",
+            "max_travel_minutes": 15,
+            "max_service_price": 10,
+            "price_unit": "credits/visit",
+            "requires_step_free": false
+          }
+        ],
+        "services": [
+          {
+            "id": "clinic",
+            "node": "s",
+            "category": "health",
+            "capacity": 200,
+            "capacity_unit": "visits/day",
+            "capacity_state": "stale",
+            "availability_state": "open",
+            "open_windows": [
+              "weekday_day"
+            ],
+            "price": 0,
+            "price_unit": "credits/visit",
+            "price_state": "current",
+            "eligibility_state": "known",
+            "eligible_group_ids": [
+              "*"
+            ],
+            "step_free_status": true
+          }
+        ]
+      },
+      "expected": {
+        "disposition": "Unknown",
+        "reason_codes": [
+          "SERVICE_CAPACITY_EVIDENCE_UNKNOWN"
+        ],
+        "groups": [
+          {
+            "group_id": "g",
+            "status": "Unknown",
+            "nearest_known_service_minutes": 5,
+            "accessible_service_ids": [],
+            "unknown_service_ids": [
+              "clinic"
+            ],
+            "reachable_capacity_potential": 0,
+            "demand": 100,
+            "demand_unit": "visits/day",
+            "reason_codes": [
+              "SERVICE_CAPACITY_EVIDENCE_UNKNOWN"
+            ]
+          }
+        ],
+        "category_totals": [
+          {
+            "category": "health",
+            "demand": 100,
+            "demand_unit": "visits/day",
+            "declared_open_capacity": 0,
+            "unknown_capacity_service_count": 1,
+            "status": "AggregateCapacityUnknown"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "MA-017",
+      "description": "Capacity value is missing despite a reachable and open service.",
+      "input": {
+        "requested_window": "weekday_day",
+        "network": {
+          "nodes": [
+            "o",
+            "s"
+          ],
+          "edges": [
+            {
+              "id": "e",
+              "from": "o",
+              "to": "s",
+              "walk_minutes": 5,
+              "cycle_minutes": 3,
+              "status": "open",
+              "step_free": true,
+              "one_way": false
+            }
+          ],
+          "evidence_state": "current"
+        },
+        "population_groups": [
+          {
+            "id": "g",
+            "origin_node": "o",
+            "service_category": "health",
+            "population": 100,
+            "demand": 100,
+            "demand_unit": "visits/day",
+            "mode": "walk",
+            "max_travel_minutes": 15,
+            "max_service_price": 10,
+            "price_unit": "credits/visit",
+            "requires_step_free": false
+          }
+        ],
+        "services": [
+          {
+            "id": "clinic",
+            "node": "s",
+            "category": "health",
+            "capacity": null,
+            "capacity_unit": "visits/day",
+            "capacity_state": "missing",
+            "availability_state": "open",
+            "open_windows": [
+              "weekday_day"
+            ],
+            "price": 0,
+            "price_unit": "credits/visit",
+            "price_state": "current",
+            "eligibility_state": "known",
+            "eligible_group_ids": [
+              "*"
+            ],
+            "step_free_status": true
+          }
+        ]
+      },
+      "expected": {
+        "disposition": "Unknown",
+        "reason_codes": [
+          "SERVICE_CAPACITY_EVIDENCE_UNKNOWN"
+        ],
+        "groups": [
+          {
+            "group_id": "g",
+            "status": "Unknown",
+            "nearest_known_service_minutes": 5,
+            "accessible_service_ids": [],
+            "unknown_service_ids": [
+              "clinic"
+            ],
+            "reachable_capacity_potential": 0,
+            "demand": 100,
+            "demand_unit": "visits/day",
+            "reason_codes": [
+              "SERVICE_CAPACITY_EVIDENCE_UNKNOWN"
+            ]
+          }
+        ],
+        "category_totals": [
+          {
+            "category": "health",
+            "demand": 100,
+            "demand_unit": "visits/day",
+            "declared_open_capacity": 0,
+            "unknown_capacity_service_count": 1,
+            "status": "AggregateCapacityUnknown"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "MA-018",
+      "description": "Two population groups have distinct travel-time budgets on the same network.",
+      "input": {
+        "requested_window": "weekday_day",
+        "network": {
+          "nodes": [
+            "o1",
+            "o2",
+            "s"
+          ],
+          "edges": [
+            {
+              "id": "e1",
+              "from": "o1",
+              "to": "s",
+              "walk_minutes": 6,
+              "cycle_minutes": 4,
+              "status": "open",
+              "step_free": true,
+              "one_way": false
+            },
+            {
+              "id": "e2",
+              "from": "o2",
+              "to": "s",
+              "walk_minutes": 17,
+              "cycle_minutes": 9,
+              "status": "open",
+              "step_free": true,
+              "one_way": false
+            }
+          ],
+          "evidence_state": "current"
+        },
+        "population_groups": [
+          {
+            "id": "near-group",
+            "origin_node": "o1",
+            "service_category": "health",
+            "population": 60,
+            "demand": 60,
+            "demand_unit": "visits/day",
+            "mode": "walk",
+            "max_travel_minutes": 10,
+            "max_service_price": 10,
+            "price_unit": "credits/visit",
+            "requires_step_free": false
+          },
+          {
+            "id": "far-group",
+            "origin_node": "o2",
+            "service_category": "health",
+            "population": 40,
+            "demand": 40,
+            "demand_unit": "visits/day",
+            "mode": "walk",
+            "max_travel_minutes": 20,
+            "max_service_price": 10,
+            "price_unit": "credits/visit",
+            "requires_step_free": false
+          }
+        ],
+        "services": [
+          {
+            "id": "clinic",
+            "node": "s",
+            "category": "health",
+            "capacity": 150,
+            "capacity_unit": "visits/day",
+            "capacity_state": "current",
+            "availability_state": "open",
+            "open_windows": [
+              "weekday_day"
+            ],
+            "price": 0,
+            "price_unit": "credits/visit",
+            "price_state": "current",
+            "eligibility_state": "known",
+            "eligible_group_ids": [
+              "*"
+            ],
+            "step_free_status": true
+          }
+        ]
+      },
+      "expected": {
+        "disposition": "FeasibleForSyntheticCase",
+        "reason_codes": [],
+        "groups": [
+          {
+            "group_id": "near-group",
+            "status": "AccessibleAndAdequatePotential",
+            "nearest_known_service_minutes": 6,
+            "accessible_service_ids": [
+              "clinic"
+            ],
+            "unknown_service_ids": [],
+            "reachable_capacity_potential": 150,
+            "demand": 60,
+            "demand_unit": "visits/day",
+            "reason_codes": []
+          },
+          {
+            "group_id": "far-group",
+            "status": "AccessibleAndAdequatePotential",
+            "nearest_known_service_minutes": 17,
+            "accessible_service_ids": [
+              "clinic"
+            ],
+            "unknown_service_ids": [],
+            "reachable_capacity_potential": 150,
+            "demand": 40,
+            "demand_unit": "visits/day",
+            "reason_codes": []
+          }
+        ],
+        "category_totals": [
+          {
+            "category": "health",
+            "demand": 100,
+            "demand_unit": "visits/day",
+            "declared_open_capacity": 150,
+            "unknown_capacity_service_count": 0,
+            "status": "KnownAggregateCapacityAdequate"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "MA-019",
+      "description": "Two groups can reach one facility but combined demand exceeds total facility capacity.",
+      "input": {
+        "requested_window": "weekday_day",
+        "network": {
+          "nodes": [
+            "o1",
+            "o2",
+            "s"
+          ],
+          "edges": [
+            {
+              "id": "e1",
+              "from": "o1",
+              "to": "s",
+              "walk_minutes": 4,
+              "cycle_minutes": 3,
+              "status": "open",
+              "step_free": true,
+              "one_way": false
+            },
+            {
+              "id": "e2",
+              "from": "o2",
+              "to": "s",
+              "walk_minutes": 5,
+              "cycle_minutes": 3,
+              "status": "open",
+              "step_free": true,
+              "one_way": false
+            }
+          ],
+          "evidence_state": "current"
+        },
+        "population_groups": [
+          {
+            "id": "g1",
+            "origin_node": "o1",
+            "service_category": "health",
+            "population": 100,
+            "demand": 100,
+            "demand_unit": "visits/day",
+            "mode": "walk",
+            "max_travel_minutes": 15,
+            "max_service_price": 10,
+            "price_unit": "credits/visit",
+            "requires_step_free": false
+          },
+          {
+            "id": "g2",
+            "origin_node": "o2",
+            "service_category": "health",
+            "population": 100,
+            "demand": 100,
+            "demand_unit": "visits/day",
+            "mode": "walk",
+            "max_travel_minutes": 15,
+            "max_service_price": 10,
+            "price_unit": "credits/visit",
+            "requires_step_free": false
+          }
+        ],
+        "services": [
+          {
+            "id": "clinic",
+            "node": "s",
+            "category": "health",
+            "capacity": 120,
+            "capacity_unit": "visits/day",
+            "capacity_state": "current",
+            "availability_state": "open",
+            "open_windows": [
+              "weekday_day"
+            ],
+            "price": 0,
+            "price_unit": "credits/visit",
+            "price_state": "current",
+            "eligibility_state": "known",
+            "eligible_group_ids": [
+              "*"
+            ],
+            "step_free_status": true
+          }
+        ]
+      },
+      "expected": {
+        "disposition": "Infeasible",
+        "reason_codes": [
+          "AGGREGATE_CAPACITY_SHORTFALL"
+        ],
+        "groups": [
+          {
+            "group_id": "g1",
+            "status": "AccessibleAndAdequatePotential",
+            "nearest_known_service_minutes": 4,
+            "accessible_service_ids": [
+              "clinic"
+            ],
+            "unknown_service_ids": [],
+            "reachable_capacity_potential": 120,
+            "demand": 100,
+            "demand_unit": "visits/day",
+            "reason_codes": []
+          },
+          {
+            "group_id": "g2",
+            "status": "AccessibleAndAdequatePotential",
+            "nearest_known_service_minutes": 5,
+            "accessible_service_ids": [
+              "clinic"
+            ],
+            "unknown_service_ids": [],
+            "reachable_capacity_potential": 120,
+            "demand": 100,
+            "demand_unit": "visits/day",
+            "reason_codes": []
+          }
+        ],
+        "category_totals": [
+          {
+            "category": "health",
+            "demand": 200,
+            "demand_unit": "visits/day",
+            "declared_open_capacity": 120,
+            "unknown_capacity_service_count": 0,
+            "status": "AggregateCapacityShortfall"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "MA-020",
+      "description": "A farther service supplements the nearest facility; nearest-only analysis misses capacity.",
+      "input": {
+        "requested_window": "weekday_day",
+        "network": {
+          "nodes": [
+            "o",
+            "near",
+            "far"
+          ],
+          "edges": [
+            {
+              "id": "e1",
+              "from": "o",
+              "to": "near",
+              "walk_minutes": 2,
+              "cycle_minutes": 1,
+              "status": "open",
+              "step_free": true,
+              "one_way": false
+            },
+            {
+              "id": "e2",
+              "from": "o",
+              "to": "far",
+              "walk_minutes": 10,
+              "cycle_minutes": 7,
+              "status": "open",
+              "step_free": true,
+              "one_way": false
+            }
+          ],
+          "evidence_state": "current"
+        },
+        "population_groups": [
+          {
+            "id": "g",
+            "origin_node": "o",
+            "service_category": "health",
+            "population": 100,
+            "demand": 100,
+            "demand_unit": "visits/day",
+            "mode": "walk",
+            "max_travel_minutes": 15,
+            "max_service_price": 10,
+            "price_unit": "credits/visit",
+            "requires_step_free": false
+          }
+        ],
+        "services": [
+          {
+            "id": "near-clinic",
+            "node": "near",
+            "category": "health",
+            "capacity": 20,
+            "capacity_unit": "visits/day",
+            "capacity_state": "current",
+            "availability_state": "open",
+            "open_windows": [
+              "weekday_day"
+            ],
+            "price": 0,
+            "price_unit": "credits/visit",
+            "price_state": "current",
+            "eligibility_state": "known",
+            "eligible_group_ids": [
+              "*"
+            ],
+            "step_free_status": true
+          },
+          {
+            "id": "far-clinic",
+            "node": "far",
+            "category": "health",
+            "capacity": 120,
+            "capacity_unit": "visits/day",
+            "capacity_state": "current",
+            "availability_state": "open",
+            "open_windows": [
+              "weekday_day"
+            ],
+            "price": 0,
+            "price_unit": "credits/visit",
+            "price_state": "current",
+            "eligibility_state": "known",
+            "eligible_group_ids": [
+              "*"
+            ],
+            "step_free_status": true
+          }
+        ]
+      },
+      "expected": {
+        "disposition": "FeasibleForSyntheticCase",
+        "reason_codes": [],
+        "groups": [
+          {
+            "group_id": "g",
+            "status": "AccessibleAndAdequatePotential",
+            "nearest_known_service_minutes": 2,
+            "accessible_service_ids": [
+              "far-clinic",
+              "near-clinic"
+            ],
+            "unknown_service_ids": [],
+            "reachable_capacity_potential": 140,
+            "demand": 100,
+            "demand_unit": "visits/day",
+            "reason_codes": []
+          }
+        ],
+        "category_totals": [
+          {
+            "category": "health",
+            "demand": 100,
+            "demand_unit": "visits/day",
+            "declared_open_capacity": 140,
+            "unknown_capacity_service_count": 0,
+            "status": "KnownAggregateCapacityAdequate"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "MA-021",
+      "description": "Open and affordable facility has only an unknown network route.",
+      "input": {
+        "requested_window": "weekday_day",
+        "network": {
+          "nodes": [
+            "o",
+            "s"
+          ],
+          "edges": [
+            {
+              "id": "e",
+              "from": "o",
+              "to": "s",
+              "walk_minutes": 7,
+              "cycle_minutes": 4,
+              "status": "unknown",
+              "step_free": true,
+              "one_way": false
+            }
+          ],
+          "evidence_state": "current"
+        },
+        "population_groups": [
+          {
+            "id": "g",
+            "origin_node": "o",
+            "service_category": "health",
+            "population": 100,
+            "demand": 100,
+            "demand_unit": "visits/day",
+            "mode": "walk",
+            "max_travel_minutes": 15,
+            "max_service_price": 10,
+            "price_unit": "credits/visit",
+            "requires_step_free": false
+          }
+        ],
+        "services": [
+          {
+            "id": "clinic",
+            "node": "s",
+            "category": "health",
+            "capacity": 200,
+            "capacity_unit": "visits/day",
+            "capacity_state": "current",
+            "availability_state": "open",
+            "open_windows": [
+              "weekday_day"
+            ],
+            "price": 0,
+            "price_unit": "credits/visit",
+            "price_state": "current",
+            "eligibility_state": "known",
+            "eligible_group_ids": [
+              "*"
+            ],
+            "step_free_status": true
+          }
+        ]
+      },
+      "expected": {
+        "disposition": "Unknown",
+        "reason_codes": [
+          "NETWORK_EDGE_UNKNOWN"
+        ],
+        "groups": [
+          {
+            "group_id": "g",
+            "status": "Unknown",
+            "nearest_known_service_minutes": null,
+            "accessible_service_ids": [],
+            "unknown_service_ids": [
+              "clinic"
+            ],
+            "reachable_capacity_potential": 0,
+            "demand": 100,
+            "demand_unit": "visits/day",
+            "reason_codes": [
+              "NETWORK_EDGE_UNKNOWN"
+            ]
+          }
+        ],
+        "category_totals": [
+          {
+            "category": "health",
+            "demand": 100,
+            "demand_unit": "visits/day",
+            "declared_open_capacity": 200,
+            "unknown_capacity_service_count": 0,
+            "status": "KnownAggregateCapacityAdequate"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "MA-022",
+      "description": "Direct bridge is closed but a longer known alternate path remains within the budget.",
+      "input": {
+        "requested_window": "weekday_day",
+        "network": {
+          "nodes": [
+            "o",
+            "s",
+            "a",
+            "b"
+          ],
+          "edges": [
+            {
+              "id": "bridge",
+              "from": "o",
+              "to": "s",
+              "walk_minutes": 2,
+              "cycle_minutes": 1,
+              "status": "closed",
+              "step_free": true,
+              "one_way": false
+            },
+            {
+              "id": "e1",
+              "from": "o",
+              "to": "a",
+              "walk_minutes": 3,
+              "cycle_minutes": 2,
+              "status": "open",
+              "step_free": true,
+              "one_way": false
+            },
+            {
+              "id": "e2",
+              "from": "a",
+              "to": "b",
+              "walk_minutes": 2,
+              "cycle_minutes": 1,
+              "status": "open",
+              "step_free": true,
+              "one_way": false
+            },
+            {
+              "id": "e3",
+              "from": "b",
+              "to": "s",
+              "walk_minutes": 3,
+              "cycle_minutes": 2,
+              "status": "open",
+              "step_free": true,
+              "one_way": false
+            }
+          ],
+          "evidence_state": "current"
+        },
+        "population_groups": [
+          {
+            "id": "g",
+            "origin_node": "o",
+            "service_category": "health",
+            "population": 100,
+            "demand": 100,
+            "demand_unit": "visits/day",
+            "mode": "walk",
+            "max_travel_minutes": 10,
+            "max_service_price": 10,
+            "price_unit": "credits/visit",
+            "requires_step_free": false
+          }
+        ],
+        "services": [
+          {
+            "id": "clinic",
+            "node": "s",
+            "category": "health",
+            "capacity": 150,
+            "capacity_unit": "visits/day",
+            "capacity_state": "current",
+            "availability_state": "open",
+            "open_windows": [
+              "weekday_day"
+            ],
+            "price": 0,
+            "price_unit": "credits/visit",
+            "price_state": "current",
+            "eligibility_state": "known",
+            "eligible_group_ids": [
+              "*"
+            ],
+            "step_free_status": true
+          }
+        ]
+      },
+      "expected": {
+        "disposition": "FeasibleForSyntheticCase",
+        "reason_codes": [],
+        "groups": [
+          {
+            "group_id": "g",
+            "status": "AccessibleAndAdequatePotential",
+            "nearest_known_service_minutes": 8,
+            "accessible_service_ids": [
+              "clinic"
+            ],
+            "unknown_service_ids": [],
+            "reachable_capacity_potential": 150,
+            "demand": 100,
+            "demand_unit": "visits/day",
+            "reason_codes": []
+          }
+        ],
+        "category_totals": [
+          {
+            "category": "health",
+            "demand": 100,
+            "demand_unit": "visits/day",
+            "declared_open_capacity": 150,
+            "unknown_capacity_service_count": 0,
+            "status": "KnownAggregateCapacityAdequate"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "MA-023",
+      "description": "Duplicate facility identity is rejected rather than double-counted.",
+      "input": {
+        "requested_window": "weekday_day",
+        "network": {
+          "nodes": [
+            "o",
+            "s",
+            "s2"
+          ],
+          "edges": [
+            {
+              "id": "e1",
+              "from": "o",
+              "to": "s",
+              "walk_minutes": 4,
+              "cycle_minutes": 2,
+              "status": "open",
+              "step_free": true,
+              "one_way": false
+            },
+            {
+              "id": "e2",
+              "from": "o",
+              "to": "s2",
+              "walk_minutes": 5,
+              "cycle_minutes": 3,
+              "status": "open",
+              "step_free": true,
+              "one_way": false
+            }
+          ],
+          "evidence_state": "current"
+        },
+        "population_groups": [
+          {
+            "id": "g",
+            "origin_node": "o",
+            "service_category": "health",
+            "population": 100,
+            "demand": 100,
+            "demand_unit": "visits/day",
+            "mode": "walk",
+            "max_travel_minutes": 15,
+            "max_service_price": 10,
+            "price_unit": "credits/visit",
+            "requires_step_free": false
+          }
+        ],
+        "services": [
+          {
+            "id": "clinic",
+            "node": "s",
+            "category": "health",
+            "capacity": 120,
+            "capacity_unit": "visits/day",
+            "capacity_state": "current",
+            "availability_state": "open",
+            "open_windows": [
+              "weekday_day"
+            ],
+            "price": 0,
+            "price_unit": "credits/visit",
+            "price_state": "current",
+            "eligibility_state": "known",
+            "eligible_group_ids": [
+              "*"
+            ],
+            "step_free_status": true
+          },
+          {
+            "id": "clinic",
+            "node": "s2",
+            "category": "health",
+            "capacity": 120,
+            "capacity_unit": "visits/day",
+            "capacity_state": "current",
+            "availability_state": "open",
+            "open_windows": [
+              "weekday_day"
+            ],
+            "price": 0,
+            "price_unit": "credits/visit",
+            "price_state": "current",
+            "eligibility_state": "known",
+            "eligible_group_ids": [
+              "*"
+            ],
+            "step_free_status": true
+          }
+        ]
+      },
+      "expected": {
+        "disposition": "Unsupported",
+        "reason_codes": [
+          "DUPLICATE_SERVICE_ID"
+        ],
+        "groups": [],
+        "category_totals": []
+      }
+    },
+    {
+      "case_id": "MA-024",
+      "description": "Duplicate population-group identity is rejected rather than double-counted.",
+      "input": {
+        "requested_window": "weekday_day",
+        "network": {
+          "nodes": [
+            "o",
+            "s"
+          ],
+          "edges": [
+            {
+              "id": "e",
+              "from": "o",
+              "to": "s",
+              "walk_minutes": 5,
+              "cycle_minutes": 3,
+              "status": "open",
+              "step_free": true,
+              "one_way": false
+            }
+          ],
+          "evidence_state": "current"
+        },
+        "population_groups": [
+          {
+            "id": "g",
+            "origin_node": "o",
+            "service_category": "health",
+            "population": 40,
+            "demand": 40,
+            "demand_unit": "visits/day",
+            "mode": "walk",
+            "max_travel_minutes": 15,
+            "max_service_price": 10,
+            "price_unit": "credits/visit",
+            "requires_step_free": false
+          },
+          {
+            "id": "g",
+            "origin_node": "o",
+            "service_category": "health",
+            "population": 40,
+            "demand": 40,
+            "demand_unit": "visits/day",
+            "mode": "walk",
+            "max_travel_minutes": 15,
+            "max_service_price": 10,
+            "price_unit": "credits/visit",
+            "requires_step_free": false
+          }
+        ],
+        "services": [
+          {
+            "id": "clinic",
+            "node": "s",
+            "category": "health",
+            "capacity": 150,
+            "capacity_unit": "visits/day",
+            "capacity_state": "current",
+            "availability_state": "open",
+            "open_windows": [
+              "weekday_day"
+            ],
+            "price": 0,
+            "price_unit": "credits/visit",
+            "price_state": "current",
+            "eligibility_state": "known",
+            "eligible_group_ids": [
+              "*"
+            ],
+            "step_free_status": true
+          }
+        ]
+      },
+      "expected": {
+        "disposition": "Unsupported",
+        "reason_codes": [
+          "DUPLICATE_POPULATION_GROUP_ID"
+        ],
+        "groups": [],
+        "category_totals": []
+      }
+    }
+  ]
+}
