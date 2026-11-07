@@ -4,7 +4,7 @@
   "corpus_id": "CITY-SCOPE-BINDING-CORPUS-V0.1",
   "classification": "synthetic_fixture_only",
   "policy_note": "This corpus checks common scope and owner-envelope binding only. Owner payloads remain opaque; payload digests are supplied but their bytes are not fetched or verified.",
-  "scope_digest_algorithm": "sha256-canonical-json-v1",
+  "scope_digest_algorithm": "sha256-canonical-citymaker-scope-v1",
   "owner_schema_registry": [
     {
       "owner_repo": "Luminous-Dynamics/mycelix",
@@ -33,9 +33,7 @@
             "boundary_revision": "GRID-V1",
             "coordinate_reference": "unitless-local-grid",
             "spatial_resolution_ceiling": "grid-cell",
-            "real_world_coordinates_present": true,
-            "latitude": -26.2,
-            "longitude": 28
+            "real_world_coordinates_present": false
           },
           "population_frame": {
             "frame_id": "POP-FRAME-SYNTH-01",
@@ -175,20 +173,16 @@
       },
       "expected": {
         "case_id": "SB-001",
-        "binding_disposition": "Unsupported",
-        "scope_digest": "1205f7a841b36d6251de250ff2185422c4a8b24234c597e7cd4aeb5fbd0f8b20",
-        "reason_codes": [
-          "OWNER_ARTIFACT_SCOPE_MISMATCH",
-          "SCOPE_DIGEST_DECLARATION_MISMATCH",
-          "SYNTHETIC_SCOPE_HAS_REAL_WORLD_COORDINATES"
-        ],
+        "binding_disposition": "Bound",
+        "scope_digest": "bb733b294ec864bd3f5a7ce8ab92783babd6b23c67f5e3871976e2a33fee92ab",
+        "reason_codes": [],
         "required_artifact_ids": [
           "LC-CORRIDOR-BASELINE"
         ],
         "artifact_bindings": [
           {
             "artifact_id": "LC-CORRIDOR-BASELINE",
-            "binding_state": "NotComparable",
+            "binding_state": "Bound",
             "raw_owner_disposition": "synthetic_test_only",
             "payload_bytes_verified": false
           }
@@ -210,9 +204,7 @@
             "boundary_revision": "GRID-V1",
             "coordinate_reference": "unitless-local-grid",
             "spatial_resolution_ceiling": "grid-cell",
-            "real_world_coordinates_present": true,
-            "latitude": -26.2,
-            "longitude": 28
+            "real_world_coordinates_present": false
           },
           "population_frame": {
             "frame_id": "POP-FRAME-SYNTH-01",
@@ -352,12 +344,10 @@
       },
       "expected": {
         "case_id": "SB-002",
-        "binding_disposition": "Unsupported",
-        "scope_digest": "1205f7a841b36d6251de250ff2185422c4a8b24234c597e7cd4aeb5fbd0f8b20",
+        "binding_disposition": "NotComparable",
+        "scope_digest": "bb733b294ec864bd3f5a7ce8ab92783babd6b23c67f5e3871976e2a33fee92ab",
         "reason_codes": [
-          "OWNER_ARTIFACT_SCOPE_MISMATCH",
-          "SCOPE_DIGEST_DECLARATION_MISMATCH",
-          "SYNTHETIC_SCOPE_HAS_REAL_WORLD_COORDINATES"
+          "OWNER_ARTIFACT_SCOPE_MISMATCH"
         ],
         "required_artifact_ids": [
           "LC-CORRIDOR-BASELINE"
@@ -387,9 +377,7 @@
             "boundary_revision": "GRID-V1",
             "coordinate_reference": "unitless-local-grid",
             "spatial_resolution_ceiling": "grid-cell",
-            "real_world_coordinates_present": true,
-            "latitude": -26.2,
-            "longitude": 28
+            "real_world_coordinates_present": false
           },
           "population_frame": {
             "frame_id": "POP-FRAME-SYNTH-01",
@@ -529,12 +517,10 @@
       },
       "expected": {
         "case_id": "SB-003",
-        "binding_disposition": "Unsupported",
-        "scope_digest": "1205f7a841b36d6251de250ff2185422c4a8b24234c597e7cd4aeb5fbd0f8b20",
+        "binding_disposition": "NotComparable",
+        "scope_digest": "bb733b294ec864bd3f5a7ce8ab92783babd6b23c67f5e3871976e2a33fee92ab",
         "reason_codes": [
-          "OWNER_ARTIFACT_SCOPE_MISMATCH",
-          "SCOPE_DIGEST_DECLARATION_MISMATCH",
-          "SYNTHETIC_SCOPE_HAS_REAL_WORLD_COORDINATES"
+          "OWNER_ARTIFACT_SCOPE_MISMATCH"
         ],
         "required_artifact_ids": [
           "LC-CORRIDOR-BASELINE"
@@ -564,9 +550,7 @@
             "boundary_revision": "GRID-V1",
             "coordinate_reference": "unitless-local-grid",
             "spatial_resolution_ceiling": "grid-cell",
-            "real_world_coordinates_present": true,
-            "latitude": -26.2,
-            "longitude": 28
+            "real_world_coordinates_present": false
           },
           "population_frame": {
             "frame_id": "POP-FRAME-SYNTH-01",
@@ -706,12 +690,10 @@
       },
       "expected": {
         "case_id": "SB-004",
-        "binding_disposition": "Unsupported",
-        "scope_digest": "1205f7a841b36d6251de250ff2185422c4a8b24234c597e7cd4aeb5fbd0f8b20",
+        "binding_disposition": "NotComparable",
+        "scope_digest": "bb733b294ec864bd3f5a7ce8ab92783babd6b23c67f5e3871976e2a33fee92ab",
         "reason_codes": [
-          "OWNER_ARTIFACT_SCOPE_MISMATCH",
-          "SCOPE_DIGEST_DECLARATION_MISMATCH",
-          "SYNTHETIC_SCOPE_HAS_REAL_WORLD_COORDINATES"
+          "OWNER_ARTIFACT_SCOPE_MISMATCH"
         ],
         "required_artifact_ids": [
           "LC-CORRIDOR-BASELINE"
@@ -741,9 +723,7 @@
             "boundary_revision": "GRID-V1",
             "coordinate_reference": "unitless-local-grid",
             "spatial_resolution_ceiling": "grid-cell",
-            "real_world_coordinates_present": true,
-            "latitude": -26.2,
-            "longitude": 28
+            "real_world_coordinates_present": false
           },
           "population_frame": {
             "frame_id": "POP-FRAME-SYNTH-01",
@@ -867,7 +847,7 @@
             "boundary_revision": "GRID-V1",
             "population_frame_id": "POP-FRAME-SYNTH-01",
             "horizon_id": "HORIZON-SYNTH-12T",
-            "scenario_id": "bridge-closure",
+            "scenario_id": "not-in-scope",
             "window_start_tick": 0,
             "window_end_tick": 12,
             "weather_profile_id": "WEATHER-SYNTH-V1",
@@ -883,12 +863,10 @@
       },
       "expected": {
         "case_id": "SB-005",
-        "binding_disposition": "Unsupported",
-        "scope_digest": "1205f7a841b36d6251de250ff2185422c4a8b24234c597e7cd4aeb5fbd0f8b20",
+        "binding_disposition": "NotComparable",
+        "scope_digest": "bb733b294ec864bd3f5a7ce8ab92783babd6b23c67f5e3871976e2a33fee92ab",
         "reason_codes": [
-          "OWNER_ARTIFACT_SCOPE_MISMATCH",
-          "SCOPE_DIGEST_DECLARATION_MISMATCH",
-          "SYNTHETIC_SCOPE_HAS_REAL_WORLD_COORDINATES"
+          "SCENARIO_NOT_IN_SCOPE"
         ],
         "required_artifact_ids": [
           "LC-CORRIDOR-BASELINE"
@@ -918,9 +896,7 @@
             "boundary_revision": "GRID-V1",
             "coordinate_reference": "unitless-local-grid",
             "spatial_resolution_ceiling": "grid-cell",
-            "real_world_coordinates_present": true,
-            "latitude": -26.2,
-            "longitude": 28
+            "real_world_coordinates_present": false
           },
           "population_frame": {
             "frame_id": "POP-FRAME-SYNTH-01",
@@ -1060,12 +1036,10 @@
       },
       "expected": {
         "case_id": "SB-006",
-        "binding_disposition": "Unsupported",
-        "scope_digest": "1205f7a841b36d6251de250ff2185422c4a8b24234c597e7cd4aeb5fbd0f8b20",
+        "binding_disposition": "NotComparable",
+        "scope_digest": "bb733b294ec864bd3f5a7ce8ab92783babd6b23c67f5e3871976e2a33fee92ab",
         "reason_codes": [
-          "OWNER_ARTIFACT_SCOPE_MISMATCH",
-          "SCOPE_DIGEST_DECLARATION_MISMATCH",
-          "SYNTHETIC_SCOPE_HAS_REAL_WORLD_COORDINATES"
+          "OWNER_ARTIFACT_SCOPE_MISMATCH"
         ],
         "required_artifact_ids": [
           "LC-CORRIDOR-BASELINE"
@@ -1095,9 +1069,7 @@
             "boundary_revision": "GRID-V1",
             "coordinate_reference": "unitless-local-grid",
             "spatial_resolution_ceiling": "grid-cell",
-            "real_world_coordinates_present": true,
-            "latitude": -26.2,
-            "longitude": 28
+            "real_world_coordinates_present": false
           },
           "population_frame": {
             "frame_id": "POP-FRAME-SYNTH-01",
@@ -1225,7 +1197,7 @@
             "window_start_tick": 0,
             "window_end_tick": 12,
             "weather_profile_id": "WEATHER-SYNTH-V1",
-            "functional_unit_ref": "FU-CLINIC-V1",
+            "functional_unit_ref": "not-in-scope",
             "design_subject_id": "clinic-building",
             "design_revision": "CLINIC-DESIGN-V1",
             "bom_revision": "CLINIC-BOM-V1",
@@ -1237,12 +1209,10 @@
       },
       "expected": {
         "case_id": "SB-007",
-        "binding_disposition": "Unsupported",
-        "scope_digest": "1205f7a841b36d6251de250ff2185422c4a8b24234c597e7cd4aeb5fbd0f8b20",
+        "binding_disposition": "NotComparable",
+        "scope_digest": "bb733b294ec864bd3f5a7ce8ab92783babd6b23c67f5e3871976e2a33fee92ab",
         "reason_codes": [
-          "OWNER_ARTIFACT_SCOPE_MISMATCH",
-          "SCOPE_DIGEST_DECLARATION_MISMATCH",
-          "SYNTHETIC_SCOPE_HAS_REAL_WORLD_COORDINATES"
+          "FUNCTIONAL_UNIT_NOT_IN_SCOPE"
         ],
         "required_artifact_ids": [
           "LC-CORRIDOR-BASELINE"
@@ -1272,9 +1242,7 @@
             "boundary_revision": "GRID-V1",
             "coordinate_reference": "unitless-local-grid",
             "spatial_resolution_ceiling": "grid-cell",
-            "real_world_coordinates_present": true,
-            "latitude": -26.2,
-            "longitude": 28
+            "real_world_coordinates_present": false
           },
           "population_frame": {
             "frame_id": "POP-FRAME-SYNTH-01",
@@ -1414,12 +1382,10 @@
       },
       "expected": {
         "case_id": "SB-008",
-        "binding_disposition": "Unsupported",
-        "scope_digest": "1205f7a841b36d6251de250ff2185422c4a8b24234c597e7cd4aeb5fbd0f8b20",
+        "binding_disposition": "Unknown",
+        "scope_digest": "bb733b294ec864bd3f5a7ce8ab92783babd6b23c67f5e3871976e2a33fee92ab",
         "reason_codes": [
-          "OWNER_ARTIFACT_IDENTITY_INCOMPLETE",
-          "SCOPE_DIGEST_DECLARATION_MISMATCH",
-          "SYNTHETIC_SCOPE_HAS_REAL_WORLD_COORDINATES"
+          "OWNER_ARTIFACT_IDENTITY_INCOMPLETE"
         ],
         "required_artifact_ids": [
           "LC-CORRIDOR-BASELINE"
@@ -1449,9 +1415,7 @@
             "boundary_revision": "GRID-V1",
             "coordinate_reference": "unitless-local-grid",
             "spatial_resolution_ceiling": "grid-cell",
-            "real_world_coordinates_present": true,
-            "latitude": -26.2,
-            "longitude": 28
+            "real_world_coordinates_present": false
           },
           "population_frame": {
             "frame_id": "POP-FRAME-SYNTH-01",
@@ -1591,12 +1555,10 @@
       },
       "expected": {
         "case_id": "SB-009",
-        "binding_disposition": "Unsupported",
-        "scope_digest": "1205f7a841b36d6251de250ff2185422c4a8b24234c597e7cd4aeb5fbd0f8b20",
+        "binding_disposition": "NotComparable",
+        "scope_digest": "bb733b294ec864bd3f5a7ce8ab92783babd6b23c67f5e3871976e2a33fee92ab",
         "reason_codes": [
-          "OWNER_SCHEMA_OR_SOURCE_REVISION_MISMATCH",
-          "SCOPE_DIGEST_DECLARATION_MISMATCH",
-          "SYNTHETIC_SCOPE_HAS_REAL_WORLD_COORDINATES"
+          "OWNER_SCHEMA_OR_SOURCE_REVISION_MISMATCH"
         ],
         "required_artifact_ids": [
           "LC-CORRIDOR-BASELINE"
@@ -1626,9 +1588,7 @@
             "boundary_revision": "GRID-V1",
             "coordinate_reference": "unitless-local-grid",
             "spatial_resolution_ceiling": "grid-cell",
-            "real_world_coordinates_present": true,
-            "latitude": -26.2,
-            "longitude": 28
+            "real_world_coordinates_present": false
           },
           "population_frame": {
             "frame_id": "POP-FRAME-SYNTH-01",
@@ -1768,12 +1728,10 @@
       },
       "expected": {
         "case_id": "SB-010",
-        "binding_disposition": "Unsupported",
-        "scope_digest": "1205f7a841b36d6251de250ff2185422c4a8b24234c597e7cd4aeb5fbd0f8b20",
+        "binding_disposition": "Unknown",
+        "scope_digest": "bb733b294ec864bd3f5a7ce8ab92783babd6b23c67f5e3871976e2a33fee92ab",
         "reason_codes": [
-          "OWNER_ARTIFACT_IDENTITY_INCOMPLETE",
-          "SCOPE_DIGEST_DECLARATION_MISMATCH",
-          "SYNTHETIC_SCOPE_HAS_REAL_WORLD_COORDINATES"
+          "OWNER_ARTIFACT_IDENTITY_INCOMPLETE"
         ],
         "required_artifact_ids": [
           "LC-CORRIDOR-BASELINE"
@@ -1803,9 +1761,7 @@
             "boundary_revision": "GRID-V1",
             "coordinate_reference": "unitless-local-grid",
             "spatial_resolution_ceiling": "grid-cell",
-            "real_world_coordinates_present": true,
-            "latitude": -26.2,
-            "longitude": 28
+            "real_world_coordinates_present": false
           },
           "population_frame": {
             "frame_id": "POP-FRAME-SYNTH-01",
@@ -1945,12 +1901,10 @@
       },
       "expected": {
         "case_id": "SB-011",
-        "binding_disposition": "Unsupported",
-        "scope_digest": "1205f7a841b36d6251de250ff2185422c4a8b24234c597e7cd4aeb5fbd0f8b20",
+        "binding_disposition": "Unknown",
+        "scope_digest": "bb733b294ec864bd3f5a7ce8ab92783babd6b23c67f5e3871976e2a33fee92ab",
         "reason_codes": [
-          "OWNER_ARTIFACT_SCOPE_MISMATCH",
-          "SCOPE_DIGEST_DECLARATION_MISMATCH",
-          "SYNTHETIC_SCOPE_HAS_REAL_WORLD_COORDINATES"
+          "OWNER_ARTIFACT_EVIDENCE_NOT_CURRENT"
         ],
         "required_artifact_ids": [
           "LC-CORRIDOR-BASELINE"
@@ -1958,7 +1912,7 @@
         "artifact_bindings": [
           {
             "artifact_id": "LC-CORRIDOR-BASELINE",
-            "binding_state": "NotComparable",
+            "binding_state": "Unknown",
             "raw_owner_disposition": "synthetic_test_only",
             "payload_bytes_verified": false
           }
@@ -1980,9 +1934,7 @@
             "boundary_revision": "GRID-V1",
             "coordinate_reference": "unitless-local-grid",
             "spatial_resolution_ceiling": "grid-cell",
-            "real_world_coordinates_present": true,
-            "latitude": -26.2,
-            "longitude": 28
+            "real_world_coordinates_present": false
           },
           "population_frame": {
             "frame_id": "POP-FRAME-SYNTH-01",
@@ -2122,12 +2074,10 @@
       },
       "expected": {
         "case_id": "SB-012",
-        "binding_disposition": "Unsupported",
-        "scope_digest": "1205f7a841b36d6251de250ff2185422c4a8b24234c597e7cd4aeb5fbd0f8b20",
+        "binding_disposition": "Unknown",
+        "scope_digest": "bb733b294ec864bd3f5a7ce8ab92783babd6b23c67f5e3871976e2a33fee92ab",
         "reason_codes": [
-          "OWNER_ARTIFACT_SCOPE_MISMATCH",
-          "SCOPE_DIGEST_DECLARATION_MISMATCH",
-          "SYNTHETIC_SCOPE_HAS_REAL_WORLD_COORDINATES"
+          "OWNER_ARTIFACT_EVIDENCE_NOT_CURRENT"
         ],
         "required_artifact_ids": [
           "LC-CORRIDOR-BASELINE"
@@ -2135,7 +2085,7 @@
         "artifact_bindings": [
           {
             "artifact_id": "LC-CORRIDOR-BASELINE",
-            "binding_state": "NotComparable",
+            "binding_state": "Unknown",
             "raw_owner_disposition": "synthetic_test_only",
             "payload_bytes_verified": false
           }
@@ -2157,9 +2107,7 @@
             "boundary_revision": "GRID-V1",
             "coordinate_reference": "unitless-local-grid",
             "spatial_resolution_ceiling": "grid-cell",
-            "real_world_coordinates_present": true,
-            "latitude": -26.2,
-            "longitude": 28
+            "real_world_coordinates_present": false
           },
           "population_frame": {
             "frame_id": "POP-FRAME-SYNTH-01",
@@ -2330,12 +2278,9 @@
       "expected": {
         "case_id": "SB-013",
         "binding_disposition": "Unsupported",
-        "scope_digest": "1205f7a841b36d6251de250ff2185422c4a8b24234c597e7cd4aeb5fbd0f8b20",
+        "scope_digest": "bb733b294ec864bd3f5a7ce8ab92783babd6b23c67f5e3871976e2a33fee92ab",
         "reason_codes": [
-          "DUPLICATE_OR_MISSING_RECEIPT_ID",
-          "OWNER_ARTIFACT_SCOPE_MISMATCH",
-          "SCOPE_DIGEST_DECLARATION_MISMATCH",
-          "SYNTHETIC_SCOPE_HAS_REAL_WORLD_COORDINATES"
+          "DUPLICATE_OR_MISSING_RECEIPT_ID"
         ],
         "required_artifact_ids": [
           "LC-CORRIDOR-BASELINE",
@@ -2344,7 +2289,13 @@
         "artifact_bindings": [
           {
             "artifact_id": "LC-CORRIDOR-BASELINE",
-            "binding_state": "NotComparable",
+            "binding_state": "Bound",
+            "raw_owner_disposition": "synthetic_test_only",
+            "payload_bytes_verified": false
+          },
+          {
+            "artifact_id": "LC-CORRIDOR-SECOND",
+            "binding_state": "Unsupported",
             "raw_owner_disposition": "synthetic_test_only",
             "payload_bytes_verified": false
           }
@@ -2366,9 +2317,7 @@
             "boundary_revision": "GRID-V1",
             "coordinate_reference": "unitless-local-grid",
             "spatial_resolution_ceiling": "grid-cell",
-            "real_world_coordinates_present": true,
-            "latitude": -26.2,
-            "longitude": 28
+            "real_world_coordinates_present": false
           },
           "population_frame": {
             "frame_id": "POP-FRAME-SYNTH-01",
@@ -2509,11 +2458,9 @@
       "expected": {
         "case_id": "SB-014",
         "binding_disposition": "Unsupported",
-        "scope_digest": "1205f7a841b36d6251de250ff2185422c4a8b24234c597e7cd4aeb5fbd0f8b20",
+        "scope_digest": "bb733b294ec864bd3f5a7ce8ab92783babd6b23c67f5e3871976e2a33fee92ab",
         "reason_codes": [
-          "OWNER_SCHEMA_REGISTRY_ENTRY_MISSING",
-          "SCOPE_DIGEST_DECLARATION_MISMATCH",
-          "SYNTHETIC_SCOPE_HAS_REAL_WORLD_COORDINATES"
+          "OWNER_CONTRACT_VERSION_UNSUPPORTED"
         ],
         "required_artifact_ids": [
           "LC-CORRIDOR-BASELINE"
@@ -2521,7 +2468,7 @@
         "artifact_bindings": [
           {
             "artifact_id": "LC-CORRIDOR-BASELINE",
-            "binding_state": "Unknown",
+            "binding_state": "Unsupported",
             "raw_owner_disposition": "synthetic_test_only",
             "payload_bytes_verified": false
           }
@@ -2543,9 +2490,7 @@
             "boundary_revision": "GRID-V1",
             "coordinate_reference": "unitless-local-grid",
             "spatial_resolution_ceiling": "grid-cell",
-            "real_world_coordinates_present": true,
-            "latitude": -26.2,
-            "longitude": 28
+            "real_world_coordinates_present": false
           },
           "population_frame": {
             "frame_id": "POP-FRAME-SYNTH-01",
@@ -2685,20 +2630,16 @@
       },
       "expected": {
         "case_id": "SB-015",
-        "binding_disposition": "Unsupported",
-        "scope_digest": "1205f7a841b36d6251de250ff2185422c4a8b24234c597e7cd4aeb5fbd0f8b20",
-        "reason_codes": [
-          "OWNER_ARTIFACT_SCOPE_MISMATCH",
-          "SCOPE_DIGEST_DECLARATION_MISMATCH",
-          "SYNTHETIC_SCOPE_HAS_REAL_WORLD_COORDINATES"
-        ],
+        "binding_disposition": "Bound",
+        "scope_digest": "bb733b294ec864bd3f5a7ce8ab92783babd6b23c67f5e3871976e2a33fee92ab",
+        "reason_codes": [],
         "required_artifact_ids": [
           "LC-CORRIDOR-BASELINE"
         ],
         "artifact_bindings": [
           {
             "artifact_id": "LC-CORRIDOR-BASELINE",
-            "binding_state": "NotComparable",
+            "binding_state": "Bound",
             "raw_owner_disposition": "Blocked",
             "payload_bytes_verified": false
           }
@@ -2720,9 +2661,7 @@
             "boundary_revision": "GRID-V1",
             "coordinate_reference": "unitless-local-grid",
             "spatial_resolution_ceiling": "grid-cell",
-            "real_world_coordinates_present": true,
-            "latitude": -26.2,
-            "longitude": 28
+            "real_world_coordinates_present": false
           },
           "population_frame": {
             "frame_id": "POP-FRAME-SYNTH-01",
@@ -2832,12 +2771,10 @@
       },
       "expected": {
         "case_id": "SB-016",
-        "binding_disposition": "Unsupported",
-        "scope_digest": "1205f7a841b36d6251de250ff2185422c4a8b24234c597e7cd4aeb5fbd0f8b20",
+        "binding_disposition": "Unknown",
+        "scope_digest": "bb733b294ec864bd3f5a7ce8ab92783babd6b23c67f5e3871976e2a33fee92ab",
         "reason_codes": [
-          "REQUIRED_ARTIFACT_MISSING",
-          "SCOPE_DIGEST_DECLARATION_MISMATCH",
-          "SYNTHETIC_SCOPE_HAS_REAL_WORLD_COORDINATES"
+          "REQUIRED_ARTIFACT_MISSING"
         ],
         "required_artifact_ids": [
           "LC-CORRIDOR-BASELINE"
@@ -2860,9 +2797,7 @@
             "boundary_revision": "GRID-V1",
             "coordinate_reference": "unitless-local-grid",
             "spatial_resolution_ceiling": "grid-cell",
-            "real_world_coordinates_present": true,
-            "latitude": -26.2,
-            "longitude": 28
+            "real_world_coordinates_present": false
           },
           "population_frame": {
             "frame_id": "POP-FRAME-SYNTH-01",
@@ -3002,20 +2937,16 @@
       },
       "expected": {
         "case_id": "SB-017",
-        "binding_disposition": "Unsupported",
-        "scope_digest": "1205f7a841b36d6251de250ff2185422c4a8b24234c597e7cd4aeb5fbd0f8b20",
-        "reason_codes": [
-          "OWNER_ARTIFACT_SCOPE_MISMATCH",
-          "SCOPE_DIGEST_DECLARATION_MISMATCH",
-          "SYNTHETIC_SCOPE_HAS_REAL_WORLD_COORDINATES"
-        ],
+        "binding_disposition": "Bound",
+        "scope_digest": "bb733b294ec864bd3f5a7ce8ab92783babd6b23c67f5e3871976e2a33fee92ab",
+        "reason_codes": [],
         "required_artifact_ids": [
           "LC-CORRIDOR-BASELINE"
         ],
         "artifact_bindings": [
           {
             "artifact_id": "LC-CORRIDOR-BASELINE",
-            "binding_state": "NotComparable",
+            "binding_state": "Bound",
             "raw_owner_disposition": "synthetic_test_only",
             "payload_bytes_verified": false
           }
@@ -3037,9 +2968,7 @@
             "boundary_revision": "GRID-V1",
             "coordinate_reference": "unitless-local-grid",
             "spatial_resolution_ceiling": "grid-cell",
-            "real_world_coordinates_present": true,
-            "latitude": -26.2,
-            "longitude": 28
+            "real_world_coordinates_present": false
           },
           "population_frame": {
             "frame_id": "POP-FRAME-SYNTH-01",
@@ -3179,12 +3108,10 @@
       },
       "expected": {
         "case_id": "SB-018",
-        "binding_disposition": "Unsupported",
-        "scope_digest": "1205f7a841b36d6251de250ff2185422c4a8b24234c597e7cd4aeb5fbd0f8b20",
+        "binding_disposition": "NotComparable",
+        "scope_digest": "bb733b294ec864bd3f5a7ce8ab92783babd6b23c67f5e3871976e2a33fee92ab",
         "reason_codes": [
-          "OWNER_ARTIFACT_SCOPE_MISMATCH",
-          "SCOPE_DIGEST_DECLARATION_MISMATCH",
-          "SYNTHETIC_SCOPE_HAS_REAL_WORLD_COORDINATES"
+          "WEATHER_PROFILE_MISMATCH"
         ],
         "required_artifact_ids": [
           "LC-CORRIDOR-BASELINE"
@@ -3214,9 +3141,7 @@
             "boundary_revision": "GRID-V1",
             "coordinate_reference": "unitless-local-grid",
             "spatial_resolution_ceiling": "grid-cell",
-            "real_world_coordinates_present": true,
-            "latitude": -26.2,
-            "longitude": 28
+            "real_world_coordinates_present": false
           },
           "population_frame": {
             "frame_id": "POP-FRAME-SYNTH-01",
@@ -3356,12 +3281,10 @@
       },
       "expected": {
         "case_id": "SB-019",
-        "binding_disposition": "Unsupported",
-        "scope_digest": "1205f7a841b36d6251de250ff2185422c4a8b24234c597e7cd4aeb5fbd0f8b20",
+        "binding_disposition": "NotComparable",
+        "scope_digest": "bb733b294ec864bd3f5a7ce8ab92783babd6b23c67f5e3871976e2a33fee92ab",
         "reason_codes": [
-          "OWNER_ARTIFACT_SCOPE_MISMATCH",
-          "SCOPE_DIGEST_DECLARATION_MISMATCH",
-          "SYNTHETIC_SCOPE_HAS_REAL_WORLD_COORDINATES"
+          "DESIGN_OR_BOM_REVISION_MISMATCH"
         ],
         "required_artifact_ids": [
           "LC-CORRIDOR-BASELINE"
@@ -3482,7 +3405,7 @@
             "payload_bytes_must_be_fetched_before_claiming_digest_verified": true
           }
         },
-        "scope_digest": "bb733b294ec864bd3f5a7ce8ab92783babd6b23c67f5e3871976e2a33fee92ab",
+        "scope_digest": "1205f7a841b36d6251de250ff2185422c4a8b24234c597e7cd4aeb5fbd0f8b20",
         "owner_schema_registry": [
           {
             "owner_repo": "Luminous-Dynamics/mycelix",
@@ -3537,7 +3460,6 @@
         "scope_digest": "1205f7a841b36d6251de250ff2185422c4a8b24234c597e7cd4aeb5fbd0f8b20",
         "reason_codes": [
           "OWNER_ARTIFACT_SCOPE_MISMATCH",
-          "SCOPE_DIGEST_DECLARATION_MISMATCH",
           "SYNTHETIC_SCOPE_HAS_REAL_WORLD_COORDINATES"
         ],
         "required_artifact_ids": [
@@ -3568,9 +3490,7 @@
             "boundary_revision": "GRID-V1",
             "coordinate_reference": "unitless-local-grid",
             "spatial_resolution_ceiling": "grid-cell",
-            "real_world_coordinates_present": true,
-            "latitude": -26.2,
-            "longitude": 28
+            "real_world_coordinates_present": false
           },
           "population_frame": {
             "frame_id": "POP-FRAME-SYNTH-01",
@@ -3711,11 +3631,9 @@
       "expected": {
         "case_id": "SB-021",
         "binding_disposition": "Unsupported",
-        "scope_digest": "1205f7a841b36d6251de250ff2185422c4a8b24234c597e7cd4aeb5fbd0f8b20",
+        "scope_digest": "bb733b294ec864bd3f5a7ce8ab92783babd6b23c67f5e3871976e2a33fee92ab",
         "reason_codes": [
-          "OWNER_ARTIFACT_DIGEST_OR_REVISION_MALFORMED",
-          "SCOPE_DIGEST_DECLARATION_MISMATCH",
-          "SYNTHETIC_SCOPE_HAS_REAL_WORLD_COORDINATES"
+          "OWNER_ARTIFACT_DIGEST_OR_REVISION_MALFORMED"
         ],
         "required_artifact_ids": [
           "LC-CORRIDOR-BASELINE"
@@ -3745,9 +3663,7 @@
             "boundary_revision": "GRID-V1",
             "coordinate_reference": "unitless-local-grid",
             "spatial_resolution_ceiling": "grid-cell",
-            "real_world_coordinates_present": true,
-            "latitude": -26.2,
-            "longitude": 28
+            "real_world_coordinates_present": false
           },
           "population_frame": {
             "frame_id": "POP-FRAME-SYNTH-01",
@@ -3875,12 +3791,10 @@
       },
       "expected": {
         "case_id": "SB-022",
-        "binding_disposition": "Unsupported",
-        "scope_digest": "1205f7a841b36d6251de250ff2185422c4a8b24234c597e7cd4aeb5fbd0f8b20",
+        "binding_disposition": "Unknown",
+        "scope_digest": "bb733b294ec864bd3f5a7ce8ab92783babd6b23c67f5e3871976e2a33fee92ab",
         "reason_codes": [
-          "OWNER_SCHEMA_REGISTRY_ENTRY_MISSING",
-          "SCOPE_DIGEST_DECLARATION_MISMATCH",
-          "SYNTHETIC_SCOPE_HAS_REAL_WORLD_COORDINATES"
+          "OWNER_SCHEMA_REGISTRY_ENTRY_MISSING"
         ],
         "required_artifact_ids": [
           "LC-CORRIDOR-BASELINE"
@@ -3910,9 +3824,7 @@
             "boundary_revision": "GRID-V1",
             "coordinate_reference": "unitless-local-grid",
             "spatial_resolution_ceiling": "grid-cell",
-            "real_world_coordinates_present": true,
-            "latitude": -26.2,
-            "longitude": 28
+            "real_world_coordinates_present": false
           },
           "population_frame": {
             "frame_id": "POP-FRAME-SYNTH-01",
@@ -4052,12 +3964,10 @@
       },
       "expected": {
         "case_id": "SB-023",
-        "binding_disposition": "Unsupported",
-        "scope_digest": "1205f7a841b36d6251de250ff2185422c4a8b24234c597e7cd4aeb5fbd0f8b20",
+        "binding_disposition": "NotComparable",
+        "scope_digest": "bb733b294ec864bd3f5a7ce8ab92783babd6b23c67f5e3871976e2a33fee92ab",
         "reason_codes": [
-          "OWNER_SCHEMA_OR_SOURCE_REVISION_MISMATCH",
-          "SCOPE_DIGEST_DECLARATION_MISMATCH",
-          "SYNTHETIC_SCOPE_HAS_REAL_WORLD_COORDINATES"
+          "OWNER_SCHEMA_OR_SOURCE_REVISION_MISMATCH"
         ],
         "required_artifact_ids": [
           "LC-CORRIDOR-BASELINE"
@@ -4087,9 +3997,7 @@
             "boundary_revision": "GRID-V1",
             "coordinate_reference": "unitless-local-grid",
             "spatial_resolution_ceiling": "grid-cell",
-            "real_world_coordinates_present": true,
-            "latitude": -26.2,
-            "longitude": 28
+            "real_world_coordinates_present": false
           },
           "population_frame": {
             "frame_id": "POP-FRAME-SYNTH-01",
@@ -4229,20 +4137,16 @@
       },
       "expected": {
         "case_id": "SB-024",
-        "binding_disposition": "Unsupported",
-        "scope_digest": "1205f7a841b36d6251de250ff2185422c4a8b24234c597e7cd4aeb5fbd0f8b20",
-        "reason_codes": [
-          "OWNER_ARTIFACT_SCOPE_MISMATCH",
-          "SCOPE_DIGEST_DECLARATION_MISMATCH",
-          "SYNTHETIC_SCOPE_HAS_REAL_WORLD_COORDINATES"
-        ],
+        "binding_disposition": "Bound",
+        "scope_digest": "bb733b294ec864bd3f5a7ce8ab92783babd6b23c67f5e3871976e2a33fee92ab",
+        "reason_codes": [],
         "required_artifact_ids": [
           "LC-CORRIDOR-BASELINE"
         ],
         "artifact_bindings": [
           {
             "artifact_id": "LC-CORRIDOR-BASELINE",
-            "binding_state": "NotComparable",
+            "binding_state": "Bound",
             "raw_owner_disposition": "ImportDependent",
             "payload_bytes_verified": false
           }
@@ -4264,17 +4168,15 @@
             "boundary_revision": "GRID-V1",
             "coordinate_reference": "unitless-local-grid",
             "spatial_resolution_ceiling": "grid-cell",
-            "real_world_coordinates_present": true,
-            "latitude": -26.2,
-            "longitude": 28
+            "real_world_coordinates_present": false
           },
           "population_frame": {
             "frame_id": "POP-FRAME-SYNTH-01",
             "method": "synthetic_fixture",
             "supported_resolution": "grid-cell",
             "group_ids": [
-              "households-general",
-              "households-step-free"
+              "households-step-free",
+              "households-general"
             ]
           },
           "time_horizon": {
@@ -4286,14 +4188,14 @@
           },
           "scenarios": [
             {
-              "scenario_id": "baseline",
-              "event_ids": []
-            },
-            {
               "scenario_id": "bridge-closure",
               "event_ids": [
                 "bridge-closure"
               ]
+            },
+            {
+              "scenario_id": "baseline",
+              "event_ids": []
             }
           ],
           "weather_profile": {
@@ -4303,25 +4205,17 @@
           },
           "service_requirements": [
             {
-              "requirement_id": "clinic-service",
-              "group_id": "households-general",
+              "requirement_id": "step-free-clinic-service",
+              "group_id": "households-step-free",
               "category": "health"
             },
             {
-              "requirement_id": "step-free-clinic-service",
-              "group_id": "households-step-free",
+              "requirement_id": "clinic-service",
+              "group_id": "households-general",
               "category": "health"
             }
           ],
           "functional_units": [
-            {
-              "functional_unit_id": "FU-CLINIC-V1",
-              "definition_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-              "quantity": 100,
-              "unit": "visits/day",
-              "service_definition": "synthetic clinic visit capacity over the declared operating day",
-              "lifecycle_boundary": "service-operation"
-            },
             {
               "functional_unit_id": "FU-DISTRICT-SERVICE-YEAR-V1",
               "definition_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
@@ -4329,6 +4223,14 @@
               "unit": "district_service_year",
               "service_definition": "synthetic neighbourhood service bundle over one declared service year",
               "lifecycle_boundary": "operation-maintenance"
+            },
+            {
+              "functional_unit_id": "FU-CLINIC-V1",
+              "definition_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "quantity": 100,
+              "unit": "visits/day",
+              "service_definition": "synthetic clinic visit capacity over the declared operating day",
+              "lifecycle_boundary": "service-operation"
             }
           ],
           "currency": {
@@ -4406,20 +4308,16 @@
       },
       "expected": {
         "case_id": "SB-025",
-        "binding_disposition": "Unsupported",
-        "scope_digest": "1205f7a841b36d6251de250ff2185422c4a8b24234c597e7cd4aeb5fbd0f8b20",
-        "reason_codes": [
-          "OWNER_ARTIFACT_SCOPE_MISMATCH",
-          "SCOPE_DIGEST_DECLARATION_MISMATCH",
-          "SYNTHETIC_SCOPE_HAS_REAL_WORLD_COORDINATES"
-        ],
+        "binding_disposition": "Bound",
+        "scope_digest": "bb733b294ec864bd3f5a7ce8ab92783babd6b23c67f5e3871976e2a33fee92ab",
+        "reason_codes": [],
         "required_artifact_ids": [
           "LC-CORRIDOR-BASELINE"
         ],
         "artifact_bindings": [
           {
             "artifact_id": "LC-CORRIDOR-BASELINE",
-            "binding_state": "NotComparable",
+            "binding_state": "Bound",
             "raw_owner_disposition": "synthetic_test_only",
             "payload_bytes_verified": false
           }
@@ -4427,5 +4325,19 @@
         "owner_result_promotion": "none"
       }
     }
-  ]
+  ],
+  "semantics": {
+    "canonicalization": "Recursively sort object keys. Canonicalize declared set-like arrays by stable identity: population_frame.group_ids, scenarios by scenario_id, each scenario.event_ids, service_requirements by requirement_id, functional_units by functional_unit_id, and design_revisions by subject_id. Other arrays retain declared order.",
+    "scope_digest": "SHA-256 of the canonical scope JSON; digest is external and excluded from the scope payload.",
+    "binding_states": [
+      "Bound",
+      "Unknown",
+      "NotComparable",
+      "Unsupported"
+    ],
+    "precedence": "Unsupported > NotComparable > Unknown > Bound",
+    "payload_verification": "The binder only checks content-digest syntax and identity. It never claims payload bytes verified; payload_bytes_verified is always false.",
+    "draft_schema": "The only v0.1 owner registry artifact is a draft Mycelix Living-City schema. Bound means metadata matches the pinned draft artifact, not that the upstream draft is published or the payload is verified.",
+    "claim_ceiling": "Synthetic scope and metadata binding only."
+  }
 }
