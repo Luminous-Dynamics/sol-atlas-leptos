@@ -85,3 +85,14 @@ Research references:
 - https://journals.co.za/doi/10.17159/sajs.2022/12485
 - https://doi.org/10.1080/03736245.2025.2587860
 - https://www.circulareconomy.co.za/wp-content/uploads/2025/03/Human-Settlements_Report-CE-Opportunities_final.pdf
+
+
+## Johannesburg-specific QoL7 evidence added (7 November 2026)
+
+GCRO publishes a City of Johannesburg Municipal Report based on the 2023/24 Quality of Life Survey. It covers demographic composition, basic services, infrastructure conditions and public engagement. The underlying survey has 13,795 respondents across Gauteng overall, not 13,795 Johannesburg respondents; municipal comparisons must follow the survey's sample design and weighting reports.
+
+Use the City report as survey-derived municipal context. It is not a street/building-level dataset, current 2026 service audit, facility point inventory or individual travel diary. Keep the public QoL dataset's CC BY 4.0 licence separate from the report's own reuse terms, which require their own check.
+
+- City of Johannesburg Municipal Report: https://www.gcro.ac.za/outputs/data-briefs/detail/city-of-johannesburg-municipal-report-findings-from-the-gcros-quality-of-life-survey-7-202324/
+- GCRO QoL7 technical and field documentation: https://www.gcro.ac.za/research/project/detail/quality-life-survey-7/
+- GCRO QoL7 municipal benchmarking report: https://www.gcro.ac.za/outputs/data-briefs/detail/municipal-benchmarking-report-findings-from-the-gcros-quality-of-life-survey-7-202324/
