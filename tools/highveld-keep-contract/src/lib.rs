@@ -500,6 +500,20 @@ pub fn validate_values(scenario: &Value, parameters: &Value) -> ValidationReport
                 violations.push("FUNCTIONAL_RELATIONSHIP_CLASS_OR_TYPE_INVALID");
             }
 
+            let requires_excluded = matches!(
+                relation,
+                Some("visitor_route_must_avoid_private_zone")
+                    | Some("maintenance_access_must_avoid_private_zone")
+            );
+            if requires_excluded
+                && item
+                    .get("via_excluded")
+                    .and_then(Value::as_array)
+                    .is_none_or(Vec::is_empty)
+            {
+                violations.push("FUNCTIONAL_RELATIONSHIP_REQUIRED_EXCLUSIONS_MISSING");
+            }
+
             if let Some(excluded) = item.get("via_excluded") {
                 if let Some(excluded_items) = excluded.as_array() {
                     if excluded_items.iter().any(|entry| {
@@ -713,6 +727,20 @@ mod tests {
         assert!(contains(
             &report,
             "FUNCTIONAL_RELATIONSHIP_EXCLUDED_FUNCTION_UNKNOWN"
+        ));
+    }
+
+    #[test]
+    fn private_route_relationship_requires_explicit_excluded_functions() {
+        let (mut scenario, parameters) = documents();
+        scenario["functional_relationships"][5]
+            .as_object_mut()
+            .expect("relationship object")
+            .remove("via_excluded");
+        let report = validate_values(&scenario, &parameters);
+        assert!(contains(
+            &report,
+            "FUNCTIONAL_RELATIONSHIP_REQUIRED_EXCLUSIONS_MISSING"
         ));
     }
 
