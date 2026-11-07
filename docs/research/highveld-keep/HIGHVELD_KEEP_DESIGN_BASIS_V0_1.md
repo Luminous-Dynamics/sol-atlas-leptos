@@ -162,6 +162,17 @@ The source/methodology comparison is recorded in the scenario JSON as `RESEARCH_
 
 Do not mix TMY, AMY, historical extremes and future projections. A provider's global validation is not local Highveld validation.
 
+### 6.1B Station identity and coordinate cross-checks
+
+The machine-readable scenario preserves four published station-metadata references as **metadata-only cross-checks**:
+- ASHRAE's 2021 HOF list gives Johannesburg Botanical (WMO 683610) at approximately 26.157°S, 27.999°E, 5,328 ft, and Johannesburg International (WMO 683680) at approximately 26.143°S, 28.235°E, 5,561 ft.
+- NOAA NCEI's GHCND record `SFM00068368` lists Johannesburg International at -26.139°, 28.246°, 1,694.1 m, with daily-summary period ending 27 May 2020; the rendered page does not show completed location/equipment history.
+- A current SAWS daily-rainfall bulletin index points to WMO OSCAR/Surface WIGOS `0-20000-0-68368` at -26.1430°, 28.2346°, 1,695 m. The secondary index says its record was rebuilt on 29 October 2026 and reports a prior town-level plotting point about 19.9 km away. The actual WMO record and SAWS station history still need direct retrieval.
+
+These records are not silently merged. The TMYx WMO station code, GHCND network code, current WIGOS identifier and current instrument coordinates must be cross-walked with effective dates, platform history, instrument moves, elevation, reporting schedule and source lineage. A coordinate discrepancy is a source-quality question, not permission to select the newest coordinate or geocode a historical series to a town centroid.
+
+Until that reconciliation is complete, they remain station metadata only: no downloaded observation series, no proof of independent data sources, and no local weather-file qualification.
+
 ### 6.2 Climate hypotheses, not conclusions
 
 Compare:
