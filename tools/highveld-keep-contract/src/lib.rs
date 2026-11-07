@@ -88,8 +88,7 @@ pub fn validate_values(scenario: &Value, parameters: &Value) -> ValidationReport
     let topology = array_at(parameters, &["topology_variables"]);
     let mut continuous_count = 0usize;
     let mut categorical_count = 0usize;
-    let functional_relationships =
-        array_at(scenario, &["functional_relationships"]);
+    let functional_relationships = array_at(scenario, &["functional_relationships"]);
     let mut functional_relationship_count = 0usize;
 
     push_if(
@@ -444,10 +443,8 @@ pub fn validate_values(scenario: &Value, parameters: &Value) -> ValidationReport
         "visitor_route_must_avoid_private_zone",
         "maintenance_access_must_avoid_private_zone",
     ];
-    const PREFERENCE_RELATIONS: [&str; 2] = [
-        "should_be_adjacent",
-        "should_be_acoustically_separated",
-    ];
+    const PREFERENCE_RELATIONS: [&str; 2] =
+        ["should_be_adjacent", "should_be_acoustically_separated"];
     const ALLOWED_RELATIONSHIP_KEYS: [&str; 7] = [
         "id",
         "source",
@@ -468,9 +465,7 @@ pub fn validate_values(scenario: &Value, parameters: &Value) -> ValidationReport
             let requirement_class = item.get("requirement_class").and_then(Value::as_str);
             let reason = item.get("reason").and_then(Value::as_str);
 
-            if id.is_none_or(str::is_empty)
-                || !relationship_ids.insert(id.unwrap_or_default())
-            {
+            if id.is_none_or(str::is_empty) || !relationship_ids.insert(id.unwrap_or_default()) {
                 violations.push("FUNCTIONAL_RELATIONSHIP_ID_MISSING_OR_DUPLICATED");
             }
             if source.is_none_or(|value| !known_functions.contains(value))
@@ -483,9 +478,7 @@ pub fn validate_values(scenario: &Value, parameters: &Value) -> ValidationReport
             }
 
             let class_matches = match relation {
-                Some(value) if HARD_RELATIONS.contains(&value) => {
-                    requirement_class == Some("hard")
-                }
+                Some(value) if HARD_RELATIONS.contains(&value) => requirement_class == Some("hard"),
                 Some(value) if PREFERENCE_RELATIONS.contains(&value) => {
                     requirement_class == Some("preference")
                 }
@@ -661,7 +654,10 @@ mod tests {
         let (mut scenario, parameters) = documents();
         scenario["functional_relationships"][0]["target"] = json!("nonexistent_room");
         let report = validate_values(&scenario, &parameters);
-        assert!(contains(&report, "FUNCTIONAL_RELATIONSHIP_ENDPOINT_UNKNOWN"));
+        assert!(contains(
+            &report,
+            "FUNCTIONAL_RELATIONSHIP_ENDPOINT_UNKNOWN"
+        ));
     }
 
     #[test]
@@ -689,8 +685,7 @@ mod tests {
     #[test]
     fn excluded_private_functions_must_exist_in_the_programme() {
         let (mut scenario, parameters) = documents();
-        scenario["functional_relationships"][5]["via_excluded"][0] =
-            json!("unknown_private_room");
+        scenario["functional_relationships"][5]["via_excluded"][0] = json!("unknown_private_room");
         let report = validate_values(&scenario, &parameters);
         assert!(contains(
             &report,
