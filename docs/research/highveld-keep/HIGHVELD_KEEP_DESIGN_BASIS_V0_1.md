@@ -62,6 +62,27 @@ Sources:
 - Jang et al. (2025), 161-paper generative-AI architectural-design review: https://doi.org/10.1016/j.autcon.2025.106174
 - Zhang et al. (2026), 114-study AI-surrogate modelling review: https://doi.org/10.1016/j.enbuild.2026.117238
 
+## 1C. Social, environmental and dynamic resilience parity
+
+The 2026 literature reinforces that conventional optimization can be multi-objective in name but narrow in what it values. A systematic review of 123 LP/MILP construction-management optimization studies (1985–2024) found that 89% optimized exclusively economic outcomes, 11% included environmental metrics, and 0% included explicit social metrics; 53% were deterministic. These percentages describe that specific mathematical-programming literature, not the entire AEC industry. A 2026 review of building sustainability/resilience integration reports that most studies use sequential links between sustainability and resilience, while bidirectional coupling and dynamic time-dependent models remain rare.
+
+Highveld should test a more complete model without collapsing it into one total score:
+- **Household and social outcomes:** accessibility, indoor habitability, privacy, resident autonomy, affordability, safety, service access, ability to adapt, and distribution of benefits/burdens.
+- **Workforce outcomes:** worker exposure, ergonomics, skill/training requirements, human intervention, safe aborts, task control and fair full-workflow labor accounting.
+- **Environmental outcomes:** operational energy, embodied carbon, water demand/runoff, material provenance, repair/reuse, waste, biodiversity and transport impacts.
+- **Economic outcomes:** capital cost, lifecycle cost, maintenance burden, replacement availability, schedule risk, local supply resilience and total accepted output per full-workflow labor-hour.
+- **Resilience outcomes:** time-varying thermal/air/water/energy/access service, lower-tail habitability, outage duration, failure containment and recovery time.
+
+Keep these measures as separate objective or acceptance dimensions, with hard rights/safety/accessibility gates non-compensatory. Do not convert resident dignity, worker safety or life-safety into weights that a lower cost or lower carbon total can outweigh. Keep conflicting household preferences and stakeholder disagreement visible.
+
+The key experiment is **bidirectional, time-dependent coupling**. For example, a shading or envelope change affects daylight, heat, ventilation, energy, water, maintenance and panel fabrication; a product or material substitution affects thermal behavior, carbon, cost, repair availability and robot tooling. These are not one-way reports. A change should propagate to affected models, preserve unaffected evidence, and trigger re-analysis only where dependency edges require it.
+
+The research goal is not to build every solver. It is to test whether Symtropy can orchestrate specialist co-simulation with explicit time step, coupling variables, convergence, stability, latency, uncertainty and causal dependency records—while preserving each specialist's authority.
+
+Sources:
+- Mohammed et al. (2026), 123-study construction optimization review: https://doi.org/10.1007/s43621-026-03009-y
+- 2026 systematic review of environmental sustainability and resilience integration in building design/construction: https://doi.org/10.1016/j.buildenv.2026.114381
+
 ## 2. Paradigm shifts to test
 
 ### 2.1 From castle object to living habitat
