@@ -96,3 +96,12 @@ Use the City report as survey-derived municipal context. It is not a street/buil
 - City of Johannesburg Municipal Report: https://www.gcro.ac.za/outputs/data-briefs/detail/city-of-johannesburg-municipal-report-findings-from-the-gcros-quality-of-life-survey-7-202324/
 - GCRO QoL7 technical and field documentation: https://www.gcro.ac.za/research/project/detail/quality-life-survey-7/
 - GCRO QoL7 municipal benchmarking report: https://www.gcro.ac.za/outputs/data-briefs/detail/municipal-benchmarking-report-findings-from-the-gcros-quality-of-life-survey-7-202324/
+
+
+## South African CDW systems review added (7 November 2026)
+
+Amadi and Mahachi's 2025 state-of-the-art review reports high landfill dependence and under-reporting of South African construction-and-demolition waste, including missing informal recovery/reuse flows. It reports that 48% of C&D waste is deposited in scarce landfills and describes severe Johannesburg/Cape Town landfill-airspace pressure in the cited evidence.
+
+These are review findings and source-context signals, **not current 2026 landfill capacity, Johannesburg project-level tonnage, or a qualified secondary-material inventory**. Before a local claim, inspect the primary studies and obtain current facility/municipal records. The CityMaterialLoops material-flow audit must count formal disposal, informal recovery/reuse, recycling, stockpiling and exported flows separately, with no duplicate batch allocation.
+
+- Amadi & Mahachi (2025), *State-of-the-art review on construction and demolition waste: The South African context*: https://doi.org/10.1016/j.clwas.2025.100251
