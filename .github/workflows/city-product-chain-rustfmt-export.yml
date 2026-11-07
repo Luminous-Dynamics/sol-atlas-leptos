@@ -1,0 +1,36 @@
+name: City Product Chain Rustfmt Export (temporary)
+
+on:
+  push:
+    branches: ["research/city-product-chain-v0.1"]
+    paths:
+      - "tools/city-product-chain-bench/**"
+      - ".github/workflows/city-product-chain-rustfmt-export.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  format-export:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: 1.96.0
+          components: rustfmt
+      - name: Format standalone crate in ephemeral checkout
+        run: cargo fmt --manifest-path tools/city-product-chain-bench/Cargo.toml --all
+      - name: Export formatted sources
+        run: |
+          mkdir -p formatted
+          cp tools/city-product-chain-bench/src/lib.rs formatted/lib.rs
+          cp tools/city-product-chain-bench/src/main.rs formatted/main.rs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: city-product-chain-rustfmt-export
+          path: formatted/
+          if-no-files-found: error
+          retention-days: 2
