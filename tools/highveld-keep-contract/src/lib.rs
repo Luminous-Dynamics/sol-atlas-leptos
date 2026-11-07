@@ -431,11 +431,23 @@ pub fn validate_values(scenario: &Value, parameters: &Value) -> ValidationReport
     // The graph may state a route or adjacency requirement, but this checker does
     // not calculate distances, paths, gradients, acoustic isolation or clearances.
     let functional_programme = array_at(scenario, &["functional_programme"]);
-    let known_functions: std::collections::HashSet<&str> = functional_programme
-        .into_iter()
-        .flatten()
-        .filter_map(|item| item.get("id").and_then(Value::as_str))
-        .collect();
+    let mut known_functions = std::collections::HashSet::new();
+    let mut functional_programme_ids_valid = true;
+    if let Some(items) = functional_programme {
+        for item in items {
+            let id = item.get("id").and_then(Value::as_str);
+            if id.is_none_or(str::is_empty) || !known_functions.insert(id.unwrap_or_default()) {
+                functional_programme_ids_valid = false;
+            }
+        }
+    } else {
+        functional_programme_ids_valid = false;
+    }
+    push_if(
+        &mut violations,
+        !functional_programme_ids_valid || known_functions.is_empty(),
+        "FUNCTIONAL_PROGRAMME_IDS_MISSING_OR_DUPLICATED",
+    );
     let mut relationship_ids = std::collections::HashSet::new();
     const HARD_RELATIONS: [&str; 4] = [
         "must_have_step_free_route",
@@ -519,9 +531,9 @@ pub fn validate_values(scenario: &Value, parameters: &Value) -> ValidationReport
 
     push_if(
         &mut violations,
-        functional_relationship_count == 0
+        functional_relationship_count != 11
             || relationship_ids.len() != functional_relationship_count,
-        "FUNCTIONAL_RELATIONSHIP_GRAPH_EMPTY_OR_DUPLICATED",
+        "FUNCTIONAL_RELATIONSHIP_GRAPH_COUNT_OR_IDENTITY_INVALID",
     );
 
     // Hard requirements remain a separate authority class.
@@ -657,6 +669,17 @@ mod tests {
         assert!(contains(
             &report,
             "FUNCTIONAL_RELATIONSHIP_ENDPOINT_UNKNOWN"
+        ));
+    }
+
+    #[test]
+    fn functional_programme_ids_must_be_unique() {
+        let (mut scenario, parameters) = documents();
+        scenario["functional_programme"][1]["id"] = json!("arrival");
+        let report = validate_values(&scenario, &parameters);
+        assert!(contains(
+            &report,
+            "FUNCTIONAL_PROGRAMME_IDS_MISSING_OR_DUPLICATED"
         ));
     }
 
