@@ -428,6 +428,26 @@ fn validate_run_accounting(
             None => push_unique(violations, "HIGH_FIDELITY_CALL_ACCOUNTING_INCOMPLETE"),
         }
     }
+    let final_calls = u64_field(calls, "final").unwrap_or(0);
+    let high_fidelity_candidate_count = run
+        .get("candidates")
+        .and_then(Value::as_array)
+        .map(|items| {
+            items
+                .iter()
+                .filter(|candidate| {
+                    candidate
+                        .get("verification")
+                        .and_then(|value| get_str(value, "kind"))
+                        == Some("high_fidelity")
+                })
+                .count() as u64
+        })
+        .unwrap_or(0);
+    if final_calls < high_fidelity_candidate_count {
+        push_unique(violations, "FINAL_CALLS_UNDERREPORTED");
+    }
+
     let low = u64_field(run, "low_fidelity_calls").unwrap_or_else(|| {
         push_unique(violations, "LOW_FIDELITY_CALL_COUNT_MISSING");
         0
@@ -1122,6 +1142,14 @@ mod tests {
         bundle["methods"][1]["high_fidelity_call_budget_per_run"] = json!(10);
         let report = evaluate_bundle(&bundle);
         assert!(has_violation(&report, "METHOD_BUDGETS_NOT_MATCHED"));
+    }
+
+    #[test]
+    fn final_solver_call_count_cannot_underreport_high_fidelity_candidates() {
+        let mut bundle = valid_bundle();
+        bundle["methods"][1]["runs"][0]["high_fidelity_calls"]["final"] = json!(5);
+        let report = evaluate_bundle(&bundle);
+        assert!(has_violation(&report, "FINAL_CALLS_UNDERREPORTED"));
     }
 
     #[test]
