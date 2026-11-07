@@ -22,6 +22,99 @@
   ],
   "sources": [
     {
+      "source_id": "CLIMATE-ONEBUILDING-TMYX-2026",
+      "name": "Climate.OneBuilding 2026 TMYx building-simulation weather files",
+      "publisher": "Climate.OneBuilding.org; source datasets include NOAA ISD and ERA5-derived solar data",
+      "url": "https://climate.onebuilding.org/",
+      "source_type": "typical_meteorological_year_weather_library",
+      "release_year": 2026,
+      "access_status": "VerifiedPublic",
+      "rights_status": "Unknown",
+      "known_facts": [
+        "Portal describes hourly TMY weather data in EPW and associated simulation formats.",
+        "2026 release includes TMYx all-data files and 2011-2025 / 2009-2023 / 2007-2021 periods where available.",
+        "Portal states 2026 TMYx solar data use ERA5 reanalysis."
+      ],
+      "unknowns": [
+        "Exact Johannesburg or nearest-station file and station representativeness",
+        "Per-file source record, period, missingness and data-quality flags",
+        "Per-file redistribution/licence terms",
+        "Suitability for extreme-event or future-climate design"
+      ],
+      "required_checks": [
+        "Locate exact Johannesburg-area file and source metadata",
+        "Record WMO/site ID, coordinates/elevation, period, climate variables, time zone, digest and retrieval date",
+        "Check rights for redistribution",
+        "Use only as TMY screening; never label a TMY sequence an observed heatwave or future projection"
+      ],
+      "evidence_urls": [
+        "https://climate.onebuilding.org/"
+      ]
+    },
+    {
+      "source_id": "COJ-CLIMATE-ACTION-PLAN-REVIEW-2026",
+      "name": "City of Johannesburg Climate Action Plan review and MetroView mention",
+      "publisher": "City of Johannesburg Environment and Infrastructure Services Department",
+      "url": "https://joburg.org.za/media_/Newsroom/Pages/2026-News-Articles/Joburg-undertakes-comprehensive-review-of-Climate-Action-Plan.aspx",
+      "source_type": "municipal_climate_policy_and_platform_announcement",
+      "announcement_date": "2026-05-26",
+      "access_status": "VerifiedPublic",
+      "rights_status": "Unknown",
+      "known_facts": [
+        "City says it is reviewing its 2021 Climate Action Plan.",
+        "Article states MetroView provides deeper insight into spatial vulnerabilities and hazard exposure across Johannesburg.",
+        "Article identifies rising temperatures, prolonged drought, flash floods and worsening air quality as climate-related pressures."
+      ],
+      "unknowns": [
+        "MetroView live URL and public access method",
+        "Per-layer API/download availability",
+        "Per-layer source, licence, resolution, vintage and refresh cadence",
+        "Whether any layer is suitable for building-level or household-level inference",
+        "Current revised CAP publication date and adopted text"
+      ],
+      "required_checks": [
+        "Locate MetroView endpoint and catalogue",
+        "Verify anonymous/authorized access and layer-specific reuse rights",
+        "Record native grid, time range, uncertainty, methods and content digest for each hazard layer",
+        "Do not infer building/household thermal conditions from municipal exposure surfaces"
+      ],
+      "evidence_urls": [
+        "https://joburg.org.za/media_/Newsroom/Pages/2026-News-Articles/Joburg-undertakes-comprehensive-review-of-Climate-Action-Plan.aspx"
+      ]
+    },
+    {
+      "source_id": "COJ-ISDP-SPMS",
+      "name": "City of Johannesburg Integrated Spatial Data Platform and Spatial Plan Management System",
+      "publisher": "City of Johannesburg; Development Planning / Corporate Geo-Informatics / Johannesburg Development Agency",
+      "url": "https://joburg.org.za/media_/Newsroom/Pages/2025-News-Articles/Joburg-launches-SA%E2%80%99s-first-integrated-Spatial-Data-and-Planning-system.aspx",
+      "source_type": "municipal_spatial_data_platform",
+      "announcement_date": "2025-08-29",
+      "access_status": "Unknown",
+      "rights_status": "Unknown",
+      "known_facts": [
+        "City announcement says municipal and municipal-entity spatial data are being consolidated into a web-based repository.",
+        "Announcement says the Spatial Plan Management System makes spatial plans accessible online."
+      ],
+      "unknowns": [
+        "Actual public portal/API endpoints",
+        "Anonymous public access vs login",
+        "Download/export availability and rate limits",
+        "Per-layer ownership, licence, publication date, effective date and update cadence",
+        "Whether a web map layer can be redistributed or only viewed"
+      ],
+      "required_checks": [
+        "Locate the live platform and its catalogue",
+        "Test public access without privileged credentials",
+        "Record each layer's metadata and rights",
+        "Request permission where export or reuse rights are unclear",
+        "Do not scrape access-controlled or restricted information"
+      ],
+      "evidence_urls": [
+        "https://joburg.org.za/media_/Newsroom/Pages/2025-News-Articles/Joburg-launches-SA%E2%80%99s-first-integrated-Spatial-Data-and-Planning-system.aspx",
+        "https://www.jda.org.za/"
+      ]
+    },
+    {
       "source_id": "GCRO-DATA-PORTAL",
       "name": "Gauteng City-Region Observatory Data Portal",
       "publisher": "Gauteng City-Region Observatory",
@@ -100,168 +193,6 @@
       ]
     },
     {
-      "source_id": "STATSSA-WARD-SAPE-2022",
-      "name": "Stats SA Ward-level Small Area Population Estimates, 2022",
-      "publisher": "Statistics South Africa",
-      "url": "https://www.statssa.gov.za/?p=18967",
-      "source_type": "official_small_area_population_estimates",
-      "access_status": "VerifiedPublic",
-      "rights_status": "Unknown",
-      "reference_year": 2022,
-      "boundary_vintage": "2020 electoral ward boundaries",
-      "method": "Raking / iterative proportional fitting using Census 2011 and Census 2022",
-      "spatial_resolution": "electoral ward",
-      "known_facts": [
-        "Stats SA states that spreadsheets, a technical note, ward shapefiles and provincial/district maps are available.",
-        "Stats SA warns that very small-area census values can be unstable due to variability, bias and undercount; the release is described as the last lowest-level ward estimate product."
-      ],
-      "unknowns": [
-        "Explicit reuse/redistribution licence for each downloadable file",
-        "CRS and exact schema for each file",
-        "Methodological uncertainty measures and reliability by ward"
-      ],
-      "required_checks": [
-        "Download technical note, spreadsheets and ward boundaries",
-        "Record the 2020 boundary crosswalk and population totals",
-        "Preserve age/sex and population-group definitions exactly as published",
-        "Do not downscale ward totals to buildings without a separately validated model"
-      ],
-      "evidence_urls": [
-        "https://www.statssa.gov.za/?p=18967",
-        "https://isibaloweb.statssa.gov.za/pages/surveys/pss/censuses/censusp.php"
-      ]
-    },
-    {
-      "source_id": "COJ-ISDP-SPMS",
-      "name": "City of Johannesburg Integrated Spatial Data Platform and Spatial Plan Management System",
-      "publisher": "City of Johannesburg; Development Planning / Corporate Geo-Informatics / Johannesburg Development Agency",
-      "url": "https://joburg.org.za/media_/Newsroom/Pages/2025-News-Articles/Joburg-launches-SA%E2%80%99s-first-integrated-Spatial-Data-and-Planning-system.aspx",
-      "source_type": "municipal_spatial_data_platform",
-      "announcement_date": "2025-08-29",
-      "access_status": "Unknown",
-      "rights_status": "Unknown",
-      "known_facts": [
-        "City announcement says municipal and municipal-entity spatial data are being consolidated into a web-based repository.",
-        "Announcement says the Spatial Plan Management System makes spatial plans accessible online."
-      ],
-      "unknowns": [
-        "Actual public portal/API endpoints",
-        "Anonymous public access vs login",
-        "Download/export availability and rate limits",
-        "Per-layer ownership, licence, publication date, effective date and update cadence",
-        "Whether a web map layer can be redistributed or only viewed"
-      ],
-      "required_checks": [
-        "Locate the live platform and its catalogue",
-        "Test public access without privileged credentials",
-        "Record each layer's metadata and rights",
-        "Request permission where export or reuse rights are unclear",
-        "Do not scrape access-controlled or restricted information"
-      ],
-      "evidence_urls": [
-        "https://joburg.org.za/media_/Newsroom/Pages/2025-News-Articles/Joburg-launches-SA%E2%80%99s-first-integrated-Spatial-Data-and-Planning-system.aspx",
-        "https://www.jda.org.za/"
-      ]
-    },
-    {
-      "source_id": "OPENSTREETMAP-SOUTH-AFRICA",
-      "name": "OpenStreetMap road, path, crossing and point-of-interest data",
-      "publisher": "OpenStreetMap contributors; OpenStreetMap Foundation",
-      "url": "https://www.openstreetmap.org/copyright",
-      "source_type": "volunteer_contributed_geospatial_database",
-      "access_status": "PublicWithConditions",
-      "rights_status": "VerifiedOpenLicense",
-      "license": "Open Database License (ODbL) 1.0; attribution required and share-alike obligations apply to distributed derivative databases",
-      "known_facts": [
-        "OSM data include roads, trails, railway stations and mapped points of interest.",
-        "The OSM Foundation requires attribution and clear indication that the data are available under ODbL."
-      ],
-      "unknowns": [
-        "Local completeness and positional accuracy by neighborhood and feature class",
-        "Missing sidewalks, crossings, informal paths, gates and service locations",
-        "Temporal freshness and edit-history quality"
-      ],
-      "required_checks": [
-        "Use a dated regional extract or replication snapshot; store timestamp and checksum",
-        "Retain ODbL attribution and assess database share-alike obligations before distribution",
-        "Run topology, connectivity and coverage audits",
-        "Ground-truth critical barriers and step-free crossings with safe, consent-based field checks",
-        "Do not treat mapped presence or absence as proof that a facility exists or is absent"
-      ],
-      "evidence_urls": [
-        "https://www.openstreetmap.org/copyright",
-        "https://osmfoundation.org/wiki/Attribution_Guidelines"
-      ]
-    },
-    {
-      "source_id": "JOHANNESBURG-TRANSIT-GTFS",
-      "name": "Johannesburg-area public transport schedule feeds (candidate GTFS sources)",
-      "publisher": "Potentially Rea Vaya, Gautrain, Metrobus and other operators; not yet established",
-      "url": null,
-      "source_type": "scheduled_public_transport",
-      "access_status": "Unknown",
-      "rights_status": "Unknown",
-      "candidate_operators": [
-        "Rea Vaya",
-        "Gautrain",
-        "Metrobus",
-        "other municipal and contracted operators"
-      ],
-      "required_standard": "GTFS Schedule; GTFS Realtime only where actually published",
-      "known_facts": [
-        "No specific current operator-published feed has been verified in this inventory."
-      ],
-      "unknowns": [
-        "Whether each operator publishes GTFS",
-        "Feed URL and authentication",
-        "Agency/route/stop coverage",
-        "Calendar and exception completeness",
-        "Effective dates, last-modified and update cadence",
-        "Licence and redistribution rights",
-        "Observed service reliability and accessibility information"
-      ],
-      "required_checks": [
-        "Locate official operator source, not an unofficial scrape",
-        "Validate feed with canonical GTFS validator",
-        "Check service dates cover the analysis period",
-        "Check stop/route coverage against known services",
-        "Capture calendars, exceptions and feed digest",
-        "Treat absence of a feed as a data gap; do not synthesize headways from stop locations"
-      ],
-      "evidence_urls": [
-        "https://gtfs.org/documentation/schedule/schedule-best-practices/"
-      ]
-    },
-    {
-      "source_id": "SA-CDW-UNDERREPORTING-ESTIMATE-2022",
-      "name": "An estimate of construction and demolition waste quantities and composition expected in South Africa",
-      "publisher": "South African Journal of Science",
-      "url": "https://journals.co.za/doi/10.17159/sajs.2022/12485",
-      "source_type": "research_estimate_not_current_inventory",
-      "publication_year": 2022,
-      "access_status": "VerifiedPublic",
-      "rights_status": "Unknown",
-      "known_facts": [
-        "The paper estimated 20.2 Mt of potential C&D waste generated in South Africa in 2017 using a lifetime method and 10.8 Mt reaching disposal sites using a per-capita method, compared with 4.48 Mt in official statistics for 2017.",
-        "The paper identifies likely underreporting and notes informal sector reuse of discarded construction materials as a plausible contributor to differences."
-      ],
-      "unknowns": [
-        "Current Johannesburg building/material stocks",
-        "Current recoverable or qualified quantities",
-        "Project-specific grade, condition, contamination, custody and availability",
-        "Reuse flows not captured by the study's underlying data"
-      ],
-      "required_checks": [
-        "Treat the estimates as research evidence of data-coverage risk, not a current supply total.",
-        "Do not compare different estimation methods as if they shared the same system boundary.",
-        "Do not convert national generated/disposed quantities into local usable supply.",
-        "Record uncertainty and study year whenever citing these estimates."
-      ],
-      "evidence_urls": [
-        "https://journals.co.za/doi/10.17159/sajs.2022/12485"
-      ]
-    },
-    {
       "source_id": "JOHANNESBURG-CDW-DISPOSAL-QUALITATIVE-2025",
       "name": "Assessment of disposal methods of construction and demolition waste: a case study of south-eastern industrial and residential areas in Johannesburg, South Africa",
       "publisher": "South African Geographical Journal",
@@ -318,6 +249,191 @@
       "evidence_urls": [
         "https://www.circulareconomy.co.za/wp-content/uploads/2025/03/Human-Settlements_Report-CE-Opportunities_final.pdf"
       ]
+    },
+    {
+      "source_id": "JOHANNESBURG-EFFICIENT-BUILDINGS-GUIDE-HISTORIC",
+      "name": "Design Guidelines for Efficient Buildings in Johannesburg",
+      "publisher": "City Energy / historical Johannesburg energy-efficiency guidance",
+      "url": "https://www.cityenergy.org.za/uploads/resource_109.pdf",
+      "source_type": "historical_city_building_design_guidance",
+      "publication_year": 2013,
+      "access_status": "VerifiedPublic",
+      "rights_status": "Unknown",
+      "known_facts": [
+        "Historical guide discusses Johannesburg passive solar heating, shading, natural ventilation and thermal mass, including seasonal summer/winter trade-offs."
+      ],
+      "unknowns": [
+        "Current applicability to modern climate and code",
+        "Underlying weather data and calibration",
+        "Copyright/reuse status"
+      ],
+      "required_checks": [
+        "Use only as contextual historical guidance",
+        "Verify current legal/technical requirements separately",
+        "Do not use as a weather dataset or quantified modern performance baseline"
+      ],
+      "evidence_urls": [
+        "https://www.cityenergy.org.za/uploads/resource_109.pdf"
+      ]
+    },
+    {
+      "source_id": "JOHANNESBURG-TRANSIT-GTFS",
+      "name": "Johannesburg-area public transport schedule feeds (candidate GTFS sources)",
+      "publisher": "Potentially Rea Vaya, Gautrain, Metrobus and other operators; not yet established",
+      "url": null,
+      "source_type": "scheduled_public_transport",
+      "access_status": "Unknown",
+      "rights_status": "Unknown",
+      "candidate_operators": [
+        "Rea Vaya",
+        "Gautrain",
+        "Metrobus",
+        "other municipal and contracted operators"
+      ],
+      "required_standard": "GTFS Schedule; GTFS Realtime only where actually published",
+      "known_facts": [
+        "No specific current operator-published feed has been verified in this inventory."
+      ],
+      "unknowns": [
+        "Whether each operator publishes GTFS",
+        "Feed URL and authentication",
+        "Agency/route/stop coverage",
+        "Calendar and exception completeness",
+        "Effective dates, last-modified and update cadence",
+        "Licence and redistribution rights",
+        "Observed service reliability and accessibility information"
+      ],
+      "required_checks": [
+        "Locate official operator source, not an unofficial scrape",
+        "Validate feed with canonical GTFS validator",
+        "Check service dates cover the analysis period",
+        "Check stop/route coverage against known services",
+        "Capture calendars, exceptions and feed digest",
+        "Treat absence of a feed as a data gap; do not synthesize headways from stop locations"
+      ],
+      "evidence_urls": [
+        "https://gtfs.org/documentation/schedule/schedule-best-practices/"
+      ]
+    },
+    {
+      "source_id": "OPENSTREETMAP-SOUTH-AFRICA",
+      "name": "OpenStreetMap road, path, crossing and point-of-interest data",
+      "publisher": "OpenStreetMap contributors; OpenStreetMap Foundation",
+      "url": "https://www.openstreetmap.org/copyright",
+      "source_type": "volunteer_contributed_geospatial_database",
+      "access_status": "PublicWithConditions",
+      "rights_status": "VerifiedOpenLicense",
+      "license": "Open Database License (ODbL) 1.0; attribution required and share-alike obligations apply to distributed derivative databases",
+      "known_facts": [
+        "OSM data include roads, trails, railway stations and mapped points of interest.",
+        "The OSM Foundation requires attribution and clear indication that the data are available under ODbL."
+      ],
+      "unknowns": [
+        "Local completeness and positional accuracy by neighborhood and feature class",
+        "Missing sidewalks, crossings, informal paths, gates and service locations",
+        "Temporal freshness and edit-history quality"
+      ],
+      "required_checks": [
+        "Use a dated regional extract or replication snapshot; store timestamp and checksum",
+        "Retain ODbL attribution and assess database share-alike obligations before distribution",
+        "Run topology, connectivity and coverage audits",
+        "Ground-truth critical barriers and step-free crossings with safe, consent-based field checks",
+        "Do not treat mapped presence or absence as proof that a facility exists or is absent"
+      ],
+      "evidence_urls": [
+        "https://www.openstreetmap.org/copyright",
+        "https://osmfoundation.org/wiki/Attribution_Guidelines"
+      ]
+    },
+    {
+      "source_id": "SA-CDW-UNDERREPORTING-ESTIMATE-2022",
+      "name": "An estimate of construction and demolition waste quantities and composition expected in South Africa",
+      "publisher": "South African Journal of Science",
+      "url": "https://journals.co.za/doi/10.17159/sajs.2022/12485",
+      "source_type": "research_estimate_not_current_inventory",
+      "publication_year": 2022,
+      "access_status": "VerifiedPublic",
+      "rights_status": "Unknown",
+      "known_facts": [
+        "The paper estimated 20.2 Mt of potential C&D waste generated in South Africa in 2017 using a lifetime method and 10.8 Mt reaching disposal sites using a per-capita method, compared with 4.48 Mt in official statistics for 2017.",
+        "The paper identifies likely underreporting and notes informal sector reuse of discarded construction materials as a plausible contributor to differences."
+      ],
+      "unknowns": [
+        "Current Johannesburg building/material stocks",
+        "Current recoverable or qualified quantities",
+        "Project-specific grade, condition, contamination, custody and availability",
+        "Reuse flows not captured by the study's underlying data"
+      ],
+      "required_checks": [
+        "Treat the estimates as research evidence of data-coverage risk, not a current supply total.",
+        "Do not compare different estimation methods as if they shared the same system boundary.",
+        "Do not convert national generated/disposed quantities into local usable supply.",
+        "Record uncertainty and study year whenever citing these estimates."
+      ],
+      "evidence_urls": [
+        "https://journals.co.za/doi/10.17159/sajs.2022/12485"
+      ]
+    },
+    {
+      "source_id": "SOUTH-AFRICA-SANS-10400-XA-STATUS",
+      "name": "South African building energy regulation / SANS 10400-XA edition status",
+      "publisher": "IEA policy database references South African regulation; SABS is the standards publisher",
+      "url": "https://www.iea.org/policies/8412-sans-10400-xa2021-national-building-regulations-energy-usage-in-buildings",
+      "source_type": "regulatory_standard_status_reference",
+      "access_status": "PublicWithConditions",
+      "rights_status": "Unknown",
+      "known_facts": [
+        "IEA policy entry records SANS 10400-XA:2021 as in force and was last updated 2024-04-30.",
+        "Some 2026 trade/industry references mention a SANS 10400-XA:2026 publication; this inventory has not verified the official SABS edition/catalogue or its incorporation into regulations."
+      ],
+      "unknowns": [
+        "Official current SABS edition and publication date",
+        "Whether a 2026 edition has been published and what legal status it has",
+        "Exact applicable clauses and referenced standards for each occupancy and compliance path",
+        "Rights to reproduce standard text"
+      ],
+      "required_checks": [
+        "Verify directly against SABS official catalogue and Government Gazette/regulatory adoption",
+        "Ask a competent South African building-energy professional to confirm the edition applicable on the project's submission date",
+        "Do not encode secondary website snippets as compliance law",
+        "Do not reproduce copyrighted standard text without permission"
+      ],
+      "evidence_urls": [
+        "https://www.iea.org/policies/8412-sans-10400-xa2021-national-building-regulations-energy-usage-in-buildings",
+        "https://www.sabs.co.za/"
+      ]
+    },
+    {
+      "source_id": "STATSSA-WARD-SAPE-2022",
+      "name": "Stats SA Ward-level Small Area Population Estimates, 2022",
+      "publisher": "Statistics South Africa",
+      "url": "https://www.statssa.gov.za/?p=18967",
+      "source_type": "official_small_area_population_estimates",
+      "access_status": "VerifiedPublic",
+      "rights_status": "Unknown",
+      "reference_year": 2022,
+      "boundary_vintage": "2020 electoral ward boundaries",
+      "method": "Raking / iterative proportional fitting using Census 2011 and Census 2022",
+      "spatial_resolution": "electoral ward",
+      "known_facts": [
+        "Stats SA states that spreadsheets, a technical note, ward shapefiles and provincial/district maps are available.",
+        "Stats SA warns that very small-area census values can be unstable due to variability, bias and undercount; the release is described as the last lowest-level ward estimate product."
+      ],
+      "unknowns": [
+        "Explicit reuse/redistribution licence for each downloadable file",
+        "CRS and exact schema for each file",
+        "Methodological uncertainty measures and reliability by ward"
+      ],
+      "required_checks": [
+        "Download technical note, spreadsheets and ward boundaries",
+        "Record the 2020 boundary crosswalk and population totals",
+        "Preserve age/sex and population-group definitions exactly as published",
+        "Do not downscale ward totals to buildings without a separately validated model"
+      ],
+      "evidence_urls": [
+        "https://www.statssa.gov.za/?p=18967",
+        "https://isibaloweb.statssa.gov.za/pages/surveys/pss/censuses/censusp.php"
+      ]
     }
   ],
   "minimum_ingestion_contract": {
@@ -353,6 +469,13 @@
       "geographic_and_temporal_coverage",
       "uncertainty_and_sampling_limits"
     ],
-    "absence_semantics": "An unrecorded facility, material flow or informal recovery channel is Unknown unless the source's coverage and observation process establish that absence. Missing records must never be interpreted as zero stock or zero recovery."
+    "absence_semantics": "An unrecorded facility, material flow or informal recovery channel is Unknown unless the source's coverage and observation process establish that absence. Missing records must never be interpreted as zero stock or zero recovery.",
+    "weather_profile_requirement": [
+      "weather_class must be one of observed_station, observed_reanalysis, typical_meteorological_year, design_extreme, observed_event, future_projection, synthetic_fixture",
+      "TMY cannot be relabelled heatwave, observed event, forecast or future projection",
+      "exact station/grid, period, variables, units, timezone, quality and spatial representativeness must be recorded"
+    ],
+    "spatial_claim_policy": "No join may increase native spatial precision or turn ward/sample context into building/household attributes.",
+    "thermal_claim_policy": "Modelled, calibrated-modelled, measured and independently accepted remain distinct; require owner-native model/sensor receipts."
   }
 }
