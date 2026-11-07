@@ -178,7 +178,8 @@
         "status": "CATALOGUED_NOT_HEADER_INSPECTED_OR_QUALIFIED",
         "sha256": null,
         "reuse_rights": "UNKNOWN",
-        "site_representativeness": "UNKNOWN"
+        "site_representativeness": "UNKNOWN",
+        "source_page_rights_note": "source_page_footer_states_copyright_2014-2026_climate_onebuilding_all_rights_reserved; no_file_specific_license_or_redistribution_terms_located_in_source_page; permission_and_reuse_terms_require_direct_review"
       },
       {
         "id": "JOBURG_BOTANICAL_GARDENS_TMYX_2011_2025",
@@ -188,7 +189,44 @@
         "status": "CATALOGUED_NOT_HEADER_INSPECTED_OR_QUALIFIED",
         "sha256": null,
         "reuse_rights": "UNKNOWN",
-        "site_representativeness": "UNKNOWN"
+        "site_representativeness": "UNKNOWN",
+        "source_page_rights_note": "source_page_footer_states_copyright_2014-2026_climate_onebuilding_all_rights_reserved; no_file_specific_license_or_redistribution_terms_located_in_source_page; permission_and_reuse_terms_require_direct_review"
+      },
+      {
+        "id": "JOBURG_GRAND_CENTRAL_TMYX_2011_2025",
+        "filename": "ZAF_GT_Grand.Central.AP.682650_TMYx.2011-2025.zip",
+        "source": "https://climate.onebuilding.org/WMO_Region_1_Africa/ZAF_South_Africa/index.html",
+        "dataset_type": "TYPICAL_METEOROLOGICAL_YEAR",
+        "status": "CATALOGUED_NOT_HEADER_INSPECTED_OR_QUALIFIED",
+        "sha256": null,
+        "reuse_rights": "UNKNOWN",
+        "site_representativeness": "UNKNOWN",
+        "publisher_display_size_kib_approx": 394,
+        "source_page_rights_note": "source_page_footer_states_copyright_2014-2026_climate_onebuilding_all_rights_reserved; no_file_specific_license_or_redistribution_terms_located_in_source_page; permission_and_reuse_terms_require_direct_review"
+      },
+      {
+        "id": "JOBURG_RAND_AIRPORT_TMYX_2011_2025",
+        "filename": "ZAF_GT_Rand.AP.683463_TMYx.2011-2025.zip",
+        "source": "https://climate.onebuilding.org/WMO_Region_1_Africa/ZAF_South_Africa/index.html",
+        "dataset_type": "TYPICAL_METEOROLOGICAL_YEAR",
+        "status": "CATALOGUED_NOT_HEADER_INSPECTED_OR_QUALIFIED",
+        "sha256": null,
+        "reuse_rights": "UNKNOWN",
+        "site_representativeness": "UNKNOWN",
+        "publisher_display_size_kib_approx": 420,
+        "source_page_rights_note": "source_page_footer_states_copyright_2014-2026_climate_onebuilding_all_rights_reserved; no_file_specific_license_or_redistribution_terms_located_in_source_page; permission_and_reuse_terms_require_direct_review"
+      },
+      {
+        "id": "JOBURG_LANSERIA_INTL_TMYX_2011_2025",
+        "filename": "ZAF_GT_Lanseria.Intl.AP.682635_TMYx.2011-2025.zip",
+        "source": "https://climate.onebuilding.org/WMO_Region_1_Africa/ZAF_South_Africa/index.html",
+        "dataset_type": "TYPICAL_METEOROLOGICAL_YEAR",
+        "status": "CATALOGUED_NOT_HEADER_INSPECTED_OR_QUALIFIED",
+        "sha256": null,
+        "reuse_rights": "UNKNOWN",
+        "site_representativeness": "UNKNOWN",
+        "publisher_display_size_kib_approx": 400,
+        "source_page_rights_note": "source_page_footer_states_copyright_2014-2026_climate_onebuilding_all_rights_reserved; no_file_specific_license_or_redistribution_terms_located_in_source_page; permission_and_reuse_terms_require_direct_review"
       }
     ],
     "separate_required_profiles": [
@@ -206,7 +244,29 @@
       "REGIONAL_WEATHER_AS_PARCEL_WEATHER",
       "MODELLED_AS_MEASURED",
       "UNQUALIFIED_FILE_AS_VALIDATED_INPUT"
-    ]
+    ],
+    "station_ensemble_policy": {
+      "status": "REGIONAL_CANDIDATE_ENSEMBLE_NOT_LOCAL_SITE_WEATHER",
+      "purpose": "sensitivity_testing_across_available_joburg_gauteng_station_exposures_before_a_parcel_is_selected",
+      "rule": "preserve_each_file_as_a_distinct_source_and_model_scenario",
+      "prohibited": [
+        "blind_average_of_station_files",
+        "choose_nearest_station_without_exposure_review",
+        "infer_parcel_representativeness_from_city_name",
+        "use_tmy_as_extreme_or_future_climate"
+      ],
+      "qualification_requirements": [
+        "header_and_stat_inspection",
+        "station_identity_and_location_history",
+        "file_sha256",
+        "reuse_rights",
+        "data_period_and_variable_coverage",
+        "station_exposure_and_urban_context",
+        "site_distance_elevation_and_terrain",
+        "independent_comparison_to_public_station_data"
+      ],
+      "selected_site_station": null
+    }
   },
   "design_hypotheses": {
     "solar_control": "compare orientation, winter solar access and summer shading; do not hardcode orientation before site survey",
