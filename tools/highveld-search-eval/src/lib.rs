@@ -255,6 +255,23 @@ fn required_gate_ids(bundle: &Value, violations: &mut Vec<&'static str>) -> Vec<
     ids
 }
 
+fn gate_evidence_is_complete(candidate: &Value, gate_ids: &[String]) -> bool {
+    let Some(evidence) = candidate
+        .get("hard_gate_evidence_sha256")
+        .and_then(Value::as_object)
+    else {
+        return false;
+    };
+    evidence.len() == gate_ids.len()
+        && gate_ids.iter().all(|gate_id| {
+            is_sha256(
+                evidence
+                    .get(gate_id)
+                    .and_then(Value::as_str),
+            )
+        })
+}
+
 fn evaluate_candidate(
     candidate: &Value,
     objectives: &[Objective],
@@ -263,13 +280,21 @@ fn evaluate_candidate(
     let id = get_str(candidate, "id")
         .unwrap_or("UNKNOWN_CANDIDATE_ID")
         .to_owned();
-    let declared_feasible = get_bool(candidate, "reported_feasible").unwrap_or(false);
+    let declaration = get_bool(candidate, "reported_feasible");
+    let declaration_valid = declaration.is_some();
+    let declared_feasible = declaration.unwrap_or(false);
     let mut exclusion_reasons = Vec::new();
 
+    if !declaration_valid {
+        exclusion_reasons.push("FEASIBILITY_DECLARATION_MISSING_OR_INVALID");
+    }
     if get_str(candidate, "id").is_none_or(str::is_empty)
         || !is_sha256(get_str(candidate, "input_sha256"))
     {
         exclusion_reasons.push("IDENTITY_OR_INPUT_DIGEST_INVALID");
+    }
+    if !is_sha256(get_str(candidate, "candidate_revision_sha256")) {
+        exclusion_reasons.push("CANDIDATE_REVISION_DIGEST_INVALID");
     }
 
     match get_str(candidate, "dependency_status") {
@@ -296,14 +321,25 @@ fn evaluate_candidate(
     {
         exclusion_reasons.push("SOLVER_VALIDATION_SCOPE_MISSING");
     }
-    let warnings_nonempty = verification
+    if !is_sha256(
+        verification
+            .and_then(|value| get_str(value, "result_sha256")),
+    ) {
+        exclusion_reasons.push("SOLVER_RESULT_DIGEST_INVALID");
+    }
+    let warnings = verification
         .and_then(|v| v.get("warnings"))
-        .and_then(Value::as_array)
-        .is_some_and(|warnings| !warnings.is_empty());
-    if warnings_nonempty
-        && verification.and_then(|v| get_bool(v, "warnings_acknowledged")) != Some(true)
-    {
-        exclusion_reasons.push("SOLVER_WARNINGS_UNACKNOWLEDGED");
+        .and_then(Value::as_array);
+    match warnings {
+        None => exclusion_reasons.push("SOLVER_WARNING_LIST_MISSING_OR_INVALID"),
+        Some(items)
+            if !items.is_empty()
+                && verification.and_then(|v| get_bool(v, "warnings_acknowledged"))
+                    != Some(true) =>
+        {
+            exclusion_reasons.push("SOLVER_WARNINGS_UNACKNOWLEDGED");
+        }
+        _ => {}
     }
 
     let gates = candidate.get("hard_gates").and_then(Value::as_object);
@@ -321,6 +357,12 @@ fn evaluate_candidate(
             _ => exclusion_reasons.push("HARD_GATE_STATUS_MISSING_OR_INVALID"),
         }
     }
+    if gates.is_some_and(|map| map.keys().any(|id| !gate_ids.contains(id))) {
+        exclusion_reasons.push("UNDECLARED_HARD_GATE_RESULT");
+    }
+    if !gate_evidence_is_complete(candidate, gate_ids) {
+        exclusion_reasons.push("HARD_GATE_EVIDENCE_REFERENCE_MISSING_OR_INVALID");
+    }
 
     let normalized = match normalize_objectives(candidate, objectives) {
         Ok(values) => Some(values),
@@ -337,6 +379,7 @@ fn evaluate_candidate(
         normalized,
         exclusion_reasons,
         declared_feasible,
+        declaration_valid,
     }
 }
 
@@ -515,6 +558,9 @@ fn evaluate_run(
     let mut false_reject_count = 0;
     for candidate in candidates {
         let evaluation = evaluate_candidate(candidate, objectives, gate_ids);
+        if !evaluation.declaration_valid {
+            push_unique(violations, "CANDIDATE_FEASIBILITY_DECLARATION_MISSING");
+        }
         if !ids.insert(evaluation.id.clone()) {
             push_unique(violations, "CANDIDATE_ID_DUPLICATED_WITHIN_RUN");
         }
@@ -808,7 +854,23 @@ pub fn evaluate_bundle(bundle: &Value) -> EvaluationReport {
                         exact_reference_complete = false;
                     }
                     let verification = candidate.get("verification");
-                    let full_fidelity = verification.and_then(|value| get_str(value, "kind"))
+                    let warnings = verification
+                        .and_then(|value| value.get("warnings"))
+                        .and_then(Value::as_array);
+                    let warnings_acknowledged = warnings.is_some_and(|items| {
+                        items.is_empty()
+                            || verification.and_then(|value| {
+                                get_bool(value, "warnings_acknowledged")
+                            }) == Some(true)
+                    });
+                    let full_fidelity = is_sha256(get_str(candidate, "input_sha256"))
+                        && is_sha256(get_str(candidate, "candidate_revision_sha256"))
+                        && gate_evidence_is_complete(candidate, &gate_ids)
+                        && warnings_acknowledged
+                        && is_sha256(
+                            verification.and_then(|value| get_str(value, "result_sha256")),
+                        )
+                        && verification.and_then(|value| get_str(value, "kind"))
                         == Some("high_fidelity")
                         && verification.and_then(|value| get_bool(value, "converged"))
                             == Some(true)
@@ -897,10 +959,16 @@ mod tests {
         json!({
             "id": id,
             "input_sha256": digest('b'),
+            "candidate_revision_sha256": digest('f'),
             "reported_feasible": reported_feasible,
+            "hard_gate_evidence_sha256": {
+                "step_free_task_fixture": digest('a'),
+                "life_safety_task_fixture": digest('c')
+            },
             "dependency_status": "current",
             "verification": {
                 "kind": kind,
+                "result_sha256": digest('e'),
                 "converged": true,
                 "required_inputs_complete": true,
                 "validation_scope": "synthetic_mathematical_fixture",
@@ -1114,6 +1182,65 @@ mod tests {
             run.excluded.iter().any(|(id, reasons)| id == "N-J"
                 && reasons.contains(&"SURROGATE_ONLY_NOT_FINAL_EVIDENCE"))
         );
+    }
+
+    #[test]
+    fn missing_feasibility_declaration_is_not_silently_treated_as_reject() {
+        let mut bundle = valid_bundle();
+        bundle["methods"][0]["runs"][0]["candidates"][0]
+            .as_object_mut()
+            .unwrap()
+            .remove("reported_feasible");
+        let report = evaluate_bundle(&bundle);
+        assert!(has_violation(
+            &report,
+            "CANDIDATE_FEASIBILITY_DECLARATION_MISSING"
+        ));
+    }
+
+    #[test]
+    fn undeclared_hard_gate_result_is_rejected() {
+        let mut bundle = valid_bundle();
+        bundle["methods"][0]["runs"][0]["candidates"][0]["hard_gates"]["unregistered"] =
+            json!("passed");
+        let report = evaluate_bundle(&bundle);
+        assert!(has_violation(&report, "FALSE_FEASIBLE_DECLARATION"));
+        assert!(report.methods[0].runs[0].excluded.iter().any(|(id, reasons)| {
+            id == "A" && reasons.contains(&"UNDECLARED_HARD_GATE_RESULT")
+        }));
+    }
+
+    #[test]
+    fn missing_gate_evidence_digest_cannot_support_a_pass() {
+        let mut bundle = valid_bundle();
+        bundle["methods"][0]["runs"][0]["candidates"][0]["hard_gate_evidence_sha256"]
+            .as_object_mut()
+            .unwrap()
+            .remove("life_safety_task_fixture");
+        let report = evaluate_bundle(&bundle);
+        assert!(has_violation(&report, "FALSE_FEASIBLE_DECLARATION"));
+    }
+
+    #[test]
+    fn missing_candidate_revision_digest_is_not_admitted() {
+        let mut bundle = valid_bundle();
+        bundle["methods"][0]["runs"][0]["candidates"][0]
+            .as_object_mut()
+            .unwrap()
+            .remove("candidate_revision_sha256");
+        let report = evaluate_bundle(&bundle);
+        assert!(has_violation(&report, "FALSE_FEASIBLE_DECLARATION"));
+    }
+
+    #[test]
+    fn missing_solver_warning_list_is_unknown_not_empty() {
+        let mut bundle = valid_bundle();
+        bundle["methods"][0]["runs"][0]["candidates"][0]["verification"]
+            .as_object_mut()
+            .unwrap()
+            .remove("warnings");
+        let report = evaluate_bundle(&bundle);
+        assert!(has_violation(&report, "FALSE_FEASIBLE_DECLARATION"));
     }
 
     #[test]
