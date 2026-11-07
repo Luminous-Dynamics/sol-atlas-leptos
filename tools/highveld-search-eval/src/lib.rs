@@ -1336,6 +1336,49 @@ mod tests {
     }
 
     #[test]
+    fn unequal_low_fidelity_budgets_are_rejected() {
+        let mut bundle = valid_bundle();
+        bundle["methods"][1]["low_fidelity_call_budget_per_run"] = json!(7);
+        let report = evaluate_bundle(&bundle);
+        assert!(has_violation(&report, "METHOD_BUDGETS_NOT_MATCHED"));
+    }
+
+    #[test]
+    fn low_fidelity_calls_cannot_exceed_the_predeclared_budget() {
+        let mut bundle = valid_bundle();
+        bundle["methods"][1]["runs"][0]["low_fidelity_calls"] = json!(9);
+        let report = evaluate_bundle(&bundle);
+        assert!(has_violation(&report, "LOW_FIDELITY_BUDGET_EXCEEDED"));
+    }
+
+    #[test]
+    fn unequal_wall_time_budgets_are_rejected() {
+        let mut bundle = valid_bundle();
+        bundle["methods"][1]["wall_time_ms_budget_per_run"] = json!(4000);
+        let report = evaluate_bundle(&bundle);
+        assert!(has_violation(&report, "METHOD_BUDGETS_NOT_MATCHED"));
+    }
+
+    #[test]
+    fn wall_time_must_be_reported_and_stay_within_budget() {
+        let mut missing = valid_bundle();
+        missing["methods"][1]["runs"][0]
+            .as_object_mut()
+            .unwrap()
+            .remove("wall_time_ms_used");
+        let missing_report = evaluate_bundle(&missing);
+        assert!(has_violation(
+            &missing_report,
+            "WALL_TIME_ACCOUNTING_MISSING"
+        ));
+
+        let mut over = valid_bundle();
+        over["methods"][1]["runs"][0]["wall_time_ms_used"] = json!(5001);
+        let over_report = evaluate_bundle(&over);
+        assert!(has_violation(&over_report, "WALL_TIME_BUDGET_EXCEEDED"));
+    }
+
+    #[test]
     fn final_solver_call_count_cannot_underreport_high_fidelity_candidates() {
         let mut bundle = valid_bundle();
         bundle["methods"][1]["runs"][0]["high_fidelity_calls"]["final"] = json!(5);
