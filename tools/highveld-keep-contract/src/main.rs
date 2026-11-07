@@ -9,7 +9,10 @@ fn main() -> ExitCode {
             println!("alternative_count={}", report.alternatives);
             println!("weather_candidate_count={}", report.weather_candidates);
             println!("continuous_parameter_count={}", report.continuous_variables);
-            println!("categorical_parameter_count={}", report.categorical_variables);
+            println!(
+                "categorical_parameter_count={}",
+                report.categorical_variables
+            );
             println!("violation_count=0");
             println!("result=definition_valid_synthetic_only");
             println!("claim_ceiling=no_geometry_buildability_safety_or_compliance_validation");
