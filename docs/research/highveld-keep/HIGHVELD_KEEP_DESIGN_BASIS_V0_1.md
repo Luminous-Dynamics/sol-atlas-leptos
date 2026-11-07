@@ -177,9 +177,12 @@ The initial context is Johannesburg/Highveld at regional scale only. No precise 
 
 ### 6.1 Candidate weather files
 
-Sol-Atlas #593 records two Climate.OneBuilding 2011–2025 TMYx candidates:
+Sol-Atlas #593 and the current South Africa index identify five Gauteng 2011–2025 TMYx candidates for a regional station ensemble:
 - `ZAF_GT_Johannesburg-Tambo.Intl.AP.683680_TMYx.2011-2025.zip`
 - `ZAF_GT_Johannesburg.Botanical.Gardens.683610_TMYx.2011-2025.zip`
+- `ZAF_GT_Grand.Central.AP.682650_TMYx.2011-2025.zip`
+- `ZAF_GT_Rand.AP.683463_TMYx.2011-2025.zip`
+- `ZAF_GT_Lanseria.Intl.AP.682635_TMYx.2011-2025.zip`
 
 They are **catalogued candidates only**. The actual archives have not been header-inspected, hashed, licence-cleared or qualified as representative of a particular parcel. Preserve both and compare station metadata. TMY is a typical-weather file for screening, not a heatwave, extreme design event, future climate projection, wind design file or substitute for local measurement.
 
@@ -341,7 +344,7 @@ A tier applies per claim, model, revision, site and time. It is not a universal 
 
 ## 13. References and source notes
 
-- Sol-Atlas #593 Johannesburg heat/source readiness register, including the two candidate TMYx files.
+- Sol-Atlas #593 Johannesburg heat/source readiness register, including five distinct regional TMYx candidates.
 - Sol-Atlas #604 South African building-system/product approval crosswalk.
 - Symtropy #1766 spatial design, #1790 adapter boundary, #1848 resilience, #1900 EnergyPlus qualification, #683 geometry provider and #1818/#1834 robotics.
 - Symthaea #7790 intent-to-design, #6091/#6096 aesthetic/poetic engineering intent and #7801 robustness/lifecycle qualification.
