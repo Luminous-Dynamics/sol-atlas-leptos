@@ -711,6 +711,12 @@ pub fn evaluate_bundle(bundle: &Value) -> EvaluationReport {
         }
 
         if enumeration_complete_for_method {
+            if !enumeration_complete {
+                push_unique(
+                    &mut violations,
+                    "METHOD_EXACT_ENUMERATION_WITHOUT_FIXTURE_ENUM_COMPLETE",
+                );
+            }
             if runs.len() != 1 {
                 push_unique(&mut violations, "EXACT_ENUMERATION_MUST_HAVE_ONE_RUN");
             }
@@ -724,8 +730,9 @@ pub fn evaluate_bundle(bundle: &Value) -> EvaluationReport {
             }
             if reference_method_id.as_deref() != Some(id.as_str()) {
                 push_unique(&mut violations, "EXACT_REFERENCE_METHOD_ID_MISMATCH");
+            } else if enumeration_complete {
+                exact_reference_found = true;
             }
-            exact_reference_found = true;
         }
 
         let mut run_reports = Vec::new();
@@ -1045,6 +1052,8 @@ mod tests {
     #[test]
     fn unknown_hard_gate_never_enters_the_feasible_front() {
         let mut bundle = valid_bundle();
+        bundle["methods"][0]["runs"][0]["candidates"][10]["hard_gates"]["life_safety_task_fixture"] =
+            json!("unknown");
         bundle["methods"][0]["runs"][0]["candidates"][10]["reported_feasible"] = json!(true);
         let report = evaluate_bundle(&bundle);
         assert!(has_violation(&report, "FALSE_FEASIBLE_DECLARATION"));
