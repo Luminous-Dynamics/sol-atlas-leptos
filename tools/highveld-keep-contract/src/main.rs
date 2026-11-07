@@ -13,6 +13,10 @@ fn main() -> ExitCode {
                 "categorical_parameter_count={}",
                 report.categorical_variables
             );
+            println!(
+                "functional_relationship_count={}",
+                report.functional_relationships
+            );
             println!("violation_count=0");
             println!("result=definition_valid_synthetic_only");
             println!("claim_ceiling=no_geometry_buildability_safety_or_compliance_validation");
