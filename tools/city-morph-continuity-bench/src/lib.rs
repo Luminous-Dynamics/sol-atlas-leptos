@@ -261,10 +261,10 @@ pub fn evaluate_case(case: &Value) -> Value {
         a.1.cmp(&b.1)
             .then_with(|| text(a.0, "phase_id").cmp(text(b.0, "phase_id")))
     });
-    if let Some((_, first, _)) = ordered.first() {
-        if *first != 0 {
-            errors.insert("TIMELINE_MUST_START_AT_ZERO".to_owned());
-        }
+    if let Some((_, first, _)) = ordered.first()
+        && *first != 0
+    {
+        errors.insert("TIMELINE_MUST_START_AT_ZERO".to_owned());
     }
     for pair in ordered.windows(2) {
         if pair[1].1 < pair[0].2 {
