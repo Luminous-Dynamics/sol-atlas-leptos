@@ -94,6 +94,50 @@ Also evaluate **architectural diversity**, separately from optimizer-distributio
 
 A surrogate is a resource-allocation tool for deciding which candidates deserve expensive evaluation. It is not a substitute engineering authority.
 
+## 3B. Functional relationship and task-network benchmark
+
+The scenario's 11 relationships form an explicit task-level graph, not a geometric floor plan. Benchmark the graph in two classes:
+
+**Hard relationships (7 instances):**
+- step-free links from arrival to the great hall, kitchen/dining, work/making and outdoor living;
+- arrival-level access to the accessible washroom;
+- visitor route from arrival to the great hall avoids sleeping rooms;
+- service/maintenance access between service plant and arrival avoids sleeping rooms.
+
+These must be reported as satisfied, failed or unknown by a qualified accessibility/spatial/route evaluation once exact geometry and the applicable professional criteria exist. A missing route or missing geometry proof is Unknown, not satisfied. A known hard failure cannot be offset by an aesthetic or energy gain.
+
+**Preferences (4 instances):**
+- kitchen/dining adjacency to outdoor living;
+- library/quiet acoustic separation from the great hall;
+- sleeping-room acoustic separation from the great hall;
+- work/making adjacency to service/plant.
+
+Preferences remain negotiable and should be evaluated through resident review and appropriate spatial/acoustic analysis. They must not silently become hard statutory constraints or be inferred from household identity.
+
+**Metric separation:**
+- requirement-graph integrity: valid endpoints, unique IDs, type/class consistency and complete reasons;
+- hard-relationship coverage: satisfied / failed / unknown, with source and reviewer;
+- preference outcomes: explicit distance/acoustic evidence where available plus resident-rated trade-offs;
+- path/access metrics: actual measured geometry, gradients, clear widths, turning/threshold constraints and egress analysis only after an exact geometry provider and qualified criteria are available;
+- acoustic outcomes: specialist solver or measured evidence, not inferred from room adjacency.
+
+Do not assign a numeric distance or geometric path to these symbolic links in E0. “Should be adjacent” is an intent label, not a claim that two rooms are within a specified number of metres. “Acoustically separated” is a preference, not a claim of an acoustic rating.
+
+### Relationship-graph negative controls
+
+Add exact mutation fixtures:
+- target function does not exist in the functional programme;
+- source or target ID duplicated in the functional programme;
+- relationship ID missing or duplicated;
+- a `hard` route relation is changed to `preference`;
+- a negotiable adjacency/acoustic relation is promoted to `hard` without resident/authority review;
+- `via_excluded` references an unknown/private function not in the programme;
+- a relationship adds `distance_m`, geometry, path coordinates or another unversioned geometric field;
+- a hard path is marked satisfied despite absent exact geometry/qualified accessibility assessment;
+- preference disagreement is collapsed into one fabricated household preference.
+
+The v0.1 manifest checker covers cross-file graph integrity and type mapping only. The remaining geometry, route, accessibility and acoustic evaluation requires later qualified providers and reviewers.
+
 ## 4. Frozen inputs
 
 Before scoring:
