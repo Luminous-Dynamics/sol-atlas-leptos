@@ -420,8 +420,7 @@ pub fn validate_values(scenario: &Value, parameters: &Value) -> ValidationReport
     // Network/archive summaries are separate from station observations.
     // In particular, ARC's operational network (~500) and wider archive (~1900)
     // must not be conflated, nor may any network total imply local station fitness.
-    let station_network_profiles =
-        array_at(scenario, &["station_network_source_profiles"]);
+    let station_network_profiles = array_at(scenario, &["station_network_source_profiles"]);
     let mut station_network_profile_count = 0usize;
     if let Some(items) = station_network_profiles {
         station_network_profile_count = items.len();
@@ -430,7 +429,10 @@ pub fn validate_values(scenario: &Value, parameters: &Value) -> ValidationReport
         if !operational_arc.is_some_and(|item| {
             item.get("inventory_scope").and_then(Value::as_str)
                 == Some("operational_national_agroclimate_network")
-                && item.get("reported_station_count_approx").and_then(Value::as_u64) == Some(500)
+                && item
+                    .get("reported_station_count_approx")
+                    .and_then(Value::as_u64)
+                    == Some(500)
                 && item.get("status").and_then(Value::as_str)
                     == Some("NETWORK_SCOPE_METADATA_ONLY_NOT_STATION_QUALIFICATION")
         }) {
@@ -439,11 +441,17 @@ pub fn validate_values(scenario: &Value, parameters: &Value) -> ValidationReport
 
         let arc_archive = find_by_id(items, "ARC_AGROCLIMATE_WEB_PORTAL_ARCHIVE");
         if !arc_archive.is_some_and(|item| {
-            item.get("reported_total_stations_approx").and_then(Value::as_u64) == Some(1900)
+            item.get("reported_total_stations_approx")
+                .and_then(Value::as_u64)
+                == Some(1900)
                 && item.get("reported_manual_stations").and_then(Value::as_u64) == Some(1100)
-                && item.get("reported_automatic_weather_stations").and_then(Value::as_u64)
+                && item
+                    .get("reported_automatic_weather_stations")
+                    .and_then(Value::as_u64)
                     == Some(763)
-                && item.get("reported_active_automatic_stations").and_then(Value::as_u64)
+                && item
+                    .get("reported_active_automatic_stations")
+                    .and_then(Value::as_u64)
                     == Some(460)
                 && item.get("status").and_then(Value::as_str)
                     == Some("ARCHIVE_INVENTORY_METADATA_ONLY_NOT_STATION_QUALIFICATION")
@@ -457,9 +465,13 @@ pub fn validate_values(scenario: &Value, parameters: &Value) -> ValidationReport
         if !saws.is_some_and(|item| {
             item.get("product").and_then(Value::as_str)
                 == Some("hourly_synoptic_observations_fixed_land_stations")
-                && item.get("access_and_license_status").and_then(Value::as_str)
+                && item
+                    .get("access_and_license_status")
+                    .and_then(Value::as_str)
                     == Some("must_check_product_topic_specific_license_and_reuse_terms")
-                && item.get("measurement_messages_downloaded").and_then(Value::as_bool)
+                && item
+                    .get("measurement_messages_downloaded")
+                    .and_then(Value::as_bool)
                     == Some(false)
         }) {
             violations.push("SAWS_WIS_PRODUCT_OR_LICENSE_SCOPE_CHANGED");
@@ -467,9 +479,12 @@ pub fn validate_values(scenario: &Value, parameters: &Value) -> ValidationReport
 
         let noaa = find_by_id(items, "NOAA_NCEI_GLOBAL_HOURLY_ISD");
         if !noaa.is_some_and(|item| {
-            item.get("local_johannesburg_series_downloaded").and_then(Value::as_bool)
+            item.get("local_johannesburg_series_downloaded")
+                .and_then(Value::as_bool)
                 == Some(false)
-                && item.get("local_station_history_reconciled").and_then(Value::as_bool)
+                && item
+                    .get("local_station_history_reconciled")
+                    .and_then(Value::as_bool)
                     == Some(false)
                 && item.get("status").and_then(Value::as_str)
                     == Some("GLOBAL_ARCHIVE_PRODUCT_METADATA_ONLY_NOT_LOCAL_SERIES_QUALIFICATION")
