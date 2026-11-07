@@ -43,7 +43,8 @@ impl ValidationReport {
 }
 
 fn path<'a>(value: &'a Value, keys: &[&str]) -> Option<&'a Value> {
-    keys.iter().try_fold(value, |current, key| current.get(*key))
+    keys.iter()
+        .try_fold(value, |current, key| current.get(*key))
 }
 
 fn string_at<'a>(value: &'a Value, keys: &[&str]) -> Option<&'a str> {
@@ -89,14 +90,12 @@ pub fn validate_values(scenario: &Value, parameters: &Value) -> ValidationReport
 
     push_if(
         &mut violations,
-        string_at(scenario, &["schema_version"])
-            != Some("luminous.habitat.reference-scenario/0.1"),
+        string_at(scenario, &["schema_version"]) != Some("luminous.habitat.reference-scenario/0.1"),
         "SCENARIO_SCHEMA_VERSION_MISMATCH",
     );
     push_if(
         &mut violations,
-        string_at(parameters, &["schema_version"])
-            != Some("luminous.habitat.parameter-space/0.1"),
+        string_at(parameters, &["schema_version"]) != Some("luminous.habitat.parameter-space/0.1"),
         "PARAMETER_SCHEMA_VERSION_MISMATCH",
     );
     push_if(
@@ -142,8 +141,11 @@ pub fn validate_values(scenario: &Value, parameters: &Value) -> ValidationReport
     );
     push_if(
         &mut violations,
-        path(scenario, &["synthetic_site_envelope", "enabled_for_fixture_search_only"])
-            .and_then(Value::as_bool)
+        path(
+            scenario,
+            &["synthetic_site_envelope", "enabled_for_fixture_search_only"],
+        )
+        .and_then(Value::as_bool)
             != Some(true)
             || string_at(scenario, &["synthetic_site_envelope", "label"])
                 != Some("SYNTHETIC_NOT_A_SURVEY_OR_ZONING_ENVELOPE")
@@ -207,8 +209,7 @@ pub fn validate_values(scenario: &Value, parameters: &Value) -> ValidationReport
         .flatten()
         .filter_map(Value::as_str)
         .collect();
-    let unique_families: std::collections::HashSet<&str> =
-        family_strings.iter().copied().collect();
+    let unique_families: std::collections::HashSet<&str> = family_strings.iter().copied().collect();
     push_if(
         &mut violations,
         family_strings.len() != EXPECTED_FAMILIES.len()
@@ -246,11 +247,15 @@ pub fn validate_values(scenario: &Value, parameters: &Value) -> ValidationReport
                     == Some("CATALOGUED_NOT_HEADER_INSPECTED_OR_QUALIFIED")
                 && item.get("sha256").is_some_and(Value::is_null)
                 && item.get("reuse_rights").and_then(Value::as_str) == Some("UNKNOWN")
-                && item.get("site_representativeness").and_then(Value::as_str)
-                    == Some("UNKNOWN")
-                && item.get("source").and_then(Value::as_str).is_some_and(|source| {
-                    source.contains("climate.onebuilding.org/WMO_Region_1_Africa/ZAF_South_Africa")
-                });
+                && item.get("site_representativeness").and_then(Value::as_str) == Some("UNKNOWN")
+                && item
+                    .get("source")
+                    .and_then(Value::as_str)
+                    .is_some_and(|source| {
+                        source.contains(
+                            "climate.onebuilding.org/WMO_Region_1_Africa/ZAF_South_Africa",
+                        )
+                    });
             if !valid_candidate {
                 violations.push("WEATHER_CANDIDATE_PROMOTED_OR_INCOMPLETE");
                 break;
@@ -275,23 +280,29 @@ pub fn validate_values(scenario: &Value, parameters: &Value) -> ValidationReport
     let profiles = array_at(scenario, &["climate_inputs", "separate_required_profiles"]);
     push_if(
         &mut violations,
-        required_profiles.iter().any(|required| !array_contains(profiles, required)),
+        required_profiles
+            .iter()
+            .any(|required| !array_contains(profiles, required)),
         "WEATHER_PROFILE_SEPARATION_INCOMPLETE",
     );
 
     // Preserve the existing geometry and solver authority gates.
     push_if(
         &mut violations,
-        string_at(scenario, &["solver_contracts", "geometry_authority", "status"])
-            != Some("EXACT_GEOMETRY_PROVIDER_REQUIRED"),
+        string_at(
+            scenario,
+            &["solver_contracts", "geometry_authority", "status"],
+        ) != Some("EXACT_GEOMETRY_PROVIDER_REQUIRED"),
         "GEOMETRY_PROVIDER_GATE_REMOVED",
     );
     push_if(
         &mut violations,
         string_at(scenario, &["solver_contracts", "thermal_energy", "status"])
             != Some("USE_VERSION_PINNED_QUALIFIED_ADAPTER")
-            || string_at(scenario, &["solver_contracts", "thermal_energy", "engine_candidate"])
-                != Some("EnergyPlus 26.2.0"),
+            || string_at(
+                scenario,
+                &["solver_contracts", "thermal_energy", "engine_candidate"],
+            ) != Some("EnergyPlus 26.2.0"),
         "THERMAL_ADAPTER_REQUIREMENT_CHANGED",
     );
     push_if(
@@ -420,8 +431,12 @@ pub fn validate_values(scenario: &Value, parameters: &Value) -> ValidationReport
         hard_requirements.is_none_or(Vec::is_empty)
             || hard_requirements.is_some_and(|items| {
                 items.iter().any(|item| {
-                    item.get("owner").and_then(Value::as_str).is_none_or(str::is_empty)
-                        || item.get("evidence_state").and_then(Value::as_str)
+                    item.get("owner")
+                        .and_then(Value::as_str)
+                        .is_none_or(str::is_empty)
+                        || item
+                            .get("evidence_state")
+                            .and_then(Value::as_str)
                             .is_none_or(|state| state == "verified" || state == "approved")
                 })
             }),
@@ -451,11 +466,17 @@ pub fn validate_values(scenario: &Value, parameters: &Value) -> ValidationReport
         "OPTIMIZATION_POLICY_COMPENSATES_HARD_CONSTRAINTS",
     );
     if let Some(objectives) = array_at(parameters, &["optimization_policy", "soft_objectives"]) {
-        let forbidden = ["fire_safety", "fire_egress", "structural_approval", "code_compliance"];
+        let forbidden = [
+            "fire_safety",
+            "fire_egress",
+            "structural_approval",
+            "code_compliance",
+        ];
         push_if(
             &mut violations,
             objectives.iter().any(|item| {
-                item.as_str().is_some_and(|value| forbidden.contains(&value))
+                item.as_str()
+                    .is_some_and(|value| forbidden.contains(&value))
             }),
             "HARD_AUTHORITY_MOVED_TO_SOFT_OBJECTIVES",
         );
@@ -618,8 +639,7 @@ mod tests {
     #[test]
     fn tmy_candidate_cannot_be_promoted_without_qualification_evidence() {
         let (mut scenario, parameters) = documents();
-        scenario["climate_inputs"]["candidate_weather_files"][0]["status"] =
-            json!("QUALIFIED");
+        scenario["climate_inputs"]["candidate_weather_files"][0]["status"] = json!("QUALIFIED");
         let report = validate_values(&scenario, &parameters);
         assert!(contains(
             &report,
@@ -651,10 +671,7 @@ mod tests {
             .expect("material source and grade reference");
         items[idx]["status"] = json!("APPROVED");
         let report = validate_values(&scenario, &parameters);
-        assert!(contains(
-            &report,
-            "UNQUALIFIED_MATERIAL_EVIDENCE_PROMOTED"
-        ));
+        assert!(contains(&report, "UNQUALIFIED_MATERIAL_EVIDENCE_PROMOTED"));
     }
 
     #[test]
@@ -679,7 +696,10 @@ mod tests {
             .iter()
             .position(|item| item["id"] == "north_facade_glazing_ratio")
             .expect("north glazing variable");
-        items[idx].as_object_mut().expect("parameter object").remove("unit");
+        items[idx]
+            .as_object_mut()
+            .expect("parameter object")
+            .remove("unit");
         let report = validate_values(&scenario, &parameters);
         assert!(contains(&report, "CONTINUOUS_PARAMETER_BOUNDS_INVALID"));
     }
