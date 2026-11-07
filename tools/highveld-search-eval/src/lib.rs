@@ -344,14 +344,8 @@ fn dominates(a: &[f64], b: &[f64]) -> bool {
     if a.len() != b.len() || a.is_empty() {
         return false;
     }
-    let no_worse = a
-        .iter()
-        .zip(b)
-        .all(|(left, right)| *left <= *right + 1e-12);
-    let strictly_better = a
-        .iter()
-        .zip(b)
-        .any(|(left, right)| *left < *right - 1e-12);
+    let no_worse = a.iter().zip(b).all(|(left, right)| *left <= *right + 1e-12);
+    let strictly_better = a.iter().zip(b).any(|(left, right)| *left < *right - 1e-12);
     no_worse && strictly_better
 }
 
