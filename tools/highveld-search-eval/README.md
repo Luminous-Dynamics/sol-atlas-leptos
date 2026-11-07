@@ -36,9 +36,9 @@ The JSON fixture shows the complete first schema:
 - shared objective schema digest, objective direction/unit and explicit normalization bounds;
 - predeclared normalized hypervolume reference point;
 - required hard gates with authority-scope labels;
-- methods with algorithm/version/code digest, fixture/objective digest, stochastic state, candidate budget, high-fidelity call budget and human-time budget;
+- methods with algorithm/version/code digest, fixture/objective digest, stochastic state, candidate budget, high-fidelity and low-fidelity call budgets, wall-time budget and human-time budget;
 - deterministic or repeated per-seed runs;
-- per-run call accounting split into training, tuning, validation and final calls, low-fidelity calls, human minutes and candidate records;
+- per-run accounting split into training, tuning, validation and final high-fidelity calls, low-fidelity calls, elapsed wall time in milliseconds, human minutes and candidate records;
 - candidate input and revision digests, explicit reported-feasibility declaration, dependency state, verification kind, solver-result digest, convergence, complete-input flag, validation scope, an explicit warnings array, hard-gate states, per-gate evidence-reference digests and objective values.
 
 ### Fail-closed evaluation
@@ -56,7 +56,7 @@ A candidate only enters the feasible Pareto set when:
 
 A reported-feasible candidate that does not satisfy these conditions raises `FALSE_FEASIBLE_DECLARATION`. A candidate that passes actual checks but is labelled infeasible is counted as a false reject, not silently removed. Failed/unknown hard gates are never traded against a better objective value.
 
-Matched comparison requires the same fixture digest, objective schema digest, candidate budget, high-fidelity call budget and human-time budget. High-fidelity training/tuning/validation/final calls must all be accounted for and stay within budget. The final-call ledger must contain at least one final call for every candidate labelled as high-fidelity. Stochastic methods require at least 20 unique seeds in this initial protocol.
+Matched comparison requires the same fixture digest, objective schema digest, candidate budget, high-fidelity call budget, low-fidelity call budget, wall-time budget and human-time budget. Each run must report actual low-fidelity calls and elapsed wall time in milliseconds; both must stay within their predeclared budgets. High-fidelity training/tuning/validation/final calls must all be accounted for and stay within budget. This prevents an apparent search-quality improvement from hiding an asymmetric surrogate-evaluation allowance or runtime budget. The final-call ledger must contain at least one final call for every candidate labelled as high-fidelity. Stochastic methods require at least 20 unique seeds in this initial protocol.
 
 ### Metrics included
 
@@ -65,7 +65,7 @@ Matched comparison requires the same fixture digest, objective schema digest, ca
 - per-run feasible Pareto set and dominated-candidate exclusion;
 - false-pass and false-reject counts;
 - exact two-objective hypervolume against a predeclared normalized reference point;
-- explicit high-fidelity/low-fidelity/human-time accounting;
+- explicit high-fidelity/low-fidelity call, wall-time and human-time accounting;
 - exact reference-front derivation only from a declared, complete exhaustive finite enumeration.
 
 ### Metrics deliberately unavailable
@@ -76,7 +76,7 @@ IGD+, GD+ and epsilon indicators are not emitted in v0.1. They require a separat
 
 `mathematical-reference-v0.1.json` contains:
 - one exact 11-candidate enumeration with a known six-point Pareto front;
-- one 20-seed search-method fixture with the same per-run candidate/high-fidelity/human budget;
+- one 20-seed search-method fixture with the same per-run candidate, high-fidelity, low-fidelity, wall-time and human-time budgets;
 - dominated candidates;
 - one candidate with a very attractive objective pair but a failed hard gate;
 - one candidate with an unknown hard gate;
