@@ -45,10 +45,40 @@
         "Locate exact Johannesburg-area file and source metadata",
         "Record WMO/site ID, coordinates/elevation, period, climate variables, time zone, digest and retrieval date",
         "Check rights for redistribution",
-        "Use only as TMY screening; never label a TMY sequence an observed heatwave or future projection"
+        "Use only as TMY screening; never label a TMY sequence an observed heatwave or future projection",
+        "Inspect both candidate EPW/STAT/COMMENT1 headers and compare station coordinates/elevation/period before choosing a reference profile",
+        "Retain both candidates for sensitivity/representativeness comparison; do not choose the airport or botanical garden simply by proximity or name"
       ],
       "evidence_urls": [
         "https://climate.onebuilding.org/"
+      ],
+      "johannesburg_candidates": [
+        {
+          "file": "ZAF_GT_Johannesburg-Tambo.Intl.AP.683680_TMYx.2011-2025.zip",
+          "station_name": "Johannesburg-Tambo International Airport",
+          "wmo_id": "683680",
+          "listed_size_kib": 433,
+          "status": "candidate_listed_not_downloaded_or_validated",
+          "listing_url": "https://climate.onebuilding.org/WMO_Region_1_Africa/ZAF_South_Africa/index.html",
+          "notes": [
+            "TMYx 2011-2025 candidate on Climate.OneBuilding Gauteng list.",
+            "Airport exposure may not represent dense urban or valley microclimates.",
+            "Requires EPW/STAT/COMMENT1 inspection, exact lat/lon/elevation, period and solar metadata, time-zone checks, missingness and licence review."
+          ]
+        },
+        {
+          "file": "ZAF_GT_Johannesburg.Botanical.Gardens.683610_TMYx.2011-2025.zip",
+          "station_name": "Johannesburg Botanical Gardens",
+          "wmo_id": "683610",
+          "listed_size_kib": 385,
+          "status": "candidate_listed_not_downloaded_or_validated",
+          "listing_url": "https://climate.onebuilding.org/WMO_Region_1_Africa/ZAF_South_Africa/index.html",
+          "notes": [
+            "TMYx 2011-2025 candidate on Climate.OneBuilding Gauteng list.",
+            "Potentially more urban/vegetated site context than the airport; representativeness must be independently evaluated.",
+            "Requires EPW/STAT/COMMENT1 inspection, exact lat/lon/elevation, period and solar metadata, time-zone checks, missingness and licence review."
+          ]
+        }
       ]
     },
     {
