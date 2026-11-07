@@ -32,7 +32,7 @@ fn main() -> ExitCode {
         eprintln!("corpus is missing a cases array");return ExitCode::from(2);
     };
     if corpus["corpus_id"]!="CITY-HEAT-EVIDENCE-CORPUS-V0.1" || corpus["schema_version"]!="0.1.0"
-        || corpus["classification"]!="synthetic_fixture_only" || cases.len()!=26 {
+        || corpus["classification"]!="synthetic_fixture_only" || cases.len()!=27 {
         eprintln!("unexpected heat evidence corpus identity, schema, classification or case count");return ExitCode::from(2);
     }
     let digest=Sha256::digest(&bytes);
