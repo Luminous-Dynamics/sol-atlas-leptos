@@ -1029,7 +1029,7 @@ mod tests {
             candidate("G", 4.0, 8.0, "passed", "passed", "high_fidelity", true),
             candidate("H", 6.0, 6.0, "passed", "passed", "high_fidelity", true),
             candidate("I", 0.0, 0.0, "failed", "passed", "high_fidelity", false),
-            candidate("J", 0.5, 0.5, "passed", "passed", "high_fidelity", true),
+            candidate("J", 10.0, 10.0, "passed", "passed", "high_fidelity", true),
             candidate("K", 1.0, 2.0, "passed", "failed", "high_fidelity", false),
         ]
     }
