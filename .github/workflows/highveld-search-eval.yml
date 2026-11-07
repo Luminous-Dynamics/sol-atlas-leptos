@@ -38,8 +38,12 @@ jobs:
           key: ${{ runner.os }}-cargo-highveld-search-eval-${{ hashFiles('tools/highveld-search-eval/Cargo.lock') }}
           restore-keys: |
             ${{ runner.os }}-cargo-highveld-search-eval-
+            ${{ runner.os }}-cargo-highveld-contract-
+            ${{ runner.os }}-cargo-native-
       - name: Check package formatting
         run: cargo fmt --manifest-path tools/highveld-search-eval/Cargo.toml --all -- --check
+      - name: Fetch the exact locked dependency graph
+        run: cargo fetch --locked --manifest-path tools/highveld-search-eval/Cargo.toml
       - name: Run locked offline mathematical auditor tests
         run: cargo test --locked --offline --manifest-path tools/highveld-search-eval/Cargo.toml
       - name: Audit exact mathematical fixture
