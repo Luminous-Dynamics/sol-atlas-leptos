@@ -3,7 +3,7 @@
   "schema_version": "0.1.0",
   "register_id": "JOHANNESBURG-SOURCE-REGISTER-V0.1",
   "classification": "research_inventory_not_ingested_data",
-  "as_of": "2026-11-06",
+  "as_of": "2026-11-07",
   "claim_ceiling": "This register records discoverable candidate sources and known access/rights facts. No live GIS, population, service, public-space or timetable layer has been ingested or qualified by this register.",
   "access_status_values": [
     "VerifiedPublic",
@@ -295,9 +295,10 @@
       "geography": "Gauteng; ward-representative survey design as documented by GCRO",
       "temporal_resolution": "Survey round (not continuous)",
       "known_facts": [
-        "Latest round surfaced in the GCRO/DataFirst catalogue at register creation.",
-        "Questionnaire covers transport, services, health, economy, environment, safety, governance and social dimensions.",
-        "Survey data have weights and technical documentation that must be used."
+        "QoL7 is the latest public GCRO survey round identified in this register; fieldwork ran 2023-09 to 2024-04.",
+        "The Gauteng-wide survey contains 13,795 adult respondents, with documented sample design, weighting and technical reports.",
+        "GCRO states that Quality of Life survey data are freely available under CC BY 4.0; the public dataset is available through DataFirst or by request.",
+        "A separate City of Johannesburg municipal benchmarking report and municipal report analyze QoL7 indicators at municipal level; these are survey-derived results, not street/building-level measurements."
       ],
       "unknowns": [
         "Exact spatial fields and usable geographic precision in public-use release",
@@ -307,12 +308,17 @@
         "Read questionnaire, sampling, weighting and fieldwork reports before analysis",
         "Use survey weights and report standard errors/design effects",
         "Do not geocode or publish respondent coordinates",
-        "Do not interpret adult respondents as a complete census of all residents"
+        "Do not interpret adult respondents as a complete census of all residents",
+        "For Johannesburg municipal disaggregation, use the City-specific QoL7 municipal report and sample/weighting/quality documentation; do not infer street- or building-level outcomes.",
+        "Keep survey-weighted estimates and their uncertainty separate from GIS route/service counts and ward small-area population estimates."
       ],
       "evidence_urls": [
         "https://datafirst.uct.ac.za/dataportal/index.php/catalog/995",
         "https://www.gcro.ac.za/outputs/data-briefs/detail/overview-qol7/",
-        "https://www.gcro.ac.za/outputs/policy-and-other-outputs/detail/qol-7-202324-data-report/"
+        "https://www.gcro.ac.za/outputs/policy-and-other-outputs/detail/qol-7-202324-data-report/",
+        "https://gcro.ac.za/outputs/data-briefs/detail/city-of-johannesburg-municipal-report-findings-from-the-gcros-quality-of-life-survey-7-202324/",
+        "https://gcro.ac.za/outputs/data-briefs/detail/municipal-benchmarking-report-findings-from-the-gcros-quality-of-life-survey-7-202324/",
+        "https://gcro.ac.za/research/project/detail/quality-life-survey-7/"
       ]
     },
     {
@@ -433,6 +439,39 @@
       ],
       "evidence_urls": [
         "https://www.cityenergy.org.za/uploads/resource_109.pdf"
+      ]
+    },
+    {
+      "source_id": "JOHANNESBURG-QOL7-MUNICIPAL-REPORT-2024",
+      "name": "City of Johannesburg Municipal Report: Findings from GCRO Quality of Life Survey 7 (2023/24)",
+      "publisher": "Gauteng City-Region Observatory",
+      "url": "https://www.gcro.ac.za/outputs/data-briefs/detail/city-of-johannesburg-municipal-report-findings-from-the-gcros-quality-of-life-survey-7-202324/",
+      "source_type": "municipal_level_survey_report",
+      "publication_date": "2024-12-20",
+      "underlying_survey": "GCRO QoL7 2023/24 (13,795 Gauteng adult respondents overall; municipal sub-sample/weighting applies)",
+      "access_status": "VerifiedPublic",
+      "rights_status": "Unknown",
+      "known_facts": [
+        "The report analyses City of Johannesburg survey results on demographic composition, basic-service access and satisfaction, infrastructure conditions and public engagement.",
+        "The report is survey-derived municipal evidence, not a geocoded census, service-facility inventory, or street/building-level observation.",
+        "QoL7 questionnaires, sampling, fieldwork, weighting and data reports are separately published and should accompany any quantitative analysis."
+      ],
+      "unknowns": [
+        "Reuse licence for the rendered report itself",
+        "Precision and reliability of individual Johannesburg sub-area estimates",
+        "Whether every subgroup comparison has adequate effective sample size"
+      ],
+      "required_checks": [
+        "Read the City-specific municipal report together with the QoL7 sample, weighting and data reports",
+        "Use survey weights and uncertainty; avoid small subgroup or neighbourhood inferences without documented design support",
+        "Keep the report's survey date (2023/24) visible; do not treat it as current 2026 service performance",
+        "Use the CC BY 4.0 licence statement for the underlying QoL dataset only where its terms apply; do not assume that it automatically licenses every report graphic or derivative"
+      ],
+      "evidence_urls": [
+        "https://www.gcro.ac.za/outputs/data-briefs/detail/city-of-johannesburg-municipal-report-findings-from-the-gcros-quality-of-life-survey-7-202324/",
+        "https://www.gcro.ac.za/outputs/data-briefs/detail/municipal-benchmarking-report-findings-from-the-gcros-quality-of-life-survey-7-202324/",
+        "https://www.gcro.ac.za/research/project/detail/quality-life-survey-7/",
+        "https://www.datafirst.uct.ac.za/dataportal/index.php/catalog/995"
       ]
     },
     {
