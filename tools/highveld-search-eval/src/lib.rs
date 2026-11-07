@@ -1190,7 +1190,7 @@ mod tests {
         let report = evaluate_bundle(&bundle);
         assert!(has_violation(
             &report,
-            "EXACT_REFERENCE_CLAIM_WITHOUT_COMPLETE_ENUMERATION"
+            "METHOD_EXACT_ENUMERATION_WITHOUT_FIXTURE_ENUM_COMPLETE"
         ));
         assert!(report.exact_reference_method.is_none());
     }
