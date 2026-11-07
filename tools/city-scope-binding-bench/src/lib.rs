@@ -374,19 +374,19 @@ pub fn evaluate_case(case: &Value) -> Value {
             continue;
         }
 
-        if let Some(weather) = scope.get("weather_profile") {
-            if text(artifact, "weather_profile_id") != text(weather, "profile_id") {
-                not_comparable.insert("WEATHER_PROFILE_MISMATCH".to_owned());
-                artifact_bindings.insert(
-                    artifact_id.to_owned(),
-                    binding_entry(
-                        artifact_id,
-                        "NotComparable",
-                        text(artifact, "raw_owner_disposition"),
-                    ),
-                );
-                continue;
-            }
+        if let Some(weather) = scope.get("weather_profile")
+            && text(artifact, "weather_profile_id") != text(weather, "profile_id")
+        {
+            not_comparable.insert("WEATHER_PROFILE_MISMATCH".to_owned());
+            artifact_bindings.insert(
+                artifact_id.to_owned(),
+                binding_entry(
+                    artifact_id,
+                    "NotComparable",
+                    text(artifact, "raw_owner_disposition"),
+                ),
+            );
+            continue;
         }
 
         let design_subject = text(artifact, "design_subject_id");
