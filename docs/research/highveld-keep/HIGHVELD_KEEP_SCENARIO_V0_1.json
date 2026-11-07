@@ -324,5 +324,101 @@
     "fire_strategy",
     "water_and_energy_capacity",
     "budget_and_whole_life_cost_basis"
+  ],
+  "functional_relationships": [
+    {
+      "id": "REL-001",
+      "source": "arrival",
+      "target": "great_hall",
+      "relation": "must_have_step_free_route",
+      "requirement_class": "hard",
+      "reason": "The communal living/gathering function is part of the essential arrival-level task network."
+    },
+    {
+      "id": "REL-002",
+      "source": "arrival",
+      "target": "kitchen_dining",
+      "relation": "must_have_step_free_route",
+      "requirement_class": "hard",
+      "reason": "Food preparation and dining are essential daily tasks."
+    },
+    {
+      "id": "REL-003",
+      "source": "arrival",
+      "target": "accessible_washroom",
+      "relation": "must_have_arrival_level_access",
+      "requirement_class": "hard",
+      "reason": "The synthetic reference brief requires an accessible washroom on the arrival level."
+    },
+    {
+      "id": "REL-004",
+      "source": "arrival",
+      "target": "work_making",
+      "relation": "must_have_step_free_route",
+      "requirement_class": "hard",
+      "reason": "The synthetic programme requires access to work/making/repair tasks without relying on stairs."
+    },
+    {
+      "id": "REL-005",
+      "source": "arrival",
+      "target": "outdoor_living",
+      "relation": "must_have_step_free_route",
+      "requirement_class": "hard",
+      "reason": "The courtyard/garden and outdoor living function is part of the accessible daily-use network."
+    },
+    {
+      "id": "REL-006",
+      "source": "arrival",
+      "target": "great_hall",
+      "relation": "visitor_route_must_avoid_private_zone",
+      "via_excluded": [
+        "sleeping_rooms"
+      ],
+      "requirement_class": "hard",
+      "reason": "Visitor access to shared gathering space must not require passage through private sleeping areas."
+    },
+    {
+      "id": "REL-007",
+      "source": "service_plant",
+      "target": "arrival",
+      "relation": "maintenance_access_must_avoid_private_zone",
+      "via_excluded": [
+        "sleeping_rooms"
+      ],
+      "requirement_class": "hard",
+      "reason": "Routine inspection and repair of plant/services should not require entry through sleeping rooms."
+    },
+    {
+      "id": "REL-008",
+      "source": "kitchen_dining",
+      "target": "outdoor_living",
+      "relation": "should_be_adjacent",
+      "requirement_class": "preference",
+      "reason": "A useful indoor/outdoor food and gathering relationship; evaluate privacy, climate, maintenance and ventilation trade-offs."
+    },
+    {
+      "id": "REL-009",
+      "source": "library_quiet",
+      "target": "great_hall",
+      "relation": "should_be_acoustically_separated",
+      "requirement_class": "preference",
+      "reason": "Quiet study may benefit from separation from communal activity; resident review must confirm the preference."
+    },
+    {
+      "id": "REL-010",
+      "source": "sleeping_rooms",
+      "target": "great_hall",
+      "relation": "should_be_acoustically_separated",
+      "requirement_class": "preference",
+      "reason": "Sleep/privacy and communal gathering can conflict; preserve this as a negotiable design preference."
+    },
+    {
+      "id": "REL-011",
+      "source": "work_making",
+      "target": "service_plant",
+      "relation": "should_be_adjacent",
+      "requirement_class": "preference",
+      "reason": "Repair/work activities may benefit from convenient service access, subject to noise and safety separation."
+    }
   ]
 }
