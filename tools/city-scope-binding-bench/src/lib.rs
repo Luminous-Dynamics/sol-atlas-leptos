@@ -212,9 +212,23 @@ pub fn evaluate_case(case: &Value) -> Value {
                 text(entry, "owner_repo") == owner && text(entry, "contract_id") == contract
             })
             .collect::<Vec<_>>();
-        let registration = owner_contract
+        let matching_registrations = owner_contract
             .iter()
-            .find(|entry| text(entry, "contract_version") == version);
+            .filter(|entry| text(entry, "contract_version") == version)
+            .collect::<Vec<_>>();
+        if matching_registrations.len() > 1 {
+            errors.insert("OWNER_SCHEMA_REGISTRY_AMBIGUOUS".to_owned());
+            artifact_bindings.insert(
+                artifact_id.to_owned(),
+                binding_entry(
+                    artifact_id,
+                    "Unsupported",
+                    text(artifact, "raw_owner_disposition"),
+                ),
+            );
+            continue;
+        }
+        let registration = matching_registrations.first().copied();
 
         let Some(registration) = registration else {
             if owner_contract.is_empty() {
@@ -594,6 +608,25 @@ mod tests {
             "ImportDependent"
         );
         assert_eq!(imported["owner_result_promotion"], "none");
+    }
+
+    #[test]
+    fn duplicate_owner_schema_registry_entries_are_unsupported() {
+        let mut item = case("SB-001");
+        let registry = item["input"]["owner_schema_registry"]
+            .as_array_mut()
+            .unwrap();
+        let duplicate = registry[0].clone();
+        registry.push(duplicate);
+
+        let result = evaluate_case(&item);
+        assert_eq!(result["binding_disposition"], "Unsupported");
+        assert_eq!(result["artifact_bindings"][0]["binding_state"], "Unsupported");
+        assert!(result["reason_codes"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|reason| reason == "OWNER_SCHEMA_REGISTRY_AMBIGUOUS"));
     }
 
     #[test]
