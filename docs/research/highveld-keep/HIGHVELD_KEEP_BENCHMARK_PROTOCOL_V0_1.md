@@ -355,6 +355,79 @@ These are proposed acceptance targets for synthetic software and evidence workfl
 - Zero aesthetic preference override of accessibility, fire, egress, structural or legal hard constraints.
 - Zero robotic task execution authorization derived from simulation alone.
 
+## 7A. Highveld programme benchmark ladder and target gates
+
+The programme needs a ladder of separate benchmarks. A win at one rung does not confer a pass on the next.
+
+| Rung | Benchmark | P0 target | Evidence needed for a superiority claim |
+|---|---|---|---|
+| B0 — Definition integrity | Intent, task graph, source manifests, parameter schemas, hard/soft classes, revisions | 100% critical items trace to source and revision; zero seeded false PASS; unknown remains unknown | Independent mutation suite, reproducible exact-head validation, externally reviewed contracts |
+| B1 — Requirement fulfillment | Task completion, hard path/access requirements, privacy, room use, conflicts | 100% hard requirements classified; no hard requirement silently downgraded or passed without evidence | Exact geometry, professional accessibility/fire review, resident acceptance tests |
+| B2 — Design exploration | Four architectural families and further genuinely distinct Pareto candidates | Same brief/bounds/evaluation budget for every method; all final candidates re-evaluated with exact qualified solvers | Equal high-fidelity calls, at least 20 published stochastic seeds for stochastic optimizers, exact fronts on enumerable fixtures |
+| B3 — Interoperability | IFC/IDS, geometry, coordinate frames, IDs, materials and downstream model transfer | Zero loss of mandatory information; geometry and alphanumeric property tests reported independently | Round-trip export/import into independent tools; stable-ID/property diff; geometry comparison under declared tolerance |
+| B4 — Engineering | Thermal/energy, daylight, structure, fire, wind, drainage, water and acoustics | Zero non-converged, missing, out-of-domain or unvalidated result promoted to PASS | Version-pinned specialist solver, applicable software test suites, independent reference cases and/or calibrated physical tests |
+| B5 — Production | Design-to-fabrication, tolerances, components, safety, inspection and rework | 100% fabricated critical parts trace to exact design/material/tool revisions; no robot task without capability/safety authority | Calibrated metrology, accepted physical specimens, measured yield/rework/cycle time and independent inspection |
+| B6 — In-use habitat | Actual comfort, utilities, maintenance, accessibility, resident experience and adaptation | No claim of operational performance from simulation or render alone | Consent-based longitudinal measurement, calibrated sensors, resident feedback, maintenance records and independent replication |
+
+### Critical reliability metrics
+
+Report these explicitly:
+- **False-PASS rate:** unsafe, unsupported, stale, incomplete or out-of-domain cases incorrectly called valid. P0 target: zero seeded false PASS.
+- **False-REJECT rate:** valid alternatives rejected by an overly conservative checker. Report separately; zero false PASS must not become a reason to hide false rejects.
+- **Evidence completeness:** percentage of critical claims with complete input, method, version, scope, reviewer and dependency lineage.
+- **Invalidation precision/recall:** when inputs change, all dependent results are invalidated and unrelated results remain reusable.
+- **Unknown calibration:** the observed frequency with which predictions marked Unknown/low-confidence are actually outside validated scope.
+- **Surrogate calibration:** empirical interval coverage, sharpness, rank correlation and out-of-domain detection against held-out high-fidelity evaluations.
+- **Human disagreement:** report evaluator variance and conflicting resident preferences, not merely an averaged score.
+
+### Geometry and openBIM targets
+
+Use the current official IFC release selected by the project (IFC 4.3.2.0 is currently listed as official) and a version-pinned IDS specification for alphanumeric information requirements. Then:
+- test IFC schema validity and IDS compliance;
+- test stable object/component ID survival through independent import/export;
+- test property, unit, classification, material and relation preservation;
+- independently compare geometric representation, placements, coordinate systems, openings, boundaries and topology;
+- test clashes and clearance/path conditions using a geometric engine or specialist checker;
+- compare the imported model with the source model and, later, calibrated as-built scans.
+
+IDS alone cannot be the geometry oracle. It does not validate clashes, boundary offsets, total floor areas, calculated values or as-built matching.
+
+### Robustness and resilience targets
+
+Each candidate should be tested against a declared scenario set:
+- ordinary typical-year weather;
+- historical heat and cold events;
+- plausible future climate horizons and model ensembles;
+- grid interruption during adverse weather;
+- municipal water interruption and safe storage depletion;
+- indoor air quality/noise/security conditions that disable natural ventilation;
+- supplier/material substitutions and construction tolerance variation;
+- maintenance failures and component unavailability;
+- changed occupancy/task needs and conflicting household preferences.
+
+Report performance distributions, lower-tail outcomes, failure durations and recovery paths—not annual averages alone. Use CVaR or another declared tail metric only when its loss definition and stakeholder interpretation are explicit. No objective aggregation can compensate for a hard life-safety or legal failure.
+
+### Industry-comparison protocol
+
+For each competitor/toolchain, record exact product edition, feature availability, regional limitations, licences, setup effort, human intervention, data sources, file exchange path and version. Run:
+1. the same synthetic functional brief and parameter set;
+2. the same synthetic site envelope, then later an identical surveyed site;
+3. the same qualified weather/material/occupancy inputs;
+4. the same mandatory output package;
+5. the same high-fidelity solver-call budget and independent verification plan.
+
+Compare a **best-of-breed toolchain** as well as individual products: Forma/Revit + specialist solvers, TestFit + BIM authoring, an open parametric toolchain + IFC, and Luminous orchestration using the same specialist authorities. The strongest competitor may be a coordinated human/team workflow, not one product.
+
+### What “better than SOTA” must mean
+
+A claim must name the task and metric, not claim universal superiority. Acceptable examples after testing:
+- “At equal high-fidelity solver-call budgets, the workflow found feasible alternatives with higher median hypervolume and no increase in hard-gate violations on the frozen Highveld test set.”
+- “The IFC/IDS transfer preserved all declared mandatory properties and achieved geometric deviation within the preregistered tolerance across the selected importer/exporter set.”
+- “The local climate-source qualification workflow detected a station identity/coverage mismatch missed by the compared pipeline.”
+- “The accepted panel package reduced measured first-pass rework per installed functional unit under the same safety and inspection requirements.”
+
+A claim is not acceptable if it compares different sites, weather files, geometry, budgets, tool versions, quality gates or human effort; uses a proprietary solver's output as its own validation oracle; or improves cost/speed while hiding accessibility, safety, privacy, worker-health or durability regression.
+
 ## 8. P1 comparative superiority protocol
 
 Do not choose arbitrary improvement percentages before a benchmark baseline exists.
