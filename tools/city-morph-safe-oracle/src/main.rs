@@ -1,6 +1,6 @@
 use city_morph_safe_oracle::{
-    evaluate, fixture_fingerprint, Disposition, SCENARIOS, CORPUS_REVISION, EXPECTED_CASE_COUNT,
-    PROFILE_REVISION,
+    CORPUS_REVISION, Disposition, EXPECTED_CASE_COUNT, PROFILE_REVISION, SCENARIOS, evaluate,
+    fixture_fingerprint,
 };
 use std::process::ExitCode;
 
