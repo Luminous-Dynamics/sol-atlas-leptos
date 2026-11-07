@@ -515,6 +515,20 @@
         "verified_service_capacity",
         "community_and_professional_review"
       ]
+    },
+    {
+      "gate_id": "G1B_STATE_AND_FEEDBACK_SYNCHRONIZATION",
+      "state": "defined_not_implemented",
+      "issue": 625,
+      "owner": "Sol-Atlas read-only synchronization; owner payloads remain authoritative",
+      "description": "Preserve valid time, observation time and record time; model owner-specific freshness, correction, revocation, supersession and dispute; link proposals to approval, execution, inspection/commissioning and observed outcomes.",
+      "blocks": [
+        "No universal TTL",
+        "No latest-timestamp-wins",
+        "No owner payload interpretation",
+        "No physical or causal claim from metadata completeness"
+      ],
+      "research_reference": "2026 review of 114 urban digital twin publications proposes reference, entity/semantic, state and feedback synchronization layers."
     }
   ],
   "non_goals": [
