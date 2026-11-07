@@ -195,3 +195,8 @@ All fixtures are synthetic. The oracle must recompute dispositions from input fa
 ## 12. Claim boundary
 
 This contract is a reference integration model, not a selected Johannesburg development proposal, local service-capacity survey, building approval, certified safe-neighbourhood design, community consensus or claim that a morphology is optimal.
+
+
+## 13. Machine-readable profile
+
+The companion JSON Schema is `CITY_NEIGHBORHOOD_EVALUATION_PROFILE_V0_1.schema.json`. It binds the study-area geometry, scope digest, time horizon, population frame, service requirements, alternatives, common scenario traces, non-compensatory constraints and owner-native evidence references. The schema makes cross-owner references explicit; it does not validate the truth or completeness of the referred evidence by itself.
