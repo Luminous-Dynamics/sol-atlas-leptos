@@ -140,7 +140,7 @@ The v0.1 manifest checker covers cross-file graph integrity and type mapping onl
 
 ## 3C. Climate-source comparison and data-fitness protocol
 
-The first source candidates are the two Climate.OneBuilding Johannesburg 2011–2025 TMYx files. A second provider methodology, EPW.tools, is recorded separately as research-only. Its own pages describe station-first fusion, ERA5/MERRA-2 gap filling, satellite solar where available, and AMY/TMY/future products; its published ASHRAE and SURFRAD validation is provider-reported and has not been independently reproduced locally.
+The first source candidates are five Climate.OneBuilding Gauteng 2011–2025 TMYx files (Tambo, Botanical Gardens, Grand Central, Rand Airport and Lanseria), preserved as a regional station ensemble rather than a single chosen site file. A second provider methodology, EPW.tools, is recorded separately as research-only. Its own pages describe station-first fusion, ERA5/MERRA-2 gap filling, satellite solar where available, and AMY/TMY/future products; its published ASHRAE and SURFRAD validation is provider-reported and has not been independently reproduced locally.
 
 Compare source methods without collapsing their product classes:
 
@@ -243,7 +243,7 @@ Before scoring:
 - record licences and data-use permissions;
 - publish exclusions, incomplete sources and unknowns.
 
-The two Johannesburg TMYx candidates remain unqualified until exact archives are downloaded, header-inspected, metadata/coordinates/period checked, hashed, rights-checked and reviewed for station/site representativeness. A TMY file is not a design-extreme or heatwave case. Use additional historical extremes and future scenario data only with exact sources and scope.
+All five Gauteng TMYx candidates remain unqualified until exact archives are downloaded, header-inspected, metadata/coordinates/period checked, hashed, rights-checked and reviewed for station/site representativeness. Compare them as separate station-exposure scenarios; do not average them blindly or choose one by distance alone. A TMY file is not a design-extreme or heatwave case. Use additional historical extremes and future scenario data only with exact sources and scope.
 
 A real site study requires its own survey, geotechnical/dolomite, legal, utility, hydrology, environmental and resident inputs. Never reuse the synthetic site envelope as if it were a surveyed or zoned parcel.
 
