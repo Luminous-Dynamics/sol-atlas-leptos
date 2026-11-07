@@ -327,7 +327,7 @@ pub fn validate_values(scenario: &Value, parameters: &Value) -> ValidationReport
                     .get("scope_limit")
                     .and_then(Value::as_str)
                     .is_some_and(|value| {
-                        value.contains("not an airport thermometer")
+                        value.contains("not an airport station")
                             && value.contains("not a parcel measurement")
                     })
         });
