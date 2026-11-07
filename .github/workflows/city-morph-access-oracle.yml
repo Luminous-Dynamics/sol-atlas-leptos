@@ -64,6 +64,10 @@ jobs:
             and .scenario_count == 24
             and .failure_count == 0
             and (.corpus_sha256 | test("^[0-9a-f]{64}$"))
+            and .source_register_id == "JOHANNESBURG-SOURCE-REGISTER-V0.1"
+            and .source_register_classification == "research_inventory_not_ingested_data"
+            and (.source_register_count >= 1)
+            and (.source_register_sha256 | test("^[0-9a-f]{64}$"))
             and (.source_commit | test("^[0-9a-f]{40}$"))
             and (.scenarios | length == 24)
             and (.scenarios | all(.status == "pass"))
