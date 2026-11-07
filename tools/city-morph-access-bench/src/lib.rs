@@ -782,7 +782,7 @@ mod tests {
         let register = source_register();
         let count = super::validate_source_register(&register)
             .expect("source register must satisfy its evidence contract");
-        assert_eq!(count, 18);
+        assert_eq!(count, 19);
 
         let sources = register["sources"].as_array().unwrap();
         let online_maps = sources
