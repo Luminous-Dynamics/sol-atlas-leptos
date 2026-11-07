@@ -168,6 +168,22 @@ EPW.tools' Johannesburg trend page is based on a 0.5-degree NASA POWER/MERRA-2 g
 
 The source benchmark should score file fitness/coverage and uncertainty, not decide a provider winner by marketing claims. Do not average two TMY files from different locations or providers without an explicit, justified method and sensitivity analysis.
 
+## 3D. Station identity and location-history benchmark
+
+The source crosswalk contains candidate metadata for Johannesburg Botanical (WMO 683610) and Johannesburg International (WMO 683680 / GHCND `SFM00068368` / WIGOS `0-20000-0-68368`). Published catalogues disagree slightly on Johannesburg International coordinates and provide different periods and data types. The station registry itself may distinguish a reference point from individual instrument coordinates.
+
+Before using any station series:
+- retrieve the direct WMO OSCAR/Surface and SAWS station records;
+- obtain NOAA NCEI GHCND and Global Hourly/ISD station history, including historical coordinates, equipment, reporting schedule and data inventory;
+- reconcile WMO/USAF/WBAN/GHCND/ICAO/SAWS/WIGOS IDs and effective dates;
+- retain original and revised coordinates with provenance and time validity;
+- measure station-to-parcel distance/elevation and exposure differences;
+- determine whether the TMYx and observation series share the same upstream records (avoid false independence in validation);
+- distinguish daily rainfall or daily summary records from hourly temperature/wind/solar data;
+- keep secondary aggregators as discovery aids, not primary station authorities.
+
+A source coordinate update or station move must invalidate dependent representativeness assessments and any weather model using the affected station snapshot. Never rewrite historic coordinates to the current station point without evidence of instrument continuity or a homogenization method.
+
 ## 4. Frozen inputs
 
 Before scoring:
