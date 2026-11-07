@@ -21,6 +21,7 @@ pub struct RunReport {
     pub hypervolume_2d: Option<f64>,
     pub high_fidelity_calls_used: u64,
     pub low_fidelity_calls: u64,
+    pub wall_time_ms_used: u64,
     pub human_minutes_used: u64,
 }
 
@@ -79,6 +80,7 @@ impl EvaluationReport {
                             "hypervolume_2d": run.hypervolume_2d,
                             "high_fidelity_calls_used": run.high_fidelity_calls_used,
                             "low_fidelity_calls": run.low_fidelity_calls,
+                            "wall_time_ms_used": run.wall_time_ms_used,
                             "human_minutes_used": run.human_minutes_used,
                         })
                     })
@@ -445,13 +447,15 @@ fn u64_field(value: &Value, key: &str) -> Option<u64> {
 fn validate_run_accounting(
     run: &Value,
     high_fidelity_budget: u64,
+    low_fidelity_budget: u64,
+    wall_time_ms_budget: u64,
     human_minutes_budget: u64,
     candidate_budget: u64,
     violations: &mut Vec<&'static str>,
-) -> (u64, u64, u64) {
+) -> (u64, u64, u64, u64) {
     let Some(calls) = run.get("high_fidelity_calls") else {
         push_unique(violations, "HIGH_FIDELITY_CALL_ACCOUNTING_MISSING");
-        return (0, 0, 0);
+        return (0, 0, 0, 0);
     };
     let fields = ["training", "tuning", "validation", "final"];
     let mut total = 0u64;
@@ -488,6 +492,16 @@ fn validate_run_accounting(
         push_unique(violations, "LOW_FIDELITY_CALL_COUNT_MISSING");
         0
     });
+    if low > low_fidelity_budget {
+        push_unique(violations, "LOW_FIDELITY_BUDGET_EXCEEDED");
+    }
+    let wall_time = u64_field(run, "wall_time_ms_used").unwrap_or_else(|| {
+        push_unique(violations, "WALL_TIME_ACCOUNTING_MISSING");
+        0
+    });
+    if wall_time > wall_time_ms_budget {
+        push_unique(violations, "WALL_TIME_BUDGET_EXCEEDED");
+    }
     let human = u64_field(run, "human_minutes_used").unwrap_or_else(|| {
         push_unique(violations, "HUMAN_TIME_ACCOUNTING_MISSING");
         0
@@ -506,7 +520,7 @@ fn validate_run_accounting(
     if candidate_count > candidate_budget {
         push_unique(violations, "CANDIDATE_BUDGET_EXCEEDED");
     }
-    (total, low, human)
+    (total, low, wall_time, human)
 }
 
 fn evaluate_run(
@@ -515,19 +529,27 @@ fn evaluate_run(
     gate_ids: &[String],
     reference_point: &[f64],
     high_fidelity_budget: u64,
+    low_fidelity_budget: u64,
+    wall_time_ms_budget: u64,
     human_minutes_budget: u64,
     candidate_budget: u64,
     violations: &mut Vec<&'static str>,
 ) -> RunReport {
     let seed = run.get("seed").and_then(Value::as_u64);
-    let (high_fidelity_calls_used, low_fidelity_calls, human_minutes_used) =
-        validate_run_accounting(
-            run,
-            high_fidelity_budget,
-            human_minutes_budget,
-            candidate_budget,
-            violations,
-        );
+    let (
+        high_fidelity_calls_used,
+        low_fidelity_calls,
+        wall_time_ms_used,
+        human_minutes_used,
+    ) = validate_run_accounting(
+        run,
+        high_fidelity_budget,
+        low_fidelity_budget,
+        wall_time_ms_budget,
+        human_minutes_budget,
+        candidate_budget,
+        violations,
+    );
     let Some(candidates) = run.get("candidates").and_then(Value::as_array) else {
         push_unique(violations, "CANDIDATE_LIST_MISSING");
         return RunReport {
@@ -541,6 +563,7 @@ fn evaluate_run(
             hypervolume_2d: None,
             high_fidelity_calls_used,
             low_fidelity_calls,
+            wall_time_ms_used,
             human_minutes_used,
         };
     };
@@ -603,6 +626,7 @@ fn evaluate_run(
         hypervolume_2d,
         high_fidelity_calls_used,
         low_fidelity_calls,
+        wall_time_ms_used,
         human_minutes_used,
     }
 }
@@ -715,12 +739,28 @@ pub fn evaluate_bundle(bundle: &Value) -> EvaluationReport {
                 push_unique(&mut violations, "HIGH_FIDELITY_BUDGET_MISSING");
                 0
             });
+        let low_fidelity_budget =
+            get_u64(method, "low_fidelity_call_budget_per_run").unwrap_or_else(|| {
+                push_unique(&mut violations, "LOW_FIDELITY_BUDGET_MISSING");
+                0
+            });
+        let wall_time_ms_budget = get_u64(method, "wall_time_ms_budget_per_run")
+            .unwrap_or_else(|| {
+                push_unique(&mut violations, "WALL_TIME_BUDGET_MISSING");
+                0
+            });
         let human_minutes_budget =
             get_u64(method, "human_minutes_budget_per_run").unwrap_or_else(|| {
                 push_unique(&mut violations, "HUMAN_TIME_BUDGET_MISSING");
                 0
             });
-        let signature = (candidate_budget, high_fidelity_budget, human_minutes_budget);
+        let signature = (
+            candidate_budget,
+            high_fidelity_budget,
+            low_fidelity_budget,
+            wall_time_ms_budget,
+            human_minutes_budget,
+        );
         if let Some(expected) = budget_signature {
             if expected != signature {
                 push_unique(&mut violations, "METHOD_BUDGETS_NOT_MATCHED");
@@ -803,6 +843,8 @@ pub fn evaluate_bundle(bundle: &Value) -> EvaluationReport {
                 &gate_ids,
                 &reference_point,
                 high_fidelity_budget,
+                low_fidelity_budget,
+                wall_time_ms_budget,
                 human_minutes_budget,
                 candidate_budget,
                 &mut violations,
@@ -1000,6 +1042,7 @@ mod tests {
             "seed": seed,
             "high_fidelity_calls": calls,
             "low_fidelity_calls": 4,
+            "wall_time_ms_used": 1000,
             "human_minutes_used": 10,
             "candidates": candidates
         })
@@ -1028,6 +1071,8 @@ mod tests {
             "enumeration_complete": true,
             "candidate_budget_per_run": 11,
             "high_fidelity_call_budget_per_run": 11,
+            "low_fidelity_call_budget_per_run": 8,
+            "wall_time_ms_budget_per_run": 5000,
             "human_minutes_budget_per_run": 20,
             "runs": [
                 make_run(None, exact_candidates(), calls(0, 0, 0, 11))
@@ -1068,6 +1113,8 @@ mod tests {
             "enumeration_complete": false,
             "candidate_budget_per_run": 11,
             "high_fidelity_call_budget_per_run": 11,
+            "low_fidelity_call_budget_per_run": 8,
+            "wall_time_ms_budget_per_run": 5000,
             "human_minutes_budget_per_run": 20,
             "runs": runs
         });
