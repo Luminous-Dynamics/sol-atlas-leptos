@@ -144,5 +144,17 @@
   "aggregation_principle": "A join cannot improve the native spatial or temporal resolution, evidence class, currentness, validation domain, or claim level of its inputs.",
   "score_policy": "No composite heat-safety, equity or retrofit-winner scalar is emitted; metrics remain disaggregated and any policy weighting is separately governed.",
   "privacy_default": "No individual household addresses, health records, respondent coordinates or unaggregated indoor sensor trajectories are publicly released.",
-  "claim_ceiling": "Contract and synthetic evidence-admission semantics only; not a local exposure/indoor temperature assessment, medical risk determination, code-compliance decision or intervention-effect claim."
+  "claim_ceiling": "Contract and synthetic evidence-admission semantics only; not a local exposure/indoor temperature assessment, medical risk determination, code-compliance decision or intervention-effect claim.",
+  "implemented_claim_levels": [
+    "H0_source_inventory",
+    "H1_coarse_exposure",
+    "H2_cohort_context",
+    "H3_modelled_thermal_service",
+    "H4_measured_indoor_conditions",
+    "H5_intervention_effect"
+  ],
+  "reserved_claim_levels": [
+    "H6_programme_impact_not_implemented_in_v0_1"
+  ],
+  "claim_level_policy": "H6 requires a population-level causal evaluation, displacement/tenure safeguards and authorized programme-impact design; requests are Unsupported in v0.1 and must not be reduced to H5."
 }
