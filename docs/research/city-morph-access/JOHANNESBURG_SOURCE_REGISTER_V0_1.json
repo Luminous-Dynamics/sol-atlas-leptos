@@ -544,6 +544,39 @@
       ]
     },
     {
+      "source_id": "SA-CDW-STATE-OF-THE-ART-REVIEW-2025",
+      "name": "State-of-the-art review on construction and demolition waste: The South African context",
+      "publisher": "Amadi and Mahachi, Cleaner Waste Systems, volume 11, article 100251",
+      "url": "https://doi.org/10.1016/j.clwas.2025.100251",
+      "source_type": "peer_reviewed_state_of_the_art_review",
+      "publication_date": "2025-06-01",
+      "access_status": "VerifiedPublic",
+      "rights_status": "Unknown",
+      "known_facts": [
+        "The 2025 review describes landfill as the most common C&D waste route in South Africa and reports that 48% of C&D waste is deposited in scarce landfills.",
+        "The review highlights under-reporting and outdated CDW data, partly because informal recovery/reuse flows are omitted from official statistics.",
+        "The review reports severe landfill-airspace pressure for Johannesburg and Cape Town, including less than five years of airspace in the underlying cited context."
+      ],
+      "unknowns": [
+        "Current 2026 landfill airspace and facility-specific remaining capacity",
+        "Johannesburg project-level C&D tonnage and material composition",
+        "Quantified informal recovery/reuse flows and the extent of double counting",
+        "Current recoverable, tested, qualified and deliverable secondary material quantities",
+        "Reuse/redistribution rights for the full-text article and any underlying datasets"
+      ],
+      "required_checks": [
+        "Read the full review and primary studies behind the landfill-capacity/airspace statements before citing numerical detail in a local assessment",
+        "Do not treat the reported less-than-five-years figure as a current 2026 landfill capacity measurement",
+        "Do not apply the 48% national figure as a Johannesburg-specific rate",
+        "Design a local material-flow audit that separately measures formal disposal, informal recovery/reuse, recycling, stockpiling, export and unreported flows",
+        "Use batch identity, grade, contamination, custody, availability date and receiving capacity before counting any recovered material as qualified supply"
+      ],
+      "evidence_urls": [
+        "https://doi.org/10.1016/j.clwas.2025.100251",
+        "https://ujcontent.uj.ac.za/esploro/outputs/journalArticle/State-of-the-art-review-on-construction-and-demolition/9955306107691"
+      ]
+    },
+    {
       "source_id": "SA-CDW-UNDERREPORTING-ESTIMATE-2022",
       "name": "An estimate of construction and demolition waste quantities and composition expected in South Africa",
       "publisher": "South African Journal of Science",
