@@ -1350,7 +1350,8 @@
         "case_id": "CR-016",
         "disposition": "Unsupported",
         "reason_codes": [
-          "DUPLICATE_PHASE_REQUIREMENT_RECEIPT"
+          "DUPLICATE_PHASE_REQUIREMENT_RECEIPT",
+          "DUPLICATE_SOURCE_RECEIPT_ID"
         ],
         "requirements": []
       }
