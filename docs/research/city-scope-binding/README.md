@@ -8,8 +8,8 @@ The fixture uses a synthetic 4x4 local grid with no real-world coordinates. It i
 
 ## Contract
 
-- Canonical scope serialization recursively sorts JSON object keys; array order remains part of the payload unless the schema defines a field as an unordered identity set.
-- The scope digest is SHA-256 of the canonical scope object; the digest field is external and does not hash itself.
+- Canonical scope serialization recursively sorts JSON object keys and sorts the explicitly set-like arrays by stable identity: population group IDs, scenarios by scenario ID, each scenario's event IDs, service requirements by requirement ID, functional units by functional-unit ID, and design revisions by subject ID. Other arrays preserve their declared order.
+- The scope digest is SHA-256 of the canonical scope object using `sha256-canonical-citymaker-scope-v1`; the digest field is external and does not hash itself.
 - Each owner artifact is opaque to the binder. The binder checks owner/contract/version, schema artifact digest/algorithm, source revision, receipt ID, content digest, subject digest, scope, boundary, population frame, scenario, phase window, functional unit, weather profile, applicable design/BOM revision and evidence state.
 - The owner payload digest is **not** verified by this binder because payload bytes are not retrieved. A supplied digest is only a reference. The result always reports payload_bytes_verified=false.
 - Owner disposition is preserved unchanged. Binding a Blocked or ImportDependent result does not turn it into a successful or local-production claim.
