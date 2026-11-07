@@ -130,6 +130,7 @@ struct CandidateEvaluation {
     normalized: Option<Vec<f64>>,
     exclusion_reasons: Vec<&'static str>,
     declared_feasible: bool,
+    declaration_valid: bool,
 }
 
 fn get_str<'a>(value: &'a Value, key: &str) -> Option<&'a str> {
