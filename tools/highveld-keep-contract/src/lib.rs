@@ -35,6 +35,7 @@ pub struct ValidationReport {
     pub categorical_variables: usize,
     pub functional_relationships: usize,
     pub alternative_climate_methods: usize,
+    pub station_metadata_crosschecks: usize,
     pub violations: Vec<&'static str>,
 }
 
@@ -90,6 +91,8 @@ pub fn validate_values(scenario: &Value, parameters: &Value) -> ValidationReport
     let mut continuous_count = 0usize;
     let mut categorical_count = 0usize;
     let functional_relationships = array_at(scenario, &["functional_relationships"]);
+    let station_metadata = array_at(scenario, &["station_metadata_crosschecks"]);
+    let mut station_metadata_count = 0usize;
     let mut functional_relationship_count = 0usize;
 
     push_if(
@@ -344,6 +347,66 @@ pub fn validate_values(scenario: &Value, parameters: &Value) -> ValidationReport
         &mut violations,
         alternative_method_count != 2,
         "ALTERNATIVE_CLIMATE_METHOD_COUNT_CHANGED",
+    );
+
+    // Station identity/coordinate records are metadata cross-checks only.
+    // They are not weather observations and cannot qualify a weather file or site.
+    const STATION_METADATA_STATUS: [(&str, &str); 4] = [
+        (
+            "JOHANNESBURG_BOTANICAL_ASHRAE_2021",
+            "METADATA_CROSSCHECK_ONLY_NOT_SERIES_OR_SITE_QUALIFICATION",
+        ),
+        (
+            "JOHANNESBURG_TAMBO_ASHRAE_2021",
+            "METADATA_CROSSCHECK_ONLY_NOT_SERIES_OR_SITE_QUALIFICATION",
+        ),
+        (
+            "JOHANNESBURG_TAMBO_NOAA_GHCND",
+            "METADATA_CROSSCHECK_ONLY_IDENTITY_AND_HISTORY_NOT_RECONCILED",
+        ),
+        (
+            "JOHANNESBURG_TAMBO_SAWS_WIGOS_OSCAR",
+            "SECONDARY_REFERENCE_TO_WMO_OSCAR_NOT_DIRECTLY_VERIFIED",
+        ),
+    ];
+    if let Some(items) = station_metadata {
+        station_metadata_count = items.len();
+        for (id, required_status) in STATION_METADATA_STATUS {
+            let valid = find_by_id(items, id).is_some_and(|item| {
+                item.get("status").and_then(Value::as_str) == Some(required_status)
+                    && item.get("measurement_series_downloaded").and_then(Value::as_bool)
+                        == Some(false)
+                    && item.get("file_digest").is_some_and(Value::is_null)
+            });
+            if !valid {
+                violations.push("STATION_METADATA_CROSSCHECK_PROMOTED_OR_INCOMPLETE");
+            }
+        }
+
+        let noaa_record = find_by_id(items, "JOHANNESBURG_TAMBO_NOAA_GHCND");
+        if !noaa_record.is_some_and(|item| {
+            item.get("daily_summary_period_end").and_then(Value::as_str)
+                == Some("2020-05-27")
+                && item.get("hourly_series_downloaded").and_then(Value::as_bool) == Some(false)
+        }) {
+            violations.push("NOAA_GHCND_DAILY_RECORD_SCOPE_CHANGED");
+        }
+
+        let wigos_record = find_by_id(items, "JOHANNESBURG_TAMBO_SAWS_WIGOS_OSCAR");
+        if !wigos_record.is_some_and(|item| {
+            item.get("history_and_instrument_metadata").and_then(Value::as_str)
+                == Some("must_retrieve_directly_from_wmo_oscar_and_saws")
+                && item.get("reported_previous_to_current_distance_km").is_some()
+        }) {
+            violations.push("WIGOS_STATION_HISTORY_RECONCILIATION_GATE_REMOVED");
+        }
+    } else {
+        violations.push("STATION_METADATA_CROSSCHECKS_MISSING");
+    }
+    push_if(
+        &mut violations,
+        station_metadata_count != 4,
+        "STATION_METADATA_CROSSCHECK_COUNT_CHANGED",
     );
 
     // Preserve the existing geometry and solver authority gates.
@@ -686,6 +749,7 @@ pub fn validate_values(scenario: &Value, parameters: &Value) -> ValidationReport
         categorical_variables: categorical_count,
         functional_relationships: functional_relationship_count,
         alternative_climate_methods: alternative_method_count,
+        station_metadata_crosschecks: station_metadata_count,
         violations,
     }
 }
@@ -986,6 +1050,28 @@ mod tests {
         assert!(contains(
             &report,
             "ALTERNATIVE_CLIMATE_PROVIDER_PROMOTED_OR_INCOMPLETE"
+        ));
+    }
+
+    #[test]
+    fn station_metadata_remains_unqualified_until_identity_history_is_reconciled() {
+        let (mut scenario, parameters) = documents();
+        scenario["station_metadata_crosschecks"][0]["status"] = json!("QUALIFIED");
+        let report = validate_values(&scenario, &parameters);
+        assert!(contains(
+            &report,
+            "STATION_METADATA_CROSSCHECK_PROMOTED_OR_INCOMPLETE"
+        ));
+    }
+
+    #[test]
+    fn ncei_daily_record_cannot_be_promoted_to_hourly_series() {
+        let (mut scenario, parameters) = documents();
+        scenario["station_metadata_crosschecks"][2]["hourly_series_downloaded"] = json!(true);
+        let report = validate_values(&scenario, &parameters);
+        assert!(contains(
+            &report,
+            "NOAA_GHCND_DAILY_RECORD_SCOPE_CHANGED"
         ));
     }
 
