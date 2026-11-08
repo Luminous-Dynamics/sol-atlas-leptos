@@ -787,12 +787,12 @@ mod tests {
     #[test]
     fn router_corpus_contains_41_unique_cases() {
         let cases = corpus()["cases"].as_array().unwrap();
-        assert_eq!(cases.len(), 41);
+        assert_eq!(cases.len(), 44);
         let ids = cases
             .iter()
             .map(|case| case["case_id"].as_str().unwrap())
             .collect::<std::collections::BTreeSet<_>>();
-        assert_eq!(ids.len(), 41);
+        assert_eq!(ids.len(), 44);
     }
 
     #[test]
@@ -910,6 +910,37 @@ mod tests {
 
         let optional_owner = evaluate_case(&cases[40], &r);
         assert_eq!(optional_owner["route_state"], "contract_bound_unverified");
+
+        let no_impact_composition = evaluate_case(&cases[41], &r);
+        assert_eq!(
+            no_impact_composition["route_state"],
+            "contract_bound_unverified"
+        );
+        assert_eq!(
+            no_impact_composition["required_families"],
+            json!(["artifact_revision", "dependency_coverage", "source_inventory"])
+        );
+        assert_eq!(no_impact_composition["lane_results"].as_array().unwrap().len(), 3);
+
+        let bad_counter_sum = evaluate_case(&cases[42], &r);
+        assert_eq!(bad_counter_sum["route_state"], "invalid_input");
+        assert!(
+            bad_counter_sum["lane_results"][0]["reason_codes"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|reason| reason == "SOURCE_INVENTORY_DISPOSITION_COUNTS_MISMATCH")
+        );
+
+        let missing_observed_count = evaluate_case(&cases[43], &r);
+        assert_eq!(missing_observed_count["route_state"], "insufficient_evidence");
+        assert!(
+            missing_observed_count["lane_results"][0]["reason_codes"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|reason| reason == "SOURCE_INVENTORY_CLOSURE_COUNTS_MISSING")
+        );
     }
 
     #[test]
