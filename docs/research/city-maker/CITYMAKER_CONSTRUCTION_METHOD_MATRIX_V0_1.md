@@ -222,6 +222,25 @@ Use the current applicable building LCA method and database version. CEN publish
 
 ISO 10218-1:2025 addresses industrial robots; ISO 10218-2:2025 addresses industrial robot applications and cells. They are relevant to bounded factory-cell engineering within their scope. They do not independently authorize unrestricted robots in public or occupied spaces, mobile construction applications, lifting systems or every hazard of a construction process. Each application needs its own risk assessment and relevant standards/regulatory path.
 
+### Construction productivity and prefabricated MEP — 8 November 2026
+
+A useful cross-industry benchmark is the **Cambridge Framework for Construction Productivity: Measure · Benchmark · Improve** (published 30 September 2026). It was developed using data from more than 25 UK projects and structures productivity at project, work-package and activity levels, connecting production rates, labour productivity, production flow, variability and delivery blockers. CityMaker should align its work-package/activity-level measures with this framework rather than invent a competing generic construction-productivity ontology. Its distinct contribution is to connect those established measures to robot/task-level execution, exact design/material/configuration identity and independently accepted output.
+
+- Cambridge framework summary: https://www.construction.cam.ac.uk/news/new-cambridge-framework-aims-transform-how-construction-productivity-measured-and-improved
+- Full report repository and DOI: https://doi.org/10.17863/CAM.135013
+
+For prefabricated MEP, a February 2026 five-project study identifies tolerance management as a major unresolved productivity/quality issue. It proposes principles emphasizing communication, detailed design, quality control and buffer assembly; none of the five projects applied every principle. CityMaker's service-cassette trial now requires a tolerance chain from the host as-built datum through module manufacture, buffer allowance, installation and final interface verification.
+
+- Li et al. (2026), *Tolerance management in prefabrication of mechanical, electrical, and plumbing installations*: https://doi.org/10.1080/01446193.2026.2626735
+
+Singapore's BCA describes prefabricated MEP as integrated off-site subassemblies and reports time savings up to 60% in selected project contexts. This is a useful industry example and hypothesis, not a transferable target; the CityMaker baseline must be established on a matched article with the complete workflow boundary.
+
+- BCA Prefabricated MEP System (updated 1 October 2026): https://www1.bca.gov.sg/growth-and-transformation/productivity/design-for-manufacturing-and-assembly-dfma/prefabricated-mechanical-electrical-and-plumbing-mep-system/
+
+A September 2026 study of 491 modular projects (303 permanent and 188 relocatable) uses gross square metres completed per day to analyse productivity by building type and project size. This can inform stratification and warns against pooling unlike project sizes/types, but gross area/day is not sufficient for our primary measure because it does not independently establish quality, functional equivalence, whole-workflow labour, service performance or lifecycle burden.
+
+- Hasan & Choi (2026), *Correlation between Size and Productivity for Modular Buildings*: https://doi.org/10.1061/JMENEA.MEENG-7605
+
 ## 10. City-scale implication: co-design the production geography
 
 The construction-method comparison is only one level. At city scale, compare where the production ecosystem should exist:
