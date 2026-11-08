@@ -249,7 +249,10 @@ fn evaluate_artifact(
         .map(|record| text(record, "disposition"))
         .unwrap_or("not_reported");
     let mut state = "indeterminate";
-    if !reasons.is_empty() {
+    if text(report, "disposition") == "invalid_input" {
+        reasons.insert("VERIFIER_REPORT_INPUT_INVALID".to_owned());
+        state = "unsupported";
+    } else if !reasons.is_empty() {
         state = if reasons.iter().any(|reason| {
             reason.contains("MISMATCH")
                 || reason.contains("DUPLICATED")
@@ -289,23 +292,21 @@ fn evaluate_artifact(
         }
     }
 
-    // Owner rights remain an independent, non-authenticated claim. A blocked
-    // or restricted use is not promoted to an accessible byte-verified input.
-    if state == "verified" {
-        let rights_use_allowed = rights_state == "verified"
-            && !required_use.is_empty()
-            && permitted_uses
-                .iter()
-                .any(|value| value.as_str() == Some(required_use));
-        if !rights_use_allowed {
-            reasons.insert("RIGHTS_USE_NOT_ESTABLISHED_BY_OWNER".to_owned());
-            state = if rights_state == "restricted" || rights_state == "unknown" {
-                "unavailable"
-            } else {
-                "unsupported"
-            };
-        }
-    }
+    // Rights are a separate owner assertion. They never change whether the
+    // exact bytes matched the descriptor; this adapter does not authenticate
+    // the rights evidence or authorize a proposed use.
+    let rights_use_declaration_state = if rights_state == "verified"
+        && !required_use.is_empty()
+        && permitted_uses
+            .iter()
+            .any(|value| value.as_str() == Some(required_use))
+    {
+        "owner_declares_permitted"
+    } else if rights_state == "restricted" {
+        "owner_declares_restricted"
+    } else {
+        "unknown_or_not_authenticated"
+    };
 
     if !matches!(
         binding_state,
@@ -353,6 +354,7 @@ fn evaluate_artifact(
         "report_reference": text(report_binding, "report_reference"),
         "report_sha256": text(report_binding, "declared_report_sha256"),
         "owner_rights_state": rights_state,
+        "rights_use_declaration_state": rights_use_declaration_state,
         "schema_digest_algorithm": schema_digest_algorithm,
         "schema_artifact_digest": schema_digest,
         "rights_authentication": "not_performed",
@@ -448,9 +450,6 @@ pub fn evaluate_case(case: &Value) -> Value {
         ) {
             report_reasons.insert("VERIFIER_REPORT_DISPOSITION_UNSUPPORTED".to_owned());
         }
-        if text(&report, "disposition") == "invalid_input" {
-            report_reasons.insert("VERIFIER_REPORT_INVALID_INPUT".to_owned());
-        }
         let descriptor_count = report.get("descriptor_count").and_then(Value::as_u64);
         let payload_count = report.get("payload_count").and_then(Value::as_u64);
         let not_attempted = report.get("not_attempted_count").and_then(Value::as_u64);
@@ -525,6 +524,12 @@ pub fn evaluate_case(case: &Value) -> Value {
     json!({
         "case_id": case_id,
         "report_integrity_state": report_state,
+        "report_disposition_state": match text(&report, "disposition") {
+            "all_available_payloads_verified" => "complete",
+            "incomplete_or_indeterminate" => "incomplete",
+            "invalid_input" => "invalid_input",
+            _ => "unsupported"
+        },
         "report_reference": report_reference,
         "report_sha256": computed_report_sha,
         "report_disposition": text(&report, "disposition"),
