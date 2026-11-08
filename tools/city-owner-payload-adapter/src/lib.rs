@@ -104,13 +104,14 @@ fn evaluate_artifact(
     let base_flag = binding.and_then(|entry| bool_value(entry, "payload_bytes_verified"));
 
     let mut reasons = BTreeSet::<String>::new();
+    let mut scope_reasons = BTreeSet::<String>::new();
     if binding.is_none() {
-        reasons.insert("SCOPE_BINDING_ARTIFACT_MISSING".to_owned());
+        scope_reasons.insert("SCOPE_BINDING_ARTIFACT_MISSING".to_owned());
     }
     let owner_scope_digest_matches = text(artifact, "scope_digest")
         == text(scope_binding, "scope_digest");
     if !owner_scope_digest_matches {
-        reasons.insert("OWNER_SCOPE_DIGEST_MISMATCH".to_owned());
+        scope_reasons.insert("OWNER_SCOPE_DIGEST_MISMATCH".to_owned());
     }
     if base_flag == Some(true) {
         reasons.insert("SCOPE_BINDER_PREPROMOTED_PAYLOAD_BYTES".to_owned());
@@ -332,7 +333,8 @@ fn evaluate_artifact(
         "schema_artifact_digest": schema_digest,
         "rights_authentication": "not_performed",
         "action_authority": "none",
-        "reason_codes": reasons.into_iter().collect::<Vec<_>>()
+        "reason_codes": reasons.into_iter().collect::<Vec<_>>(),
+        "scope_reason_codes": scope_reasons.into_iter().collect::<Vec<_>>()
     })
 }
 
