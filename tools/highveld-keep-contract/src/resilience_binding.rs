@@ -15,6 +15,9 @@ pub const RESILIENCE_BINDING_SCHEMA: &str = include_str!(
 
 const BINDING_ID: &str = "HIGHVELD-KEEP-RESILIENCE-BINDING-001";
 const SCHEMA_VERSION: &str = "luminous.highveld.resilience-binding/0.1.0";
+const TRAJECTORY_OWNER_HEAD: &str = "b0da4a10115861798d6b32e5940efb3b775044dd";
+const TRAJECTORY_RECEIPT_ARCHIVE_SHA256: &str =
+    "8ee7edda499ddb7e47b94e3429bf2d515c287866563a4e0f58409f02f75d8162";
 const CLAIM_CEILING: &str = "adapter_contract_and_synthetic_binding_semantics_only_no_physical_building_performance_or_safety_claim";
 
 const SCENARIOS: [(&str, &str); 10] = [
@@ -183,6 +186,7 @@ pub fn validate_resilience_binding_values(
         "symtropy_invariant_crosswalk",
         "invalidation_dependencies",
         "benchmark_targets",
+        "verified_owner_qualifications",
     ];
     let schema_required = array_at(schema, "required");
     push(
@@ -224,7 +228,19 @@ pub fn validate_resilience_binding_values(
                 .and_then(|properties| properties.get("scenario_families"))
                 .and_then(|property| property.get("maxItems"))
                 .and_then(Value::as_u64)
-                != Some(10),
+                != Some(10)
+            || schema
+                .get("properties")
+                .and_then(|properties| properties.get("verified_owner_qualifications"))
+                .and_then(|property| property.get("minItems"))
+                .and_then(Value::as_u64)
+                != Some(1)
+            || schema
+                .get("properties")
+                .and_then(|properties| properties.get("verified_owner_qualifications"))
+                .and_then(|property| property.get("maxItems"))
+                .and_then(Value::as_u64)
+                != Some(1),
         "RESILIENCE_SCHEMA_SCENARIO_COUNT_NOT_FROZEN",
     );
     push(
@@ -295,6 +311,96 @@ pub fn validate_resilience_binding_values(
                         != Some("RELEASE_IDENTIFIED_ADAPTER_NOT_QUALIFIED")
             }),
             "ENERGYPLUS_RELEASE_OR_QUALIFICATION_STATUS_CHANGED",
+        );
+    }
+
+    let trajectory_owner = owners
+        .into_iter()
+        .flatten()
+        .find(|owner| string_at(owner, "contract") == Some("SPATIAL-RESILIENCE-001"));
+    push(
+        &mut violations,
+        trajectory_owner.is_none_or(|owner| {
+            string_at(owner, "status")
+                != Some("SOFTWARE_ORACLE_QUALIFIED_E1_SYNTHETIC_EXACT_HEAD")
+                || string_at(owner, "qualification_receipt_id")
+                    != Some("SYM-SPATIAL-RESILIENCE-001-QUAL-2026-11-08")
+        }),
+        "RESILIENCE_TRAJECTORY_OWNER_STATUS_NOT_RECEIPT_BOUND",
+    );
+
+    let verified_qualifications = array_at(binding, "verified_owner_qualifications");
+    push(
+        &mut violations,
+        verified_qualifications.is_none_or(|items| items.len() != 1),
+        "RESILIENCE_VERIFIED_OWNER_QUALIFICATION_COUNT_INVALID",
+    );
+    if let Some(items) = verified_qualifications {
+        let qualification = items.first();
+        let dedicated = qualification.and_then(|item| item.get("dedicated_qualifier"));
+        let general = qualification.and_then(|item| item.get("general_ci"));
+        let artifact = qualification.and_then(|item| item.get("receipt_artifact"));
+        push(
+            &mut violations,
+            qualification.is_none_or(|item| {
+                string_at(item, "qualification_id")
+                    != Some("SYM-SPATIAL-RESILIENCE-001-QUAL-2026-11-08")
+                    || string_at(item, "owner") != Some("Symtropy")
+                    || string_at(item, "owner_contract") != Some("SPATIAL-RESILIENCE-001")
+                    || string_at(item, "owner_repository")
+                        != Some("Luminous-Dynamics/symtropy")
+                    || string_at(item, "candidate_head_sha") != Some(TRAJECTORY_OWNER_HEAD)
+                    || string_at(item, "verified_date") != Some("2026-11-08")
+                    || !string_at(item, "qualification_scope")
+                        .is_some_and(|scope| scope.contains("synthetic deterministic"))
+                    || string_at(item, "claim_ceiling")
+                        != Some("software_oracle_semantics_only_no_real_building_weather_thermal_performance_health_safety_statutory_or_professional_approval")
+            }),
+            "RESILIENCE_OWNER_QUALIFICATION_IDENTITY_OR_CLAIM_CEILING_INVALID",
+        );
+        push(
+            &mut violations,
+            dedicated.is_none_or(|run| {
+                run.get("workflow_run_id").and_then(Value::as_u64) != Some(42456052062)
+                    || string_at(run, "conclusion") != Some("success")
+                    || string_at(run, "unit_tests") != Some("57_passed")
+                    || string_at(run, "timeline_corpus") != Some("8_of_8_passed")
+                    || string_at(run, "paired_outcomes_corpus") != Some("5_of_5_passed")
+                    || string_at(run, "decision_impact_corpus") != Some("8_of_8_passed")
+                    || string_at(run, "adaptive_policy_corpus")
+                        != Some("3_of_3_cases_and_5_of_5_policies_passed")
+                    || string_at(run, "workflow_run_url")
+                        != Some("https://github.com/Luminous-Dynamics/symtropy/actions/runs/42456052062")
+            }),
+            "RESILIENCE_OWNER_DEDICATED_QUALIFIER_RECEIPT_INVALID",
+        );
+        push(
+            &mut violations,
+            general.is_none_or(|run| {
+                run.get("workflow_run_id").and_then(Value::as_u64) != Some(42456052102)
+                    || string_at(run, "conclusion") != Some("success")
+                    || string_at(run, "workflow_run_url")
+                        != Some("https://github.com/Luminous-Dynamics/symtropy/actions/runs/42456052102")
+                    || array_at(run, "platforms").is_none_or(|platforms| {
+                        !has_string(Some(platforms), "ubuntu-latest")
+                            || !has_string(Some(platforms), "windows-latest")
+                            || !has_string(Some(platforms), "macos-latest")
+                    })
+            }),
+            "RESILIENCE_OWNER_GENERAL_CI_RECEIPT_INVALID",
+        );
+        push(
+            &mut violations,
+            artifact.is_none_or(|item| {
+                item.get("artifact_id").and_then(Value::as_u64) != Some(13606874236)
+                    || string_at(item, "archive_sha256")
+                        != Some(TRAJECTORY_RECEIPT_ARCHIVE_SHA256)
+                    || string_at(item, "artifact_url")
+                        != Some("https://github.com/Luminous-Dynamics/symtropy/actions/runs/42456052062/artifacts/13606874236")
+                    || !string_at(item, "digest_scope")
+                        .is_some_and(|scope| scope.contains("GitHub Actions artifact ZIP archive"))
+            }),
+            "RESILIENCE_OWNER_RECEIPT_ARTIFACT_IDENTITY_INVALID",
         );
     }
 
@@ -640,6 +746,49 @@ mod tests {
         assert_eq!(report.invariant_mappings, 16);
         assert_eq!(report.vvuq_stages, 6);
         assert_eq!(report.measurement_questions, 5);
+    }
+
+    #[test]
+    fn exact_head_symtropy_trajectory_owner_receipt_is_present() {
+        let report =
+            validate_tracked_resilience_binding().expect("tracked owner receipt parses");
+        assert!(report.is_valid(), "{:?}", report.violations);
+    }
+
+    #[test]
+    fn stale_trajectory_owner_candidate_sha_is_rejected() {
+        let (mut binding, schema) = documents();
+        binding["verified_owner_qualifications"][0]["candidate_head_sha"] =
+            json!("1111111111111111111111111111111111111111");
+        let report = validate_resilience_binding_values(&binding, &schema);
+        assert!(contains(
+            &report,
+            "RESILIENCE_OWNER_QUALIFICATION_IDENTITY_OR_CLAIM_CEILING_INVALID"
+        ));
+    }
+
+    #[test]
+    fn trajectory_owner_receipt_archive_digest_is_pinned() {
+        let (mut binding, schema) = documents();
+        binding["verified_owner_qualifications"][0]["receipt_artifact"]["archive_sha256"] =
+            json!("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+        let report = validate_resilience_binding_values(&binding, &schema);
+        assert!(contains(
+            &report,
+            "RESILIENCE_OWNER_RECEIPT_ARTIFACT_IDENTITY_INVALID"
+        ));
+    }
+
+    #[test]
+    fn software_receipt_cannot_be_promoted_to_physical_approval() {
+        let (mut binding, schema) = documents();
+        binding["verified_owner_qualifications"][0]["claim_ceiling"] =
+            json!("building_approved_and_safe");
+        let report = validate_resilience_binding_values(&binding, &schema);
+        assert!(contains(
+            &report,
+            "RESILIENCE_OWNER_QUALIFICATION_IDENTITY_OR_CLAIM_CEILING_INVALID"
+        ));
     }
 
     #[test]
