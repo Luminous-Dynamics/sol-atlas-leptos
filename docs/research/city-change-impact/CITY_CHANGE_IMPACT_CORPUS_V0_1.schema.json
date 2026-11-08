@@ -307,7 +307,12 @@
                       "report_state",
                       "graph_snapshot_digest",
                       "impacted_claim_ids",
-                      "query_boundary"
+                      "query_boundary",
+                      "event_id",
+                      "scope_id",
+                      "coverage_receipt_id",
+                      "base_graph_snapshot_digest",
+                      "claim_findings"
                     ],
                     "properties": {
                       "report_id": {
