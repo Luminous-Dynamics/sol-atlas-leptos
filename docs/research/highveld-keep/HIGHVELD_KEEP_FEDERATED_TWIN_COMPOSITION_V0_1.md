@@ -190,7 +190,12 @@ The 18 cases are frozen in:
 - `HIGHVELD_KEEP_FEDERATED_TWIN_COMPOSITION_CORPUS_V0_1.json`
 - `HIGHVELD_KEEP_FEDERATED_TWIN_COMPOSITION_CORPUS_V0_1.schema.json`
 
-Each case carries both an as-known-at-decision cut and an as-known-now cut, so late-arriving corrections, revocations and ingestion delays can be tested without rewriting history. The expected dispositions map to the decision-reliance vocabulary used by #501/#509. This is a proposed cross-owner fixture for those owners to consume; this addendum does not implement another decision-reliance evaluator.
+Each case carries an as-known-at-decision cut and an as-known-now cut. The expected result separates three views:
+- **Historical reliance:** evidence actually available/admitted at the original decision cutoff.
+- **Retrospective historical assessment:** whether later-discovered evidence indicates that a fact was already incorrect at the original decision time (for example, a correction discovered later but valid earlier).
+- **Current reliance:** whether the decision can still be relied upon now.
+
+This prevents two opposite errors: leaking future information into the historical replay, and pretending that a later-discovered backdated correction has no effect on present-day assessment of the old decision. The expected dispositions map to the decision-reliance vocabulary used by #501/#509. This is a proposed cross-owner fixture for those owners to consume; this addendum does not implement another decision-reliance evaluator.
 
 ## 7. Matched industry comparison
 
