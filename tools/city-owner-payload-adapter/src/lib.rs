@@ -515,18 +515,14 @@ fn equivalent(actual: &Value, expected: &Value) -> bool {
                 && left.iter().zip(right).all(|(a, b)| equivalent(a, b))
         }
         (Value::Object(left), Value::Object(right)) => {
-            left.len() == right.len()
-                && left.iter().all(|(key, value)| {
-                    expected_value(expected, key).is_some_and(|other| equivalent(value, other))
-                })
+            right.iter().all(|(key, expected_item)| {
+                left.get(key).is_some_and(|actual_item| equivalent(actual_item, expected_item))
+            })
         }
         _ => actual == expected,
     }
 }
 
-fn expected_value<'a>(value: &'a Value, key: &str) -> Option<&'a Value> {
-    value.get(key)
-}
 
 pub fn matches_expected(actual: &Value, expected: &Value) -> bool {
     equivalent(actual, expected)
