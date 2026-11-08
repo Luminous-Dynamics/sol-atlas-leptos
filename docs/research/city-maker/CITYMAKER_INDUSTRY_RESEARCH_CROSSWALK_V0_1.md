@@ -115,11 +115,11 @@ Source: NIST AMS 100-85, https://doi.org/10.6028/NIST.AMS.100-85
 
 ### Urban digital-twin lifecycle evidence
 
-A 2026 review of 114 urban-digital-twin publications describes four interacting layers: reference, entity/semantic, state and feedback synchronization. It emphasizes persistent entity identity, compatible spatial/temporal scales, traceability through interventions, and validation/human oversight appropriate to the decision horizon.
+A 2026 review of 114 urban-digital-twin publications is discoverable on the publisher site and proposes four interacting layers: reference, entity/semantic, state and feedback synchronization. **Temporal caveat:** the publisher currently assigns the article an issue date of **15 November 2026**, later than this crosswalk's 8 November 2026 research cut-off. Treat it as forthcoming/watch-list material, not as an already-published source in the current evidence baseline. Do not cite it as established evidence until the stated publication date or a separately verified online-first publication record is confirmed.
 
-This supports the direction already assigned to CityMaker #623–#625: shared scope is necessary but insufficient; integrated city states also need owner-native identity, valid/record/observation times, freshness, correction, revocation, intervention and post-intervention outcome evidence. Sol-Atlas should coordinate read-only projections and state gaps, not invent a competing sensor platform or event ledger.
+The four-layer framing is directionally consistent with the work already assigned to CityMaker #623–#625, but that architectural recommendation is not dependent on treating the forthcoming article as published: shared scope is necessary but insufficient; integrated city states also need owner-native identity, valid/record/observation times, freshness, correction, revocation, intervention and post-intervention outcome evidence. Sol-Atlas should coordinate read-only projections and state gaps, not invent a competing sensor platform or event ledger.
 
-Source: Sustainable Cities and Society (2026), https://www.sciencedirect.com/science/article/abs/pii/S2210670726009455
+Watch item (issue date 15 November 2026): Sustainable Cities and Society, https://www.sciencedirect.com/science/article/abs/pii/S2210670726009455
 
 ### Building data interoperability: use the standard, measure beyond it
 
