@@ -213,6 +213,23 @@ Compare toolchains at workflow level, not one product against an entire industry
 
 Freeze product/version, date, regional feature availability, licence, connectors, export scope, hardware, inputs, human time and exclusions. Inaccessible vendor data is Unassessed, not absent. Non-comparable capabilities are declared, not scored as a competitor failure. Marketing statements are not measured performance.
 
+### 2026 product capability check — 8 November 2026
+
+The matched baseline must account for capabilities already announced or released:
+
+- **Forma Building Design (4 November 2026):** Indoor Daylight is in public beta and reports daylight access during occupied hours over a typical year; parking layout includes accessible/EV markings and access aisles; furniture is available in plan/3D; DXF import and DWG export are supported, with Revit handoff in the connected workflow. This is a real early-design baseline, not evidence that the underlying weather is locally representative or that a design meets all professional daylight/energy criteria.
+- **Forma Site Design / Street Design:** Autodesk's 14 October 2026 update describes stronger site-to-detailed-design connectivity and Street Design as still in development. Do not count a pre-release capability as a generally available production feature.
+- **TestFit Solve Filters (17 September 2026 documentation):** filters include units, parking ratio, NRSF, efficiency, FAR, height, dwelling units/acre, stalls, critical power, parcels, cut/fill and earthwork cost. Zoning values can be populated where local zoning data is available through its provider. Availability and completeness of local South African zoning data must be separately assessed; do not infer it from the US-centric product example.
+- **Bentley iTwin:** its platform already combines engineering data from diverse design tools with reality data and supports change visibility and infrastructure lifecycle workflows. Luminous should test cross-owner decision reliance and exact evidence requalification, not claim to invent engineering/reality integration.
+
+The comparison target is therefore not "more generated designs" or "first daylight analysis." It is whether a federated Luminous workflow can preserve the decision's exact source/geometry/solver/product/lot/fabrication/as-built/maintenance evidence and correctly determine what must be revalidated after change. Compare with the same user brief, local data availability, licences, feature access, output contract, human time and specialist analysis budget.
+
+References:
+- Forma Building Design update, 4 November 2026: https://blogs.autodesk.com/forma/2026/11/04/whats-new-in-forma-building-design-indoor-daylight-parking-furniture-and-autocad-workflows/
+- Autodesk Forma AU 2026 update, 14 October 2026: https://blogs.autodesk.com/forma/2026/10/14/what-autodesk-forma-announced-au-2026/
+- TestFit Solve Filters, 17 September 2026: https://support.testfit.io/knowledge/generative-design-solve-filters
+- Bentley iTwin platform: https://developer.bentley.com/itwinplatform/
+
 ## 8. Build / bridge / buy
 
 - **Build:** owner-neutral composition, exact scope/time binding, source continuity, independent replay, typed Unknown/NotComparable/Unsupported and selective invalidation.
