@@ -4069,13 +4069,13 @@
                 "evidence_state": "current",
                 "status": "available",
                 "capacity_kg": 2000,
-                "duration_ticks": 2
+                "duration_ticks": 4
               },
               "receiving": {
                 "evidence_state": "current",
                 "labour_state": "available",
                 "inspection_state": "passed",
-                "inspection_duration_ticks": 2,
+                "inspection_duration_ticks": 5,
                 "custody_state": "accepted",
                 "custody_evidence_state": "current",
                 "custody_receipt_id": "custody:d1",
