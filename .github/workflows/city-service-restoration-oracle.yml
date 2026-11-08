@@ -37,7 +37,7 @@ jobs:
           components: rustfmt, clippy
       - name: Check package formatting
         run: cargo fmt --manifest-path tools/city-service-restoration-bench/Cargo.toml --all -- --check
-      - name: Run locked tests
+      - name: Run locked Rust tests
         run: cargo test --locked --manifest-path tools/city-service-restoration-bench/Cargo.toml
       - name: Run strict Clippy
         run: cargo clippy --locked --manifest-path tools/city-service-restoration-bench/Cargo.toml --all-targets -- -D warnings
@@ -53,6 +53,7 @@ jobs:
           jq -e '
             .result == "pass"
             and .corpus_schema == "city-service-restoration-corpus/0.1"
+            and .corpus_schema_version == "0.1.0"
             and .input_contract == "city-service-restoration-input/0.1"
             and .evidence_class == "synthetic"
             and .scenario_count == 32
