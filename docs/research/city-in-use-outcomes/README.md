@@ -14,9 +14,17 @@
 
 A measurement is comparable only when its owner receipt, scope, design/BOM revision, operating context, observation window, unit, calibration and coverage meet the declared profile. Unknown, stale, insufficient-coverage or privacy-ineligible evidence does not become a favorable observation. A survey cannot satisfy a technical meter requirement.
 
-Dynamic models require calibrated status, independent validation on disjoint data and an applicable envelope. The evaluator reports a gap but does not certify the model.
+Dynamic models require calibrated status, independent validation on disjoint data and an applicable envelope. The v0.1 oracle now requires distinct, unique training/validation observation IDs, a declared validation protocol and partition-audit receipt; different digest strings alone are insufficient. This is a metadata-level split check, not independent authentication of the underlying raw observation bytes. The evaluator reports a gap but does not certify the model.
 
-M&V and causal assessment statuses are eligibility states only. They do not report savings or causal effects; those require the relevant method and independent review.
+Coverage fractions are constrained to [0, 1]; values over 100% remain Unknown/Unsupported rather than being accepted as extra evidence. M&V eligibility additionally requires explicit baseline and post windows with the same time unit and no overlap; a valid eligibility state still does not report savings. M&V and causal assessment statuses are eligibility states only. They do not report savings or causal effects; those require the relevant method and independent review.
+
+## Exact reference-auditor semantics
+
+The known-answer comparator requires exact object-key sets at every level, not merely a subset of expected fields. This prevents a test fixture from silently ceasing to assert a required output field. The CLI emits a raw-corpus SHA-256 and exact source commit in its receipt.
+
+The synthetic training/validation observation IDs and partition receipt are test metadata. A real calibrated-model claim still requires an owner-native, independently verified partition manifest and re-hash of raw source artifacts; this oracle does not establish that data partitions are genuinely independent.
+
+M&V eligibility requires a named method/revision, baseline receipt, explicit normalization variables, coverage in [0, 1], baseline adjustment review and non-overlapping baseline/post observation windows. Eligibility is not a savings result.
 
 ## Claim ceiling
 
