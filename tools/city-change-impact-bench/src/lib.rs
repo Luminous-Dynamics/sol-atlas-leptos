@@ -44,9 +44,7 @@ fn is_digest(value: &str) -> bool {
 
 fn contains_edge(graph: &Value, from: &str, to: &str) -> bool {
     records(graph, "edges").iter().any(|edge| {
-        text(edge, "from") == from
-            && text(edge, "to") == to
-            && !text(edge, "relation").is_empty()
+        text(edge, "from") == from && text(edge, "to") == to && !text(edge, "relation").is_empty()
     })
 }
 
@@ -101,11 +99,7 @@ fn expected_reason(finding: &Value) -> Vec<String> {
     values.into_iter().collect()
 }
 
-fn projection(
-    claim_id: &str,
-    state: &str,
-    reason_codes: Vec<String>,
-) -> Value {
+fn projection(claim_id: &str, state: &str, reason_codes: Vec<String>) -> Value {
     json!({
         "claim_id": claim_id,
         "state": state,
@@ -165,17 +159,29 @@ fn evaluate_claim(
         || text(claim, "functional_unit") != text(query, "functional_unit")
     {
         reasons.insert("CLAIM_SCOPE_OR_FUNCTIONAL_UNIT_MISMATCH".to_owned());
-        return projection(claim_id, "insufficient_evidence", reasons.into_iter().collect());
+        return projection(
+            claim_id,
+            "insufficient_evidence",
+            reasons.into_iter().collect(),
+        );
     }
 
     let Some(finding) = finding else {
         reasons.insert("CLAIM_IMPACT_FINDING_MISSING".to_owned());
-        return projection(claim_id, "insufficient_evidence", reasons.into_iter().collect());
+        return projection(
+            claim_id,
+            "insufficient_evidence",
+            reasons.into_iter().collect(),
+        );
     };
     let mut finding_reasons = expected_reason(finding);
     if finding_reasons.is_empty() {
         reasons.insert("OWNER_IMPACT_REASON_MISSING".to_owned());
-        return projection(claim_id, "insufficient_evidence", reasons.into_iter().collect());
+        return projection(
+            claim_id,
+            "insufficient_evidence",
+            reasons.into_iter().collect(),
+        );
     }
 
     if text(event, "change_class") == "coordinate_frame"
@@ -203,18 +209,16 @@ fn evaluate_claim(
             && !finding_reasons.contains(&"REVOCATION_AUTHORITY_UNVERIFIED".to_owned())
             && !finding_reasons.contains(&"ISSUER_AUTHORITY_UNQUALIFIED".to_owned())
         {
-            finding_reasons = vec![match text(event, "change_class") {
-                "lot_revocation" => "REVOCATION_AUTHORITY_UNVERIFIED",
-                "payload_retrieval" => "ISSUER_AUTHORITY_UNQUALIFIED",
-                _ => "CHANGE_AUTHORITY_UNVERIFIED",
-            }
-            .to_owned()];
+            finding_reasons = vec![
+                match text(event, "change_class") {
+                    "lot_revocation" => "REVOCATION_AUTHORITY_UNVERIFIED",
+                    "payload_retrieval" => "ISSUER_AUTHORITY_UNQUALIFIED",
+                    _ => "CHANGE_AUTHORITY_UNVERIFIED",
+                }
+                .to_owned(),
+            ];
         }
-        return projection(
-            claim_id,
-            "insufficient_evidence",
-            finding_reasons,
-        );
+        return projection(claim_id, "insufficient_evidence", finding_reasons);
     }
 
     if text(event, "time_basis") != "UTC_UNIX_SECONDS"
@@ -308,7 +312,8 @@ fn evaluate_claim(
                 vec!["EVENT_SEQUENCE_EVIDENCE_MISSING".to_owned()],
             );
         };
-        if event_sequence <= last_sequence || number(report, "owner_sequence") != Some(event_sequence)
+        if event_sequence <= last_sequence
+            || number(report, "owner_sequence") != Some(event_sequence)
         {
             return projection(
                 claim_id,
@@ -349,8 +354,7 @@ fn evaluate_claim(
     }
 
     if text(event, "change_class") == "policy_update"
-        && number(event, "effective_at").unwrap_or(0)
-            > number(query, "evaluation_at").unwrap_or(0)
+        && number(event, "effective_at").unwrap_or(0) > number(query, "evaluation_at").unwrap_or(0)
     {
         return projection(
             claim_id,
@@ -492,9 +496,7 @@ pub fn evaluate_case(case: &Value) -> Value {
             ));
             continue;
         }
-        outputs.push(evaluate_claim(
-            input, claim, event, query, graph, report,
-        ));
+        outputs.push(evaluate_claim(input, claim, event, query, graph, report));
     }
     json!({
         "id": text(case, "id"),
