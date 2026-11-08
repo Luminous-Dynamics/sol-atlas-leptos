@@ -172,7 +172,7 @@ fn evaluate_subject(input: &Value, required: &Value) -> Value {
         }
         if text(event, "time_basis").is_empty() || text(event, "timezone").is_empty() {
             push_reason(&mut reasons, "TIME_BASIS_MISSING");
-        } else if text(event, "time_basis") != TIME_BASIS || text(event, "timezone") != "UTC" {
+        } else if text(event, "time_basis") != TIME_BASIS {
             push_reason(&mut reasons, "TIME_BASIS_UNSUPPORTED");
         }
         if number(event, "valid_from").is_none()
@@ -876,6 +876,15 @@ mod tests {
     #[test]
     fn current_state_requires_owner_policy_and_admitted_observation() {
         let data = input(vec![event("E-1", 1, 950, 960, 970)]);
+        let result = evaluate_subject(&data, &data["required_subjects"][0]);
+        assert_eq!(result["state"], "Current");
+    }
+
+    #[test]
+    fn canonical_utc_timestamp_preserves_south_african_source_timezone() {
+        let mut observation = event("E-1", 1, 950, 960, 970);
+        observation["timezone"] = json!("Africa/Johannesburg");
+        let data = input(vec![observation]);
         let result = evaluate_subject(&data, &data["required_subjects"][0]);
         assert_eq!(result["state"], "Current");
     }
