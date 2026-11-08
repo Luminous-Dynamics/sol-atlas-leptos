@@ -473,7 +473,9 @@ pub fn validate_resilience_binding_values(
                 &mut violations,
                 values.is_none_or(Vec::is_empty)
                     || values.is_some_and(|items| {
-                        items.iter().any(|item| item.as_str().is_none_or(str::is_empty))
+                        items
+                            .iter()
+                            .any(|item| item.as_str().is_none_or(str::is_empty))
                             || required_fields
                                 .iter()
                                 .any(|required| !has_string(values, required))
@@ -651,12 +653,10 @@ mod tests {
             .unwrap();
         observed["weather_class"] = json!("TMYx");
         let report = validate_resilience_binding_values(&binding, &schema);
-        assert!(
-            contains(
-                &report,
-                "RESILIENCE_TMY_EXTREME_OR_FUTURE_SUBSTITUTION_ALLOWED"
-            )
-        );
+        assert!(contains(
+            &report,
+            "RESILIENCE_TMY_EXTREME_OR_FUTURE_SUBSTITUTION_ALLOWED"
+        ));
     }
 
     #[test]
