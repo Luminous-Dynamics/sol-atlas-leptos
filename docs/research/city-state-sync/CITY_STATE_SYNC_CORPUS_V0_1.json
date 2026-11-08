@@ -1921,6 +1921,17 @@
         "entities": [
           {
             "owner_repo": "owner/a",
+            "subject_id": "asset-new",
+            "state": "Current",
+            "selected_event_id": "E-2",
+            "owner_state": "NewAsset",
+            "reason_codes": [],
+            "historical_event_ids": [
+              "E-2"
+            ]
+          },
+          {
+            "owner_repo": "owner/a",
             "subject_id": "asset-old",
             "state": "Current",
             "selected_event_id": "E-1",
@@ -1929,17 +1940,6 @@
             "historical_event_ids": [
               "E-1",
               "LINK-1"
-            ]
-          },
-          {
-            "owner_repo": "owner/a",
-            "subject_id": "asset-new",
-            "state": "Current",
-            "selected_event_id": "E-2",
-            "owner_state": "NewAsset",
-            "reason_codes": [],
-            "historical_event_ids": [
-              "E-2"
             ]
           }
         ],
