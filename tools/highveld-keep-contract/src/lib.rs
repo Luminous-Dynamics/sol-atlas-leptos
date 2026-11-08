@@ -147,31 +147,62 @@ fn parse_unique_json_bytes(bytes: &[u8]) -> Result<Value, String> {
     serde_json::from_str(input).map_err(|error| format!("JSON_PARSE_FAILED: {error}"))
 }
 
+fn object_has_exact_keys(value: &Value, expected: &[&str]) -> bool {
+    let Some(object) = value.as_object() else {
+        return false;
+    };
+    object.len() == expected.len() && expected.iter().all(|key| object.contains_key(*key))
+}
+
 fn build_field_rules(
     policy: &Value,
     document: &str,
     expected_schema_version: &str,
 ) -> Option<std::collections::HashMap<String, std::collections::HashSet<String>>> {
-    if policy.get("policy_version").and_then(Value::as_str) != Some(STRICT_FIELD_POLICY_VERSION) {
+    if !object_has_exact_keys(policy, &["policy_version", "description", "documents"])
+        || policy.get("policy_version").and_then(Value::as_str) != Some(STRICT_FIELD_POLICY_VERSION)
+    {
         return None;
     }
-    let doc = policy.get("documents")?.get(document)?;
-    if doc.get("schema_version").and_then(Value::as_str) != Some(expected_schema_version) {
+
+    let documents = policy.get("documents")?.as_object()?;
+    if documents.len() != 2 || !documents.contains_key("scenario") || !documents.contains_key("parameters") {
+        return None;
+    }
+    let expected_source_path = match document {
+        "scenario" => "docs/research/highveld-keep/HIGHVELD_KEEP_SCENARIO_V0_1.json",
+        "parameters" => "docs/research/highveld-keep/HIGHVELD_KEEP_PARAMETER_SPACE_V0_1.json",
+        _ => return None,
+    };
+    let doc = documents.get(document)?;
+    if !object_has_exact_keys(doc, &["schema_version", "source_path", "object_paths"])
+        || doc.get("schema_version").and_then(Value::as_str) != Some(expected_schema_version)
+        || doc.get("source_path").and_then(Value::as_str) != Some(expected_source_path)
+    {
+        return None;
+    }
+
+    let entries = doc.get("object_paths")?.as_array()?;
+    if entries.is_empty() {
         return None;
     }
     let mut rules = std::collections::HashMap::new();
-    for entry in doc.get("object_paths")?.as_array()? {
+    for entry in entries {
+        if !object_has_exact_keys(entry, &["path", "allowed_keys"]) {
+            return None;
+        }
         let path = entry.get("path")?.as_str()?;
         if !path.starts_with("$") {
             return None;
         }
         let mut allowed = std::collections::HashSet::new();
         for key in entry.get("allowed_keys")?.as_array()? {
-            if !allowed.insert(key.as_str()?.to_owned()) {
+            let key = key.as_str()?;
+            if key.is_empty() || !allowed.insert(key.to_owned()) {
                 return None;
             }
         }
-        if rules.insert(path.to_owned(), allowed).is_some() {
+        if allowed.is_empty() || rules.insert(path.to_owned(), allowed).is_some() {
             return None;
         }
     }
