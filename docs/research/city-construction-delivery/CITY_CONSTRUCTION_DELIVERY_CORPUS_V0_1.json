@@ -152,7 +152,8 @@
               "unloading": "feasible",
               "receiving": "feasible",
               "inspection": "passed",
-              "custody": "accepted"
+              "custody": "accepted",
+              "shared_resources": "feasible"
             }
           }
         ]
@@ -297,7 +298,8 @@
               "unloading": "feasible",
               "receiving": "feasible",
               "inspection": "passed",
-              "custody": "accepted"
+              "custody": "accepted",
+              "shared_resources": "feasible"
             }
           }
         ]
@@ -442,7 +444,8 @@
               "unloading": "feasible",
               "receiving": "feasible",
               "inspection": "passed",
-              "custody": "accepted"
+              "custody": "accepted",
+              "shared_resources": "feasible"
             }
           }
         ]
@@ -587,7 +590,8 @@
               "unloading": "feasible",
               "receiving": "feasible",
               "inspection": "passed",
-              "custody": "accepted"
+              "custody": "accepted",
+              "shared_resources": "feasible"
             }
           }
         ]
@@ -991,7 +995,8 @@
               "unloading": "feasible",
               "receiving": "feasible",
               "inspection": "passed",
-              "custody": "accepted"
+              "custody": "accepted",
+              "shared_resources": "feasible"
             }
           }
         ]
@@ -1136,7 +1141,8 @@
               "unloading": "feasible",
               "receiving": "feasible",
               "inspection": "passed",
-              "custody": "accepted"
+              "custody": "accepted",
+              "shared_resources": "feasible"
             }
           }
         ]
@@ -1281,7 +1287,8 @@
               "unloading": "feasible",
               "receiving": "feasible",
               "inspection": "passed",
-              "custody": "accepted"
+              "custody": "accepted",
+              "shared_resources": "feasible"
             }
           }
         ]
@@ -1426,7 +1433,8 @@
               "unloading": "feasible",
               "receiving": "feasible",
               "inspection": "passed",
-              "custody": "accepted"
+              "custody": "accepted",
+              "shared_resources": "feasible"
             }
           }
         ]
@@ -1571,7 +1579,8 @@
               "unloading": "feasible",
               "receiving": "feasible",
               "inspection": "passed",
-              "custody": "accepted"
+              "custody": "accepted",
+              "shared_resources": "feasible"
             }
           }
         ]
@@ -1714,7 +1723,8 @@
               "unloading": "feasible",
               "receiving": "feasible",
               "inspection": "passed",
-              "custody": "accepted"
+              "custody": "accepted",
+              "shared_resources": "feasible"
             }
           }
         ]
@@ -1859,7 +1869,8 @@
               "unloading": "feasible",
               "receiving": "feasible",
               "inspection": "passed",
-              "custody": "accepted"
+              "custody": "accepted",
+              "shared_resources": "feasible"
             }
           }
         ]
@@ -2004,7 +2015,8 @@
               "unloading": "feasible",
               "receiving": "feasible",
               "inspection": "passed",
-              "custody": "accepted"
+              "custody": "accepted",
+              "shared_resources": "feasible"
             }
           }
         ]
@@ -2149,7 +2161,8 @@
               "unloading": "blocked",
               "receiving": "feasible",
               "inspection": "passed",
-              "custody": "accepted"
+              "custody": "accepted",
+              "shared_resources": "feasible"
             }
           }
         ]
@@ -2294,7 +2307,8 @@
               "unloading": "blocked",
               "receiving": "feasible",
               "inspection": "passed",
-              "custody": "accepted"
+              "custody": "accepted",
+              "shared_resources": "feasible"
             }
           }
         ]
@@ -2585,7 +2599,8 @@
               "unloading": "feasible",
               "receiving": "blocked",
               "inspection": "passed",
-              "custody": "accepted"
+              "custody": "accepted",
+              "shared_resources": "feasible"
             }
           }
         ]
@@ -2730,7 +2745,8 @@
               "unloading": "feasible",
               "receiving": "feasible",
               "inspection": "rejected",
-              "custody": "accepted"
+              "custody": "accepted",
+              "shared_resources": "feasible"
             }
           }
         ]
@@ -2873,7 +2889,8 @@
               "unloading": "feasible",
               "receiving": "feasible",
               "inspection": "pending",
-              "custody": "not_received"
+              "custody": "not_received",
+              "shared_resources": "feasible"
             }
           }
         ]
@@ -3016,7 +3033,8 @@
               "unloading": "feasible",
               "receiving": "feasible",
               "inspection": "passed",
-              "custody": "partial"
+              "custody": "partial",
+              "shared_resources": "feasible"
             }
           }
         ]
@@ -3161,7 +3179,8 @@
               "unloading": "feasible",
               "receiving": "feasible",
               "inspection": "passed",
-              "custody": "disputed"
+              "custody": "disputed",
+              "shared_resources": "feasible"
             }
           }
         ]
@@ -3306,7 +3325,8 @@
               "unloading": "feasible",
               "receiving": "feasible",
               "inspection": "passed",
-              "custody": "accepted"
+              "custody": "accepted",
+              "shared_resources": "feasible"
             }
           }
         ]
@@ -3708,7 +3728,8 @@
               "unloading": "feasible",
               "receiving": "feasible",
               "inspection": "passed",
-              "custody": "accepted"
+              "custody": "accepted",
+              "shared_resources": "feasible"
             }
           }
         ]
@@ -3851,7 +3872,8 @@
               "unloading": "feasible",
               "receiving": "feasible",
               "inspection": "passed",
-              "custody": "accepted"
+              "custody": "accepted",
+              "shared_resources": "feasible"
             }
           }
         ]
@@ -3996,7 +4018,8 @@
               "unloading": "feasible",
               "receiving": "feasible",
               "inspection": "passed",
-              "custody": "accepted"
+              "custody": "accepted",
+              "shared_resources": "feasible"
             }
           }
         ]
@@ -4139,7 +4162,8 @@
               "unloading": "feasible",
               "receiving": "feasible",
               "inspection": "passed",
-              "custody": "accepted"
+              "custody": "accepted",
+              "shared_resources": "feasible"
             }
           }
         ]
@@ -4728,7 +4752,8 @@
               "unloading": "feasible",
               "receiving": "feasible",
               "inspection": "passed",
-              "custody": "accepted"
+              "custody": "accepted",
+              "shared_resources": "feasible"
             }
           }
         ]
@@ -4873,7 +4898,8 @@
               "unloading": "feasible",
               "receiving": "feasible",
               "inspection": "passed",
-              "custody": "rejected"
+              "custody": "rejected",
+              "shared_resources": "feasible"
             }
           }
         ]
