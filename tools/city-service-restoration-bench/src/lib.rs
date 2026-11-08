@@ -68,14 +68,36 @@ fn evaluate_plan(input: &Value, reasons: &mut BTreeSet<String>, conflicts: &mut 
     }
 
     let window = input.get("planning_window").unwrap_or(&Value::Null);
-    let (Some(window_start), Some(window_end)) =
-        (u64_field(window, "start_at"), u64_field(window, "end_at"))
-    else {
-        add_unknown(reasons, "PLANNING_WINDOW_MISSING");
-        ((),)
+    let (window_start, window_end) = match (
+        u64_field(window, "start_at"),
+        u64_field(window, "end_at"),
+    ) {
+        (Some(start), Some(end)) => (start, end),
+        _ => {
+            add_unknown(reasons, "PLANNING_WINDOW_MISSING");
+            return;
+        }
     };
     if window_start >= window_end || str_field(window, "time_basis") != "UTC_UNIX_SECONDS" {
         add_unknown(reasons, "PLANNING_WINDOW_INVALID");
+    }
+
+    for (field, reason) in [
+        ("part_requirements", "PART_REQUIREMENTS_MISSING"),
+        ("reservations", "RESOURCE_RESERVATIONS_MISSING"),
+        ("deliveries", "DELIVERY_EVIDENCE_MISSING"),
+        ("crew_requirements", "CREW_REQUIREMENTS_MISSING"),
+        ("tool_requirements", "TOOL_REQUIREMENTS_MISSING"),
+        ("calibration_requirements", "CALIBRATION_REQUIREMENTS_MISSING"),
+        ("isolation_requirements", "ISOLATION_REQUIREMENTS_MISSING"),
+        ("access_requirements", "ACCESS_REQUIREMENTS_MISSING"),
+        ("tolerance_checks", "TOLERANCE_CHECKS_MISSING"),
+        ("repair_envelope_checks", "REPAIR_ENVELOPE_CHECKS_MISSING"),
+        ("payload_checks", "PAYLOAD_CHECKS_MISSING"),
+    ] {
+        if records(input, field).is_empty() {
+            add_unknown(reasons, reason);
+        }
     }
 
     for part in records(input, "part_requirements") {
@@ -412,20 +434,20 @@ fn evaluate_lifecycle(
         )
     };
 
-    let service = if str_field(lifecycle, "service_state") == "unknown"
+    let service = if commissioning != "pass" {
+        "unknown".to_owned()
+    } else if str_field(lifecycle, "service_state") == "unknown"
         || str_field(lifecycle, "continuity_receipt_state") != "current"
-        || str_field(lifecycle, "service_scope_digest") != text_field(input.get("scope").unwrap_or(&Value::Null), "scope_digest")
+        || str_field(lifecycle, "service_scope_digest")
+            != text_field(input.get("scope").unwrap_or(&Value::Null), "scope_digest")
     {
         reasons.insert("CONTINUITY_SERVICE_EVIDENCE_UNKNOWN".to_owned());
         "unknown".to_owned()
     } else if bool_field(lifecycle, "stable_adequacy_met") != Some(true) {
         reasons.insert("STABLE_ADEQUACY_INTERVAL_NOT_MET".to_owned());
         "unknown".to_owned()
-    } else if commissioning == "pass" {
-        str_field(lifecycle, "service_state").to_owned()
     } else {
-        reasons.insert("SERVICE_CANNOT_PRECEDE_COMMISSIONING".to_owned());
-        "unknown".to_owned()
+        str_field(lifecycle, "service_state").to_owned()
     };
 
     (work, inspection, commissioning, service)
