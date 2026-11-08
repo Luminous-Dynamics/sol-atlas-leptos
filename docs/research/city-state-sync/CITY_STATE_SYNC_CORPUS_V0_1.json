@@ -1342,7 +1342,7 @@
             "observed_at": 950,
             "recorded_at": 960,
             "ingested_at": 970,
-            "time_basis": "UTC_UNIX_SECONDS",
+            "time_basis": "LOCAL_WALL_CLOCK_UNRESOLVED",
             "timezone": "Africa/Johannesburg",
             "clock_id": "clock-1",
             "clock_uncertainty_ms": 5,
@@ -3739,6 +3739,98 @@
             ]
           }
         ],
+        "claim_ceiling": "synthetic_temporal_state_and_feedback_semantics_only"
+      }
+    },
+    {
+      "case_id": "CS-036",
+      "description": "Canonical UTC instants retain Africa/Johannesburg as source timezone metadata",
+      "input": {
+        "as_of": {
+          "valid_at": 1000,
+          "recorded_at": 1100,
+          "ingested_at": 1200
+        },
+        "freshness_policies": [
+          {
+            "policy_id": "P-1",
+            "owner_repo": "owner/a",
+            "contract_id": "asset-state",
+            "contract_version": "1.0",
+            "expected_refresh_seconds": 60,
+            "max_observation_age_seconds": 300,
+            "max_record_delay_seconds": 120,
+            "max_ingest_lag_seconds": 120,
+            "max_clock_uncertainty_ms": 100
+          }
+        ],
+        "owner_health": [
+          {
+            "owner_repo": "owner/a",
+            "state": "available"
+          }
+        ],
+        "required_subjects": [
+          {
+            "owner_repo": "owner/a",
+            "subject_id": "asset-1",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "contract_id": "asset-state",
+            "contract_version": "1.0"
+          }
+        ],
+        "events": [
+          {
+            "event_id": "E-1",
+            "receipt_id": "R-E-1",
+            "owner_repo": "owner/a",
+            "contract_id": "asset-state",
+            "contract_version": "1.0",
+            "source_revision": "0123456789012345678901234567890123456789",
+            "schema_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "content_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "subject_id": "asset-1",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "owner_sequence": 1,
+            "event_kind": "assertion",
+            "target_event_id": null,
+            "target_subject_id": null,
+            "owner_state": "Available",
+            "evidence_state": "admitted",
+            "valid_from": 0,
+            "valid_until": null,
+            "observed_at": 950,
+            "recorded_at": 960,
+            "ingested_at": 970,
+            "time_basis": "UTC_UNIX_SECONDS",
+            "timezone": "Africa/Johannesburg",
+            "clock_id": "clock-1",
+            "clock_uncertainty_ms": 5,
+            "freshness_policy_id": "P-1"
+          }
+        ],
+        "intervention_stages": [],
+        "identity_links": []
+      },
+      "expected": {
+        "case_id": "CS-036",
+        "entities": [
+          {
+            "owner_repo": "owner/a",
+            "subject_id": "asset-1",
+            "state": "Current",
+            "selected_event_id": "E-1",
+            "owner_state": "Available",
+            "reason_codes": [],
+            "historical_event_ids": [
+              "E-1"
+            ]
+          }
+        ],
+        "interventions": [],
+        "identity_links": [],
         "claim_ceiling": "synthetic_temporal_state_and_feedback_semantics_only"
       }
     }
