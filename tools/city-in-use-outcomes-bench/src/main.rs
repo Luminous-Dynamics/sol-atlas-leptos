@@ -32,7 +32,9 @@ fn main() -> ExitCode {
         return ExitCode::from(2);
     };
     if flag != "--source-commit" || !valid_commit(&source_commit) {
-        eprintln!("source commit must be supplied as --source-commit followed by 40 hex characters");
+        eprintln!(
+            "source commit must be supplied as --source-commit followed by 40 hex characters"
+        );
         return ExitCode::from(2);
     }
 
@@ -59,7 +61,9 @@ fn main() -> ExitCode {
         || corpus["classification"] != "synthetic_fixture_only"
         || cases.len() != 24
     {
-        eprintln!("unexpected in-use outcomes corpus identity, schema, classification or case count");
+        eprintln!(
+            "unexpected in-use outcomes corpus identity, schema, classification or case count"
+        );
         return ExitCode::from(2);
     }
 
