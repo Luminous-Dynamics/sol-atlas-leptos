@@ -21,14 +21,14 @@ The registry records the status visible in the pinned upstream work on 8 Novembe
 | `artifact_revision` | Typed Rust function pinned to open PR #138 / benchmark #484; no standalone report schema yet | Sol-Atlas |
 | `dependency_coverage` | Versioned schema v0.1 and Rust auditor pinned to open PRs #489/#490 | Sol-Atlas |
 | `source_evidence_lifecycle` | **Schema-incompatible**: current event/report v0.1 use digest-based node IDs and omit v0.2 graph node types | Sol-Atlas #396/#397/#487; blocked by #650 |
-| `source_inventory` | Design/issue only; no versioned report contract registered here | Sol-Atlas #497 |
+| `source_inventory` | Versioned manifest schema and Rust closure verifier pinned to PR #499/#507; exact report envelope still not owner-authenticated here | Sol-Atlas #497 |
 | `supply_chain_provenance` | Owner contract not versioned in this adapter | Mycelix #4814/#5149 |
 | `engineering_qualification` | Benchmark/design owner work; no CityMaker report schema pinned | Symthaea #10543/#6117 |
 | `policy_applicability` | No policy-owner contract registered; #501 is decision reliance, not policy authority | Policy owner required |
 | `decision_reliance` | Owner concept exists, but not yet pinned as a CityMaker adapter contract | Sol-Atlas #501 |
 | `asset_operation` | Service/outcome/inspection owners exist; adapter contract not versioned here | Sol-Atlas #574/#633; Symtropy #4043 |
 
-Only the first two lanes can currently be contract-bound in this synthetic router, and even then the result is explicitly **contract-bound, unverified**. The artifact frontier is an open-PR typed function rather than a signed/serialized impact-report contract; the dependency-coverage receipt is an open-PR schema/runtime. The router does not authenticate either.
+Three lanes can currently be contract-bound in this synthetic router: artifact revision, dependency coverage, and federated source inventory. All three results remain explicitly **contract-bound, unverified**. The artifact frontier is an open-PR typed function rather than a signed/serialized impact-report contract; the dependency-coverage schema/runtime and source-inventory manifest/closure verifier are also open-PR owner work. The router does not authenticate any of them.
 
 ## Critical upstream mismatch: IEAC v0.1 events versus graph v0.2
 
@@ -48,16 +48,17 @@ and their node type enums omit those v0.2 built-environment node types. A source
 
 The registry maps each change class to one or more required families. A single event may require multiple owners. CityMaker joins their report envelopes only when event digest, subject/revision, scope, functional unit and evaluation time agree exactly.
 
-A request for a `not_affected`/NoImpact claim dynamically requires both `source_inventory` and `dependency_coverage`, in addition to the relevant impact family. A descriptor list alone is not source-universe completeness, and a complete traversal is not proof that the dependency graph contains every required edge.
+A request for a `not_affected`/NoImpact claim dynamically requires both `source_inventory` and `dependency_coverage`, in addition to the relevant impact family. These are separate receipts: #507 qualifies page/partition/tombstone enumeration and closure within a caller-supplied expected-owner set; #490/#488 qualifies required dependency families and relationship coverage. One does not discharge the other. A complete page chain does not prove that the expected-owner register contains every real-world source, and a complete traversal is not proof that the dependency graph contains every required edge.
 
 Unsupported or unversioned lanes return `insufficient_evidence`. A wrong or contradictory binding returns `invalid_input`. A complete set of metadata bindings returns only `contract_bound_unverified`; the router never says the owner report contents were authenticated or the impact algorithm was correct.
 
 ## Corpus
 
-`CITY_IMPACT_LANE_ROUTER_CORPUS_V0_1.json` contains 35 synthetic known-answer cases:
+`CITY_IMPACT_LANE_ROUTER_CORPUS_V0_1.json` contains 41 synthetic known-answer cases:
 - correct artifact-frontier plus dependency-coverage envelope;
 - wrong-family substitution and missing required lanes;
 - source lifecycle v0.1 versus graph v0.2 incompatibility;
+- source-inventory closure positive, incomplete, invalid, exclusion and optional-owner controls;
 - supply-chain, calibration, policy, decision and asset-operation lanes that remain unsupported until exact contracts are pinned;
 - event, subject, scope, contract, schema and report-digest mutations;
 - incomplete coverage, no-impact source-inventory requirements, duplicate reports and action-authority escalation.
@@ -76,7 +77,7 @@ From the repository root:
       docs/research/city-impact-router/CITY_IMPACT_LANE_ROUTER_CORPUS_V0_1.json \
       --source-commit <40-lowercase-hex-sha>
 
-The CLI receipt binds the exact registry bytes, corpus bytes and source commit. A PASS means only that the router reproduces the 32 synthetic routing expectations.
+The CLI receipt binds the exact registry bytes, corpus bytes and source commit. A PASS means only that the router reproduces the 41 synthetic routing expectations.
 
 ## Benchmark targets
 
