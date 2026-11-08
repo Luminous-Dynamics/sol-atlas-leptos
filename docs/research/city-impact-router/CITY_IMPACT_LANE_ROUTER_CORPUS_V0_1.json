@@ -2232,12 +2232,12 @@
             "impact_family": "source_inventory",
             "owner_repo": "Luminous-Dynamics/sol-atlas-leptos",
             "owner_issue": 497,
-            "contract_ref": "",
-            "contract_revision": "",
-            "schema_id": null,
-            "schema_version": null,
-            "runtime_revision": null,
-            "report_kind": "not_yet_versioned",
+            "contract_ref": "luminous.federated-source-inventory-manifest.v0.1",
+            "contract_revision": "8ef167177abb03fc561ea7d99678ac6ada909f5c",
+            "schema_id": "luminous.federated-source-inventory-manifest.v0.1",
+            "schema_version": "luminous.federated-source-inventory-manifest.v0.1",
+            "runtime_revision": "8ef167177abb03fc561ea7d99678ac6ada909f5c",
+            "report_kind": "InventoryClosureValidation",
             "event_id": "EVENT-LR-20",
             "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
             "subject_node_id": "artifact:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
@@ -2258,6 +2258,21 @@
               "recorded_at": "2026-11-08T10:00:00Z",
               "trusted_at": "2026-11-08T10:00:30Z",
               "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            },
+            "disposition": "incomplete_or_indeterminate",
+            "claim_scope": "caller_supplied_required_owner_set_and_declared_query_snapshots_only",
+            "expected_owner_count": 2,
+            "required_owner_count": 2,
+            "present_required_owner_count": 1,
+            "complete_inventory_count": 1,
+            "complete_with_exclusions_count": 0,
+            "incomplete_inventory_count": 1,
+            "invalid_inventory_count": 0,
+            "not_comparable_inventory_count": 0,
+            "owner_presence": {
+              "disposition": "incomplete_or_indeterminate",
+              "missing_required_owner_count": 1,
+              "claim_scope": "caller_supplied_expected_owner_set_manifest_presence_only"
             }
           }
         ]
@@ -2518,12 +2533,12 @@
             "impact_family": "source_inventory",
             "owner_repo": "Luminous-Dynamics/sol-atlas-leptos",
             "owner_issue": 497,
-            "contract_ref": "",
-            "contract_revision": "",
-            "schema_id": null,
-            "schema_version": null,
-            "runtime_revision": null,
-            "report_kind": "not_yet_versioned",
+            "contract_ref": "luminous.federated-source-inventory-manifest.v0.1",
+            "contract_revision": "8ef167177abb03fc561ea7d99678ac6ada909f5c",
+            "schema_id": "luminous.federated-source-inventory-manifest.v0.1",
+            "schema_version": "luminous.federated-source-inventory-manifest.v0.1",
+            "runtime_revision": "8ef167177abb03fc561ea7d99678ac6ada909f5c",
+            "report_kind": "InventoryClosureValidation",
             "event_id": "EVENT-LR-22",
             "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
             "subject_node_id": "artifact:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
@@ -2544,6 +2559,21 @@
               "recorded_at": "2026-11-08T10:00:00Z",
               "trusted_at": "2026-11-08T10:00:30Z",
               "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            },
+            "disposition": "incomplete_or_indeterminate",
+            "claim_scope": "caller_supplied_required_owner_set_and_declared_query_snapshots_only",
+            "expected_owner_count": 2,
+            "required_owner_count": 2,
+            "present_required_owner_count": 1,
+            "complete_inventory_count": 1,
+            "complete_with_exclusions_count": 0,
+            "incomplete_inventory_count": 1,
+            "invalid_inventory_count": 0,
+            "not_comparable_inventory_count": 0,
+            "owner_presence": {
+              "disposition": "incomplete_or_indeterminate",
+              "missing_required_owner_count": 1,
+              "claim_scope": "caller_supplied_expected_owner_set_manifest_presence_only"
             }
           }
         ]
@@ -3291,12 +3321,12 @@
             "impact_family": "source_inventory",
             "owner_repo": "Luminous-Dynamics/sol-atlas-leptos",
             "owner_issue": 497,
-            "contract_ref": "",
-            "contract_revision": "",
-            "schema_id": null,
-            "schema_version": null,
-            "runtime_revision": null,
-            "report_kind": "not_yet_versioned",
+            "contract_ref": "luminous.federated-source-inventory-manifest.v0.1",
+            "contract_revision": "8ef167177abb03fc561ea7d99678ac6ada909f5c",
+            "schema_id": "luminous.federated-source-inventory-manifest.v0.1",
+            "schema_version": "luminous.federated-source-inventory-manifest.v0.1",
+            "runtime_revision": "8ef167177abb03fc561ea7d99678ac6ada909f5c",
+            "report_kind": "InventoryClosureValidation",
             "event_id": "EVENT-LR-28",
             "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
             "subject_node_id": "artifact:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
@@ -3317,6 +3347,21 @@
               "recorded_at": "2026-11-08T10:00:00Z",
               "trusted_at": "2026-11-08T10:00:30Z",
               "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            },
+            "disposition": "incomplete_or_indeterminate",
+            "claim_scope": "caller_supplied_required_owner_set_and_declared_query_snapshots_only",
+            "expected_owner_count": 2,
+            "required_owner_count": 2,
+            "present_required_owner_count": 1,
+            "complete_inventory_count": 1,
+            "complete_with_exclusions_count": 0,
+            "incomplete_inventory_count": 1,
+            "invalid_inventory_count": 0,
+            "not_comparable_inventory_count": 0,
+            "owner_presence": {
+              "disposition": "incomplete_or_indeterminate",
+              "missing_required_owner_count": 1,
+              "claim_scope": "caller_supplied_expected_owner_set_manifest_presence_only"
             }
           }
         ]
@@ -4226,7 +4271,7 @@
         "event": {
           "event_id": "EVENT-LR-36",
           "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          "change_class": "design_geometry",
+          "change_class": "source_inventory_audit",
           "subject_node_id": "artifact:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
           "subject_revision": "REV-2",
           "source_revision_before": "REV-1",
@@ -4322,7 +4367,7 @@
         "event": {
           "event_id": "EVENT-LR-37",
           "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          "change_class": "design_geometry",
+          "change_class": "source_inventory_audit",
           "subject_node_id": "artifact:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
           "subject_revision": "REV-2",
           "source_revision_before": "REV-1",
@@ -4420,7 +4465,7 @@
         "event": {
           "event_id": "EVENT-LR-38",
           "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          "change_class": "design_geometry",
+          "change_class": "source_inventory_audit",
           "subject_node_id": "artifact:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
           "subject_revision": "REV-2",
           "source_revision_before": "REV-1",
@@ -4518,7 +4563,7 @@
         "event": {
           "event_id": "EVENT-LR-39",
           "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          "change_class": "design_geometry",
+          "change_class": "source_inventory_audit",
           "subject_node_id": "artifact:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
           "subject_revision": "REV-2",
           "source_revision_before": "REV-1",
@@ -4616,7 +4661,7 @@
         "event": {
           "event_id": "EVENT-LR-40",
           "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          "change_class": "design_geometry",
+          "change_class": "source_inventory_audit",
           "subject_node_id": "artifact:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
           "subject_revision": "REV-2",
           "source_revision_before": "REV-1",
@@ -4714,7 +4759,7 @@
         "event": {
           "event_id": "EVENT-LR-41",
           "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          "change_class": "design_geometry",
+          "change_class": "source_inventory_audit",
           "subject_node_id": "artifact:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
           "subject_revision": "REV-2",
           "source_revision_before": "REV-1",
