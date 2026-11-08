@@ -37,8 +37,8 @@
     },
     "cases": {
       "type": "array",
-      "minItems": 41,
-      "maxItems": 41,
+      "minItems": 44,
+      "maxItems": 44,
       "items": {
         "type": "object",
         "additionalProperties": false,
@@ -461,6 +461,9 @@
                       "additionalProperties": false,
                       "required": [
                         "disposition",
+                        "expected_owner_count",
+                        "required_owner_count",
+                        "observed_manifest_count",
                         "missing_required_owner_count",
                         "claim_scope"
                       ],
@@ -479,6 +482,18 @@
                         "claim_scope": {
                           "type": "string",
                           "minLength": 1
+                        },
+                        "expected_owner_count": {
+                          "type": "integer",
+                          "minimum": 0
+                        },
+                        "required_owner_count": {
+                          "type": "integer",
+                          "minimum": 0
+                        },
+                        "observed_manifest_count": {
+                          "type": "integer",
+                          "minimum": 0
                         }
                       }
                     }
