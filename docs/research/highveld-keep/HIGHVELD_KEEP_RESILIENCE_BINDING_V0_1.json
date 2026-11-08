@@ -1,0 +1,603 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "schema_version": "luminous.highveld.resilience-binding/0.1.0",
+  "binding_id": "HIGHVELD-KEEP-RESILIENCE-BINDING-001",
+  "created_date": "2026-11-08",
+  "revision_status": "E0_SOUTH_AFRICAN_ADAPTER_CONTRACT_ONLY",
+  "claim_ceiling": "adapter_contract_and_synthetic_binding_semantics_only_no_physical_building_performance_or_safety_claim",
+  "reference_scenario": {
+    "scenario_id": "HIGHVELD-KEEP-SYNTHETIC-001",
+    "source_path": "docs/research/highveld-keep/HIGHVELD_KEEP_SCENARIO_V0_1.json",
+    "geography": "Johannesburg / Highveld, South Africa",
+    "parcel_id": null,
+    "coordinates": null,
+    "selected_weather_station": null,
+    "site_weather_status": "UNKNOWN_NO_REAL_PARCEL_OR_SITE_SURVEY"
+  },
+  "owner_bindings": [
+    {
+      "owner": "Symtropy",
+      "contract": "SPATIAL-RESILIENCE-001",
+      "issue": "https://github.com/Luminous-Dynamics/symtropy/issues/1848",
+      "implementation": "https://github.com/Luminous-Dynamics/symtropy/pull/1849",
+      "contract_version": "0.1.0",
+      "status": "OWNER_CONTRACT_EXISTS_IMPLEMENTATION_DRAFT_EXACT_HEAD_REVIEW_REQUIRED",
+      "authority": "paired_service_trajectories_recovery_and_noncompensatory_pareto"
+    },
+    {
+      "owner": "Symtropy",
+      "contract": "ENERGYPLUS-QUAL-001",
+      "issue": "https://github.com/Luminous-Dynamics/symtropy/issues/1900",
+      "release_candidate": "EnergyPlus 26.2.0",
+      "release_date": "2026-09-30",
+      "release_reference": "https://github.com/NatLabRockies/EnergyPlus/releases/tag/v26.2.0",
+      "status": "RELEASE_IDENTIFIED_ADAPTER_NOT_QUALIFIED",
+      "authority": "whole_building_thermal_energy_simulation_with_declared_scope"
+    },
+    {
+      "owner": "Symtropy",
+      "contract": "BUILT-ENVIRONMENT-ADAPTER-BOUNDARIES",
+      "issue": "https://github.com/Luminous-Dynamics/symtropy/issues/1790",
+      "status": "OWNER_CONTRACT",
+      "authority": "solver_neutral_units_convergence_validation_and_applicability"
+    },
+    {
+      "owner": "Symtropy",
+      "contract": "SPATIAL-VOI-001",
+      "issue": "https://github.com/Luminous-Dynamics/symtropy/issues/1892",
+      "status": "OWNER_CONTRACT",
+      "authority": "measurement_decision_impact_and_stopping_rules"
+    },
+    {
+      "owner": "Sol-Atlas",
+      "contract": "CITY-HEAT-RETROFIT-ATLAS-001",
+      "issue": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/593",
+      "status": "SOURCE_AND_SPATIAL_CONTEXT_OWNER",
+      "authority": "regional_climate_context_and_spatial_exposure"
+    },
+    {
+      "owner": "Sol-Atlas",
+      "contract": "CITY-HEAT-WEATHER-QUAL-001",
+      "issue": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/611",
+      "status": "WEATHER_QUALIFICATION_OWNER",
+      "authority": "weather_source_identity_rights_representativeness_and_admission"
+    }
+  ],
+  "weather_source_candidates": [
+    {
+      "source_id": "JOBURG_TAMBO_TMYX_2011_2025",
+      "station_code": "683680",
+      "dataset_class": "TMYx",
+      "period": "2011-2025",
+      "source_url": "https://climate.onebuilding.org/WMO_Region_1_Africa/ZAF_South_Africa/index.html",
+      "file_sha256": null,
+      "rights": "UNKNOWN_FILE_SPECIFIC_REUSE_AND_REDISTRIBUTION",
+      "station_identity": "CANDIDATE_NOT_HISTORY_RECONCILED",
+      "site_representativeness": "UNKNOWN",
+      "admission": "CATALOGUED_NOT_HEADER_INSPECTED_OR_QUALIFIED"
+    },
+    {
+      "source_id": "JOBURG_BOTANICAL_GARDENS_TMYX_2011_2025",
+      "station_code": "683610",
+      "dataset_class": "TMYx",
+      "period": "2011-2025",
+      "source_url": "https://climate.onebuilding.org/WMO_Region_1_Africa/ZAF_South_Africa/index.html",
+      "file_sha256": null,
+      "rights": "UNKNOWN_FILE_SPECIFIC_REUSE_AND_REDISTRIBUTION",
+      "station_identity": "CANDIDATE_NOT_HISTORY_RECONCILED",
+      "site_representativeness": "UNKNOWN",
+      "admission": "CATALOGUED_NOT_HEADER_INSPECTED_OR_QUALIFIED"
+    },
+    {
+      "source_id": "JOBURG_GRAND_CENTRAL_TMYX_2011_2025",
+      "station_code": "682650",
+      "dataset_class": "TMYx",
+      "period": "2011-2025",
+      "source_url": "https://climate.onebuilding.org/WMO_Region_1_Africa/ZAF_South_Africa/index.html",
+      "file_sha256": null,
+      "rights": "UNKNOWN_FILE_SPECIFIC_REUSE_AND_REDISTRIBUTION",
+      "station_identity": "FILENAME_CODE_ONLY",
+      "site_representativeness": "UNKNOWN",
+      "admission": "CATALOGUED_NOT_HEADER_INSPECTED_OR_QUALIFIED"
+    },
+    {
+      "source_id": "JOBURG_RAND_AIRPORT_TMYX_2011_2025",
+      "station_code": "683463",
+      "dataset_class": "TMYx",
+      "period": "2011-2025",
+      "source_url": "https://climate.onebuilding.org/WMO_Region_1_Africa/ZAF_South_Africa/index.html",
+      "file_sha256": null,
+      "rights": "UNKNOWN_FILE_SPECIFIC_REUSE_AND_REDISTRIBUTION",
+      "station_identity": "FILENAME_CODE_ONLY",
+      "site_representativeness": "UNKNOWN",
+      "admission": "CATALOGUED_NOT_HEADER_INSPECTED_OR_QUALIFIED"
+    },
+    {
+      "source_id": "JOBURG_LANSERIA_INTL_TMYX_2011_2025",
+      "station_code": "682635",
+      "dataset_class": "TMYx",
+      "period": "2011-2025",
+      "source_url": "https://climate.onebuilding.org/WMO_Region_1_Africa/ZAF_South_Africa/index.html",
+      "file_sha256": null,
+      "rights": "UNKNOWN_FILE_SPECIFIC_REUSE_AND_REDISTRIBUTION",
+      "station_identity": "FILENAME_CODE_ONLY",
+      "site_representativeness": "UNKNOWN",
+      "admission": "CATALOGUED_NOT_HEADER_INSPECTED_OR_QUALIFIED"
+    }
+  ],
+  "scenario_families": [
+    {
+      "scenario_id": "HK-RES-001",
+      "name": "typical_year_screening",
+      "weather_class": "TMY_OR_TMYX",
+      "admission": "BLOCKED_UNTIL_EXACT_FILE_RIGHTS_HEADER_HASH_AND_REPRESENTATIVENESS_QUALIFIED",
+      "required_inputs": [
+        "exact_weather_file_digest",
+        "weather_header_and_STAT_review",
+        "station_identity_and_history",
+        "reuse_rights",
+        "site_exposure_and_elevation_comparison",
+        "geometry_revision",
+        "occupancy_schedule_revision",
+        "solver_revision"
+      ],
+      "prohibited_substitutions": [
+        "historical_heatwave",
+        "design_extreme",
+        "future_climate",
+        "parcel_weather_without_site_review"
+      ]
+    },
+    {
+      "scenario_id": "HK-RES-002",
+      "name": "observed_historical_hot_spell_and_hot_night",
+      "weather_class": "ACTUAL_METEOROLOGICAL_YEAR_OR_OBSERVED_EVENT",
+      "admission": "UNKNOWN_UNTIL_HOURLY_EVENT_SOURCE_AND_QC_QUALIFIED",
+      "required_inputs": [
+        "actual_year_or_event_source",
+        "event_start_end_and_timezone",
+        "hourly_coverage_and_QC",
+        "station_identity_history",
+        "source_rights",
+        "site_representativeness",
+        "initial_indoor_state"
+      ],
+      "prohibited_substitutions": [
+        "TMY_OR_TMYX",
+        "regional_mean_as_parcel_measurement"
+      ]
+    },
+    {
+      "scenario_id": "HK-RES-003",
+      "name": "observed_historical_cold_night",
+      "weather_class": "ACTUAL_METEOROLOGICAL_YEAR_OR_OBSERVED_EVENT",
+      "admission": "UNKNOWN_UNTIL_HOURLY_EVENT_SOURCE_AND_QC_QUALIFIED",
+      "required_inputs": [
+        "actual_year_or_event_source",
+        "event_start_end_and_timezone",
+        "hourly_coverage_and_QC",
+        "station_identity_history",
+        "source_rights",
+        "site_representativeness",
+        "initial_indoor_state"
+      ],
+      "prohibited_substitutions": [
+        "TMY_OR_TMYX",
+        "annual_mean_as_cold_extreme"
+      ]
+    },
+    {
+      "scenario_id": "HK-RES-004",
+      "name": "future_climate_sensitivity",
+      "weather_class": "MODELLED_FUTURE_CLIMATE_SCENARIO",
+      "admission": "UNKNOWN_UNTIL_ENSEMBLE_PATHWAY_PERIOD_GRID_AND_QUANTILE_PINNED",
+      "required_inputs": [
+        "climate_model_and_version",
+        "ensemble_member_or_ensemble_definition",
+        "emissions_pathway",
+        "baseline_and_future_period",
+        "grid_resolution",
+        "bias_correction_downscaling_method",
+        "quantile_or_distribution",
+        "uncertainty_and_applicability"
+      ],
+      "prohibited_substitutions": [
+        "RCP_AS_SSP_WITHOUT_EXPLICIT_MAPPING",
+        "TMY_AS_FUTURE_CLIMATE",
+        "SINGLE_MODEL_AS_ENSEMBLE"
+      ]
+    },
+    {
+      "scenario_id": "HK-RES-005",
+      "name": "grid_outage_during_hot_spell",
+      "weather_class": "QUALIFIED_WEATHER_TRACE_PLUS_SEPARATE_OUTAGE_TRACE",
+      "admission": "BLOCKED_UNTIL_BOTH_TRACES_AND_INITIAL_STATE_BOUND",
+      "required_inputs": [
+        "qualified_weather_trace_id_and_digest",
+        "outage_trace_id_revision_and_digest",
+        "outage_source_or_synthetic_fixture_label",
+        "service_demand_profile",
+        "reserve_and_load_model_scope",
+        "initial_indoor_state",
+        "repair_and_restoration_assumptions"
+      ],
+      "prohibited_substitutions": [
+        "OUTAGE_AS_WEATHER_VALUE",
+        "SYNTHETIC_OUTAGE_AS_OBSERVED_EVENT",
+        "UNMATCHED_TRACE_ACROSS_CANDIDATES"
+      ]
+    },
+    {
+      "scenario_id": "HK-RES-006",
+      "name": "water_supply_interruption",
+      "weather_class": "SEPARATE_WATER_SERVICE_TRACE",
+      "admission": "BLOCKED_UNTIL_SUPPLY_DEMAND_STORAGE_AND_REFILL_SCOPE_DECLARED",
+      "required_inputs": [
+        "water_supply_trace",
+        "demand_profile_and_functional_unit",
+        "potable_nonpotable_boundary",
+        "storage_state_and_capacity_source",
+        "refill_or_restoration_trace",
+        "water_quality_and_reuse_constraints"
+      ],
+      "prohibited_substitutions": [
+        "UNSOURCED_RESERVE_CAPACITY",
+        "POTABLE_AND_NONPOTABLE_MERGE",
+        "ZERO_DEMAND_DEFAULT"
+      ]
+    },
+    {
+      "scenario_id": "HK-RES-007",
+      "name": "severe_rainfall_hail_wind_and_stormwater",
+      "weather_class": "OBSERVED_EVENT_OR_QUALIFIED_DESIGN_CONDITION",
+      "admission": "UNKNOWN_UNTIL_HAZARD_DATA_AND_RELEVANT_SITE_ENGINEERING_SCOPE_QUALIFIED",
+      "required_inputs": [
+        "hazard_source_and_event_or_design_basis",
+        "wind_rain_hail_variables_and_units",
+        "site_topography_and_drainage_scope",
+        "envelope_detail_and_material_revision",
+        "qualified_stormwater_and_weatherproofing_review"
+      ],
+      "prohibited_substitutions": [
+        "TMY_AS_DESIGN_STORM",
+        "REGIONAL_CONTEXT_AS_SITE_WIND",
+        "SIMULATED_RESULT_AS_PHYSICAL_WEATHERPROOFING_TEST"
+      ]
+    },
+    {
+      "scenario_id": "HK-RES-008",
+      "name": "air_quality_constrained_ventilation",
+      "weather_class": "OBSERVED_OR_QUALIFIED_AIR_QUALITY_TRACE",
+      "admission": "BLOCKED_UNTIL_POLLUTANT_SPECIES_LOCATION_TIME_AND_SENSOR_OR_SOURCE_QC_DECLARED",
+      "required_inputs": [
+        "pollutant_or_air_quality_metric_and_units",
+        "source_location_and_spatial_scope",
+        "timestamp_timezone_and_coverage",
+        "indoor_outdoor_boundary",
+        "ventilation_mode_and_window_state",
+        "occupant_task_requirements",
+        "security_noise_and_weather_preconditions"
+      ],
+      "prohibited_substitutions": [
+        "UNSPECIFIED_AIR_QUALITY_SCORE",
+        "VENTILATION_CREDIT_WITHOUT_OPERATING_STATE",
+        "WEATHER_FILE_AS_INDOOR_AIR_MEASUREMENT"
+      ]
+    },
+    {
+      "scenario_id": "HK-RES-009",
+      "name": "equipment_control_fault_and_repair_delay",
+      "weather_class": "QUALIFIED_WEATHER_TRACE_PLUS_SEPARATE_FAULT_AND_REPAIR_TRACE",
+      "admission": "BLOCKED_UNTIL_COMPONENT_REVISION_FAILURE_MODE_PARTS_AND_REPAIR_TIMELINE_BOUND",
+      "required_inputs": [
+        "component_and_product_revision",
+        "failure_mode_and_fault_event_trace",
+        "service_dependency_graph",
+        "spare_part_availability_and_source",
+        "repair_access_and_labor_basis",
+        "inspection_reverification_and_stable_recovery_window"
+      ],
+      "prohibited_substitutions": [
+        "NOMINAL_UPTIME_AS_REPAIR_EVIDENCE",
+        "UNKNOWN_PART_AVAILABILITY_AS_IMMEDIATE_REPAIR",
+        "FIRST_RESTORATION_AS_STABLE_RECOVERY"
+      ]
+    }
+  ],
+  "service_domains": [
+    {
+      "domain_id": "resident_task_service",
+      "metric_family": "task_hours_preserved_by_resident_and_task",
+      "unit": "hour",
+      "threshold_state": "UNKNOWN_UNTIL_RESIDENT_AUTHORIZED_REQUIREMENTS",
+      "threshold_source": null
+    },
+    {
+      "domain_id": "thermal_environment",
+      "metric_family": "temperature_trajectory_and_declared_comfort_exceedance",
+      "unit": "degC_and_degree_hours_where_defined",
+      "threshold_state": "UNKNOWN_UNTIL_APPLICABLE_RESIDENT_PROFILE_AND_QUALIFIED_MODEL",
+      "threshold_source": null
+    },
+    {
+      "domain_id": "electricity",
+      "metric_family": "essential_electrical_service_and_reserve_autonomy",
+      "unit": "kWh_and_hour",
+      "threshold_state": "UNKNOWN_UNTIL_LOAD_INVENTORY_AND_SERVICE_PRIORITY_REVIEW",
+      "threshold_source": null
+    },
+    {
+      "domain_id": "water",
+      "metric_family": "potable_and_nonpotable_service_and_reserve_autonomy",
+      "unit": "litre_and_hour",
+      "threshold_state": "UNKNOWN_UNTIL_DEMAND_AND_WATER_QUALITY_REVIEW",
+      "threshold_source": null
+    },
+    {
+      "domain_id": "ventilation_and_indoor_air_quality",
+      "metric_family": "declared_air_change_and_pollutant_specific_trajectory",
+      "unit": "source_declared_units",
+      "threshold_state": "UNKNOWN_UNTIL_QUALIFIED_PROFILE_AND_PROFESSIONAL_REVIEW",
+      "threshold_source": null
+    },
+    {
+      "domain_id": "accessibility_and_egress",
+      "metric_family": "resident_task_route_and_egress_constraint",
+      "unit": "qualified_geometry_units_and_task_outcome",
+      "threshold_state": "UNKNOWN_UNTIL_EXACT_GEOMETRY_AND_QUALIFIED_CRITERIA",
+      "threshold_source": null
+    },
+    {
+      "domain_id": "repair_and_recovery",
+      "metric_family": "time_to_restore_and_stable_recovery",
+      "unit": "hour_or_owner_declared_tick",
+      "threshold_state": "UNKNOWN_UNTIL_PARTS_LABOR_AND_STABILITY_WINDOW_BOUND",
+      "threshold_source": null
+    }
+  ],
+  "paired_comparison_contract": {
+    "same_exogenous_trace_required": true,
+    "trace_identity_fields": [
+      "trace_id",
+      "trace_revision",
+      "trace_sha256",
+      "time_basis",
+      "timezone",
+      "timestep",
+      "horizon",
+      "source_class"
+    ],
+    "candidate_identity_fields": [
+      "candidate_id",
+      "design_revision",
+      "geometry_revision",
+      "material_revision",
+      "occupancy_profile_revision",
+      "solver_revision",
+      "weather_binding_revision"
+    ],
+    "candidate_must_not_receive_future_events": true,
+    "service_floor_semantics": "PER_RESIDENT_PER_TASK_NON_COMPENSATORY",
+    "unknown_or_missing_evidence": "BLOCKED_OR_NOT_COMPARABLE_NEVER_ZERO_OR_PASS",
+    "stable_recovery": "USE_SYMTROPY_OWNER_ORACLE_STABILITY_WINDOW_AND_RECURRENCE_RULES",
+    "pareto": "USE_SYMTROPY_OWNER_OUTPUT_ONLY_AFTER_HARD_FLOORS_AND_EVIDENCE_ADMISSION"
+  },
+  "model_credibility": {
+    "framework": "RISK_PROPORTIONATE_VVUQ",
+    "guidance": "NIST AMS 100-85; model influence and decision consequence determine credibility effort",
+    "stages": [
+      {
+        "stage": "software_capability",
+        "examples": [
+          "applicable ASHRAE 140-2023 test cases",
+          "weather-format interpretation tests"
+        ],
+        "proves": "declared software capability cases only"
+      },
+      {
+        "stage": "input_and_scope_validation",
+        "examples": [
+          "exact geometry model weather schedules materials units and boundary conditions"
+        ],
+        "proves": "input completeness and declared scope only"
+      },
+      {
+        "stage": "numerical_verification",
+        "examples": [
+          "convergence residuals warnings missing outputs repeatability"
+        ],
+        "proves": "numerical status and output integrity within the run"
+      },
+      {
+        "stage": "independent_reference_comparison",
+        "examples": [
+          "analytical cases accepted reference models or independent measurements"
+        ],
+        "proves": "agreement within a predeclared reference scope and tolerance"
+      },
+      {
+        "stage": "calibration_and_uncertainty",
+        "examples": [
+          "held-out measured operation residuals sensitivity distribution propagation domain checks"
+        ],
+        "proves": "predictive validity only within the qualified target domain"
+      },
+      {
+        "stage": "professional_and_field_review",
+        "examples": [
+          "responsible engineering fire accessibility public-health and statutory review; measured field evidence"
+        ],
+        "proves": "only the specific review or field claim within appointed scope"
+      }
+    ],
+    "prohibited_shortcuts": [
+      "process_exit_zero_as_model_validity",
+      "ASHRAE_140_as_project_calibration",
+      "TMY_as_extreme_event",
+      "synthetic_oracle_PASS_as_building_safety",
+      "surrogate_prediction_as_final_high_fidelity_result"
+    ]
+  },
+  "decision_relevant_measurements": [
+    {
+      "question_id": "VOI-01",
+      "question": "Would exact station identity/history or local exposure evidence change the admissible weather source or design ranking?",
+      "current_state": "UNKNOWN",
+      "measurement_owner": "Sol-Atlas #611",
+      "stop_rule": "stop when remaining candidates have the same admissibility and the measurement cannot change a hard gate or declared decision"
+    },
+    {
+      "question_id": "VOI-02",
+      "question": "Would a surveyed parcel, orientation, terrain or local microclimate measurement change the climate/solar/wind ranking?",
+      "current_state": "NO_PARCEL_SELECTED",
+      "measurement_owner": "Sol-Atlas #593 and qualified survey professionals",
+      "stop_rule": "do not infer a parcel-specific conclusion before a parcel and survey exist"
+    },
+    {
+      "question_id": "VOI-03",
+      "question": "Would resident-stated schedules, thermal preferences or task priorities change which design is acceptable?",
+      "current_state": "NOT_COLLECTED",
+      "measurement_owner": "resident-led requirements process",
+      "stop_rule": "do not impute household preferences from demographic proxies"
+    },
+    {
+      "question_id": "VOI-04",
+      "question": "Would local outage/water continuity records change the reserve/autonomy design decision?",
+      "current_state": "UNKNOWN",
+      "measurement_owner": "utility/source-specific evidence owners",
+      "stop_rule": "do not label synthetic traces as historical utility behavior"
+    },
+    {
+      "question_id": "VOI-05",
+      "question": "Would measured or qualified model residuals change the uncertainty envelope or ranking?",
+      "current_state": "NO_QUALIFIED_HIGHVELD_MODEL",
+      "measurement_owner": "Symtropy #1900 and independent validation reviewers",
+      "stop_rule": "no model-based superiority decision before held-out validation"
+    }
+  ],
+  "symtropy_invariant_crosswalk": [
+    {
+      "invariant_id": "paired_trace_identical",
+      "highveld_application": "every alternative consumes the same exact weather/outage/water/fault trace for each paired scenario"
+    },
+    {
+      "invariant_id": "hard_floor_before_pareto",
+      "highveld_application": "resident/task-specific hard service floors, accessibility and qualified life-safety constraints are checked before ranking"
+    },
+    {
+      "invariant_id": "unknown_not_pass",
+      "highveld_application": "unqualified weather, unknown thresholds, missing solver outputs and out-of-domain runs remain Unknown/Blocked"
+    },
+    {
+      "invariant_id": "scope_revisions_bind_evidence",
+      "highveld_application": "bind candidate, geometry, materials, weather, schedules, solver and service-profile revisions"
+    },
+    {
+      "invariant_id": "explicit_units_required",
+      "highveld_application": "temperature, energy, water, airflow, time and cost retain explicit units and time bases"
+    },
+    {
+      "invariant_id": "stable_recovery_window_required",
+      "highveld_application": "restoration is not stable recovery until the owner-defined uninterrupted stability window passes"
+    },
+    {
+      "invariant_id": "missing_part_blocks_recovery",
+      "highveld_application": "no assumed immediate repair when a qualified part or repair-access claim is absent"
+    },
+    {
+      "invariant_id": "no_future_information",
+      "highveld_application": "candidate policies see only observations available at the decision time"
+    },
+    {
+      "invariant_id": "no_scalar_compensation",
+      "highveld_application": "energy or cost gains cannot compensate for failed resident task, fire, accessibility or other declared hard floors"
+    },
+    {
+      "invariant_id": "uncertainty_tolerance_enforced",
+      "highveld_application": "ranking blocked when declared uncertainty exceeds the pre-registered stability tolerance"
+    },
+    {
+      "invariant_id": "resident_priority_preserved",
+      "highveld_application": "resident-stated task priorities remain attributable and revision-bound"
+    },
+    {
+      "invariant_id": "service_access_is_constraint",
+      "highveld_application": "access to service plant and resident-essential functions is a constraint, not a decorative score"
+    },
+    {
+      "invariant_id": "duplicate_delivery_idempotent",
+      "highveld_application": "duplicate identical service events are idempotent; conflicting duplicate identity is rejected by the owner oracle"
+    },
+    {
+      "invariant_id": "unrelated_change_preserves_current_result",
+      "highveld_application": "only causally dependent evidence is invalidated after a source or design change"
+    },
+    {
+      "invariant_id": "dissent_not_collapsed",
+      "highveld_application": "conflicting resident preferences remain visible and are not averaged into a fictitious consensus"
+    },
+    {
+      "invariant_id": "solver_claim_ceiling_preserved",
+      "highveld_application": "EnergyPlus capability or a synthetic timeline result is not professional approval or physical validation"
+    }
+  ],
+  "invalidation_dependencies": [
+    {
+      "change": "weather_file_or_source_revision",
+      "invalidates": [
+        "weather_admission",
+        "thermal_results",
+        "air_quality_weather_coupled_results",
+        "paired_trace_digest"
+      ]
+    },
+    {
+      "change": "geometry_or_site_orientation_revision",
+      "invalidates": [
+        "geometry_dependent_solver_inputs",
+        "solar_and_wind_results",
+        "accessibility_and_egress_results",
+        "service_route_results"
+      ]
+    },
+    {
+      "change": "occupancy_or_resident_requirement_revision",
+      "invalidates": [
+        "task_service_floors",
+        "occupancy_schedules",
+        "design_admission_and_pareto_results"
+      ]
+    },
+    {
+      "change": "material_or_product_revision",
+      "invalidates": [
+        "thermal_properties",
+        "fire_and_durability_evidence",
+        "fabrication_and_repair_assumptions"
+      ]
+    },
+    {
+      "change": "solver_or_model_revision",
+      "invalidates": [
+        "all_results_from_affected_model_scope",
+        "calibration_and_validation_binding"
+      ]
+    },
+    {
+      "change": "outage_water_or_fault_trace_revision",
+      "invalidates": [
+        "paired_comparison_results",
+        "autonomy_and_recovery_metrics"
+      ]
+    }
+  ],
+  "benchmark_targets": {
+    "paired_trace_identity_match": "100_percent",
+    "unknown_missing_stale_nonconverged_out_of_domain_result_false_pass": "0",
+    "hard_floor_violations_hidden_by_aggregation": "0",
+    "admitted_result_exact_input_revision_binding": "100_percent",
+    "unqualified_tmy_promoted_to_extreme_or_future_scenario": "0",
+    "site_weather_claim_without_parcel_survey_and_representativeness_review": "0",
+    "interpretation": "targets_for_contract_and_adapter_qualification_not_physical_performance_or_safety_targets"
+  }
+}
