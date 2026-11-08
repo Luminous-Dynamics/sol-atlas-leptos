@@ -4989,8 +4989,8 @@
             "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
             "functional_unit": "synthetic-panel-service",
             "evaluated_at": "2026-11-08T12:00:00Z",
-            "report_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddd42",
-            "report_reference": "cas:sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddd42",
+            "report_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddd0000002a",
+            "report_reference": "cas:sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddd0000002a",
             "action_authority": "none",
             "valid_time": {
               "effective_at": "2026-11-07T00:00:00Z",
@@ -5098,8 +5098,8 @@
             "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
             "functional_unit": "synthetic-panel-service",
             "evaluated_at": "2026-11-08T12:00:00Z",
-            "report_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddd43",
-            "report_reference": "cas:sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddd43",
+            "report_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddd0000002b",
+            "report_reference": "cas:sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddd0000002b",
             "action_authority": "none",
             "valid_time": {
               "effective_at": "2026-11-07T00:00:00Z",
@@ -5197,8 +5197,8 @@
             "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
             "functional_unit": "synthetic-panel-service",
             "evaluated_at": "2026-11-08T12:00:00Z",
-            "report_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddd44",
-            "report_reference": "cas:sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddd44",
+            "report_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddd0000002c",
+            "report_reference": "cas:sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddd0000002c",
             "action_authority": "none",
             "valid_time": {
               "effective_at": "2026-11-07T00:00:00Z",
