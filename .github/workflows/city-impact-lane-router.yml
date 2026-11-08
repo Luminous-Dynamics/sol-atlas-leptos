@@ -47,7 +47,7 @@ jobs:
             and .action_authority == "none"
             and (.lanes | length == 9)
             and ([.lanes[].family] | unique | length == 9)
-            and (.routes | length == 28)
+            and (.routes | length == 29)
             and ([.routes[].change_class] | unique | length == 28)
           ' docs/research/city-impact-router/CITY_IMPACT_OWNER_LANE_REGISTRY_V0_1.json
           jq -e '
@@ -55,10 +55,10 @@ jobs:
             and .corpus_id == "CITY-IMPACT-LANE-ROUTER-CORPUS-V0.1"
             and .classification == "synthetic_fixture_only"
             and .registry_id == "citymaker-owner-impact-lanes-2026-11-08"
-            and (.cases | length == 35)
-            and ([.cases[].case_id] | unique | length == 35)
+            and (.cases | length == 41)
+            and ([.cases[].case_id] | unique | length == 41)
             and ([.cases[].expected.route_state] | group_by(.) | map({state:.[0],count:length}) | sort_by(.state))
-              == [{"state":"contract_bound_unverified","count":1},{"state":"insufficient_evidence","count":17},{"state":"invalid_input","count":17}]
+              == [{"state":"contract_bound_unverified","count":3},{"state":"insufficient_evidence","count":19},{"state":"invalid_input","count":19}]
           ' docs/research/city-impact-router/CITY_IMPACT_LANE_ROUTER_CORPUS_V0_1.json
           jq -e '
             ."$schema" == "https://json-schema.org/draft/2020-12/schema"
@@ -91,12 +91,12 @@ jobs:
             and .registry_id == "citymaker-owner-impact-lanes-2026-11-08"
             and .corpus_id == "CITY-IMPACT-LANE-ROUTER-CORPUS-V0.1"
             and .corpus_classification == "synthetic_fixture_only"
-            and .scenario_count == 35
+            and .scenario_count == 41
             and .failure_count == 0
             and (.registry_sha256 | test("^[0-9a-f]{64}$"))
             and (.corpus_sha256 | test("^[0-9a-f]{64}$"))
             and (.source_commit | test("^[0-9a-f]{40}$"))
-            and (.scenarios | length == 35)
+            and (.scenarios | length == 41)
             and (.scenarios | all(.status == "pass"))
             and .owner_report_content_verified == false
             and .owner_authentication == "not_performed"
