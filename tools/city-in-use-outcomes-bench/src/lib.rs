@@ -253,6 +253,38 @@ fn evaluate_dynamic_model(
     )
 }
 
+fn baseline_and_post_windows_are_valid(mv: &Value, scope: &Value) -> bool {
+    let Some(baseline) = mv.get("baseline_window") else {
+        return false;
+    };
+    let Some(post) = mv.get("post_window") else {
+        return false;
+    };
+    let Some(scope_window) = scope.get("observation_window") else {
+        return false;
+    };
+
+    let baseline_start = baseline.get("start_tick").and_then(Value::as_i64);
+    let baseline_end = baseline.get("end_tick").and_then(Value::as_i64);
+    let post_start = post.get("start_tick").and_then(Value::as_i64);
+    let post_end = post.get("end_tick").and_then(Value::as_i64);
+    let unit = text(scope_window, "tick_unit");
+
+    baseline_start
+        .zip(baseline_end)
+        .zip(post_start.zip(post_end))
+        .is_some_and(|((baseline_start, baseline_end), (post_start, post_end))| {
+            baseline_end > baseline_start
+                && post_end > post_start
+                && baseline_end <= post_start
+                && text(baseline, "window_id") == text(mv, "baseline_period")
+                && text(post, "window_id") == text(mv, "post_period")
+                && !unit.is_empty()
+                && text(baseline, "tick_unit") == unit
+                && text(post, "tick_unit") == unit
+        })
+}
+
 fn classify_measurement_and_verification(input: &Value, scope: &Value) -> &'static str {
     let Some(mv) = input.get("measurement_and_verification") else {
         return "NotClaimed";
@@ -280,6 +312,7 @@ fn classify_measurement_and_verification(input: &Value, scope: &Value) -> &'stat
         && !baseline_period.is_empty()
         && !post_period.is_empty()
         && baseline_period != post_period
+        && baseline_and_post_windows_are_valid(mv, scope)
         && normalized
         && coverage >= minimum_coverage
         && text(mv, "baseline_adjustment_review") == "passed"
@@ -714,6 +747,27 @@ mod tests {
             "EligibleForSavingsReview"
         );
         assert!(result.get("savings_amount").is_none());
+    }
+
+    #[test]
+    fn measurement_and_verification_requires_non_overlapping_time_windows() {
+        let mut overlap = case("OI-017");
+        overlap["input"]["measurement_and_verification"]["baseline_window"]["end_tick"] =
+            serde_json::json!(6);
+        assert_eq!(
+            evaluate_case(&overlap)["measurement_and_verification_status"],
+            "Unsupported"
+        );
+
+        let mut missing = case("OI-017");
+        missing["input"]["measurement_and_verification"]
+            .as_object_mut()
+            .unwrap()
+            .remove("baseline_window");
+        assert_eq!(
+            evaluate_case(&missing)["measurement_and_verification_status"],
+            "Unsupported"
+        );
     }
 
     #[test]
