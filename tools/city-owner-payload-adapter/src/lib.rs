@@ -201,9 +201,11 @@ fn evaluate_artifact(
         || payload_length.is_none()
         || object_ref.is_empty()
         || digest_basis.is_empty()
-        || owner_content_digest != payload_digest
     {
-        reasons.insert("OWNER_PAYLOAD_IDENTITY_INCOMPLETE_OR_MISMATCHED".to_owned());
+        reasons.insert("OWNER_PAYLOAD_IDENTITY_INCOMPLETE".to_owned());
+    }
+    if !owner_content_digest.is_empty() && owner_content_digest != payload_digest {
+        reasons.insert("OWNER_PAYLOAD_DIGEST_MISMATCH".to_owned());
     }
     let schema_digest_algorithm = text(artifact, "schema_digest_algorithm");
     let schema_digest = text(artifact, "schema_artifact_digest");
@@ -243,7 +245,17 @@ fn evaluate_artifact(
         .unwrap_or("not_reported");
     let mut state = "indeterminate";
     if !reasons.is_empty() {
-        state = "mismatch";
+        state = if reasons.iter().any(|reason| {
+            reason.contains("MISMATCH")
+                || reason.contains("DUPLICATED")
+                || reason == "VERIFIED_RESULT_PREDICATE_INCOMPLETE"
+        }) {
+            "mismatch"
+        } else if reasons.contains("VERIFIER_RECORD_RESULT_MISSING") {
+            "indeterminate"
+        } else {
+            "unsupported"
+        };
     } else if let Some(record) = result {
         if text(record, "digest_basis") != digest_basis
             || text(record, "object_ref") != object_ref
