@@ -1,6 +1,6 @@
 # CityMorph continuity corpus v0.1
 
-29 synthetic scenarios test time-dependent continuity and recovery using owner-native access-state receipts. The evaluator does not recompute routing or service capacities; it consumes outputs from CityMorph #555 and CityKit #3768.
+30 synthetic scenarios test time-dependent continuity and recovery using owner-native access-state receipts. The evaluator does not recompute routing or service capacities; it consumes outputs from CityMorph #555 and CityKit #3768.
 
 ## Contract
 
