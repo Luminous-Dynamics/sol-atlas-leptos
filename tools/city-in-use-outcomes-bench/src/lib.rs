@@ -356,7 +356,7 @@ pub fn evaluate_case(case: &Value) -> Value {
     for observation in observations {
         let metric_id = text(observation, "metric_id");
         if metric_id.is_empty() || !observation_ids.insert(metric_id.to_owned()) {
-            unsupported.insert("DUPLICATE_OR_MISSING_OBSERVATION_METRIC_ID".to_owned());
+            unsupported.insert("DUPLICATE_OBSERVATION_METRIC_ID".to_owned());
         }
         if !requirement_ids.contains(metric_id) {
             unsupported.insert("OBSERVATION_METRIC_UNDEFINED".to_owned());
