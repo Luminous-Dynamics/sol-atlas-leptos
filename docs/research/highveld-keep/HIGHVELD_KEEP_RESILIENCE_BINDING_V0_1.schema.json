@@ -1,0 +1,641 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/docs/research/highveld-keep/HIGHVELD_KEEP_RESILIENCE_BINDING_V0_1.schema.json",
+  "title": "Highveld Keep resilience owner-binding manifest v0.1",
+  "description": "South African source/scenario binding to existing Symtropy trajectory and EnergyPlus qualification contracts. Not a physical model.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schema_version",
+    "binding_id",
+    "created_date",
+    "revision_status",
+    "claim_ceiling",
+    "reference_scenario",
+    "owner_bindings",
+    "weather_source_candidates",
+    "scenario_families",
+    "service_domains",
+    "paired_comparison_contract",
+    "model_credibility",
+    "decision_relevant_measurements",
+    "symtropy_invariant_crosswalk",
+    "invalidation_dependencies",
+    "benchmark_targets",
+    "verified_owner_qualifications"
+  ],
+  "properties": {
+    "$schema": {
+      "const": "https://json-schema.org/draft/2020-12/schema"
+    },
+    "schema_version": {
+      "const": "luminous.highveld.resilience-binding/0.1.0"
+    },
+    "binding_id": {
+      "const": "HIGHVELD-KEEP-RESILIENCE-BINDING-001"
+    },
+    "created_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "revision_status": {
+      "const": "E0_SOUTH_AFRICAN_ADAPTER_CONTRACT_ONLY"
+    },
+    "claim_ceiling": {
+      "const": "adapter_contract_and_synthetic_binding_semantics_only_no_physical_building_performance_or_safety_claim"
+    },
+    "reference_scenario": {
+      "type": "object",
+      "required": [
+        "scenario_id",
+        "source_path",
+        "geography",
+        "parcel_id",
+        "coordinates",
+        "selected_weather_station",
+        "site_weather_status"
+      ],
+      "properties": {
+        "scenario_id": {
+          "const": "HIGHVELD-KEEP-SYNTHETIC-001"
+        },
+        "source_path": {
+          "type": "string"
+        },
+        "geography": {
+          "type": "string"
+        },
+        "parcel_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "coordinates": {
+          "type": [
+            "object",
+            "null"
+          ]
+        },
+        "selected_weather_station": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "site_weather_status": {
+          "type": "string"
+        }
+      }
+    },
+    "owner_bindings": {
+      "type": "array",
+      "minItems": 6,
+      "items": {
+        "type": "object",
+        "required": [
+          "owner",
+          "contract",
+          "issue",
+          "status",
+          "authority"
+        ],
+        "properties": {
+          "owner": {
+            "type": "string"
+          },
+          "contract": {
+            "type": "string"
+          },
+          "issue": {
+            "type": "string",
+            "format": "uri"
+          },
+          "implementation": {
+            "type": "string",
+            "format": "uri"
+          },
+          "contract_version": {
+            "type": "string"
+          },
+          "release_candidate": {
+            "type": "string"
+          },
+          "release_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "release_reference": {
+            "type": "string",
+            "format": "uri"
+          },
+          "status": {
+            "type": "string"
+          },
+          "authority": {
+            "type": "string"
+          },
+          "qualification_receipt_id": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "weather_source_candidates": {
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 5,
+      "items": {
+        "type": "object",
+        "required": [
+          "source_id",
+          "station_code",
+          "dataset_class",
+          "period",
+          "source_url",
+          "file_sha256",
+          "rights",
+          "station_identity",
+          "site_representativeness",
+          "admission"
+        ],
+        "properties": {
+          "source_id": {
+            "type": "string"
+          },
+          "station_code": {
+            "type": "string"
+          },
+          "dataset_class": {
+            "const": "TMYx"
+          },
+          "period": {
+            "type": "string"
+          },
+          "source_url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "file_sha256": {
+            "type": "null"
+          },
+          "rights": {
+            "type": "string"
+          },
+          "station_identity": {
+            "type": "string"
+          },
+          "site_representativeness": {
+            "type": "string"
+          },
+          "admission": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "scenario_families": {
+      "type": "array",
+      "minItems": 10,
+      "maxItems": 10,
+      "items": {
+        "type": "object",
+        "required": [
+          "scenario_id",
+          "name",
+          "weather_class",
+          "admission",
+          "required_inputs",
+          "prohibited_substitutions"
+        ],
+        "properties": {
+          "scenario_id": {
+            "type": "string",
+            "pattern": "^HK-RES-[0-9]{3}$"
+          },
+          "name": {
+            "type": "string"
+          },
+          "weather_class": {
+            "type": "string"
+          },
+          "admission": {
+            "type": "string"
+          },
+          "required_inputs": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string"
+            }
+          },
+          "prohibited_substitutions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "service_domains": {
+      "type": "array",
+      "minItems": 7,
+      "items": {
+        "type": "object",
+        "required": [
+          "domain_id",
+          "metric_family",
+          "unit",
+          "threshold_state",
+          "threshold_source"
+        ],
+        "properties": {
+          "domain_id": {
+            "type": "string"
+          },
+          "metric_family": {
+            "type": "string"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "threshold_state": {
+            "type": "string"
+          },
+          "threshold_source": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      }
+    },
+    "paired_comparison_contract": {
+      "type": "object",
+      "required": [
+        "same_exogenous_trace_required",
+        "trace_identity_fields",
+        "candidate_identity_fields",
+        "candidate_must_not_receive_future_events",
+        "service_floor_semantics",
+        "unknown_or_missing_evidence",
+        "stable_recovery",
+        "pareto",
+        "joint_event_dependency_semantics"
+      ],
+      "properties": {
+        "same_exogenous_trace_required": {
+          "const": true
+        },
+        "trace_identity_fields": {
+          "type": "array",
+          "minItems": 7,
+          "items": {
+            "type": "string"
+          }
+        },
+        "candidate_identity_fields": {
+          "type": "array",
+          "minItems": 7,
+          "items": {
+            "type": "string"
+          }
+        },
+        "candidate_must_not_receive_future_events": {
+          "const": true
+        },
+        "service_floor_semantics": {
+          "type": "string"
+        },
+        "unknown_or_missing_evidence": {
+          "type": "string"
+        },
+        "stable_recovery": {
+          "type": "string"
+        },
+        "pareto": {
+          "type": "string"
+        },
+        "joint_event_dependency_semantics": {
+          "type": "string",
+          "minLength": 30
+        }
+      }
+    },
+    "model_credibility": {
+      "type": "object",
+      "required": [
+        "framework",
+        "guidance",
+        "stages",
+        "prohibited_shortcuts"
+      ],
+      "properties": {
+        "framework": {
+          "const": "RISK_PROPORTIONATE_VVUQ"
+        },
+        "guidance": {
+          "type": "string"
+        },
+        "stages": {
+          "type": "array",
+          "minItems": 6,
+          "items": {
+            "type": "object",
+            "required": [
+              "stage",
+              "examples",
+              "proves"
+            ],
+            "properties": {
+              "stage": {
+                "type": "string"
+              },
+              "examples": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "proves": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "prohibited_shortcuts": {
+          "type": "array",
+          "minItems": 5,
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "decision_relevant_measurements": {
+      "type": "array",
+      "minItems": 5,
+      "items": {
+        "type": "object",
+        "required": [
+          "question_id",
+          "question",
+          "current_state",
+          "measurement_owner",
+          "stop_rule"
+        ],
+        "properties": {
+          "question_id": {
+            "type": "string"
+          },
+          "question": {
+            "type": "string"
+          },
+          "current_state": {
+            "type": "string"
+          },
+          "measurement_owner": {
+            "type": "string"
+          },
+          "stop_rule": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "symtropy_invariant_crosswalk": {
+      "type": "array",
+      "minItems": 16,
+      "maxItems": 16,
+      "items": {
+        "type": "object",
+        "required": [
+          "invariant_id",
+          "highveld_application"
+        ],
+        "properties": {
+          "invariant_id": {
+            "type": "string"
+          },
+          "highveld_application": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "invalidation_dependencies": {
+      "type": "array",
+      "minItems": 6,
+      "items": {
+        "type": "object",
+        "required": [
+          "change",
+          "invalidates"
+        ],
+        "properties": {
+          "change": {
+            "type": "string"
+          },
+          "invalidates": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "benchmark_targets": {
+      "type": "object",
+      "required": [
+        "paired_trace_identity_match",
+        "unknown_missing_stale_nonconverged_out_of_domain_result_false_pass",
+        "hard_floor_violations_hidden_by_aggregation",
+        "admitted_result_exact_input_revision_binding",
+        "unqualified_tmy_promoted_to_extreme_or_future_scenario",
+        "site_weather_claim_without_parcel_survey_and_representativeness_review",
+        "interpretation",
+        "compound_event_trace_dependency_loss"
+      ],
+      "properties": {
+        "paired_trace_identity_match": {
+          "const": "100_percent"
+        },
+        "unknown_missing_stale_nonconverged_out_of_domain_result_false_pass": {
+          "const": "0"
+        },
+        "hard_floor_violations_hidden_by_aggregation": {
+          "const": "0"
+        },
+        "admitted_result_exact_input_revision_binding": {
+          "const": "100_percent"
+        },
+        "unqualified_tmy_promoted_to_extreme_or_future_scenario": {
+          "const": "0"
+        },
+        "site_weather_claim_without_parcel_survey_and_representativeness_review": {
+          "const": "0"
+        },
+        "interpretation": {
+          "type": "string"
+        },
+        "compound_event_trace_dependency_loss": {
+          "const": "0"
+        }
+      }
+    },
+    "verified_owner_qualifications": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "qualification_id",
+          "owner",
+          "owner_contract",
+          "owner_repository",
+          "owner_issue",
+          "owner_pull_request",
+          "candidate_head_sha",
+          "dedicated_qualifier",
+          "general_ci",
+          "receipt_artifact",
+          "verified_date",
+          "qualification_scope",
+          "claim_ceiling"
+        ],
+        "properties": {
+          "qualification_id": {
+            "const": "SYM-SPATIAL-RESILIENCE-001-QUAL-2026-11-08"
+          },
+          "owner": {
+            "const": "Symtropy"
+          },
+          "owner_contract": {
+            "const": "SPATIAL-RESILIENCE-001"
+          },
+          "owner_repository": {
+            "const": "Luminous-Dynamics/symtropy"
+          },
+          "owner_issue": {
+            "const": "https://github.com/Luminous-Dynamics/symtropy/issues/1848"
+          },
+          "owner_pull_request": {
+            "const": "https://github.com/Luminous-Dynamics/symtropy/pull/1849"
+          },
+          "candidate_head_sha": {
+            "const": "b0da4a10115861798d6b32e5940efb3b775044dd"
+          },
+          "dedicated_qualifier": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "workflow_run_id",
+              "workflow_run_url",
+              "conclusion",
+              "unit_tests",
+              "timeline_corpus",
+              "paired_outcomes_corpus",
+              "decision_impact_corpus",
+              "adaptive_policy_corpus"
+            ],
+            "properties": {
+              "workflow_run_id": {
+                "const": 42456052062
+              },
+              "workflow_run_url": {
+                "const": "https://github.com/Luminous-Dynamics/symtropy/actions/runs/42456052062"
+              },
+              "conclusion": {
+                "const": "success"
+              },
+              "unit_tests": {
+                "const": "57_passed"
+              },
+              "timeline_corpus": {
+                "const": "8_of_8_passed"
+              },
+              "paired_outcomes_corpus": {
+                "const": "5_of_5_passed"
+              },
+              "decision_impact_corpus": {
+                "const": "8_of_8_passed"
+              },
+              "adaptive_policy_corpus": {
+                "const": "3_of_3_cases_and_5_of_5_policies_passed"
+              }
+            }
+          },
+          "general_ci": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "workflow_run_id",
+              "workflow_run_url",
+              "conclusion",
+              "platforms"
+            ],
+            "properties": {
+              "workflow_run_id": {
+                "const": 42456052102
+              },
+              "workflow_run_url": {
+                "const": "https://github.com/Luminous-Dynamics/symtropy/actions/runs/42456052102"
+              },
+              "conclusion": {
+                "const": "success"
+              },
+              "platforms": {
+                "const": [
+                  "ubuntu-latest",
+                  "windows-latest",
+                  "macos-latest"
+                ]
+              }
+            }
+          },
+          "receipt_artifact": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "artifact_id",
+              "artifact_url",
+              "archive_sha256",
+              "digest_scope"
+            ],
+            "properties": {
+              "artifact_id": {
+                "const": 13606874236
+              },
+              "artifact_url": {
+                "const": "https://github.com/Luminous-Dynamics/symtropy/actions/runs/42456052062/artifacts/13606874236"
+              },
+              "archive_sha256": {
+                "const": "8ee7edda499ddb7e47b94e3429bf2d515c287866563a4e0f58409f02f75d8162"
+              },
+              "digest_scope": {
+                "const": "GitHub Actions artifact ZIP archive; artifact contains exact-head JSON receipts and dependency lock"
+              }
+            }
+          },
+          "verified_date": {
+            "const": "2026-11-08"
+          },
+          "qualification_scope": {
+            "type": "string",
+            "minLength": 30
+          },
+          "claim_ceiling": {
+            "const": "software_oracle_semantics_only_no_real_building_weather_thermal_performance_health_safety_statutory_or_professional_approval"
+          }
+        }
+      }
+    }
+  }
+}
