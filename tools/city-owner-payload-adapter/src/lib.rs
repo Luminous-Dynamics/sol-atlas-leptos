@@ -343,6 +343,7 @@ pub fn evaluate_case(case: &Value) -> Value {
     let scope = input.get("scope_binding").unwrap_or(&Value::Null);
     let report_binding = input.get("report_binding").unwrap_or(&Value::Null);
     let mut global_reasons = BTreeSet::<String>::new();
+    let mut report_reasons = BTreeSet::<String>::new();
 
     if !lower_hex(text(scope, "scope_digest"), 64)
         || text(scope, "binding_disposition").is_empty()
@@ -357,22 +358,22 @@ pub fn evaluate_case(case: &Value) -> Value {
     let declared_report_sha = text(report_binding, "declared_report_sha256");
     let report_reference = text(report_binding, "report_reference");
     if raw_report.is_empty() || report_reference.is_empty() || !lower_hex(declared_report_sha, 64) {
-        global_reasons.insert("VERIFIER_REPORT_REFERENCE_OR_DIGEST_MISSING".to_owned());
+        report_reasons.insert("VERIFIER_REPORT_REFERENCE_OR_DIGEST_MISSING".to_owned());
     }
     let computed_report_sha = sha256_hex(raw_report.as_bytes());
     if !declared_report_sha.is_empty() && declared_report_sha != computed_report_sha {
-        global_reasons.insert("VERIFIER_REPORT_RAW_BYTE_DIGEST_MISMATCH".to_owned());
+        report_reasons.insert("VERIFIER_REPORT_RAW_BYTE_DIGEST_MISMATCH".to_owned());
     }
     if report_reference.starts_with("cas:sha256:")
         && report_reference != format!("cas:sha256:{computed_report_sha}")
     {
-        global_reasons.insert("VERIFIER_REPORT_OBJECT_REFERENCE_MISMATCH".to_owned());
+        report_reasons.insert("VERIFIER_REPORT_OBJECT_REFERENCE_MISMATCH".to_owned());
     }
 
     let report: Value = match serde_json::from_str(raw_report) {
         Ok(value) => value,
         Err(_) => {
-            global_reasons.insert("VERIFIER_REPORT_JSON_INVALID".to_owned());
+            report_reasons.insert("VERIFIER_REPORT_JSON_INVALID".to_owned());
             Value::Null
         }
     };
@@ -384,27 +385,27 @@ pub fn evaluate_case(case: &Value) -> Value {
             || text(&report, "catalog_representation_sha256")
                 != text(report_binding, "expected_catalog_representation_sha256")
         {
-            global_reasons.insert("VERIFIER_REPORT_CATALOG_BINDING_MISMATCH".to_owned());
+            report_reasons.insert("VERIFIER_REPORT_CATALOG_BINDING_MISMATCH".to_owned());
         }
         if text(&report, "action_authority") != "none"
             || text(&report, "rights_authentication") != "not_performed"
             || text(&report, "source_attestation_authentication") != "not_performed"
         {
-            global_reasons.insert("VERIFIER_REPORT_CLAIM_CEILING_MISMATCH".to_owned());
+            report_reasons.insert("VERIFIER_REPORT_CLAIM_CEILING_MISMATCH".to_owned());
         }
         if text(&report, "verifier_build_sha256").is_empty()
             || !lower_hex(text(&report, "verifier_build_sha256"), 64)
         {
-            global_reasons.insert("VERIFIER_BUILD_IDENTITY_INVALID".to_owned());
+            report_reasons.insert("VERIFIER_BUILD_IDENTITY_INVALID".to_owned());
         }
         if !matches!(
             text(&report, "disposition"),
             "all_available_payloads_verified" | "incomplete_or_indeterminate" | "invalid_input"
         ) {
-            global_reasons.insert("VERIFIER_REPORT_DISPOSITION_UNSUPPORTED".to_owned());
+            report_reasons.insert("VERIFIER_REPORT_DISPOSITION_UNSUPPORTED".to_owned());
         }
         if text(&report, "disposition") == "invalid_input" {
-            global_reasons.insert("VERIFIER_REPORT_INVALID_INPUT".to_owned());
+            report_reasons.insert("VERIFIER_REPORT_INVALID_INPUT".to_owned());
         }
         let descriptor_count = report.get("descriptor_count").and_then(Value::as_u64);
         let payload_count = report.get("payload_count").and_then(Value::as_u64);
@@ -415,23 +416,23 @@ pub fn evaluate_case(case: &Value) -> Value {
             || descriptor_count != payload_count.zip(not_attempted).map(|(a, b)| a + b)
             || payload_count != Some(array(&report, "payload_results").len() as u64)
         {
-            global_reasons.insert("VERIFIER_REPORT_DENOMINATOR_INCONSISTENT".to_owned());
+            report_reasons.insert("VERIFIER_REPORT_DENOMINATOR_INCONSISTENT".to_owned());
         }
         let mut keys = BTreeSet::new();
         for result in array(&report, "payload_results") {
             let key = text(result, "record_key");
             if key.is_empty() || !keys.insert(key.to_owned()) {
-                global_reasons.insert("VERIFIER_REPORT_RECORD_KEY_DUPLICATED".to_owned());
+                report_reasons.insert("VERIFIER_REPORT_RECORD_KEY_DUPLICATED".to_owned());
             }
         }
     }
 
-    let report_state = if global_reasons.contains("VERIFIER_REPORT_RAW_BYTE_DIGEST_MISMATCH")
-        || global_reasons.contains("VERIFIER_REPORT_OBJECT_REFERENCE_MISMATCH")
-        || global_reasons.contains("VERIFIER_REPORT_CATALOG_BINDING_MISMATCH")
+    let report_state = if report_reasons.contains("VERIFIER_REPORT_RAW_BYTE_DIGEST_MISMATCH")
+        || report_reasons.contains("VERIFIER_REPORT_OBJECT_REFERENCE_MISMATCH")
+        || report_reasons.contains("VERIFIER_REPORT_CATALOG_BINDING_MISMATCH")
     {
         "mismatch"
-    } else if global_reasons.is_empty() {
+    } else if report_reasons.is_empty() {
         "verified"
     } else {
         "unsupported"
@@ -490,7 +491,12 @@ pub fn evaluate_case(case: &Value) -> Value {
         "scope_digest": text(scope, "scope_digest"),
         "payload_verification_state": payload_state,
         "artifact_payloads": artifact_outputs,
-        "reason_codes": global_reasons.into_iter().collect::<Vec<_>>(),
+        "reason_codes": global_reasons
+            .into_iter()
+            .chain(report_reasons)
+            .collect::<BTreeSet<_>>()
+            .into_iter()
+            .collect::<Vec<_>>(),
         "action_authority": "none",
         "owner_result_promotion": "none",
         "causal_effect_established": false,
