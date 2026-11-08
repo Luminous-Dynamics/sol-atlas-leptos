@@ -48,7 +48,10 @@ jobs:
             and (.lanes | length == 9)
             and ([.lanes[].family] | unique | length == 9)
             and (.routes | length == 29)
-            and ([.routes[].change_class] | unique | length == 28)
+            and ([.routes[].change_class] | unique | length == 29)
+            and ([.lanes[] | select(.family == "source_inventory")] | length == 1)
+            and ([.lanes[] | select(.family == "source_inventory")][0].readiness == "schema_and_runtime_pinned_open_pr")
+            and ([.lanes[] | select(.family == "source_inventory")][0].contract_ref == "luminous.federated-source-inventory-manifest.v0.1")
           ' docs/research/city-impact-router/CITY_IMPACT_OWNER_LANE_REGISTRY_V0_1.json
           jq -e '
             .schema_version == "luminous.city-impact-lane-router-corpus.v0.1"
