@@ -150,7 +150,22 @@
           }
         }
       },
-      "expected": null
+      "expected": {
+        "case_id": "HCS-01",
+        "scope_state": "bound",
+        "projection_state": "qualified",
+        "change_state": "not_required",
+        "plan_readiness": "feasible",
+        "work_execution": "not_started",
+        "inspection_state": "not_performed",
+        "commissioning_state": "not_performed",
+        "service_state": "unknown",
+        "composition_disposition": "review_candidate",
+        "reason_codes": [],
+        "action_authority": "none",
+        "causal_effect_established": false,
+        "claim_ceiling": "synthetic cross-owner receipt-composition semantics only; no real district, asset, service, engineering or professional claim is qualified"
+      }
     },
     {
       "id": "HCS-02",
@@ -286,7 +301,24 @@
           }
         }
       },
-      "expected": null
+      "expected": {
+        "case_id": "HCS-02",
+        "scope_state": "not_comparable",
+        "projection_state": "not_comparable",
+        "change_state": "unknown",
+        "plan_readiness": "unknown",
+        "work_execution": "unknown",
+        "inspection_state": "unknown",
+        "commissioning_state": "unknown",
+        "service_state": "unknown",
+        "composition_disposition": "not_comparable",
+        "reason_codes": [
+          "SCOPE_DIGEST_OR_SCENARIO_MISMATCH"
+        ],
+        "action_authority": "none",
+        "causal_effect_established": false,
+        "claim_ceiling": "synthetic cross-owner receipt-composition semantics only; no real district, asset, service, engineering or professional claim is qualified"
+      }
     },
     {
       "id": "HCS-03",
@@ -422,7 +454,24 @@
           }
         }
       },
-      "expected": null
+      "expected": {
+        "case_id": "HCS-03",
+        "scope_state": "not_comparable",
+        "projection_state": "not_comparable",
+        "change_state": "unknown",
+        "plan_readiness": "unknown",
+        "work_execution": "unknown",
+        "inspection_state": "unknown",
+        "commissioning_state": "unknown",
+        "service_state": "unknown",
+        "composition_disposition": "not_comparable",
+        "reason_codes": [
+          "SCOPE_DIGEST_OR_SCENARIO_MISMATCH"
+        ],
+        "action_authority": "none",
+        "causal_effect_established": false,
+        "claim_ceiling": "synthetic cross-owner receipt-composition semantics only; no real district, asset, service, engineering or professional claim is qualified"
+      }
     },
     {
       "id": "HCS-04",
@@ -558,7 +607,24 @@
           }
         }
       },
-      "expected": null
+      "expected": {
+        "case_id": "HCS-04",
+        "scope_state": "not_comparable",
+        "projection_state": "qualified",
+        "change_state": "unknown",
+        "plan_readiness": "unknown",
+        "work_execution": "unknown",
+        "inspection_state": "unknown",
+        "commissioning_state": "unknown",
+        "service_state": "unknown",
+        "composition_disposition": "not_comparable",
+        "reason_codes": [
+          "OWNER_ASSET_OR_SERVICE_IDENTITY_MISMATCH"
+        ],
+        "action_authority": "none",
+        "causal_effect_established": false,
+        "claim_ceiling": "synthetic cross-owner receipt-composition semantics only; no real district, asset, service, engineering or professional claim is qualified"
+      }
     },
     {
       "id": "HCS-05",
@@ -694,7 +760,24 @@
           }
         }
       },
-      "expected": null
+      "expected": {
+        "case_id": "HCS-05",
+        "scope_state": "not_comparable",
+        "projection_state": "qualified",
+        "change_state": "unknown",
+        "plan_readiness": "unknown",
+        "work_execution": "unknown",
+        "inspection_state": "unknown",
+        "commissioning_state": "unknown",
+        "service_state": "unknown",
+        "composition_disposition": "not_comparable",
+        "reason_codes": [
+          "OWNER_ASSET_OR_SERVICE_IDENTITY_MISMATCH"
+        ],
+        "action_authority": "none",
+        "causal_effect_established": false,
+        "claim_ceiling": "synthetic cross-owner receipt-composition semantics only; no real district, asset, service, engineering or professional claim is qualified"
+      }
     },
     {
       "id": "HCS-06",
@@ -830,7 +913,24 @@
           }
         }
       },
-      "expected": null
+      "expected": {
+        "case_id": "HCS-06",
+        "scope_state": "bound",
+        "projection_state": "qualified",
+        "change_state": "unknown",
+        "plan_readiness": "unknown",
+        "work_execution": "unknown",
+        "inspection_state": "unknown",
+        "commissioning_state": "unknown",
+        "service_state": "unknown",
+        "composition_disposition": "blocked",
+        "reason_codes": [
+          "OWNER_ASSET_STATE_STALE"
+        ],
+        "action_authority": "none",
+        "causal_effect_established": false,
+        "claim_ceiling": "synthetic cross-owner receipt-composition semantics only; no real district, asset, service, engineering or professional claim is qualified"
+      }
     },
     {
       "id": "HCS-07",
@@ -966,7 +1066,24 @@
           }
         }
       },
-      "expected": null
+      "expected": {
+        "case_id": "HCS-07",
+        "scope_state": "bound",
+        "projection_state": "qualified",
+        "change_state": "unknown",
+        "plan_readiness": "unknown",
+        "work_execution": "unknown",
+        "inspection_state": "unknown",
+        "commissioning_state": "unknown",
+        "service_state": "unknown",
+        "composition_disposition": "blocked",
+        "reason_codes": [
+          "OWNER_ASSET_STATE_REVOKED"
+        ],
+        "action_authority": "none",
+        "causal_effect_established": false,
+        "claim_ceiling": "synthetic cross-owner receipt-composition semantics only; no real district, asset, service, engineering or professional claim is qualified"
+      }
     },
     {
       "id": "HCS-08",
@@ -1102,7 +1219,24 @@
           }
         }
       },
-      "expected": null
+      "expected": {
+        "case_id": "HCS-08",
+        "scope_state": "bound",
+        "projection_state": "insufficient_evidence",
+        "change_state": "unknown",
+        "plan_readiness": "unknown",
+        "work_execution": "unknown",
+        "inspection_state": "unknown",
+        "commissioning_state": "unknown",
+        "service_state": "unknown",
+        "composition_disposition": "blocked",
+        "reason_codes": [
+          "CHANGE_IMPACT_COVERAGE_INCOMPLETE"
+        ],
+        "action_authority": "none",
+        "causal_effect_established": false,
+        "claim_ceiling": "synthetic cross-owner receipt-composition semantics only; no real district, asset, service, engineering or professional claim is qualified"
+      }
     },
     {
       "id": "HCS-09",
@@ -1228,7 +1362,24 @@
           }
         }
       },
-      "expected": null
+      "expected": {
+        "case_id": "HCS-09",
+        "scope_state": "bound",
+        "projection_state": "qualified",
+        "change_state": "insufficient_evidence",
+        "plan_readiness": "unknown",
+        "work_execution": "unknown",
+        "inspection_state": "unknown",
+        "commissioning_state": "unknown",
+        "service_state": "unknown",
+        "composition_disposition": "blocked",
+        "reason_codes": [
+          "REQUIRED_DEPENDENCY_CLAIM_MISSING"
+        ],
+        "action_authority": "none",
+        "causal_effect_established": false,
+        "claim_ceiling": "synthetic cross-owner receipt-composition semantics only; no real district, asset, service, engineering or professional claim is qualified"
+      }
     },
     {
       "id": "HCS-10",
@@ -1367,7 +1518,24 @@
           }
         }
       },
-      "expected": null
+      "expected": {
+        "case_id": "HCS-10",
+        "scope_state": "bound",
+        "projection_state": "qualified",
+        "change_state": "revalidation_required",
+        "plan_readiness": "unknown",
+        "work_execution": "unknown",
+        "inspection_state": "unknown",
+        "commissioning_state": "unknown",
+        "service_state": "unknown",
+        "composition_disposition": "blocked",
+        "reason_codes": [
+          "CLAIM_REVALIDATION_REQUIRED"
+        ],
+        "action_authority": "none",
+        "causal_effect_established": false,
+        "claim_ceiling": "synthetic cross-owner receipt-composition semantics only; no real district, asset, service, engineering or professional claim is qualified"
+      }
     },
     {
       "id": "HCS-11",
@@ -1516,7 +1684,22 @@
           }
         }
       },
-      "expected": null
+      "expected": {
+        "case_id": "HCS-11",
+        "scope_state": "bound",
+        "projection_state": "qualified",
+        "change_state": "revalidated",
+        "plan_readiness": "feasible",
+        "work_execution": "not_started",
+        "inspection_state": "not_performed",
+        "commissioning_state": "not_performed",
+        "service_state": "unknown",
+        "composition_disposition": "review_candidate",
+        "reason_codes": [],
+        "action_authority": "none",
+        "causal_effect_established": false,
+        "claim_ceiling": "synthetic cross-owner receipt-composition semantics only; no real district, asset, service, engineering or professional claim is qualified"
+      }
     },
     {
       "id": "HCS-12",
@@ -1665,7 +1848,24 @@
           }
         }
       },
-      "expected": null
+      "expected": {
+        "case_id": "HCS-12",
+        "scope_state": "bound",
+        "projection_state": "qualified",
+        "change_state": "revalidation_required",
+        "plan_readiness": "unknown",
+        "work_execution": "unknown",
+        "inspection_state": "unknown",
+        "commissioning_state": "unknown",
+        "service_state": "unknown",
+        "composition_disposition": "blocked",
+        "reason_codes": [
+          "CLAIM_REVALIDATION_REQUIRED"
+        ],
+        "action_authority": "none",
+        "causal_effect_established": false,
+        "claim_ceiling": "synthetic cross-owner receipt-composition semantics only; no real district, asset, service, engineering or professional claim is qualified"
+      }
     },
     {
       "id": "HCS-13",
@@ -1801,7 +2001,24 @@
           }
         }
       },
-      "expected": null
+      "expected": {
+        "case_id": "HCS-13",
+        "scope_state": "not_comparable",
+        "projection_state": "qualified",
+        "change_state": "unknown",
+        "plan_readiness": "unknown",
+        "work_execution": "unknown",
+        "inspection_state": "unknown",
+        "commissioning_state": "unknown",
+        "service_state": "unknown",
+        "composition_disposition": "not_comparable",
+        "reason_codes": [
+          "DESIGN_OR_BOM_REVISION_MISMATCH"
+        ],
+        "action_authority": "none",
+        "causal_effect_established": false,
+        "claim_ceiling": "synthetic cross-owner receipt-composition semantics only; no real district, asset, service, engineering or professional claim is qualified"
+      }
     },
     {
       "id": "HCS-14",
@@ -1937,7 +2154,24 @@
           }
         }
       },
-      "expected": null
+      "expected": {
+        "case_id": "HCS-14",
+        "scope_state": "not_comparable",
+        "projection_state": "qualified",
+        "change_state": "unknown",
+        "plan_readiness": "unknown",
+        "work_execution": "unknown",
+        "inspection_state": "unknown",
+        "commissioning_state": "unknown",
+        "service_state": "unknown",
+        "composition_disposition": "not_comparable",
+        "reason_codes": [
+          "DESIGN_OR_BOM_REVISION_MISMATCH"
+        ],
+        "action_authority": "none",
+        "causal_effect_established": false,
+        "claim_ceiling": "synthetic cross-owner receipt-composition semantics only; no real district, asset, service, engineering or professional claim is qualified"
+      }
     },
     {
       "id": "HCS-15",
@@ -2073,7 +2307,24 @@
           }
         }
       },
-      "expected": null
+      "expected": {
+        "case_id": "HCS-15",
+        "scope_state": "bound",
+        "projection_state": "qualified",
+        "change_state": "not_required",
+        "plan_readiness": "infeasible",
+        "work_execution": "not_started",
+        "inspection_state": "not_performed",
+        "commissioning_state": "not_performed",
+        "service_state": "unknown",
+        "composition_disposition": "infeasible",
+        "reason_codes": [
+          "MATERIAL_LOT_REVOKED"
+        ],
+        "action_authority": "none",
+        "causal_effect_established": false,
+        "claim_ceiling": "synthetic cross-owner receipt-composition semantics only; no real district, asset, service, engineering or professional claim is qualified"
+      }
     },
     {
       "id": "HCS-16",
@@ -2209,7 +2460,25 @@
           }
         }
       },
-      "expected": null
+      "expected": {
+        "case_id": "HCS-16",
+        "scope_state": "bound",
+        "projection_state": "insufficient_evidence",
+        "change_state": "not_required",
+        "plan_readiness": "unknown",
+        "work_execution": "not_started",
+        "inspection_state": "not_performed",
+        "commissioning_state": "not_performed",
+        "service_state": "unknown",
+        "composition_disposition": "blocked",
+        "reason_codes": [
+          "MATERIAL_CUSTODY_NOT_ACCEPTED",
+          "RESTORATION_PLAN_NOT_FEASIBLE_EVIDENCED"
+        ],
+        "action_authority": "none",
+        "causal_effect_established": false,
+        "claim_ceiling": "synthetic cross-owner receipt-composition semantics only; no real district, asset, service, engineering or professional claim is qualified"
+      }
     },
     {
       "id": "HCS-17",
@@ -2345,7 +2614,24 @@
           }
         }
       },
-      "expected": null
+      "expected": {
+        "case_id": "HCS-17",
+        "scope_state": "bound",
+        "projection_state": "insufficient_evidence",
+        "change_state": "not_required",
+        "plan_readiness": "feasible",
+        "work_execution": "not_started",
+        "inspection_state": "not_performed",
+        "commissioning_state": "not_performed",
+        "service_state": "unknown",
+        "composition_disposition": "blocked",
+        "reason_codes": [
+          "PAYLOAD_BYTES_UNVERIFIED"
+        ],
+        "action_authority": "none",
+        "causal_effect_established": false,
+        "claim_ceiling": "synthetic cross-owner receipt-composition semantics only; no real district, asset, service, engineering or professional claim is qualified"
+      }
     },
     {
       "id": "HCS-18",
@@ -2481,7 +2767,24 @@
           }
         }
       },
-      "expected": null
+      "expected": {
+        "case_id": "HCS-18",
+        "scope_state": "bound",
+        "projection_state": "qualified",
+        "change_state": "not_required",
+        "plan_readiness": "feasible",
+        "work_execution": "completed",
+        "inspection_state": "not_performed",
+        "commissioning_state": "not_performed",
+        "service_state": "unknown",
+        "composition_disposition": "awaiting_inspection",
+        "reason_codes": [
+          "INDEPENDENT_INSPECTION_PENDING"
+        ],
+        "action_authority": "none",
+        "causal_effect_established": false,
+        "claim_ceiling": "synthetic cross-owner receipt-composition semantics only; no real district, asset, service, engineering or professional claim is qualified"
+      }
     },
     {
       "id": "HCS-19",
@@ -2617,7 +2920,24 @@
           }
         }
       },
-      "expected": null
+      "expected": {
+        "case_id": "HCS-19",
+        "scope_state": "bound",
+        "projection_state": "qualified",
+        "change_state": "not_required",
+        "plan_readiness": "feasible",
+        "work_execution": "completed",
+        "inspection_state": "pass",
+        "commissioning_state": "not_performed",
+        "service_state": "unknown",
+        "composition_disposition": "awaiting_commissioning",
+        "reason_codes": [
+          "COMMISSIONING_PENDING"
+        ],
+        "action_authority": "none",
+        "causal_effect_established": false,
+        "claim_ceiling": "synthetic cross-owner receipt-composition semantics only; no real district, asset, service, engineering or professional claim is qualified"
+      }
     },
     {
       "id": "HCS-20",
@@ -2753,7 +3073,24 @@
           }
         }
       },
-      "expected": null
+      "expected": {
+        "case_id": "HCS-20",
+        "scope_state": "bound",
+        "projection_state": "qualified",
+        "change_state": "not_required",
+        "plan_readiness": "feasible",
+        "work_execution": "completed",
+        "inspection_state": "pass",
+        "commissioning_state": "pass",
+        "service_state": "unknown",
+        "composition_disposition": "awaiting_service_confirmation",
+        "reason_codes": [
+          "CONTINUITY_SERVICE_EVIDENCE_UNKNOWN"
+        ],
+        "action_authority": "none",
+        "causal_effect_established": false,
+        "claim_ceiling": "synthetic cross-owner receipt-composition semantics only; no real district, asset, service, engineering or professional claim is qualified"
+      }
     },
     {
       "id": "HCS-21",
@@ -2889,7 +3226,22 @@
           }
         }
       },
-      "expected": null
+      "expected": {
+        "case_id": "HCS-21",
+        "scope_state": "bound",
+        "projection_state": "qualified",
+        "change_state": "not_required",
+        "plan_readiness": "feasible",
+        "work_execution": "completed",
+        "inspection_state": "pass",
+        "commissioning_state": "pass",
+        "service_state": "adequate",
+        "composition_disposition": "service_owner_confirmed_adequate",
+        "reason_codes": [],
+        "action_authority": "none",
+        "causal_effect_established": false,
+        "claim_ceiling": "synthetic cross-owner receipt-composition semantics only; no real district, asset, service, engineering or professional claim is qualified"
+      }
     },
     {
       "id": "HCS-22",
@@ -3025,7 +3377,24 @@
           }
         }
       },
-      "expected": null
+      "expected": {
+        "case_id": "HCS-22",
+        "scope_state": "bound",
+        "projection_state": "qualified",
+        "change_state": "not_required",
+        "plan_readiness": "feasible",
+        "work_execution": "completed",
+        "inspection_state": "pass",
+        "commissioning_state": "pass",
+        "service_state": "unknown",
+        "composition_disposition": "awaiting_service_confirmation",
+        "reason_codes": [
+          "STABLE_ADEQUACY_INTERVAL_NOT_MET"
+        ],
+        "action_authority": "none",
+        "causal_effect_established": false,
+        "claim_ceiling": "synthetic cross-owner receipt-composition semantics only; no real district, asset, service, engineering or professional claim is qualified"
+      }
     },
     {
       "id": "HCS-23",
@@ -3161,7 +3530,24 @@
           }
         }
       },
-      "expected": null
+      "expected": {
+        "case_id": "HCS-23",
+        "scope_state": "not_comparable",
+        "projection_state": "not_comparable",
+        "change_state": "unknown",
+        "plan_readiness": "unknown",
+        "work_execution": "unknown",
+        "inspection_state": "unknown",
+        "commissioning_state": "unknown",
+        "service_state": "unknown",
+        "composition_disposition": "not_comparable",
+        "reason_codes": [
+          "SCOPE_DIGEST_OR_SCENARIO_MISMATCH"
+        ],
+        "action_authority": "none",
+        "causal_effect_established": false,
+        "claim_ceiling": "synthetic cross-owner receipt-composition semantics only; no real district, asset, service, engineering or professional claim is qualified"
+      }
     },
     {
       "id": "HCS-24",
@@ -3297,7 +3683,24 @@
           }
         }
       },
-      "expected": null
+      "expected": {
+        "case_id": "HCS-24",
+        "scope_state": "bound",
+        "projection_state": "insufficient_evidence",
+        "change_state": "unknown",
+        "plan_readiness": "unknown",
+        "work_execution": "unknown",
+        "inspection_state": "unknown",
+        "commissioning_state": "unknown",
+        "service_state": "unknown",
+        "composition_disposition": "blocked",
+        "reason_codes": [
+          "UPSTREAM_RECEIPT_NOT_QUALIFIED"
+        ],
+        "action_authority": "none",
+        "causal_effect_established": false,
+        "claim_ceiling": "synthetic cross-owner receipt-composition semantics only; no real district, asset, service, engineering or professional claim is qualified"
+      }
     },
     {
       "id": "HCS-25",
@@ -3433,7 +3836,24 @@
           }
         }
       },
-      "expected": null
+      "expected": {
+        "case_id": "HCS-25",
+        "scope_state": "bound",
+        "projection_state": "invalid_evidence",
+        "change_state": "unknown",
+        "plan_readiness": "unknown",
+        "work_execution": "unknown",
+        "inspection_state": "unknown",
+        "commissioning_state": "unknown",
+        "service_state": "unknown",
+        "composition_disposition": "invalid_evidence",
+        "reason_codes": [
+          "DUPLICATE_OWNER_PROJECTION_RECEIPT"
+        ],
+        "action_authority": "none",
+        "causal_effect_established": false,
+        "claim_ceiling": "synthetic cross-owner receipt-composition semantics only; no real district, asset, service, engineering or professional claim is qualified"
+      }
     },
     {
       "id": "HCS-26",
@@ -3569,7 +3989,24 @@
           }
         }
       },
-      "expected": null
+      "expected": {
+        "case_id": "HCS-26",
+        "scope_state": "bound",
+        "projection_state": "invalid_evidence",
+        "change_state": "unknown",
+        "plan_readiness": "unknown",
+        "work_execution": "unknown",
+        "inspection_state": "unknown",
+        "commissioning_state": "unknown",
+        "service_state": "unknown",
+        "composition_disposition": "invalid_evidence",
+        "reason_codes": [
+          "STATE_PROJECTION_TIME_CUT_INVALID"
+        ],
+        "action_authority": "none",
+        "causal_effect_established": false,
+        "claim_ceiling": "synthetic cross-owner receipt-composition semantics only; no real district, asset, service, engineering or professional claim is qualified"
+      }
     },
     {
       "id": "HCS-27",
@@ -3705,7 +4142,24 @@
           }
         }
       },
-      "expected": null
+      "expected": {
+        "case_id": "HCS-27",
+        "scope_state": "bound",
+        "projection_state": "qualified",
+        "change_state": "invalid_evidence",
+        "plan_readiness": "unknown",
+        "work_execution": "unknown",
+        "inspection_state": "unknown",
+        "commissioning_state": "unknown",
+        "service_state": "unknown",
+        "composition_disposition": "invalid_evidence",
+        "reason_codes": [
+          "DEPENDENT_CLAIM_INVALIDATED"
+        ],
+        "action_authority": "none",
+        "causal_effect_established": false,
+        "claim_ceiling": "synthetic cross-owner receipt-composition semantics only; no real district, asset, service, engineering or professional claim is qualified"
+      }
     },
     {
       "id": "HCS-28",
@@ -3841,7 +4295,24 @@
           }
         }
       },
-      "expected": null
+      "expected": {
+        "case_id": "HCS-28",
+        "scope_state": "bound",
+        "projection_state": "qualified",
+        "change_state": "insufficient_evidence",
+        "plan_readiness": "unknown",
+        "work_execution": "unknown",
+        "inspection_state": "unknown",
+        "commissioning_state": "unknown",
+        "service_state": "unknown",
+        "composition_disposition": "blocked",
+        "reason_codes": [
+          "NO_IMPACT_COVERAGE_PROOF_MISSING"
+        ],
+        "action_authority": "none",
+        "causal_effect_established": false,
+        "claim_ceiling": "synthetic cross-owner receipt-composition semantics only; no real district, asset, service, engineering or professional claim is qualified"
+      }
     }
   ]
 }
