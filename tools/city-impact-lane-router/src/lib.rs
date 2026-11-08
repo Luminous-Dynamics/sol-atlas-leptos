@@ -326,7 +326,7 @@ pub fn evaluate_case(case: &Value, registry: &Value) -> Value {
     {
         global_reasons.insert("CHANGE_EVENT_TEMPORAL_BINDING_INCOMPLETE".to_owned());
     } else {
-        if matches!(confidence, "unknown" | "disputed") || confidence != "verified" {
+        if confidence != "verified" {
             global_reasons.insert("EVENT_EFFECTIVE_TIME_UNQUALIFIED".to_owned());
         }
         if !effective_until.is_empty() && effective_until < effective_at {
