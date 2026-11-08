@@ -1722,20 +1722,7 @@
         "reason_codes": [
           "DUPLICATE_OBSERVATION_METRIC_ID"
         ],
-        "metric_results": [
-          {
-            "metric_id": "energy",
-            "observation_state": "Current",
-            "threshold_state": "Pass",
-            "observed_value": 120,
-            "unit": "kWh/m2/year",
-            "static_gap_state": "Comparable",
-            "static_gap_value": 20,
-            "dynamic_gap_state": "Unknown",
-            "dynamic_gap_value": null,
-            "reason_codes": []
-          }
-        ],
+        "metric_results": [],
         "measurement_and_verification_status": "NotClaimed",
         "causal_assessment_status": "NotClaimed",
         "claim_ceiling": "synthetic outcome classification only; not measured building performance, regulatory compliance, energy savings, occupant wellbeing, or causal impact"
