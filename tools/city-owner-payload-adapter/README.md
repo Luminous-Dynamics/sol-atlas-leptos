@@ -85,3 +85,22 @@ Run the following commands from the repository root:
 Replace the final example commit with the exact 40-character source commit being evaluated.
 
 An E1 receipt proves only the declared adapter semantics on these frozen synthetic reports. It does not qualify a real source, legal rights, the completeness of a district's owner evidence, a physical asset or any city-service outcome.
+
+## Exact source-descriptor/report compatibility
+
+The input fixture now uses the #500 source-descriptor record shape rather than a simplified payload object:
+
+- `SourceRecordDescriptor`: record kind, case-record ID, owner namespace, native identity components, source payload, source snapshot, observation time, rights and attestation.
+- The adapter-only `descriptor_binding` explicitly pins record key, case/catalogue IDs and representation digests, owner namespace, owner receipt, source revision, subject and schema pin.
+- The report fixture carries the actual verifier's `catalog_validation` shape, including descriptor count, missing/extra counts, `identity_sha256_by_case_record`, `native_identity_namespaces`, `native_identity_components`, validation disposition, findings and independent rights/attestation/action-authority axes.
+- Each `payload_results` row uses the verifier's optional digest/object/length fields, bytes hashed, match predicates, resolver-open flag and snake-case disposition.
+
+The adapter cross-checks the catalogue's per-record native namespace and component map against the exact descriptor binding. This does not independently authenticate the catalogue producer; it proves only internal consistency of the supplied report bytes and the caller-declared report reference.
+
+### Optional expected byte length
+
+The verifier's expected byte length is optional for some digest bases. When it is absent, a successful SHA-256 comparison can establish raw byte equality, but the adapter reports `byte_length_comparison_state=not_declared`. It never claims a length comparison occurred. Where a length is declared, expected/observed length and bytes-hashed must agree.
+
+### Report integrity versus verification disposition
+
+An intact raw report can have disposition `incomplete_or_indeterminate` or `invalid_input`. A single verified record can remain individually Verified in an incomplete catalogue (for example, when owner rights remain Restricted); an exact per-record mismatch remains Mismatch even when the report overall is `invalid_input`. These axes are reported independently.
