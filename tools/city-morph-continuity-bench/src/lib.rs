@@ -117,13 +117,12 @@ impl Summary {
         } else {
             "unresolved"
         };
-        let recovery_start_lower_exclusive = if self.recovered_start.is_some()
-            || state == "RecoveryUnknown"
-        {
-            self.last_degradation_end
-        } else {
-            None
-        };
+        let recovery_start_lower_exclusive =
+            if self.recovered_start.is_some() || state == "RecoveryUnknown" {
+                self.last_degradation_end
+            } else {
+                None
+            };
         let recovery_start_upper_inclusive = self.recovered_start;
         let recovery_time_lower_exclusive = self
             .first_degradation
