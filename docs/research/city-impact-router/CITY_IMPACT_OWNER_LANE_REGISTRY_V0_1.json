@@ -35,7 +35,8 @@
       "schema_id": "luminous.built-environment-dependency-coverage.v0.1",
       "schema_version": "luminous.built-environment-dependency-coverage.v0.1",
       "expected_claim_ceiling": "coverage_only",
-      "owner_scope_note": "Qualifies declared-scope source inventory and relationship coverage, not real-world completeness or impact traversal correctness."
+      "owner_scope_note": "Qualifies declared-scope source inventory and relationship coverage, not real-world completeness or impact traversal correctness.",
+      "report_shape": "BuiltEnvironmentDependencyCoverageManifest"
     },
     {
       "family": "source_evidence_lifecycle",
