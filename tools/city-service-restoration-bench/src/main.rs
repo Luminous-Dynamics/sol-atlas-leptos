@@ -14,7 +14,9 @@ fn valid_commit(value: &str) -> bool {
 fn main() -> ExitCode {
     let mut args = env::args().skip(1);
     let Some(corpus_path) = args.next() else {
-        eprintln!("usage: city-service-restoration-reference CORPUS.json --source-commit <40-hex-sha>");
+        eprintln!(
+            "usage: city-service-restoration-reference CORPUS.json --source-commit <40-hex-sha>"
+        );
         return ExitCode::from(2);
     };
     let Some(flag) = args.next() else {
@@ -70,7 +72,10 @@ fn main() -> ExitCode {
     let mut seen_ids = std::collections::BTreeSet::new();
 
     for case in cases {
-        let case_id = case.get("id").and_then(Value::as_str).unwrap_or("missing-case-id");
+        let case_id = case
+            .get("id")
+            .and_then(Value::as_str)
+            .unwrap_or("missing-case-id");
         if case_id.is_empty() || !seen_ids.insert(case_id.to_owned()) {
             failures += 1;
             scenario_receipts.push(json!({
