@@ -1820,8 +1820,8 @@ mod tests {
 
     #[test]
     fn duplicate_nested_status_key_is_rejected() {
-        let needle = r#""status": "UNKNOWN_NO_REAL_PARCEL_SELECTED","#;
-        let replacement = format!("{needle}\n    \"status\": \"DISPUTED\",");
+        let needle = r#""status": "UNKNOWN_NO_REAL_PARCEL_SELECTED""#;
+        let replacement = format!("{needle},\n    \"status\": \"DISPUTED\"");
         let raw = SCENARIO_JSON.replacen(needle, &replacement, 1);
         assert_ne!(raw, SCENARIO_JSON);
         let error = parse_unique_json_bytes(raw.as_bytes()).unwrap_err();
