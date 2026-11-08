@@ -71,6 +71,23 @@ fn verifier_disposition_state(disposition: &str) -> &'static str {
     }
 }
 
+fn identity_components(value: &Value) -> Vec<(String, String)> {
+    let mut pairs = array(value, "native_identity_components")
+        .iter()
+        .filter_map(|component| {
+            let name = text(component, "name");
+            let component_value = text(component, "value");
+            if name.is_empty() || component_value.is_empty() {
+                None
+            } else {
+                Some((name.to_owned(), component_value.to_owned()))
+            }
+        })
+        .collect::<Vec<_>>();
+    pairs.sort();
+    pairs
+}
+
 fn evaluate_artifact(
     artifact: &Value,
     scope_binding: &Value,
@@ -79,6 +96,8 @@ fn evaluate_artifact(
     report_valid: bool,
 ) -> Value {
     let artifact_id = text(artifact, "artifact_id");
+    let descriptor = artifact.get("descriptor").unwrap_or(&Value::Null);
+    let descriptor_binding = artifact.get("descriptor_binding").unwrap_or(&Value::Null);
     let binding = array(scope_binding, "artifact_bindings")
         .iter()
         .find(|entry| text(entry, "artifact_id") == artifact_id);
@@ -91,9 +110,9 @@ fn evaluate_artifact(
         .filter(|value| !value.is_empty())
         .unwrap_or("Missing");
     let base_flag = binding.and_then(|entry| bool_value(entry, "payload_bytes_verified"));
-
     let mut reasons = BTreeSet::<String>::new();
     let mut scope_reasons = BTreeSet::<String>::new();
+
     if binding.is_none() {
         scope_reasons.insert("SCOPE_BINDING_ARTIFACT_MISSING".to_owned());
     }
@@ -114,12 +133,16 @@ fn evaluate_artifact(
             "base_payload_bytes_verified": base_flag.unwrap_or(false),
             "payload_verification_state": "not_required",
             "payload_bytes_verified": false,
+            "raw_byte_equality_verified": false,
+            "byte_length_comparison_state": "not_required",
             "verifier_disposition": null,
             "record_key": null,
             "report_reference": text(report_binding, "report_reference"),
             "report_sha256": text(report_binding, "declared_report_sha256"),
             "reason_codes": [],
+            "scope_reason_codes": scope_reasons.into_iter().collect::<Vec<_>>(),
             "owner_rights_state": "not_applicable",
+            "rights_use_declaration_state": "not_applicable",
             "rights_authentication": "not_performed",
             "action_authority": "none"
         });
@@ -127,39 +150,43 @@ fn evaluate_artifact(
 
     if binding.is_none() || base_flag == Some(true) || !report_valid {
         if !report_valid {
-            reasons.insert("REPORT_NOT_TRUSTED".to_owned());
+            reasons.insert("REPORT_INTEGRITY_OR_STRUCTURE_UNVERIFIED".to_owned());
         }
         return json!({
             "artifact_id": artifact_id,
             "scope_binding_state": binding_state,
+            "owner_scope_digest_matches": owner_scope_digest_matches,
             "raw_owner_disposition": raw_owner_disposition,
             "base_payload_bytes_verified": base_flag.unwrap_or(false),
             "payload_verification_state": "unsupported",
             "payload_bytes_verified": false,
+            "raw_byte_equality_verified": false,
+            "byte_length_comparison_state": "not_assessed",
             "verifier_disposition": null,
-            "record_key": text(artifact.get("payload").unwrap_or(&Value::Null), "record_key"),
-            "report_reference": text(report, "report_reference"),
-            "report_sha256": text(report, "report_sha256"),
+            "record_key": text(descriptor_binding, "record_key"),
+            "report_reference": text(report_binding, "report_reference"),
+            "report_sha256": text(report_binding, "declared_report_sha256"),
             "reason_codes": reasons.into_iter().collect::<Vec<_>>(),
-            "owner_rights_state": text(artifact.get("payload").unwrap_or(&Value::Null), "rights_state"),
+            "scope_reason_codes": scope_reasons.into_iter().collect::<Vec<_>>(),
+            "owner_rights_state": text(descriptor.get("rights").unwrap_or(&Value::Null), "state"),
+            "rights_use_declaration_state": "unknown_or_not_authenticated",
             "rights_authentication": "not_performed",
             "action_authority": "none"
         });
     }
 
-    let payload = artifact.get("payload").unwrap_or(&Value::Null);
-    let record_kind = text(payload, "record_kind");
-    let case_record_id = text(payload, "case_record_id");
-    let declared_record_key = text(payload, "record_key");
+    let record_kind = text(descriptor, "record_kind");
+    let case_record_id = text(descriptor, "case_record_id");
+    let declared_record_key = text(descriptor_binding, "record_key");
     let computed_record_key = expected_record_key(record_kind, case_record_id);
     if computed_record_key.as_deref() != Some(declared_record_key) {
         reasons.insert("DESCRIPTOR_RECORD_KEY_MAPPING_MISMATCH".to_owned());
     }
 
-    let expected_case_id = text(payload, "descriptor_case_id");
-    let expected_case_digest = text(payload, "descriptor_case_representation_sha256");
-    let expected_catalog_id = text(payload, "descriptor_catalog_id");
-    let expected_catalog_digest = text(payload, "descriptor_catalog_representation_sha256");
+    let expected_case_id = text(descriptor_binding, "case_id");
+    let expected_case_digest = text(descriptor_binding, "case_representation_sha256");
+    let expected_catalog_id = text(descriptor_binding, "catalog_id");
+    let expected_catalog_digest = text(descriptor_binding, "catalog_representation_sha256");
     if expected_case_id != text(report, "case_id")
         || expected_case_digest != text(report, "case_representation_sha256")
         || expected_catalog_id != text(report, "catalog_id")
@@ -168,16 +195,69 @@ fn evaluate_artifact(
         reasons.insert("DESCRIPTOR_CATALOG_IDENTITY_MISMATCH".to_owned());
     }
 
-    let owner_content_digest = text(artifact, "content_digest");
-    let payload_digest = text(payload, "sha256");
-    let payload_length = payload.get("byte_length").and_then(Value::as_u64);
-    let digest_basis = text(payload, "digest_basis");
-    let digest_algorithm = text(payload, "digest_algorithm");
-    let object_ref = text(payload, "object_ref");
-    let rights_state = text(payload, "rights_state");
-    let required_use = text(payload, "required_use");
-    let permitted_uses = array(payload, "permitted_uses");
+    let payload = descriptor.get("source_payload").unwrap_or(&Value::Null);
+    let descriptor_owner_namespace = text(descriptor, "owner_namespace");
+    if descriptor_owner_namespace.is_empty()
+        || descriptor_owner_namespace != text(descriptor_binding, "owner_namespace")
+    {
+        reasons.insert("DESCRIPTOR_OWNER_NAMESPACE_MISMATCH".to_owned());
+    }
+    if text(descriptor_binding, "owner_receipt_id") != text(artifact, "receipt_id") {
+        reasons.insert("OWNER_RECEIPT_BINDING_MISMATCH".to_owned());
+    }
+    if text(descriptor_binding, "source_revision") != text(artifact, "source_revision") {
+        reasons.insert("OWNER_SOURCE_REVISION_BINDING_MISMATCH".to_owned());
+    }
+    if text(descriptor_binding, "subject_id") != text(artifact, "subject_id") {
+        reasons.insert("OWNER_SUBJECT_BINDING_MISMATCH".to_owned());
+    }
+    if text(descriptor_binding, "schema_artifact_digest") != text(artifact, "schema_artifact_digest") {
+        reasons.insert("OWNER_SCHEMA_ARTIFACT_BINDING_MISMATCH".to_owned());
+    }
+    if text(descriptor_binding, "schema_id") != text(payload, "schema_id")
+        || text(descriptor_binding, "schema_version") != text(payload, "schema_version")
+        || text(artifact, "contract_id") != text(payload, "schema_id")
+        || text(artifact, "contract_version") != text(payload, "schema_version")
+    {
+        reasons.insert("OWNER_SCHEMA_IDENTITY_MISMATCH".to_owned());
+    }
+    let schema_digest_algorithm = text(artifact, "schema_digest_algorithm");
+    let schema_artifact_digest = text(artifact, "schema_artifact_digest");
+    if !matches!(schema_digest_algorithm, "git_blob_sha1" | "sha256")
+        || (schema_digest_algorithm == "git_blob_sha1" && !lower_hex(schema_artifact_digest, 40))
+        || (schema_digest_algorithm == "sha256" && !lower_hex(schema_artifact_digest, 64))
+    {
+        reasons.insert("OWNER_SCHEMA_PIN_INCOMPLETE_OR_INVALID".to_owned());
+    }
+    if schema_digest_algorithm == "sha256"
+        && !text(payload, "schema_sha256").is_empty()
+        && text(payload, "schema_sha256") != schema_artifact_digest
+    {
+        reasons.insert("OWNER_SCHEMA_DIGEST_MISMATCH".to_owned());
+    }
+    if text(artifact, "owner_repo").is_empty()
+        || text(artifact, "contract_id").is_empty()
+        || text(artifact, "contract_version").is_empty()
+        || text(artifact, "receipt_id").is_empty()
+        || text(artifact, "subject_id").is_empty()
+        || !lower_hex(text(artifact, "subject_digest"), 64)
+        || !lower_hex(text(artifact, "source_revision"), 40)
+    {
+        reasons.insert("OWNER_ARTIFACT_ENVELOPE_INCOMPLETE".to_owned());
+    }
+    if !lower_hex(text(artifact, "scope_digest"), 64) {
+        reasons.insert("OWNER_SCOPE_DIGEST_INVALID".to_owned());
+    }
 
+    let payload_digest = text(payload, "sha256");
+    let expected_sha = if payload.get("sha256").is_some_and(Value::is_string) {
+        Some(payload_digest)
+    } else {
+        None
+    };
+    let expected_length = payload.get("byte_length").and_then(Value::as_u64);
+    let digest_basis = text(payload, "digest_basis");
+    let object_ref = text(payload, "payload_object_ref");
     if !matches!(
         digest_basis,
         "locally_retrieved_and_hashed"
@@ -187,39 +267,78 @@ fn evaluate_artifact(
     ) {
         reasons.insert("PAYLOAD_DIGEST_BASIS_UNSUPPORTED".to_owned());
     }
-    if digest_algorithm != "sha256" {
-        reasons.insert("PAYLOAD_DIGEST_ALGORITHM_UNSUPPORTED".to_owned());
+    if expected_sha.is_some_and(|digest| !lower_hex(digest, 64)) {
+        reasons.insert("OWNER_PAYLOAD_DIGEST_INVALID".to_owned());
     }
-    if !lower_hex(payload_digest, 64)
-        || !lower_hex(text(artifact, "subject_digest"), 64)
-        || !lower_hex(text(artifact, "scope_digest"), 64)
-        || !lower_hex(text(artifact, "source_revision"), 40)
-        || payload_length.is_none()
-        || object_ref.is_empty()
-        || digest_basis.is_empty()
+    if digest_basis == "unavailable" && (expected_sha.is_some() || expected_length.is_some() || !object_ref.is_empty()) {
+        reasons.insert("UNAVAILABLE_DESCRIPTOR_PAYLOAD_INCONSISTENT".to_owned());
+    }
+    if digest_basis != "unavailable" && expected_sha.is_none() {
+        reasons.insert("OWNER_PAYLOAD_DIGEST_MISSING".to_owned());
+    }
+    if digest_basis == "locally_retrieved_and_hashed"
+        && (bool_value(payload, "bytes_retrieved") != Some(true)
+            || expected_length.is_none()
+            || object_ref.is_empty())
     {
-        reasons.insert("OWNER_PAYLOAD_IDENTITY_INCOMPLETE".to_owned());
+        reasons.insert("LOCAL_PAYLOAD_DESCRIPTOR_INCOMPLETE".to_owned());
     }
-    if !owner_content_digest.is_empty() && owner_content_digest != payload_digest {
+    if matches!(digest_basis, "external_reference" | "locally_retrieved_and_hashed")
+        && expected_sha.is_some()
+        && object_ref != format!("cas:sha256:{}", expected_sha.unwrap_or(""))
+    {
+        reasons.insert("PAYLOAD_OBJECT_REFERENCE_DIGEST_MISMATCH".to_owned());
+    }
+    let owner_content_digest = text(artifact, "content_digest");
+    if let Some(digest) = expected_sha
+        && !owner_content_digest.is_empty()
+        && owner_content_digest != digest
+    {
         reasons.insert("OWNER_PAYLOAD_DIGEST_MISMATCH".to_owned());
     }
-    let schema_digest_algorithm = text(artifact, "schema_digest_algorithm");
-    let schema_digest = text(artifact, "schema_artifact_digest");
-    let schema_digest_valid = match schema_digest_algorithm {
-        "git_blob_sha1" => lower_hex(schema_digest, 40),
-        "sha256" => lower_hex(schema_digest, 64),
-        _ => false,
+
+    let rights = descriptor.get("rights").unwrap_or(&Value::Null);
+    let rights_state = text(rights, "state");
+    let required_use = text(scope_binding, "required_use");
+    let permitted_uses = array(rights, "permitted_uses");
+    let rights_use_declaration_state = match rights_state {
+        "verified" if !required_use.is_empty()
+            && permitted_uses.iter().any(|value| value.as_str() == Some(required_use)) =>
+        {
+            "owner_declares_permitted"
+        }
+        "restricted" => "owner_declares_restricted",
+        "not_applicable" => "not_applicable",
+        _ => "unknown_or_not_authenticated",
     };
-    if !schema_digest_valid {
-        reasons.insert("OWNER_SCHEMA_PIN_INCOMPLETE_OR_INVALID".to_owned());
-    }
-    if text(artifact, "subject_id").is_empty()
-        || text(artifact, "owner_repo").is_empty()
-        || text(artifact, "contract_id").is_empty()
-        || text(artifact, "contract_version").is_empty()
-        || text(artifact, "receipt_id").is_empty()
+
+    let catalog_validation = report.get("catalog_validation").unwrap_or(&Value::Null);
+    let record_key = declared_record_key;
+    let identity_digest = text(
+        catalog_validation
+            .get("identity_sha256_by_case_record")
+            .unwrap_or(&Value::Null),
+        record_key,
+    );
+    let mapped_namespace = text(
+        catalog_validation
+            .get("native_identity_namespaces")
+            .unwrap_or(&Value::Null),
+        record_key,
+    );
+    let mapped_components = catalog_validation
+        .get("native_identity_components")
+        .and_then(|value| value.get(record_key))
+        .unwrap_or(&Value::Null);
+    let descriptor_components = identity_components(descriptor);
+    let mapped_component_pairs = identity_components(&json!({
+        "native_identity_components": mapped_components
+    }));
+    if !lower_hex(identity_digest, 64)
+        || mapped_namespace != descriptor_owner_namespace
+        || mapped_component_pairs != descriptor_components
     {
-        reasons.insert("OWNER_ARTIFACT_ENVELOPE_INCOMPLETE".to_owned());
+        reasons.insert("CATALOG_NATIVE_IDENTITY_BINDING_MISMATCH".to_owned());
     }
 
     let report_results = array(report, "payload_results");
@@ -234,12 +353,12 @@ fn evaluate_artifact(
             "VERIFIER_RECORD_RESULT_DUPLICATED".to_owned()
         });
     }
-
     let result = matched_results.first().copied();
     let verifier_disposition = result
         .map(|record| text(record, "disposition"))
         .unwrap_or("not_reported");
     let mut state = "indeterminate";
+    let mut byte_length_comparison_state = "not_assessed";
     if text(report, "disposition") == "invalid_input" {
         reasons.insert("VERIFIER_REPORT_INPUT_INVALID".to_owned());
         state = "unsupported";
@@ -247,7 +366,7 @@ fn evaluate_artifact(
         state = if reasons.iter().any(|reason| {
             reason.contains("MISMATCH")
                 || reason.contains("DUPLICATED")
-                || reason == "VERIFIED_RESULT_PREDICATE_INCOMPLETE"
+                || reason.contains("CONFLICT")
         }) {
             "mismatch"
         } else if reasons.contains("VERIFIER_RECORD_RESULT_MISSING") {
@@ -256,66 +375,76 @@ fn evaluate_artifact(
             "unsupported"
         };
     } else if let Some(record) = result {
-        if text(record, "digest_basis") != digest_basis
-            || text(record, "object_ref") != object_ref
-            || text(record, "expected_sha256") != payload_digest
-            || record.get("expected_byte_length").and_then(Value::as_u64) != payload_length
+        let result_expected_sha = record.get("expected_sha256").and_then(Value::as_str);
+        let result_object_ref = record.get("object_ref").and_then(Value::as_str);
+        let result_expected_length = record.get("expected_byte_length").and_then(Value::as_u64);
+        if result.get("expected_sha256").and_then(Value::as_str) != expected_sha
+            || result_object_ref != if object_ref.is_empty() { None } else { Some(object_ref) }
+            || result_expected_length != expected_length
+            || text(record, "digest_basis") != digest_basis
         {
             reasons.insert("VERIFIER_RESULT_DESCRIPTOR_MISMATCH".to_owned());
             state = "mismatch";
         } else {
             state = verifier_disposition_state(verifier_disposition);
             if verifier_disposition == "verified_match" {
-                let observed_digest = text(record, "observed_sha256");
+                let observed_digest = record.get("observed_sha256").and_then(Value::as_str);
                 let observed_length = record.get("observed_byte_length").and_then(Value::as_u64);
                 let bytes_hashed = record.get("bytes_hashed").and_then(Value::as_u64);
-                if bool_value(record, "resolver_open_attempted") != Some(true)
-                    || bool_value(record, "digest_matches") != Some(true)
-                    || bool_value(record, "byte_length_matches") != Some(true)
-                    || observed_digest != payload_digest
-                    || observed_length != payload_length
-                    || bytes_hashed != payload_length
-                {
+                let resolver_opened = bool_value(record, "resolver_open_attempted") == Some(true);
+                let digest_match = bool_value(record, "digest_matches") == Some(true)
+                    && expected_sha.is_some()
+                    && observed_digest == expected_sha;
+                let length_ok = match expected_length {
+                    Some(length) => {
+                        byte_length_comparison_state = "matched";
+                        bool_value(record, "byte_length_matches") == Some(true)
+                            && observed_length == Some(length)
+                            && bytes_hashed == Some(length)
+                    }
+                    None => {
+                        byte_length_comparison_state = "not_declared";
+                        record.get("byte_length_matches").is_some_and(Value::is_null)
+                            && observed_length.is_some()
+                            && bytes_hashed == observed_length
+                    }
+                };
+                if !resolver_opened || !digest_match || !length_ok {
                     reasons.insert("VERIFIED_RESULT_PREDICATE_INCOMPLETE".to_owned());
                     state = "mismatch";
                 }
+            } else if verifier_disposition == "declared_unavailable" {
+                state = "unavailable";
+                byte_length_comparison_state = "not_available";
+            } else {
+                byte_length_comparison_state = if expected_length.is_some() {
+                    "not_verified"
+                } else {
+                    "not_declared"
+                };
             }
         }
     }
 
-    // Rights are a separate owner assertion. They never change whether the
-    // exact bytes matched the descriptor; this adapter does not authenticate
-    // the rights evidence or authorize a proposed use.
-    let rights_use_declaration_state = if rights_state == "verified"
-        && !required_use.is_empty()
-        && permitted_uses
-            .iter()
-            .any(|value| value.as_str() == Some(required_use))
-    {
-        "owner_declares_permitted"
-    } else if rights_state == "restricted" {
-        "owner_declares_restricted"
-    } else {
-        "unknown_or_not_authenticated"
-    };
-
-    if !matches!(
-        binding_state,
-        "Bound" | "Unknown" | "NotComparable" | "Unsupported"
-    ) {
-        reasons.insert("SCOPE_BINDING_STATE_UNSUPPORTED".to_owned());
-    }
-
     let observed_digest = result
-        .map(|record| {
-            record
-                .get("observed_sha256")
-                .and_then(Value::as_str)
-                .unwrap_or("")
-        })
+        .and_then(|record| record.get("observed_sha256").and_then(Value::as_str))
         .unwrap_or("");
     let observed_length =
         result.and_then(|record| record.get("observed_byte_length").and_then(Value::as_u64));
+    let raw_byte_equality_verified = verifier_disposition == "verified_match"
+        && result.is_some_and(|record| {
+            expected_sha.is_some()
+                && text(record, "digest_basis") == digest_basis
+                && record.get("expected_sha256").and_then(Value::as_str) == expected_sha
+                && record
+                    .get("observed_sha256")
+                    .and_then(Value::as_str)
+                    .is_some_and(|observed| Some(observed) == expected_sha)
+                && bool_value(record, "resolver_open_attempted") == Some(true)
+                && bool_value(record, "digest_matches") == Some(true)
+                && record.get("bytes_hashed").and_then(Value::as_u64)
+                    == record.get("observed_byte_length").and_then(Value::as_u64)
+        });
     json!({
         "artifact_id": artifact_id,
         "scope_binding_state": binding_state,
@@ -323,35 +452,25 @@ fn evaluate_artifact(
         "raw_owner_disposition": raw_owner_disposition,
         "base_payload_bytes_verified": base_flag.unwrap_or(false),
         "payload_verification_state": state,
-        "raw_byte_equality_verified": verifier_disposition == "verified_match"
-            && result.is_some_and(|record| {
-                text(record, "digest_basis") == digest_basis
-                    && text(record, "object_ref") == object_ref
-                    && text(record, "expected_sha256") == payload_digest
-                    && record.get("expected_byte_length").and_then(Value::as_u64) == payload_length
-                    && bool_value(record, "resolver_open_attempted") == Some(true)
-                    && bool_value(record, "digest_matches") == Some(true)
-                    && bool_value(record, "byte_length_matches") == Some(true)
-                    && text(record, "observed_sha256") == payload_digest
-                    && record.get("observed_byte_length").and_then(Value::as_u64) == payload_length
-                    && record.get("bytes_hashed").and_then(Value::as_u64) == payload_length
-            }),
+        "raw_byte_equality_verified": raw_byte_equality_verified,
         "payload_bytes_verified": state == "verified",
+        "byte_length_comparison_state": byte_length_comparison_state,
         "verifier_disposition": verifier_disposition,
         "record_key": declared_record_key,
-        "object_ref": object_ref,
+        "object_ref": if object_ref.is_empty() { Value::Null } else { json!(object_ref) },
         "digest_basis": digest_basis,
-        "digest_algorithm": digest_algorithm,
-        "expected_sha256": payload_digest,
+        "digest_algorithm": "sha256",
+        "expected_sha256": expected_sha,
         "observed_sha256": observed_digest,
-        "expected_byte_length": payload_length,
+        "expected_byte_length": expected_length,
         "observed_byte_length": observed_length,
         "report_reference": text(report_binding, "report_reference"),
         "report_sha256": text(report_binding, "declared_report_sha256"),
         "owner_rights_state": rights_state,
         "rights_use_declaration_state": rights_use_declaration_state,
-        "schema_digest_algorithm": schema_digest_algorithm,
-        "schema_artifact_digest": schema_digest,
+        "schema_digest_algorithm": text(artifact, "schema_digest_algorithm"),
+        "schema_artifact_digest": text(artifact, "schema_artifact_digest"),
+        "catalog_identity_sha256": identity_digest,
         "rights_authentication": "not_performed",
         "action_authority": "none",
         "reason_codes": reasons.into_iter().collect::<Vec<_>>(),
