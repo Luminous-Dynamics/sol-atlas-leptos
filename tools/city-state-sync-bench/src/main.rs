@@ -52,7 +52,7 @@ fn main() -> ExitCode {
     if corpus["corpus_id"] != "CITY-STATE-SYNC-CORPUS-V0.1"
         || corpus["schema_version"] != "0.1.0"
         || corpus["classification"] != "synthetic_fixture_only"
-        || cases.len() != 33
+        || cases.len() != 35
     {
         eprintln!("unexpected state-sync corpus identity, schema, classification or case count");
         return ExitCode::from(2);
