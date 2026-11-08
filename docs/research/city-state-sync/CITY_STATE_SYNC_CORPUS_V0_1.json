@@ -1881,7 +1881,8 @@
             "timezone": "UTC",
             "clock_id": "clock-1",
             "clock_uncertainty_ms": 5,
-            "freshness_policy_id": "P-1"
+            "freshness_policy_id": "P-1",
+            "target_subject_digest": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
           },
           {
             "event_id": "E-2",
@@ -1950,7 +1951,8 @@
             "from_subject_id": "asset-old",
             "to_subject_id": "asset-new",
             "status": "OwnerDeclared",
-            "automatic_merge": false
+            "automatic_merge": false,
+            "reason_codes": []
           }
         ],
         "claim_ceiling": "synthetic_temporal_state_and_feedback_semantics_only"
@@ -3550,6 +3552,181 @@
           }
         ],
         "identity_links": [],
+        "claim_ceiling": "synthetic_temporal_state_and_feedback_semantics_only"
+      }
+    },
+    {
+      "case_id": "CS-034",
+      "description": "Owner-declared successor to an unregistered target remains Unknown",
+      "input": {
+        "as_of": {
+          "valid_at": 1000,
+          "recorded_at": 1100,
+          "ingested_at": 1200
+        },
+        "freshness_policies": [
+          {
+            "policy_id": "P-1",
+            "owner_repo": "owner/a",
+            "contract_id": "asset-state",
+            "contract_version": "1.0",
+            "expected_refresh_seconds": 60,
+            "max_observation_age_seconds": 300,
+            "max_record_delay_seconds": 120,
+            "max_ingest_lag_seconds": 120,
+            "max_clock_uncertainty_ms": 100
+          }
+        ],
+        "owner_health": [
+          {
+            "owner_repo": "owner/a",
+            "state": "available"
+          }
+        ],
+        "required_subjects": [],
+        "events": [
+          {
+            "event_id": "LINK-asset-unregistered",
+            "receipt_id": "R-LINK-asset-unregistered",
+            "owner_repo": "owner/a",
+            "contract_id": "asset-state",
+            "contract_version": "1.0",
+            "source_revision": "0123456789012345678901234567890123456789",
+            "schema_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "content_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "subject_id": "asset-1",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "owner_sequence": 2,
+            "event_kind": "identity_successor",
+            "target_event_id": null,
+            "target_subject_id": "asset-unregistered",
+            "owner_state": "Available",
+            "evidence_state": "admitted",
+            "valid_from": 0,
+            "valid_until": null,
+            "observed_at": 950,
+            "recorded_at": 960,
+            "ingested_at": 970,
+            "time_basis": "UTC_UNIX_SECONDS",
+            "timezone": "UTC",
+            "clock_id": "clock-1",
+            "clock_uncertainty_ms": 5,
+            "freshness_policy_id": "P-1",
+            "target_subject_digest": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+          }
+        ],
+        "intervention_stages": [],
+        "identity_links": []
+      },
+      "expected": {
+        "case_id": "CS-034",
+        "entities": [],
+        "interventions": [],
+        "identity_links": [
+          {
+            "owner_repo": "owner/a",
+            "from_subject_id": "asset-1",
+            "to_subject_id": "asset-unregistered",
+            "status": "Unknown",
+            "automatic_merge": false,
+            "reason_codes": [
+              "IDENTITY_TARGET_NOT_REGISTERED"
+            ]
+          }
+        ],
+        "claim_ceiling": "synthetic_temporal_state_and_feedback_semantics_only"
+      }
+    },
+    {
+      "case_id": "CS-035",
+      "description": "Owner-declared successor with mismatched target subject digest is Unsupported",
+      "input": {
+        "as_of": {
+          "valid_at": 1000,
+          "recorded_at": 1100,
+          "ingested_at": 1200
+        },
+        "freshness_policies": [
+          {
+            "policy_id": "P-1",
+            "owner_repo": "owner/a",
+            "contract_id": "asset-state",
+            "contract_version": "1.0",
+            "expected_refresh_seconds": 60,
+            "max_observation_age_seconds": 300,
+            "max_record_delay_seconds": 120,
+            "max_ingest_lag_seconds": 120,
+            "max_clock_uncertainty_ms": 100
+          }
+        ],
+        "owner_health": [
+          {
+            "owner_repo": "owner/a",
+            "state": "available"
+          }
+        ],
+        "required_subjects": [
+          {
+            "owner_repo": "owner/a",
+            "subject_id": "asset-target",
+            "subject_digest": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "contract_id": "asset-state",
+            "contract_version": "1.0"
+          }
+        ],
+        "events": [
+          {
+            "event_id": "LINK-asset-target",
+            "receipt_id": "R-LINK-asset-target",
+            "owner_repo": "owner/a",
+            "contract_id": "asset-state",
+            "contract_version": "1.0",
+            "source_revision": "0123456789012345678901234567890123456789",
+            "schema_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "content_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "subject_id": "asset-1",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "owner_sequence": 2,
+            "event_kind": "identity_successor",
+            "target_event_id": null,
+            "target_subject_id": "asset-target",
+            "owner_state": "Available",
+            "evidence_state": "admitted",
+            "valid_from": 0,
+            "valid_until": null,
+            "observed_at": 950,
+            "recorded_at": 960,
+            "ingested_at": 970,
+            "time_basis": "UTC_UNIX_SECONDS",
+            "timezone": "UTC",
+            "clock_id": "clock-1",
+            "clock_uncertainty_ms": 5,
+            "freshness_policy_id": "P-1",
+            "target_subject_digest": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+          }
+        ],
+        "intervention_stages": [],
+        "identity_links": []
+      },
+      "expected": {
+        "case_id": "CS-035",
+        "entities": [],
+        "interventions": [],
+        "identity_links": [
+          {
+            "owner_repo": "owner/a",
+            "from_subject_id": "asset-1",
+            "to_subject_id": "asset-target",
+            "status": "Unsupported",
+            "automatic_merge": false,
+            "reason_codes": [
+              "IDENTITY_TARGET_DIGEST_MISMATCH"
+            ]
+          }
+        ],
         "claim_ceiling": "synthetic_temporal_state_and_feedback_semantics_only"
       }
     }
