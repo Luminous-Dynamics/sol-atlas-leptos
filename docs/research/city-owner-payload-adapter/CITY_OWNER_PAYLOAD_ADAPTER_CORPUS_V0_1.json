@@ -386,7 +386,7 @@
             "raw_owner_disposition": "Accepted",
             "payload_verification_state": "mismatch",
             "payload_bytes_verified": false,
-            "raw_byte_equality_verified": true
+            "raw_byte_equality_verified": false
           }
         ]
       }
@@ -470,7 +470,7 @@
     },
     {
       "case_id": "PA-07",
-      "name": "Restricted-rights object is not promoted as available",
+      "name": "Restricted-rights object remains byte-verified while rights use remains a separate claim",
       "input": {
         "scope_binding": {
           "binding_disposition": "Bound",
@@ -530,14 +530,14 @@
       },
       "expected": {
         "report_integrity_state": "verified",
-        "payload_verification_state": "unavailable",
+        "payload_verification_state": "verified",
         "artifact_payloads": [
           {
             "artifact_id": "ART-PA-07",
             "scope_binding_state": "Bound",
             "raw_owner_disposition": "Accepted",
-            "payload_verification_state": "unavailable",
-            "payload_bytes_verified": false,
+            "payload_verification_state": "verified",
+            "payload_bytes_verified": true,
             "raw_byte_equality_verified": true
           }
         ]
@@ -1453,7 +1453,7 @@
         }
       },
       "expected": {
-        "report_integrity_state": "unsupported",
+        "report_integrity_state": "verified",
         "payload_verification_state": "unsupported",
         "artifact_payloads": [
           {
@@ -1464,7 +1464,8 @@
             "payload_bytes_verified": false,
             "raw_byte_equality_verified": false
           }
-        ]
+        ],
+        "report_disposition_state": "invalid_input"
       }
     },
     {
@@ -1530,7 +1531,7 @@
         }
       },
       "expected": {
-        "report_integrity_state": "unsupported",
+        "report_integrity_state": "verified",
         "payload_verification_state": "unsupported",
         "artifact_payloads": [
           {
@@ -1541,7 +1542,8 @@
             "payload_bytes_verified": false,
             "raw_byte_equality_verified": false
           }
-        ]
+        ],
+        "report_disposition_state": "invalid_input"
       }
     },
     {
