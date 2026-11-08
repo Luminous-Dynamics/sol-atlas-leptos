@@ -2371,7 +2371,7 @@
             "functional_unit": "synthetic-panel-service",
             "evaluated_at": "2026-11-08T12:00:00Z",
             "report_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddd00001a00",
-            "report_reference": "cas:sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddd00001a00",
+            "report_reference": "cas:sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
             "action_authority": "none"
           },
           {
