@@ -1776,10 +1776,8 @@ mod tests {
 
     #[test]
     fn duplicate_scenario_id_with_identical_value_is_rejected_before_map_parsing() {
-        let needle = "\\"scenario_id\\": \\"HIGHVELD-KEEP-SYNTHETIC-001\\",";
-        let replacement = format!(
-            "{needle}\\n  \\"scenario_id\\": \\"HIGHVELD-KEEP-SYNTHETIC-001\\","
-        );
+        let needle = r#""scenario_id": "HIGHVELD-KEEP-SYNTHETIC-001","#;
+        let replacement = format!("{needle}\n  {needle}");
         let raw = SCENARIO_JSON.replacen(needle, &replacement, 1);
         assert_ne!(raw, SCENARIO_JSON);
         let error = parse_unique_json_bytes(raw.as_bytes()).unwrap_err();
@@ -1788,10 +1786,9 @@ mod tests {
 
     #[test]
     fn duplicate_claim_ceiling_with_conflicting_value_is_rejected() {
-        let needle = "\\"claim_ceiling\\": \\"synthetic_requirements_and_design_space_only\\",";
-        let replacement = format!(
-            "{needle}\\n  \\"claim_ceiling\\": \\"unbounded_approval\\","
-        );
+        let needle = r#""claim_ceiling": "synthetic_requirements_and_design_space_only","#;
+        let replacement =
+            format!("{needle}\n  \"claim_ceiling\": \"unbounded_approval\",");
         let raw = SCENARIO_JSON.replacen(needle, &replacement, 1);
         assert_ne!(raw, SCENARIO_JSON);
         let error = parse_unique_json_bytes(raw.as_bytes()).unwrap_err();
@@ -1800,10 +1797,8 @@ mod tests {
 
     #[test]
     fn duplicate_nested_status_key_is_rejected() {
-        let needle = "\\"status\\": \\"UNKNOWN_NO_REAL_PARCEL_SELECTED\\",";
-        let replacement = format!(
-            "{needle}\\n    \\"status\\": \\"DISPUTED\\","
-        );
+        let needle = r#""status": "UNKNOWN_NO_REAL_PARCEL_SELECTED","#;
+        let replacement = format!("{needle}\n    \"status\": \"DISPUTED\",");
         let raw = SCENARIO_JSON.replacen(needle, &replacement, 1);
         assert_ne!(raw, SCENARIO_JSON);
         let error = parse_unique_json_bytes(raw.as_bytes()).unwrap_err();
@@ -1812,7 +1807,7 @@ mod tests {
 
     #[test]
     fn escaped_duplicate_json_keys_are_compared_after_decoding() {
-        let raw = br#"{"key":1,"\\u006bey":2}"#;
+        let raw = br#"{"key":1,"\u006bey":2}"#;
         let error = parse_unique_json_bytes(raw).unwrap_err();
         assert!(error.contains("JSON_DUPLICATE_MEMBER_KEY:key"));
     }
