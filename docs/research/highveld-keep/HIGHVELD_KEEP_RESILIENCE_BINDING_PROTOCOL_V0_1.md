@@ -58,6 +58,15 @@ The paired comparison is admitted only after:
 
 Only then may the Symtropy #1848 owner output be used to compare the remaining candidates. The adapter does not perform local dominance or choose a universal winner.
 
+## 4B. Machine-pinned owner qualification receipt
+
+The manifest's `verified_owner_qualifications` entry is an immutable *reference* to the Symtropy #1849 software-oracle qualification observed on 8 November 2026. It pins:
+- candidate source head `b0da4a10115861798d6b32e5940efb3b775044dd`;
+- dedicated qualifier workflow run #95 and general CI run #11785;
+- artifact ID `13606874236` and archive digest `8ee7edda499ddb7e47b94e3429bf2d515c287866563a4e0f58409f02f75d8162`.
+
+The Rust binding checker rejects a different owner SHA, failed/mismatched workflow IDs, a replacement artifact digest, or an expanded claim ceiling. This is a stale-receipt and authority-ceiling guard, not an independent re-execution of Symtropy's verifier. Re-execution remains the responsibility of the owner workflow at the current candidate head. The archive digest applies only to the ZIP container; individual JSON receipts and dependency lock are contained within it.
+
 ## 4A. Verified upstream trajectory software oracle — exact-head receipt
 
 The Symtropy [SPATIAL-RESILIENCE-001 #1848](https://github.com/Luminous-Dynamics/symtropy/issues/1848) owner now has a verified software-oracle candidate at commit `b0da4a10115861798d6b32e5940efb3b775044dd`, from [draft PR #1849](https://github.com/Luminous-Dynamics/symtropy/pull/1849).
