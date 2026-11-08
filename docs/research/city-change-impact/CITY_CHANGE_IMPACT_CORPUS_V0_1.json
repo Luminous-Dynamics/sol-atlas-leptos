@@ -2604,7 +2604,8 @@
                   "SUBJECT-25",
                   "claim_receipt"
                 ],
-                "coverage_proof_id": null
+                "coverage_proof_id": null,
+                "disposition": "revalidate"
               },
               {
                 "claim_id": "claim_dependent_decision",
@@ -2853,7 +2854,8 @@
                   "SUBJECT-27",
                   "claim_historical_receipt"
                 ],
-                "coverage_proof_id": null
+                "coverage_proof_id": null,
+                "disposition": "no_impact"
               }
             ]
           }
