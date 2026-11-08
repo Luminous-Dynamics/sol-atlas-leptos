@@ -3713,7 +3713,19 @@
       },
       "expected": {
         "case_id": "CS-035",
-        "entities": [],
+        "entities": [
+          {
+            "owner_repo": "owner/a",
+            "subject_id": "asset-target",
+            "state": "Unknown",
+            "selected_event_id": null,
+            "owner_state": null,
+            "reason_codes": [
+              "NO_VISIBLE_OWNER_EVENT"
+            ],
+            "historical_event_ids": []
+          }
+        ],
         "interventions": [],
         "identity_links": [
           {
