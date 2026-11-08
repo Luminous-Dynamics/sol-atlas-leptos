@@ -486,9 +486,16 @@ fn evaluate_lifecycle(
         )
     };
 
+    let service_state = str_field(lifecycle, "service_state");
     let service = if commissioning != "pass" {
         "unknown".to_owned()
-    } else if str_field(lifecycle, "service_state") == "unknown"
+    } else if !matches!(
+        service_state,
+        "adequate" | "constrained" | "inaccessible" | "unknown"
+    ) {
+        reasons.insert("CONTINUITY_SERVICE_STATE_UNSUPPORTED".to_owned());
+        "unknown".to_owned()
+    } else if service_state == "unknown"
         || str_field(lifecycle, "continuity_receipt_state") != "current"
         || str_field(lifecycle, "service_scope_digest")
             != text_field(input.get("scope").unwrap_or(&Value::Null), "scope_digest")
@@ -499,7 +506,7 @@ fn evaluate_lifecycle(
         reasons.insert("STABLE_ADEQUACY_INTERVAL_NOT_MET".to_owned());
         "unknown".to_owned()
     } else {
-        str_field(lifecycle, "service_state").to_owned()
+        service_state.to_owned()
     };
 
     (work, inspection, commissioning, service)
@@ -791,4 +798,42 @@ mod tests {
         let result = evaluate_case(&case);
         assert_eq!(result["plan_readiness"], "feasible");
     }
+    #[test]
+    fn service_state_requires_an_owner_native_enum_value() {
+        let mut case = corpus()["cases"][0].clone();
+        case["input"]["lifecycle"]["work_execution"] = json!("completed");
+        case["input"]["lifecycle"]["inspection_state"] = json!("pass");
+        case["input"]["lifecycle"]["commissioning_state"] = json!("pass");
+        case["input"]["lifecycle"]["service_state"] = json!("fully_operational");
+        case["input"]["lifecycle"]["continuity_receipt_state"] = json!("current");
+        case["input"]["lifecycle"]["stable_adequacy_met"] = json!(true);
+        case["input"]["lifecycle"]["execution_evidence_state"] = json!("current");
+        case["input"]["lifecycle"]["inspection_evidence_state"] = json!("current");
+        case["input"]["lifecycle"]["commissioning_evidence_state"] = json!("current");
+        let result = evaluate_case(&case);
+        assert_eq!(result["service_state"], "unknown");
+        assert!(result["reason_codes"].as_array().unwrap().iter().any(
+            |reason| reason == "CONTINUITY_SERVICE_STATE_UNSUPPORTED"
+        ));
+    }
+
+    #[test]
+    fn current_continuity_receipt_can_project_adequate_service_after_stable_confirmation() {
+        let mut case = corpus()["cases"][0].clone();
+        case["input"]["lifecycle"]["work_execution"] = json!("completed");
+        case["input"]["lifecycle"]["inspection_state"] = json!("pass");
+        case["input"]["lifecycle"]["commissioning_state"] = json!("pass");
+        case["input"]["lifecycle"]["service_state"] = json!("adequate");
+        case["input"]["lifecycle"]["continuity_receipt_state"] = json!("current");
+        case["input"]["lifecycle"]["stable_adequacy_met"] = json!(true);
+        case["input"]["lifecycle"]["execution_evidence_state"] = json!("current");
+        case["input"]["lifecycle"]["inspection_evidence_state"] = json!("current");
+        case["input"]["lifecycle"]["commissioning_evidence_state"] = json!("current");
+        let result = evaluate_case(&case);
+        assert_eq!(result["work_execution"], "completed");
+        assert_eq!(result["inspection_state"], "pass");
+        assert_eq!(result["commissioning_state"], "pass");
+        assert_eq!(result["service_state"], "adequate");
+    }
+
 }
