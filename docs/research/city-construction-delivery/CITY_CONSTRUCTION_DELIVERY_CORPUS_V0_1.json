@@ -4143,10 +4143,12 @@
         "deliveries": [
           {
             "delivery_id": "d1",
-            "state": "AcceptedDelivery",
-            "reason_codes": [],
+            "state": "Late",
+            "reason_codes": [
+              "DELIVERY_WINDOW_OR_DEADLINE_MISSED"
+            ],
             "predicted_arrival_tick": 70,
-            "predicted_acceptance_tick": 74,
+            "predicted_acceptance_tick": 79,
             "source_class": "local",
             "local_productive_capability_claim": false,
             "lot_id": "lot-01",
@@ -4156,7 +4158,7 @@
               "inventory": "sufficient",
               "qualification": "qualified",
               "revision": "matched",
-              "availability": "timely",
+              "availability": "late",
               "transport": "feasible",
               "site_access": "feasible",
               "unloading": "feasible",
