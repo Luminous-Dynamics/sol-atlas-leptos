@@ -54,7 +54,7 @@ Unsupported or unversioned lanes return `insufficient_evidence`. A wrong or cont
 
 ## Corpus
 
-`CITY_IMPACT_LANE_ROUTER_CORPUS_V0_1.json` contains 41 synthetic known-answer cases:
+`CITY_IMPACT_LANE_ROUTER_CORPUS_V0_1.json` contains 44 synthetic known-answer cases:
 - correct artifact-frontier plus dependency-coverage envelope;
 - wrong-family substitution and missing required lanes;
 - source lifecycle v0.1 versus graph v0.2 incompatibility;
@@ -77,7 +77,7 @@ From the repository root:
       docs/research/city-impact-router/CITY_IMPACT_LANE_ROUTER_CORPUS_V0_1.json \
       --source-commit <40-lowercase-hex-sha>
 
-The CLI receipt binds the exact registry bytes, corpus bytes and source commit. A PASS means only that the router reproduces the 41 synthetic routing expectations.
+The CLI receipt binds the exact registry bytes, corpus bytes and source commit. A PASS means only that the router reproduces the 44 synthetic routing expectations.
 
 ## Benchmark targets
 
