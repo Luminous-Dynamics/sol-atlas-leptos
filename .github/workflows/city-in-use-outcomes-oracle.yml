@@ -54,7 +54,7 @@ jobs:
             .result == "pass"
             and .corpus_id == "CITY-IN-USE-OUTCOMES-CORPUS-V0.1"
             and .corpus_classification == "synthetic_fixture_only"
-            and .scenario_count == 24
+            and .scenario_count == 30
             and .failure_count == 0
             and (.corpus_sha256 | test("^[0-9a-f]{64}$"))
             and (.source_commit | test("^[0-9a-f]{40}$"))
