@@ -55,7 +55,7 @@
     },
     "cases": {
       "type": "array",
-      "minItems": 30,
+      "minItems": 33,
       "items": {
         "$ref": "#/$defs/case"
       }
@@ -450,7 +450,8 @@
         "horizon_id",
         "recorded_at",
         "ingested_at",
-        "disposition"
+        "disposition",
+        "occurred_at"
       ],
       "properties": {
         "event_id": {
@@ -491,6 +492,9 @@
         },
         "disposition": {
           "type": "string"
+        },
+        "occurred_at": {
+          "type": "integer"
         }
       }
     }
