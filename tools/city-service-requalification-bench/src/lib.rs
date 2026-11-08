@@ -391,8 +391,10 @@ fn measurement_state(
     let Some(measurement) = measurement else {
         return "pending".to_owned();
     };
-    if text(measurement, "state") == "pending" {
-        return "pending".to_owned();
+    match text(measurement, "state") {
+        "pending" => return "pending".to_owned(),
+        "measured" => {}
+        _ => return "invalid".to_owned(),
     }
     let cutoff = query.get("temporal_cutoff").unwrap_or(&Value::Null);
     let digest = text(measurement, "measurement_sha256");
