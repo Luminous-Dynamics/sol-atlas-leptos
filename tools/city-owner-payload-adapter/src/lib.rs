@@ -359,16 +359,18 @@ fn evaluate_artifact(
         .unwrap_or("not_reported");
     let mut state = "indeterminate";
     let mut byte_length_comparison_state = "not_assessed";
-    if text(report, "disposition") == "invalid_input" {
-        reasons.insert("VERIFIER_REPORT_INPUT_INVALID".to_owned());
-        state = "unsupported";
-    } else if !reasons.is_empty() {
+    if !reasons.is_empty() {
         state = if reasons.iter().any(|reason| {
             reason.contains("MISMATCH")
                 || reason.contains("DUPLICATED")
                 || reason.contains("CONFLICT")
         }) {
             "mismatch"
+        } else if reasons.contains("VERIFIER_RECORD_RESULT_MISSING")
+            && text(report, "disposition") == "invalid_input"
+        {
+            reasons.insert("VERIFIER_REPORT_INPUT_INVALID".to_owned());
+            "unsupported"
         } else if reasons.contains("VERIFIER_RECORD_RESULT_MISSING") {
             "indeterminate"
         } else {
