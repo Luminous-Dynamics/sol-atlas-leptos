@@ -113,7 +113,24 @@ fn evaluate_subject(input: &Value, required: &Value) -> Value {
         .map(|event| text(event, "event_id").to_owned())
         .collect::<Vec<_>>();
 
+    let mut event_ids = BTreeMap::<String, String>::new();
+    let mut receipt_ids = BTreeSet::<String>::new();
     for event in &relevant {
+        let event_id = text(event, "event_id");
+        let content_digest = text(event, "content_sha256");
+        if event_id.is_empty() {
+            push_reason(&mut reasons, "EVENT_ID_MISSING");
+        } else if let Some(previous_digest) = event_ids.insert(event_id.to_owned(), content_digest.to_owned()) {
+            if previous_digest != content_digest {
+                push_reason(&mut reasons, "EVENT_ID_CONTENT_CONFLICT");
+            } else {
+                push_reason(&mut reasons, "DUPLICATE_EVENT_ID");
+            }
+        }
+        let receipt_id = text(event, "receipt_id");
+        if receipt_id.is_empty() || !receipt_ids.insert(receipt_id.to_owned()) {
+            push_reason(&mut reasons, "DUPLICATE_OR_MISSING_RECEIPT_ID");
+        }
         if text(event, "contract_id") != expected_contract
             || text(event, "contract_version") != expected_version
         {
@@ -160,6 +177,10 @@ fn evaluate_subject(input: &Value, required: &Value) -> Value {
     if reasons.contains("OWNER_CONTRACT_VERSION_MISMATCH")
         || reasons.contains("SUBJECT_IDENTITY_MISMATCH")
         || reasons.contains("EVENT_DIGEST_INVALID")
+        || reasons.contains("EVENT_ID_MISSING")
+        || reasons.contains("EVENT_ID_CONTENT_CONFLICT")
+        || reasons.contains("DUPLICATE_EVENT_ID")
+        || reasons.contains("DUPLICATE_OR_MISSING_RECEIPT_ID")
         || reasons.contains("TIME_BASIS_UNSUPPORTED")
     {
         return entity_result(
@@ -740,7 +761,8 @@ mod tests {
 
     #[test]
     fn current_state_requires_owner_policy_and_admitted_observation() {
-        let result = evaluate_subject(&input(vec![event("E-1",1,950,960,970)]), &input(vec![event("E-1",1,950,960,970)])["required_subjects"][0]);
+        let data = input(vec![event("E-1",1,950,960,970)]);
+        let result = evaluate_subject(&data, &data["required_subjects"][0]);
         assert_eq!(result["state"], "Current");
     }
 
@@ -749,14 +771,14 @@ mod tests {
         let mut older_sequence = event("E-1", 1, 950, 990, 1000);
         let newer_sequence = event("E-2", 2, 940, 960, 970);
         older_sequence["owner_state"] = json!("Old");
-        let mut data = input(vec![older_sequence, newer_sequence]);
+        let data = input(vec![older_sequence, newer_sequence]);
         let result = evaluate_subject(&data, &data["required_subjects"][0]);
         assert_eq!(result["selected_event_id"], "E-2");
     }
 
     #[test]
     fn revoked_owner_event_cannot_remain_current() {
-        let mut assertion = event("E-1", 1, 950, 960, 970);
+        let assertion = event("E-1", 1, 950, 960, 970);
         let mut revoke = event("E-2", 2, 980, 990, 1000);
         revoke["event_kind"] = json!("revoke");
         revoke["target_event_id"] = json!("E-1");
@@ -800,7 +822,7 @@ mod tests {
 
     #[test]
     fn intervention_without_execution_is_not_complete() {
-        let mut proposal = json!({
+        let proposal = json!({
             "event_id":"P","intervention_id":"I-1","stage":"proposal",
             "predecessor_event_id":null,"owner_repo":"owner/a",
             "scope_digest":hash('d'),"horizon_id":"H-1",
@@ -819,7 +841,6 @@ mod tests {
         let result = evaluate_intervention(&data,"I-1",data["intervention_stages"].as_array().unwrap());
         assert_eq!(result["state"],"ApprovedNotExecuted");
         assert_eq!(result["workflow_complete"],false);
-        proposal["stage"] = json!("proposal");
     }
 
     #[test]
