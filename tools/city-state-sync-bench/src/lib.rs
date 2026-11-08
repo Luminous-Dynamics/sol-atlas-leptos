@@ -69,6 +69,19 @@ fn entity_result(
     })
 }
 
+fn policy_for<'a>(input: &'a Value, event: &Value) -> Option<&'a Value> {
+    input
+        .get("freshness_policies")
+        .and_then(Value::as_array)?
+        .iter()
+        .find(|policy| {
+            text(policy, "policy_id") == text(event, "freshness_policy_id")
+                && text(policy, "owner_repo") == text(event, "owner_repo")
+                && text(policy, "contract_id") == text(event, "contract_id")
+                && text(policy, "contract_version") == text(event, "contract_version")
+        })
+}
+
 fn owner_health<'a>(input: &'a Value, owner_repo: &str) -> Option<&'a str> {
     input
         .get("owner_health")
