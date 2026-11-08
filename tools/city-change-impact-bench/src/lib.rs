@@ -18,7 +18,7 @@ fn number(value: &Value, key: &str) -> Option<u64> {
     value.get(key).and_then(Value::as_u64)
 }
 
-fn records(value: &Value, key: &str) -> &[Value] {
+fn records<'a>(value: &'a Value, key: &str) -> &'a [Value] {
     value
         .get(key)
         .and_then(Value::as_array)
