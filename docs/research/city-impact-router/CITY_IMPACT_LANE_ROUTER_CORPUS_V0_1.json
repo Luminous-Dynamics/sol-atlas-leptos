@@ -3843,6 +3843,381 @@
         ],
         "reason_codes": []
       }
+    },
+    {
+      "case_id": "LR-33",
+      "name": "Explicitly untrusted recorded time remains insufficient",
+      "input": {
+        "event": {
+          "event_id": "EVENT-LR-33",
+          "event_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "change_class": "design_geometry",
+          "subject_node_id": "artifact:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "subject_revision": "REV-2",
+          "source_revision_before": "REV-1",
+          "source_revision_after": "REV-2",
+          "time_basis": "UTC_RFC3339_SECONDS",
+          "valid_time": {
+            "effective_at": "2026-11-07T00:00:00Z",
+            "effective_until": null,
+            "effective_time_confidence": "verified"
+          },
+          "system_time": {
+            "recorded_at": "2026-11-08T10:00:00Z",
+            "trusted_at": null,
+            "trusted_timestamp_receipt_sha256": null
+          }
+        },
+        "query": {
+          "scope_id": "SYNTHETIC-DISTRICT-01",
+          "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "functional_unit": "synthetic-panel-service",
+          "evaluation_at": "2026-11-08T12:00:00Z",
+          "requires_no_impact_proof": false
+        },
+        "owner_reports": [
+          {
+            "report_id": "REPORT-LR-33-artifact_revision",
+            "impact_family": "artifact_revision",
+            "owner_repo": "Luminous-Dynamics/sol-atlas-leptos",
+            "owner_issue": 484,
+            "contract_ref": "sol-atlas-core::built_environment_case::compute_revalidation_frontier",
+            "contract_revision": "a440e54fac426368ce68f47ac13e42b3902ab224",
+            "schema_id": null,
+            "schema_version": null,
+            "runtime_revision": null,
+            "report_kind": "RevalidationFrontier",
+            "event_id": "EVENT-LR-33",
+            "event_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "subject_node_id": "artifact:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "subject_revision": "REV-2",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "functional_unit": "synthetic-panel-service",
+            "evaluated_at": "2026-11-08T12:00:00Z",
+            "report_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddd00000NaN",
+            "report_reference": "cas:sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddd00000NaN",
+            "action_authority": "none",
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "verified"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": null,
+              "trusted_timestamp_receipt_sha256": null
+            }
+          },
+          {
+            "report_id": "REPORT-LR-33-dependency_coverage",
+            "impact_family": "dependency_coverage",
+            "owner_repo": "Luminous-Dynamics/sol-atlas-leptos",
+            "owner_issue": 488,
+            "contract_ref": "luminous.built-environment-dependency-coverage.v0.1",
+            "contract_revision": "c1787998405d89ea8fe394aacf33729893cfb122",
+            "schema_id": "luminous.built-environment-dependency-coverage.v0.1",
+            "schema_version": "luminous.built-environment-dependency-coverage.v0.1",
+            "runtime_revision": "454805a7b9fb0a3dd039bb7aaa475769637f68b4",
+            "report_kind": "BuiltEnvironmentDependencyCoverageManifest",
+            "event_id": "EVENT-LR-33",
+            "event_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "subject_node_id": "artifact:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "subject_revision": "REV-2",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "functional_unit": "synthetic-panel-service",
+            "evaluated_at": "2026-11-08T12:00:00Z",
+            "report_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddd00000NaN",
+            "report_reference": "cas:sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddd00000NaN",
+            "action_authority": "none",
+            "owner_disposition": "complete_for_declared_scope",
+            "claim_ceiling": "coverage_only",
+            "independent_review": "accepted_for_declared_scope",
+            "unresolved_relationship_count": 0,
+            "unsupported_relationship_count": 0,
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "verified"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": null,
+              "trusted_timestamp_receipt_sha256": null
+            }
+          }
+        ]
+      },
+      "expected": {
+        "route_state": "insufficient_evidence",
+        "required_families": [
+          "artifact_revision",
+          "dependency_coverage"
+        ],
+        "lane_states": [
+          {
+            "family": "artifact_revision",
+            "state": "contract_bound_unverified"
+          },
+          {
+            "family": "dependency_coverage",
+            "state": "contract_bound_unverified"
+          }
+        ],
+        "reason_codes": [
+          "EVENT_SYSTEM_TIME_UNTRUSTED"
+        ]
+      }
+    },
+    {
+      "case_id": "LR-34",
+      "name": "Missing trust receipt field is an incomplete system-time envelope",
+      "input": {
+        "event": {
+          "event_id": "EVENT-LR-34",
+          "event_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "change_class": "design_geometry",
+          "subject_node_id": "artifact:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "subject_revision": "REV-2",
+          "source_revision_before": "REV-1",
+          "source_revision_after": "REV-2",
+          "time_basis": "UTC_RFC3339_SECONDS",
+          "valid_time": {
+            "effective_at": "2026-11-07T00:00:00Z",
+            "effective_until": null,
+            "effective_time_confidence": "verified"
+          },
+          "system_time": {
+            "recorded_at": "2026-11-08T10:00:00Z",
+            "trusted_at": "2026-11-08T10:00:30Z"
+          }
+        },
+        "query": {
+          "scope_id": "SYNTHETIC-DISTRICT-01",
+          "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "functional_unit": "synthetic-panel-service",
+          "evaluation_at": "2026-11-08T12:00:00Z",
+          "requires_no_impact_proof": false
+        },
+        "owner_reports": [
+          {
+            "report_id": "REPORT-LR-34-artifact_revision",
+            "impact_family": "artifact_revision",
+            "owner_repo": "Luminous-Dynamics/sol-atlas-leptos",
+            "owner_issue": 484,
+            "contract_ref": "sol-atlas-core::built_environment_case::compute_revalidation_frontier",
+            "contract_revision": "a440e54fac426368ce68f47ac13e42b3902ab224",
+            "schema_id": null,
+            "schema_version": null,
+            "runtime_revision": null,
+            "report_kind": "RevalidationFrontier",
+            "event_id": "EVENT-LR-34",
+            "event_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "subject_node_id": "artifact:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "subject_revision": "REV-2",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "functional_unit": "synthetic-panel-service",
+            "evaluated_at": "2026-11-08T12:00:00Z",
+            "report_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddd00000NaN",
+            "report_reference": "cas:sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddd00000NaN",
+            "action_authority": "none",
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "verified"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": "2026-11-08T10:00:30Z"
+            }
+          },
+          {
+            "report_id": "REPORT-LR-34-dependency_coverage",
+            "impact_family": "dependency_coverage",
+            "owner_repo": "Luminous-Dynamics/sol-atlas-leptos",
+            "owner_issue": 488,
+            "contract_ref": "luminous.built-environment-dependency-coverage.v0.1",
+            "contract_revision": "c1787998405d89ea8fe394aacf33729893cfb122",
+            "schema_id": "luminous.built-environment-dependency-coverage.v0.1",
+            "schema_version": "luminous.built-environment-dependency-coverage.v0.1",
+            "runtime_revision": "454805a7b9fb0a3dd039bb7aaa475769637f68b4",
+            "report_kind": "BuiltEnvironmentDependencyCoverageManifest",
+            "event_id": "EVENT-LR-34",
+            "event_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "subject_node_id": "artifact:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "subject_revision": "REV-2",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "functional_unit": "synthetic-panel-service",
+            "evaluated_at": "2026-11-08T12:00:00Z",
+            "report_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddd00000NaN",
+            "report_reference": "cas:sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddd00000NaN",
+            "action_authority": "none",
+            "owner_disposition": "complete_for_declared_scope",
+            "claim_ceiling": "coverage_only",
+            "independent_review": "accepted_for_declared_scope",
+            "unresolved_relationship_count": 0,
+            "unsupported_relationship_count": 0,
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "verified"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": "2026-11-08T10:00:30Z"
+            }
+          }
+        ]
+      },
+      "expected": {
+        "route_state": "insufficient_evidence",
+        "required_families": [
+          "artifact_revision",
+          "dependency_coverage"
+        ],
+        "lane_states": [
+          {
+            "family": "artifact_revision",
+            "state": "contract_bound_unverified"
+          },
+          {
+            "family": "dependency_coverage",
+            "state": "contract_bound_unverified"
+          }
+        ],
+        "reason_codes": [
+          "CHANGE_EVENT_SYSTEM_TIME_BINDING_INCOMPLETE"
+        ]
+      }
+    },
+    {
+      "case_id": "LR-35",
+      "name": "Invalid owner report takes precedence over disputed event time",
+      "input": {
+        "event": {
+          "event_id": "EVENT-LR-35",
+          "event_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "change_class": "design_geometry",
+          "subject_node_id": "artifact:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "subject_revision": "REV-2",
+          "source_revision_before": "REV-1",
+          "source_revision_after": "REV-2",
+          "time_basis": "UTC_RFC3339_SECONDS",
+          "valid_time": {
+            "effective_at": "2026-11-07T00:00:00Z",
+            "effective_until": null,
+            "effective_time_confidence": "disputed"
+          },
+          "system_time": {
+            "recorded_at": "2026-11-08T10:00:00Z",
+            "trusted_at": "2026-11-08T10:00:30Z",
+            "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          }
+        },
+        "query": {
+          "scope_id": "SYNTHETIC-DISTRICT-01",
+          "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "functional_unit": "synthetic-panel-service",
+          "evaluation_at": "2026-11-08T12:00:00Z",
+          "requires_no_impact_proof": false
+        },
+        "owner_reports": [
+          {
+            "report_id": "REPORT-LR-35-artifact_revision",
+            "impact_family": "artifact_revision",
+            "owner_repo": "Luminous-Dynamics/sol-atlas-leptos",
+            "owner_issue": 484,
+            "contract_ref": "sol-atlas-core::built_environment_case::compute_revalidation_frontier",
+            "contract_revision": "a440e54fac426368ce68f47ac13e42b3902ab224",
+            "schema_id": null,
+            "schema_version": null,
+            "runtime_revision": null,
+            "report_kind": "RevalidationFrontier",
+            "event_id": "EVENT-LR-35",
+            "event_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "subject_node_id": "artifact:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "subject_revision": "REV-2",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "9999999999999999999999999999999999999999999999999999999999999999",
+            "functional_unit": "synthetic-panel-service",
+            "evaluated_at": "2026-11-08T12:00:00Z",
+            "report_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddd00000NaN",
+            "report_reference": "cas:sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddd00000NaN",
+            "action_authority": "none",
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "disputed"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": "2026-11-08T10:00:30Z",
+              "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
+          },
+          {
+            "report_id": "REPORT-LR-35-dependency_coverage",
+            "impact_family": "dependency_coverage",
+            "owner_repo": "Luminous-Dynamics/sol-atlas-leptos",
+            "owner_issue": 488,
+            "contract_ref": "luminous.built-environment-dependency-coverage.v0.1",
+            "contract_revision": "c1787998405d89ea8fe394aacf33729893cfb122",
+            "schema_id": "luminous.built-environment-dependency-coverage.v0.1",
+            "schema_version": "luminous.built-environment-dependency-coverage.v0.1",
+            "runtime_revision": "454805a7b9fb0a3dd039bb7aaa475769637f68b4",
+            "report_kind": "BuiltEnvironmentDependencyCoverageManifest",
+            "event_id": "EVENT-LR-35",
+            "event_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "subject_node_id": "artifact:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "subject_revision": "REV-2",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "functional_unit": "synthetic-panel-service",
+            "evaluated_at": "2026-11-08T12:00:00Z",
+            "report_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddd00000NaN",
+            "report_reference": "cas:sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddd00000NaN",
+            "action_authority": "none",
+            "owner_disposition": "complete_for_declared_scope",
+            "claim_ceiling": "coverage_only",
+            "independent_review": "accepted_for_declared_scope",
+            "unresolved_relationship_count": 0,
+            "unsupported_relationship_count": 0,
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "disputed"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": "2026-11-08T10:00:30Z",
+              "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
+          }
+        ]
+      },
+      "expected": {
+        "route_state": "invalid_input",
+        "required_families": [
+          "artifact_revision",
+          "dependency_coverage"
+        ],
+        "lane_states": [
+          {
+            "family": "artifact_revision",
+            "state": "invalid_input"
+          },
+          {
+            "family": "dependency_coverage",
+            "state": "contract_bound_unverified"
+          }
+        ],
+        "reason_codes": [
+          "EVENT_EFFECTIVE_TIME_UNQUALIFIED"
+        ]
+      }
     }
   ]
 }
