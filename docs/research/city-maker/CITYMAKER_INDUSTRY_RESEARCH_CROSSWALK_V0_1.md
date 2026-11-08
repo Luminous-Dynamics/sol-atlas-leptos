@@ -3,7 +3,7 @@
 **Programme:** Luminous Habitats / CityMaker  
 **Parent:** [CITY-MAKER-001 #549](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/549)  
 **Crosswalk issue:** [CITYMAKER-INDUSTRY-CROSSWALK-001 #600](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/600)  
-**Research cut-off:** 7 November 2026  
+**Research cut-off:** 8 November 2026  
 **Status:** desk-research and benchmark proposal; no market superiority or physical performance claim
 
 ## Executive finding
@@ -76,6 +76,75 @@ This is an orchestration, evidence and decision-quality opportunity—not a clai
 **Sources:** NIST grasping/manipulation/contact-safety project (https://www.nist.gov/programs-projects/grasping-manipulation-and-contact-safety-performance); NIST assembly test boards (https://www.nist.gov/el/intelligent-systems-division-73500/robotic-grasping-and-manipulation-assembly/assembly); NIST performance assessment framework (https://www.nist.gov/programs-projects/performance-assessment-framework-robotic-systems); Dusty FieldPrinter specifications (https://support.dustyrobotics.com/hc/en-us/articles/52682349645851-FieldPrinter-Specs); ISO/ASTM 52939:2023 (https://www.iso.org/standard/81177.html); ISO 10218-1:2025 (https://www.iso.org/standard/73933.html); ISO 10218-2:2025 (https://www.iso.org/standard/73934.html).
 
 **Safety-critical interpretation:** ISO 10218-2:2025 is for industrial robot applications and cells in industrial settings. Its scope explicitly excludes service-robot/public-access situations and mobile-platform mobility from its direct coverage. It is not blanket approval for robots operating around residents, visitors, children or the public.
+
+## 1.5 Current SOTA delta — 8 November 2026
+
+This section supersedes any older statement that Forma's early-design workflow lacks integrated indoor-daylight, parking or furniture capabilities. The industry baseline must be updated as products change; a stale comparator is a benchmark defect.
+
+### Autodesk Forma Building Design — 4 November 2026 release
+
+Autodesk's 4 November 2026 release notes describe three important capabilities for Forma Building Design:
+- **Indoor Daylight (public beta):** occupied-hours daylight analysis over a typical meteorological year, with a linked workflow to Revit.
+- **Parking automation:** layout generation and editing in the schematic design workflow.
+- **Furniture workflow:** 2D furniture layout capability with model/visualization effects in the 3D environment.
+- **AutoCAD exchange:** DXF import and DWG export are included in the update.
+
+This makes the early-design baseline more capable than a generic "massing + sun hours" comparator. The Forma workflow must be represented in the next matched experiment, including these exact capabilities, release date, entitlement/availability, supported file paths and human interventions. Indoor Daylight must be compared on matched geometry, schedules, weather evidence class and occupied-hour settings; a public beta feature is recorded as beta, not assumed production-qualified.
+
+**It removes several weak Luminous differentiation claims:** early daylight screening, parking layout automation, furniture layout and a basic Revit-linked schematic workflow are not unique Luminous value propositions.
+
+The stronger Luminous hypothesis is narrower and more difficult to prove: preserve exact requirement, source, model, revision and authority semantics across the entire chain, then demonstrate correct selective invalidation and independently verifiable handoff into fabrication, installation, commissioning and operations.
+
+Source: Autodesk Forma team, 4 November 2026, https://blogs.autodesk.com/forma/2026/11/04/whats-new-in-forma-building-design-indoor-daylight-parking-furniture-and-autocad-workflows/
+
+### Research synthesis — where generative design still under-delivers
+
+A 2025 systematic review of 153 performance-driven generative building-design studies reports a literature dominated by building-scale design problems and conventional energy/daylight/thermal objectives. It highlights fragmented metrics, uneven validation and a need for reproducibility and cross-case assessment.
+
+Luminous should not interpret this as proof that existing commercial tools are weak; the review spans research workflows, not a controlled product comparison. It does suggest a valuable research gap for our benchmark: move beyond single-building design objectives to **matched delivered-service outcomes across household, building, production and neighbourhood scales**, and require independent evidence for every physical metric.
+
+Source: Buildings (2025), Performance-Driven Generative Design in Buildings: A Systematic Review, https://doi.org/10.3390/buildings15244556
+
+### Risk-proportionate model credibility
+
+NIST AMS 100-85 (5 October 2026) recommends scaling verification, validation and uncertainty-quantification effort with the influence of a computational model and the consequence of the decision it informs.
+
+For CityMaker, this means a rendering or early daylight option study can have a lightweight research-grade credibility package, while structural, fire, egress, indoor-air, health, statutory or construction decisions require stronger domain-specific reference data, validation and qualified review. The same evidence tier must not be reused for every domain merely because the files share a project identifier.
+
+Source: NIST AMS 100-85, https://doi.org/10.6028/NIST.AMS.100-85
+
+### Urban digital-twin lifecycle evidence
+
+A 2026 review of 114 urban-digital-twin publications describes four interacting layers: reference, entity/semantic, state and feedback synchronization. It emphasizes persistent entity identity, compatible spatial/temporal scales, traceability through interventions, and validation/human oversight appropriate to the decision horizon.
+
+This supports the direction already assigned to CityMaker #623–#625: shared scope is necessary but insufficient; integrated city states also need owner-native identity, valid/record/observation times, freshness, correction, revocation, intervention and post-intervention outcome evidence. Sol-Atlas should coordinate read-only projections and state gaps, not invent a competing sensor platform or event ledger.
+
+Source: Sustainable Cities and Society (2026), https://www.sciencedirect.com/science/article/abs/pii/S2210670726009455
+
+### Building data interoperability: use the standard, measure beyond it
+
+NIST's Building Digitization and Semantic Interoperability programme was updated 2 November 2026. It identifies the continuing difficulty of integrating building data from diverse lifecycle systems and points to semantic models and machine-readable exchange as necessary for analytics and building controls.
+
+The practical implication is to retain IFC 4.3.2.0 / ISO 16739-1:2024 and IDS 1.0 as stable exchange baselines, while treating geometry identity/topology, external source provenance, temporal currentness, solver evidence and professional authority as separate proof obligations. IDS checks are not geometry or physical-performance checks.
+
+Sources:
+- NIST, https://www.nist.gov/programs-projects/building-digitization-and-semantic-interoperability
+- buildingSMART IFC release register, https://technical.buildingsmart.org/standards/ifc/ifc-schema-specifications/
+- buildingSMART IDS scope, https://www.buildingsmart.org/standards/bsi-standards/information-delivery-specification-ids/
+
+### Required comparator update
+
+The next preregistered Forma-vs-Luminous lane must test at least:
+1. identical intent, task programme and site/geometry fixture;
+2. current Forma Building Design release and exact beta/feature entitlement;
+3. Indoor Daylight configuration, typical-year input and occupied-hours assumptions;
+4. parking and furniture outputs, where applicable;
+5. DXF/DWG/IFC/Revit handoff and exact identity/geometry/property round-trip;
+6. time-to-first-feasible and full human intervention time;
+7. evidence lineage, missing/unknown inputs, revision invalidation and stale-result detection;
+8. specialist-solver and measured/physical validation only where the task calls for it.
+
+Use an integrated human-led best-of-breed workflow as a serious comparator. If a workflow cannot be made equivalent on geometry, information, solver budget or human time, label that comparison as not comparable; do not manufacture a ranking.
 
 ## 2. What the newest research says about robotics adoption
 
