@@ -171,10 +171,10 @@ fn evaluate_plan(input: &Value, reasons: &mut BTreeSet<String>, conflicts: &mut 
             }
         };
         if let Some((use_start, use_end)) = use_window {
-            if let Some((window_start, window_end)) = planning_window {
-                if use_start < window_start || use_end > window_end {
-                    add_conflict(conflicts, "PART_USE_OUTSIDE_PLANNING_WINDOW");
-                }
+            if let Some((window_start, window_end)) = planning_window
+                && (use_start < window_start || use_end > window_end)
+            {
+                add_conflict(conflicts, "PART_USE_OUTSIDE_PLANNING_WINDOW");
             }
             if let (Some(from), Some(until)) = (
                 u64_field(part, "available_from"),
