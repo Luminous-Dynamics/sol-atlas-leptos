@@ -2076,7 +2076,7 @@
           "method_revision": "2022",
           "baseline_receipt_id": "baseline:OI-017",
           "baseline_period": "BASELINE-12M",
-          "post_period": "POST-12M",
+          "post_period": "OBS-12M",
           "normalized_for": [
             "weather",
             "occupancy"
@@ -2090,11 +2090,12 @@
             "tick_unit": "month"
           },
           "post_window": {
-            "window_id": "POST-12M",
+            "window_id": "OBS-12M",
             "start_tick": 0,
             "end_tick": 12,
             "tick_unit": "month"
-          }
+          },
+          "post_receipt_id": "receipt:OI-017:energy"
         },
         "causal_assessment": {
           "claim_requested": false
