@@ -59,7 +59,7 @@ fn main() -> ExitCode {
     if corpus["corpus_id"] != "CITY-IN-USE-OUTCOMES-CORPUS-V0.1"
         || corpus["schema_version"] != "0.1.0"
         || corpus["classification"] != "synthetic_fixture_only"
-        || cases.len() != 24
+        || cases.len() != 30
     {
         eprintln!(
             "unexpected in-use outcomes corpus identity, schema, classification or case count"
