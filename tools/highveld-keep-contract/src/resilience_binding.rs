@@ -96,6 +96,27 @@ const INVALIDATORS: [&str; 6] = [
     "outage_water_or_fault_trace_revision",
 ];
 
+const TRACE_IDENTITY_FIELDS: [&str; 8] = [
+    "trace_id",
+    "trace_revision",
+    "trace_sha256",
+    "time_basis",
+    "timezone",
+    "timestep",
+    "horizon",
+    "source_class",
+];
+
+const CANDIDATE_IDENTITY_FIELDS: [&str; 7] = [
+    "candidate_id",
+    "design_revision",
+    "geometry_revision",
+    "material_revision",
+    "occupancy_profile_revision",
+    "solver_revision",
+    "weather_binding_revision",
+];
+
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ResilienceBindingReport {
     pub binding_id: String,
@@ -320,19 +341,18 @@ pub fn validate_resilience_binding_values(
         .flatten()
         .filter_map(|item| string_at(item, "scenario_id"))
         .collect();
-    let scenario_names: Vec<&str> = scenarios
-        .into_iter()
-        .flatten()
-        .filter_map(|item| string_at(item, "name"))
-        .collect();
     push(
         &mut violations,
         scenarios.is_none_or(|items| items.len() != SCENARIOS.len())
             || scenario_ids.len() != SCENARIOS.len()
-            || scenario_names.len() != SCENARIOS.len()
-            || SCENARIOS
-                .iter()
-                .any(|(id, name)| !scenario_ids.contains(id) || !scenario_names.contains(name))
+            || SCENARIOS.iter().any(|(id, name)| {
+                !scenarios.is_some_and(|items| {
+                    items.iter().any(|item| {
+                        string_at(item, "scenario_id") == Some(id)
+                            && string_at(item, "name") == Some(name)
+                    })
+                })
+            })
             || scenario_ids.iter().collect::<HashSet<_>>().len() != scenario_ids.len(),
         "RESILIENCE_SCENARIO_FAMILY_SET_INVALID",
     );
@@ -444,15 +464,19 @@ pub fn validate_resilience_binding_values(
         "RESILIENCE_PAIRED_COMPARISON_RULES_WEAKENED",
     );
     if let Some(paired) = paired {
-        for field in ["trace_identity_fields", "candidate_identity_fields"] {
+        for (field, required_fields) in [
+            ("trace_identity_fields", &TRACE_IDENTITY_FIELDS[..]),
+            ("candidate_identity_fields", &CANDIDATE_IDENTITY_FIELDS[..]),
+        ] {
             let values = array_at(paired, field);
             push(
                 &mut violations,
                 values.is_none_or(Vec::is_empty)
                     || values.is_some_and(|items| {
-                        items
-                            .iter()
-                            .any(|item| item.as_str().is_none_or(str::is_empty))
+                        items.iter().any(|item| item.as_str().is_none_or(str::is_empty))
+                            || required_fields
+                                .iter()
+                                .any(|required| !has_string(values, required))
                     }),
                 "RESILIENCE_PAIRED_IDENTITY_FIELDS_INCOMPLETE",
             );
@@ -674,6 +698,29 @@ mod tests {
         assert!(contains(
             &report,
             "RESILIENCE_COMPOUND_HAZARD_DEPENDENCY_RULE_MISSING"
+        ));
+    }
+
+    #[test]
+    fn scenario_id_and_name_must_remain_paired() {
+        let (mut binding, schema) = documents();
+        binding["scenario_families"][0]["name"] =
+            json!("observed_historical_hot_spell_and_hot_night");
+        let report = validate_resilience_binding_values(&binding, &schema);
+        assert!(contains(&report, "RESILIENCE_SCENARIO_FAMILY_SET_INVALID"));
+    }
+
+    #[test]
+    fn paired_trace_contract_requires_digest_and_time_identity_fields() {
+        let (mut binding, schema) = documents();
+        binding["paired_comparison_contract"]["trace_identity_fields"]
+            .as_array_mut()
+            .unwrap()
+            .retain(|item| item.as_str() != Some("trace_sha256"));
+        let report = validate_resilience_binding_values(&binding, &schema);
+        assert!(contains(
+            &report,
+            "RESILIENCE_PAIRED_IDENTITY_FIELDS_INCOMPLETE"
         ));
     }
 
