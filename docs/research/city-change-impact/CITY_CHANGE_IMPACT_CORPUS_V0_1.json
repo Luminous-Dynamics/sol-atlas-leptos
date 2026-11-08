@@ -2210,11 +2210,6 @@
               "from": "SUBJECT-27",
               "to": "claim_current_decision",
               "relation": "depends_on_exact_subject_revision"
-            },
-            {
-              "from": "SUBJECT-27",
-              "to": "claim_historical_receipt",
-              "relation": "depends_on_exact_subject_revision"
             }
           ],
           "impact_report": {
@@ -2222,8 +2217,7 @@
             "report_state": "qualified",
             "graph_snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
             "impacted_claim_ids": [
-              "claim_current_decision",
-              "claim_historical_receipt"
+              "claim_current_decision"
             ],
             "query_boundary": "declared_fixture_graph"
           }
@@ -2241,7 +2235,7 @@
           {
             "claim_id": "claim_historical_receipt",
             "dependency_subjects": [
-              "SUBJECT-27"
+              "UNRELATED-historical-record"
             ],
             "historical_status": "applicable_current",
             "scope_id": "SYNTHETIC-DISTRICT-01",
