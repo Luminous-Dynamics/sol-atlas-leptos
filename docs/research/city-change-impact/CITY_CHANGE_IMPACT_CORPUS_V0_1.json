@@ -50,7 +50,8 @@
           "historical_evaluation_at": null,
           "time_basis": "UTC_UNIX_SECONDS",
           "scope_id": "SYNTHETIC-DISTRICT-01",
-          "functional_unit": "synthetic-city-claim"
+          "functional_unit": "synthetic-city-claim",
+          "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
         },
         "graph": {
           "snapshot_id": "SYN-GRAPH-CI-01",
@@ -78,7 +79,8 @@
                 "dependency_path": [],
                 "coverage_proof_id": "SYN-PROOF-CI-01-claim_panel_thermal"
               }
-            ]
+            ],
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
           }
         },
         "claims": [
@@ -89,7 +91,8 @@
             ],
             "historical_status": "applicable_current",
             "scope_id": "SYNTHETIC-DISTRICT-01",
-            "functional_unit": "synthetic-city-claim"
+            "functional_unit": "synthetic-city-claim",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
           }
         ],
         "revalidation_receipts": []
@@ -131,7 +134,8 @@
           "historical_evaluation_at": null,
           "time_basis": "UTC_UNIX_SECONDS",
           "scope_id": "SYNTHETIC-DISTRICT-01",
-          "functional_unit": "synthetic-city-claim"
+          "functional_unit": "synthetic-city-claim",
+          "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
         },
         "graph": {
           "snapshot_id": "SYN-GRAPH-CI-02",
@@ -188,7 +192,8 @@
                 ],
                 "coverage_proof_id": null
               }
-            ]
+            ],
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
           }
         },
         "claims": [
@@ -199,7 +204,8 @@
             ],
             "historical_status": "applicable_current",
             "scope_id": "SYNTHETIC-DISTRICT-01",
-            "functional_unit": "synthetic-city-claim"
+            "functional_unit": "synthetic-city-claim",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
           },
           {
             "claim_id": "claim_panel_manufacture",
@@ -208,7 +214,8 @@
             ],
             "historical_status": "applicable_current",
             "scope_id": "SYNTHETIC-DISTRICT-01",
-            "functional_unit": "synthetic-city-claim"
+            "functional_unit": "synthetic-city-claim",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
           }
         ],
         "revalidation_receipts": []
@@ -257,7 +264,8 @@
           "historical_evaluation_at": null,
           "time_basis": "UTC_UNIX_SECONDS",
           "scope_id": "SYNTHETIC-DISTRICT-01",
-          "functional_unit": "synthetic-city-claim"
+          "functional_unit": "synthetic-city-claim",
+          "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
         },
         "graph": {
           "snapshot_id": "SYN-GRAPH-CI-03",
@@ -314,7 +322,8 @@
                 ],
                 "coverage_proof_id": null
               }
-            ]
+            ],
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
           }
         },
         "claims": [
@@ -325,7 +334,8 @@
             ],
             "historical_status": "applicable_current",
             "scope_id": "SYNTHETIC-DISTRICT-01",
-            "functional_unit": "synthetic-city-claim"
+            "functional_unit": "synthetic-city-claim",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
           },
           {
             "claim_id": "claim_cassette_commissioning",
@@ -334,7 +344,8 @@
             ],
             "historical_status": "applicable_current",
             "scope_id": "SYNTHETIC-DISTRICT-01",
-            "functional_unit": "synthetic-city-claim"
+            "functional_unit": "synthetic-city-claim",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
           }
         ],
         "revalidation_receipts": []
@@ -383,7 +394,8 @@
           "historical_evaluation_at": null,
           "time_basis": "UTC_UNIX_SECONDS",
           "scope_id": "SYNTHETIC-DISTRICT-01",
-          "functional_unit": "synthetic-city-claim"
+          "functional_unit": "synthetic-city-claim",
+          "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
         },
         "graph": {
           "snapshot_id": "SYN-GRAPH-CI-04",
@@ -431,7 +443,8 @@
                 "dependency_path": [],
                 "coverage_proof_id": "SYN-PROOF-CI-04-claim_panel_batch_B"
               }
-            ]
+            ],
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
           }
         },
         "claims": [
@@ -442,7 +455,8 @@
             ],
             "historical_status": "applicable_current",
             "scope_id": "SYNTHETIC-DISTRICT-01",
-            "functional_unit": "synthetic-city-claim"
+            "functional_unit": "synthetic-city-claim",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
           },
           {
             "claim_id": "claim_panel_batch_B",
@@ -451,7 +465,8 @@
             ],
             "historical_status": "applicable_current",
             "scope_id": "SYNTHETIC-DISTRICT-01",
-            "functional_unit": "synthetic-city-claim"
+            "functional_unit": "synthetic-city-claim",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
           }
         ],
         "revalidation_receipts": []
@@ -500,7 +515,8 @@
           "historical_evaluation_at": null,
           "time_basis": "UTC_UNIX_SECONDS",
           "scope_id": "SYNTHETIC-DISTRICT-01",
-          "functional_unit": "synthetic-city-claim"
+          "functional_unit": "synthetic-city-claim",
+          "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
         },
         "graph": {
           "snapshot_id": "SYN-GRAPH-CI-05",
@@ -553,7 +569,8 @@
                 "dependency_path": [],
                 "coverage_proof_id": "SYN-PROOF-CI-05-claim_asset_uses_lot_B"
               }
-            ]
+            ],
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
           }
         },
         "claims": [
@@ -564,7 +581,8 @@
             ],
             "historical_status": "applicable_current",
             "scope_id": "SYNTHETIC-DISTRICT-01",
-            "functional_unit": "synthetic-city-claim"
+            "functional_unit": "synthetic-city-claim",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
           },
           {
             "claim_id": "claim_asset_uses_lot_B",
@@ -573,7 +591,8 @@
             ],
             "historical_status": "applicable_current",
             "scope_id": "SYNTHETIC-DISTRICT-01",
-            "functional_unit": "synthetic-city-claim"
+            "functional_unit": "synthetic-city-claim",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
           }
         ],
         "revalidation_receipts": []
@@ -622,7 +641,8 @@
           "historical_evaluation_at": null,
           "time_basis": "UTC_UNIX_SECONDS",
           "scope_id": "SYNTHETIC-DISTRICT-01",
-          "functional_unit": "synthetic-city-claim"
+          "functional_unit": "synthetic-city-claim",
+          "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
         },
         "graph": {
           "snapshot_id": "SYN-GRAPH-CI-06",
@@ -670,7 +690,8 @@
                 "dependency_path": [],
                 "coverage_proof_id": "SYN-PROOF-CI-06-claim_installed_panel_test"
               }
-            ]
+            ],
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
           }
         },
         "claims": [
@@ -681,7 +702,8 @@
             ],
             "historical_status": "applicable_current",
             "scope_id": "SYNTHETIC-DISTRICT-01",
-            "functional_unit": "synthetic-city-claim"
+            "functional_unit": "synthetic-city-claim",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
           },
           {
             "claim_id": "claim_installed_panel_test",
@@ -690,7 +712,8 @@
             ],
             "historical_status": "applicable_current",
             "scope_id": "SYNTHETIC-DISTRICT-01",
-            "functional_unit": "synthetic-city-claim"
+            "functional_unit": "synthetic-city-claim",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
           }
         ],
         "revalidation_receipts": []
@@ -739,7 +762,8 @@
           "historical_evaluation_at": null,
           "time_basis": "UTC_UNIX_SECONDS",
           "scope_id": "SYNTHETIC-DISTRICT-01",
-          "functional_unit": "synthetic-city-claim"
+          "functional_unit": "synthetic-city-claim",
+          "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
         },
         "graph": {
           "snapshot_id": "SYN-GRAPH-CI-07",
@@ -776,7 +800,8 @@
                 ],
                 "coverage_proof_id": null
               }
-            ]
+            ],
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
           }
         },
         "claims": [
@@ -787,7 +812,8 @@
             ],
             "historical_status": "applicable_current",
             "scope_id": "SYNTHETIC-DISTRICT-01",
-            "functional_unit": "synthetic-city-claim"
+            "functional_unit": "synthetic-city-claim",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
           }
         ],
         "revalidation_receipts": []
@@ -829,7 +855,8 @@
           "historical_evaluation_at": null,
           "time_basis": "UTC_UNIX_SECONDS",
           "scope_id": "SYNTHETIC-DISTRICT-01",
-          "functional_unit": "synthetic-city-claim"
+          "functional_unit": "synthetic-city-claim",
+          "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
         },
         "graph": {
           "snapshot_id": "SYN-GRAPH-CI-08",
@@ -882,7 +909,8 @@
                 ],
                 "coverage_proof_id": null
               }
-            ]
+            ],
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
           }
         },
         "claims": [
@@ -894,7 +922,8 @@
             "historical_status": "applicable_current",
             "scope_id": "SYNTHETIC-DISTRICT-01",
             "functional_unit": "synthetic-city-claim",
-            "measurement_at": 1050
+            "measurement_at": 1050,
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
           },
           {
             "claim_id": "claim_future_measurement",
@@ -904,7 +933,8 @@
             "historical_status": "applicable_current",
             "scope_id": "SYNTHETIC-DISTRICT-01",
             "functional_unit": "synthetic-city-claim",
-            "measurement_at": 2000
+            "measurement_at": 2000,
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
           }
         ],
         "revalidation_receipts": []
@@ -953,7 +983,8 @@
           "historical_evaluation_at": null,
           "time_basis": "UTC_UNIX_SECONDS",
           "scope_id": "SYNTHETIC-DISTRICT-01",
-          "functional_unit": "synthetic-city-claim"
+          "functional_unit": "synthetic-city-claim",
+          "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
         },
         "graph": {
           "snapshot_id": "SYN-GRAPH-CI-09",
@@ -992,7 +1023,8 @@
                 ],
                 "coverage_proof_id": null
               }
-            ]
+            ],
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
           }
         },
         "claims": [
@@ -1004,7 +1036,8 @@
             "historical_status": "applicable_current",
             "scope_id": "SYNTHETIC-DISTRICT-01",
             "functional_unit": "synthetic-city-claim",
-            "measurement_at": 1090
+            "measurement_at": 1090,
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
           }
         ],
         "revalidation_receipts": []
@@ -1046,7 +1079,8 @@
           "historical_evaluation_at": null,
           "time_basis": "UTC_UNIX_SECONDS",
           "scope_id": "SYNTHETIC-DISTRICT-01",
-          "functional_unit": "synthetic-city-claim"
+          "functional_unit": "synthetic-city-claim",
+          "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
         },
         "graph": {
           "snapshot_id": "SYN-GRAPH-CI-10",
@@ -1094,7 +1128,8 @@
                 "dependency_path": [],
                 "coverage_proof_id": "SYN-PROOF-CI-10-claim_panel_geometry"
               }
-            ]
+            ],
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
           }
         },
         "claims": [
@@ -1105,7 +1140,8 @@
             ],
             "historical_status": "applicable_current",
             "scope_id": "SYNTHETIC-DISTRICT-01",
-            "functional_unit": "synthetic-city-claim"
+            "functional_unit": "synthetic-city-claim",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
           },
           {
             "claim_id": "claim_panel_geometry",
@@ -1114,7 +1150,8 @@
             ],
             "historical_status": "applicable_current",
             "scope_id": "SYNTHETIC-DISTRICT-01",
-            "functional_unit": "synthetic-city-claim"
+            "functional_unit": "synthetic-city-claim",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
           }
         ],
         "revalidation_receipts": []
@@ -1163,7 +1200,8 @@
           "historical_evaluation_at": null,
           "time_basis": "UTC_UNIX_SECONDS",
           "scope_id": "SYNTHETIC-DISTRICT-01",
-          "functional_unit": "synthetic-city-claim"
+          "functional_unit": "synthetic-city-claim",
+          "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
         },
         "graph": {
           "snapshot_id": "SYN-GRAPH-CI-11",
@@ -1202,7 +1240,8 @@
                 ],
                 "coverage_proof_id": null
               }
-            ]
+            ],
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
           }
         },
         "claims": [
@@ -1213,7 +1252,8 @@
             ],
             "historical_status": "applicable_current",
             "scope_id": "SYNTHETIC-DISTRICT-01",
-            "functional_unit": "synthetic-city-claim"
+            "functional_unit": "synthetic-city-claim",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
           }
         ],
         "revalidation_receipts": []
@@ -1255,7 +1295,8 @@
           "historical_evaluation_at": null,
           "time_basis": "UTC_UNIX_SECONDS",
           "scope_id": "SYNTHETIC-DISTRICT-01",
-          "functional_unit": "synthetic-city-claim"
+          "functional_unit": "synthetic-city-claim",
+          "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
         },
         "graph": {
           "snapshot_id": "SYN-GRAPH-CI-12",
@@ -1303,7 +1344,8 @@
                 "dependency_path": [],
                 "coverage_proof_id": "SYN-PROOF-CI-12-claim_district_population"
               }
-            ]
+            ],
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
           }
         },
         "claims": [
@@ -1314,7 +1356,8 @@
             ],
             "historical_status": "applicable_current",
             "scope_id": "SYNTHETIC-DISTRICT-01",
-            "functional_unit": "synthetic-city-claim"
+            "functional_unit": "synthetic-city-claim",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
           },
           {
             "claim_id": "claim_district_population",
@@ -1323,7 +1366,8 @@
             ],
             "historical_status": "applicable_current",
             "scope_id": "SYNTHETIC-DISTRICT-01",
-            "functional_unit": "synthetic-city-claim"
+            "functional_unit": "synthetic-city-claim",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
           }
         ],
         "revalidation_receipts": []
@@ -1373,7 +1417,8 @@
           "historical_evaluation_at": null,
           "time_basis": "UTC_UNIX_SECONDS",
           "scope_id": "SYNTHETIC-DISTRICT-01",
-          "functional_unit": "synthetic-city-claim"
+          "functional_unit": "synthetic-city-claim",
+          "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
         },
         "graph": {
           "snapshot_id": "SYN-GRAPH-CI-13",
@@ -1413,7 +1458,8 @@
                 ],
                 "coverage_proof_id": null
               }
-            ]
+            ],
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
           }
         },
         "claims": [
@@ -1424,7 +1470,8 @@
             ],
             "historical_status": "applicable_current",
             "scope_id": "SYNTHETIC-DISTRICT-01",
-            "functional_unit": "synthetic-city-claim"
+            "functional_unit": "synthetic-city-claim",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
           }
         ],
         "revalidation_receipts": []
@@ -1467,7 +1514,8 @@
           "historical_evaluation_at": null,
           "time_basis": "UTC_UNIX_SECONDS",
           "scope_id": "SYNTHETIC-DISTRICT-01",
-          "functional_unit": "synthetic-city-claim"
+          "functional_unit": "synthetic-city-claim",
+          "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
         },
         "graph": {
           "snapshot_id": "SYN-GRAPH-CI-14",
@@ -1515,7 +1563,8 @@
                 "dependency_path": [],
                 "coverage_proof_id": "SYN-PROOF-CI-14-claim_other_region_screen"
               }
-            ]
+            ],
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
           }
         },
         "claims": [
@@ -1526,7 +1575,8 @@
             ],
             "historical_status": "applicable_current",
             "scope_id": "SYNTHETIC-DISTRICT-01",
-            "functional_unit": "synthetic-city-claim"
+            "functional_unit": "synthetic-city-claim",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
           },
           {
             "claim_id": "claim_other_region_screen",
@@ -1535,7 +1585,8 @@
             ],
             "historical_status": "applicable_current",
             "scope_id": "SYNTHETIC-DISTRICT-01",
-            "functional_unit": "synthetic-city-claim"
+            "functional_unit": "synthetic-city-claim",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
           }
         ],
         "revalidation_receipts": []
@@ -1584,7 +1635,8 @@
           "historical_evaluation_at": null,
           "time_basis": "UTC_UNIX_SECONDS",
           "scope_id": "SYNTHETIC-DISTRICT-01",
-          "functional_unit": "synthetic-city-claim"
+          "functional_unit": "synthetic-city-claim",
+          "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
         },
         "graph": {
           "snapshot_id": "SYN-GRAPH-CI-15",
@@ -1632,7 +1684,8 @@
                 "dependency_path": [],
                 "coverage_proof_id": "SYN-PROOF-CI-15-claim_cassette_commissioning"
               }
-            ]
+            ],
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
           }
         },
         "claims": [
@@ -1643,7 +1696,8 @@
             ],
             "historical_status": "applicable_current",
             "scope_id": "SYNTHETIC-DISTRICT-01",
-            "functional_unit": "synthetic-city-claim"
+            "functional_unit": "synthetic-city-claim",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
           },
           {
             "claim_id": "claim_cassette_commissioning",
@@ -1652,7 +1706,8 @@
             ],
             "historical_status": "applicable_current",
             "scope_id": "SYNTHETIC-DISTRICT-01",
-            "functional_unit": "synthetic-city-claim"
+            "functional_unit": "synthetic-city-claim",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
           }
         ],
         "revalidation_receipts": []
@@ -1701,7 +1756,8 @@
           "historical_evaluation_at": null,
           "time_basis": "UTC_UNIX_SECONDS",
           "scope_id": "SYNTHETIC-DISTRICT-01",
-          "functional_unit": "synthetic-city-claim"
+          "functional_unit": "synthetic-city-claim",
+          "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
         },
         "graph": {
           "snapshot_id": "SYN-GRAPH-CI-16",
@@ -1735,7 +1791,8 @@
                 "dependency_path": [],
                 "coverage_proof_id": "SYN-PROOF-CI-16-claim_current_design_assessment"
               }
-            ]
+            ],
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
           }
         },
         "claims": [
@@ -1746,7 +1803,8 @@
             ],
             "historical_status": "applicable_current",
             "scope_id": "SYNTHETIC-DISTRICT-01",
-            "functional_unit": "synthetic-city-claim"
+            "functional_unit": "synthetic-city-claim",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
           }
         ],
         "revalidation_receipts": []
@@ -1788,7 +1846,8 @@
           "historical_evaluation_at": 1005,
           "time_basis": "UTC_UNIX_SECONDS",
           "scope_id": "SYNTHETIC-DISTRICT-01",
-          "functional_unit": "synthetic-city-claim"
+          "functional_unit": "synthetic-city-claim",
+          "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
         },
         "graph": {
           "snapshot_id": "SYN-GRAPH-CI-17",
@@ -1841,7 +1900,8 @@
                 "dependency_path": [],
                 "coverage_proof_id": "SYN-PROOF-CI-17-claim_historical_decision_view"
               }
-            ]
+            ],
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
           }
         },
         "claims": [
@@ -1852,7 +1912,8 @@
             ],
             "historical_status": "applicable_current",
             "scope_id": "SYNTHETIC-DISTRICT-01",
-            "functional_unit": "synthetic-city-claim"
+            "functional_unit": "synthetic-city-claim",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
           },
           {
             "claim_id": "claim_historical_decision_view",
@@ -1862,7 +1923,8 @@
             "historical_status": "applicable_current",
             "scope_id": "SYNTHETIC-DISTRICT-01",
             "functional_unit": "synthetic-city-claim",
-            "evaluation_mode": "historical"
+            "evaluation_mode": "historical",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
           }
         ],
         "revalidation_receipts": []
@@ -1911,7 +1973,8 @@
           "historical_evaluation_at": null,
           "time_basis": "UTC_UNIX_SECONDS",
           "scope_id": "SYNTHETIC-DISTRICT-01",
-          "functional_unit": "synthetic-city-claim"
+          "functional_unit": "synthetic-city-claim",
+          "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
         },
         "graph": {
           "snapshot_id": "SYN-GRAPH-CI-18",
@@ -1948,7 +2011,8 @@
                 ],
                 "coverage_proof_id": null
               }
-            ]
+            ],
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
           }
         },
         "claims": [
@@ -1959,7 +2023,8 @@
             ],
             "historical_status": "applicable_current",
             "scope_id": "SYNTHETIC-DISTRICT-01",
-            "functional_unit": "synthetic-city-claim"
+            "functional_unit": "synthetic-city-claim",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
           }
         ],
         "revalidation_receipts": []
@@ -2002,7 +2067,8 @@
           "historical_evaluation_at": null,
           "time_basis": "UTC_UNIX_SECONDS",
           "scope_id": "SYNTHETIC-DISTRICT-01",
-          "functional_unit": "synthetic-city-claim"
+          "functional_unit": "synthetic-city-claim",
+          "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
         },
         "graph": {
           "snapshot_id": "SYN-GRAPH-CI-19",
@@ -2039,7 +2105,8 @@
                 ],
                 "coverage_proof_id": null
               }
-            ]
+            ],
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
           }
         },
         "claims": [
@@ -2050,7 +2117,8 @@
             ],
             "historical_status": "applicable_current",
             "scope_id": "SYNTHETIC-DISTRICT-01",
-            "functional_unit": "synthetic-city-claim"
+            "functional_unit": "synthetic-city-claim",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
           }
         ],
         "revalidation_receipts": []
@@ -2094,7 +2162,8 @@
           "historical_evaluation_at": null,
           "time_basis": "UTC_UNIX_SECONDS",
           "scope_id": "SYNTHETIC-DISTRICT-01",
-          "functional_unit": "synthetic-city-claim"
+          "functional_unit": "synthetic-city-claim",
+          "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
         },
         "graph": {
           "snapshot_id": "SYN-GRAPH-CI-20",
@@ -2131,7 +2200,8 @@
                 ],
                 "coverage_proof_id": null
               }
-            ]
+            ],
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
           }
         },
         "claims": [
@@ -2142,7 +2212,8 @@
             ],
             "historical_status": "applicable_current",
             "scope_id": "SYNTHETIC-DISTRICT-01",
-            "functional_unit": "synthetic-city-claim"
+            "functional_unit": "synthetic-city-claim",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
           }
         ],
         "revalidation_receipts": []
@@ -2184,7 +2255,8 @@
           "historical_evaluation_at": null,
           "time_basis": "UTC_UNIX_SECONDS",
           "scope_id": "SYNTHETIC-DISTRICT-01",
-          "functional_unit": "synthetic-city-claim"
+          "functional_unit": "synthetic-city-claim",
+          "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
         },
         "graph": {
           "snapshot_id": "SYN-GRAPH-CI-21",
@@ -2223,7 +2295,8 @@
                 ],
                 "coverage_proof_id": null
               }
-            ]
+            ],
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
           }
         },
         "claims": [
@@ -2234,7 +2307,8 @@
             ],
             "historical_status": "applicable_current",
             "scope_id": "SYNTHETIC-DISTRICT-01",
-            "functional_unit": "synthetic-city-claim"
+            "functional_unit": "synthetic-city-claim",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
           }
         ],
         "revalidation_receipts": []
@@ -2276,7 +2350,8 @@
           "historical_evaluation_at": null,
           "time_basis": "UTC_UNIX_SECONDS",
           "scope_id": "SYNTHETIC-DISTRICT-01",
-          "functional_unit": "synthetic-city-claim"
+          "functional_unit": "synthetic-city-claim",
+          "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
         },
         "graph": {
           "snapshot_id": "SYN-GRAPH-CI-22",
@@ -2320,7 +2395,8 @@
                 ],
                 "coverage_proof_id": null
               }
-            ]
+            ],
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
           },
           "integrity_state": "cycle_detected"
         },
@@ -2332,7 +2408,8 @@
             ],
             "historical_status": "applicable_current",
             "scope_id": "SYNTHETIC-DISTRICT-01",
-            "functional_unit": "synthetic-city-claim"
+            "functional_unit": "synthetic-city-claim",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
           }
         ],
         "revalidation_receipts": []
@@ -2374,7 +2451,8 @@
           "historical_evaluation_at": null,
           "time_basis": "UTC_UNIX_SECONDS",
           "scope_id": "SYNTHETIC-DISTRICT-01",
-          "functional_unit": "synthetic-city-claim"
+          "functional_unit": "synthetic-city-claim",
+          "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
         },
         "graph": {
           "snapshot_id": "SYN-GRAPH-CI-23",
@@ -2414,7 +2492,8 @@
                 "coverage_proof_id": null
               }
             ],
-            "delta_base_snapshot_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+            "delta_base_snapshot_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
           }
         },
         "claims": [
@@ -2425,7 +2504,8 @@
             ],
             "historical_status": "applicable_current",
             "scope_id": "SYNTHETIC-DISTRICT-01",
-            "functional_unit": "synthetic-city-claim"
+            "functional_unit": "synthetic-city-claim",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
           }
         ],
         "revalidation_receipts": []
@@ -2468,7 +2548,8 @@
           "historical_evaluation_at": null,
           "time_basis": "UTC_UNIX_SECONDS",
           "scope_id": "SYNTHETIC-DISTRICT-01",
-          "functional_unit": "synthetic-city-claim"
+          "functional_unit": "synthetic-city-claim",
+          "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
         },
         "graph": {
           "snapshot_id": "SYN-GRAPH-CI-24",
@@ -2508,7 +2589,8 @@
                 "coverage_proof_id": null
               }
             ],
-            "owner_sequence": 4
+            "owner_sequence": 4,
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
           },
           "last_owner_sequence": 5
         },
@@ -2520,7 +2602,8 @@
             ],
             "historical_status": "applicable_current",
             "scope_id": "SYNTHETIC-DISTRICT-01",
-            "functional_unit": "synthetic-city-claim"
+            "functional_unit": "synthetic-city-claim",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
           }
         ],
         "revalidation_receipts": []
@@ -2562,7 +2645,8 @@
           "historical_evaluation_at": null,
           "time_basis": "UTC_UNIX_SECONDS",
           "scope_id": "SYNTHETIC-DISTRICT-01",
-          "functional_unit": "synthetic-city-claim"
+          "functional_unit": "synthetic-city-claim",
+          "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
         },
         "graph": {
           "snapshot_id": "SYN-GRAPH-CI-25",
@@ -2619,7 +2703,8 @@
                 ],
                 "coverage_proof_id": null
               }
-            ]
+            ],
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
           }
         },
         "claims": [
@@ -2630,7 +2715,8 @@
             ],
             "historical_status": "applicable_current",
             "scope_id": "SYNTHETIC-DISTRICT-01",
-            "functional_unit": "synthetic-city-claim"
+            "functional_unit": "synthetic-city-claim",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
           },
           {
             "claim_id": "claim_dependent_decision",
@@ -2639,7 +2725,8 @@
             ],
             "historical_status": "applicable_current",
             "scope_id": "SYNTHETIC-DISTRICT-01",
-            "functional_unit": "synthetic-city-claim"
+            "functional_unit": "synthetic-city-claim",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
           }
         ],
         "revalidation_receipts": [
@@ -2653,7 +2740,8 @@
             "report_id": "SYN-IMPACT-CI-25",
             "graph_snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
             "trusted_at": 1400,
-            "evidence_state": "current"
+            "evidence_state": "current",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
           }
         ]
       },
@@ -2701,7 +2789,8 @@
           "historical_evaluation_at": null,
           "time_basis": "UTC_UNIX_SECONDS",
           "scope_id": "SYNTHETIC-DISTRICT-01",
-          "functional_unit": "synthetic-city-claim"
+          "functional_unit": "synthetic-city-claim",
+          "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
         },
         "graph": {
           "snapshot_id": "SYN-GRAPH-CI-26",
@@ -2740,7 +2829,8 @@
                 ],
                 "coverage_proof_id": null
               }
-            ]
+            ],
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
           }
         },
         "claims": [
@@ -2751,7 +2841,8 @@
             ],
             "historical_status": "applicable_current",
             "scope_id": "SYNTHETIC-DISTRICT-01",
-            "functional_unit": "synthetic-city-claim"
+            "functional_unit": "synthetic-city-claim",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
           }
         ],
         "revalidation_receipts": [
@@ -2765,7 +2856,8 @@
             "report_id": "SYN-IMPACT-CI-26",
             "graph_snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
             "trusted_at": 1400,
-            "evidence_state": "current"
+            "evidence_state": "current",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
           }
         ]
       },
@@ -2806,7 +2898,8 @@
           "historical_evaluation_at": null,
           "time_basis": "UTC_UNIX_SECONDS",
           "scope_id": "SYNTHETIC-DISTRICT-01",
-          "functional_unit": "synthetic-city-claim"
+          "functional_unit": "synthetic-city-claim",
+          "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
         },
         "graph": {
           "snapshot_id": "SYN-GRAPH-CI-27",
@@ -2857,7 +2950,8 @@
                 "coverage_proof_id": null,
                 "disposition": "no_impact"
               }
-            ]
+            ],
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
           }
         },
         "claims": [
@@ -2868,7 +2962,8 @@
             ],
             "historical_status": "applicable_current",
             "scope_id": "SYNTHETIC-DISTRICT-01",
-            "functional_unit": "synthetic-city-claim"
+            "functional_unit": "synthetic-city-claim",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
           },
           {
             "claim_id": "claim_historical_receipt",
@@ -2878,7 +2973,8 @@
             "historical_status": "applicable_current",
             "scope_id": "SYNTHETIC-DISTRICT-01",
             "functional_unit": "synthetic-city-claim",
-            "record_class": "historical_record"
+            "record_class": "historical_record",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
           }
         ],
         "revalidation_receipts": []
@@ -2927,7 +3023,8 @@
           "historical_evaluation_at": null,
           "time_basis": "UTC_UNIX_SECONDS",
           "scope_id": "SYNTHETIC-DISTRICT-01",
-          "functional_unit": "synthetic-city-claim"
+          "functional_unit": "synthetic-city-claim",
+          "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
         },
         "graph": {
           "snapshot_id": "SYN-GRAPH-CI-28",
@@ -2975,7 +3072,8 @@
                 "dependency_path": [],
                 "coverage_proof_id": "SYN-PROOF-CI-28-claim_unrelated_water_service"
               }
-            ]
+            ],
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
           }
         },
         "claims": [
@@ -2986,7 +3084,8 @@
             ],
             "historical_status": "applicable_current",
             "scope_id": "SYNTHETIC-DISTRICT-01",
-            "functional_unit": "synthetic-city-claim"
+            "functional_unit": "synthetic-city-claim",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
           },
           {
             "claim_id": "claim_unrelated_water_service",
@@ -2995,7 +3094,8 @@
             ],
             "historical_status": "applicable_current",
             "scope_id": "SYNTHETIC-DISTRICT-01",
-            "functional_unit": "synthetic-city-claim"
+            "functional_unit": "synthetic-city-claim",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
           }
         ],
         "revalidation_receipts": []
