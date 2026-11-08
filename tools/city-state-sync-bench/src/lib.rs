@@ -637,7 +637,8 @@ fn evaluate_intervention(input: &Value, intervention_id: &str, stages: &[Value])
             let occurred_at = number(stage, "occurred_at");
             let recorded_at = number(stage, "recorded_at");
             let ingested_at = number(stage, "ingested_at");
-            if !matches!((occurred_at, recorded_at, ingested_at), (Some(o), Some(r), Some(i)) if o <= r && r <= i) {
+            if !matches!((occurred_at, recorded_at, ingested_at), (Some(o), Some(r), Some(i)) if o <= r && r <= i)
+            {
                 push_reason(&mut reasons, "INTERVENTION_TIME_ORDER_INVALID");
                 return json!({
                     "intervention_id": intervention_id,
@@ -992,12 +993,15 @@ mod tests {
             json!({"event_id":"S-1","intervention_id":"I-1","stage":"approval",
                 "predecessor_event_id":"S-1","owner_repo":"owner/a","scope_digest":hash('d'),
                 "horizon_id":"H-1","occurred_at":891,"recorded_at":901,"ingested_at":911,
-                "disposition":"approved"})
+                "disposition":"approved"}),
         ];
         let data = json!({"as_of":{"valid_at":1000,"recorded_at":1100,"ingested_at":1200}});
         let result = evaluate_intervention(&data, "I-1", &stages);
         assert_eq!(result["state"], "Unsupported");
-        assert_eq!(result["reason_codes"][0], "INTERVENTION_EVENT_ID_MISSING_OR_DUPLICATE");
+        assert_eq!(
+            result["reason_codes"][0],
+            "INTERVENTION_EVENT_ID_MISSING_OR_DUPLICATE"
+        );
     }
 
     #[test]
@@ -1025,7 +1029,10 @@ mod tests {
         let data = json!({"as_of":{"valid_at":1000,"recorded_at":1100,"ingested_at":1200}});
         let result = evaluate_intervention(&data, "I-1", &stages);
         assert_eq!(result["state"], "Unsupported");
-        assert_eq!(result["reason_codes"][0], "INTERVENTION_PREDECESSOR_MISSING");
+        assert_eq!(
+            result["reason_codes"][0],
+            "INTERVENTION_PREDECESSOR_MISSING"
+        );
     }
 
     #[test]
@@ -1042,12 +1049,15 @@ mod tests {
                 "predecessor_event_id":"P","owner_repo":"owner/a","scope_digest":hash('d'),
                 "horizon_id":"H-1","occurred_at":920,"recorded_at":930,"ingested_at":940,
                 "disposition":"executed"
-            })
+            }),
         ];
         let data = json!({"as_of":{"valid_at":1000,"recorded_at":1100,"ingested_at":1200}});
         let result = evaluate_intervention(&data, "I-1", &stages);
         assert_eq!(result["state"], "Unsupported");
-        assert_eq!(result["reason_codes"][0], "INTERVENTION_PREDECESSOR_MISSING");
+        assert_eq!(
+            result["reason_codes"][0],
+            "INTERVENTION_PREDECESSOR_MISSING"
+        );
     }
 
     #[test]
