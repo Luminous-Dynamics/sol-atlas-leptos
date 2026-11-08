@@ -278,7 +278,7 @@
                                 "string",
                                 "null"
                               ],
-                              "pattern": "^[0-9a-f]{64}$"
+                              "description": "Digest text is intentionally allowed to be malformed in invalid-descriptor negative controls; runtime owner validation must reject malformed values."
                             },
                             "digest_basis": {
                               "enum": [
