@@ -55,10 +55,10 @@ jobs:
             and .corpus_id == "CITY-IMPACT-LANE-ROUTER-CORPUS-V0.1"
             and .classification == "synthetic_fixture_only"
             and .registry_id == "citymaker-owner-impact-lanes-2026-11-08"
-            and (.cases | length == 28)
-            and ([.cases[].case_id] | unique | length == 28)
+            and (.cases | length == 32)
+            and ([.cases[].case_id] | unique | length == 32)
             and ([.cases[].expected.route_state] | group_by(.) | map({state:.[0],count:length}) | sort_by(.state))
-              == [{"state":"contract_bound_unverified","count":1},{"state":"insufficient_evidence","count":13},{"state":"invalid_input","count":14}]
+              == [{"state":"contract_bound_unverified","count":1},{"state":"insufficient_evidence","count":15},{"state":"invalid_input","count":16}]
           ' docs/research/city-impact-router/CITY_IMPACT_LANE_ROUTER_CORPUS_V0_1.json
           jq -e '
             ."$schema" == "https://json-schema.org/draft/2020-12/schema"
