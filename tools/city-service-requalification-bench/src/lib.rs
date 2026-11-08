@@ -169,10 +169,13 @@ fn event_and_query_reasons(event: &Value, query: &Value) -> BTreeSet<String> {
         reasons.insert("CITY_SERVICE_QUERY_SCOPE_INCOMPLETE".to_owned());
     }
     let temporal_cutoff = query.get("temporal_cutoff").unwrap_or(&Value::Null);
+    let world_time = text(temporal_cutoff, "world_time_as_of");
+    let knowledge_time = text(temporal_cutoff, "knowledge_time_as_of");
+    let trust_time = text(temporal_cutoff, "trust_time_as_of");
     if text(temporal_cutoff, "time_basis") != "UTC_RFC3339_SECONDS"
-        || !valid_utc_timestamp(text(temporal_cutoff, "world_time_as_of"))
-        || !valid_utc_timestamp(text(temporal_cutoff, "knowledge_time_as_of"))
-        || !valid_utc_timestamp(text(temporal_cutoff, "trust_time_as_of"))
+        || !valid_utc_timestamp(world_time)
+        || !valid_utc_timestamp(knowledge_time)
+        || !valid_utc_timestamp(trust_time)
         || !valid_utc_timestamp(text(temporal_cutoff, "evaluated_at"))
         || !matches!(
             text(temporal_cutoff, "temporal_perspective"),
@@ -180,6 +183,25 @@ fn event_and_query_reasons(event: &Value, query: &Value) -> BTreeSet<String> {
         )
     {
         reasons.insert("CITY_SERVICE_TEMPORAL_CUTOFF_INCOMPLETE".to_owned());
+    } else {
+        if valid_utc_timestamp(effective_at)
+            && (effective_at > world_time
+                || effective_until
+                    .and_then(Value::as_str)
+                    .is_some_and(|until| world_time >= until))
+        {
+            reasons.insert("EVENT_NOT_VALID_AT_REQUESTED_WORLD_TIME".to_owned());
+        }
+        let system_time = event.get("system_time").unwrap_or(&Value::Null);
+        let recorded_at = text(system_time, "recorded_at");
+        if valid_utc_timestamp(recorded_at) && recorded_at > knowledge_time {
+            reasons.insert("EVENT_RECORDED_AFTER_KNOWLEDGE_CUTOFF".to_owned());
+        }
+        if let Some(trusted_at) = system_time.get("trusted_at").and_then(Value::as_str) {
+            if valid_utc_timestamp(trusted_at) && trusted_at > trust_time {
+                reasons.insert("EVENT_TRUSTED_AFTER_TRUST_CUTOFF".to_owned());
+            }
+        }
     }
     reasons
 }
