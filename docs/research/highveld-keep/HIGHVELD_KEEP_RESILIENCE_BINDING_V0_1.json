@@ -302,6 +302,28 @@
         "UNKNOWN_PART_AVAILABILITY_AS_IMMEDIATE_REPAIR",
         "FIRST_RESTORATION_AS_STABLE_RECOVERY"
       ]
+    },
+    {
+      "scenario_id": "HK-RES-010",
+      "name": "compound_heat_grid_water_and_repair_cascade",
+      "weather_class": "ONE_JOINT_MULTIHAZARD_TRACE_WITH_DEPENDENCY_SEMANTICS",
+      "admission": "BLOCKED_UNTIL_ALL_COMPONENT_TRACES_SHARE_TIME_BASIS_AND_JOINT_DEPENDENCY_BASIS",
+      "required_inputs": [
+        "qualified_weather_trace_id_revision_and_digest",
+        "grid_outage_trace_id_revision_and_digest",
+        "water_supply_interruption_trace_id_revision_and_digest",
+        "equipment_or_control_fault_trace_id_revision_and_digest",
+        "repair_parts_access_and_restoration_trace",
+        "common_timezone_timestep_horizon_and_initial_state",
+        "joint_event_dependency_or_causal_ordering_basis",
+        "resident_task_service_floors_and_reserve_state"
+      ],
+      "prohibited_substitutions": [
+        "independent_marginal_probabilities_as_joint_probability_without_justified_model",
+        "misaligned_traces_or_different_time_bases",
+        "independent_hazard_tests_presented_as_compound_resilience",
+        "synthetic_joint_trace_presented_as_observed_event"
+      ]
     }
   ],
   "service_domains": [
@@ -380,7 +402,8 @@
     "service_floor_semantics": "PER_RESIDENT_PER_TASK_NON_COMPENSATORY",
     "unknown_or_missing_evidence": "BLOCKED_OR_NOT_COMPARABLE_NEVER_ZERO_OR_PASS",
     "stable_recovery": "USE_SYMTROPY_OWNER_ORACLE_STABILITY_WINDOW_AND_RECURRENCE_RULES",
-    "pareto": "USE_SYMTROPY_OWNER_OUTPUT_ONLY_AFTER_HARD_FLOORS_AND_EVIDENCE_ADMISSION"
+    "pareto": "USE_SYMTROPY_OWNER_OUTPUT_ONLY_AFTER_HARD_FLOORS_AND_EVIDENCE_ADMISSION",
+    "joint_event_dependency_semantics": "preserve_causal_and_temporal_dependencies_in_one_trace; do_not_assume_independence_or_multiply_marginal_probabilities_without_a_justified_calibrated_model"
   },
   "model_credibility": {
     "framework": "RISK_PROPORTIONATE_VVUQ",
@@ -598,6 +621,7 @@
     "admitted_result_exact_input_revision_binding": "100_percent",
     "unqualified_tmy_promoted_to_extreme_or_future_scenario": "0",
     "site_weather_claim_without_parcel_survey_and_representativeness_review": "0",
-    "interpretation": "targets_for_contract_and_adapter_qualification_not_physical_performance_or_safety_targets"
+    "interpretation": "targets_for_contract_and_adapter_qualification_not_physical_performance_or_safety_targets",
+    "compound_event_trace_dependency_loss": "0"
   }
 }
