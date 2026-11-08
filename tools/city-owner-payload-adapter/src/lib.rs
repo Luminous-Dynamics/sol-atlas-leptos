@@ -182,6 +182,12 @@ fn evaluate_artifact(
     let required_use = text(payload, "required_use");
     let permitted_uses = array(payload, "permitted_uses");
 
+    if !matches!(
+        digest_basis,
+        "locally_retrieved_and_hashed" | "source_owner_attested" | "external_reference" | "unavailable"
+    ) {
+        reasons.insert("PAYLOAD_DIGEST_BASIS_UNSUPPORTED".to_owned());
+    }
     if !lower_hex(payload_digest, 64)
         || !lower_hex(text(artifact, "subject_digest"), 64)
         || !lower_hex(text(artifact, "scope_digest"), 64)
@@ -216,7 +222,7 @@ fn evaluate_artifact(
     }
 
     let result = matched_results.first().copied();
-    let mut verifier_disposition = result
+    let verifier_disposition = result
         .map(|record| text(record, "disposition"))
         .unwrap_or("not_reported");
     let mut state = "indeterminate";
@@ -287,6 +293,13 @@ fn evaluate_artifact(
         "raw_owner_disposition": raw_owner_disposition,
         "base_payload_bytes_verified": base_flag.unwrap_or(false),
         "payload_verification_state": state,
+        "raw_byte_equality_verified": verifier_disposition == "verified_match"
+            && result.is_some_and(|record| {
+                bool_value(record, "digest_matches") == Some(true)
+                    && bool_value(record, "byte_length_matches") == Some(true)
+                    && text(record, "observed_sha256") == payload_digest
+                    && record.get("observed_byte_length").and_then(Value::as_u64) == payload_length
+            }),
         "payload_bytes_verified": state == "verified",
         "verifier_disposition": verifier_disposition,
         "record_key": declared_record_key,
@@ -331,7 +344,7 @@ pub fn evaluate_case(case: &Value) -> Value {
     let report_binding = input.get("report_binding").unwrap_or(&Value::Null);
     let mut global_reasons = BTreeSet::<String>::new();
 
-    if text(scope, "scope_digest").len() != 64
+    if !lower_hex(text(scope, "scope_digest"), 64)
         || text(scope, "binding_disposition").is_empty()
     {
         global_reasons.insert("SCOPE_BINDING_CONTEXT_INCOMPLETE".to_owned());
@@ -389,6 +402,9 @@ pub fn evaluate_case(case: &Value) -> Value {
             "all_available_payloads_verified" | "incomplete_or_indeterminate" | "invalid_input"
         ) {
             global_reasons.insert("VERIFIER_REPORT_DISPOSITION_UNSUPPORTED".to_owned());
+        }
+        if text(&report, "disposition") == "invalid_input" {
+            global_reasons.insert("VERIFIER_REPORT_INVALID_INPUT".to_owned());
         }
         let descriptor_count = report.get("descriptor_count").and_then(Value::as_u64);
         let payload_count = report.get("payload_count").and_then(Value::as_u64);
@@ -512,7 +528,7 @@ pub fn matches_expected(actual: &Value, expected: &Value) -> bool {
 
 #[cfg(test)]
 mod tests {
-    use super::{evaluate_case, matches_expected};
+    use super::{evaluate_case, matches_expected, text};
     use serde_json::Value;
     use std::path::PathBuf;
 
