@@ -811,25 +811,46 @@
                 "additionalProperties": false,
                 "properties": {
                   "work_execution": {
-                    "type": "string"
+                    "enum": [
+                      "not_started",
+                      "in_progress",
+                      "failed",
+                      "completed",
+                      "unknown"
+                    ]
                   },
                   "execution_evidence_state": {
                     "type": "string"
                   },
                   "inspection_state": {
-                    "type": "string"
+                    "enum": [
+                      "not_performed",
+                      "pass",
+                      "fail",
+                      "unknown"
+                    ]
                   },
                   "inspection_evidence_state": {
                     "type": "string"
                   },
                   "commissioning_state": {
-                    "type": "string"
+                    "enum": [
+                      "not_performed",
+                      "pass",
+                      "fail",
+                      "unknown"
+                    ]
                   },
                   "commissioning_evidence_state": {
                     "type": "string"
                   },
                   "service_state": {
-                    "type": "string"
+                    "enum": [
+                      "adequate",
+                      "constrained",
+                      "inaccessible",
+                      "unknown"
+                    ]
                   },
                   "continuity_receipt_state": {
                     "type": "string"
