@@ -16,7 +16,7 @@ A projection is evaluated at three explicit cutoffs:
 - **Record time**: when the owner recorded or published the assertion.
 - **Ingestion time**: when the synchronizer received the owner record.
 
-The v0.1 synthetic profile normalizes timestamps to UTC Unix seconds. Original source clock identity, timezone and uncertainty are retained. A source clock/timezone that does not satisfy this pinned profile is not silently coerced.
+The v0.1 synthetic profile normalizes comparable instants to UTC Unix seconds while retaining the original source clock identity, source IANA timezone (for example, `Africa/Johannesburg`) and uncertainty. The source timezone is metadata about the originating clock, not a demand that the source itself use UTC. Unresolved local wall-clock timestamps without a qualified offset/timezone conversion are not silently coerced.
 
 The validity interval is half-open: `[valid_from, valid_until)`. A state is not reconstructed by sorting timestamps and taking the last one. Within one owner-native subject, the owner sequence is the ordering authority. Records with later publication times but lower owner sequence cannot overwrite a newer owner assertion.
 
@@ -72,7 +72,7 @@ These are interoperability mappings. v0.1 is not a complete SensorThings server,
 
 ## Corpus and benchmark
 
-`CITY_STATE_SYNC_CORPUS_V0_1.json` contains 35 synthetic known-answer cases:
+`CITY_STATE_SYNC_CORPUS_V0_1.json` contains 36 synthetic known-answer cases:
 - late arrival and owner-sequence ordering;
 - validity expiry and owner-declared freshness;
 - correction, supersession, revocation and dispute;
@@ -103,7 +103,7 @@ cargo run --locked --quiet --manifest-path tools/city-state-sync-bench/Cargo.tom
 Report the state counts and reasons by owner and entity class, plus valid-time age, source record delay, consumer ingestion lag, correction/supersession frequency, duplicate/conflict frequency, identity-link count, unresolved identity count, and feedback-chain completion stage.
 
 P0 targets:
-- 100% agreement with the 35-case known-answer corpus;
+- 100% agreement with the 36-case known-answer corpus;
 - deterministic identical as-of replay for identical pinned owner snapshots;
 - zero latest-timestamp overwrite where owner sequence / valid time says otherwise;
 - zero correction/revocation erasure of historical records;
