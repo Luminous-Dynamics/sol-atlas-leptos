@@ -69,13 +69,14 @@
       "owner_repo": "Luminous-Dynamics/sol-atlas-leptos",
       "owner_issue": 497,
       "contract_ref": null,
-      "contract_revision": null,
+      "contract_revision": "8ef167177abb03fc561ea7d99678ac6ada909f5c",
       "contract_kind": "not_yet_versioned",
       "schema_id": null,
       "schema_version": null,
       "blocker_issue": 497,
       "expected_claim_ceiling": "incomplete_or_indeterminate",
-      "owner_scope_note": "Descriptor completeness is not connector page/partition/tombstone or source-universe completeness."
+      "owner_scope_note": "Descriptor completeness is not connector page/partition/tombstone or source-universe completeness.",
+      "runtime_revision": "8ef167177abb03fc561ea7d99678ac6ada909f5c"
     },
     {
       "family": "supply_chain_provenance",
@@ -357,6 +358,12 @@
       "required_families": [
         "source_evidence_lifecycle",
         "dependency_coverage",
+        "source_inventory"
+      ]
+    },
+    {
+      "change_class": "source_inventory_audit",
+      "required_families": [
         "source_inventory"
       ]
     }
