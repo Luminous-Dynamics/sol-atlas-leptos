@@ -1010,7 +1010,7 @@
                 "action_authority": "none"
               },
               "outcome_measurement": {
-                "state": "adequate",
+                "state": "measured",
                 "service_id": "water-main-01",
                 "event_id": "CITY-EVENT-SYNTHETIC-001",
                 "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
@@ -1200,7 +1200,7 @@
                 "action_authority": "none"
               },
               "outcome_measurement": {
-                "state": "constrained",
+                "state": "measured",
                 "service_id": "water-main-01",
                 "event_id": "CITY-EVENT-SYNTHETIC-001",
                 "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
@@ -2117,7 +2117,7 @@
                 "action_authority": "none"
               },
               "outcome_measurement": {
-                "state": "adequate",
+                "state": "measured",
                 "service_id": "water-main-01",
                 "event_id": "CITY-EVENT-SYNTHETIC-001",
                 "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
@@ -2306,7 +2306,7 @@
                 "action_authority": "none"
               },
               "outcome_measurement": {
-                "state": "adequate",
+                "state": "measured",
                 "service_id": "water-main-01",
                 "event_id": "CITY-EVENT-SYNTHETIC-001",
                 "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
@@ -2496,7 +2496,7 @@
                 "action_authority": "none"
               },
               "outcome_measurement": {
-                "state": "adequate",
+                "state": "measured",
                 "service_id": "water-main-01",
                 "event_id": "CITY-EVENT-SYNTHETIC-001",
                 "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
@@ -3525,7 +3525,7 @@
                 "action_authority": "none"
               },
               "outcome_measurement": {
-                "state": "adequate",
+                "state": "measured",
                 "service_id": "water-main-01",
                 "event_id": "CITY-EVENT-SYNTHETIC-001",
                 "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
