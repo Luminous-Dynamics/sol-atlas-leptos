@@ -78,10 +78,11 @@ A proven hard contradiction wins over unrelated positive facts. Missing evidence
 
 1. **Plan readiness:** Feasible / Infeasible / Unknown.
 2. **Work execution:** NotStarted / InProgress / Failed / Completed / Unknown.
-3. **Inspection and commissioning:** NotPerformed / Pass / Fail / Unknown.
-4. **Service state:** owner-native Adequate / Constrained / Inaccessible / Unknown.
+3. **Inspection:** NotPerformed / Pass / Fail / Unknown.
+4. **Commissioning:** NotPerformed / Pass / Fail / Unknown.
+5. **Service state:** owner-native Adequate / Constrained / Inaccessible / Unknown.
 
-Do not overload these dimensions into one enum. For example, a proposal may be plan-Feasible, work-NotStarted, inspection-NotPerformed and service-Unknown. It is not a restored service.
+Do not overload these dimensions into one enum. For example, a proposal may be plan-Feasible, work-NotStarted, inspection-NotPerformed, commissioning-NotPerformed and service-Unknown. It is not a restored service.
 
 Only the continuity owner can establish service adequacy and stable restoration for the exact service, scenario, scope and time interval. This evaluator must not create a recovery timestamp from plan completion, a robot's completion event, a visual inspection or a single adequate sample.
 
