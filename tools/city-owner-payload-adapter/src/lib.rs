@@ -640,4 +640,59 @@ mod tests {
         assert_eq!(result["artifact_payloads"][0]["payload_verification_state"], "mismatch");
         assert_eq!(result["artifact_payloads"][0]["payload_bytes_verified"], false);
     }
+    #[test]
+    fn byte_equality_is_independent_of_declared_rights_state() {
+        let result = evaluate_case(&corpus()["cases"][6]);
+        let artifact = &result["artifact_payloads"][0];
+        assert_eq!(artifact["payload_verification_state"], "verified");
+        assert_eq!(artifact["payload_bytes_verified"], true);
+        assert_eq!(artifact["raw_byte_equality_verified"], true);
+        assert_eq!(artifact["owner_rights_state"], "restricted");
+        assert_eq!(artifact["rights_use_declaration_state"], "owner_declares_restricted");
+        assert_eq!(artifact["rights_authentication"], "not_performed");
+    }
+
+    #[test]
+    fn scope_and_owner_disposition_do_not_change_raw_byte_equality() {
+        for index in [13, 14, 15, 16, 17, 23] {
+            let result = evaluate_case(&corpus()["cases"][index]);
+            let artifact = &result["artifact_payloads"][0];
+            assert_eq!(artifact["raw_byte_equality_verified"], true);
+            assert_eq!(artifact["payload_verification_state"], "verified");
+        }
+    }
+
+    #[test]
+    fn invalid_verifier_input_is_not_misreported_as_raw_report_corruption() {
+        for index in [18, 19] {
+            let result = evaluate_case(&corpus()["cases"][index]);
+            assert_eq!(result["report_integrity_state"], "verified");
+            assert_eq!(result["report_disposition_state"], "invalid_input");
+            assert_eq!(result["payload_verification_state"], "unsupported");
+        }
+    }
+
+    #[test]
+    fn owner_envelope_digest_mismatch_does_not_erase_descriptor_byte_result() {
+        let result = evaluate_case(&corpus()["cases"][20]);
+        let artifact = &result["artifact_payloads"][0];
+        assert_eq!(artifact["payload_verification_state"], "mismatch");
+        assert_eq!(artifact["payload_bytes_verified"], false);
+        assert_eq!(artifact["raw_byte_equality_verified"], true);
+        assert!(artifact["reason_codes"].as_array().unwrap().iter().any(
+            |reason| reason == "OWNER_PAYLOAD_DIGEST_MISMATCH"
+        ));
+    }
+
+    #[test]
+    fn object_reference_mismatch_cannot_claim_raw_byte_equality_for_the_owner_mapping() {
+        let result = evaluate_case(&corpus()["cases"][4]);
+        let artifact = &result["artifact_payloads"][0];
+        assert_eq!(artifact["payload_verification_state"], "mismatch");
+        assert_eq!(artifact["raw_byte_equality_verified"], false);
+        assert!(artifact["reason_codes"].as_array().unwrap().iter().any(
+            |reason| reason == "VERIFIER_RESULT_DESCRIPTOR_MISMATCH"
+        ));
+    }
+
 }
