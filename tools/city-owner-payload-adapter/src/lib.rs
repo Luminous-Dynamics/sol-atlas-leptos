@@ -419,10 +419,14 @@ fn evaluate_artifact(
                 state = "unavailable";
                 byte_length_comparison_state = "not_available";
             } else {
-                byte_length_comparison_state = if expected_length.is_some() {
-                    "not_verified"
-                } else {
-                    "not_declared"
+                byte_length_comparison_state = match (
+                    expected_length,
+                    bool_value(record, "byte_length_matches"),
+                ) {
+                    (Some(_), Some(true)) => "matched",
+                    (Some(_), Some(false)) => "mismatch",
+                    (Some(_), None) => "not_verified",
+                    (None, _) => "not_declared",
                 };
             }
         }
