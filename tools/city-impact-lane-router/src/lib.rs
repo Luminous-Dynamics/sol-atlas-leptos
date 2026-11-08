@@ -5,11 +5,9 @@
 //! grant approval. A contract-bound result remains explicitly unverified.
 
 use serde_json::{Value, json};
-use sha2::{Digest, Sha256};
 use std::collections::{BTreeMap, BTreeSet};
 
 const REGISTRY_ID: &str = "citymaker-owner-impact-lanes-2026-11-08";
-const CORPUS_ID: &str = "CITY-IMPACT-LANE-ROUTER-CORPUS-V0.1";
 const CLAIM_CEILING: &str = "synthetic owner-lane routing and declared contract-binding semantics only; no owner authentication, report-content verification, impact correctness, source completeness, engineering applicability or action authority";
 
 fn text<'a>(value: &'a Value, key: &str) -> &'a str {
@@ -35,12 +33,6 @@ fn is_lower_hex(value: &str, length: usize) -> bool {
         })
 }
 
-fn sha256_hex(bytes: &[u8]) -> String {
-    Sha256::digest(bytes)
-        .iter()
-        .map(|byte| format!("{byte:02x}"))
-        .collect()
-}
 
 fn lane_definition<'a>(registry: &'a Value, family: &str) -> Option<&'a Value> {
     array(registry, "lanes")
