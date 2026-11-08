@@ -7,7 +7,7 @@
 use serde_json::{Value, json};
 use std::collections::BTreeSet;
 
-const CORPUS_ID: &str = "CITY-SERVICE-REQUALIFICATION-CORPUS-V0.1";
+pub const CORPUS_ID: &str = "CITY-SERVICE-REQUALIFICATION-CORPUS-V0.1";
 const CLAIM_CEILING: &str = "synthetic owner-report envelope and state-composition semantics only; no report-content authentication, engineering threshold validation, physical safety determination, source completeness or action authority";
 
 fn text<'a>(value: &'a Value, key: &str) -> &'a str {
@@ -525,7 +525,21 @@ fn evaluate_service(
         });
     };
 
-    let reasons = report_binding_reasons(report, requirement, event, query);
+    let mut reasons = report_binding_reasons(report, requirement, event, query);
+    let affected = bool_value(report, "affected");
+    if affected.is_none() {
+        reasons.insert("SERVICE_REPORT_AFFECTED_FIELD_MISSING".to_owned());
+        return json!({
+            "service_id": service_id,
+            "report_state": "insufficient_evidence",
+            "service_state": "unknown",
+            "requalification_state": "blocked_insufficient_evidence",
+            "restoration_state": "restoration_unknown",
+            "reason_codes": reasons.into_iter().collect::<Vec<_>>(),
+            "owner_report_content_verified": false,
+            "action_authority": "none"
+        });
+    }
     if !reasons.is_empty() {
         return json!({
             "service_id": service_id,
@@ -608,10 +622,8 @@ pub fn evaluate_case(case: &Value) -> Value {
         }
     }
 
-    let mut report_counts = std::collections::BTreeMap::<String, usize>::new();
     for report in reports {
         let service_id = text(report, "service_id");
-        *report_counts.entry(service_id.to_owned()).or_default() += 1;
         if !required_ids.contains(service_id) {
             global_reasons.insert("UNEXPECTED_SERVICE_OWNER_REPORT".to_owned());
         }
