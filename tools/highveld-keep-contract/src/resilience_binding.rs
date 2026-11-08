@@ -130,18 +130,6 @@ fn has_string(items: Option<&Vec<Value>>, expected: &str) -> bool {
     items.is_some_and(|items| items.iter().any(|item| item.as_str() == Some(expected)))
 }
 
-fn has_unique_ids(items: &[Value], id_key: &str, expected: &[&str]) -> bool {
-    let ids: Vec<&str> = items
-        .iter()
-        .filter_map(|item| item.get(id_key).and_then(Value::as_str))
-        .collect();
-    let unique: HashSet<&str> = ids.iter().copied().collect();
-    ids.len() == items.len()
-        && unique.len() == ids.len()
-        && expected.len() == ids.len()
-        && expected.iter().all(|expected| unique.contains(expected))
-}
-
 fn push(violations: &mut Vec<&'static str>, invalid: bool, code: &'static str) {
     if invalid {
         violations.push(code);
@@ -198,8 +186,7 @@ pub fn validate_resilience_binding_values(
     );
     push(
         &mut violations,
-        string_at(schema, "schema_version").is_some()
-            || schema
+        schema
                 .get("properties")
                 .and_then(|properties| properties.get("schema_version"))
                 .and_then(|property| property.get("const"))
@@ -573,8 +560,8 @@ pub fn validate_resilience_binding_values(
         "RESILIENCE_BENCHMARK_INTEGRITY_TARGETS_WEAKENED",
     );
 
-    let unique_violations: HashSet<&str> = violations.iter().copied().collect();
-    violations.retain(|violation| unique_violations.contains(violation));
+    let mut seen_violations = HashSet::new();
+    violations.retain(|violation| seen_violations.insert(*violation));
     let report = ResilienceBindingReport {
         binding_id,
         scenario_families: scenarios.map_or(0, Vec::len),
