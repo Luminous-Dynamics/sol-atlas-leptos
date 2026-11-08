@@ -954,4 +954,37 @@ mod tests {
                 .any(|reason| reason == "VERIFIER_RESULT_DESCRIPTOR_MISMATCH")
         );
     }
+    #[test]
+    fn owner_contract_and_payload_schema_are_separately_pinned() {
+        let mut schema_case = corpus()["cases"][0].clone();
+        schema_case["input"]["owner_artifacts"][0]["descriptor_binding"]["schema_id"] =
+            Value::String("living-city-metabolism".into());
+        let schema_result = evaluate_case(&schema_case);
+        let schema_artifact = &schema_result["artifact_payloads"][0];
+        assert_eq!(schema_artifact["payload_verification_state"], "mismatch");
+        assert_eq!(schema_artifact["raw_byte_equality_verified"], true);
+        assert!(
+            schema_artifact["reason_codes"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|reason| reason == "SOURCE_PAYLOAD_SCHEMA_IDENTITY_MISMATCH")
+        );
+
+        let mut contract_case = corpus()["cases"][0].clone();
+        contract_case["input"]["owner_artifacts"][0]["descriptor_binding"]
+            ["owner_contract_id"] = Value::String("different-owner-contract".into());
+        let contract_result = evaluate_case(&contract_case);
+        let contract_artifact = &contract_result["artifact_payloads"][0];
+        assert_eq!(contract_artifact["payload_verification_state"], "mismatch");
+        assert_eq!(contract_artifact["raw_byte_equality_verified"], true);
+        assert!(
+            contract_artifact["reason_codes"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|reason| reason == "OWNER_CONTRACT_IDENTITY_MISMATCH")
+        );
+    }
+
 }
