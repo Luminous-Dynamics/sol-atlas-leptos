@@ -60,7 +60,7 @@ fn main() -> ExitCode {
     if corpus["schema_version"] != "luminous.city-service-requalification-corpus.v0.1"
         || corpus["corpus_id"] != CORPUS_ID
         || corpus["classification"] != "synthetic_fixture_only"
-        || cases.len() != 24
+        || cases.len() != 26
     {
         eprintln!("unexpected service requalification corpus identity, classification or case count");
         return ExitCode::from(2);
