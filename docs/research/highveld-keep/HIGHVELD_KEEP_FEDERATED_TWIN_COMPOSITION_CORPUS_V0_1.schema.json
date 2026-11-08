@@ -1,0 +1,532 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/highveld-federated-twin-composition-corpus-v0.1.schema.json",
+  "title": "Highveld Federated Twin Composition Synthetic Corpus v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "corpus_id": {
+      "const": "HIGHVELD-FEDERATED-TWIN-COMPOSITION-CORPUS-V0.1"
+    },
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "classification": {
+      "const": "synthetic_fixture_only"
+    },
+    "purpose": {
+      "type": "string"
+    },
+    "temporal_model": {
+      "const": [
+        "valid_at",
+        "recorded_at",
+        "registered_at",
+        "ingested_at"
+      ]
+    },
+    "composition_default": {
+      "const": "federated"
+    },
+    "claim_ceiling": {
+      "const": "synthetic_federated_composition_mechanics_only"
+    },
+    "cases": {
+      "type": "array",
+      "minItems": 18,
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "case_id",
+          "name",
+          "input",
+          "expected"
+        ],
+        "properties": {
+          "case_id": {
+            "type": "string",
+            "pattern": "^HFC-[0-9]{3}$"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "input": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "classification",
+              "as_of",
+              "decision",
+              "required_owner_refs",
+              "owner_inventory",
+              "records",
+              "identity_relations",
+              "dependency_edges",
+              "disclosure_request",
+              "building_service_claim"
+            ],
+            "properties": {
+              "classification": {
+                "const": "synthetic_fixture_only"
+              },
+              "as_of": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "valid_at",
+                  "recorded_at",
+                  "registered_at",
+                  "ingested_at",
+                  "time_basis"
+                ],
+                "properties": {
+                  "valid_at": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "recorded_at": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "registered_at": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "ingested_at": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "time_basis": {
+                    "const": "UTC_UNIX_SECONDS"
+                  }
+                }
+              },
+              "decision": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "decision_id",
+                  "decided_at",
+                  "purpose",
+                  "subject_id",
+                  "scope_digest",
+                  "functional_unit",
+                  "claim_id",
+                  "claim_type"
+                ],
+                "properties": {
+                  "decision_id": {
+                    "type": "string"
+                  },
+                  "decided_at": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "purpose": {
+                    "type": "string"
+                  },
+                  "subject_id": {
+                    "type": "string"
+                  },
+                  "scope_digest": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{64}$"
+                  },
+                  "functional_unit": {
+                    "type": "string"
+                  },
+                  "claim_id": {
+                    "type": "string"
+                  },
+                  "claim_type": {
+                    "type": "string"
+                  }
+                }
+              },
+              "required_owner_refs": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "owner_inventory": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "owner",
+                    "inventory_state",
+                    "snapshot_revision"
+                  ],
+                  "properties": {
+                    "owner": {
+                      "type": "string"
+                    },
+                    "inventory_state": {
+                      "enum": [
+                        "complete",
+                        "incomplete",
+                        "unknown",
+                        "unavailable"
+                      ]
+                    },
+                    "snapshot_revision": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "records": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "required": [
+                    "record_id",
+                    "owner",
+                    "owner_native_id",
+                    "native_revision",
+                    "schema_id",
+                    "schema_version",
+                    "payload_ref",
+                    "payload_sha256",
+                    "payload_bytes_state",
+                    "issuer_state",
+                    "rights_state",
+                    "evidence_state",
+                    "scope_digest",
+                    "functional_unit",
+                    "valid_from",
+                    "valid_until",
+                    "observed_at",
+                    "recorded_at",
+                    "registered_at",
+                    "ingested_at",
+                    "source_timezone",
+                    "clock_id",
+                    "clock_uncertainty_ms",
+                    "verifier_id",
+                    "verifier_build",
+                    "claim_refs"
+                  ],
+                  "properties": {
+                    "record_id": {
+                      "type": "string"
+                    },
+                    "owner": {
+                      "type": "string"
+                    },
+                    "owner_native_id": {
+                      "type": "string"
+                    },
+                    "native_revision": {
+                      "type": "string"
+                    },
+                    "schema_id": {
+                      "type": "string"
+                    },
+                    "schema_version": {
+                      "type": "string"
+                    },
+                    "payload_ref": {
+                      "type": "string"
+                    },
+                    "payload_sha256": {
+                      "type": "string",
+                      "pattern": "^[0-9a-f]{64}$"
+                    },
+                    "payload_bytes_state": {
+                      "enum": [
+                        "verified",
+                        "unavailable",
+                        "indeterminate",
+                        "mismatch",
+                        "unsupported"
+                      ]
+                    },
+                    "issuer_state": {
+                      "enum": [
+                        "authorized",
+                        "unauthorized",
+                        "unknown"
+                      ]
+                    },
+                    "rights_state": {
+                      "enum": [
+                        "permitted",
+                        "restricted",
+                        "revoked_for_purpose",
+                        "unknown"
+                      ]
+                    },
+                    "evidence_state": {
+                      "enum": [
+                        "admitted",
+                        "pending",
+                        "unknown",
+                        "revoked",
+                        "disputed"
+                      ]
+                    },
+                    "scope_digest": {
+                      "type": "string",
+                      "pattern": "^[0-9a-f]{64}$"
+                    },
+                    "functional_unit": {
+                      "type": "string"
+                    },
+                    "valid_from": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "valid_until": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 0
+                    },
+                    "observed_at": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "recorded_at": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "registered_at": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "ingested_at": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "source_timezone": {
+                      "type": "string"
+                    },
+                    "clock_id": {
+                      "type": "string"
+                    },
+                    "clock_uncertainty_ms": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "verifier_id": {
+                      "type": "string"
+                    },
+                    "verifier_build": {
+                      "type": "string"
+                    },
+                    "claim_refs": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              },
+              "identity_relations": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "required": [
+                    "owner",
+                    "relation",
+                    "from_native_id",
+                    "to_native_id",
+                    "authority_state",
+                    "evidence_state",
+                    "automatic_merge"
+                  ],
+                  "properties": {
+                    "owner": {
+                      "type": "string"
+                    },
+                    "relation": {
+                      "type": "string"
+                    },
+                    "from_native_id": {
+                      "type": "string"
+                    },
+                    "to_native_id": {
+                      "type": "string"
+                    },
+                    "authority_state": {
+                      "type": "string"
+                    },
+                    "evidence_state": {
+                      "type": "string"
+                    },
+                    "automatic_merge": {
+                      "const": false
+                    }
+                  }
+                }
+              },
+              "dependency_edges": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "from",
+                    "to",
+                    "relation"
+                  ],
+                  "properties": {
+                    "from": {
+                      "type": "string"
+                    },
+                    "to": {
+                      "type": "string"
+                    },
+                    "relation": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "disclosure_request": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "actor_role",
+                  "purpose",
+                  "requested_fields",
+                  "authorized_fields",
+                  "policy_state"
+                ],
+                "properties": {
+                  "actor_role": {
+                    "type": "string"
+                  },
+                  "purpose": {
+                    "type": "string"
+                  },
+                  "requested_fields": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "authorized_fields": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "policy_state": {
+                    "enum": [
+                      "permitted",
+                      "restricted",
+                      "denied",
+                      "unknown"
+                    ]
+                  }
+                }
+              },
+              "building_service_claim": {
+                "type": "object",
+                "additionalProperties": true,
+                "required": [
+                  "requested",
+                  "required_owner_refs"
+                ],
+                "properties": {
+                  "requested": {
+                    "type": "boolean"
+                  },
+                  "required_owner_refs": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "expected": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "historical_reliance",
+              "current_reliance",
+              "automatic_identity_merges",
+              "disclosure_state",
+              "disclosed_fields",
+              "reason_codes",
+              "claim_ceiling"
+            ],
+            "properties": {
+              "historical_reliance": {
+                "enum": [
+                  "reliable_for_declared_scope",
+                  "revalidation_required",
+                  "insufficient_evidence",
+                  "not_authorized",
+                  "invalid_evidence",
+                  "not_comparable",
+                  "historical_basis_incomplete"
+                ]
+              },
+              "current_reliance": {
+                "enum": [
+                  "reliable_for_declared_scope",
+                  "revalidation_required",
+                  "insufficient_evidence",
+                  "not_authorized",
+                  "invalid_evidence",
+                  "not_comparable",
+                  "historical_basis_incomplete"
+                ]
+              },
+              "automatic_identity_merges": {
+                "const": 0
+              },
+              "disclosure_state": {
+                "enum": [
+                  "permitted",
+                  "denied",
+                  "unknown"
+                ]
+              },
+              "disclosed_fields": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "reason_codes": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "claim_ceiling": {
+                "const": "synthetic_federated_composition_mechanics_only"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "required": [
+    "corpus_id",
+    "schema_version",
+    "classification",
+    "purpose",
+    "temporal_model",
+    "composition_default",
+    "claim_ceiling",
+    "cases"
+  ]
+}
