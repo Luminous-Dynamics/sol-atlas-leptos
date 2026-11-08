@@ -216,10 +216,14 @@ fn evaluate_artifact(
     }
     if text(descriptor_binding, "schema_id") != text(payload, "schema_id")
         || text(descriptor_binding, "schema_version") != text(payload, "schema_version")
-        || text(artifact, "contract_id") != text(payload, "schema_id")
-        || text(artifact, "contract_version") != text(payload, "schema_version")
     {
-        reasons.insert("OWNER_SCHEMA_IDENTITY_MISMATCH".to_owned());
+        reasons.insert("SOURCE_PAYLOAD_SCHEMA_IDENTITY_MISMATCH".to_owned());
+    }
+    if text(descriptor_binding, "owner_contract_id") != text(artifact, "contract_id")
+        || text(descriptor_binding, "owner_contract_version")
+            != text(artifact, "contract_version")
+    {
+        reasons.insert("OWNER_CONTRACT_IDENTITY_MISMATCH".to_owned());
     }
     let schema_digest_algorithm = text(artifact, "schema_digest_algorithm");
     let schema_artifact_digest = text(artifact, "schema_artifact_digest");
