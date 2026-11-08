@@ -347,6 +347,10 @@ fn evaluate_lane(
                 {
                     reasons.insert("SOURCE_INVENTORY_CLAIM_SCOPE_MISMATCH".to_owned());
                 }
+                let owner_expected = number(owner_presence, "expected_owner_count");
+                let owner_required = number(owner_presence, "required_owner_count");
+                let observed = number(owner_presence, "observed_manifest_count");
+                let missing_required = number(owner_presence, "missing_required_owner_count");
                 if expected.is_none()
                     || required.is_none()
                     || present.is_none()
@@ -355,23 +359,59 @@ fn evaluate_lane(
                     || incomplete.is_none()
                     || invalid.is_none()
                     || not_comparable.is_none()
+                    || owner_expected.is_none()
+                    || owner_required.is_none()
+                    || observed.is_none()
+                    || missing_required.is_none()
                 {
                     reasons.insert("SOURCE_INVENTORY_CLOSURE_COUNTS_MISSING".to_owned());
                 } else {
-                    let (expected, required, present, complete) =
-                        (expected.unwrap(), required.unwrap(), present.unwrap(), complete.unwrap());
-                    if expected == 0 || required > expected || present > required {
+                    let expected = expected.unwrap();
+                    let required = required.unwrap();
+                    let present = present.unwrap();
+                    let complete = complete.unwrap();
+                    let complete_with_exclusions = complete_with_exclusions.unwrap();
+                    let incomplete = incomplete.unwrap();
+                    let invalid = invalid.unwrap();
+                    let not_comparable = not_comparable.unwrap();
+                    let owner_expected = owner_expected.unwrap();
+                    let owner_required = owner_required.unwrap();
+                    let observed = observed.unwrap();
+                    let missing_required = missing_required.unwrap();
+
+                    if owner_expected != expected
+                        || owner_required != required
+                        || expected == 0
+                        || required == 0
+                        || required > expected
+                        || present > required
+                        || missing_required > required
+                        || present + missing_required != required
+                        || observed > expected
+                        || observed < present
+                    {
                         reasons.insert("SOURCE_INVENTORY_CLOSURE_COUNTS_INVALID".to_owned());
-                    } else if present < required || complete < required {
+                    }
+
+                    let disposition_total = complete
+                        .checked_add(complete_with_exclusions)
+                        .and_then(|value| value.checked_add(incomplete))
+                        .and_then(|value| value.checked_add(invalid))
+                        .and_then(|value| value.checked_add(not_comparable));
+                    if disposition_total != Some(observed) {
+                        reasons.insert("SOURCE_INVENTORY_DISPOSITION_COUNTS_MISMATCH".to_owned());
+                    }
+
+                    if present < required || complete < required {
                         reasons.insert("SOURCE_INVENTORY_REQUIRED_OWNER_INCOMPLETE".to_owned());
                     }
-                    if complete_with_exclusions != Some(0)
-                        || incomplete != Some(0)
-                        || not_comparable != Some(0)
+                    if complete_with_exclusions != 0
+                        || incomplete != 0
+                        || not_comparable != 0
                     {
                         reasons.insert("SOURCE_INVENTORY_HAS_EXCLUSIONS_OR_INCOMPLETE_MANIFESTS".to_owned());
                     }
-                    if invalid != Some(0) {
+                    if invalid != 0 {
                         reasons.insert("SOURCE_INVENTORY_MANIFEST_INVALID".to_owned());
                     }
                 }
