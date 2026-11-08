@@ -584,12 +584,12 @@ mod tests {
     #[test]
     fn router_corpus_contains_32_unique_cases() {
         let cases = corpus()["cases"].as_array().unwrap();
-        assert_eq!(cases.len(), 32);
+        assert_eq!(cases.len(), 35);
         let ids = cases
             .iter()
             .map(|case| case["case_id"].as_str().unwrap())
             .collect::<std::collections::BTreeSet<_>>();
-        assert_eq!(ids.len(), 32);
+        assert_eq!(ids.len(), 35);
     }
 
     #[test]
@@ -634,6 +634,40 @@ mod tests {
         assert_eq!(report_time_mismatch["route_state"], "invalid_input");
         assert_eq!(
             report_time_mismatch["lane_results"][0]["state"],
+            "invalid_input"
+        );
+
+        let explicitly_untrusted = evaluate_case(&cases[32], &r);
+        assert_eq!(explicitly_untrusted["route_state"], "insufficient_evidence");
+        assert!(
+            explicitly_untrusted["reason_codes"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|reason| reason == "EVENT_SYSTEM_TIME_UNTRUSTED")
+        );
+
+        let missing_trust_receipt = evaluate_case(&cases[33], &r);
+        assert_eq!(missing_trust_receipt["route_state"], "insufficient_evidence");
+        assert!(
+            missing_trust_receipt["reason_codes"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|reason| reason == "CHANGE_EVENT_SYSTEM_TIME_BINDING_INCOMPLETE")
+        );
+
+        let invalid_report_with_disputed_time = evaluate_case(&cases[34], &r);
+        assert_eq!(invalid_report_with_disputed_time["route_state"], "invalid_input");
+        assert!(
+            invalid_report_with_disputed_time["reason_codes"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|reason| reason == "EVENT_EFFECTIVE_TIME_UNQUALIFIED")
+        );
+        assert_eq!(
+            invalid_report_with_disputed_time["lane_results"][0]["state"],
             "invalid_input"
         );
     }
