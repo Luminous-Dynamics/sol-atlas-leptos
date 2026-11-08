@@ -55,7 +55,7 @@
     },
     "cases": {
       "type": "array",
-      "minItems": 33,
+      "minItems": 35,
       "items": {
         "$ref": "#/$defs/case"
       }
@@ -434,6 +434,9 @@
         },
         "geometry_digest": {
           "type": "string"
+        },
+        "target_subject_digest": {
+          "$ref": "#/$defs/hash"
         }
       }
     },
