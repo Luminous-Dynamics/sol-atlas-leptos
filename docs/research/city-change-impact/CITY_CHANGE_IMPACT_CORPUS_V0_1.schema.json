@@ -13,7 +13,8 @@
     "applicability_states",
     "temporal_fields",
     "precedence",
-    "cases"
+    "cases",
+    "corpus_profile"
   ],
   "properties": {
     "schema": {
@@ -176,6 +177,31 @@
                   },
                   "time_basis": {
                     "const": "UTC_UNIX_SECONDS"
+                  },
+                  "transform_state": {
+                    "enum": [
+                      "qualified",
+                      "ambiguous",
+                      "unknown"
+                    ]
+                  },
+                  "payload_bytes_state": {
+                    "enum": [
+                      "verified",
+                      "unverified",
+                      "unknown"
+                    ]
+                  },
+                  "source_authority_state": {
+                    "enum": [
+                      "qualified",
+                      "unqualified",
+                      "unknown"
+                    ]
+                  },
+                  "owner_sequence": {
+                    "type": "integer",
+                    "minimum": 0
                   }
                 }
               },
@@ -309,8 +335,93 @@
                       "query_boundary": {
                         "type": "string",
                         "minLength": 1
+                      },
+                      "event_id": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "scope_id": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "coverage_receipt_id": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "base_graph_snapshot_digest": {
+                        "type": "string",
+                        "pattern": "^[0-9a-f]{64}$"
+                      },
+                      "delta_base_snapshot_digest": {
+                        "type": "string",
+                        "pattern": "^[0-9a-f]{64}$"
+                      },
+                      "owner_sequence": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "claim_findings": {
+                        "type": "array",
+                        "minItems": 1,
+                        "items": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "required": [
+                            "claim_id",
+                            "disposition",
+                            "reason_codes",
+                            "dependency_path",
+                            "coverage_proof_id"
+                          ],
+                          "properties": {
+                            "claim_id": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "disposition": {
+                              "enum": [
+                                "no_impact",
+                                "revalidate",
+                                "invalidate",
+                                "insufficient"
+                              ]
+                            },
+                            "reason_codes": {
+                              "type": "array",
+                              "minItems": 1,
+                              "items": {
+                                "type": "string",
+                                "minLength": 1
+                              }
+                            },
+                            "dependency_path": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            },
+                            "coverage_proof_id": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            }
+                          }
+                        }
                       }
                     }
+                  },
+                  "integrity_state": {
+                    "enum": [
+                      "qualified",
+                      "cycle_detected",
+                      "invalid",
+                      "unknown"
+                    ]
+                  },
+                  "last_owner_sequence": {
+                    "type": "integer",
+                    "minimum": 0
                   }
                 }
               },
@@ -354,6 +465,22 @@
                     "functional_unit": {
                       "type": "string",
                       "minLength": 1
+                    },
+                    "measurement_at": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "evaluation_mode": {
+                      "enum": [
+                        "current",
+                        "historical"
+                      ]
+                    },
+                    "record_class": {
+                      "enum": [
+                        "current_claim",
+                        "historical_record"
+                      ]
                     }
                   }
                 }
@@ -393,6 +520,29 @@
                         "unqualified",
                         "stale",
                         "rejected"
+                      ]
+                    },
+                    "event_id": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "report_id": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "graph_snapshot_digest": {
+                      "type": "string",
+                      "pattern": "^[0-9a-f]{64}$"
+                    },
+                    "trusted_at": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "evidence_state": {
+                      "enum": [
+                        "current",
+                        "stale",
+                        "unknown"
                       ]
                     }
                   }
@@ -446,6 +596,9 @@
           }
         }
       }
+    },
+    "corpus_profile": {
+      "const": "owner_report_projection_v0.1"
     }
   }
 }
