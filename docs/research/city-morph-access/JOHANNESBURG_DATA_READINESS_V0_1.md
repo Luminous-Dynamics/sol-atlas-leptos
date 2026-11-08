@@ -105,3 +105,18 @@ Amadi and Mahachi's 2025 state-of-the-art review reports high landfill dependenc
 These are review findings and source-context signals, **not current 2026 landfill capacity, Johannesburg project-level tonnage, or a qualified secondary-material inventory**. Before a local claim, inspect the primary studies and obtain current facility/municipal records. The CityMaterialLoops material-flow audit must count formal disposal, informal recovery/reuse, recycling, stockpiling and exported flows separately, with no duplicate batch allocation.
 
 - Amadi & Mahachi (2025), *State-of-the-art review on construction and demolition waste: The South African context*: https://doi.org/10.1016/j.clwas.2025.100251
+
+
+## Update — municipal GIS and observed transport evidence (2026-11-08)
+
+The City of Johannesburg Corporate Geo-Informatics Online Maps viewer is publicly accessible without eServices registration. The City's help material says selected layers can be extracted as Shapefile/KML/DXF; the 2024 Spatial Data Inventory records dataset owner, format/date and usage limits and is reviewed annually. This materially improves source discoverability, but not all layers are open or current.
+
+Freshness is explicitly heterogeneous: the Online Maps help page says cadastral data are weekly, the JRA roads layer was last updated in August 2019, 2023 aerial imagery was flown in May 2023, and most other data were captured over multiple years. A road layer from 2019 is not acceptable as current routing ground truth without a newer custodian-supplied snapshot or an explicit stale-data experiment.
+
+The City also announced a 30–60 day electric-bus trial beginning 3 September 2026, with selected Metrobus/Rea Vaya buses integrated into Metrobus's fleet management and AVL system. This creates a potential request-only source for aggregate observed operations if the City publishes or authorizes release; it is not public GTFS and is not proof of route timetable availability. Metrobus's quarterly performance assessments are another public research source, but narrative reports must not be mistaken for machine-readable schedules.
+
+Sources:
+- https://eservices.joburg.org.za/pages/OnlineMaps.aspx
+- https://eservices.joburg.org.za/sites/cgismaps/Pages/default.aspx
+- https://mbus.joburg.org.za/about_strat_reports.aspx
+- https://joburg.org.za/media_/Newsroom/Pages/2026-News-Articles/City-puts-electric-buses-to-the-test-in-drive-towards-greener-public-transport.aspx
