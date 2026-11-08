@@ -1562,7 +1562,7 @@
         "metric_results": [
           {
             "metric_id": "energy",
-            "observation_state": "Unknown",
+            "observation_state": "Unsupported",
             "threshold_state": "Unknown",
             "observed_value": null,
             "unit": "kWh/m2/year",
@@ -1571,7 +1571,7 @@
             "dynamic_gap_state": "Unknown",
             "dynamic_gap_value": null,
             "reason_codes": [
-              "METER_EVIDENCE_OR_CALIBRATION_INVALID"
+              "OBSERVATION_EVIDENCE_CLASS_MISMATCH"
             ]
           }
         ],
