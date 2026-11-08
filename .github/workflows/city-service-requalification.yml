@@ -74,10 +74,10 @@ jobs:
             .schema_version == "luminous.city-service-requalification-corpus.v0.1"
             and .corpus_id == "CITY-SERVICE-REQUALIFICATION-CORPUS-V0.1"
             and .classification == "synthetic_fixture_only"
-            and (.cases | length == 24)
-            and ([.cases[].case_id] | unique | length == 24)
+            and (.cases | length == 26)
+            and ([.cases[].case_id] | unique | length == 26)
             and ([.cases[].expected.route_state] | group_by(.) | map({state:.[0],count:length}) | sort_by(.state))
-              == [{"state":"contract_bound_unverified","count":12},{"state":"insufficient_evidence","count":3},{"state":"invalid_input","count":9}]
+              == [{"state":"contract_bound_unverified","count":13},{"state":"insufficient_evidence","count":4},{"state":"invalid_input","count":9}]
           ' "$fixture"
 
       - name: Emit exact-head service requalification receipt
@@ -93,11 +93,11 @@ jobs:
             .result == "pass"
             and .corpus_id == "CITY-SERVICE-REQUALIFICATION-CORPUS-V0.1"
             and .corpus_classification == "synthetic_fixture_only"
-            and .scenario_count == 24
+            and .scenario_count == 26
             and .failure_count == 0
             and (.corpus_sha256 | test("^[0-9a-f]{64}$"))
             and (.source_commit | test("^[0-9a-f]{40}$"))
-            and (.scenarios | length == 24)
+            and (.scenarios | length == 26)
             and (.scenarios | all(.status == "pass"))
             and .service_outcome_verified == false
             and .owner_report_content_verified == false
