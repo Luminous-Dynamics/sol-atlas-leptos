@@ -182,7 +182,10 @@
             "uniqueItems": true
           },
           "blocker_issue": {
-            "type": "integer",
+            "type": [
+              "integer",
+              "null"
+            ],
             "minimum": 1
           },
           "expected_claim_ceiling": {
