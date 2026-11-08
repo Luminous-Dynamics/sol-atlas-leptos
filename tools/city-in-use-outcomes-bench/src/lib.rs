@@ -268,21 +268,29 @@ fn baseline_and_post_windows_are_valid(mv: &Value, scope: &Value) -> bool {
     let baseline_end = baseline.get("end_tick").and_then(Value::as_i64);
     let post_start = post.get("start_tick").and_then(Value::as_i64);
     let post_end = post.get("end_tick").and_then(Value::as_i64);
+    let scope_start = scope_window.get("start_tick").and_then(Value::as_i64);
+    let scope_end = scope_window.get("end_tick").and_then(Value::as_i64);
     let unit = text(scope_window, "tick_unit");
 
     baseline_start
         .zip(baseline_end)
         .zip(post_start.zip(post_end))
-        .is_some_and(|((baseline_start, baseline_end), (post_start, post_end))| {
-            baseline_end > baseline_start
-                && post_end > post_start
-                && baseline_end <= post_start
-                && text(baseline, "window_id") == text(mv, "baseline_period")
-                && text(post, "window_id") == text(mv, "post_period")
-                && !unit.is_empty()
-                && text(baseline, "tick_unit") == unit
-                && text(post, "tick_unit") == unit
-        })
+        .zip(scope_start.zip(scope_end))
+        .is_some_and(
+            |(((baseline_start, baseline_end), (post_start, post_end)), (scope_start, scope_end))| {
+                baseline_end > baseline_start
+                    && post_end > post_start
+                    && baseline_end <= post_start
+                    && post_start == scope_start
+                    && post_end == scope_end
+                    && text(baseline, "window_id") == text(mv, "baseline_period")
+                    && text(post, "window_id") == text(mv, "post_period")
+                    && text(post, "window_id") == text(scope_window, "window_id")
+                    && !unit.is_empty()
+                    && text(baseline, "tick_unit") == unit
+                    && text(post, "tick_unit") == unit
+            },
+        )
 }
 
 fn classify_measurement_and_verification(input: &Value, scope: &Value) -> &'static str {
@@ -304,11 +312,18 @@ fn classify_measurement_and_verification(input: &Value, scope: &Value) -> &'stat
     let minimum_coverage = number(scope, "minimum_coverage_fraction").unwrap_or(1.0);
     let baseline_period = text(mv, "baseline_period");
     let post_period = text(mv, "post_period");
+    let post_receipt_id = text(mv, "post_receipt_id");
+    let post_receipt_matches = !post_receipt_id.is_empty()
+        && array(input, "observations")
+            .unwrap_or(&[])
+            .iter()
+            .any(|observation| text(observation, "source_receipt_id") == post_receipt_id);
 
     if text(mv, "evidence_state") == "current"
         && !text(mv, "method_id").is_empty()
         && !text(mv, "method_revision").is_empty()
         && !text(mv, "baseline_receipt_id").is_empty()
+        && post_receipt_matches
         && !baseline_period.is_empty()
         && !post_period.is_empty()
         && baseline_period != post_period
@@ -747,6 +762,25 @@ mod tests {
             "EligibleForSavingsReview"
         );
         assert!(result.get("savings_amount").is_none());
+    }
+
+    #[test]
+    fn measurement_and_verification_post_window_and_receipt_must_match_observation() {
+        let mut wrong_window = case("OI-017");
+        wrong_window["input"]["measurement_and_verification"]["post_window"]["start_tick"] =
+            serde_json::json!(1);
+        assert_eq!(
+            evaluate_case(&wrong_window)["measurement_and_verification_status"],
+            "Unsupported"
+        );
+
+        let mut wrong_receipt = case("OI-017");
+        wrong_receipt["input"]["measurement_and_verification"]["post_receipt_id"] =
+            serde_json::json!("receipt:other:energy");
+        assert_eq!(
+            evaluate_case(&wrong_receipt)["measurement_and_verification_status"],
+            "Unsupported"
+        );
     }
 
     #[test]
