@@ -37,8 +37,8 @@
     },
     "cases": {
       "type": "array",
-      "minItems": 28,
-      "maxItems": 28,
+      "minItems": 32,
+      "maxItems": 32,
       "items": {
         "type": "object",
         "additionalProperties": false,
@@ -77,7 +77,9 @@
                   "subject_revision",
                   "source_revision_before",
                   "source_revision_after",
-                  "time_basis"
+                  "time_basis",
+                  "valid_time",
+                  "system_time"
                 ],
                 "properties": {
                   "event_id": {
@@ -110,6 +112,60 @@
                   },
                   "time_basis": {
                     "const": "UTC_UNIX_SECONDS"
+                  },
+                  "valid_time": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "effective_at",
+                      "effective_until",
+                      "effective_time_confidence"
+                    ],
+                    "properties": {
+                      "effective_at": {
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      "effective_until": {
+                        "type": [
+                          "string",
+                          "null"
+                        ],
+                        "format": "date-time"
+                      },
+                      "effective_time_confidence": {
+                        "enum": [
+                          "verified",
+                          "authority_asserted",
+                          "unknown",
+                          "disputed"
+                        ]
+                      }
+                    }
+                  },
+                  "system_time": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "recorded_at": {
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      "trusted_at": {
+                        "type": [
+                          "string",
+                          "null"
+                        ],
+                        "format": "date-time"
+                      },
+                      "trusted_timestamp_receipt_sha256": {
+                        "type": [
+                          "string",
+                          "null"
+                        ],
+                        "pattern": "^[0-9a-f]{64}$"
+                      }
+                    }
                   }
                 }
               },
@@ -171,7 +227,9 @@
                     "evaluated_at",
                     "report_sha256",
                     "report_reference",
-                    "action_authority"
+                    "action_authority",
+                    "valid_time",
+                    "system_time"
                   ],
                   "properties": {
                     "report_id": {
@@ -288,6 +346,60 @@
                     "unsupported_relationship_count": {
                       "type": "integer",
                       "minimum": 0
+                    },
+                    "valid_time": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "effective_at",
+                        "effective_until",
+                        "effective_time_confidence"
+                      ],
+                      "properties": {
+                        "effective_at": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "effective_until": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "format": "date-time"
+                        },
+                        "effective_time_confidence": {
+                          "enum": [
+                            "verified",
+                            "authority_asserted",
+                            "unknown",
+                            "disputed"
+                          ]
+                        }
+                      }
+                    },
+                    "system_time": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "recorded_at": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "trusted_at": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "format": "date-time"
+                        },
+                        "trusted_timestamp_receipt_sha256": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "pattern": "^[0-9a-f]{64}$"
+                        }
+                      }
                     }
                   }
                 }
