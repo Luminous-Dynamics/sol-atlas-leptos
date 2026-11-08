@@ -622,15 +622,18 @@ fn evaluate_intervention(input: &Value, intervention_id: &str, stages: &[Value])
             let event_id = text(stage, "event_id");
             let predecessor = stage.get("predecessor_event_id").and_then(Value::as_str);
             let predecessor_value = predecessor.unwrap_or("");
+            let required_predecessor_present =
+                index == 0 || by_stage.contains_key(ordered[index - 1]);
             let predecessor_is_valid = if index == 0 {
                 predecessor_value.is_empty()
             } else {
-                previous_id.is_some_and(|previous| predecessor_value == previous)
+                required_predecessor_present
+                    && previous_id.is_some_and(|previous| predecessor_value == previous)
             };
             if !predecessor_is_valid {
                 push_reason(
                     &mut reasons,
-                    if index > 0 && previous_id.is_none() {
+                    if index > 0 && !required_predecessor_present {
                         "INTERVENTION_PREDECESSOR_MISSING"
                     } else {
                         "INTERVENTION_PREDECESSOR_MISMATCH"
@@ -1023,6 +1026,28 @@ mod tests {
             "horizon_id":"H-1","occurred_at":890,"recorded_at":900,"ingested_at":910,
             "disposition":"approved"
         })];
+        let data = json!({"as_of":{"valid_at":1000,"recorded_at":1100,"ingested_at":1200}});
+        let result = evaluate_intervention(&data, "I-1", &stages);
+        assert_eq!(result["state"], "Unsupported");
+        assert_eq!(result["reason_codes"][0], "INTERVENTION_PREDECESSOR_MISSING");
+    }
+
+    #[test]
+    fn execution_cannot_skip_the_approval_stage() {
+        let stages = vec![
+            json!({
+                "event_id":"P","intervention_id":"I-1","stage":"proposal",
+                "predecessor_event_id":null,"owner_repo":"owner/a","scope_digest":hash('d'),
+                "horizon_id":"H-1","occurred_at":890,"recorded_at":900,"ingested_at":910,
+                "disposition":"proposed"
+            }),
+            json!({
+                "event_id":"X","intervention_id":"I-1","stage":"execution",
+                "predecessor_event_id":"P","owner_repo":"owner/a","scope_digest":hash('d'),
+                "horizon_id":"H-1","occurred_at":920,"recorded_at":930,"ingested_at":940,
+                "disposition":"executed"
+            })
+        ];
         let data = json!({"as_of":{"valid_at":1000,"recorded_at":1100,"ingested_at":1200}});
         let result = evaluate_intervention(&data, "I-1", &stages);
         assert_eq!(result["state"], "Unsupported");
