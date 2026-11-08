@@ -467,7 +467,8 @@
               "disclosure_state",
               "disclosed_fields",
               "reason_codes",
-              "claim_ceiling"
+              "claim_ceiling",
+              "retrospective_historical_assessment"
             ],
             "properties": {
               "historical_reliance": {
@@ -516,6 +517,17 @@
               },
               "claim_ceiling": {
                 "const": "synthetic_federated_composition_mechanics_only"
+              },
+              "retrospective_historical_assessment": {
+                "enum": [
+                  "reliable_for_declared_scope",
+                  "revalidation_required",
+                  "insufficient_evidence",
+                  "not_authorized",
+                  "invalid_evidence",
+                  "not_comparable",
+                  "historical_basis_incomplete"
+                ]
               }
             }
           }
