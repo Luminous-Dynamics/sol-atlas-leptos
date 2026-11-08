@@ -312,7 +312,7 @@ pub fn evaluate_case(case: &Value, registry: &Value) -> Value {
         || text(event, "subject_node_id").is_empty()
         || text(event, "subject_revision").is_empty()
         || text(event, "change_class").is_empty()
-        || text(event, "time_basis") != "UTC_UNIX_SECONDS"
+        || text(event, "time_basis") != "UTC_RFC3339_SECONDS"
     {
         global_reasons.insert("CHANGE_EVENT_BINDING_INCOMPLETE".to_owned());
     }
