@@ -663,10 +663,18 @@ pub fn evaluate_case(case: &Value) -> Value {
     let has_insufficient_report = service_results
         .iter()
         .any(|service| text(service, "report_state") == "insufficient_evidence");
+    let has_invalid_composition = service_results.iter().any(|service| {
+        text(service, "requalification_state") == "invalid_evidence"
+            || array(service, "reason_codes").iter().filter_map(Value::as_str).any(|reason| {
+                reason.contains("INVALID")
+                    || reason.contains("MISMATCH")
+                    || reason.contains("ESCALATION")
+            })
+    });
     let has_invalid_global = global_reasons
         .iter()
         .any(|reason| reason.contains("INVALID") || reason.contains("DUPLICATED") || reason.contains("UNEXPECTED"));
-    let route_state = if has_invalid_report || has_invalid_global {
+    let route_state = if has_invalid_report || has_invalid_composition || has_invalid_global {
         "invalid_input"
     } else if !global_reasons.is_empty() || has_insufficient_report {
         "insufficient_evidence"
