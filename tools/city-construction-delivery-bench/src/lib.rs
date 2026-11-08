@@ -1,7 +1,6 @@
-//! Bounded synthetic reference oracle for construction material delivery feasibility.
-//! Checks supplied evidence and constraints. It does not perform routing,
-//! inventory allocation, procurement, dispatch, certification, lift planning,
-//! custody approval or installation.
+//! Synthetic reference oracle for above-ground material delivery feasibility.
+//! Checks declared evidence and constraints; it does not perform routing,
+//! inventory allocation, procurement, dispatch, lift engineering or installation.
 
 use std::collections::{BTreeMap, BTreeSet};
 use serde_json::{Value, json};
@@ -11,6 +10,9 @@ fn array<'a>(v: &'a Value, k: &str) -> Option<&'a [Value]> {
 }
 fn text<'a>(v: &'a Value, k: &str) -> &'a str {
     v.get(k).and_then(Value::as_str).unwrap_or("")
+}
+fn scalar_text(v: &Value) -> &str {
+    v.as_str().unwrap_or("")
 }
 fn number(v: &Value, k: &str) -> Option<f64> {
     v.get(k).and_then(Value::as_f64).filter(|x| x.is_finite())
@@ -87,44 +89,46 @@ fn validate<'a>(case: &Value, input: &'a Value) -> Result<Vec<&'a Value>, (Strin
         errors.insert("DELIVERIES_EMPTY".to_owned());
     }
 
-    let mut ids = BTreeSet::new();
-    let mut receipts = BTreeSet::new();
+    let mut delivery_ids = BTreeSet::new();
+    let mut receipt_ids = BTreeSet::new();
     for d in deliveries {
         let id = text(d, "delivery_id");
-        if id.is_empty() || !ids.insert(id.to_owned()) {
+        if id.is_empty() || !delivery_ids.insert(id.to_owned()) {
             errors.insert("DUPLICATE_OR_MISSING_DELIVERY_ID".to_owned());
         }
         if text(d, "scope_digest") != text(input, "scope_digest") {
             return Err((case_id.to_owned(), BTreeSet::from(["DELIVERY_SCOPE_MISMATCH".to_owned()])));
         }
+
         let demand = d.get("demand").unwrap_or(&Value::Null);
         let source = d.get("source").unwrap_or(&Value::Null);
         let transport = d.get("transport").unwrap_or(&Value::Null);
         let site = d.get("site").unwrap_or(&Value::Null);
+        let unload = site.get("unload").unwrap_or(&Value::Null);
+        let receiving = site.get("receiving").unwrap_or(&Value::Null);
         if text(demand, "unit").is_empty() || text(source, "quantity_unit").is_empty()
             || text(demand, "unit") != text(source, "quantity_unit") {
             errors.insert("QUANTITY_UNIT_MISMATCH".to_owned());
         }
+
         for (v, k) in [
             (demand, "quantity"), (demand, "mass_kg"), (demand, "volume_m3"),
             (source, "available_quantity"), (transport, "payload_capacity_kg"),
-            (transport, "volume_capacity_m3"), (nested(site, "unload", "capacity_kg"), "value"),
+            (transport, "volume_capacity_m3"), (unload, "capacity_kg"),
             (nested(site, "receiving_bay", "unused"), "unused"),
         ] {
-            if k == "value" {
-                if v.as_f64().is_none_or(|x| !x.is_finite() || x < 0.0) {
-                    errors.insert("QUANTITY_OR_CAPACITY_INVALID".to_owned());
-                }
-            } else if v.get(k).is_some() && number(v, k).is_none_or(|x| x < 0.0) {
+            if k != "unused" && number(v, k).is_none_or(|x| x < 0.0) {
                 errors.insert("QUANTITY_OR_CAPACITY_INVALID".to_owned());
             }
         }
         for (v, k) in [
             (demand, "required_by_tick"), (demand, "window_start_tick"),
             (demand, "window_end_tick"), (source, "ready_tick"),
-            (transport, "route_duration_ticks"), (nested(site, "unload", "unused"), "unused"),
+            (transport, "route_duration_ticks"), (unload, "duration_ticks"),
+            (receiving, "inspection_duration_ticks"), (site, "gate_open_start_tick"),
+            (site, "gate_open_end_tick"),
         ] {
-            if v.get(k).is_some() && integer(v, k).is_none_or(|x| x < 0) {
+            if integer(v, k).is_none_or(|x| x < 0) {
                 errors.insert("TIME_VALUE_INVALID".to_owned());
             }
         }
@@ -134,18 +138,15 @@ fn validate<'a>(case: &Value, input: &'a Value) -> Result<Vec<&'a Value>, (Strin
                 errors.insert("DELIVERY_WINDOW_INVALID".to_owned());
             }
         }
+
         for receipt in [
             text(source, "inventory_receipt_id"),
             text(transport, "route_receipt_id"),
-            text(nested(site, "receiving", "custody_receipt_id"), "unused"),
+            scalar_text(nested(site, "receiving", "custody_receipt_id")),
         ] {
-            if !receipt.is_empty() && !receipts.insert(receipt.to_owned()) {
+            if !receipt.is_empty() && !receipt_ids.insert(receipt.to_owned()) {
                 errors.insert("DUPLICATE_SOURCE_RECEIPT_ID".to_owned());
             }
-        }
-        let custody_receipt = text(nested(site, "receiving", "custody_receipt_id"), "value");
-        if !custody_receipt.is_empty() && !receipts.insert(custody_receipt.to_owned()) {
-            errors.insert("DUPLICATE_SOURCE_RECEIPT_ID".to_owned());
         }
     }
 
@@ -160,6 +161,7 @@ fn validate<'a>(case: &Value, input: &'a Value) -> Result<Vec<&'a Value>, (Strin
             errors.insert("RESOURCE_DEFINITION_INVALID".to_owned());
         }
     }
+
     if errors.is_empty() {
         Ok(deliveries.iter().collect())
     } else {
@@ -167,8 +169,10 @@ fn validate<'a>(case: &Value, input: &'a Value) -> Result<Vec<&'a Value>, (Strin
     }
 }
 
-fn resource_claims(input: &Value, deliveries: &[&Value])
-    -> (BTreeSet<String>, BTreeSet<String>, BTreeSet<String>) {
+fn resource_claims(
+    input: &Value,
+    deliveries: &[&Value],
+) -> (BTreeSet<String>, BTreeSet<String>, BTreeSet<String>) {
     let mut blocked = BTreeSet::new();
     let mut unknown = BTreeSet::new();
     let mut missing = BTreeSet::new();
@@ -213,6 +217,7 @@ fn resource_claims(input: &Value, deliveries: &[&Value])
             blocked.extend(contenders);
         }
     }
+
     (blocked, unknown, missing)
 }
 
@@ -222,7 +227,9 @@ fn overallocated_lots(deliveries: &[&Value]) -> BTreeSet<String> {
         let source = d.get("source").unwrap_or(&Value::Null);
         let demand = d.get("demand").unwrap_or(&Value::Null);
         let key = (text(source, "lot_id").to_owned(), text(source, "quantity_unit").to_owned());
-        let entry = groups.entry(key).or_insert((0.0, number(source, "available_quantity").unwrap_or(0.0), BTreeSet::new()));
+        let entry = groups.entry(key).or_insert((
+            0.0, number(source, "available_quantity").unwrap_or(0.0), BTreeSet::new()
+        ));
         entry.0 += number(demand, "quantity").unwrap_or(0.0);
         entry.1 = entry.1.min(number(source, "available_quantity").unwrap_or(0.0));
         entry.2.insert(text(d, "delivery_id").to_owned());
@@ -246,6 +253,7 @@ pub fn evaluate_case(case: &Value) -> Value {
             return empty(case_id, disposition, reasons);
         }
     };
+
     let (blocked_resources, unknown_resources, missing_resources) = resource_claims(input, &deliveries);
     let overallocated = overallocated_lots(&deliveries);
     let mut outputs = Vec::new();
@@ -256,8 +264,7 @@ pub fn evaluate_case(case: &Value) -> Value {
         let source = d.get("source").unwrap_or(&Value::Null);
         let transport = d.get("transport").unwrap_or(&Value::Null);
         let site = d.get("site").unwrap_or(&Value::Null);
-        let unload = nested(site, "unload", "unused");
-        let unload_obj = site.get("unload").unwrap_or(&Value::Null);
+        let unload = site.get("unload").unwrap_or(&Value::Null);
         let receiving = site.get("receiving").unwrap_or(&Value::Null);
         let quantity = number(demand, "quantity").unwrap_or(0.0);
         let available = number(source, "available_quantity").unwrap_or(0.0);
@@ -292,7 +299,7 @@ pub fn evaluate_case(case: &Value) -> Value {
         let arrival = (integer(source, "ready_tick").unwrap_or(0) + integer(transport, "route_duration_ticks").unwrap_or(0))
             .max(integer(demand, "window_start_tick").unwrap_or(0))
             .max(integer(site, "gate_open_start_tick").unwrap_or(0));
-        let acceptance = arrival + integer(unload_obj, "duration_ticks").unwrap_or(0)
+        let acceptance = arrival + integer(unload, "duration_ticks").unwrap_or(0)
             + integer(receiving, "inspection_duration_ticks").unwrap_or(0);
         let deadline = integer(demand, "required_by_tick").unwrap_or(i64::MAX)
             .min(integer(demand, "window_end_tick").unwrap_or(i64::MAX))
@@ -324,10 +331,10 @@ pub fn evaluate_case(case: &Value) -> Value {
             result.set("site_access", "feasible");
         }
 
-        if text(unload_obj, "evidence_state") != "current" {
+        if text(unload, "evidence_state") != "current" {
             result.fail("unloading", "unknown", "UNLOAD_EQUIPMENT_EVIDENCE_UNKNOWN");
-        } else if text(unload_obj, "status") != "available"
-            || number(unload_obj, "capacity_kg").unwrap_or(0.0) < number(demand, "mass_kg").unwrap_or(0.0) {
+        } else if text(unload, "status") != "available"
+            || number(unload, "capacity_kg").unwrap_or(0.0) < number(demand, "mass_kg").unwrap_or(0.0) {
             result.fail("unloading", "blocked", "UNLOAD_EQUIPMENT_UNAVAILABLE_OR_INSUFFICIENT");
         } else {
             result.set("unloading", "feasible");
@@ -382,7 +389,6 @@ pub fn evaluate_case(case: &Value) -> Value {
             "quantity_declared_available": available,
             "stages": result.values
         }));
-        let _ = (unload, bay, laydown);
     }
     outputs.sort_by(|a, b| text(a, "delivery_id").cmp(text(b, "delivery_id")));
     json!({"case_id":case_id,"disposition":"Evaluated","reason_codes":[],"deliveries":outputs})
@@ -416,10 +422,9 @@ mod tests {
         corpus()["cases"].as_array().unwrap().iter().find(|x|x["case_id"]==id).unwrap().clone()
     }
     #[test] fn corpus_has_33_unique_synthetic_cases() {
-        let c=corpus();
-        assert_eq!(c["classification"],"synthetic_fixture_only");
+        let c=corpus(); assert_eq!(c["classification"],"synthetic_fixture_only");
         assert_eq!(c["corpus_id"],"CITY-CONSTRUCTION-DELIVERY-CORPUS-V0.1");
-        let xs=c["cases"].as_array().unwrap();assert_eq!(xs.len(),33);
+        let xs=c["cases"].as_array().unwrap(); assert_eq!(xs.len(),33);
         let ids=xs.iter().map(|x|x["case_id"].as_str().unwrap().to_owned()).collect::<BTreeSet<_>>();
         assert_eq!(ids.len(),xs.len());
     }
@@ -430,29 +435,31 @@ mod tests {
         }
     }
     #[test] fn shared_lot_overallocation_blocks_all_contenders() {
-        for d in evaluate_case(&case("CD-005"))["deliveries"].as_array().unwrap() {assert_eq!(d["state"],"Blocked");}
+        for d in evaluate_case(&case("CD-005"))["deliveries"].as_array().unwrap() { assert_eq!(d["state"],"Blocked"); }
     }
     #[test] fn shared_resources_block_all_contenders() {
-        for id in ["CD-023","CD-033"] {assert!(evaluate_case(&case(id))["deliveries"].as_array().unwrap().iter().all(|d|d["state"]=="Blocked"));}
+        for id in ["CD-023","CD-033"] { assert!(evaluate_case(&case(id))["deliveries"].as_array().unwrap().iter().all(|d|d["state"]=="Blocked")); }
     }
-    #[test] fn acceptance_at_half_open_window_endpoint_is_late() {
-        let r=evaluate_case(&case("CD-027"));assert_eq!(r["deliveries"][0]["predicted_acceptance_tick"],79);assert_eq!(r["deliveries"][0]["state"],"Late");
+    #[test] fn half_open_window_endpoint_is_late() {
+        let r=evaluate_case(&case("CD-027")); assert_eq!(r["deliveries"][0]["predicted_acceptance_tick"],79); assert_eq!(r["deliveries"][0]["state"],"Late");
     }
     #[test] fn pending_and_partial_receipts_are_not_full_acceptance() {
         assert_eq!(evaluate_case(&case("CD-019"))["deliveries"][0]["state"],"DeliveryFeasible");
         assert_eq!(evaluate_case(&case("CD-020"))["deliveries"][0]["state"],"Partial");
     }
     #[test] fn imported_delivery_never_claims_local_productive_capability() {
-        let r=evaluate_case(&case("CD-025"));assert_eq!(r["deliveries"][0]["state"],"AcceptedDelivery");assert_eq!(r["deliveries"][0]["local_productive_capability_claim"],false);
+        let r=evaluate_case(&case("CD-025")); assert_eq!(r["deliveries"][0]["state"],"AcceptedDelivery");
+        assert_eq!(r["deliveries"][0]["local_productive_capability_claim"],false);
     }
     #[test] fn bom_revision_mismatch_blocks_delivery() {
         assert_eq!(evaluate_case(&case("CD-026"))["deliveries"][0]["state"],"Blocked");
     }
     #[test] fn stale_or_revoked_evidence_cannot_be_promoted() {
-        for id in ["CD-002","CD-010","CD-013","CD-031"] {assert_ne!(evaluate_case(&case(id))["deliveries"][0]["state"],"AcceptedDelivery");}
-        for id in ["CD-022","CD-032"] {assert_eq!(evaluate_case(&case(id))["deliveries"][0]["state"],"Rejected");}
+        for id in ["CD-002","CD-010","CD-013","CD-031"] { assert_ne!(evaluate_case(&case(id))["deliveries"][0]["state"],"AcceptedDelivery"); }
+        for id in ["CD-022","CD-032"] { assert_eq!(evaluate_case(&case(id))["deliveries"][0]["state"],"Rejected"); }
     }
     #[test] fn delivery_permutation_does_not_change_normalized_output() {
-        let mut x=case("CD-023");let before=evaluate_case(&x);x["input"]["deliveries"].as_array_mut().unwrap().reverse();assert_eq!(before,evaluate_case(&x));
+        let mut x=case("CD-023"); let before=evaluate_case(&x);
+        x["input"]["deliveries"].as_array_mut().unwrap().reverse(); assert_eq!(before,evaluate_case(&x));
     }
 }
