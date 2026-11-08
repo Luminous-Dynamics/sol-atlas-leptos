@@ -163,17 +163,17 @@ fn evaluate_lane(
     {
         reasons.insert("OWNER_CONTRACT_REFERENCE_OR_REVISION_MISMATCH".to_owned());
     }
-    if text(lane, "schema_id").is_some()
+    if lane.get("schema_id").is_some()
         && !expected_nullable_string_matches(report, "schema_id", lane)
     {
         reasons.insert("OWNER_SCHEMA_ID_MISMATCH".to_owned());
     }
-    if text(lane, "schema_version").is_some()
+    if lane.get("schema_version").is_some()
         && !expected_nullable_string_matches(report, "schema_version", lane)
     {
         reasons.insert("OWNER_SCHEMA_VERSION_MISMATCH".to_owned());
     }
-    if text(lane, "runtime_revision").is_some()
+    if lane.get("runtime_revision").is_some()
         && text(report, "runtime_revision") != text(lane, "runtime_revision")
     {
         reasons.insert("OWNER_RUNTIME_REVISION_MISMATCH".to_owned());
