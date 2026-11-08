@@ -4453,9 +4453,7 @@
             "state": "insufficient_evidence"
           }
         ],
-        "reason_codes": [
-          "SOURCE_INVENTORY_CLOSURE_INCOMPLETE"
-        ]
+        "reason_codes": []
       }
     },
     {
@@ -4551,9 +4549,7 @@
             "state": "invalid_input"
           }
         ],
-        "reason_codes": [
-          "SOURCE_INVENTORY_CLOSURE_INVALID"
-        ]
+        "reason_codes": []
       }
     },
     {
@@ -4649,9 +4645,7 @@
             "state": "insufficient_evidence"
           }
         ],
-        "reason_codes": [
-          "SOURCE_INVENTORY_CLOSURE_INCOMPLETE"
-        ]
+        "reason_codes": []
       }
     },
     {
@@ -4747,9 +4741,7 @@
             "state": "invalid_input"
           }
         ],
-        "reason_codes": [
-          "SOURCE_INVENTORY_CLAIM_SCOPE_MISMATCH"
-        ]
+        "reason_codes": []
       }
     },
     {
