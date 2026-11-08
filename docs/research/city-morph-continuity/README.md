@@ -43,3 +43,9 @@ The continuity result distinguishes the first observed adequate phase from the e
 - CR-002 is the exact-boundary control: no evidence gap, so recovery time is exactly 2 ticks.
 - CR-020 has unknown evidence after an outage but no confirmed return; recovery remains Unknown and no upper bound is claimed.
 - CR-030 confirms adequate service after an evidence gap; recovery starts in `(5, 7]`, duration in `(2, 4]`, confirmed by tick 9. The result does not claim a false point estimate.
+
+
+## CR-030 exact bounded recovery
+
+CR-030 adds an evidence gap after a known degraded interval and before the first confirmed adequate observation. The oracle reports the recovery start in the half-open interval `(5, 7]` and duration in `(2, 4]` ticks. It leaves `recovery_time_ticks` null because the actual recovery instant is not observed. CR-002 remains the exact-timing negative control, and CR-020 remains unresolved because no adequate recovery is confirmed.
+
