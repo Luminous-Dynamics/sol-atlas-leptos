@@ -107,6 +107,11 @@ fn evaluate_artifact(
     if binding.is_none() {
         reasons.insert("SCOPE_BINDING_ARTIFACT_MISSING".to_owned());
     }
+    let owner_scope_digest_matches = text(artifact, "scope_digest")
+        == text(scope_binding, "scope_digest");
+    if !owner_scope_digest_matches {
+        reasons.insert("OWNER_SCOPE_DIGEST_MISMATCH".to_owned());
+    }
     if base_flag == Some(true) {
         reasons.insert("SCOPE_BINDER_PREPROMOTED_PAYLOAD_BYTES".to_owned());
     }
@@ -199,6 +204,16 @@ fn evaluate_artifact(
     {
         reasons.insert("OWNER_PAYLOAD_IDENTITY_INCOMPLETE_OR_MISMATCHED".to_owned());
     }
+    let schema_digest_algorithm = text(artifact, "schema_digest_algorithm");
+    let schema_digest = text(artifact, "schema_artifact_digest");
+    let schema_digest_valid = match schema_digest_algorithm {
+        "git_blob_sha1" => lower_hex(schema_digest, 40),
+        "sha256" => lower_hex(schema_digest, 64),
+        _ => false,
+    };
+    if !schema_digest_valid {
+        reasons.insert("OWNER_SCHEMA_PIN_INCOMPLETE_OR_INVALID".to_owned());
+    }
     if text(artifact, "subject_id").is_empty()
         || text(artifact, "owner_repo").is_empty()
         || text(artifact, "contract_id").is_empty()
@@ -290,6 +305,7 @@ fn evaluate_artifact(
     json!({
         "artifact_id": artifact_id,
         "scope_binding_state": binding_state,
+        "owner_scope_digest_matches": owner_scope_digest_matches,
         "raw_owner_disposition": raw_owner_disposition,
         "base_payload_bytes_verified": base_flag.unwrap_or(false),
         "payload_verification_state": state,
@@ -312,6 +328,8 @@ fn evaluate_artifact(
         "report_reference": text(report, "report_reference"),
         "report_sha256": text(report, "report_sha256"),
         "owner_rights_state": rights_state,
+        "schema_digest_algorithm": schema_digest_algorithm,
+        "schema_artifact_digest": schema_digest,
         "rights_authentication": "not_performed",
         "action_authority": "none",
         "reason_codes": reasons.into_iter().collect::<Vec<_>>()
