@@ -735,10 +735,7 @@ mod tests {
         let metric = &result["metric_results"][0];
         assert_eq!(metric["static_gap_state"], "Unknown");
         assert_eq!(metric["dynamic_gap_state"], "Comparable");
-        assert_eq!(
-            metric["dynamic_gap_value"].as_f64(),
-            Some(10.0)
-        );
+        assert_eq!(metric["dynamic_gap_value"].as_f64(), Some(10.0));
     }
 
     #[test]
