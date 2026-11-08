@@ -104,3 +104,13 @@ The verifier's expected byte length is optional for some digest bases. When it i
 ### Report integrity versus verification disposition
 
 An intact raw report can have disposition `incomplete_or_indeterminate` or `invalid_input`. A single verified record can remain individually Verified in an incomplete catalogue (for example, when owner rights remain Restricted); an exact per-record mismatch remains Mismatch even when the report overall is `invalid_input`. These axes are reported independently.
+
+## Owner contract versus payload schema
+
+The CityMaker owner-envelope `contract_id`/`contract_version` and the source descriptor's `source_payload.schema_id`/`schema_version` are different identity axes. The adapter pins both independently in `descriptor_binding`:
+- `owner_contract_id` and `owner_contract_version` must match the owner envelope;
+- `schema_id` and `schema_version` must match the exact source payload descriptor;
+- `schema_artifact_digest` pins the owner contract/schema artifact reference;
+- `source_payload.schema_sha256` pins the source payload's declared data schema when present.
+
+A contract ID is not silently accepted as the payload schema ID. Mutation controls prove that either cross-wire is rejected while the underlying raw byte equality remains visible as a separate fact.
