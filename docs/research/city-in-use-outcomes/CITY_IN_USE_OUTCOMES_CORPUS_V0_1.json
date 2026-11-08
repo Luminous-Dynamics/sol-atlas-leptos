@@ -2095,7 +2095,8 @@
             "end_tick": 12,
             "tick_unit": "month"
           },
-          "post_receipt_id": "receipt:OI-017:energy"
+          "post_receipt_id": "receipt:OI-017:energy",
+          "post_metric_id": "energy"
         },
         "causal_assessment": {
           "claim_requested": false
