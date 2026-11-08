@@ -23,7 +23,11 @@ fn bool_value(value: &Value, key: &str) -> Option<bool> {
 }
 
 fn array<'a>(value: &'a Value, key: &str) -> &'a [Value] {
-    value.get(key).and_then(Value::as_array).map(Vec::as_slice).unwrap_or(&[])
+    value
+        .get(key)
+        .and_then(Value::as_array)
+        .map(Vec::as_slice)
+        .unwrap_or(&[])
 }
 
 fn lower_hex(value: &str, length: usize) -> bool {
@@ -53,7 +57,6 @@ fn expected_record_key(record_kind: &str, case_record_id: &str) -> Option<String
     }
     Some(format!("{prefix}:{case_record_id}"))
 }
-
 
 fn verifier_disposition_state(disposition: &str) -> &'static str {
     match disposition {
@@ -94,8 +97,8 @@ fn evaluate_artifact(
     if binding.is_none() {
         scope_reasons.insert("SCOPE_BINDING_ARTIFACT_MISSING".to_owned());
     }
-    let owner_scope_digest_matches = text(artifact, "scope_digest")
-        == text(scope_binding, "scope_digest");
+    let owner_scope_digest_matches =
+        text(artifact, "scope_digest") == text(scope_binding, "scope_digest");
     if !owner_scope_digest_matches {
         scope_reasons.insert("OWNER_SCOPE_DIGEST_MISMATCH".to_owned());
     }
@@ -177,7 +180,10 @@ fn evaluate_artifact(
 
     if !matches!(
         digest_basis,
-        "locally_retrieved_and_hashed" | "source_owner_attested" | "external_reference" | "unavailable"
+        "locally_retrieved_and_hashed"
+            | "source_owner_attested"
+            | "external_reference"
+            | "unavailable"
     ) {
         reasons.insert("PAYLOAD_DIGEST_BASIS_UNSUPPORTED".to_owned());
     }
@@ -301,11 +307,15 @@ fn evaluate_artifact(
     }
 
     let observed_digest = result
-        .map(|record| record.get("observed_sha256").and_then(Value::as_str).unwrap_or(""))
+        .map(|record| {
+            record
+                .get("observed_sha256")
+                .and_then(Value::as_str)
+                .unwrap_or("")
+        })
         .unwrap_or("");
-    let observed_length = result.and_then(|record| {
-        record.get("observed_byte_length").and_then(Value::as_u64)
-    });
+    let observed_length =
+        result.and_then(|record| record.get("observed_byte_length").and_then(Value::as_u64));
     json!({
         "artifact_id": artifact_id,
         "scope_binding_state": binding_state,
@@ -359,7 +369,10 @@ fn aggregate_state(artifacts: &[Value]) -> &'static str {
             return state;
         }
     }
-    if states.iter().all(|state| *state == "verified" || *state == "not_required") {
+    if states
+        .iter()
+        .all(|state| *state == "verified" || *state == "not_required")
+    {
         "verified"
     } else {
         "unsupported"
@@ -376,8 +389,7 @@ pub fn evaluate_case(case: &Value) -> Value {
     let mut global_reasons = BTreeSet::<String>::new();
     let mut report_reasons = BTreeSet::<String>::new();
 
-    if !lower_hex(text(scope, "scope_digest"), 64)
-        || text(scope, "binding_disposition").is_empty()
+    if !lower_hex(text(scope, "scope_digest"), 64) || text(scope, "binding_disposition").is_empty()
     {
         global_reasons.insert("SCOPE_BINDING_CONTEXT_INCOMPLETE".to_owned());
     }
@@ -471,7 +483,8 @@ pub fn evaluate_case(case: &Value) -> Value {
         .iter()
          .map(|artifact| evaluate_artifact(artifact, scope, &report, report_binding, report_valid))
         .collect::<Vec<_>>();
-    artifact_outputs.sort_by(|left, right| text(left, "artifact_id").cmp(text(right, "artifact_id")));
+    artifact_outputs
+        .sort_by(|left, right| text(left, "artifact_id").cmp(text(right, "artifact_id")));
 
     // Reusing one exact object reference under conflicting digests is never
     // last-write-wins. Mark every affected mapping rather than choosing one.
@@ -545,14 +558,12 @@ fn equivalent(actual: &Value, expected: &Value) -> bool {
             .zip(right.as_f64())
             .is_some_and(|(left, right)| left == right),
         (Value::Array(left), Value::Array(right)) => {
-            left.len() == right.len()
-                && left.iter().zip(right).all(|(a, b)| equivalent(a, b))
+            left.len() == right.len() && left.iter().zip(right).all(|(a, b)| equivalent(a, b))
         }
-        (Value::Object(left), Value::Object(right)) => {
-            right.iter().all(|(key, expected_item)| {
-                left.get(key).is_some_and(|actual_item| equivalent(actual_item, expected_item))
-            })
-        }
+        (Value::Object(left), Value::Object(right)) => right.iter().all(|(key, expected_item)| {
+            left.get(key)
+                .is_some_and(|actual_item| equivalent(actual_item, expected_item))
+        }),
         _ => actual == expected,
     }
 }
@@ -622,8 +633,14 @@ mod tests {
         case["input"]["owner_artifacts"][0]["payload"]["record_key"] =
             Value::String("artifact:some-other-record".into());
         let result = evaluate_case(&case);
-        assert_eq!(result["artifact_payloads"][0]["payload_verification_state"], "mismatch");
-        assert_eq!(result["artifact_payloads"][0]["payload_bytes_verified"], false);
+        assert_eq!(
+            result["artifact_payloads"][0]["payload_verification_state"],
+            "mismatch"
+        );
+        assert_eq!(
+            result["artifact_payloads"][0]["payload_bytes_verified"],
+            false
+        );
     }
     #[test]
     fn byte_equality_is_independent_of_declared_rights_state() {
@@ -633,7 +650,10 @@ mod tests {
         assert_eq!(artifact["payload_bytes_verified"], true);
         assert_eq!(artifact["raw_byte_equality_verified"], true);
         assert_eq!(artifact["owner_rights_state"], "restricted");
-        assert_eq!(artifact["rights_use_declaration_state"], "owner_declares_restricted");
+        assert_eq!(
+            artifact["rights_use_declaration_state"],
+            "owner_declares_restricted"
+        );
         assert_eq!(artifact["rights_authentication"], "not_performed");
     }
 
@@ -664,9 +684,13 @@ mod tests {
         assert_eq!(artifact["payload_verification_state"], "mismatch");
         assert_eq!(artifact["payload_bytes_verified"], false);
         assert_eq!(artifact["raw_byte_equality_verified"], true);
-        assert!(artifact["reason_codes"].as_array().unwrap().iter().any(
-            |reason| reason == "OWNER_PAYLOAD_DIGEST_MISMATCH"
-        ));
+        assert!(
+            artifact["reason_codes"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|reason| reason == "OWNER_PAYLOAD_DIGEST_MISMATCH")
+        );
     }
 
     #[test]
@@ -675,9 +699,13 @@ mod tests {
         let artifact = &result["artifact_payloads"][0];
         assert_eq!(artifact["payload_verification_state"], "mismatch");
         assert_eq!(artifact["raw_byte_equality_verified"], false);
-        assert!(artifact["reason_codes"].as_array().unwrap().iter().any(
-            |reason| reason == "VERIFIER_RESULT_DESCRIPTOR_MISMATCH"
-        ));
+        assert!(
+            artifact["reason_codes"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|reason| reason == "VERIFIER_RESULT_DESCRIPTOR_MISMATCH")
+        );
     }
 
 }
