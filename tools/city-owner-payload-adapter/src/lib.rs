@@ -428,7 +428,6 @@ fn evaluate_artifact(
             "unsupported"
         };
     } else if let Some(record) = result {
-        let result_expected_sha = record.get("expected_sha256").and_then(Value::as_str);
         let result_object_ref = record.get("object_ref").and_then(Value::as_str);
         let result_expected_length = record.get("expected_byte_length").and_then(Value::as_u64);
         if record.get("expected_sha256").and_then(Value::as_str) != expected_sha
