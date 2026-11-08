@@ -135,6 +135,9 @@
           },
           "authority": {
             "type": "string"
+          },
+          "qualification_receipt_id": {
+            "type": "string"
           }
         }
       }
