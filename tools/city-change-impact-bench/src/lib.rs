@@ -252,7 +252,9 @@ fn evaluate_claim(
         || text(report, "query_boundary") != "declared_fixture_graph"
         || text(report, "coverage_receipt_id").is_empty()
     {
-        if finding_reasons == ["MANDATORY_DEPENDENCY_EDGE_UNRESOLVED".to_owned()] {
+        if finding_reasons.len() == 1
+            && finding_reasons[0] == "MANDATORY_DEPENDENCY_EDGE_UNRESOLVED"
+        {
             return projection(
                 claim_id,
                 "insufficient_evidence",
@@ -494,8 +496,6 @@ pub fn evaluate_case(case: &Value) -> Value {
             input, claim, event, query, graph, report,
         ));
     }
-    outputs.sort_by(|left, right| text(left, "claim_id").cmp(text(right, "claim_id")));
-
     json!({
         "id": text(case, "id"),
         "claim_applicability": outputs,
