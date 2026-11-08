@@ -47,7 +47,10 @@
             "direction": "le",
             "threshold": 110,
             "evidence_class": "meter",
-            "definition_revision": "metric-v1"
+            "definition_revision": "metric-v1",
+            "expected_source_owner": "sol-atlas",
+            "expected_source_contract": "CITY-IN-USE-OUTCOMES-001",
+            "expected_source_revision": "fixture-v0.1"
           }
         ],
         "observations": [
@@ -158,7 +161,10 @@
             "direction": "le",
             "threshold": 90,
             "evidence_class": "meter",
-            "definition_revision": "metric-v1"
+            "definition_revision": "metric-v1",
+            "expected_source_owner": "sol-atlas",
+            "expected_source_contract": "CITY-IN-USE-OUTCOMES-001",
+            "expected_source_revision": "fixture-v0.1"
           },
           {
             "metric_id": "operative-temp",
@@ -166,7 +172,10 @@
             "direction": "le",
             "threshold": 26,
             "evidence_class": "meter",
-            "definition_revision": "metric-v1"
+            "definition_revision": "metric-v1",
+            "expected_source_owner": "sol-atlas",
+            "expected_source_contract": "CITY-IN-USE-OUTCOMES-001",
+            "expected_source_revision": "fixture-v0.1"
           }
         ],
         "observations": [
@@ -331,7 +340,10 @@
             "direction": "le",
             "threshold": 120,
             "evidence_class": "meter",
-            "definition_revision": "metric-v1"
+            "definition_revision": "metric-v1",
+            "expected_source_owner": "sol-atlas",
+            "expected_source_contract": "CITY-IN-USE-OUTCOMES-001",
+            "expected_source_revision": "fixture-v0.1"
           }
         ],
         "observations": [
@@ -444,7 +456,10 @@
             "direction": "le",
             "threshold": 120,
             "evidence_class": "meter",
-            "definition_revision": "metric-v1"
+            "definition_revision": "metric-v1",
+            "expected_source_owner": "sol-atlas",
+            "expected_source_contract": "CITY-IN-USE-OUTCOMES-001",
+            "expected_source_revision": "fixture-v0.1"
           }
         ],
         "observations": [
@@ -557,7 +572,10 @@
             "direction": "le",
             "threshold": 130,
             "evidence_class": "meter",
-            "definition_revision": "metric-v1"
+            "definition_revision": "metric-v1",
+            "expected_source_owner": "sol-atlas",
+            "expected_source_contract": "CITY-IN-USE-OUTCOMES-001",
+            "expected_source_revision": "fixture-v0.1"
           }
         ],
         "observations": [
@@ -672,7 +690,10 @@
             "direction": "le",
             "threshold": 130,
             "evidence_class": "meter",
-            "definition_revision": "metric-v1"
+            "definition_revision": "metric-v1",
+            "expected_source_owner": "sol-atlas",
+            "expected_source_contract": "CITY-IN-USE-OUTCOMES-001",
+            "expected_source_revision": "fixture-v0.1"
           }
         ],
         "observations": [
@@ -789,7 +810,10 @@
             "direction": "le",
             "threshold": 130,
             "evidence_class": "meter",
-            "definition_revision": "metric-v1"
+            "definition_revision": "metric-v1",
+            "expected_source_owner": "sol-atlas",
+            "expected_source_contract": "CITY-IN-USE-OUTCOMES-001",
+            "expected_source_revision": "fixture-v0.1"
           }
         ],
         "observations": [
@@ -862,7 +886,7 @@
             "dynamic_gap_state": "Unknown",
             "dynamic_gap_value": null,
             "reason_codes": [
-              "OBSERVATION_EVIDENCE_OR_COVERAGE_INSUFFICIENT"
+              "METER_EVIDENCE_OR_CALIBRATION_INVALID"
             ]
           }
         ],
@@ -902,7 +926,10 @@
             "direction": "le",
             "threshold": 130,
             "evidence_class": "meter",
-            "definition_revision": "metric-v1"
+            "definition_revision": "metric-v1",
+            "expected_source_owner": "sol-atlas",
+            "expected_source_contract": "CITY-IN-USE-OUTCOMES-001",
+            "expected_source_revision": "fixture-v0.1"
           }
         ],
         "observations": [
@@ -1017,7 +1044,10 @@
             "direction": "le",
             "threshold": 130,
             "evidence_class": "meter",
-            "definition_revision": "metric-v1"
+            "definition_revision": "metric-v1",
+            "expected_source_owner": "sol-atlas",
+            "expected_source_contract": "CITY-IN-USE-OUTCOMES-001",
+            "expected_source_revision": "fixture-v0.1"
           }
         ],
         "observations": [
@@ -1130,7 +1160,10 @@
             "direction": "le",
             "threshold": 130,
             "evidence_class": "meter",
-            "definition_revision": "metric-v1"
+            "definition_revision": "metric-v1",
+            "expected_source_owner": "sol-atlas",
+            "expected_source_contract": "CITY-IN-USE-OUTCOMES-001",
+            "expected_source_revision": "fixture-v0.1"
           }
         ],
         "observations": [
@@ -1243,7 +1276,10 @@
             "direction": "le",
             "threshold": 130,
             "evidence_class": "meter",
-            "definition_revision": "metric-v1"
+            "definition_revision": "metric-v1",
+            "expected_source_owner": "sol-atlas",
+            "expected_source_contract": "CITY-IN-USE-OUTCOMES-001",
+            "expected_source_revision": "fixture-v0.1"
           }
         ],
         "observations": [
@@ -1356,7 +1392,10 @@
             "direction": "ge",
             "threshold": 3,
             "evidence_class": "experience",
-            "definition_revision": "metric-v1"
+            "definition_revision": "metric-v1",
+            "expected_source_owner": "sol-atlas",
+            "expected_source_contract": "CITY-IN-USE-OUTCOMES-001",
+            "expected_source_revision": "fixture-v0.1"
           }
         ],
         "observations": [
@@ -1455,7 +1494,10 @@
             "direction": "le",
             "threshold": 130,
             "evidence_class": "meter",
-            "definition_revision": "metric-v1"
+            "definition_revision": "metric-v1",
+            "expected_source_owner": "sol-atlas",
+            "expected_source_contract": "CITY-IN-USE-OUTCOMES-001",
+            "expected_source_revision": "fixture-v0.1"
           }
         ],
         "observations": [
@@ -1515,14 +1557,12 @@
       },
       "expected": {
         "case_id": "OI-013",
-        "disposition": "Unsupported",
-        "reason_codes": [
-          "OBSERVATION_EVIDENCE_CLASS_MISMATCH"
-        ],
+        "disposition": "Evaluated",
+        "reason_codes": [],
         "metric_results": [
           {
             "metric_id": "energy",
-            "observation_state": "Unsupported",
+            "observation_state": "Unknown",
             "threshold_state": "Unknown",
             "observed_value": null,
             "unit": "kWh/m2/year",
@@ -1531,7 +1571,7 @@
             "dynamic_gap_state": "Unknown",
             "dynamic_gap_value": null,
             "reason_codes": [
-              "OBSERVATION_EVIDENCE_CLASS_MISMATCH"
+              "METER_EVIDENCE_OR_CALIBRATION_INVALID"
             ]
           }
         ],
@@ -1571,7 +1611,10 @@
             "direction": "le",
             "threshold": 130,
             "evidence_class": "meter",
-            "definition_revision": "metric-v1"
+            "definition_revision": "metric-v1",
+            "expected_source_owner": "sol-atlas",
+            "expected_source_contract": "CITY-IN-USE-OUTCOMES-001",
+            "expected_source_revision": "fixture-v0.1"
           }
         ],
         "observations": [
@@ -1712,7 +1755,10 @@
             "direction": "le",
             "threshold": 130,
             "evidence_class": "meter",
-            "definition_revision": "metric-v1"
+            "definition_revision": "metric-v1",
+            "expected_source_owner": "sol-atlas",
+            "expected_source_contract": "CITY-IN-USE-OUTCOMES-001",
+            "expected_source_revision": "fixture-v0.1"
           }
         ],
         "observations": [
@@ -1829,7 +1875,10 @@
             "direction": "le",
             "threshold": 130,
             "evidence_class": "meter",
-            "definition_revision": "metric-v1"
+            "definition_revision": "metric-v1",
+            "expected_source_owner": "sol-atlas",
+            "expected_source_contract": "CITY-IN-USE-OUTCOMES-001",
+            "expected_source_revision": "fixture-v0.1"
           }
         ],
         "observations": [
@@ -1940,7 +1989,10 @@
             "direction": "le",
             "threshold": 130,
             "evidence_class": "meter",
-            "definition_revision": "metric-v1"
+            "definition_revision": "metric-v1",
+            "expected_source_owner": "sol-atlas",
+            "expected_source_contract": "CITY-IN-USE-OUTCOMES-001",
+            "expected_source_revision": "fixture-v0.1"
           }
         ],
         "observations": [
@@ -2063,7 +2115,10 @@
             "direction": "le",
             "threshold": 130,
             "evidence_class": "meter",
-            "definition_revision": "metric-v1"
+            "definition_revision": "metric-v1",
+            "expected_source_owner": "sol-atlas",
+            "expected_source_contract": "CITY-IN-USE-OUTCOMES-001",
+            "expected_source_revision": "fixture-v0.1"
           }
         ],
         "observations": [
@@ -2179,7 +2234,10 @@
             "direction": "le",
             "threshold": 130,
             "evidence_class": "meter",
-            "definition_revision": "metric-v1"
+            "definition_revision": "metric-v1",
+            "expected_source_owner": "sol-atlas",
+            "expected_source_contract": "CITY-IN-USE-OUTCOMES-001",
+            "expected_source_revision": "fixture-v0.1"
           }
         ],
         "observations": [
@@ -2295,7 +2353,10 @@
             "direction": "ge",
             "threshold": 40,
             "evidence_class": "service",
-            "definition_revision": "metric-v1"
+            "definition_revision": "metric-v1",
+            "expected_source_owner": "symthaea",
+            "expected_source_contract": "CIV-SERVICE-001",
+            "expected_source_revision": "service-v1"
           }
         ],
         "observations": [
@@ -2344,17 +2405,15 @@
         "metric_results": [
           {
             "metric_id": "clinic-hours",
-            "observation_state": "Unknown",
-            "threshold_state": "Unknown",
-            "observed_value": null,
+            "observation_state": "Current",
+            "threshold_state": "Fail",
+            "observed_value": 36,
             "unit": "hours/week",
             "static_gap_state": "Unknown",
             "static_gap_value": null,
             "dynamic_gap_state": "Unknown",
             "dynamic_gap_value": null,
-            "reason_codes": [
-              "OBSERVATION_EVIDENCE_OR_COVERAGE_INSUFFICIENT"
-            ]
+            "reason_codes": []
           }
         ],
         "measurement_and_verification_status": "NotClaimed",
@@ -2393,7 +2452,10 @@
             "direction": "le",
             "threshold": 130,
             "evidence_class": "meter",
-            "definition_revision": "metric-v1"
+            "definition_revision": "metric-v1",
+            "expected_source_owner": "sol-atlas",
+            "expected_source_contract": "CITY-IN-USE-OUTCOMES-001",
+            "expected_source_revision": "fixture-v0.1"
           }
         ],
         "observations": [
@@ -2506,7 +2568,10 @@
             "direction": "le",
             "threshold": 130,
             "evidence_class": "meter",
-            "definition_revision": "metric-v1"
+            "definition_revision": "metric-v1",
+            "expected_source_owner": "sol-atlas",
+            "expected_source_contract": "CITY-IN-USE-OUTCOMES-001",
+            "expected_source_revision": "fixture-v0.1"
           }
         ],
         "observations": [
@@ -2619,7 +2684,10 @@
             "direction": "le",
             "threshold": 130,
             "evidence_class": "meter",
-            "definition_revision": "metric-v1"
+            "definition_revision": "metric-v1",
+            "expected_source_owner": "sol-atlas",
+            "expected_source_contract": "CITY-IN-USE-OUTCOMES-001",
+            "expected_source_revision": "fixture-v0.1"
           }
         ],
         "observations": [
@@ -2732,7 +2800,10 @@
             "direction": "le",
             "threshold": 130,
             "evidence_class": "meter",
-            "definition_revision": "metric-v1"
+            "definition_revision": "metric-v1",
+            "expected_source_owner": "sol-atlas",
+            "expected_source_contract": "CITY-IN-USE-OUTCOMES-001",
+            "expected_source_revision": "fixture-v0.1"
           },
           {
             "metric_id": "comfort-report",
@@ -2740,7 +2811,10 @@
             "direction": "ge",
             "threshold": 3,
             "evidence_class": "experience",
-            "definition_revision": "metric-v1"
+            "definition_revision": "metric-v1",
+            "expected_source_owner": "sol-atlas",
+            "expected_source_contract": "CITY-IN-USE-OUTCOMES-001",
+            "expected_source_revision": "fixture-v0.1"
           }
         ],
         "observations": [
@@ -2833,17 +2907,15 @@
         "metric_results": [
           {
             "metric_id": "comfort-report",
-            "observation_state": "Unknown",
-            "threshold_state": "Unknown",
-            "observed_value": null,
+            "observation_state": "Current",
+            "threshold_state": "Pass",
+            "observed_value": 4,
             "unit": "score",
             "static_gap_state": "Unknown",
             "static_gap_value": null,
             "dynamic_gap_state": "Unknown",
             "dynamic_gap_value": null,
-            "reason_codes": [
-              "OBSERVATION_EVIDENCE_OR_COVERAGE_INSUFFICIENT"
-            ]
+            "reason_codes": []
           },
           {
             "metric_id": "energy",
