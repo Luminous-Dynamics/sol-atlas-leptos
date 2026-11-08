@@ -2314,16 +2314,7 @@
             "state": "available"
           }
         ],
-        "required_subjects": [
-          {
-            "owner_repo": "owner/a",
-            "subject_id": "asset-1",
-            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
-            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
-            "contract_id": "asset-state",
-            "contract_version": "1.0"
-          }
-        ],
+        "required_subjects": [],
         "events": [],
         "intervention_stages": [
           {
@@ -2397,16 +2388,7 @@
             "state": "available"
           }
         ],
-        "required_subjects": [
-          {
-            "owner_repo": "owner/a",
-            "subject_id": "asset-1",
-            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
-            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
-            "contract_id": "asset-state",
-            "contract_version": "1.0"
-          }
-        ],
+        "required_subjects": [],
         "events": [],
         "intervention_stages": [
           {
@@ -2492,16 +2474,7 @@
             "state": "available"
           }
         ],
-        "required_subjects": [
-          {
-            "owner_repo": "owner/a",
-            "subject_id": "asset-1",
-            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
-            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
-            "contract_id": "asset-state",
-            "contract_version": "1.0"
-          }
-        ],
+        "required_subjects": [],
         "events": [],
         "intervention_stages": [
           {
@@ -2599,16 +2572,7 @@
             "state": "available"
           }
         ],
-        "required_subjects": [
-          {
-            "owner_repo": "owner/a",
-            "subject_id": "asset-1",
-            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
-            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
-            "contract_id": "asset-state",
-            "contract_version": "1.0"
-          }
-        ],
+        "required_subjects": [],
         "events": [],
         "intervention_stages": [
           {
