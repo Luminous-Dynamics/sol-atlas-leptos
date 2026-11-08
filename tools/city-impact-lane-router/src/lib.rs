@@ -73,6 +73,69 @@ fn valid_utc_timestamp(value: &str) -> bool {
     day >= 1 && day <= max_day && hour <= 23 && minute <= 59 && second <= 59
 }
 
+fn registry_validation_reasons(registry: &Value) -> BTreeSet<String> {
+    let mut reasons = BTreeSet::new();
+    if text(registry, "schema_version") != "luminous.city-impact-owner-lane-registry.v0.1"
+        || text(registry, "registry_id") != REGISTRY_ID
+        || text(registry, "claim_ceiling") != "routing_and_contract_binding_only"
+        || text(registry, "action_authority") != "none"
+    {
+        reasons.insert("OWNER_LANE_REGISTRY_IDENTITY_INVALID".to_owned());
+    }
+
+    let mut families = BTreeSet::new();
+    for lane in array(registry, "lanes") {
+        let family = text(lane, "family");
+        if family.is_empty() || !families.insert(family.to_owned()) {
+            reasons.insert("OWNER_LANE_REGISTRY_DUPLICATE_OR_EMPTY_FAMILY".to_owned());
+        }
+        match text(lane, "readiness") {
+            "implementation_pinned_open_pr" => {
+                if text(lane, "contract_ref").is_empty()
+                    || !is_lower_hex(text(lane, "contract_revision"), 40)
+                {
+                    reasons.insert("OWNER_LANE_CONTRACT_PIN_INCOMPLETE".to_owned());
+                }
+            }
+            "schema_and_runtime_pinned_open_pr" => {
+                if text(lane, "contract_ref").is_empty()
+                    || !is_lower_hex(text(lane, "contract_revision"), 40)
+                    || text(lane, "schema_id").is_empty()
+                    || text(lane, "schema_version").is_empty()
+                    || !is_lower_hex(text(lane, "runtime_revision"), 40)
+                {
+                    reasons.insert("OWNER_LANE_CONTRACT_PIN_INCOMPLETE".to_owned());
+                }
+            }
+            "schema_incompatible" | "design_only" | "benchmark_or_design_only" => {}
+            _ => {
+                reasons.insert("OWNER_LANE_READINESS_UNKNOWN".to_owned());
+            }
+        }
+    }
+
+    let mut change_classes = BTreeSet::new();
+    for route in array(registry, "routes") {
+        let change_class = text(route, "change_class");
+        if change_class.is_empty() || !change_classes.insert(change_class.to_owned()) {
+            reasons.insert("OWNER_LANE_REGISTRY_DUPLICATE_OR_EMPTY_ROUTE".to_owned());
+        }
+        let mut required = BTreeSet::new();
+        if array(route, "required_families").is_empty() {
+            reasons.insert("OWNER_ROUTE_HAS_NO_REQUIRED_FAMILIES".to_owned());
+        }
+        for family in array(route, "required_families").iter().filter_map(Value::as_str) {
+            if !required.insert(family.to_owned()) {
+                reasons.insert("OWNER_ROUTE_DUPLICATES_REQUIRED_FAMILY".to_owned());
+            }
+            if !families.contains(family) {
+                reasons.insert("OWNER_ROUTE_REFERENCES_UNKNOWN_LANE".to_owned());
+            }
+        }
+    }
+    reasons
+}
+
 fn lane_definition<'a>(registry: &'a Value, family: &str) -> Option<&'a Value> {
     array(registry, "lanes")
         .iter()
@@ -301,11 +364,7 @@ pub fn evaluate_case(case: &Value, registry: &Value) -> Value {
     let reports = array(input, "owner_reports");
     let mut global_reasons = BTreeSet::<String>::new();
 
-    if text(registry, "schema_version") != "luminous.city-impact-owner-lane-registry.v0.1"
-        || text(registry, "registry_id") != REGISTRY_ID
-    {
-        global_reasons.insert("OWNER_LANE_REGISTRY_IDENTITY_INVALID".to_owned());
-    }
+    global_reasons.extend(registry_validation_reasons(registry));
     if text(event, "event_id").is_empty()
         || !is_lower_hex(text(event, "event_sha256"), 64)
         || text(event, "subject_node_id").is_empty()
@@ -320,7 +379,9 @@ pub fn evaluate_case(case: &Value, registry: &Value) -> Value {
     let effective_until = text(valid_time, "effective_until");
     let confidence = text(valid_time, "effective_time_confidence");
     if !valid_utc_timestamp(effective_at)
-        || (!effective_until.is_empty() && !valid_utc_timestamp(effective_until))
+        || valid_time.get("effective_until").is_none()
+        || (!valid_time.get("effective_until").is_some_and(Value::is_null)
+            && !valid_utc_timestamp(effective_until))
         || !matches!(
             confidence,
             "verified" | "authority_asserted" | "unknown" | "disputed"
