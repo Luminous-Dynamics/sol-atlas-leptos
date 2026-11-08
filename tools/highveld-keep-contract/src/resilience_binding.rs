@@ -7,17 +7,15 @@
 use serde_json::Value;
 use std::collections::HashSet;
 
-pub const RESILIENCE_BINDING_JSON: &str = include_str!(
-    "../../../docs/research/highveld-keep/HIGHVELD_KEEP_RESILIENCE_BINDING_V0_1.json"
-);
+pub const RESILIENCE_BINDING_JSON: &str =
+    include_str!("../../../docs/research/highveld-keep/HIGHVELD_KEEP_RESILIENCE_BINDING_V0_1.json");
 pub const RESILIENCE_BINDING_SCHEMA: &str = include_str!(
     "../../../docs/research/highveld-keep/HIGHVELD_KEEP_RESILIENCE_BINDING_V0_1.schema.json"
 );
 
 const BINDING_ID: &str = "HIGHVELD-KEEP-RESILIENCE-BINDING-001";
 const SCHEMA_VERSION: &str = "luminous.highveld.resilience-binding/0.1.0";
-const CLAIM_CEILING: &str =
-    "adapter_contract_and_synthetic_binding_semantics_only_no_physical_building_performance_or_safety_claim";
+const CLAIM_CEILING: &str = "adapter_contract_and_synthetic_binding_semantics_only_no_physical_building_performance_or_safety_claim";
 
 const SCENARIOS: [(&str, &str); 10] = [
     ("HK-RES-001", "typical_year_screening"),
@@ -87,8 +85,7 @@ const VVUQ_STAGES: [&str; 6] = [
     "professional_and_field_review",
 ];
 
-const MEASUREMENT_QUESTIONS: [&str; 5] =
-    ["VOI-01", "VOI-02", "VOI-03", "VOI-04", "VOI-05"];
+const MEASUREMENT_QUESTIONS: [&str; 5] = ["VOI-01", "VOI-02", "VOI-03", "VOI-04", "VOI-05"];
 
 const INVALIDATORS: [&str; 6] = [
     "weather_file_or_source_revision",
@@ -176,8 +173,7 @@ pub fn validate_resilience_binding_values(
     );
     push(
         &mut violations,
-        string_at(schema, "$schema")
-            != Some("https://json-schema.org/draft/2020-12/schema")
+        string_at(schema, "$schema") != Some("https://json-schema.org/draft/2020-12/schema")
             || string_at(binding, "$schema")
                 != Some("https://json-schema.org/draft/2020-12/schema")
             || string_at(schema, "title")
@@ -187,11 +183,11 @@ pub fn validate_resilience_binding_values(
     push(
         &mut violations,
         schema
-                .get("properties")
-                .and_then(|properties| properties.get("schema_version"))
-                .and_then(|property| property.get("const"))
-                .and_then(Value::as_str)
-                != Some(SCHEMA_VERSION),
+            .get("properties")
+            .and_then(|properties| properties.get("schema_version"))
+            .and_then(|property| property.get("const"))
+            .and_then(Value::as_str)
+            != Some(SCHEMA_VERSION),
         "RESILIENCE_SCHEMA_VERSION_CONTRACT_CHANGED",
     );
     push(
@@ -312,8 +308,7 @@ pub fn validate_resilience_binding_values(
         push(
             &mut violations,
             items.iter().any(|item| {
-                string_at(item, "source_id")
-                    .is_none_or(|id| !source_ids.insert(id.to_owned()))
+                string_at(item, "source_id").is_none_or(|id| !source_ids.insert(id.to_owned()))
             }),
             "RESILIENCE_WEATHER_SOURCE_ID_DUPLICATED",
         );
@@ -335,9 +330,9 @@ pub fn validate_resilience_binding_values(
         scenarios.is_none_or(|items| items.len() != SCENARIOS.len())
             || scenario_ids.len() != SCENARIOS.len()
             || scenario_names.len() != SCENARIOS.len()
-            || SCENARIOS.iter().any(|(id, name)| {
-                !scenario_ids.contains(id) || !scenario_names.contains(name)
-            })
+            || SCENARIOS
+                .iter()
+                .any(|(id, name)| !scenario_ids.contains(id) || !scenario_names.contains(name))
             || scenario_ids.iter().collect::<HashSet<_>>().len() != scenario_ids.len(),
         "RESILIENCE_SCENARIO_FAMILY_SET_INVALID",
     );
@@ -347,8 +342,7 @@ pub fn validate_resilience_binding_values(
                 &mut violations,
                 string_at(scenario, "admission").is_none_or(|state| {
                     !(state.starts_with("BLOCKED_") || state.starts_with("UNKNOWN_"))
-                })
-                    || array_at(scenario, "required_inputs").is_none_or(Vec::is_empty),
+                }) || array_at(scenario, "required_inputs").is_none_or(Vec::is_empty),
                 "RESILIENCE_SCENARIO_ADMITTED_OR_INPUTS_UNDECLARED",
             );
         }
@@ -367,17 +361,13 @@ pub fn validate_resilience_binding_values(
         push(
             &mut violations,
             observed_hot.is_none_or(|item| {
-                string_at(item, "weather_class") != Some("ACTUAL_METEOROLOGICAL_YEAR_OR_OBSERVED_EVENT")
-                    || !has_string(
-                        array_at(item, "prohibited_substitutions"),
-                        "TMY_OR_TMYX",
-                    )
+                string_at(item, "weather_class")
+                    != Some("ACTUAL_METEOROLOGICAL_YEAR_OR_OBSERVED_EVENT")
+                    || !has_string(array_at(item, "prohibited_substitutions"), "TMY_OR_TMYX")
             }) || observed_cold.is_none_or(|item| {
-                string_at(item, "weather_class") != Some("ACTUAL_METEOROLOGICAL_YEAR_OR_OBSERVED_EVENT")
-                    || !has_string(
-                        array_at(item, "prohibited_substitutions"),
-                        "TMY_OR_TMYX",
-                    )
+                string_at(item, "weather_class")
+                    != Some("ACTUAL_METEOROLOGICAL_YEAR_OR_OBSERVED_EVENT")
+                    || !has_string(array_at(item, "prohibited_substitutions"), "TMY_OR_TMYX")
             }) || future.is_none_or(|item| {
                 string_at(item, "weather_class") != Some("MODELLED_FUTURE_CLIMATE_SCENARIO")
                     || !has_string(
@@ -415,7 +405,9 @@ pub fn validate_resilience_binding_values(
         &mut violations,
         services.is_none_or(|items| items.len() != SERVICE_DOMAINS.len())
             || service_ids.len() != SERVICE_DOMAINS.len()
-            || SERVICE_DOMAINS.iter().any(|expected| !service_ids.contains(expected))
+            || SERVICE_DOMAINS
+                .iter()
+                .any(|expected| !service_ids.contains(expected))
             || services.is_some_and(|items| {
                 items.iter().any(|item| {
                     !string_at(item, "threshold_state")
@@ -431,8 +423,13 @@ pub fn validate_resilience_binding_values(
     push(
         &mut violations,
         paired.is_none_or(|paired| {
-            paired.get("same_exogenous_trace_required").and_then(Value::as_bool) != Some(true)
-                || paired.get("candidate_must_not_receive_future_events").and_then(Value::as_bool)
+            paired
+                .get("same_exogenous_trace_required")
+                .and_then(Value::as_bool)
+                != Some(true)
+                || paired
+                    .get("candidate_must_not_receive_future_events")
+                    .and_then(Value::as_bool)
                     != Some(true)
                 || string_at(paired, "service_floor_semantics")
                     != Some("PER_RESIDENT_PER_TASK_NON_COMPENSATORY")
@@ -453,9 +450,9 @@ pub fn validate_resilience_binding_values(
                 &mut violations,
                 values.is_none_or(Vec::is_empty)
                     || values.is_some_and(|items| {
-                        items.iter().any(|item| {
-                            item.as_str().is_none_or(str::is_empty)
-                        })
+                        items
+                            .iter()
+                            .any(|item| item.as_str().is_none_or(str::is_empty))
                     }),
                 "RESILIENCE_PAIRED_IDENTITY_FIELDS_INCOMPLETE",
             );
@@ -475,7 +472,9 @@ pub fn validate_resilience_binding_values(
             string_at(item, "framework") != Some("RISK_PROPORTIONATE_VVUQ")
                 || array_at(item, "prohibited_shortcuts").is_none_or(|values| values.len() < 5)
         }) || stages.is_none_or(|items| items.len() != VVUQ_STAGES.len())
-            || VVUQ_STAGES.iter().any(|expected| !stage_names.contains(expected)),
+            || VVUQ_STAGES
+                .iter()
+                .any(|expected| !stage_names.contains(expected)),
         "RESILIENCE_VVUQ_STAGES_OR_SHORTCUTS_INVALID",
     );
 
@@ -510,7 +509,9 @@ pub fn validate_resilience_binding_values(
         &mut violations,
         invariants.is_none_or(|items| items.len() != INVARIANTS.len())
             || invariant_ids.len() != INVARIANTS.len()
-            || INVARIANTS.iter().any(|expected| !invariant_ids.contains(expected))
+            || INVARIANTS
+                .iter()
+                .any(|expected| !invariant_ids.contains(expected))
             || invariant_ids.iter().collect::<HashSet<_>>().len() != invariant_ids.len(),
         "RESILIENCE_SYMTROPY_INVARIANT_CROSSWALK_INVALID",
     );
@@ -528,9 +529,9 @@ pub fn validate_resilience_binding_values(
                 .iter()
                 .any(|expected| !invalidator_changes.contains(expected))
             || invalidators.is_some_and(|items| {
-                items.iter().any(|item| {
-                    array_at(item, "invalidates").is_none_or(Vec::is_empty)
-                })
+                items
+                    .iter()
+                    .any(|item| array_at(item, "invalidates").is_none_or(Vec::is_empty))
             }),
         "RESILIENCE_INVALIDATION_DEPENDENCIES_INCOMPLETE",
     );
@@ -626,7 +627,12 @@ mod tests {
             .unwrap();
         observed["weather_class"] = json!("TMYx");
         let report = validate_resilience_binding_values(&binding, &schema);
-        assert!(contains(&report, "RESILIENCE_TMY_EXTREME_OR_FUTURE_SUBSTITUTION_ALLOWED"));
+        assert!(
+            contains(
+                &report,
+                "RESILIENCE_TMY_EXTREME_OR_FUTURE_SUBSTITUTION_ALLOWED"
+            )
+        );
     }
 
     #[test]
