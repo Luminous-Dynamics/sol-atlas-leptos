@@ -282,6 +282,16 @@
                     },
                     "evidence_state": {
                       "type": "string"
+                    },
+                    "use_start_at": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "description": "Exact half-open start of the interval in which this lot is required by its work package."
+                    },
+                    "use_end_at": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "description": "Exact half-open end of the interval in which this lot is required by its work package."
                     }
                   },
                   "required": [
@@ -299,7 +309,9 @@
                     "reservation_state",
                     "available_from",
                     "available_until",
-                    "evidence_state"
+                    "evidence_state",
+                    "use_start_at",
+                    "use_end_at"
                   ]
                 }
               },
