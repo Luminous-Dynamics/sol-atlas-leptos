@@ -48,3 +48,23 @@ The district manifest now separates four responsibilities based on a 2026 review
 4. Feedback synchronization — #603 product/service lifecycle and owner-native approval, execution, inspection, commissioning and measured outcome links.
 
 A visual 3D model or a recent timestamp does not qualify a digital twin. Each source has its own update cadence and claim ceiling. No universal TTL or latest-timestamp-wins is admitted. See the manifest gate G1B and https://www.sciencedirect.com/science/article/abs/pii/S2210670726009455.
+
+
+## Shared synthetic evaluator scope binding — 8 November 2026
+
+New machine-readable fixture manifest:
+
+- `CITY_REFERENCE_DISTRICT_SHARED_FIXTURE_SCOPE_V0_1.json`
+- Scope ID: `SYNTHETIC-DISTRICT-01`
+- Scope SHA-256: `dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd`
+
+This exact synthetic digest is present in:
+- state-sync PR #638, on the owner event and required-subject scope fields;
+- service-restoration PR #646, on the reference scope;
+- change-impact PR #644, on query, owner report, every claim and revalidation receipt.
+
+Those three individual evaluator workflows passed their exact-head synthetic corpora. The change-impact adapter additionally rejects a report whose digest differs even when its display scope ID is the same.
+
+**This is only a common scope-identity fixture. It is not yet a common district scenario or integrated district PASS.** The three corpora test different events, case semantics, horizons and functional units. They have not been cross-joined to one dwelling, panel asset, material lot, service requirement, intervention or outcome.
+
+Next integration gate remains: bind one explicitly declared synthetic district scenario with common asset/design/BOM revisions and a shared time horizon; run the owner scope binder and schema registry; verify exact owner payload bytes; then run cross-owner positive and negative controls. The real district evaluation scope remains Unbound.
