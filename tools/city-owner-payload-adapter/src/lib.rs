@@ -434,7 +434,10 @@ fn evaluate_artifact(
     let raw_byte_equality_verified = verifier_disposition == "verified_match"
         && result.is_some_and(|record| {
             expected_sha.is_some()
+                && text(record, "record_key") == declared_record_key
                 && text(record, "digest_basis") == digest_basis
+                && record.get("object_ref").and_then(Value::as_str)
+                    == if object_ref.is_empty() { None } else { Some(object_ref) }
                 && record.get("expected_sha256").and_then(Value::as_str) == expected_sha
                 && record
                     .get("observed_sha256")
