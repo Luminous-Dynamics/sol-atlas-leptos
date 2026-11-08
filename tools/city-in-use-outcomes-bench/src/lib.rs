@@ -293,7 +293,11 @@ fn baseline_and_post_windows_are_valid(mv: &Value, scope: &Value) -> bool {
         )
 }
 
-fn classify_measurement_and_verification(input: &Value, scope: &Value) -> &'static str {
+fn classify_measurement_and_verification(
+    case_id: &str,
+    input: &Value,
+    scope: &Value,
+) -> &'static str {
     let Some(mv) = input.get("measurement_and_verification") else {
         return "NotClaimed";
     };
@@ -313,11 +317,33 @@ fn classify_measurement_and_verification(input: &Value, scope: &Value) -> &'stat
     let baseline_period = text(mv, "baseline_period");
     let post_period = text(mv, "post_period");
     let post_receipt_id = text(mv, "post_receipt_id");
-    let post_receipt_matches = !post_receipt_id.is_empty()
-        && array(input, "observations")
-            .unwrap_or(&[])
-            .iter()
-            .any(|observation| text(observation, "source_receipt_id") == post_receipt_id);
+    let post_metric_id = text(mv, "post_metric_id");
+    let post_requirement = array(input, "requirements")
+        .unwrap_or(&[])
+        .iter()
+        .find(|requirement| text(requirement, "metric_id") == post_metric_id);
+    let post_observation = array(input, "observations")
+        .unwrap_or(&[])
+        .iter()
+        .find(|observation| {
+            text(observation, "metric_id") == post_metric_id
+                && text(observation, "source_receipt_id") == post_receipt_id
+        });
+    let post_receipt_matches = post_requirement.zip(post_observation).is_some_and(
+        |(requirement, observation)| {
+            text(requirement, "evidence_class") == "meter"
+                && text(requirement, "unit") == text(observation, "unit")
+                && text(observation, "evidence_state") == "current"
+                && text(observation, "evidence_kind") == "meter_measurement"
+                && text(observation, "calibration_state") == "current"
+                && !text(observation, "instrument_id").is_empty()
+                && coverage_fraction(observation, "coverage_fraction")
+                    .is_some_and(|value| value >= minimum_coverage)
+                && same_scope_and_context(observation, scope)
+                && number(observation, "value").is_some()
+                && owner_binding_matches(case_id, requirement, observation)
+        },
+    );
 
     if text(mv, "evidence_state") == "current"
         && !text(mv, "method_id").is_empty()
@@ -618,7 +644,7 @@ pub fn evaluate_case(case: &Value) -> Value {
         "disposition": "Evaluated",
         "reason_codes": [],
         "metric_results": metric_results,
-        "measurement_and_verification_status": classify_measurement_and_verification(input, scope),
+        "measurement_and_verification_status": classify_measurement_and_verification(case_id, input, scope),
         "causal_assessment_status": classify_causal_assessment(input),
         "claim_ceiling": "synthetic outcome classification only; not measured building performance, regulatory compliance, energy savings, occupant wellbeing, or causal impact"
     })
@@ -762,6 +788,17 @@ mod tests {
             "EligibleForSavingsReview"
         );
         assert!(result.get("savings_amount").is_none());
+    }
+
+    #[test]
+    fn measurement_and_verification_receipt_must_bind_the_claimed_metric() {
+        let mut wrong_metric = case("OI-017");
+        wrong_metric["input"]["measurement_and_verification"]["post_metric_id"] =
+            serde_json::json!("comfort-report");
+        assert_eq!(
+            evaluate_case(&wrong_metric)["measurement_and_verification_status"],
+            "Unsupported"
+        );
     }
 
     #[test]
