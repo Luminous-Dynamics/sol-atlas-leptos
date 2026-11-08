@@ -399,12 +399,12 @@ mod tests {
     }
 
     #[test]
-    fn corpus_has_29_unique_synthetic_cases() {
+    fn corpus_has_30_unique_synthetic_cases() {
         let c = corpus();
         assert_eq!(c["classification"], "synthetic_fixture_only");
         assert_eq!(c["corpus_id"], "CITY-MORPH-CONTINUITY-CORPUS-V0.1");
         let xs = c["cases"].as_array().unwrap();
-        assert_eq!(xs.len(), 29);
+        assert_eq!(xs.len(), 30);
         let ids = xs
             .iter()
             .map(|x| x["case_id"].as_str().unwrap().to_owned())
@@ -464,8 +464,8 @@ mod tests {
         assert_eq!(requirement["recovery_start_lower_exclusive_tick"], 5);
         assert_eq!(requirement["recovery_start_upper_inclusive_tick"], 7);
         assert_eq!(requirement["recovery_time_ticks"], Value::Null);
-        assert_eq!(requirement["recovery_time_lower_exclusive_ticks"], 3);
-        assert_eq!(requirement["recovery_time_upper_inclusive_ticks"], 5);
+        assert_eq!(requirement["recovery_time_lower_exclusive_ticks"], 2);
+        assert_eq!(requirement["recovery_time_upper_inclusive_ticks"], 4);
         assert_eq!(requirement["recovery_confirmed_at_tick"], 9);
 
         let exact = evaluate_case(&case("CR-002"));
@@ -492,6 +492,18 @@ mod tests {
         assert_eq!(
             after["requirements"][0]["unknown_after_first_degradation_ticks"],
             3
+        );
+        assert_eq!(
+            after["requirements"][0]["recovery_timing_precision"],
+            "unknown"
+        );
+        assert_eq!(
+            after["requirements"][0]["recovery_start_lower_exclusive_tick"],
+            4
+        );
+        assert_eq!(
+            after["requirements"][0]["recovery_start_upper_inclusive_tick"],
+            Value::Null
         );
     }
 
