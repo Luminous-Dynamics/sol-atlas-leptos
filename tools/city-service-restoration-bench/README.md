@@ -68,6 +68,11 @@ cargo run --locked --quiet --manifest-path tools/city-service-restoration-bench/
   --source-commit <40-hex-commit>
 ```
 
+
+## Part availability interval semantics
+
+Part/lot availability is checked against the exact half-open interval during which the consuming work package requires that lot (`use_start_at`, `use_end_at`), not against the entire planning window. The planning window constrains the plan; it is not itself a part-consumption interval. If the use interval is missing or malformed, the plan remains Unknown or Infeasible according to whether the data is absent or contradictory. This prevents rejecting a lot that arrives after planning begins but before its actual use, while still rejecting a lot that arrives late or expires before use is complete.
+
 ## Benchmarks
 
 E1 targets:
