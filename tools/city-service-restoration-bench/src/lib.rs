@@ -764,9 +764,13 @@ mod tests {
         part["available_until"] = json!(2900);
         let result = evaluate_case(&early_expiry);
         assert_eq!(result["plan_readiness"], "infeasible");
-        assert!(result["reason_codes"].as_array().unwrap().iter().any(
-            |reason| reason == "PART_AVAILABILITY_WINDOW_MISMATCH"
-        ));
+        assert!(
+            result["reason_codes"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|reason| reason == "PART_AVAILABILITY_WINDOW_MISMATCH")
+        );
     }
 
     #[test]
@@ -812,9 +816,13 @@ mod tests {
         case["input"]["lifecycle"]["commissioning_evidence_state"] = json!("current");
         let result = evaluate_case(&case);
         assert_eq!(result["service_state"], "unknown");
-        assert!(result["reason_codes"].as_array().unwrap().iter().any(
-            |reason| reason == "CONTINUITY_SERVICE_STATE_UNSUPPORTED"
-        ));
+        assert!(
+            result["reason_codes"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|reason| reason == "CONTINUITY_SERVICE_STATE_UNSUPPORTED")
+        );
     }
 
     #[test]
@@ -835,5 +843,4 @@ mod tests {
         assert_eq!(result["commissioning_state"], "pass");
         assert_eq!(result["service_state"], "adequate");
     }
-
 }
