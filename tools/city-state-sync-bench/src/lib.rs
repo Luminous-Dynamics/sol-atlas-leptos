@@ -838,17 +838,21 @@ mod tests {
             "as_of":{"valid_at":1000,"recorded_at":1100,"ingested_at":1200},
             "intervention_stages":[proposal,approval]
         });
-        let result = evaluate_intervention(&data,"I-1",data["intervention_stages"].as_array().unwrap());
-        assert_eq!(result["state"],"ApprovedNotExecuted");
-        assert_eq!(result["workflow_complete"],false);
+        let result = evaluate_intervention(
+            &data,
+            "I-1",
+            data["intervention_stages"].as_array().unwrap(),
+        );
+        assert_eq!(result["state"], "ApprovedNotExecuted");
+        assert_eq!(result["workflow_complete"], false);
     }
 
     #[test]
     fn complete_feedback_chain_does_not_claim_causality() {
-        let names = ["proposal","approval","execution","inspection","outcome"];
+        let names = ["proposal", "approval", "execution", "inspection", "outcome"];
         let mut stages = Vec::new();
         let mut previous = Value::Null;
-        for (index,name) in names.iter().enumerate() {
+        for (index, name) in names.iter().enumerate() {
             let id = format!("S-{index}");
             stages.push(json!({
                 "event_id":id,"intervention_id":"I-1","stage":name,
@@ -860,9 +864,13 @@ mod tests {
             previous = json!(id);
         }
         let data = json!({"as_of":{"valid_at":1000,"recorded_at":1100,"ingested_at":1200},"intervention_stages":stages});
-        let result = evaluate_intervention(&data,"I-1",data["intervention_stages"].as_array().unwrap());
-        assert_eq!(result["state"],"OutcomeObserved");
-        assert_eq!(result["workflow_complete"],true);
-        assert_eq!(result["causal_effect_established"],false);
+        let result = evaluate_intervention(
+            &data,
+            "I-1",
+            data["intervention_stages"].as_array().unwrap(),
+        );
+        assert_eq!(result["state"], "OutcomeObserved");
+        assert_eq!(result["workflow_complete"], true);
+        assert_eq!(result["causal_effect_established"], false);
     }
 }
