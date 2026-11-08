@@ -481,7 +481,7 @@ pub fn evaluate_case(case: &Value) -> Value {
 
     let mut artifact_outputs = array(input, "owner_artifacts")
         .iter()
-         .map(|artifact| evaluate_artifact(artifact, scope, &report, report_binding, report_valid))
+          .map(|artifact| evaluate_artifact(artifact, scope, &report, report_binding, report_valid))
         .collect::<Vec<_>>();
     artifact_outputs
         .sort_by(|left, right| text(left, "artifact_id").cmp(text(right, "artifact_id")));
@@ -707,5 +707,4 @@ mod tests {
                 .any(|reason| reason == "VERIFIER_RESULT_DESCRIPTOR_MISMATCH")
         );
     }
-
 }
