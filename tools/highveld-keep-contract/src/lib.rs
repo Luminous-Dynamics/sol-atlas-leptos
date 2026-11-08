@@ -1524,3 +1524,10 @@ mod tests {
         assert!(contains(&report, "UNQUALIFIED_PRODUCT_REFERENCE_PROMOTED"));
     }
 }
+
+
+pub mod resilience_binding;
+pub use resilience_binding::{
+    ResilienceBindingReport, validate_resilience_binding_values,
+    validate_tracked_resilience_binding,
+};
