@@ -41,7 +41,9 @@ fn main() -> ExitCode {
         return ExitCode::from(2);
     };
     if flag != "--source-commit" || !valid_commit(&source_commit) || args.next().is_some() {
-        eprintln!("source commit must be a lowercase 40-character hex SHA; no extra arguments are accepted");
+        eprintln!(
+            "source commit must be a lowercase 40-character hex SHA; no extra arguments are accepted"
+        );
         return ExitCode::from(2);
     }
 
