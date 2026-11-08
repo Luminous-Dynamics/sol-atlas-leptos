@@ -1,0 +1,421 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/city-owner-payload-adapter-corpus-v0.1.schema.json",
+  "title": "CityMaker Owner Payload Adapter Corpus v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "schema_version",
+    "corpus_id",
+    "classification",
+    "purpose",
+    "normative_notice",
+    "cases"
+  ],
+  "properties": {
+    "schema": {
+      "const": "city-owner-payload-adapter-corpus/0.1"
+    },
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "corpus_id": {
+      "const": "CITY-OWNER-PAYLOAD-ADAPTER-CORPUS-V0.1"
+    },
+    "classification": {
+      "const": "synthetic_fixture_only"
+    },
+    "purpose": {
+      "type": "string",
+      "minLength": 1
+    },
+    "normative_notice": {
+      "type": "string",
+      "minLength": 1
+    },
+    "cases": {
+      "type": "array",
+      "minItems": 24,
+      "maxItems": 24,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "case_id",
+          "name",
+          "input",
+          "expected"
+        ],
+        "properties": {
+          "case_id": {
+            "type": "string",
+            "pattern": "^PA-[0-9]{2}$"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "input": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "scope_binding",
+              "owner_artifacts",
+              "report_binding"
+            ],
+            "properties": {
+              "scope_binding": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "binding_disposition",
+                  "scope_digest",
+                  "artifact_bindings"
+                ],
+                "properties": {
+                  "binding_disposition": {
+                    "enum": [
+                      "Bound",
+                      "Unknown",
+                      "NotComparable",
+                      "Unsupported"
+                    ]
+                  },
+                  "scope_digest": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{64}$"
+                  },
+                  "artifact_bindings": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "artifact_id",
+                        "binding_state",
+                        "raw_owner_disposition",
+                        "payload_bytes_verified"
+                      ],
+                      "properties": {
+                        "artifact_id": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "binding_state": {
+                          "enum": [
+                            "Bound",
+                            "Unknown",
+                            "NotComparable",
+                            "Unsupported"
+                          ]
+                        },
+                        "raw_owner_disposition": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "payload_bytes_verified": {
+                          "const": false
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "owner_artifacts": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "artifact_id",
+                    "payload_required",
+                    "owner_repo",
+                    "contract_id",
+                    "contract_version",
+                    "schema_digest_algorithm",
+                    "schema_artifact_digest",
+                    "source_revision",
+                    "receipt_id",
+                    "content_digest",
+                    "subject_id",
+                    "subject_digest",
+                    "scope_digest",
+                    "payload"
+                  ],
+                  "properties": {
+                    "artifact_id": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "payload_required": {
+                      "type": "boolean"
+                    },
+                    "owner_repo": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "contract_id": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "contract_version": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "schema_digest_algorithm": {
+                      "enum": [
+                        "git_blob_sha1",
+                        "sha256"
+                      ]
+                    },
+                    "schema_artifact_digest": {
+                      "type": "string",
+                      "pattern": "^([0-9a-f]{40}|[0-9a-f]{64})$"
+                    },
+                    "source_revision": {
+                      "type": "string",
+                      "pattern": "^[0-9a-f]{40}$"
+                    },
+                    "receipt_id": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "content_digest": {
+                      "type": "string",
+                      "pattern": "^[0-9a-f]{64}$"
+                    },
+                    "subject_id": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "subject_digest": {
+                      "type": "string",
+                      "pattern": "^[0-9a-f]{64}$"
+                    },
+                    "scope_digest": {
+                      "type": "string",
+                      "pattern": "^[0-9a-f]{64}$"
+                    },
+                    "payload": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "record_kind",
+                        "case_record_id",
+                        "record_key",
+                        "descriptor_case_id",
+                        "descriptor_case_representation_sha256",
+                        "descriptor_catalog_id",
+                        "descriptor_catalog_representation_sha256",
+                        "digest_basis",
+                        "digest_algorithm",
+                        "object_ref",
+                        "sha256",
+                        "byte_length",
+                        "rights_state",
+                        "required_use",
+                        "permitted_uses"
+                      ],
+                      "properties": {
+                        "record_kind": {
+                          "enum": [
+                            "evidence",
+                            "artifact",
+                            "engineering_receipt",
+                            "decision"
+                          ]
+                        },
+                        "case_record_id": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "record_key": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "descriptor_case_id": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "descriptor_case_representation_sha256": {
+                          "type": "string",
+                          "pattern": "^[0-9a-f]{64}$"
+                        },
+                        "descriptor_catalog_id": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "descriptor_catalog_representation_sha256": {
+                          "type": "string",
+                          "pattern": "^[0-9a-f]{64}$"
+                        },
+                        "digest_basis": {
+                          "type": "string"
+                        },
+                        "digest_algorithm": {
+                          "type": "string"
+                        },
+                        "object_ref": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "sha256": {
+                          "type": "string",
+                          "pattern": "^[0-9a-f]{64}$"
+                        },
+                        "byte_length": {
+                          "type": "integer",
+                          "minimum": 0
+                        },
+                        "rights_state": {
+                          "enum": [
+                            "verified",
+                            "restricted",
+                            "unknown",
+                            "not_applicable"
+                          ]
+                        },
+                        "required_use": {
+                          "type": "string"
+                        },
+                        "permitted_uses": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "report_binding": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "report_reference",
+                  "declared_report_sha256",
+                  "expected_case_id",
+                  "expected_case_representation_sha256",
+                  "expected_catalog_id",
+                  "expected_catalog_representation_sha256",
+                  "raw_report_json"
+                ],
+                "properties": {
+                  "report_reference": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "declared_report_sha256": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{64}$"
+                  },
+                  "expected_case_id": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "expected_case_representation_sha256": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{64}$"
+                  },
+                  "expected_catalog_id": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "expected_catalog_representation_sha256": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{64}$"
+                  },
+                  "raw_report_json": {
+                    "type": "string",
+                    "minLength": 2
+                  }
+                }
+              }
+            }
+          },
+          "expected": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "report_integrity_state",
+              "payload_verification_state",
+              "artifact_payloads"
+            ],
+            "properties": {
+              "report_integrity_state": {
+                "enum": [
+                  "verified",
+                  "mismatch",
+                  "unsupported"
+                ]
+              },
+              "payload_verification_state": {
+                "enum": [
+                  "verified",
+                  "mismatch",
+                  "unavailable",
+                  "indeterminate",
+                  "unsupported"
+                ]
+              },
+              "artifact_payloads": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "artifact_id",
+                    "scope_binding_state",
+                    "raw_owner_disposition",
+                    "payload_verification_state",
+                    "payload_bytes_verified",
+                    "raw_byte_equality_verified"
+                  ],
+                  "properties": {
+                    "artifact_id": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "scope_binding_state": {
+                      "enum": [
+                        "Bound",
+                        "Unknown",
+                        "NotComparable",
+                        "Unsupported"
+                      ]
+                    },
+                    "raw_owner_disposition": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "payload_verification_state": {
+                      "enum": [
+                        "verified",
+                        "mismatch",
+                        "unavailable",
+                        "indeterminate",
+                        "unsupported",
+                        "not_required"
+                      ]
+                    },
+                    "payload_bytes_verified": {
+                      "type": "boolean"
+                    },
+                    "raw_byte_equality_verified": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
