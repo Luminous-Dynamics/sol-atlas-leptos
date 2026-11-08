@@ -1,0 +1,36 @@
+name: City Delivery Rustfmt Export (temporary)
+
+on:
+  push:
+    branches: ["research/city-construction-delivery-v0.1"]
+    paths:
+      - "tools/city-construction-delivery-bench/**"
+      - ".github/workflows/city-delivery-rustfmt-export.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: 1.96.0
+          components: rustfmt
+      - name: Format isolated delivery crate in ephemeral checkout
+        run: cargo fmt --manifest-path tools/city-construction-delivery-bench/Cargo.toml --all
+      - name: Export formatted Rust source
+        run: |
+          mkdir -p formatted
+          cp tools/city-construction-delivery-bench/src/lib.rs formatted/lib.rs
+          cp tools/city-construction-delivery-bench/src/main.rs formatted/main.rs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: city-delivery-rustfmt-export
+          path: formatted/
+          if-no-files-found: error
+          retention-days: 2
