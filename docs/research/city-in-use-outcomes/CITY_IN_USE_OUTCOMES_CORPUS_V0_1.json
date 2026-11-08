@@ -1008,9 +1008,7 @@
       "expected": {
         "case_id": "OI-008",
         "disposition": "Evaluated",
-        "reason_codes": [
-          "OBSERVATION_UNIT_MISMATCH"
-        ],
+        "reason_codes": [],
         "metric_results": [
           {
             "metric_id": "energy",
