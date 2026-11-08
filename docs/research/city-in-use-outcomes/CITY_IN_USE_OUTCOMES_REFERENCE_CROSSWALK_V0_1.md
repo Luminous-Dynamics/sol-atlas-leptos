@@ -12,9 +12,21 @@ This crosswalk clarifies which external methods already exist and where the City
 | CIBSE TM64 | Indoor-air-quality emissions sources and mitigation | Not a general health diagnosis or proof of all indoor environmental quality dimensions | Map relevant indoor-air variables and source evidence |
 | IPMVP Core Concepts 2022 | M&V framework for energy/water efficiency projects, baseline and post-period measurement/adjustment, defined options | An IPMVP-aligned plan or status does not itself prove savings; project-specific data and method matter | Mark eligibility for savings review only when method, baseline, post-period, coverage and adjustments are present; do not emit a savings amount from this adapter |
 | ASHRAE / applicable building energy modelling validation standards | Software capability/reference-case checks and model quality concepts | Software validation does not establish a particular model's site-specific calibration or predict resident experience | Use specialist owner's validation/certification output, with exact software version and scenario |
-| South Africa SANS 10400-XA:2021 | National Building Regulations energy-use requirements for new buildings; compliance route can be prescriptive or reference-building/performance based | Compliance at approval/design does not prove measured in-use energy, thermal comfort or operational service years later | Keep regulatory/compliance evidence separate from measured in-use performance |
+| South Africa SANS 10400-XA:2026 Edition 3 (latest edition identified by SAIAT) | Current identified national energy-use standard edition; exact requirements must be taken from the official SABS text | SAIAT's specialist CPD record is secondary evidence; it does not establish project-specific effective/transition treatment, applicability or compliance | Keep regulatory/compliance evidence separate from measured in-use performance; verify the exact SABS publication and project applicability with the competent authority and qualified professional before encoding checks |
 | POE systematic reviews | Evidence that residential POE remains inconsistent; design-stage planning, continuous collection and user engagement matter | No one universal POE protocol is globally dominant | Preserve a versioned multi-method record and map each local method to its exact question and limits |
 | 2026 building-health review | Synthesizes six dimensions: safety, environmental quality, occupant-centred performance, system/infrastructure, energy and economic performance | A six-dimension literature taxonomy is not an accepted universal compliance score | Report dimension-specific evidence and missingness; avoid one blended health score |
+
+### South African edition-status correction — 8 November 2026
+
+SAIAT's professional CPD portal identifies **SANS 10400-XA:2026, Edition 3** and states it was published early in 2026, with a change to the energy-efficient hot-water compliance method. Its presenter is identified as chair of SABS TC 060 and a member of the latest review workgroup. This is specialist secondary evidence of the edition, not a substitute for the copyrighted SABS publication or an applicability determination.
+
+The official SABS catalogue entry, lawful full text, effective/transition date and project-specific application have not been independently verified here. Therefore:
+- do not describe the 2021 Edition 2 as the latest identified edition;
+- keep the regulatory applicability state Unknown until the official SABS edition and project context are checked;
+- do not encode clause-level pass/fail logic from secondary summaries;
+- do not infer that an as-designed energy model, an in-use meter reading or this synthetic oracle establishes statutory compliance.
+
+SAIAT source: https://cpd.saiat.org.za/sans-10400-xa-3rd-edition-cc
 
 ## Paradigm shift: a longitudinal evidence graph
 
