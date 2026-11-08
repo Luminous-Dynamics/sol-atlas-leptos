@@ -802,7 +802,7 @@
             "state": "Blocked",
             "reason_codes": [
               "SHARED_RECEIVING_OR_LAYDOWN_RESOURCE_OVERBOOKED",
-              "SOURCE_STOCK_SHORTFALL_OR_OVERALLOCATION"
+              "SOURCE_STOCK_OVERALLOCATION"
             ],
             "predicted_arrival_tick": 70,
             "predicted_acceptance_tick": 74,
@@ -830,7 +830,7 @@
             "state": "Blocked",
             "reason_codes": [
               "SHARED_RECEIVING_OR_LAYDOWN_RESOURCE_OVERBOOKED",
-              "SOURCE_STOCK_SHORTFALL_OR_OVERALLOCATION"
+              "SOURCE_STOCK_OVERALLOCATION"
             ],
             "predicted_arrival_tick": 70,
             "predicted_acceptance_tick": 74,
