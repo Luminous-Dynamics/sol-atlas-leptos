@@ -54,11 +54,11 @@ jobs:
             .result == "pass"
             and .corpus_id == "CITY-MORPH-CONTINUITY-CORPUS-V0.1"
             and .corpus_classification == "synthetic_fixture_only"
-            and .scenario_count == 29
+            and .scenario_count == 30
             and .failure_count == 0
             and (.corpus_sha256 | test("^[0-9a-f]{64}$"))
             and (.source_commit | test("^[0-9a-f]{40}$"))
-            and (.scenarios | length == 29)
+            and (.scenarios | length == 30)
             and (.scenarios | all(.status == "pass"))
           ' city-morph-continuity-receipt.json
       - name: Upload exact-head continuity receipt
