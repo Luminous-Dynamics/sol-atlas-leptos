@@ -184,6 +184,14 @@ P0 targets:
 
 P1 strata: 10 / 100 / 1,000 / 10,000 / 100,000 owner objects and 1 / 5 / 10 / 25 owners. Report p50/p95/p99 latency, memory, network bytes, source-owner calls, false reliance/refusal, unknown rate, stale-detection latency, invalidation precision/recall, review time and proof size separately. Performance comparisons start only after P0 correctness gates pass.
 
+### Machine-readable gold corpus
+
+The 18 cases are frozen in:
+- `HIGHVELD_KEEP_FEDERATED_TWIN_COMPOSITION_CORPUS_V0_1.json`
+- `HIGHVELD_KEEP_FEDERATED_TWIN_COMPOSITION_CORPUS_V0_1.schema.json`
+
+Each case carries both an as-known-at-decision cut and an as-known-now cut, so late-arriving corrections, revocations and ingestion delays can be tested without rewriting history. The expected dispositions map to the decision-reliance vocabulary used by #501/#509. This is a proposed cross-owner fixture for those owners to consume; this addendum does not implement another decision-reliance evaluator.
+
 ## 7. Matched industry comparison
 
 Compare toolchains at workflow level, not one product against an entire industry.
