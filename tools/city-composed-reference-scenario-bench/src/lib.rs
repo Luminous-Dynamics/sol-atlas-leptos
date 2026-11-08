@@ -322,9 +322,15 @@ fn evaluate(case: &Value) -> Value {
         }
     }
 
-    if change_state == "invalid_evidence" || change_state == "insufficient_evidence" {
+    if change_state == "invalid_evidence" {
         return output(
-            case_id, scope_state, change_state, change_state, "unknown",
+            case_id, scope_state, projection_state, change_state, "unknown",
+            "unknown", "unknown", "unknown", "unknown", "invalid_evidence", reasons,
+        );
+    }
+    if change_state == "insufficient_evidence" {
+        return output(
+            case_id, scope_state, projection_state, change_state, "unknown",
             "unknown", "unknown", "unknown", "unknown", "blocked", reasons,
         );
     }
@@ -484,7 +490,7 @@ fn evaluate(case: &Value) -> Value {
         );
     }
     if service_state == "adequate" {
-        if text(scope, "service_restoration_required") == "true"
+        if bool_field(scope, "service_restoration_required") == Some(true)
             && bool_field(continuity, "stable_adequacy_met") != Some(true)
         {
             add(&mut reasons, "STABLE_ADEQUACY_INTERVAL_NOT_MET");
