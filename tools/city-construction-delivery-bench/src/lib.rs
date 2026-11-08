@@ -164,10 +164,9 @@ fn validate<'a>(
         if let (Some(start), Some(end)) = (
             integer(demand, "window_start_tick"),
             integer(demand, "window_end_tick"),
-        ) {
-            if end <= start {
-                errors.insert("DELIVERY_WINDOW_INVALID".to_owned());
-            }
+        ) && end <= start
+        {
+            errors.insert("DELIVERY_WINDOW_INVALID".to_owned());
         }
 
         for receipt in [
