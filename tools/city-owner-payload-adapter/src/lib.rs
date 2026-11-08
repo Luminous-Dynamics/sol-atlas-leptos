@@ -453,15 +453,13 @@ fn evaluate_artifact(
                 state = "unavailable";
                 byte_length_comparison_state = "not_available";
             } else {
-                byte_length_comparison_state = match (
-                    expected_length,
-                    bool_value(record, "byte_length_matches"),
-                ) {
-                    (Some(_), Some(true)) => "matched",
-                    (Some(_), Some(false)) => "mismatch",
-                    (Some(_), None) => "not_verified",
-                    (None, _) => "not_declared",
-                };
+                byte_length_comparison_state =
+                    match (expected_length, bool_value(record, "byte_length_matches")) {
+                        (Some(_), Some(true)) => "matched",
+                        (Some(_), Some(false)) => "mismatch",
+                        (Some(_), None) => "not_verified",
+                        (None, _) => "not_declared",
+                    };
             }
         }
     }
@@ -477,7 +475,11 @@ fn evaluate_artifact(
                 && text(record, "record_key") == declared_record_key
                 && text(record, "digest_basis") == digest_basis
                 && record.get("object_ref").and_then(Value::as_str)
-                    == if object_ref.is_empty() { None } else { Some(object_ref) }
+                    == if object_ref.is_empty() {
+                        None
+                    } else {
+                        Some(object_ref)
+                    }
                 && record.get("expected_sha256").and_then(Value::as_str) == expected_sha
                 && record
                     .get("observed_sha256")
@@ -589,7 +591,9 @@ pub fn evaluate_case(case: &Value) -> Value {
             || text(catalog_validation, "catalog_id") != text(&report, "catalog_id")
             || text(catalog_validation, "catalog_representation_sha256")
                 != text(&report, "catalog_representation_sha256")
-            || catalog_validation.get("descriptor_count").and_then(Value::as_u64)
+            || catalog_validation
+                .get("descriptor_count")
+                .and_then(Value::as_u64)
                 != report.get("descriptor_count").and_then(Value::as_u64)
         {
             report_reasons.insert("VERIFIER_CATALOG_VALIDATION_BINDING_MISMATCH".to_owned());
@@ -660,12 +664,35 @@ pub fn evaluate_case(case: &Value) -> Value {
                 .count() as u64
         };
         for (field, expected_count) in [
-            ("verified_payload_count", disposition_count(&["verified_match"])),
-            ("unavailable_payload_count", disposition_count(&["declared_unavailable", "object_not_found"])),
-            ("resource_limited_payload_count", disposition_count(&["resource_limit_reached"])),
-            ("resolver_error_count", disposition_count(&["resolver_rejected", "resolver_io_error"])),
-            ("stream_error_count", disposition_count(&["stream_read_error"])),
-            ("invalid_payload_count", disposition_count(&["digest_mismatch", "byte_length_mismatch", "digest_and_byte_length_mismatch", "invalid_descriptor"]))
+            (
+                "verified_payload_count",
+                disposition_count(&["verified_match"]),
+            ),
+            (
+                "unavailable_payload_count",
+                disposition_count(&["declared_unavailable", "object_not_found"]),
+            ),
+            (
+                "resource_limited_payload_count",
+                disposition_count(&["resource_limit_reached"]),
+            ),
+            (
+                "resolver_error_count",
+                disposition_count(&["resolver_rejected", "resolver_io_error"]),
+            ),
+            (
+                "stream_error_count",
+                disposition_count(&["stream_read_error"]),
+            ),
+            (
+                "invalid_payload_count",
+                disposition_count(&[
+                    "digest_mismatch",
+                    "byte_length_mismatch",
+                    "digest_and_byte_length_mismatch",
+                    "invalid_descriptor",
+                ]),
+            ),
         ] {
             if report.get(field).and_then(Value::as_u64) != Some(expected_count) {
                 report_reasons.insert("VERIFIER_REPORT_RESULT_COUNTS_INCONSISTENT".to_owned());
@@ -694,7 +721,7 @@ pub fn evaluate_case(case: &Value) -> Value {
 
     let mut artifact_outputs = array(input, "owner_artifacts")
         .iter()
-          .map(|artifact| evaluate_artifact(artifact, scope, &report, report_binding, report_valid))
+        .map(|artifact| evaluate_artifact(artifact, scope, &report, report_binding, report_valid))
         .collect::<Vec<_>>();
     artifact_outputs
         .sort_by(|left, right| text(left, "artifact_id").cmp(text(right, "artifact_id")));
@@ -784,7 +811,6 @@ fn equivalent(actual: &Value, expected: &Value) -> bool {
         _ => actual == expected,
     }
 }
-
 
 pub fn matches_expected(actual: &Value, expected: &Value) -> bool {
     equivalent(actual, expected)
