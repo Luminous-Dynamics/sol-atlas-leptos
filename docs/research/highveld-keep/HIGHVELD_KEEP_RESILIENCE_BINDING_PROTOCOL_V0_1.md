@@ -34,9 +34,11 @@ Station identity also remains a first-class uncertainty. WMO/NOAA/SAWS coordinat
 
 ## 3. Nine Highveld stress families
 
-The manifest separates typical-year screening, observed hot spells/hot nights, cold nights, future climate, grid outage during heat, water interruption, severe weather, air-quality-constrained ventilation, and component/control fault with repair delay.
+The manifest separates typical-year screening, observed hot spells/hot nights, cold nights, future climate, grid outage during heat, water interruption, severe weather, air-quality-constrained ventilation, component/control fault with repair delay, and a **compound heat + grid + water + repair cascade**.
 
 Each scenario is presently `BLOCKED` or `UNKNOWN` pending its exact source, trace, model and scope inputs. A synthetic deterministic event sequence may test the Symtropy evaluator mechanics, but it must carry an explicit synthetic-fixture label and never be represented as observed South African weather or utility behaviour.
+
+The compound case is deliberately not a bag of independent single-hazard tests. It requires one common time basis and explicit event dependencies/causal ordering for weather, grid loss, water interruption, component failure and repair. Do not multiply marginal event probabilities or assume statistical independence without a justified, calibrated joint model. A synthetic sequence may test evaluator mechanics only and must remain labelled synthetic.
 
 No numeric comfort threshold, outage duration, water autonomy, pollutant limit, wind design pressure, rainfall intensity, or resident service floor is invented here. Such values must be attributable to an applicable standard, qualified model, source record, resident-authorized requirement or appointed professional. Otherwise they remain null/Unknown and cannot support an admissible design PASS.
 
