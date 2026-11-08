@@ -152,6 +152,14 @@ fn evaluate_lane(
     if text(report, "impact_family") != family {
         reasons.insert("OWNER_REPORT_IMPACT_FAMILY_MISMATCH".to_owned());
     }
+    let expected_report_kind = if text(lane, "report_shape").is_empty() {
+        text(lane, "contract_kind")
+    } else {
+        text(lane, "report_shape")
+    };
+    if text(report, "report_kind") != expected_report_kind {
+        reasons.insert("OWNER_REPORT_KIND_MISMATCH".to_owned());
+    }
     if text(report, "owner_repo") != text(lane, "owner_repo") {
         reasons.insert("OWNER_REPOSITORY_MISMATCH".to_owned());
     }
