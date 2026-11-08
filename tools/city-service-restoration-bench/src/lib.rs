@@ -83,17 +83,21 @@ fn evaluate_plan(input: &Value, reasons: &mut BTreeSet<String>, conflicts: &mut 
     }
 
     let window = input.get("planning_window").unwrap_or(&Value::Null);
-    let (window_start, window_end) =
-        match (u64_field(window, "start_at"), u64_field(window, "end_at")) {
-            (Some(start), Some(end)) => (start, end),
-            _ => {
-                add_unknown(reasons, "PLANNING_WINDOW_MISSING");
-                return;
-            }
-        };
-    if window_start >= window_end || str_field(window, "time_basis") != "UTC_UNIX_SECONDS" {
-        add_unknown(reasons, "PLANNING_WINDOW_INVALID");
-    }
+    let planning_window = match (u64_field(window, "start_at"), u64_field(window, "end_at")) {
+        (Some(start), Some(end)) if start < end
+            && str_field(window, "time_basis") == "UTC_UNIX_SECONDS" =>
+        {
+            Some((start, end))
+        }
+        (Some(_), Some(_)) => {
+            add_unknown(reasons, "PLANNING_WINDOW_INVALID");
+            None
+        }
+        _ => {
+            add_unknown(reasons, "PLANNING_WINDOW_MISSING");
+            None
+        }
+    };
 
     for (field, reason) in [
         ("part_requirements", "PART_REQUIREMENTS_MISSING"),
@@ -167,8 +171,10 @@ fn evaluate_plan(input: &Value, reasons: &mut BTreeSet<String>, conflicts: &mut 
             }
         };
         if let Some((use_start, use_end)) = use_window {
-            if use_start < window_start || use_end > window_end {
-                add_conflict(conflicts, "PART_USE_OUTSIDE_PLANNING_WINDOW");
+            if let Some((window_start, window_end)) = planning_window {
+                if use_start < window_start || use_end > window_end {
+                    add_conflict(conflicts, "PART_USE_OUTSIDE_PLANNING_WINDOW");
+                }
             }
             if let (Some(from), Some(until)) = (
                 u64_field(part, "available_from"),
@@ -604,6 +610,29 @@ mod tests {
                 case["expected"]
             );
         }
+    }
+
+    #[test]
+    fn missing_planning_window_does_not_hide_a_proven_hard_conflict() {
+        let mut case = corpus()["cases"][0].clone();
+        case["input"].as_object_mut().unwrap().remove("planning_window");
+        case["input"]["part_requirements"][0]["stock_state"] = json!("out_of_stock");
+        let result = evaluate_case(&case);
+        assert_eq!(result["plan_readiness"], "infeasible");
+        assert!(
+            result["reason_codes"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|reason| reason == "PART_OUT_OF_STOCK")
+        );
+        assert!(
+            result["reason_codes"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|reason| reason == "PLANNING_WINDOW_MISSING")
+        );
     }
 
     #[test]
