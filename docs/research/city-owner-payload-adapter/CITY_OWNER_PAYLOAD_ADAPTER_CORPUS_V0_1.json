@@ -558,7 +558,8 @@
             "payload_bytes_verified": true,
             "raw_byte_equality_verified": true,
             "owner_rights_state": "restricted",
-            "rights_use_declaration_state": "owner_declares_restricted"
+            "rights_use_declaration_state": "owner_declares_restricted",
+            "byte_length_comparison_state": "matched"
           }
         ],
         "report_disposition_state": "complete"
