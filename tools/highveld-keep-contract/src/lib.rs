@@ -1913,7 +1913,8 @@ mod tests {
         assert!(build_field_rules(&policy, "scenario", SCENARIO_SCHEMA_VERSION).is_none());
 
         let mut policy = parse_unique_json_bytes(STRICT_FIELD_POLICY_JSON.as_bytes()).unwrap();
-        policy["documents"]["scenario"]["schema_version"] = json!("luminous.habitat.reference-scenario/0.2");
+        policy["documents"]["scenario"]["schema_version"] =
+            json!("luminous.habitat.reference-scenario/0.2");
         assert!(build_field_rules(&policy, "scenario", SCENARIO_SCHEMA_VERSION).is_none());
     }
 
