@@ -1882,4 +1882,88 @@ mod tests {
         let report = validate_values(&scenario, &parameters);
         assert!(contains(&report, "SCENARIO_SCHEMA_VERSION_MISMATCH"));
     }
+
+    #[test]
+    fn strict_field_policy_rejects_unknown_root_document_and_path_fields() {
+        let policy = parse_unique_json_bytes(STRICT_FIELD_POLICY_JSON.as_bytes()).unwrap();
+
+        let mut root_extension = policy.clone();
+        root_extension["unreviewed_policy_extension"] = json!(true);
+        assert!(build_field_rules(
+            &root_extension,
+            "scenario",
+            SCENARIO_SCHEMA_VERSION
+        )
+        .is_none());
+
+        let mut document_extension = policy.clone();
+        document_extension["documents"]["scenario"]["unreviewed_policy_extension"] =
+            json!(true);
+        assert!(build_field_rules(
+            &document_extension,
+            "scenario",
+            SCENARIO_SCHEMA_VERSION
+        )
+        .is_none());
+
+        let mut path_extension = policy.clone();
+        path_extension["documents"]["scenario"]["object_paths"][0]
+            ["unreviewed_policy_extension"] = json!(true);
+        assert!(build_field_rules(
+            &path_extension,
+            "scenario",
+            SCENARIO_SCHEMA_VERSION
+        )
+        .is_none());
+    }
+
+    #[test]
+    fn strict_field_policy_must_bind_the_expected_source_and_schema_versions() {
+        let mut policy =
+            parse_unique_json_bytes(STRICT_FIELD_POLICY_JSON.as_bytes()).unwrap();
+        policy["documents"]["scenario"]["source_path"] = json!("other.json");
+        assert!(build_field_rules(
+            &policy,
+            "scenario",
+            SCENARIO_SCHEMA_VERSION
+        )
+        .is_none());
+
+        let mut policy =
+            parse_unique_json_bytes(STRICT_FIELD_POLICY_JSON.as_bytes()).unwrap();
+        policy["documents"]["scenario"]["schema_version"] = json!("luminous.habitat.reference-scenario/0.2");
+        assert!(build_field_rules(
+            &policy,
+            "scenario",
+            SCENARIO_SCHEMA_VERSION
+        )
+        .is_none());
+    }
+
+    #[test]
+    fn strict_field_policy_rejects_duplicate_paths_and_empty_allowlists() {
+        let mut policy =
+            parse_unique_json_bytes(STRICT_FIELD_POLICY_JSON.as_bytes()).unwrap();
+        let duplicate = policy["documents"]["scenario"]["object_paths"][0].clone();
+        policy["documents"]["scenario"]["object_paths"]
+            .as_array_mut()
+            .unwrap()
+            .push(duplicate);
+        assert!(build_field_rules(
+            &policy,
+            "scenario",
+            SCENARIO_SCHEMA_VERSION
+        )
+        .is_none());
+
+        let mut policy =
+            parse_unique_json_bytes(STRICT_FIELD_POLICY_JSON.as_bytes()).unwrap();
+        policy["documents"]["scenario"]["object_paths"][0]["allowed_keys"] = json!([]);
+        assert!(build_field_rules(
+            &policy,
+            "scenario",
+            SCENARIO_SCHEMA_VERSION
+        )
+        .is_none());
+    }
 }
