@@ -54,7 +54,7 @@ Unsupported or unversioned lanes return `insufficient_evidence`. A wrong or cont
 
 ## Corpus
 
-`CITY_IMPACT_LANE_ROUTER_CORPUS_V0_1.json` contains 28 synthetic known-answer cases:
+`CITY_IMPACT_LANE_ROUTER_CORPUS_V0_1.json` contains 32 synthetic known-answer cases:
 - correct artifact-frontier plus dependency-coverage envelope;
 - wrong-family substitution and missing required lanes;
 - source lifecycle v0.1 versus graph v0.2 incompatibility;
@@ -76,7 +76,7 @@ From the repository root:
       docs/research/city-impact-router/CITY_IMPACT_LANE_ROUTER_CORPUS_V0_1.json \
       --source-commit <40-lowercase-hex-sha>
 
-The CLI receipt binds the exact registry bytes, corpus bytes and source commit. A PASS means only that the router reproduces the 28 synthetic routing expectations.
+The CLI receipt binds the exact registry bytes, corpus bytes and source commit. A PASS means only that the router reproduces the 32 synthetic routing expectations.
 
 ## Benchmark targets
 
@@ -94,3 +94,16 @@ Do not optimize by reducing the insufficiency rate until the upstream owner cont
 ## Claim boundary
 
 The router only checks a declared registry and owner-report envelope. It does not verify the report bytes referenced by a digest, authenticate an owner's identity or authority, recompute impact, prove inventory completeness, certify engineering or issue approvals. Every receipt states `owner_report_content_verified=false`, `owner_authentication=not_performed`, and `action_authority=none`.
+
+
+## Bitemporal event binding
+
+Every change event now carries separate `valid_time` and `system_time` envelopes, and every owner report must bind to the exact same envelopes:
+
+- `valid_time.effective_at` / `effective_until` and `effective_time_confidence`;
+- `system_time.recorded_at`, `trusted_at` and `trusted_timestamp_receipt_sha256`;
+- the query's `evaluation_at`.
+
+The router requires canonical UTC whole-second timestamps. Unknown or disputed effective-time confidence yields Insufficient; a trusted timestamp before the recorded event is invalid; a report with a different temporal envelope is rejected. This is binding and ordering validation only. The router does not authenticate the trusted timestamp receipt or determine the truth of the asserted effective time.
+
+The corpus adds four temporal adversarial controls: missing recorded time, disputed effective-time confidence, reversed recorded/trusted time, and one owner report using a different system-time envelope.
