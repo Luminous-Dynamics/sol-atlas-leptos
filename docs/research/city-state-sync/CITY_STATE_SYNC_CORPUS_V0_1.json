@@ -2327,7 +2327,8 @@
             "horizon_id": "H-1",
             "recorded_at": 900,
             "ingested_at": 910,
-            "disposition": "recorded"
+            "disposition": "recorded",
+            "occurred_at": 890
           },
           {
             "event_id": "A",
@@ -2339,7 +2340,8 @@
             "horizon_id": "H-1",
             "recorded_at": 900,
             "ingested_at": 910,
-            "disposition": "recorded"
+            "disposition": "recorded",
+            "occurred_at": 890
           }
         ],
         "identity_links": []
@@ -2401,7 +2403,8 @@
             "horizon_id": "H-1",
             "recorded_at": 900,
             "ingested_at": 910,
-            "disposition": "recorded"
+            "disposition": "recorded",
+            "occurred_at": 890
           },
           {
             "event_id": "A",
@@ -2413,7 +2416,8 @@
             "horizon_id": "H-1",
             "recorded_at": 900,
             "ingested_at": 910,
-            "disposition": "recorded"
+            "disposition": "recorded",
+            "occurred_at": 890
           },
           {
             "event_id": "X",
@@ -2425,7 +2429,8 @@
             "horizon_id": "H-1",
             "recorded_at": 900,
             "ingested_at": 910,
-            "disposition": "recorded"
+            "disposition": "recorded",
+            "occurred_at": 890
           }
         ],
         "identity_links": []
@@ -2487,7 +2492,8 @@
             "horizon_id": "H-1",
             "recorded_at": 900,
             "ingested_at": 910,
-            "disposition": "recorded"
+            "disposition": "recorded",
+            "occurred_at": 890
           },
           {
             "event_id": "A",
@@ -2499,7 +2505,8 @@
             "horizon_id": "H-1",
             "recorded_at": 900,
             "ingested_at": 910,
-            "disposition": "recorded"
+            "disposition": "recorded",
+            "occurred_at": 890
           },
           {
             "event_id": "X",
@@ -2511,7 +2518,8 @@
             "horizon_id": "H-1",
             "recorded_at": 900,
             "ingested_at": 910,
-            "disposition": "recorded"
+            "disposition": "recorded",
+            "occurred_at": 890
           },
           {
             "event_id": "C",
@@ -2523,7 +2531,8 @@
             "horizon_id": "H-1",
             "recorded_at": 900,
             "ingested_at": 910,
-            "disposition": "passed"
+            "disposition": "passed",
+            "occurred_at": 890
           }
         ],
         "identity_links": []
@@ -2585,7 +2594,8 @@
             "horizon_id": "H-1",
             "recorded_at": 900,
             "ingested_at": 910,
-            "disposition": "recorded"
+            "disposition": "recorded",
+            "occurred_at": 890
           },
           {
             "event_id": "A",
@@ -2597,7 +2607,8 @@
             "horizon_id": "H-1",
             "recorded_at": 900,
             "ingested_at": 910,
-            "disposition": "recorded"
+            "disposition": "recorded",
+            "occurred_at": 890
           },
           {
             "event_id": "X",
@@ -2609,7 +2620,8 @@
             "horizon_id": "H-1",
             "recorded_at": 900,
             "ingested_at": 910,
-            "disposition": "recorded"
+            "disposition": "recorded",
+            "occurred_at": 890
           },
           {
             "event_id": "C",
@@ -2621,7 +2633,8 @@
             "horizon_id": "H-1",
             "recorded_at": 900,
             "ingested_at": 910,
-            "disposition": "passed"
+            "disposition": "passed",
+            "occurred_at": 890
           },
           {
             "event_id": "O",
@@ -2633,7 +2646,8 @@
             "horizon_id": "H-1",
             "recorded_at": 900,
             "ingested_at": 910,
-            "disposition": "recorded"
+            "disposition": "recorded",
+            "occurred_at": 890
           }
         ],
         "identity_links": []
@@ -3301,6 +3315,240 @@
           }
         ],
         "interventions": [],
+        "identity_links": [],
+        "claim_ceiling": "synthetic_temporal_state_and_feedback_semantics_only"
+      }
+    },
+    {
+      "case_id": "CS-031",
+      "description": "Missing ingestion-time cutoff cannot admit an event as visible",
+      "input": {
+        "as_of": {
+          "valid_at": 1000,
+          "recorded_at": 1100
+        },
+        "freshness_policies": [
+          {
+            "policy_id": "P-1",
+            "owner_repo": "owner/a",
+            "contract_id": "asset-state",
+            "contract_version": "1.0",
+            "expected_refresh_seconds": 60,
+            "max_observation_age_seconds": 300,
+            "max_record_delay_seconds": 120,
+            "max_ingest_lag_seconds": 120,
+            "max_clock_uncertainty_ms": 100
+          }
+        ],
+        "owner_health": [
+          {
+            "owner_repo": "owner/a",
+            "state": "available"
+          }
+        ],
+        "required_subjects": [
+          {
+            "owner_repo": "owner/a",
+            "subject_id": "asset-1",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "contract_id": "asset-state",
+            "contract_version": "1.0"
+          }
+        ],
+        "events": [
+          {
+            "event_id": "E-1",
+            "receipt_id": "R-E-1",
+            "owner_repo": "owner/a",
+            "contract_id": "asset-state",
+            "contract_version": "1.0",
+            "source_revision": "0123456789012345678901234567890123456789",
+            "schema_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "content_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "subject_id": "asset-1",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "owner_sequence": 1,
+            "event_kind": "assertion",
+            "target_event_id": null,
+            "target_subject_id": null,
+            "owner_state": "Available",
+            "evidence_state": "admitted",
+            "valid_from": 0,
+            "valid_until": null,
+            "observed_at": 950,
+            "recorded_at": 960,
+            "ingested_at": 970,
+            "time_basis": "UTC_UNIX_SECONDS",
+            "timezone": "UTC",
+            "clock_id": "clock-1",
+            "clock_uncertainty_ms": 5,
+            "freshness_policy_id": "P-1"
+          }
+        ],
+        "intervention_stages": [],
+        "identity_links": []
+      },
+      "expected": {
+        "case_id": "CS-031",
+        "entities": [
+          {
+            "owner_repo": "owner/a",
+            "subject_id": "asset-1",
+            "state": "Unknown",
+            "selected_event_id": null,
+            "owner_state": null,
+            "reason_codes": [
+              "NO_VISIBLE_OWNER_EVENT"
+            ],
+            "historical_event_ids": []
+          }
+        ],
+        "interventions": [],
+        "identity_links": [],
+        "claim_ceiling": "synthetic_temporal_state_and_feedback_semantics_only"
+      }
+    },
+    {
+      "case_id": "CS-032",
+      "description": "Duplicate event identity across intervention stages is unsupported",
+      "input": {
+        "as_of": {
+          "valid_at": 1000,
+          "recorded_at": 1100,
+          "ingested_at": 1200
+        },
+        "freshness_policies": [
+          {
+            "policy_id": "P-1",
+            "owner_repo": "owner/a",
+            "contract_id": "asset-state",
+            "contract_version": "1.0",
+            "expected_refresh_seconds": 60,
+            "max_observation_age_seconds": 300,
+            "max_record_delay_seconds": 120,
+            "max_ingest_lag_seconds": 120,
+            "max_clock_uncertainty_ms": 100
+          }
+        ],
+        "owner_health": [
+          {
+            "owner_repo": "owner/a",
+            "state": "available"
+          }
+        ],
+        "required_subjects": [],
+        "events": [],
+        "intervention_stages": [
+          {
+            "event_id": "S-1",
+            "intervention_id": "I-1",
+            "stage": "proposal",
+            "predecessor_event_id": null,
+            "owner_repo": "owner/a",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "horizon_id": "H-1",
+            "occurred_at": 890,
+            "recorded_at": 900,
+            "ingested_at": 910,
+            "disposition": "recorded"
+          },
+          {
+            "event_id": "S-1",
+            "intervention_id": "I-1",
+            "stage": "approval",
+            "predecessor_event_id": "S-1",
+            "owner_repo": "owner/a",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "horizon_id": "H-1",
+            "occurred_at": 891,
+            "recorded_at": 901,
+            "ingested_at": 911,
+            "disposition": "recorded"
+          }
+        ],
+        "identity_links": []
+      },
+      "expected": {
+        "case_id": "CS-032",
+        "entities": [],
+        "interventions": [
+          {
+            "intervention_id": "I-1",
+            "state": "Unsupported",
+            "workflow_complete": false,
+            "causal_effect_established": false,
+            "reason_codes": [
+              "INTERVENTION_EVENT_ID_MISSING_OR_DUPLICATE"
+            ]
+          }
+        ],
+        "identity_links": [],
+        "claim_ceiling": "synthetic_temporal_state_and_feedback_semantics_only"
+      }
+    },
+    {
+      "case_id": "CS-033",
+      "description": "Future-valid intervention event is excluded from an earlier valid-time projection",
+      "input": {
+        "as_of": {
+          "valid_at": 1000,
+          "recorded_at": 1100,
+          "ingested_at": 1200
+        },
+        "freshness_policies": [
+          {
+            "policy_id": "P-1",
+            "owner_repo": "owner/a",
+            "contract_id": "asset-state",
+            "contract_version": "1.0",
+            "expected_refresh_seconds": 60,
+            "max_observation_age_seconds": 300,
+            "max_record_delay_seconds": 120,
+            "max_ingest_lag_seconds": 120,
+            "max_clock_uncertainty_ms": 100
+          }
+        ],
+        "owner_health": [
+          {
+            "owner_repo": "owner/a",
+            "state": "available"
+          }
+        ],
+        "required_subjects": [],
+        "events": [],
+        "intervention_stages": [
+          {
+            "event_id": "FUTURE",
+            "intervention_id": "I-1",
+            "stage": "proposal",
+            "predecessor_event_id": null,
+            "owner_repo": "owner/a",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "horizon_id": "H-1",
+            "occurred_at": 1100,
+            "recorded_at": 900,
+            "ingested_at": 910,
+            "disposition": "recorded"
+          }
+        ],
+        "identity_links": []
+      },
+      "expected": {
+        "case_id": "CS-033",
+        "entities": [],
+        "interventions": [
+          {
+            "intervention_id": "I-1",
+            "state": "Unknown",
+            "workflow_complete": false,
+            "causal_effect_established": false,
+            "reason_codes": [
+              "NO_VISIBLE_INTERVENTION_STAGE"
+            ]
+          }
+        ],
         "identity_links": [],
         "claim_ceiling": "synthetic_temporal_state_and_feedback_semantics_only"
       }
