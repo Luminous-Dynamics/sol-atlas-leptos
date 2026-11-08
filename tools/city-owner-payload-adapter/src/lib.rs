@@ -431,7 +431,7 @@ fn evaluate_artifact(
         let result_expected_sha = record.get("expected_sha256").and_then(Value::as_str);
         let result_object_ref = record.get("object_ref").and_then(Value::as_str);
         let result_expected_length = record.get("expected_byte_length").and_then(Value::as_u64);
-        if result.get("expected_sha256").and_then(Value::as_str) != expected_sha
+        if record.get("expected_sha256").and_then(Value::as_str) != expected_sha
             || result_object_ref
                 != if object_ref.is_empty() {
                     None
