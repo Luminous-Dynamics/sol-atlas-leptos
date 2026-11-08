@@ -622,6 +622,46 @@ mod tests {
     }
 
     #[test]
+    fn registry_authority_escalation_is_rejected_before_routing() {
+        let mut r = registry();
+        r["action_authority"] = Value::String("construction_release".into());
+        let result = evaluate_case(&corpus()["cases"][0], &r);
+        assert_eq!(result["route_state"], "invalid_input");
+        assert!(
+            result["reason_codes"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|reason| reason == "OWNER_LANE_REGISTRY_IDENTITY_INVALID")
+        );
+    }
+
+    #[test]
+    fn missing_effective_until_is_not_treated_as_open_ended() {
+        let r = registry();
+        let mut case = corpus()["cases"][0].clone();
+        case["input"]["event"]["valid_time"]
+            .as_object_mut()
+            .unwrap()
+            .remove("effective_until");
+        for report in case["input"]["owner_reports"].as_array_mut().unwrap() {
+            report["valid_time"]
+                .as_object_mut()
+                .unwrap()
+                .remove("effective_until");
+        }
+        let result = evaluate_case(&case, &r);
+        assert_eq!(result["route_state"], "insufficient_evidence");
+        assert!(
+            result["reason_codes"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|reason| reason == "CHANGE_EVENT_TEMPORAL_BINDING_INCOMPLETE")
+        );
+    }
+
+    #[test]
     fn a_structurally_valid_but_wrong_lane_report_is_rejected() {
         let r = registry();
         let mut case = corpus()["cases"][0].clone();
