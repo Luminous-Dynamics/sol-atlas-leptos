@@ -839,8 +839,10 @@ mod tests {
 
     #[test]
     fn duplicate_event_ids_are_unsupported() {
-        let data = input(vec![event("E-1", 1, 950, 960, 970),
-            event("E-1", 2, 951, 961, 971)]);
+        let data = input(vec![
+            event("E-1", 1, 950, 960, 970),
+            event("E-1", 2, 951, 961, 971),
+        ]);
         let case = json!({"case_id":"duplicate","input":data});
         let result = evaluate_case(&case);
         assert_eq!(result["entities"][0]["state"], "Unsupported");
