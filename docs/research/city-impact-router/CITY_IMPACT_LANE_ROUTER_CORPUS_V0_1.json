@@ -18,7 +18,7 @@
           "subject_revision": "REV-2",
           "source_revision_before": "REV-1",
           "source_revision_after": "REV-2",
-          "time_basis": "UTC_UNIX_SECONDS",
+          "time_basis": "UTC_RFC3339_SECONDS",
           "valid_time": {
             "effective_at": "2026-11-07T00:00:00Z",
             "effective_until": null,
@@ -142,7 +142,7 @@
           "subject_revision": "REV-2",
           "source_revision_before": "REV-1",
           "source_revision_after": "REV-2",
-          "time_basis": "UTC_UNIX_SECONDS",
+          "time_basis": "UTC_RFC3339_SECONDS",
           "valid_time": {
             "effective_at": "2026-11-07T00:00:00Z",
             "effective_until": null,
@@ -230,7 +230,7 @@
           "subject_revision": "REV-2",
           "source_revision_before": "REV-1",
           "source_revision_after": "REV-2",
-          "time_basis": "UTC_UNIX_SECONDS",
+          "time_basis": "UTC_RFC3339_SECONDS",
           "valid_time": {
             "effective_at": "2026-11-07T00:00:00Z",
             "effective_until": null,
@@ -323,7 +323,7 @@
           "subject_revision": "REV-2",
           "source_revision_before": "REV-1",
           "source_revision_after": "REV-2",
-          "time_basis": "UTC_UNIX_SECONDS",
+          "time_basis": "UTC_RFC3339_SECONDS",
           "valid_time": {
             "effective_at": "2026-11-07T00:00:00Z",
             "effective_until": null,
@@ -452,7 +452,7 @@
           "subject_revision": "REV-2",
           "source_revision_before": "REV-1",
           "source_revision_after": "REV-2",
-          "time_basis": "UTC_UNIX_SECONDS",
+          "time_basis": "UTC_RFC3339_SECONDS",
           "valid_time": {
             "effective_at": "2026-11-07T00:00:00Z",
             "effective_until": null,
@@ -576,7 +576,7 @@
           "subject_revision": "REV-2",
           "source_revision_before": "REV-1",
           "source_revision_after": "REV-2",
-          "time_basis": "UTC_UNIX_SECONDS",
+          "time_basis": "UTC_RFC3339_SECONDS",
           "valid_time": {
             "effective_at": "2026-11-07T00:00:00Z",
             "effective_until": null,
@@ -664,7 +664,7 @@
           "subject_revision": "REV-2",
           "source_revision_before": "REV-1",
           "source_revision_after": "REV-2",
-          "time_basis": "UTC_UNIX_SECONDS",
+          "time_basis": "UTC_RFC3339_SECONDS",
           "valid_time": {
             "effective_at": "2026-11-07T00:00:00Z",
             "effective_until": null,
@@ -750,7 +750,7 @@
           "subject_revision": "REV-2",
           "source_revision_before": "REV-1",
           "source_revision_after": "REV-2",
-          "time_basis": "UTC_UNIX_SECONDS",
+          "time_basis": "UTC_RFC3339_SECONDS",
           "valid_time": {
             "effective_at": "2026-11-07T00:00:00Z",
             "effective_until": null,
@@ -838,7 +838,7 @@
           "subject_revision": "REV-2",
           "source_revision_before": "REV-1",
           "source_revision_after": "REV-2",
-          "time_basis": "UTC_UNIX_SECONDS",
+          "time_basis": "UTC_RFC3339_SECONDS",
           "valid_time": {
             "effective_at": "2026-11-07T00:00:00Z",
             "effective_until": null,
@@ -924,7 +924,7 @@
           "subject_revision": "REV-2",
           "source_revision_before": "REV-1",
           "source_revision_after": "REV-2",
-          "time_basis": "UTC_UNIX_SECONDS",
+          "time_basis": "UTC_RFC3339_SECONDS",
           "valid_time": {
             "effective_at": "2026-11-07T00:00:00Z",
             "effective_until": null,
@@ -1053,7 +1053,7 @@
           "subject_revision": "REV-2",
           "source_revision_before": "REV-1",
           "source_revision_after": "REV-2",
-          "time_basis": "UTC_UNIX_SECONDS",
+          "time_basis": "UTC_RFC3339_SECONDS",
           "valid_time": {
             "effective_at": "2026-11-07T00:00:00Z",
             "effective_until": null,
@@ -1139,7 +1139,7 @@
           "subject_revision": "REV-2",
           "source_revision_before": "REV-1",
           "source_revision_after": "REV-2",
-          "time_basis": "UTC_UNIX_SECONDS",
+          "time_basis": "UTC_RFC3339_SECONDS",
           "valid_time": {
             "effective_at": "2026-11-07T00:00:00Z",
             "effective_until": null,
@@ -1263,7 +1263,7 @@
           "subject_revision": "REV-2",
           "source_revision_before": "REV-1",
           "source_revision_after": "REV-2",
-          "time_basis": "UTC_UNIX_SECONDS",
+          "time_basis": "UTC_RFC3339_SECONDS",
           "valid_time": {
             "effective_at": "2026-11-07T00:00:00Z",
             "effective_until": null,
@@ -1387,7 +1387,7 @@
           "subject_revision": "REV-2",
           "source_revision_before": "REV-1",
           "source_revision_after": "REV-2",
-          "time_basis": "UTC_UNIX_SECONDS",
+          "time_basis": "UTC_RFC3339_SECONDS",
           "valid_time": {
             "effective_at": "2026-11-07T00:00:00Z",
             "effective_until": null,
@@ -1511,7 +1511,7 @@
           "subject_revision": "REV-2",
           "source_revision_before": "REV-1",
           "source_revision_after": "REV-2",
-          "time_basis": "UTC_UNIX_SECONDS",
+          "time_basis": "UTC_RFC3339_SECONDS",
           "valid_time": {
             "effective_at": "2026-11-07T00:00:00Z",
             "effective_until": null,
@@ -1635,7 +1635,7 @@
           "subject_revision": "REV-2",
           "source_revision_before": "REV-1",
           "source_revision_after": "REV-2",
-          "time_basis": "UTC_UNIX_SECONDS",
+          "time_basis": "UTC_RFC3339_SECONDS",
           "valid_time": {
             "effective_at": "2026-11-07T00:00:00Z",
             "effective_until": null,
@@ -1759,7 +1759,7 @@
           "subject_revision": "REV-2",
           "source_revision_before": "REV-1",
           "source_revision_after": "REV-2",
-          "time_basis": "UTC_UNIX_SECONDS",
+          "time_basis": "UTC_RFC3339_SECONDS",
           "valid_time": {
             "effective_at": "2026-11-07T00:00:00Z",
             "effective_until": null,
@@ -1883,7 +1883,7 @@
           "subject_revision": "REV-2",
           "source_revision_before": "REV-1",
           "source_revision_after": "REV-2",
-          "time_basis": "UTC_UNIX_SECONDS",
+          "time_basis": "UTC_RFC3339_SECONDS",
           "valid_time": {
             "effective_at": "2026-11-07T00:00:00Z",
             "effective_until": null,
@@ -2007,7 +2007,7 @@
           "subject_revision": "REV-2",
           "source_revision_before": "REV-1",
           "source_revision_after": "REV-2",
-          "time_basis": "UTC_UNIX_SECONDS",
+          "time_basis": "UTC_RFC3339_SECONDS",
           "valid_time": {
             "effective_at": "2026-11-07T00:00:00Z",
             "effective_until": null,
@@ -2136,7 +2136,7 @@
           "subject_revision": "REV-2",
           "source_revision_before": "REV-1",
           "source_revision_after": "REV-2",
-          "time_basis": "UTC_UNIX_SECONDS",
+          "time_basis": "UTC_RFC3339_SECONDS",
           "valid_time": {
             "effective_at": "2026-11-07T00:00:00Z",
             "effective_until": null,
@@ -2298,7 +2298,7 @@
           "subject_revision": "REV-2",
           "source_revision_before": "REV-1",
           "source_revision_after": "REV-2",
-          "time_basis": "UTC_UNIX_SECONDS",
+          "time_basis": "UTC_RFC3339_SECONDS",
           "valid_time": {
             "effective_at": "2026-11-07T00:00:00Z",
             "effective_until": null,
@@ -2422,7 +2422,7 @@
           "subject_revision": "REV-2",
           "source_revision_before": "REV-1",
           "source_revision_after": "REV-2",
-          "time_basis": "UTC_UNIX_SECONDS",
+          "time_basis": "UTC_RFC3339_SECONDS",
           "valid_time": {
             "effective_at": "2026-11-07T00:00:00Z",
             "effective_until": null,
@@ -2584,7 +2584,7 @@
           "subject_revision": "REV-2",
           "source_revision_before": "REV-1",
           "source_revision_after": "REV-2",
-          "time_basis": "UTC_UNIX_SECONDS",
+          "time_basis": "UTC_RFC3339_SECONDS",
           "valid_time": {
             "effective_at": "2026-11-07T00:00:00Z",
             "effective_until": null,
@@ -2626,7 +2626,7 @@
           "subject_revision": "REV-2",
           "source_revision_before": "REV-1",
           "source_revision_after": "REV-2",
-          "time_basis": "UTC_UNIX_SECONDS",
+          "time_basis": "UTC_RFC3339_SECONDS",
           "valid_time": {
             "effective_at": "2026-11-07T00:00:00Z",
             "effective_until": null,
@@ -2788,7 +2788,7 @@
           "subject_revision": "REV-2",
           "source_revision_before": "REV-1",
           "source_revision_after": "REV-2",
-          "time_basis": "UTC_UNIX_SECONDS",
+          "time_basis": "UTC_RFC3339_SECONDS",
           "valid_time": {
             "effective_at": "2026-11-07T00:00:00Z",
             "effective_until": null,
@@ -2947,7 +2947,7 @@
           "subject_revision": "REV-2",
           "source_revision_before": "REV-1",
           "source_revision_after": "REV-2",
-          "time_basis": "UTC_UNIX_SECONDS",
+          "time_basis": "UTC_RFC3339_SECONDS",
           "valid_time": {
             "effective_at": "2026-11-07T00:00:00Z",
             "effective_until": null,
@@ -3071,7 +3071,7 @@
           "subject_revision": "REV-2",
           "source_revision_before": "REV-1",
           "source_revision_after": "REV-2",
-          "time_basis": "UTC_UNIX_SECONDS",
+          "time_basis": "UTC_RFC3339_SECONDS",
           "valid_time": {
             "effective_at": "2026-11-07T00:00:00Z",
             "effective_until": null,
@@ -3195,7 +3195,7 @@
           "subject_revision": "REV-2",
           "source_revision_before": "REV-1",
           "source_revision_after": "REV-2",
-          "time_basis": "UTC_UNIX_SECONDS",
+          "time_basis": "UTC_RFC3339_SECONDS",
           "valid_time": {
             "effective_at": "2026-11-07T00:00:00Z",
             "effective_until": null,
@@ -3357,7 +3357,7 @@
           "subject_revision": "REV-2",
           "source_revision_before": "REV-1",
           "source_revision_after": "REV-2",
-          "time_basis": "UTC_UNIX_SECONDS",
+          "time_basis": "UTC_RFC3339_SECONDS",
           "valid_time": {
             "effective_at": "2026-11-07T00:00:00Z",
             "effective_until": null,
@@ -3480,7 +3480,7 @@
           "subject_revision": "REV-2",
           "source_revision_before": "REV-1",
           "source_revision_after": "REV-2",
-          "time_basis": "UTC_UNIX_SECONDS",
+          "time_basis": "UTC_RFC3339_SECONDS",
           "valid_time": {
             "effective_at": "2026-11-07T00:00:00Z",
             "effective_until": null,
@@ -3606,7 +3606,7 @@
           "subject_revision": "REV-2",
           "source_revision_before": "REV-1",
           "source_revision_after": "REV-2",
-          "time_basis": "UTC_UNIX_SECONDS",
+          "time_basis": "UTC_RFC3339_SECONDS",
           "valid_time": {
             "effective_at": "2026-11-07T00:00:00Z",
             "effective_until": null,
@@ -3732,7 +3732,7 @@
           "subject_revision": "REV-2",
           "source_revision_before": "REV-1",
           "source_revision_after": "REV-2",
-          "time_basis": "UTC_UNIX_SECONDS",
+          "time_basis": "UTC_RFC3339_SECONDS",
           "valid_time": {
             "effective_at": "2026-11-07T00:00:00Z",
             "effective_until": null,
