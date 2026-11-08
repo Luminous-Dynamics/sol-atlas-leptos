@@ -213,7 +213,8 @@
                   "historical_evaluation_at",
                   "time_basis",
                   "scope_id",
-                  "functional_unit"
+                  "functional_unit",
+                  "scope_digest"
                 ],
                 "properties": {
                   "evaluation_at": {
@@ -237,6 +238,10 @@
                   "functional_unit": {
                     "type": "string",
                     "minLength": 1
+                  },
+                  "scope_digest": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{64}$"
                   }
                 }
               },
@@ -312,7 +317,8 @@
                       "scope_id",
                       "coverage_receipt_id",
                       "base_graph_snapshot_digest",
-                      "claim_findings"
+                      "claim_findings",
+                      "scope_digest"
                     ],
                     "properties": {
                       "report_id": {
@@ -413,6 +419,10 @@
                             }
                           }
                         }
+                      },
+                      "scope_digest": {
+                        "type": "string",
+                        "pattern": "^[0-9a-f]{64}$"
                       }
                     }
                   },
@@ -441,7 +451,8 @@
                     "dependency_subjects",
                     "historical_status",
                     "scope_id",
-                    "functional_unit"
+                    "functional_unit",
+                    "scope_digest"
                   ],
                   "properties": {
                     "claim_id": {
@@ -486,6 +497,10 @@
                         "current_claim",
                         "historical_record"
                       ]
+                    },
+                    "scope_digest": {
+                      "type": "string",
+                      "pattern": "^[0-9a-f]{64}$"
                     }
                   }
                 }
@@ -500,7 +515,8 @@
                     "claim_id",
                     "subject_revision",
                     "scope_id",
-                    "state"
+                    "state",
+                    "scope_digest"
                   ],
                   "properties": {
                     "receipt_id": {
@@ -549,6 +565,10 @@
                         "stale",
                         "unknown"
                       ]
+                    },
+                    "scope_digest": {
+                      "type": "string",
+                      "pattern": "^[0-9a-f]{64}$"
                     }
                   }
                 }
