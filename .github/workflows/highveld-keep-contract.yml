@@ -5,12 +5,16 @@ on:
     paths:
       - "docs/research/highveld-keep/HIGHVELD_KEEP_SCENARIO_V0_1.json"
       - "docs/research/highveld-keep/HIGHVELD_KEEP_PARAMETER_SPACE_V0_1.json"
+      - "docs/research/highveld-keep/HIGHVELD_KEEP_RESILIENCE_BINDING_V0_1.json"
+      - "docs/research/highveld-keep/HIGHVELD_KEEP_RESILIENCE_BINDING_V0_1.schema.json"
       - "tools/highveld-keep-contract/**"
       - ".github/workflows/highveld-keep-contract.yml"
   pull_request:
     paths:
       - "docs/research/highveld-keep/HIGHVELD_KEEP_SCENARIO_V0_1.json"
       - "docs/research/highveld-keep/HIGHVELD_KEEP_PARAMETER_SPACE_V0_1.json"
+      - "docs/research/highveld-keep/HIGHVELD_KEEP_RESILIENCE_BINDING_V0_1.json"
+      - "docs/research/highveld-keep/HIGHVELD_KEEP_RESILIENCE_BINDING_V0_1.schema.json"
       - "tools/highveld-keep-contract/**"
       - ".github/workflows/highveld-keep-contract.yml"
   workflow_dispatch:
