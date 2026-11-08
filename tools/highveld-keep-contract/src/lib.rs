@@ -3180,4 +3180,111 @@ mod tests {
         let report = validate_values(&scenario, &parameters);
         assert!(contains(&report, "UNQUALIFIED_PRODUCT_REFERENCE_PROMOTED"));
     }
+
+    #[test]
+    fn unknown_scenario_root_field_is_rejected() {
+        let (mut scenario, parameters) = documents();
+        scenario["unreviewed_root_extension"] = json!(true);
+        let report = validate_values(&scenario, &parameters);
+        assert!(contains(&report, "SCENARIO_JSON_UNKNOWN_OR_UNDECLARED_FIELD"));
+    }
+
+    #[test]
+    fn unknown_parameter_root_field_is_rejected() {
+        let (scenario, mut parameters) = documents();
+        parameters["unreviewed_root_extension"] = json!(true);
+        let report = validate_values(&scenario, &parameters);
+        assert!(contains(&report, "PARAMETER_JSON_UNKNOWN_OR_UNDECLARED_FIELD"));
+    }
+
+    #[test]
+    fn unknown_nested_scenario_fields_are_rejected_at_each_declared_depth() {
+        let (mut scenario, parameters) = documents();
+        scenario["climate_inputs"]["unreviewed_nested_field"] = json!(true);
+        let report = validate_values(&scenario, &parameters);
+        assert!(contains(&report, "SCENARIO_JSON_UNKNOWN_OR_UNDECLARED_FIELD"));
+
+        let (mut scenario, parameters) = documents();
+        scenario["geography"]["unreviewed_nested_field"] = json!(true);
+        let report = validate_values(&scenario, &parameters);
+        assert!(contains(&report, "SCENARIO_JSON_UNKNOWN_OR_UNDECLARED_FIELD"));
+
+        let (mut scenario, parameters) = documents();
+        scenario["architectural_alternatives"][0]["unreviewed_nested_field"] = json!(true);
+        let report = validate_values(&scenario, &parameters);
+        assert!(contains(&report, "SCENARIO_JSON_UNKNOWN_OR_UNDECLARED_FIELD"));
+
+        let (mut scenario, parameters) = documents();
+        scenario["functional_relationships"][0]["unreviewed_nested_field"] = json!(true);
+        let report = validate_values(&scenario, &parameters);
+        assert!(contains(&report, "SCENARIO_JSON_UNKNOWN_OR_UNDECLARED_FIELD"));
+    }
+
+    #[test]
+    fn unknown_nested_parameter_variable_field_is_rejected() {
+        let (scenario, mut parameters) = documents();
+        parameters["topology_variables"][0]["unreviewed_nested_field"] = json!(true);
+        let report = validate_values(&scenario, &parameters);
+        assert!(contains(&report, "PARAMETER_JSON_UNKNOWN_OR_UNDECLARED_FIELD"));
+    }
+
+    #[test]
+    fn duplicate_scenario_id_with_identical_value_is_rejected_before_map_parsing() {
+        let needle = "\\"scenario_id\\": \\"HIGHVELD-KEEP-SYNTHETIC-001\\",";
+        let replacement = format!(
+            "{needle}\\n  \\"scenario_id\\": \\"HIGHVELD-KEEP-SYNTHETIC-001\\","
+        );
+        let raw = SCENARIO_JSON.replacen(needle, &replacement, 1);
+        assert_ne!(raw, SCENARIO_JSON);
+        let error = parse_unique_json_bytes(raw.as_bytes()).unwrap_err();
+        assert!(error.contains("JSON_DUPLICATE_MEMBER_KEY:scenario_id"));
+    }
+
+    #[test]
+    fn duplicate_claim_ceiling_with_conflicting_value_is_rejected() {
+        let needle = "\\"claim_ceiling\\": \\"synthetic_requirements_and_design_space_only\\",";
+        let replacement = format!(
+            "{needle}\\n  \\"claim_ceiling\\": \\"unbounded_approval\\","
+        );
+        let raw = SCENARIO_JSON.replacen(needle, &replacement, 1);
+        assert_ne!(raw, SCENARIO_JSON);
+        let error = parse_unique_json_bytes(raw.as_bytes()).unwrap_err();
+        assert!(error.contains("JSON_DUPLICATE_MEMBER_KEY:claim_ceiling"));
+    }
+
+    #[test]
+    fn duplicate_nested_status_key_is_rejected() {
+        let needle = "\\"status\\": \\"UNKNOWN_NO_REAL_PARCEL_SELECTED\\",";
+        let replacement = format!(
+            "{needle}\\n    \\"status\\": \\"DISPUTED\\","
+        );
+        let raw = SCENARIO_JSON.replacen(needle, &replacement, 1);
+        assert_ne!(raw, SCENARIO_JSON);
+        let error = parse_unique_json_bytes(raw.as_bytes()).unwrap_err();
+        assert!(error.contains("JSON_DUPLICATE_MEMBER_KEY:status"));
+    }
+
+    #[test]
+    fn escaped_duplicate_json_keys_are_compared_after_decoding() {
+        let raw = br#"{"key":1,"\\u006bey":2}"#;
+        let error = parse_unique_json_bytes(raw).unwrap_err();
+        assert!(error.contains("JSON_DUPLICATE_MEMBER_KEY:key"));
+    }
+
+    #[test]
+    fn malformed_and_non_utf8_json_are_rejected() {
+        assert!(parse_unique_json_bytes(br#"{"value":]"#).is_err());
+        assert_eq!(
+            parse_unique_json_bytes(&[b'{', 0xff, b'}']).unwrap_err(),
+            "JSON_NOT_UTF8"
+        );
+    }
+
+    #[test]
+    fn schema_version_change_requires_an_explicit_profile_update() {
+        let (mut scenario, parameters) = documents();
+        scenario["schema_version"] = json!("luminous.habitat.reference-scenario/0.2");
+        let report = validate_values(&scenario, &parameters);
+        assert!(contains(&report, "SCENARIO_SCHEMA_VERSION_MISMATCH"));
+    }
 }
