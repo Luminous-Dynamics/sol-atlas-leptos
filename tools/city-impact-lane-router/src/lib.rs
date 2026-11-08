@@ -34,6 +34,45 @@ fn is_lower_hex(value: &str, length: usize) -> bool {
 }
 
 
+fn valid_utc_timestamp(value: &str) -> bool {
+    let bytes = value.as_bytes();
+    if bytes.len() != 20
+        || bytes[4] != b'-'
+        || bytes[7] != b'-'
+        || bytes[10] != b'T'
+        || bytes[13] != b':'
+        || bytes[16] != b':'
+        || bytes[19] != b'Z'
+    {
+        return false;
+    }
+    for index in [0, 1, 2, 3, 5, 6, 8, 9, 11, 12, 14, 15, 17, 18] {
+        if !bytes[index].is_ascii_digit() {
+            return false;
+        }
+    }
+    let year = value[0..4].parse::<u32>().ok();
+    let month = value[5..7].parse::<u32>().ok();
+    let day = value[8..10].parse::<u32>().ok();
+    let hour = value[11..13].parse::<u32>().ok();
+    let minute = value[14..16].parse::<u32>().ok();
+    let second = value[17..19].parse::<u32>().ok();
+    let (Some(year), Some(month), Some(day), Some(hour), Some(minute), Some(second)) =
+        (year, month, day, hour, minute, second)
+    else {
+        return false;
+    };
+    let leap_year = year % 4 == 0 && (year % 100 != 0 || year % 400 == 0);
+    let max_day = match month {
+        1 | 3 | 5 | 7 | 8 | 10 | 12 => 31,
+        4 | 6 | 9 | 11 => 30,
+        2 if leap_year => 29,
+        2 => 28,
+        _ => 0,
+    };
+    day >= 1 && day <= max_day && hour <= 23 && minute <= 59 && second <= 59
+}
+
 fn lane_definition<'a>(registry: &'a Value, family: &str) -> Option<&'a Value> {
     array(registry, "lanes")
         .iter()
@@ -188,6 +227,11 @@ fn evaluate_lane(
     {
         reasons.insert("OWNER_REPORT_SUBJECT_BINDING_MISMATCH".to_owned());
     }
+    if report.get("valid_time") != event.get("valid_time")
+        || report.get("system_time") != event.get("system_time")
+    {
+        reasons.insert("OWNER_REPORT_TEMPORAL_BINDING_MISMATCH".to_owned());
+    }
     if text(report, "scope_id") != text(query, "scope_id")
         || text(report, "scope_digest") != text(query, "scope_digest")
         || text(report, "functional_unit") != text(query, "functional_unit")
@@ -272,10 +316,40 @@ pub fn evaluate_case(case: &Value, registry: &Value) -> Value {
     {
         global_reasons.insert("CHANGE_EVENT_BINDING_INCOMPLETE".to_owned());
     }
+    let valid_time = event.get("valid_time").unwrap_or(&Value::Null);
+    let effective_at = text(valid_time, "effective_at");
+    let effective_until = text(valid_time, "effective_until");
+    let confidence = text(valid_time, "effective_time_confidence");
+    if !valid_utc_timestamp(effective_at)
+        || (!effective_until.is_empty() && !valid_utc_timestamp(effective_until))
+        || !matches!(confidence, "verified" | "authority_asserted" | "unknown" | "disputed")
+    {
+        global_reasons.insert("CHANGE_EVENT_TEMPORAL_BINDING_INCOMPLETE".to_owned());
+    } else {
+        if matches!(confidence, "unknown" | "disputed") || confidence != "verified" {
+            global_reasons.insert("EVENT_EFFECTIVE_TIME_UNQUALIFIED".to_owned());
+        }
+        if !effective_until.is_empty() && effective_until < effective_at {
+            global_reasons.insert("EVENT_VALID_TIME_WINDOW_INVALID".to_owned());
+        }
+    }
+    let system_time = event.get("system_time").unwrap_or(&Value::Null);
+    let recorded_at = text(system_time, "recorded_at");
+    let trusted_at = text(system_time, "trusted_at");
+    let trusted_receipt = text(system_time, "trusted_timestamp_receipt_sha256");
+    if !valid_utc_timestamp(recorded_at)
+        || (!trusted_at.is_empty() && !valid_utc_timestamp(trusted_at))
+        || (!trusted_receipt.is_empty() && !is_lower_hex(trusted_receipt, 64))
+        || (trusted_at.is_empty() != trusted_receipt.is_empty())
+    {
+        global_reasons.insert("CHANGE_EVENT_SYSTEM_TIME_BINDING_INCOMPLETE".to_owned());
+    } else if !trusted_at.is_empty() && trusted_at < recorded_at {
+        global_reasons.insert("EVENT_TRUST_TIME_ORDER_INVALID".to_owned());
+    }
     if text(query, "scope_id").is_empty()
         || !is_lower_hex(text(query, "scope_digest"), 64)
         || text(query, "functional_unit").is_empty()
-        || text(query, "evaluation_at").is_empty()
+        || !valid_utc_timestamp(text(query, "evaluation_at"))
     {
         global_reasons.insert("CITY_QUERY_SCOPE_BINDING_INCOMPLETE".to_owned());
     }
