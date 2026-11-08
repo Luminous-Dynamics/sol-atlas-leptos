@@ -18,7 +18,17 @@
           "subject_revision": "REV-2",
           "source_revision_before": "REV-1",
           "source_revision_after": "REV-2",
-          "time_basis": "UTC_UNIX_SECONDS"
+          "time_basis": "UTC_UNIX_SECONDS",
+          "valid_time": {
+            "effective_at": "2026-11-07T00:00:00Z",
+            "effective_until": null,
+            "effective_time_confidence": "verified"
+          },
+          "system_time": {
+            "recorded_at": "2026-11-08T10:00:00Z",
+            "trusted_at": "2026-11-08T10:00:30Z",
+            "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          }
         },
         "query": {
           "scope_id": "SYNTHETIC-DISTRICT-01",
@@ -49,7 +59,17 @@
             "evaluated_at": "2026-11-08T12:00:00Z",
             "report_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddd00000000",
             "report_reference": "cas:sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddd00000000",
-            "action_authority": "none"
+            "action_authority": "none",
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "verified"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": "2026-11-08T10:00:30Z",
+              "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
           },
           {
             "report_id": "REPORT-LR-01-dependency_coverage",
@@ -77,7 +97,17 @@
             "claim_ceiling": "coverage_only",
             "independent_review": "accepted_for_declared_scope",
             "unresolved_relationship_count": 0,
-            "unsupported_relationship_count": 0
+            "unsupported_relationship_count": 0,
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "verified"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": "2026-11-08T10:00:30Z",
+              "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
           }
         ]
       },
@@ -112,7 +142,17 @@
           "subject_revision": "REV-2",
           "source_revision_before": "REV-1",
           "source_revision_after": "REV-2",
-          "time_basis": "UTC_UNIX_SECONDS"
+          "time_basis": "UTC_UNIX_SECONDS",
+          "valid_time": {
+            "effective_at": "2026-11-07T00:00:00Z",
+            "effective_until": null,
+            "effective_time_confidence": "verified"
+          },
+          "system_time": {
+            "recorded_at": "2026-11-08T10:00:00Z",
+            "trusted_at": "2026-11-08T10:00:30Z",
+            "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          }
         },
         "query": {
           "scope_id": "SYNTHETIC-DISTRICT-01",
@@ -143,7 +183,17 @@
             "evaluated_at": "2026-11-08T12:00:00Z",
             "report_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddd00000100",
             "report_reference": "cas:sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddd00000100",
-            "action_authority": "none"
+            "action_authority": "none",
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "verified"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": "2026-11-08T10:00:30Z",
+              "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
           }
         ]
       },
@@ -180,7 +230,17 @@
           "subject_revision": "REV-2",
           "source_revision_before": "REV-1",
           "source_revision_after": "REV-2",
-          "time_basis": "UTC_UNIX_SECONDS"
+          "time_basis": "UTC_UNIX_SECONDS",
+          "valid_time": {
+            "effective_at": "2026-11-07T00:00:00Z",
+            "effective_until": null,
+            "effective_time_confidence": "verified"
+          },
+          "system_time": {
+            "recorded_at": "2026-11-08T10:00:00Z",
+            "trusted_at": "2026-11-08T10:00:30Z",
+            "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          }
         },
         "query": {
           "scope_id": "SYNTHETIC-DISTRICT-01",
@@ -211,7 +271,17 @@
             "evaluated_at": "2026-11-08T12:00:00Z",
             "report_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddd00000200",
             "report_reference": "cas:sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddd00000200",
-            "action_authority": "none"
+            "action_authority": "none",
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "verified"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": "2026-11-08T10:00:30Z",
+              "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
           }
         ]
       },
@@ -253,7 +323,17 @@
           "subject_revision": "REV-2",
           "source_revision_before": "REV-1",
           "source_revision_after": "REV-2",
-          "time_basis": "UTC_UNIX_SECONDS"
+          "time_basis": "UTC_UNIX_SECONDS",
+          "valid_time": {
+            "effective_at": "2026-11-07T00:00:00Z",
+            "effective_until": null,
+            "effective_time_confidence": "verified"
+          },
+          "system_time": {
+            "recorded_at": "2026-11-08T10:00:00Z",
+            "trusted_at": "2026-11-08T10:00:30Z",
+            "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          }
         },
         "query": {
           "scope_id": "SYNTHETIC-DISTRICT-01",
@@ -284,7 +364,17 @@
             "evaluated_at": "2026-11-08T12:00:00Z",
             "report_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddd00000300",
             "report_reference": "cas:sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddd00000300",
-            "action_authority": "none"
+            "action_authority": "none",
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "verified"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": "2026-11-08T10:00:30Z",
+              "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
           },
           {
             "report_id": "REPORT-LR-04-dependency_coverage",
@@ -312,7 +402,17 @@
             "claim_ceiling": "coverage_only",
             "independent_review": "accepted_for_declared_scope",
             "unresolved_relationship_count": 0,
-            "unsupported_relationship_count": 0
+            "unsupported_relationship_count": 0,
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "verified"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": "2026-11-08T10:00:30Z",
+              "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
           }
         ]
       },
@@ -352,7 +452,17 @@
           "subject_revision": "REV-2",
           "source_revision_before": "REV-1",
           "source_revision_after": "REV-2",
-          "time_basis": "UTC_UNIX_SECONDS"
+          "time_basis": "UTC_UNIX_SECONDS",
+          "valid_time": {
+            "effective_at": "2026-11-07T00:00:00Z",
+            "effective_until": null,
+            "effective_time_confidence": "verified"
+          },
+          "system_time": {
+            "recorded_at": "2026-11-08T10:00:00Z",
+            "trusted_at": "2026-11-08T10:00:30Z",
+            "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          }
         },
         "query": {
           "scope_id": "SYNTHETIC-DISTRICT-01",
@@ -383,7 +493,17 @@
             "evaluated_at": "2026-11-08T12:00:00Z",
             "report_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddd00000400",
             "report_reference": "cas:sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddd00000400",
-            "action_authority": "none"
+            "action_authority": "none",
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "verified"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": "2026-11-08T10:00:30Z",
+              "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
           },
           {
             "report_id": "REPORT-LR-05-dependency_coverage",
@@ -411,7 +531,17 @@
             "claim_ceiling": "coverage_only",
             "independent_review": "accepted_for_declared_scope",
             "unresolved_relationship_count": 0,
-            "unsupported_relationship_count": 0
+            "unsupported_relationship_count": 0,
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "verified"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": "2026-11-08T10:00:30Z",
+              "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
           }
         ]
       },
@@ -446,7 +576,17 @@
           "subject_revision": "REV-2",
           "source_revision_before": "REV-1",
           "source_revision_after": "REV-2",
-          "time_basis": "UTC_UNIX_SECONDS"
+          "time_basis": "UTC_UNIX_SECONDS",
+          "valid_time": {
+            "effective_at": "2026-11-07T00:00:00Z",
+            "effective_until": null,
+            "effective_time_confidence": "verified"
+          },
+          "system_time": {
+            "recorded_at": "2026-11-08T10:00:00Z",
+            "trusted_at": "2026-11-08T10:00:30Z",
+            "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          }
         },
         "query": {
           "scope_id": "SYNTHETIC-DISTRICT-01",
@@ -477,7 +617,17 @@
             "evaluated_at": "2026-11-08T12:00:00Z",
             "report_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddd00000500",
             "report_reference": "cas:sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddd00000500",
-            "action_authority": "none"
+            "action_authority": "none",
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "verified"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": "2026-11-08T10:00:30Z",
+              "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
           }
         ]
       },
@@ -514,7 +664,17 @@
           "subject_revision": "REV-2",
           "source_revision_before": "REV-1",
           "source_revision_after": "REV-2",
-          "time_basis": "UTC_UNIX_SECONDS"
+          "time_basis": "UTC_UNIX_SECONDS",
+          "valid_time": {
+            "effective_at": "2026-11-07T00:00:00Z",
+            "effective_until": null,
+            "effective_time_confidence": "verified"
+          },
+          "system_time": {
+            "recorded_at": "2026-11-08T10:00:00Z",
+            "trusted_at": "2026-11-08T10:00:30Z",
+            "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          }
         },
         "query": {
           "scope_id": "SYNTHETIC-DISTRICT-01",
@@ -545,7 +705,17 @@
             "evaluated_at": "2026-11-08T12:00:00Z",
             "report_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddd00000600",
             "report_reference": "cas:sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddd00000600",
-            "action_authority": "none"
+            "action_authority": "none",
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "verified"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": "2026-11-08T10:00:30Z",
+              "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
           }
         ]
       },
@@ -580,7 +750,17 @@
           "subject_revision": "REV-2",
           "source_revision_before": "REV-1",
           "source_revision_after": "REV-2",
-          "time_basis": "UTC_UNIX_SECONDS"
+          "time_basis": "UTC_UNIX_SECONDS",
+          "valid_time": {
+            "effective_at": "2026-11-07T00:00:00Z",
+            "effective_until": null,
+            "effective_time_confidence": "verified"
+          },
+          "system_time": {
+            "recorded_at": "2026-11-08T10:00:00Z",
+            "trusted_at": "2026-11-08T10:00:30Z",
+            "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          }
         },
         "query": {
           "scope_id": "SYNTHETIC-DISTRICT-01",
@@ -611,7 +791,17 @@
             "evaluated_at": "2026-11-08T12:00:00Z",
             "report_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddd00000700",
             "report_reference": "cas:sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddd00000700",
-            "action_authority": "none"
+            "action_authority": "none",
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "verified"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": "2026-11-08T10:00:30Z",
+              "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
           }
         ]
       },
@@ -648,7 +838,17 @@
           "subject_revision": "REV-2",
           "source_revision_before": "REV-1",
           "source_revision_after": "REV-2",
-          "time_basis": "UTC_UNIX_SECONDS"
+          "time_basis": "UTC_UNIX_SECONDS",
+          "valid_time": {
+            "effective_at": "2026-11-07T00:00:00Z",
+            "effective_until": null,
+            "effective_time_confidence": "verified"
+          },
+          "system_time": {
+            "recorded_at": "2026-11-08T10:00:00Z",
+            "trusted_at": "2026-11-08T10:00:30Z",
+            "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          }
         },
         "query": {
           "scope_id": "SYNTHETIC-DISTRICT-01",
@@ -679,7 +879,17 @@
             "evaluated_at": "2026-11-08T12:00:00Z",
             "report_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddd00000800",
             "report_reference": "cas:sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddd00000800",
-            "action_authority": "none"
+            "action_authority": "none",
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "verified"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": "2026-11-08T10:00:30Z",
+              "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
           }
         ]
       },
@@ -714,7 +924,17 @@
           "subject_revision": "REV-2",
           "source_revision_before": "REV-1",
           "source_revision_after": "REV-2",
-          "time_basis": "UTC_UNIX_SECONDS"
+          "time_basis": "UTC_UNIX_SECONDS",
+          "valid_time": {
+            "effective_at": "2026-11-07T00:00:00Z",
+            "effective_until": null,
+            "effective_time_confidence": "verified"
+          },
+          "system_time": {
+            "recorded_at": "2026-11-08T10:00:00Z",
+            "trusted_at": "2026-11-08T10:00:30Z",
+            "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          }
         },
         "query": {
           "scope_id": "SYNTHETIC-DISTRICT-01",
@@ -745,7 +965,17 @@
             "evaluated_at": "2026-11-08T12:00:00Z",
             "report_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddd00000900",
             "report_reference": "cas:sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddd00000900",
-            "action_authority": "none"
+            "action_authority": "none",
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "verified"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": "2026-11-08T10:00:30Z",
+              "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
           },
           {
             "report_id": "REPORT-LR-10-dependency_coverage",
@@ -773,7 +1003,17 @@
             "claim_ceiling": "coverage_only",
             "independent_review": "accepted_for_declared_scope",
             "unresolved_relationship_count": 0,
-            "unsupported_relationship_count": 0
+            "unsupported_relationship_count": 0,
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "verified"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": "2026-11-08T10:00:30Z",
+              "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
           }
         ]
       },
@@ -813,7 +1053,17 @@
           "subject_revision": "REV-2",
           "source_revision_before": "REV-1",
           "source_revision_after": "REV-2",
-          "time_basis": "UTC_UNIX_SECONDS"
+          "time_basis": "UTC_UNIX_SECONDS",
+          "valid_time": {
+            "effective_at": "2026-11-07T00:00:00Z",
+            "effective_until": null,
+            "effective_time_confidence": "verified"
+          },
+          "system_time": {
+            "recorded_at": "2026-11-08T10:00:00Z",
+            "trusted_at": "2026-11-08T10:00:30Z",
+            "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          }
         },
         "query": {
           "scope_id": "SYNTHETIC-DISTRICT-01",
@@ -844,7 +1094,17 @@
             "evaluated_at": "2026-11-08T12:00:00Z",
             "report_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddd00000a00",
             "report_reference": "cas:sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddd00000a00",
-            "action_authority": "none"
+            "action_authority": "none",
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "verified"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": "2026-11-08T10:00:30Z",
+              "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
           }
         ]
       },
@@ -879,7 +1139,17 @@
           "subject_revision": "REV-2",
           "source_revision_before": "REV-1",
           "source_revision_after": "REV-2",
-          "time_basis": "UTC_UNIX_SECONDS"
+          "time_basis": "UTC_UNIX_SECONDS",
+          "valid_time": {
+            "effective_at": "2026-11-07T00:00:00Z",
+            "effective_until": null,
+            "effective_time_confidence": "verified"
+          },
+          "system_time": {
+            "recorded_at": "2026-11-08T10:00:00Z",
+            "trusted_at": "2026-11-08T10:00:30Z",
+            "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          }
         },
         "query": {
           "scope_id": "SYNTHETIC-DISTRICT-01",
@@ -910,7 +1180,17 @@
             "evaluated_at": "2026-11-08T12:00:00Z",
             "report_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddd00000b00",
             "report_reference": "cas:sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddd00000b00",
-            "action_authority": "none"
+            "action_authority": "none",
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "verified"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": "2026-11-08T10:00:30Z",
+              "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
           },
           {
             "report_id": "REPORT-LR-12-dependency_coverage",
@@ -938,7 +1218,17 @@
             "claim_ceiling": "coverage_only",
             "independent_review": "accepted_for_declared_scope",
             "unresolved_relationship_count": 0,
-            "unsupported_relationship_count": 0
+            "unsupported_relationship_count": 0,
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "verified"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": "2026-11-08T10:00:30Z",
+              "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
           }
         ]
       },
@@ -973,7 +1263,17 @@
           "subject_revision": "REV-2",
           "source_revision_before": "REV-1",
           "source_revision_after": "REV-2",
-          "time_basis": "UTC_UNIX_SECONDS"
+          "time_basis": "UTC_UNIX_SECONDS",
+          "valid_time": {
+            "effective_at": "2026-11-07T00:00:00Z",
+            "effective_until": null,
+            "effective_time_confidence": "verified"
+          },
+          "system_time": {
+            "recorded_at": "2026-11-08T10:00:00Z",
+            "trusted_at": "2026-11-08T10:00:30Z",
+            "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          }
         },
         "query": {
           "scope_id": "SYNTHETIC-DISTRICT-01",
@@ -1004,7 +1304,17 @@
             "evaluated_at": "2026-11-08T12:00:00Z",
             "report_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddd00000c00",
             "report_reference": "cas:sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddd00000c00",
-            "action_authority": "none"
+            "action_authority": "none",
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "verified"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": "2026-11-08T10:00:30Z",
+              "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
           },
           {
             "report_id": "REPORT-LR-13-dependency_coverage",
@@ -1032,7 +1342,17 @@
             "claim_ceiling": "coverage_only",
             "independent_review": "accepted_for_declared_scope",
             "unresolved_relationship_count": 0,
-            "unsupported_relationship_count": 0
+            "unsupported_relationship_count": 0,
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "verified"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": "2026-11-08T10:00:30Z",
+              "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
           }
         ]
       },
@@ -1067,7 +1387,17 @@
           "subject_revision": "REV-2",
           "source_revision_before": "REV-1",
           "source_revision_after": "REV-2",
-          "time_basis": "UTC_UNIX_SECONDS"
+          "time_basis": "UTC_UNIX_SECONDS",
+          "valid_time": {
+            "effective_at": "2026-11-07T00:00:00Z",
+            "effective_until": null,
+            "effective_time_confidence": "verified"
+          },
+          "system_time": {
+            "recorded_at": "2026-11-08T10:00:00Z",
+            "trusted_at": "2026-11-08T10:00:30Z",
+            "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          }
         },
         "query": {
           "scope_id": "SYNTHETIC-DISTRICT-01",
@@ -1098,7 +1428,17 @@
             "evaluated_at": "2026-11-08T12:00:00Z",
             "report_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddd00000d00",
             "report_reference": "cas:sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddd00000d00",
-            "action_authority": "none"
+            "action_authority": "none",
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "verified"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": "2026-11-08T10:00:30Z",
+              "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
           },
           {
             "report_id": "REPORT-LR-14-dependency_coverage",
@@ -1126,7 +1466,17 @@
             "claim_ceiling": "coverage_only",
             "independent_review": "accepted_for_declared_scope",
             "unresolved_relationship_count": 0,
-            "unsupported_relationship_count": 0
+            "unsupported_relationship_count": 0,
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "verified"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": "2026-11-08T10:00:30Z",
+              "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
           }
         ]
       },
@@ -1161,7 +1511,17 @@
           "subject_revision": "REV-2",
           "source_revision_before": "REV-1",
           "source_revision_after": "REV-2",
-          "time_basis": "UTC_UNIX_SECONDS"
+          "time_basis": "UTC_UNIX_SECONDS",
+          "valid_time": {
+            "effective_at": "2026-11-07T00:00:00Z",
+            "effective_until": null,
+            "effective_time_confidence": "verified"
+          },
+          "system_time": {
+            "recorded_at": "2026-11-08T10:00:00Z",
+            "trusted_at": "2026-11-08T10:00:30Z",
+            "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          }
         },
         "query": {
           "scope_id": "SYNTHETIC-DISTRICT-01",
@@ -1192,7 +1552,17 @@
             "evaluated_at": "2026-11-08T12:00:00Z",
             "report_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddd00000e00",
             "report_reference": "cas:sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddd00000e00",
-            "action_authority": "none"
+            "action_authority": "none",
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "verified"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": "2026-11-08T10:00:30Z",
+              "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
           },
           {
             "report_id": "REPORT-LR-15-dependency_coverage",
@@ -1220,7 +1590,17 @@
             "claim_ceiling": "coverage_only",
             "independent_review": "accepted_for_declared_scope",
             "unresolved_relationship_count": 0,
-            "unsupported_relationship_count": 0
+            "unsupported_relationship_count": 0,
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "verified"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": "2026-11-08T10:00:30Z",
+              "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
           }
         ]
       },
@@ -1255,7 +1635,17 @@
           "subject_revision": "REV-2",
           "source_revision_before": "REV-1",
           "source_revision_after": "REV-2",
-          "time_basis": "UTC_UNIX_SECONDS"
+          "time_basis": "UTC_UNIX_SECONDS",
+          "valid_time": {
+            "effective_at": "2026-11-07T00:00:00Z",
+            "effective_until": null,
+            "effective_time_confidence": "verified"
+          },
+          "system_time": {
+            "recorded_at": "2026-11-08T10:00:00Z",
+            "trusted_at": "2026-11-08T10:00:30Z",
+            "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          }
         },
         "query": {
           "scope_id": "SYNTHETIC-DISTRICT-01",
@@ -1286,7 +1676,17 @@
             "evaluated_at": "2026-11-08T12:00:00Z",
             "report_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddd00000f00",
             "report_reference": "cas:sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddd00000f00",
-            "action_authority": "none"
+            "action_authority": "none",
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "verified"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": "2026-11-08T10:00:30Z",
+              "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
           },
           {
             "report_id": "REPORT-LR-16-dependency_coverage",
@@ -1314,7 +1714,17 @@
             "claim_ceiling": "coverage_only",
             "independent_review": "accepted_for_declared_scope",
             "unresolved_relationship_count": 0,
-            "unsupported_relationship_count": 0
+            "unsupported_relationship_count": 0,
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "verified"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": "2026-11-08T10:00:30Z",
+              "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
           }
         ]
       },
@@ -1349,7 +1759,17 @@
           "subject_revision": "REV-2",
           "source_revision_before": "REV-1",
           "source_revision_after": "REV-2",
-          "time_basis": "UTC_UNIX_SECONDS"
+          "time_basis": "UTC_UNIX_SECONDS",
+          "valid_time": {
+            "effective_at": "2026-11-07T00:00:00Z",
+            "effective_until": null,
+            "effective_time_confidence": "verified"
+          },
+          "system_time": {
+            "recorded_at": "2026-11-08T10:00:00Z",
+            "trusted_at": "2026-11-08T10:00:30Z",
+            "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          }
         },
         "query": {
           "scope_id": "SYNTHETIC-DISTRICT-01",
@@ -1380,7 +1800,17 @@
             "evaluated_at": "2026-11-08T12:00:00Z",
             "report_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddd00001000",
             "report_reference": "cas:sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddd00001000",
-            "action_authority": "none"
+            "action_authority": "none",
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "verified"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": "2026-11-08T10:00:30Z",
+              "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
           },
           {
             "report_id": "REPORT-LR-17-dependency_coverage",
@@ -1408,7 +1838,17 @@
             "claim_ceiling": "coverage_only",
             "independent_review": "accepted_for_declared_scope",
             "unresolved_relationship_count": 0,
-            "unsupported_relationship_count": 0
+            "unsupported_relationship_count": 0,
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "verified"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": "2026-11-08T10:00:30Z",
+              "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
           }
         ]
       },
@@ -1443,7 +1883,17 @@
           "subject_revision": "REV-2",
           "source_revision_before": "REV-1",
           "source_revision_after": "REV-2",
-          "time_basis": "UTC_UNIX_SECONDS"
+          "time_basis": "UTC_UNIX_SECONDS",
+          "valid_time": {
+            "effective_at": "2026-11-07T00:00:00Z",
+            "effective_until": null,
+            "effective_time_confidence": "verified"
+          },
+          "system_time": {
+            "recorded_at": "2026-11-08T10:00:00Z",
+            "trusted_at": "2026-11-08T10:00:30Z",
+            "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          }
         },
         "query": {
           "scope_id": "SYNTHETIC-DISTRICT-01",
@@ -1474,7 +1924,17 @@
             "evaluated_at": "2026-11-08T12:00:00Z",
             "report_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddd00001100",
             "report_reference": "cas:sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddd00001100",
-            "action_authority": "none"
+            "action_authority": "none",
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "verified"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": "2026-11-08T10:00:30Z",
+              "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
           },
           {
             "report_id": "REPORT-LR-18-dependency_coverage",
@@ -1502,7 +1962,17 @@
             "claim_ceiling": "coverage_only",
             "independent_review": "pending",
             "unresolved_relationship_count": 2,
-            "unsupported_relationship_count": 0
+            "unsupported_relationship_count": 0,
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "verified"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": "2026-11-08T10:00:30Z",
+              "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
           }
         ]
       },
@@ -1537,7 +2007,17 @@
           "subject_revision": "REV-2",
           "source_revision_before": "REV-1",
           "source_revision_after": "REV-2",
-          "time_basis": "UTC_UNIX_SECONDS"
+          "time_basis": "UTC_UNIX_SECONDS",
+          "valid_time": {
+            "effective_at": "2026-11-07T00:00:00Z",
+            "effective_until": null,
+            "effective_time_confidence": "verified"
+          },
+          "system_time": {
+            "recorded_at": "2026-11-08T10:00:00Z",
+            "trusted_at": "2026-11-08T10:00:30Z",
+            "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          }
         },
         "query": {
           "scope_id": "SYNTHETIC-DISTRICT-01",
@@ -1568,7 +2048,17 @@
             "evaluated_at": "2026-11-08T12:00:00Z",
             "report_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddd00001200",
             "report_reference": "cas:sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddd00001200",
-            "action_authority": "none"
+            "action_authority": "none",
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "verified"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": "2026-11-08T10:00:30Z",
+              "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
           },
           {
             "report_id": "REPORT-LR-19-dependency_coverage",
@@ -1596,7 +2086,17 @@
             "claim_ceiling": "coverage_only",
             "independent_review": "accepted_for_declared_scope",
             "unresolved_relationship_count": 0,
-            "unsupported_relationship_count": 0
+            "unsupported_relationship_count": 0,
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "verified"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": "2026-11-08T10:00:30Z",
+              "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
           }
         ]
       },
@@ -1636,7 +2136,17 @@
           "subject_revision": "REV-2",
           "source_revision_before": "REV-1",
           "source_revision_after": "REV-2",
-          "time_basis": "UTC_UNIX_SECONDS"
+          "time_basis": "UTC_UNIX_SECONDS",
+          "valid_time": {
+            "effective_at": "2026-11-07T00:00:00Z",
+            "effective_until": null,
+            "effective_time_confidence": "verified"
+          },
+          "system_time": {
+            "recorded_at": "2026-11-08T10:00:00Z",
+            "trusted_at": "2026-11-08T10:00:30Z",
+            "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          }
         },
         "query": {
           "scope_id": "SYNTHETIC-DISTRICT-01",
@@ -1667,7 +2177,17 @@
             "evaluated_at": "2026-11-08T12:00:00Z",
             "report_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddd00001300",
             "report_reference": "cas:sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddd00001300",
-            "action_authority": "none"
+            "action_authority": "none",
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "verified"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": "2026-11-08T10:00:30Z",
+              "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
           },
           {
             "report_id": "REPORT-LR-20-dependency_coverage",
@@ -1695,7 +2215,17 @@
             "claim_ceiling": "coverage_only",
             "independent_review": "accepted_for_declared_scope",
             "unresolved_relationship_count": 0,
-            "unsupported_relationship_count": 0
+            "unsupported_relationship_count": 0,
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "verified"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": "2026-11-08T10:00:30Z",
+              "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
           },
           {
             "report_id": "REPORT-LR-20-source_inventory",
@@ -1718,7 +2248,17 @@
             "evaluated_at": "2026-11-08T12:00:00Z",
             "report_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddd00001302",
             "report_reference": "cas:sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddd00001302",
-            "action_authority": "none"
+            "action_authority": "none",
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "verified"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": "2026-11-08T10:00:30Z",
+              "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
           }
         ]
       },
@@ -1758,7 +2298,17 @@
           "subject_revision": "REV-2",
           "source_revision_before": "REV-1",
           "source_revision_after": "REV-2",
-          "time_basis": "UTC_UNIX_SECONDS"
+          "time_basis": "UTC_UNIX_SECONDS",
+          "valid_time": {
+            "effective_at": "2026-11-07T00:00:00Z",
+            "effective_until": null,
+            "effective_time_confidence": "verified"
+          },
+          "system_time": {
+            "recorded_at": "2026-11-08T10:00:00Z",
+            "trusted_at": "2026-11-08T10:00:30Z",
+            "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          }
         },
         "query": {
           "scope_id": "SYNTHETIC-DISTRICT-01",
@@ -1789,7 +2339,17 @@
             "evaluated_at": "2026-11-08T12:00:00Z",
             "report_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddd00001400",
             "report_reference": "cas:sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddd00001400",
-            "action_authority": "none"
+            "action_authority": "none",
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "verified"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": "2026-11-08T10:00:30Z",
+              "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
           },
           {
             "report_id": "REPORT-LR-21-dependency_coverage",
@@ -1817,7 +2377,17 @@
             "claim_ceiling": "coverage_only",
             "independent_review": "accepted_for_declared_scope",
             "unresolved_relationship_count": 0,
-            "unsupported_relationship_count": 0
+            "unsupported_relationship_count": 0,
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "verified"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": "2026-11-08T10:00:30Z",
+              "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
           }
         ]
       },
@@ -1852,7 +2422,17 @@
           "subject_revision": "REV-2",
           "source_revision_before": "REV-1",
           "source_revision_after": "REV-2",
-          "time_basis": "UTC_UNIX_SECONDS"
+          "time_basis": "UTC_UNIX_SECONDS",
+          "valid_time": {
+            "effective_at": "2026-11-07T00:00:00Z",
+            "effective_until": null,
+            "effective_time_confidence": "verified"
+          },
+          "system_time": {
+            "recorded_at": "2026-11-08T10:00:00Z",
+            "trusted_at": "2026-11-08T10:00:30Z",
+            "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          }
         },
         "query": {
           "scope_id": "SYNTHETIC-DISTRICT-01",
@@ -1883,7 +2463,17 @@
             "evaluated_at": "2026-11-08T12:00:00Z",
             "report_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddd00001500",
             "report_reference": "cas:sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddd00001500",
-            "action_authority": "none"
+            "action_authority": "none",
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "verified"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": "2026-11-08T10:00:30Z",
+              "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
           },
           {
             "report_id": "REPORT-LR-22-dependency_coverage",
@@ -1911,7 +2501,17 @@
             "claim_ceiling": "coverage_only",
             "independent_review": "accepted_for_declared_scope",
             "unresolved_relationship_count": 0,
-            "unsupported_relationship_count": 0
+            "unsupported_relationship_count": 0,
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "verified"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": "2026-11-08T10:00:30Z",
+              "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
           },
           {
             "report_id": "REPORT-LR-22-source_inventory",
@@ -1934,7 +2534,17 @@
             "evaluated_at": "2026-11-08T12:00:00Z",
             "report_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddd00001502",
             "report_reference": "cas:sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddd00001502",
-            "action_authority": "none"
+            "action_authority": "none",
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "verified"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": "2026-11-08T10:00:30Z",
+              "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
           }
         ]
       },
@@ -1974,7 +2584,17 @@
           "subject_revision": "REV-2",
           "source_revision_before": "REV-1",
           "source_revision_after": "REV-2",
-          "time_basis": "UTC_UNIX_SECONDS"
+          "time_basis": "UTC_UNIX_SECONDS",
+          "valid_time": {
+            "effective_at": "2026-11-07T00:00:00Z",
+            "effective_until": null,
+            "effective_time_confidence": "verified"
+          },
+          "system_time": {
+            "recorded_at": "2026-11-08T10:00:00Z",
+            "trusted_at": "2026-11-08T10:00:30Z",
+            "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          }
         },
         "query": {
           "scope_id": "SYNTHETIC-DISTRICT-01",
@@ -2006,7 +2626,17 @@
           "subject_revision": "REV-2",
           "source_revision_before": "REV-1",
           "source_revision_after": "REV-2",
-          "time_basis": "UTC_UNIX_SECONDS"
+          "time_basis": "UTC_UNIX_SECONDS",
+          "valid_time": {
+            "effective_at": "2026-11-07T00:00:00Z",
+            "effective_until": null,
+            "effective_time_confidence": "verified"
+          },
+          "system_time": {
+            "recorded_at": "2026-11-08T10:00:00Z",
+            "trusted_at": "2026-11-08T10:00:30Z",
+            "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          }
         },
         "query": {
           "scope_id": "SYNTHETIC-DISTRICT-01",
@@ -2037,7 +2667,17 @@
             "evaluated_at": "2026-11-08T12:00:00Z",
             "report_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddd00001700",
             "report_reference": "cas:sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddd00001700",
-            "action_authority": "none"
+            "action_authority": "none",
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "verified"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": "2026-11-08T10:00:30Z",
+              "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
           },
           {
             "report_id": "REPORT-LR-24-dependency_coverage",
@@ -2065,7 +2705,17 @@
             "claim_ceiling": "coverage_only",
             "independent_review": "accepted_for_declared_scope",
             "unresolved_relationship_count": 0,
-            "unsupported_relationship_count": 0
+            "unsupported_relationship_count": 0,
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "verified"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": "2026-11-08T10:00:30Z",
+              "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
           },
           {
             "report_id": "REPORT-LR-24-dependency_coverage",
@@ -2093,7 +2743,17 @@
             "claim_ceiling": "coverage_only",
             "independent_review": "accepted_for_declared_scope",
             "unresolved_relationship_count": 0,
-            "unsupported_relationship_count": 0
+            "unsupported_relationship_count": 0,
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "verified"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": "2026-11-08T10:00:30Z",
+              "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
           }
         ]
       },
@@ -2128,7 +2788,17 @@
           "subject_revision": "REV-2",
           "source_revision_before": "REV-1",
           "source_revision_after": "REV-2",
-          "time_basis": "UTC_UNIX_SECONDS"
+          "time_basis": "UTC_UNIX_SECONDS",
+          "valid_time": {
+            "effective_at": "2026-11-07T00:00:00Z",
+            "effective_until": null,
+            "effective_time_confidence": "verified"
+          },
+          "system_time": {
+            "recorded_at": "2026-11-08T10:00:00Z",
+            "trusted_at": "2026-11-08T10:00:30Z",
+            "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          }
         },
         "query": {
           "scope_id": "SYNTHETIC-DISTRICT-01",
@@ -2159,7 +2829,17 @@
             "evaluated_at": "2026-11-08T12:00:00Z",
             "report_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddd00001800",
             "report_reference": "cas:sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddd00001800",
-            "action_authority": "none"
+            "action_authority": "none",
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "verified"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": "2026-11-08T10:00:30Z",
+              "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
           },
           {
             "report_id": "REPORT-LR-25-dependency_coverage",
@@ -2187,7 +2867,17 @@
             "claim_ceiling": "coverage_only",
             "independent_review": "accepted_for_declared_scope",
             "unresolved_relationship_count": 0,
-            "unsupported_relationship_count": 0
+            "unsupported_relationship_count": 0,
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "verified"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": "2026-11-08T10:00:30Z",
+              "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
           },
           {
             "report_id": "REPORT-LR-25-supply_chain_provenance",
@@ -2210,7 +2900,17 @@
             "evaluated_at": "2026-11-08T12:00:00Z",
             "report_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddd00001802",
             "report_reference": "cas:sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddd00001802",
-            "action_authority": "none"
+            "action_authority": "none",
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "verified"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": "2026-11-08T10:00:30Z",
+              "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
           }
         ]
       },
@@ -2247,7 +2947,17 @@
           "subject_revision": "REV-2",
           "source_revision_before": "REV-1",
           "source_revision_after": "REV-2",
-          "time_basis": "UTC_UNIX_SECONDS"
+          "time_basis": "UTC_UNIX_SECONDS",
+          "valid_time": {
+            "effective_at": "2026-11-07T00:00:00Z",
+            "effective_until": null,
+            "effective_time_confidence": "verified"
+          },
+          "system_time": {
+            "recorded_at": "2026-11-08T10:00:00Z",
+            "trusted_at": "2026-11-08T10:00:30Z",
+            "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          }
         },
         "query": {
           "scope_id": "SYNTHETIC-DISTRICT-01",
@@ -2278,7 +2988,17 @@
             "evaluated_at": "2026-11-08T12:00:00Z",
             "report_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddd00001900",
             "report_reference": "cas:sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddd00001900",
-            "action_authority": "construction_release"
+            "action_authority": "construction_release",
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "verified"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": "2026-11-08T10:00:30Z",
+              "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
           },
           {
             "report_id": "REPORT-LR-26-dependency_coverage",
@@ -2306,7 +3026,17 @@
             "claim_ceiling": "coverage_only",
             "independent_review": "accepted_for_declared_scope",
             "unresolved_relationship_count": 0,
-            "unsupported_relationship_count": 0
+            "unsupported_relationship_count": 0,
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "verified"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": "2026-11-08T10:00:30Z",
+              "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
           }
         ]
       },
@@ -2341,7 +3071,17 @@
           "subject_revision": "REV-2",
           "source_revision_before": "REV-1",
           "source_revision_after": "REV-2",
-          "time_basis": "UTC_UNIX_SECONDS"
+          "time_basis": "UTC_UNIX_SECONDS",
+          "valid_time": {
+            "effective_at": "2026-11-07T00:00:00Z",
+            "effective_until": null,
+            "effective_time_confidence": "verified"
+          },
+          "system_time": {
+            "recorded_at": "2026-11-08T10:00:00Z",
+            "trusted_at": "2026-11-08T10:00:30Z",
+            "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          }
         },
         "query": {
           "scope_id": "SYNTHETIC-DISTRICT-01",
@@ -2372,7 +3112,17 @@
             "evaluated_at": "2026-11-08T12:00:00Z",
             "report_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddd00001a00",
             "report_reference": "cas:sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-            "action_authority": "none"
+            "action_authority": "none",
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "verified"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": "2026-11-08T10:00:30Z",
+              "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
           },
           {
             "report_id": "REPORT-LR-27-dependency_coverage",
@@ -2400,7 +3150,17 @@
             "claim_ceiling": "coverage_only",
             "independent_review": "accepted_for_declared_scope",
             "unresolved_relationship_count": 0,
-            "unsupported_relationship_count": 0
+            "unsupported_relationship_count": 0,
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "verified"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": "2026-11-08T10:00:30Z",
+              "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
           }
         ]
       },
@@ -2435,7 +3195,17 @@
           "subject_revision": "REV-2",
           "source_revision_before": "REV-1",
           "source_revision_after": "REV-2",
-          "time_basis": "UTC_UNIX_SECONDS"
+          "time_basis": "UTC_UNIX_SECONDS",
+          "valid_time": {
+            "effective_at": "2026-11-07T00:00:00Z",
+            "effective_until": null,
+            "effective_time_confidence": "verified"
+          },
+          "system_time": {
+            "recorded_at": "2026-11-08T10:00:00Z",
+            "trusted_at": "2026-11-08T10:00:30Z",
+            "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          }
         },
         "query": {
           "scope_id": "SYNTHETIC-DISTRICT-01",
@@ -2466,7 +3236,17 @@
             "evaluated_at": "2026-11-08T12:00:00Z",
             "report_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddd00001b00",
             "report_reference": "cas:sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddd00001b00",
-            "action_authority": "none"
+            "action_authority": "none",
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "verified"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": "2026-11-08T10:00:30Z",
+              "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
           },
           {
             "report_id": "REPORT-LR-28-dependency_coverage",
@@ -2494,7 +3274,17 @@
             "claim_ceiling": "coverage_only",
             "independent_review": "accepted_for_declared_scope",
             "unresolved_relationship_count": 0,
-            "unsupported_relationship_count": 0
+            "unsupported_relationship_count": 0,
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "verified"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": "2026-11-08T10:00:30Z",
+              "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
           },
           {
             "report_id": "REPORT-LR-28-source_inventory",
@@ -2517,7 +3307,17 @@
             "evaluated_at": "2026-11-08T12:00:00Z",
             "report_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddd00001b02",
             "report_reference": "cas:sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddd00001b02",
-            "action_authority": "none"
+            "action_authority": "none",
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "verified"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": "2026-11-08T10:00:30Z",
+              "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
           }
         ]
       },
@@ -2540,6 +3340,505 @@
           {
             "family": "source_inventory",
             "state": "insufficient_evidence"
+          }
+        ],
+        "reason_codes": []
+      }
+    },
+    {
+      "case_id": "LR-29",
+      "name": "Recorded time is missing from the system-time envelope",
+      "input": {
+        "event": {
+          "event_id": "EVENT-LR-29",
+          "event_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "change_class": "design_geometry",
+          "subject_node_id": "artifact:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "subject_revision": "REV-2",
+          "source_revision_before": "REV-1",
+          "source_revision_after": "REV-2",
+          "time_basis": "UTC_UNIX_SECONDS",
+          "valid_time": {
+            "effective_at": "2026-11-07T00:00:00Z",
+            "effective_until": null,
+            "effective_time_confidence": "verified"
+          },
+          "system_time": {
+            "trusted_at": "2026-11-08T10:00:30Z",
+            "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          }
+        },
+        "query": {
+          "scope_id": "SYNTHETIC-DISTRICT-01",
+          "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "functional_unit": "synthetic-panel-service",
+          "evaluation_at": "2026-11-08T12:00:00Z",
+          "requires_no_impact_proof": false
+        },
+        "owner_reports": [
+          {
+            "report_id": "REPORT-LR-29-artifact_revision",
+            "impact_family": "artifact_revision",
+            "owner_repo": "Luminous-Dynamics/sol-atlas-leptos",
+            "owner_issue": 484,
+            "contract_ref": "sol-atlas-core::built_environment_case::compute_revalidation_frontier",
+            "contract_revision": "a440e54fac426368ce68f47ac13e42b3902ab224",
+            "schema_id": null,
+            "schema_version": null,
+            "runtime_revision": null,
+            "report_kind": "RevalidationFrontier",
+            "event_id": "EVENT-LR-29",
+            "event_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "subject_node_id": "artifact:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "subject_revision": "REV-2",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "functional_unit": "synthetic-panel-service",
+            "evaluated_at": "2026-11-08T12:00:00Z",
+            "report_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddd00000038",
+            "report_reference": "cas:sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddd00000038",
+            "action_authority": "none",
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "verified"
+            },
+            "system_time": {
+              "trusted_at": "2026-11-08T10:00:30Z",
+              "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
+          },
+          {
+            "report_id": "REPORT-LR-29-dependency_coverage",
+            "impact_family": "dependency_coverage",
+            "owner_repo": "Luminous-Dynamics/sol-atlas-leptos",
+            "owner_issue": 488,
+            "contract_ref": "luminous.built-environment-dependency-coverage.v0.1",
+            "contract_revision": "c1787998405d89ea8fe394aacf33729893cfb122",
+            "schema_id": "luminous.built-environment-dependency-coverage.v0.1",
+            "schema_version": "luminous.built-environment-dependency-coverage.v0.1",
+            "runtime_revision": "454805a7b9fb0a3dd039bb7aaa475769637f68b4",
+            "report_kind": "BuiltEnvironmentDependencyCoverageManifest",
+            "event_id": "EVENT-LR-29",
+            "event_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "subject_node_id": "artifact:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "subject_revision": "REV-2",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "functional_unit": "synthetic-panel-service",
+            "evaluated_at": "2026-11-08T12:00:00Z",
+            "report_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddd00000039",
+            "report_reference": "cas:sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddd00000039",
+            "action_authority": "none",
+            "owner_disposition": "complete_for_declared_scope",
+            "claim_ceiling": "coverage_only",
+            "independent_review": "accepted_for_declared_scope",
+            "unresolved_relationship_count": 0,
+            "unsupported_relationship_count": 0,
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "verified"
+            },
+            "system_time": {
+              "trusted_at": "2026-11-08T10:00:30Z",
+              "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
+          }
+        ]
+      },
+      "expected": {
+        "route_state": "insufficient_evidence",
+        "required_families": [
+          "artifact_revision",
+          "dependency_coverage"
+        ],
+        "lane_states": [
+          {
+            "family": "artifact_revision",
+            "state": "contract_bound_unverified"
+          },
+          {
+            "family": "dependency_coverage",
+            "state": "contract_bound_unverified"
+          }
+        ],
+        "reason_codes": [
+          "CHANGE_EVENT_SYSTEM_TIME_BINDING_INCOMPLETE"
+        ]
+      }
+    },
+    {
+      "case_id": "LR-30",
+      "name": "Disputed effective-time confidence cannot support contract binding",
+      "input": {
+        "event": {
+          "event_id": "EVENT-LR-30",
+          "event_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "change_class": "design_geometry",
+          "subject_node_id": "artifact:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "subject_revision": "REV-2",
+          "source_revision_before": "REV-1",
+          "source_revision_after": "REV-2",
+          "time_basis": "UTC_UNIX_SECONDS",
+          "valid_time": {
+            "effective_at": "2026-11-07T00:00:00Z",
+            "effective_until": null,
+            "effective_time_confidence": "disputed"
+          },
+          "system_time": {
+            "recorded_at": "2026-11-08T10:00:00Z",
+            "trusted_at": "2026-11-08T10:00:30Z",
+            "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          }
+        },
+        "query": {
+          "scope_id": "SYNTHETIC-DISTRICT-01",
+          "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "functional_unit": "synthetic-panel-service",
+          "evaluation_at": "2026-11-08T12:00:00Z",
+          "requires_no_impact_proof": false
+        },
+        "owner_reports": [
+          {
+            "report_id": "REPORT-LR-30-artifact_revision",
+            "impact_family": "artifact_revision",
+            "owner_repo": "Luminous-Dynamics/sol-atlas-leptos",
+            "owner_issue": 484,
+            "contract_ref": "sol-atlas-core::built_environment_case::compute_revalidation_frontier",
+            "contract_revision": "a440e54fac426368ce68f47ac13e42b3902ab224",
+            "schema_id": null,
+            "schema_version": null,
+            "runtime_revision": null,
+            "report_kind": "RevalidationFrontier",
+            "event_id": "EVENT-LR-30",
+            "event_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "subject_node_id": "artifact:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "subject_revision": "REV-2",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "functional_unit": "synthetic-panel-service",
+            "evaluated_at": "2026-11-08T12:00:00Z",
+            "report_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddd0000003a",
+            "report_reference": "cas:sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddd0000003a",
+            "action_authority": "none",
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "disputed"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": "2026-11-08T10:00:30Z",
+              "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
+          },
+          {
+            "report_id": "REPORT-LR-30-dependency_coverage",
+            "impact_family": "dependency_coverage",
+            "owner_repo": "Luminous-Dynamics/sol-atlas-leptos",
+            "owner_issue": 488,
+            "contract_ref": "luminous.built-environment-dependency-coverage.v0.1",
+            "contract_revision": "c1787998405d89ea8fe394aacf33729893cfb122",
+            "schema_id": "luminous.built-environment-dependency-coverage.v0.1",
+            "schema_version": "luminous.built-environment-dependency-coverage.v0.1",
+            "runtime_revision": "454805a7b9fb0a3dd039bb7aaa475769637f68b4",
+            "report_kind": "BuiltEnvironmentDependencyCoverageManifest",
+            "event_id": "EVENT-LR-30",
+            "event_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "subject_node_id": "artifact:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "subject_revision": "REV-2",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "functional_unit": "synthetic-panel-service",
+            "evaluated_at": "2026-11-08T12:00:00Z",
+            "report_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddd0000003b",
+            "report_reference": "cas:sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddd0000003b",
+            "action_authority": "none",
+            "owner_disposition": "complete_for_declared_scope",
+            "claim_ceiling": "coverage_only",
+            "independent_review": "accepted_for_declared_scope",
+            "unresolved_relationship_count": 0,
+            "unsupported_relationship_count": 0,
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "disputed"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": "2026-11-08T10:00:30Z",
+              "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
+          }
+        ]
+      },
+      "expected": {
+        "route_state": "insufficient_evidence",
+        "required_families": [
+          "artifact_revision",
+          "dependency_coverage"
+        ],
+        "lane_states": [
+          {
+            "family": "artifact_revision",
+            "state": "contract_bound_unverified"
+          },
+          {
+            "family": "dependency_coverage",
+            "state": "contract_bound_unverified"
+          }
+        ],
+        "reason_codes": [
+          "EVENT_EFFECTIVE_TIME_UNQUALIFIED"
+        ]
+      }
+    },
+    {
+      "case_id": "LR-31",
+      "name": "Trusted timestamp preceding the recorded event is invalid",
+      "input": {
+        "event": {
+          "event_id": "EVENT-LR-31",
+          "event_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "change_class": "design_geometry",
+          "subject_node_id": "artifact:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "subject_revision": "REV-2",
+          "source_revision_before": "REV-1",
+          "source_revision_after": "REV-2",
+          "time_basis": "UTC_UNIX_SECONDS",
+          "valid_time": {
+            "effective_at": "2026-11-07T00:00:00Z",
+            "effective_until": null,
+            "effective_time_confidence": "verified"
+          },
+          "system_time": {
+            "recorded_at": "2026-11-08T10:00:00Z",
+            "trusted_at": "2026-11-08T09:59:00Z",
+            "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          }
+        },
+        "query": {
+          "scope_id": "SYNTHETIC-DISTRICT-01",
+          "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "functional_unit": "synthetic-panel-service",
+          "evaluation_at": "2026-11-08T12:00:00Z",
+          "requires_no_impact_proof": false
+        },
+        "owner_reports": [
+          {
+            "report_id": "REPORT-LR-31-artifact_revision",
+            "impact_family": "artifact_revision",
+            "owner_repo": "Luminous-Dynamics/sol-atlas-leptos",
+            "owner_issue": 484,
+            "contract_ref": "sol-atlas-core::built_environment_case::compute_revalidation_frontier",
+            "contract_revision": "a440e54fac426368ce68f47ac13e42b3902ab224",
+            "schema_id": null,
+            "schema_version": null,
+            "runtime_revision": null,
+            "report_kind": "RevalidationFrontier",
+            "event_id": "EVENT-LR-31",
+            "event_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "subject_node_id": "artifact:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "subject_revision": "REV-2",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "functional_unit": "synthetic-panel-service",
+            "evaluated_at": "2026-11-08T12:00:00Z",
+            "report_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddd0000003c",
+            "report_reference": "cas:sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddd0000003c",
+            "action_authority": "none",
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "verified"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": "2026-11-08T09:59:00Z",
+              "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
+          },
+          {
+            "report_id": "REPORT-LR-31-dependency_coverage",
+            "impact_family": "dependency_coverage",
+            "owner_repo": "Luminous-Dynamics/sol-atlas-leptos",
+            "owner_issue": 488,
+            "contract_ref": "luminous.built-environment-dependency-coverage.v0.1",
+            "contract_revision": "c1787998405d89ea8fe394aacf33729893cfb122",
+            "schema_id": "luminous.built-environment-dependency-coverage.v0.1",
+            "schema_version": "luminous.built-environment-dependency-coverage.v0.1",
+            "runtime_revision": "454805a7b9fb0a3dd039bb7aaa475769637f68b4",
+            "report_kind": "BuiltEnvironmentDependencyCoverageManifest",
+            "event_id": "EVENT-LR-31",
+            "event_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "subject_node_id": "artifact:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "subject_revision": "REV-2",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "functional_unit": "synthetic-panel-service",
+            "evaluated_at": "2026-11-08T12:00:00Z",
+            "report_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddd0000003d",
+            "report_reference": "cas:sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddd0000003d",
+            "action_authority": "none",
+            "owner_disposition": "complete_for_declared_scope",
+            "claim_ceiling": "coverage_only",
+            "independent_review": "accepted_for_declared_scope",
+            "unresolved_relationship_count": 0,
+            "unsupported_relationship_count": 0,
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "verified"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": "2026-11-08T09:59:00Z",
+              "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
+          }
+        ]
+      },
+      "expected": {
+        "route_state": "invalid_input",
+        "required_families": [
+          "artifact_revision",
+          "dependency_coverage"
+        ],
+        "lane_states": [
+          {
+            "family": "artifact_revision",
+            "state": "contract_bound_unverified"
+          },
+          {
+            "family": "dependency_coverage",
+            "state": "contract_bound_unverified"
+          }
+        ],
+        "reason_codes": [
+          "EVENT_TRUST_TIME_ORDER_INVALID"
+        ]
+      }
+    },
+    {
+      "case_id": "LR-32",
+      "name": "One owner report is bound to a different system-time envelope",
+      "input": {
+        "event": {
+          "event_id": "EVENT-LR-32",
+          "event_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "change_class": "design_geometry",
+          "subject_node_id": "artifact:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "subject_revision": "REV-2",
+          "source_revision_before": "REV-1",
+          "source_revision_after": "REV-2",
+          "time_basis": "UTC_UNIX_SECONDS",
+          "valid_time": {
+            "effective_at": "2026-11-07T00:00:00Z",
+            "effective_until": null,
+            "effective_time_confidence": "verified"
+          },
+          "system_time": {
+            "recorded_at": "2026-11-08T10:00:00Z",
+            "trusted_at": "2026-11-08T10:00:30Z",
+            "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          }
+        },
+        "query": {
+          "scope_id": "SYNTHETIC-DISTRICT-01",
+          "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "functional_unit": "synthetic-panel-service",
+          "evaluation_at": "2026-11-08T12:00:00Z",
+          "requires_no_impact_proof": false
+        },
+        "owner_reports": [
+          {
+            "report_id": "REPORT-LR-32-artifact_revision",
+            "impact_family": "artifact_revision",
+            "owner_repo": "Luminous-Dynamics/sol-atlas-leptos",
+            "owner_issue": 484,
+            "contract_ref": "sol-atlas-core::built_environment_case::compute_revalidation_frontier",
+            "contract_revision": "a440e54fac426368ce68f47ac13e42b3902ab224",
+            "schema_id": null,
+            "schema_version": null,
+            "runtime_revision": null,
+            "report_kind": "RevalidationFrontier",
+            "event_id": "EVENT-LR-32",
+            "event_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "subject_node_id": "artifact:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "subject_revision": "REV-2",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "functional_unit": "synthetic-panel-service",
+            "evaluated_at": "2026-11-08T12:00:00Z",
+            "report_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddd0000003e",
+            "report_reference": "cas:sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddd0000003e",
+            "action_authority": "none",
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "verified"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:01:00Z",
+              "trusted_at": "2026-11-08T10:00:30Z",
+              "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
+          },
+          {
+            "report_id": "REPORT-LR-32-dependency_coverage",
+            "impact_family": "dependency_coverage",
+            "owner_repo": "Luminous-Dynamics/sol-atlas-leptos",
+            "owner_issue": 488,
+            "contract_ref": "luminous.built-environment-dependency-coverage.v0.1",
+            "contract_revision": "c1787998405d89ea8fe394aacf33729893cfb122",
+            "schema_id": "luminous.built-environment-dependency-coverage.v0.1",
+            "schema_version": "luminous.built-environment-dependency-coverage.v0.1",
+            "runtime_revision": "454805a7b9fb0a3dd039bb7aaa475769637f68b4",
+            "report_kind": "BuiltEnvironmentDependencyCoverageManifest",
+            "event_id": "EVENT-LR-32",
+            "event_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "subject_node_id": "artifact:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "subject_revision": "REV-2",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "functional_unit": "synthetic-panel-service",
+            "evaluated_at": "2026-11-08T12:00:00Z",
+            "report_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddd0000003f",
+            "report_reference": "cas:sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddd0000003f",
+            "action_authority": "none",
+            "owner_disposition": "complete_for_declared_scope",
+            "claim_ceiling": "coverage_only",
+            "independent_review": "accepted_for_declared_scope",
+            "unresolved_relationship_count": 0,
+            "unsupported_relationship_count": 0,
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "verified"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": "2026-11-08T10:00:30Z",
+              "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
+          }
+        ]
+      },
+      "expected": {
+        "route_state": "invalid_input",
+        "required_families": [
+          "artifact_revision",
+          "dependency_coverage"
+        ],
+        "lane_states": [
+          {
+            "family": "artifact_revision",
+            "state": "invalid_input"
+          },
+          {
+            "family": "dependency_coverage",
+            "state": "contract_bound_unverified"
           }
         ],
         "reason_codes": []
