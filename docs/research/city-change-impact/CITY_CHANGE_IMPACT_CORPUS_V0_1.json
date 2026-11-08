@@ -904,7 +904,7 @@
             "historical_status": "applicable_current",
             "scope_id": "SYNTHETIC-DISTRICT-01",
             "functional_unit": "synthetic-city-claim",
-            "measurement_at": 1200
+            "measurement_at": 2000
           }
         ],
         "revalidation_receipts": []
