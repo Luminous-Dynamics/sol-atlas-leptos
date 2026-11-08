@@ -66,3 +66,20 @@ No composite district score; report service, equity, lifecycle, productivity, re
 ## Claim ceiling
 
 This matrix documents E1 owner slices and integration readiness. It does not certify a district or prove that the listed owner outputs describe the same scenario, location, population, time horizon or physical state. Integration is **not qualified** until the common scope and exact owner payloads are bound and verified.
+
+
+## Additional synthetic scope-binding evidence — 8 November 2026
+
+Three new independent executable slices now use the same declared fixture digest `dddd…dddd` under `SYNTHETIC-DISTRICT-01`:
+
+| Domain | Exact-head evidence | Scope-bound surface |
+|---|---|---|
+| Temporal state / intervention feedback | [PR #638 workflow](https://github.com/Luminous-Dynamics/sol-atlas-leptos/actions/runs/42475373461), 36/36 corpus, 16 tests | Owner event + required subject `scope_digest` |
+| Repair/restoration feasibility | [PR #646 workflow](https://github.com/Luminous-Dynamics/sol-atlas-leptos/actions/runs/42482266428), 32/32 corpus, 14 tests | Restoration input `scope.scope_digest` |
+| Change impact / selective requalification | [PR #644 workflow](https://github.com/Luminous-Dynamics/sol-atlas-leptos/actions/runs/42483627449), 28/28 cases / 42 claim projections, 7 tests | Query, report, every claim and revalidation receipt `scope_digest`; wrong-report-digest control rejected |
+
+The machine-readable binding contract is `CITY_REFERENCE_DISTRICT_SHARED_FIXTURE_SCOPE_V0_1.json`.
+
+**Readiness distinction:** common digest alignment is now evidenced across these synthetic inputs; common scenario alignment and integrated district qualification remain **Not started**. The fixtures do not yet refer to one exact dwelling/panel asset, common material lot, unified intervention, real site or shared service horizon. Do not add these owner-level PASS results to an integrated district success count.
+
+Next E1 step is to construct one explicit synthetic district case linking a dwelling and non-loadbearing panel, one exact BOM/lot, a service interruption, a feasible restoration proposal, an impact event and an owner-confirmed postcondition. All owners must consume the same declared scenario/scope envelope. Run wrong-scope, stale-revision, revoked-lot, unavailable-resource, unverified-payload and missing-dependent-decision negative controls before issuing any integrated receipt.
