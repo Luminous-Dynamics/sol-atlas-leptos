@@ -66,7 +66,8 @@
               "identity_relations",
               "dependency_edges",
               "disclosure_request",
-              "building_service_claim"
+              "building_service_claim",
+              "query_cuts"
             ],
             "properties": {
               "classification": {
@@ -450,6 +451,9 @@
                     }
                   }
                 }
+              },
+              "query_cuts": {
+                "$ref": "#/$defs/queryCuts"
               }
             }
           },
@@ -528,5 +532,55 @@
     "composition_default",
     "claim_ceiling",
     "cases"
-  ]
+  ],
+  "$defs": {
+    "timeCut": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "valid_at",
+        "recorded_at",
+        "registered_at",
+        "ingested_at",
+        "time_basis"
+      ],
+      "properties": {
+        "valid_at": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "recorded_at": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "registered_at": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "ingested_at": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "time_basis": {
+          "const": "UTC_UNIX_SECONDS"
+        }
+      }
+    },
+    "queryCuts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "as_known_at_decision",
+        "as_known_now"
+      ],
+      "properties": {
+        "as_known_at_decision": {
+          "$ref": "#/$defs/timeCut"
+        },
+        "as_known_now": {
+          "$ref": "#/$defs/timeCut"
+        }
+      }
+    }
+  }
 }
