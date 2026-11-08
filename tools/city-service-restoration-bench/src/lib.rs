@@ -8,8 +8,7 @@ use std::collections::BTreeSet;
 
 use serde_json::{Value, json};
 
-const CLAIM_CEILING: &str =
-    "synthetic restoration-feasibility and lifecycle-separation semantics only; no real resource, safety, engineering or service claim is qualified";
+const CLAIM_CEILING: &str = "synthetic restoration-feasibility and lifecycle-separation semantics only; no real resource, safety, engineering or service claim is qualified";
 
 fn str_field<'a>(value: &'a Value, key: &str) -> &'a str {
     value.get(key).and_then(Value::as_str).unwrap_or("")
@@ -24,7 +23,11 @@ fn bool_field(value: &Value, key: &str) -> Option<bool> {
 }
 
 fn records<'a>(value: &'a Value, key: &str) -> &'a [Value] {
-    value.get(key).and_then(Value::as_array).map(Vec::as_slice).unwrap_or(&[])
+    value
+        .get(key)
+        .and_then(Value::as_array)
+        .map(Vec::as_slice)
+        .unwrap_or(&[])
 }
 
 fn add_unknown(reasons: &mut BTreeSet<String>, code: &str) {
@@ -46,7 +49,9 @@ fn lifecycle_axis(raw: &str, evidence: &str, allowed: &[&str], default: &str) ->
     if raw == "unknown" {
         return "unknown".to_owned();
     }
-    if allowed.contains(&raw) && (raw == "not_started" || raw == "not_performed" || evidence == "current") {
+    if allowed.contains(&raw)
+        && (raw == "not_started" || raw == "not_performed" || evidence == "current")
+    {
         raw.to_owned()
     } else {
         "unknown".to_owned()
@@ -88,16 +93,14 @@ fn evaluate_plan(input: &Value, reasons: &mut BTreeSet<String>, conflicts: &mut 
     }
 
     let window = input.get("planning_window").unwrap_or(&Value::Null);
-    let (window_start, window_end) = match (
-        u64_field(window, "start_at"),
-        u64_field(window, "end_at"),
-    ) {
-        (Some(start), Some(end)) => (start, end),
-        _ => {
-            add_unknown(reasons, "PLANNING_WINDOW_MISSING");
-            return;
-        }
-    };
+    let (window_start, window_end) =
+        match (u64_field(window, "start_at"), u64_field(window, "end_at")) {
+            (Some(start), Some(end)) => (start, end),
+            _ => {
+                add_unknown(reasons, "PLANNING_WINDOW_MISSING");
+                return;
+            }
+        };
     if window_start >= window_end || str_field(window, "time_basis") != "UTC_UNIX_SECONDS" {
         add_unknown(reasons, "PLANNING_WINDOW_INVALID");
     }
@@ -108,7 +111,10 @@ fn evaluate_plan(input: &Value, reasons: &mut BTreeSet<String>, conflicts: &mut 
         ("deliveries", "DELIVERY_EVIDENCE_MISSING"),
         ("crew_requirements", "CREW_REQUIREMENTS_MISSING"),
         ("tool_requirements", "TOOL_REQUIREMENTS_MISSING"),
-        ("calibration_requirements", "CALIBRATION_REQUIREMENTS_MISSING"),
+        (
+            "calibration_requirements",
+            "CALIBRATION_REQUIREMENTS_MISSING",
+        ),
         ("isolation_requirements", "ISOLATION_REQUIREMENTS_MISSING"),
         ("access_requirements", "ACCESS_REQUIREMENTS_MISSING"),
         ("tolerance_checks", "TOLERANCE_CHECKS_MISSING"),
@@ -191,10 +197,7 @@ fn evaluate_plan(input: &Value, reasons: &mut BTreeSet<String>, conflicts: &mut 
         {
             add_unknown(reasons, "RESOURCE_RESERVATION_EVIDENCE_UNKNOWN");
         }
-        if let (Some(start), Some(end)) = (
-            u64_field(left, "start_at"),
-            u64_field(left, "end_at"),
-        ) {
+        if let (Some(start), Some(end)) = (u64_field(left, "start_at"), u64_field(left, "end_at")) {
             if start >= end {
                 add_conflict(conflicts, "RESOURCE_RESERVATION_INTERVAL_INVALID");
             }
@@ -370,7 +373,9 @@ fn evaluate_plan(input: &Value, reasons: &mut BTreeSet<String>, conflicts: &mut 
     for tolerance in records(input, "tolerance_checks") {
         match (
             tolerance.get("observed_offset").and_then(Value::as_f64),
-            tolerance.get("qualified_adjustment_limit").and_then(Value::as_f64),
+            tolerance
+                .get("qualified_adjustment_limit")
+                .and_then(Value::as_f64),
         ) {
             (Some(observed), Some(limit)) if observed.abs() > limit => {
                 add_conflict(conflicts, "ADJUSTMENT_ENVELOPE_EXCEEDED");
@@ -424,12 +429,16 @@ fn evaluate_lifecycle(
     let work = lifecycle_axis(
         str_field(lifecycle, "work_execution"),
         str_field(lifecycle, "execution_evidence_state"),
-        &["not_started", "in_progress", "failed", "completed", "unknown"],
+        &[
+            "not_started",
+            "in_progress",
+            "failed",
+            "completed",
+            "unknown",
+        ],
         "unknown",
     );
-    if str_field(lifecycle, "work_execution") == "completed"
-        && work != "completed"
-    {
+    if str_field(lifecycle, "work_execution") == "completed" && work != "completed" {
         reasons.insert("WORK_EXECUTION_EVIDENCE_UNKNOWN".to_owned());
     }
 
@@ -452,8 +461,7 @@ fn evaluate_lifecycle(
 
     let commissioning_raw = str_field(lifecycle, "commissioning_state");
     let commissioning = if commissioning_raw == "pass" || commissioning_raw == "fail" {
-        if inspection == "pass"
-            && str_field(lifecycle, "commissioning_evidence_state") == "current"
+        if inspection == "pass" && str_field(lifecycle, "commissioning_evidence_state") == "current"
         {
             commissioning_raw.to_owned()
         } else {
@@ -559,7 +567,9 @@ mod tests {
     use serde_json::json;
 
     fn corpus() -> Value {
-        let source = include_str!("../../../docs/research/city-service-restoration/CITY_SERVICE_RESTORATION_EVAL_CORPUS_V0_1.json");
+        let source = include_str!(
+            "../../../docs/research/city-service-restoration/CITY_SERVICE_RESTORATION_EVAL_CORPUS_V0_1.json"
+        );
         serde_json::from_str(source).expect("synthetic corpus parses")
     }
 
@@ -587,47 +597,61 @@ mod tests {
         case["input"]["part_requirements"][0]["custody_state"] = json!("unknown");
         let result = evaluate_case(&case);
         assert_eq!(result["plan_readiness"], "infeasible");
-        assert!(result["reason_codes"]
-            .as_array()
-            .unwrap()
-            .iter()
-            .any(|reason| reason == "PART_OUT_OF_STOCK"));
-        assert!(result["reason_codes"]
-            .as_array()
-            .unwrap()
-            .iter()
-            .any(|reason| reason == "LOT_CUSTODY_UNVERIFIED"));
+        assert!(
+            result["reason_codes"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|reason| reason == "PART_OUT_OF_STOCK")
+        );
+        assert!(
+            result["reason_codes"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|reason| reason == "LOT_CUSTODY_UNVERIFIED")
+        );
     }
 
     #[test]
     fn adjacent_half_open_reservations_do_not_conflict() {
         let mut case = corpus()["cases"][0].clone();
         case["input"]["reservations"][0]["end_at"] = json!(2500);
-        case["input"]["reservations"].as_array_mut().unwrap().push(json!({
-            "reservation_id":"RES-2","resource_id":"LOT-1","resource_kind":"part_lot",
-            "work_package_id":"WP-2","exclusive":true,"start_at":2500,"end_at":3000,
-            "evidence_state":"current"
-        }));
+        case["input"]["reservations"]
+            .as_array_mut()
+            .unwrap()
+            .push(json!({
+                "reservation_id":"RES-2","resource_id":"LOT-1","resource_kind":"part_lot",
+                "work_package_id":"WP-2","exclusive":true,"start_at":2500,"end_at":3000,
+                "evidence_state":"current"
+            }));
         let result = evaluate_case(&case);
         assert_ne!(result["plan_readiness"], "infeasible");
-        assert!(!result["reason_codes"]
-            .as_array()
-            .unwrap()
-            .iter()
-            .any(|reason| reason == "EXCLUSIVE_RESOURCE_DOUBLE_BOOKED"));
+        assert!(
+            !result["reason_codes"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|reason| reason == "EXCLUSIVE_RESOURCE_DOUBLE_BOOKED")
+        );
     }
 
     #[test]
     fn missing_resource_domain_never_defaults_to_feasible() {
         let mut case = corpus()["cases"][0].clone();
-        case["input"].as_object_mut().unwrap().remove("crew_requirements");
+        case["input"]
+            .as_object_mut()
+            .unwrap()
+            .remove("crew_requirements");
         let result = evaluate_case(&case);
         assert_eq!(result["plan_readiness"], "unknown");
-        assert!(result["reason_codes"]
-            .as_array()
-            .unwrap()
-            .iter()
-            .any(|reason| reason == "CREW_REQUIREMENTS_MISSING"));
+        assert!(
+            result["reason_codes"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|reason| reason == "CREW_REQUIREMENTS_MISSING")
+        );
     }
 
     #[test]
@@ -636,11 +660,13 @@ mod tests {
         assert_eq!(result["plan_readiness"], "feasible");
         assert_eq!(result["commissioning_state"], "pass");
         assert_eq!(result["service_state"], "unknown");
-        assert!(result["reason_codes"]
-            .as_array()
-            .unwrap()
-            .iter()
-            .any(|reason| reason == "CONTINUITY_SERVICE_EVIDENCE_UNKNOWN"));
+        assert!(
+            result["reason_codes"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|reason| reason == "CONTINUITY_SERVICE_EVIDENCE_UNKNOWN")
+        );
     }
 
     #[test]
@@ -648,22 +674,26 @@ mod tests {
         let result = evaluate_case(&corpus()["cases"][29]);
         assert_eq!(result["commissioning_state"], "pass");
         assert_eq!(result["service_state"], "unknown");
-        assert!(result["reason_codes"]
-            .as_array()
-            .unwrap()
-            .iter()
-            .any(|reason| reason == "STABLE_ADEQUACY_INTERVAL_NOT_MET"));
+        assert!(
+            result["reason_codes"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|reason| reason == "STABLE_ADEQUACY_INTERVAL_NOT_MET")
+        );
     }
 
     #[test]
     fn byte_verification_does_not_promote_issuer_rights_or_technical_authority() {
         let result = evaluate_case(&corpus()["cases"][31]);
         assert_eq!(result["plan_readiness"], "unknown");
-        assert!(result["reason_codes"]
-            .as_array()
-            .unwrap()
-            .iter()
-            .any(|reason| reason == "ISSUER_RIGHTS_OR_TECHNICAL_AUTHORITY_UNKNOWN"));
+        assert!(
+            result["reason_codes"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|reason| reason == "ISSUER_RIGHTS_OR_TECHNICAL_AUTHORITY_UNKNOWN")
+        );
     }
 
     #[test]
