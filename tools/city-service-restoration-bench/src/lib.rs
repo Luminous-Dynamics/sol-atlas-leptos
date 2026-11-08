@@ -57,6 +57,16 @@ fn evaluate_plan(input: &Value, reasons: &mut BTreeSet<String>, conflicts: &mut 
     if str_field(input, "classification") != "synthetic_fixture_only" {
         add_unknown(reasons, "INPUT_CLASSIFICATION_UNBOUND");
     }
+    let as_of = input.get("as_of").unwrap_or(&Value::Null);
+    if u64_field(as_of, "valid_at").is_none()
+        || u64_field(as_of, "recorded_at").is_none()
+        || u64_field(as_of, "ingested_at").is_none()
+        || str_field(as_of, "time_basis") != "UTC_UNIX_SECONDS"
+        || str_field(as_of, "source_timezone").is_empty()
+    {
+        add_unknown(reasons, "AS_OF_TIME_BINDING_INCOMPLETE");
+    }
+
     let scope = input.get("scope").unwrap_or(&Value::Null);
     if str_field(scope, "binding_state") != "bound"
         || str_field(scope, "scope_digest").len() != 64
@@ -576,6 +586,55 @@ mod tests {
             .unwrap()
             .iter()
             .any(|reason| reason == "EXCLUSIVE_RESOURCE_DOUBLE_BOOKED"));
+    }
+
+    #[test]
+    fn missing_resource_domain_never_defaults_to_feasible() {
+        let mut case = corpus()["cases"][0].clone();
+        case["input"].as_object_mut().unwrap().remove("crew_requirements");
+        let result = evaluate_case(&case);
+        assert_eq!(result["plan_readiness"], "unknown");
+        assert!(result["reason_codes"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|reason| reason == "CREW_REQUIREMENTS_MISSING"));
+    }
+
+    #[test]
+    fn commissioning_without_continuity_evidence_does_not_restore_service() {
+        let result = evaluate_case(&corpus()["cases"][28]);
+        assert_eq!(result["plan_readiness"], "feasible");
+        assert_eq!(result["commissioning_state"], "pass");
+        assert_eq!(result["service_state"], "unknown");
+        assert!(result["reason_codes"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|reason| reason == "CONTINUITY_SERVICE_EVIDENCE_UNKNOWN"));
+    }
+
+    #[test]
+    fn stable_adequacy_requires_the_owner_declared_interval() {
+        let result = evaluate_case(&corpus()["cases"][29]);
+        assert_eq!(result["commissioning_state"], "pass");
+        assert_eq!(result["service_state"], "unknown");
+        assert!(result["reason_codes"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|reason| reason == "STABLE_ADEQUACY_INTERVAL_NOT_MET"));
+    }
+
+    #[test]
+    fn byte_verification_does_not_promote_issuer_rights_or_technical_authority() {
+        let result = evaluate_case(&corpus()["cases"][31]);
+        assert_eq!(result["plan_readiness"], "unknown");
+        assert!(result["reason_codes"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|reason| reason == "ISSUER_RIGHTS_OR_TECHNICAL_AUTHORITY_UNKNOWN"));
     }
 
     #[test]
