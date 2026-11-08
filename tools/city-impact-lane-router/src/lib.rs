@@ -745,14 +745,14 @@ mod tests {
     }
 
     #[test]
-    fn router_corpus_contains_32_unique_cases() {
+    fn router_corpus_contains_41_unique_cases() {
         let cases = corpus()["cases"].as_array().unwrap();
-        assert_eq!(cases.len(), 35);
+        assert_eq!(cases.len(), 41);
         let ids = cases
             .iter()
             .map(|case| case["case_id"].as_str().unwrap())
             .collect::<std::collections::BTreeSet<_>>();
-        assert_eq!(ids.len(), 35);
+        assert_eq!(ids.len(), 41);
     }
 
     #[test]
@@ -833,6 +833,43 @@ mod tests {
             invalid_report_with_disputed_time["lane_results"][0]["state"],
             "invalid_input"
         );
+    }
+
+    #[test]
+    fn source_inventory_closure_owner_lane_fails_closed() {
+        let r = registry();
+        let cases = corpus()["cases"].as_array().unwrap();
+
+        let complete = evaluate_case(&cases[35], &r);
+        assert_eq!(complete["route_state"], "contract_bound_unverified");
+        assert_eq!(
+            complete["lane_results"][0]["state"],
+            "contract_bound_unverified"
+        );
+
+        let incomplete = evaluate_case(&cases[36], &r);
+        assert_eq!(incomplete["route_state"], "insufficient_evidence");
+        assert_eq!(incomplete["lane_results"][0]["state"], "insufficient_evidence");
+
+        let invalid = evaluate_case(&cases[37], &r);
+        assert_eq!(invalid["route_state"], "invalid_input");
+        assert_eq!(invalid["lane_results"][0]["state"], "invalid_input");
+
+        let exclusions = evaluate_case(&cases[38], &r);
+        assert_eq!(exclusions["route_state"], "insufficient_evidence");
+
+        let scope_mismatch = evaluate_case(&cases[39], &r);
+        assert_eq!(scope_mismatch["route_state"], "invalid_input");
+        assert!(
+            scope_mismatch["lane_results"][0]["reason_codes"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|reason| reason == "SOURCE_INVENTORY_CLAIM_SCOPE_MISMATCH")
+        );
+
+        let optional_owner = evaluate_case(&cases[40], &r);
+        assert_eq!(optional_owner["route_state"], "contract_bound_unverified");
     }
 
     #[test]
