@@ -456,7 +456,9 @@
                         "subject_id",
                         "schema_artifact_digest",
                         "schema_id",
-                        "schema_version"
+                        "schema_version",
+                        "owner_contract_id",
+                        "owner_contract_version"
                       ],
                       "properties": {
                         "record_key": {
@@ -504,6 +506,14 @@
                           "minLength": 1
                         },
                         "schema_version": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "owner_contract_id": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "owner_contract_version": {
                           "type": "string",
                           "minLength": 1
                         }
