@@ -86,7 +86,10 @@ fn owner_binding_matches(case_id: &str, requirement: &Value, observation: &Value
         && text(observation, "source_revision") == text(requirement, "expected_source_revision")
         && !text(observation, "source_receipt_id").is_empty()
         && text(observation, "source_subject_digest")
-            == format!("synthetic-subject:{case_id}:{}", text(requirement, "metric_id"))
+            == format!(
+                "synthetic-subject:{case_id}:{}",
+                text(requirement, "metric_id")
+            )
 }
 
 fn evaluate_static_prediction(
@@ -295,7 +298,9 @@ pub fn evaluate_case(case: &Value) -> Value {
     };
     let start_tick = window.get("start_tick").and_then(Value::as_i64);
     let end_tick = window.get("end_tick").and_then(Value::as_i64);
-    if start_tick.zip(end_tick).is_none_or(|(start, end)| end <= start)
+    if start_tick
+        .zip(end_tick)
+        .is_none_or(|(start, end)| end <= start)
         || text(window, "window_id").is_empty()
         || text(window, "tick_unit").is_empty()
     {
@@ -526,9 +531,7 @@ pub fn evaluate_case(case: &Value) -> Value {
         }));
     }
 
-    metric_results.sort_by(|left, right| {
-        text(left, "metric_id").cmp(text(right, "metric_id"))
-    });
+    metric_results.sort_by(|left, right| text(left, "metric_id").cmp(text(right, "metric_id")));
 
     json!({
         "case_id": case_id,
@@ -653,7 +656,10 @@ mod tests {
     fn survey_cannot_satisfy_meter_requirement() {
         let result = evaluate_case(&case("OI-013"));
         assert_eq!(result["disposition"], "Evaluated");
-        assert_eq!(result["metric_results"][0]["observation_state"], "Unsupported");
+        assert_eq!(
+            result["metric_results"][0]["observation_state"],
+            "Unsupported"
+        );
         assert_eq!(
             result["metric_results"][0]["reason_codes"],
             serde_json::json!(["OBSERVATION_EVIDENCE_CLASS_MISMATCH"])
@@ -692,7 +698,9 @@ mod tests {
 
     #[test]
     fn scope_and_revision_mismatches_are_not_comparable() {
-        for id in ["OI-003", "OI-004", "OI-010", "OI-011", "OI-021", "OI-022", "OI-023"] {
+        for id in [
+            "OI-003", "OI-004", "OI-010", "OI-011", "OI-021", "OI-022", "OI-023",
+        ] {
             assert_eq!(
                 evaluate_case(&case(id))["metric_results"][0]["observation_state"],
                 "NotComparable"
@@ -722,8 +730,14 @@ mod tests {
     fn input_permutation_does_not_change_canonical_metric_results() {
         let mut item = case("OI-024");
         let before = evaluate_case(&item);
-        item["input"]["requirements"].as_array_mut().unwrap().reverse();
-        item["input"]["observations"].as_array_mut().unwrap().reverse();
+        item["input"]["requirements"]
+            .as_array_mut()
+            .unwrap()
+            .reverse();
+        item["input"]["observations"]
+            .as_array_mut()
+            .unwrap()
+            .reverse();
         let after = evaluate_case(&item);
         assert_eq!(before, after);
     }
