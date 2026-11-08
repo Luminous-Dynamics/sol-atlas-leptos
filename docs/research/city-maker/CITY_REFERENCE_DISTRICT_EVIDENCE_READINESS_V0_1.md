@@ -37,15 +37,15 @@
 
 | Gate | Status | Evidence / limitation |
 |---|---|---|
-| Parameterized district service and asset template | <badge>Defined</badge> | #616 contains ten service contracts, five initial asset archetypes and explicit Unknown parameters; no population/site/demand values are guessed |
-| Owner-specific adapter registry | <badge>In progress</badge> | #606 has documented owner contracts; only some exact schema artefacts are available |
-| Common scope binder | <badge>Synthetic pass</badge> | Sol-Atlas [PR #624](https://github.com/Luminous-Dynamics/sol-atlas-leptos/pull/624): 25/25 synthetic metadata cases; hardens duplicate registrations; owner payload bytes remain unverified |
-| Canonical owner schemas registered | <badge>Partial</badge> | Mycelix Living-City `living-city-metabolism/0.1` is pinned in the binder; CIV-BOOT, CIV-ECON, custody, accepted-output and commissioning schemas remain Unknown/unregistered |
-| One common synthetic district scope | <badge>Not started</badge> | Boundary, population frame, horizon, scenarios, functional units, cost basis, design/BOM revisions and evidence policy still need one explicit scope instance |
-| Cross-owner payload verification | <badge>Not started</badge> | Requires fetching exact artifact bytes and verifying exact schema, revision, subject, scope, digest and owner status; a hash string alone is not verification |
-| Integrated district E1 receipt | <badge>Not started</badge> | No current claim that the separate green PRs qualify one and the same reference district |
-| Rights-cleared real Johannesburg pilot | <badge>Not started</badge> | Source register identifies candidate sources and rights states; no local GIS/population/service/transit layer is ingested/qualified by this manifest |
-| Physical panel / building / service validation | <badge>Not started</badge> | Requires E3 laboratory and later supervised site evidence with professional and worker/community review |
+| Parameterized district service and asset template | `Defined` | #616 contains ten service contracts, five initial asset archetypes and explicit Unknown parameters; no population/site/demand values are guessed |
+| Owner-specific adapter registry | `In progress` | #606 has documented owner contracts; only some exact schema artefacts are available |
+| Common scope binder | `Synthetic pass` | Sol-Atlas [PR #624](https://github.com/Luminous-Dynamics/sol-atlas-leptos/pull/624): 25/25 synthetic metadata cases; hardens duplicate registrations; owner payload bytes remain unverified |
+| Canonical owner schemas registered | `Partial` | Mycelix Living-City `living-city-metabolism/0.1` is pinned in the binder; CIV-BOOT, CIV-ECON, custody, accepted-output and commissioning schemas remain Unknown/unregistered |
+| One common synthetic district scope | `Not started` | Boundary, population frame, horizon, scenarios, functional units, cost basis, design/BOM revisions and evidence policy still need one explicit scope instance |
+| Cross-owner payload verification | `Not started` | Requires fetching exact artifact bytes and verifying exact schema, revision, subject, scope, digest and owner status; a hash string alone is not verification |
+| Integrated district E1 receipt | `Not started` | No current claim that the separate green PRs qualify one and the same reference district |
+| Rights-cleared real Johannesburg pilot | `Not started` | Source register identifies candidate sources and rights states; no local GIS/population/service/transit layer is ingested/qualified by this manifest |
+| Physical panel / building / service validation | `Not started` | Requires E3 laboratory and later supervised site evidence with professional and worker/community review |
 
 ## Recommended next integration sequence
 
