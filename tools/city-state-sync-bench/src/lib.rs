@@ -89,7 +89,11 @@ fn evaluate_subject(input: &Value, required: &Value) -> Value {
     let expected_contract = text(required, "contract_id");
     let expected_version = text(required, "contract_version");
     let as_of = input.get("as_of").unwrap_or(&Value::Null);
-    let events = input.get("events").and_then(Value::as_array).cloned().unwrap_or_default();
+    let events = input
+        .get("events")
+        .and_then(Value::as_array)
+        .cloned()
+        .unwrap_or_default();
 
     let relevant: Vec<Value> = events
         .into_iter()
@@ -102,7 +106,15 @@ fn evaluate_subject(input: &Value, required: &Value) -> Value {
     if relevant.is_empty() {
         let mut reasons = BTreeSet::new();
         push_reason(&mut reasons, "NO_VISIBLE_OWNER_EVENT");
-        return entity_result(owner_repo, subject_id, "Unknown", None, None, reasons, Vec::new());
+        return entity_result(
+            owner_repo,
+            subject_id,
+            "Unknown",
+            None,
+            None,
+            reasons,
+            Vec::new(),
+        );
     }
 
     let mut reasons = BTreeSet::new();
@@ -120,7 +132,9 @@ fn evaluate_subject(input: &Value, required: &Value) -> Value {
         let content_digest = text(event, "content_sha256");
         if event_id.is_empty() {
             push_reason(&mut reasons, "EVENT_ID_MISSING");
-        } else if let Some(previous_digest) = event_ids.insert(event_id.to_owned(), content_digest.to_owned()) {
+        } else if let Some(previous_digest) =
+            event_ids.insert(event_id.to_owned(), content_digest.to_owned())
+        {
             if previous_digest != content_digest {
                 push_reason(&mut reasons, "EVENT_ID_CONTENT_CONFLICT");
             } else {
@@ -193,15 +207,11 @@ fn evaluate_subject(input: &Value, required: &Value) -> Value {
             history,
         );
     }
-    if reasons.contains("TIME_BASIS_MISSING") || reasons.contains("REQUIRED_TIME_OR_SEQUENCE_MISSING") {
+    if reasons.contains("TIME_BASIS_MISSING")
+        || reasons.contains("REQUIRED_TIME_OR_SEQUENCE_MISSING")
+    {
         return entity_result(
-            owner_repo,
-            subject_id,
-            "Unknown",
-            None,
-            None,
-            reasons,
-            history,
+            owner_repo, subject_id, "Unknown", None, None, reasons, history,
         );
     }
 
@@ -226,8 +236,10 @@ fn evaluate_subject(input: &Value, required: &Value) -> Value {
     let candidates: Vec<&Value> = relevant
         .iter()
         .filter(|event| {
-            matches!(text(event, "event_kind"), "assertion" | "supersede" | "correction")
-                && number(event, "valid_from").is_some_and(|from| from <= as_of_valid)
+            matches!(
+                text(event, "event_kind"),
+                "assertion" | "supersede" | "correction"
+            ) && number(event, "valid_from").is_some_and(|from| from <= as_of_valid)
         })
         .collect();
 
@@ -236,7 +248,9 @@ fn evaluate_subject(input: &Value, required: &Value) -> Value {
         .max_by_key(|event| number(event, "owner_sequence").unwrap_or(0))
     else {
         push_reason(&mut reasons, "NO_ASSERTION_VALID_AT_AS_OF_TIME");
-        return entity_result(owner_repo, subject_id, "Unknown", None, None, reasons, history);
+        return entity_result(
+            owner_repo, subject_id, "Unknown", None, None, reasons, history,
+        );
     };
 
     for event in &relevant {
@@ -505,9 +519,7 @@ fn evaluate_intervention(input: &Value, intervention_id: &str, stages: &[Value])
     let as_of = input.get("as_of").unwrap_or(&Value::Null);
     let visible_stages: Vec<&Value> = stages
         .iter()
-        .filter(|stage| {
-            text(stage, "intervention_id") == intervention_id && visible(stage, as_of)
-        })
+        .filter(|stage| text(stage, "intervention_id") == intervention_id && visible(stage, as_of))
         .collect();
 
     let mut reasons = BTreeSet::new();
@@ -522,8 +534,14 @@ fn evaluate_intervention(input: &Value, intervention_id: &str, stages: &[Value])
         });
     }
 
-    let scope_digests: BTreeSet<&str> = visible_stages.iter().map(|stage| text(stage, "scope_digest")).collect();
-    let horizons: BTreeSet<&str> = visible_stages.iter().map(|stage| text(stage, "horizon_id")).collect();
+    let scope_digests: BTreeSet<&str> = visible_stages
+        .iter()
+        .map(|stage| text(stage, "scope_digest"))
+        .collect();
+    let horizons: BTreeSet<&str> = visible_stages
+        .iter()
+        .map(|stage| text(stage, "horizon_id"))
+        .collect();
     if scope_digests.len() != 1 || horizons.len() != 1 {
         push_reason(&mut reasons, "INTERVENTION_SCOPE_OR_HORIZON_MISMATCH");
         return json!({
@@ -635,7 +653,11 @@ pub fn evaluate_case(case: &Value) -> Value {
         .map(|id| evaluate_intervention(input, id, &stages))
         .collect::<Vec<_>>();
 
-    let events = input.get("events").and_then(Value::as_array).cloned().unwrap_or_default();
+    let events = input
+        .get("events")
+        .and_then(Value::as_array)
+        .cloned()
+        .unwrap_or_default();
     let mut identity_links = Vec::new();
     for event in events.iter().filter(|event| {
         text(event, "event_kind") == "identity_successor"
@@ -672,14 +694,17 @@ pub fn matches_expected(actual: &Value, expected: &Value) -> bool {
         (Value::Object(actual), Value::Object(expected)) => {
             actual.len() == expected.len()
                 && actual.iter().all(|(key, value)| {
-                    expected.get(key).is_some_and(|expected_value| {
-                        matches_expected(value, expected_value)
-                    })
+                    expected
+                        .get(key)
+                        .is_some_and(|expected_value| matches_expected(value, expected_value))
                 })
         }
         (Value::Array(actual), Value::Array(expected)) => {
             actual.len() == expected.len()
-                && actual.iter().zip(expected).all(|(a, e)| matches_expected(a, e))
+                && actual
+                    .iter()
+                    .zip(expected)
+                    .all(|(a, e)| matches_expected(a, e))
         }
         _ => actual == expected,
     }
@@ -761,7 +786,7 @@ mod tests {
 
     #[test]
     fn current_state_requires_owner_policy_and_admitted_observation() {
-        let data = input(vec![event("E-1",1,950,960,970)]);
+        let data = input(vec![event("E-1", 1, 950, 960, 970)]);
         let result = evaluate_subject(&data, &data["required_subjects"][0]);
         assert_eq!(result["state"], "Current");
     }
@@ -797,7 +822,7 @@ mod tests {
 
     #[test]
     fn scope_mismatch_is_not_comparable() {
-        let mut e = event("E-1",1,950,960,970);
+        let mut e = event("E-1", 1, 950, 960, 970);
         e["scope_digest"] = json!(hash('e'));
         let data = input(vec![e]);
         let result = evaluate_subject(&data, &data["required_subjects"][0]);
@@ -806,7 +831,7 @@ mod tests {
 
     #[test]
     fn partial_outage_preserves_last_known_state_as_stale() {
-        let mut data = input(vec![event("E-1",1,950,960,970)]);
+        let mut data = input(vec![event("E-1", 1, 950, 960, 970)]);
         data["owner_health"][0]["state"] = json!("partial_outage");
         let result = evaluate_subject(&data, &data["required_subjects"][0]);
         assert_eq!(result["state"], "Stale");
@@ -814,7 +839,8 @@ mod tests {
 
     #[test]
     fn duplicate_event_ids_are_unsupported() {
-        let data = input(vec![event("E-1",1,950,960,970), event("E-1",2,951,961,971)]);
+        let data = input(vec![event("E-1", 1, 950, 960, 970),
+            event("E-1", 2, 951, 961, 971)]);
         let case = json!({"case_id":"duplicate","input":data});
         let result = evaluate_case(&case);
         assert_eq!(result["entities"][0]["state"], "Unsupported");
