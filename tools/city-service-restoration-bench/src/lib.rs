@@ -178,14 +178,13 @@ fn evaluate_plan(input: &Value, reasons: &mut BTreeSet<String>, conflicts: &mut 
     }
 
     for substitution in records(input, "substitutions") {
-        if bool_field(substitution, "substitute_used") == Some(true) {
-            if bool_field(substitution, "qualified") != Some(true)
+        if bool_field(substitution, "substitute_used") == Some(true)
+            && (bool_field(substitution, "qualified") != Some(true)
                 || bool_field(substitution, "interface_compatible") != Some(true)
                 || str_field(substitution, "approved_revision").is_empty()
-                || str_field(substitution, "evidence_state") != "current"
-            {
-                add_unknown(reasons, "SUBSTITUTE_QUALIFICATION_MISSING");
-            }
+                || str_field(substitution, "evidence_state") != "current")
+        {
+            add_unknown(reasons, "SUBSTITUTE_QUALIFICATION_MISSING");
         }
     }
 
@@ -220,10 +219,9 @@ fn evaluate_plan(input: &Value, reasons: &mut BTreeSet<String>, conflicts: &mut 
             );
             if let (true, true, true, (Some(a), Some(b), Some(c), Some(d))) =
                 (same_resource, distinct_packages, exclusive, interval)
+                && interval_overlaps(a, b, c, d)
             {
-                if interval_overlaps(a, b, c, d) {
-                    add_conflict(conflicts, "EXCLUSIVE_RESOURCE_DOUBLE_BOOKED");
-                }
+                add_conflict(conflicts, "EXCLUSIVE_RESOURCE_DOUBLE_BOOKED");
             }
         }
     }
