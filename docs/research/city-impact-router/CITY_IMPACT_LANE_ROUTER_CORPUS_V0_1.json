@@ -2272,7 +2272,10 @@
             "owner_presence": {
               "disposition": "incomplete_or_indeterminate",
               "missing_required_owner_count": 1,
-              "claim_scope": "caller_supplied_expected_owner_set_manifest_presence_only"
+              "claim_scope": "caller_supplied_expected_owner_set_manifest_presence_only",
+              "expected_owner_count": 2,
+              "required_owner_count": 2,
+              "observed_manifest_count": 2
             }
           }
         ]
@@ -2573,7 +2576,10 @@
             "owner_presence": {
               "disposition": "incomplete_or_indeterminate",
               "missing_required_owner_count": 1,
-              "claim_scope": "caller_supplied_expected_owner_set_manifest_presence_only"
+              "claim_scope": "caller_supplied_expected_owner_set_manifest_presence_only",
+              "expected_owner_count": 2,
+              "required_owner_count": 2,
+              "observed_manifest_count": 2
             }
           }
         ]
@@ -3361,7 +3367,10 @@
             "owner_presence": {
               "disposition": "incomplete_or_indeterminate",
               "missing_required_owner_count": 1,
-              "claim_scope": "caller_supplied_expected_owner_set_manifest_presence_only"
+              "claim_scope": "caller_supplied_expected_owner_set_manifest_presence_only",
+              "expected_owner_count": 2,
+              "required_owner_count": 2,
+              "observed_manifest_count": 2
             }
           }
         ]
@@ -4341,7 +4350,10 @@
             "owner_presence": {
               "disposition": "expected_owner_manifests_present",
               "missing_required_owner_count": 0,
-              "claim_scope": "caller_supplied_expected_owner_set_manifest_presence_only"
+              "claim_scope": "caller_supplied_expected_owner_set_manifest_presence_only",
+              "expected_owner_count": 2,
+              "required_owner_count": 2,
+              "observed_manifest_count": 2
             }
           }
         ]
@@ -4437,7 +4449,10 @@
             "owner_presence": {
               "disposition": "expected_owner_manifests_present",
               "missing_required_owner_count": 0,
-              "claim_scope": "caller_supplied_expected_owner_set_manifest_presence_only"
+              "claim_scope": "caller_supplied_expected_owner_set_manifest_presence_only",
+              "expected_owner_count": 2,
+              "required_owner_count": 2,
+              "observed_manifest_count": 2
             }
           }
         ]
@@ -4528,12 +4543,15 @@
             "complete_inventory_count": 0,
             "complete_with_exclusions_count": 0,
             "incomplete_inventory_count": 0,
-            "invalid_inventory_count": 1,
+            "invalid_inventory_count": 2,
             "not_comparable_inventory_count": 0,
             "owner_presence": {
               "disposition": "expected_owner_manifests_present",
               "missing_required_owner_count": 0,
-              "claim_scope": "caller_supplied_expected_owner_set_manifest_presence_only"
+              "claim_scope": "caller_supplied_expected_owner_set_manifest_presence_only",
+              "expected_owner_count": 2,
+              "required_owner_count": 2,
+              "observed_manifest_count": 2
             }
           }
         ]
@@ -4622,14 +4640,17 @@
             "required_owner_count": 2,
             "present_required_owner_count": 2,
             "complete_inventory_count": 0,
-            "complete_with_exclusions_count": 1,
+            "complete_with_exclusions_count": 2,
             "incomplete_inventory_count": 0,
             "invalid_inventory_count": 0,
             "not_comparable_inventory_count": 0,
             "owner_presence": {
               "disposition": "expected_owner_manifests_present",
               "missing_required_owner_count": 0,
-              "claim_scope": "caller_supplied_expected_owner_set_manifest_presence_only"
+              "claim_scope": "caller_supplied_expected_owner_set_manifest_presence_only",
+              "expected_owner_count": 2,
+              "required_owner_count": 2,
+              "observed_manifest_count": 2
             }
           }
         ]
@@ -4725,7 +4746,10 @@
             "owner_presence": {
               "disposition": "expected_owner_manifests_present",
               "missing_required_owner_count": 0,
-              "claim_scope": "caller_supplied_expected_owner_set_manifest_presence_only"
+              "claim_scope": "caller_supplied_expected_owner_set_manifest_presence_only",
+              "expected_owner_count": 2,
+              "required_owner_count": 2,
+              "observed_manifest_count": 2
             }
           }
         ]
@@ -4821,7 +4845,10 @@
             "owner_presence": {
               "disposition": "expected_owner_manifests_present",
               "missing_required_owner_count": 0,
-              "claim_scope": "caller_supplied_expected_owner_set_manifest_presence_only"
+              "claim_scope": "caller_supplied_expected_owner_set_manifest_presence_only",
+              "expected_owner_count": 3,
+              "required_owner_count": 2,
+              "observed_manifest_count": 2
             }
           }
         ]
@@ -4835,6 +4862,383 @@
           {
             "family": "source_inventory",
             "state": "contract_bound_unverified"
+          }
+        ],
+        "reason_codes": []
+      }
+    },
+    {
+      "case_id": "LR-42",
+      "name": "No-impact request requires complete inventory, dependency coverage and artifact owner bindings",
+      "input": {
+        "event": {
+          "event_id": "EVENT-LR-42",
+          "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "change_class": "design_geometry",
+          "subject_node_id": "artifact:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "subject_revision": "REV-2",
+          "source_revision_before": "REV-1",
+          "source_revision_after": "REV-2",
+          "time_basis": "UTC_RFC3339_SECONDS",
+          "valid_time": {
+            "effective_at": "2026-11-07T00:00:00Z",
+            "effective_until": null,
+            "effective_time_confidence": "verified"
+          },
+          "system_time": {
+            "recorded_at": "2026-11-08T10:00:00Z",
+            "trusted_at": "2026-11-08T10:00:30Z",
+            "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          }
+        },
+        "query": {
+          "scope_id": "SYNTHETIC-DISTRICT-01",
+          "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "functional_unit": "synthetic-panel-service",
+          "evaluation_at": "2026-11-08T12:00:00Z",
+          "requires_no_impact_proof": true
+        },
+        "owner_reports": [
+          {
+            "report_id": "REPORT-LR-42-artifact_revision",
+            "impact_family": "artifact_revision",
+            "owner_repo": "Luminous-Dynamics/sol-atlas-leptos",
+            "owner_issue": 484,
+            "contract_ref": "sol-atlas-core::built_environment_case::compute_revalidation_frontier",
+            "contract_revision": "a440e54fac426368ce68f47ac13e42b3902ab224",
+            "schema_id": null,
+            "schema_version": null,
+            "runtime_revision": null,
+            "report_kind": "RevalidationFrontier",
+            "event_id": "EVENT-LR-42",
+            "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "subject_node_id": "artifact:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "subject_revision": "REV-2",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "functional_unit": "synthetic-panel-service",
+            "evaluated_at": "2026-11-08T12:00:00Z",
+            "report_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee0000002a",
+            "report_reference": "cas:sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee0000002a",
+            "action_authority": "none",
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "verified"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": "2026-11-08T10:00:30Z",
+              "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
+          },
+          {
+            "report_id": "REPORT-LR-42-dependency_coverage",
+            "impact_family": "dependency_coverage",
+            "owner_repo": "Luminous-Dynamics/sol-atlas-leptos",
+            "owner_issue": 488,
+            "contract_ref": "luminous.built-environment-dependency-coverage.v0.1",
+            "contract_revision": "c1787998405d89ea8fe394aacf33729893cfb122",
+            "schema_id": "luminous.built-environment-dependency-coverage.v0.1",
+            "schema_version": "luminous.built-environment-dependency-coverage.v0.1",
+            "runtime_revision": "454805a7b9fb0a3dd039bb7aaa475769637f68b4",
+            "report_kind": "BuiltEnvironmentDependencyCoverageManifest",
+            "event_id": "EVENT-LR-42",
+            "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "subject_node_id": "artifact:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "subject_revision": "REV-2",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "functional_unit": "synthetic-panel-service",
+            "evaluated_at": "2026-11-08T12:00:00Z",
+            "report_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee0000002b",
+            "report_reference": "cas:sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee0000002b",
+            "action_authority": "none",
+            "owner_disposition": "complete_for_declared_scope",
+            "claim_ceiling": "coverage_only",
+            "independent_review": "accepted_for_declared_scope",
+            "unresolved_relationship_count": 0,
+            "unsupported_relationship_count": 0,
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "verified"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": "2026-11-08T10:00:30Z",
+              "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
+          },
+          {
+            "report_id": "REPORT-LR-42-source_inventory",
+            "impact_family": "source_inventory",
+            "owner_repo": "Luminous-Dynamics/sol-atlas-leptos",
+            "owner_issue": 497,
+            "contract_ref": "luminous.federated-source-inventory-manifest.v0.1",
+            "contract_revision": "8ef167177abb03fc561ea7d99678ac6ada909f5c",
+            "schema_id": "luminous.federated-source-inventory-manifest.v0.1",
+            "schema_version": "luminous.federated-source-inventory-manifest.v0.1",
+            "runtime_revision": "8ef167177abb03fc561ea7d99678ac6ada909f5c",
+            "report_kind": "InventoryClosureValidation",
+            "event_id": "EVENT-LR-42",
+            "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "subject_node_id": "artifact:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "subject_revision": "REV-2",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "functional_unit": "synthetic-panel-service",
+            "evaluated_at": "2026-11-08T12:00:00Z",
+            "report_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddd42",
+            "report_reference": "cas:sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddd42",
+            "action_authority": "none",
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "verified"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": "2026-11-08T10:00:30Z",
+              "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            },
+            "disposition": "complete_within_declared_owner_set",
+            "claim_scope": "caller_supplied_required_owner_set_and_declared_query_snapshots_only",
+            "expected_owner_count": 2,
+            "required_owner_count": 2,
+            "present_required_owner_count": 2,
+            "complete_inventory_count": 2,
+            "complete_with_exclusions_count": 0,
+            "incomplete_inventory_count": 0,
+            "invalid_inventory_count": 0,
+            "not_comparable_inventory_count": 0,
+            "owner_presence": {
+              "disposition": "expected_owner_manifests_present",
+              "missing_required_owner_count": 0,
+              "claim_scope": "caller_supplied_expected_owner_set_manifest_presence_only",
+              "expected_owner_count": 2,
+              "required_owner_count": 2,
+              "observed_manifest_count": 2
+            }
+          }
+        ]
+      },
+      "expected": {
+        "route_state": "contract_bound_unverified",
+        "required_families": [
+          "artifact_revision",
+          "dependency_coverage",
+          "source_inventory"
+        ],
+        "lane_states": [
+          {
+            "family": "artifact_revision",
+            "state": "contract_bound_unverified"
+          },
+          {
+            "family": "dependency_coverage",
+            "state": "contract_bound_unverified"
+          },
+          {
+            "family": "source_inventory",
+            "state": "contract_bound_unverified"
+          }
+        ],
+        "reason_codes": []
+      }
+    },
+    {
+      "case_id": "LR-43",
+      "name": "Disposition counters must reconcile with observed source manifests",
+      "input": {
+        "event": {
+          "event_id": "EVENT-LR-43",
+          "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "change_class": "source_inventory_audit",
+          "subject_node_id": "artifact:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "subject_revision": "REV-2",
+          "source_revision_before": "REV-1",
+          "source_revision_after": "REV-2",
+          "time_basis": "UTC_RFC3339_SECONDS",
+          "valid_time": {
+            "effective_at": "2026-11-07T00:00:00Z",
+            "effective_until": null,
+            "effective_time_confidence": "verified"
+          },
+          "system_time": {
+            "recorded_at": "2026-11-08T10:00:00Z",
+            "trusted_at": "2026-11-08T10:00:30Z",
+            "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          }
+        },
+        "query": {
+          "scope_id": "SYNTHETIC-DISTRICT-01",
+          "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "functional_unit": "synthetic-panel-service",
+          "evaluation_at": "2026-11-08T12:00:00Z",
+          "requires_no_impact_proof": false
+        },
+        "owner_reports": [
+          {
+            "report_id": "REPORT-LR-43-source_inventory",
+            "impact_family": "source_inventory",
+            "owner_repo": "Luminous-Dynamics/sol-atlas-leptos",
+            "owner_issue": 497,
+            "contract_ref": "luminous.federated-source-inventory-manifest.v0.1",
+            "contract_revision": "8ef167177abb03fc561ea7d99678ac6ada909f5c",
+            "schema_id": "luminous.federated-source-inventory-manifest.v0.1",
+            "schema_version": "luminous.federated-source-inventory-manifest.v0.1",
+            "runtime_revision": "8ef167177abb03fc561ea7d99678ac6ada909f5c",
+            "report_kind": "InventoryClosureValidation",
+            "event_id": "EVENT-LR-43",
+            "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "subject_node_id": "artifact:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "subject_revision": "REV-2",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "functional_unit": "synthetic-panel-service",
+            "evaluated_at": "2026-11-08T12:00:00Z",
+            "report_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddd43",
+            "report_reference": "cas:sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddd43",
+            "action_authority": "none",
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "verified"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": "2026-11-08T10:00:30Z",
+              "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            },
+            "disposition": "complete_within_declared_owner_set",
+            "claim_scope": "caller_supplied_required_owner_set_and_declared_query_snapshots_only",
+            "expected_owner_count": 2,
+            "required_owner_count": 2,
+            "present_required_owner_count": 2,
+            "complete_inventory_count": 1,
+            "complete_with_exclusions_count": 0,
+            "incomplete_inventory_count": 0,
+            "invalid_inventory_count": 0,
+            "not_comparable_inventory_count": 0,
+            "owner_presence": {
+              "disposition": "expected_owner_manifests_present",
+              "missing_required_owner_count": 0,
+              "claim_scope": "caller_supplied_expected_owner_set_manifest_presence_only",
+              "expected_owner_count": 2,
+              "required_owner_count": 2,
+              "observed_manifest_count": 2
+            }
+          }
+        ]
+      },
+      "expected": {
+        "route_state": "invalid_input",
+        "required_families": [
+          "source_inventory"
+        ],
+        "lane_states": [
+          {
+            "family": "source_inventory",
+            "state": "invalid_input"
+          }
+        ],
+        "reason_codes": []
+      }
+    },
+    {
+      "case_id": "LR-44",
+      "name": "Missing observed manifest count cannot qualify source inventory",
+      "input": {
+        "event": {
+          "event_id": "EVENT-LR-44",
+          "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "change_class": "source_inventory_audit",
+          "subject_node_id": "artifact:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "subject_revision": "REV-2",
+          "source_revision_before": "REV-1",
+          "source_revision_after": "REV-2",
+          "time_basis": "UTC_RFC3339_SECONDS",
+          "valid_time": {
+            "effective_at": "2026-11-07T00:00:00Z",
+            "effective_until": null,
+            "effective_time_confidence": "verified"
+          },
+          "system_time": {
+            "recorded_at": "2026-11-08T10:00:00Z",
+            "trusted_at": "2026-11-08T10:00:30Z",
+            "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          }
+        },
+        "query": {
+          "scope_id": "SYNTHETIC-DISTRICT-01",
+          "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "functional_unit": "synthetic-panel-service",
+          "evaluation_at": "2026-11-08T12:00:00Z",
+          "requires_no_impact_proof": false
+        },
+        "owner_reports": [
+          {
+            "report_id": "REPORT-LR-44-source_inventory",
+            "impact_family": "source_inventory",
+            "owner_repo": "Luminous-Dynamics/sol-atlas-leptos",
+            "owner_issue": 497,
+            "contract_ref": "luminous.federated-source-inventory-manifest.v0.1",
+            "contract_revision": "8ef167177abb03fc561ea7d99678ac6ada909f5c",
+            "schema_id": "luminous.federated-source-inventory-manifest.v0.1",
+            "schema_version": "luminous.federated-source-inventory-manifest.v0.1",
+            "runtime_revision": "8ef167177abb03fc561ea7d99678ac6ada909f5c",
+            "report_kind": "InventoryClosureValidation",
+            "event_id": "EVENT-LR-44",
+            "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "subject_node_id": "artifact:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "subject_revision": "REV-2",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "functional_unit": "synthetic-panel-service",
+            "evaluated_at": "2026-11-08T12:00:00Z",
+            "report_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddd44",
+            "report_reference": "cas:sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddd44",
+            "action_authority": "none",
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "verified"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": "2026-11-08T10:00:30Z",
+              "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            },
+            "disposition": "complete_within_declared_owner_set",
+            "claim_scope": "caller_supplied_required_owner_set_and_declared_query_snapshots_only",
+            "expected_owner_count": 2,
+            "required_owner_count": 2,
+            "present_required_owner_count": 2,
+            "complete_inventory_count": 2,
+            "complete_with_exclusions_count": 0,
+            "incomplete_inventory_count": 0,
+            "invalid_inventory_count": 0,
+            "not_comparable_inventory_count": 0,
+            "owner_presence": {
+              "disposition": "expected_owner_manifests_present",
+              "missing_required_owner_count": 0,
+              "claim_scope": "caller_supplied_expected_owner_set_manifest_presence_only",
+              "expected_owner_count": 2,
+              "required_owner_count": 2
+            }
+          }
+        ]
+      },
+      "expected": {
+        "route_state": "insufficient_evidence",
+        "required_families": [
+          "source_inventory"
+        ],
+        "lane_states": [
+          {
+            "family": "source_inventory",
+            "state": "insufficient_evidence"
           }
         ],
         "reason_codes": []
