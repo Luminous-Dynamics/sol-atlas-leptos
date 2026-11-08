@@ -136,6 +136,8 @@ fn receipt_is_exact(
         && text(receipt, "subject_revision") == text(event, "source_revision_after")
         && text(receipt, "scope_id") == text(claim, "scope_id")
         && text(receipt, "scope_id") == text(query, "scope_id")
+        && text(receipt, "scope_digest") == text(claim, "scope_digest")
+        && text(receipt, "scope_digest") == text(query, "scope_digest")
         && trusted_at.is_some()
         && evaluation_at.is_some()
         && trusted_at.is_some_and(|trusted| evaluation_at.is_some_and(|at| trusted <= at))
@@ -156,6 +158,8 @@ fn evaluate_claim(
 
     if claim_id.is_empty()
         || text(claim, "scope_id") != text(query, "scope_id")
+        || text(claim, "scope_digest") != text(query, "scope_digest")
+        || !is_digest(text(query, "scope_digest"))
         || text(claim, "functional_unit") != text(query, "functional_unit")
     {
         reasons.insert("CLAIM_SCOPE_OR_FUNCTIONAL_UNIT_MISMATCH".to_owned());
@@ -278,6 +282,7 @@ fn evaluate_claim(
         || text(report, "base_graph_snapshot_digest") != snapshot_digest
         || text(report, "event_id") != text(event, "event_id")
         || text(report, "scope_id") != text(query, "scope_id")
+        || text(report, "scope_digest") != text(query, "scope_digest")
     {
         reasons.insert("IMPACT_REPORT_BINDING_MISMATCH".to_owned());
         return projection(claim_id, "invalid_evidence", reasons.into_iter().collect());
@@ -568,6 +573,22 @@ mod tests {
         assert_eq!(
             actual["claim_applicability"][0]["state"],
             "insufficient_evidence"
+        );
+    }
+
+    #[test]
+    fn owner_report_scope_digest_must_match_the_query() {
+        let mut case = corpus()["cases"][0].clone();
+        case["input"]["graph"]["impact_report"]["scope_digest"] =
+            json!("eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee");
+        let actual = evaluate_case(&case);
+        assert_eq!(
+            actual["claim_applicability"][0]["state"],
+            "invalid_evidence"
+        );
+        assert_eq!(
+            actual["claim_applicability"][0]["reason_codes"][0],
+            "IMPACT_REPORT_BINDING_MISMATCH"
         );
     }
 
