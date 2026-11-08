@@ -87,6 +87,7 @@ fn evaluate_artifact(
     artifact: &Value,
     scope_binding: &Value,
     report: &Value,
+    report_binding: &Value,
     report_valid: bool,
 ) -> Value {
     let artifact_id = text(artifact, "artifact_id");
@@ -127,8 +128,8 @@ fn evaluate_artifact(
             "payload_bytes_verified": false,
             "verifier_disposition": null,
             "record_key": null,
-            "report_reference": text(report, "report_reference"),
-            "report_sha256": text(report, "report_sha256"),
+            "report_reference": text(report_binding, "report_reference"),
+            "report_sha256": text(report_binding, "declared_report_sha256"),
             "reason_codes": [],
             "owner_rights_state": "not_applicable",
             "rights_authentication": "not_performed",
@@ -328,10 +329,16 @@ fn evaluate_artifact(
         "payload_verification_state": state,
         "raw_byte_equality_verified": verifier_disposition == "verified_match"
             && result.is_some_and(|record| {
-                bool_value(record, "digest_matches") == Some(true)
+                text(record, "digest_basis") == digest_basis
+                    && text(record, "object_ref") == object_ref
+                    && text(record, "expected_sha256") == payload_digest
+                    && record.get("expected_byte_length").and_then(Value::as_u64) == payload_length
+                    && bool_value(record, "resolver_open_attempted") == Some(true)
+                    && bool_value(record, "digest_matches") == Some(true)
                     && bool_value(record, "byte_length_matches") == Some(true)
                     && text(record, "observed_sha256") == payload_digest
                     && record.get("observed_byte_length").and_then(Value::as_u64) == payload_length
+                    && record.get("bytes_hashed").and_then(Value::as_u64) == payload_length
             }),
         "payload_bytes_verified": state == "verified",
         "verifier_disposition": verifier_disposition,
@@ -343,8 +350,8 @@ fn evaluate_artifact(
         "observed_sha256": observed_digest,
         "expected_byte_length": payload_length,
         "observed_byte_length": observed_length,
-        "report_reference": text(report, "report_reference"),
-        "report_sha256": text(report, "report_sha256"),
+        "report_reference": text(report_binding, "report_reference"),
+        "report_sha256": text(report_binding, "declared_report_sha256"),
         "owner_rights_state": rights_state,
         "schema_digest_algorithm": schema_digest_algorithm,
         "schema_artifact_digest": schema_digest,
@@ -478,7 +485,7 @@ pub fn evaluate_case(case: &Value) -> Value {
 
     let mut artifact_outputs = array(input, "owner_artifacts")
         .iter()
-        .map(|artifact| evaluate_artifact(artifact, scope, &report, report_valid))
+         .map(|artifact| evaluate_artifact(artifact, scope, &report, report_binding, report_valid))
         .collect::<Vec<_>>();
     artifact_outputs.sort_by(|left, right| text(left, "artifact_id").cmp(text(right, "artifact_id")));
 
