@@ -86,7 +86,7 @@ fn main() -> ExitCode {
         || corpus["corpus_id"] != "CITY-IMPACT-LANE-ROUTER-CORPUS-V0.1"
         || corpus["classification"] != "synthetic_fixture_only"
         || corpus["registry_id"] != registry["registry_id"]
-        || cases.len() != 41
+        || cases.len() != 44
     {
         eprintln!("unexpected registry/corpus identity, classification or case count");
         return ExitCode::from(2);
