@@ -1,0 +1,3847 @@
+{
+  "schema": "city-composed-reference-scenario-corpus/0.1",
+  "schema_version": "0.1.0",
+  "classification": "synthetic_fixture_only",
+  "purpose": "Known-answer fixtures for checking cross-owner composition of a single synthetic Highveld panel/service/repair/change scenario.",
+  "normative_notice": "Every projection is synthetic and represents an owner-boundary test fixture. No live owner payloads, municipal data, building condition, service capacity, professional approval or physical construction are represented.",
+  "scope_profile": {
+    "scope_id": "SYNTHETIC-DISTRICT-01",
+    "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+    "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+    "time_basis": "UTC_UNIX_SECONDS"
+  },
+  "required_change_claims": [
+    "claim_panel_fit",
+    "claim_panel_manufacture",
+    "claim_repair_plan"
+  ],
+  "cases": [
+    {
+      "id": "HCS-01",
+      "name": "Coherent panel plan is eligible for human review but does not claim construction or restored service",
+      "category": "positive",
+      "input": {
+        "classification": "synthetic_fixture_only",
+        "scope": {
+          "scope_id": "SYNTHETIC-DISTRICT-01",
+          "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+          "evaluation_time": 1500,
+          "time_basis": "UTC_UNIX_SECONDS",
+          "asset_id": "ASSET-KEEP-PANEL-01",
+          "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "design_revision": "KEEP-DESIGN-R1",
+          "bom_revision": "KEEP-PANEL-BOM-R1",
+          "material_lot_id": "LOT-KEEP-PANEL-R1",
+          "service_id": "PANEL-ENVELOPE-SERVICE",
+          "service_restoration_required": true
+        },
+        "projections": {
+          "state_sync": {
+            "owner": "sol-atlas-state-sync",
+            "receipt_id": "STATE-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "asset_id": "ASSET-KEEP-PANEL-01",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "state": "Current",
+            "selected_event_id": "STATE-EVENT-R1",
+            "source_revision": "KEEP-DESIGN-R1",
+            "valid_at": 1400,
+            "recorded_at": 1450,
+            "ingested_at": 1470
+          },
+          "change_impact": {
+            "owner": "sol-atlas-change-impact",
+            "receipt_id": "IMPACT-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "report_id": "IMPACT-REPORT-R1",
+            "event_id": "NO-CHANGE-BASELINE",
+            "report_state": "qualified",
+            "coverage_state": "complete",
+            "graph_snapshot_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "claim_findings": [
+              {
+                "claim_id": "claim_panel_fit",
+                "disposition": "not_affected",
+                "reason_codes": [
+                  "COMPLETE_NO_IMPACT_PATH"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": "COVERAGE-claim_panel_fit",
+                "revalidation": null
+              },
+              {
+                "claim_id": "claim_panel_manufacture",
+                "disposition": "not_affected",
+                "reason_codes": [
+                  "COMPLETE_NO_IMPACT_PATH"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": "COVERAGE-claim_panel_manufacture",
+                "revalidation": null
+              },
+              {
+                "claim_id": "claim_repair_plan",
+                "disposition": "not_affected",
+                "reason_codes": [
+                  "COMPLETE_NO_IMPACT_PATH"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": "COVERAGE-claim_repair_plan",
+                "revalidation": null
+              }
+            ]
+          },
+          "restoration": {
+            "owner": "sol-atlas-restoration",
+            "receipt_id": "RESTORE-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "asset_id": "ASSET-KEEP-PANEL-01",
+            "design_revision": "KEEP-DESIGN-R1",
+            "bom_revision": "KEEP-PANEL-BOM-R1",
+            "material_lot_id": "LOT-KEEP-PANEL-R1",
+            "lot_state": "qualified",
+            "custody_state": "accepted",
+            "payload_bytes_verified": true,
+            "plan_readiness": "feasible",
+            "work_execution": "not_started",
+            "inspection_state": "not_performed",
+            "commissioning_state": "not_performed",
+            "action_authority": "none"
+          },
+          "continuity": {
+            "owner": "sol-atlas-continuity",
+            "receipt_id": "CONTINUITY-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "service_id": "PANEL-ENVELOPE-SERVICE",
+            "service_state": "unknown",
+            "stable_adequacy_met": false,
+            "continuity_receipt_state": "current",
+            "stable_interval_start": null,
+            "stable_interval_end": null
+          }
+        }
+      },
+      "expected": null
+    },
+    {
+      "id": "HCS-02",
+      "name": "Continuity receipt has a different scope digest",
+      "category": "scope_mismatch",
+      "input": {
+        "classification": "synthetic_fixture_only",
+        "scope": {
+          "scope_id": "SYNTHETIC-DISTRICT-01",
+          "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+          "evaluation_time": 1500,
+          "time_basis": "UTC_UNIX_SECONDS",
+          "asset_id": "ASSET-KEEP-PANEL-01",
+          "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "design_revision": "KEEP-DESIGN-R1",
+          "bom_revision": "KEEP-PANEL-BOM-R1",
+          "material_lot_id": "LOT-KEEP-PANEL-R1",
+          "service_id": "PANEL-ENVELOPE-SERVICE",
+          "service_restoration_required": true
+        },
+        "projections": {
+          "state_sync": {
+            "owner": "sol-atlas-state-sync",
+            "receipt_id": "STATE-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "asset_id": "ASSET-KEEP-PANEL-01",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "state": "Current",
+            "selected_event_id": "STATE-EVENT-R1",
+            "source_revision": "KEEP-DESIGN-R1",
+            "valid_at": 1400,
+            "recorded_at": 1450,
+            "ingested_at": 1470
+          },
+          "change_impact": {
+            "owner": "sol-atlas-change-impact",
+            "receipt_id": "IMPACT-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "report_id": "IMPACT-REPORT-R1",
+            "event_id": "NO-CHANGE-BASELINE",
+            "report_state": "qualified",
+            "coverage_state": "complete",
+            "graph_snapshot_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "claim_findings": [
+              {
+                "claim_id": "claim_panel_fit",
+                "disposition": "not_affected",
+                "reason_codes": [
+                  "COMPLETE_NO_IMPACT_PATH"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": "COVERAGE-claim_panel_fit",
+                "revalidation": null
+              },
+              {
+                "claim_id": "claim_panel_manufacture",
+                "disposition": "not_affected",
+                "reason_codes": [
+                  "COMPLETE_NO_IMPACT_PATH"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": "COVERAGE-claim_panel_manufacture",
+                "revalidation": null
+              },
+              {
+                "claim_id": "claim_repair_plan",
+                "disposition": "not_affected",
+                "reason_codes": [
+                  "COMPLETE_NO_IMPACT_PATH"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": "COVERAGE-claim_repair_plan",
+                "revalidation": null
+              }
+            ]
+          },
+          "restoration": {
+            "owner": "sol-atlas-restoration",
+            "receipt_id": "RESTORE-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "asset_id": "ASSET-KEEP-PANEL-01",
+            "design_revision": "KEEP-DESIGN-R1",
+            "bom_revision": "KEEP-PANEL-BOM-R1",
+            "material_lot_id": "LOT-KEEP-PANEL-R1",
+            "lot_state": "qualified",
+            "custody_state": "accepted",
+            "payload_bytes_verified": true,
+            "plan_readiness": "feasible",
+            "work_execution": "not_started",
+            "inspection_state": "not_performed",
+            "commissioning_state": "not_performed",
+            "action_authority": "none"
+          },
+          "continuity": {
+            "owner": "sol-atlas-continuity",
+            "receipt_id": "CONTINUITY-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "service_id": "PANEL-ENVELOPE-SERVICE",
+            "service_state": "unknown",
+            "stable_adequacy_met": false,
+            "continuity_receipt_state": "current",
+            "stable_interval_start": null,
+            "stable_interval_end": null
+          }
+        }
+      },
+      "expected": null
+    },
+    {
+      "id": "HCS-03",
+      "name": "Display scope identifier mismatch is not comparable",
+      "category": "scope_mismatch",
+      "input": {
+        "classification": "synthetic_fixture_only",
+        "scope": {
+          "scope_id": "SYNTHETIC-DISTRICT-01",
+          "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+          "evaluation_time": 1500,
+          "time_basis": "UTC_UNIX_SECONDS",
+          "asset_id": "ASSET-KEEP-PANEL-01",
+          "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "design_revision": "KEEP-DESIGN-R1",
+          "bom_revision": "KEEP-PANEL-BOM-R1",
+          "material_lot_id": "LOT-KEEP-PANEL-R1",
+          "service_id": "PANEL-ENVELOPE-SERVICE",
+          "service_restoration_required": true
+        },
+        "projections": {
+          "state_sync": {
+            "owner": "sol-atlas-state-sync",
+            "receipt_id": "STATE-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "asset_id": "ASSET-KEEP-PANEL-01",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "state": "Current",
+            "selected_event_id": "STATE-EVENT-R1",
+            "source_revision": "KEEP-DESIGN-R1",
+            "valid_at": 1400,
+            "recorded_at": 1450,
+            "ingested_at": 1470
+          },
+          "change_impact": {
+            "owner": "sol-atlas-change-impact",
+            "receipt_id": "IMPACT-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "report_id": "IMPACT-REPORT-R1",
+            "event_id": "NO-CHANGE-BASELINE",
+            "report_state": "qualified",
+            "coverage_state": "complete",
+            "graph_snapshot_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "claim_findings": [
+              {
+                "claim_id": "claim_panel_fit",
+                "disposition": "not_affected",
+                "reason_codes": [
+                  "COMPLETE_NO_IMPACT_PATH"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": "COVERAGE-claim_panel_fit",
+                "revalidation": null
+              },
+              {
+                "claim_id": "claim_panel_manufacture",
+                "disposition": "not_affected",
+                "reason_codes": [
+                  "COMPLETE_NO_IMPACT_PATH"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": "COVERAGE-claim_panel_manufacture",
+                "revalidation": null
+              },
+              {
+                "claim_id": "claim_repair_plan",
+                "disposition": "not_affected",
+                "reason_codes": [
+                  "COMPLETE_NO_IMPACT_PATH"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": "COVERAGE-claim_repair_plan",
+                "revalidation": null
+              }
+            ]
+          },
+          "restoration": {
+            "owner": "sol-atlas-restoration",
+            "receipt_id": "RESTORE-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-OTHER",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "asset_id": "ASSET-KEEP-PANEL-01",
+            "design_revision": "KEEP-DESIGN-R1",
+            "bom_revision": "KEEP-PANEL-BOM-R1",
+            "material_lot_id": "LOT-KEEP-PANEL-R1",
+            "lot_state": "qualified",
+            "custody_state": "accepted",
+            "payload_bytes_verified": true,
+            "plan_readiness": "feasible",
+            "work_execution": "not_started",
+            "inspection_state": "not_performed",
+            "commissioning_state": "not_performed",
+            "action_authority": "none"
+          },
+          "continuity": {
+            "owner": "sol-atlas-continuity",
+            "receipt_id": "CONTINUITY-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "service_id": "PANEL-ENVELOPE-SERVICE",
+            "service_state": "unknown",
+            "stable_adequacy_met": false,
+            "continuity_receipt_state": "current",
+            "stable_interval_start": null,
+            "stable_interval_end": null
+          }
+        }
+      },
+      "expected": null
+    },
+    {
+      "id": "HCS-04",
+      "name": "Restoration plan references a different panel asset",
+      "category": "identity_mismatch",
+      "input": {
+        "classification": "synthetic_fixture_only",
+        "scope": {
+          "scope_id": "SYNTHETIC-DISTRICT-01",
+          "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+          "evaluation_time": 1500,
+          "time_basis": "UTC_UNIX_SECONDS",
+          "asset_id": "ASSET-KEEP-PANEL-01",
+          "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "design_revision": "KEEP-DESIGN-R1",
+          "bom_revision": "KEEP-PANEL-BOM-R1",
+          "material_lot_id": "LOT-KEEP-PANEL-R1",
+          "service_id": "PANEL-ENVELOPE-SERVICE",
+          "service_restoration_required": true
+        },
+        "projections": {
+          "state_sync": {
+            "owner": "sol-atlas-state-sync",
+            "receipt_id": "STATE-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "asset_id": "ASSET-KEEP-PANEL-01",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "state": "Current",
+            "selected_event_id": "STATE-EVENT-R1",
+            "source_revision": "KEEP-DESIGN-R1",
+            "valid_at": 1400,
+            "recorded_at": 1450,
+            "ingested_at": 1470
+          },
+          "change_impact": {
+            "owner": "sol-atlas-change-impact",
+            "receipt_id": "IMPACT-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "report_id": "IMPACT-REPORT-R1",
+            "event_id": "NO-CHANGE-BASELINE",
+            "report_state": "qualified",
+            "coverage_state": "complete",
+            "graph_snapshot_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "claim_findings": [
+              {
+                "claim_id": "claim_panel_fit",
+                "disposition": "not_affected",
+                "reason_codes": [
+                  "COMPLETE_NO_IMPACT_PATH"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": "COVERAGE-claim_panel_fit",
+                "revalidation": null
+              },
+              {
+                "claim_id": "claim_panel_manufacture",
+                "disposition": "not_affected",
+                "reason_codes": [
+                  "COMPLETE_NO_IMPACT_PATH"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": "COVERAGE-claim_panel_manufacture",
+                "revalidation": null
+              },
+              {
+                "claim_id": "claim_repair_plan",
+                "disposition": "not_affected",
+                "reason_codes": [
+                  "COMPLETE_NO_IMPACT_PATH"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": "COVERAGE-claim_repair_plan",
+                "revalidation": null
+              }
+            ]
+          },
+          "restoration": {
+            "owner": "sol-atlas-restoration",
+            "receipt_id": "RESTORE-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "asset_id": "ASSET-OTHER",
+            "design_revision": "KEEP-DESIGN-R1",
+            "bom_revision": "KEEP-PANEL-BOM-R1",
+            "material_lot_id": "LOT-KEEP-PANEL-R1",
+            "lot_state": "qualified",
+            "custody_state": "accepted",
+            "payload_bytes_verified": true,
+            "plan_readiness": "feasible",
+            "work_execution": "not_started",
+            "inspection_state": "not_performed",
+            "commissioning_state": "not_performed",
+            "action_authority": "none"
+          },
+          "continuity": {
+            "owner": "sol-atlas-continuity",
+            "receipt_id": "CONTINUITY-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "service_id": "PANEL-ENVELOPE-SERVICE",
+            "service_state": "unknown",
+            "stable_adequacy_met": false,
+            "continuity_receipt_state": "current",
+            "stable_interval_start": null,
+            "stable_interval_end": null
+          }
+        }
+      },
+      "expected": null
+    },
+    {
+      "id": "HCS-05",
+      "name": "State subject digest does not bind to the declared panel identity",
+      "category": "identity_mismatch",
+      "input": {
+        "classification": "synthetic_fixture_only",
+        "scope": {
+          "scope_id": "SYNTHETIC-DISTRICT-01",
+          "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+          "evaluation_time": 1500,
+          "time_basis": "UTC_UNIX_SECONDS",
+          "asset_id": "ASSET-KEEP-PANEL-01",
+          "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "design_revision": "KEEP-DESIGN-R1",
+          "bom_revision": "KEEP-PANEL-BOM-R1",
+          "material_lot_id": "LOT-KEEP-PANEL-R1",
+          "service_id": "PANEL-ENVELOPE-SERVICE",
+          "service_restoration_required": true
+        },
+        "projections": {
+          "state_sync": {
+            "owner": "sol-atlas-state-sync",
+            "receipt_id": "STATE-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "asset_id": "ASSET-KEEP-PANEL-01",
+            "subject_digest": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "state": "Current",
+            "selected_event_id": "STATE-EVENT-R1",
+            "source_revision": "KEEP-DESIGN-R1",
+            "valid_at": 1400,
+            "recorded_at": 1450,
+            "ingested_at": 1470
+          },
+          "change_impact": {
+            "owner": "sol-atlas-change-impact",
+            "receipt_id": "IMPACT-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "report_id": "IMPACT-REPORT-R1",
+            "event_id": "NO-CHANGE-BASELINE",
+            "report_state": "qualified",
+            "coverage_state": "complete",
+            "graph_snapshot_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "claim_findings": [
+              {
+                "claim_id": "claim_panel_fit",
+                "disposition": "not_affected",
+                "reason_codes": [
+                  "COMPLETE_NO_IMPACT_PATH"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": "COVERAGE-claim_panel_fit",
+                "revalidation": null
+              },
+              {
+                "claim_id": "claim_panel_manufacture",
+                "disposition": "not_affected",
+                "reason_codes": [
+                  "COMPLETE_NO_IMPACT_PATH"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": "COVERAGE-claim_panel_manufacture",
+                "revalidation": null
+              },
+              {
+                "claim_id": "claim_repair_plan",
+                "disposition": "not_affected",
+                "reason_codes": [
+                  "COMPLETE_NO_IMPACT_PATH"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": "COVERAGE-claim_repair_plan",
+                "revalidation": null
+              }
+            ]
+          },
+          "restoration": {
+            "owner": "sol-atlas-restoration",
+            "receipt_id": "RESTORE-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "asset_id": "ASSET-KEEP-PANEL-01",
+            "design_revision": "KEEP-DESIGN-R1",
+            "bom_revision": "KEEP-PANEL-BOM-R1",
+            "material_lot_id": "LOT-KEEP-PANEL-R1",
+            "lot_state": "qualified",
+            "custody_state": "accepted",
+            "payload_bytes_verified": true,
+            "plan_readiness": "feasible",
+            "work_execution": "not_started",
+            "inspection_state": "not_performed",
+            "commissioning_state": "not_performed",
+            "action_authority": "none"
+          },
+          "continuity": {
+            "owner": "sol-atlas-continuity",
+            "receipt_id": "CONTINUITY-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "service_id": "PANEL-ENVELOPE-SERVICE",
+            "service_state": "unknown",
+            "stable_adequacy_met": false,
+            "continuity_receipt_state": "current",
+            "stable_interval_start": null,
+            "stable_interval_end": null
+          }
+        }
+      },
+      "expected": null
+    },
+    {
+      "id": "HCS-06",
+      "name": "Stale owner asset state cannot support a current repair plan",
+      "category": "missing_evidence",
+      "input": {
+        "classification": "synthetic_fixture_only",
+        "scope": {
+          "scope_id": "SYNTHETIC-DISTRICT-01",
+          "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+          "evaluation_time": 1500,
+          "time_basis": "UTC_UNIX_SECONDS",
+          "asset_id": "ASSET-KEEP-PANEL-01",
+          "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "design_revision": "KEEP-DESIGN-R1",
+          "bom_revision": "KEEP-PANEL-BOM-R1",
+          "material_lot_id": "LOT-KEEP-PANEL-R1",
+          "service_id": "PANEL-ENVELOPE-SERVICE",
+          "service_restoration_required": true
+        },
+        "projections": {
+          "state_sync": {
+            "owner": "sol-atlas-state-sync",
+            "receipt_id": "STATE-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "asset_id": "ASSET-KEEP-PANEL-01",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "state": "Stale",
+            "selected_event_id": "STATE-EVENT-R1",
+            "source_revision": "KEEP-DESIGN-R1",
+            "valid_at": 1400,
+            "recorded_at": 1450,
+            "ingested_at": 1470
+          },
+          "change_impact": {
+            "owner": "sol-atlas-change-impact",
+            "receipt_id": "IMPACT-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "report_id": "IMPACT-REPORT-R1",
+            "event_id": "NO-CHANGE-BASELINE",
+            "report_state": "qualified",
+            "coverage_state": "complete",
+            "graph_snapshot_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "claim_findings": [
+              {
+                "claim_id": "claim_panel_fit",
+                "disposition": "not_affected",
+                "reason_codes": [
+                  "COMPLETE_NO_IMPACT_PATH"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": "COVERAGE-claim_panel_fit",
+                "revalidation": null
+              },
+              {
+                "claim_id": "claim_panel_manufacture",
+                "disposition": "not_affected",
+                "reason_codes": [
+                  "COMPLETE_NO_IMPACT_PATH"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": "COVERAGE-claim_panel_manufacture",
+                "revalidation": null
+              },
+              {
+                "claim_id": "claim_repair_plan",
+                "disposition": "not_affected",
+                "reason_codes": [
+                  "COMPLETE_NO_IMPACT_PATH"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": "COVERAGE-claim_repair_plan",
+                "revalidation": null
+              }
+            ]
+          },
+          "restoration": {
+            "owner": "sol-atlas-restoration",
+            "receipt_id": "RESTORE-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "asset_id": "ASSET-KEEP-PANEL-01",
+            "design_revision": "KEEP-DESIGN-R1",
+            "bom_revision": "KEEP-PANEL-BOM-R1",
+            "material_lot_id": "LOT-KEEP-PANEL-R1",
+            "lot_state": "qualified",
+            "custody_state": "accepted",
+            "payload_bytes_verified": true,
+            "plan_readiness": "feasible",
+            "work_execution": "not_started",
+            "inspection_state": "not_performed",
+            "commissioning_state": "not_performed",
+            "action_authority": "none"
+          },
+          "continuity": {
+            "owner": "sol-atlas-continuity",
+            "receipt_id": "CONTINUITY-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "service_id": "PANEL-ENVELOPE-SERVICE",
+            "service_state": "unknown",
+            "stable_adequacy_met": false,
+            "continuity_receipt_state": "current",
+            "stable_interval_start": null,
+            "stable_interval_end": null
+          }
+        }
+      },
+      "expected": null
+    },
+    {
+      "id": "HCS-07",
+      "name": "Revoked panel-state assertion blocks composition",
+      "category": "hard_conflict",
+      "input": {
+        "classification": "synthetic_fixture_only",
+        "scope": {
+          "scope_id": "SYNTHETIC-DISTRICT-01",
+          "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+          "evaluation_time": 1500,
+          "time_basis": "UTC_UNIX_SECONDS",
+          "asset_id": "ASSET-KEEP-PANEL-01",
+          "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "design_revision": "KEEP-DESIGN-R1",
+          "bom_revision": "KEEP-PANEL-BOM-R1",
+          "material_lot_id": "LOT-KEEP-PANEL-R1",
+          "service_id": "PANEL-ENVELOPE-SERVICE",
+          "service_restoration_required": true
+        },
+        "projections": {
+          "state_sync": {
+            "owner": "sol-atlas-state-sync",
+            "receipt_id": "STATE-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "asset_id": "ASSET-KEEP-PANEL-01",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "state": "Revoked",
+            "selected_event_id": "STATE-EVENT-R1",
+            "source_revision": "KEEP-DESIGN-R1",
+            "valid_at": 1400,
+            "recorded_at": 1450,
+            "ingested_at": 1470
+          },
+          "change_impact": {
+            "owner": "sol-atlas-change-impact",
+            "receipt_id": "IMPACT-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "report_id": "IMPACT-REPORT-R1",
+            "event_id": "NO-CHANGE-BASELINE",
+            "report_state": "qualified",
+            "coverage_state": "complete",
+            "graph_snapshot_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "claim_findings": [
+              {
+                "claim_id": "claim_panel_fit",
+                "disposition": "not_affected",
+                "reason_codes": [
+                  "COMPLETE_NO_IMPACT_PATH"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": "COVERAGE-claim_panel_fit",
+                "revalidation": null
+              },
+              {
+                "claim_id": "claim_panel_manufacture",
+                "disposition": "not_affected",
+                "reason_codes": [
+                  "COMPLETE_NO_IMPACT_PATH"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": "COVERAGE-claim_panel_manufacture",
+                "revalidation": null
+              },
+              {
+                "claim_id": "claim_repair_plan",
+                "disposition": "not_affected",
+                "reason_codes": [
+                  "COMPLETE_NO_IMPACT_PATH"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": "COVERAGE-claim_repair_plan",
+                "revalidation": null
+              }
+            ]
+          },
+          "restoration": {
+            "owner": "sol-atlas-restoration",
+            "receipt_id": "RESTORE-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "asset_id": "ASSET-KEEP-PANEL-01",
+            "design_revision": "KEEP-DESIGN-R1",
+            "bom_revision": "KEEP-PANEL-BOM-R1",
+            "material_lot_id": "LOT-KEEP-PANEL-R1",
+            "lot_state": "qualified",
+            "custody_state": "accepted",
+            "payload_bytes_verified": true,
+            "plan_readiness": "feasible",
+            "work_execution": "not_started",
+            "inspection_state": "not_performed",
+            "commissioning_state": "not_performed",
+            "action_authority": "none"
+          },
+          "continuity": {
+            "owner": "sol-atlas-continuity",
+            "receipt_id": "CONTINUITY-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "service_id": "PANEL-ENVELOPE-SERVICE",
+            "service_state": "unknown",
+            "stable_adequacy_met": false,
+            "continuity_receipt_state": "current",
+            "stable_interval_start": null,
+            "stable_interval_end": null
+          }
+        }
+      },
+      "expected": null
+    },
+    {
+      "id": "HCS-08",
+      "name": "Incomplete dependency coverage cannot discharge change obligations",
+      "category": "missing_evidence",
+      "input": {
+        "classification": "synthetic_fixture_only",
+        "scope": {
+          "scope_id": "SYNTHETIC-DISTRICT-01",
+          "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+          "evaluation_time": 1500,
+          "time_basis": "UTC_UNIX_SECONDS",
+          "asset_id": "ASSET-KEEP-PANEL-01",
+          "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "design_revision": "KEEP-DESIGN-R1",
+          "bom_revision": "KEEP-PANEL-BOM-R1",
+          "material_lot_id": "LOT-KEEP-PANEL-R1",
+          "service_id": "PANEL-ENVELOPE-SERVICE",
+          "service_restoration_required": true
+        },
+        "projections": {
+          "state_sync": {
+            "owner": "sol-atlas-state-sync",
+            "receipt_id": "STATE-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "asset_id": "ASSET-KEEP-PANEL-01",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "state": "Current",
+            "selected_event_id": "STATE-EVENT-R1",
+            "source_revision": "KEEP-DESIGN-R1",
+            "valid_at": 1400,
+            "recorded_at": 1450,
+            "ingested_at": 1470
+          },
+          "change_impact": {
+            "owner": "sol-atlas-change-impact",
+            "receipt_id": "IMPACT-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "report_id": "IMPACT-REPORT-R1",
+            "event_id": "NO-CHANGE-BASELINE",
+            "report_state": "qualified",
+            "coverage_state": "incomplete",
+            "graph_snapshot_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "claim_findings": [
+              {
+                "claim_id": "claim_panel_fit",
+                "disposition": "not_affected",
+                "reason_codes": [
+                  "COMPLETE_NO_IMPACT_PATH"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": "COVERAGE-claim_panel_fit",
+                "revalidation": null
+              },
+              {
+                "claim_id": "claim_panel_manufacture",
+                "disposition": "not_affected",
+                "reason_codes": [
+                  "COMPLETE_NO_IMPACT_PATH"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": "COVERAGE-claim_panel_manufacture",
+                "revalidation": null
+              },
+              {
+                "claim_id": "claim_repair_plan",
+                "disposition": "not_affected",
+                "reason_codes": [
+                  "COMPLETE_NO_IMPACT_PATH"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": "COVERAGE-claim_repair_plan",
+                "revalidation": null
+              }
+            ]
+          },
+          "restoration": {
+            "owner": "sol-atlas-restoration",
+            "receipt_id": "RESTORE-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "asset_id": "ASSET-KEEP-PANEL-01",
+            "design_revision": "KEEP-DESIGN-R1",
+            "bom_revision": "KEEP-PANEL-BOM-R1",
+            "material_lot_id": "LOT-KEEP-PANEL-R1",
+            "lot_state": "qualified",
+            "custody_state": "accepted",
+            "payload_bytes_verified": true,
+            "plan_readiness": "feasible",
+            "work_execution": "not_started",
+            "inspection_state": "not_performed",
+            "commissioning_state": "not_performed",
+            "action_authority": "none"
+          },
+          "continuity": {
+            "owner": "sol-atlas-continuity",
+            "receipt_id": "CONTINUITY-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "service_id": "PANEL-ENVELOPE-SERVICE",
+            "service_state": "unknown",
+            "stable_adequacy_met": false,
+            "continuity_receipt_state": "current",
+            "stable_interval_start": null,
+            "stable_interval_end": null
+          }
+        }
+      },
+      "expected": null
+    },
+    {
+      "id": "HCS-09",
+      "name": "Required panel-fit impact finding is absent",
+      "category": "missing_evidence",
+      "input": {
+        "classification": "synthetic_fixture_only",
+        "scope": {
+          "scope_id": "SYNTHETIC-DISTRICT-01",
+          "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+          "evaluation_time": 1500,
+          "time_basis": "UTC_UNIX_SECONDS",
+          "asset_id": "ASSET-KEEP-PANEL-01",
+          "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "design_revision": "KEEP-DESIGN-R1",
+          "bom_revision": "KEEP-PANEL-BOM-R1",
+          "material_lot_id": "LOT-KEEP-PANEL-R1",
+          "service_id": "PANEL-ENVELOPE-SERVICE",
+          "service_restoration_required": true
+        },
+        "projections": {
+          "state_sync": {
+            "owner": "sol-atlas-state-sync",
+            "receipt_id": "STATE-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "asset_id": "ASSET-KEEP-PANEL-01",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "state": "Current",
+            "selected_event_id": "STATE-EVENT-R1",
+            "source_revision": "KEEP-DESIGN-R1",
+            "valid_at": 1400,
+            "recorded_at": 1450,
+            "ingested_at": 1470
+          },
+          "change_impact": {
+            "owner": "sol-atlas-change-impact",
+            "receipt_id": "IMPACT-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "report_id": "IMPACT-REPORT-R1",
+            "event_id": "NO-CHANGE-BASELINE",
+            "report_state": "qualified",
+            "coverage_state": "complete",
+            "graph_snapshot_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "claim_findings": [
+              {
+                "claim_id": "claim_panel_manufacture",
+                "disposition": "not_affected",
+                "reason_codes": [
+                  "COMPLETE_NO_IMPACT_PATH"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": "COVERAGE-claim_panel_manufacture",
+                "revalidation": null
+              },
+              {
+                "claim_id": "claim_repair_plan",
+                "disposition": "not_affected",
+                "reason_codes": [
+                  "COMPLETE_NO_IMPACT_PATH"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": "COVERAGE-claim_repair_plan",
+                "revalidation": null
+              }
+            ]
+          },
+          "restoration": {
+            "owner": "sol-atlas-restoration",
+            "receipt_id": "RESTORE-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "asset_id": "ASSET-KEEP-PANEL-01",
+            "design_revision": "KEEP-DESIGN-R1",
+            "bom_revision": "KEEP-PANEL-BOM-R1",
+            "material_lot_id": "LOT-KEEP-PANEL-R1",
+            "lot_state": "qualified",
+            "custody_state": "accepted",
+            "payload_bytes_verified": true,
+            "plan_readiness": "feasible",
+            "work_execution": "not_started",
+            "inspection_state": "not_performed",
+            "commissioning_state": "not_performed",
+            "action_authority": "none"
+          },
+          "continuity": {
+            "owner": "sol-atlas-continuity",
+            "receipt_id": "CONTINUITY-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "service_id": "PANEL-ENVELOPE-SERVICE",
+            "service_state": "unknown",
+            "stable_adequacy_met": false,
+            "continuity_receipt_state": "current",
+            "stable_interval_start": null,
+            "stable_interval_end": null
+          }
+        }
+      },
+      "expected": null
+    },
+    {
+      "id": "HCS-10",
+      "name": "Geometry change has no exact panel-fit revalidation receipt",
+      "category": "missing_evidence",
+      "input": {
+        "classification": "synthetic_fixture_only",
+        "scope": {
+          "scope_id": "SYNTHETIC-DISTRICT-01",
+          "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+          "evaluation_time": 1500,
+          "time_basis": "UTC_UNIX_SECONDS",
+          "asset_id": "ASSET-KEEP-PANEL-01",
+          "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "design_revision": "KEEP-DESIGN-R1",
+          "bom_revision": "KEEP-PANEL-BOM-R1",
+          "material_lot_id": "LOT-KEEP-PANEL-R1",
+          "service_id": "PANEL-ENVELOPE-SERVICE",
+          "service_restoration_required": true
+        },
+        "projections": {
+          "state_sync": {
+            "owner": "sol-atlas-state-sync",
+            "receipt_id": "STATE-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "asset_id": "ASSET-KEEP-PANEL-01",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "state": "Current",
+            "selected_event_id": "STATE-EVENT-R1",
+            "source_revision": "KEEP-DESIGN-R1",
+            "valid_at": 1400,
+            "recorded_at": 1450,
+            "ingested_at": 1470
+          },
+          "change_impact": {
+            "owner": "sol-atlas-change-impact",
+            "receipt_id": "IMPACT-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "report_id": "IMPACT-REPORT-R1",
+            "event_id": "DESIGN-CHANGE-R2",
+            "report_state": "qualified",
+            "coverage_state": "complete",
+            "graph_snapshot_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "claim_findings": [
+              {
+                "claim_id": "claim_panel_fit",
+                "disposition": "revalidation_required",
+                "reason_codes": [
+                  "PANEL_GEOMETRY_CHANGED"
+                ],
+                "dependency_path": [
+                  "ASSET-KEEP-PANEL-01",
+                  "claim_panel_fit"
+                ],
+                "coverage_proof_id": null,
+                "revalidation": null
+              },
+              {
+                "claim_id": "claim_panel_manufacture",
+                "disposition": "not_affected",
+                "reason_codes": [
+                  "COMPLETE_NO_IMPACT_PATH"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": "COVERAGE-claim_panel_manufacture",
+                "revalidation": null
+              },
+              {
+                "claim_id": "claim_repair_plan",
+                "disposition": "not_affected",
+                "reason_codes": [
+                  "COMPLETE_NO_IMPACT_PATH"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": "COVERAGE-claim_repair_plan",
+                "revalidation": null
+              }
+            ]
+          },
+          "restoration": {
+            "owner": "sol-atlas-restoration",
+            "receipt_id": "RESTORE-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "asset_id": "ASSET-KEEP-PANEL-01",
+            "design_revision": "KEEP-DESIGN-R1",
+            "bom_revision": "KEEP-PANEL-BOM-R1",
+            "material_lot_id": "LOT-KEEP-PANEL-R1",
+            "lot_state": "qualified",
+            "custody_state": "accepted",
+            "payload_bytes_verified": true,
+            "plan_readiness": "feasible",
+            "work_execution": "not_started",
+            "inspection_state": "not_performed",
+            "commissioning_state": "not_performed",
+            "action_authority": "none"
+          },
+          "continuity": {
+            "owner": "sol-atlas-continuity",
+            "receipt_id": "CONTINUITY-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "service_id": "PANEL-ENVELOPE-SERVICE",
+            "service_state": "unknown",
+            "stable_adequacy_met": false,
+            "continuity_receipt_state": "current",
+            "stable_interval_start": null,
+            "stable_interval_end": null
+          }
+        }
+      },
+      "expected": null
+    },
+    {
+      "id": "HCS-11",
+      "name": "Exact panel-fit revalidation discharges only the matching claim",
+      "category": "positive",
+      "input": {
+        "classification": "synthetic_fixture_only",
+        "scope": {
+          "scope_id": "SYNTHETIC-DISTRICT-01",
+          "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+          "evaluation_time": 1500,
+          "time_basis": "UTC_UNIX_SECONDS",
+          "asset_id": "ASSET-KEEP-PANEL-01",
+          "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "design_revision": "KEEP-DESIGN-R2",
+          "bom_revision": "KEEP-PANEL-BOM-R2",
+          "material_lot_id": "LOT-KEEP-PANEL-R1",
+          "service_id": "PANEL-ENVELOPE-SERVICE",
+          "service_restoration_required": true
+        },
+        "projections": {
+          "state_sync": {
+            "owner": "sol-atlas-state-sync",
+            "receipt_id": "STATE-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "asset_id": "ASSET-KEEP-PANEL-01",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "state": "Current",
+            "selected_event_id": "STATE-EVENT-R1",
+            "source_revision": "KEEP-DESIGN-R2",
+            "valid_at": 1400,
+            "recorded_at": 1450,
+            "ingested_at": 1470
+          },
+          "change_impact": {
+            "owner": "sol-atlas-change-impact",
+            "receipt_id": "IMPACT-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "report_id": "IMPACT-REPORT-R1",
+            "event_id": "DESIGN-CHANGE-R2",
+            "report_state": "qualified",
+            "coverage_state": "complete",
+            "graph_snapshot_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "claim_findings": [
+              {
+                "claim_id": "claim_panel_fit",
+                "disposition": "revalidation_required",
+                "reason_codes": [
+                  "PANEL_GEOMETRY_CHANGED"
+                ],
+                "dependency_path": [
+                  "ASSET-KEEP-PANEL-01",
+                  "claim_panel_fit"
+                ],
+                "coverage_proof_id": null,
+                "revalidation": {
+                  "receipt_id": "REVAL-PANEL-FIT-R2",
+                  "claim_id": "claim_panel_fit",
+                  "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+                  "asset_id": "ASSET-KEEP-PANEL-01",
+                  "design_revision": "KEEP-DESIGN-R2",
+                  "event_id": "DESIGN-CHANGE-R2",
+                  "report_id": "IMPACT-REPORT-R1",
+                  "state": "qualified",
+                  "trusted_at": 1490
+                }
+              },
+              {
+                "claim_id": "claim_panel_manufacture",
+                "disposition": "not_affected",
+                "reason_codes": [
+                  "COMPLETE_NO_IMPACT_PATH"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": "COVERAGE-claim_panel_manufacture",
+                "revalidation": null
+              },
+              {
+                "claim_id": "claim_repair_plan",
+                "disposition": "not_affected",
+                "reason_codes": [
+                  "COMPLETE_NO_IMPACT_PATH"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": "COVERAGE-claim_repair_plan",
+                "revalidation": null
+              }
+            ]
+          },
+          "restoration": {
+            "owner": "sol-atlas-restoration",
+            "receipt_id": "RESTORE-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "asset_id": "ASSET-KEEP-PANEL-01",
+            "design_revision": "KEEP-DESIGN-R2",
+            "bom_revision": "KEEP-PANEL-BOM-R2",
+            "material_lot_id": "LOT-KEEP-PANEL-R1",
+            "lot_state": "qualified",
+            "custody_state": "accepted",
+            "payload_bytes_verified": true,
+            "plan_readiness": "feasible",
+            "work_execution": "not_started",
+            "inspection_state": "not_performed",
+            "commissioning_state": "not_performed",
+            "action_authority": "none"
+          },
+          "continuity": {
+            "owner": "sol-atlas-continuity",
+            "receipt_id": "CONTINUITY-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "service_id": "PANEL-ENVELOPE-SERVICE",
+            "service_state": "unknown",
+            "stable_adequacy_met": false,
+            "continuity_receipt_state": "current",
+            "stable_interval_start": null,
+            "stable_interval_end": null
+          }
+        }
+      },
+      "expected": null
+    },
+    {
+      "id": "HCS-12",
+      "name": "Revalidation receipt bound to another scope cannot discharge the panel-fit claim",
+      "category": "missing_evidence",
+      "input": {
+        "classification": "synthetic_fixture_only",
+        "scope": {
+          "scope_id": "SYNTHETIC-DISTRICT-01",
+          "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+          "evaluation_time": 1500,
+          "time_basis": "UTC_UNIX_SECONDS",
+          "asset_id": "ASSET-KEEP-PANEL-01",
+          "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "design_revision": "KEEP-DESIGN-R2",
+          "bom_revision": "KEEP-PANEL-BOM-R2",
+          "material_lot_id": "LOT-KEEP-PANEL-R1",
+          "service_id": "PANEL-ENVELOPE-SERVICE",
+          "service_restoration_required": true
+        },
+        "projections": {
+          "state_sync": {
+            "owner": "sol-atlas-state-sync",
+            "receipt_id": "STATE-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "asset_id": "ASSET-KEEP-PANEL-01",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "state": "Current",
+            "selected_event_id": "STATE-EVENT-R1",
+            "source_revision": "KEEP-DESIGN-R2",
+            "valid_at": 1400,
+            "recorded_at": 1450,
+            "ingested_at": 1470
+          },
+          "change_impact": {
+            "owner": "sol-atlas-change-impact",
+            "receipt_id": "IMPACT-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "report_id": "IMPACT-REPORT-R1",
+            "event_id": "DESIGN-CHANGE-R2",
+            "report_state": "qualified",
+            "coverage_state": "complete",
+            "graph_snapshot_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "claim_findings": [
+              {
+                "claim_id": "claim_panel_fit",
+                "disposition": "revalidation_required",
+                "reason_codes": [
+                  "PANEL_GEOMETRY_CHANGED"
+                ],
+                "dependency_path": [
+                  "ASSET-KEEP-PANEL-01",
+                  "claim_panel_fit"
+                ],
+                "coverage_proof_id": null,
+                "revalidation": {
+                  "receipt_id": "REVAL-PANEL-FIT-R2",
+                  "claim_id": "claim_panel_fit",
+                  "scope_digest": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+                  "asset_id": "ASSET-KEEP-PANEL-01",
+                  "design_revision": "KEEP-DESIGN-R2",
+                  "event_id": "DESIGN-CHANGE-R2",
+                  "report_id": "IMPACT-REPORT-R1",
+                  "state": "qualified",
+                  "trusted_at": 1490
+                }
+              },
+              {
+                "claim_id": "claim_panel_manufacture",
+                "disposition": "not_affected",
+                "reason_codes": [
+                  "COMPLETE_NO_IMPACT_PATH"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": "COVERAGE-claim_panel_manufacture",
+                "revalidation": null
+              },
+              {
+                "claim_id": "claim_repair_plan",
+                "disposition": "not_affected",
+                "reason_codes": [
+                  "COMPLETE_NO_IMPACT_PATH"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": "COVERAGE-claim_repair_plan",
+                "revalidation": null
+              }
+            ]
+          },
+          "restoration": {
+            "owner": "sol-atlas-restoration",
+            "receipt_id": "RESTORE-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "asset_id": "ASSET-KEEP-PANEL-01",
+            "design_revision": "KEEP-DESIGN-R2",
+            "bom_revision": "KEEP-PANEL-BOM-R2",
+            "material_lot_id": "LOT-KEEP-PANEL-R1",
+            "lot_state": "qualified",
+            "custody_state": "accepted",
+            "payload_bytes_verified": true,
+            "plan_readiness": "feasible",
+            "work_execution": "not_started",
+            "inspection_state": "not_performed",
+            "commissioning_state": "not_performed",
+            "action_authority": "none"
+          },
+          "continuity": {
+            "owner": "sol-atlas-continuity",
+            "receipt_id": "CONTINUITY-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "service_id": "PANEL-ENVELOPE-SERVICE",
+            "service_state": "unknown",
+            "stable_adequacy_met": false,
+            "continuity_receipt_state": "current",
+            "stable_interval_start": null,
+            "stable_interval_end": null
+          }
+        }
+      },
+      "expected": null
+    },
+    {
+      "id": "HCS-13",
+      "name": "Repair plan built against the superseded design revision is not comparable",
+      "category": "revision_mismatch",
+      "input": {
+        "classification": "synthetic_fixture_only",
+        "scope": {
+          "scope_id": "SYNTHETIC-DISTRICT-01",
+          "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+          "evaluation_time": 1500,
+          "time_basis": "UTC_UNIX_SECONDS",
+          "asset_id": "ASSET-KEEP-PANEL-01",
+          "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "design_revision": "KEEP-DESIGN-R2",
+          "bom_revision": "KEEP-PANEL-BOM-R1",
+          "material_lot_id": "LOT-KEEP-PANEL-R1",
+          "service_id": "PANEL-ENVELOPE-SERVICE",
+          "service_restoration_required": true
+        },
+        "projections": {
+          "state_sync": {
+            "owner": "sol-atlas-state-sync",
+            "receipt_id": "STATE-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "asset_id": "ASSET-KEEP-PANEL-01",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "state": "Current",
+            "selected_event_id": "STATE-EVENT-R1",
+            "source_revision": "KEEP-DESIGN-R2",
+            "valid_at": 1400,
+            "recorded_at": 1450,
+            "ingested_at": 1470
+          },
+          "change_impact": {
+            "owner": "sol-atlas-change-impact",
+            "receipt_id": "IMPACT-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "report_id": "IMPACT-REPORT-R1",
+            "event_id": "NO-CHANGE-BASELINE",
+            "report_state": "qualified",
+            "coverage_state": "complete",
+            "graph_snapshot_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "claim_findings": [
+              {
+                "claim_id": "claim_panel_fit",
+                "disposition": "not_affected",
+                "reason_codes": [
+                  "COMPLETE_NO_IMPACT_PATH"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": "COVERAGE-claim_panel_fit",
+                "revalidation": null
+              },
+              {
+                "claim_id": "claim_panel_manufacture",
+                "disposition": "not_affected",
+                "reason_codes": [
+                  "COMPLETE_NO_IMPACT_PATH"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": "COVERAGE-claim_panel_manufacture",
+                "revalidation": null
+              },
+              {
+                "claim_id": "claim_repair_plan",
+                "disposition": "not_affected",
+                "reason_codes": [
+                  "COMPLETE_NO_IMPACT_PATH"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": "COVERAGE-claim_repair_plan",
+                "revalidation": null
+              }
+            ]
+          },
+          "restoration": {
+            "owner": "sol-atlas-restoration",
+            "receipt_id": "RESTORE-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "asset_id": "ASSET-KEEP-PANEL-01",
+            "design_revision": "KEEP-DESIGN-R1",
+            "bom_revision": "KEEP-PANEL-BOM-R1",
+            "material_lot_id": "LOT-KEEP-PANEL-R1",
+            "lot_state": "qualified",
+            "custody_state": "accepted",
+            "payload_bytes_verified": true,
+            "plan_readiness": "feasible",
+            "work_execution": "not_started",
+            "inspection_state": "not_performed",
+            "commissioning_state": "not_performed",
+            "action_authority": "none"
+          },
+          "continuity": {
+            "owner": "sol-atlas-continuity",
+            "receipt_id": "CONTINUITY-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "service_id": "PANEL-ENVELOPE-SERVICE",
+            "service_state": "unknown",
+            "stable_adequacy_met": false,
+            "continuity_receipt_state": "current",
+            "stable_interval_start": null,
+            "stable_interval_end": null
+          }
+        }
+      },
+      "expected": null
+    },
+    {
+      "id": "HCS-14",
+      "name": "Repair plan uses the wrong panel BOM revision",
+      "category": "revision_mismatch",
+      "input": {
+        "classification": "synthetic_fixture_only",
+        "scope": {
+          "scope_id": "SYNTHETIC-DISTRICT-01",
+          "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+          "evaluation_time": 1500,
+          "time_basis": "UTC_UNIX_SECONDS",
+          "asset_id": "ASSET-KEEP-PANEL-01",
+          "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "design_revision": "KEEP-DESIGN-R1",
+          "bom_revision": "KEEP-PANEL-BOM-R2",
+          "material_lot_id": "LOT-KEEP-PANEL-R1",
+          "service_id": "PANEL-ENVELOPE-SERVICE",
+          "service_restoration_required": true
+        },
+        "projections": {
+          "state_sync": {
+            "owner": "sol-atlas-state-sync",
+            "receipt_id": "STATE-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "asset_id": "ASSET-KEEP-PANEL-01",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "state": "Current",
+            "selected_event_id": "STATE-EVENT-R1",
+            "source_revision": "KEEP-DESIGN-R1",
+            "valid_at": 1400,
+            "recorded_at": 1450,
+            "ingested_at": 1470
+          },
+          "change_impact": {
+            "owner": "sol-atlas-change-impact",
+            "receipt_id": "IMPACT-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "report_id": "IMPACT-REPORT-R1",
+            "event_id": "NO-CHANGE-BASELINE",
+            "report_state": "qualified",
+            "coverage_state": "complete",
+            "graph_snapshot_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "claim_findings": [
+              {
+                "claim_id": "claim_panel_fit",
+                "disposition": "not_affected",
+                "reason_codes": [
+                  "COMPLETE_NO_IMPACT_PATH"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": "COVERAGE-claim_panel_fit",
+                "revalidation": null
+              },
+              {
+                "claim_id": "claim_panel_manufacture",
+                "disposition": "not_affected",
+                "reason_codes": [
+                  "COMPLETE_NO_IMPACT_PATH"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": "COVERAGE-claim_panel_manufacture",
+                "revalidation": null
+              },
+              {
+                "claim_id": "claim_repair_plan",
+                "disposition": "not_affected",
+                "reason_codes": [
+                  "COMPLETE_NO_IMPACT_PATH"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": "COVERAGE-claim_repair_plan",
+                "revalidation": null
+              }
+            ]
+          },
+          "restoration": {
+            "owner": "sol-atlas-restoration",
+            "receipt_id": "RESTORE-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "asset_id": "ASSET-KEEP-PANEL-01",
+            "design_revision": "KEEP-DESIGN-R1",
+            "bom_revision": "KEEP-PANEL-BOM-R1",
+            "material_lot_id": "LOT-KEEP-PANEL-R1",
+            "lot_state": "qualified",
+            "custody_state": "accepted",
+            "payload_bytes_verified": true,
+            "plan_readiness": "feasible",
+            "work_execution": "not_started",
+            "inspection_state": "not_performed",
+            "commissioning_state": "not_performed",
+            "action_authority": "none"
+          },
+          "continuity": {
+            "owner": "sol-atlas-continuity",
+            "receipt_id": "CONTINUITY-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "service_id": "PANEL-ENVELOPE-SERVICE",
+            "service_state": "unknown",
+            "stable_adequacy_met": false,
+            "continuity_receipt_state": "current",
+            "stable_interval_start": null,
+            "stable_interval_end": null
+          }
+        }
+      },
+      "expected": null
+    },
+    {
+      "id": "HCS-15",
+      "name": "Revoked material lot makes the restoration plan infeasible",
+      "category": "hard_conflict",
+      "input": {
+        "classification": "synthetic_fixture_only",
+        "scope": {
+          "scope_id": "SYNTHETIC-DISTRICT-01",
+          "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+          "evaluation_time": 1500,
+          "time_basis": "UTC_UNIX_SECONDS",
+          "asset_id": "ASSET-KEEP-PANEL-01",
+          "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "design_revision": "KEEP-DESIGN-R1",
+          "bom_revision": "KEEP-PANEL-BOM-R1",
+          "material_lot_id": "LOT-KEEP-PANEL-R1",
+          "service_id": "PANEL-ENVELOPE-SERVICE",
+          "service_restoration_required": true
+        },
+        "projections": {
+          "state_sync": {
+            "owner": "sol-atlas-state-sync",
+            "receipt_id": "STATE-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "asset_id": "ASSET-KEEP-PANEL-01",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "state": "Current",
+            "selected_event_id": "STATE-EVENT-R1",
+            "source_revision": "KEEP-DESIGN-R1",
+            "valid_at": 1400,
+            "recorded_at": 1450,
+            "ingested_at": 1470
+          },
+          "change_impact": {
+            "owner": "sol-atlas-change-impact",
+            "receipt_id": "IMPACT-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "report_id": "IMPACT-REPORT-R1",
+            "event_id": "NO-CHANGE-BASELINE",
+            "report_state": "qualified",
+            "coverage_state": "complete",
+            "graph_snapshot_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "claim_findings": [
+              {
+                "claim_id": "claim_panel_fit",
+                "disposition": "not_affected",
+                "reason_codes": [
+                  "COMPLETE_NO_IMPACT_PATH"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": "COVERAGE-claim_panel_fit",
+                "revalidation": null
+              },
+              {
+                "claim_id": "claim_panel_manufacture",
+                "disposition": "not_affected",
+                "reason_codes": [
+                  "COMPLETE_NO_IMPACT_PATH"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": "COVERAGE-claim_panel_manufacture",
+                "revalidation": null
+              },
+              {
+                "claim_id": "claim_repair_plan",
+                "disposition": "not_affected",
+                "reason_codes": [
+                  "COMPLETE_NO_IMPACT_PATH"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": "COVERAGE-claim_repair_plan",
+                "revalidation": null
+              }
+            ]
+          },
+          "restoration": {
+            "owner": "sol-atlas-restoration",
+            "receipt_id": "RESTORE-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "asset_id": "ASSET-KEEP-PANEL-01",
+            "design_revision": "KEEP-DESIGN-R1",
+            "bom_revision": "KEEP-PANEL-BOM-R1",
+            "material_lot_id": "LOT-KEEP-PANEL-R1",
+            "lot_state": "revoked",
+            "custody_state": "accepted",
+            "payload_bytes_verified": true,
+            "plan_readiness": "feasible",
+            "work_execution": "not_started",
+            "inspection_state": "not_performed",
+            "commissioning_state": "not_performed",
+            "action_authority": "none"
+          },
+          "continuity": {
+            "owner": "sol-atlas-continuity",
+            "receipt_id": "CONTINUITY-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "service_id": "PANEL-ENVELOPE-SERVICE",
+            "service_state": "unknown",
+            "stable_adequacy_met": false,
+            "continuity_receipt_state": "current",
+            "stable_interval_start": null,
+            "stable_interval_end": null
+          }
+        }
+      },
+      "expected": null
+    },
+    {
+      "id": "HCS-16",
+      "name": "Unaccepted lot custody blocks plan composition",
+      "category": "missing_evidence",
+      "input": {
+        "classification": "synthetic_fixture_only",
+        "scope": {
+          "scope_id": "SYNTHETIC-DISTRICT-01",
+          "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+          "evaluation_time": 1500,
+          "time_basis": "UTC_UNIX_SECONDS",
+          "asset_id": "ASSET-KEEP-PANEL-01",
+          "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "design_revision": "KEEP-DESIGN-R1",
+          "bom_revision": "KEEP-PANEL-BOM-R1",
+          "material_lot_id": "LOT-KEEP-PANEL-R1",
+          "service_id": "PANEL-ENVELOPE-SERVICE",
+          "service_restoration_required": true
+        },
+        "projections": {
+          "state_sync": {
+            "owner": "sol-atlas-state-sync",
+            "receipt_id": "STATE-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "asset_id": "ASSET-KEEP-PANEL-01",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "state": "Current",
+            "selected_event_id": "STATE-EVENT-R1",
+            "source_revision": "KEEP-DESIGN-R1",
+            "valid_at": 1400,
+            "recorded_at": 1450,
+            "ingested_at": 1470
+          },
+          "change_impact": {
+            "owner": "sol-atlas-change-impact",
+            "receipt_id": "IMPACT-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "report_id": "IMPACT-REPORT-R1",
+            "event_id": "NO-CHANGE-BASELINE",
+            "report_state": "qualified",
+            "coverage_state": "complete",
+            "graph_snapshot_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "claim_findings": [
+              {
+                "claim_id": "claim_panel_fit",
+                "disposition": "not_affected",
+                "reason_codes": [
+                  "COMPLETE_NO_IMPACT_PATH"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": "COVERAGE-claim_panel_fit",
+                "revalidation": null
+              },
+              {
+                "claim_id": "claim_panel_manufacture",
+                "disposition": "not_affected",
+                "reason_codes": [
+                  "COMPLETE_NO_IMPACT_PATH"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": "COVERAGE-claim_panel_manufacture",
+                "revalidation": null
+              },
+              {
+                "claim_id": "claim_repair_plan",
+                "disposition": "not_affected",
+                "reason_codes": [
+                  "COMPLETE_NO_IMPACT_PATH"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": "COVERAGE-claim_repair_plan",
+                "revalidation": null
+              }
+            ]
+          },
+          "restoration": {
+            "owner": "sol-atlas-restoration",
+            "receipt_id": "RESTORE-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "asset_id": "ASSET-KEEP-PANEL-01",
+            "design_revision": "KEEP-DESIGN-R1",
+            "bom_revision": "KEEP-PANEL-BOM-R1",
+            "material_lot_id": "LOT-KEEP-PANEL-R1",
+            "lot_state": "qualified",
+            "custody_state": "unknown",
+            "payload_bytes_verified": true,
+            "plan_readiness": "feasible",
+            "work_execution": "not_started",
+            "inspection_state": "not_performed",
+            "commissioning_state": "not_performed",
+            "action_authority": "none"
+          },
+          "continuity": {
+            "owner": "sol-atlas-continuity",
+            "receipt_id": "CONTINUITY-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "service_id": "PANEL-ENVELOPE-SERVICE",
+            "service_state": "unknown",
+            "stable_adequacy_met": false,
+            "continuity_receipt_state": "current",
+            "stable_interval_start": null,
+            "stable_interval_end": null
+          }
+        }
+      },
+      "expected": null
+    },
+    {
+      "id": "HCS-17",
+      "name": "Unverified source payload bytes cannot support the integrated candidate",
+      "category": "missing_evidence",
+      "input": {
+        "classification": "synthetic_fixture_only",
+        "scope": {
+          "scope_id": "SYNTHETIC-DISTRICT-01",
+          "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+          "evaluation_time": 1500,
+          "time_basis": "UTC_UNIX_SECONDS",
+          "asset_id": "ASSET-KEEP-PANEL-01",
+          "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "design_revision": "KEEP-DESIGN-R1",
+          "bom_revision": "KEEP-PANEL-BOM-R1",
+          "material_lot_id": "LOT-KEEP-PANEL-R1",
+          "service_id": "PANEL-ENVELOPE-SERVICE",
+          "service_restoration_required": true
+        },
+        "projections": {
+          "state_sync": {
+            "owner": "sol-atlas-state-sync",
+            "receipt_id": "STATE-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "asset_id": "ASSET-KEEP-PANEL-01",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "state": "Current",
+            "selected_event_id": "STATE-EVENT-R1",
+            "source_revision": "KEEP-DESIGN-R1",
+            "valid_at": 1400,
+            "recorded_at": 1450,
+            "ingested_at": 1470
+          },
+          "change_impact": {
+            "owner": "sol-atlas-change-impact",
+            "receipt_id": "IMPACT-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "report_id": "IMPACT-REPORT-R1",
+            "event_id": "NO-CHANGE-BASELINE",
+            "report_state": "qualified",
+            "coverage_state": "complete",
+            "graph_snapshot_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "claim_findings": [
+              {
+                "claim_id": "claim_panel_fit",
+                "disposition": "not_affected",
+                "reason_codes": [
+                  "COMPLETE_NO_IMPACT_PATH"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": "COVERAGE-claim_panel_fit",
+                "revalidation": null
+              },
+              {
+                "claim_id": "claim_panel_manufacture",
+                "disposition": "not_affected",
+                "reason_codes": [
+                  "COMPLETE_NO_IMPACT_PATH"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": "COVERAGE-claim_panel_manufacture",
+                "revalidation": null
+              },
+              {
+                "claim_id": "claim_repair_plan",
+                "disposition": "not_affected",
+                "reason_codes": [
+                  "COMPLETE_NO_IMPACT_PATH"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": "COVERAGE-claim_repair_plan",
+                "revalidation": null
+              }
+            ]
+          },
+          "restoration": {
+            "owner": "sol-atlas-restoration",
+            "receipt_id": "RESTORE-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "asset_id": "ASSET-KEEP-PANEL-01",
+            "design_revision": "KEEP-DESIGN-R1",
+            "bom_revision": "KEEP-PANEL-BOM-R1",
+            "material_lot_id": "LOT-KEEP-PANEL-R1",
+            "lot_state": "qualified",
+            "custody_state": "accepted",
+            "payload_bytes_verified": false,
+            "plan_readiness": "feasible",
+            "work_execution": "not_started",
+            "inspection_state": "not_performed",
+            "commissioning_state": "not_performed",
+            "action_authority": "none"
+          },
+          "continuity": {
+            "owner": "sol-atlas-continuity",
+            "receipt_id": "CONTINUITY-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "service_id": "PANEL-ENVELOPE-SERVICE",
+            "service_state": "unknown",
+            "stable_adequacy_met": false,
+            "continuity_receipt_state": "current",
+            "stable_interval_start": null,
+            "stable_interval_end": null
+          }
+        }
+      },
+      "expected": null
+    },
+    {
+      "id": "HCS-18",
+      "name": "Completed work without independent inspection remains awaiting inspection",
+      "category": "stage_separation",
+      "input": {
+        "classification": "synthetic_fixture_only",
+        "scope": {
+          "scope_id": "SYNTHETIC-DISTRICT-01",
+          "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+          "evaluation_time": 1500,
+          "time_basis": "UTC_UNIX_SECONDS",
+          "asset_id": "ASSET-KEEP-PANEL-01",
+          "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "design_revision": "KEEP-DESIGN-R1",
+          "bom_revision": "KEEP-PANEL-BOM-R1",
+          "material_lot_id": "LOT-KEEP-PANEL-R1",
+          "service_id": "PANEL-ENVELOPE-SERVICE",
+          "service_restoration_required": true
+        },
+        "projections": {
+          "state_sync": {
+            "owner": "sol-atlas-state-sync",
+            "receipt_id": "STATE-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "asset_id": "ASSET-KEEP-PANEL-01",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "state": "Current",
+            "selected_event_id": "STATE-EVENT-R1",
+            "source_revision": "KEEP-DESIGN-R1",
+            "valid_at": 1400,
+            "recorded_at": 1450,
+            "ingested_at": 1470
+          },
+          "change_impact": {
+            "owner": "sol-atlas-change-impact",
+            "receipt_id": "IMPACT-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "report_id": "IMPACT-REPORT-R1",
+            "event_id": "NO-CHANGE-BASELINE",
+            "report_state": "qualified",
+            "coverage_state": "complete",
+            "graph_snapshot_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "claim_findings": [
+              {
+                "claim_id": "claim_panel_fit",
+                "disposition": "not_affected",
+                "reason_codes": [
+                  "COMPLETE_NO_IMPACT_PATH"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": "COVERAGE-claim_panel_fit",
+                "revalidation": null
+              },
+              {
+                "claim_id": "claim_panel_manufacture",
+                "disposition": "not_affected",
+                "reason_codes": [
+                  "COMPLETE_NO_IMPACT_PATH"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": "COVERAGE-claim_panel_manufacture",
+                "revalidation": null
+              },
+              {
+                "claim_id": "claim_repair_plan",
+                "disposition": "not_affected",
+                "reason_codes": [
+                  "COMPLETE_NO_IMPACT_PATH"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": "COVERAGE-claim_repair_plan",
+                "revalidation": null
+              }
+            ]
+          },
+          "restoration": {
+            "owner": "sol-atlas-restoration",
+            "receipt_id": "RESTORE-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "asset_id": "ASSET-KEEP-PANEL-01",
+            "design_revision": "KEEP-DESIGN-R1",
+            "bom_revision": "KEEP-PANEL-BOM-R1",
+            "material_lot_id": "LOT-KEEP-PANEL-R1",
+            "lot_state": "qualified",
+            "custody_state": "accepted",
+            "payload_bytes_verified": true,
+            "plan_readiness": "feasible",
+            "work_execution": "completed",
+            "inspection_state": "not_performed",
+            "commissioning_state": "not_performed",
+            "action_authority": "none"
+          },
+          "continuity": {
+            "owner": "sol-atlas-continuity",
+            "receipt_id": "CONTINUITY-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "service_id": "PANEL-ENVELOPE-SERVICE",
+            "service_state": "unknown",
+            "stable_adequacy_met": false,
+            "continuity_receipt_state": "current",
+            "stable_interval_start": null,
+            "stable_interval_end": null
+          }
+        }
+      },
+      "expected": null
+    },
+    {
+      "id": "HCS-19",
+      "name": "Inspection pass without commissioning remains awaiting commissioning",
+      "category": "stage_separation",
+      "input": {
+        "classification": "synthetic_fixture_only",
+        "scope": {
+          "scope_id": "SYNTHETIC-DISTRICT-01",
+          "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+          "evaluation_time": 1500,
+          "time_basis": "UTC_UNIX_SECONDS",
+          "asset_id": "ASSET-KEEP-PANEL-01",
+          "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "design_revision": "KEEP-DESIGN-R1",
+          "bom_revision": "KEEP-PANEL-BOM-R1",
+          "material_lot_id": "LOT-KEEP-PANEL-R1",
+          "service_id": "PANEL-ENVELOPE-SERVICE",
+          "service_restoration_required": true
+        },
+        "projections": {
+          "state_sync": {
+            "owner": "sol-atlas-state-sync",
+            "receipt_id": "STATE-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "asset_id": "ASSET-KEEP-PANEL-01",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "state": "Current",
+            "selected_event_id": "STATE-EVENT-R1",
+            "source_revision": "KEEP-DESIGN-R1",
+            "valid_at": 1400,
+            "recorded_at": 1450,
+            "ingested_at": 1470
+          },
+          "change_impact": {
+            "owner": "sol-atlas-change-impact",
+            "receipt_id": "IMPACT-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "report_id": "IMPACT-REPORT-R1",
+            "event_id": "NO-CHANGE-BASELINE",
+            "report_state": "qualified",
+            "coverage_state": "complete",
+            "graph_snapshot_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "claim_findings": [
+              {
+                "claim_id": "claim_panel_fit",
+                "disposition": "not_affected",
+                "reason_codes": [
+                  "COMPLETE_NO_IMPACT_PATH"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": "COVERAGE-claim_panel_fit",
+                "revalidation": null
+              },
+              {
+                "claim_id": "claim_panel_manufacture",
+                "disposition": "not_affected",
+                "reason_codes": [
+                  "COMPLETE_NO_IMPACT_PATH"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": "COVERAGE-claim_panel_manufacture",
+                "revalidation": null
+              },
+              {
+                "claim_id": "claim_repair_plan",
+                "disposition": "not_affected",
+                "reason_codes": [
+                  "COMPLETE_NO_IMPACT_PATH"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": "COVERAGE-claim_repair_plan",
+                "revalidation": null
+              }
+            ]
+          },
+          "restoration": {
+            "owner": "sol-atlas-restoration",
+            "receipt_id": "RESTORE-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "asset_id": "ASSET-KEEP-PANEL-01",
+            "design_revision": "KEEP-DESIGN-R1",
+            "bom_revision": "KEEP-PANEL-BOM-R1",
+            "material_lot_id": "LOT-KEEP-PANEL-R1",
+            "lot_state": "qualified",
+            "custody_state": "accepted",
+            "payload_bytes_verified": true,
+            "plan_readiness": "feasible",
+            "work_execution": "completed",
+            "inspection_state": "pass",
+            "commissioning_state": "not_performed",
+            "action_authority": "none"
+          },
+          "continuity": {
+            "owner": "sol-atlas-continuity",
+            "receipt_id": "CONTINUITY-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "service_id": "PANEL-ENVELOPE-SERVICE",
+            "service_state": "unknown",
+            "stable_adequacy_met": false,
+            "continuity_receipt_state": "current",
+            "stable_interval_start": null,
+            "stable_interval_end": null
+          }
+        }
+      },
+      "expected": null
+    },
+    {
+      "id": "HCS-20",
+      "name": "Commissioning pass with unknown continuity remains awaiting service confirmation",
+      "category": "stage_separation",
+      "input": {
+        "classification": "synthetic_fixture_only",
+        "scope": {
+          "scope_id": "SYNTHETIC-DISTRICT-01",
+          "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+          "evaluation_time": 1500,
+          "time_basis": "UTC_UNIX_SECONDS",
+          "asset_id": "ASSET-KEEP-PANEL-01",
+          "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "design_revision": "KEEP-DESIGN-R1",
+          "bom_revision": "KEEP-PANEL-BOM-R1",
+          "material_lot_id": "LOT-KEEP-PANEL-R1",
+          "service_id": "PANEL-ENVELOPE-SERVICE",
+          "service_restoration_required": true
+        },
+        "projections": {
+          "state_sync": {
+            "owner": "sol-atlas-state-sync",
+            "receipt_id": "STATE-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "asset_id": "ASSET-KEEP-PANEL-01",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "state": "Current",
+            "selected_event_id": "STATE-EVENT-R1",
+            "source_revision": "KEEP-DESIGN-R1",
+            "valid_at": 1400,
+            "recorded_at": 1450,
+            "ingested_at": 1470
+          },
+          "change_impact": {
+            "owner": "sol-atlas-change-impact",
+            "receipt_id": "IMPACT-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "report_id": "IMPACT-REPORT-R1",
+            "event_id": "NO-CHANGE-BASELINE",
+            "report_state": "qualified",
+            "coverage_state": "complete",
+            "graph_snapshot_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "claim_findings": [
+              {
+                "claim_id": "claim_panel_fit",
+                "disposition": "not_affected",
+                "reason_codes": [
+                  "COMPLETE_NO_IMPACT_PATH"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": "COVERAGE-claim_panel_fit",
+                "revalidation": null
+              },
+              {
+                "claim_id": "claim_panel_manufacture",
+                "disposition": "not_affected",
+                "reason_codes": [
+                  "COMPLETE_NO_IMPACT_PATH"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": "COVERAGE-claim_panel_manufacture",
+                "revalidation": null
+              },
+              {
+                "claim_id": "claim_repair_plan",
+                "disposition": "not_affected",
+                "reason_codes": [
+                  "COMPLETE_NO_IMPACT_PATH"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": "COVERAGE-claim_repair_plan",
+                "revalidation": null
+              }
+            ]
+          },
+          "restoration": {
+            "owner": "sol-atlas-restoration",
+            "receipt_id": "RESTORE-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "asset_id": "ASSET-KEEP-PANEL-01",
+            "design_revision": "KEEP-DESIGN-R1",
+            "bom_revision": "KEEP-PANEL-BOM-R1",
+            "material_lot_id": "LOT-KEEP-PANEL-R1",
+            "lot_state": "qualified",
+            "custody_state": "accepted",
+            "payload_bytes_verified": true,
+            "plan_readiness": "feasible",
+            "work_execution": "completed",
+            "inspection_state": "pass",
+            "commissioning_state": "pass",
+            "action_authority": "none"
+          },
+          "continuity": {
+            "owner": "sol-atlas-continuity",
+            "receipt_id": "CONTINUITY-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "service_id": "PANEL-ENVELOPE-SERVICE",
+            "service_state": "unknown",
+            "stable_adequacy_met": false,
+            "continuity_receipt_state": "current",
+            "stable_interval_start": null,
+            "stable_interval_end": null
+          }
+        }
+      },
+      "expected": null
+    },
+    {
+      "id": "HCS-21",
+      "name": "Only the continuity owner can confirm adequate service after the stable interval",
+      "category": "positive",
+      "input": {
+        "classification": "synthetic_fixture_only",
+        "scope": {
+          "scope_id": "SYNTHETIC-DISTRICT-01",
+          "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+          "evaluation_time": 1500,
+          "time_basis": "UTC_UNIX_SECONDS",
+          "asset_id": "ASSET-KEEP-PANEL-01",
+          "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "design_revision": "KEEP-DESIGN-R1",
+          "bom_revision": "KEEP-PANEL-BOM-R1",
+          "material_lot_id": "LOT-KEEP-PANEL-R1",
+          "service_id": "PANEL-ENVELOPE-SERVICE",
+          "service_restoration_required": true
+        },
+        "projections": {
+          "state_sync": {
+            "owner": "sol-atlas-state-sync",
+            "receipt_id": "STATE-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "asset_id": "ASSET-KEEP-PANEL-01",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "state": "Current",
+            "selected_event_id": "STATE-EVENT-R1",
+            "source_revision": "KEEP-DESIGN-R1",
+            "valid_at": 1400,
+            "recorded_at": 1450,
+            "ingested_at": 1470
+          },
+          "change_impact": {
+            "owner": "sol-atlas-change-impact",
+            "receipt_id": "IMPACT-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "report_id": "IMPACT-REPORT-R1",
+            "event_id": "NO-CHANGE-BASELINE",
+            "report_state": "qualified",
+            "coverage_state": "complete",
+            "graph_snapshot_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "claim_findings": [
+              {
+                "claim_id": "claim_panel_fit",
+                "disposition": "not_affected",
+                "reason_codes": [
+                  "COMPLETE_NO_IMPACT_PATH"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": "COVERAGE-claim_panel_fit",
+                "revalidation": null
+              },
+              {
+                "claim_id": "claim_panel_manufacture",
+                "disposition": "not_affected",
+                "reason_codes": [
+                  "COMPLETE_NO_IMPACT_PATH"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": "COVERAGE-claim_panel_manufacture",
+                "revalidation": null
+              },
+              {
+                "claim_id": "claim_repair_plan",
+                "disposition": "not_affected",
+                "reason_codes": [
+                  "COMPLETE_NO_IMPACT_PATH"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": "COVERAGE-claim_repair_plan",
+                "revalidation": null
+              }
+            ]
+          },
+          "restoration": {
+            "owner": "sol-atlas-restoration",
+            "receipt_id": "RESTORE-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "asset_id": "ASSET-KEEP-PANEL-01",
+            "design_revision": "KEEP-DESIGN-R1",
+            "bom_revision": "KEEP-PANEL-BOM-R1",
+            "material_lot_id": "LOT-KEEP-PANEL-R1",
+            "lot_state": "qualified",
+            "custody_state": "accepted",
+            "payload_bytes_verified": true,
+            "plan_readiness": "feasible",
+            "work_execution": "completed",
+            "inspection_state": "pass",
+            "commissioning_state": "pass",
+            "action_authority": "none"
+          },
+          "continuity": {
+            "owner": "sol-atlas-continuity",
+            "receipt_id": "CONTINUITY-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "service_id": "PANEL-ENVELOPE-SERVICE",
+            "service_state": "adequate",
+            "stable_adequacy_met": true,
+            "continuity_receipt_state": "current",
+            "stable_interval_start": 1300,
+            "stable_interval_end": 1500
+          }
+        }
+      },
+      "expected": null
+    },
+    {
+      "id": "HCS-22",
+      "name": "Single adequate observation without the stable interval is not restoration",
+      "category": "stage_separation",
+      "input": {
+        "classification": "synthetic_fixture_only",
+        "scope": {
+          "scope_id": "SYNTHETIC-DISTRICT-01",
+          "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+          "evaluation_time": 1500,
+          "time_basis": "UTC_UNIX_SECONDS",
+          "asset_id": "ASSET-KEEP-PANEL-01",
+          "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "design_revision": "KEEP-DESIGN-R1",
+          "bom_revision": "KEEP-PANEL-BOM-R1",
+          "material_lot_id": "LOT-KEEP-PANEL-R1",
+          "service_id": "PANEL-ENVELOPE-SERVICE",
+          "service_restoration_required": true
+        },
+        "projections": {
+          "state_sync": {
+            "owner": "sol-atlas-state-sync",
+            "receipt_id": "STATE-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "asset_id": "ASSET-KEEP-PANEL-01",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "state": "Current",
+            "selected_event_id": "STATE-EVENT-R1",
+            "source_revision": "KEEP-DESIGN-R1",
+            "valid_at": 1400,
+            "recorded_at": 1450,
+            "ingested_at": 1470
+          },
+          "change_impact": {
+            "owner": "sol-atlas-change-impact",
+            "receipt_id": "IMPACT-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "report_id": "IMPACT-REPORT-R1",
+            "event_id": "NO-CHANGE-BASELINE",
+            "report_state": "qualified",
+            "coverage_state": "complete",
+            "graph_snapshot_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "claim_findings": [
+              {
+                "claim_id": "claim_panel_fit",
+                "disposition": "not_affected",
+                "reason_codes": [
+                  "COMPLETE_NO_IMPACT_PATH"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": "COVERAGE-claim_panel_fit",
+                "revalidation": null
+              },
+              {
+                "claim_id": "claim_panel_manufacture",
+                "disposition": "not_affected",
+                "reason_codes": [
+                  "COMPLETE_NO_IMPACT_PATH"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": "COVERAGE-claim_panel_manufacture",
+                "revalidation": null
+              },
+              {
+                "claim_id": "claim_repair_plan",
+                "disposition": "not_affected",
+                "reason_codes": [
+                  "COMPLETE_NO_IMPACT_PATH"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": "COVERAGE-claim_repair_plan",
+                "revalidation": null
+              }
+            ]
+          },
+          "restoration": {
+            "owner": "sol-atlas-restoration",
+            "receipt_id": "RESTORE-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "asset_id": "ASSET-KEEP-PANEL-01",
+            "design_revision": "KEEP-DESIGN-R1",
+            "bom_revision": "KEEP-PANEL-BOM-R1",
+            "material_lot_id": "LOT-KEEP-PANEL-R1",
+            "lot_state": "qualified",
+            "custody_state": "accepted",
+            "payload_bytes_verified": true,
+            "plan_readiness": "feasible",
+            "work_execution": "completed",
+            "inspection_state": "pass",
+            "commissioning_state": "pass",
+            "action_authority": "none"
+          },
+          "continuity": {
+            "owner": "sol-atlas-continuity",
+            "receipt_id": "CONTINUITY-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "service_id": "PANEL-ENVELOPE-SERVICE",
+            "service_state": "adequate",
+            "stable_adequacy_met": false,
+            "continuity_receipt_state": "current",
+            "stable_interval_start": null,
+            "stable_interval_end": null
+          }
+        }
+      },
+      "expected": null
+    },
+    {
+      "id": "HCS-23",
+      "name": "Continuity result belongs to another scenario",
+      "category": "scope_mismatch",
+      "input": {
+        "classification": "synthetic_fixture_only",
+        "scope": {
+          "scope_id": "SYNTHETIC-DISTRICT-01",
+          "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+          "evaluation_time": 1500,
+          "time_basis": "UTC_UNIX_SECONDS",
+          "asset_id": "ASSET-KEEP-PANEL-01",
+          "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "design_revision": "KEEP-DESIGN-R1",
+          "bom_revision": "KEEP-PANEL-BOM-R1",
+          "material_lot_id": "LOT-KEEP-PANEL-R1",
+          "service_id": "PANEL-ENVELOPE-SERVICE",
+          "service_restoration_required": true
+        },
+        "projections": {
+          "state_sync": {
+            "owner": "sol-atlas-state-sync",
+            "receipt_id": "STATE-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "asset_id": "ASSET-KEEP-PANEL-01",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "state": "Current",
+            "selected_event_id": "STATE-EVENT-R1",
+            "source_revision": "KEEP-DESIGN-R1",
+            "valid_at": 1400,
+            "recorded_at": 1450,
+            "ingested_at": 1470
+          },
+          "change_impact": {
+            "owner": "sol-atlas-change-impact",
+            "receipt_id": "IMPACT-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "report_id": "IMPACT-REPORT-R1",
+            "event_id": "NO-CHANGE-BASELINE",
+            "report_state": "qualified",
+            "coverage_state": "complete",
+            "graph_snapshot_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "claim_findings": [
+              {
+                "claim_id": "claim_panel_fit",
+                "disposition": "not_affected",
+                "reason_codes": [
+                  "COMPLETE_NO_IMPACT_PATH"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": "COVERAGE-claim_panel_fit",
+                "revalidation": null
+              },
+              {
+                "claim_id": "claim_panel_manufacture",
+                "disposition": "not_affected",
+                "reason_codes": [
+                  "COMPLETE_NO_IMPACT_PATH"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": "COVERAGE-claim_panel_manufacture",
+                "revalidation": null
+              },
+              {
+                "claim_id": "claim_repair_plan",
+                "disposition": "not_affected",
+                "reason_codes": [
+                  "COMPLETE_NO_IMPACT_PATH"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": "COVERAGE-claim_repair_plan",
+                "revalidation": null
+              }
+            ]
+          },
+          "restoration": {
+            "owner": "sol-atlas-restoration",
+            "receipt_id": "RESTORE-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "asset_id": "ASSET-KEEP-PANEL-01",
+            "design_revision": "KEEP-DESIGN-R1",
+            "bom_revision": "KEEP-PANEL-BOM-R1",
+            "material_lot_id": "LOT-KEEP-PANEL-R1",
+            "lot_state": "qualified",
+            "custody_state": "accepted",
+            "payload_bytes_verified": true,
+            "plan_readiness": "feasible",
+            "work_execution": "not_started",
+            "inspection_state": "not_performed",
+            "commissioning_state": "not_performed",
+            "action_authority": "none"
+          },
+          "continuity": {
+            "owner": "sol-atlas-continuity",
+            "receipt_id": "CONTINUITY-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "OTHER-SCENARIO",
+            "service_id": "PANEL-ENVELOPE-SERVICE",
+            "service_state": "unknown",
+            "stable_adequacy_met": false,
+            "continuity_receipt_state": "current",
+            "stable_interval_start": null,
+            "stable_interval_end": null
+          }
+        }
+      },
+      "expected": null
+    },
+    {
+      "id": "HCS-24",
+      "name": "Failed upstream impact receipt is not composable",
+      "category": "invalid_evidence",
+      "input": {
+        "classification": "synthetic_fixture_only",
+        "scope": {
+          "scope_id": "SYNTHETIC-DISTRICT-01",
+          "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+          "evaluation_time": 1500,
+          "time_basis": "UTC_UNIX_SECONDS",
+          "asset_id": "ASSET-KEEP-PANEL-01",
+          "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "design_revision": "KEEP-DESIGN-R1",
+          "bom_revision": "KEEP-PANEL-BOM-R1",
+          "material_lot_id": "LOT-KEEP-PANEL-R1",
+          "service_id": "PANEL-ENVELOPE-SERVICE",
+          "service_restoration_required": true
+        },
+        "projections": {
+          "state_sync": {
+            "owner": "sol-atlas-state-sync",
+            "receipt_id": "STATE-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "asset_id": "ASSET-KEEP-PANEL-01",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "state": "Current",
+            "selected_event_id": "STATE-EVENT-R1",
+            "source_revision": "KEEP-DESIGN-R1",
+            "valid_at": 1400,
+            "recorded_at": 1450,
+            "ingested_at": 1470
+          },
+          "change_impact": {
+            "owner": "sol-atlas-change-impact",
+            "receipt_id": "IMPACT-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "failed",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "report_id": "IMPACT-REPORT-R1",
+            "event_id": "NO-CHANGE-BASELINE",
+            "report_state": "qualified",
+            "coverage_state": "complete",
+            "graph_snapshot_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "claim_findings": [
+              {
+                "claim_id": "claim_panel_fit",
+                "disposition": "not_affected",
+                "reason_codes": [
+                  "COMPLETE_NO_IMPACT_PATH"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": "COVERAGE-claim_panel_fit",
+                "revalidation": null
+              },
+              {
+                "claim_id": "claim_panel_manufacture",
+                "disposition": "not_affected",
+                "reason_codes": [
+                  "COMPLETE_NO_IMPACT_PATH"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": "COVERAGE-claim_panel_manufacture",
+                "revalidation": null
+              },
+              {
+                "claim_id": "claim_repair_plan",
+                "disposition": "not_affected",
+                "reason_codes": [
+                  "COMPLETE_NO_IMPACT_PATH"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": "COVERAGE-claim_repair_plan",
+                "revalidation": null
+              }
+            ]
+          },
+          "restoration": {
+            "owner": "sol-atlas-restoration",
+            "receipt_id": "RESTORE-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "asset_id": "ASSET-KEEP-PANEL-01",
+            "design_revision": "KEEP-DESIGN-R1",
+            "bom_revision": "KEEP-PANEL-BOM-R1",
+            "material_lot_id": "LOT-KEEP-PANEL-R1",
+            "lot_state": "qualified",
+            "custody_state": "accepted",
+            "payload_bytes_verified": true,
+            "plan_readiness": "feasible",
+            "work_execution": "not_started",
+            "inspection_state": "not_performed",
+            "commissioning_state": "not_performed",
+            "action_authority": "none"
+          },
+          "continuity": {
+            "owner": "sol-atlas-continuity",
+            "receipt_id": "CONTINUITY-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "service_id": "PANEL-ENVELOPE-SERVICE",
+            "service_state": "unknown",
+            "stable_adequacy_met": false,
+            "continuity_receipt_state": "current",
+            "stable_interval_start": null,
+            "stable_interval_end": null
+          }
+        }
+      },
+      "expected": null
+    },
+    {
+      "id": "HCS-25",
+      "name": "Duplicate owner projection receipt identity is invalid",
+      "category": "invalid_evidence",
+      "input": {
+        "classification": "synthetic_fixture_only",
+        "scope": {
+          "scope_id": "SYNTHETIC-DISTRICT-01",
+          "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+          "evaluation_time": 1500,
+          "time_basis": "UTC_UNIX_SECONDS",
+          "asset_id": "ASSET-KEEP-PANEL-01",
+          "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "design_revision": "KEEP-DESIGN-R1",
+          "bom_revision": "KEEP-PANEL-BOM-R1",
+          "material_lot_id": "LOT-KEEP-PANEL-R1",
+          "service_id": "PANEL-ENVELOPE-SERVICE",
+          "service_restoration_required": true
+        },
+        "projections": {
+          "state_sync": {
+            "owner": "sol-atlas-state-sync",
+            "receipt_id": "STATE-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "asset_id": "ASSET-KEEP-PANEL-01",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "state": "Current",
+            "selected_event_id": "STATE-EVENT-R1",
+            "source_revision": "KEEP-DESIGN-R1",
+            "valid_at": 1400,
+            "recorded_at": 1450,
+            "ingested_at": 1470
+          },
+          "change_impact": {
+            "owner": "sol-atlas-change-impact",
+            "receipt_id": "IMPACT-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "report_id": "IMPACT-REPORT-R1",
+            "event_id": "NO-CHANGE-BASELINE",
+            "report_state": "qualified",
+            "coverage_state": "complete",
+            "graph_snapshot_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "claim_findings": [
+              {
+                "claim_id": "claim_panel_fit",
+                "disposition": "not_affected",
+                "reason_codes": [
+                  "COMPLETE_NO_IMPACT_PATH"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": "COVERAGE-claim_panel_fit",
+                "revalidation": null
+              },
+              {
+                "claim_id": "claim_panel_manufacture",
+                "disposition": "not_affected",
+                "reason_codes": [
+                  "COMPLETE_NO_IMPACT_PATH"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": "COVERAGE-claim_panel_manufacture",
+                "revalidation": null
+              },
+              {
+                "claim_id": "claim_repair_plan",
+                "disposition": "not_affected",
+                "reason_codes": [
+                  "COMPLETE_NO_IMPACT_PATH"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": "COVERAGE-claim_repair_plan",
+                "revalidation": null
+              }
+            ]
+          },
+          "restoration": {
+            "owner": "sol-atlas-restoration",
+            "receipt_id": "RESTORE-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "asset_id": "ASSET-KEEP-PANEL-01",
+            "design_revision": "KEEP-DESIGN-R1",
+            "bom_revision": "KEEP-PANEL-BOM-R1",
+            "material_lot_id": "LOT-KEEP-PANEL-R1",
+            "lot_state": "qualified",
+            "custody_state": "accepted",
+            "payload_bytes_verified": true,
+            "plan_readiness": "feasible",
+            "work_execution": "not_started",
+            "inspection_state": "not_performed",
+            "commissioning_state": "not_performed",
+            "action_authority": "none"
+          },
+          "continuity": {
+            "owner": "sol-atlas-continuity",
+            "receipt_id": "STATE-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "service_id": "PANEL-ENVELOPE-SERVICE",
+            "service_state": "unknown",
+            "stable_adequacy_met": false,
+            "continuity_receipt_state": "current",
+            "stable_interval_start": null,
+            "stable_interval_end": null
+          }
+        }
+      },
+      "expected": null
+    },
+    {
+      "id": "HCS-26",
+      "name": "State assertion outside the requested evaluation cut is invalid for current use",
+      "category": "temporal_mismatch",
+      "input": {
+        "classification": "synthetic_fixture_only",
+        "scope": {
+          "scope_id": "SYNTHETIC-DISTRICT-01",
+          "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+          "evaluation_time": 1500,
+          "time_basis": "UTC_UNIX_SECONDS",
+          "asset_id": "ASSET-KEEP-PANEL-01",
+          "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "design_revision": "KEEP-DESIGN-R1",
+          "bom_revision": "KEEP-PANEL-BOM-R1",
+          "material_lot_id": "LOT-KEEP-PANEL-R1",
+          "service_id": "PANEL-ENVELOPE-SERVICE",
+          "service_restoration_required": true
+        },
+        "projections": {
+          "state_sync": {
+            "owner": "sol-atlas-state-sync",
+            "receipt_id": "STATE-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "asset_id": "ASSET-KEEP-PANEL-01",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "state": "Current",
+            "selected_event_id": "STATE-EVENT-R1",
+            "source_revision": "KEEP-DESIGN-R1",
+            "valid_at": 1600,
+            "recorded_at": 1450,
+            "ingested_at": 1470
+          },
+          "change_impact": {
+            "owner": "sol-atlas-change-impact",
+            "receipt_id": "IMPACT-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "report_id": "IMPACT-REPORT-R1",
+            "event_id": "NO-CHANGE-BASELINE",
+            "report_state": "qualified",
+            "coverage_state": "complete",
+            "graph_snapshot_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "claim_findings": [
+              {
+                "claim_id": "claim_panel_fit",
+                "disposition": "not_affected",
+                "reason_codes": [
+                  "COMPLETE_NO_IMPACT_PATH"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": "COVERAGE-claim_panel_fit",
+                "revalidation": null
+              },
+              {
+                "claim_id": "claim_panel_manufacture",
+                "disposition": "not_affected",
+                "reason_codes": [
+                  "COMPLETE_NO_IMPACT_PATH"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": "COVERAGE-claim_panel_manufacture",
+                "revalidation": null
+              },
+              {
+                "claim_id": "claim_repair_plan",
+                "disposition": "not_affected",
+                "reason_codes": [
+                  "COMPLETE_NO_IMPACT_PATH"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": "COVERAGE-claim_repair_plan",
+                "revalidation": null
+              }
+            ]
+          },
+          "restoration": {
+            "owner": "sol-atlas-restoration",
+            "receipt_id": "RESTORE-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "asset_id": "ASSET-KEEP-PANEL-01",
+            "design_revision": "KEEP-DESIGN-R1",
+            "bom_revision": "KEEP-PANEL-BOM-R1",
+            "material_lot_id": "LOT-KEEP-PANEL-R1",
+            "lot_state": "qualified",
+            "custody_state": "accepted",
+            "payload_bytes_verified": true,
+            "plan_readiness": "feasible",
+            "work_execution": "not_started",
+            "inspection_state": "not_performed",
+            "commissioning_state": "not_performed",
+            "action_authority": "none"
+          },
+          "continuity": {
+            "owner": "sol-atlas-continuity",
+            "receipt_id": "CONTINUITY-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "service_id": "PANEL-ENVELOPE-SERVICE",
+            "service_state": "unknown",
+            "stable_adequacy_met": false,
+            "continuity_receipt_state": "current",
+            "stable_interval_start": null,
+            "stable_interval_end": null
+          }
+        }
+      },
+      "expected": null
+    },
+    {
+      "id": "HCS-27",
+      "name": "Invalid dependent manufacture claim blocks the composition",
+      "category": "invalid_evidence",
+      "input": {
+        "classification": "synthetic_fixture_only",
+        "scope": {
+          "scope_id": "SYNTHETIC-DISTRICT-01",
+          "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+          "evaluation_time": 1500,
+          "time_basis": "UTC_UNIX_SECONDS",
+          "asset_id": "ASSET-KEEP-PANEL-01",
+          "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "design_revision": "KEEP-DESIGN-R1",
+          "bom_revision": "KEEP-PANEL-BOM-R1",
+          "material_lot_id": "LOT-KEEP-PANEL-R1",
+          "service_id": "PANEL-ENVELOPE-SERVICE",
+          "service_restoration_required": true
+        },
+        "projections": {
+          "state_sync": {
+            "owner": "sol-atlas-state-sync",
+            "receipt_id": "STATE-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "asset_id": "ASSET-KEEP-PANEL-01",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "state": "Current",
+            "selected_event_id": "STATE-EVENT-R1",
+            "source_revision": "KEEP-DESIGN-R1",
+            "valid_at": 1400,
+            "recorded_at": 1450,
+            "ingested_at": 1470
+          },
+          "change_impact": {
+            "owner": "sol-atlas-change-impact",
+            "receipt_id": "IMPACT-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "report_id": "IMPACT-REPORT-R1",
+            "event_id": "NO-CHANGE-BASELINE",
+            "report_state": "qualified",
+            "coverage_state": "complete",
+            "graph_snapshot_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "claim_findings": [
+              {
+                "claim_id": "claim_panel_fit",
+                "disposition": "not_affected",
+                "reason_codes": [
+                  "COMPLETE_NO_IMPACT_PATH"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": "COVERAGE-claim_panel_fit",
+                "revalidation": null
+              },
+              {
+                "claim_id": "claim_panel_manufacture",
+                "disposition": "invalid_evidence",
+                "reason_codes": [
+                  "DEPENDENT_DECISION_INVALIDATED"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": "COVERAGE-claim_panel_manufacture",
+                "revalidation": null
+              },
+              {
+                "claim_id": "claim_repair_plan",
+                "disposition": "not_affected",
+                "reason_codes": [
+                  "COMPLETE_NO_IMPACT_PATH"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": "COVERAGE-claim_repair_plan",
+                "revalidation": null
+              }
+            ]
+          },
+          "restoration": {
+            "owner": "sol-atlas-restoration",
+            "receipt_id": "RESTORE-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "asset_id": "ASSET-KEEP-PANEL-01",
+            "design_revision": "KEEP-DESIGN-R1",
+            "bom_revision": "KEEP-PANEL-BOM-R1",
+            "material_lot_id": "LOT-KEEP-PANEL-R1",
+            "lot_state": "qualified",
+            "custody_state": "accepted",
+            "payload_bytes_verified": true,
+            "plan_readiness": "feasible",
+            "work_execution": "not_started",
+            "inspection_state": "not_performed",
+            "commissioning_state": "not_performed",
+            "action_authority": "none"
+          },
+          "continuity": {
+            "owner": "sol-atlas-continuity",
+            "receipt_id": "CONTINUITY-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "service_id": "PANEL-ENVELOPE-SERVICE",
+            "service_state": "unknown",
+            "stable_adequacy_met": false,
+            "continuity_receipt_state": "current",
+            "stable_interval_start": null,
+            "stable_interval_end": null
+          }
+        }
+      },
+      "expected": null
+    },
+    {
+      "id": "HCS-28",
+      "name": "No-impact finding without a coverage proof cannot be accepted",
+      "category": "missing_evidence",
+      "input": {
+        "classification": "synthetic_fixture_only",
+        "scope": {
+          "scope_id": "SYNTHETIC-DISTRICT-01",
+          "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+          "evaluation_time": 1500,
+          "time_basis": "UTC_UNIX_SECONDS",
+          "asset_id": "ASSET-KEEP-PANEL-01",
+          "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "design_revision": "KEEP-DESIGN-R1",
+          "bom_revision": "KEEP-PANEL-BOM-R1",
+          "material_lot_id": "LOT-KEEP-PANEL-R1",
+          "service_id": "PANEL-ENVELOPE-SERVICE",
+          "service_restoration_required": true
+        },
+        "projections": {
+          "state_sync": {
+            "owner": "sol-atlas-state-sync",
+            "receipt_id": "STATE-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "asset_id": "ASSET-KEEP-PANEL-01",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "state": "Current",
+            "selected_event_id": "STATE-EVENT-R1",
+            "source_revision": "KEEP-DESIGN-R1",
+            "valid_at": 1400,
+            "recorded_at": 1450,
+            "ingested_at": 1470
+          },
+          "change_impact": {
+            "owner": "sol-atlas-change-impact",
+            "receipt_id": "IMPACT-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "report_id": "IMPACT-REPORT-R1",
+            "event_id": "NO-CHANGE-BASELINE",
+            "report_state": "qualified",
+            "coverage_state": "complete",
+            "graph_snapshot_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "claim_findings": [
+              {
+                "claim_id": "claim_panel_fit",
+                "disposition": "not_affected",
+                "reason_codes": [
+                  "COMPLETE_NO_IMPACT_PATH"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": null,
+                "revalidation": null
+              },
+              {
+                "claim_id": "claim_panel_manufacture",
+                "disposition": "not_affected",
+                "reason_codes": [
+                  "COMPLETE_NO_IMPACT_PATH"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": "COVERAGE-claim_panel_manufacture",
+                "revalidation": null
+              },
+              {
+                "claim_id": "claim_repair_plan",
+                "disposition": "not_affected",
+                "reason_codes": [
+                  "COMPLETE_NO_IMPACT_PATH"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": "COVERAGE-claim_repair_plan",
+                "revalidation": null
+              }
+            ]
+          },
+          "restoration": {
+            "owner": "sol-atlas-restoration",
+            "receipt_id": "RESTORE-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "asset_id": "ASSET-KEEP-PANEL-01",
+            "design_revision": "KEEP-DESIGN-R1",
+            "bom_revision": "KEEP-PANEL-BOM-R1",
+            "material_lot_id": "LOT-KEEP-PANEL-R1",
+            "lot_state": "qualified",
+            "custody_state": "accepted",
+            "payload_bytes_verified": true,
+            "plan_readiness": "feasible",
+            "work_execution": "not_started",
+            "inspection_state": "not_performed",
+            "commissioning_state": "not_performed",
+            "action_authority": "none"
+          },
+          "continuity": {
+            "owner": "sol-atlas-continuity",
+            "receipt_id": "CONTINUITY-R-1",
+            "source_commit": "1111111111111111111111111111111111111111",
+            "corpus_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_case_id": "SYNTHETIC-BASELINE-01",
+            "receipt_state": "qualified",
+            "evidence_class": "synthetic_projection_fixture",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "scenario_id": "HIGHVELD-PANEL-SERVICE-01",
+            "service_id": "PANEL-ENVELOPE-SERVICE",
+            "service_state": "unknown",
+            "stable_adequacy_met": false,
+            "continuity_receipt_state": "current",
+            "stable_interval_start": null,
+            "stable_interval_end": null
+          }
+        }
+      },
+      "expected": null
+    }
+  ]
+}
