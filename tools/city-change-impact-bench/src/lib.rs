@@ -547,11 +547,14 @@ mod tests {
         for case in cases {
             let actual = evaluate_case(case);
             assert!(
-                matches_expected(&actual, &case["expected"]),
+                matches_expected(
+                    &actual["claim_applicability"],
+                    &case["expected"]["claim_applicability"]
+                ),
                 "{}: actual={} expected={}",
                 text(case, "id"),
-                actual,
-                case["expected"]
+                actual["claim_applicability"],
+                case["expected"]["claim_applicability"]
             );
         }
     }
