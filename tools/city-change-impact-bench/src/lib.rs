@@ -8,8 +8,7 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use serde_json::{Value, json};
 
-const CLAIM_CEILING: &str =
-    "synthetic owner-report projection semantics only; no real dependency coverage, change authority, engineering applicability or action authority is qualified";
+const CLAIM_CEILING: &str = "synthetic owner-report projection semantics only; no real dependency coverage, change authority, engineering applicability or action authority is qualified";
 
 fn text<'a>(value: &'a Value, key: &str) -> &'a str {
     value.get(key).and_then(Value::as_str).unwrap_or("")
@@ -155,7 +154,8 @@ fn evaluate_claim(
     let finding = finding_for(report, claim_id);
     let mut reasons = BTreeSet::<String>::new();
 
-    if claim_id.is_empty() || text(claim, "scope_id") != text(query, "scope_id")
+    if claim_id.is_empty()
+        || text(claim, "scope_id") != text(query, "scope_id")
         || text(claim, "functional_unit") != text(query, "functional_unit")
     {
         reasons.insert("CLAIM_SCOPE_OR_FUNCTIONAL_UNIT_MISMATCH".to_owned());
