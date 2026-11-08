@@ -2960,6 +2960,723 @@
         "causal_assessment_status": "NotClaimed",
         "claim_ceiling": "synthetic outcome classification only; not measured building performance, regulatory compliance, energy savings, occupant wellbeing, or causal impact"
       }
+    },
+    {
+      "case_id": "OI-025",
+      "description": "Missing observation remains Unknown and never becomes zero or a pass.",
+      "input": {
+        "scope": {
+          "scope_digest": "city-use-scope:synthetic-v0.1",
+          "design_revision": "DESIGN-V1",
+          "bom_revision": "BOM-V1",
+          "observation_window": {
+            "window_id": "OBS-12M",
+            "start_tick": 0,
+            "end_tick": 12,
+            "tick_unit": "month"
+          },
+          "analysis_context": {
+            "weather_profile_id": "WEATHER-SYNTH-V1",
+            "occupancy_profile_id": "OCCUPANCY-SYNTH-V1"
+          },
+          "minimum_coverage_fraction": 0.9,
+          "normalization_variables": [
+            "weather",
+            "occupancy"
+          ]
+        },
+        "requirements": [
+          {
+            "metric_id": "energy",
+            "unit": "kWh/m2/year",
+            "direction": "le",
+            "threshold": 110,
+            "evidence_class": "meter",
+            "definition_revision": "metric-v1",
+            "expected_source_owner": "sol-atlas",
+            "expected_source_contract": "CITY-IN-USE-OUTCOMES-001",
+            "expected_source_revision": "fixture-v0.1"
+          }
+        ],
+        "observations": [],
+        "design_predictions": [
+          {
+            "metric_id": "energy",
+            "value": 100,
+            "unit": "kWh/m2/year",
+            "evidence_state": "current",
+            "scope_digest": "city-use-scope:synthetic-v0.1",
+            "design_revision": "DESIGN-V1",
+            "bom_revision": "BOM-V1",
+            "context": {
+              "weather_profile_id": "WEATHER-SYNTH-V1",
+              "occupancy_profile_id": "OCCUPANCY-SYNTH-V1"
+            },
+            "prediction_kind": "original_design"
+          }
+        ],
+        "calibrated_models": [],
+        "measurement_and_verification": {
+          "claim_requested": false
+        },
+        "causal_assessment": {
+          "claim_requested": false
+        }
+      },
+      "expected": {
+        "case_id": "OI-025",
+        "disposition": "Evaluated",
+        "reason_codes": [],
+        "metric_results": [
+          {
+            "metric_id": "energy",
+            "observation_state": "Unknown",
+            "threshold_state": "Unknown",
+            "observed_value": null,
+            "unit": "kWh/m2/year",
+            "static_gap_state": "Unknown",
+            "static_gap_value": null,
+            "dynamic_gap_state": "Unknown",
+            "dynamic_gap_value": null,
+            "reason_codes": [
+              "OBSERVATION_MISSING"
+            ]
+          }
+        ],
+        "measurement_and_verification_status": "NotClaimed",
+        "causal_assessment_status": "NotClaimed",
+        "claim_ceiling": "synthetic outcome classification only; not measured building performance, regulatory compliance, energy savings, occupant wellbeing, or causal impact"
+      }
+    },
+    {
+      "case_id": "OI-026",
+      "description": "Insufficient meter coverage remains Unknown even when a numeric value is present.",
+      "input": {
+        "scope": {
+          "scope_digest": "city-use-scope:synthetic-v0.1",
+          "design_revision": "DESIGN-V1",
+          "bom_revision": "BOM-V1",
+          "observation_window": {
+            "window_id": "OBS-12M",
+            "start_tick": 0,
+            "end_tick": 12,
+            "tick_unit": "month"
+          },
+          "analysis_context": {
+            "weather_profile_id": "WEATHER-SYNTH-V1",
+            "occupancy_profile_id": "OCCUPANCY-SYNTH-V1"
+          },
+          "minimum_coverage_fraction": 0.9,
+          "normalization_variables": [
+            "weather",
+            "occupancy"
+          ]
+        },
+        "requirements": [
+          {
+            "metric_id": "energy",
+            "unit": "kWh/m2/year",
+            "direction": "le",
+            "threshold": 110,
+            "evidence_class": "meter",
+            "definition_revision": "metric-v1",
+            "expected_source_owner": "sol-atlas",
+            "expected_source_contract": "CITY-IN-USE-OUTCOMES-001",
+            "expected_source_revision": "fixture-v0.1"
+          }
+        ],
+        "observations": [
+          {
+            "metric_id": "energy",
+            "value": 120,
+            "unit": "kWh/m2/year",
+            "evidence_state": "current",
+            "evidence_kind": "meter_measurement",
+            "source_owner": "sol-atlas",
+            "source_contract": "CITY-IN-USE-OUTCOMES-001",
+            "source_revision": "fixture-v0.1",
+            "source_receipt_id": "receipt:OI-026:energy",
+            "source_subject_digest": "synthetic-subject:OI-026:energy",
+            "scope_digest": "city-use-scope:synthetic-v0.1",
+            "design_revision": "DESIGN-V1",
+            "bom_revision": "BOM-V1",
+            "observation_window": {
+              "window_id": "OBS-12M",
+              "start_tick": 0,
+              "end_tick": 12,
+              "tick_unit": "month"
+            },
+            "context": {
+              "weather_profile_id": "WEATHER-SYNTH-V1",
+              "occupancy_profile_id": "OCCUPANCY-SYNTH-V1"
+            },
+            "instrument_id": "instrument:energy",
+            "calibration_state": "current",
+            "coverage_fraction": 0.5
+          }
+        ],
+        "design_predictions": [
+          {
+            "metric_id": "energy",
+            "value": 100,
+            "unit": "kWh/m2/year",
+            "evidence_state": "current",
+            "scope_digest": "city-use-scope:synthetic-v0.1",
+            "design_revision": "DESIGN-V1",
+            "bom_revision": "BOM-V1",
+            "context": {
+              "weather_profile_id": "WEATHER-SYNTH-V1",
+              "occupancy_profile_id": "OCCUPANCY-SYNTH-V1"
+            },
+            "prediction_kind": "original_design"
+          }
+        ],
+        "calibrated_models": [],
+        "measurement_and_verification": {
+          "claim_requested": false
+        },
+        "causal_assessment": {
+          "claim_requested": false
+        }
+      },
+      "expected": {
+        "case_id": "OI-026",
+        "disposition": "Evaluated",
+        "reason_codes": [],
+        "metric_results": [
+          {
+            "metric_id": "energy",
+            "observation_state": "Unknown",
+            "threshold_state": "Unknown",
+            "observed_value": null,
+            "unit": "kWh/m2/year",
+            "static_gap_state": "Unknown",
+            "static_gap_value": null,
+            "dynamic_gap_state": "Unknown",
+            "dynamic_gap_value": null,
+            "reason_codes": [
+              "OBSERVATION_EVIDENCE_OR_COVERAGE_INSUFFICIENT"
+            ]
+          }
+        ],
+        "measurement_and_verification_status": "NotClaimed",
+        "causal_assessment_status": "NotClaimed",
+        "claim_ceiling": "synthetic outcome classification only; not measured building performance, regulatory compliance, energy savings, occupant wellbeing, or causal impact"
+      }
+    },
+    {
+      "case_id": "OI-027",
+      "description": "A mismatched source revision cannot support a current observation claim.",
+      "input": {
+        "scope": {
+          "scope_digest": "city-use-scope:synthetic-v0.1",
+          "design_revision": "DESIGN-V1",
+          "bom_revision": "BOM-V1",
+          "observation_window": {
+            "window_id": "OBS-12M",
+            "start_tick": 0,
+            "end_tick": 12,
+            "tick_unit": "month"
+          },
+          "analysis_context": {
+            "weather_profile_id": "WEATHER-SYNTH-V1",
+            "occupancy_profile_id": "OCCUPANCY-SYNTH-V1"
+          },
+          "minimum_coverage_fraction": 0.9,
+          "normalization_variables": [
+            "weather",
+            "occupancy"
+          ]
+        },
+        "requirements": [
+          {
+            "metric_id": "energy",
+            "unit": "kWh/m2/year",
+            "direction": "le",
+            "threshold": 110,
+            "evidence_class": "meter",
+            "definition_revision": "metric-v1",
+            "expected_source_owner": "sol-atlas",
+            "expected_source_contract": "CITY-IN-USE-OUTCOMES-001",
+            "expected_source_revision": "fixture-v0.1"
+          }
+        ],
+        "observations": [
+          {
+            "metric_id": "energy",
+            "value": 120,
+            "unit": "kWh/m2/year",
+            "evidence_state": "current",
+            "evidence_kind": "meter_measurement",
+            "source_owner": "sol-atlas",
+            "source_contract": "CITY-IN-USE-OUTCOMES-001",
+            "source_revision": "fixture-v0.0",
+            "source_receipt_id": "receipt:OI-027:energy",
+            "source_subject_digest": "synthetic-subject:OI-027:energy",
+            "scope_digest": "city-use-scope:synthetic-v0.1",
+            "design_revision": "DESIGN-V1",
+            "bom_revision": "BOM-V1",
+            "observation_window": {
+              "window_id": "OBS-12M",
+              "start_tick": 0,
+              "end_tick": 12,
+              "tick_unit": "month"
+            },
+            "context": {
+              "weather_profile_id": "WEATHER-SYNTH-V1",
+              "occupancy_profile_id": "OCCUPANCY-SYNTH-V1"
+            },
+            "instrument_id": "instrument:energy",
+            "calibration_state": "current",
+            "coverage_fraction": 1
+          }
+        ],
+        "design_predictions": [
+          {
+            "metric_id": "energy",
+            "value": 100,
+            "unit": "kWh/m2/year",
+            "evidence_state": "current",
+            "scope_digest": "city-use-scope:synthetic-v0.1",
+            "design_revision": "DESIGN-V1",
+            "bom_revision": "BOM-V1",
+            "context": {
+              "weather_profile_id": "WEATHER-SYNTH-V1",
+              "occupancy_profile_id": "OCCUPANCY-SYNTH-V1"
+            },
+            "prediction_kind": "original_design"
+          }
+        ],
+        "calibrated_models": [],
+        "measurement_and_verification": {
+          "claim_requested": false
+        },
+        "causal_assessment": {
+          "claim_requested": false
+        }
+      },
+      "expected": {
+        "case_id": "OI-027",
+        "disposition": "Evaluated",
+        "reason_codes": [],
+        "metric_results": [
+          {
+            "metric_id": "energy",
+            "observation_state": "Unknown",
+            "threshold_state": "Unknown",
+            "observed_value": null,
+            "unit": "kWh/m2/year",
+            "static_gap_state": "Unknown",
+            "static_gap_value": null,
+            "dynamic_gap_state": "Unknown",
+            "dynamic_gap_value": null,
+            "reason_codes": [
+              "OBSERVATION_OWNER_RECEIPT_BINDING_INVALID"
+            ]
+          }
+        ],
+        "measurement_and_verification_status": "NotClaimed",
+        "causal_assessment_status": "NotClaimed",
+        "claim_ceiling": "synthetic outcome classification only; not measured building performance, regulatory compliance, energy savings, occupant wellbeing, or causal impact"
+      }
+    },
+    {
+      "case_id": "OI-028",
+      "description": "Denied survey consent suppresses the experience observation without invalidating unrelated meter evidence.",
+      "input": {
+        "scope": {
+          "scope_digest": "city-use-scope:synthetic-v0.1",
+          "design_revision": "DESIGN-V1",
+          "bom_revision": "BOM-V1",
+          "observation_window": {
+            "window_id": "OBS-12M",
+            "start_tick": 0,
+            "end_tick": 12,
+            "tick_unit": "month"
+          },
+          "analysis_context": {
+            "weather_profile_id": "WEATHER-SYNTH-V1",
+            "occupancy_profile_id": "OCCUPANCY-SYNTH-V1"
+          },
+          "minimum_coverage_fraction": 0.9,
+          "normalization_variables": [
+            "weather",
+            "occupancy"
+          ]
+        },
+        "requirements": [
+          {
+            "metric_id": "energy",
+            "unit": "kWh/m2/year",
+            "direction": "le",
+            "threshold": 130,
+            "evidence_class": "meter",
+            "definition_revision": "metric-v1",
+            "expected_source_owner": "sol-atlas",
+            "expected_source_contract": "CITY-IN-USE-OUTCOMES-001",
+            "expected_source_revision": "fixture-v0.1"
+          },
+          {
+            "metric_id": "comfort-report",
+            "unit": "score",
+            "direction": "ge",
+            "threshold": 3,
+            "evidence_class": "experience",
+            "definition_revision": "metric-v1",
+            "expected_source_owner": "sol-atlas",
+            "expected_source_contract": "CITY-IN-USE-OUTCOMES-001",
+            "expected_source_revision": "fixture-v0.1"
+          }
+        ],
+        "observations": [
+          {
+            "metric_id": "energy",
+            "value": 120,
+            "unit": "kWh/m2/year",
+            "evidence_state": "current",
+            "evidence_kind": "meter_measurement",
+            "source_owner": "sol-atlas",
+            "source_contract": "CITY-IN-USE-OUTCOMES-001",
+            "source_revision": "fixture-v0.1",
+            "source_receipt_id": "receipt:OI-028:energy",
+            "source_subject_digest": "synthetic-subject:OI-028:energy",
+            "scope_digest": "city-use-scope:synthetic-v0.1",
+            "design_revision": "DESIGN-V1",
+            "bom_revision": "BOM-V1",
+            "observation_window": {
+              "window_id": "OBS-12M",
+              "start_tick": 0,
+              "end_tick": 12,
+              "tick_unit": "month"
+            },
+            "context": {
+              "weather_profile_id": "WEATHER-SYNTH-V1",
+              "occupancy_profile_id": "OCCUPANCY-SYNTH-V1"
+            },
+            "instrument_id": "instrument:energy",
+            "calibration_state": "current",
+            "coverage_fraction": 1
+          },
+          {
+            "metric_id": "comfort-report",
+            "value": 4,
+            "unit": "score",
+            "evidence_state": "current",
+            "evidence_kind": "consented_survey",
+            "source_owner": "sol-atlas",
+            "source_contract": "CITY-IN-USE-OUTCOMES-001",
+            "source_revision": "fixture-v0.1",
+            "source_receipt_id": "receipt:OI-028:comfort-report",
+            "source_subject_digest": "synthetic-subject:OI-028:comfort-report",
+            "scope_digest": "city-use-scope:synthetic-v0.1",
+            "design_revision": "DESIGN-V1",
+            "bom_revision": "BOM-V1",
+            "observation_window": {
+              "window_id": "OBS-12M",
+              "start_tick": 0,
+              "end_tick": 12,
+              "tick_unit": "month"
+            },
+            "context": {
+              "weather_profile_id": "WEATHER-SYNTH-V1",
+              "occupancy_profile_id": "OCCUPANCY-SYNTH-V1"
+            },
+            "instrument_id": null,
+            "calibration_state": "not_applicable",
+            "coverage_fraction": 1,
+            "consent_status": "denied"
+          }
+        ],
+        "design_predictions": [
+          {
+            "metric_id": "energy",
+            "value": 100,
+            "unit": "kWh/m2/year",
+            "evidence_state": "current",
+            "scope_digest": "city-use-scope:synthetic-v0.1",
+            "design_revision": "DESIGN-V1",
+            "bom_revision": "BOM-V1",
+            "context": {
+              "weather_profile_id": "WEATHER-SYNTH-V1",
+              "occupancy_profile_id": "OCCUPANCY-SYNTH-V1"
+            },
+            "prediction_kind": "original_design"
+          }
+        ],
+        "calibrated_models": [],
+        "measurement_and_verification": {
+          "claim_requested": false
+        },
+        "causal_assessment": {
+          "claim_requested": false
+        }
+      },
+      "expected": {
+        "case_id": "OI-028",
+        "disposition": "Evaluated",
+        "reason_codes": [],
+        "metric_results": [
+          {
+            "metric_id": "comfort-report",
+            "observation_state": "Unknown",
+            "threshold_state": "Unknown",
+            "observed_value": null,
+            "unit": "score",
+            "static_gap_state": "Unknown",
+            "static_gap_value": null,
+            "dynamic_gap_state": "Unknown",
+            "dynamic_gap_value": null,
+            "reason_codes": [
+              "EXPERIENCE_EVIDENCE_OR_CONSENT_INVALID"
+            ]
+          },
+          {
+            "metric_id": "energy",
+            "observation_state": "Current",
+            "threshold_state": "Pass",
+            "observed_value": 120,
+            "unit": "kWh/m2/year",
+            "static_gap_state": "Comparable",
+            "static_gap_value": 20,
+            "dynamic_gap_state": "Unknown",
+            "dynamic_gap_value": null,
+            "reason_codes": []
+          }
+        ],
+        "measurement_and_verification_status": "NotClaimed",
+        "causal_assessment_status": "NotClaimed",
+        "claim_ceiling": "synthetic outcome classification only; not measured building performance, regulatory compliance, energy savings, occupant wellbeing, or causal impact"
+      }
+    },
+    {
+      "case_id": "OI-029",
+      "description": "A meter sample cannot satisfy an owner-native service-receipt requirement.",
+      "input": {
+        "scope": {
+          "scope_digest": "city-use-scope:synthetic-v0.1",
+          "design_revision": "DESIGN-V1",
+          "bom_revision": "BOM-V1",
+          "observation_window": {
+            "window_id": "OBS-12M",
+            "start_tick": 0,
+            "end_tick": 12,
+            "tick_unit": "month"
+          },
+          "analysis_context": {
+            "weather_profile_id": "WEATHER-SYNTH-V1",
+            "occupancy_profile_id": "OCCUPANCY-SYNTH-V1"
+          },
+          "minimum_coverage_fraction": 0.9,
+          "normalization_variables": [
+            "weather",
+            "occupancy"
+          ]
+        },
+        "requirements": [
+          {
+            "metric_id": "clinic-hours",
+            "unit": "hours/week",
+            "direction": "ge",
+            "threshold": 40,
+            "evidence_class": "service",
+            "definition_revision": "metric-v1",
+            "expected_source_owner": "symthaea",
+            "expected_source_contract": "CIV-SERVICE-001",
+            "expected_source_revision": "service-v1"
+          }
+        ],
+        "observations": [
+          {
+            "metric_id": "clinic-hours",
+            "value": 36,
+            "unit": "hours/week",
+            "evidence_state": "current",
+            "evidence_kind": "meter_measurement",
+            "source_owner": "symthaea",
+            "source_contract": "CIV-SERVICE-001",
+            "source_revision": "service-v1",
+            "source_receipt_id": "receipt:OI-029:clinic-hours",
+            "source_subject_digest": "synthetic-subject:OI-029:clinic-hours",
+            "scope_digest": "city-use-scope:synthetic-v0.1",
+            "design_revision": "DESIGN-V1",
+            "bom_revision": "BOM-V1",
+            "observation_window": {
+              "window_id": "OBS-12M",
+              "start_tick": 0,
+              "end_tick": 12,
+              "tick_unit": "month"
+            },
+            "context": {
+              "weather_profile_id": "WEATHER-SYNTH-V1",
+              "occupancy_profile_id": "OCCUPANCY-SYNTH-V1"
+            },
+            "instrument_id": null,
+            "calibration_state": "not_applicable",
+            "coverage_fraction": 1
+          }
+        ],
+        "design_predictions": [],
+        "calibrated_models": [],
+        "measurement_and_verification": {
+          "claim_requested": false
+        },
+        "causal_assessment": {
+          "claim_requested": false
+        }
+      },
+      "expected": {
+        "case_id": "OI-029",
+        "disposition": "Evaluated",
+        "reason_codes": [],
+        "metric_results": [
+          {
+            "metric_id": "clinic-hours",
+            "observation_state": "Unsupported",
+            "threshold_state": "Unknown",
+            "observed_value": null,
+            "unit": "hours/week",
+            "static_gap_state": "Unknown",
+            "static_gap_value": null,
+            "dynamic_gap_state": "Unknown",
+            "dynamic_gap_value": null,
+            "reason_codes": [
+              "OBSERVATION_EVIDENCE_CLASS_MISMATCH"
+            ]
+          }
+        ],
+        "measurement_and_verification_status": "NotClaimed",
+        "causal_assessment_status": "NotClaimed",
+        "claim_ceiling": "synthetic outcome classification only; not measured building performance, regulatory compliance, energy savings, occupant wellbeing, or causal impact"
+      }
+    },
+    {
+      "case_id": "OI-030",
+      "description": "Duplicate training observation IDs invalidate a purported independent dynamic-model split.",
+      "input": {
+        "scope": {
+          "scope_digest": "city-use-scope:synthetic-v0.1",
+          "design_revision": "DESIGN-V1",
+          "bom_revision": "BOM-V1",
+          "observation_window": {
+            "window_id": "OBS-12M",
+            "start_tick": 0,
+            "end_tick": 12,
+            "tick_unit": "month"
+          },
+          "analysis_context": {
+            "weather_profile_id": "WEATHER-SYNTH-V1",
+            "occupancy_profile_id": "OCCUPANCY-SYNTH-V1"
+          },
+          "minimum_coverage_fraction": 0.9,
+          "normalization_variables": [
+            "weather",
+            "occupancy"
+          ]
+        },
+        "requirements": [
+          {
+            "metric_id": "energy",
+            "unit": "kWh/m2/year",
+            "direction": "le",
+            "threshold": 130,
+            "evidence_class": "meter",
+            "definition_revision": "metric-v1",
+            "expected_source_owner": "sol-atlas",
+            "expected_source_contract": "CITY-IN-USE-OUTCOMES-001",
+            "expected_source_revision": "fixture-v0.1"
+          }
+        ],
+        "observations": [
+          {
+            "metric_id": "energy",
+            "value": 120,
+            "unit": "kWh/m2/year",
+            "evidence_state": "current",
+            "evidence_kind": "meter_measurement",
+            "source_owner": "sol-atlas",
+            "source_contract": "CITY-IN-USE-OUTCOMES-001",
+            "source_revision": "fixture-v0.1",
+            "source_receipt_id": "receipt:OI-030:energy",
+            "source_subject_digest": "synthetic-subject:OI-030:energy",
+            "scope_digest": "city-use-scope:synthetic-v0.1",
+            "design_revision": "DESIGN-V1",
+            "bom_revision": "BOM-V1",
+            "observation_window": {
+              "window_id": "OBS-12M",
+              "start_tick": 0,
+              "end_tick": 12,
+              "tick_unit": "month"
+            },
+            "context": {
+              "weather_profile_id": "WEATHER-SYNTH-V1",
+              "occupancy_profile_id": "OCCUPANCY-SYNTH-V1"
+            },
+            "instrument_id": "instrument:energy",
+            "calibration_state": "current",
+            "coverage_fraction": 1
+          }
+        ],
+        "design_predictions": [],
+        "calibrated_models": [
+          {
+            "metric_id": "energy",
+            "value": 110,
+            "unit": "kWh/m2/year",
+            "evidence_state": "current",
+            "scope_digest": "city-use-scope:synthetic-v0.1",
+            "design_revision": "DESIGN-V1",
+            "bom_revision": "BOM-V1",
+            "context": {
+              "weather_profile_id": "WEATHER-SYNTH-V1",
+              "occupancy_profile_id": "OCCUPANCY-SYNTH-V1"
+            },
+            "calibration_status": "calibrated",
+            "independent_validation": "passed",
+            "training_data_digest": "train:aaa",
+            "validation_data_digest": "valid:bbb",
+            "envelope_contains_observation": true,
+            "training_observation_ids": [
+              "TRAIN-030-A",
+              "TRAIN-030-A"
+            ],
+            "validation_observation_ids": [
+              "VALID-030-A"
+            ],
+            "validation_protocol_id": "time_block_holdout_v1",
+            "partition_audit_receipt_id": "partition-audit:OI-030:energy"
+          }
+        ],
+        "measurement_and_verification": {
+          "claim_requested": false
+        },
+        "causal_assessment": {
+          "claim_requested": false
+        }
+      },
+      "expected": {
+        "case_id": "OI-030",
+        "disposition": "Evaluated",
+        "reason_codes": [],
+        "metric_results": [
+          {
+            "metric_id": "energy",
+            "observation_state": "Current",
+            "threshold_state": "Pass",
+            "observed_value": 120,
+            "unit": "kWh/m2/year",
+            "static_gap_state": "Unknown",
+            "static_gap_value": null,
+            "dynamic_gap_state": "Unknown",
+            "dynamic_gap_value": null,
+            "reason_codes": [
+              "DYNAMIC_MODEL_VALIDATION_OR_APPLICABILITY_INSUFFICIENT"
+            ]
+          }
+        ],
+        "measurement_and_verification_status": "NotClaimed",
+        "causal_assessment_status": "NotClaimed",
+        "claim_ceiling": "synthetic outcome classification only; not measured building performance, regulatory compliance, energy savings, occupant wellbeing, or causal impact"
+      }
     }
   ]
 }
