@@ -51,13 +51,17 @@ fn json_equivalent(actual: &Value, expected: &Value) -> bool {
 }
 
 pub fn matches_expected(actual: &Value, expected: &Value) -> bool {
-    expected.as_object().is_some_and(|fields| {
-        fields.iter().all(|(key, expected_value)| {
-            actual
-                .get(key)
-                .is_some_and(|actual_value| json_equivalent(actual_value, expected_value))
-        })
-    })
+    match (actual.as_object(), expected.as_object()) {
+        (Some(actual), Some(expected)) => {
+            actual.len() == expected.len()
+                && expected.iter().all(|(key, expected_value)| {
+                    actual
+                        .get(key)
+                        .is_some_and(|actual_value| json_equivalent(actual_value, expected_value))
+                })
+        }
+        _ => false,
+    }
 }
 
 fn unsupported_result(case_id: &str, reasons: BTreeSet<String>) -> Value {
