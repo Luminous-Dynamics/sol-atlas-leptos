@@ -84,8 +84,8 @@ fn evaluate_plan(input: &Value, reasons: &mut BTreeSet<String>, conflicts: &mut 
 
     let window = input.get("planning_window").unwrap_or(&Value::Null);
     let planning_window = match (u64_field(window, "start_at"), u64_field(window, "end_at")) {
-        (Some(start), Some(end)) if start < end
-            && str_field(window, "time_basis") == "UTC_UNIX_SECONDS" =>
+        (Some(start), Some(end))
+            if start < end && str_field(window, "time_basis") == "UTC_UNIX_SECONDS" =>
         {
             Some((start, end))
         }
@@ -615,7 +615,10 @@ mod tests {
     #[test]
     fn missing_planning_window_does_not_hide_a_proven_hard_conflict() {
         let mut case = corpus()["cases"][0].clone();
-        case["input"].as_object_mut().unwrap().remove("planning_window");
+        case["input"]
+            .as_object_mut()
+            .unwrap()
+            .remove("planning_window");
         case["input"]["part_requirements"][0]["stock_state"] = json!("out_of_stock");
         let result = evaluate_case(&case);
         assert_eq!(result["plan_readiness"], "infeasible");
