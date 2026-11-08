@@ -1453,7 +1453,7 @@
         }
       },
       "expected": {
-        "report_integrity_state": "verified",
+        "report_integrity_state": "unsupported",
         "payload_verification_state": "unsupported",
         "artifact_payloads": [
           {
@@ -1530,7 +1530,7 @@
         }
       },
       "expected": {
-        "report_integrity_state": "verified",
+        "report_integrity_state": "unsupported",
         "payload_verification_state": "unsupported",
         "artifact_payloads": [
           {
