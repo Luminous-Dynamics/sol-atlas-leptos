@@ -60,6 +60,10 @@ The nested `[workspace]` isolates the package from the parent Leptos crate. `ser
 - Four ASHRAE / NOAA GHCND / SAWS-WMO station metadata cross-checks remain metadata-only, with no observation-series download or identity/history qualification; daily GHCND records cannot be promoted to hourly series.
 - ARC operational-network (~500 station) summaries remain separate from its wider ~1,900-station portal archive (1,100 manual / 763 AWS / 460 active AWS); SAWS WIS product topics retain licence gates; NOAA ISD global archive metadata is not promoted to a local Johannesburg series.
 
+## Exact-head owner qualification receipt
+
+The manifest pins the verified Symtropy #1849 software-oracle candidate SHA, dedicated qualifier and general CI workflow run IDs, and uploaded receipt-artifact ID/archive digest. The validator requires those exact identities and the software-only claim ceiling. Negative controls reject a stale owner commit, changed artifact digest, and any attempt to describe a synthetic software-oracle receipt as physical building approval. This check prevents stale-reference drift; it does not re-run the Symtropy workflow or validate the ZIP's contents itself.
+
 ## Resilience owner-binding checks
 
 The same package also checks the South African Highveld binding manifest against frozen semantic expectations:
