@@ -1,0 +1,5140 @@
+{
+  "schema_id": "org.luminousdynamics.city-construction-delivery.synthetic-corpus",
+  "schema_version": "0.1.0",
+  "corpus_id": "CITY-CONSTRUCTION-DELIVERY-CORPUS-V0.1",
+  "classification": "synthetic_fixture_only",
+  "policy_note": "The oracle checks a bounded delivery-feasibility chain. It does not perform routing, inventory allocation, procurement, dispatch, vehicle certification, lift planning, custody approval or building installation. All values are synthetic.",
+  "semantics": {
+    "time": "Integer ticks; delivery windows and site gate windows are half-open [start,end). Acceptance exactly at end is Late.",
+    "inventory": "Physical lot quantity is owner-declared; allocations across all candidate deliveries are summed. Over-allocation blocks all affected candidates; no order-dependent first-come allocation is invented.",
+    "qualification": "Product, grade, design revision and BOM digest must match the exact use. Revoked, wrong-grade or failed inspection evidence is Rejected.",
+    "route": "Route, vehicle and payload are owner-evidence inputs. This oracle does not compute a route or infer legal vehicle access.",
+    "resources": "Receiving-bay and laydown uses are summed by resource and slot. Capacity overbooking blocks all contenders; no schedule/dispatch is generated.",
+    "receipt": "DeliveryFeasible means inputs support a planned delivery; AcceptedDelivery additionally requires full quantity received, custody accepted and independent inspection passed.",
+    "origin": "Imported source may be deliverable, but the adapter always sets local_productive_capability_claim=false. It does not prove local manufacture.",
+    "claim_ceiling": "Synthetic delivery contract semantics only."
+  },
+  "cases": [
+    {
+      "case_id": "CD-001",
+      "description": "Qualified lot, correct grade, route and receiving path; delivery is already accepted.",
+      "input": {
+        "scope_digest": "city-delivery-scope:synthetic-v0.1",
+        "evaluation_window_id": "window-80",
+        "deliveries": [
+          {
+            "delivery_id": "d1",
+            "scope_digest": "city-delivery-scope:synthetic-v0.1",
+            "project_id": "project-01",
+            "work_package_id": "wp-panel-01",
+            "phase_id": "phase-01",
+            "design_revision": "D1",
+            "bom_digest": "bom-panel-01",
+            "demand": {
+              "product_id": "wall-panel-A",
+              "grade": "G1",
+              "quantity": 10,
+              "unit": "panel",
+              "required_by_tick": 100,
+              "window_start_tick": 70,
+              "window_end_tick": 100,
+              "mass_kg": 1200,
+              "volume_m3": 10
+            },
+            "source": {
+              "supplier_id": "supplier-01",
+              "facility_id": "factory-01",
+              "source_class": "local",
+              "lot_id": "lot-01",
+              "product_id": "wall-panel-A",
+              "grade": "G1",
+              "available_quantity": 10,
+              "quantity_unit": "panel",
+              "ready_tick": 60,
+              "design_revision": "D1",
+              "bom_digest": "bom-panel-01",
+              "evidence_state": "current",
+              "inventory_evidence_state": "current",
+              "qualification_state": "qualified",
+              "qualification_evidence_state": "current",
+              "inventory_receipt_id": "inventory:d1",
+              "source_revision": "fixture-1"
+            },
+            "transport": {
+              "vehicle_id": "truck-01",
+              "evidence_state": "current",
+              "payload_capacity_kg": 2000,
+              "volume_capacity_m3": 20,
+              "route_state": "open",
+              "route_evidence_state": "current",
+              "route_revision": "network-fixture-1",
+              "route_receipt_id": "route:d1",
+              "route_duration_ticks": 5,
+              "vehicle_access": "allowed"
+            },
+            "site": {
+              "site_id": "site-01",
+              "evidence_state": "current",
+              "gate_state": "open",
+              "gate_open_start_tick": 70,
+              "gate_open_end_tick": 100,
+              "unload": {
+                "evidence_state": "current",
+                "status": "available",
+                "capacity_kg": 2000,
+                "duration_ticks": 2
+              },
+              "receiving": {
+                "evidence_state": "current",
+                "labour_state": "available",
+                "inspection_state": "passed",
+                "inspection_duration_ticks": 2,
+                "custody_state": "accepted",
+                "custody_evidence_state": "current",
+                "custody_receipt_id": "custody:d1",
+                "received_quantity": 10
+              },
+              "receiving_bay": {
+                "resource_id": "bay-01",
+                "slot_id": "slot-80",
+                "use": 1
+              },
+              "laydown": {
+                "resource_id": "laydown-01",
+                "slot_id": "slot-80",
+                "use": 2
+              }
+            }
+          }
+        ],
+        "resources": [
+          {
+            "resource_id": "bay-01",
+            "slot_id": "slot-80",
+            "kind": "receiving_bay",
+            "capacity": 1,
+            "unit": "slot",
+            "evidence_state": "current"
+          },
+          {
+            "resource_id": "laydown-01",
+            "slot_id": "slot-80",
+            "kind": "laydown",
+            "capacity": 10,
+            "unit": "pallet_position",
+            "evidence_state": "current"
+          }
+        ]
+      },
+      "expected": {
+        "case_id": "CD-001",
+        "disposition": "Evaluated",
+        "reason_codes": [],
+        "deliveries": [
+          {
+            "delivery_id": "d1",
+            "state": "AcceptedDelivery",
+            "reason_codes": [],
+            "predicted_arrival_tick": 70,
+            "predicted_acceptance_tick": 74,
+            "source_class": "local",
+            "local_productive_capability_claim": false,
+            "lot_id": "lot-01",
+            "quantity_requested": 10,
+            "quantity_declared_available": 10,
+            "stages": {
+              "inventory": "sufficient",
+              "qualification": "qualified",
+              "revision": "matched",
+              "availability": "timely",
+              "transport": "feasible",
+              "site_access": "feasible",
+              "unloading": "feasible",
+              "receiving": "feasible",
+              "inspection": "passed",
+              "custody": "accepted"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "CD-002",
+      "description": "Qualification evidence is unknown; the lot cannot be called qualified.",
+      "input": {
+        "scope_digest": "city-delivery-scope:synthetic-v0.1",
+        "evaluation_window_id": "window-80",
+        "deliveries": [
+          {
+            "delivery_id": "d1",
+            "scope_digest": "city-delivery-scope:synthetic-v0.1",
+            "project_id": "project-01",
+            "work_package_id": "wp-panel-01",
+            "phase_id": "phase-01",
+            "design_revision": "D1",
+            "bom_digest": "bom-panel-01",
+            "demand": {
+              "product_id": "wall-panel-A",
+              "grade": "G1",
+              "quantity": 10,
+              "unit": "panel",
+              "required_by_tick": 100,
+              "window_start_tick": 70,
+              "window_end_tick": 100,
+              "mass_kg": 1200,
+              "volume_m3": 10
+            },
+            "source": {
+              "supplier_id": "supplier-01",
+              "facility_id": "factory-01",
+              "source_class": "local",
+              "lot_id": "lot-01",
+              "product_id": "wall-panel-A",
+              "grade": "G1",
+              "available_quantity": 10,
+              "quantity_unit": "panel",
+              "ready_tick": 60,
+              "design_revision": "D1",
+              "bom_digest": "bom-panel-01",
+              "evidence_state": "current",
+              "inventory_evidence_state": "current",
+              "qualification_state": "qualified",
+              "qualification_evidence_state": "unknown",
+              "inventory_receipt_id": "inventory:d1",
+              "source_revision": "fixture-1"
+            },
+            "transport": {
+              "vehicle_id": "truck-01",
+              "evidence_state": "current",
+              "payload_capacity_kg": 2000,
+              "volume_capacity_m3": 20,
+              "route_state": "open",
+              "route_evidence_state": "current",
+              "route_revision": "network-fixture-1",
+              "route_receipt_id": "route:d1",
+              "route_duration_ticks": 5,
+              "vehicle_access": "allowed"
+            },
+            "site": {
+              "site_id": "site-01",
+              "evidence_state": "current",
+              "gate_state": "open",
+              "gate_open_start_tick": 70,
+              "gate_open_end_tick": 100,
+              "unload": {
+                "evidence_state": "current",
+                "status": "available",
+                "capacity_kg": 2000,
+                "duration_ticks": 2
+              },
+              "receiving": {
+                "evidence_state": "current",
+                "labour_state": "available",
+                "inspection_state": "passed",
+                "inspection_duration_ticks": 2,
+                "custody_state": "accepted",
+                "custody_evidence_state": "current",
+                "custody_receipt_id": "custody:d1",
+                "received_quantity": 10
+              },
+              "receiving_bay": {
+                "resource_id": "bay-01",
+                "slot_id": "slot-80",
+                "use": 1
+              },
+              "laydown": {
+                "resource_id": "laydown-01",
+                "slot_id": "slot-80",
+                "use": 2
+              }
+            }
+          }
+        ],
+        "resources": [
+          {
+            "resource_id": "bay-01",
+            "slot_id": "slot-80",
+            "kind": "receiving_bay",
+            "capacity": 1,
+            "unit": "slot",
+            "evidence_state": "current"
+          },
+          {
+            "resource_id": "laydown-01",
+            "slot_id": "slot-80",
+            "kind": "laydown",
+            "capacity": 10,
+            "unit": "pallet_position",
+            "evidence_state": "current"
+          }
+        ]
+      },
+      "expected": {
+        "case_id": "CD-002",
+        "disposition": "Evaluated",
+        "reason_codes": [],
+        "deliveries": [
+          {
+            "delivery_id": "d1",
+            "state": "Unknown",
+            "reason_codes": [
+              "QUALIFICATION_EVIDENCE_UNKNOWN"
+            ],
+            "predicted_arrival_tick": 70,
+            "predicted_acceptance_tick": 74,
+            "source_class": "local",
+            "local_productive_capability_claim": false,
+            "lot_id": "lot-01",
+            "quantity_requested": 10,
+            "quantity_declared_available": 10,
+            "stages": {
+              "inventory": "sufficient",
+              "qualification": "unknown",
+              "revision": "matched",
+              "availability": "timely",
+              "transport": "feasible",
+              "site_access": "feasible",
+              "unloading": "feasible",
+              "receiving": "feasible",
+              "inspection": "passed",
+              "custody": "accepted"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "CD-003",
+      "description": "Product family exists but technical grade is wrong.",
+      "input": {
+        "scope_digest": "city-delivery-scope:synthetic-v0.1",
+        "evaluation_window_id": "window-80",
+        "deliveries": [
+          {
+            "delivery_id": "d1",
+            "scope_digest": "city-delivery-scope:synthetic-v0.1",
+            "project_id": "project-01",
+            "work_package_id": "wp-panel-01",
+            "phase_id": "phase-01",
+            "design_revision": "D1",
+            "bom_digest": "bom-panel-01",
+            "demand": {
+              "product_id": "wall-panel-A",
+              "grade": "G1",
+              "quantity": 10,
+              "unit": "panel",
+              "required_by_tick": 100,
+              "window_start_tick": 70,
+              "window_end_tick": 100,
+              "mass_kg": 1200,
+              "volume_m3": 10
+            },
+            "source": {
+              "supplier_id": "supplier-01",
+              "facility_id": "factory-01",
+              "source_class": "local",
+              "lot_id": "lot-01",
+              "product_id": "wall-panel-A",
+              "grade": "G2",
+              "available_quantity": 10,
+              "quantity_unit": "panel",
+              "ready_tick": 60,
+              "design_revision": "D1",
+              "bom_digest": "bom-panel-01",
+              "evidence_state": "current",
+              "inventory_evidence_state": "current",
+              "qualification_state": "qualified",
+              "qualification_evidence_state": "current",
+              "inventory_receipt_id": "inventory:d1",
+              "source_revision": "fixture-1"
+            },
+            "transport": {
+              "vehicle_id": "truck-01",
+              "evidence_state": "current",
+              "payload_capacity_kg": 2000,
+              "volume_capacity_m3": 20,
+              "route_state": "open",
+              "route_evidence_state": "current",
+              "route_revision": "network-fixture-1",
+              "route_receipt_id": "route:d1",
+              "route_duration_ticks": 5,
+              "vehicle_access": "allowed"
+            },
+            "site": {
+              "site_id": "site-01",
+              "evidence_state": "current",
+              "gate_state": "open",
+              "gate_open_start_tick": 70,
+              "gate_open_end_tick": 100,
+              "unload": {
+                "evidence_state": "current",
+                "status": "available",
+                "capacity_kg": 2000,
+                "duration_ticks": 2
+              },
+              "receiving": {
+                "evidence_state": "current",
+                "labour_state": "available",
+                "inspection_state": "passed",
+                "inspection_duration_ticks": 2,
+                "custody_state": "accepted",
+                "custody_evidence_state": "current",
+                "custody_receipt_id": "custody:d1",
+                "received_quantity": 10
+              },
+              "receiving_bay": {
+                "resource_id": "bay-01",
+                "slot_id": "slot-80",
+                "use": 1
+              },
+              "laydown": {
+                "resource_id": "laydown-01",
+                "slot_id": "slot-80",
+                "use": 2
+              }
+            }
+          }
+        ],
+        "resources": [
+          {
+            "resource_id": "bay-01",
+            "slot_id": "slot-80",
+            "kind": "receiving_bay",
+            "capacity": 1,
+            "unit": "slot",
+            "evidence_state": "current"
+          },
+          {
+            "resource_id": "laydown-01",
+            "slot_id": "slot-80",
+            "kind": "laydown",
+            "capacity": 10,
+            "unit": "pallet_position",
+            "evidence_state": "current"
+          }
+        ]
+      },
+      "expected": {
+        "case_id": "CD-003",
+        "disposition": "Evaluated",
+        "reason_codes": [],
+        "deliveries": [
+          {
+            "delivery_id": "d1",
+            "state": "Rejected",
+            "reason_codes": [
+              "LOT_NOT_QUALIFIED_FOR_DECLARED_USE"
+            ],
+            "predicted_arrival_tick": 70,
+            "predicted_acceptance_tick": 74,
+            "source_class": "local",
+            "local_productive_capability_claim": false,
+            "lot_id": "lot-01",
+            "quantity_requested": 10,
+            "quantity_declared_available": 10,
+            "stages": {
+              "inventory": "sufficient",
+              "qualification": "rejected",
+              "revision": "matched",
+              "availability": "timely",
+              "transport": "feasible",
+              "site_access": "feasible",
+              "unloading": "feasible",
+              "receiving": "feasible",
+              "inspection": "passed",
+              "custody": "accepted"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "CD-004",
+      "description": "Declared source inventory is below the work-package demand.",
+      "input": {
+        "scope_digest": "city-delivery-scope:synthetic-v0.1",
+        "evaluation_window_id": "window-80",
+        "deliveries": [
+          {
+            "delivery_id": "d1",
+            "scope_digest": "city-delivery-scope:synthetic-v0.1",
+            "project_id": "project-01",
+            "work_package_id": "wp-panel-01",
+            "phase_id": "phase-01",
+            "design_revision": "D1",
+            "bom_digest": "bom-panel-01",
+            "demand": {
+              "product_id": "wall-panel-A",
+              "grade": "G1",
+              "quantity": 10,
+              "unit": "panel",
+              "required_by_tick": 100,
+              "window_start_tick": 70,
+              "window_end_tick": 100,
+              "mass_kg": 1200,
+              "volume_m3": 10
+            },
+            "source": {
+              "supplier_id": "supplier-01",
+              "facility_id": "factory-01",
+              "source_class": "local",
+              "lot_id": "lot-01",
+              "product_id": "wall-panel-A",
+              "grade": "G1",
+              "available_quantity": 8,
+              "quantity_unit": "panel",
+              "ready_tick": 60,
+              "design_revision": "D1",
+              "bom_digest": "bom-panel-01",
+              "evidence_state": "current",
+              "inventory_evidence_state": "current",
+              "qualification_state": "qualified",
+              "qualification_evidence_state": "current",
+              "inventory_receipt_id": "inventory:d1",
+              "source_revision": "fixture-1"
+            },
+            "transport": {
+              "vehicle_id": "truck-01",
+              "evidence_state": "current",
+              "payload_capacity_kg": 2000,
+              "volume_capacity_m3": 20,
+              "route_state": "open",
+              "route_evidence_state": "current",
+              "route_revision": "network-fixture-1",
+              "route_receipt_id": "route:d1",
+              "route_duration_ticks": 5,
+              "vehicle_access": "allowed"
+            },
+            "site": {
+              "site_id": "site-01",
+              "evidence_state": "current",
+              "gate_state": "open",
+              "gate_open_start_tick": 70,
+              "gate_open_end_tick": 100,
+              "unload": {
+                "evidence_state": "current",
+                "status": "available",
+                "capacity_kg": 2000,
+                "duration_ticks": 2
+              },
+              "receiving": {
+                "evidence_state": "current",
+                "labour_state": "available",
+                "inspection_state": "passed",
+                "inspection_duration_ticks": 2,
+                "custody_state": "accepted",
+                "custody_evidence_state": "current",
+                "custody_receipt_id": "custody:d1",
+                "received_quantity": 10
+              },
+              "receiving_bay": {
+                "resource_id": "bay-01",
+                "slot_id": "slot-80",
+                "use": 1
+              },
+              "laydown": {
+                "resource_id": "laydown-01",
+                "slot_id": "slot-80",
+                "use": 2
+              }
+            }
+          }
+        ],
+        "resources": [
+          {
+            "resource_id": "bay-01",
+            "slot_id": "slot-80",
+            "kind": "receiving_bay",
+            "capacity": 1,
+            "unit": "slot",
+            "evidence_state": "current"
+          },
+          {
+            "resource_id": "laydown-01",
+            "slot_id": "slot-80",
+            "kind": "laydown",
+            "capacity": 10,
+            "unit": "pallet_position",
+            "evidence_state": "current"
+          }
+        ]
+      },
+      "expected": {
+        "case_id": "CD-004",
+        "disposition": "Evaluated",
+        "reason_codes": [],
+        "deliveries": [
+          {
+            "delivery_id": "d1",
+            "state": "Blocked",
+            "reason_codes": [
+              "SOURCE_STOCK_SHORTFALL_OR_OVERALLOCATION"
+            ],
+            "predicted_arrival_tick": 70,
+            "predicted_acceptance_tick": 74,
+            "source_class": "local",
+            "local_productive_capability_claim": false,
+            "lot_id": "lot-01",
+            "quantity_requested": 10,
+            "quantity_declared_available": 8,
+            "stages": {
+              "inventory": "blocked",
+              "qualification": "qualified",
+              "revision": "matched",
+              "availability": "timely",
+              "transport": "feasible",
+              "site_access": "feasible",
+              "unloading": "feasible",
+              "receiving": "feasible",
+              "inspection": "passed",
+              "custody": "accepted"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "CD-005",
+      "description": "Two deliveries together over-allocate one shared material lot.",
+      "input": {
+        "scope_digest": "city-delivery-scope:synthetic-v0.1",
+        "evaluation_window_id": "window-80",
+        "deliveries": [
+          {
+            "delivery_id": "d1",
+            "scope_digest": "city-delivery-scope:synthetic-v0.1",
+            "project_id": "project-01",
+            "work_package_id": "wp-panel-01",
+            "phase_id": "phase-01",
+            "design_revision": "D1",
+            "bom_digest": "bom-panel-01",
+            "demand": {
+              "product_id": "wall-panel-A",
+              "grade": "G1",
+              "quantity": 6,
+              "unit": "panel",
+              "required_by_tick": 100,
+              "window_start_tick": 70,
+              "window_end_tick": 100,
+              "mass_kg": 1200,
+              "volume_m3": 10
+            },
+            "source": {
+              "supplier_id": "supplier-01",
+              "facility_id": "factory-01",
+              "source_class": "local",
+              "lot_id": "lot-01",
+              "product_id": "wall-panel-A",
+              "grade": "G1",
+              "available_quantity": 10,
+              "quantity_unit": "panel",
+              "ready_tick": 60,
+              "design_revision": "D1",
+              "bom_digest": "bom-panel-01",
+              "evidence_state": "current",
+              "inventory_evidence_state": "current",
+              "qualification_state": "qualified",
+              "qualification_evidence_state": "current",
+              "inventory_receipt_id": "inventory:d1",
+              "source_revision": "fixture-1"
+            },
+            "transport": {
+              "vehicle_id": "truck-01",
+              "evidence_state": "current",
+              "payload_capacity_kg": 2000,
+              "volume_capacity_m3": 20,
+              "route_state": "open",
+              "route_evidence_state": "current",
+              "route_revision": "network-fixture-1",
+              "route_receipt_id": "route:d1",
+              "route_duration_ticks": 5,
+              "vehicle_access": "allowed"
+            },
+            "site": {
+              "site_id": "site-01",
+              "evidence_state": "current",
+              "gate_state": "open",
+              "gate_open_start_tick": 70,
+              "gate_open_end_tick": 100,
+              "unload": {
+                "evidence_state": "current",
+                "status": "available",
+                "capacity_kg": 2000,
+                "duration_ticks": 2
+              },
+              "receiving": {
+                "evidence_state": "current",
+                "labour_state": "available",
+                "inspection_state": "passed",
+                "inspection_duration_ticks": 2,
+                "custody_state": "accepted",
+                "custody_evidence_state": "current",
+                "custody_receipt_id": "custody:d1",
+                "received_quantity": 10
+              },
+              "receiving_bay": {
+                "resource_id": "bay-01",
+                "slot_id": "slot-80",
+                "use": 1
+              },
+              "laydown": {
+                "resource_id": "laydown-01",
+                "slot_id": "slot-80",
+                "use": 2
+              }
+            }
+          },
+          {
+            "delivery_id": "d2",
+            "scope_digest": "city-delivery-scope:synthetic-v0.1",
+            "project_id": "project-01",
+            "work_package_id": "wp-panel-01",
+            "phase_id": "phase-01",
+            "design_revision": "D1",
+            "bom_digest": "bom-panel-01",
+            "demand": {
+              "product_id": "wall-panel-A",
+              "grade": "G1",
+              "quantity": 6,
+              "unit": "panel",
+              "required_by_tick": 100,
+              "window_start_tick": 70,
+              "window_end_tick": 100,
+              "mass_kg": 1200,
+              "volume_m3": 10
+            },
+            "source": {
+              "supplier_id": "supplier-01",
+              "facility_id": "factory-01",
+              "source_class": "local",
+              "lot_id": "lot-01",
+              "product_id": "wall-panel-A",
+              "grade": "G1",
+              "available_quantity": 10,
+              "quantity_unit": "panel",
+              "ready_tick": 60,
+              "design_revision": "D1",
+              "bom_digest": "bom-panel-01",
+              "evidence_state": "current",
+              "inventory_evidence_state": "current",
+              "qualification_state": "qualified",
+              "qualification_evidence_state": "current",
+              "inventory_receipt_id": "inventory:d2",
+              "source_revision": "fixture-1"
+            },
+            "transport": {
+              "vehicle_id": "truck-01",
+              "evidence_state": "current",
+              "payload_capacity_kg": 2000,
+              "volume_capacity_m3": 20,
+              "route_state": "open",
+              "route_evidence_state": "current",
+              "route_revision": "network-fixture-1",
+              "route_receipt_id": "route:d2",
+              "route_duration_ticks": 5,
+              "vehicle_access": "allowed"
+            },
+            "site": {
+              "site_id": "site-01",
+              "evidence_state": "current",
+              "gate_state": "open",
+              "gate_open_start_tick": 70,
+              "gate_open_end_tick": 100,
+              "unload": {
+                "evidence_state": "current",
+                "status": "available",
+                "capacity_kg": 2000,
+                "duration_ticks": 2
+              },
+              "receiving": {
+                "evidence_state": "current",
+                "labour_state": "available",
+                "inspection_state": "passed",
+                "inspection_duration_ticks": 2,
+                "custody_state": "accepted",
+                "custody_evidence_state": "current",
+                "custody_receipt_id": "custody:d2",
+                "received_quantity": 10
+              },
+              "receiving_bay": {
+                "resource_id": "bay-01",
+                "slot_id": "slot-80",
+                "use": 1
+              },
+              "laydown": {
+                "resource_id": "laydown-01",
+                "slot_id": "slot-80",
+                "use": 2
+              }
+            }
+          }
+        ],
+        "resources": [
+          {
+            "resource_id": "bay-01",
+            "slot_id": "slot-80",
+            "kind": "receiving_bay",
+            "capacity": 1,
+            "unit": "slot",
+            "evidence_state": "current"
+          },
+          {
+            "resource_id": "laydown-01",
+            "slot_id": "slot-80",
+            "kind": "laydown",
+            "capacity": 10,
+            "unit": "pallet_position",
+            "evidence_state": "current"
+          }
+        ]
+      },
+      "expected": {
+        "case_id": "CD-005",
+        "disposition": "Evaluated",
+        "reason_codes": [],
+        "deliveries": [
+          {
+            "delivery_id": "d1",
+            "state": "Blocked",
+            "reason_codes": [
+              "SHARED_RECEIVING_OR_LAYDOWN_RESOURCE_OVERBOOKED",
+              "SOURCE_STOCK_SHORTFALL_OR_OVERALLOCATION"
+            ],
+            "predicted_arrival_tick": 70,
+            "predicted_acceptance_tick": 74,
+            "source_class": "local",
+            "local_productive_capability_claim": false,
+            "lot_id": "lot-01",
+            "quantity_requested": 6,
+            "quantity_declared_available": 10,
+            "stages": {
+              "inventory": "blocked",
+              "qualification": "qualified",
+              "revision": "matched",
+              "availability": "timely",
+              "transport": "feasible",
+              "site_access": "feasible",
+              "unloading": "feasible",
+              "receiving": "feasible",
+              "inspection": "passed",
+              "custody": "accepted",
+              "shared_resources": "blocked"
+            }
+          },
+          {
+            "delivery_id": "d2",
+            "state": "Blocked",
+            "reason_codes": [
+              "SHARED_RECEIVING_OR_LAYDOWN_RESOURCE_OVERBOOKED",
+              "SOURCE_STOCK_SHORTFALL_OR_OVERALLOCATION"
+            ],
+            "predicted_arrival_tick": 70,
+            "predicted_acceptance_tick": 74,
+            "source_class": "local",
+            "local_productive_capability_claim": false,
+            "lot_id": "lot-01",
+            "quantity_requested": 6,
+            "quantity_declared_available": 10,
+            "stages": {
+              "inventory": "blocked",
+              "qualification": "qualified",
+              "revision": "matched",
+              "availability": "timely",
+              "transport": "feasible",
+              "site_access": "feasible",
+              "unloading": "feasible",
+              "receiving": "feasible",
+              "inspection": "passed",
+              "custody": "accepted",
+              "shared_resources": "blocked"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "CD-006",
+      "description": "Production completes after the latest site acceptance time.",
+      "input": {
+        "scope_digest": "city-delivery-scope:synthetic-v0.1",
+        "evaluation_window_id": "window-80",
+        "deliveries": [
+          {
+            "delivery_id": "d1",
+            "scope_digest": "city-delivery-scope:synthetic-v0.1",
+            "project_id": "project-01",
+            "work_package_id": "wp-panel-01",
+            "phase_id": "phase-01",
+            "design_revision": "D1",
+            "bom_digest": "bom-panel-01",
+            "demand": {
+              "product_id": "wall-panel-A",
+              "grade": "G1",
+              "quantity": 10,
+              "unit": "panel",
+              "required_by_tick": 100,
+              "window_start_tick": 70,
+              "window_end_tick": 100,
+              "mass_kg": 1200,
+              "volume_m3": 10
+            },
+            "source": {
+              "supplier_id": "supplier-01",
+              "facility_id": "factory-01",
+              "source_class": "local",
+              "lot_id": "lot-01",
+              "product_id": "wall-panel-A",
+              "grade": "G1",
+              "available_quantity": 10,
+              "quantity_unit": "panel",
+              "ready_tick": 98,
+              "design_revision": "D1",
+              "bom_digest": "bom-panel-01",
+              "evidence_state": "current",
+              "inventory_evidence_state": "current",
+              "qualification_state": "qualified",
+              "qualification_evidence_state": "current",
+              "inventory_receipt_id": "inventory:d1",
+              "source_revision": "fixture-1"
+            },
+            "transport": {
+              "vehicle_id": "truck-01",
+              "evidence_state": "current",
+              "payload_capacity_kg": 2000,
+              "volume_capacity_m3": 20,
+              "route_state": "open",
+              "route_evidence_state": "current",
+              "route_revision": "network-fixture-1",
+              "route_receipt_id": "route:d1",
+              "route_duration_ticks": 5,
+              "vehicle_access": "allowed"
+            },
+            "site": {
+              "site_id": "site-01",
+              "evidence_state": "current",
+              "gate_state": "open",
+              "gate_open_start_tick": 70,
+              "gate_open_end_tick": 100,
+              "unload": {
+                "evidence_state": "current",
+                "status": "available",
+                "capacity_kg": 2000,
+                "duration_ticks": 2
+              },
+              "receiving": {
+                "evidence_state": "current",
+                "labour_state": "available",
+                "inspection_state": "passed",
+                "inspection_duration_ticks": 2,
+                "custody_state": "accepted",
+                "custody_evidence_state": "current",
+                "custody_receipt_id": "custody:d1",
+                "received_quantity": 10
+              },
+              "receiving_bay": {
+                "resource_id": "bay-01",
+                "slot_id": "slot-80",
+                "use": 1
+              },
+              "laydown": {
+                "resource_id": "laydown-01",
+                "slot_id": "slot-80",
+                "use": 2
+              }
+            }
+          }
+        ],
+        "resources": [
+          {
+            "resource_id": "bay-01",
+            "slot_id": "slot-80",
+            "kind": "receiving_bay",
+            "capacity": 1,
+            "unit": "slot",
+            "evidence_state": "current"
+          },
+          {
+            "resource_id": "laydown-01",
+            "slot_id": "slot-80",
+            "kind": "laydown",
+            "capacity": 10,
+            "unit": "pallet_position",
+            "evidence_state": "current"
+          }
+        ]
+      },
+      "expected": {
+        "case_id": "CD-006",
+        "disposition": "Evaluated",
+        "reason_codes": [],
+        "deliveries": [
+          {
+            "delivery_id": "d1",
+            "state": "Late",
+            "reason_codes": [
+              "DELIVERY_WINDOW_OR_DEADLINE_MISSED"
+            ],
+            "predicted_arrival_tick": 103,
+            "predicted_acceptance_tick": 107,
+            "source_class": "local",
+            "local_productive_capability_claim": false,
+            "lot_id": "lot-01",
+            "quantity_requested": 10,
+            "quantity_declared_available": 10,
+            "stages": {
+              "inventory": "sufficient",
+              "qualification": "qualified",
+              "revision": "matched",
+              "availability": "late",
+              "transport": "feasible",
+              "site_access": "feasible",
+              "unloading": "feasible",
+              "receiving": "feasible",
+              "inspection": "passed",
+              "custody": "accepted"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "CD-007",
+      "description": "Vehicle payload capacity is below the declared load mass.",
+      "input": {
+        "scope_digest": "city-delivery-scope:synthetic-v0.1",
+        "evaluation_window_id": "window-80",
+        "deliveries": [
+          {
+            "delivery_id": "d1",
+            "scope_digest": "city-delivery-scope:synthetic-v0.1",
+            "project_id": "project-01",
+            "work_package_id": "wp-panel-01",
+            "phase_id": "phase-01",
+            "design_revision": "D1",
+            "bom_digest": "bom-panel-01",
+            "demand": {
+              "product_id": "wall-panel-A",
+              "grade": "G1",
+              "quantity": 10,
+              "unit": "panel",
+              "required_by_tick": 100,
+              "window_start_tick": 70,
+              "window_end_tick": 100,
+              "mass_kg": 1200,
+              "volume_m3": 10
+            },
+            "source": {
+              "supplier_id": "supplier-01",
+              "facility_id": "factory-01",
+              "source_class": "local",
+              "lot_id": "lot-01",
+              "product_id": "wall-panel-A",
+              "grade": "G1",
+              "available_quantity": 10,
+              "quantity_unit": "panel",
+              "ready_tick": 60,
+              "design_revision": "D1",
+              "bom_digest": "bom-panel-01",
+              "evidence_state": "current",
+              "inventory_evidence_state": "current",
+              "qualification_state": "qualified",
+              "qualification_evidence_state": "current",
+              "inventory_receipt_id": "inventory:d1",
+              "source_revision": "fixture-1"
+            },
+            "transport": {
+              "vehicle_id": "truck-01",
+              "evidence_state": "current",
+              "payload_capacity_kg": 1000,
+              "volume_capacity_m3": 20,
+              "route_state": "open",
+              "route_evidence_state": "current",
+              "route_revision": "network-fixture-1",
+              "route_receipt_id": "route:d1",
+              "route_duration_ticks": 5,
+              "vehicle_access": "allowed"
+            },
+            "site": {
+              "site_id": "site-01",
+              "evidence_state": "current",
+              "gate_state": "open",
+              "gate_open_start_tick": 70,
+              "gate_open_end_tick": 100,
+              "unload": {
+                "evidence_state": "current",
+                "status": "available",
+                "capacity_kg": 2000,
+                "duration_ticks": 2
+              },
+              "receiving": {
+                "evidence_state": "current",
+                "labour_state": "available",
+                "inspection_state": "passed",
+                "inspection_duration_ticks": 2,
+                "custody_state": "accepted",
+                "custody_evidence_state": "current",
+                "custody_receipt_id": "custody:d1",
+                "received_quantity": 10
+              },
+              "receiving_bay": {
+                "resource_id": "bay-01",
+                "slot_id": "slot-80",
+                "use": 1
+              },
+              "laydown": {
+                "resource_id": "laydown-01",
+                "slot_id": "slot-80",
+                "use": 2
+              }
+            }
+          }
+        ],
+        "resources": [
+          {
+            "resource_id": "bay-01",
+            "slot_id": "slot-80",
+            "kind": "receiving_bay",
+            "capacity": 1,
+            "unit": "slot",
+            "evidence_state": "current"
+          },
+          {
+            "resource_id": "laydown-01",
+            "slot_id": "slot-80",
+            "kind": "laydown",
+            "capacity": 10,
+            "unit": "pallet_position",
+            "evidence_state": "current"
+          }
+        ]
+      },
+      "expected": {
+        "case_id": "CD-007",
+        "disposition": "Evaluated",
+        "reason_codes": [],
+        "deliveries": [
+          {
+            "delivery_id": "d1",
+            "state": "Blocked",
+            "reason_codes": [
+              "VEHICLE_ROUTE_OR_LOAD_ENVELOPE_INFEASIBLE"
+            ],
+            "predicted_arrival_tick": 70,
+            "predicted_acceptance_tick": 74,
+            "source_class": "local",
+            "local_productive_capability_claim": false,
+            "lot_id": "lot-01",
+            "quantity_requested": 10,
+            "quantity_declared_available": 10,
+            "stages": {
+              "inventory": "sufficient",
+              "qualification": "qualified",
+              "revision": "matched",
+              "availability": "timely",
+              "transport": "blocked",
+              "site_access": "feasible",
+              "unloading": "feasible",
+              "receiving": "feasible",
+              "inspection": "passed",
+              "custody": "accepted"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "CD-008",
+      "description": "Vehicle volume capacity is below the declared load volume.",
+      "input": {
+        "scope_digest": "city-delivery-scope:synthetic-v0.1",
+        "evaluation_window_id": "window-80",
+        "deliveries": [
+          {
+            "delivery_id": "d1",
+            "scope_digest": "city-delivery-scope:synthetic-v0.1",
+            "project_id": "project-01",
+            "work_package_id": "wp-panel-01",
+            "phase_id": "phase-01",
+            "design_revision": "D1",
+            "bom_digest": "bom-panel-01",
+            "demand": {
+              "product_id": "wall-panel-A",
+              "grade": "G1",
+              "quantity": 10,
+              "unit": "panel",
+              "required_by_tick": 100,
+              "window_start_tick": 70,
+              "window_end_tick": 100,
+              "mass_kg": 1200,
+              "volume_m3": 10
+            },
+            "source": {
+              "supplier_id": "supplier-01",
+              "facility_id": "factory-01",
+              "source_class": "local",
+              "lot_id": "lot-01",
+              "product_id": "wall-panel-A",
+              "grade": "G1",
+              "available_quantity": 10,
+              "quantity_unit": "panel",
+              "ready_tick": 60,
+              "design_revision": "D1",
+              "bom_digest": "bom-panel-01",
+              "evidence_state": "current",
+              "inventory_evidence_state": "current",
+              "qualification_state": "qualified",
+              "qualification_evidence_state": "current",
+              "inventory_receipt_id": "inventory:d1",
+              "source_revision": "fixture-1"
+            },
+            "transport": {
+              "vehicle_id": "truck-01",
+              "evidence_state": "current",
+              "payload_capacity_kg": 2000,
+              "volume_capacity_m3": 8,
+              "route_state": "open",
+              "route_evidence_state": "current",
+              "route_revision": "network-fixture-1",
+              "route_receipt_id": "route:d1",
+              "route_duration_ticks": 5,
+              "vehicle_access": "allowed"
+            },
+            "site": {
+              "site_id": "site-01",
+              "evidence_state": "current",
+              "gate_state": "open",
+              "gate_open_start_tick": 70,
+              "gate_open_end_tick": 100,
+              "unload": {
+                "evidence_state": "current",
+                "status": "available",
+                "capacity_kg": 2000,
+                "duration_ticks": 2
+              },
+              "receiving": {
+                "evidence_state": "current",
+                "labour_state": "available",
+                "inspection_state": "passed",
+                "inspection_duration_ticks": 2,
+                "custody_state": "accepted",
+                "custody_evidence_state": "current",
+                "custody_receipt_id": "custody:d1",
+                "received_quantity": 10
+              },
+              "receiving_bay": {
+                "resource_id": "bay-01",
+                "slot_id": "slot-80",
+                "use": 1
+              },
+              "laydown": {
+                "resource_id": "laydown-01",
+                "slot_id": "slot-80",
+                "use": 2
+              }
+            }
+          }
+        ],
+        "resources": [
+          {
+            "resource_id": "bay-01",
+            "slot_id": "slot-80",
+            "kind": "receiving_bay",
+            "capacity": 1,
+            "unit": "slot",
+            "evidence_state": "current"
+          },
+          {
+            "resource_id": "laydown-01",
+            "slot_id": "slot-80",
+            "kind": "laydown",
+            "capacity": 10,
+            "unit": "pallet_position",
+            "evidence_state": "current"
+          }
+        ]
+      },
+      "expected": {
+        "case_id": "CD-008",
+        "disposition": "Evaluated",
+        "reason_codes": [],
+        "deliveries": [
+          {
+            "delivery_id": "d1",
+            "state": "Blocked",
+            "reason_codes": [
+              "VEHICLE_ROUTE_OR_LOAD_ENVELOPE_INFEASIBLE"
+            ],
+            "predicted_arrival_tick": 70,
+            "predicted_acceptance_tick": 74,
+            "source_class": "local",
+            "local_productive_capability_claim": false,
+            "lot_id": "lot-01",
+            "quantity_requested": 10,
+            "quantity_declared_available": 10,
+            "stages": {
+              "inventory": "sufficient",
+              "qualification": "qualified",
+              "revision": "matched",
+              "availability": "timely",
+              "transport": "blocked",
+              "site_access": "feasible",
+              "unloading": "feasible",
+              "receiving": "feasible",
+              "inspection": "passed",
+              "custody": "accepted"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "CD-009",
+      "description": "Vehicle is prohibited by the declared route restriction.",
+      "input": {
+        "scope_digest": "city-delivery-scope:synthetic-v0.1",
+        "evaluation_window_id": "window-80",
+        "deliveries": [
+          {
+            "delivery_id": "d1",
+            "scope_digest": "city-delivery-scope:synthetic-v0.1",
+            "project_id": "project-01",
+            "work_package_id": "wp-panel-01",
+            "phase_id": "phase-01",
+            "design_revision": "D1",
+            "bom_digest": "bom-panel-01",
+            "demand": {
+              "product_id": "wall-panel-A",
+              "grade": "G1",
+              "quantity": 10,
+              "unit": "panel",
+              "required_by_tick": 100,
+              "window_start_tick": 70,
+              "window_end_tick": 100,
+              "mass_kg": 1200,
+              "volume_m3": 10
+            },
+            "source": {
+              "supplier_id": "supplier-01",
+              "facility_id": "factory-01",
+              "source_class": "local",
+              "lot_id": "lot-01",
+              "product_id": "wall-panel-A",
+              "grade": "G1",
+              "available_quantity": 10,
+              "quantity_unit": "panel",
+              "ready_tick": 60,
+              "design_revision": "D1",
+              "bom_digest": "bom-panel-01",
+              "evidence_state": "current",
+              "inventory_evidence_state": "current",
+              "qualification_state": "qualified",
+              "qualification_evidence_state": "current",
+              "inventory_receipt_id": "inventory:d1",
+              "source_revision": "fixture-1"
+            },
+            "transport": {
+              "vehicle_id": "truck-01",
+              "evidence_state": "current",
+              "payload_capacity_kg": 2000,
+              "volume_capacity_m3": 20,
+              "route_state": "open",
+              "route_evidence_state": "current",
+              "route_revision": "network-fixture-1",
+              "route_receipt_id": "route:d1",
+              "route_duration_ticks": 5,
+              "vehicle_access": "blocked"
+            },
+            "site": {
+              "site_id": "site-01",
+              "evidence_state": "current",
+              "gate_state": "open",
+              "gate_open_start_tick": 70,
+              "gate_open_end_tick": 100,
+              "unload": {
+                "evidence_state": "current",
+                "status": "available",
+                "capacity_kg": 2000,
+                "duration_ticks": 2
+              },
+              "receiving": {
+                "evidence_state": "current",
+                "labour_state": "available",
+                "inspection_state": "passed",
+                "inspection_duration_ticks": 2,
+                "custody_state": "accepted",
+                "custody_evidence_state": "current",
+                "custody_receipt_id": "custody:d1",
+                "received_quantity": 10
+              },
+              "receiving_bay": {
+                "resource_id": "bay-01",
+                "slot_id": "slot-80",
+                "use": 1
+              },
+              "laydown": {
+                "resource_id": "laydown-01",
+                "slot_id": "slot-80",
+                "use": 2
+              }
+            }
+          }
+        ],
+        "resources": [
+          {
+            "resource_id": "bay-01",
+            "slot_id": "slot-80",
+            "kind": "receiving_bay",
+            "capacity": 1,
+            "unit": "slot",
+            "evidence_state": "current"
+          },
+          {
+            "resource_id": "laydown-01",
+            "slot_id": "slot-80",
+            "kind": "laydown",
+            "capacity": 10,
+            "unit": "pallet_position",
+            "evidence_state": "current"
+          }
+        ]
+      },
+      "expected": {
+        "case_id": "CD-009",
+        "disposition": "Evaluated",
+        "reason_codes": [],
+        "deliveries": [
+          {
+            "delivery_id": "d1",
+            "state": "Blocked",
+            "reason_codes": [
+              "VEHICLE_ROUTE_OR_LOAD_ENVELOPE_INFEASIBLE"
+            ],
+            "predicted_arrival_tick": 70,
+            "predicted_acceptance_tick": 74,
+            "source_class": "local",
+            "local_productive_capability_claim": false,
+            "lot_id": "lot-01",
+            "quantity_requested": 10,
+            "quantity_declared_available": 10,
+            "stages": {
+              "inventory": "sufficient",
+              "qualification": "qualified",
+              "revision": "matched",
+              "availability": "timely",
+              "transport": "blocked",
+              "site_access": "feasible",
+              "unloading": "feasible",
+              "receiving": "feasible",
+              "inspection": "passed",
+              "custody": "accepted"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "CD-010",
+      "description": "Route evidence is stale; transport feasibility is unknown.",
+      "input": {
+        "scope_digest": "city-delivery-scope:synthetic-v0.1",
+        "evaluation_window_id": "window-80",
+        "deliveries": [
+          {
+            "delivery_id": "d1",
+            "scope_digest": "city-delivery-scope:synthetic-v0.1",
+            "project_id": "project-01",
+            "work_package_id": "wp-panel-01",
+            "phase_id": "phase-01",
+            "design_revision": "D1",
+            "bom_digest": "bom-panel-01",
+            "demand": {
+              "product_id": "wall-panel-A",
+              "grade": "G1",
+              "quantity": 10,
+              "unit": "panel",
+              "required_by_tick": 100,
+              "window_start_tick": 70,
+              "window_end_tick": 100,
+              "mass_kg": 1200,
+              "volume_m3": 10
+            },
+            "source": {
+              "supplier_id": "supplier-01",
+              "facility_id": "factory-01",
+              "source_class": "local",
+              "lot_id": "lot-01",
+              "product_id": "wall-panel-A",
+              "grade": "G1",
+              "available_quantity": 10,
+              "quantity_unit": "panel",
+              "ready_tick": 60,
+              "design_revision": "D1",
+              "bom_digest": "bom-panel-01",
+              "evidence_state": "current",
+              "inventory_evidence_state": "current",
+              "qualification_state": "qualified",
+              "qualification_evidence_state": "current",
+              "inventory_receipt_id": "inventory:d1",
+              "source_revision": "fixture-1"
+            },
+            "transport": {
+              "vehicle_id": "truck-01",
+              "evidence_state": "current",
+              "payload_capacity_kg": 2000,
+              "volume_capacity_m3": 20,
+              "route_state": "open",
+              "route_evidence_state": "stale",
+              "route_revision": "network-fixture-1",
+              "route_receipt_id": "route:d1",
+              "route_duration_ticks": 5,
+              "vehicle_access": "allowed"
+            },
+            "site": {
+              "site_id": "site-01",
+              "evidence_state": "current",
+              "gate_state": "open",
+              "gate_open_start_tick": 70,
+              "gate_open_end_tick": 100,
+              "unload": {
+                "evidence_state": "current",
+                "status": "available",
+                "capacity_kg": 2000,
+                "duration_ticks": 2
+              },
+              "receiving": {
+                "evidence_state": "current",
+                "labour_state": "available",
+                "inspection_state": "passed",
+                "inspection_duration_ticks": 2,
+                "custody_state": "accepted",
+                "custody_evidence_state": "current",
+                "custody_receipt_id": "custody:d1",
+                "received_quantity": 10
+              },
+              "receiving_bay": {
+                "resource_id": "bay-01",
+                "slot_id": "slot-80",
+                "use": 1
+              },
+              "laydown": {
+                "resource_id": "laydown-01",
+                "slot_id": "slot-80",
+                "use": 2
+              }
+            }
+          }
+        ],
+        "resources": [
+          {
+            "resource_id": "bay-01",
+            "slot_id": "slot-80",
+            "kind": "receiving_bay",
+            "capacity": 1,
+            "unit": "slot",
+            "evidence_state": "current"
+          },
+          {
+            "resource_id": "laydown-01",
+            "slot_id": "slot-80",
+            "kind": "laydown",
+            "capacity": 10,
+            "unit": "pallet_position",
+            "evidence_state": "current"
+          }
+        ]
+      },
+      "expected": {
+        "case_id": "CD-010",
+        "disposition": "Evaluated",
+        "reason_codes": [],
+        "deliveries": [
+          {
+            "delivery_id": "d1",
+            "state": "Unknown",
+            "reason_codes": [
+              "TRANSPORT_OR_ROUTE_EVIDENCE_UNKNOWN"
+            ],
+            "predicted_arrival_tick": 70,
+            "predicted_acceptance_tick": 74,
+            "source_class": "local",
+            "local_productive_capability_claim": false,
+            "lot_id": "lot-01",
+            "quantity_requested": 10,
+            "quantity_declared_available": 10,
+            "stages": {
+              "inventory": "sufficient",
+              "qualification": "qualified",
+              "revision": "matched",
+              "availability": "timely",
+              "transport": "unknown",
+              "site_access": "feasible",
+              "unloading": "feasible",
+              "receiving": "feasible",
+              "inspection": "passed",
+              "custody": "accepted"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "CD-011",
+      "description": "Travel plus unload and inspection duration cannot fit the delivery window.",
+      "input": {
+        "scope_digest": "city-delivery-scope:synthetic-v0.1",
+        "evaluation_window_id": "window-80",
+        "deliveries": [
+          {
+            "delivery_id": "d1",
+            "scope_digest": "city-delivery-scope:synthetic-v0.1",
+            "project_id": "project-01",
+            "work_package_id": "wp-panel-01",
+            "phase_id": "phase-01",
+            "design_revision": "D1",
+            "bom_digest": "bom-panel-01",
+            "demand": {
+              "product_id": "wall-panel-A",
+              "grade": "G1",
+              "quantity": 10,
+              "unit": "panel",
+              "required_by_tick": 100,
+              "window_start_tick": 70,
+              "window_end_tick": 100,
+              "mass_kg": 1200,
+              "volume_m3": 10
+            },
+            "source": {
+              "supplier_id": "supplier-01",
+              "facility_id": "factory-01",
+              "source_class": "local",
+              "lot_id": "lot-01",
+              "product_id": "wall-panel-A",
+              "grade": "G1",
+              "available_quantity": 10,
+              "quantity_unit": "panel",
+              "ready_tick": 60,
+              "design_revision": "D1",
+              "bom_digest": "bom-panel-01",
+              "evidence_state": "current",
+              "inventory_evidence_state": "current",
+              "qualification_state": "qualified",
+              "qualification_evidence_state": "current",
+              "inventory_receipt_id": "inventory:d1",
+              "source_revision": "fixture-1"
+            },
+            "transport": {
+              "vehicle_id": "truck-01",
+              "evidence_state": "current",
+              "payload_capacity_kg": 2000,
+              "volume_capacity_m3": 20,
+              "route_state": "open",
+              "route_evidence_state": "current",
+              "route_revision": "network-fixture-1",
+              "route_receipt_id": "route:d1",
+              "route_duration_ticks": 25,
+              "vehicle_access": "allowed"
+            },
+            "site": {
+              "site_id": "site-01",
+              "evidence_state": "current",
+              "gate_state": "open",
+              "gate_open_start_tick": 70,
+              "gate_open_end_tick": 100,
+              "unload": {
+                "evidence_state": "current",
+                "status": "available",
+                "capacity_kg": 2000,
+                "duration_ticks": 2
+              },
+              "receiving": {
+                "evidence_state": "current",
+                "labour_state": "available",
+                "inspection_state": "passed",
+                "inspection_duration_ticks": 2,
+                "custody_state": "accepted",
+                "custody_evidence_state": "current",
+                "custody_receipt_id": "custody:d1",
+                "received_quantity": 10
+              },
+              "receiving_bay": {
+                "resource_id": "bay-01",
+                "slot_id": "slot-80",
+                "use": 1
+              },
+              "laydown": {
+                "resource_id": "laydown-01",
+                "slot_id": "slot-80",
+                "use": 2
+              }
+            }
+          }
+        ],
+        "resources": [
+          {
+            "resource_id": "bay-01",
+            "slot_id": "slot-80",
+            "kind": "receiving_bay",
+            "capacity": 1,
+            "unit": "slot",
+            "evidence_state": "current"
+          },
+          {
+            "resource_id": "laydown-01",
+            "slot_id": "slot-80",
+            "kind": "laydown",
+            "capacity": 10,
+            "unit": "pallet_position",
+            "evidence_state": "current"
+          }
+        ]
+      },
+      "expected": {
+        "case_id": "CD-011",
+        "disposition": "Evaluated",
+        "reason_codes": [],
+        "deliveries": [
+          {
+            "delivery_id": "d1",
+            "state": "AcceptedDelivery",
+            "reason_codes": [],
+            "predicted_arrival_tick": 85,
+            "predicted_acceptance_tick": 89,
+            "source_class": "local",
+            "local_productive_capability_claim": false,
+            "lot_id": "lot-01",
+            "quantity_requested": 10,
+            "quantity_declared_available": 10,
+            "stages": {
+              "inventory": "sufficient",
+              "qualification": "qualified",
+              "revision": "matched",
+              "availability": "timely",
+              "transport": "feasible",
+              "site_access": "feasible",
+              "unloading": "feasible",
+              "receiving": "feasible",
+              "inspection": "passed",
+              "custody": "accepted"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "CD-012",
+      "description": "Site gate is known to be closed.",
+      "input": {
+        "scope_digest": "city-delivery-scope:synthetic-v0.1",
+        "evaluation_window_id": "window-80",
+        "deliveries": [
+          {
+            "delivery_id": "d1",
+            "scope_digest": "city-delivery-scope:synthetic-v0.1",
+            "project_id": "project-01",
+            "work_package_id": "wp-panel-01",
+            "phase_id": "phase-01",
+            "design_revision": "D1",
+            "bom_digest": "bom-panel-01",
+            "demand": {
+              "product_id": "wall-panel-A",
+              "grade": "G1",
+              "quantity": 10,
+              "unit": "panel",
+              "required_by_tick": 100,
+              "window_start_tick": 70,
+              "window_end_tick": 100,
+              "mass_kg": 1200,
+              "volume_m3": 10
+            },
+            "source": {
+              "supplier_id": "supplier-01",
+              "facility_id": "factory-01",
+              "source_class": "local",
+              "lot_id": "lot-01",
+              "product_id": "wall-panel-A",
+              "grade": "G1",
+              "available_quantity": 10,
+              "quantity_unit": "panel",
+              "ready_tick": 60,
+              "design_revision": "D1",
+              "bom_digest": "bom-panel-01",
+              "evidence_state": "current",
+              "inventory_evidence_state": "current",
+              "qualification_state": "qualified",
+              "qualification_evidence_state": "current",
+              "inventory_receipt_id": "inventory:d1",
+              "source_revision": "fixture-1"
+            },
+            "transport": {
+              "vehicle_id": "truck-01",
+              "evidence_state": "current",
+              "payload_capacity_kg": 2000,
+              "volume_capacity_m3": 20,
+              "route_state": "open",
+              "route_evidence_state": "current",
+              "route_revision": "network-fixture-1",
+              "route_receipt_id": "route:d1",
+              "route_duration_ticks": 5,
+              "vehicle_access": "allowed"
+            },
+            "site": {
+              "site_id": "site-01",
+              "evidence_state": "current",
+              "gate_state": "closed",
+              "gate_open_start_tick": 70,
+              "gate_open_end_tick": 100,
+              "unload": {
+                "evidence_state": "current",
+                "status": "available",
+                "capacity_kg": 2000,
+                "duration_ticks": 2
+              },
+              "receiving": {
+                "evidence_state": "current",
+                "labour_state": "available",
+                "inspection_state": "passed",
+                "inspection_duration_ticks": 2,
+                "custody_state": "accepted",
+                "custody_evidence_state": "current",
+                "custody_receipt_id": "custody:d1",
+                "received_quantity": 10
+              },
+              "receiving_bay": {
+                "resource_id": "bay-01",
+                "slot_id": "slot-80",
+                "use": 1
+              },
+              "laydown": {
+                "resource_id": "laydown-01",
+                "slot_id": "slot-80",
+                "use": 2
+              }
+            }
+          }
+        ],
+        "resources": [
+          {
+            "resource_id": "bay-01",
+            "slot_id": "slot-80",
+            "kind": "receiving_bay",
+            "capacity": 1,
+            "unit": "slot",
+            "evidence_state": "current"
+          },
+          {
+            "resource_id": "laydown-01",
+            "slot_id": "slot-80",
+            "kind": "laydown",
+            "capacity": 10,
+            "unit": "pallet_position",
+            "evidence_state": "current"
+          }
+        ]
+      },
+      "expected": {
+        "case_id": "CD-012",
+        "disposition": "Evaluated",
+        "reason_codes": [],
+        "deliveries": [
+          {
+            "delivery_id": "d1",
+            "state": "Blocked",
+            "reason_codes": [
+              "SITE_GATE_CLOSED"
+            ],
+            "predicted_arrival_tick": 70,
+            "predicted_acceptance_tick": 74,
+            "source_class": "local",
+            "local_productive_capability_claim": false,
+            "lot_id": "lot-01",
+            "quantity_requested": 10,
+            "quantity_declared_available": 10,
+            "stages": {
+              "inventory": "sufficient",
+              "qualification": "qualified",
+              "revision": "matched",
+              "availability": "timely",
+              "transport": "feasible",
+              "site_access": "blocked",
+              "unloading": "feasible",
+              "receiving": "feasible",
+              "inspection": "passed",
+              "custody": "accepted"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "CD-013",
+      "description": "Site gate status is unknown.",
+      "input": {
+        "scope_digest": "city-delivery-scope:synthetic-v0.1",
+        "evaluation_window_id": "window-80",
+        "deliveries": [
+          {
+            "delivery_id": "d1",
+            "scope_digest": "city-delivery-scope:synthetic-v0.1",
+            "project_id": "project-01",
+            "work_package_id": "wp-panel-01",
+            "phase_id": "phase-01",
+            "design_revision": "D1",
+            "bom_digest": "bom-panel-01",
+            "demand": {
+              "product_id": "wall-panel-A",
+              "grade": "G1",
+              "quantity": 10,
+              "unit": "panel",
+              "required_by_tick": 100,
+              "window_start_tick": 70,
+              "window_end_tick": 100,
+              "mass_kg": 1200,
+              "volume_m3": 10
+            },
+            "source": {
+              "supplier_id": "supplier-01",
+              "facility_id": "factory-01",
+              "source_class": "local",
+              "lot_id": "lot-01",
+              "product_id": "wall-panel-A",
+              "grade": "G1",
+              "available_quantity": 10,
+              "quantity_unit": "panel",
+              "ready_tick": 60,
+              "design_revision": "D1",
+              "bom_digest": "bom-panel-01",
+              "evidence_state": "current",
+              "inventory_evidence_state": "current",
+              "qualification_state": "qualified",
+              "qualification_evidence_state": "current",
+              "inventory_receipt_id": "inventory:d1",
+              "source_revision": "fixture-1"
+            },
+            "transport": {
+              "vehicle_id": "truck-01",
+              "evidence_state": "current",
+              "payload_capacity_kg": 2000,
+              "volume_capacity_m3": 20,
+              "route_state": "open",
+              "route_evidence_state": "current",
+              "route_revision": "network-fixture-1",
+              "route_receipt_id": "route:d1",
+              "route_duration_ticks": 5,
+              "vehicle_access": "allowed"
+            },
+            "site": {
+              "site_id": "site-01",
+              "evidence_state": "current",
+              "gate_state": "unknown",
+              "gate_open_start_tick": 70,
+              "gate_open_end_tick": 100,
+              "unload": {
+                "evidence_state": "current",
+                "status": "available",
+                "capacity_kg": 2000,
+                "duration_ticks": 2
+              },
+              "receiving": {
+                "evidence_state": "current",
+                "labour_state": "available",
+                "inspection_state": "passed",
+                "inspection_duration_ticks": 2,
+                "custody_state": "accepted",
+                "custody_evidence_state": "current",
+                "custody_receipt_id": "custody:d1",
+                "received_quantity": 10
+              },
+              "receiving_bay": {
+                "resource_id": "bay-01",
+                "slot_id": "slot-80",
+                "use": 1
+              },
+              "laydown": {
+                "resource_id": "laydown-01",
+                "slot_id": "slot-80",
+                "use": 2
+              }
+            }
+          }
+        ],
+        "resources": [
+          {
+            "resource_id": "bay-01",
+            "slot_id": "slot-80",
+            "kind": "receiving_bay",
+            "capacity": 1,
+            "unit": "slot",
+            "evidence_state": "current"
+          },
+          {
+            "resource_id": "laydown-01",
+            "slot_id": "slot-80",
+            "kind": "laydown",
+            "capacity": 10,
+            "unit": "pallet_position",
+            "evidence_state": "current"
+          }
+        ]
+      },
+      "expected": {
+        "case_id": "CD-013",
+        "disposition": "Evaluated",
+        "reason_codes": [],
+        "deliveries": [
+          {
+            "delivery_id": "d1",
+            "state": "Unknown",
+            "reason_codes": [
+              "SITE_ACCESS_EVIDENCE_UNKNOWN"
+            ],
+            "predicted_arrival_tick": 70,
+            "predicted_acceptance_tick": 74,
+            "source_class": "local",
+            "local_productive_capability_claim": false,
+            "lot_id": "lot-01",
+            "quantity_requested": 10,
+            "quantity_declared_available": 10,
+            "stages": {
+              "inventory": "sufficient",
+              "qualification": "qualified",
+              "revision": "matched",
+              "availability": "timely",
+              "transport": "feasible",
+              "site_access": "unknown",
+              "unloading": "feasible",
+              "receiving": "feasible",
+              "inspection": "passed",
+              "custody": "accepted"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "CD-014",
+      "description": "Unloading equipment is unavailable.",
+      "input": {
+        "scope_digest": "city-delivery-scope:synthetic-v0.1",
+        "evaluation_window_id": "window-80",
+        "deliveries": [
+          {
+            "delivery_id": "d1",
+            "scope_digest": "city-delivery-scope:synthetic-v0.1",
+            "project_id": "project-01",
+            "work_package_id": "wp-panel-01",
+            "phase_id": "phase-01",
+            "design_revision": "D1",
+            "bom_digest": "bom-panel-01",
+            "demand": {
+              "product_id": "wall-panel-A",
+              "grade": "G1",
+              "quantity": 10,
+              "unit": "panel",
+              "required_by_tick": 100,
+              "window_start_tick": 70,
+              "window_end_tick": 100,
+              "mass_kg": 1200,
+              "volume_m3": 10
+            },
+            "source": {
+              "supplier_id": "supplier-01",
+              "facility_id": "factory-01",
+              "source_class": "local",
+              "lot_id": "lot-01",
+              "product_id": "wall-panel-A",
+              "grade": "G1",
+              "available_quantity": 10,
+              "quantity_unit": "panel",
+              "ready_tick": 60,
+              "design_revision": "D1",
+              "bom_digest": "bom-panel-01",
+              "evidence_state": "current",
+              "inventory_evidence_state": "current",
+              "qualification_state": "qualified",
+              "qualification_evidence_state": "current",
+              "inventory_receipt_id": "inventory:d1",
+              "source_revision": "fixture-1"
+            },
+            "transport": {
+              "vehicle_id": "truck-01",
+              "evidence_state": "current",
+              "payload_capacity_kg": 2000,
+              "volume_capacity_m3": 20,
+              "route_state": "open",
+              "route_evidence_state": "current",
+              "route_revision": "network-fixture-1",
+              "route_receipt_id": "route:d1",
+              "route_duration_ticks": 5,
+              "vehicle_access": "allowed"
+            },
+            "site": {
+              "site_id": "site-01",
+              "evidence_state": "current",
+              "gate_state": "open",
+              "gate_open_start_tick": 70,
+              "gate_open_end_tick": 100,
+              "unload": {
+                "evidence_state": "current",
+                "status": "unavailable",
+                "capacity_kg": 2000,
+                "duration_ticks": 2
+              },
+              "receiving": {
+                "evidence_state": "current",
+                "labour_state": "available",
+                "inspection_state": "passed",
+                "inspection_duration_ticks": 2,
+                "custody_state": "accepted",
+                "custody_evidence_state": "current",
+                "custody_receipt_id": "custody:d1",
+                "received_quantity": 10
+              },
+              "receiving_bay": {
+                "resource_id": "bay-01",
+                "slot_id": "slot-80",
+                "use": 1
+              },
+              "laydown": {
+                "resource_id": "laydown-01",
+                "slot_id": "slot-80",
+                "use": 2
+              }
+            }
+          }
+        ],
+        "resources": [
+          {
+            "resource_id": "bay-01",
+            "slot_id": "slot-80",
+            "kind": "receiving_bay",
+            "capacity": 1,
+            "unit": "slot",
+            "evidence_state": "current"
+          },
+          {
+            "resource_id": "laydown-01",
+            "slot_id": "slot-80",
+            "kind": "laydown",
+            "capacity": 10,
+            "unit": "pallet_position",
+            "evidence_state": "current"
+          }
+        ]
+      },
+      "expected": {
+        "case_id": "CD-014",
+        "disposition": "Evaluated",
+        "reason_codes": [],
+        "deliveries": [
+          {
+            "delivery_id": "d1",
+            "state": "Blocked",
+            "reason_codes": [
+              "UNLOAD_EQUIPMENT_UNAVAILABLE_OR_INSUFFICIENT"
+            ],
+            "predicted_arrival_tick": 70,
+            "predicted_acceptance_tick": 74,
+            "source_class": "local",
+            "local_productive_capability_claim": false,
+            "lot_id": "lot-01",
+            "quantity_requested": 10,
+            "quantity_declared_available": 10,
+            "stages": {
+              "inventory": "sufficient",
+              "qualification": "qualified",
+              "revision": "matched",
+              "availability": "timely",
+              "transport": "feasible",
+              "site_access": "feasible",
+              "unloading": "blocked",
+              "receiving": "feasible",
+              "inspection": "passed",
+              "custody": "accepted"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "CD-015",
+      "description": "Unloading equipment capacity is insufficient for the load.",
+      "input": {
+        "scope_digest": "city-delivery-scope:synthetic-v0.1",
+        "evaluation_window_id": "window-80",
+        "deliveries": [
+          {
+            "delivery_id": "d1",
+            "scope_digest": "city-delivery-scope:synthetic-v0.1",
+            "project_id": "project-01",
+            "work_package_id": "wp-panel-01",
+            "phase_id": "phase-01",
+            "design_revision": "D1",
+            "bom_digest": "bom-panel-01",
+            "demand": {
+              "product_id": "wall-panel-A",
+              "grade": "G1",
+              "quantity": 10,
+              "unit": "panel",
+              "required_by_tick": 100,
+              "window_start_tick": 70,
+              "window_end_tick": 100,
+              "mass_kg": 1200,
+              "volume_m3": 10
+            },
+            "source": {
+              "supplier_id": "supplier-01",
+              "facility_id": "factory-01",
+              "source_class": "local",
+              "lot_id": "lot-01",
+              "product_id": "wall-panel-A",
+              "grade": "G1",
+              "available_quantity": 10,
+              "quantity_unit": "panel",
+              "ready_tick": 60,
+              "design_revision": "D1",
+              "bom_digest": "bom-panel-01",
+              "evidence_state": "current",
+              "inventory_evidence_state": "current",
+              "qualification_state": "qualified",
+              "qualification_evidence_state": "current",
+              "inventory_receipt_id": "inventory:d1",
+              "source_revision": "fixture-1"
+            },
+            "transport": {
+              "vehicle_id": "truck-01",
+              "evidence_state": "current",
+              "payload_capacity_kg": 2000,
+              "volume_capacity_m3": 20,
+              "route_state": "open",
+              "route_evidence_state": "current",
+              "route_revision": "network-fixture-1",
+              "route_receipt_id": "route:d1",
+              "route_duration_ticks": 5,
+              "vehicle_access": "allowed"
+            },
+            "site": {
+              "site_id": "site-01",
+              "evidence_state": "current",
+              "gate_state": "open",
+              "gate_open_start_tick": 70,
+              "gate_open_end_tick": 100,
+              "unload": {
+                "evidence_state": "current",
+                "status": "available",
+                "capacity_kg": 1000,
+                "duration_ticks": 2
+              },
+              "receiving": {
+                "evidence_state": "current",
+                "labour_state": "available",
+                "inspection_state": "passed",
+                "inspection_duration_ticks": 2,
+                "custody_state": "accepted",
+                "custody_evidence_state": "current",
+                "custody_receipt_id": "custody:d1",
+                "received_quantity": 10
+              },
+              "receiving_bay": {
+                "resource_id": "bay-01",
+                "slot_id": "slot-80",
+                "use": 1
+              },
+              "laydown": {
+                "resource_id": "laydown-01",
+                "slot_id": "slot-80",
+                "use": 2
+              }
+            }
+          }
+        ],
+        "resources": [
+          {
+            "resource_id": "bay-01",
+            "slot_id": "slot-80",
+            "kind": "receiving_bay",
+            "capacity": 1,
+            "unit": "slot",
+            "evidence_state": "current"
+          },
+          {
+            "resource_id": "laydown-01",
+            "slot_id": "slot-80",
+            "kind": "laydown",
+            "capacity": 10,
+            "unit": "pallet_position",
+            "evidence_state": "current"
+          }
+        ]
+      },
+      "expected": {
+        "case_id": "CD-015",
+        "disposition": "Evaluated",
+        "reason_codes": [],
+        "deliveries": [
+          {
+            "delivery_id": "d1",
+            "state": "Blocked",
+            "reason_codes": [
+              "UNLOAD_EQUIPMENT_UNAVAILABLE_OR_INSUFFICIENT"
+            ],
+            "predicted_arrival_tick": 70,
+            "predicted_acceptance_tick": 74,
+            "source_class": "local",
+            "local_productive_capability_claim": false,
+            "lot_id": "lot-01",
+            "quantity_requested": 10,
+            "quantity_declared_available": 10,
+            "stages": {
+              "inventory": "sufficient",
+              "qualification": "qualified",
+              "revision": "matched",
+              "availability": "timely",
+              "transport": "feasible",
+              "site_access": "feasible",
+              "unloading": "blocked",
+              "receiving": "feasible",
+              "inspection": "passed",
+              "custody": "accepted"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "CD-016",
+      "description": "Laydown resource capacity is below the required staging footprint.",
+      "input": {
+        "scope_digest": "city-delivery-scope:synthetic-v0.1",
+        "evaluation_window_id": "window-80",
+        "deliveries": [
+          {
+            "delivery_id": "d1",
+            "scope_digest": "city-delivery-scope:synthetic-v0.1",
+            "project_id": "project-01",
+            "work_package_id": "wp-panel-01",
+            "phase_id": "phase-01",
+            "design_revision": "D1",
+            "bom_digest": "bom-panel-01",
+            "demand": {
+              "product_id": "wall-panel-A",
+              "grade": "G1",
+              "quantity": 10,
+              "unit": "panel",
+              "required_by_tick": 100,
+              "window_start_tick": 70,
+              "window_end_tick": 100,
+              "mass_kg": 1200,
+              "volume_m3": 10
+            },
+            "source": {
+              "supplier_id": "supplier-01",
+              "facility_id": "factory-01",
+              "source_class": "local",
+              "lot_id": "lot-01",
+              "product_id": "wall-panel-A",
+              "grade": "G1",
+              "available_quantity": 10,
+              "quantity_unit": "panel",
+              "ready_tick": 60,
+              "design_revision": "D1",
+              "bom_digest": "bom-panel-01",
+              "evidence_state": "current",
+              "inventory_evidence_state": "current",
+              "qualification_state": "qualified",
+              "qualification_evidence_state": "current",
+              "inventory_receipt_id": "inventory:d1",
+              "source_revision": "fixture-1"
+            },
+            "transport": {
+              "vehicle_id": "truck-01",
+              "evidence_state": "current",
+              "payload_capacity_kg": 2000,
+              "volume_capacity_m3": 20,
+              "route_state": "open",
+              "route_evidence_state": "current",
+              "route_revision": "network-fixture-1",
+              "route_receipt_id": "route:d1",
+              "route_duration_ticks": 5,
+              "vehicle_access": "allowed"
+            },
+            "site": {
+              "site_id": "site-01",
+              "evidence_state": "current",
+              "gate_state": "open",
+              "gate_open_start_tick": 70,
+              "gate_open_end_tick": 100,
+              "unload": {
+                "evidence_state": "current",
+                "status": "available",
+                "capacity_kg": 2000,
+                "duration_ticks": 2
+              },
+              "receiving": {
+                "evidence_state": "current",
+                "labour_state": "available",
+                "inspection_state": "passed",
+                "inspection_duration_ticks": 2,
+                "custody_state": "accepted",
+                "custody_evidence_state": "current",
+                "custody_receipt_id": "custody:d1",
+                "received_quantity": 10
+              },
+              "receiving_bay": {
+                "resource_id": "bay-01",
+                "slot_id": "slot-80",
+                "use": 1
+              },
+              "laydown": {
+                "resource_id": "laydown-01",
+                "slot_id": "slot-80",
+                "use": 2
+              }
+            }
+          }
+        ],
+        "resources": [
+          {
+            "resource_id": "bay-01",
+            "slot_id": "slot-80",
+            "kind": "receiving_bay",
+            "capacity": 1,
+            "unit": "slot",
+            "evidence_state": "current"
+          },
+          {
+            "resource_id": "laydown-01",
+            "slot_id": "slot-80",
+            "kind": "laydown",
+            "capacity": 1,
+            "unit": "pallet_position",
+            "evidence_state": "current"
+          }
+        ]
+      },
+      "expected": {
+        "case_id": "CD-016",
+        "disposition": "Evaluated",
+        "reason_codes": [],
+        "deliveries": [
+          {
+            "delivery_id": "d1",
+            "state": "Blocked",
+            "reason_codes": [
+              "SHARED_RECEIVING_OR_LAYDOWN_RESOURCE_OVERBOOKED"
+            ],
+            "predicted_arrival_tick": 70,
+            "predicted_acceptance_tick": 74,
+            "source_class": "local",
+            "local_productive_capability_claim": false,
+            "lot_id": "lot-01",
+            "quantity_requested": 10,
+            "quantity_declared_available": 10,
+            "stages": {
+              "inventory": "sufficient",
+              "qualification": "qualified",
+              "revision": "matched",
+              "availability": "timely",
+              "transport": "feasible",
+              "site_access": "feasible",
+              "unloading": "feasible",
+              "receiving": "feasible",
+              "inspection": "passed",
+              "custody": "accepted",
+              "shared_resources": "blocked"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "CD-017",
+      "description": "Receiving labour is unavailable in the booked window.",
+      "input": {
+        "scope_digest": "city-delivery-scope:synthetic-v0.1",
+        "evaluation_window_id": "window-80",
+        "deliveries": [
+          {
+            "delivery_id": "d1",
+            "scope_digest": "city-delivery-scope:synthetic-v0.1",
+            "project_id": "project-01",
+            "work_package_id": "wp-panel-01",
+            "phase_id": "phase-01",
+            "design_revision": "D1",
+            "bom_digest": "bom-panel-01",
+            "demand": {
+              "product_id": "wall-panel-A",
+              "grade": "G1",
+              "quantity": 10,
+              "unit": "panel",
+              "required_by_tick": 100,
+              "window_start_tick": 70,
+              "window_end_tick": 100,
+              "mass_kg": 1200,
+              "volume_m3": 10
+            },
+            "source": {
+              "supplier_id": "supplier-01",
+              "facility_id": "factory-01",
+              "source_class": "local",
+              "lot_id": "lot-01",
+              "product_id": "wall-panel-A",
+              "grade": "G1",
+              "available_quantity": 10,
+              "quantity_unit": "panel",
+              "ready_tick": 60,
+              "design_revision": "D1",
+              "bom_digest": "bom-panel-01",
+              "evidence_state": "current",
+              "inventory_evidence_state": "current",
+              "qualification_state": "qualified",
+              "qualification_evidence_state": "current",
+              "inventory_receipt_id": "inventory:d1",
+              "source_revision": "fixture-1"
+            },
+            "transport": {
+              "vehicle_id": "truck-01",
+              "evidence_state": "current",
+              "payload_capacity_kg": 2000,
+              "volume_capacity_m3": 20,
+              "route_state": "open",
+              "route_evidence_state": "current",
+              "route_revision": "network-fixture-1",
+              "route_receipt_id": "route:d1",
+              "route_duration_ticks": 5,
+              "vehicle_access": "allowed"
+            },
+            "site": {
+              "site_id": "site-01",
+              "evidence_state": "current",
+              "gate_state": "open",
+              "gate_open_start_tick": 70,
+              "gate_open_end_tick": 100,
+              "unload": {
+                "evidence_state": "current",
+                "status": "available",
+                "capacity_kg": 2000,
+                "duration_ticks": 2
+              },
+              "receiving": {
+                "evidence_state": "current",
+                "labour_state": "unavailable",
+                "inspection_state": "passed",
+                "inspection_duration_ticks": 2,
+                "custody_state": "accepted",
+                "custody_evidence_state": "current",
+                "custody_receipt_id": "custody:d1",
+                "received_quantity": 10
+              },
+              "receiving_bay": {
+                "resource_id": "bay-01",
+                "slot_id": "slot-80",
+                "use": 1
+              },
+              "laydown": {
+                "resource_id": "laydown-01",
+                "slot_id": "slot-80",
+                "use": 2
+              }
+            }
+          }
+        ],
+        "resources": [
+          {
+            "resource_id": "bay-01",
+            "slot_id": "slot-80",
+            "kind": "receiving_bay",
+            "capacity": 1,
+            "unit": "slot",
+            "evidence_state": "current"
+          },
+          {
+            "resource_id": "laydown-01",
+            "slot_id": "slot-80",
+            "kind": "laydown",
+            "capacity": 10,
+            "unit": "pallet_position",
+            "evidence_state": "current"
+          }
+        ]
+      },
+      "expected": {
+        "case_id": "CD-017",
+        "disposition": "Evaluated",
+        "reason_codes": [],
+        "deliveries": [
+          {
+            "delivery_id": "d1",
+            "state": "Blocked",
+            "reason_codes": [
+              "RECEIVING_LABOUR_UNAVAILABLE"
+            ],
+            "predicted_arrival_tick": 70,
+            "predicted_acceptance_tick": 74,
+            "source_class": "local",
+            "local_productive_capability_claim": false,
+            "lot_id": "lot-01",
+            "quantity_requested": 10,
+            "quantity_declared_available": 10,
+            "stages": {
+              "inventory": "sufficient",
+              "qualification": "qualified",
+              "revision": "matched",
+              "availability": "timely",
+              "transport": "feasible",
+              "site_access": "feasible",
+              "unloading": "feasible",
+              "receiving": "blocked",
+              "inspection": "passed",
+              "custody": "accepted"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "CD-018",
+      "description": "Independent receiving inspection failed.",
+      "input": {
+        "scope_digest": "city-delivery-scope:synthetic-v0.1",
+        "evaluation_window_id": "window-80",
+        "deliveries": [
+          {
+            "delivery_id": "d1",
+            "scope_digest": "city-delivery-scope:synthetic-v0.1",
+            "project_id": "project-01",
+            "work_package_id": "wp-panel-01",
+            "phase_id": "phase-01",
+            "design_revision": "D1",
+            "bom_digest": "bom-panel-01",
+            "demand": {
+              "product_id": "wall-panel-A",
+              "grade": "G1",
+              "quantity": 10,
+              "unit": "panel",
+              "required_by_tick": 100,
+              "window_start_tick": 70,
+              "window_end_tick": 100,
+              "mass_kg": 1200,
+              "volume_m3": 10
+            },
+            "source": {
+              "supplier_id": "supplier-01",
+              "facility_id": "factory-01",
+              "source_class": "local",
+              "lot_id": "lot-01",
+              "product_id": "wall-panel-A",
+              "grade": "G1",
+              "available_quantity": 10,
+              "quantity_unit": "panel",
+              "ready_tick": 60,
+              "design_revision": "D1",
+              "bom_digest": "bom-panel-01",
+              "evidence_state": "current",
+              "inventory_evidence_state": "current",
+              "qualification_state": "qualified",
+              "qualification_evidence_state": "current",
+              "inventory_receipt_id": "inventory:d1",
+              "source_revision": "fixture-1"
+            },
+            "transport": {
+              "vehicle_id": "truck-01",
+              "evidence_state": "current",
+              "payload_capacity_kg": 2000,
+              "volume_capacity_m3": 20,
+              "route_state": "open",
+              "route_evidence_state": "current",
+              "route_revision": "network-fixture-1",
+              "route_receipt_id": "route:d1",
+              "route_duration_ticks": 5,
+              "vehicle_access": "allowed"
+            },
+            "site": {
+              "site_id": "site-01",
+              "evidence_state": "current",
+              "gate_state": "open",
+              "gate_open_start_tick": 70,
+              "gate_open_end_tick": 100,
+              "unload": {
+                "evidence_state": "current",
+                "status": "available",
+                "capacity_kg": 2000,
+                "duration_ticks": 2
+              },
+              "receiving": {
+                "evidence_state": "current",
+                "labour_state": "available",
+                "inspection_state": "failed",
+                "inspection_duration_ticks": 2,
+                "custody_state": "accepted",
+                "custody_evidence_state": "current",
+                "custody_receipt_id": "custody:d1",
+                "received_quantity": 10
+              },
+              "receiving_bay": {
+                "resource_id": "bay-01",
+                "slot_id": "slot-80",
+                "use": 1
+              },
+              "laydown": {
+                "resource_id": "laydown-01",
+                "slot_id": "slot-80",
+                "use": 2
+              }
+            }
+          }
+        ],
+        "resources": [
+          {
+            "resource_id": "bay-01",
+            "slot_id": "slot-80",
+            "kind": "receiving_bay",
+            "capacity": 1,
+            "unit": "slot",
+            "evidence_state": "current"
+          },
+          {
+            "resource_id": "laydown-01",
+            "slot_id": "slot-80",
+            "kind": "laydown",
+            "capacity": 10,
+            "unit": "pallet_position",
+            "evidence_state": "current"
+          }
+        ]
+      },
+      "expected": {
+        "case_id": "CD-018",
+        "disposition": "Evaluated",
+        "reason_codes": [],
+        "deliveries": [
+          {
+            "delivery_id": "d1",
+            "state": "Rejected",
+            "reason_codes": [
+              "RECEIVING_INSPECTION_FAILED"
+            ],
+            "predicted_arrival_tick": 70,
+            "predicted_acceptance_tick": 74,
+            "source_class": "local",
+            "local_productive_capability_claim": false,
+            "lot_id": "lot-01",
+            "quantity_requested": 10,
+            "quantity_declared_available": 10,
+            "stages": {
+              "inventory": "sufficient",
+              "qualification": "qualified",
+              "revision": "matched",
+              "availability": "timely",
+              "transport": "feasible",
+              "site_access": "feasible",
+              "unloading": "feasible",
+              "receiving": "feasible",
+              "inspection": "rejected",
+              "custody": "accepted"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "CD-019",
+      "description": "All delivery conditions are feasible but receiving inspection is still pending.",
+      "input": {
+        "scope_digest": "city-delivery-scope:synthetic-v0.1",
+        "evaluation_window_id": "window-80",
+        "deliveries": [
+          {
+            "delivery_id": "d1",
+            "scope_digest": "city-delivery-scope:synthetic-v0.1",
+            "project_id": "project-01",
+            "work_package_id": "wp-panel-01",
+            "phase_id": "phase-01",
+            "design_revision": "D1",
+            "bom_digest": "bom-panel-01",
+            "demand": {
+              "product_id": "wall-panel-A",
+              "grade": "G1",
+              "quantity": 10,
+              "unit": "panel",
+              "required_by_tick": 100,
+              "window_start_tick": 70,
+              "window_end_tick": 100,
+              "mass_kg": 1200,
+              "volume_m3": 10
+            },
+            "source": {
+              "supplier_id": "supplier-01",
+              "facility_id": "factory-01",
+              "source_class": "local",
+              "lot_id": "lot-01",
+              "product_id": "wall-panel-A",
+              "grade": "G1",
+              "available_quantity": 10,
+              "quantity_unit": "panel",
+              "ready_tick": 60,
+              "design_revision": "D1",
+              "bom_digest": "bom-panel-01",
+              "evidence_state": "current",
+              "inventory_evidence_state": "current",
+              "qualification_state": "qualified",
+              "qualification_evidence_state": "current",
+              "inventory_receipt_id": "inventory:d1",
+              "source_revision": "fixture-1"
+            },
+            "transport": {
+              "vehicle_id": "truck-01",
+              "evidence_state": "current",
+              "payload_capacity_kg": 2000,
+              "volume_capacity_m3": 20,
+              "route_state": "open",
+              "route_evidence_state": "current",
+              "route_revision": "network-fixture-1",
+              "route_receipt_id": "route:d1",
+              "route_duration_ticks": 5,
+              "vehicle_access": "allowed"
+            },
+            "site": {
+              "site_id": "site-01",
+              "evidence_state": "current",
+              "gate_state": "open",
+              "gate_open_start_tick": 70,
+              "gate_open_end_tick": 100,
+              "unload": {
+                "evidence_state": "current",
+                "status": "available",
+                "capacity_kg": 2000,
+                "duration_ticks": 2
+              },
+              "receiving": {
+                "evidence_state": "current",
+                "labour_state": "available",
+                "inspection_state": "pending",
+                "inspection_duration_ticks": 2,
+                "custody_state": "not_received",
+                "custody_evidence_state": "current",
+                "custody_receipt_id": "custody:d1",
+                "received_quantity": 0
+              },
+              "receiving_bay": {
+                "resource_id": "bay-01",
+                "slot_id": "slot-80",
+                "use": 1
+              },
+              "laydown": {
+                "resource_id": "laydown-01",
+                "slot_id": "slot-80",
+                "use": 2
+              }
+            }
+          }
+        ],
+        "resources": [
+          {
+            "resource_id": "bay-01",
+            "slot_id": "slot-80",
+            "kind": "receiving_bay",
+            "capacity": 1,
+            "unit": "slot",
+            "evidence_state": "current"
+          },
+          {
+            "resource_id": "laydown-01",
+            "slot_id": "slot-80",
+            "kind": "laydown",
+            "capacity": 10,
+            "unit": "pallet_position",
+            "evidence_state": "current"
+          }
+        ]
+      },
+      "expected": {
+        "case_id": "CD-019",
+        "disposition": "Evaluated",
+        "reason_codes": [],
+        "deliveries": [
+          {
+            "delivery_id": "d1",
+            "state": "DeliveryFeasible",
+            "reason_codes": [],
+            "predicted_arrival_tick": 70,
+            "predicted_acceptance_tick": 74,
+            "source_class": "local",
+            "local_productive_capability_claim": false,
+            "lot_id": "lot-01",
+            "quantity_requested": 10,
+            "quantity_declared_available": 10,
+            "stages": {
+              "inventory": "sufficient",
+              "qualification": "qualified",
+              "revision": "matched",
+              "availability": "timely",
+              "transport": "feasible",
+              "site_access": "feasible",
+              "unloading": "feasible",
+              "receiving": "feasible",
+              "inspection": "pending",
+              "custody": "not_received"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "CD-020",
+      "description": "Only part of the planned quantity has been received.",
+      "input": {
+        "scope_digest": "city-delivery-scope:synthetic-v0.1",
+        "evaluation_window_id": "window-80",
+        "deliveries": [
+          {
+            "delivery_id": "d1",
+            "scope_digest": "city-delivery-scope:synthetic-v0.1",
+            "project_id": "project-01",
+            "work_package_id": "wp-panel-01",
+            "phase_id": "phase-01",
+            "design_revision": "D1",
+            "bom_digest": "bom-panel-01",
+            "demand": {
+              "product_id": "wall-panel-A",
+              "grade": "G1",
+              "quantity": 10,
+              "unit": "panel",
+              "required_by_tick": 100,
+              "window_start_tick": 70,
+              "window_end_tick": 100,
+              "mass_kg": 1200,
+              "volume_m3": 10
+            },
+            "source": {
+              "supplier_id": "supplier-01",
+              "facility_id": "factory-01",
+              "source_class": "local",
+              "lot_id": "lot-01",
+              "product_id": "wall-panel-A",
+              "grade": "G1",
+              "available_quantity": 10,
+              "quantity_unit": "panel",
+              "ready_tick": 60,
+              "design_revision": "D1",
+              "bom_digest": "bom-panel-01",
+              "evidence_state": "current",
+              "inventory_evidence_state": "current",
+              "qualification_state": "qualified",
+              "qualification_evidence_state": "current",
+              "inventory_receipt_id": "inventory:d1",
+              "source_revision": "fixture-1"
+            },
+            "transport": {
+              "vehicle_id": "truck-01",
+              "evidence_state": "current",
+              "payload_capacity_kg": 2000,
+              "volume_capacity_m3": 20,
+              "route_state": "open",
+              "route_evidence_state": "current",
+              "route_revision": "network-fixture-1",
+              "route_receipt_id": "route:d1",
+              "route_duration_ticks": 5,
+              "vehicle_access": "allowed"
+            },
+            "site": {
+              "site_id": "site-01",
+              "evidence_state": "current",
+              "gate_state": "open",
+              "gate_open_start_tick": 70,
+              "gate_open_end_tick": 100,
+              "unload": {
+                "evidence_state": "current",
+                "status": "available",
+                "capacity_kg": 2000,
+                "duration_ticks": 2
+              },
+              "receiving": {
+                "evidence_state": "current",
+                "labour_state": "available",
+                "inspection_state": "passed",
+                "inspection_duration_ticks": 2,
+                "custody_state": "partial",
+                "custody_evidence_state": "current",
+                "custody_receipt_id": "custody:d1",
+                "received_quantity": 6
+              },
+              "receiving_bay": {
+                "resource_id": "bay-01",
+                "slot_id": "slot-80",
+                "use": 1
+              },
+              "laydown": {
+                "resource_id": "laydown-01",
+                "slot_id": "slot-80",
+                "use": 2
+              }
+            }
+          }
+        ],
+        "resources": [
+          {
+            "resource_id": "bay-01",
+            "slot_id": "slot-80",
+            "kind": "receiving_bay",
+            "capacity": 1,
+            "unit": "slot",
+            "evidence_state": "current"
+          },
+          {
+            "resource_id": "laydown-01",
+            "slot_id": "slot-80",
+            "kind": "laydown",
+            "capacity": 10,
+            "unit": "pallet_position",
+            "evidence_state": "current"
+          }
+        ]
+      },
+      "expected": {
+        "case_id": "CD-020",
+        "disposition": "Evaluated",
+        "reason_codes": [],
+        "deliveries": [
+          {
+            "delivery_id": "d1",
+            "state": "Partial",
+            "reason_codes": [],
+            "predicted_arrival_tick": 70,
+            "predicted_acceptance_tick": 74,
+            "source_class": "local",
+            "local_productive_capability_claim": false,
+            "lot_id": "lot-01",
+            "quantity_requested": 10,
+            "quantity_declared_available": 10,
+            "stages": {
+              "inventory": "sufficient",
+              "qualification": "qualified",
+              "revision": "matched",
+              "availability": "timely",
+              "transport": "feasible",
+              "site_access": "feasible",
+              "unloading": "feasible",
+              "receiving": "feasible",
+              "inspection": "passed",
+              "custody": "partial"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "CD-021",
+      "description": "The physical receipt is disputed; it must not be accepted.",
+      "input": {
+        "scope_digest": "city-delivery-scope:synthetic-v0.1",
+        "evaluation_window_id": "window-80",
+        "deliveries": [
+          {
+            "delivery_id": "d1",
+            "scope_digest": "city-delivery-scope:synthetic-v0.1",
+            "project_id": "project-01",
+            "work_package_id": "wp-panel-01",
+            "phase_id": "phase-01",
+            "design_revision": "D1",
+            "bom_digest": "bom-panel-01",
+            "demand": {
+              "product_id": "wall-panel-A",
+              "grade": "G1",
+              "quantity": 10,
+              "unit": "panel",
+              "required_by_tick": 100,
+              "window_start_tick": 70,
+              "window_end_tick": 100,
+              "mass_kg": 1200,
+              "volume_m3": 10
+            },
+            "source": {
+              "supplier_id": "supplier-01",
+              "facility_id": "factory-01",
+              "source_class": "local",
+              "lot_id": "lot-01",
+              "product_id": "wall-panel-A",
+              "grade": "G1",
+              "available_quantity": 10,
+              "quantity_unit": "panel",
+              "ready_tick": 60,
+              "design_revision": "D1",
+              "bom_digest": "bom-panel-01",
+              "evidence_state": "current",
+              "inventory_evidence_state": "current",
+              "qualification_state": "qualified",
+              "qualification_evidence_state": "current",
+              "inventory_receipt_id": "inventory:d1",
+              "source_revision": "fixture-1"
+            },
+            "transport": {
+              "vehicle_id": "truck-01",
+              "evidence_state": "current",
+              "payload_capacity_kg": 2000,
+              "volume_capacity_m3": 20,
+              "route_state": "open",
+              "route_evidence_state": "current",
+              "route_revision": "network-fixture-1",
+              "route_receipt_id": "route:d1",
+              "route_duration_ticks": 5,
+              "vehicle_access": "allowed"
+            },
+            "site": {
+              "site_id": "site-01",
+              "evidence_state": "current",
+              "gate_state": "open",
+              "gate_open_start_tick": 70,
+              "gate_open_end_tick": 100,
+              "unload": {
+                "evidence_state": "current",
+                "status": "available",
+                "capacity_kg": 2000,
+                "duration_ticks": 2
+              },
+              "receiving": {
+                "evidence_state": "current",
+                "labour_state": "available",
+                "inspection_state": "passed",
+                "inspection_duration_ticks": 2,
+                "custody_state": "disputed",
+                "custody_evidence_state": "current",
+                "custody_receipt_id": "custody:d1",
+                "received_quantity": 10
+              },
+              "receiving_bay": {
+                "resource_id": "bay-01",
+                "slot_id": "slot-80",
+                "use": 1
+              },
+              "laydown": {
+                "resource_id": "laydown-01",
+                "slot_id": "slot-80",
+                "use": 2
+              }
+            }
+          }
+        ],
+        "resources": [
+          {
+            "resource_id": "bay-01",
+            "slot_id": "slot-80",
+            "kind": "receiving_bay",
+            "capacity": 1,
+            "unit": "slot",
+            "evidence_state": "current"
+          },
+          {
+            "resource_id": "laydown-01",
+            "slot_id": "slot-80",
+            "kind": "laydown",
+            "capacity": 10,
+            "unit": "pallet_position",
+            "evidence_state": "current"
+          }
+        ]
+      },
+      "expected": {
+        "case_id": "CD-021",
+        "disposition": "Evaluated",
+        "reason_codes": [],
+        "deliveries": [
+          {
+            "delivery_id": "d1",
+            "state": "Disputed",
+            "reason_codes": [
+              "CUSTODY_DISPUTED"
+            ],
+            "predicted_arrival_tick": 70,
+            "predicted_acceptance_tick": 74,
+            "source_class": "local",
+            "local_productive_capability_claim": false,
+            "lot_id": "lot-01",
+            "quantity_requested": 10,
+            "quantity_declared_available": 10,
+            "stages": {
+              "inventory": "sufficient",
+              "qualification": "qualified",
+              "revision": "matched",
+              "availability": "timely",
+              "transport": "feasible",
+              "site_access": "feasible",
+              "unloading": "feasible",
+              "receiving": "feasible",
+              "inspection": "passed",
+              "custody": "disputed"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "CD-022",
+      "description": "Material lot qualification has been revoked.",
+      "input": {
+        "scope_digest": "city-delivery-scope:synthetic-v0.1",
+        "evaluation_window_id": "window-80",
+        "deliveries": [
+          {
+            "delivery_id": "d1",
+            "scope_digest": "city-delivery-scope:synthetic-v0.1",
+            "project_id": "project-01",
+            "work_package_id": "wp-panel-01",
+            "phase_id": "phase-01",
+            "design_revision": "D1",
+            "bom_digest": "bom-panel-01",
+            "demand": {
+              "product_id": "wall-panel-A",
+              "grade": "G1",
+              "quantity": 10,
+              "unit": "panel",
+              "required_by_tick": 100,
+              "window_start_tick": 70,
+              "window_end_tick": 100,
+              "mass_kg": 1200,
+              "volume_m3": 10
+            },
+            "source": {
+              "supplier_id": "supplier-01",
+              "facility_id": "factory-01",
+              "source_class": "local",
+              "lot_id": "lot-01",
+              "product_id": "wall-panel-A",
+              "grade": "G1",
+              "available_quantity": 10,
+              "quantity_unit": "panel",
+              "ready_tick": 60,
+              "design_revision": "D1",
+              "bom_digest": "bom-panel-01",
+              "evidence_state": "current",
+              "inventory_evidence_state": "current",
+              "qualification_state": "revoked",
+              "qualification_evidence_state": "current",
+              "inventory_receipt_id": "inventory:d1",
+              "source_revision": "fixture-1"
+            },
+            "transport": {
+              "vehicle_id": "truck-01",
+              "evidence_state": "current",
+              "payload_capacity_kg": 2000,
+              "volume_capacity_m3": 20,
+              "route_state": "open",
+              "route_evidence_state": "current",
+              "route_revision": "network-fixture-1",
+              "route_receipt_id": "route:d1",
+              "route_duration_ticks": 5,
+              "vehicle_access": "allowed"
+            },
+            "site": {
+              "site_id": "site-01",
+              "evidence_state": "current",
+              "gate_state": "open",
+              "gate_open_start_tick": 70,
+              "gate_open_end_tick": 100,
+              "unload": {
+                "evidence_state": "current",
+                "status": "available",
+                "capacity_kg": 2000,
+                "duration_ticks": 2
+              },
+              "receiving": {
+                "evidence_state": "current",
+                "labour_state": "available",
+                "inspection_state": "passed",
+                "inspection_duration_ticks": 2,
+                "custody_state": "accepted",
+                "custody_evidence_state": "current",
+                "custody_receipt_id": "custody:d1",
+                "received_quantity": 10
+              },
+              "receiving_bay": {
+                "resource_id": "bay-01",
+                "slot_id": "slot-80",
+                "use": 1
+              },
+              "laydown": {
+                "resource_id": "laydown-01",
+                "slot_id": "slot-80",
+                "use": 2
+              }
+            }
+          }
+        ],
+        "resources": [
+          {
+            "resource_id": "bay-01",
+            "slot_id": "slot-80",
+            "kind": "receiving_bay",
+            "capacity": 1,
+            "unit": "slot",
+            "evidence_state": "current"
+          },
+          {
+            "resource_id": "laydown-01",
+            "slot_id": "slot-80",
+            "kind": "laydown",
+            "capacity": 10,
+            "unit": "pallet_position",
+            "evidence_state": "current"
+          }
+        ]
+      },
+      "expected": {
+        "case_id": "CD-022",
+        "disposition": "Evaluated",
+        "reason_codes": [],
+        "deliveries": [
+          {
+            "delivery_id": "d1",
+            "state": "Rejected",
+            "reason_codes": [
+              "LOT_NOT_QUALIFIED_FOR_DECLARED_USE"
+            ],
+            "predicted_arrival_tick": 70,
+            "predicted_acceptance_tick": 74,
+            "source_class": "local",
+            "local_productive_capability_claim": false,
+            "lot_id": "lot-01",
+            "quantity_requested": 10,
+            "quantity_declared_available": 10,
+            "stages": {
+              "inventory": "sufficient",
+              "qualification": "rejected",
+              "revision": "matched",
+              "availability": "timely",
+              "transport": "feasible",
+              "site_access": "feasible",
+              "unloading": "feasible",
+              "receiving": "feasible",
+              "inspection": "passed",
+              "custody": "accepted"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "CD-023",
+      "description": "Two deliveries contend for one receiving bay in the same time slot.",
+      "input": {
+        "scope_digest": "city-delivery-scope:synthetic-v0.1",
+        "evaluation_window_id": "window-80",
+        "deliveries": [
+          {
+            "delivery_id": "d1",
+            "scope_digest": "city-delivery-scope:synthetic-v0.1",
+            "project_id": "project-01",
+            "work_package_id": "wp-panel-01",
+            "phase_id": "phase-01",
+            "design_revision": "D1",
+            "bom_digest": "bom-panel-01",
+            "demand": {
+              "product_id": "wall-panel-A",
+              "grade": "G1",
+              "quantity": 10,
+              "unit": "panel",
+              "required_by_tick": 100,
+              "window_start_tick": 70,
+              "window_end_tick": 100,
+              "mass_kg": 1200,
+              "volume_m3": 10
+            },
+            "source": {
+              "supplier_id": "supplier-01",
+              "facility_id": "factory-01",
+              "source_class": "local",
+              "lot_id": "lot-01",
+              "product_id": "wall-panel-A",
+              "grade": "G1",
+              "available_quantity": 10,
+              "quantity_unit": "panel",
+              "ready_tick": 60,
+              "design_revision": "D1",
+              "bom_digest": "bom-panel-01",
+              "evidence_state": "current",
+              "inventory_evidence_state": "current",
+              "qualification_state": "qualified",
+              "qualification_evidence_state": "current",
+              "inventory_receipt_id": "inventory:d1",
+              "source_revision": "fixture-1"
+            },
+            "transport": {
+              "vehicle_id": "truck-01",
+              "evidence_state": "current",
+              "payload_capacity_kg": 2000,
+              "volume_capacity_m3": 20,
+              "route_state": "open",
+              "route_evidence_state": "current",
+              "route_revision": "network-fixture-1",
+              "route_receipt_id": "route:d1",
+              "route_duration_ticks": 5,
+              "vehicle_access": "allowed"
+            },
+            "site": {
+              "site_id": "site-01",
+              "evidence_state": "current",
+              "gate_state": "open",
+              "gate_open_start_tick": 70,
+              "gate_open_end_tick": 100,
+              "unload": {
+                "evidence_state": "current",
+                "status": "available",
+                "capacity_kg": 2000,
+                "duration_ticks": 2
+              },
+              "receiving": {
+                "evidence_state": "current",
+                "labour_state": "available",
+                "inspection_state": "passed",
+                "inspection_duration_ticks": 2,
+                "custody_state": "accepted",
+                "custody_evidence_state": "current",
+                "custody_receipt_id": "custody:d1",
+                "received_quantity": 10
+              },
+              "receiving_bay": {
+                "resource_id": "bay-01",
+                "slot_id": "slot-80",
+                "use": 1
+              },
+              "laydown": {
+                "resource_id": "laydown-01",
+                "slot_id": "slot-80",
+                "use": 2
+              }
+            }
+          },
+          {
+            "delivery_id": "d2",
+            "scope_digest": "city-delivery-scope:synthetic-v0.1",
+            "project_id": "project-01",
+            "work_package_id": "wp-panel-01",
+            "phase_id": "phase-01",
+            "design_revision": "D1",
+            "bom_digest": "bom-panel-01",
+            "demand": {
+              "product_id": "wall-panel-A",
+              "grade": "G1",
+              "quantity": 10,
+              "unit": "panel",
+              "required_by_tick": 100,
+              "window_start_tick": 70,
+              "window_end_tick": 100,
+              "mass_kg": 1200,
+              "volume_m3": 10
+            },
+            "source": {
+              "supplier_id": "supplier-02",
+              "facility_id": "factory-02",
+              "source_class": "local",
+              "lot_id": "lot-02",
+              "product_id": "wall-panel-A",
+              "grade": "G1",
+              "available_quantity": 10,
+              "quantity_unit": "panel",
+              "ready_tick": 60,
+              "design_revision": "D1",
+              "bom_digest": "bom-panel-01",
+              "evidence_state": "current",
+              "inventory_evidence_state": "current",
+              "qualification_state": "qualified",
+              "qualification_evidence_state": "current",
+              "inventory_receipt_id": "inventory:d2",
+              "source_revision": "fixture-1"
+            },
+            "transport": {
+              "vehicle_id": "truck-01",
+              "evidence_state": "current",
+              "payload_capacity_kg": 2000,
+              "volume_capacity_m3": 20,
+              "route_state": "open",
+              "route_evidence_state": "current",
+              "route_revision": "network-fixture-1",
+              "route_receipt_id": "route:d2",
+              "route_duration_ticks": 5,
+              "vehicle_access": "allowed"
+            },
+            "site": {
+              "site_id": "site-01",
+              "evidence_state": "current",
+              "gate_state": "open",
+              "gate_open_start_tick": 70,
+              "gate_open_end_tick": 100,
+              "unload": {
+                "evidence_state": "current",
+                "status": "available",
+                "capacity_kg": 2000,
+                "duration_ticks": 2
+              },
+              "receiving": {
+                "evidence_state": "current",
+                "labour_state": "available",
+                "inspection_state": "passed",
+                "inspection_duration_ticks": 2,
+                "custody_state": "accepted",
+                "custody_evidence_state": "current",
+                "custody_receipt_id": "custody:d2",
+                "received_quantity": 10
+              },
+              "receiving_bay": {
+                "resource_id": "bay-01",
+                "slot_id": "slot-80",
+                "use": 1
+              },
+              "laydown": {
+                "resource_id": "laydown-01",
+                "slot_id": "slot-80",
+                "use": 2
+              }
+            }
+          }
+        ],
+        "resources": [
+          {
+            "resource_id": "bay-01",
+            "slot_id": "slot-80",
+            "kind": "receiving_bay",
+            "capacity": 1,
+            "unit": "slot",
+            "evidence_state": "current"
+          },
+          {
+            "resource_id": "laydown-01",
+            "slot_id": "slot-80",
+            "kind": "laydown",
+            "capacity": 10,
+            "unit": "pallet_position",
+            "evidence_state": "current"
+          }
+        ]
+      },
+      "expected": {
+        "case_id": "CD-023",
+        "disposition": "Evaluated",
+        "reason_codes": [],
+        "deliveries": [
+          {
+            "delivery_id": "d1",
+            "state": "Blocked",
+            "reason_codes": [
+              "SHARED_RECEIVING_OR_LAYDOWN_RESOURCE_OVERBOOKED"
+            ],
+            "predicted_arrival_tick": 70,
+            "predicted_acceptance_tick": 74,
+            "source_class": "local",
+            "local_productive_capability_claim": false,
+            "lot_id": "lot-01",
+            "quantity_requested": 10,
+            "quantity_declared_available": 10,
+            "stages": {
+              "inventory": "sufficient",
+              "qualification": "qualified",
+              "revision": "matched",
+              "availability": "timely",
+              "transport": "feasible",
+              "site_access": "feasible",
+              "unloading": "feasible",
+              "receiving": "feasible",
+              "inspection": "passed",
+              "custody": "accepted",
+              "shared_resources": "blocked"
+            }
+          },
+          {
+            "delivery_id": "d2",
+            "state": "Blocked",
+            "reason_codes": [
+              "SHARED_RECEIVING_OR_LAYDOWN_RESOURCE_OVERBOOKED"
+            ],
+            "predicted_arrival_tick": 70,
+            "predicted_acceptance_tick": 74,
+            "source_class": "local",
+            "local_productive_capability_claim": false,
+            "lot_id": "lot-02",
+            "quantity_requested": 10,
+            "quantity_declared_available": 10,
+            "stages": {
+              "inventory": "sufficient",
+              "qualification": "qualified",
+              "revision": "matched",
+              "availability": "timely",
+              "transport": "feasible",
+              "site_access": "feasible",
+              "unloading": "feasible",
+              "receiving": "feasible",
+              "inspection": "passed",
+              "custody": "accepted",
+              "shared_resources": "blocked"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "CD-024",
+      "description": "Route origin is withheld; no transport pass can be established.",
+      "input": {
+        "scope_digest": "city-delivery-scope:synthetic-v0.1",
+        "evaluation_window_id": "window-80",
+        "deliveries": [
+          {
+            "delivery_id": "d1",
+            "scope_digest": "city-delivery-scope:synthetic-v0.1",
+            "project_id": "project-01",
+            "work_package_id": "wp-panel-01",
+            "phase_id": "phase-01",
+            "design_revision": "D1",
+            "bom_digest": "bom-panel-01",
+            "demand": {
+              "product_id": "wall-panel-A",
+              "grade": "G1",
+              "quantity": 10,
+              "unit": "panel",
+              "required_by_tick": 100,
+              "window_start_tick": 70,
+              "window_end_tick": 100,
+              "mass_kg": 1200,
+              "volume_m3": 10
+            },
+            "source": {
+              "supplier_id": "supplier-01",
+              "facility_id": "factory-01",
+              "source_class": "local",
+              "lot_id": "lot-01",
+              "product_id": "wall-panel-A",
+              "grade": "G1",
+              "available_quantity": 10,
+              "quantity_unit": "panel",
+              "ready_tick": 60,
+              "design_revision": "D1",
+              "bom_digest": "bom-panel-01",
+              "evidence_state": "current",
+              "inventory_evidence_state": "current",
+              "qualification_state": "qualified",
+              "qualification_evidence_state": "current",
+              "inventory_receipt_id": "inventory:d1",
+              "source_revision": "fixture-1"
+            },
+            "transport": {
+              "vehicle_id": "truck-01",
+              "evidence_state": "current",
+              "payload_capacity_kg": 2000,
+              "volume_capacity_m3": 20,
+              "route_state": "unknown",
+              "route_evidence_state": "unknown",
+              "route_revision": "network-fixture-1",
+              "route_receipt_id": "route:d1",
+              "route_duration_ticks": 5,
+              "vehicle_access": "allowed"
+            },
+            "site": {
+              "site_id": "site-01",
+              "evidence_state": "current",
+              "gate_state": "open",
+              "gate_open_start_tick": 70,
+              "gate_open_end_tick": 100,
+              "unload": {
+                "evidence_state": "current",
+                "status": "available",
+                "capacity_kg": 2000,
+                "duration_ticks": 2
+              },
+              "receiving": {
+                "evidence_state": "current",
+                "labour_state": "available",
+                "inspection_state": "passed",
+                "inspection_duration_ticks": 2,
+                "custody_state": "accepted",
+                "custody_evidence_state": "current",
+                "custody_receipt_id": "custody:d1",
+                "received_quantity": 10
+              },
+              "receiving_bay": {
+                "resource_id": "bay-01",
+                "slot_id": "slot-80",
+                "use": 1
+              },
+              "laydown": {
+                "resource_id": "laydown-01",
+                "slot_id": "slot-80",
+                "use": 2
+              }
+            }
+          }
+        ],
+        "resources": [
+          {
+            "resource_id": "bay-01",
+            "slot_id": "slot-80",
+            "kind": "receiving_bay",
+            "capacity": 1,
+            "unit": "slot",
+            "evidence_state": "current"
+          },
+          {
+            "resource_id": "laydown-01",
+            "slot_id": "slot-80",
+            "kind": "laydown",
+            "capacity": 10,
+            "unit": "pallet_position",
+            "evidence_state": "current"
+          }
+        ]
+      },
+      "expected": {
+        "case_id": "CD-024",
+        "disposition": "Evaluated",
+        "reason_codes": [],
+        "deliveries": [
+          {
+            "delivery_id": "d1",
+            "state": "Unknown",
+            "reason_codes": [
+              "TRANSPORT_OR_ROUTE_EVIDENCE_UNKNOWN"
+            ],
+            "predicted_arrival_tick": 70,
+            "predicted_acceptance_tick": 74,
+            "source_class": "local",
+            "local_productive_capability_claim": false,
+            "lot_id": "lot-01",
+            "quantity_requested": 10,
+            "quantity_declared_available": 10,
+            "stages": {
+              "inventory": "sufficient",
+              "qualification": "qualified",
+              "revision": "matched",
+              "availability": "timely",
+              "transport": "unknown",
+              "site_access": "feasible",
+              "unloading": "feasible",
+              "receiving": "feasible",
+              "inspection": "passed",
+              "custody": "accepted"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "CD-025",
+      "description": "Imported supply is deliverable, but the adapter must not claim local productive capability.",
+      "input": {
+        "scope_digest": "city-delivery-scope:synthetic-v0.1",
+        "evaluation_window_id": "window-80",
+        "deliveries": [
+          {
+            "delivery_id": "d1",
+            "scope_digest": "city-delivery-scope:synthetic-v0.1",
+            "project_id": "project-01",
+            "work_package_id": "wp-panel-01",
+            "phase_id": "phase-01",
+            "design_revision": "D1",
+            "bom_digest": "bom-panel-01",
+            "demand": {
+              "product_id": "wall-panel-A",
+              "grade": "G1",
+              "quantity": 10,
+              "unit": "panel",
+              "required_by_tick": 100,
+              "window_start_tick": 70,
+              "window_end_tick": 100,
+              "mass_kg": 1200,
+              "volume_m3": 10
+            },
+            "source": {
+              "supplier_id": "supplier-01",
+              "facility_id": "factory-01",
+              "source_class": "imported",
+              "lot_id": "lot-01",
+              "product_id": "wall-panel-A",
+              "grade": "G1",
+              "available_quantity": 10,
+              "quantity_unit": "panel",
+              "ready_tick": 60,
+              "design_revision": "D1",
+              "bom_digest": "bom-panel-01",
+              "evidence_state": "current",
+              "inventory_evidence_state": "current",
+              "qualification_state": "qualified",
+              "qualification_evidence_state": "current",
+              "inventory_receipt_id": "inventory:d1",
+              "source_revision": "fixture-1"
+            },
+            "transport": {
+              "vehicle_id": "truck-01",
+              "evidence_state": "current",
+              "payload_capacity_kg": 2000,
+              "volume_capacity_m3": 20,
+              "route_state": "open",
+              "route_evidence_state": "current",
+              "route_revision": "network-fixture-1",
+              "route_receipt_id": "route:d1",
+              "route_duration_ticks": 5,
+              "vehicle_access": "allowed"
+            },
+            "site": {
+              "site_id": "site-01",
+              "evidence_state": "current",
+              "gate_state": "open",
+              "gate_open_start_tick": 70,
+              "gate_open_end_tick": 100,
+              "unload": {
+                "evidence_state": "current",
+                "status": "available",
+                "capacity_kg": 2000,
+                "duration_ticks": 2
+              },
+              "receiving": {
+                "evidence_state": "current",
+                "labour_state": "available",
+                "inspection_state": "passed",
+                "inspection_duration_ticks": 2,
+                "custody_state": "accepted",
+                "custody_evidence_state": "current",
+                "custody_receipt_id": "custody:d1",
+                "received_quantity": 10
+              },
+              "receiving_bay": {
+                "resource_id": "bay-01",
+                "slot_id": "slot-80",
+                "use": 1
+              },
+              "laydown": {
+                "resource_id": "laydown-01",
+                "slot_id": "slot-80",
+                "use": 2
+              }
+            }
+          }
+        ],
+        "resources": [
+          {
+            "resource_id": "bay-01",
+            "slot_id": "slot-80",
+            "kind": "receiving_bay",
+            "capacity": 1,
+            "unit": "slot",
+            "evidence_state": "current"
+          },
+          {
+            "resource_id": "laydown-01",
+            "slot_id": "slot-80",
+            "kind": "laydown",
+            "capacity": 10,
+            "unit": "pallet_position",
+            "evidence_state": "current"
+          }
+        ]
+      },
+      "expected": {
+        "case_id": "CD-025",
+        "disposition": "Evaluated",
+        "reason_codes": [],
+        "deliveries": [
+          {
+            "delivery_id": "d1",
+            "state": "AcceptedDelivery",
+            "reason_codes": [],
+            "predicted_arrival_tick": 70,
+            "predicted_acceptance_tick": 74,
+            "source_class": "imported",
+            "local_productive_capability_claim": false,
+            "lot_id": "lot-01",
+            "quantity_requested": 10,
+            "quantity_declared_available": 10,
+            "stages": {
+              "inventory": "sufficient",
+              "qualification": "qualified",
+              "revision": "matched",
+              "availability": "timely",
+              "transport": "feasible",
+              "site_access": "feasible",
+              "unloading": "feasible",
+              "receiving": "feasible",
+              "inspection": "passed",
+              "custody": "accepted"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "CD-026",
+      "description": "The construction BOM revision changed after procurement; the lot no longer matches.",
+      "input": {
+        "scope_digest": "city-delivery-scope:synthetic-v0.1",
+        "evaluation_window_id": "window-80",
+        "deliveries": [
+          {
+            "delivery_id": "d1",
+            "scope_digest": "city-delivery-scope:synthetic-v0.1",
+            "project_id": "project-01",
+            "work_package_id": "wp-panel-01",
+            "phase_id": "phase-01",
+            "design_revision": "D1",
+            "bom_digest": "bom-panel-01",
+            "demand": {
+              "product_id": "wall-panel-A",
+              "grade": "G1",
+              "quantity": 10,
+              "unit": "panel",
+              "required_by_tick": 100,
+              "window_start_tick": 70,
+              "window_end_tick": 100,
+              "mass_kg": 1200,
+              "volume_m3": 10
+            },
+            "source": {
+              "supplier_id": "supplier-01",
+              "facility_id": "factory-01",
+              "source_class": "local",
+              "lot_id": "lot-01",
+              "product_id": "wall-panel-A",
+              "grade": "G1",
+              "available_quantity": 10,
+              "quantity_unit": "panel",
+              "ready_tick": 60,
+              "design_revision": "D0",
+              "bom_digest": "bom-old",
+              "evidence_state": "current",
+              "inventory_evidence_state": "current",
+              "qualification_state": "qualified",
+              "qualification_evidence_state": "current",
+              "inventory_receipt_id": "inventory:d1",
+              "source_revision": "fixture-1"
+            },
+            "transport": {
+              "vehicle_id": "truck-01",
+              "evidence_state": "current",
+              "payload_capacity_kg": 2000,
+              "volume_capacity_m3": 20,
+              "route_state": "open",
+              "route_evidence_state": "current",
+              "route_revision": "network-fixture-1",
+              "route_receipt_id": "route:d1",
+              "route_duration_ticks": 5,
+              "vehicle_access": "allowed"
+            },
+            "site": {
+              "site_id": "site-01",
+              "evidence_state": "current",
+              "gate_state": "open",
+              "gate_open_start_tick": 70,
+              "gate_open_end_tick": 100,
+              "unload": {
+                "evidence_state": "current",
+                "status": "available",
+                "capacity_kg": 2000,
+                "duration_ticks": 2
+              },
+              "receiving": {
+                "evidence_state": "current",
+                "labour_state": "available",
+                "inspection_state": "passed",
+                "inspection_duration_ticks": 2,
+                "custody_state": "accepted",
+                "custody_evidence_state": "current",
+                "custody_receipt_id": "custody:d1",
+                "received_quantity": 10
+              },
+              "receiving_bay": {
+                "resource_id": "bay-01",
+                "slot_id": "slot-80",
+                "use": 1
+              },
+              "laydown": {
+                "resource_id": "laydown-01",
+                "slot_id": "slot-80",
+                "use": 2
+              }
+            }
+          }
+        ],
+        "resources": [
+          {
+            "resource_id": "bay-01",
+            "slot_id": "slot-80",
+            "kind": "receiving_bay",
+            "capacity": 1,
+            "unit": "slot",
+            "evidence_state": "current"
+          },
+          {
+            "resource_id": "laydown-01",
+            "slot_id": "slot-80",
+            "kind": "laydown",
+            "capacity": 10,
+            "unit": "pallet_position",
+            "evidence_state": "current"
+          }
+        ]
+      },
+      "expected": {
+        "case_id": "CD-026",
+        "disposition": "Evaluated",
+        "reason_codes": [],
+        "deliveries": [
+          {
+            "delivery_id": "d1",
+            "state": "Blocked",
+            "reason_codes": [
+              "DESIGN_OR_BOM_REVISION_MISMATCH"
+            ],
+            "predicted_arrival_tick": 70,
+            "predicted_acceptance_tick": 74,
+            "source_class": "local",
+            "local_productive_capability_claim": false,
+            "lot_id": "lot-01",
+            "quantity_requested": 10,
+            "quantity_declared_available": 10,
+            "stages": {
+              "inventory": "sufficient",
+              "qualification": "qualified",
+              "revision": "blocked",
+              "availability": "timely",
+              "transport": "feasible",
+              "site_access": "feasible",
+              "unloading": "feasible",
+              "receiving": "feasible",
+              "inspection": "passed",
+              "custody": "accepted"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "CD-027",
+      "description": "Acceptance would complete exactly at the half-open delivery-window endpoint.",
+      "input": {
+        "scope_digest": "city-delivery-scope:synthetic-v0.1",
+        "evaluation_window_id": "window-80",
+        "deliveries": [
+          {
+            "delivery_id": "d1",
+            "scope_digest": "city-delivery-scope:synthetic-v0.1",
+            "project_id": "project-01",
+            "work_package_id": "wp-panel-01",
+            "phase_id": "phase-01",
+            "design_revision": "D1",
+            "bom_digest": "bom-panel-01",
+            "demand": {
+              "product_id": "wall-panel-A",
+              "grade": "G1",
+              "quantity": 10,
+              "unit": "panel",
+              "required_by_tick": 100,
+              "window_start_tick": 70,
+              "window_end_tick": 79,
+              "mass_kg": 1200,
+              "volume_m3": 10
+            },
+            "source": {
+              "supplier_id": "supplier-01",
+              "facility_id": "factory-01",
+              "source_class": "local",
+              "lot_id": "lot-01",
+              "product_id": "wall-panel-A",
+              "grade": "G1",
+              "available_quantity": 10,
+              "quantity_unit": "panel",
+              "ready_tick": 60,
+              "design_revision": "D1",
+              "bom_digest": "bom-panel-01",
+              "evidence_state": "current",
+              "inventory_evidence_state": "current",
+              "qualification_state": "qualified",
+              "qualification_evidence_state": "current",
+              "inventory_receipt_id": "inventory:d1",
+              "source_revision": "fixture-1"
+            },
+            "transport": {
+              "vehicle_id": "truck-01",
+              "evidence_state": "current",
+              "payload_capacity_kg": 2000,
+              "volume_capacity_m3": 20,
+              "route_state": "open",
+              "route_evidence_state": "current",
+              "route_revision": "network-fixture-1",
+              "route_receipt_id": "route:d1",
+              "route_duration_ticks": 5,
+              "vehicle_access": "allowed"
+            },
+            "site": {
+              "site_id": "site-01",
+              "evidence_state": "current",
+              "gate_state": "open",
+              "gate_open_start_tick": 70,
+              "gate_open_end_tick": 79,
+              "unload": {
+                "evidence_state": "current",
+                "status": "available",
+                "capacity_kg": 2000,
+                "duration_ticks": 2
+              },
+              "receiving": {
+                "evidence_state": "current",
+                "labour_state": "available",
+                "inspection_state": "passed",
+                "inspection_duration_ticks": 2,
+                "custody_state": "accepted",
+                "custody_evidence_state": "current",
+                "custody_receipt_id": "custody:d1",
+                "received_quantity": 10
+              },
+              "receiving_bay": {
+                "resource_id": "bay-01",
+                "slot_id": "slot-80",
+                "use": 1
+              },
+              "laydown": {
+                "resource_id": "laydown-01",
+                "slot_id": "slot-80",
+                "use": 2
+              }
+            }
+          }
+        ],
+        "resources": [
+          {
+            "resource_id": "bay-01",
+            "slot_id": "slot-80",
+            "kind": "receiving_bay",
+            "capacity": 1,
+            "unit": "slot",
+            "evidence_state": "current"
+          },
+          {
+            "resource_id": "laydown-01",
+            "slot_id": "slot-80",
+            "kind": "laydown",
+            "capacity": 10,
+            "unit": "pallet_position",
+            "evidence_state": "current"
+          }
+        ]
+      },
+      "expected": {
+        "case_id": "CD-027",
+        "disposition": "Evaluated",
+        "reason_codes": [],
+        "deliveries": [
+          {
+            "delivery_id": "d1",
+            "state": "AcceptedDelivery",
+            "reason_codes": [],
+            "predicted_arrival_tick": 70,
+            "predicted_acceptance_tick": 74,
+            "source_class": "local",
+            "local_productive_capability_claim": false,
+            "lot_id": "lot-01",
+            "quantity_requested": 10,
+            "quantity_declared_available": 10,
+            "stages": {
+              "inventory": "sufficient",
+              "qualification": "qualified",
+              "revision": "matched",
+              "availability": "timely",
+              "transport": "feasible",
+              "site_access": "feasible",
+              "unloading": "feasible",
+              "receiving": "feasible",
+              "inspection": "passed",
+              "custody": "accepted"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "CD-028",
+      "description": "Source and demand use incompatible quantity units; the comparison is unsupported.",
+      "input": {
+        "scope_digest": "city-delivery-scope:synthetic-v0.1",
+        "evaluation_window_id": "window-80",
+        "deliveries": [
+          {
+            "delivery_id": "d1",
+            "scope_digest": "city-delivery-scope:synthetic-v0.1",
+            "project_id": "project-01",
+            "work_package_id": "wp-panel-01",
+            "phase_id": "phase-01",
+            "design_revision": "D1",
+            "bom_digest": "bom-panel-01",
+            "demand": {
+              "product_id": "wall-panel-A",
+              "grade": "G1",
+              "quantity": 10,
+              "unit": "panel",
+              "required_by_tick": 100,
+              "window_start_tick": 70,
+              "window_end_tick": 100,
+              "mass_kg": 1200,
+              "volume_m3": 10
+            },
+            "source": {
+              "supplier_id": "supplier-01",
+              "facility_id": "factory-01",
+              "source_class": "local",
+              "lot_id": "lot-01",
+              "product_id": "wall-panel-A",
+              "grade": "G1",
+              "available_quantity": 10,
+              "quantity_unit": "kg",
+              "ready_tick": 60,
+              "design_revision": "D1",
+              "bom_digest": "bom-panel-01",
+              "evidence_state": "current",
+              "inventory_evidence_state": "current",
+              "qualification_state": "qualified",
+              "qualification_evidence_state": "current",
+              "inventory_receipt_id": "inventory:d1",
+              "source_revision": "fixture-1"
+            },
+            "transport": {
+              "vehicle_id": "truck-01",
+              "evidence_state": "current",
+              "payload_capacity_kg": 2000,
+              "volume_capacity_m3": 20,
+              "route_state": "open",
+              "route_evidence_state": "current",
+              "route_revision": "network-fixture-1",
+              "route_receipt_id": "route:d1",
+              "route_duration_ticks": 5,
+              "vehicle_access": "allowed"
+            },
+            "site": {
+              "site_id": "site-01",
+              "evidence_state": "current",
+              "gate_state": "open",
+              "gate_open_start_tick": 70,
+              "gate_open_end_tick": 100,
+              "unload": {
+                "evidence_state": "current",
+                "status": "available",
+                "capacity_kg": 2000,
+                "duration_ticks": 2
+              },
+              "receiving": {
+                "evidence_state": "current",
+                "labour_state": "available",
+                "inspection_state": "passed",
+                "inspection_duration_ticks": 2,
+                "custody_state": "accepted",
+                "custody_evidence_state": "current",
+                "custody_receipt_id": "custody:d1",
+                "received_quantity": 10
+              },
+              "receiving_bay": {
+                "resource_id": "bay-01",
+                "slot_id": "slot-80",
+                "use": 1
+              },
+              "laydown": {
+                "resource_id": "laydown-01",
+                "slot_id": "slot-80",
+                "use": 2
+              }
+            }
+          }
+        ],
+        "resources": [
+          {
+            "resource_id": "bay-01",
+            "slot_id": "slot-80",
+            "kind": "receiving_bay",
+            "capacity": 1,
+            "unit": "slot",
+            "evidence_state": "current"
+          },
+          {
+            "resource_id": "laydown-01",
+            "slot_id": "slot-80",
+            "kind": "laydown",
+            "capacity": 10,
+            "unit": "pallet_position",
+            "evidence_state": "current"
+          }
+        ]
+      },
+      "expected": {
+        "case_id": "CD-028",
+        "disposition": "Unsupported",
+        "reason_codes": [
+          "QUANTITY_UNIT_MISMATCH"
+        ],
+        "deliveries": []
+      }
+    },
+    {
+      "case_id": "CD-029",
+      "description": "Duplicate delivery identifiers make the entire comparison unsupported.",
+      "input": {
+        "scope_digest": "city-delivery-scope:synthetic-v0.1",
+        "evaluation_window_id": "window-80",
+        "deliveries": [
+          {
+            "delivery_id": "same",
+            "scope_digest": "city-delivery-scope:synthetic-v0.1",
+            "project_id": "project-01",
+            "work_package_id": "wp-panel-01",
+            "phase_id": "phase-01",
+            "design_revision": "D1",
+            "bom_digest": "bom-panel-01",
+            "demand": {
+              "product_id": "wall-panel-A",
+              "grade": "G1",
+              "quantity": 10,
+              "unit": "panel",
+              "required_by_tick": 100,
+              "window_start_tick": 70,
+              "window_end_tick": 100,
+              "mass_kg": 1200,
+              "volume_m3": 10
+            },
+            "source": {
+              "supplier_id": "supplier-01",
+              "facility_id": "factory-01",
+              "source_class": "local",
+              "lot_id": "lot-01",
+              "product_id": "wall-panel-A",
+              "grade": "G1",
+              "available_quantity": 10,
+              "quantity_unit": "panel",
+              "ready_tick": 60,
+              "design_revision": "D1",
+              "bom_digest": "bom-panel-01",
+              "evidence_state": "current",
+              "inventory_evidence_state": "current",
+              "qualification_state": "qualified",
+              "qualification_evidence_state": "current",
+              "inventory_receipt_id": "inventory:same",
+              "source_revision": "fixture-1"
+            },
+            "transport": {
+              "vehicle_id": "truck-01",
+              "evidence_state": "current",
+              "payload_capacity_kg": 2000,
+              "volume_capacity_m3": 20,
+              "route_state": "open",
+              "route_evidence_state": "current",
+              "route_revision": "network-fixture-1",
+              "route_receipt_id": "route:same",
+              "route_duration_ticks": 5,
+              "vehicle_access": "allowed"
+            },
+            "site": {
+              "site_id": "site-01",
+              "evidence_state": "current",
+              "gate_state": "open",
+              "gate_open_start_tick": 70,
+              "gate_open_end_tick": 100,
+              "unload": {
+                "evidence_state": "current",
+                "status": "available",
+                "capacity_kg": 2000,
+                "duration_ticks": 2
+              },
+              "receiving": {
+                "evidence_state": "current",
+                "labour_state": "available",
+                "inspection_state": "passed",
+                "inspection_duration_ticks": 2,
+                "custody_state": "accepted",
+                "custody_evidence_state": "current",
+                "custody_receipt_id": "custody:same",
+                "received_quantity": 10
+              },
+              "receiving_bay": {
+                "resource_id": "bay-01",
+                "slot_id": "slot-80",
+                "use": 1
+              },
+              "laydown": {
+                "resource_id": "laydown-01",
+                "slot_id": "slot-80",
+                "use": 2
+              }
+            }
+          },
+          {
+            "delivery_id": "same",
+            "scope_digest": "city-delivery-scope:synthetic-v0.1",
+            "project_id": "project-01",
+            "work_package_id": "wp-panel-01",
+            "phase_id": "phase-01",
+            "design_revision": "D1",
+            "bom_digest": "bom-panel-01",
+            "demand": {
+              "product_id": "wall-panel-A",
+              "grade": "G1",
+              "quantity": 10,
+              "unit": "panel",
+              "required_by_tick": 100,
+              "window_start_tick": 70,
+              "window_end_tick": 100,
+              "mass_kg": 1200,
+              "volume_m3": 10
+            },
+            "source": {
+              "supplier_id": "supplier-01",
+              "facility_id": "factory-01",
+              "source_class": "local",
+              "lot_id": "lot-02",
+              "product_id": "wall-panel-A",
+              "grade": "G1",
+              "available_quantity": 10,
+              "quantity_unit": "panel",
+              "ready_tick": 60,
+              "design_revision": "D1",
+              "bom_digest": "bom-panel-01",
+              "evidence_state": "current",
+              "inventory_evidence_state": "current",
+              "qualification_state": "qualified",
+              "qualification_evidence_state": "current",
+              "inventory_receipt_id": "inventory:two",
+              "source_revision": "fixture-1"
+            },
+            "transport": {
+              "vehicle_id": "truck-01",
+              "evidence_state": "current",
+              "payload_capacity_kg": 2000,
+              "volume_capacity_m3": 20,
+              "route_state": "open",
+              "route_evidence_state": "current",
+              "route_revision": "network-fixture-1",
+              "route_receipt_id": "route:two",
+              "route_duration_ticks": 5,
+              "vehicle_access": "allowed"
+            },
+            "site": {
+              "site_id": "site-01",
+              "evidence_state": "current",
+              "gate_state": "open",
+              "gate_open_start_tick": 70,
+              "gate_open_end_tick": 100,
+              "unload": {
+                "evidence_state": "current",
+                "status": "available",
+                "capacity_kg": 2000,
+                "duration_ticks": 2
+              },
+              "receiving": {
+                "evidence_state": "current",
+                "labour_state": "available",
+                "inspection_state": "passed",
+                "inspection_duration_ticks": 2,
+                "custody_state": "accepted",
+                "custody_evidence_state": "current",
+                "custody_receipt_id": "custody:two",
+                "received_quantity": 10
+              },
+              "receiving_bay": {
+                "resource_id": "bay-01",
+                "slot_id": "slot-80",
+                "use": 1
+              },
+              "laydown": {
+                "resource_id": "laydown-01",
+                "slot_id": "slot-80",
+                "use": 2
+              }
+            }
+          }
+        ],
+        "resources": [
+          {
+            "resource_id": "bay-01",
+            "slot_id": "slot-80",
+            "kind": "receiving_bay",
+            "capacity": 1,
+            "unit": "slot",
+            "evidence_state": "current"
+          },
+          {
+            "resource_id": "laydown-01",
+            "slot_id": "slot-80",
+            "kind": "laydown",
+            "capacity": 10,
+            "unit": "pallet_position",
+            "evidence_state": "current"
+          }
+        ]
+      },
+      "expected": {
+        "case_id": "CD-029",
+        "disposition": "Unsupported",
+        "reason_codes": [
+          "DUPLICATE_OR_MISSING_DELIVERY_ID"
+        ],
+        "deliveries": []
+      }
+    },
+    {
+      "case_id": "CD-030",
+      "description": "A delivery from a different evaluation scope cannot be compared.",
+      "input": {
+        "scope_digest": "city-delivery-scope:synthetic-v0.1",
+        "evaluation_window_id": "window-80",
+        "deliveries": [
+          {
+            "delivery_id": "d1",
+            "scope_digest": "other-scope",
+            "project_id": "project-01",
+            "work_package_id": "wp-panel-01",
+            "phase_id": "phase-01",
+            "design_revision": "D1",
+            "bom_digest": "bom-panel-01",
+            "demand": {
+              "product_id": "wall-panel-A",
+              "grade": "G1",
+              "quantity": 10,
+              "unit": "panel",
+              "required_by_tick": 100,
+              "window_start_tick": 70,
+              "window_end_tick": 100,
+              "mass_kg": 1200,
+              "volume_m3": 10
+            },
+            "source": {
+              "supplier_id": "supplier-01",
+              "facility_id": "factory-01",
+              "source_class": "local",
+              "lot_id": "lot-01",
+              "product_id": "wall-panel-A",
+              "grade": "G1",
+              "available_quantity": 10,
+              "quantity_unit": "panel",
+              "ready_tick": 60,
+              "design_revision": "D1",
+              "bom_digest": "bom-panel-01",
+              "evidence_state": "current",
+              "inventory_evidence_state": "current",
+              "qualification_state": "qualified",
+              "qualification_evidence_state": "current",
+              "inventory_receipt_id": "inventory:d1",
+              "source_revision": "fixture-1"
+            },
+            "transport": {
+              "vehicle_id": "truck-01",
+              "evidence_state": "current",
+              "payload_capacity_kg": 2000,
+              "volume_capacity_m3": 20,
+              "route_state": "open",
+              "route_evidence_state": "current",
+              "route_revision": "network-fixture-1",
+              "route_receipt_id": "route:d1",
+              "route_duration_ticks": 5,
+              "vehicle_access": "allowed"
+            },
+            "site": {
+              "site_id": "site-01",
+              "evidence_state": "current",
+              "gate_state": "open",
+              "gate_open_start_tick": 70,
+              "gate_open_end_tick": 100,
+              "unload": {
+                "evidence_state": "current",
+                "status": "available",
+                "capacity_kg": 2000,
+                "duration_ticks": 2
+              },
+              "receiving": {
+                "evidence_state": "current",
+                "labour_state": "available",
+                "inspection_state": "passed",
+                "inspection_duration_ticks": 2,
+                "custody_state": "accepted",
+                "custody_evidence_state": "current",
+                "custody_receipt_id": "custody:d1",
+                "received_quantity": 10
+              },
+              "receiving_bay": {
+                "resource_id": "bay-01",
+                "slot_id": "slot-80",
+                "use": 1
+              },
+              "laydown": {
+                "resource_id": "laydown-01",
+                "slot_id": "slot-80",
+                "use": 2
+              }
+            }
+          }
+        ],
+        "resources": [
+          {
+            "resource_id": "bay-01",
+            "slot_id": "slot-80",
+            "kind": "receiving_bay",
+            "capacity": 1,
+            "unit": "slot",
+            "evidence_state": "current"
+          },
+          {
+            "resource_id": "laydown-01",
+            "slot_id": "slot-80",
+            "kind": "laydown",
+            "capacity": 10,
+            "unit": "pallet_position",
+            "evidence_state": "current"
+          }
+        ]
+      },
+      "expected": {
+        "case_id": "CD-030",
+        "disposition": "NotComparable",
+        "reason_codes": [
+          "DELIVERY_SCOPE_MISMATCH"
+        ],
+        "deliveries": []
+      }
+    },
+    {
+      "case_id": "CD-031",
+      "description": "Inventory record is stale; declared stock is not usable evidence.",
+      "input": {
+        "scope_digest": "city-delivery-scope:synthetic-v0.1",
+        "evaluation_window_id": "window-80",
+        "deliveries": [
+          {
+            "delivery_id": "d1",
+            "scope_digest": "city-delivery-scope:synthetic-v0.1",
+            "project_id": "project-01",
+            "work_package_id": "wp-panel-01",
+            "phase_id": "phase-01",
+            "design_revision": "D1",
+            "bom_digest": "bom-panel-01",
+            "demand": {
+              "product_id": "wall-panel-A",
+              "grade": "G1",
+              "quantity": 10,
+              "unit": "panel",
+              "required_by_tick": 100,
+              "window_start_tick": 70,
+              "window_end_tick": 100,
+              "mass_kg": 1200,
+              "volume_m3": 10
+            },
+            "source": {
+              "supplier_id": "supplier-01",
+              "facility_id": "factory-01",
+              "source_class": "local",
+              "lot_id": "lot-01",
+              "product_id": "wall-panel-A",
+              "grade": "G1",
+              "available_quantity": 10,
+              "quantity_unit": "panel",
+              "ready_tick": 60,
+              "design_revision": "D1",
+              "bom_digest": "bom-panel-01",
+              "evidence_state": "current",
+              "inventory_evidence_state": "stale",
+              "qualification_state": "qualified",
+              "qualification_evidence_state": "current",
+              "inventory_receipt_id": "inventory:d1",
+              "source_revision": "fixture-1"
+            },
+            "transport": {
+              "vehicle_id": "truck-01",
+              "evidence_state": "current",
+              "payload_capacity_kg": 2000,
+              "volume_capacity_m3": 20,
+              "route_state": "open",
+              "route_evidence_state": "current",
+              "route_revision": "network-fixture-1",
+              "route_receipt_id": "route:d1",
+              "route_duration_ticks": 5,
+              "vehicle_access": "allowed"
+            },
+            "site": {
+              "site_id": "site-01",
+              "evidence_state": "current",
+              "gate_state": "open",
+              "gate_open_start_tick": 70,
+              "gate_open_end_tick": 100,
+              "unload": {
+                "evidence_state": "current",
+                "status": "available",
+                "capacity_kg": 2000,
+                "duration_ticks": 2
+              },
+              "receiving": {
+                "evidence_state": "current",
+                "labour_state": "available",
+                "inspection_state": "passed",
+                "inspection_duration_ticks": 2,
+                "custody_state": "accepted",
+                "custody_evidence_state": "current",
+                "custody_receipt_id": "custody:d1",
+                "received_quantity": 10
+              },
+              "receiving_bay": {
+                "resource_id": "bay-01",
+                "slot_id": "slot-80",
+                "use": 1
+              },
+              "laydown": {
+                "resource_id": "laydown-01",
+                "slot_id": "slot-80",
+                "use": 2
+              }
+            }
+          }
+        ],
+        "resources": [
+          {
+            "resource_id": "bay-01",
+            "slot_id": "slot-80",
+            "kind": "receiving_bay",
+            "capacity": 1,
+            "unit": "slot",
+            "evidence_state": "current"
+          },
+          {
+            "resource_id": "laydown-01",
+            "slot_id": "slot-80",
+            "kind": "laydown",
+            "capacity": 10,
+            "unit": "pallet_position",
+            "evidence_state": "current"
+          }
+        ]
+      },
+      "expected": {
+        "case_id": "CD-031",
+        "disposition": "Evaluated",
+        "reason_codes": [],
+        "deliveries": [
+          {
+            "delivery_id": "d1",
+            "state": "Unknown",
+            "reason_codes": [
+              "SOURCE_OR_INVENTORY_EVIDENCE_UNKNOWN"
+            ],
+            "predicted_arrival_tick": 70,
+            "predicted_acceptance_tick": 74,
+            "source_class": "local",
+            "local_productive_capability_claim": false,
+            "lot_id": "lot-01",
+            "quantity_requested": 10,
+            "quantity_declared_available": 10,
+            "stages": {
+              "inventory": "unknown",
+              "qualification": "qualified",
+              "revision": "matched",
+              "availability": "timely",
+              "transport": "feasible",
+              "site_access": "feasible",
+              "unloading": "feasible",
+              "receiving": "feasible",
+              "inspection": "passed",
+              "custody": "accepted"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "CD-032",
+      "description": "The custody receipt exists but has been revoked.",
+      "input": {
+        "scope_digest": "city-delivery-scope:synthetic-v0.1",
+        "evaluation_window_id": "window-80",
+        "deliveries": [
+          {
+            "delivery_id": "d1",
+            "scope_digest": "city-delivery-scope:synthetic-v0.1",
+            "project_id": "project-01",
+            "work_package_id": "wp-panel-01",
+            "phase_id": "phase-01",
+            "design_revision": "D1",
+            "bom_digest": "bom-panel-01",
+            "demand": {
+              "product_id": "wall-panel-A",
+              "grade": "G1",
+              "quantity": 10,
+              "unit": "panel",
+              "required_by_tick": 100,
+              "window_start_tick": 70,
+              "window_end_tick": 100,
+              "mass_kg": 1200,
+              "volume_m3": 10
+            },
+            "source": {
+              "supplier_id": "supplier-01",
+              "facility_id": "factory-01",
+              "source_class": "local",
+              "lot_id": "lot-01",
+              "product_id": "wall-panel-A",
+              "grade": "G1",
+              "available_quantity": 10,
+              "quantity_unit": "panel",
+              "ready_tick": 60,
+              "design_revision": "D1",
+              "bom_digest": "bom-panel-01",
+              "evidence_state": "current",
+              "inventory_evidence_state": "current",
+              "qualification_state": "qualified",
+              "qualification_evidence_state": "current",
+              "inventory_receipt_id": "inventory:d1",
+              "source_revision": "fixture-1"
+            },
+            "transport": {
+              "vehicle_id": "truck-01",
+              "evidence_state": "current",
+              "payload_capacity_kg": 2000,
+              "volume_capacity_m3": 20,
+              "route_state": "open",
+              "route_evidence_state": "current",
+              "route_revision": "network-fixture-1",
+              "route_receipt_id": "route:d1",
+              "route_duration_ticks": 5,
+              "vehicle_access": "allowed"
+            },
+            "site": {
+              "site_id": "site-01",
+              "evidence_state": "current",
+              "gate_state": "open",
+              "gate_open_start_tick": 70,
+              "gate_open_end_tick": 100,
+              "unload": {
+                "evidence_state": "current",
+                "status": "available",
+                "capacity_kg": 2000,
+                "duration_ticks": 2
+              },
+              "receiving": {
+                "evidence_state": "current",
+                "labour_state": "available",
+                "inspection_state": "passed",
+                "inspection_duration_ticks": 2,
+                "custody_state": "rejected",
+                "custody_evidence_state": "current",
+                "custody_receipt_id": "custody:d1",
+                "received_quantity": 10
+              },
+              "receiving_bay": {
+                "resource_id": "bay-01",
+                "slot_id": "slot-80",
+                "use": 1
+              },
+              "laydown": {
+                "resource_id": "laydown-01",
+                "slot_id": "slot-80",
+                "use": 2
+              }
+            }
+          }
+        ],
+        "resources": [
+          {
+            "resource_id": "bay-01",
+            "slot_id": "slot-80",
+            "kind": "receiving_bay",
+            "capacity": 1,
+            "unit": "slot",
+            "evidence_state": "current"
+          },
+          {
+            "resource_id": "laydown-01",
+            "slot_id": "slot-80",
+            "kind": "laydown",
+            "capacity": 10,
+            "unit": "pallet_position",
+            "evidence_state": "current"
+          }
+        ]
+      },
+      "expected": {
+        "case_id": "CD-032",
+        "disposition": "Evaluated",
+        "reason_codes": [],
+        "deliveries": [
+          {
+            "delivery_id": "d1",
+            "state": "Rejected",
+            "reason_codes": [
+              "CUSTODY_OR_BATCH_REVOKED"
+            ],
+            "predicted_arrival_tick": 70,
+            "predicted_acceptance_tick": 74,
+            "source_class": "local",
+            "local_productive_capability_claim": false,
+            "lot_id": "lot-01",
+            "quantity_requested": 10,
+            "quantity_declared_available": 10,
+            "stages": {
+              "inventory": "sufficient",
+              "qualification": "qualified",
+              "revision": "matched",
+              "availability": "timely",
+              "transport": "feasible",
+              "site_access": "feasible",
+              "unloading": "feasible",
+              "receiving": "feasible",
+              "inspection": "passed",
+              "custody": "rejected"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "CD-033",
+      "description": "Two deliveries exceed shared laydown capacity; neither can claim the same space.",
+      "input": {
+        "scope_digest": "city-delivery-scope:synthetic-v0.1",
+        "evaluation_window_id": "window-80",
+        "deliveries": [
+          {
+            "delivery_id": "d1",
+            "scope_digest": "city-delivery-scope:synthetic-v0.1",
+            "project_id": "project-01",
+            "work_package_id": "wp-panel-01",
+            "phase_id": "phase-01",
+            "design_revision": "D1",
+            "bom_digest": "bom-panel-01",
+            "demand": {
+              "product_id": "wall-panel-A",
+              "grade": "G1",
+              "quantity": 10,
+              "unit": "panel",
+              "required_by_tick": 100,
+              "window_start_tick": 70,
+              "window_end_tick": 100,
+              "mass_kg": 1200,
+              "volume_m3": 10
+            },
+            "source": {
+              "supplier_id": "supplier-01",
+              "facility_id": "factory-01",
+              "source_class": "local",
+              "lot_id": "lot-A",
+              "product_id": "wall-panel-A",
+              "grade": "G1",
+              "available_quantity": 10,
+              "quantity_unit": "panel",
+              "ready_tick": 60,
+              "design_revision": "D1",
+              "bom_digest": "bom-panel-01",
+              "evidence_state": "current",
+              "inventory_evidence_state": "current",
+              "qualification_state": "qualified",
+              "qualification_evidence_state": "current",
+              "inventory_receipt_id": "inventory:d1",
+              "source_revision": "fixture-1"
+            },
+            "transport": {
+              "vehicle_id": "truck-01",
+              "evidence_state": "current",
+              "payload_capacity_kg": 2000,
+              "volume_capacity_m3": 20,
+              "route_state": "open",
+              "route_evidence_state": "current",
+              "route_revision": "network-fixture-1",
+              "route_receipt_id": "route:d1",
+              "route_duration_ticks": 5,
+              "vehicle_access": "allowed"
+            },
+            "site": {
+              "site_id": "site-01",
+              "evidence_state": "current",
+              "gate_state": "open",
+              "gate_open_start_tick": 70,
+              "gate_open_end_tick": 100,
+              "unload": {
+                "evidence_state": "current",
+                "status": "available",
+                "capacity_kg": 2000,
+                "duration_ticks": 2
+              },
+              "receiving": {
+                "evidence_state": "current",
+                "labour_state": "available",
+                "inspection_state": "passed",
+                "inspection_duration_ticks": 2,
+                "custody_state": "accepted",
+                "custody_evidence_state": "current",
+                "custody_receipt_id": "custody:d1",
+                "received_quantity": 10
+              },
+              "receiving_bay": {
+                "resource_id": "bay-01",
+                "slot_id": "slot-80",
+                "use": 1
+              },
+              "laydown": {
+                "resource_id": "laydown-01",
+                "slot_id": "slot-80",
+                "use": 6
+              }
+            }
+          },
+          {
+            "delivery_id": "d2",
+            "scope_digest": "city-delivery-scope:synthetic-v0.1",
+            "project_id": "project-01",
+            "work_package_id": "wp-panel-01",
+            "phase_id": "phase-01",
+            "design_revision": "D1",
+            "bom_digest": "bom-panel-01",
+            "demand": {
+              "product_id": "wall-panel-A",
+              "grade": "G1",
+              "quantity": 10,
+              "unit": "panel",
+              "required_by_tick": 100,
+              "window_start_tick": 70,
+              "window_end_tick": 100,
+              "mass_kg": 1200,
+              "volume_m3": 10
+            },
+            "source": {
+              "supplier_id": "supplier-01",
+              "facility_id": "factory-01",
+              "source_class": "local",
+              "lot_id": "lot-B",
+              "product_id": "wall-panel-A",
+              "grade": "G1",
+              "available_quantity": 10,
+              "quantity_unit": "panel",
+              "ready_tick": 60,
+              "design_revision": "D1",
+              "bom_digest": "bom-panel-01",
+              "evidence_state": "current",
+              "inventory_evidence_state": "current",
+              "qualification_state": "qualified",
+              "qualification_evidence_state": "current",
+              "inventory_receipt_id": "inventory:d2",
+              "source_revision": "fixture-1"
+            },
+            "transport": {
+              "vehicle_id": "truck-01",
+              "evidence_state": "current",
+              "payload_capacity_kg": 2000,
+              "volume_capacity_m3": 20,
+              "route_state": "open",
+              "route_evidence_state": "current",
+              "route_revision": "network-fixture-1",
+              "route_receipt_id": "route:d2",
+              "route_duration_ticks": 5,
+              "vehicle_access": "allowed"
+            },
+            "site": {
+              "site_id": "site-01",
+              "evidence_state": "current",
+              "gate_state": "open",
+              "gate_open_start_tick": 70,
+              "gate_open_end_tick": 100,
+              "unload": {
+                "evidence_state": "current",
+                "status": "available",
+                "capacity_kg": 2000,
+                "duration_ticks": 2
+              },
+              "receiving": {
+                "evidence_state": "current",
+                "labour_state": "available",
+                "inspection_state": "passed",
+                "inspection_duration_ticks": 2,
+                "custody_state": "accepted",
+                "custody_evidence_state": "current",
+                "custody_receipt_id": "custody:d2",
+                "received_quantity": 10
+              },
+              "receiving_bay": {
+                "resource_id": "bay-01",
+                "slot_id": "slot-80",
+                "use": 1
+              },
+              "laydown": {
+                "resource_id": "laydown-01",
+                "slot_id": "slot-80",
+                "use": 6
+              }
+            }
+          }
+        ],
+        "resources": [
+          {
+            "resource_id": "bay-01",
+            "slot_id": "slot-80",
+            "kind": "receiving_bay",
+            "capacity": 1,
+            "unit": "slot",
+            "evidence_state": "current"
+          },
+          {
+            "resource_id": "laydown-01",
+            "slot_id": "slot-80",
+            "kind": "laydown",
+            "capacity": 10,
+            "unit": "pallet_position",
+            "evidence_state": "current"
+          }
+        ]
+      },
+      "expected": {
+        "case_id": "CD-033",
+        "disposition": "Evaluated",
+        "reason_codes": [],
+        "deliveries": [
+          {
+            "delivery_id": "d1",
+            "state": "Blocked",
+            "reason_codes": [
+              "SHARED_RECEIVING_OR_LAYDOWN_RESOURCE_OVERBOOKED"
+            ],
+            "predicted_arrival_tick": 70,
+            "predicted_acceptance_tick": 74,
+            "source_class": "local",
+            "local_productive_capability_claim": false,
+            "lot_id": "lot-A",
+            "quantity_requested": 10,
+            "quantity_declared_available": 10,
+            "stages": {
+              "inventory": "sufficient",
+              "qualification": "qualified",
+              "revision": "matched",
+              "availability": "timely",
+              "transport": "feasible",
+              "site_access": "feasible",
+              "unloading": "feasible",
+              "receiving": "feasible",
+              "inspection": "passed",
+              "custody": "accepted",
+              "shared_resources": "blocked"
+            }
+          },
+          {
+            "delivery_id": "d2",
+            "state": "Blocked",
+            "reason_codes": [
+              "SHARED_RECEIVING_OR_LAYDOWN_RESOURCE_OVERBOOKED"
+            ],
+            "predicted_arrival_tick": 70,
+            "predicted_acceptance_tick": 74,
+            "source_class": "local",
+            "local_productive_capability_claim": false,
+            "lot_id": "lot-B",
+            "quantity_requested": 10,
+            "quantity_declared_available": 10,
+            "stages": {
+              "inventory": "sufficient",
+              "qualification": "qualified",
+              "revision": "matched",
+              "availability": "timely",
+              "transport": "feasible",
+              "site_access": "feasible",
+              "unloading": "feasible",
+              "receiving": "feasible",
+              "inspection": "passed",
+              "custody": "accepted",
+              "shared_resources": "blocked"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
