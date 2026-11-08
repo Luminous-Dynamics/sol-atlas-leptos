@@ -1007,7 +1007,7 @@
       },
       "expected": {
         "case_id": "OI-008",
-        "disposition": "Unsupported",
+        "disposition": "Evaluated",
         "reason_codes": [
           "OBSERVATION_UNIT_MISMATCH"
         ],
