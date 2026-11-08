@@ -9,7 +9,6 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use serde_json::{Value, json};
 
-const CORPUS_ID: &str = "CITY-STATE-SYNC-CORPUS-V0.1";
 const TIME_BASIS: &str = "UTC_UNIX_SECONDS";
 
 fn text<'a>(value: &'a Value, key: &str) -> &'a str {
@@ -77,7 +76,7 @@ fn owner_health<'a>(input: &'a Value, owner_repo: &str) -> Option<&'a str> {
         .and_then(Value::as_str)
 }
 
-fn event_relation_target<'a>(event: &'a Value) -> &'a str {
+fn event_relation_target(event: &Value) -> &str {
     text(event, "target_event_id")
 }
 
