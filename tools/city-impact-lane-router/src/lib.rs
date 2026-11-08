@@ -545,6 +545,60 @@ mod tests {
     }
 
     #[test]
+    fn router_corpus_contains_32_unique_cases() {
+        let cases = corpus()["cases"].as_array().unwrap();
+        assert_eq!(cases.len(), 32);
+        let ids = cases
+            .iter()
+            .map(|case| case["case_id"].as_str().unwrap())
+            .collect::<std::collections::BTreeSet<_>>();
+        assert_eq!(ids.len(), 32);
+    }
+
+    #[test]
+    fn bitemporal_event_controls_fail_closed() {
+        let r = registry();
+        let cases = corpus()["cases"].as_array().unwrap();
+
+        let missing_recorded = evaluate_case(&cases[28], &r);
+        assert_eq!(missing_recorded["route_state"], "insufficient_evidence");
+        assert!(
+            missing_recorded["reason_codes"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|reason| reason == "CHANGE_EVENT_SYSTEM_TIME_BINDING_INCOMPLETE")
+        );
+
+        let disputed_effective_time = evaluate_case(&cases[29], &r);
+        assert_eq!(disputed_effective_time["route_state"], "insufficient_evidence");
+        assert!(
+            disputed_effective_time["reason_codes"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|reason| reason == "EVENT_EFFECTIVE_TIME_UNQUALIFIED")
+        );
+
+        let trusted_time_reversal = evaluate_case(&cases[30], &r);
+        assert_eq!(trusted_time_reversal["route_state"], "invalid_input");
+        assert!(
+            trusted_time_reversal["reason_codes"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|reason| reason == "EVENT_TRUST_TIME_ORDER_INVALID")
+        );
+
+        let report_time_mismatch = evaluate_case(&cases[31], &r);
+        assert_eq!(report_time_mismatch["route_state"], "invalid_input");
+        assert_eq!(
+            report_time_mismatch["lane_results"][0]["state"],
+            "invalid_input"
+        );
+    }
+
+    #[test]
     fn unsupported_or_schema_incompatible_lanes_never_promote() {
         let r = registry();
         for index in [3usize, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19] {
