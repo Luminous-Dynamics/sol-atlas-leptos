@@ -1,0 +1,114 @@
+name: City Service Requalification Synthetic Oracle
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - "tools/city-service-requalification-bench/**"
+      - "docs/research/city-service-requalification/**"
+      - ".github/workflows/city-service-requalification.yml"
+  push:
+    branches:
+      - main
+      - research/city-impact-router-v0.1
+      - research/city-service-requal-v0.1
+    paths:
+      - "tools/city-service-requalification-bench/**"
+      - "docs/research/city-service-requalification/**"
+      - ".github/workflows/city-service-requalification.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: city-service-requalification-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  service-requalification:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+
+      - name: Assert exact checked-out revision
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+
+      - name: Install pinned Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: 1.96.0
+          components: rustfmt, clippy
+
+      - name: Format, test and lint the reference evaluator
+        run: |
+          set -euo pipefail
+          manifest=tools/city-service-requalification-bench/Cargo.toml
+          cargo fmt --manifest-path "$manifest" --all -- --check
+          cargo test --locked --manifest-path "$manifest"
+          cargo clippy --locked --manifest-path "$manifest" --all-targets -- -D warnings
+
+      - name: Install pinned Draft 2020-12 validator
+        run: cargo install --locked jsonschema-cli --version 0.60.2 --root "$RUNNER_TEMP/jsonschema-cli"
+
+      - name: Validate the corpus schema and fixture
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "$RUNNER_TEMP/jsonschema-cli/bin" >> "$GITHUB_PATH"
+          export PATH="$RUNNER_TEMP/jsonschema-cli/bin:$PATH"
+          schema=docs/research/city-service-requalification/CITY_SERVICE_REQUALIFICATION_CORPUS_V0_1.schema.json
+          fixture=docs/research/city-service-requalification/CITY_SERVICE_REQUALIFICATION_CORPUS_V0_1.json
+          meta_schema="$RUNNER_TEMP/draft-2020-12-meta-schema.json"
+          curl --fail --location --retry 5 --retry-connrefused \
+            https://json-schema.org/draft/2020-12/schema -o "$meta_schema"
+          jsonschema-cli validate --draft 2020 --assert-format "$meta_schema" -i "$schema"
+          jsonschema-cli validate --draft 2020 --assert-format --offline "$schema" -i "$fixture"
+          jq -e '
+            .schema_version == "luminous.city-service-requalification-corpus.v0.1"
+            and .corpus_id == "CITY-SERVICE-REQUALIFICATION-CORPUS-V0.1"
+            and .classification == "synthetic_fixture_only"
+            and (.cases | length == 24)
+            and ([.cases[].case_id] | unique | length == 24)
+            and ([.cases[].expected.route_state] | group_by(.) | map({state:.[0],count:length}) | sort_by(.state))
+              == [{"state":"contract_bound_unverified","count":12},{"state":"insufficient_evidence","count":3},{"state":"invalid_input","count":9}]
+          ' "$fixture"
+
+      - name: Emit exact-head service requalification receipt
+        shell: bash
+        run: |
+          set -euo pipefail
+          source_commit="$(git rev-parse HEAD)"
+          test "$source_commit" = "${{ github.event.pull_request.head.sha || github.sha }}"
+          cargo run --locked --quiet --manifest-path tools/city-service-requalification-bench/Cargo.toml -- \
+            docs/research/city-service-requalification/CITY_SERVICE_REQUALIFICATION_CORPUS_V0_1.json \
+            --source-commit "$source_commit" > city-service-requalification-receipt.json
+          jq -e '
+            .result == "pass"
+            and .corpus_id == "CITY-SERVICE-REQUALIFICATION-CORPUS-V0.1"
+            and .corpus_classification == "synthetic_fixture_only"
+            and .scenario_count == 24
+            and .failure_count == 0
+            and (.corpus_sha256 | test("^[0-9a-f]{64}$"))
+            and (.source_commit | test("^[0-9a-f]{40}$"))
+            and (.scenarios | length == 24)
+            and (.scenarios | all(.status == "pass"))
+            and .service_outcome_verified == false
+            and .owner_report_content_verified == false
+            and .owner_authentication == "not_performed"
+            and .action_authority == "none"
+          ' city-service-requalification-receipt.json
+
+      - name: Upload exact-head service requalification receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: city-service-requalification-reference-receipt
+          path: city-service-requalification-receipt.json
+          if-no-files-found: error
+          retention-days: 90
