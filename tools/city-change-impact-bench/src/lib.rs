@@ -178,6 +178,19 @@ fn evaluate_claim(
         return projection(claim_id, "insufficient_evidence", reasons.into_iter().collect());
     }
 
+    if text(event, "change_class") == "coordinate_frame"
+        && text(event, "transform_state") == "ambiguous"
+    {
+        return projection(
+            claim_id,
+            "insufficient_evidence",
+            vec![
+                "COORDINATE_TRANSFORM_AMBIGUOUS".to_owned(),
+                "GRAPH_COVERAGE_INCOMPLETE".to_owned(),
+            ],
+        );
+    }
+
     // The change must be authorized by its owner and registered by the
     // declared trust/receipt time before a city projection may rely on it.
     if text(event, "authority_state") != "authorized"
@@ -208,23 +221,9 @@ fn evaluate_claim(
         || number(event, "effective_at").is_none()
         || number(event, "recorded_at").is_none()
         || number(query, "evaluation_at").is_none()
-        || number(event, "effective_at") > number(event, "recorded_at")
     {
         reasons.insert("CHANGE_EVENT_TIME_BINDING_INVALID".to_owned());
         return projection(claim_id, "invalid_evidence", reasons.into_iter().collect());
-    }
-
-    if text(event, "change_class") == "coordinate_frame"
-        && text(event, "transform_state") == "ambiguous"
-    {
-        return projection(
-            claim_id,
-            "insufficient_evidence",
-            vec![
-                "COORDINATE_TRANSFORM_AMBIGUOUS".to_owned(),
-                "GRAPH_COVERAGE_INCOMPLETE".to_owned(),
-            ],
-        );
     }
 
     if text(event, "change_class") == "payload_digest_change"
