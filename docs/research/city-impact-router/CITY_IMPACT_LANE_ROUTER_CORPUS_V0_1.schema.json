@@ -37,8 +37,8 @@
     },
     "cases": {
       "type": "array",
-      "minItems": 35,
-      "maxItems": 35,
+      "minItems": 41,
+      "maxItems": 41,
       "items": {
         "type": "object",
         "additionalProperties": false,
@@ -410,6 +410,77 @@
                         "trusted_at",
                         "trusted_timestamp_receipt_sha256"
                       ]
+                    },
+                    "disposition": {
+                      "enum": [
+                        "complete_within_declared_owner_set",
+                        "complete_with_declared_exclusions",
+                        "incomplete_or_indeterminate",
+                        "invalid_input",
+                        "not_comparable"
+                      ]
+                    },
+                    "claim_scope": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "expected_owner_count": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "required_owner_count": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "present_required_owner_count": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "complete_inventory_count": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "complete_with_exclusions_count": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "incomplete_inventory_count": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "invalid_inventory_count": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "not_comparable_inventory_count": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "owner_presence": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "disposition",
+                        "missing_required_owner_count",
+                        "claim_scope"
+                      ],
+                      "properties": {
+                        "disposition": {
+                          "enum": [
+                            "expected_owner_manifests_present",
+                            "incomplete_or_indeterminate",
+                            "invalid_input"
+                          ]
+                        },
+                        "missing_required_owner_count": {
+                          "type": "integer",
+                          "minimum": 0
+                        },
+                        "claim_scope": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      }
                     }
                   }
                 }
