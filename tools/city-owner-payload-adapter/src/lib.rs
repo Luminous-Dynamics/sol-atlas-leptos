@@ -270,8 +270,26 @@ fn evaluate_artifact(
     if expected_sha.is_some_and(|digest| !lower_hex(digest, 64)) {
         reasons.insert("OWNER_PAYLOAD_DIGEST_INVALID".to_owned());
     }
-    if digest_basis == "unavailable" && (expected_sha.is_some() || expected_length.is_some() || !object_ref.is_empty()) {
+    if digest_basis == "unavailable"
+        && (expected_sha.is_some()
+            || expected_length.is_some()
+            || !object_ref.is_empty()
+            || bool_value(payload, "bytes_retrieved") == Some(true))
+    {
         reasons.insert("UNAVAILABLE_DESCRIPTOR_PAYLOAD_INCONSISTENT".to_owned());
+    }
+    if digest_basis == "source_owner_attested"
+        && (bool_value(payload, "bytes_retrieved") == Some(true)
+            || text(descriptor.get("attestation").unwrap_or(&Value::Null), "statement_ref").is_empty())
+    {
+        reasons.insert("SOURCE_OWNER_ATTESTATION_DESCRIPTOR_INCOMPLETE".to_owned());
+    }
+    if digest_basis == "external_reference"
+        && (bool_value(payload, "bytes_retrieved") == Some(true)
+            || expected_sha.is_none()
+            || object_ref.is_empty())
+    {
+        reasons.insert("EXTERNAL_REFERENCE_DESCRIPTOR_INCOMPLETE".to_owned());
     }
     if digest_basis != "unavailable" && expected_sha.is_none() {
         reasons.insert("OWNER_PAYLOAD_DIGEST_MISSING".to_owned());
@@ -301,6 +319,22 @@ fn evaluate_artifact(
     let rights_state = text(rights, "state");
     let required_use = text(scope_binding, "required_use");
     let permitted_uses = array(rights, "permitted_uses");
+    if rights_state == "verified"
+        && (permitted_uses.is_empty() || text(rights, "rights_evidence_ref").is_empty())
+    {
+        reasons.insert("VERIFIED_RIGHTS_DESCRIPTOR_INCOMPLETE".to_owned());
+    }
+    if rights_state == "unknown" && !permitted_uses.is_empty() {
+        reasons.insert("UNKNOWN_RIGHTS_HAS_PERMITTED_USES".to_owned());
+    }
+    if !matches!(rights_state, "verified" | "restricted" | "unknown" | "not_applicable") {
+        reasons.insert("RIGHTS_STATE_UNSUPPORTED".to_owned());
+    }
+    if payload.get("schema_id").is_some_and(Value::is_string)
+        && !lower_hex(text(payload, "schema_sha256"), 64)
+    {
+        reasons.insert("PAYLOAD_SCHEMA_SHA256_INVALID".to_owned());
+    }
     let rights_use_declaration_state = match rights_state {
         "verified" if !required_use.is_empty()
             && permitted_uses.iter().any(|value| value.as_str() == Some(required_use)) =>
@@ -712,6 +746,8 @@ pub fn evaluate_case(case: &Value) -> Value {
         "report_sha256": computed_report_sha,
         "report_disposition": text(&report, "disposition"),
         "catalog_validation_disposition": text(report.get("catalog_validation").unwrap_or(&Value::Null), "disposition"),
+        "catalog_missing_descriptor_count": report.get("catalog_validation").and_then(|value| value.get("missing_descriptor_count")).and_then(Value::as_u64),
+        "catalog_extra_descriptor_count": report.get("catalog_validation").and_then(|value| value.get("extra_descriptor_count")).and_then(Value::as_u64),
         "descriptor_catalog_id": text(&report, "catalog_id"),
         "descriptor_catalog_representation_sha256": text(&report, "catalog_representation_sha256"),
         "verifier_build_sha256": text(&report, "verifier_build_sha256"),
