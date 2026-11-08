@@ -1,6 +1,4 @@
-use highveld_keep_contract::{
-    validate_tracked_documents, validate_tracked_resilience_binding,
-};
+use highveld_keep_contract::{validate_tracked_documents, validate_tracked_resilience_binding};
 use std::process::ExitCode;
 
 fn main() -> ExitCode {
@@ -14,19 +12,49 @@ fn main() -> ExitCode {
             println!("alternative_count={}", report.alternatives);
             println!("weather_candidate_count={}", report.weather_candidates);
             println!("continuous_parameter_count={}", report.continuous_variables);
-            println!("categorical_parameter_count={}", report.categorical_variables);
-            println!("functional_relationship_count={}", report.functional_relationships);
-            println!("alternative_climate_method_count={}", report.alternative_climate_methods);
-            println!("station_metadata_crosscheck_count={}", report.station_metadata_crosschecks);
-            println!("station_network_profile_count={}", report.station_network_profiles);
+            println!(
+                "categorical_parameter_count={}",
+                report.categorical_variables
+            );
+            println!(
+                "functional_relationship_count={}",
+                report.functional_relationships
+            );
+            println!(
+                "alternative_climate_method_count={}",
+                report.alternative_climate_methods
+            );
+            println!(
+                "station_metadata_crosscheck_count={}",
+                report.station_metadata_crosschecks
+            );
+            println!(
+                "station_network_profile_count={}",
+                report.station_network_profiles
+            );
             println!("resilience_binding_id={}", binding.binding_id);
-            println!("resilience_scenario_family_count={}", binding.scenario_families);
-            println!("resilience_weather_candidate_count={}", binding.weather_candidates);
-            println!("resilience_service_domain_count={}", binding.service_domains);
+            println!(
+                "resilience_scenario_family_count={}",
+                binding.scenario_families
+            );
+            println!(
+                "resilience_weather_candidate_count={}",
+                binding.weather_candidates
+            );
+            println!(
+                "resilience_service_domain_count={}",
+                binding.service_domains
+            );
             println!("resilience_owner_binding_count={}", binding.owner_bindings);
-            println!("resilience_invariant_mapping_count={}", binding.invariant_mappings);
+            println!(
+                "resilience_invariant_mapping_count={}",
+                binding.invariant_mappings
+            );
             println!("resilience_vvuq_stage_count={}", binding.vvuq_stages);
-            println!("resilience_measurement_question_count={}", binding.measurement_questions);
+            println!(
+                "resilience_measurement_question_count={}",
+                binding.measurement_questions
+            );
             println!("violation_count=0");
             println!("result=definition_and_resilience_binding_valid_synthetic_only");
             println!("claim_ceiling=no_geometry_buildability_safety_or_compliance_validation");
