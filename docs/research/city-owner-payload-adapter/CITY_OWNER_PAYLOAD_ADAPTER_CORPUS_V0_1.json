@@ -160,7 +160,8 @@
             "payload_bytes_verified": false,
             "raw_byte_equality_verified": false,
             "owner_rights_state": "verified",
-            "rights_use_declaration_state": "owner_declares_permitted"
+            "rights_use_declaration_state": "owner_declares_permitted",
+            "byte_length_comparison_state": "matched"
           }
         ],
         "report_disposition_state": "incomplete"
@@ -240,7 +241,8 @@
             "payload_bytes_verified": false,
             "raw_byte_equality_verified": false,
             "owner_rights_state": "verified",
-            "rights_use_declaration_state": "owner_declares_permitted"
+            "rights_use_declaration_state": "owner_declares_permitted",
+            "byte_length_comparison_state": "mismatch"
           }
         ],
         "report_disposition_state": "incomplete"
@@ -320,7 +322,8 @@
             "payload_bytes_verified": false,
             "raw_byte_equality_verified": false,
             "owner_rights_state": "verified",
-            "rights_use_declaration_state": "owner_declares_permitted"
+            "rights_use_declaration_state": "owner_declares_permitted",
+            "byte_length_comparison_state": "mismatch"
           }
         ],
         "report_disposition_state": "incomplete"
@@ -400,7 +403,8 @@
             "payload_bytes_verified": false,
             "raw_byte_equality_verified": false,
             "owner_rights_state": "verified",
-            "rights_use_declaration_state": "owner_declares_permitted"
+            "rights_use_declaration_state": "owner_declares_permitted",
+            "byte_length_comparison_state": "matched"
           }
         ],
         "report_disposition_state": "complete"
@@ -1039,7 +1043,8 @@
             "payload_bytes_verified": false,
             "raw_byte_equality_verified": false,
             "owner_rights_state": "verified",
-            "rights_use_declaration_state": "owner_declares_permitted"
+            "rights_use_declaration_state": "owner_declares_permitted",
+            "byte_length_comparison_state": "matched"
           }
         ],
         "report_disposition_state": "incomplete"
