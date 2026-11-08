@@ -726,9 +726,13 @@ mod tests {
         part["use_end_at"] = json!(3000);
         let result = evaluate_case(&case);
         assert_eq!(result["plan_readiness"], "feasible");
-        assert!(!result["reason_codes"].as_array().unwrap().iter().any(
-            |reason| reason == "PART_AVAILABILITY_WINDOW_MISMATCH"
-        ));
+        assert!(
+            !result["reason_codes"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|reason| reason == "PART_AVAILABILITY_WINDOW_MISMATCH")
+        );
     }
 
     #[test]
@@ -739,9 +743,13 @@ mod tests {
         part["available_until"] = json!(3100);
         let result = evaluate_case(&late);
         assert_eq!(result["plan_readiness"], "infeasible");
-        assert!(result["reason_codes"].as_array().unwrap().iter().any(
-            |reason| reason == "PART_AVAILABILITY_WINDOW_MISMATCH"
-        ));
+        assert!(
+            result["reason_codes"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|reason| reason == "PART_AVAILABILITY_WINDOW_MISMATCH")
+        );
 
         let mut early_expiry = corpus()["cases"][0].clone();
         let part = &mut early_expiry["input"]["part_requirements"][0];
@@ -763,9 +771,13 @@ mod tests {
             .remove("use_start_at");
         let result = evaluate_case(&case);
         assert_eq!(result["plan_readiness"], "unknown");
-        assert!(result["reason_codes"].as_array().unwrap().iter().any(
-            |reason| reason == "PART_USE_WINDOW_UNKNOWN"
-        ));
+        assert!(
+            result["reason_codes"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|reason| reason == "PART_USE_WINDOW_UNKNOWN")
+        );
     }
 
     #[test]
@@ -779,5 +791,4 @@ mod tests {
         let result = evaluate_case(&case);
         assert_eq!(result["plan_readiness"], "feasible");
     }
-
 }
