@@ -277,7 +277,10 @@ fn baseline_and_post_windows_are_valid(mv: &Value, scope: &Value) -> bool {
         .zip(post_start.zip(post_end))
         .zip(scope_start.zip(scope_end))
         .is_some_and(
-            |(((baseline_start, baseline_end), (post_start, post_end)), (scope_start, scope_end))| {
+            |(
+                ((baseline_start, baseline_end), (post_start, post_end)),
+                (scope_start, scope_end),
+            )| {
                 baseline_end > baseline_start
                     && post_end > post_start
                     && baseline_end <= post_start
@@ -329,21 +332,22 @@ fn classify_measurement_and_verification(
             text(observation, "metric_id") == post_metric_id
                 && text(observation, "source_receipt_id") == post_receipt_id
         });
-    let post_receipt_matches = post_requirement.zip(post_observation).is_some_and(
-        |(requirement, observation)| {
-            text(requirement, "evidence_class") == "meter"
-                && text(requirement, "unit") == text(observation, "unit")
-                && text(observation, "evidence_state") == "current"
-                && text(observation, "evidence_kind") == "meter_measurement"
-                && text(observation, "calibration_state") == "current"
-                && !text(observation, "instrument_id").is_empty()
-                && coverage_fraction(observation, "coverage_fraction")
-                    .is_some_and(|value| value >= minimum_coverage)
-                && same_scope_and_context(observation, scope)
-                && number(observation, "value").is_some()
-                && owner_binding_matches(case_id, requirement, observation)
-        },
-    );
+    let post_receipt_matches =
+        post_requirement
+            .zip(post_observation)
+            .is_some_and(|(requirement, observation)| {
+                text(requirement, "evidence_class") == "meter"
+                    && text(requirement, "unit") == text(observation, "unit")
+                    && text(observation, "evidence_state") == "current"
+                    && text(observation, "evidence_kind") == "meter_measurement"
+                    && text(observation, "calibration_state") == "current"
+                    && !text(observation, "instrument_id").is_empty()
+                    && coverage_fraction(observation, "coverage_fraction")
+                        .is_some_and(|value| value >= minimum_coverage)
+                    && same_scope_and_context(observation, scope)
+                    && number(observation, "value").is_some()
+                    && owner_binding_matches(case_id, requirement, observation)
+            });
 
     if text(mv, "evidence_state") == "current"
         && !text(mv, "method_id").is_empty()
@@ -919,8 +923,7 @@ mod tests {
         assert_eq!(result["metric_results"][0]["observation_state"], "Unknown");
 
         let mut mv = case("OI-017");
-        mv["input"]["measurement_and_verification"]["coverage_fraction"] =
-            serde_json::json!(1.01);
+        mv["input"]["measurement_and_verification"]["coverage_fraction"] = serde_json::json!(1.01);
         let result = evaluate_case(&mv);
         assert_eq!(result["measurement_and_verification_status"], "Unsupported");
     }
