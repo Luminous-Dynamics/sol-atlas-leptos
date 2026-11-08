@@ -54,7 +54,7 @@ Unsupported or unversioned lanes return `insufficient_evidence`. A wrong or cont
 
 ## Corpus
 
-`CITY_IMPACT_LANE_ROUTER_CORPUS_V0_1.json` contains 32 synthetic known-answer cases:
+`CITY_IMPACT_LANE_ROUTER_CORPUS_V0_1.json` contains 35 synthetic known-answer cases:
 - correct artifact-frontier plus dependency-coverage envelope;
 - wrong-family substitution and missing required lanes;
 - source lifecycle v0.1 versus graph v0.2 incompatibility;
