@@ -91,7 +91,7 @@ jobs:
             and .registry_id == "citymaker-owner-impact-lanes-2026-11-08"
             and .corpus_id == "CITY-IMPACT-LANE-ROUTER-CORPUS-V0.1"
             and .corpus_classification == "synthetic_fixture_only"
-            and .scenario_count == 28
+            and .scenario_count == 32
             and .failure_count == 0
             and (.registry_sha256 | test("^[0-9a-f]{64}$"))
             and (.corpus_sha256 | test("^[0-9a-f]{64}$"))
