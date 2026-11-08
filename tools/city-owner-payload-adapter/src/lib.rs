@@ -12,7 +12,6 @@ use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 use std::collections::{BTreeMap, BTreeSet};
 
-const CORPUS_ID: &str = "CITY-OWNER-PAYLOAD-ADAPTER-CORPUS-V0.1";
 const CLAIM_CEILING: &str = "synthetic adapter semantics only; no source authenticity, rights authentication, scope approval, engineering correctness, physical acceptance, action authority or causal effect";
 
 fn text<'a>(value: &'a Value, key: &str) -> &'a str {
@@ -55,20 +54,6 @@ fn expected_record_key(record_kind: &str, case_record_id: &str) -> Option<String
     Some(format!("{prefix}:{case_record_id}"))
 }
 
-fn unsupported_output(case_id: &str, reasons: BTreeSet<String>) -> Value {
-    json!({
-        "case_id": case_id,
-        "report_integrity_state": "unsupported",
-        "payload_verification_state": "unsupported",
-        "report_sha256": null,
-        "artifact_payloads": [],
-        "reason_codes": reasons.into_iter().collect::<Vec<_>>(),
-        "action_authority": "none",
-        "owner_result_promotion": "none",
-        "causal_effect_established": false,
-        "claim_ceiling": CLAIM_CEILING
-    })
-}
 
 fn verifier_disposition_state(disposition: &str) -> &'static str {
     match disposition {
@@ -594,7 +579,7 @@ mod tests {
     #[test]
     fn corpus_contains_24_unique_cases() {
         let c = corpus();
-        assert_eq!(c["corpus_id"], super::CORPUS_ID);
+        assert_eq!(c["corpus_id"], "CITY-OWNER-PAYLOAD-ADAPTER-CORPUS-V0.1");
         let cases = c["cases"].as_array().unwrap();
         assert_eq!(cases.len(), 24);
         let ids = cases
