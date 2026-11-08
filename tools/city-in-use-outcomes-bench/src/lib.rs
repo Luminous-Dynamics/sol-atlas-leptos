@@ -24,6 +24,25 @@ fn number(value: &Value, key: &str) -> Option<f64> {
         .filter(|value| value.is_finite())
 }
 
+fn coverage_fraction(value: &Value, key: &str) -> Option<f64> {
+    number(value, key).filter(|fraction| (0.0..=1.0).contains(fraction))
+}
+
+fn unique_id_set(values: Option<&[Value]>) -> Option<BTreeSet<String>> {
+    let values = values?;
+    if values.is_empty() {
+        return None;
+    }
+    let mut ids = BTreeSet::new();
+    for value in values {
+        let id = value.as_str().filter(|id| !id.is_empty())?;
+        if !ids.insert(id.to_owned()) {
+            return None;
+        }
+    }
+    Some(ids)
+}
+
 /// Compare the declared known-answer fields. Numeric JSON representations
 /// compare by exact value; strings, arrays and object keys remain exact.
 fn json_equivalent(actual: &Value, expected: &Value) -> bool {
@@ -240,7 +259,7 @@ fn classify_measurement_and_verification(input: &Value, scope: &Value) -> &'stat
             .iter()
             .any(|supplied| supplied == required)
     });
-    let coverage = number(mv, "coverage_fraction").unwrap_or(-1.0);
+    let coverage = coverage_fraction(mv, "coverage_fraction").unwrap_or(-1.0);
     let minimum_coverage = number(scope, "minimum_coverage_fraction").unwrap_or(1.0);
     let baseline_period = text(mv, "baseline_period");
     let post_period = text(mv, "post_period");
@@ -431,7 +450,7 @@ pub fn evaluate_case(case: &Value) -> Value {
             observation_state = "NotComparable";
             reasons.insert("OBSERVATION_SCOPE_CONTEXT_OR_REVISION_MISMATCH".to_owned());
         } else if text(observation, "evidence_state") != "current"
-            || number(observation, "coverage_fraction").is_none_or(|coverage| {
+            || coverage_fraction(observation, "coverage_fraction").is_none_or(|coverage| {
                 coverage < minimum_coverage.expect("minimum coverage validated")
             })
         {
