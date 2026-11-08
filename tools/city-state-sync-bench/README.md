@@ -72,7 +72,7 @@ These are interoperability mappings. v0.1 is not a complete SensorThings server,
 
 ## Corpus and benchmark
 
-`CITY_STATE_SYNC_CORPUS_V0_1.json` contains 33 synthetic known-answer cases:
+`CITY_STATE_SYNC_CORPUS_V0_1.json` contains 35 synthetic known-answer cases:
 - late arrival and owner-sequence ordering;
 - validity expiry and owner-declared freshness;
 - correction, supersession, revocation and dispute;
@@ -103,7 +103,7 @@ cargo run --locked --quiet --manifest-path tools/city-state-sync-bench/Cargo.tom
 Report the state counts and reasons by owner and entity class, plus valid-time age, source record delay, consumer ingestion lag, correction/supersession frequency, duplicate/conflict frequency, identity-link count, unresolved identity count, and feedback-chain completion stage.
 
 P0 targets:
-- 100% agreement with the 33-case known-answer corpus;
+- 100% agreement with the 35-case known-answer corpus;
 - deterministic identical as-of replay for identical pinned owner snapshots;
 - zero latest-timestamp overwrite where owner sequence / valid time says otherwise;
 - zero correction/revocation erasure of historical records;
