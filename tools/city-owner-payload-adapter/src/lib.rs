@@ -540,6 +540,31 @@ pub fn evaluate_case(case: &Value) -> Value {
         }
     };
     if !report.is_null() {
+        let catalog_validation = report.get("catalog_validation").unwrap_or(&Value::Null);
+        if catalog_validation.is_null()
+            || text(catalog_validation, "case_id") != text(&report, "case_id")
+            || text(catalog_validation, "catalog_id") != text(&report, "catalog_id")
+            || text(catalog_validation, "catalog_representation_sha256")
+                != text(&report, "catalog_representation_sha256")
+            || catalog_validation.get("descriptor_count").and_then(Value::as_u64)
+                != report.get("descriptor_count").and_then(Value::as_u64)
+        {
+            report_reasons.insert("VERIFIER_CATALOG_VALIDATION_BINDING_MISMATCH".to_owned());
+        }
+        if !matches!(
+            text(catalog_validation, "disposition"),
+            "internally_consistent_for_declared_case"
+                | "incomplete_or_indeterminate"
+                | "invalid_input"
+        ) {
+            report_reasons.insert("VERIFIER_CATALOG_VALIDATION_DISPOSITION_UNSUPPORTED".to_owned());
+        }
+        if text(catalog_validation, "action_authority") != "none"
+            || text(catalog_validation, "rights_authentication") != "not_performed"
+            || text(catalog_validation, "source_attestation_authentication") != "not_performed"
+        {
+            report_reasons.insert("VERIFIER_CATALOG_VALIDATION_CLAIM_CEILING_MISMATCH".to_owned());
+        }
         if text(&report, "case_id") != text(report_binding, "expected_case_id")
             || text(&report, "case_representation_sha256")
                 != text(report_binding, "expected_case_representation_sha256")
@@ -569,20 +594,46 @@ pub fn evaluate_case(case: &Value) -> Value {
         let descriptor_count = report.get("descriptor_count").and_then(Value::as_u64);
         let payload_count = report.get("payload_count").and_then(Value::as_u64);
         let not_attempted = report.get("not_attempted_count").and_then(Value::as_u64);
+        let results = array(&report, "payload_results");
         if descriptor_count.is_none()
             || payload_count.is_none()
             || not_attempted.is_none()
             || descriptor_count != payload_count.zip(not_attempted).map(|(a, b)| a + b)
-            || payload_count != Some(array(&report, "payload_results").len() as u64)
+            || payload_count != Some(results.len() as u64)
         {
             report_reasons.insert("VERIFIER_REPORT_DENOMINATOR_INCONSISTENT".to_owned());
         }
         let mut keys = BTreeSet::new();
-        for result in array(&report, "payload_results") {
+        for result in results {
             let key = text(result, "record_key");
             if key.is_empty() || !keys.insert(key.to_owned()) {
                 report_reasons.insert("VERIFIER_REPORT_RECORD_KEY_DUPLICATED".to_owned());
             }
+        }
+        let disposition_count = |wanted: &[&str]| {
+            results
+                .iter()
+                .filter(|row| wanted.contains(&text(row, "disposition")))
+                .count() as u64
+        };
+        for (field, expected_count) in [
+            ("verified_payload_count", disposition_count(&["verified_match"])),
+            ("unavailable_payload_count", disposition_count(&["declared_unavailable", "object_not_found"])),
+            ("resource_limited_payload_count", disposition_count(&["resource_limit_reached"])),
+            ("resolver_error_count", disposition_count(&["resolver_rejected", "resolver_io_error"])),
+            ("stream_error_count", disposition_count(&["stream_read_error"])),
+            ("invalid_payload_count", disposition_count(&["digest_mismatch", "byte_length_mismatch", "digest_and_byte_length_mismatch", "invalid_descriptor"]))
+        ] {
+            if report.get(field).and_then(Value::as_u64) != Some(expected_count) {
+                report_reasons.insert("VERIFIER_REPORT_RESULT_COUNTS_INCONSISTENT".to_owned());
+            }
+        }
+        let hashed_total = results
+            .iter()
+            .filter_map(|row| row.get("bytes_hashed").and_then(Value::as_u64))
+            .fold(0_u64, u64::saturating_add);
+        if report.get("total_bytes_hashed").and_then(Value::as_u64) != Some(hashed_total) {
+            report_reasons.insert("VERIFIER_REPORT_BYTE_DENOMINATOR_INCONSISTENT".to_owned());
         }
     }
 
@@ -626,6 +677,7 @@ pub fn evaluate_case(case: &Value) -> Value {
         {
             output["payload_verification_state"] = json!("mismatch");
             output["payload_bytes_verified"] = json!(false);
+            output["raw_byte_equality_verified"] = json!(false);
             let mut reasons = output["reason_codes"]
                 .as_array()
                 .cloned()
@@ -650,6 +702,7 @@ pub fn evaluate_case(case: &Value) -> Value {
         "report_reference": report_reference,
         "report_sha256": computed_report_sha,
         "report_disposition": text(&report, "disposition"),
+        "catalog_validation_disposition": text(report.get("catalog_validation").unwrap_or(&Value::Null), "disposition"),
         "descriptor_catalog_id": text(&report, "catalog_id"),
         "descriptor_catalog_representation_sha256": text(&report, "catalog_representation_sha256"),
         "verifier_build_sha256": text(&report, "verifier_build_sha256"),
@@ -749,7 +802,7 @@ mod tests {
     #[test]
     fn descriptor_mapping_does_not_guess_record_keys() {
         let mut case = corpus()["cases"][0].clone();
-        case["input"]["owner_artifacts"][0]["payload"]["record_key"] =
+        case["input"]["owner_artifacts"][0]["descriptor_binding"]["record_key"] =
             Value::String("artifact:some-other-record".into());
         let result = evaluate_case(&case);
         assert_eq!(
