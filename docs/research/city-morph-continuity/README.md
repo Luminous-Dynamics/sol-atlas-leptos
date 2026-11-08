@@ -34,3 +34,12 @@ Unknown evidence before the first known degradation does not invalidate later re
 ## Global receipt identity and required revision
 
 Each source receipt ID must be unique across the entire scenario timeline, not merely within one phase. The evaluation request must also declare an expected owner source revision. Case CR-028 reuses one receipt ID across two phases and must be Unsupported; CR-029 omits the expected revision and must be Unsupported. This prevents one owner receipt from being replayed as multiple observations and prevents a missing revision contract from being treated as a valid comparison.
+
+
+## Recovery timing bounds (corpus v0.1.1)
+
+The continuity result distinguishes the first observed adequate phase from the exact time service became adequate. When the last known degraded interval ends at tick L, an evidence gap follows, and the first sustained adequate observation begins at tick U, the recovery start is reported as `(L, U]`. The corresponding recovery duration from the first known degradation is reported with the same open/closed bounds. The point field `recovery_time_ticks` is null unless the interval is exact.
+
+- CR-002 is the exact-boundary control: no evidence gap, so recovery time is exactly 2 ticks.
+- CR-020 has unknown evidence after an outage but no confirmed return; recovery remains Unknown and no upper bound is claimed.
+- CR-030 confirms adequate service after an evidence gap; recovery starts in `(5, 7]`, duration in `(2, 4]`, confirmed by tick 9. The result does not claim a false point estimate.
