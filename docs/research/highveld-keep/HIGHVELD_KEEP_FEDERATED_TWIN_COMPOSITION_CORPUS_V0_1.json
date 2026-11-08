@@ -326,6 +326,22 @@
         "building_service_claim": {
           "requested": false,
           "required_owner_refs": []
+        },
+        "query_cuts": {
+          "as_known_at_decision": {
+            "valid_at": 900,
+            "recorded_at": 900,
+            "registered_at": 900,
+            "ingested_at": 900,
+            "time_basis": "UTC_UNIX_SECONDS"
+          },
+          "as_known_now": {
+            "valid_at": 1200,
+            "recorded_at": 1300,
+            "registered_at": 1310,
+            "ingested_at": 1320,
+            "time_basis": "UTC_UNIX_SECONDS"
+          }
         }
       },
       "expected": {
@@ -619,6 +635,22 @@
         "building_service_claim": {
           "requested": false,
           "required_owner_refs": []
+        },
+        "query_cuts": {
+          "as_known_at_decision": {
+            "valid_at": 900,
+            "recorded_at": 900,
+            "registered_at": 900,
+            "ingested_at": 900,
+            "time_basis": "UTC_UNIX_SECONDS"
+          },
+          "as_known_now": {
+            "valid_at": 1200,
+            "recorded_at": 1300,
+            "registered_at": 1310,
+            "ingested_at": 1320,
+            "time_basis": "UTC_UNIX_SECONDS"
+          }
         }
       },
       "expected": {
@@ -983,6 +1015,22 @@
         "building_service_claim": {
           "requested": false,
           "required_owner_refs": []
+        },
+        "query_cuts": {
+          "as_known_at_decision": {
+            "valid_at": 900,
+            "recorded_at": 900,
+            "registered_at": 900,
+            "ingested_at": 900,
+            "time_basis": "UTC_UNIX_SECONDS"
+          },
+          "as_known_now": {
+            "valid_at": 1200,
+            "recorded_at": 1300,
+            "registered_at": 1310,
+            "ingested_at": 1320,
+            "time_basis": "UTC_UNIX_SECONDS"
+          }
         }
       },
       "expected": {
@@ -1322,6 +1370,22 @@
         "building_service_claim": {
           "requested": false,
           "required_owner_refs": []
+        },
+        "query_cuts": {
+          "as_known_at_decision": {
+            "valid_at": 900,
+            "recorded_at": 900,
+            "registered_at": 900,
+            "ingested_at": 900,
+            "time_basis": "UTC_UNIX_SECONDS"
+          },
+          "as_known_now": {
+            "valid_at": 1200,
+            "recorded_at": 1300,
+            "registered_at": 1310,
+            "ingested_at": 1320,
+            "time_basis": "UTC_UNIX_SECONDS"
+          }
         }
       },
       "expected": {
@@ -1651,6 +1715,22 @@
         "building_service_claim": {
           "requested": false,
           "required_owner_refs": []
+        },
+        "query_cuts": {
+          "as_known_at_decision": {
+            "valid_at": 900,
+            "recorded_at": 900,
+            "registered_at": 900,
+            "ingested_at": 900,
+            "time_basis": "UTC_UNIX_SECONDS"
+          },
+          "as_known_now": {
+            "valid_at": 1200,
+            "recorded_at": 1300,
+            "registered_at": 1310,
+            "ingested_at": 1320,
+            "time_basis": "UTC_UNIX_SECONDS"
+          }
         }
       },
       "expected": {
@@ -1982,6 +2062,22 @@
         "building_service_claim": {
           "requested": false,
           "required_owner_refs": []
+        },
+        "query_cuts": {
+          "as_known_at_decision": {
+            "valid_at": 900,
+            "recorded_at": 900,
+            "registered_at": 900,
+            "ingested_at": 900,
+            "time_basis": "UTC_UNIX_SECONDS"
+          },
+          "as_known_now": {
+            "valid_at": 1200,
+            "recorded_at": 1300,
+            "registered_at": 1310,
+            "ingested_at": 1320,
+            "time_basis": "UTC_UNIX_SECONDS"
+          }
         }
       },
       "expected": {
@@ -2313,6 +2409,22 @@
         "building_service_claim": {
           "requested": false,
           "required_owner_refs": []
+        },
+        "query_cuts": {
+          "as_known_at_decision": {
+            "valid_at": 900,
+            "recorded_at": 900,
+            "registered_at": 900,
+            "ingested_at": 900,
+            "time_basis": "UTC_UNIX_SECONDS"
+          },
+          "as_known_now": {
+            "valid_at": 1200,
+            "recorded_at": 1300,
+            "registered_at": 1310,
+            "ingested_at": 1320,
+            "time_basis": "UTC_UNIX_SECONDS"
+          }
         }
       },
       "expected": {
@@ -2644,6 +2756,22 @@
         "building_service_claim": {
           "requested": false,
           "required_owner_refs": []
+        },
+        "query_cuts": {
+          "as_known_at_decision": {
+            "valid_at": 900,
+            "recorded_at": 900,
+            "registered_at": 900,
+            "ingested_at": 900,
+            "time_basis": "UTC_UNIX_SECONDS"
+          },
+          "as_known_now": {
+            "valid_at": 1200,
+            "recorded_at": 1300,
+            "registered_at": 1310,
+            "ingested_at": 1320,
+            "time_basis": "UTC_UNIX_SECONDS"
+          }
         }
       },
       "expected": {
@@ -2976,6 +3104,22 @@
         "building_service_claim": {
           "requested": false,
           "required_owner_refs": []
+        },
+        "query_cuts": {
+          "as_known_at_decision": {
+            "valid_at": 900,
+            "recorded_at": 900,
+            "registered_at": 900,
+            "ingested_at": 900,
+            "time_basis": "UTC_UNIX_SECONDS"
+          },
+          "as_known_now": {
+            "valid_at": 1200,
+            "recorded_at": 1300,
+            "registered_at": 1310,
+            "ingested_at": 1320,
+            "time_basis": "UTC_UNIX_SECONDS"
+          }
         }
       },
       "expected": {
@@ -3340,6 +3484,22 @@
         "building_service_claim": {
           "requested": false,
           "required_owner_refs": []
+        },
+        "query_cuts": {
+          "as_known_at_decision": {
+            "valid_at": 900,
+            "recorded_at": 900,
+            "registered_at": 900,
+            "ingested_at": 900,
+            "time_basis": "UTC_UNIX_SECONDS"
+          },
+          "as_known_now": {
+            "valid_at": 1200,
+            "recorded_at": 1300,
+            "registered_at": 1310,
+            "ingested_at": 1320,
+            "time_basis": "UTC_UNIX_SECONDS"
+          }
         }
       },
       "expected": {
@@ -3704,6 +3864,22 @@
         "building_service_claim": {
           "requested": false,
           "required_owner_refs": []
+        },
+        "query_cuts": {
+          "as_known_at_decision": {
+            "valid_at": 900,
+            "recorded_at": 900,
+            "registered_at": 900,
+            "ingested_at": 900,
+            "time_basis": "UTC_UNIX_SECONDS"
+          },
+          "as_known_now": {
+            "valid_at": 1200,
+            "recorded_at": 1300,
+            "registered_at": 1310,
+            "ingested_at": 1320,
+            "time_basis": "UTC_UNIX_SECONDS"
+          }
         }
       },
       "expected": {
@@ -3730,7 +3906,7 @@
           "valid_at": 1200,
           "recorded_at": 1300,
           "registered_at": 1310,
-          "ingested_at": 1000,
+          "ingested_at": 1500,
           "time_basis": "UTC_UNIX_SECONDS"
         },
         "decision": {
@@ -4035,6 +4211,22 @@
         "building_service_claim": {
           "requested": false,
           "required_owner_refs": []
+        },
+        "query_cuts": {
+          "as_known_at_decision": {
+            "valid_at": 900,
+            "recorded_at": 900,
+            "registered_at": 900,
+            "ingested_at": 900,
+            "time_basis": "UTC_UNIX_SECONDS"
+          },
+          "as_known_now": {
+            "valid_at": 1200,
+            "recorded_at": 1300,
+            "registered_at": 1310,
+            "ingested_at": 1500,
+            "time_basis": "UTC_UNIX_SECONDS"
+          }
         }
       },
       "expected": {
@@ -4367,6 +4559,22 @@
         "building_service_claim": {
           "requested": false,
           "required_owner_refs": []
+        },
+        "query_cuts": {
+          "as_known_at_decision": {
+            "valid_at": 900,
+            "recorded_at": 900,
+            "registered_at": 900,
+            "ingested_at": 900,
+            "time_basis": "UTC_UNIX_SECONDS"
+          },
+          "as_known_now": {
+            "valid_at": 1200,
+            "recorded_at": 1300,
+            "registered_at": 1310,
+            "ingested_at": 1320,
+            "time_basis": "UTC_UNIX_SECONDS"
+          }
         }
       },
       "expected": {
@@ -4698,6 +4906,22 @@
         "building_service_claim": {
           "requested": false,
           "required_owner_refs": []
+        },
+        "query_cuts": {
+          "as_known_at_decision": {
+            "valid_at": 900,
+            "recorded_at": 900,
+            "registered_at": 900,
+            "ingested_at": 900,
+            "time_basis": "UTC_UNIX_SECONDS"
+          },
+          "as_known_now": {
+            "valid_at": 1200,
+            "recorded_at": 1300,
+            "registered_at": 1310,
+            "ingested_at": 1320,
+            "time_basis": "UTC_UNIX_SECONDS"
+          }
         }
       },
       "expected": {
@@ -5029,6 +5253,22 @@
         "building_service_claim": {
           "requested": false,
           "required_owner_refs": []
+        },
+        "query_cuts": {
+          "as_known_at_decision": {
+            "valid_at": 900,
+            "recorded_at": 900,
+            "registered_at": 900,
+            "ingested_at": 900,
+            "time_basis": "UTC_UNIX_SECONDS"
+          },
+          "as_known_now": {
+            "valid_at": 1200,
+            "recorded_at": 1300,
+            "registered_at": 1310,
+            "ingested_at": 1320,
+            "time_basis": "UTC_UNIX_SECONDS"
+          }
         }
       },
       "expected": {
@@ -5257,7 +5497,7 @@
             "payload_bytes_state": "verified",
             "issuer_state": "authorized",
             "rights_state": "permitted",
-            "evidence_state": "revoked",
+            "evidence_state": "admitted",
             "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
             "functional_unit": "one-panel",
             "valid_from": 0,
@@ -5345,6 +5585,38 @@
             ],
             "event_kind": "revocation",
             "target_record_id": "R-LOT"
+          },
+          {
+            "record_id": "R-LOT-REVOCATION",
+            "owner": "provenance",
+            "owner_native_id": "provenance-native-001",
+            "native_revision": "REV-2",
+            "schema_id": "provenance.contract",
+            "schema_version": "1.0.0",
+            "payload_ref": "cas://provenance/R-LOT-REVOCATION",
+            "payload_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "payload_bytes_state": "verified",
+            "issuer_state": "authorized",
+            "rights_state": "permitted",
+            "evidence_state": "admitted",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "functional_unit": "one-panel",
+            "valid_from": 1100,
+            "valid_until": null,
+            "observed_at": 1120,
+            "recorded_at": 1150,
+            "registered_at": 1160,
+            "ingested_at": 1170,
+            "source_timezone": "Africa/Johannesburg",
+            "clock_id": "provenance-clock",
+            "clock_uncertainty_ms": 25,
+            "verifier_id": "independent-verifier-1",
+            "verifier_build": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "claim_refs": [
+              "panel-installed-and-maintainable"
+            ],
+            "event_kind": "revocation",
+            "target_record_id": "R-LOT"
           }
         ],
         "identity_relations": [],
@@ -5391,6 +5663,22 @@
         "building_service_claim": {
           "requested": false,
           "required_owner_refs": []
+        },
+        "query_cuts": {
+          "as_known_at_decision": {
+            "valid_at": 900,
+            "recorded_at": 900,
+            "registered_at": 900,
+            "ingested_at": 900,
+            "time_basis": "UTC_UNIX_SECONDS"
+          },
+          "as_known_now": {
+            "valid_at": 1200,
+            "recorded_at": 1300,
+            "registered_at": 1310,
+            "ingested_at": 1320,
+            "time_basis": "UTC_UNIX_SECONDS"
+          }
         }
       },
       "expected": {
@@ -5722,6 +6010,22 @@
         "building_service_claim": {
           "requested": false,
           "required_owner_refs": []
+        },
+        "query_cuts": {
+          "as_known_at_decision": {
+            "valid_at": 900,
+            "recorded_at": 900,
+            "registered_at": 900,
+            "ingested_at": 900,
+            "time_basis": "UTC_UNIX_SECONDS"
+          },
+          "as_known_now": {
+            "valid_at": 1200,
+            "recorded_at": 1300,
+            "registered_at": 1310,
+            "ingested_at": 1320,
+            "time_basis": "UTC_UNIX_SECONDS"
+          }
         }
       },
       "expected": {
@@ -6059,6 +6363,22 @@
           "received_owner_refs": [],
           "commissioning_state": "missing",
           "service_state": "unknown"
+        },
+        "query_cuts": {
+          "as_known_at_decision": {
+            "valid_at": 900,
+            "recorded_at": 900,
+            "registered_at": 900,
+            "ingested_at": 900,
+            "time_basis": "UTC_UNIX_SECONDS"
+          },
+          "as_known_now": {
+            "valid_at": 1200,
+            "recorded_at": 1300,
+            "registered_at": 1310,
+            "ingested_at": 1320,
+            "time_basis": "UTC_UNIX_SECONDS"
+          }
         }
       },
       "expected": {
