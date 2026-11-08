@@ -782,7 +782,7 @@ mod tests {
         let register = source_register();
         let count = super::validate_source_register(&register)
             .expect("source register must satisfy its evidence contract");
-        assert_eq!(count, 19);
+        assert_eq!(count, 21);
 
         let sources = register["sources"].as_array().unwrap();
         let online_maps = sources
@@ -791,6 +791,34 @@ mod tests {
             .unwrap();
         assert_eq!(online_maps["access_status"], "VerifiedPublic");
         assert_eq!(online_maps["rights_status"], "PublicWithConditions");
+
+        let municipal_gis = sources
+            .iter()
+            .find(|source| source["source_id"] == "COJ-ISDP-SPMS")
+            .unwrap();
+        assert_eq!(municipal_gis["access_status"], "PublicWithConditions");
+        assert_eq!(municipal_gis["rights_status"], "PublicWithConditions");
+        assert!(
+            municipal_gis["known_facts"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|fact| fact.as_str().unwrap().contains("August 2019"))
+        );
+
+        let bus_trial = sources
+            .iter()
+            .find(|source| source["source_id"] == "COJ-GREEN-BUS-TRIAL-2026")
+            .unwrap();
+        assert_eq!(bus_trial["access_status"], "RequestRequired");
+        assert_eq!(bus_trial["rights_status"], "Unknown");
+
+        let metrobus_reports = sources
+            .iter()
+            .find(|source| source["source_id"] == "METROBUS-QUARTERLY-PERFORMANCE-REPORTS")
+            .unwrap();
+        assert_eq!(metrobus_reports["access_status"], "PublicWithConditions");
+        assert_eq!(metrobus_reports["rights_status"], "Unknown");
 
         let transit = sources
             .iter()
