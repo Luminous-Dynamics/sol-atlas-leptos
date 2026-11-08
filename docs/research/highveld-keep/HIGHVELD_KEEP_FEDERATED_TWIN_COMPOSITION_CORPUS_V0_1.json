@@ -354,7 +354,8 @@
           "lot_state"
         ],
         "reason_codes": [],
-        "claim_ceiling": "synthetic_federated_composition_mechanics_only"
+        "claim_ceiling": "synthetic_federated_composition_mechanics_only",
+        "retrospective_historical_assessment": "reliable_for_declared_scope"
       }
     },
     {
@@ -665,7 +666,8 @@
         "reason_codes": [
           "MANDATORY_OWNER_EVIDENCE_MISSING"
         ],
-        "claim_ceiling": "synthetic_federated_composition_mechanics_only"
+        "claim_ceiling": "synthetic_federated_composition_mechanics_only",
+        "retrospective_historical_assessment": "insufficient_evidence"
       }
     },
     {
@@ -1043,7 +1045,8 @@
           "lot_state"
         ],
         "reason_codes": [],
-        "claim_ceiling": "synthetic_federated_composition_mechanics_only"
+        "claim_ceiling": "synthetic_federated_composition_mechanics_only",
+        "retrospective_historical_assessment": "reliable_for_declared_scope"
       }
     },
     {
@@ -1398,7 +1401,8 @@
           "lot_state"
         ],
         "reason_codes": [],
-        "claim_ceiling": "synthetic_federated_composition_mechanics_only"
+        "claim_ceiling": "synthetic_federated_composition_mechanics_only",
+        "retrospective_historical_assessment": "reliable_for_declared_scope"
       }
     },
     {
@@ -1745,7 +1749,8 @@
         "reason_codes": [
           "FUNCTIONAL_UNIT_MISMATCH"
         ],
-        "claim_ceiling": "synthetic_federated_composition_mechanics_only"
+        "claim_ceiling": "synthetic_federated_composition_mechanics_only",
+        "retrospective_historical_assessment": "not_comparable"
       }
     },
     {
@@ -2092,7 +2097,8 @@
         "reason_codes": [
           "ISSUER_AUTHORITY_INVALID"
         ],
-        "claim_ceiling": "synthetic_federated_composition_mechanics_only"
+        "claim_ceiling": "synthetic_federated_composition_mechanics_only",
+        "retrospective_historical_assessment": "not_authorized"
       }
     },
     {
@@ -2439,7 +2445,8 @@
         "reason_codes": [
           "PURPOSE_RIGHTS_REVOKED"
         ],
-        "claim_ceiling": "synthetic_federated_composition_mechanics_only"
+        "claim_ceiling": "synthetic_federated_composition_mechanics_only",
+        "retrospective_historical_assessment": "not_authorized"
       }
     },
     {
@@ -2786,7 +2793,8 @@
         "reason_codes": [
           "GEOMETRY_VERIFICATION_FAILED"
         ],
-        "claim_ceiling": "synthetic_federated_composition_mechanics_only"
+        "claim_ceiling": "synthetic_federated_composition_mechanics_only",
+        "retrospective_historical_assessment": "insufficient_evidence"
       }
     },
     {
@@ -3134,7 +3142,8 @@
         "reason_codes": [
           "DEPENDENCY_REVISION_CHANGED"
         ],
-        "claim_ceiling": "synthetic_federated_composition_mechanics_only"
+        "claim_ceiling": "synthetic_federated_composition_mechanics_only",
+        "retrospective_historical_assessment": "reliable_for_declared_scope"
       }
     },
     {
@@ -3503,7 +3512,7 @@
         }
       },
       "expected": {
-        "historical_reliance": "historical_basis_incomplete",
+        "historical_reliance": "reliable_for_declared_scope",
         "current_reliance": "revalidation_required",
         "automatic_identity_merges": 0,
         "disclosure_state": "permitted",
@@ -3514,7 +3523,8 @@
         "reason_codes": [
           "LATE_BACKDATED_SOURCE_CORRECTION"
         ],
-        "claim_ceiling": "synthetic_federated_composition_mechanics_only"
+        "claim_ceiling": "synthetic_federated_composition_mechanics_only",
+        "retrospective_historical_assessment": "historical_basis_incomplete"
       }
     },
     {
@@ -3894,7 +3904,8 @@
         "reason_codes": [
           "POST_DECISION_SOURCE_CORRECTION"
         ],
-        "claim_ceiling": "synthetic_federated_composition_mechanics_only"
+        "claim_ceiling": "synthetic_federated_composition_mechanics_only",
+        "retrospective_historical_assessment": "reliable_for_declared_scope"
       }
     },
     {
@@ -4241,7 +4252,8 @@
         "reason_codes": [
           "EVIDENCE_NOT_VISIBLE_AT_HISTORICAL_INGESTION_CUT"
         ],
-        "claim_ceiling": "synthetic_federated_composition_mechanics_only"
+        "claim_ceiling": "synthetic_federated_composition_mechanics_only",
+        "retrospective_historical_assessment": "insufficient_evidence"
       }
     },
     {
@@ -4589,7 +4601,8 @@
         "reason_codes": [
           "SOURCE_SCHEMA_UNSUPPORTED"
         ],
-        "claim_ceiling": "synthetic_federated_composition_mechanics_only"
+        "claim_ceiling": "synthetic_federated_composition_mechanics_only",
+        "retrospective_historical_assessment": "insufficient_evidence"
       }
     },
     {
@@ -4936,7 +4949,8 @@
         "reason_codes": [
           "SOURCE_INVENTORY_INCOMPLETE"
         ],
-        "claim_ceiling": "synthetic_federated_composition_mechanics_only"
+        "claim_ceiling": "synthetic_federated_composition_mechanics_only",
+        "retrospective_historical_assessment": "insufficient_evidence"
       }
     },
     {
@@ -5282,7 +5296,8 @@
         "reason_codes": [
           "DISCLOSURE_POLICY_DENIED"
         ],
-        "claim_ceiling": "synthetic_federated_composition_mechanics_only"
+        "claim_ceiling": "synthetic_federated_composition_mechanics_only",
+        "retrospective_historical_assessment": "not_authorized"
       }
     },
     {
@@ -5693,7 +5708,8 @@
         "reason_codes": [
           "SOURCE_EVIDENCE_REVOKED"
         ],
-        "claim_ceiling": "synthetic_federated_composition_mechanics_only"
+        "claim_ceiling": "synthetic_federated_composition_mechanics_only",
+        "retrospective_historical_assessment": "reliable_for_declared_scope"
       }
     },
     {
@@ -6040,7 +6056,8 @@
         "reason_codes": [
           "SOLVER_INPUT_DIGEST_MISMATCH"
         ],
-        "claim_ceiling": "synthetic_federated_composition_mechanics_only"
+        "claim_ceiling": "synthetic_federated_composition_mechanics_only",
+        "retrospective_historical_assessment": "reliable_for_declared_scope"
       }
     },
     {
@@ -6394,7 +6411,8 @@
           "BUILDING_COMMISSIONING_EVIDENCE_MISSING",
           "CONTINUITY_SERVICE_EVIDENCE_MISSING"
         ],
-        "claim_ceiling": "synthetic_federated_composition_mechanics_only"
+        "claim_ceiling": "synthetic_federated_composition_mechanics_only",
+        "retrospective_historical_assessment": "insufficient_evidence"
       }
     }
   ]
