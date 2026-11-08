@@ -82,6 +82,21 @@ The manifest identifies five decision-relevant unknowns:
 
 The stopping rule is decision-based: do not collect measurements simply because more data are available. Prioritize an observation when its possible outcomes can change hard-gate admissibility, remove an uncertainty-driven ranking reversal, or change which candidate remains on the feasible frontier. Without calibrated likelihoods, do not report expected monetary value of information.
 
+## 6A. South African regulatory status — edition and consultation are separate gates
+
+The SAIAT professional CPD portal identifies **SANS 10400-XA:2026, Edition 3**, reports publication early in 2026, and describes a change to the energy-efficient hot-water compliance route. This is specialist secondary evidence; it is not a substitute for the exact SABS catalogue record or a lawfully accessed copy of the standard. The exact publication metadata, effective/transition dates, clauses and project applicability have not been independently established here. Accordingly:
+
+- Do not describe Edition 2 (2021) as the latest identified edition.
+- Keep the Highveld register status `Version_or_Applicability_Unknown` until the official SABS record and the applicable project/occupancy pathway are reviewed.
+- Do not encode clause-level XA compliance logic from secondary course notes.
+- Bind every future compliance calculation to the exact standard edition, project date, building class, method, input data, qualified responsible person and municipal decision.
+
+The 2026 National Building Regulations and Building Standards Amendment Bill is still a draft. The official government notice gives the public-comment deadline as **12 November 2026 at 12:00**. A consultation response, if pursued, should be professionally reviewed and separately authorized; this adapter does not constitute a submission or imply that the Bill is enacted law.
+
+Sources:
+- SAIAT CPD specialist update: https://cpd.saiat.org.za/sans-10400-xa-3rd-edition-cc
+- South African Government public-comment notice: https://www.gov.za/news/media-statements/public-comment-invited-national-building-regulations-and-building-standards
+
 ## 7. Industry comparison: use the right baselines
 
 | Baseline | What it already does | Luminous comparison boundary |
