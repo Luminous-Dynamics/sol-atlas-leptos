@@ -1525,7 +1525,6 @@ mod tests {
     }
 }
 
-
 pub mod resilience_binding;
 pub use resilience_binding::{
     ResilienceBindingReport, validate_resilience_binding_values,
