@@ -33,7 +33,7 @@
       "runtime_revision": "454805a7b9fb0a3dd039bb7aaa475769637f68b4",
       "contract_kind": "json_schema_plus_rust_auditor",
       "schema_id": "luminous.built-environment-dependency-coverage.v0.1",
-      "schema_version": "0.1",
+      "schema_version": "luminous.built-environment-dependency-coverage.v0.1",
       "expected_claim_ceiling": "coverage_only",
       "owner_scope_note": "Qualifies declared-scope source inventory and relationship coverage, not real-world completeness or impact traversal correctness."
     },
