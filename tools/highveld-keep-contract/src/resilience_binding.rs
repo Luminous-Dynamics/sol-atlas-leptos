@@ -321,8 +321,7 @@ pub fn validate_resilience_binding_values(
     push(
         &mut violations,
         trajectory_owner.is_none_or(|owner| {
-            string_at(owner, "status")
-                != Some("SOFTWARE_ORACLE_QUALIFIED_E1_SYNTHETIC_EXACT_HEAD")
+            string_at(owner, "status") != Some("SOFTWARE_ORACLE_QUALIFIED_E1_SYNTHETIC_EXACT_HEAD")
                 || string_at(owner, "qualification_receipt_id")
                     != Some("SYM-SPATIAL-RESILIENCE-001-QUAL-2026-11-08")
         }),
@@ -750,8 +749,7 @@ mod tests {
 
     #[test]
     fn exact_head_symtropy_trajectory_owner_receipt_is_present() {
-        let report =
-            validate_tracked_resilience_binding().expect("tracked owner receipt parses");
+        let report = validate_tracked_resilience_binding().expect("tracked owner receipt parses");
         assert!(report.is_valid(), "{:?}", report.violations);
     }
 
