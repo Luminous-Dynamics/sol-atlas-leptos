@@ -1,0 +1,3569 @@
+{
+  "schema_version": "luminous.city-service-requalification-corpus.v0.1",
+  "corpus_id": "CITY-SERVICE-REQUALIFICATION-CORPUS-V0.1",
+  "classification": "synthetic_fixture_only",
+  "claim_ceiling": "synthetic owner-report envelope and state-composition semantics only; no report-content authentication, engineering threshold validation, physical safety determination, source completeness or action authority",
+  "cases": [
+    {
+      "case_id": "SR-01",
+      "name": "Unaffected adequate service has no requalification obligation",
+      "input": {
+        "event": {
+          "event_id": "CITY-EVENT-SYNTHETIC-001",
+          "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "change_class": "service_asset_revision",
+          "subject_node_id": "asset:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "subject_revision": "REV-2",
+          "time_basis": "UTC_RFC3339_SECONDS",
+          "valid_time": {
+            "effective_at": "2026-11-07T00:00:00Z",
+            "effective_until": null,
+            "effective_time_confidence": "verified"
+          },
+          "system_time": {
+            "recorded_at": "2026-11-08T10:00:00Z",
+            "trusted_at": "2026-11-08T10:00:30Z",
+            "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          }
+        },
+        "query": {
+          "scope_id": "SYNTHETIC-DISTRICT-01",
+          "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "functional_unit": "service-capacity-per-district",
+          "required_population_groups": [
+            "residents",
+            "accessible-housing"
+          ],
+          "temporal_cutoff": {
+            "time_basis": "UTC_RFC3339_SECONDS",
+            "world_time_as_of": "2026-11-08T12:00:00Z",
+            "knowledge_time_as_of": "2026-11-08T11:00:00Z",
+            "trust_time_as_of": "2026-11-08T11:00:30Z",
+            "evaluated_at": "2026-11-08T12:00:00Z",
+            "temporal_perspective": "historically_known_then"
+          },
+          "service_requirements": [
+            {
+              "service_id": "water-main-01",
+              "owner_id": "water-utility-owner",
+              "owner_repo": "Synthetic/Water-Utility",
+              "contract_ref": "urn:synthetic:water-service-contract:v0.1",
+              "contract_revision": "1111111111111111111111111111111111111111",
+              "schema_id": "luminous.synthetic.water-service-impact.v0.1",
+              "schema_version": "0.1.0",
+              "runtime_revision": "2222222222222222222222222222222222222222",
+              "report_kind": "CityServiceImpactAssessment",
+              "required_population_groups": [
+                "residents",
+                "accessible-housing"
+              ]
+            }
+          ]
+        },
+        "service_reports": [
+          {
+            "report_id": "SERVICE-REPORT-SYNTHETIC-001",
+            "service_id": "water-main-01",
+            "owner_id": "water-utility-owner",
+            "owner_repo": "Synthetic/Water-Utility",
+            "contract_ref": "urn:synthetic:water-service-contract:v0.1",
+            "contract_revision": "1111111111111111111111111111111111111111",
+            "schema_id": "luminous.synthetic.water-service-impact.v0.1",
+            "schema_version": "0.1.0",
+            "runtime_revision": "2222222222222222222222222222222222222222",
+            "report_kind": "CityServiceImpactAssessment",
+            "event_id": "CITY-EVENT-SYNTHETIC-001",
+            "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "subject_node_id": "asset:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "subject_revision": "REV-2",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "functional_unit": "service-capacity-per-district",
+            "evaluated_at": "2026-11-08T12:00:00Z",
+            "temporal_cutoff": {
+              "time_basis": "UTC_RFC3339_SECONDS",
+              "world_time_as_of": "2026-11-08T12:00:00Z",
+              "knowledge_time_as_of": "2026-11-08T11:00:00Z",
+              "trust_time_as_of": "2026-11-08T11:00:30Z",
+              "evaluated_at": "2026-11-08T12:00:00Z",
+              "temporal_perspective": "historically_known_then"
+            },
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "verified"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": "2026-11-08T10:00:30Z",
+              "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            },
+            "report_sha256": "8888888888888888888888888888888888888888888888888888888888888888",
+            "report_reference": "cas:sha256:8888888888888888888888888888888888888888888888888888888888888888",
+            "action_authority": "none",
+            "service_state": "adequate",
+            "affected": false,
+            "population_groups": [
+              "residents",
+              "accessible-housing"
+            ],
+            "required_obligations": [],
+            "restoration": null
+          }
+        ]
+      },
+      "expected": {
+        "route_state": "contract_bound_unverified",
+        "service_results": [
+          {
+            "service_id": "water-main-01",
+            "report_state": "contract_bound_unverified",
+            "service_state": "adequate",
+            "requalification_state": "not_required_for_declared_scope",
+            "restoration_state": "not_planned"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "SR-02",
+      "name": "Feasible plan does not restore interrupted service",
+      "input": {
+        "event": {
+          "event_id": "CITY-EVENT-SYNTHETIC-001",
+          "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "change_class": "service_asset_revision",
+          "subject_node_id": "asset:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "subject_revision": "REV-2",
+          "time_basis": "UTC_RFC3339_SECONDS",
+          "valid_time": {
+            "effective_at": "2026-11-07T00:00:00Z",
+            "effective_until": null,
+            "effective_time_confidence": "verified"
+          },
+          "system_time": {
+            "recorded_at": "2026-11-08T10:00:00Z",
+            "trusted_at": "2026-11-08T10:00:30Z",
+            "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          }
+        },
+        "query": {
+          "scope_id": "SYNTHETIC-DISTRICT-01",
+          "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "functional_unit": "service-capacity-per-district",
+          "required_population_groups": [
+            "residents",
+            "accessible-housing"
+          ],
+          "temporal_cutoff": {
+            "time_basis": "UTC_RFC3339_SECONDS",
+            "world_time_as_of": "2026-11-08T12:00:00Z",
+            "knowledge_time_as_of": "2026-11-08T11:00:00Z",
+            "trust_time_as_of": "2026-11-08T11:00:30Z",
+            "evaluated_at": "2026-11-08T12:00:00Z",
+            "temporal_perspective": "historically_known_then"
+          },
+          "service_requirements": [
+            {
+              "service_id": "water-main-01",
+              "owner_id": "water-utility-owner",
+              "owner_repo": "Synthetic/Water-Utility",
+              "contract_ref": "urn:synthetic:water-service-contract:v0.1",
+              "contract_revision": "1111111111111111111111111111111111111111",
+              "schema_id": "luminous.synthetic.water-service-impact.v0.1",
+              "schema_version": "0.1.0",
+              "runtime_revision": "2222222222222222222222222222222222222222",
+              "report_kind": "CityServiceImpactAssessment",
+              "required_population_groups": [
+                "residents",
+                "accessible-housing"
+              ]
+            }
+          ]
+        },
+        "service_reports": [
+          {
+            "report_id": "SERVICE-REPORT-SYNTHETIC-001",
+            "service_id": "water-main-01",
+            "owner_id": "water-utility-owner",
+            "owner_repo": "Synthetic/Water-Utility",
+            "contract_ref": "urn:synthetic:water-service-contract:v0.1",
+            "contract_revision": "1111111111111111111111111111111111111111",
+            "schema_id": "luminous.synthetic.water-service-impact.v0.1",
+            "schema_version": "0.1.0",
+            "runtime_revision": "2222222222222222222222222222222222222222",
+            "report_kind": "CityServiceImpactAssessment",
+            "event_id": "CITY-EVENT-SYNTHETIC-001",
+            "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "subject_node_id": "asset:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "subject_revision": "REV-2",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "functional_unit": "service-capacity-per-district",
+            "evaluated_at": "2026-11-08T12:00:00Z",
+            "temporal_cutoff": {
+              "time_basis": "UTC_RFC3339_SECONDS",
+              "world_time_as_of": "2026-11-08T12:00:00Z",
+              "knowledge_time_as_of": "2026-11-08T11:00:00Z",
+              "trust_time_as_of": "2026-11-08T11:00:30Z",
+              "evaluated_at": "2026-11-08T12:00:00Z",
+              "temporal_perspective": "historically_known_then"
+            },
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "verified"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": "2026-11-08T10:00:30Z",
+              "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            },
+            "report_sha256": "8888888888888888888888888888888888888888888888888888888888888888",
+            "report_reference": "cas:sha256:8888888888888888888888888888888888888888888888888888888888888888",
+            "action_authority": "none",
+            "service_state": "interrupted",
+            "affected": true,
+            "population_groups": [
+              "residents",
+              "accessible-housing"
+            ],
+            "required_obligations": [
+              {
+                "obligation_id": "WATER-PRESSURE-REQUAL-001",
+                "owner_id": "water-asset-engineer",
+                "state": "required_open"
+              }
+            ],
+            "restoration": {
+              "plan_state": "feasible",
+              "execution_state": "not_started"
+            }
+          }
+        ]
+      },
+      "expected": {
+        "route_state": "contract_bound_unverified",
+        "service_results": [
+          {
+            "service_id": "water-main-01",
+            "report_state": "contract_bound_unverified",
+            "service_state": "interrupted",
+            "requalification_state": "required_open",
+            "restoration_state": "plan_feasible"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "SR-03",
+      "name": "Infeasible repair plan remains separate from blocked requalification",
+      "input": {
+        "event": {
+          "event_id": "CITY-EVENT-SYNTHETIC-001",
+          "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "change_class": "service_asset_revision",
+          "subject_node_id": "asset:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "subject_revision": "REV-2",
+          "time_basis": "UTC_RFC3339_SECONDS",
+          "valid_time": {
+            "effective_at": "2026-11-07T00:00:00Z",
+            "effective_until": null,
+            "effective_time_confidence": "verified"
+          },
+          "system_time": {
+            "recorded_at": "2026-11-08T10:00:00Z",
+            "trusted_at": "2026-11-08T10:00:30Z",
+            "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          }
+        },
+        "query": {
+          "scope_id": "SYNTHETIC-DISTRICT-01",
+          "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "functional_unit": "service-capacity-per-district",
+          "required_population_groups": [
+            "residents",
+            "accessible-housing"
+          ],
+          "temporal_cutoff": {
+            "time_basis": "UTC_RFC3339_SECONDS",
+            "world_time_as_of": "2026-11-08T12:00:00Z",
+            "knowledge_time_as_of": "2026-11-08T11:00:00Z",
+            "trust_time_as_of": "2026-11-08T11:00:30Z",
+            "evaluated_at": "2026-11-08T12:00:00Z",
+            "temporal_perspective": "historically_known_then"
+          },
+          "service_requirements": [
+            {
+              "service_id": "water-main-01",
+              "owner_id": "water-utility-owner",
+              "owner_repo": "Synthetic/Water-Utility",
+              "contract_ref": "urn:synthetic:water-service-contract:v0.1",
+              "contract_revision": "1111111111111111111111111111111111111111",
+              "schema_id": "luminous.synthetic.water-service-impact.v0.1",
+              "schema_version": "0.1.0",
+              "runtime_revision": "2222222222222222222222222222222222222222",
+              "report_kind": "CityServiceImpactAssessment",
+              "required_population_groups": [
+                "residents",
+                "accessible-housing"
+              ]
+            }
+          ]
+        },
+        "service_reports": [
+          {
+            "report_id": "SERVICE-REPORT-SYNTHETIC-001",
+            "service_id": "water-main-01",
+            "owner_id": "water-utility-owner",
+            "owner_repo": "Synthetic/Water-Utility",
+            "contract_ref": "urn:synthetic:water-service-contract:v0.1",
+            "contract_revision": "1111111111111111111111111111111111111111",
+            "schema_id": "luminous.synthetic.water-service-impact.v0.1",
+            "schema_version": "0.1.0",
+            "runtime_revision": "2222222222222222222222222222222222222222",
+            "report_kind": "CityServiceImpactAssessment",
+            "event_id": "CITY-EVENT-SYNTHETIC-001",
+            "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "subject_node_id": "asset:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "subject_revision": "REV-2",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "functional_unit": "service-capacity-per-district",
+            "evaluated_at": "2026-11-08T12:00:00Z",
+            "temporal_cutoff": {
+              "time_basis": "UTC_RFC3339_SECONDS",
+              "world_time_as_of": "2026-11-08T12:00:00Z",
+              "knowledge_time_as_of": "2026-11-08T11:00:00Z",
+              "trust_time_as_of": "2026-11-08T11:00:30Z",
+              "evaluated_at": "2026-11-08T12:00:00Z",
+              "temporal_perspective": "historically_known_then"
+            },
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "verified"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": "2026-11-08T10:00:30Z",
+              "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            },
+            "report_sha256": "8888888888888888888888888888888888888888888888888888888888888888",
+            "report_reference": "cas:sha256:8888888888888888888888888888888888888888888888888888888888888888",
+            "action_authority": "none",
+            "service_state": "interrupted",
+            "affected": true,
+            "population_groups": [
+              "residents",
+              "accessible-housing"
+            ],
+            "required_obligations": [
+              {
+                "obligation_id": "WATER-PRESSURE-REQUAL-001",
+                "owner_id": "water-asset-engineer",
+                "state": "blocked_insufficient_evidence"
+              }
+            ],
+            "restoration": {
+              "plan_state": "infeasible",
+              "execution_state": "not_started"
+            }
+          }
+        ]
+      },
+      "expected": {
+        "route_state": "contract_bound_unverified",
+        "service_results": [
+          {
+            "service_id": "water-main-01",
+            "report_state": "contract_bound_unverified",
+            "service_state": "interrupted",
+            "requalification_state": "blocked_insufficient_evidence",
+            "restoration_state": "plan_infeasible"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "SR-04",
+      "name": "Completed work without inspection remains pending",
+      "input": {
+        "event": {
+          "event_id": "CITY-EVENT-SYNTHETIC-001",
+          "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "change_class": "service_asset_revision",
+          "subject_node_id": "asset:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "subject_revision": "REV-2",
+          "time_basis": "UTC_RFC3339_SECONDS",
+          "valid_time": {
+            "effective_at": "2026-11-07T00:00:00Z",
+            "effective_until": null,
+            "effective_time_confidence": "verified"
+          },
+          "system_time": {
+            "recorded_at": "2026-11-08T10:00:00Z",
+            "trusted_at": "2026-11-08T10:00:30Z",
+            "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          }
+        },
+        "query": {
+          "scope_id": "SYNTHETIC-DISTRICT-01",
+          "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "functional_unit": "service-capacity-per-district",
+          "required_population_groups": [
+            "residents",
+            "accessible-housing"
+          ],
+          "temporal_cutoff": {
+            "time_basis": "UTC_RFC3339_SECONDS",
+            "world_time_as_of": "2026-11-08T12:00:00Z",
+            "knowledge_time_as_of": "2026-11-08T11:00:00Z",
+            "trust_time_as_of": "2026-11-08T11:00:30Z",
+            "evaluated_at": "2026-11-08T12:00:00Z",
+            "temporal_perspective": "historically_known_then"
+          },
+          "service_requirements": [
+            {
+              "service_id": "water-main-01",
+              "owner_id": "water-utility-owner",
+              "owner_repo": "Synthetic/Water-Utility",
+              "contract_ref": "urn:synthetic:water-service-contract:v0.1",
+              "contract_revision": "1111111111111111111111111111111111111111",
+              "schema_id": "luminous.synthetic.water-service-impact.v0.1",
+              "schema_version": "0.1.0",
+              "runtime_revision": "2222222222222222222222222222222222222222",
+              "report_kind": "CityServiceImpactAssessment",
+              "required_population_groups": [
+                "residents",
+                "accessible-housing"
+              ]
+            }
+          ]
+        },
+        "service_reports": [
+          {
+            "report_id": "SERVICE-REPORT-SYNTHETIC-001",
+            "service_id": "water-main-01",
+            "owner_id": "water-utility-owner",
+            "owner_repo": "Synthetic/Water-Utility",
+            "contract_ref": "urn:synthetic:water-service-contract:v0.1",
+            "contract_revision": "1111111111111111111111111111111111111111",
+            "schema_id": "luminous.synthetic.water-service-impact.v0.1",
+            "schema_version": "0.1.0",
+            "runtime_revision": "2222222222222222222222222222222222222222",
+            "report_kind": "CityServiceImpactAssessment",
+            "event_id": "CITY-EVENT-SYNTHETIC-001",
+            "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "subject_node_id": "asset:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "subject_revision": "REV-2",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "functional_unit": "service-capacity-per-district",
+            "evaluated_at": "2026-11-08T12:00:00Z",
+            "temporal_cutoff": {
+              "time_basis": "UTC_RFC3339_SECONDS",
+              "world_time_as_of": "2026-11-08T12:00:00Z",
+              "knowledge_time_as_of": "2026-11-08T11:00:00Z",
+              "trust_time_as_of": "2026-11-08T11:00:30Z",
+              "evaluated_at": "2026-11-08T12:00:00Z",
+              "temporal_perspective": "historically_known_then"
+            },
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "verified"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": "2026-11-08T10:00:30Z",
+              "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            },
+            "report_sha256": "8888888888888888888888888888888888888888888888888888888888888888",
+            "report_reference": "cas:sha256:8888888888888888888888888888888888888888888888888888888888888888",
+            "action_authority": "none",
+            "service_state": "interrupted",
+            "affected": true,
+            "population_groups": [
+              "residents",
+              "accessible-housing"
+            ],
+            "required_obligations": [
+              {
+                "obligation_id": "WATER-PRESSURE-REQUAL-001",
+                "owner_id": "water-asset-engineer",
+                "state": "required_open"
+              }
+            ],
+            "restoration": {
+              "plan_state": "feasible",
+              "execution_state": "completed"
+            }
+          }
+        ]
+      },
+      "expected": {
+        "route_state": "contract_bound_unverified",
+        "service_results": [
+          {
+            "service_id": "water-main-01",
+            "report_state": "contract_bound_unverified",
+            "service_state": "interrupted",
+            "requalification_state": "required_open",
+            "restoration_state": "awaiting_inspection_or_commissioning"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "SR-05",
+      "name": "Inspection pass without commissioning remains pending",
+      "input": {
+        "event": {
+          "event_id": "CITY-EVENT-SYNTHETIC-001",
+          "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "change_class": "service_asset_revision",
+          "subject_node_id": "asset:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "subject_revision": "REV-2",
+          "time_basis": "UTC_RFC3339_SECONDS",
+          "valid_time": {
+            "effective_at": "2026-11-07T00:00:00Z",
+            "effective_until": null,
+            "effective_time_confidence": "verified"
+          },
+          "system_time": {
+            "recorded_at": "2026-11-08T10:00:00Z",
+            "trusted_at": "2026-11-08T10:00:30Z",
+            "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          }
+        },
+        "query": {
+          "scope_id": "SYNTHETIC-DISTRICT-01",
+          "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "functional_unit": "service-capacity-per-district",
+          "required_population_groups": [
+            "residents",
+            "accessible-housing"
+          ],
+          "temporal_cutoff": {
+            "time_basis": "UTC_RFC3339_SECONDS",
+            "world_time_as_of": "2026-11-08T12:00:00Z",
+            "knowledge_time_as_of": "2026-11-08T11:00:00Z",
+            "trust_time_as_of": "2026-11-08T11:00:30Z",
+            "evaluated_at": "2026-11-08T12:00:00Z",
+            "temporal_perspective": "historically_known_then"
+          },
+          "service_requirements": [
+            {
+              "service_id": "water-main-01",
+              "owner_id": "water-utility-owner",
+              "owner_repo": "Synthetic/Water-Utility",
+              "contract_ref": "urn:synthetic:water-service-contract:v0.1",
+              "contract_revision": "1111111111111111111111111111111111111111",
+              "schema_id": "luminous.synthetic.water-service-impact.v0.1",
+              "schema_version": "0.1.0",
+              "runtime_revision": "2222222222222222222222222222222222222222",
+              "report_kind": "CityServiceImpactAssessment",
+              "required_population_groups": [
+                "residents",
+                "accessible-housing"
+              ]
+            }
+          ]
+        },
+        "service_reports": [
+          {
+            "report_id": "SERVICE-REPORT-SYNTHETIC-001",
+            "service_id": "water-main-01",
+            "owner_id": "water-utility-owner",
+            "owner_repo": "Synthetic/Water-Utility",
+            "contract_ref": "urn:synthetic:water-service-contract:v0.1",
+            "contract_revision": "1111111111111111111111111111111111111111",
+            "schema_id": "luminous.synthetic.water-service-impact.v0.1",
+            "schema_version": "0.1.0",
+            "runtime_revision": "2222222222222222222222222222222222222222",
+            "report_kind": "CityServiceImpactAssessment",
+            "event_id": "CITY-EVENT-SYNTHETIC-001",
+            "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "subject_node_id": "asset:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "subject_revision": "REV-2",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "functional_unit": "service-capacity-per-district",
+            "evaluated_at": "2026-11-08T12:00:00Z",
+            "temporal_cutoff": {
+              "time_basis": "UTC_RFC3339_SECONDS",
+              "world_time_as_of": "2026-11-08T12:00:00Z",
+              "knowledge_time_as_of": "2026-11-08T11:00:00Z",
+              "trust_time_as_of": "2026-11-08T11:00:30Z",
+              "evaluated_at": "2026-11-08T12:00:00Z",
+              "temporal_perspective": "historically_known_then"
+            },
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "verified"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": "2026-11-08T10:00:30Z",
+              "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            },
+            "report_sha256": "8888888888888888888888888888888888888888888888888888888888888888",
+            "report_reference": "cas:sha256:8888888888888888888888888888888888888888888888888888888888888888",
+            "action_authority": "none",
+            "service_state": "interrupted",
+            "affected": true,
+            "population_groups": [
+              "residents",
+              "accessible-housing"
+            ],
+            "required_obligations": [
+              {
+                "obligation_id": "WATER-PRESSURE-REQUAL-001",
+                "owner_id": "water-asset-engineer",
+                "state": "required_open"
+              }
+            ],
+            "restoration": {
+              "plan_state": "feasible",
+              "execution_state": "completed",
+              "inspection": {
+                "receipt_kind": "inspection",
+                "status": "passed",
+                "service_id": "water-main-01",
+                "event_id": "CITY-EVENT-SYNTHETIC-001",
+                "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "asset_revision": "REV-2",
+                "scope_id": "SYNTHETIC-DISTRICT-01",
+                "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "functional_unit": "service-capacity-per-district",
+                "population_groups": [
+                  "residents",
+                  "accessible-housing"
+                ],
+                "evaluated_at": "2026-11-08T12:00:00Z",
+                "receipt_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+                "action_authority": "none"
+              },
+              "commissioning": {
+                "receipt_kind": "commissioning",
+                "status": "pending",
+                "service_id": "water-main-01",
+                "event_id": "CITY-EVENT-SYNTHETIC-001",
+                "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "asset_revision": "REV-2",
+                "scope_id": "SYNTHETIC-DISTRICT-01",
+                "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "functional_unit": "service-capacity-per-district",
+                "population_groups": [
+                  "residents",
+                  "accessible-housing"
+                ],
+                "evaluated_at": "2026-11-08T12:00:00Z",
+                "receipt_sha256": "4444444444444444444444444444444444444444444444444444444444444444",
+                "action_authority": "none"
+              }
+            }
+          }
+        ]
+      },
+      "expected": {
+        "route_state": "contract_bound_unverified",
+        "service_results": [
+          {
+            "service_id": "water-main-01",
+            "report_state": "contract_bound_unverified",
+            "service_state": "interrupted",
+            "requalification_state": "required_open",
+            "restoration_state": "awaiting_inspection_or_commissioning"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "SR-06",
+      "name": "Inspection and commissioning without outcome measurement remain pending",
+      "input": {
+        "event": {
+          "event_id": "CITY-EVENT-SYNTHETIC-001",
+          "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "change_class": "service_asset_revision",
+          "subject_node_id": "asset:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "subject_revision": "REV-2",
+          "time_basis": "UTC_RFC3339_SECONDS",
+          "valid_time": {
+            "effective_at": "2026-11-07T00:00:00Z",
+            "effective_until": null,
+            "effective_time_confidence": "verified"
+          },
+          "system_time": {
+            "recorded_at": "2026-11-08T10:00:00Z",
+            "trusted_at": "2026-11-08T10:00:30Z",
+            "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          }
+        },
+        "query": {
+          "scope_id": "SYNTHETIC-DISTRICT-01",
+          "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "functional_unit": "service-capacity-per-district",
+          "required_population_groups": [
+            "residents",
+            "accessible-housing"
+          ],
+          "temporal_cutoff": {
+            "time_basis": "UTC_RFC3339_SECONDS",
+            "world_time_as_of": "2026-11-08T12:00:00Z",
+            "knowledge_time_as_of": "2026-11-08T11:00:00Z",
+            "trust_time_as_of": "2026-11-08T11:00:30Z",
+            "evaluated_at": "2026-11-08T12:00:00Z",
+            "temporal_perspective": "historically_known_then"
+          },
+          "service_requirements": [
+            {
+              "service_id": "water-main-01",
+              "owner_id": "water-utility-owner",
+              "owner_repo": "Synthetic/Water-Utility",
+              "contract_ref": "urn:synthetic:water-service-contract:v0.1",
+              "contract_revision": "1111111111111111111111111111111111111111",
+              "schema_id": "luminous.synthetic.water-service-impact.v0.1",
+              "schema_version": "0.1.0",
+              "runtime_revision": "2222222222222222222222222222222222222222",
+              "report_kind": "CityServiceImpactAssessment",
+              "required_population_groups": [
+                "residents",
+                "accessible-housing"
+              ]
+            }
+          ]
+        },
+        "service_reports": [
+          {
+            "report_id": "SERVICE-REPORT-SYNTHETIC-001",
+            "service_id": "water-main-01",
+            "owner_id": "water-utility-owner",
+            "owner_repo": "Synthetic/Water-Utility",
+            "contract_ref": "urn:synthetic:water-service-contract:v0.1",
+            "contract_revision": "1111111111111111111111111111111111111111",
+            "schema_id": "luminous.synthetic.water-service-impact.v0.1",
+            "schema_version": "0.1.0",
+            "runtime_revision": "2222222222222222222222222222222222222222",
+            "report_kind": "CityServiceImpactAssessment",
+            "event_id": "CITY-EVENT-SYNTHETIC-001",
+            "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "subject_node_id": "asset:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "subject_revision": "REV-2",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "functional_unit": "service-capacity-per-district",
+            "evaluated_at": "2026-11-08T12:00:00Z",
+            "temporal_cutoff": {
+              "time_basis": "UTC_RFC3339_SECONDS",
+              "world_time_as_of": "2026-11-08T12:00:00Z",
+              "knowledge_time_as_of": "2026-11-08T11:00:00Z",
+              "trust_time_as_of": "2026-11-08T11:00:30Z",
+              "evaluated_at": "2026-11-08T12:00:00Z",
+              "temporal_perspective": "historically_known_then"
+            },
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "verified"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": "2026-11-08T10:00:30Z",
+              "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            },
+            "report_sha256": "8888888888888888888888888888888888888888888888888888888888888888",
+            "report_reference": "cas:sha256:8888888888888888888888888888888888888888888888888888888888888888",
+            "action_authority": "none",
+            "service_state": "interrupted",
+            "affected": true,
+            "population_groups": [
+              "residents",
+              "accessible-housing"
+            ],
+            "required_obligations": [
+              {
+                "obligation_id": "WATER-PRESSURE-REQUAL-001",
+                "owner_id": "water-asset-engineer",
+                "state": "required_open"
+              }
+            ],
+            "restoration": {
+              "plan_state": "feasible",
+              "execution_state": "completed",
+              "inspection": {
+                "receipt_kind": "inspection",
+                "status": "passed",
+                "service_id": "water-main-01",
+                "event_id": "CITY-EVENT-SYNTHETIC-001",
+                "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "asset_revision": "REV-2",
+                "scope_id": "SYNTHETIC-DISTRICT-01",
+                "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "functional_unit": "service-capacity-per-district",
+                "population_groups": [
+                  "residents",
+                  "accessible-housing"
+                ],
+                "evaluated_at": "2026-11-08T12:00:00Z",
+                "receipt_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+                "action_authority": "none"
+              },
+              "commissioning": {
+                "receipt_kind": "commissioning",
+                "status": "passed",
+                "service_id": "water-main-01",
+                "event_id": "CITY-EVENT-SYNTHETIC-001",
+                "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "asset_revision": "REV-2",
+                "scope_id": "SYNTHETIC-DISTRICT-01",
+                "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "functional_unit": "service-capacity-per-district",
+                "population_groups": [
+                  "residents",
+                  "accessible-housing"
+                ],
+                "evaluated_at": "2026-11-08T12:00:00Z",
+                "receipt_sha256": "4444444444444444444444444444444444444444444444444444444444444444",
+                "action_authority": "none"
+              }
+            }
+          }
+        ]
+      },
+      "expected": {
+        "route_state": "contract_bound_unverified",
+        "service_results": [
+          {
+            "service_id": "water-main-01",
+            "report_state": "contract_bound_unverified",
+            "service_state": "interrupted",
+            "requalification_state": "required_open",
+            "restoration_state": "awaiting_outcome_measurement"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "SR-07",
+      "name": "Restoration requires exact inspection, commissioning, measurement and discharged obligation",
+      "input": {
+        "event": {
+          "event_id": "CITY-EVENT-SYNTHETIC-001",
+          "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "change_class": "service_asset_revision",
+          "subject_node_id": "asset:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "subject_revision": "REV-2",
+          "time_basis": "UTC_RFC3339_SECONDS",
+          "valid_time": {
+            "effective_at": "2026-11-07T00:00:00Z",
+            "effective_until": null,
+            "effective_time_confidence": "verified"
+          },
+          "system_time": {
+            "recorded_at": "2026-11-08T10:00:00Z",
+            "trusted_at": "2026-11-08T10:00:30Z",
+            "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          }
+        },
+        "query": {
+          "scope_id": "SYNTHETIC-DISTRICT-01",
+          "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "functional_unit": "service-capacity-per-district",
+          "required_population_groups": [
+            "residents",
+            "accessible-housing"
+          ],
+          "temporal_cutoff": {
+            "time_basis": "UTC_RFC3339_SECONDS",
+            "world_time_as_of": "2026-11-08T12:00:00Z",
+            "knowledge_time_as_of": "2026-11-08T11:00:00Z",
+            "trust_time_as_of": "2026-11-08T11:00:30Z",
+            "evaluated_at": "2026-11-08T12:00:00Z",
+            "temporal_perspective": "historically_known_then"
+          },
+          "service_requirements": [
+            {
+              "service_id": "water-main-01",
+              "owner_id": "water-utility-owner",
+              "owner_repo": "Synthetic/Water-Utility",
+              "contract_ref": "urn:synthetic:water-service-contract:v0.1",
+              "contract_revision": "1111111111111111111111111111111111111111",
+              "schema_id": "luminous.synthetic.water-service-impact.v0.1",
+              "schema_version": "0.1.0",
+              "runtime_revision": "2222222222222222222222222222222222222222",
+              "report_kind": "CityServiceImpactAssessment",
+              "required_population_groups": [
+                "residents",
+                "accessible-housing"
+              ]
+            }
+          ]
+        },
+        "service_reports": [
+          {
+            "report_id": "SERVICE-REPORT-SYNTHETIC-001",
+            "service_id": "water-main-01",
+            "owner_id": "water-utility-owner",
+            "owner_repo": "Synthetic/Water-Utility",
+            "contract_ref": "urn:synthetic:water-service-contract:v0.1",
+            "contract_revision": "1111111111111111111111111111111111111111",
+            "schema_id": "luminous.synthetic.water-service-impact.v0.1",
+            "schema_version": "0.1.0",
+            "runtime_revision": "2222222222222222222222222222222222222222",
+            "report_kind": "CityServiceImpactAssessment",
+            "event_id": "CITY-EVENT-SYNTHETIC-001",
+            "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "subject_node_id": "asset:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "subject_revision": "REV-2",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "functional_unit": "service-capacity-per-district",
+            "evaluated_at": "2026-11-08T12:00:00Z",
+            "temporal_cutoff": {
+              "time_basis": "UTC_RFC3339_SECONDS",
+              "world_time_as_of": "2026-11-08T12:00:00Z",
+              "knowledge_time_as_of": "2026-11-08T11:00:00Z",
+              "trust_time_as_of": "2026-11-08T11:00:30Z",
+              "evaluated_at": "2026-11-08T12:00:00Z",
+              "temporal_perspective": "historically_known_then"
+            },
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "verified"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": "2026-11-08T10:00:30Z",
+              "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            },
+            "report_sha256": "8888888888888888888888888888888888888888888888888888888888888888",
+            "report_reference": "cas:sha256:8888888888888888888888888888888888888888888888888888888888888888",
+            "action_authority": "none",
+            "service_state": "adequate",
+            "affected": true,
+            "population_groups": [
+              "residents",
+              "accessible-housing"
+            ],
+            "required_obligations": [
+              {
+                "obligation_id": "WATER-PRESSURE-REQUAL-001",
+                "owner_id": "water-asset-engineer",
+                "state": "discharged_by_exact_receipt",
+                "discharge_receipt": {
+                  "obligation_id": "WATER-PRESSURE-REQUAL-001",
+                  "owner_id": "water-asset-engineer",
+                  "event_id": "CITY-EVENT-SYNTHETIC-001",
+                  "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "asset_revision": "REV-2",
+                  "scope_id": "SYNTHETIC-DISTRICT-01",
+                  "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                  "functional_unit": "service-capacity-per-district",
+                  "evaluated_at": "2026-11-08T12:00:00Z",
+                  "receipt_sha256": "7777777777777777777777777777777777777777777777777777777777777777",
+                  "action_authority": "none"
+                }
+              }
+            ],
+            "restoration": {
+              "plan_state": "feasible",
+              "execution_state": "completed",
+              "inspection": {
+                "receipt_kind": "inspection",
+                "status": "passed",
+                "service_id": "water-main-01",
+                "event_id": "CITY-EVENT-SYNTHETIC-001",
+                "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "asset_revision": "REV-2",
+                "scope_id": "SYNTHETIC-DISTRICT-01",
+                "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "functional_unit": "service-capacity-per-district",
+                "population_groups": [
+                  "residents",
+                  "accessible-housing"
+                ],
+                "evaluated_at": "2026-11-08T12:00:00Z",
+                "receipt_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+                "action_authority": "none"
+              },
+              "commissioning": {
+                "receipt_kind": "commissioning",
+                "status": "passed",
+                "service_id": "water-main-01",
+                "event_id": "CITY-EVENT-SYNTHETIC-001",
+                "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "asset_revision": "REV-2",
+                "scope_id": "SYNTHETIC-DISTRICT-01",
+                "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "functional_unit": "service-capacity-per-district",
+                "population_groups": [
+                  "residents",
+                  "accessible-housing"
+                ],
+                "evaluated_at": "2026-11-08T12:00:00Z",
+                "receipt_sha256": "4444444444444444444444444444444444444444444444444444444444444444",
+                "action_authority": "none"
+              },
+              "outcome_measurement": {
+                "state": "adequate",
+                "service_id": "water-main-01",
+                "event_id": "CITY-EVENT-SYNTHETIC-001",
+                "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "asset_revision": "REV-2",
+                "scope_id": "SYNTHETIC-DISTRICT-01",
+                "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "functional_unit": "service-capacity-per-district",
+                "population_groups": [
+                  "residents",
+                  "accessible-housing"
+                ],
+                "valid_from": "2026-11-08T11:00:00Z",
+                "valid_until": "2026-11-08T18:00:00Z",
+                "evaluated_at": "2026-11-08T12:00:00Z",
+                "service_state": "adequate",
+                "sample_count": 24,
+                "required_sample_count": 20,
+                "measurement_sha256": "5555555555555555555555555555555555555555555555555555555555555555",
+                "calibration_receipt_sha256": "6666666666666666666666666666666666666666666666666666666666666666",
+                "independent_review": "accepted_for_declared_scope",
+                "action_authority": "none"
+              }
+            }
+          }
+        ]
+      },
+      "expected": {
+        "route_state": "contract_bound_unverified",
+        "service_results": [
+          {
+            "service_id": "water-main-01",
+            "report_state": "contract_bound_unverified",
+            "service_state": "adequate",
+            "requalification_state": "discharged_by_exact_receipt",
+            "restoration_state": "restoration_demonstrated_for_declared_scope"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "SR-08",
+      "name": "Measured constrained service is only partial restoration",
+      "input": {
+        "event": {
+          "event_id": "CITY-EVENT-SYNTHETIC-001",
+          "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "change_class": "service_asset_revision",
+          "subject_node_id": "asset:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "subject_revision": "REV-2",
+          "time_basis": "UTC_RFC3339_SECONDS",
+          "valid_time": {
+            "effective_at": "2026-11-07T00:00:00Z",
+            "effective_until": null,
+            "effective_time_confidence": "verified"
+          },
+          "system_time": {
+            "recorded_at": "2026-11-08T10:00:00Z",
+            "trusted_at": "2026-11-08T10:00:30Z",
+            "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          }
+        },
+        "query": {
+          "scope_id": "SYNTHETIC-DISTRICT-01",
+          "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "functional_unit": "service-capacity-per-district",
+          "required_population_groups": [
+            "residents",
+            "accessible-housing"
+          ],
+          "temporal_cutoff": {
+            "time_basis": "UTC_RFC3339_SECONDS",
+            "world_time_as_of": "2026-11-08T12:00:00Z",
+            "knowledge_time_as_of": "2026-11-08T11:00:00Z",
+            "trust_time_as_of": "2026-11-08T11:00:30Z",
+            "evaluated_at": "2026-11-08T12:00:00Z",
+            "temporal_perspective": "historically_known_then"
+          },
+          "service_requirements": [
+            {
+              "service_id": "water-main-01",
+              "owner_id": "water-utility-owner",
+              "owner_repo": "Synthetic/Water-Utility",
+              "contract_ref": "urn:synthetic:water-service-contract:v0.1",
+              "contract_revision": "1111111111111111111111111111111111111111",
+              "schema_id": "luminous.synthetic.water-service-impact.v0.1",
+              "schema_version": "0.1.0",
+              "runtime_revision": "2222222222222222222222222222222222222222",
+              "report_kind": "CityServiceImpactAssessment",
+              "required_population_groups": [
+                "residents",
+                "accessible-housing"
+              ]
+            }
+          ]
+        },
+        "service_reports": [
+          {
+            "report_id": "SERVICE-REPORT-SYNTHETIC-001",
+            "service_id": "water-main-01",
+            "owner_id": "water-utility-owner",
+            "owner_repo": "Synthetic/Water-Utility",
+            "contract_ref": "urn:synthetic:water-service-contract:v0.1",
+            "contract_revision": "1111111111111111111111111111111111111111",
+            "schema_id": "luminous.synthetic.water-service-impact.v0.1",
+            "schema_version": "0.1.0",
+            "runtime_revision": "2222222222222222222222222222222222222222",
+            "report_kind": "CityServiceImpactAssessment",
+            "event_id": "CITY-EVENT-SYNTHETIC-001",
+            "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "subject_node_id": "asset:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "subject_revision": "REV-2",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "functional_unit": "service-capacity-per-district",
+            "evaluated_at": "2026-11-08T12:00:00Z",
+            "temporal_cutoff": {
+              "time_basis": "UTC_RFC3339_SECONDS",
+              "world_time_as_of": "2026-11-08T12:00:00Z",
+              "knowledge_time_as_of": "2026-11-08T11:00:00Z",
+              "trust_time_as_of": "2026-11-08T11:00:30Z",
+              "evaluated_at": "2026-11-08T12:00:00Z",
+              "temporal_perspective": "historically_known_then"
+            },
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "verified"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": "2026-11-08T10:00:30Z",
+              "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            },
+            "report_sha256": "8888888888888888888888888888888888888888888888888888888888888888",
+            "report_reference": "cas:sha256:8888888888888888888888888888888888888888888888888888888888888888",
+            "action_authority": "none",
+            "service_state": "constrained",
+            "affected": true,
+            "population_groups": [
+              "residents",
+              "accessible-housing"
+            ],
+            "required_obligations": [
+              {
+                "obligation_id": "WATER-PRESSURE-REQUAL-001",
+                "owner_id": "water-asset-engineer",
+                "state": "required_open"
+              }
+            ],
+            "restoration": {
+              "plan_state": "feasible",
+              "execution_state": "completed",
+              "inspection": {
+                "receipt_kind": "inspection",
+                "status": "passed",
+                "service_id": "water-main-01",
+                "event_id": "CITY-EVENT-SYNTHETIC-001",
+                "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "asset_revision": "REV-2",
+                "scope_id": "SYNTHETIC-DISTRICT-01",
+                "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "functional_unit": "service-capacity-per-district",
+                "population_groups": [
+                  "residents",
+                  "accessible-housing"
+                ],
+                "evaluated_at": "2026-11-08T12:00:00Z",
+                "receipt_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+                "action_authority": "none"
+              },
+              "commissioning": {
+                "receipt_kind": "commissioning",
+                "status": "passed",
+                "service_id": "water-main-01",
+                "event_id": "CITY-EVENT-SYNTHETIC-001",
+                "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "asset_revision": "REV-2",
+                "scope_id": "SYNTHETIC-DISTRICT-01",
+                "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "functional_unit": "service-capacity-per-district",
+                "population_groups": [
+                  "residents",
+                  "accessible-housing"
+                ],
+                "evaluated_at": "2026-11-08T12:00:00Z",
+                "receipt_sha256": "4444444444444444444444444444444444444444444444444444444444444444",
+                "action_authority": "none"
+              },
+              "outcome_measurement": {
+                "state": "constrained",
+                "service_id": "water-main-01",
+                "event_id": "CITY-EVENT-SYNTHETIC-001",
+                "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "asset_revision": "REV-2",
+                "scope_id": "SYNTHETIC-DISTRICT-01",
+                "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "functional_unit": "service-capacity-per-district",
+                "population_groups": [
+                  "residents",
+                  "accessible-housing"
+                ],
+                "valid_from": "2026-11-08T11:00:00Z",
+                "valid_until": "2026-11-08T18:00:00Z",
+                "evaluated_at": "2026-11-08T12:00:00Z",
+                "service_state": "constrained",
+                "sample_count": 24,
+                "required_sample_count": 20,
+                "measurement_sha256": "5555555555555555555555555555555555555555555555555555555555555555",
+                "calibration_receipt_sha256": "6666666666666666666666666666666666666666666666666666666666666666",
+                "independent_review": "accepted_for_declared_scope",
+                "action_authority": "none"
+              }
+            }
+          }
+        ]
+      },
+      "expected": {
+        "route_state": "contract_bound_unverified",
+        "service_results": [
+          {
+            "service_id": "water-main-01",
+            "report_state": "contract_bound_unverified",
+            "service_state": "constrained",
+            "requalification_state": "required_open",
+            "restoration_state": "restoration_partial_or_constrained"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "SR-09",
+      "name": "Owner report omitting a required population group cannot qualify service",
+      "input": {
+        "event": {
+          "event_id": "CITY-EVENT-SYNTHETIC-001",
+          "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "change_class": "service_asset_revision",
+          "subject_node_id": "asset:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "subject_revision": "REV-2",
+          "time_basis": "UTC_RFC3339_SECONDS",
+          "valid_time": {
+            "effective_at": "2026-11-07T00:00:00Z",
+            "effective_until": null,
+            "effective_time_confidence": "verified"
+          },
+          "system_time": {
+            "recorded_at": "2026-11-08T10:00:00Z",
+            "trusted_at": "2026-11-08T10:00:30Z",
+            "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          }
+        },
+        "query": {
+          "scope_id": "SYNTHETIC-DISTRICT-01",
+          "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "functional_unit": "service-capacity-per-district",
+          "required_population_groups": [
+            "residents",
+            "accessible-housing"
+          ],
+          "temporal_cutoff": {
+            "time_basis": "UTC_RFC3339_SECONDS",
+            "world_time_as_of": "2026-11-08T12:00:00Z",
+            "knowledge_time_as_of": "2026-11-08T11:00:00Z",
+            "trust_time_as_of": "2026-11-08T11:00:30Z",
+            "evaluated_at": "2026-11-08T12:00:00Z",
+            "temporal_perspective": "historically_known_then"
+          },
+          "service_requirements": [
+            {
+              "service_id": "water-main-01",
+              "owner_id": "water-utility-owner",
+              "owner_repo": "Synthetic/Water-Utility",
+              "contract_ref": "urn:synthetic:water-service-contract:v0.1",
+              "contract_revision": "1111111111111111111111111111111111111111",
+              "schema_id": "luminous.synthetic.water-service-impact.v0.1",
+              "schema_version": "0.1.0",
+              "runtime_revision": "2222222222222222222222222222222222222222",
+              "report_kind": "CityServiceImpactAssessment",
+              "required_population_groups": [
+                "residents",
+                "accessible-housing"
+              ]
+            }
+          ]
+        },
+        "service_reports": [
+          {
+            "report_id": "SERVICE-REPORT-SYNTHETIC-001",
+            "service_id": "water-main-01",
+            "owner_id": "water-utility-owner",
+            "owner_repo": "Synthetic/Water-Utility",
+            "contract_ref": "urn:synthetic:water-service-contract:v0.1",
+            "contract_revision": "1111111111111111111111111111111111111111",
+            "schema_id": "luminous.synthetic.water-service-impact.v0.1",
+            "schema_version": "0.1.0",
+            "runtime_revision": "2222222222222222222222222222222222222222",
+            "report_kind": "CityServiceImpactAssessment",
+            "event_id": "CITY-EVENT-SYNTHETIC-001",
+            "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "subject_node_id": "asset:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "subject_revision": "REV-2",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "functional_unit": "service-capacity-per-district",
+            "evaluated_at": "2026-11-08T12:00:00Z",
+            "temporal_cutoff": {
+              "time_basis": "UTC_RFC3339_SECONDS",
+              "world_time_as_of": "2026-11-08T12:00:00Z",
+              "knowledge_time_as_of": "2026-11-08T11:00:00Z",
+              "trust_time_as_of": "2026-11-08T11:00:30Z",
+              "evaluated_at": "2026-11-08T12:00:00Z",
+              "temporal_perspective": "historically_known_then"
+            },
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "verified"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": "2026-11-08T10:00:30Z",
+              "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            },
+            "report_sha256": "8888888888888888888888888888888888888888888888888888888888888888",
+            "report_reference": "cas:sha256:8888888888888888888888888888888888888888888888888888888888888888",
+            "action_authority": "none",
+            "service_state": "interrupted",
+            "affected": true,
+            "population_groups": [
+              "residents"
+            ],
+            "required_obligations": [
+              {
+                "obligation_id": "WATER-PRESSURE-REQUAL-001",
+                "owner_id": "water-asset-engineer",
+                "state": "required_open"
+              }
+            ],
+            "restoration": {
+              "plan_state": "feasible",
+              "execution_state": "not_started"
+            }
+          }
+        ]
+      },
+      "expected": {
+        "route_state": "insufficient_evidence",
+        "service_results": [
+          {
+            "service_id": "water-main-01",
+            "report_state": "insufficient_evidence",
+            "service_state": "unknown",
+            "requalification_state": "required_open",
+            "restoration_state": "plan_feasible"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "SR-10",
+      "name": "Missing service owner report remains unknown",
+      "input": {
+        "event": {
+          "event_id": "CITY-EVENT-SYNTHETIC-001",
+          "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "change_class": "service_asset_revision",
+          "subject_node_id": "asset:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "subject_revision": "REV-2",
+          "time_basis": "UTC_RFC3339_SECONDS",
+          "valid_time": {
+            "effective_at": "2026-11-07T00:00:00Z",
+            "effective_until": null,
+            "effective_time_confidence": "verified"
+          },
+          "system_time": {
+            "recorded_at": "2026-11-08T10:00:00Z",
+            "trusted_at": "2026-11-08T10:00:30Z",
+            "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          }
+        },
+        "query": {
+          "scope_id": "SYNTHETIC-DISTRICT-01",
+          "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "functional_unit": "service-capacity-per-district",
+          "required_population_groups": [
+            "residents",
+            "accessible-housing"
+          ],
+          "temporal_cutoff": {
+            "time_basis": "UTC_RFC3339_SECONDS",
+            "world_time_as_of": "2026-11-08T12:00:00Z",
+            "knowledge_time_as_of": "2026-11-08T11:00:00Z",
+            "trust_time_as_of": "2026-11-08T11:00:30Z",
+            "evaluated_at": "2026-11-08T12:00:00Z",
+            "temporal_perspective": "historically_known_then"
+          },
+          "service_requirements": [
+            {
+              "service_id": "water-main-01",
+              "owner_id": "water-utility-owner",
+              "owner_repo": "Synthetic/Water-Utility",
+              "contract_ref": "urn:synthetic:water-service-contract:v0.1",
+              "contract_revision": "1111111111111111111111111111111111111111",
+              "schema_id": "luminous.synthetic.water-service-impact.v0.1",
+              "schema_version": "0.1.0",
+              "runtime_revision": "2222222222222222222222222222222222222222",
+              "report_kind": "CityServiceImpactAssessment",
+              "required_population_groups": [
+                "residents",
+                "accessible-housing"
+              ]
+            }
+          ]
+        },
+        "service_reports": []
+      },
+      "expected": {
+        "route_state": "insufficient_evidence",
+        "service_results": [
+          {
+            "service_id": "water-main-01",
+            "report_state": "insufficient_evidence",
+            "service_state": "unknown",
+            "requalification_state": "blocked_insufficient_evidence",
+            "restoration_state": "restoration_unknown"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "SR-11",
+      "name": "Wrong district scope is rejected",
+      "input": {
+        "event": {
+          "event_id": "CITY-EVENT-SYNTHETIC-001",
+          "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "change_class": "service_asset_revision",
+          "subject_node_id": "asset:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "subject_revision": "REV-2",
+          "time_basis": "UTC_RFC3339_SECONDS",
+          "valid_time": {
+            "effective_at": "2026-11-07T00:00:00Z",
+            "effective_until": null,
+            "effective_time_confidence": "verified"
+          },
+          "system_time": {
+            "recorded_at": "2026-11-08T10:00:00Z",
+            "trusted_at": "2026-11-08T10:00:30Z",
+            "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          }
+        },
+        "query": {
+          "scope_id": "SYNTHETIC-DISTRICT-01",
+          "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "functional_unit": "service-capacity-per-district",
+          "required_population_groups": [
+            "residents",
+            "accessible-housing"
+          ],
+          "temporal_cutoff": {
+            "time_basis": "UTC_RFC3339_SECONDS",
+            "world_time_as_of": "2026-11-08T12:00:00Z",
+            "knowledge_time_as_of": "2026-11-08T11:00:00Z",
+            "trust_time_as_of": "2026-11-08T11:00:30Z",
+            "evaluated_at": "2026-11-08T12:00:00Z",
+            "temporal_perspective": "historically_known_then"
+          },
+          "service_requirements": [
+            {
+              "service_id": "water-main-01",
+              "owner_id": "water-utility-owner",
+              "owner_repo": "Synthetic/Water-Utility",
+              "contract_ref": "urn:synthetic:water-service-contract:v0.1",
+              "contract_revision": "1111111111111111111111111111111111111111",
+              "schema_id": "luminous.synthetic.water-service-impact.v0.1",
+              "schema_version": "0.1.0",
+              "runtime_revision": "2222222222222222222222222222222222222222",
+              "report_kind": "CityServiceImpactAssessment",
+              "required_population_groups": [
+                "residents",
+                "accessible-housing"
+              ]
+            }
+          ]
+        },
+        "service_reports": [
+          {
+            "report_id": "SERVICE-REPORT-SYNTHETIC-001",
+            "service_id": "water-main-01",
+            "owner_id": "water-utility-owner",
+            "owner_repo": "Synthetic/Water-Utility",
+            "contract_ref": "urn:synthetic:water-service-contract:v0.1",
+            "contract_revision": "1111111111111111111111111111111111111111",
+            "schema_id": "luminous.synthetic.water-service-impact.v0.1",
+            "schema_version": "0.1.0",
+            "runtime_revision": "2222222222222222222222222222222222222222",
+            "report_kind": "CityServiceImpactAssessment",
+            "event_id": "CITY-EVENT-SYNTHETIC-001",
+            "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "subject_node_id": "asset:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "subject_revision": "REV-2",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "9999999999999999999999999999999999999999999999999999999999999999",
+            "functional_unit": "service-capacity-per-district",
+            "evaluated_at": "2026-11-08T12:00:00Z",
+            "temporal_cutoff": {
+              "time_basis": "UTC_RFC3339_SECONDS",
+              "world_time_as_of": "2026-11-08T12:00:00Z",
+              "knowledge_time_as_of": "2026-11-08T11:00:00Z",
+              "trust_time_as_of": "2026-11-08T11:00:30Z",
+              "evaluated_at": "2026-11-08T12:00:00Z",
+              "temporal_perspective": "historically_known_then"
+            },
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "verified"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": "2026-11-08T10:00:30Z",
+              "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            },
+            "report_sha256": "8888888888888888888888888888888888888888888888888888888888888888",
+            "report_reference": "cas:sha256:8888888888888888888888888888888888888888888888888888888888888888",
+            "action_authority": "none",
+            "service_state": "interrupted",
+            "affected": true,
+            "population_groups": [
+              "residents",
+              "accessible-housing"
+            ],
+            "required_obligations": [
+              {
+                "obligation_id": "WATER-PRESSURE-REQUAL-001",
+                "owner_id": "water-asset-engineer",
+                "state": "required_open"
+              }
+            ],
+            "restoration": {
+              "plan_state": "feasible",
+              "execution_state": "not_started"
+            }
+          }
+        ]
+      },
+      "expected": {
+        "route_state": "invalid_input",
+        "service_results": [
+          {
+            "service_id": "water-main-01",
+            "report_state": "invalid_input",
+            "service_state": "unknown",
+            "requalification_state": "invalid_evidence",
+            "restoration_state": "restoration_unknown"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "SR-12",
+      "name": "Wrong event digest is rejected",
+      "input": {
+        "event": {
+          "event_id": "CITY-EVENT-SYNTHETIC-001",
+          "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "change_class": "service_asset_revision",
+          "subject_node_id": "asset:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "subject_revision": "REV-2",
+          "time_basis": "UTC_RFC3339_SECONDS",
+          "valid_time": {
+            "effective_at": "2026-11-07T00:00:00Z",
+            "effective_until": null,
+            "effective_time_confidence": "verified"
+          },
+          "system_time": {
+            "recorded_at": "2026-11-08T10:00:00Z",
+            "trusted_at": "2026-11-08T10:00:30Z",
+            "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          }
+        },
+        "query": {
+          "scope_id": "SYNTHETIC-DISTRICT-01",
+          "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "functional_unit": "service-capacity-per-district",
+          "required_population_groups": [
+            "residents",
+            "accessible-housing"
+          ],
+          "temporal_cutoff": {
+            "time_basis": "UTC_RFC3339_SECONDS",
+            "world_time_as_of": "2026-11-08T12:00:00Z",
+            "knowledge_time_as_of": "2026-11-08T11:00:00Z",
+            "trust_time_as_of": "2026-11-08T11:00:30Z",
+            "evaluated_at": "2026-11-08T12:00:00Z",
+            "temporal_perspective": "historically_known_then"
+          },
+          "service_requirements": [
+            {
+              "service_id": "water-main-01",
+              "owner_id": "water-utility-owner",
+              "owner_repo": "Synthetic/Water-Utility",
+              "contract_ref": "urn:synthetic:water-service-contract:v0.1",
+              "contract_revision": "1111111111111111111111111111111111111111",
+              "schema_id": "luminous.synthetic.water-service-impact.v0.1",
+              "schema_version": "0.1.0",
+              "runtime_revision": "2222222222222222222222222222222222222222",
+              "report_kind": "CityServiceImpactAssessment",
+              "required_population_groups": [
+                "residents",
+                "accessible-housing"
+              ]
+            }
+          ]
+        },
+        "service_reports": [
+          {
+            "report_id": "SERVICE-REPORT-SYNTHETIC-001",
+            "service_id": "water-main-01",
+            "owner_id": "water-utility-owner",
+            "owner_repo": "Synthetic/Water-Utility",
+            "contract_ref": "urn:synthetic:water-service-contract:v0.1",
+            "contract_revision": "1111111111111111111111111111111111111111",
+            "schema_id": "luminous.synthetic.water-service-impact.v0.1",
+            "schema_version": "0.1.0",
+            "runtime_revision": "2222222222222222222222222222222222222222",
+            "report_kind": "CityServiceImpactAssessment",
+            "event_id": "CITY-EVENT-SYNTHETIC-001",
+            "event_sha256": "9999999999999999999999999999999999999999999999999999999999999999",
+            "subject_node_id": "asset:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "subject_revision": "REV-2",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "functional_unit": "service-capacity-per-district",
+            "evaluated_at": "2026-11-08T12:00:00Z",
+            "temporal_cutoff": {
+              "time_basis": "UTC_RFC3339_SECONDS",
+              "world_time_as_of": "2026-11-08T12:00:00Z",
+              "knowledge_time_as_of": "2026-11-08T11:00:00Z",
+              "trust_time_as_of": "2026-11-08T11:00:30Z",
+              "evaluated_at": "2026-11-08T12:00:00Z",
+              "temporal_perspective": "historically_known_then"
+            },
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "verified"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": "2026-11-08T10:00:30Z",
+              "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            },
+            "report_sha256": "8888888888888888888888888888888888888888888888888888888888888888",
+            "report_reference": "cas:sha256:8888888888888888888888888888888888888888888888888888888888888888",
+            "action_authority": "none",
+            "service_state": "interrupted",
+            "affected": true,
+            "population_groups": [
+              "residents",
+              "accessible-housing"
+            ],
+            "required_obligations": [
+              {
+                "obligation_id": "WATER-PRESSURE-REQUAL-001",
+                "owner_id": "water-asset-engineer",
+                "state": "required_open"
+              }
+            ],
+            "restoration": {
+              "plan_state": "feasible",
+              "execution_state": "not_started"
+            }
+          }
+        ]
+      },
+      "expected": {
+        "route_state": "invalid_input",
+        "service_results": [
+          {
+            "service_id": "water-main-01",
+            "report_state": "invalid_input",
+            "service_state": "unknown",
+            "requalification_state": "invalid_evidence",
+            "restoration_state": "restoration_unknown"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "SR-13",
+      "name": "Discharge receipt for another asset revision does not discharge obligation",
+      "input": {
+        "event": {
+          "event_id": "CITY-EVENT-SYNTHETIC-001",
+          "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "change_class": "service_asset_revision",
+          "subject_node_id": "asset:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "subject_revision": "REV-2",
+          "time_basis": "UTC_RFC3339_SECONDS",
+          "valid_time": {
+            "effective_at": "2026-11-07T00:00:00Z",
+            "effective_until": null,
+            "effective_time_confidence": "verified"
+          },
+          "system_time": {
+            "recorded_at": "2026-11-08T10:00:00Z",
+            "trusted_at": "2026-11-08T10:00:30Z",
+            "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          }
+        },
+        "query": {
+          "scope_id": "SYNTHETIC-DISTRICT-01",
+          "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "functional_unit": "service-capacity-per-district",
+          "required_population_groups": [
+            "residents",
+            "accessible-housing"
+          ],
+          "temporal_cutoff": {
+            "time_basis": "UTC_RFC3339_SECONDS",
+            "world_time_as_of": "2026-11-08T12:00:00Z",
+            "knowledge_time_as_of": "2026-11-08T11:00:00Z",
+            "trust_time_as_of": "2026-11-08T11:00:30Z",
+            "evaluated_at": "2026-11-08T12:00:00Z",
+            "temporal_perspective": "historically_known_then"
+          },
+          "service_requirements": [
+            {
+              "service_id": "water-main-01",
+              "owner_id": "water-utility-owner",
+              "owner_repo": "Synthetic/Water-Utility",
+              "contract_ref": "urn:synthetic:water-service-contract:v0.1",
+              "contract_revision": "1111111111111111111111111111111111111111",
+              "schema_id": "luminous.synthetic.water-service-impact.v0.1",
+              "schema_version": "0.1.0",
+              "runtime_revision": "2222222222222222222222222222222222222222",
+              "report_kind": "CityServiceImpactAssessment",
+              "required_population_groups": [
+                "residents",
+                "accessible-housing"
+              ]
+            }
+          ]
+        },
+        "service_reports": [
+          {
+            "report_id": "SERVICE-REPORT-SYNTHETIC-001",
+            "service_id": "water-main-01",
+            "owner_id": "water-utility-owner",
+            "owner_repo": "Synthetic/Water-Utility",
+            "contract_ref": "urn:synthetic:water-service-contract:v0.1",
+            "contract_revision": "1111111111111111111111111111111111111111",
+            "schema_id": "luminous.synthetic.water-service-impact.v0.1",
+            "schema_version": "0.1.0",
+            "runtime_revision": "2222222222222222222222222222222222222222",
+            "report_kind": "CityServiceImpactAssessment",
+            "event_id": "CITY-EVENT-SYNTHETIC-001",
+            "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "subject_node_id": "asset:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "subject_revision": "REV-2",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "functional_unit": "service-capacity-per-district",
+            "evaluated_at": "2026-11-08T12:00:00Z",
+            "temporal_cutoff": {
+              "time_basis": "UTC_RFC3339_SECONDS",
+              "world_time_as_of": "2026-11-08T12:00:00Z",
+              "knowledge_time_as_of": "2026-11-08T11:00:00Z",
+              "trust_time_as_of": "2026-11-08T11:00:30Z",
+              "evaluated_at": "2026-11-08T12:00:00Z",
+              "temporal_perspective": "historically_known_then"
+            },
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "verified"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": "2026-11-08T10:00:30Z",
+              "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            },
+            "report_sha256": "8888888888888888888888888888888888888888888888888888888888888888",
+            "report_reference": "cas:sha256:8888888888888888888888888888888888888888888888888888888888888888",
+            "action_authority": "none",
+            "service_state": "interrupted",
+            "affected": true,
+            "population_groups": [
+              "residents",
+              "accessible-housing"
+            ],
+            "required_obligations": [
+              {
+                "obligation_id": "WATER-PRESSURE-REQUAL-001",
+                "owner_id": "water-asset-engineer",
+                "state": "discharged_by_exact_receipt",
+                "discharge_receipt": {
+                  "obligation_id": "WATER-PRESSURE-REQUAL-001",
+                  "owner_id": "water-asset-engineer",
+                  "event_id": "CITY-EVENT-SYNTHETIC-001",
+                  "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "asset_revision": "REV-1",
+                  "scope_id": "SYNTHETIC-DISTRICT-01",
+                  "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                  "functional_unit": "service-capacity-per-district",
+                  "evaluated_at": "2026-11-08T12:00:00Z",
+                  "receipt_sha256": "7777777777777777777777777777777777777777777777777777777777777777",
+                  "action_authority": "none"
+                }
+              }
+            ],
+            "restoration": {
+              "plan_state": "feasible",
+              "execution_state": "not_started"
+            }
+          }
+        ]
+      },
+      "expected": {
+        "route_state": "invalid_input",
+        "service_results": [
+          {
+            "service_id": "water-main-01",
+            "report_state": "contract_bound_unverified",
+            "service_state": "interrupted",
+            "requalification_state": "invalid_evidence",
+            "restoration_state": "plan_feasible"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "SR-14",
+      "name": "Affected service with no declared obligations is blocked",
+      "input": {
+        "event": {
+          "event_id": "CITY-EVENT-SYNTHETIC-001",
+          "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "change_class": "service_asset_revision",
+          "subject_node_id": "asset:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "subject_revision": "REV-2",
+          "time_basis": "UTC_RFC3339_SECONDS",
+          "valid_time": {
+            "effective_at": "2026-11-07T00:00:00Z",
+            "effective_until": null,
+            "effective_time_confidence": "verified"
+          },
+          "system_time": {
+            "recorded_at": "2026-11-08T10:00:00Z",
+            "trusted_at": "2026-11-08T10:00:30Z",
+            "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          }
+        },
+        "query": {
+          "scope_id": "SYNTHETIC-DISTRICT-01",
+          "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "functional_unit": "service-capacity-per-district",
+          "required_population_groups": [
+            "residents",
+            "accessible-housing"
+          ],
+          "temporal_cutoff": {
+            "time_basis": "UTC_RFC3339_SECONDS",
+            "world_time_as_of": "2026-11-08T12:00:00Z",
+            "knowledge_time_as_of": "2026-11-08T11:00:00Z",
+            "trust_time_as_of": "2026-11-08T11:00:30Z",
+            "evaluated_at": "2026-11-08T12:00:00Z",
+            "temporal_perspective": "historically_known_then"
+          },
+          "service_requirements": [
+            {
+              "service_id": "water-main-01",
+              "owner_id": "water-utility-owner",
+              "owner_repo": "Synthetic/Water-Utility",
+              "contract_ref": "urn:synthetic:water-service-contract:v0.1",
+              "contract_revision": "1111111111111111111111111111111111111111",
+              "schema_id": "luminous.synthetic.water-service-impact.v0.1",
+              "schema_version": "0.1.0",
+              "runtime_revision": "2222222222222222222222222222222222222222",
+              "report_kind": "CityServiceImpactAssessment",
+              "required_population_groups": [
+                "residents",
+                "accessible-housing"
+              ]
+            }
+          ]
+        },
+        "service_reports": [
+          {
+            "report_id": "SERVICE-REPORT-SYNTHETIC-001",
+            "service_id": "water-main-01",
+            "owner_id": "water-utility-owner",
+            "owner_repo": "Synthetic/Water-Utility",
+            "contract_ref": "urn:synthetic:water-service-contract:v0.1",
+            "contract_revision": "1111111111111111111111111111111111111111",
+            "schema_id": "luminous.synthetic.water-service-impact.v0.1",
+            "schema_version": "0.1.0",
+            "runtime_revision": "2222222222222222222222222222222222222222",
+            "report_kind": "CityServiceImpactAssessment",
+            "event_id": "CITY-EVENT-SYNTHETIC-001",
+            "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "subject_node_id": "asset:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "subject_revision": "REV-2",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "functional_unit": "service-capacity-per-district",
+            "evaluated_at": "2026-11-08T12:00:00Z",
+            "temporal_cutoff": {
+              "time_basis": "UTC_RFC3339_SECONDS",
+              "world_time_as_of": "2026-11-08T12:00:00Z",
+              "knowledge_time_as_of": "2026-11-08T11:00:00Z",
+              "trust_time_as_of": "2026-11-08T11:00:30Z",
+              "evaluated_at": "2026-11-08T12:00:00Z",
+              "temporal_perspective": "historically_known_then"
+            },
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "verified"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": "2026-11-08T10:00:30Z",
+              "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            },
+            "report_sha256": "8888888888888888888888888888888888888888888888888888888888888888",
+            "report_reference": "cas:sha256:8888888888888888888888888888888888888888888888888888888888888888",
+            "action_authority": "none",
+            "service_state": "interrupted",
+            "affected": true,
+            "population_groups": [
+              "residents",
+              "accessible-housing"
+            ],
+            "required_obligations": [],
+            "restoration": {
+              "plan_state": "feasible",
+              "execution_state": "not_started"
+            }
+          }
+        ]
+      },
+      "expected": {
+        "route_state": "contract_bound_unverified",
+        "service_results": [
+          {
+            "service_id": "water-main-01",
+            "report_state": "contract_bound_unverified",
+            "service_state": "interrupted",
+            "requalification_state": "blocked_insufficient_evidence",
+            "restoration_state": "plan_feasible"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "SR-15",
+      "name": "Outcome measurement omitting a required group cannot demonstrate restoration",
+      "input": {
+        "event": {
+          "event_id": "CITY-EVENT-SYNTHETIC-001",
+          "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "change_class": "service_asset_revision",
+          "subject_node_id": "asset:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "subject_revision": "REV-2",
+          "time_basis": "UTC_RFC3339_SECONDS",
+          "valid_time": {
+            "effective_at": "2026-11-07T00:00:00Z",
+            "effective_until": null,
+            "effective_time_confidence": "verified"
+          },
+          "system_time": {
+            "recorded_at": "2026-11-08T10:00:00Z",
+            "trusted_at": "2026-11-08T10:00:30Z",
+            "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          }
+        },
+        "query": {
+          "scope_id": "SYNTHETIC-DISTRICT-01",
+          "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "functional_unit": "service-capacity-per-district",
+          "required_population_groups": [
+            "residents",
+            "accessible-housing"
+          ],
+          "temporal_cutoff": {
+            "time_basis": "UTC_RFC3339_SECONDS",
+            "world_time_as_of": "2026-11-08T12:00:00Z",
+            "knowledge_time_as_of": "2026-11-08T11:00:00Z",
+            "trust_time_as_of": "2026-11-08T11:00:30Z",
+            "evaluated_at": "2026-11-08T12:00:00Z",
+            "temporal_perspective": "historically_known_then"
+          },
+          "service_requirements": [
+            {
+              "service_id": "water-main-01",
+              "owner_id": "water-utility-owner",
+              "owner_repo": "Synthetic/Water-Utility",
+              "contract_ref": "urn:synthetic:water-service-contract:v0.1",
+              "contract_revision": "1111111111111111111111111111111111111111",
+              "schema_id": "luminous.synthetic.water-service-impact.v0.1",
+              "schema_version": "0.1.0",
+              "runtime_revision": "2222222222222222222222222222222222222222",
+              "report_kind": "CityServiceImpactAssessment",
+              "required_population_groups": [
+                "residents",
+                "accessible-housing"
+              ]
+            }
+          ]
+        },
+        "service_reports": [
+          {
+            "report_id": "SERVICE-REPORT-SYNTHETIC-001",
+            "service_id": "water-main-01",
+            "owner_id": "water-utility-owner",
+            "owner_repo": "Synthetic/Water-Utility",
+            "contract_ref": "urn:synthetic:water-service-contract:v0.1",
+            "contract_revision": "1111111111111111111111111111111111111111",
+            "schema_id": "luminous.synthetic.water-service-impact.v0.1",
+            "schema_version": "0.1.0",
+            "runtime_revision": "2222222222222222222222222222222222222222",
+            "report_kind": "CityServiceImpactAssessment",
+            "event_id": "CITY-EVENT-SYNTHETIC-001",
+            "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "subject_node_id": "asset:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "subject_revision": "REV-2",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "functional_unit": "service-capacity-per-district",
+            "evaluated_at": "2026-11-08T12:00:00Z",
+            "temporal_cutoff": {
+              "time_basis": "UTC_RFC3339_SECONDS",
+              "world_time_as_of": "2026-11-08T12:00:00Z",
+              "knowledge_time_as_of": "2026-11-08T11:00:00Z",
+              "trust_time_as_of": "2026-11-08T11:00:30Z",
+              "evaluated_at": "2026-11-08T12:00:00Z",
+              "temporal_perspective": "historically_known_then"
+            },
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "verified"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": "2026-11-08T10:00:30Z",
+              "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            },
+            "report_sha256": "8888888888888888888888888888888888888888888888888888888888888888",
+            "report_reference": "cas:sha256:8888888888888888888888888888888888888888888888888888888888888888",
+            "action_authority": "none",
+            "service_state": "interrupted",
+            "affected": true,
+            "population_groups": [
+              "residents",
+              "accessible-housing"
+            ],
+            "required_obligations": [
+              {
+                "obligation_id": "WATER-PRESSURE-REQUAL-001",
+                "owner_id": "water-asset-engineer",
+                "state": "required_open"
+              }
+            ],
+            "restoration": {
+              "plan_state": "feasible",
+              "execution_state": "completed",
+              "inspection": {
+                "receipt_kind": "inspection",
+                "status": "passed",
+                "service_id": "water-main-01",
+                "event_id": "CITY-EVENT-SYNTHETIC-001",
+                "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "asset_revision": "REV-2",
+                "scope_id": "SYNTHETIC-DISTRICT-01",
+                "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "functional_unit": "service-capacity-per-district",
+                "population_groups": [
+                  "residents",
+                  "accessible-housing"
+                ],
+                "evaluated_at": "2026-11-08T12:00:00Z",
+                "receipt_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+                "action_authority": "none"
+              },
+              "commissioning": {
+                "receipt_kind": "commissioning",
+                "status": "passed",
+                "service_id": "water-main-01",
+                "event_id": "CITY-EVENT-SYNTHETIC-001",
+                "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "asset_revision": "REV-2",
+                "scope_id": "SYNTHETIC-DISTRICT-01",
+                "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "functional_unit": "service-capacity-per-district",
+                "population_groups": [
+                  "residents",
+                  "accessible-housing"
+                ],
+                "evaluated_at": "2026-11-08T12:00:00Z",
+                "receipt_sha256": "4444444444444444444444444444444444444444444444444444444444444444",
+                "action_authority": "none"
+              },
+              "outcome_measurement": {
+                "state": "adequate",
+                "service_id": "water-main-01",
+                "event_id": "CITY-EVENT-SYNTHETIC-001",
+                "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "asset_revision": "REV-2",
+                "scope_id": "SYNTHETIC-DISTRICT-01",
+                "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "functional_unit": "service-capacity-per-district",
+                "population_groups": [
+                  "residents"
+                ],
+                "valid_from": "2026-11-08T11:00:00Z",
+                "valid_until": "2026-11-08T18:00:00Z",
+                "evaluated_at": "2026-11-08T12:00:00Z",
+                "service_state": "adequate",
+                "sample_count": 24,
+                "required_sample_count": 20,
+                "measurement_sha256": "5555555555555555555555555555555555555555555555555555555555555555",
+                "calibration_receipt_sha256": "6666666666666666666666666666666666666666666666666666666666666666",
+                "independent_review": "accepted_for_declared_scope",
+                "action_authority": "none"
+              }
+            }
+          }
+        ]
+      },
+      "expected": {
+        "route_state": "invalid_input",
+        "service_results": [
+          {
+            "service_id": "water-main-01",
+            "report_state": "contract_bound_unverified",
+            "service_state": "interrupted",
+            "requalification_state": "required_open",
+            "restoration_state": "restoration_unknown"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "SR-16",
+      "name": "Outcome measurement below required sample coverage cannot demonstrate restoration",
+      "input": {
+        "event": {
+          "event_id": "CITY-EVENT-SYNTHETIC-001",
+          "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "change_class": "service_asset_revision",
+          "subject_node_id": "asset:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "subject_revision": "REV-2",
+          "time_basis": "UTC_RFC3339_SECONDS",
+          "valid_time": {
+            "effective_at": "2026-11-07T00:00:00Z",
+            "effective_until": null,
+            "effective_time_confidence": "verified"
+          },
+          "system_time": {
+            "recorded_at": "2026-11-08T10:00:00Z",
+            "trusted_at": "2026-11-08T10:00:30Z",
+            "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          }
+        },
+        "query": {
+          "scope_id": "SYNTHETIC-DISTRICT-01",
+          "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "functional_unit": "service-capacity-per-district",
+          "required_population_groups": [
+            "residents",
+            "accessible-housing"
+          ],
+          "temporal_cutoff": {
+            "time_basis": "UTC_RFC3339_SECONDS",
+            "world_time_as_of": "2026-11-08T12:00:00Z",
+            "knowledge_time_as_of": "2026-11-08T11:00:00Z",
+            "trust_time_as_of": "2026-11-08T11:00:30Z",
+            "evaluated_at": "2026-11-08T12:00:00Z",
+            "temporal_perspective": "historically_known_then"
+          },
+          "service_requirements": [
+            {
+              "service_id": "water-main-01",
+              "owner_id": "water-utility-owner",
+              "owner_repo": "Synthetic/Water-Utility",
+              "contract_ref": "urn:synthetic:water-service-contract:v0.1",
+              "contract_revision": "1111111111111111111111111111111111111111",
+              "schema_id": "luminous.synthetic.water-service-impact.v0.1",
+              "schema_version": "0.1.0",
+              "runtime_revision": "2222222222222222222222222222222222222222",
+              "report_kind": "CityServiceImpactAssessment",
+              "required_population_groups": [
+                "residents",
+                "accessible-housing"
+              ]
+            }
+          ]
+        },
+        "service_reports": [
+          {
+            "report_id": "SERVICE-REPORT-SYNTHETIC-001",
+            "service_id": "water-main-01",
+            "owner_id": "water-utility-owner",
+            "owner_repo": "Synthetic/Water-Utility",
+            "contract_ref": "urn:synthetic:water-service-contract:v0.1",
+            "contract_revision": "1111111111111111111111111111111111111111",
+            "schema_id": "luminous.synthetic.water-service-impact.v0.1",
+            "schema_version": "0.1.0",
+            "runtime_revision": "2222222222222222222222222222222222222222",
+            "report_kind": "CityServiceImpactAssessment",
+            "event_id": "CITY-EVENT-SYNTHETIC-001",
+            "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "subject_node_id": "asset:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "subject_revision": "REV-2",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "functional_unit": "service-capacity-per-district",
+            "evaluated_at": "2026-11-08T12:00:00Z",
+            "temporal_cutoff": {
+              "time_basis": "UTC_RFC3339_SECONDS",
+              "world_time_as_of": "2026-11-08T12:00:00Z",
+              "knowledge_time_as_of": "2026-11-08T11:00:00Z",
+              "trust_time_as_of": "2026-11-08T11:00:30Z",
+              "evaluated_at": "2026-11-08T12:00:00Z",
+              "temporal_perspective": "historically_known_then"
+            },
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "verified"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": "2026-11-08T10:00:30Z",
+              "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            },
+            "report_sha256": "8888888888888888888888888888888888888888888888888888888888888888",
+            "report_reference": "cas:sha256:8888888888888888888888888888888888888888888888888888888888888888",
+            "action_authority": "none",
+            "service_state": "interrupted",
+            "affected": true,
+            "population_groups": [
+              "residents",
+              "accessible-housing"
+            ],
+            "required_obligations": [
+              {
+                "obligation_id": "WATER-PRESSURE-REQUAL-001",
+                "owner_id": "water-asset-engineer",
+                "state": "required_open"
+              }
+            ],
+            "restoration": {
+              "plan_state": "feasible",
+              "execution_state": "completed",
+              "inspection": {
+                "receipt_kind": "inspection",
+                "status": "passed",
+                "service_id": "water-main-01",
+                "event_id": "CITY-EVENT-SYNTHETIC-001",
+                "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "asset_revision": "REV-2",
+                "scope_id": "SYNTHETIC-DISTRICT-01",
+                "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "functional_unit": "service-capacity-per-district",
+                "population_groups": [
+                  "residents",
+                  "accessible-housing"
+                ],
+                "evaluated_at": "2026-11-08T12:00:00Z",
+                "receipt_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+                "action_authority": "none"
+              },
+              "commissioning": {
+                "receipt_kind": "commissioning",
+                "status": "passed",
+                "service_id": "water-main-01",
+                "event_id": "CITY-EVENT-SYNTHETIC-001",
+                "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "asset_revision": "REV-2",
+                "scope_id": "SYNTHETIC-DISTRICT-01",
+                "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "functional_unit": "service-capacity-per-district",
+                "population_groups": [
+                  "residents",
+                  "accessible-housing"
+                ],
+                "evaluated_at": "2026-11-08T12:00:00Z",
+                "receipt_sha256": "4444444444444444444444444444444444444444444444444444444444444444",
+                "action_authority": "none"
+              },
+              "outcome_measurement": {
+                "state": "adequate",
+                "service_id": "water-main-01",
+                "event_id": "CITY-EVENT-SYNTHETIC-001",
+                "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "asset_revision": "REV-2",
+                "scope_id": "SYNTHETIC-DISTRICT-01",
+                "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "functional_unit": "service-capacity-per-district",
+                "population_groups": [
+                  "residents",
+                  "accessible-housing"
+                ],
+                "valid_from": "2026-11-08T11:00:00Z",
+                "valid_until": "2026-11-08T18:00:00Z",
+                "evaluated_at": "2026-11-08T12:00:00Z",
+                "service_state": "adequate",
+                "sample_count": 5,
+                "required_sample_count": 20,
+                "measurement_sha256": "5555555555555555555555555555555555555555555555555555555555555555",
+                "calibration_receipt_sha256": "6666666666666666666666666666666666666666666666666666666666666666",
+                "independent_review": "accepted_for_declared_scope",
+                "action_authority": "none"
+              }
+            }
+          }
+        ]
+      },
+      "expected": {
+        "route_state": "invalid_input",
+        "service_results": [
+          {
+            "service_id": "water-main-01",
+            "report_state": "contract_bound_unverified",
+            "service_state": "interrupted",
+            "requalification_state": "required_open",
+            "restoration_state": "restoration_unknown"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "SR-17",
+      "name": "Failed inspection prevents restoration claim",
+      "input": {
+        "event": {
+          "event_id": "CITY-EVENT-SYNTHETIC-001",
+          "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "change_class": "service_asset_revision",
+          "subject_node_id": "asset:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "subject_revision": "REV-2",
+          "time_basis": "UTC_RFC3339_SECONDS",
+          "valid_time": {
+            "effective_at": "2026-11-07T00:00:00Z",
+            "effective_until": null,
+            "effective_time_confidence": "verified"
+          },
+          "system_time": {
+            "recorded_at": "2026-11-08T10:00:00Z",
+            "trusted_at": "2026-11-08T10:00:30Z",
+            "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          }
+        },
+        "query": {
+          "scope_id": "SYNTHETIC-DISTRICT-01",
+          "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "functional_unit": "service-capacity-per-district",
+          "required_population_groups": [
+            "residents",
+            "accessible-housing"
+          ],
+          "temporal_cutoff": {
+            "time_basis": "UTC_RFC3339_SECONDS",
+            "world_time_as_of": "2026-11-08T12:00:00Z",
+            "knowledge_time_as_of": "2026-11-08T11:00:00Z",
+            "trust_time_as_of": "2026-11-08T11:00:30Z",
+            "evaluated_at": "2026-11-08T12:00:00Z",
+            "temporal_perspective": "historically_known_then"
+          },
+          "service_requirements": [
+            {
+              "service_id": "water-main-01",
+              "owner_id": "water-utility-owner",
+              "owner_repo": "Synthetic/Water-Utility",
+              "contract_ref": "urn:synthetic:water-service-contract:v0.1",
+              "contract_revision": "1111111111111111111111111111111111111111",
+              "schema_id": "luminous.synthetic.water-service-impact.v0.1",
+              "schema_version": "0.1.0",
+              "runtime_revision": "2222222222222222222222222222222222222222",
+              "report_kind": "CityServiceImpactAssessment",
+              "required_population_groups": [
+                "residents",
+                "accessible-housing"
+              ]
+            }
+          ]
+        },
+        "service_reports": [
+          {
+            "report_id": "SERVICE-REPORT-SYNTHETIC-001",
+            "service_id": "water-main-01",
+            "owner_id": "water-utility-owner",
+            "owner_repo": "Synthetic/Water-Utility",
+            "contract_ref": "urn:synthetic:water-service-contract:v0.1",
+            "contract_revision": "1111111111111111111111111111111111111111",
+            "schema_id": "luminous.synthetic.water-service-impact.v0.1",
+            "schema_version": "0.1.0",
+            "runtime_revision": "2222222222222222222222222222222222222222",
+            "report_kind": "CityServiceImpactAssessment",
+            "event_id": "CITY-EVENT-SYNTHETIC-001",
+            "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "subject_node_id": "asset:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "subject_revision": "REV-2",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "functional_unit": "service-capacity-per-district",
+            "evaluated_at": "2026-11-08T12:00:00Z",
+            "temporal_cutoff": {
+              "time_basis": "UTC_RFC3339_SECONDS",
+              "world_time_as_of": "2026-11-08T12:00:00Z",
+              "knowledge_time_as_of": "2026-11-08T11:00:00Z",
+              "trust_time_as_of": "2026-11-08T11:00:30Z",
+              "evaluated_at": "2026-11-08T12:00:00Z",
+              "temporal_perspective": "historically_known_then"
+            },
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "verified"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": "2026-11-08T10:00:30Z",
+              "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            },
+            "report_sha256": "8888888888888888888888888888888888888888888888888888888888888888",
+            "report_reference": "cas:sha256:8888888888888888888888888888888888888888888888888888888888888888",
+            "action_authority": "none",
+            "service_state": "interrupted",
+            "affected": true,
+            "population_groups": [
+              "residents",
+              "accessible-housing"
+            ],
+            "required_obligations": [
+              {
+                "obligation_id": "WATER-PRESSURE-REQUAL-001",
+                "owner_id": "water-asset-engineer",
+                "state": "required_open"
+              }
+            ],
+            "restoration": {
+              "plan_state": "feasible",
+              "execution_state": "completed",
+              "inspection": {
+                "receipt_kind": "inspection",
+                "status": "failed",
+                "service_id": "water-main-01",
+                "event_id": "CITY-EVENT-SYNTHETIC-001",
+                "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "asset_revision": "REV-2",
+                "scope_id": "SYNTHETIC-DISTRICT-01",
+                "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "functional_unit": "service-capacity-per-district",
+                "population_groups": [
+                  "residents",
+                  "accessible-housing"
+                ],
+                "evaluated_at": "2026-11-08T12:00:00Z",
+                "receipt_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+                "action_authority": "none"
+              },
+              "commissioning": {
+                "receipt_kind": "commissioning",
+                "status": "passed",
+                "service_id": "water-main-01",
+                "event_id": "CITY-EVENT-SYNTHETIC-001",
+                "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "asset_revision": "REV-2",
+                "scope_id": "SYNTHETIC-DISTRICT-01",
+                "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "functional_unit": "service-capacity-per-district",
+                "population_groups": [
+                  "residents",
+                  "accessible-housing"
+                ],
+                "evaluated_at": "2026-11-08T12:00:00Z",
+                "receipt_sha256": "4444444444444444444444444444444444444444444444444444444444444444",
+                "action_authority": "none"
+              },
+              "outcome_measurement": {
+                "state": "adequate",
+                "service_id": "water-main-01",
+                "event_id": "CITY-EVENT-SYNTHETIC-001",
+                "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "asset_revision": "REV-2",
+                "scope_id": "SYNTHETIC-DISTRICT-01",
+                "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "functional_unit": "service-capacity-per-district",
+                "population_groups": [
+                  "residents",
+                  "accessible-housing"
+                ],
+                "valid_from": "2026-11-08T11:00:00Z",
+                "valid_until": "2026-11-08T18:00:00Z",
+                "evaluated_at": "2026-11-08T12:00:00Z",
+                "service_state": "adequate",
+                "sample_count": 24,
+                "required_sample_count": 20,
+                "measurement_sha256": "5555555555555555555555555555555555555555555555555555555555555555",
+                "calibration_receipt_sha256": "6666666666666666666666666666666666666666666666666666666666666666",
+                "independent_review": "accepted_for_declared_scope",
+                "action_authority": "none"
+              }
+            }
+          }
+        ]
+      },
+      "expected": {
+        "route_state": "contract_bound_unverified",
+        "service_results": [
+          {
+            "service_id": "water-main-01",
+            "report_state": "contract_bound_unverified",
+            "service_state": "interrupted",
+            "requalification_state": "required_open",
+            "restoration_state": "restoration_partial_or_constrained"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "SR-18",
+      "name": "Owner-declared unknown service state remains unknown",
+      "input": {
+        "event": {
+          "event_id": "CITY-EVENT-SYNTHETIC-001",
+          "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "change_class": "service_asset_revision",
+          "subject_node_id": "asset:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "subject_revision": "REV-2",
+          "time_basis": "UTC_RFC3339_SECONDS",
+          "valid_time": {
+            "effective_at": "2026-11-07T00:00:00Z",
+            "effective_until": null,
+            "effective_time_confidence": "verified"
+          },
+          "system_time": {
+            "recorded_at": "2026-11-08T10:00:00Z",
+            "trusted_at": "2026-11-08T10:00:30Z",
+            "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          }
+        },
+        "query": {
+          "scope_id": "SYNTHETIC-DISTRICT-01",
+          "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "functional_unit": "service-capacity-per-district",
+          "required_population_groups": [
+            "residents",
+            "accessible-housing"
+          ],
+          "temporal_cutoff": {
+            "time_basis": "UTC_RFC3339_SECONDS",
+            "world_time_as_of": "2026-11-08T12:00:00Z",
+            "knowledge_time_as_of": "2026-11-08T11:00:00Z",
+            "trust_time_as_of": "2026-11-08T11:00:30Z",
+            "evaluated_at": "2026-11-08T12:00:00Z",
+            "temporal_perspective": "historically_known_then"
+          },
+          "service_requirements": [
+            {
+              "service_id": "water-main-01",
+              "owner_id": "water-utility-owner",
+              "owner_repo": "Synthetic/Water-Utility",
+              "contract_ref": "urn:synthetic:water-service-contract:v0.1",
+              "contract_revision": "1111111111111111111111111111111111111111",
+              "schema_id": "luminous.synthetic.water-service-impact.v0.1",
+              "schema_version": "0.1.0",
+              "runtime_revision": "2222222222222222222222222222222222222222",
+              "report_kind": "CityServiceImpactAssessment",
+              "required_population_groups": [
+                "residents",
+                "accessible-housing"
+              ]
+            }
+          ]
+        },
+        "service_reports": [
+          {
+            "report_id": "SERVICE-REPORT-SYNTHETIC-001",
+            "service_id": "water-main-01",
+            "owner_id": "water-utility-owner",
+            "owner_repo": "Synthetic/Water-Utility",
+            "contract_ref": "urn:synthetic:water-service-contract:v0.1",
+            "contract_revision": "1111111111111111111111111111111111111111",
+            "schema_id": "luminous.synthetic.water-service-impact.v0.1",
+            "schema_version": "0.1.0",
+            "runtime_revision": "2222222222222222222222222222222222222222",
+            "report_kind": "CityServiceImpactAssessment",
+            "event_id": "CITY-EVENT-SYNTHETIC-001",
+            "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "subject_node_id": "asset:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "subject_revision": "REV-2",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "functional_unit": "service-capacity-per-district",
+            "evaluated_at": "2026-11-08T12:00:00Z",
+            "temporal_cutoff": {
+              "time_basis": "UTC_RFC3339_SECONDS",
+              "world_time_as_of": "2026-11-08T12:00:00Z",
+              "knowledge_time_as_of": "2026-11-08T11:00:00Z",
+              "trust_time_as_of": "2026-11-08T11:00:30Z",
+              "evaluated_at": "2026-11-08T12:00:00Z",
+              "temporal_perspective": "historically_known_then"
+            },
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "verified"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": "2026-11-08T10:00:30Z",
+              "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            },
+            "report_sha256": "8888888888888888888888888888888888888888888888888888888888888888",
+            "report_reference": "cas:sha256:8888888888888888888888888888888888888888888888888888888888888888",
+            "action_authority": "none",
+            "service_state": "unknown",
+            "affected": true,
+            "population_groups": [
+              "residents",
+              "accessible-housing"
+            ],
+            "required_obligations": [
+              {
+                "obligation_id": "WATER-PRESSURE-REQUAL-001",
+                "owner_id": "water-asset-engineer",
+                "state": "required_open"
+              }
+            ],
+            "restoration": {
+              "plan_state": "unknown",
+              "execution_state": "not_started"
+            }
+          }
+        ]
+      },
+      "expected": {
+        "route_state": "contract_bound_unverified",
+        "service_results": [
+          {
+            "service_id": "water-main-01",
+            "report_state": "contract_bound_unverified",
+            "service_state": "unknown",
+            "requalification_state": "required_open",
+            "restoration_state": "plan_unknown"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "SR-19",
+      "name": "Unknown restoration plan is not treated as infeasible or feasible",
+      "input": {
+        "event": {
+          "event_id": "CITY-EVENT-SYNTHETIC-001",
+          "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "change_class": "service_asset_revision",
+          "subject_node_id": "asset:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "subject_revision": "REV-2",
+          "time_basis": "UTC_RFC3339_SECONDS",
+          "valid_time": {
+            "effective_at": "2026-11-07T00:00:00Z",
+            "effective_until": null,
+            "effective_time_confidence": "verified"
+          },
+          "system_time": {
+            "recorded_at": "2026-11-08T10:00:00Z",
+            "trusted_at": "2026-11-08T10:00:30Z",
+            "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          }
+        },
+        "query": {
+          "scope_id": "SYNTHETIC-DISTRICT-01",
+          "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "functional_unit": "service-capacity-per-district",
+          "required_population_groups": [
+            "residents",
+            "accessible-housing"
+          ],
+          "temporal_cutoff": {
+            "time_basis": "UTC_RFC3339_SECONDS",
+            "world_time_as_of": "2026-11-08T12:00:00Z",
+            "knowledge_time_as_of": "2026-11-08T11:00:00Z",
+            "trust_time_as_of": "2026-11-08T11:00:30Z",
+            "evaluated_at": "2026-11-08T12:00:00Z",
+            "temporal_perspective": "historically_known_then"
+          },
+          "service_requirements": [
+            {
+              "service_id": "water-main-01",
+              "owner_id": "water-utility-owner",
+              "owner_repo": "Synthetic/Water-Utility",
+              "contract_ref": "urn:synthetic:water-service-contract:v0.1",
+              "contract_revision": "1111111111111111111111111111111111111111",
+              "schema_id": "luminous.synthetic.water-service-impact.v0.1",
+              "schema_version": "0.1.0",
+              "runtime_revision": "2222222222222222222222222222222222222222",
+              "report_kind": "CityServiceImpactAssessment",
+              "required_population_groups": [
+                "residents",
+                "accessible-housing"
+              ]
+            }
+          ]
+        },
+        "service_reports": [
+          {
+            "report_id": "SERVICE-REPORT-SYNTHETIC-001",
+            "service_id": "water-main-01",
+            "owner_id": "water-utility-owner",
+            "owner_repo": "Synthetic/Water-Utility",
+            "contract_ref": "urn:synthetic:water-service-contract:v0.1",
+            "contract_revision": "1111111111111111111111111111111111111111",
+            "schema_id": "luminous.synthetic.water-service-impact.v0.1",
+            "schema_version": "0.1.0",
+            "runtime_revision": "2222222222222222222222222222222222222222",
+            "report_kind": "CityServiceImpactAssessment",
+            "event_id": "CITY-EVENT-SYNTHETIC-001",
+            "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "subject_node_id": "asset:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "subject_revision": "REV-2",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "functional_unit": "service-capacity-per-district",
+            "evaluated_at": "2026-11-08T12:00:00Z",
+            "temporal_cutoff": {
+              "time_basis": "UTC_RFC3339_SECONDS",
+              "world_time_as_of": "2026-11-08T12:00:00Z",
+              "knowledge_time_as_of": "2026-11-08T11:00:00Z",
+              "trust_time_as_of": "2026-11-08T11:00:30Z",
+              "evaluated_at": "2026-11-08T12:00:00Z",
+              "temporal_perspective": "historically_known_then"
+            },
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "verified"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": "2026-11-08T10:00:30Z",
+              "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            },
+            "report_sha256": "8888888888888888888888888888888888888888888888888888888888888888",
+            "report_reference": "cas:sha256:8888888888888888888888888888888888888888888888888888888888888888",
+            "action_authority": "none",
+            "service_state": "interrupted",
+            "affected": true,
+            "population_groups": [
+              "residents",
+              "accessible-housing"
+            ],
+            "required_obligations": [
+              {
+                "obligation_id": "WATER-PRESSURE-REQUAL-001",
+                "owner_id": "water-asset-engineer",
+                "state": "required_open"
+              }
+            ],
+            "restoration": {
+              "plan_state": "unknown",
+              "execution_state": "not_started"
+            }
+          }
+        ]
+      },
+      "expected": {
+        "route_state": "contract_bound_unverified",
+        "service_results": [
+          {
+            "service_id": "water-main-01",
+            "report_state": "contract_bound_unverified",
+            "service_state": "interrupted",
+            "requalification_state": "required_open",
+            "restoration_state": "plan_unknown"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "SR-20",
+      "name": "Temporal cutoff mismatch prevents cross-time report composition",
+      "input": {
+        "event": {
+          "event_id": "CITY-EVENT-SYNTHETIC-001",
+          "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "change_class": "service_asset_revision",
+          "subject_node_id": "asset:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "subject_revision": "REV-2",
+          "time_basis": "UTC_RFC3339_SECONDS",
+          "valid_time": {
+            "effective_at": "2026-11-07T00:00:00Z",
+            "effective_until": null,
+            "effective_time_confidence": "verified"
+          },
+          "system_time": {
+            "recorded_at": "2026-11-08T10:00:00Z",
+            "trusted_at": "2026-11-08T10:00:30Z",
+            "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          }
+        },
+        "query": {
+          "scope_id": "SYNTHETIC-DISTRICT-01",
+          "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "functional_unit": "service-capacity-per-district",
+          "required_population_groups": [
+            "residents",
+            "accessible-housing"
+          ],
+          "temporal_cutoff": {
+            "time_basis": "UTC_RFC3339_SECONDS",
+            "world_time_as_of": "2026-11-08T12:00:00Z",
+            "knowledge_time_as_of": "2026-11-08T11:00:00Z",
+            "trust_time_as_of": "2026-11-08T11:00:30Z",
+            "evaluated_at": "2026-11-08T12:00:00Z",
+            "temporal_perspective": "historically_known_then"
+          },
+          "service_requirements": [
+            {
+              "service_id": "water-main-01",
+              "owner_id": "water-utility-owner",
+              "owner_repo": "Synthetic/Water-Utility",
+              "contract_ref": "urn:synthetic:water-service-contract:v0.1",
+              "contract_revision": "1111111111111111111111111111111111111111",
+              "schema_id": "luminous.synthetic.water-service-impact.v0.1",
+              "schema_version": "0.1.0",
+              "runtime_revision": "2222222222222222222222222222222222222222",
+              "report_kind": "CityServiceImpactAssessment",
+              "required_population_groups": [
+                "residents",
+                "accessible-housing"
+              ]
+            }
+          ]
+        },
+        "service_reports": [
+          {
+            "report_id": "SERVICE-REPORT-SYNTHETIC-001",
+            "service_id": "water-main-01",
+            "owner_id": "water-utility-owner",
+            "owner_repo": "Synthetic/Water-Utility",
+            "contract_ref": "urn:synthetic:water-service-contract:v0.1",
+            "contract_revision": "1111111111111111111111111111111111111111",
+            "schema_id": "luminous.synthetic.water-service-impact.v0.1",
+            "schema_version": "0.1.0",
+            "runtime_revision": "2222222222222222222222222222222222222222",
+            "report_kind": "CityServiceImpactAssessment",
+            "event_id": "CITY-EVENT-SYNTHETIC-001",
+            "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "subject_node_id": "asset:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "subject_revision": "REV-2",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "functional_unit": "service-capacity-per-district",
+            "evaluated_at": "2026-11-08T12:00:00Z",
+            "temporal_cutoff": {
+              "time_basis": "UTC_RFC3339_SECONDS",
+              "world_time_as_of": "2026-11-06T00:00:00Z",
+              "knowledge_time_as_of": "2026-11-08T11:00:00Z",
+              "trust_time_as_of": "2026-11-08T11:00:30Z",
+              "evaluated_at": "2026-11-08T12:00:00Z",
+              "temporal_perspective": "historically_known_then"
+            },
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "verified"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": "2026-11-08T10:00:30Z",
+              "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            },
+            "report_sha256": "8888888888888888888888888888888888888888888888888888888888888888",
+            "report_reference": "cas:sha256:8888888888888888888888888888888888888888888888888888888888888888",
+            "action_authority": "none",
+            "service_state": "interrupted",
+            "affected": true,
+            "population_groups": [
+              "residents",
+              "accessible-housing"
+            ],
+            "required_obligations": [
+              {
+                "obligation_id": "WATER-PRESSURE-REQUAL-001",
+                "owner_id": "water-asset-engineer",
+                "state": "required_open"
+              }
+            ],
+            "restoration": {
+              "plan_state": "feasible",
+              "execution_state": "not_started"
+            }
+          }
+        ]
+      },
+      "expected": {
+        "route_state": "invalid_input",
+        "service_results": [
+          {
+            "service_id": "water-main-01",
+            "report_state": "invalid_input",
+            "service_state": "unknown",
+            "requalification_state": "invalid_evidence",
+            "restoration_state": "restoration_unknown"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "SR-21",
+      "name": "Duplicate service-owner reports are invalid",
+      "input": {
+        "event": {
+          "event_id": "CITY-EVENT-SYNTHETIC-001",
+          "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "change_class": "service_asset_revision",
+          "subject_node_id": "asset:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "subject_revision": "REV-2",
+          "time_basis": "UTC_RFC3339_SECONDS",
+          "valid_time": {
+            "effective_at": "2026-11-07T00:00:00Z",
+            "effective_until": null,
+            "effective_time_confidence": "verified"
+          },
+          "system_time": {
+            "recorded_at": "2026-11-08T10:00:00Z",
+            "trusted_at": "2026-11-08T10:00:30Z",
+            "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          }
+        },
+        "query": {
+          "scope_id": "SYNTHETIC-DISTRICT-01",
+          "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "functional_unit": "service-capacity-per-district",
+          "required_population_groups": [
+            "residents",
+            "accessible-housing"
+          ],
+          "temporal_cutoff": {
+            "time_basis": "UTC_RFC3339_SECONDS",
+            "world_time_as_of": "2026-11-08T12:00:00Z",
+            "knowledge_time_as_of": "2026-11-08T11:00:00Z",
+            "trust_time_as_of": "2026-11-08T11:00:30Z",
+            "evaluated_at": "2026-11-08T12:00:00Z",
+            "temporal_perspective": "historically_known_then"
+          },
+          "service_requirements": [
+            {
+              "service_id": "water-main-01",
+              "owner_id": "water-utility-owner",
+              "owner_repo": "Synthetic/Water-Utility",
+              "contract_ref": "urn:synthetic:water-service-contract:v0.1",
+              "contract_revision": "1111111111111111111111111111111111111111",
+              "schema_id": "luminous.synthetic.water-service-impact.v0.1",
+              "schema_version": "0.1.0",
+              "runtime_revision": "2222222222222222222222222222222222222222",
+              "report_kind": "CityServiceImpactAssessment",
+              "required_population_groups": [
+                "residents",
+                "accessible-housing"
+              ]
+            }
+          ]
+        },
+        "service_reports": [
+          {
+            "report_id": "SERVICE-REPORT-SYNTHETIC-001",
+            "service_id": "water-main-01",
+            "owner_id": "water-utility-owner",
+            "owner_repo": "Synthetic/Water-Utility",
+            "contract_ref": "urn:synthetic:water-service-contract:v0.1",
+            "contract_revision": "1111111111111111111111111111111111111111",
+            "schema_id": "luminous.synthetic.water-service-impact.v0.1",
+            "schema_version": "0.1.0",
+            "runtime_revision": "2222222222222222222222222222222222222222",
+            "report_kind": "CityServiceImpactAssessment",
+            "event_id": "CITY-EVENT-SYNTHETIC-001",
+            "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "subject_node_id": "asset:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "subject_revision": "REV-2",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "functional_unit": "service-capacity-per-district",
+            "evaluated_at": "2026-11-08T12:00:00Z",
+            "temporal_cutoff": {
+              "time_basis": "UTC_RFC3339_SECONDS",
+              "world_time_as_of": "2026-11-08T12:00:00Z",
+              "knowledge_time_as_of": "2026-11-08T11:00:00Z",
+              "trust_time_as_of": "2026-11-08T11:00:30Z",
+              "evaluated_at": "2026-11-08T12:00:00Z",
+              "temporal_perspective": "historically_known_then"
+            },
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "verified"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": "2026-11-08T10:00:30Z",
+              "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            },
+            "report_sha256": "8888888888888888888888888888888888888888888888888888888888888888",
+            "report_reference": "cas:sha256:8888888888888888888888888888888888888888888888888888888888888888",
+            "action_authority": "none",
+            "service_state": "interrupted",
+            "affected": true,
+            "population_groups": [
+              "residents",
+              "accessible-housing"
+            ],
+            "required_obligations": [
+              {
+                "obligation_id": "WATER-PRESSURE-REQUAL-001",
+                "owner_id": "water-asset-engineer",
+                "state": "required_open"
+              }
+            ],
+            "restoration": {
+              "plan_state": "feasible",
+              "execution_state": "not_started"
+            }
+          },
+          {
+            "report_id": "SERVICE-REPORT-SYNTHETIC-001",
+            "service_id": "water-main-01",
+            "owner_id": "water-utility-owner",
+            "owner_repo": "Synthetic/Water-Utility",
+            "contract_ref": "urn:synthetic:water-service-contract:v0.1",
+            "contract_revision": "1111111111111111111111111111111111111111",
+            "schema_id": "luminous.synthetic.water-service-impact.v0.1",
+            "schema_version": "0.1.0",
+            "runtime_revision": "2222222222222222222222222222222222222222",
+            "report_kind": "CityServiceImpactAssessment",
+            "event_id": "CITY-EVENT-SYNTHETIC-001",
+            "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "subject_node_id": "asset:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "subject_revision": "REV-2",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "functional_unit": "service-capacity-per-district",
+            "evaluated_at": "2026-11-08T12:00:00Z",
+            "temporal_cutoff": {
+              "time_basis": "UTC_RFC3339_SECONDS",
+              "world_time_as_of": "2026-11-08T12:00:00Z",
+              "knowledge_time_as_of": "2026-11-08T11:00:00Z",
+              "trust_time_as_of": "2026-11-08T11:00:30Z",
+              "evaluated_at": "2026-11-08T12:00:00Z",
+              "temporal_perspective": "historically_known_then"
+            },
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "verified"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": "2026-11-08T10:00:30Z",
+              "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            },
+            "report_sha256": "8888888888888888888888888888888888888888888888888888888888888888",
+            "report_reference": "cas:sha256:8888888888888888888888888888888888888888888888888888888888888888",
+            "action_authority": "none",
+            "service_state": "interrupted",
+            "affected": true,
+            "population_groups": [
+              "residents",
+              "accessible-housing"
+            ],
+            "required_obligations": [
+              {
+                "obligation_id": "WATER-PRESSURE-REQUAL-001",
+                "owner_id": "water-asset-engineer",
+                "state": "required_open"
+              }
+            ],
+            "restoration": {
+              "plan_state": "feasible",
+              "execution_state": "not_started"
+            }
+          }
+        ]
+      },
+      "expected": {
+        "route_state": "invalid_input",
+        "service_results": [
+          {
+            "service_id": "water-main-01",
+            "report_state": "invalid_input",
+            "service_state": "unknown",
+            "requalification_state": "invalid_evidence",
+            "restoration_state": "restoration_unknown"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "SR-22",
+      "name": "Explicitly untrusted event time prevents qualified service composition",
+      "input": {
+        "event": {
+          "event_id": "CITY-EVENT-SYNTHETIC-001",
+          "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "change_class": "service_asset_revision",
+          "subject_node_id": "asset:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "subject_revision": "REV-2",
+          "time_basis": "UTC_RFC3339_SECONDS",
+          "valid_time": {
+            "effective_at": "2026-11-07T00:00:00Z",
+            "effective_until": null,
+            "effective_time_confidence": "verified"
+          },
+          "system_time": {
+            "recorded_at": "2026-11-08T10:00:00Z",
+            "trusted_at": null,
+            "trusted_timestamp_receipt_sha256": null
+          }
+        },
+        "query": {
+          "scope_id": "SYNTHETIC-DISTRICT-01",
+          "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "functional_unit": "service-capacity-per-district",
+          "required_population_groups": [
+            "residents",
+            "accessible-housing"
+          ],
+          "temporal_cutoff": {
+            "time_basis": "UTC_RFC3339_SECONDS",
+            "world_time_as_of": "2026-11-08T12:00:00Z",
+            "knowledge_time_as_of": "2026-11-08T11:00:00Z",
+            "trust_time_as_of": "2026-11-08T11:00:30Z",
+            "evaluated_at": "2026-11-08T12:00:00Z",
+            "temporal_perspective": "historically_known_then"
+          },
+          "service_requirements": [
+            {
+              "service_id": "water-main-01",
+              "owner_id": "water-utility-owner",
+              "owner_repo": "Synthetic/Water-Utility",
+              "contract_ref": "urn:synthetic:water-service-contract:v0.1",
+              "contract_revision": "1111111111111111111111111111111111111111",
+              "schema_id": "luminous.synthetic.water-service-impact.v0.1",
+              "schema_version": "0.1.0",
+              "runtime_revision": "2222222222222222222222222222222222222222",
+              "report_kind": "CityServiceImpactAssessment",
+              "required_population_groups": [
+                "residents",
+                "accessible-housing"
+              ]
+            }
+          ]
+        },
+        "service_reports": [
+          {
+            "report_id": "SERVICE-REPORT-SYNTHETIC-001",
+            "service_id": "water-main-01",
+            "owner_id": "water-utility-owner",
+            "owner_repo": "Synthetic/Water-Utility",
+            "contract_ref": "urn:synthetic:water-service-contract:v0.1",
+            "contract_revision": "1111111111111111111111111111111111111111",
+            "schema_id": "luminous.synthetic.water-service-impact.v0.1",
+            "schema_version": "0.1.0",
+            "runtime_revision": "2222222222222222222222222222222222222222",
+            "report_kind": "CityServiceImpactAssessment",
+            "event_id": "CITY-EVENT-SYNTHETIC-001",
+            "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "subject_node_id": "asset:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "subject_revision": "REV-2",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "functional_unit": "service-capacity-per-district",
+            "evaluated_at": "2026-11-08T12:00:00Z",
+            "temporal_cutoff": {
+              "time_basis": "UTC_RFC3339_SECONDS",
+              "world_time_as_of": "2026-11-08T12:00:00Z",
+              "knowledge_time_as_of": "2026-11-08T11:00:00Z",
+              "trust_time_as_of": "2026-11-08T11:00:30Z",
+              "evaluated_at": "2026-11-08T12:00:00Z",
+              "temporal_perspective": "historically_known_then"
+            },
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "verified"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": null,
+              "trusted_timestamp_receipt_sha256": null
+            },
+            "report_sha256": "8888888888888888888888888888888888888888888888888888888888888888",
+            "report_reference": "cas:sha256:8888888888888888888888888888888888888888888888888888888888888888",
+            "action_authority": "none",
+            "service_state": "interrupted",
+            "affected": true,
+            "population_groups": [
+              "residents",
+              "accessible-housing"
+            ],
+            "required_obligations": [
+              {
+                "obligation_id": "WATER-PRESSURE-REQUAL-001",
+                "owner_id": "water-asset-engineer",
+                "state": "required_open"
+              }
+            ],
+            "restoration": {
+              "plan_state": "feasible",
+              "execution_state": "not_started"
+            }
+          }
+        ]
+      },
+      "expected": {
+        "route_state": "insufficient_evidence",
+        "service_results": [
+          {
+            "service_id": "water-main-01",
+            "report_state": "contract_bound_unverified",
+            "service_state": "interrupted",
+            "requalification_state": "required_open",
+            "restoration_state": "plan_feasible"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "SR-23",
+      "name": "Discharged obligation without receipt is blocked rather than accepted",
+      "input": {
+        "event": {
+          "event_id": "CITY-EVENT-SYNTHETIC-001",
+          "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "change_class": "service_asset_revision",
+          "subject_node_id": "asset:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "subject_revision": "REV-2",
+          "time_basis": "UTC_RFC3339_SECONDS",
+          "valid_time": {
+            "effective_at": "2026-11-07T00:00:00Z",
+            "effective_until": null,
+            "effective_time_confidence": "verified"
+          },
+          "system_time": {
+            "recorded_at": "2026-11-08T10:00:00Z",
+            "trusted_at": "2026-11-08T10:00:30Z",
+            "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          }
+        },
+        "query": {
+          "scope_id": "SYNTHETIC-DISTRICT-01",
+          "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "functional_unit": "service-capacity-per-district",
+          "required_population_groups": [
+            "residents",
+            "accessible-housing"
+          ],
+          "temporal_cutoff": {
+            "time_basis": "UTC_RFC3339_SECONDS",
+            "world_time_as_of": "2026-11-08T12:00:00Z",
+            "knowledge_time_as_of": "2026-11-08T11:00:00Z",
+            "trust_time_as_of": "2026-11-08T11:00:30Z",
+            "evaluated_at": "2026-11-08T12:00:00Z",
+            "temporal_perspective": "historically_known_then"
+          },
+          "service_requirements": [
+            {
+              "service_id": "water-main-01",
+              "owner_id": "water-utility-owner",
+              "owner_repo": "Synthetic/Water-Utility",
+              "contract_ref": "urn:synthetic:water-service-contract:v0.1",
+              "contract_revision": "1111111111111111111111111111111111111111",
+              "schema_id": "luminous.synthetic.water-service-impact.v0.1",
+              "schema_version": "0.1.0",
+              "runtime_revision": "2222222222222222222222222222222222222222",
+              "report_kind": "CityServiceImpactAssessment",
+              "required_population_groups": [
+                "residents",
+                "accessible-housing"
+              ]
+            }
+          ]
+        },
+        "service_reports": [
+          {
+            "report_id": "SERVICE-REPORT-SYNTHETIC-001",
+            "service_id": "water-main-01",
+            "owner_id": "water-utility-owner",
+            "owner_repo": "Synthetic/Water-Utility",
+            "contract_ref": "urn:synthetic:water-service-contract:v0.1",
+            "contract_revision": "1111111111111111111111111111111111111111",
+            "schema_id": "luminous.synthetic.water-service-impact.v0.1",
+            "schema_version": "0.1.0",
+            "runtime_revision": "2222222222222222222222222222222222222222",
+            "report_kind": "CityServiceImpactAssessment",
+            "event_id": "CITY-EVENT-SYNTHETIC-001",
+            "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "subject_node_id": "asset:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "subject_revision": "REV-2",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "functional_unit": "service-capacity-per-district",
+            "evaluated_at": "2026-11-08T12:00:00Z",
+            "temporal_cutoff": {
+              "time_basis": "UTC_RFC3339_SECONDS",
+              "world_time_as_of": "2026-11-08T12:00:00Z",
+              "knowledge_time_as_of": "2026-11-08T11:00:00Z",
+              "trust_time_as_of": "2026-11-08T11:00:30Z",
+              "evaluated_at": "2026-11-08T12:00:00Z",
+              "temporal_perspective": "historically_known_then"
+            },
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "verified"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": "2026-11-08T10:00:30Z",
+              "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            },
+            "report_sha256": "8888888888888888888888888888888888888888888888888888888888888888",
+            "report_reference": "cas:sha256:8888888888888888888888888888888888888888888888888888888888888888",
+            "action_authority": "none",
+            "service_state": "interrupted",
+            "affected": true,
+            "population_groups": [
+              "residents",
+              "accessible-housing"
+            ],
+            "required_obligations": [
+              {
+                "obligation_id": "WATER-PRESSURE-REQUAL-001",
+                "owner_id": "water-asset-engineer",
+                "state": "discharged_by_exact_receipt",
+                "discharge_receipt": null
+              }
+            ],
+            "restoration": {
+              "plan_state": "feasible",
+              "execution_state": "not_started"
+            }
+          }
+        ]
+      },
+      "expected": {
+        "route_state": "invalid_input",
+        "service_results": [
+          {
+            "service_id": "water-main-01",
+            "report_state": "contract_bound_unverified",
+            "service_state": "interrupted",
+            "requalification_state": "invalid_evidence",
+            "restoration_state": "plan_feasible"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "SR-24",
+      "name": "Outcome measurement outside its valid interval cannot demonstrate restoration",
+      "input": {
+        "event": {
+          "event_id": "CITY-EVENT-SYNTHETIC-001",
+          "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "change_class": "service_asset_revision",
+          "subject_node_id": "asset:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "subject_revision": "REV-2",
+          "time_basis": "UTC_RFC3339_SECONDS",
+          "valid_time": {
+            "effective_at": "2026-11-07T00:00:00Z",
+            "effective_until": null,
+            "effective_time_confidence": "verified"
+          },
+          "system_time": {
+            "recorded_at": "2026-11-08T10:00:00Z",
+            "trusted_at": "2026-11-08T10:00:30Z",
+            "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          }
+        },
+        "query": {
+          "scope_id": "SYNTHETIC-DISTRICT-01",
+          "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "functional_unit": "service-capacity-per-district",
+          "required_population_groups": [
+            "residents",
+            "accessible-housing"
+          ],
+          "temporal_cutoff": {
+            "time_basis": "UTC_RFC3339_SECONDS",
+            "world_time_as_of": "2026-11-08T12:00:00Z",
+            "knowledge_time_as_of": "2026-11-08T11:00:00Z",
+            "trust_time_as_of": "2026-11-08T11:00:30Z",
+            "evaluated_at": "2026-11-08T12:00:00Z",
+            "temporal_perspective": "historically_known_then"
+          },
+          "service_requirements": [
+            {
+              "service_id": "water-main-01",
+              "owner_id": "water-utility-owner",
+              "owner_repo": "Synthetic/Water-Utility",
+              "contract_ref": "urn:synthetic:water-service-contract:v0.1",
+              "contract_revision": "1111111111111111111111111111111111111111",
+              "schema_id": "luminous.synthetic.water-service-impact.v0.1",
+              "schema_version": "0.1.0",
+              "runtime_revision": "2222222222222222222222222222222222222222",
+              "report_kind": "CityServiceImpactAssessment",
+              "required_population_groups": [
+                "residents",
+                "accessible-housing"
+              ]
+            }
+          ]
+        },
+        "service_reports": [
+          {
+            "report_id": "SERVICE-REPORT-SYNTHETIC-001",
+            "service_id": "water-main-01",
+            "owner_id": "water-utility-owner",
+            "owner_repo": "Synthetic/Water-Utility",
+            "contract_ref": "urn:synthetic:water-service-contract:v0.1",
+            "contract_revision": "1111111111111111111111111111111111111111",
+            "schema_id": "luminous.synthetic.water-service-impact.v0.1",
+            "schema_version": "0.1.0",
+            "runtime_revision": "2222222222222222222222222222222222222222",
+            "report_kind": "CityServiceImpactAssessment",
+            "event_id": "CITY-EVENT-SYNTHETIC-001",
+            "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "subject_node_id": "asset:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "subject_revision": "REV-2",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "functional_unit": "service-capacity-per-district",
+            "evaluated_at": "2026-11-08T12:00:00Z",
+            "temporal_cutoff": {
+              "time_basis": "UTC_RFC3339_SECONDS",
+              "world_time_as_of": "2026-11-08T12:00:00Z",
+              "knowledge_time_as_of": "2026-11-08T11:00:00Z",
+              "trust_time_as_of": "2026-11-08T11:00:30Z",
+              "evaluated_at": "2026-11-08T12:00:00Z",
+              "temporal_perspective": "historically_known_then"
+            },
+            "valid_time": {
+              "effective_at": "2026-11-07T00:00:00Z",
+              "effective_until": null,
+              "effective_time_confidence": "verified"
+            },
+            "system_time": {
+              "recorded_at": "2026-11-08T10:00:00Z",
+              "trusted_at": "2026-11-08T10:00:30Z",
+              "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            },
+            "report_sha256": "8888888888888888888888888888888888888888888888888888888888888888",
+            "report_reference": "cas:sha256:8888888888888888888888888888888888888888888888888888888888888888",
+            "action_authority": "none",
+            "service_state": "interrupted",
+            "affected": true,
+            "population_groups": [
+              "residents",
+              "accessible-housing"
+            ],
+            "required_obligations": [
+              {
+                "obligation_id": "WATER-PRESSURE-REQUAL-001",
+                "owner_id": "water-asset-engineer",
+                "state": "required_open"
+              }
+            ],
+            "restoration": {
+              "plan_state": "feasible",
+              "execution_state": "completed",
+              "inspection": {
+                "receipt_kind": "inspection",
+                "status": "passed",
+                "service_id": "water-main-01",
+                "event_id": "CITY-EVENT-SYNTHETIC-001",
+                "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "asset_revision": "REV-2",
+                "scope_id": "SYNTHETIC-DISTRICT-01",
+                "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "functional_unit": "service-capacity-per-district",
+                "population_groups": [
+                  "residents",
+                  "accessible-housing"
+                ],
+                "evaluated_at": "2026-11-08T12:00:00Z",
+                "receipt_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+                "action_authority": "none"
+              },
+              "commissioning": {
+                "receipt_kind": "commissioning",
+                "status": "passed",
+                "service_id": "water-main-01",
+                "event_id": "CITY-EVENT-SYNTHETIC-001",
+                "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "asset_revision": "REV-2",
+                "scope_id": "SYNTHETIC-DISTRICT-01",
+                "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "functional_unit": "service-capacity-per-district",
+                "population_groups": [
+                  "residents",
+                  "accessible-housing"
+                ],
+                "evaluated_at": "2026-11-08T12:00:00Z",
+                "receipt_sha256": "4444444444444444444444444444444444444444444444444444444444444444",
+                "action_authority": "none"
+              },
+              "outcome_measurement": {
+                "state": "adequate",
+                "service_id": "water-main-01",
+                "event_id": "CITY-EVENT-SYNTHETIC-001",
+                "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "asset_revision": "REV-2",
+                "scope_id": "SYNTHETIC-DISTRICT-01",
+                "scope_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "functional_unit": "service-capacity-per-district",
+                "population_groups": [
+                  "residents",
+                  "accessible-housing"
+                ],
+                "valid_from": "2026-11-08T11:00:00Z",
+                "valid_until": "2026-11-08T11:30:00Z",
+                "evaluated_at": "2026-11-08T12:00:00Z",
+                "service_state": "adequate",
+                "sample_count": 24,
+                "required_sample_count": 20,
+                "measurement_sha256": "5555555555555555555555555555555555555555555555555555555555555555",
+                "calibration_receipt_sha256": "6666666666666666666666666666666666666666666666666666666666666666",
+                "independent_review": "accepted_for_declared_scope",
+                "action_authority": "none"
+              }
+            }
+          }
+        ]
+      },
+      "expected": {
+        "route_state": "invalid_input",
+        "service_results": [
+          {
+            "service_id": "water-main-01",
+            "report_state": "contract_bound_unverified",
+            "service_state": "interrupted",
+            "requalification_state": "required_open",
+            "restoration_state": "restoration_unknown"
+          }
+        ]
+      }
+    }
+  ]
+}
