@@ -36,7 +36,7 @@ Restoration demonstration requires exact inspection and commissioning receipts p
 
 ## Corpus
 
-`CITY_SERVICE_REQUALIFICATION_CORPUS_V0_1.json` contains 24 frozen synthetic cases covering:
+`CITY_SERVICE_REQUALIFICATION_CORPUS_V0_1.json` contains 26 frozen synthetic cases covering:
 - unaffected service;
 - feasible but unexecuted and infeasible plans;
 - completed work awaiting inspection or commissioning;
@@ -49,7 +49,7 @@ Restoration demonstration requires exact inspection and commissioning receipts p
 - missing obligations;
 - insufficient sample size and stale measurements;
 - failed inspection and unknown plans;
-- duplicate service reports and untrusted system time.
+- duplicate service reports and untrusted system time; late correction excluded from historical knowledge but included in current reconstruction of the same earlier world time.
 
 Expected output records service, requalification and restoration states separately. The corpus is synthetic; no physical city performance is implied.
 
@@ -78,4 +78,4 @@ Owner adapters must supply their actual service-state, inspection, commissioning
 
 ## Claim boundary
 
-A PASS means only that the evaluator reproduces the 24 synthetic state-composition expectations. It does not establish source authenticity, legal rights, service-owner completeness, engineering adequacy, physical safety, successful work execution, field commissioning, actual service restoration or authority to reopen/operate an asset.
+A PASS means only that the evaluator reproduces the 26 synthetic state-composition expectations. It does not establish source authenticity, legal rights, service-owner completeness, engineering adequacy, physical safety, successful work execution, field commissioning, actual service restoration or authority to reopen/operate an asset.
