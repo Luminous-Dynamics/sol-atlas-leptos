@@ -72,16 +72,6 @@ fn evaluate_plan(input: &Value, reasons: &mut BTreeSet<String>, conflicts: &mut 
         add_unknown(reasons, "AS_OF_TIME_BINDING_INCOMPLETE");
     }
 
-    let as_of = input.get("as_of").unwrap_or(&Value::Null);
-    if u64_field(as_of, "valid_at").is_none()
-        || u64_field(as_of, "recorded_at").is_none()
-        || u64_field(as_of, "ingested_at").is_none()
-        || str_field(as_of, "time_basis") != "UTC_UNIX_SECONDS"
-        || str_field(as_of, "source_timezone").is_empty()
-    {
-        add_unknown(reasons, "AS_OF_TIME_BINDING_INCOMPLETE");
-    }
-
     let scope = input.get("scope").unwrap_or(&Value::Null);
     if str_field(scope, "binding_state") != "bound"
         || str_field(scope, "scope_digest").len() != 64
@@ -162,11 +152,30 @@ fn evaluate_plan(input: &Value, reasons: &mut BTreeSet<String>, conflicts: &mut 
         if str_field(part, "reservation_state") != "confirmed" {
             add_unknown(reasons, "PART_RESERVATION_MISSING");
         }
+        let (use_start, use_end) = match (
+            u64_field(part, "use_start_at"),
+            u64_field(part, "use_end_at"),
+        ) {
+            (Some(start), Some(end)) if start < end => (start, end),
+            (Some(_), Some(_)) => {
+                add_conflict(conflicts, "PART_USE_WINDOW_INVALID");
+                continue;
+            }
+            _ => {
+                add_unknown(reasons, "PART_USE_WINDOW_UNKNOWN");
+                continue;
+            }
+        };
+        if use_start < window_start || use_end > window_end {
+            add_conflict(conflicts, "PART_USE_OUTSIDE_PLANNING_WINDOW");
+        }
         if let (Some(from), Some(until)) = (
             u64_field(part, "available_from"),
             u64_field(part, "available_until"),
         ) {
-            if from > window_start || until < window_end {
+            if from >= until {
+                add_conflict(conflicts, "PART_AVAILABILITY_WINDOW_INVALID");
+            } else if from > use_start || until < use_end {
                 add_conflict(conflicts, "PART_AVAILABILITY_WINDOW_MISMATCH");
             }
         } else {
@@ -705,4 +714,68 @@ mod tests {
         assert_eq!(result["action_authority"], "none");
         assert_eq!(result["causal_effect_established"], false);
     }
+    #[test]
+    fn part_availability_only_needs_to_cover_its_actual_use_interval() {
+        let mut case = corpus()["cases"][0].clone();
+        let part = &mut case["input"]["part_requirements"][0];
+        part["available_from"] = json!(1900);
+        part["available_until"] = json!(3100);
+        part["use_start_at"] = json!(2000);
+        part["use_end_at"] = json!(3000);
+        let result = evaluate_case(&case);
+        assert_eq!(result["plan_readiness"], "feasible");
+        assert!(!result["reason_codes"].as_array().unwrap().iter().any(
+            |reason| reason == "PART_AVAILABILITY_WINDOW_MISMATCH"
+        ));
+    }
+
+    #[test]
+    fn part_must_be_available_for_the_entire_actual_use_interval() {
+        let mut late = corpus()["cases"][0].clone();
+        let part = &mut late["input"]["part_requirements"][0];
+        part["available_from"] = json!(2100);
+        part["available_until"] = json!(3100);
+        let result = evaluate_case(&late);
+        assert_eq!(result["plan_readiness"], "infeasible");
+        assert!(result["reason_codes"].as_array().unwrap().iter().any(
+            |reason| reason == "PART_AVAILABILITY_WINDOW_MISMATCH"
+        ));
+
+        let mut early_expiry = corpus()["cases"][0].clone();
+        let part = &mut early_expiry["input"]["part_requirements"][0];
+        part["available_from"] = json!(1900);
+        part["available_until"] = json!(2900);
+        let result = evaluate_case(&early_expiry);
+        assert_eq!(result["plan_readiness"], "infeasible");
+        assert!(result["reason_codes"].as_array().unwrap().iter().any(
+            |reason| reason == "PART_AVAILABILITY_WINDOW_MISMATCH"
+        ));
+    }
+
+    #[test]
+    fn missing_part_use_interval_is_unknown_not_infeasible() {
+        let mut case = corpus()["cases"][0].clone();
+        case["input"]["part_requirements"][0]
+            .as_object_mut()
+            .unwrap()
+            .remove("use_start_at");
+        let result = evaluate_case(&case);
+        assert_eq!(result["plan_readiness"], "unknown");
+        assert!(result["reason_codes"].as_array().unwrap().iter().any(
+            |reason| reason == "PART_USE_WINDOW_UNKNOWN"
+        ));
+    }
+
+    #[test]
+    fn part_use_interval_uses_half_open_end_boundary() {
+        let mut case = corpus()["cases"][0].clone();
+        let part = &mut case["input"]["part_requirements"][0];
+        part["available_from"] = json!(2000);
+        part["available_until"] = json!(3000);
+        part["use_start_at"] = json!(2000);
+        part["use_end_at"] = json!(3000);
+        let result = evaluate_case(&case);
+        assert_eq!(result["plan_readiness"], "feasible");
+    }
+
 }
