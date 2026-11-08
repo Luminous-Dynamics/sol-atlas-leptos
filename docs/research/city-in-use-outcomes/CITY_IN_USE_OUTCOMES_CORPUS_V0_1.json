@@ -626,7 +626,16 @@
             "independent_validation": "passed",
             "training_data_digest": "train:aaa",
             "validation_data_digest": "valid:bbb",
-            "envelope_contains_observation": true
+            "envelope_contains_observation": true,
+            "training_observation_ids": [
+              "TRAIN-001",
+              "TRAIN-002"
+            ],
+            "validation_observation_ids": [
+              "VALID-001"
+            ],
+            "validation_protocol_id": "time_block_holdout_v1",
+            "partition_audit_receipt_id": "partition-audit:OI-005:energy"
           }
         ],
         "measurement_and_verification": {
@@ -744,7 +753,17 @@
             "independent_validation": "passed",
             "training_data_digest": "same:aaa",
             "validation_data_digest": "same:aaa",
-            "envelope_contains_observation": true
+            "envelope_contains_observation": true,
+            "training_observation_ids": [
+              "OBS-001",
+              "OBS-002"
+            ],
+            "validation_observation_ids": [
+              "OBS-002",
+              "OBS-003"
+            ],
+            "validation_protocol_id": "purported_holdout_v1",
+            "partition_audit_receipt_id": "partition-audit:OI-006:energy"
           }
         ],
         "measurement_and_verification": {
@@ -1809,7 +1828,15 @@
             "independent_validation": "passed",
             "training_data_digest": "train:aaa",
             "validation_data_digest": "valid:bbb",
-            "envelope_contains_observation": false
+            "envelope_contains_observation": false,
+            "training_observation_ids": [
+              "TRAIN-010"
+            ],
+            "validation_observation_ids": [
+              "VALID-010"
+            ],
+            "validation_protocol_id": "time_block_holdout_v1",
+            "partition_audit_receipt_id": "partition-audit:OI-015:energy"
           }
         ],
         "measurement_and_verification": {
@@ -2055,7 +2082,19 @@
             "occupancy"
           ],
           "coverage_fraction": 0.98,
-          "baseline_adjustment_review": "passed"
+          "baseline_adjustment_review": "passed",
+          "baseline_window": {
+            "window_id": "BASELINE-12M",
+            "start_tick": -12,
+            "end_tick": 0,
+            "tick_unit": "month"
+          },
+          "post_window": {
+            "window_id": "POST-12M",
+            "start_tick": 0,
+            "end_tick": 12,
+            "tick_unit": "month"
+          }
         },
         "causal_assessment": {
           "claim_requested": false
