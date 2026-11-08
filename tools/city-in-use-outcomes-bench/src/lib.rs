@@ -192,12 +192,21 @@ fn evaluate_dynamic_model(
 
     let training_digest = text(model, "training_data_digest");
     let validation_digest = text(model, "validation_data_digest");
+    let training_ids = unique_id_set(array(model, "training_observation_ids"));
+    let validation_ids = unique_id_set(array(model, "validation_observation_ids"));
+    let split_is_disjoint = training_ids
+        .as_ref()
+        .zip(validation_ids.as_ref())
+        .is_some_and(|(training, validation)| validation.iter().all(|id| !training.contains(id)));
     if text(model, "evidence_state") != "current"
         || text(model, "calibration_status") != "calibrated"
         || text(model, "independent_validation") != "passed"
         || training_digest.is_empty()
         || validation_digest.is_empty()
         || training_digest == validation_digest
+        || !split_is_disjoint
+        || text(model, "validation_protocol_id").is_empty()
+        || text(model, "partition_audit_receipt_id").is_empty()
         || model
             .get("envelope_contains_observation")
             .and_then(Value::as_bool)
@@ -747,6 +756,70 @@ mod tests {
             evaluate_case(&case("OI-019"))["causal_assessment_status"],
             "EligibleForIndependentCausalReview"
         );
+    }
+
+    #[test]
+    fn dynamic_model_requires_observation_level_disjoint_validation() {
+        let mut item = case("OI-005");
+        item["input"]["calibrated_models"][0]["validation_observation_ids"] =
+            serde_json::json!(["TRAIN-001"]);
+        let result = evaluate_case(&item);
+        assert_eq!(result["metric_results"][0]["dynamic_gap_state"], "Unknown");
+    }
+
+    #[test]
+    fn dynamic_model_requires_a_pinned_partition_protocol_and_receipt() {
+        let mut protocol_missing = case("OI-005");
+        protocol_missing["input"]["calibrated_models"][0]
+            .as_object_mut()
+            .unwrap()
+            .remove("validation_protocol_id");
+        let result = evaluate_case(&protocol_missing);
+        assert_eq!(result["metric_results"][0]["dynamic_gap_state"], "Unknown");
+
+        let mut receipt_missing = case("OI-005");
+        receipt_missing["input"]["calibrated_models"][0]
+            .as_object_mut()
+            .unwrap()
+            .remove("partition_audit_receipt_id");
+        let result = evaluate_case(&receipt_missing);
+        assert_eq!(result["metric_results"][0]["dynamic_gap_state"], "Unknown");
+    }
+
+    #[test]
+    fn observation_and_mv_coverage_cannot_exceed_one_hundred_percent() {
+        let mut observation = case("OI-001");
+        observation["input"]["observations"][0]["coverage_fraction"] = serde_json::json!(1.01);
+        let result = evaluate_case(&observation);
+        assert_eq!(result["metric_results"][0]["observation_state"], "Unknown");
+
+        let mut mv = case("OI-017");
+        mv["input"]["measurement_and_verification"]["coverage_fraction"] =
+            serde_json::json!(1.01);
+        let result = evaluate_case(&mv);
+        assert_eq!(result["measurement_and_verification_status"], "Unsupported");
+    }
+
+    #[test]
+    fn known_answer_match_rejects_omitted_or_extra_output_fields() {
+        let expected = serde_json::json!({
+            "case_id": "OI-X",
+            "disposition": "Evaluated",
+            "reason_codes": []
+        });
+        let omitted = serde_json::json!({
+            "case_id": "OI-X",
+            "reason_codes": []
+        });
+        let extra = serde_json::json!({
+            "case_id": "OI-X",
+            "disposition": "Evaluated",
+            "reason_codes": [],
+            "unreviewed_field": true
+        });
+        assert!(!matches_expected(&omitted, &expected));
+        assert!(!matches_expected(&extra, &expected));
+        assert!(matches_expected(&expected, &expected));
     }
 
     #[test]
