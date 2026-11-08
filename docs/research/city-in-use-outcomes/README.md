@@ -1,6 +1,10 @@
 # City in-use outcomes corpus v0.1
 
-24 synthetic known-answer cases for post-occupancy/building-in-use evidence comparability. The evaluator checks observation binding, prediction/model comparability, service thresholds and M&V/causal eligibility. It does not compute energy savings, regulatory compliance, resident wellbeing or causal effect.
+30 synthetic known-answer cases for post-occupancy/building-in-use evidence comparability. The evaluator checks observation binding, prediction/model comparability, service thresholds and M&V/causal eligibility. It does not compute energy savings, regulatory compliance, resident wellbeing or causal effect.
+
+## Corpus v0.1 composition
+
+The 30 frozen cases include scope/revision and unit mismatches, missing and low-coverage observations, stale owner revisions, meter/experience/service evidence-class controls, consent denial, static/dynamic prediction distinctions, dynamic-model partition leakage/invalidity, M&V window/receipt eligibility, and causal-claim limits. The six latest additions are OI-025 through OI-030; they are hard negatives and do not add any measured real-building data.
 
 ## Distinctions
 
