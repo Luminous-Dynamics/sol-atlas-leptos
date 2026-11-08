@@ -3,8 +3,8 @@
   "schema_version": "0.1.0",
   "register_id": "JOHANNESBURG-SOURCE-REGISTER-V0.1",
   "classification": "research_inventory_not_ingested_data",
-  "as_of": "2026-11-07",
-  "claim_ceiling": "This register records discoverable candidate sources and known access/rights facts. No live GIS, population, service, public-space or timetable layer has been ingested or qualified by this register.",
+  "as_of": "2026-11-08",
+  "claim_ceiling": "The register records discoverable candidate sources and known access/rights facts at the as-of date. It does not indicate that layers have been downloaded, licensed for redistribution or spatially validated.",
   "access_status_values": [
     "VerifiedPublic",
     "PublicWithConditions",
@@ -207,34 +207,42 @@
     },
     {
       "source_id": "COJ-ISDP-SPMS",
-      "name": "City of Johannesburg Integrated Spatial Data Platform and Spatial Plan Management System",
+      "name": "City of Johannesburg Corporate Geo-Informatics Online Maps / Spatial Data Inventory",
       "publisher": "City of Johannesburg; Development Planning / Corporate Geo-Informatics / Johannesburg Development Agency",
-      "url": "https://joburg.org.za/media_/Newsroom/Pages/2025-News-Articles/Joburg-launches-SA%E2%80%99s-first-integrated-Spatial-Data-and-Planning-system.aspx",
-      "source_type": "municipal_spatial_data_platform",
+      "url": "https://eservices.joburg.org.za/sites/cgismaps/Pages/default.aspx",
+      "source_type": "municipal_gis_viewer_with_layer_extraction_and_custodian_inventory",
       "announcement_date": "2025-08-29",
-      "access_status": "Unknown",
-      "rights_status": "Unknown",
+      "access_status": "PublicWithConditions",
+      "rights_status": "PublicWithConditions",
       "known_facts": [
-        "City announcement says municipal and municipal-entity spatial data are being consolidated into a web-based repository.",
-        "Announcement says the Spatial Plan Management System makes spatial plans accessible online."
+        "City Online Maps viewer can be accessed without registering as an eServices client.",
+        "City documentation says certain layers can be extracted through an Extract Downloader in shapefile, KML or DXF format; export availability is layer-dependent.",
+        "The City Spatial Data Inventory 2024 is published as a PDF and records dataset name/description, data type/distribution format/date created, data owner/contact and usage limitations; it is reviewed annually.",
+        "The Corporate Geo-Informatics portal states that CGIS is not the custodian/owner of every layer and directs users to the responsible department or municipal entity.",
+        "The Online Maps help page states cadastral/property data are updated weekly, roads data from Johannesburg Roads Agency were last updated August 2019, aerial photography was flown May 2023, and most other data were captured over multiple years."
       ],
       "unknowns": [
-        "Actual public portal/API endpoints",
-        "Anonymous public access vs login",
-        "Download/export availability and rate limits",
-        "Per-layer ownership, licence, publication date, effective date and update cadence",
-        "Whether a web map layer can be redistributed or only viewed"
+        "Exact layer-by-layer export availability and access conditions",
+        "Actual rights/reuse terms for each dataset and its custodian",
+        "Whether the Spatial Data Inventory 2024 remains the latest available version as of retrieval",
+        "Per-layer effective date, schema, CRS, scale/resolution and completeness",
+        "Whether road updates after August 2019 are available from JRA or other custodians",
+        "Whether exported data include stable feature IDs and revision metadata"
       ],
       "required_checks": [
-        "Locate the live platform and its catalogue",
-        "Test public access without privileged credentials",
-        "Record each layer's metadata and rights",
-        "Request permission where export or reuse rights are unclear",
-        "Do not scrape access-controlled or restricted information"
+        "Download and archive the Spatial Data Inventory PDF with retrieval date/digest; extract custodian contacts and dataset limitations",
+        "Use the current viewer and Extract Downloader to export a carefully selected pilot-area layer list",
+        "For every selected layer, contact its actual custodian where rights/freshness are unclear",
+        "Record data effective date rather than relying on portal page retrieval date",
+        "Reject or explicitly downgrade JRA roads where the only available layer is the documented August 2019 vintage",
+        "Keep cadastral, road, imagery and other layer freshness policies separate",
+        "Check POPIA and other South African legal restrictions before processing property/individual data"
       ],
       "evidence_urls": [
-        "https://joburg.org.za/media_/Newsroom/Pages/2025-News-Articles/Joburg-launches-SA%E2%80%99s-first-integrated-Spatial-Data-and-Planning-system.aspx",
-        "https://www.jda.org.za/"
+        "https://eservices.joburg.org.za/pages/OnlineMaps.aspx",
+        "https://eservices.joburg.org.za/sites/cgismaps/Pages/default.aspx",
+        "https://eservices.joburg.org.za/corporate-geo-informatics/overview",
+        "https://joburg.org.za/media_/Newsroom/Pages/2025-News-Articles/Joburg-launches-SA%E2%80%99s-first-integrated-Spatial-Data-and-Planning-system.aspx"
       ]
     },
     {
@@ -664,6 +672,65 @@
       "evidence_urls": [
         "https://www.statssa.gov.za/?p=18967",
         "https://isibaloweb.statssa.gov.za/pages/surveys/pss/censuses/censusp.php"
+      ]
+    },
+    {
+      "source_id": "COJ-GREEN-BUS-TRIAL-2026",
+      "name": "City of Johannesburg / Metrobus / Rea Vaya electric bus field trial operational data",
+      "publisher": "City of Johannesburg Transport Department with Metrobus and Rea Vaya",
+      "url": "https://joburg.org.za/media_/Newsroom/Pages/2026-News-Articles/City-puts-electric-buses-to-the-test-in-drive-towards-greener-public-transport.aspx",
+      "source_type": "time_bounded_fleet_operations_and_AVL_pilot",
+      "access_status": "RequestRequired",
+      "rights_status": "Unknown",
+      "announced_start_date": "2026-09-03",
+      "announced_duration_days_min": 30,
+      "announced_duration_days_max": 60,
+      "known_facts": [
+        "The City announced a 30-to-60-day electric bus trial under Metrobus and Rea Vaya Phase 1C(a) routes.",
+        "The City's announcement states trial vehicles were integrated with the Metrobus Fleet Management System, Control Centre and Automatic Vehicle Location system for monitoring.",
+        "The trial description includes energy consumption, fleet reliability, maintenance, ITS, lifecycle cost, accessibility, passenger comfort and safety."
+      ],
+      "unknowns": [
+        "Whether the pilot has completed and whether evaluation results have been published",
+        "Whether historical AVL or operational data can be shared externally",
+        "Sampling frequency, precision, route/vehicle coverage and service-day completeness",
+        "Privacy, security, commercial confidentiality and rights to process/redistribute records",
+        "Whether data can be anonymized and released as a non-personal route/service reliability dataset"
+      ],
+      "required_checks": [
+        "Search for published post-trial results after the announced 30-60 day window",
+        "Request aggregate route/vehicle operating records if not public",
+        "Do not request or ingest passenger-level tracking, driver biometrics or personal travel traces",
+        "If sharing is approved, require data dictionary, system clocks, vehicle/route IDs, missingness and quality reports",
+        "Use AVL as observed operational evidence only; do not reinterpret it as scheduled GTFS"
+      ],
+      "evidence_urls": [
+        "https://joburg.org.za/media_/Newsroom/Pages/2026-News-Articles/City-puts-electric-buses-to-the-test-in-drive-towards-greener-public-transport.aspx"
+      ]
+    },
+    {
+      "source_id": "METROBUS-QUARTERLY-PERFORMANCE-REPORTS",
+      "name": "Metrobus quarterly performance assessments",
+      "publisher": "Metrobus / City of Johannesburg",
+      "url": "https://mbus.joburg.org.za/about_strat_reports.aspx",
+      "source_type": "published_operating_performance_reports",
+      "access_status": "PublicWithConditions",
+      "rights_status": "Unknown",
+      "known_facts": [
+        "The Metrobus reports page lists quarterly performance assessment reports including 2025-26 reporting periods.",
+        "Published assessments may provide context for route/service performance, but are not a substitute for machine-readable timetables or AVL traces."
+      ],
+      "unknowns": [
+        "Per-report detail, machine-readable data availability and extraction rights",
+        "Whether reports contain route-level service-day counts and disaggregated performance measures"
+      ],
+      "required_checks": [
+        "Retrieve the latest quarterly report and record reporting period/publication date",
+        "Check whether route-level or aggregate service measures can support a benchmark",
+        "Do not infer stop times, headways or route geometry from narrative performance reports"
+      ],
+      "evidence_urls": [
+        "https://mbus.joburg.org.za/about_strat_reports.aspx"
       ]
     }
   ],
