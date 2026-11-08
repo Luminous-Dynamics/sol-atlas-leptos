@@ -211,7 +211,9 @@ fn evaluate_artifact(
     if text(descriptor_binding, "subject_id") != text(artifact, "subject_id") {
         reasons.insert("OWNER_SUBJECT_BINDING_MISMATCH".to_owned());
     }
-    if text(descriptor_binding, "schema_artifact_digest") != text(artifact, "schema_artifact_digest") {
+    if text(descriptor_binding, "schema_artifact_digest")
+        != text(artifact, "schema_artifact_digest")
+    {
         reasons.insert("OWNER_SCHEMA_ARTIFACT_BINDING_MISMATCH".to_owned());
     }
     if text(descriptor_binding, "schema_id") != text(payload, "schema_id")
@@ -220,8 +222,7 @@ fn evaluate_artifact(
         reasons.insert("SOURCE_PAYLOAD_SCHEMA_IDENTITY_MISMATCH".to_owned());
     }
     if text(descriptor_binding, "owner_contract_id") != text(artifact, "contract_id")
-        || text(descriptor_binding, "owner_contract_version")
-            != text(artifact, "contract_version")
+        || text(descriptor_binding, "owner_contract_version") != text(artifact, "contract_version")
     {
         reasons.insert("OWNER_CONTRACT_IDENTITY_MISMATCH".to_owned());
     }
@@ -284,7 +285,11 @@ fn evaluate_artifact(
     }
     if digest_basis == "source_owner_attested"
         && (bool_value(payload, "bytes_retrieved") == Some(true)
-            || text(descriptor.get("attestation").unwrap_or(&Value::Null), "statement_ref").is_empty())
+            || text(
+                descriptor.get("attestation").unwrap_or(&Value::Null),
+                "statement_ref",
+            )
+            .is_empty())
     {
         reasons.insert("SOURCE_OWNER_ATTESTATION_DESCRIPTOR_INCOMPLETE".to_owned());
     }
@@ -305,8 +310,10 @@ fn evaluate_artifact(
     {
         reasons.insert("LOCAL_PAYLOAD_DESCRIPTOR_INCOMPLETE".to_owned());
     }
-    if matches!(digest_basis, "external_reference" | "locally_retrieved_and_hashed")
-        && expected_sha.is_some()
+    if matches!(
+        digest_basis,
+        "external_reference" | "locally_retrieved_and_hashed"
+    ) && expected_sha.is_some()
         && object_ref != format!("cas:sha256:{}", expected_sha.unwrap_or(""))
     {
         reasons.insert("PAYLOAD_OBJECT_REFERENCE_DIGEST_MISMATCH".to_owned());
@@ -331,7 +338,10 @@ fn evaluate_artifact(
     if rights_state == "unknown" && !permitted_uses.is_empty() {
         reasons.insert("UNKNOWN_RIGHTS_HAS_PERMITTED_USES".to_owned());
     }
-    if !matches!(rights_state, "verified" | "restricted" | "unknown" | "not_applicable") {
+    if !matches!(
+        rights_state,
+        "verified" | "restricted" | "unknown" | "not_applicable"
+    ) {
         reasons.insert("RIGHTS_STATE_UNSUPPORTED".to_owned());
     }
     if payload.get("schema_id").is_some_and(Value::is_string)
@@ -340,8 +350,11 @@ fn evaluate_artifact(
         reasons.insert("PAYLOAD_SCHEMA_SHA256_INVALID".to_owned());
     }
     let rights_use_declaration_state = match rights_state {
-        "verified" if !required_use.is_empty()
-            && permitted_uses.iter().any(|value| value.as_str() == Some(required_use)) =>
+        "verified"
+            if !required_use.is_empty()
+                && permitted_uses
+                    .iter()
+                    .any(|value| value.as_str() == Some(required_use)) =>
         {
             "owner_declares_permitted"
         }
@@ -419,7 +432,12 @@ fn evaluate_artifact(
         let result_object_ref = record.get("object_ref").and_then(Value::as_str);
         let result_expected_length = record.get("expected_byte_length").and_then(Value::as_u64);
         if result.get("expected_sha256").and_then(Value::as_str) != expected_sha
-            || result_object_ref != if object_ref.is_empty() { None } else { Some(object_ref) }
+            || result_object_ref
+                != if object_ref.is_empty() {
+                    None
+                } else {
+                    Some(object_ref)
+                }
             || result_expected_length != expected_length
             || text(record, "digest_basis") != digest_basis
         {
@@ -444,7 +462,9 @@ fn evaluate_artifact(
                     }
                     None => {
                         byte_length_comparison_state = "not_declared";
-                        record.get("byte_length_matches").is_some_and(Value::is_null)
+                        record
+                            .get("byte_length_matches")
+                            .is_some_and(Value::is_null)
                             && observed_length.is_some()
                             && bytes_hashed == observed_length
                     }
@@ -972,8 +992,8 @@ mod tests {
         );
 
         let mut contract_case = corpus()["cases"][0].clone();
-        contract_case["input"]["owner_artifacts"][0]["descriptor_binding"]
-            ["owner_contract_id"] = Value::String("different-owner-contract".into());
+        contract_case["input"]["owner_artifacts"][0]["descriptor_binding"]["owner_contract_id"] =
+            Value::String("different-owner-contract".into());
         let contract_result = evaluate_case(&contract_case);
         let contract_artifact = &contract_result["artifact_payloads"][0];
         assert_eq!(contract_artifact["payload_verification_state"], "mismatch");
