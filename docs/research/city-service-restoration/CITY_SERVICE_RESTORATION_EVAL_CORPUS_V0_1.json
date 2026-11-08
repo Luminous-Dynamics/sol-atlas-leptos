@@ -55,7 +55,8 @@
         "reason_codes": [],
         "action_authority": "none",
         "causal_effect_established": false,
-        "claim_ceiling": "synthetic restoration-feasibility and lifecycle-separation semantics only; no real resource, safety, engineering or service claim is qualified"
+        "claim_ceiling": "synthetic restoration-feasibility and lifecycle-separation semantics only; no real resource, safety, engineering or service claim is qualified",
+        "id": "CSR-01"
       },
       "expected_behavior": "All required current owner receipts, resource reservations, skills, tools, access, delivery and time windows are compatible.",
       "input": {
@@ -239,7 +240,8 @@
         ],
         "action_authority": "none",
         "causal_effect_established": false,
-        "claim_ceiling": "synthetic restoration-feasibility and lifecycle-separation semantics only; no real resource, safety, engineering or service claim is qualified"
+        "claim_ceiling": "synthetic restoration-feasibility and lifecycle-separation semantics only; no real resource, safety, engineering or service claim is qualified",
+        "id": "CSR-02"
       },
       "expected_behavior": "Owner-native inventory confirms zero available quantity for the permitted repair window.",
       "input": {
@@ -423,7 +425,8 @@
         ],
         "action_authority": "none",
         "causal_effect_established": false,
-        "claim_ceiling": "synthetic restoration-feasibility and lifecycle-separation semantics only; no real resource, safety, engineering or service claim is qualified"
+        "claim_ceiling": "synthetic restoration-feasibility and lifecycle-separation semantics only; no real resource, safety, engineering or service claim is qualified",
+        "id": "CSR-03"
       },
       "expected_behavior": "Exact product/configuration revision does not match the asset and interface contract.",
       "input": {
@@ -607,7 +610,8 @@
         ],
         "action_authority": "none",
         "causal_effect_established": false,
-        "claim_ceiling": "synthetic restoration-feasibility and lifecycle-separation semantics only; no real resource, safety, engineering or service claim is qualified"
+        "claim_ceiling": "synthetic restoration-feasibility and lifecycle-separation semantics only; no real resource, safety, engineering or service claim is qualified",
+        "id": "CSR-04"
       },
       "expected_behavior": "Authoritative provenance owner marks the exact lot revoked.",
       "input": {
@@ -791,7 +795,8 @@
         ],
         "action_authority": "none",
         "causal_effect_established": false,
-        "claim_ceiling": "synthetic restoration-feasibility and lifecycle-separation semantics only; no real resource, safety, engineering or service claim is qualified"
+        "claim_ceiling": "synthetic restoration-feasibility and lifecycle-separation semantics only; no real resource, safety, engineering or service claim is qualified",
+        "id": "CSR-05"
       },
       "expected_behavior": "Physical availability cannot be inferred without required custody and receiving acceptance.",
       "input": {
@@ -975,7 +980,8 @@
         ],
         "action_authority": "none",
         "causal_effect_established": false,
-        "claim_ceiling": "synthetic restoration-feasibility and lifecycle-separation semantics only; no real resource, safety, engineering or service claim is qualified"
+        "claim_ceiling": "synthetic restoration-feasibility and lifecycle-separation semantics only; no real resource, safety, engineering or service claim is qualified",
+        "id": "CSR-06"
       },
       "expected_behavior": "Owner-native reservation facts prove an exclusive double allocation.",
       "input": {
@@ -1169,7 +1175,8 @@
         ],
         "action_authority": "none",
         "causal_effect_established": false,
-        "claim_ceiling": "synthetic restoration-feasibility and lifecycle-separation semantics only; no real resource, safety, engineering or service claim is qualified"
+        "claim_ceiling": "synthetic restoration-feasibility and lifecycle-separation semantics only; no real resource, safety, engineering or service claim is qualified",
+        "id": "CSR-07"
       },
       "expected_behavior": "A catalogue listing is not proof of deployable, uncommitted stock.",
       "input": {
@@ -1353,7 +1360,8 @@
         ],
         "action_authority": "none",
         "causal_effect_established": false,
-        "claim_ceiling": "synthetic restoration-feasibility and lifecycle-separation semantics only; no real resource, safety, engineering or service claim is qualified"
+        "claim_ceiling": "synthetic restoration-feasibility and lifecycle-separation semantics only; no real resource, safety, engineering or service claim is qualified",
+        "id": "CSR-08"
       },
       "expected_behavior": "No approved equivalence/interface evidence exists for the substitute.",
       "input": {
@@ -1544,7 +1552,8 @@
         "reason_codes": [],
         "action_authority": "none",
         "causal_effect_established": false,
-        "claim_ceiling": "synthetic restoration-feasibility and lifecycle-separation semantics only; no real resource, safety, engineering or service claim is qualified"
+        "claim_ceiling": "synthetic restoration-feasibility and lifecycle-separation semantics only; no real resource, safety, engineering or service claim is qualified",
+        "id": "CSR-09"
       },
       "expected_behavior": "Substitution, compatibility, exact lot, custody and allocation are all owner-qualified.",
       "input": {
@@ -1738,7 +1747,8 @@
         ],
         "action_authority": "none",
         "causal_effect_established": false,
-        "claim_ceiling": "synthetic restoration-feasibility and lifecycle-separation semantics only; no real resource, safety, engineering or service claim is qualified"
+        "claim_ceiling": "synthetic restoration-feasibility and lifecycle-separation semantics only; no real resource, safety, engineering or service claim is qualified",
+        "id": "CSR-10"
       },
       "expected_behavior": "Geographic proximity does not establish production or delivery capacity.",
       "input": {
@@ -1922,7 +1932,8 @@
         ],
         "action_authority": "none",
         "causal_effect_established": false,
-        "claim_ceiling": "synthetic restoration-feasibility and lifecycle-separation semantics only; no real resource, safety, engineering or service claim is qualified"
+        "claim_ceiling": "synthetic restoration-feasibility and lifecycle-separation semantics only; no real resource, safety, engineering or service claim is qualified",
+        "id": "CSR-11"
       },
       "expected_behavior": "Authoritative route evidence proves no permitted delivery path exists within the required interval.",
       "input": {
@@ -2106,7 +2117,8 @@
         ],
         "action_authority": "none",
         "causal_effect_established": false,
-        "claim_ceiling": "synthetic restoration-feasibility and lifecycle-separation semantics only; no real resource, safety, engineering or service claim is qualified"
+        "claim_ceiling": "synthetic restoration-feasibility and lifecycle-separation semantics only; no real resource, safety, engineering or service claim is qualified",
+        "id": "CSR-12"
       },
       "expected_behavior": "The earliest evidenced accepted-delivery time is later than the latest permitted start.",
       "input": {
@@ -2290,7 +2302,8 @@
         ],
         "action_authority": "none",
         "causal_effect_established": false,
-        "claim_ceiling": "synthetic restoration-feasibility and lifecycle-separation semantics only; no real resource, safety, engineering or service claim is qualified"
+        "claim_ceiling": "synthetic restoration-feasibility and lifecycle-separation semantics only; no real resource, safety, engineering or service claim is qualified",
+        "id": "CSR-13"
       },
       "expected_behavior": "The declared delivery method cannot be received at the target site under the current access envelope.",
       "input": {
@@ -2474,7 +2487,8 @@
         ],
         "action_authority": "none",
         "causal_effect_established": false,
-        "claim_ceiling": "synthetic restoration-feasibility and lifecycle-separation semantics only; no real resource, safety, engineering or service claim is qualified"
+        "claim_ceiling": "synthetic restoration-feasibility and lifecycle-separation semantics only; no real resource, safety, engineering or service claim is qualified",
+        "id": "CSR-14"
       },
       "expected_behavior": "No authoritative evidence supports the required role authorization for this task.",
       "input": {
@@ -2658,7 +2672,8 @@
         ],
         "action_authority": "none",
         "causal_effect_established": false,
-        "claim_ceiling": "synthetic restoration-feasibility and lifecycle-separation semantics only; no real resource, safety, engineering or service claim is qualified"
+        "claim_ceiling": "synthetic restoration-feasibility and lifecycle-separation semantics only; no real resource, safety, engineering or service claim is qualified",
+        "id": "CSR-15"
       },
       "expected_behavior": "The evidenced qualification-validity interval does not cover the proposed work.",
       "input": {
@@ -2842,7 +2857,8 @@
         ],
         "action_authority": "none",
         "causal_effect_established": false,
-        "claim_ceiling": "synthetic restoration-feasibility and lifecycle-separation semantics only; no real resource, safety, engineering or service claim is qualified"
+        "claim_ceiling": "synthetic restoration-feasibility and lifecycle-separation semantics only; no real resource, safety, engineering or service claim is qualified",
+        "id": "CSR-16"
       },
       "expected_behavior": "Declared work demand exceeds the owner-confirmed capacity available in the work window.",
       "input": {
@@ -3026,7 +3042,8 @@
         ],
         "action_authority": "none",
         "causal_effect_established": false,
-        "claim_ceiling": "synthetic restoration-feasibility and lifecycle-separation semantics only; no real resource, safety, engineering or service claim is qualified"
+        "claim_ceiling": "synthetic restoration-feasibility and lifecycle-separation semantics only; no real resource, safety, engineering or service claim is qualified",
+        "id": "CSR-17"
       },
       "expected_behavior": "Two proposed work packages require the same exclusive resource in overlapping intervals.",
       "input": {
@@ -3220,7 +3237,8 @@
         ],
         "action_authority": "none",
         "causal_effect_established": false,
-        "claim_ceiling": "synthetic restoration-feasibility and lifecycle-separation semantics only; no real resource, safety, engineering or service claim is qualified"
+        "claim_ceiling": "synthetic restoration-feasibility and lifecycle-separation semantics only; no real resource, safety, engineering or service claim is qualified",
+        "id": "CSR-18"
       },
       "expected_behavior": "Owner evidence confirms the required tool/equipment is unavailable for the full work interval.",
       "input": {
@@ -3404,7 +3422,8 @@
         ],
         "action_authority": "none",
         "causal_effect_established": false,
-        "claim_ceiling": "synthetic restoration-feasibility and lifecycle-separation semantics only; no real resource, safety, engineering or service claim is qualified"
+        "claim_ceiling": "synthetic restoration-feasibility and lifecycle-separation semantics only; no real resource, safety, engineering or service claim is qualified",
+        "id": "CSR-19"
       },
       "expected_behavior": "Calibration validity does not cover the required measurement event.",
       "input": {
@@ -3588,7 +3607,8 @@
         ],
         "action_authority": "none",
         "causal_effect_established": false,
-        "claim_ceiling": "synthetic restoration-feasibility and lifecycle-separation semantics only; no real resource, safety, engineering or service claim is qualified"
+        "claim_ceiling": "synthetic restoration-feasibility and lifecycle-separation semantics only; no real resource, safety, engineering or service claim is qualified",
+        "id": "CSR-20"
       },
       "expected_behavior": "The proposed sequence violates an explicit work-package precedence constraint.",
       "input": {
@@ -3781,7 +3801,8 @@
         ],
         "action_authority": "none",
         "causal_effect_established": false,
-        "claim_ceiling": "synthetic restoration-feasibility and lifecycle-separation semantics only; no real resource, safety, engineering or service claim is qualified"
+        "claim_ceiling": "synthetic restoration-feasibility and lifecycle-separation semantics only; no real resource, safety, engineering or service claim is qualified",
+        "id": "CSR-21"
       },
       "expected_behavior": "A required safety precondition is unproven; the evaluator must not infer isolation.",
       "input": {
@@ -3965,7 +3986,8 @@
         ],
         "action_authority": "none",
         "causal_effect_established": false,
-        "claim_ceiling": "synthetic restoration-feasibility and lifecycle-separation semantics only; no real resource, safety, engineering or service claim is qualified"
+        "claim_ceiling": "synthetic restoration-feasibility and lifecycle-separation semantics only; no real resource, safety, engineering or service claim is qualified",
+        "id": "CSR-22"
       },
       "expected_behavior": "The proposed isolation violates a declared non-compensatory service-protection constraint.",
       "input": {
@@ -4149,7 +4171,8 @@
         ],
         "action_authority": "none",
         "causal_effect_established": false,
-        "claim_ceiling": "synthetic restoration-feasibility and lifecycle-separation semantics only; no real resource, safety, engineering or service claim is qualified"
+        "claim_ceiling": "synthetic restoration-feasibility and lifecycle-separation semantics only; no real resource, safety, engineering or service claim is qualified",
+        "id": "CSR-23"
       },
       "expected_behavior": "Owner-native access evidence confirms the required work location cannot be reached.",
       "input": {
@@ -4333,7 +4356,8 @@
         ],
         "action_authority": "none",
         "causal_effect_established": false,
-        "claim_ceiling": "synthetic restoration-feasibility and lifecycle-separation semantics only; no real resource, safety, engineering or service claim is qualified"
+        "claim_ceiling": "synthetic restoration-feasibility and lifecycle-separation semantics only; no real resource, safety, engineering or service claim is qualified",
+        "id": "CSR-24"
       },
       "expected_behavior": "Measured host/module tolerance stack exceeds the declared qualified adjustment range.",
       "input": {
@@ -4517,7 +4541,8 @@
         ],
         "action_authority": "none",
         "causal_effect_established": false,
-        "claim_ceiling": "synthetic restoration-feasibility and lifecycle-separation semantics only; no real resource, safety, engineering or service claim is qualified"
+        "claim_ceiling": "synthetic restoration-feasibility and lifecycle-separation semantics only; no real resource, safety, engineering or service claim is qualified",
+        "id": "CSR-25"
       },
       "expected_behavior": "The observed condition requires a different intervention and no approved disposition is supplied.",
       "input": {
@@ -4701,7 +4726,8 @@
         ],
         "action_authority": "none",
         "causal_effect_established": false,
-        "claim_ceiling": "synthetic restoration-feasibility and lifecycle-separation semantics only; no real resource, safety, engineering or service claim is qualified"
+        "claim_ceiling": "synthetic restoration-feasibility and lifecycle-separation semantics only; no real resource, safety, engineering or service claim is qualified",
+        "id": "CSR-26"
       },
       "expected_behavior": "Unreported rework could change remaining labour, resource availability and the feasible time window.",
       "input": {
@@ -4881,7 +4907,8 @@
         "reason_codes": [],
         "action_authority": "none",
         "causal_effect_established": false,
-        "claim_ceiling": "synthetic restoration-feasibility and lifecycle-separation semantics only; no real resource, safety, engineering or service claim is qualified"
+        "claim_ceiling": "synthetic restoration-feasibility and lifecycle-separation semantics only; no real resource, safety, engineering or service claim is qualified",
+        "id": "CSR-27"
       },
       "expected_behavior": "Plan readiness and execution completion do not constitute independent acceptance.",
       "input": {
@@ -5063,7 +5090,8 @@
         "reason_codes": [],
         "action_authority": "none",
         "causal_effect_established": false,
-        "claim_ceiling": "synthetic restoration-feasibility and lifecycle-separation semantics only; no real resource, safety, engineering or service claim is qualified"
+        "claim_ceiling": "synthetic restoration-feasibility and lifecycle-separation semantics only; no real resource, safety, engineering or service claim is qualified",
+        "id": "CSR-28"
       },
       "expected_behavior": "An inspection pass does not establish integrated functional commissioning or service restoration.",
       "input": {
@@ -5247,7 +5275,8 @@
         ],
         "action_authority": "none",
         "causal_effect_established": false,
-        "claim_ceiling": "synthetic restoration-feasibility and lifecycle-separation semantics only; no real resource, safety, engineering or service claim is qualified"
+        "claim_ceiling": "synthetic restoration-feasibility and lifecycle-separation semantics only; no real resource, safety, engineering or service claim is qualified",
+        "id": "CSR-29"
       },
       "expected_behavior": "Commissioning evidence cannot replace the time-dependent service-state owner.",
       "input": {
@@ -5431,7 +5460,8 @@
         ],
         "action_authority": "none",
         "causal_effect_established": false,
-        "claim_ceiling": "synthetic restoration-feasibility and lifecycle-separation semantics only; no real resource, safety, engineering or service claim is qualified"
+        "claim_ceiling": "synthetic restoration-feasibility and lifecycle-separation semantics only; no real resource, safety, engineering or service claim is qualified",
+        "id": "CSR-30"
       },
       "expected_behavior": "A single adequate sample does not satisfy the continuity owner's stable recovery predicate.",
       "input": {
@@ -5615,7 +5645,8 @@
         ],
         "action_authority": "none",
         "causal_effect_established": false,
-        "claim_ceiling": "synthetic restoration-feasibility and lifecycle-separation semantics only; no real resource, safety, engineering or service claim is qualified"
+        "claim_ceiling": "synthetic restoration-feasibility and lifecycle-separation semantics only; no real resource, safety, engineering or service claim is qualified",
+        "id": "CSR-31"
       },
       "expected_behavior": "A declared digest is not proof that the resolved payload bytes match it.",
       "input": {
@@ -5799,7 +5830,8 @@
         ],
         "action_authority": "none",
         "causal_effect_established": false,
-        "claim_ceiling": "synthetic restoration-feasibility and lifecycle-separation semantics only; no real resource, safety, engineering or service claim is qualified"
+        "claim_ceiling": "synthetic restoration-feasibility and lifecycle-separation semantics only; no real resource, safety, engineering or service claim is qualified",
+        "id": "CSR-32"
       },
       "expected_behavior": "Byte equality establishes neither issuer authentication, usage rights nor engineering correctness.",
       "input": {
