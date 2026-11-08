@@ -183,6 +183,7 @@ fn evaluate_artifact(
     let payload_digest = text(payload, "sha256");
     let payload_length = payload.get("byte_length").and_then(Value::as_u64);
     let digest_basis = text(payload, "digest_basis");
+    let digest_algorithm = text(payload, "digest_algorithm");
     let object_ref = text(payload, "object_ref");
     let rights_state = text(payload, "rights_state");
     let required_use = text(payload, "required_use");
@@ -193,6 +194,9 @@ fn evaluate_artifact(
         "locally_retrieved_and_hashed" | "source_owner_attested" | "external_reference" | "unavailable"
     ) {
         reasons.insert("PAYLOAD_DIGEST_BASIS_UNSUPPORTED".to_owned());
+    }
+    if digest_algorithm != "sha256" {
+        reasons.insert("PAYLOAD_DIGEST_ALGORITHM_UNSUPPORTED".to_owned());
     }
     if !lower_hex(payload_digest, 64)
         || !lower_hex(text(artifact, "subject_digest"), 64)
@@ -334,6 +338,7 @@ fn evaluate_artifact(
         "record_key": declared_record_key,
         "object_ref": object_ref,
         "digest_basis": digest_basis,
+        "digest_algorithm": digest_algorithm,
         "expected_sha256": payload_digest,
         "observed_sha256": observed_digest,
         "expected_byte_length": payload_length,
