@@ -146,3 +146,66 @@ South African physical pilots remain subject to the National Building Regulation
 ## 10. Claim boundary
 
 An E1 Feasible result proves only that a frozen synthetic fixture satisfies this evaluator's declared receipt and temporal preconditions. It does not prove a real part exists, a person is qualified, a worksite is safe, a repair will succeed or a city service has been restored. Physical claims require measured, owner-qualified evidence at the appropriate E-level.
+
+
+## 11. Design-for-recovery: make restoration a design variable
+
+The evaluator above checks whether a proposed repair plan is supported. The larger architectural opportunity is to make the *existence and quality of a repair path* part of design-space exploration before a building or district is built.
+
+Do not optimize only for lower failure probability, initial capital cost or annual energy. Two designs with similar normal-operation performance can have radically different recovery behavior when a pump, service cassette, panel, controller, valve, sensor or utility connection fails.
+
+For each maintainable component or service module, the design package should therefore expose owner-qualified or explicitly Unknown references for:
+- stable component and interface identity, exact design/BOM revision and compatible replacement families;
+- safe access and removal/reinstallation envelope, lifting/handling requirements and tool reach;
+- isolation boundary, dependent services, bypass/fallback path and permitted intervention envelope;
+- inspection points, test connections, metrology datums and commissioning predicates;
+- parts/lot/approved-substitute requirements, repair stock and supplier/production dependencies;
+- required skills, task authorization, calibration and realistic work windows;
+- reversible fasteners/connections, disassembly sequence and replaceable-module boundary;
+- repair documentation, as-built reconstruction and post-repair re-verification;
+- replacement waste/material, embodied impact and end-of-life/reuse path.
+
+A BIM object with an IDS-compliant property set is not thereby repairable. A modular component is not replaceable if the installed access path, isolation boundary, lifting envelope, compatible spare or qualified person is unavailable. The relevant owners remain authoritative for geometry, interfaces, parts, workforce, tools, isolation, accepted work and physical inspection.
+
+### Recovery-aware design experiment
+
+For matched candidate designs, freeze the same declared fault set, service scope, population, scenario/time horizon and evidence policy. Evaluate each candidate's *recovery options* under identical, explicitly scoped resource and service assumptions. Do not invent failure probabilities, repair times, spare availability or crew capacity. Use synthetic values for E1 logic tests and source-qualified values for later levels.
+
+Compare separately:
+- components/services with no known qualified recovery path;
+- single-source versus approved alternate parts and suppliers;
+- fixed installations versus removable service cassettes or replaceable assemblies;
+- repair-in-place versus exchange/replace workflows;
+- access/inspection/repair clearances and safe handling requirements;
+- isolation scope and essential-service fallback;
+- required skill/tool/calibration and logistics dependencies;
+- the effect of one resource, supplier, route or work-window disruption on concurrent repairs.
+
+The design objective is not "maximum modularity". Additional interfaces can introduce leakage, fire, acoustic, durability, cyber/controls, maintenance and coordination burdens. The preferred design is the one whose complete, independently qualified service and recovery performance is better under the declared requirements—not the one with the most modules.
+
+### Recovery-performance vector
+
+Report, without an aggregate recovery score:
+1. time to detect and classify the service deficit, where owner evidence supports it;
+2. time to obtain authorized diagnosis and a feasible plan;
+3. part qualification, reservation, procurement and accepted-delivery lead time;
+4. access, isolation and protected-service impacts;
+5. complete-workflow labour and elapsed work time;
+6. first-pass and final independent acceptance, defects and rework;
+7. commissioning and continuity-owner-confirmed stable restoration;
+8. service deficit-hours and affected service/group distribution, from the continuity owner;
+9. number and criticality of exclusive resource/supplier/tool/skill dependencies;
+10. worker safety/ergonomic exposure, replacement waste and lifecycle material/energy/cost.
+
+Use owner-native denominators and distributions. A short repair to one non-critical component must not conceal prolonged loss of an essential service elsewhere.
+
+### Proposed benchmark progression
+
+- **E1:** expand the frozen evaluator with pairwise fault/resource combinations and independent mutation controls; retain zero false-Feasible on hard conflicts and missing mandatory evidence.
+- **E2:** compare conventional fixed installation, service-cassette and removable-assembly recovery plans on matched synthetic work packages, with full-workflow labour/resource accounting.
+- **E3:** run guarded, non-hazardous service-cassette or panel mock-ups; independently measure removal, replacement, dimensional acceptance, leak/functional tests, inspection and recommissioning.
+- **E4/E5:** only after qualified professional design, statutory approval, accountable safety controls and sustained operation, compare actual disruption/recovery cycles across more than one site/context.
+
+For real comparisons, preregister the fault set, functional unit, service floor, work/resource budgets, evaluation window and measurement plan. Compare against a conventional human-led facilities/maintenance workflow and an integrated best-of-breed asset-management/digital-twin workflow, not just against a weak manual baseline. Include all planning, procurement, kitting, travel, access, setup, supervision, inspection, failed attempts, rework and follow-up—not only wrench time or robot cycle time.
+
+This is a design hypothesis and benchmark plan. It does not assert that modular service cassettes always win or establish any real restoration-time improvement.
