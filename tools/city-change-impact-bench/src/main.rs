@@ -89,9 +89,7 @@ fn main() -> ExitCode {
             .get("expected")
             .and_then(|value| value.get("claim_applicability"))
             .unwrap_or(&Value::Null);
-        let observed = actual
-            .get("claim_applicability")
-            .unwrap_or(&Value::Null);
+        let observed = actual.get("claim_applicability").unwrap_or(&Value::Null);
         let passed = matches_expected(observed, expected);
         if !passed {
             failures += 1;
