@@ -134,7 +134,12 @@ fn evaluate_subject(input: &Value, required: &Value) -> Value {
 
     let mut reasons = BTreeSet::new();
     let mut history_events = relevant.clone();
-    history_events.sort_by_key(|event| number(event, "owner_sequence").unwrap_or(0));
+    history_events.sort_by_key(|event| {
+        (
+            number(event, "owner_sequence").unwrap_or(0),
+            text(event, "event_id").to_owned(),
+        )
+    });
     let history = history_events
         .iter()
         .map(|event| text(event, "event_id").to_owned())
@@ -612,11 +617,25 @@ fn evaluate_intervention(input: &Value, intervention_id: &str, stages: &[Value])
 
     let ordered = ["proposal", "approval", "execution", "inspection", "outcome"];
     let mut previous_id: Option<&str> = None;
-    for stage_name in ordered {
-        if let Some(stage) = by_stage.get(stage_name) {
+    for (index, stage_name) in ordered.iter().enumerate() {
+        if let Some(stage) = by_stage.get(*stage_name) {
+            let event_id = text(stage, "event_id");
             let predecessor = stage.get("predecessor_event_id").and_then(Value::as_str);
-            if predecessor.unwrap_or("") != previous_id.unwrap_or("") {
-                push_reason(&mut reasons, "INTERVENTION_PREDECESSOR_MISMATCH");
+            let predecessor_value = predecessor.unwrap_or("");
+            let predecessor_is_valid = if index == 0 {
+                predecessor_value.is_empty()
+            } else {
+                previous_id.is_some_and(|previous| predecessor_value == previous)
+            };
+            if !predecessor_is_valid {
+                push_reason(
+                    &mut reasons,
+                    if index > 0 && previous_id.is_none() {
+                        "INTERVENTION_PREDECESSOR_MISSING"
+                    } else {
+                        "INTERVENTION_PREDECESSOR_MISMATCH"
+                    },
+                );
                 return json!({
                     "intervention_id": intervention_id,
                     "state": "Unsupported",
@@ -625,7 +644,20 @@ fn evaluate_intervention(input: &Value, intervention_id: &str, stages: &[Value])
                     "reason_codes": reasons.into_iter().collect::<Vec<_>>()
                 });
             }
-            previous_id = Some(text(stage, "event_id"));
+            let occurred_at = number(stage, "occurred_at");
+            let recorded_at = number(stage, "recorded_at");
+            let ingested_at = number(stage, "ingested_at");
+            if !matches!((occurred_at, recorded_at, ingested_at), (Some(o), Some(r), Some(i)) if o <= r && r <= i) {
+                push_reason(&mut reasons, "INTERVENTION_TIME_ORDER_INVALID");
+                return json!({
+                    "intervention_id": intervention_id,
+                    "state": "Unsupported",
+                    "workflow_complete": false,
+                    "causal_effect_established": false,
+                    "reason_codes": reasons.into_iter().collect::<Vec<_>>()
+                });
+            }
+            previous_id = Some(event_id);
         }
     }
 
@@ -701,19 +733,44 @@ pub fn evaluate_case(case: &Value) -> Value {
         .cloned()
         .unwrap_or_default();
     let mut identity_links = Vec::new();
+    let required_subjects = input
+        .get("required_subjects")
+        .and_then(Value::as_array)
+        .cloned()
+        .unwrap_or_default();
     for event in events.iter().filter(|event| {
         text(event, "event_kind") == "identity_successor"
             && visible(event, input.get("as_of").unwrap_or(&Value::Null))
-            && text(event, "evidence_state") == "admitted"
-            && !text(event, "target_subject_id").is_empty()
-            && is_sha256(text(event, "content_sha256"))
     }) {
+        let owner_repo = text(event, "owner_repo");
+        let target_subject_id = text(event, "target_subject_id");
+        let target_subject_digest = text(event, "target_subject_digest");
+        let registered_target = required_subjects.iter().find(|subject| {
+            text(subject, "owner_repo") == owner_repo
+                && text(subject, "subject_id") == target_subject_id
+        });
+        let (status, reason_codes) = if text(event, "evidence_state") != "admitted"
+            || target_subject_id.is_empty()
+            || !is_sha256(text(event, "content_sha256"))
+            || !is_sha256(target_subject_digest)
+        {
+            ("Unsupported", vec!["IDENTITY_SUCCESSOR_EVIDENCE_INVALID"])
+        } else if let Some(target) = registered_target {
+            if text(target, "subject_digest") == target_subject_digest {
+                ("OwnerDeclared", Vec::new())
+            } else {
+                ("Unsupported", vec!["IDENTITY_TARGET_DIGEST_MISMATCH"])
+            }
+        } else {
+            ("Unknown", vec!["IDENTITY_TARGET_NOT_REGISTERED"])
+        };
         identity_links.push(json!({
-            "owner_repo": text(event, "owner_repo"),
+            "owner_repo": owner_repo,
             "from_subject_id": text(event, "subject_id"),
-            "to_subject_id": text(event, "target_subject_id"),
-            "status": "OwnerDeclared",
-            "automatic_merge": false
+            "to_subject_id": target_subject_id,
+            "status": status,
+            "automatic_merge": false,
+            "reason_codes": reason_codes
         }));
     }
     identity_links.sort_by(|left, right| {
