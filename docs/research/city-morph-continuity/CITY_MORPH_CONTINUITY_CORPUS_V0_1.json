@@ -1117,7 +1117,8 @@
         "case_id": "CR-011",
         "disposition": "Unsupported",
         "reason_codes": [
-          "DUPLICATE_OR_MISSING_PHASE_ID"
+          "DUPLICATE_OR_MISSING_PHASE_ID",
+          "DUPLICATE_SOURCE_RECEIPT_ID"
         ],
         "requirements": []
       }
