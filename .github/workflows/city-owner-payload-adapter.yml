@@ -51,6 +51,27 @@ jobs:
             and .title == "CityMaker Owner Payload Adapter Corpus v0.1"
             and .type == "object"
           ' docs/research/city-owner-payload-adapter/CITY_OWNER_PAYLOAD_ADAPTER_CORPUS_V0_1.schema.json
+
+          jq -e '
+            all(.cases[];
+              (.input.scope_binding.required_use | type == "string")
+              and (.input.owner_artifacts | length > 0)
+              and all(.input.owner_artifacts[];
+                (.descriptor_binding.owner_contract_id == .contract_id)
+                and (.descriptor_binding.owner_contract_version == .contract_version)
+                and (.descriptor_binding.schema_id == .descriptor.source_payload.schema_id)
+                and (.descriptor_binding.schema_version == .descriptor.source_payload.schema_version)
+                and (.descriptor_binding.record_key == (.descriptor.record_kind + ":" + .descriptor.case_record_id))
+                and (.descriptor.owner_namespace == .descriptor_binding.owner_namespace)
+              )
+              and ((.input.report_binding.raw_report_json | fromjson) as $report
+                | ($report.descriptor_count == ($report.payload_count + $report.not_attempted_count))
+                and ($report.payload_count == ($report.payload_results | length))
+                and ($report.catalog_validation.catalog_id == $report.catalog_id)
+                and ($report.catalog_validation.catalog_representation_sha256 == $report.catalog_representation_sha256)
+              )
+            )
+          ' docs/research/city-owner-payload-adapter/CITY_OWNER_PAYLOAD_ADAPTER_CORPUS_V0_1.json
       - name: Check formatting
         run: cargo fmt --manifest-path tools/city-owner-payload-adapter/Cargo.toml --all -- --check
       - name: Run report-adapter and hostile-control tests
