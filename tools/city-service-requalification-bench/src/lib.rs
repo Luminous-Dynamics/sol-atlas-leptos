@@ -767,6 +767,27 @@ mod tests {
     }
 
     #[test]
+    fn historical_and_reconstructed_temporal_views_diverge_on_late_corrections() {
+        let cases = corpus()["cases"].as_array().unwrap();
+        let historically_known = evaluate_case(&cases[24]);
+        assert_eq!(historically_known["route_state"], "insufficient_evidence");
+        assert!(
+            historically_known["reason_codes"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|reason| reason == "EVENT_RECORDED_AFTER_KNOWLEDGE_CUTOFF")
+        );
+
+        let reconstructed = evaluate_case(&cases[25]);
+        assert_eq!(reconstructed["route_state"], "contract_bound_unverified");
+        assert_eq!(
+            reconstructed["service_results"][0]["service_state"],
+            "interrupted"
+        );
+    }
+
+    #[test]
     fn a_feasible_plan_never_proves_restoration() {
         let cases = corpus()["cases"].as_array().unwrap().clone();
         let result = evaluate_case(&cases[1]);
