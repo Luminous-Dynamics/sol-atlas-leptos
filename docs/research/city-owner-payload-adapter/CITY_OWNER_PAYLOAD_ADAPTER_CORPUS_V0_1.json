@@ -78,9 +78,12 @@
             "raw_owner_disposition": "Accepted",
             "payload_verification_state": "verified",
             "payload_bytes_verified": true,
-            "raw_byte_equality_verified": true
+            "raw_byte_equality_verified": true,
+            "owner_rights_state": "verified",
+            "rights_use_declaration_state": "owner_declares_permitted"
           }
-        ]
+        ],
+        "report_disposition_state": "complete"
       }
     },
     {
@@ -155,9 +158,12 @@
             "raw_owner_disposition": "Accepted",
             "payload_verification_state": "mismatch",
             "payload_bytes_verified": false,
-            "raw_byte_equality_verified": false
+            "raw_byte_equality_verified": false,
+            "owner_rights_state": "verified",
+            "rights_use_declaration_state": "owner_declares_permitted"
           }
-        ]
+        ],
+        "report_disposition_state": "incomplete"
       }
     },
     {
@@ -232,9 +238,12 @@
             "raw_owner_disposition": "Accepted",
             "payload_verification_state": "mismatch",
             "payload_bytes_verified": false,
-            "raw_byte_equality_verified": false
+            "raw_byte_equality_verified": false,
+            "owner_rights_state": "verified",
+            "rights_use_declaration_state": "owner_declares_permitted"
           }
-        ]
+        ],
+        "report_disposition_state": "incomplete"
       }
     },
     {
@@ -309,9 +318,12 @@
             "raw_owner_disposition": "Accepted",
             "payload_verification_state": "mismatch",
             "payload_bytes_verified": false,
-            "raw_byte_equality_verified": false
+            "raw_byte_equality_verified": false,
+            "owner_rights_state": "verified",
+            "rights_use_declaration_state": "owner_declares_permitted"
           }
-        ]
+        ],
+        "report_disposition_state": "incomplete"
       }
     },
     {
@@ -386,9 +398,12 @@
             "raw_owner_disposition": "Accepted",
             "payload_verification_state": "mismatch",
             "payload_bytes_verified": false,
-            "raw_byte_equality_verified": false
+            "raw_byte_equality_verified": false,
+            "owner_rights_state": "verified",
+            "rights_use_declaration_state": "owner_declares_permitted"
           }
-        ]
+        ],
+        "report_disposition_state": "complete"
       }
     },
     {
@@ -463,9 +478,12 @@
             "raw_owner_disposition": "Accepted",
             "payload_verification_state": "unavailable",
             "payload_bytes_verified": false,
-            "raw_byte_equality_verified": false
+            "raw_byte_equality_verified": false,
+            "owner_rights_state": "verified",
+            "rights_use_declaration_state": "owner_declares_permitted"
           }
-        ]
+        ],
+        "report_disposition_state": "incomplete"
       }
     },
     {
@@ -538,9 +556,12 @@
             "raw_owner_disposition": "Accepted",
             "payload_verification_state": "verified",
             "payload_bytes_verified": true,
-            "raw_byte_equality_verified": true
+            "raw_byte_equality_verified": true,
+            "owner_rights_state": "restricted",
+            "rights_use_declaration_state": "owner_declares_restricted"
           }
-        ]
+        ],
+        "report_disposition_state": "complete"
       }
     },
     {
@@ -615,9 +636,12 @@
             "raw_owner_disposition": "Accepted",
             "payload_verification_state": "indeterminate",
             "payload_bytes_verified": false,
-            "raw_byte_equality_verified": false
+            "raw_byte_equality_verified": false,
+            "owner_rights_state": "verified",
+            "rights_use_declaration_state": "owner_declares_permitted"
           }
-        ]
+        ],
+        "report_disposition_state": "incomplete"
       }
     },
     {
@@ -692,9 +716,12 @@
             "raw_owner_disposition": "Accepted",
             "payload_verification_state": "indeterminate",
             "payload_bytes_verified": false,
-            "raw_byte_equality_verified": false
+            "raw_byte_equality_verified": false,
+            "owner_rights_state": "verified",
+            "rights_use_declaration_state": "owner_declares_permitted"
           }
-        ]
+        ],
+        "report_disposition_state": "incomplete"
       }
     },
     {
@@ -769,9 +796,12 @@
             "raw_owner_disposition": "Accepted",
             "payload_verification_state": "verified",
             "payload_bytes_verified": true,
-            "raw_byte_equality_verified": true
+            "raw_byte_equality_verified": true,
+            "owner_rights_state": "verified",
+            "rights_use_declaration_state": "owner_declares_permitted"
           }
-        ]
+        ],
+        "report_disposition_state": "complete"
       }
     },
     {
@@ -846,9 +876,12 @@
             "raw_owner_disposition": "Accepted",
             "payload_verification_state": "verified",
             "payload_bytes_verified": true,
-            "raw_byte_equality_verified": true
+            "raw_byte_equality_verified": true,
+            "owner_rights_state": "verified",
+            "rights_use_declaration_state": "owner_declares_permitted"
           }
-        ]
+        ],
+        "report_disposition_state": "complete"
       }
     },
     {
@@ -923,9 +956,12 @@
             "raw_owner_disposition": "Accepted",
             "payload_verification_state": "indeterminate",
             "payload_bytes_verified": false,
-            "raw_byte_equality_verified": false
+            "raw_byte_equality_verified": false,
+            "owner_rights_state": "verified",
+            "rights_use_declaration_state": "owner_declares_permitted"
           }
-        ]
+        ],
+        "report_disposition_state": "incomplete"
       }
     },
     {
@@ -1000,9 +1036,12 @@
             "raw_owner_disposition": "Accepted",
             "payload_verification_state": "mismatch",
             "payload_bytes_verified": false,
-            "raw_byte_equality_verified": false
+            "raw_byte_equality_verified": false,
+            "owner_rights_state": "verified",
+            "rights_use_declaration_state": "owner_declares_permitted"
           }
-        ]
+        ],
+        "report_disposition_state": "incomplete"
       }
     },
     {
@@ -1077,9 +1116,12 @@
             "raw_owner_disposition": "Accepted",
             "payload_verification_state": "verified",
             "payload_bytes_verified": true,
-            "raw_byte_equality_verified": true
+            "raw_byte_equality_verified": true,
+            "owner_rights_state": "verified",
+            "rights_use_declaration_state": "owner_declares_permitted"
           }
-        ]
+        ],
+        "report_disposition_state": "complete"
       }
     },
     {
@@ -1154,9 +1196,12 @@
             "raw_owner_disposition": "Accepted",
             "payload_verification_state": "verified",
             "payload_bytes_verified": true,
-            "raw_byte_equality_verified": true
+            "raw_byte_equality_verified": true,
+            "owner_rights_state": "verified",
+            "rights_use_declaration_state": "owner_declares_permitted"
           }
-        ]
+        ],
+        "report_disposition_state": "complete"
       }
     },
     {
@@ -1231,9 +1276,12 @@
             "raw_owner_disposition": "Revoked",
             "payload_verification_state": "verified",
             "payload_bytes_verified": true,
-            "raw_byte_equality_verified": true
+            "raw_byte_equality_verified": true,
+            "owner_rights_state": "verified",
+            "rights_use_declaration_state": "owner_declares_permitted"
           }
-        ]
+        ],
+        "report_disposition_state": "complete"
       }
     },
     {
@@ -1308,9 +1356,12 @@
             "raw_owner_disposition": "Disputed",
             "payload_verification_state": "verified",
             "payload_bytes_verified": true,
-            "raw_byte_equality_verified": true
+            "raw_byte_equality_verified": true,
+            "owner_rights_state": "verified",
+            "rights_use_declaration_state": "owner_declares_permitted"
           }
-        ]
+        ],
+        "report_disposition_state": "complete"
       }
     },
     {
@@ -1385,9 +1436,12 @@
             "raw_owner_disposition": "Blocked",
             "payload_verification_state": "verified",
             "payload_bytes_verified": true,
-            "raw_byte_equality_verified": true
+            "raw_byte_equality_verified": true,
+            "owner_rights_state": "verified",
+            "rights_use_declaration_state": "owner_declares_permitted"
           }
-        ]
+        ],
+        "report_disposition_state": "complete"
       }
     },
     {
@@ -1462,7 +1516,9 @@
             "raw_owner_disposition": "Accepted",
             "payload_verification_state": "unsupported",
             "payload_bytes_verified": false,
-            "raw_byte_equality_verified": false
+            "raw_byte_equality_verified": false,
+            "owner_rights_state": "verified",
+            "rights_use_declaration_state": "owner_declares_permitted"
           }
         ],
         "report_disposition_state": "invalid_input"
@@ -1540,7 +1596,9 @@
             "raw_owner_disposition": "Accepted",
             "payload_verification_state": "unsupported",
             "payload_bytes_verified": false,
-            "raw_byte_equality_verified": false
+            "raw_byte_equality_verified": false,
+            "owner_rights_state": "verified",
+            "rights_use_declaration_state": "owner_declares_permitted"
           }
         ],
         "report_disposition_state": "invalid_input"
@@ -1618,9 +1676,12 @@
             "raw_owner_disposition": "Accepted",
             "payload_verification_state": "mismatch",
             "payload_bytes_verified": false,
-            "raw_byte_equality_verified": true
+            "raw_byte_equality_verified": true,
+            "owner_rights_state": "verified",
+            "rights_use_declaration_state": "owner_declares_permitted"
           }
-        ]
+        ],
+        "report_disposition_state": "complete"
       }
     },
     {
@@ -1735,7 +1796,9 @@
             "raw_owner_disposition": "Accepted",
             "payload_verification_state": "mismatch",
             "payload_bytes_verified": false,
-            "raw_byte_equality_verified": true
+            "raw_byte_equality_verified": true,
+            "owner_rights_state": "verified",
+            "rights_use_declaration_state": "owner_declares_permitted"
           },
           {
             "artifact_id": "SHARED-B-22",
@@ -1743,9 +1806,12 @@
             "raw_owner_disposition": "Accepted",
             "payload_verification_state": "mismatch",
             "payload_bytes_verified": false,
-            "raw_byte_equality_verified": false
+            "raw_byte_equality_verified": false,
+            "owner_rights_state": "verified",
+            "rights_use_declaration_state": "owner_declares_permitted"
           }
-        ]
+        ],
+        "report_disposition_state": "incomplete"
       }
     },
     {
@@ -1860,7 +1926,9 @@
             "raw_owner_disposition": "Accepted",
             "payload_verification_state": "unavailable",
             "payload_bytes_verified": false,
-            "raw_byte_equality_verified": false
+            "raw_byte_equality_verified": false,
+            "owner_rights_state": "verified",
+            "rights_use_declaration_state": "owner_declares_permitted"
           },
           {
             "artifact_id": "SCHEMA-23",
@@ -1868,9 +1936,12 @@
             "raw_owner_disposition": "Accepted",
             "payload_verification_state": "verified",
             "payload_bytes_verified": true,
-            "raw_byte_equality_verified": true
+            "raw_byte_equality_verified": true,
+            "owner_rights_state": "verified",
+            "rights_use_declaration_state": "owner_declares_permitted"
           }
-        ]
+        ],
+        "report_disposition_state": "incomplete"
       }
     },
     {
@@ -1945,9 +2016,12 @@
             "raw_owner_disposition": "Accepted",
             "payload_verification_state": "verified",
             "payload_bytes_verified": true,
-            "raw_byte_equality_verified": true
+            "raw_byte_equality_verified": true,
+            "owner_rights_state": "verified",
+            "rights_use_declaration_state": "owner_declares_permitted"
           }
-        ]
+        ],
+        "report_disposition_state": "complete"
       }
     }
   ]
