@@ -152,34 +152,36 @@ fn evaluate_plan(input: &Value, reasons: &mut BTreeSet<String>, conflicts: &mut 
         if str_field(part, "reservation_state") != "confirmed" {
             add_unknown(reasons, "PART_RESERVATION_MISSING");
         }
-        let (use_start, use_end) = match (
+        let use_window = match (
             u64_field(part, "use_start_at"),
             u64_field(part, "use_end_at"),
         ) {
-            (Some(start), Some(end)) if start < end => (start, end),
+            (Some(start), Some(end)) if start < end => Some((start, end)),
             (Some(_), Some(_)) => {
                 add_conflict(conflicts, "PART_USE_WINDOW_INVALID");
-                continue;
+                None
             }
             _ => {
                 add_unknown(reasons, "PART_USE_WINDOW_UNKNOWN");
-                continue;
+                None
             }
         };
-        if use_start < window_start || use_end > window_end {
-            add_conflict(conflicts, "PART_USE_OUTSIDE_PLANNING_WINDOW");
-        }
-        if let (Some(from), Some(until)) = (
-            u64_field(part, "available_from"),
-            u64_field(part, "available_until"),
-        ) {
-            if from >= until {
-                add_conflict(conflicts, "PART_AVAILABILITY_WINDOW_INVALID");
-            } else if from > use_start || until < use_end {
-                add_conflict(conflicts, "PART_AVAILABILITY_WINDOW_MISMATCH");
+        if let Some((use_start, use_end)) = use_window {
+            if use_start < window_start || use_end > window_end {
+                add_conflict(conflicts, "PART_USE_OUTSIDE_PLANNING_WINDOW");
             }
-        } else {
-            add_unknown(reasons, "PART_AVAILABILITY_WINDOW_UNKNOWN");
+            if let (Some(from), Some(until)) = (
+                u64_field(part, "available_from"),
+                u64_field(part, "available_until"),
+            ) {
+                if from >= until {
+                    add_conflict(conflicts, "PART_AVAILABILITY_WINDOW_INVALID");
+                } else if from > use_start || until < use_end {
+                    add_conflict(conflicts, "PART_AVAILABILITY_WINDOW_MISMATCH");
+                }
+            } else {
+                add_unknown(reasons, "PART_AVAILABILITY_WINDOW_UNKNOWN");
+            }
         }
         if str_field(part, "evidence_state") != "current" {
             add_unknown(reasons, "PART_EVIDENCE_NOT_CURRENT");
