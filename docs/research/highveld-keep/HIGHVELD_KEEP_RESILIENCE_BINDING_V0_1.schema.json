@@ -22,7 +22,8 @@
     "decision_relevant_measurements",
     "symtropy_invariant_crosswalk",
     "invalidation_dependencies",
-    "benchmark_targets"
+    "benchmark_targets",
+    "verified_owner_qualifications"
   ],
   "properties": {
     "$schema": {
@@ -133,6 +134,9 @@
             "type": "string"
           },
           "authority": {
+            "type": "string"
+          },
+          "qualification_receipt_id": {
             "type": "string"
           }
         }
@@ -481,6 +485,155 @@
         },
         "compound_event_trace_dependency_loss": {
           "const": "0"
+        }
+      }
+    },
+    "verified_owner_qualifications": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "qualification_id",
+          "owner",
+          "owner_contract",
+          "owner_repository",
+          "owner_issue",
+          "owner_pull_request",
+          "candidate_head_sha",
+          "dedicated_qualifier",
+          "general_ci",
+          "receipt_artifact",
+          "verified_date",
+          "qualification_scope",
+          "claim_ceiling"
+        ],
+        "properties": {
+          "qualification_id": {
+            "const": "SYM-SPATIAL-RESILIENCE-001-QUAL-2026-11-08"
+          },
+          "owner": {
+            "const": "Symtropy"
+          },
+          "owner_contract": {
+            "const": "SPATIAL-RESILIENCE-001"
+          },
+          "owner_repository": {
+            "const": "Luminous-Dynamics/symtropy"
+          },
+          "owner_issue": {
+            "const": "https://github.com/Luminous-Dynamics/symtropy/issues/1848"
+          },
+          "owner_pull_request": {
+            "const": "https://github.com/Luminous-Dynamics/symtropy/pull/1849"
+          },
+          "candidate_head_sha": {
+            "const": "b0da4a10115861798d6b32e5940efb3b775044dd"
+          },
+          "dedicated_qualifier": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "workflow_run_id",
+              "workflow_run_url",
+              "conclusion",
+              "unit_tests",
+              "timeline_corpus",
+              "paired_outcomes_corpus",
+              "decision_impact_corpus",
+              "adaptive_policy_corpus"
+            ],
+            "properties": {
+              "workflow_run_id": {
+                "const": 42456052062
+              },
+              "workflow_run_url": {
+                "const": "https://github.com/Luminous-Dynamics/symtropy/actions/runs/42456052062"
+              },
+              "conclusion": {
+                "const": "success"
+              },
+              "unit_tests": {
+                "const": "57_passed"
+              },
+              "timeline_corpus": {
+                "const": "8_of_8_passed"
+              },
+              "paired_outcomes_corpus": {
+                "const": "5_of_5_passed"
+              },
+              "decision_impact_corpus": {
+                "const": "8_of_8_passed"
+              },
+              "adaptive_policy_corpus": {
+                "const": "3_of_3_cases_and_5_of_5_policies_passed"
+              }
+            }
+          },
+          "general_ci": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "workflow_run_id",
+              "workflow_run_url",
+              "conclusion",
+              "platforms"
+            ],
+            "properties": {
+              "workflow_run_id": {
+                "const": 42456052102
+              },
+              "workflow_run_url": {
+                "const": "https://github.com/Luminous-Dynamics/symtropy/actions/runs/42456052102"
+              },
+              "conclusion": {
+                "const": "success"
+              },
+              "platforms": {
+                "const": [
+                  "ubuntu-latest",
+                  "windows-latest",
+                  "macos-latest"
+                ]
+              }
+            }
+          },
+          "receipt_artifact": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "artifact_id",
+              "artifact_url",
+              "archive_sha256",
+              "digest_scope"
+            ],
+            "properties": {
+              "artifact_id": {
+                "const": 13606874236
+              },
+              "artifact_url": {
+                "const": "https://github.com/Luminous-Dynamics/symtropy/actions/runs/42456052062/artifacts/13606874236"
+              },
+              "archive_sha256": {
+                "const": "8ee7edda499ddb7e47b94e3429bf2d515c287866563a4e0f58409f02f75d8162"
+              },
+              "digest_scope": {
+                "const": "GitHub Actions artifact ZIP archive; artifact contains exact-head JSON receipts and dependency lock"
+              }
+            }
+          },
+          "verified_date": {
+            "const": "2026-11-08"
+          },
+          "qualification_scope": {
+            "type": "string",
+            "minLength": 30
+          },
+          "claim_ceiling": {
+            "const": "software_oracle_semantics_only_no_real_building_weather_thermal_performance_health_safety_statutory_or_professional_approval"
+          }
         }
       }
     }
