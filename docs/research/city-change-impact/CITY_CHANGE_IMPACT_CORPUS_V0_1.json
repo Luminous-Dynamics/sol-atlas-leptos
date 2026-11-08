@@ -539,7 +539,7 @@
                   "LOT_REVOKED"
                 ],
                 "dependency_path": [
-                  "SUBJECT-05",
+                  "SUBJECT-05-LOT-A",
                   "claim_asset_uses_lot_A"
                 ],
                 "coverage_proof_id": null
