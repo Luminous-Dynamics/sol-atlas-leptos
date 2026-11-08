@@ -62,9 +62,7 @@
             "report_id": "SYN-IMPACT-CI-01",
             "report_state": "qualified",
             "graph_snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-            "impacted_claim_ids": [
-              "claim_panel_thermal"
-            ],
+            "impacted_claim_ids": [],
             "query_boundary": "declared_fixture_graph"
           }
         },
@@ -72,7 +70,7 @@
           {
             "claim_id": "claim_panel_thermal",
             "dependency_subjects": [
-              "SUBJECT-01"
+              "UNRELATED-claim_panel_thermal"
             ],
             "historical_status": "applicable_current",
             "scope_id": "SYNTHETIC-DISTRICT-01",
@@ -125,7 +123,18 @@
           "snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           "coverage_state": "complete",
           "excluded_domains": [],
-          "edges": [],
+          "edges": [
+            {
+              "from": "SUBJECT-02",
+              "to": "claim_panel_fit",
+              "relation": "depends_on_exact_subject_revision"
+            },
+            {
+              "from": "SUBJECT-02",
+              "to": "claim_panel_manufacture",
+              "relation": "depends_on_exact_subject_revision"
+            }
+          ],
           "impact_report": {
             "report_id": "SYN-IMPACT-CI-02",
             "report_state": "qualified",
@@ -210,7 +219,18 @@
           "snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           "coverage_state": "complete",
           "excluded_domains": [],
-          "edges": [],
+          "edges": [
+            {
+              "from": "SUBJECT-03",
+              "to": "claim_cassette_interface",
+              "relation": "depends_on_exact_subject_revision"
+            },
+            {
+              "from": "SUBJECT-03",
+              "to": "claim_cassette_commissioning",
+              "relation": "depends_on_exact_subject_revision"
+            }
+          ],
           "impact_report": {
             "report_id": "SYN-IMPACT-CI-03",
             "report_state": "qualified",
@@ -295,14 +315,19 @@
           "snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           "coverage_state": "complete",
           "excluded_domains": [],
-          "edges": [],
+          "edges": [
+            {
+              "from": "SUBJECT-04",
+              "to": "claim_panel_batch_A",
+              "relation": "depends_on_exact_subject_revision"
+            }
+          ],
           "impact_report": {
             "report_id": "SYN-IMPACT-CI-04",
             "report_state": "qualified",
             "graph_snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
             "impacted_claim_ids": [
-              "claim_panel_batch_A",
-              "claim_panel_batch_B"
+              "claim_panel_batch_A"
             ],
             "query_boundary": "declared_fixture_graph"
           }
@@ -320,7 +345,7 @@
           {
             "claim_id": "claim_panel_batch_B",
             "dependency_subjects": [
-              "SUBJECT-04"
+              "UNRELATED-claim_panel_batch_B"
             ],
             "historical_status": "applicable_current",
             "scope_id": "SYNTHETIC-DISTRICT-01",
@@ -380,14 +405,24 @@
           "snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           "coverage_state": "complete",
           "excluded_domains": [],
-          "edges": [],
+          "edges": [
+            {
+              "from": "SUBJECT-05",
+              "to": "claim_asset_uses_lot_A",
+              "relation": "depends_on_exact_subject_revision"
+            },
+            {
+              "from": "SUBJECT-05",
+              "to": "claim_asset_uses_lot_B",
+              "relation": "depends_on_exact_subject_revision"
+            }
+          ],
           "impact_report": {
             "report_id": "SYN-IMPACT-CI-05",
             "report_state": "qualified",
             "graph_snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
             "impacted_claim_ids": [
-              "claim_asset_uses_lot_A",
-              "claim_asset_uses_lot_B"
+              "claim_asset_uses_lot_A"
             ],
             "query_boundary": "declared_fixture_graph"
           }
@@ -465,14 +500,19 @@
           "snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           "coverage_state": "complete",
           "excluded_domains": [],
-          "edges": [],
+          "edges": [
+            {
+              "from": "SUBJECT-06",
+              "to": "claim_open_delivery_plan",
+              "relation": "depends_on_exact_subject_revision"
+            }
+          ],
           "impact_report": {
             "report_id": "SYN-IMPACT-CI-06",
             "report_state": "qualified",
             "graph_snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
             "impacted_claim_ids": [
-              "claim_open_delivery_plan",
-              "claim_installed_panel_test"
+              "claim_open_delivery_plan"
             ],
             "query_boundary": "declared_fixture_graph"
           }
@@ -490,7 +530,7 @@
           {
             "claim_id": "claim_installed_panel_test",
             "dependency_subjects": [
-              "SUBJECT-06"
+              "UNRELATED-claim_installed_panel_test"
             ],
             "historical_status": "applicable_current",
             "scope_id": "SYNTHETIC-DISTRICT-01",
@@ -550,14 +590,18 @@
           "snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           "coverage_state": "complete",
           "excluded_domains": [],
-          "edges": [],
+          "edges": [
+            {
+              "from": "SUBJECT-07",
+              "to": "claim_supplier_approval",
+              "relation": "depends_on_exact_subject_revision"
+            }
+          ],
           "impact_report": {
             "report_id": "SYN-IMPACT-CI-07",
             "report_state": "qualified",
             "graph_snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-            "impacted_claim_ids": [
-              "claim_supplier_approval"
-            ],
+            "impacted_claim_ids": [],
             "query_boundary": "declared_fixture_graph"
           }
         },
@@ -618,13 +662,23 @@
           "snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           "coverage_state": "complete",
           "excluded_domains": [],
-          "edges": [],
+          "edges": [
+            {
+              "from": "SUBJECT-08",
+              "to": "claim_prior_measurement",
+              "relation": "depends_on_exact_subject_revision"
+            },
+            {
+              "from": "SUBJECT-08",
+              "to": "claim_future_measurement",
+              "relation": "depends_on_exact_subject_revision"
+            }
+          ],
           "impact_report": {
             "report_id": "SYN-IMPACT-CI-08",
             "report_state": "qualified",
             "graph_snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
             "impacted_claim_ids": [
-              "claim_prior_measurement",
               "claim_future_measurement"
             ],
             "query_boundary": "declared_fixture_graph"
@@ -703,7 +757,13 @@
           "snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           "coverage_state": "complete",
           "excluded_domains": [],
-          "edges": [],
+          "edges": [
+            {
+              "from": "SUBJECT-09",
+              "to": "claim_measurement_result",
+              "relation": "depends_on_exact_subject_revision"
+            }
+          ],
           "impact_report": {
             "report_id": "SYN-IMPACT-CI-09",
             "report_state": "qualified",
@@ -771,14 +831,19 @@
           "snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           "coverage_state": "complete",
           "excluded_domains": [],
-          "edges": [],
+          "edges": [
+            {
+              "from": "SUBJECT-10",
+              "to": "claim_robot_task_qualification",
+              "relation": "depends_on_exact_subject_revision"
+            }
+          ],
           "impact_report": {
             "report_id": "SYN-IMPACT-CI-10",
             "report_state": "qualified",
             "graph_snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
             "impacted_claim_ids": [
-              "claim_robot_task_qualification",
-              "claim_panel_geometry"
+              "claim_robot_task_qualification"
             ],
             "query_boundary": "declared_fixture_graph"
           }
@@ -796,7 +861,7 @@
           {
             "claim_id": "claim_panel_geometry",
             "dependency_subjects": [
-              "SUBJECT-10"
+              "UNRELATED-claim_panel_geometry"
             ],
             "historical_status": "applicable_current",
             "scope_id": "SYNTHETIC-DISTRICT-01",
@@ -856,7 +921,13 @@
           "snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           "coverage_state": "complete",
           "excluded_domains": [],
-          "edges": [],
+          "edges": [
+            {
+              "from": "SUBJECT-11",
+              "to": "claim_process_qualification",
+              "relation": "depends_on_exact_subject_revision"
+            }
+          ],
           "impact_report": {
             "report_id": "SYN-IMPACT-CI-11",
             "report_state": "qualified",
@@ -924,14 +995,19 @@
           "snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           "coverage_state": "complete",
           "excluded_domains": [],
-          "edges": [],
+          "edges": [
+            {
+              "from": "SUBJECT-12",
+              "to": "claim_maintenance_access",
+              "relation": "depends_on_exact_subject_revision"
+            }
+          ],
           "impact_report": {
             "report_id": "SYN-IMPACT-CI-12",
             "report_state": "qualified",
             "graph_snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
             "impacted_claim_ids": [
-              "claim_maintenance_access",
-              "claim_district_population"
+              "claim_maintenance_access"
             ],
             "query_boundary": "declared_fixture_graph"
           }
@@ -949,7 +1025,7 @@
           {
             "claim_id": "claim_district_population",
             "dependency_subjects": [
-              "SUBJECT-12"
+              "UNRELATED-claim_district_population"
             ],
             "historical_status": "applicable_current",
             "scope_id": "SYNTHETIC-DISTRICT-01",
@@ -1011,14 +1087,18 @@
           "excluded_domains": [
             "unresolved-owner-domain"
           ],
-          "edges": [],
+          "edges": [
+            {
+              "from": "SUBJECT-13",
+              "to": "claim_spatial_access",
+              "relation": "depends_on_exact_subject_revision"
+            }
+          ],
           "impact_report": {
             "report_id": "SYN-IMPACT-CI-13",
             "report_state": "coverage_incomplete",
             "graph_snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-            "impacted_claim_ids": [
-              "claim_spatial_access"
-            ],
+            "impacted_claim_ids": [],
             "query_boundary": "declared_fixture_graph"
           }
         },
@@ -1080,14 +1160,19 @@
           "snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           "coverage_state": "complete",
           "excluded_domains": [],
-          "edges": [],
+          "edges": [
+            {
+              "from": "SUBJECT-14",
+              "to": "claim_highveld_heat_screen",
+              "relation": "depends_on_exact_subject_revision"
+            }
+          ],
           "impact_report": {
             "report_id": "SYN-IMPACT-CI-14",
             "report_state": "qualified",
             "graph_snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
             "impacted_claim_ids": [
-              "claim_highveld_heat_screen",
-              "claim_other_region_screen"
+              "claim_highveld_heat_screen"
             ],
             "query_boundary": "declared_fixture_graph"
           }
@@ -1105,7 +1190,7 @@
           {
             "claim_id": "claim_other_region_screen",
             "dependency_subjects": [
-              "SUBJECT-14"
+              "UNRELATED-claim_other_region_screen"
             ],
             "historical_status": "applicable_current",
             "scope_id": "SYNTHETIC-DISTRICT-01",
@@ -1165,14 +1250,19 @@
           "snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           "coverage_state": "complete",
           "excluded_domains": [],
-          "edges": [],
+          "edges": [
+            {
+              "from": "SUBJECT-15",
+              "to": "claim_product_lca",
+              "relation": "depends_on_exact_subject_revision"
+            }
+          ],
           "impact_report": {
             "report_id": "SYN-IMPACT-CI-15",
             "report_state": "qualified",
             "graph_snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
             "impacted_claim_ids": [
-              "claim_product_lca",
-              "claim_cassette_commissioning"
+              "claim_product_lca"
             ],
             "query_boundary": "declared_fixture_graph"
           }
@@ -1190,7 +1280,7 @@
           {
             "claim_id": "claim_cassette_commissioning",
             "dependency_subjects": [
-              "SUBJECT-15"
+              "UNRELATED-claim_cassette_commissioning"
             ],
             "historical_status": "applicable_current",
             "scope_id": "SYNTHETIC-DISTRICT-01",
@@ -1250,14 +1340,18 @@
           "snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           "coverage_state": "complete",
           "excluded_domains": [],
-          "edges": [],
+          "edges": [
+            {
+              "from": "SUBJECT-16",
+              "to": "claim_current_design_assessment",
+              "relation": "depends_on_exact_subject_revision"
+            }
+          ],
           "impact_report": {
             "report_id": "SYN-IMPACT-CI-16",
             "report_state": "qualified",
             "graph_snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-            "impacted_claim_ids": [
-              "claim_current_design_assessment"
-            ],
+            "impacted_claim_ids": [],
             "query_boundary": "declared_fixture_graph"
           }
         },
@@ -1318,14 +1412,24 @@
           "snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           "coverage_state": "complete",
           "excluded_domains": [],
-          "edges": [],
+          "edges": [
+            {
+              "from": "SUBJECT-17",
+              "to": "claim_current_decision",
+              "relation": "depends_on_exact_subject_revision"
+            },
+            {
+              "from": "SUBJECT-17",
+              "to": "claim_historical_decision_view",
+              "relation": "depends_on_exact_subject_revision"
+            }
+          ],
           "impact_report": {
             "report_id": "SYN-IMPACT-CI-17",
             "report_state": "qualified",
             "graph_snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
             "impacted_claim_ids": [
-              "claim_current_decision",
-              "claim_historical_decision_view"
+              "claim_current_decision"
             ],
             "query_boundary": "declared_fixture_graph"
           }
@@ -1403,14 +1507,18 @@
           "snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           "coverage_state": "complete",
           "excluded_domains": [],
-          "edges": [],
+          "edges": [
+            {
+              "from": "SUBJECT-18",
+              "to": "claim_asset_uses_lot",
+              "relation": "depends_on_exact_subject_revision"
+            }
+          ],
           "impact_report": {
             "report_id": "SYN-IMPACT-CI-18",
             "report_state": "qualified",
             "graph_snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-            "impacted_claim_ids": [
-              "claim_asset_uses_lot"
-            ],
+            "impacted_claim_ids": [],
             "query_boundary": "declared_fixture_graph"
           }
         },
@@ -1471,14 +1579,18 @@
           "snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           "coverage_state": "complete",
           "excluded_domains": [],
-          "edges": [],
+          "edges": [
+            {
+              "from": "SUBJECT-19",
+              "to": "claim_source_payload",
+              "relation": "depends_on_exact_subject_revision"
+            }
+          ],
           "impact_report": {
             "report_id": "SYN-IMPACT-CI-19",
             "report_state": "qualified",
             "graph_snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-            "impacted_claim_ids": [
-              "claim_source_payload"
-            ],
+            "impacted_claim_ids": [],
             "query_boundary": "declared_fixture_graph"
           }
         },
@@ -1539,14 +1651,18 @@
           "snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           "coverage_state": "complete",
           "excluded_domains": [],
-          "edges": [],
+          "edges": [
+            {
+              "from": "SUBJECT-20",
+              "to": "claim_source_payload",
+              "relation": "depends_on_exact_subject_revision"
+            }
+          ],
           "impact_report": {
             "report_id": "SYN-IMPACT-CI-20",
             "report_state": "qualified",
             "graph_snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-            "impacted_claim_ids": [
-              "claim_source_payload"
-            ],
+            "impacted_claim_ids": [],
             "query_boundary": "declared_fixture_graph"
           }
         },
@@ -1609,7 +1725,13 @@
           "excluded_domains": [
             "unresolved-owner-domain"
           ],
-          "edges": [],
+          "edges": [
+            {
+              "from": "SUBJECT-21",
+              "to": "claim_safety_assessment",
+              "relation": "depends_on_exact_subject_revision"
+            }
+          ],
           "impact_report": {
             "report_id": "SYN-IMPACT-CI-21",
             "report_state": "coverage_incomplete",
@@ -1675,7 +1797,13 @@
           "snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           "coverage_state": "complete",
           "excluded_domains": [],
-          "edges": [],
+          "edges": [
+            {
+              "from": "SUBJECT-22",
+              "to": "claim_dependent_decision",
+              "relation": "depends_on_exact_subject_revision"
+            }
+          ],
           "impact_report": {
             "report_id": "SYN-IMPACT-CI-22",
             "report_state": "qualified",
@@ -1743,7 +1871,13 @@
           "snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           "coverage_state": "complete",
           "excluded_domains": [],
-          "edges": [],
+          "edges": [
+            {
+              "from": "SUBJECT-23",
+              "to": "claim_dependent_decision",
+              "relation": "depends_on_exact_subject_revision"
+            }
+          ],
           "impact_report": {
             "report_id": "SYN-IMPACT-CI-23",
             "report_state": "qualified",
@@ -1811,7 +1945,13 @@
           "snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           "coverage_state": "complete",
           "excluded_domains": [],
-          "edges": [],
+          "edges": [
+            {
+              "from": "SUBJECT-24",
+              "to": "claim_dependent_decision",
+              "relation": "depends_on_exact_subject_revision"
+            }
+          ],
           "impact_report": {
             "report_id": "SYN-IMPACT-CI-24",
             "report_state": "qualified",
@@ -1879,7 +2019,18 @@
           "snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           "coverage_state": "complete",
           "excluded_domains": [],
-          "edges": [],
+          "edges": [
+            {
+              "from": "SUBJECT-25",
+              "to": "claim_receipt",
+              "relation": "depends_on_exact_subject_revision"
+            },
+            {
+              "from": "SUBJECT-25",
+              "to": "claim_dependent_decision",
+              "relation": "depends_on_exact_subject_revision"
+            }
+          ],
           "impact_report": {
             "report_id": "SYN-IMPACT-CI-25",
             "report_state": "qualified",
@@ -1972,7 +2123,13 @@
           "snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           "coverage_state": "complete",
           "excluded_domains": [],
-          "edges": [],
+          "edges": [
+            {
+              "from": "SUBJECT-26",
+              "to": "claim_current_design_decision",
+              "relation": "depends_on_exact_subject_revision"
+            }
+          ],
           "impact_report": {
             "report_id": "SYN-IMPACT-CI-26",
             "report_state": "qualified",
@@ -2048,7 +2205,18 @@
           "snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           "coverage_state": "complete",
           "excluded_domains": [],
-          "edges": [],
+          "edges": [
+            {
+              "from": "SUBJECT-27",
+              "to": "claim_current_decision",
+              "relation": "depends_on_exact_subject_revision"
+            },
+            {
+              "from": "SUBJECT-27",
+              "to": "claim_historical_receipt",
+              "relation": "depends_on_exact_subject_revision"
+            }
+          ],
           "impact_report": {
             "report_id": "SYN-IMPACT-CI-27",
             "report_state": "qualified",
@@ -2133,14 +2301,19 @@
           "snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           "coverage_state": "complete",
           "excluded_domains": [],
-          "edges": [],
+          "edges": [
+            {
+              "from": "SUBJECT-28",
+              "to": "claim_panel_fit",
+              "relation": "depends_on_exact_subject_revision"
+            }
+          ],
           "impact_report": {
             "report_id": "SYN-IMPACT-CI-28",
             "report_state": "qualified",
             "graph_snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
             "impacted_claim_ids": [
-              "claim_panel_fit",
-              "claim_unrelated_water_service"
+              "claim_panel_fit"
             ],
             "query_boundary": "declared_fixture_graph"
           }
@@ -2158,7 +2331,7 @@
           {
             "claim_id": "claim_unrelated_water_service",
             "dependency_subjects": [
-              "SUBJECT-28"
+              "UNRELATED-claim_unrelated_water_service"
             ],
             "historical_status": "applicable_current",
             "scope_id": "SYNTHETIC-DISTRICT-01",
