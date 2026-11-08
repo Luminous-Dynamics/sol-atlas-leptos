@@ -408,9 +408,32 @@
                     },
                     "raw_byte_equality_verified": {
                       "type": "boolean"
+                    },
+                    "owner_rights_state": {
+                      "enum": [
+                        "verified",
+                        "restricted",
+                        "unknown",
+                        "not_applicable"
+                      ]
+                    },
+                    "rights_use_declaration_state": {
+                      "enum": [
+                        "owner_declares_permitted",
+                        "owner_declares_restricted",
+                        "unknown_or_not_authenticated"
+                      ]
                     }
                   }
                 }
+              },
+              "report_disposition_state": {
+                "enum": [
+                  "complete",
+                  "incomplete",
+                  "invalid_input",
+                  "unsupported"
+                ]
               }
             }
           }
