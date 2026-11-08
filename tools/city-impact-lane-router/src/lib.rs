@@ -339,7 +339,10 @@ pub fn evaluate_case(case: &Value, registry: &Value) -> Value {
     let recorded_at = text(system_time, "recorded_at");
     let trusted_at = text(system_time, "trusted_at");
     let trusted_receipt = text(system_time, "trusted_timestamp_receipt_sha256");
-    if !valid_utc_timestamp(recorded_at)
+    if system_time.get("recorded_at").is_none()
+        || system_time.get("trusted_at").is_none()
+        || system_time.get("trusted_timestamp_receipt_sha256").is_none()
+        || !valid_utc_timestamp(recorded_at)
         || (!trusted_at.is_empty() && !valid_utc_timestamp(trusted_at))
         || (!trusted_receipt.is_empty() && !is_lower_hex(trusted_receipt, 64))
         || (trusted_at.is_empty() != trusted_receipt.is_empty())
@@ -406,11 +409,15 @@ pub fn evaluate_case(case: &Value, registry: &Value) -> Value {
     }
 
     if !global_reasons.is_empty() {
-        let route_state = if global_reasons.iter().any(|reason| {
+        let lane_has_invalid = lane_results
+            .iter()
+            .any(|lane| text(lane, "state") == "invalid_input");
+        let global_has_invalid = global_reasons.iter().any(|reason| {
             reason.contains("INVALID")
                 || reason.contains("ESCALATION")
                 || reason.contains("UNEXPECTED")
-        }) {
+        });
+        let route_state = if lane_has_invalid || global_has_invalid {
             "invalid_input"
         } else {
             "insufficient_evidence"
