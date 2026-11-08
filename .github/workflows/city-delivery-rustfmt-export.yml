@@ -8,7 +8,7 @@ on:
       - ".github/workflows/city-delivery-rustfmt-export.yml"
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   export:
@@ -16,21 +16,24 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          persist-credentials: false
+          ref: ${{ github.ref }}
+          persist-credentials: true
       - uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: 1.96.0
           components: rustfmt
       - name: Format isolated delivery crate in ephemeral checkout
         run: cargo fmt --manifest-path tools/city-construction-delivery-bench/Cargo.toml --all
-      - name: Export formatted Rust source
+      - name: Commit exact pinned rustfmt output
+        shell: bash
         run: |
-          mkdir -p formatted
-          cp tools/city-construction-delivery-bench/src/lib.rs formatted/lib.rs
-          cp tools/city-construction-delivery-bench/src/main.rs formatted/main.rs
-      - uses: actions/upload-artifact@v4
-        with:
-          name: city-delivery-rustfmt-export
-          path: formatted/
-          if-no-files-found: error
-          retention-days: 2
+          set -euo pipefail
+          if git diff --quiet; then
+            echo "Rust sources already match pinned rustfmt output."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tools/city-construction-delivery-bench/src
+          git commit -m "style(city): apply pinned rustfmt to delivery oracle"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
