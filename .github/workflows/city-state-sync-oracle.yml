@@ -54,11 +54,11 @@ jobs:
             .result == "pass"
             and .corpus_id == "CITY-STATE-SYNC-CORPUS-V0.1"
             and .corpus_classification == "synthetic_fixture_only"
-            and .scenario_count == 33
+            and .scenario_count == 35
             and .failure_count == 0
             and (.corpus_sha256 | test("^[0-9a-f]{64}$"))
             and (.source_commit | test("^[0-9a-f]{40}$"))
-            and (.scenarios | length == 33)
+            and (.scenarios | length == 35)
             and (.scenarios | all(.status == "pass"))
             and .claim_ceiling == "synthetic temporal state and feedback semantics only; no live owner source, payload bytes, physical condition or intervention outcome is authenticated"
           ' city-state-sync-receipt.json
