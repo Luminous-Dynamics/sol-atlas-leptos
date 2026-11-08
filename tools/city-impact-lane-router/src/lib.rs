@@ -301,8 +301,7 @@ pub fn evaluate_case(case: &Value, registry: &Value) -> Value {
     let reports = array(input, "owner_reports");
     let mut global_reasons = BTreeSet::<String>::new();
 
-    if text(registry, "schema_version")
-        != "luminous.city-impact-owner-lane-registry.v0.1"
+    if text(registry, "schema_version") != "luminous.city-impact-owner-lane-registry.v0.1"
         || text(registry, "registry_id") != REGISTRY_ID
     {
         global_reasons.insert("OWNER_LANE_REGISTRY_IDENTITY_INVALID".to_owned());
@@ -322,7 +321,10 @@ pub fn evaluate_case(case: &Value, registry: &Value) -> Value {
     let confidence = text(valid_time, "effective_time_confidence");
     if !valid_utc_timestamp(effective_at)
         || (!effective_until.is_empty() && !valid_utc_timestamp(effective_until))
-        || !matches!(confidence, "verified" | "authority_asserted" | "unknown" | "disputed")
+        || !matches!(
+            confidence,
+            "verified" | "authority_asserted" | "unknown" | "disputed"
+        )
     {
         global_reasons.insert("CHANGE_EVENT_TEMPORAL_BINDING_INCOMPLETE".to_owned());
     } else {
@@ -405,7 +407,9 @@ pub fn evaluate_case(case: &Value, registry: &Value) -> Value {
 
     if !global_reasons.is_empty() {
         let route_state = if global_reasons.iter().any(|reason| {
-            reason.contains("INVALID") || reason.contains("ESCALATION") || reason.contains("UNEXPECTED")
+            reason.contains("INVALID")
+                || reason.contains("ESCALATION")
+                || reason.contains("UNEXPECTED")
         }) {
             "invalid_input"
         } else {
@@ -458,11 +462,11 @@ fn equivalent(actual: &Value, expected: &Value) -> bool {
             .zip(right.as_u64())
             .is_some_and(|(a, b)| a == b),
         (Value::Array(left), Value::Array(right)) => {
-            left.len() == right.len()
-                && left.iter().zip(right).all(|(a, b)| equivalent(a, b))
+            left.len() == right.len() && left.iter().zip(right).all(|(a, b)| equivalent(a, b))
         }
         (Value::Object(left), Value::Object(right)) => right.iter().all(|(key, value)| {
-            left.get(key).is_some_and(|actual_value| equivalent(actual_value, value))
+            left.get(key)
+                .is_some_and(|actual_value| equivalent(actual_value, value))
         }),
         _ => actual == expected,
     }
@@ -475,7 +479,7 @@ pub fn matches_expected(actual: &Value, expected: &Value) -> bool {
 #[cfg(test)]
 mod tests {
     use super::{evaluate_case, matches_expected};
-    use serde_json::Value;
+    use serde_json::{Value, json};
     use std::path::PathBuf;
 
     fn load_json(path: &str) -> Value {
@@ -485,7 +489,9 @@ mod tests {
     }
 
     fn registry() -> Value {
-        load_json("../../docs/research/city-impact-router/CITY_IMPACT_OWNER_LANE_REGISTRY_V0_1.json")
+        load_json(
+            "../../docs/research/city-impact-router/CITY_IMPACT_OWNER_LANE_REGISTRY_V0_1.json",
+        )
     }
 
     fn corpus() -> Value {
@@ -514,11 +520,28 @@ mod tests {
         let r = registry();
         for case in corpus()["cases"].as_array().unwrap() {
             let actual = evaluate_case(case, &r);
+            let actual_lane_states = actual["lane_results"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .map(|lane| {
+                    json!({
+                        "family": lane["family"],
+                        "state": lane["state"]
+                    })
+                })
+                .collect::<Vec<_>>();
+            let actual_projection = json!({
+                "route_state": actual["route_state"],
+                "required_families": actual["required_families"],
+                "lane_states": actual_lane_states,
+                "reason_codes": actual["reason_codes"]
+            });
             assert!(
-                matches_expected(&actual, &case["expected"]),
-                "{} mismatch\nactual: {}\nexpected: {}",
+                matches_expected(&actual_projection, &case["expected"]),
+                "{} mismatch\\nactual: {}\\nexpected: {}",
                 case["case_id"].as_str().unwrap(),
-                serde_json::to_string_pretty(&actual).unwrap(),
+                serde_json::to_string_pretty(&actual_projection).unwrap(),
                 serde_json::to_string_pretty(&case["expected"]).unwrap()
             );
         }
@@ -528,7 +551,8 @@ mod tests {
     fn a_structurally_valid_but_wrong_lane_report_is_rejected() {
         let r = registry();
         let mut case = corpus()["cases"][0].clone();
-        case["input"]["owner_reports"][0]["impact_family"] = Value::String("source_evidence_lifecycle".into());
+        case["input"]["owner_reports"][0]["impact_family"] =
+            Value::String("source_evidence_lifecycle".into());
         let result = evaluate_case(&case, &r);
         assert_eq!(result["route_state"], "invalid_input");
     }
@@ -571,7 +595,10 @@ mod tests {
         );
 
         let disputed_effective_time = evaluate_case(&cases[29], &r);
-        assert_eq!(disputed_effective_time["route_state"], "insufficient_evidence");
+        assert_eq!(
+            disputed_effective_time["route_state"],
+            "insufficient_evidence"
+        );
         assert!(
             disputed_effective_time["reason_codes"]
                 .as_array()
