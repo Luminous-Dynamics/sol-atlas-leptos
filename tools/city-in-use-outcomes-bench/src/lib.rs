@@ -684,7 +684,7 @@ mod tests {
         assert_eq!(corpus["classification"], "synthetic_fixture_only");
         assert_eq!(corpus["corpus_id"], "CITY-IN-USE-OUTCOMES-CORPUS-V0.1");
         let cases = corpus["cases"].as_array().unwrap();
-        assert_eq!(cases.len(), 24);
+        assert_eq!(cases.len(), 30);
         let ids = cases
             .iter()
             .map(|item| item["case_id"].as_str().unwrap().to_owned())
