@@ -27,3 +27,12 @@ This is a Sol-Atlas cross-domain conformance adapter. Mycelix #4814 remains auth
 ## Claim ceiling
 
 Passing the corpus validates only this synthetic delivery-feasibility logic. It does not prove actual supplier stock, route legality, vehicle certification, lifting safety, site permissions, material suitability, construction programme feasibility or an accepted real delivery.
+
+
+## Exact-boundary and identity controls
+
+- CD-027 sets route, unloading and inspection durations so predicted acceptance occurs exactly at tick 79, the half-open site/delivery-window endpoint. The expected result is `Late`, not accepted.
+- Inventory, route and custody receipt identifiers are read from their actual owner-reference fields and must be globally unique across the candidate deliveries.
+- Invalid/missing time or capacity fields are Unsupported; unknown or stale owner evidence is Unknown; a scope mismatch is NotComparable.
+- The oracle sums candidate lot demands and shared bay/laydown reservations across all deliveries. An over-allocation blocks every affected contender rather than assigning a result based on input order.
+
