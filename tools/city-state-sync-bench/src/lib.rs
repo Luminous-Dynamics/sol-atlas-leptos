@@ -24,9 +24,24 @@ fn is_sha256(value: &str) -> bool {
 }
 
 fn visible(event: &Value, as_of: &Value) -> bool {
-    number(event, "recorded_at").is_some_and(|v| v <= number(as_of, "recorded_at").unwrap_or(0))
-        && number(event, "ingested_at")
-            .is_some_and(|v| v <= number(as_of, "ingested_at").unwrap_or(0))
+    let (Some(recorded_cut), Some(ingested_cut), Some(recorded), Some(ingested)) = (
+        number(as_of, "recorded_at"),
+        number(as_of, "ingested_at"),
+        number(event, "recorded_at"),
+        number(event, "ingested_at"),
+    ) else {
+        return false;
+    };
+    recorded <= recorded_cut && ingested <= ingested_cut
+}
+
+fn visible_stage(stage: &Value, as_of: &Value) -> bool {
+    let (Some(valid_cut), Some(occurred_at)) =
+        (number(as_of, "valid_at"), number(stage, "occurred_at"))
+    else {
+        return false;
+    };
+    valid_cut >= occurred_at && visible(stage, as_of)
 }
 
 fn push_reason(reasons: &mut BTreeSet<String>, code: &str) {
@@ -518,7 +533,9 @@ fn evaluate_intervention(input: &Value, intervention_id: &str, stages: &[Value])
     let as_of = input.get("as_of").unwrap_or(&Value::Null);
     let visible_stages: Vec<&Value> = stages
         .iter()
-        .filter(|stage| text(stage, "intervention_id") == intervention_id && visible(stage, as_of))
+        .filter(|stage| {
+            text(stage, "intervention_id") == intervention_id && visible_stage(stage, as_of)
+        })
         .collect();
 
     let mut reasons = BTreeSet::new();
@@ -550,6 +567,31 @@ fn evaluate_intervention(input: &Value, intervention_id: &str, stages: &[Value])
             "causal_effect_established": false,
             "reason_codes": reasons.into_iter().collect::<Vec<_>>()
         });
+    }
+
+    let mut seen_event_ids = BTreeSet::<String>::new();
+    for stage in &visible_stages {
+        let event_id = text(stage, "event_id");
+        if event_id.is_empty() || !seen_event_ids.insert(event_id.to_owned()) {
+            push_reason(&mut reasons, "INTERVENTION_EVENT_ID_MISSING_OR_DUPLICATE");
+            return json!({
+                "intervention_id": intervention_id,
+                "state": "Unsupported",
+                "workflow_complete": false,
+                "causal_effect_established": false,
+                "reason_codes": reasons.into_iter().collect::<Vec<_>>()
+            });
+        }
+        if text(stage, "owner_repo").is_empty() || number(stage, "occurred_at").is_none() {
+            push_reason(&mut reasons, "INTERVENTION_EVENT_PROVENANCE_INCOMPLETE");
+            return json!({
+                "intervention_id": intervention_id,
+                "state": "Unknown",
+                "workflow_complete": false,
+                "causal_effect_established": false,
+                "reason_codes": reasons.into_iter().collect::<Vec<_>>()
+            });
+        }
     }
 
     let mut by_stage = BTreeMap::<String, &Value>::new();
@@ -853,7 +895,7 @@ mod tests {
             "event_id":"P","intervention_id":"I-1","stage":"proposal",
             "predecessor_event_id":null,"owner_repo":"owner/a",
             "scope_digest":hash('d'),"horizon_id":"H-1",
-            "recorded_at":900,"ingested_at":910,"disposition":"proposed"
+            "occurred_at":890,"recorded_at":900,"ingested_at":910,"disposition":"proposed"
         });
         let mut approval = proposal.clone();
         approval["event_id"] = json!("A");
@@ -875,6 +917,47 @@ mod tests {
     }
 
     #[test]
+    fn missing_as_of_cutoffs_never_admit_an_event_as_current() {
+        let mut data = input(vec![event("E-1", 1, 950, 960, 970)]);
+        data["as_of"].as_object_mut().unwrap().remove("recorded_at");
+        let result = evaluate_subject(&data, &data["required_subjects"][0]);
+        assert_eq!(result["state"], "Unknown");
+        assert_eq!(result["reason_codes"][0], "NO_VISIBLE_OWNER_EVENT");
+    }
+
+    #[test]
+    fn duplicate_intervention_event_ids_are_unsupported() {
+        let stages = vec![
+            json!({"event_id":"S-1","intervention_id":"I-1","stage":"proposal",
+                "predecessor_event_id":null,"owner_repo":"owner/a","scope_digest":hash('d'),
+                "horizon_id":"H-1","occurred_at":890,"recorded_at":900,"ingested_at":910,
+                "disposition":"proposed"}),
+            json!({"event_id":"S-1","intervention_id":"I-1","stage":"approval",
+                "predecessor_event_id":"S-1","owner_repo":"owner/a","scope_digest":hash('d'),
+                "horizon_id":"H-1","occurred_at":891,"recorded_at":901,"ingested_at":911,
+                "disposition":"approved"})
+        ];
+        let data = json!({"as_of":{"valid_at":1000,"recorded_at":1100,"ingested_at":1200}});
+        let result = evaluate_intervention(&data, "I-1", &stages);
+        assert_eq!(result["state"], "Unsupported");
+        assert_eq!(result["reason_codes"][0], "INTERVENTION_EVENT_ID_MISSING_OR_DUPLICATE");
+    }
+
+    #[test]
+    fn intervention_stage_not_yet_valid_is_not_visible() {
+        let stages = vec![json!({
+            "event_id":"S-1","intervention_id":"I-1","stage":"proposal",
+            "predecessor_event_id":null,"owner_repo":"owner/a","scope_digest":hash('d'),
+            "horizon_id":"H-1","occurred_at":1100,"recorded_at":900,"ingested_at":910,
+            "disposition":"proposed"
+        })];
+        let data = json!({"as_of":{"valid_at":1000,"recorded_at":1100,"ingested_at":1200}});
+        let result = evaluate_intervention(&data, "I-1", &stages);
+        assert_eq!(result["state"], "Unknown");
+        assert_eq!(result["reason_codes"][0], "NO_VISIBLE_INTERVENTION_STAGE");
+    }
+
+    #[test]
     fn complete_feedback_chain_does_not_claim_causality() {
         let names = ["proposal", "approval", "execution", "inspection", "outcome"];
         let mut stages = Vec::new();
@@ -885,7 +968,9 @@ mod tests {
                 "event_id":id,"intervention_id":"I-1","stage":name,
                 "predecessor_event_id":previous,"owner_repo":"owner/a",
                 "scope_digest":hash('d'),"horizon_id":"H-1",
-                "recorded_at":900+index as u64,"ingested_at":910+index as u64,
+                "occurred_at":890+index as u64,
+                "recorded_at":900+index as u64,
+                "ingested_at":910+index as u64,
                 "disposition":if *name=="inspection" {"passed"} else {"recorded"}
             }));
             previous = json!(id);
