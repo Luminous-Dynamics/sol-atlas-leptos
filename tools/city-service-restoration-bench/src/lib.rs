@@ -67,6 +67,16 @@ fn evaluate_plan(input: &Value, reasons: &mut BTreeSet<String>, conflicts: &mut 
         add_unknown(reasons, "AS_OF_TIME_BINDING_INCOMPLETE");
     }
 
+    let as_of = input.get("as_of").unwrap_or(&Value::Null);
+    if u64_field(as_of, "valid_at").is_none()
+        || u64_field(as_of, "recorded_at").is_none()
+        || u64_field(as_of, "ingested_at").is_none()
+        || str_field(as_of, "time_basis") != "UTC_UNIX_SECONDS"
+        || str_field(as_of, "source_timezone").is_empty()
+    {
+        add_unknown(reasons, "AS_OF_TIME_BINDING_INCOMPLETE");
+    }
+
     let scope = input.get("scope").unwrap_or(&Value::Null);
     if str_field(scope, "binding_state") != "bound"
         || str_field(scope, "scope_digest").len() != 64
@@ -115,11 +125,13 @@ fn evaluate_plan(input: &Value, reasons: &mut BTreeSet<String>, conflicts: &mut 
         let available = u64_field(part, "available_quantity");
         match str_field(part, "stock_state") {
             "out_of_stock" => add_conflict(conflicts, "PART_OUT_OF_STOCK"),
-            "confirmed" => {
-                if matches!((required, available), (Some(r), Some(a)) if a < r) {
+            "confirmed" => match (required, available) {
+                (Some(required), Some(available)) if available < required => {
                     add_conflict(conflicts, "PART_OUT_OF_STOCK");
                 }
-            }
+                (Some(_), Some(_)) => {}
+                _ => add_unknown(reasons, "PART_QUANTITY_UNKNOWN"),
+            },
             _ => add_unknown(reasons, "PART_STOCK_EVIDENCE_MISSING"),
         }
 
@@ -173,8 +185,21 @@ fn evaluate_plan(input: &Value, reasons: &mut BTreeSet<String>, conflicts: &mut 
 
     let reservations = records(input, "reservations");
     for (index, left) in reservations.iter().enumerate() {
-        if str_field(left, "evidence_state") != "current" {
+        if str_field(left, "evidence_state") != "current"
+            || str_field(left, "resource_id").is_empty()
+            || str_field(left, "work_package_id").is_empty()
+        {
             add_unknown(reasons, "RESOURCE_RESERVATION_EVIDENCE_UNKNOWN");
+        }
+        if let (Some(start), Some(end)) = (
+            u64_field(left, "start_at"),
+            u64_field(left, "end_at"),
+        ) {
+            if start >= end {
+                add_conflict(conflicts, "RESOURCE_RESERVATION_INTERVAL_INVALID");
+            }
+        } else {
+            add_unknown(reasons, "RESOURCE_RESERVATION_INTERVAL_UNKNOWN");
         }
         for right in reservations.iter().skip(index + 1) {
             let same_resource = !str_field(left, "resource_id").is_empty()
@@ -463,7 +488,7 @@ fn evaluate_lifecycle(
     (work, inspection, commissioning, service)
 }
 
-fn text_field(value: &Value, key: &str) -> &str {
+fn text_field<'a>(value: &'a Value, key: &str) -> &'a str {
     value.get(key).and_then(Value::as_str).unwrap_or("")
 }
 
@@ -472,22 +497,26 @@ fn text_field(value: &Value, key: &str) -> &str {
 pub fn evaluate_case(case: &Value) -> Value {
     let case_id = str_field(case, "id");
     let input = case.get("input").unwrap_or(&Value::Null);
-    let mut reasons = BTreeSet::new();
+    let mut plan_reasons = BTreeSet::new();
+    let mut lifecycle_reasons = BTreeSet::new();
     let mut conflicts = BTreeSet::new();
 
-    evaluate_plan(input, &mut reasons, &mut conflicts);
-    let (work, inspection, commissioning, service) = evaluate_lifecycle(input, &mut reasons);
+    evaluate_plan(input, &mut plan_reasons, &mut conflicts);
+    let (work, inspection, commissioning, service) =
+        evaluate_lifecycle(input, &mut lifecycle_reasons);
 
-    for conflict in &conflicts {
-        reasons.insert(conflict.clone());
-    }
     let plan_readiness = if !conflicts.is_empty() {
         "infeasible"
-    } else if !reasons.is_empty() {
+    } else if !plan_reasons.is_empty() {
         "unknown"
     } else {
         "feasible"
     };
+    let reason_codes = plan_reasons
+        .into_iter()
+        .chain(conflicts)
+        .chain(lifecycle_reasons)
+        .collect::<BTreeSet<_>>();
 
     json!({
         "id": case_id,
@@ -496,7 +525,7 @@ pub fn evaluate_case(case: &Value) -> Value {
         "inspection_state": inspection,
         "commissioning_state": commissioning,
         "service_state": service,
-        "reason_codes": reasons.into_iter().collect::<Vec<_>>(),
+        "reason_codes": reason_codes.into_iter().collect::<Vec<_>>(),
         "action_authority": "none",
         "causal_effect_established": false,
         "claim_ceiling": CLAIM_CEILING
