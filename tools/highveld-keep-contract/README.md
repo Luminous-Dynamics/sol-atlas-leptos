@@ -26,8 +26,15 @@ The crate includes the tracked source files at compile time:
 
 - `docs/research/highveld-keep/HIGHVELD_KEEP_SCENARIO_V0_1.json`
 - `docs/research/highveld-keep/HIGHVELD_KEEP_PARAMETER_SPACE_V0_1.json`
+- `docs/research/highveld-keep/HIGHVELD_KEEP_STRICT_FIELD_POLICY_V0_1.json`
 
-Cargo recompiles when included source contents change. The CLI validates both documents as a package; it does not emit a durable certificate or reuse a stale validation receipt.
+Cargo recompiles when included source contents change. The strict field policy pins the exact scenario/parameter schema versions and enumerates every known JSON object path plus its permitted keys. A new object path, field or schema version requires an explicit verifier/profile update. The CLI validates both documents as a package; it does not emit a durable certificate or reuse a stale validation receipt.
+
+## Strict JSON boundary
+
+The checker first scans original source bytes for duplicate object member names, comparing decoded JSON strings (so escaped-equivalent keys collide). It then parses with `serde_json` and validates every object against the included strict field-policy file. The policy pins both document schema versions and enumerates allowed keys by JSON object path, including array members. Unknown keys and object paths are rejected rather than ignored.
+
+The parser is a narrow duplicate-key pre-scan plus the standard JSON parser; it is not a general-purpose JSON Schema 2020-12 implementation. The allowlist is the explicit schema contract for these two versioned documents. When either document schema changes, update the policy and verifier deliberately, add positive/negative fixtures, and review the claim ceiling.
 
 ## Run
 
@@ -52,6 +59,9 @@ The nested `[workspace]` isolates the package from the parent Leptos crate. `ser
 - Geometry, thermal, structural and fire specialist gates remain unqualified/owned by their existing authorities.
 - Hard requirements remain separate from soft objective vectors.
 - E0 evidence tier and unresolved site/resident/solver/approval inputs remain visible.
+- Raw scenario and parameter JSON are scanned for duplicate decoded object-member names before map construction; this catches identical-value duplicates, conflicting duplicates and escaped-equivalent keys.
+- Every scenario/parameter JSON object is checked against the version-pinned strict field policy, including nested array-member objects; undeclared object paths and unknown fields fail closed.
+- Malformed JSON and non-UTF-8 source bytes are rejected before semantic validation.
 - The exact 11-edge functional relationship graph and functional-programme nodes have unique IDs; endpoints and required excluded intermediate functions exist; relation types map strictly to hard versus preference classes; unversioned geometry/distance fields are rejected.
 - Every functional relationship ID is bound to its exact source, target, relation type, hard/preference class and exclusion set; IDs cannot be repurposed while preserving a green result.
 - The EPW.tools alternative provider-method record remains research-only/unqualified, and its Johannesburg 0.5-degree MERRA-2 grid trend cannot be promoted to parcel/station design weather.

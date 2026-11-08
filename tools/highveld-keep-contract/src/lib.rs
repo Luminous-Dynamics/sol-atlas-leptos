@@ -12,6 +12,230 @@ pub const PARAMETER_JSON: &str =
 
 pub const SCENARIO_ID: &str = "HIGHVELD-KEEP-SYNTHETIC-001";
 
+pub const STRICT_FIELD_POLICY_JSON: &str = include_str!(
+    "../../../docs/research/highveld-keep/HIGHVELD_KEEP_STRICT_FIELD_POLICY_V0_1.json"
+);
+const STRICT_FIELD_POLICY_VERSION: &str = "luminous.highveld-keep-strict-field-policy/0.1";
+const SCENARIO_SCHEMA_VERSION: &str = "luminous.habitat.reference-scenario/0.1";
+const PARAMETER_SCHEMA_VERSION: &str = "luminous.habitat.parameter-space/0.1";
+
+fn skip_json_whitespace(bytes: &[u8], cursor: &mut usize) {
+    while bytes
+        .get(*cursor)
+        .is_some_and(|byte| matches!(*byte, 32 | 10 | 13 | 9))
+    {
+        *cursor += 1;
+    }
+}
+
+fn scan_json_string_token<'a>(bytes: &'a [u8], cursor: &mut usize) -> Result<&'a str, String> {
+    let start = *cursor;
+    if bytes.get(*cursor).copied() != Some(34) {
+        return Err("JSON_STRING_EXPECTED".to_owned());
+    }
+    *cursor += 1;
+    while let Some(byte) = bytes.get(*cursor).copied() {
+        match byte {
+            34 => {
+                *cursor += 1;
+                return std::str::from_utf8(&bytes[start..*cursor])
+                    .map_err(|_| "JSON_NOT_UTF8".to_owned());
+            }
+            92 => {
+                *cursor += 1;
+                if *cursor >= bytes.len() {
+                    return Err("JSON_STRING_ESCAPE_TRUNCATED".to_owned());
+                }
+                *cursor += 1;
+            }
+            _ => *cursor += 1,
+        }
+    }
+    Err("JSON_STRING_UNTERMINATED".to_owned())
+}
+
+/// Scan before serde_json constructs maps; escaped spellings of the same key are compared decoded.
+fn scan_json_value(bytes: &[u8], cursor: &mut usize) -> Result<(), String> {
+    skip_json_whitespace(bytes, cursor);
+    match bytes.get(*cursor).copied() {
+        Some(123) => {
+            *cursor += 1;
+            skip_json_whitespace(bytes, cursor);
+            if bytes.get(*cursor).copied() == Some(125) {
+                *cursor += 1;
+                return Ok(());
+            }
+            let mut keys = std::collections::HashSet::new();
+            loop {
+                skip_json_whitespace(bytes, cursor);
+                let token = scan_json_string_token(bytes, cursor)?;
+                let key: String = serde_json::from_str(token)
+                    .map_err(|error| format!("JSON_OBJECT_KEY_INVALID: {error}"))?;
+                if !keys.insert(key.clone()) {
+                    return Err(format!("JSON_DUPLICATE_MEMBER_KEY:{key}"));
+                }
+                skip_json_whitespace(bytes, cursor);
+                if bytes.get(*cursor).copied() != Some(58) {
+                    return Err("JSON_OBJECT_COLON_EXPECTED".to_owned());
+                }
+                *cursor += 1;
+                scan_json_value(bytes, cursor)?;
+                skip_json_whitespace(bytes, cursor);
+                match bytes.get(*cursor).copied() {
+                    Some(44) => *cursor += 1,
+                    Some(125) => {
+                        *cursor += 1;
+                        return Ok(());
+                    }
+                    _ => return Err("JSON_OBJECT_SEPARATOR_EXPECTED".to_owned()),
+                }
+            }
+        }
+        Some(91) => {
+            *cursor += 1;
+            skip_json_whitespace(bytes, cursor);
+            if bytes.get(*cursor).copied() == Some(93) {
+                *cursor += 1;
+                return Ok(());
+            }
+            loop {
+                scan_json_value(bytes, cursor)?;
+                skip_json_whitespace(bytes, cursor);
+                match bytes.get(*cursor).copied() {
+                    Some(44) => *cursor += 1,
+                    Some(93) => {
+                        *cursor += 1;
+                        return Ok(());
+                    }
+                    _ => return Err("JSON_ARRAY_SEPARATOR_EXPECTED".to_owned()),
+                }
+            }
+        }
+        Some(34) => {
+            let token = scan_json_string_token(bytes, cursor)?;
+            serde_json::from_str::<String>(token)
+                .map(|_| ())
+                .map_err(|error| format!("JSON_STRING_INVALID: {error}"))
+        }
+        Some(_) => {
+            let start = *cursor;
+            while bytes
+                .get(*cursor)
+                .is_some_and(|byte| !matches!(*byte, 32 | 10 | 13 | 9 | 44 | 93 | 125))
+            {
+                *cursor += 1;
+            }
+            if *cursor == start {
+                Err("JSON_VALUE_EXPECTED".to_owned())
+            } else {
+                Ok(())
+            }
+        }
+        None => Err("JSON_VALUE_EXPECTED".to_owned()),
+    }
+}
+
+/// Reject duplicate keys in the original byte stream, then perform complete JSON syntax validation.
+fn parse_unique_json_bytes(bytes: &[u8]) -> Result<Value, String> {
+    let input = std::str::from_utf8(bytes).map_err(|_| "JSON_NOT_UTF8".to_owned())?;
+    let mut cursor = 0;
+    scan_json_value(bytes, &mut cursor)?;
+    skip_json_whitespace(bytes, &mut cursor);
+    if cursor != bytes.len() {
+        return Err("JSON_TRAILING_CONTENT".to_owned());
+    }
+    serde_json::from_str(input).map_err(|error| format!("JSON_PARSE_FAILED: {error}"))
+}
+
+fn object_has_exact_keys(value: &Value, expected: &[&str]) -> bool {
+    let Some(object) = value.as_object() else {
+        return false;
+    };
+    object.len() == expected.len() && expected.iter().all(|key| object.contains_key(*key))
+}
+
+fn build_field_rules(
+    policy: &Value,
+    document: &str,
+    expected_schema_version: &str,
+) -> Option<std::collections::HashMap<String, std::collections::HashSet<String>>> {
+    if !object_has_exact_keys(policy, &["policy_version", "description", "documents"])
+        || policy.get("policy_version").and_then(Value::as_str) != Some(STRICT_FIELD_POLICY_VERSION)
+    {
+        return None;
+    }
+
+    let documents = policy.get("documents")?.as_object()?;
+    if documents.len() != 2
+        || !documents.contains_key("scenario")
+        || !documents.contains_key("parameters")
+    {
+        return None;
+    }
+    let expected_source_path = match document {
+        "scenario" => "docs/research/highveld-keep/HIGHVELD_KEEP_SCENARIO_V0_1.json",
+        "parameters" => "docs/research/highveld-keep/HIGHVELD_KEEP_PARAMETER_SPACE_V0_1.json",
+        _ => return None,
+    };
+    let doc = documents.get(document)?;
+    if !object_has_exact_keys(doc, &["schema_version", "source_path", "object_paths"])
+        || doc.get("schema_version").and_then(Value::as_str) != Some(expected_schema_version)
+        || doc.get("source_path").and_then(Value::as_str) != Some(expected_source_path)
+    {
+        return None;
+    }
+
+    let entries = doc.get("object_paths")?.as_array()?;
+    if entries.is_empty() {
+        return None;
+    }
+    let mut rules = std::collections::HashMap::new();
+    for entry in entries {
+        if !object_has_exact_keys(entry, &["path", "allowed_keys"]) {
+            return None;
+        }
+        let path = entry.get("path")?.as_str()?;
+        if !path.starts_with("$") {
+            return None;
+        }
+        let mut allowed = std::collections::HashSet::new();
+        for key in entry.get("allowed_keys")?.as_array()? {
+            let key = key.as_str()?;
+            if key.is_empty() || !allowed.insert(key.to_owned()) {
+                return None;
+            }
+        }
+        if allowed.is_empty() || rules.insert(path.to_owned(), allowed).is_some() {
+            return None;
+        }
+    }
+    rules.contains_key("$").then_some(rules)
+}
+
+fn has_unlisted_or_undeclared_object_fields(
+    value: &Value,
+    path: &str,
+    rules: &std::collections::HashMap<String, std::collections::HashSet<String>>,
+) -> bool {
+    if let Some(object) = value.as_object() {
+        let Some(allowed) = rules.get(path) else {
+            return true;
+        };
+        if object.keys().any(|key| !allowed.contains(key)) {
+            return true;
+        }
+        object.iter().any(|(key, child)| {
+            has_unlisted_or_undeclared_object_fields(child, &format!("{path}.{key}"), rules)
+        })
+    } else if let Some(array) = value.as_array() {
+        array.iter().any(|child| {
+            has_unlisted_or_undeclared_object_fields(child, &format!("{path}[]"), rules)
+        })
+    } else {
+        false
+    }
+}
+
 const EXPECTED_FAMILIES: [&str; 4] = [
     "courtyard_cloister",
     "winged_great_hall",
@@ -82,6 +306,23 @@ fn push_if(violations: &mut Vec<&'static str>, condition: bool, id: &'static str
 /// Validate two already-parsed JSON documents. The function is pure and offline.
 pub fn validate_values(scenario: &Value, parameters: &Value) -> ValidationReport {
     let mut violations = Vec::new();
+    match parse_unique_json_bytes(STRICT_FIELD_POLICY_JSON.as_bytes()) {
+        Ok(policy) => {
+            match build_field_rules(&policy, "scenario", SCENARIO_SCHEMA_VERSION) {
+                Some(rules) if !has_unlisted_or_undeclared_object_fields(scenario, "$", &rules) => {
+                }
+                Some(_) => violations.push("SCENARIO_JSON_UNKNOWN_OR_UNDECLARED_FIELD"),
+                None => violations.push("SCENARIO_STRICT_FIELD_POLICY_INVALID"),
+            }
+            match build_field_rules(&policy, "parameters", PARAMETER_SCHEMA_VERSION) {
+                Some(rules)
+                    if !has_unlisted_or_undeclared_object_fields(parameters, "$", &rules) => {}
+                Some(_) => violations.push("PARAMETER_JSON_UNKNOWN_OR_UNDECLARED_FIELD"),
+                None => violations.push("PARAMETER_STRICT_FIELD_POLICY_INVALID"),
+            }
+        }
+        Err(_) => violations.push("STRICT_FIELD_POLICY_JSON_INVALID"),
+    }
 
     let scenario_id = string_at(scenario, &["scenario_id"])
         .unwrap_or("UNKNOWN_SCENARIO_ID")
@@ -1047,13 +1288,12 @@ pub fn validate_values(scenario: &Value, parameters: &Value) -> ValidationReport
 
 /// Parse and validate the two tracked source documents.
 pub fn validate_tracked_documents() -> Result<ValidationReport, String> {
-    let scenario: Value = serde_json::from_str(SCENARIO_JSON)
+    let scenario = parse_unique_json_bytes(SCENARIO_JSON.as_bytes())
         .map_err(|error| format!("SCENARIO_JSON_INVALID: {error}"))?;
-    let parameters: Value = serde_json::from_str(PARAMETER_JSON)
+    let parameters = parse_unique_json_bytes(PARAMETER_JSON.as_bytes())
         .map_err(|error| format!("PARAMETER_JSON_INVALID: {error}"))?;
     Ok(validate_values(&scenario, &parameters))
 }
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1522,5 +1762,174 @@ mod tests {
         items[idx]["status"] = json!("APPROVED");
         let report = validate_values(&scenario, &parameters);
         assert!(contains(&report, "UNQUALIFIED_PRODUCT_REFERENCE_PROMOTED"));
+    }
+
+    #[test]
+    fn unknown_scenario_root_field_is_rejected() {
+        let (mut scenario, parameters) = documents();
+        scenario["unreviewed_root_extension"] = json!(true);
+        let report = validate_values(&scenario, &parameters);
+        assert!(contains(
+            &report,
+            "SCENARIO_JSON_UNKNOWN_OR_UNDECLARED_FIELD"
+        ));
+    }
+
+    #[test]
+    fn unknown_parameter_root_field_is_rejected() {
+        let (scenario, mut parameters) = documents();
+        parameters["unreviewed_root_extension"] = json!(true);
+        let report = validate_values(&scenario, &parameters);
+        assert!(contains(
+            &report,
+            "PARAMETER_JSON_UNKNOWN_OR_UNDECLARED_FIELD"
+        ));
+    }
+
+    #[test]
+    fn unknown_nested_scenario_fields_are_rejected_at_each_declared_depth() {
+        let (mut scenario, parameters) = documents();
+        scenario["climate_inputs"]["unreviewed_nested_field"] = json!(true);
+        let report = validate_values(&scenario, &parameters);
+        assert!(contains(
+            &report,
+            "SCENARIO_JSON_UNKNOWN_OR_UNDECLARED_FIELD"
+        ));
+
+        let (mut scenario, parameters) = documents();
+        scenario["geography"]["unreviewed_nested_field"] = json!(true);
+        let report = validate_values(&scenario, &parameters);
+        assert!(contains(
+            &report,
+            "SCENARIO_JSON_UNKNOWN_OR_UNDECLARED_FIELD"
+        ));
+
+        let (mut scenario, parameters) = documents();
+        scenario["architectural_alternatives"][0]["unreviewed_nested_field"] = json!(true);
+        let report = validate_values(&scenario, &parameters);
+        assert!(contains(
+            &report,
+            "SCENARIO_JSON_UNKNOWN_OR_UNDECLARED_FIELD"
+        ));
+
+        let (mut scenario, parameters) = documents();
+        scenario["functional_relationships"][0]["unreviewed_nested_field"] = json!(true);
+        let report = validate_values(&scenario, &parameters);
+        assert!(contains(
+            &report,
+            "SCENARIO_JSON_UNKNOWN_OR_UNDECLARED_FIELD"
+        ));
+    }
+
+    #[test]
+    fn unknown_nested_parameter_variable_field_is_rejected() {
+        let (scenario, mut parameters) = documents();
+        parameters["topology_variables"][0]["unreviewed_nested_field"] = json!(true);
+        let report = validate_values(&scenario, &parameters);
+        assert!(contains(
+            &report,
+            "PARAMETER_JSON_UNKNOWN_OR_UNDECLARED_FIELD"
+        ));
+    }
+
+    #[test]
+    fn duplicate_scenario_id_with_identical_value_is_rejected_before_map_parsing() {
+        let needle = r#""scenario_id": "HIGHVELD-KEEP-SYNTHETIC-001","#;
+        let replacement = format!("{needle}\n  {needle}");
+        let raw = SCENARIO_JSON.replacen(needle, &replacement, 1);
+        assert_ne!(raw, SCENARIO_JSON);
+        let error = parse_unique_json_bytes(raw.as_bytes()).unwrap_err();
+        assert!(error.contains("JSON_DUPLICATE_MEMBER_KEY:scenario_id"));
+    }
+
+    #[test]
+    fn duplicate_claim_ceiling_with_conflicting_value_is_rejected() {
+        let needle = r#""claim_ceiling": "synthetic_requirements_and_design_space_only","#;
+        let replacement = format!("{needle}\n  \"claim_ceiling\": \"unbounded_approval\",");
+        let raw = SCENARIO_JSON.replacen(needle, &replacement, 1);
+        assert_ne!(raw, SCENARIO_JSON);
+        let error = parse_unique_json_bytes(raw.as_bytes()).unwrap_err();
+        assert!(error.contains("JSON_DUPLICATE_MEMBER_KEY:claim_ceiling"));
+    }
+
+    #[test]
+    fn duplicate_nested_status_key_is_rejected() {
+        let needle = r#""status": "UNKNOWN_NO_REAL_PARCEL_SELECTED""#;
+        let replacement = format!("{needle},\n    \"status\": \"DISPUTED\"");
+        let raw = SCENARIO_JSON.replacen(needle, &replacement, 1);
+        assert_ne!(raw, SCENARIO_JSON);
+        let error = parse_unique_json_bytes(raw.as_bytes()).unwrap_err();
+        assert!(error.contains("JSON_DUPLICATE_MEMBER_KEY:status"));
+    }
+
+    #[test]
+    fn escaped_duplicate_json_keys_are_compared_after_decoding() {
+        let raw = br#"{"key":1,"\u006bey":2}"#;
+        let error = parse_unique_json_bytes(raw).unwrap_err();
+        assert!(error.contains("JSON_DUPLICATE_MEMBER_KEY:key"));
+    }
+
+    #[test]
+    fn malformed_and_non_utf8_json_are_rejected() {
+        assert!(parse_unique_json_bytes(br#"{"value":]"#).is_err());
+        assert_eq!(
+            parse_unique_json_bytes(&[b'{', 0xff, b'}']).unwrap_err(),
+            "JSON_NOT_UTF8"
+        );
+    }
+
+    #[test]
+    fn schema_version_change_requires_an_explicit_profile_update() {
+        let (mut scenario, parameters) = documents();
+        scenario["schema_version"] = json!("luminous.habitat.reference-scenario/0.2");
+        let report = validate_values(&scenario, &parameters);
+        assert!(contains(&report, "SCENARIO_SCHEMA_VERSION_MISMATCH"));
+    }
+
+    #[test]
+    fn strict_field_policy_rejects_unknown_root_document_and_path_fields() {
+        let policy = parse_unique_json_bytes(STRICT_FIELD_POLICY_JSON.as_bytes()).unwrap();
+
+        let mut root_extension = policy.clone();
+        root_extension["unreviewed_policy_extension"] = json!(true);
+        assert!(build_field_rules(&root_extension, "scenario", SCENARIO_SCHEMA_VERSION).is_none());
+
+        let mut document_extension = policy.clone();
+        document_extension["documents"]["scenario"]["unreviewed_policy_extension"] = json!(true);
+        assert!(
+            build_field_rules(&document_extension, "scenario", SCENARIO_SCHEMA_VERSION).is_none()
+        );
+
+        let mut path_extension = policy.clone();
+        path_extension["documents"]["scenario"]["object_paths"][0]["unreviewed_policy_extension"] =
+            json!(true);
+        assert!(build_field_rules(&path_extension, "scenario", SCENARIO_SCHEMA_VERSION).is_none());
+    }
+
+    #[test]
+    fn strict_field_policy_must_bind_the_expected_source_and_schema_versions() {
+        let mut policy = parse_unique_json_bytes(STRICT_FIELD_POLICY_JSON.as_bytes()).unwrap();
+        policy["documents"]["scenario"]["source_path"] = json!("other.json");
+        assert!(build_field_rules(&policy, "scenario", SCENARIO_SCHEMA_VERSION).is_none());
+
+        let mut policy = parse_unique_json_bytes(STRICT_FIELD_POLICY_JSON.as_bytes()).unwrap();
+        policy["documents"]["scenario"]["schema_version"] =
+            json!("luminous.habitat.reference-scenario/0.2");
+        assert!(build_field_rules(&policy, "scenario", SCENARIO_SCHEMA_VERSION).is_none());
+    }
+
+    #[test]
+    fn strict_field_policy_rejects_duplicate_paths_and_empty_allowlists() {
+        let mut policy = parse_unique_json_bytes(STRICT_FIELD_POLICY_JSON.as_bytes()).unwrap();
+        let duplicate = policy["documents"]["scenario"]["object_paths"][0].clone();
+        policy["documents"]["scenario"]["object_paths"]
+            .as_array_mut()
+            .unwrap()
+            .push(duplicate);
+        assert!(build_field_rules(&policy, "scenario", SCENARIO_SCHEMA_VERSION).is_none());
+
+        let mut policy = parse_unique_json_bytes(STRICT_FIELD_POLICY_JSON.as_bytes()).unwrap();
+        policy["documents"]["scenario"]["object_paths"][0]["allowed_keys"] = json!([]);
+        assert!(build_field_rules(&policy, "scenario", SCENARIO_SCHEMA_VERSION).is_none());
     }
 }
