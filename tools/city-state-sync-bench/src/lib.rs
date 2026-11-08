@@ -24,7 +24,8 @@ fn is_sha256(value: &str) -> bool {
 }
 
 fn visible(event: &Value, as_of: &Value) -> bool {
-    let (Some(recorded_cut), Some(ingested_cut), Some(recorded), Some(ingested)) = (
+    let (Some(_valid_cut), Some(recorded_cut), Some(ingested_cut), Some(recorded), Some(ingested)) = (
+        number(as_of, "valid_at"),
         number(as_of, "recorded_at"),
         number(as_of, "ingested_at"),
         number(event, "recorded_at"),
