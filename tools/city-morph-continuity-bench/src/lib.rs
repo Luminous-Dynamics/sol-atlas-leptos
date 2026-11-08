@@ -37,6 +37,8 @@ struct Summary {
     max_degraded: i64,
     degraded_streak: i64,
     first_degradation: Option<i64>,
+    last_degradation_end: Option<i64>,
+    unknown_since_last_degradation: bool,
     adequate_run_start: Option<i64>,
     adequate_run: i64,
     recovered_start: Option<i64>,
@@ -74,6 +76,9 @@ impl Summary {
                 if self.first_degradation.is_some() {
                     self.unknown_after_degradation += duration;
                 }
+                if self.last_degradation_end.is_some() {
+                    self.unknown_since_last_degradation = true;
+                }
                 self.degraded_streak = 0;
                 self.adequate_run = 0;
                 self.adequate_run_start = None;
@@ -82,6 +87,8 @@ impl Summary {
     }
     fn degrade(&mut self, start: i64, duration: i64) {
         self.first_degradation.get_or_insert(start);
+        self.last_degradation_end = Some(start + duration);
+        self.unknown_since_last_degradation = false;
         self.degraded_streak += duration;
         self.max_degraded = self.max_degraded.max(self.degraded_streak);
         self.adequate_run = 0;
@@ -97,10 +104,40 @@ impl Summary {
         } else {
             "NotRecovered"
         };
-        let recovery_time = self
+        let recovery_timing_precision = if self.first_degradation.is_none() {
+            "not_applicable"
+        } else if self.recovered_start.is_some() {
+            if self.unknown_since_last_degradation {
+                "bounded"
+            } else {
+                "exact"
+            }
+        } else if state == "RecoveryUnknown" {
+            "unknown"
+        } else {
+            "unresolved"
+        };
+        let recovery_start_lower_exclusive = if self.recovered_start.is_some()
+            || state == "RecoveryUnknown"
+        {
+            self.last_degradation_end
+        } else {
+            None
+        };
+        let recovery_start_upper_inclusive = self.recovered_start;
+        let recovery_time_lower_exclusive = self
             .first_degradation
-            .zip(self.recovered_start)
-            .map(|(first, recovered)| recovered - first);
+            .zip(recovery_start_lower_exclusive)
+            .map(|(first, lower)| lower - first);
+        let recovery_time_upper_inclusive = self
+            .first_degradation
+            .zip(recovery_start_upper_inclusive)
+            .map(|(first, upper)| upper - first);
+        let recovery_time = if recovery_timing_precision == "exact" {
+            recovery_time_upper_inclusive
+        } else {
+            None
+        };
         json!({
             "requirement_id": text(req, "requirement_id"),
             "group_id": text(req, "group_id"),
@@ -115,10 +152,16 @@ impl Summary {
             "unknown_after_first_degradation_ticks": self.unknown_after_degradation,
             "max_contiguous_degraded_ticks": self.max_degraded,
             "first_degradation_tick": self.first_degradation,
+            "last_known_degradation_end_tick": self.last_degradation_end,
             "recovery_state": state,
             "recovered_start_tick": self.recovered_start,
+            "recovery_start_lower_exclusive_tick": recovery_start_lower_exclusive,
+            "recovery_start_upper_inclusive_tick": recovery_start_upper_inclusive,
+            "recovery_timing_precision": recovery_timing_precision,
             "recovery_confirmed_at_tick": self.recovery_confirmed,
-            "recovery_time_ticks": recovery_time
+            "recovery_time_ticks": recovery_time,
+            "recovery_time_lower_exclusive_ticks": recovery_time_lower_exclusive,
+            "recovery_time_upper_inclusive_ticks": recovery_time_upper_inclusive
         })
     }
 }
@@ -408,6 +451,29 @@ mod tests {
         let r = evaluate_case(&case("CR-002"));
         assert_eq!(r["requirements"][0]["recovery_state"], "Recovered");
         assert_eq!(r["requirements"][0]["recovery_time_ticks"], 2);
+    }
+
+    #[test]
+    fn recovery_time_is_bounded_when_evidence_gap_precedes_confirmed_adequacy() {
+        let result = evaluate_case(&case("CR-030"));
+        let requirement = &result["requirements"][0];
+        assert_eq!(requirement["recovery_state"], "Recovered");
+        assert_eq!(requirement["recovery_timing_precision"], "bounded");
+        assert_eq!(requirement["last_known_degradation_end_tick"], 5);
+        assert_eq!(requirement["recovered_start_tick"], 7);
+        assert_eq!(requirement["recovery_start_lower_exclusive_tick"], 5);
+        assert_eq!(requirement["recovery_start_upper_inclusive_tick"], 7);
+        assert_eq!(requirement["recovery_time_ticks"], Value::Null);
+        assert_eq!(requirement["recovery_time_lower_exclusive_ticks"], 3);
+        assert_eq!(requirement["recovery_time_upper_inclusive_ticks"], 5);
+        assert_eq!(requirement["recovery_confirmed_at_tick"], 9);
+
+        let exact = evaluate_case(&case("CR-002"));
+        let exact_requirement = &exact["requirements"][0];
+        assert_eq!(exact_requirement["recovery_timing_precision"], "exact");
+        assert_eq!(exact_requirement["recovery_time_ticks"], 2);
+        assert_eq!(exact_requirement["recovery_time_lower_exclusive_ticks"], 2);
+        assert_eq!(exact_requirement["recovery_time_upper_inclusive_ticks"], 2);
     }
 
     #[test]
