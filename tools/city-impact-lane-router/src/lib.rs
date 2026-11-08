@@ -325,6 +325,68 @@ fn evaluate_lane(
         }
     }
 
+    if family == "source_inventory" {
+        match text(report, "disposition") {
+            "invalid_input" => {
+                reasons.insert("SOURCE_INVENTORY_CLOSURE_INVALID".to_owned());
+            }
+            "complete_within_declared_owner_set" => {
+                let expected = number(report, "expected_owner_count");
+                let required = number(report, "required_owner_count");
+                let present = number(report, "present_required_owner_count");
+                let complete = number(report, "complete_inventory_count");
+                let complete_with_exclusions = number(report, "complete_with_exclusions_count");
+                let incomplete = number(report, "incomplete_inventory_count");
+                let invalid = number(report, "invalid_inventory_count");
+                let not_comparable = number(report, "not_comparable_inventory_count");
+                let owner_presence = report.get("owner_presence").unwrap_or(&Value::Null);
+                if text(report, "claim_scope")
+                    != "caller_supplied_required_owner_set_and_declared_query_snapshots_only"
+                    || text(owner_presence, "claim_scope")
+                        != "caller_supplied_expected_owner_set_manifest_presence_only"
+                {
+                    reasons.insert("SOURCE_INVENTORY_CLAIM_SCOPE_MISMATCH".to_owned());
+                }
+                if expected.is_none()
+                    || required.is_none()
+                    || present.is_none()
+                    || complete.is_none()
+                    || complete_with_exclusions.is_none()
+                    || incomplete.is_none()
+                    || invalid.is_none()
+                    || not_comparable.is_none()
+                {
+                    reasons.insert("SOURCE_INVENTORY_CLOSURE_COUNTS_MISSING".to_owned());
+                } else {
+                    let (expected, required, present, complete) =
+                        (expected.unwrap(), required.unwrap(), present.unwrap(), complete.unwrap());
+                    if expected == 0 || required > expected || present > required {
+                        reasons.insert("SOURCE_INVENTORY_CLOSURE_COUNTS_INVALID".to_owned());
+                    } else if present < required || complete < required {
+                        reasons.insert("SOURCE_INVENTORY_REQUIRED_OWNER_INCOMPLETE".to_owned());
+                    }
+                    if complete_with_exclusions != Some(0)
+                        || incomplete != Some(0)
+                        || not_comparable != Some(0)
+                    {
+                        reasons.insert("SOURCE_INVENTORY_HAS_EXCLUSIONS_OR_INCOMPLETE_MANIFESTS".to_owned());
+                    }
+                    if invalid != Some(0) {
+                        reasons.insert("SOURCE_INVENTORY_MANIFEST_INVALID".to_owned());
+                    }
+                }
+                if text(owner_presence, "disposition") != "expected_owner_manifests_present"
+                    || number(owner_presence, "missing_required_owner_count") != Some(0)
+                {
+                    reasons.insert("SOURCE_INVENTORY_REQUIRED_OWNER_SET_INCOMPLETE".to_owned());
+                }
+            }
+            _ => {
+                reasons.insert("SOURCE_INVENTORY_CLOSURE_INCOMPLETE".to_owned());
+            }
+        }
+    }
+
     let state = if reasons.is_empty() {
         "contract_bound_unverified"
     } else if reasons.iter().any(|reason| {
