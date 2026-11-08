@@ -19,106 +19,186 @@ const SCENARIO_SCHEMA_VERSION: &str = "luminous.habitat.reference-scenario/0.1";
 const PARAMETER_SCHEMA_VERSION: &str = "luminous.habitat.parameter-space/0.1";
 
 fn skip_json_whitespace(bytes: &[u8], cursor: &mut usize) {
-    while bytes.get(*cursor).is_some_and(|b| matches!(b, b' ' | b'\\n' | b'\\r' | b'\\t')) {
+    while bytes.get(*cursor).is_some_and(|byte| matches!(*byte, 32 | 10 | 13 | 9)) {
         *cursor += 1;
     }
 }
+
 fn scan_json_string_token<'a>(bytes: &'a [u8], cursor: &mut usize) -> Result<&'a str, String> {
     let start = *cursor;
-    if bytes.get(*cursor) != Some(&b'"') { return Err("JSON_STRING_EXPECTED".into()); }
+    if bytes.get(*cursor).copied() != Some(34) {
+        return Err("JSON_STRING_EXPECTED".to_owned());
+    }
     *cursor += 1;
-    while let Some(byte) = bytes.get(*cursor) {
+    while let Some(byte) = bytes.get(*cursor).copied() {
         match byte {
-            b'"' => {
+            34 => {
                 *cursor += 1;
-                return std::str::from_utf8(&bytes[start..*cursor]).map_err(|_| "JSON_NOT_UTF8".into());
+                return std::str::from_utf8(&bytes[start..*cursor])
+                    .map_err(|_| "JSON_NOT_UTF8".to_owned());
             }
-            b'\\' => {
+            92 => {
                 *cursor += 1;
-                if *cursor >= bytes.len() { return Err("JSON_STRING_ESCAPE_TRUNCATED".into()); }
+                if *cursor >= bytes.len() {
+                    return Err("JSON_STRING_ESCAPE_TRUNCATED".to_owned());
+                }
                 *cursor += 1;
             }
             _ => *cursor += 1,
         }
     }
-    Err("JSON_STRING_UNTERMINATED".into())
+    Err("JSON_STRING_UNTERMINATED".to_owned())
 }
+
 /// Scan before serde_json constructs maps; escaped spellings of the same key are compared decoded.
 fn scan_json_value(bytes: &[u8], cursor: &mut usize) -> Result<(), String> {
     skip_json_whitespace(bytes, cursor);
-    match bytes.get(*cursor) {
-        Some(b'{') => {
+    match bytes.get(*cursor).copied() {
+        Some(123) => {
             *cursor += 1;
             skip_json_whitespace(bytes, cursor);
-            if bytes.get(*cursor) == Some(&b'}') { *cursor += 1; return Ok(()); }
+            if bytes.get(*cursor).copied() == Some(125) {
+                *cursor += 1;
+                return Ok(());
+            }
             let mut keys = std::collections::HashSet::new();
             loop {
                 skip_json_whitespace(bytes, cursor);
                 let token = scan_json_string_token(bytes, cursor)?;
                 let key: String = serde_json::from_str(token)
-                    .map_err(|e| format!("JSON_OBJECT_KEY_INVALID: {e}"))?;
-                if !keys.insert(key.clone()) { return Err(format!("JSON_DUPLICATE_MEMBER_KEY:{key}")); }
+                    .map_err(|error| format!("JSON_OBJECT_KEY_INVALID: {error}"))?;
+                if !keys.insert(key.clone()) {
+                    return Err(format!("JSON_DUPLICATE_MEMBER_KEY:{key}"));
+                }
                 skip_json_whitespace(bytes, cursor);
-                if bytes.get(*cursor) != Some(&b':') { return Err("JSON_OBJECT_COLON_EXPECTED".into()); }
+                if bytes.get(*cursor).copied() != Some(58) {
+                    return Err("JSON_OBJECT_COLON_EXPECTED".to_owned());
+                }
                 *cursor += 1;
                 scan_json_value(bytes, cursor)?;
                 skip_json_whitespace(bytes, cursor);
-                match bytes.get(*cursor) {
-                    Some(b',') => *cursor += 1,
-                    Some(b'}') => { *cursor += 1; return Ok(()); }
-                    _ => return Err("JSON_OBJECT_SEPARATOR_EXPECTED".into()),
+                match bytes.get(*cursor).copied() {
+                    Some(44) => *cursor += 1,
+                    Some(125) => {
+                        *cursor += 1;
+                        return Ok(());
+                    }
+                    _ => return Err("JSON_OBJECT_SEPARATOR_EXPECTED".to_owned()),
                 }
             }
         }
-        Some(b'[') => {
+        Some(91) => {
             *cursor += 1;
             skip_json_whitespace(bytes, cursor);
-            if bytes.get(*cursor) == Some(&b']') { *cursor += 1; return Ok(()); }
+            if bytes.get(*cursor).copied() == Some(93) {
+                *cursor += 1;
+                return Ok(());
+            }
             loop {
                 scan_json_value(bytes, cursor)?;
                 skip_json_whitespace(bytes, cursor);
-                match bytes.get(*cursor) {
-                    Some(b',') => *cursor += 1,
-                    Some(b']') => { *cursor += 1; return Ok(()); }
-                    _ => return Err("JSON_ARRAY_SEPARATOR_EXPECTED".into()),
+                match bytes.get(*cursor).copied() {
+                    Some(44) => *cursor += 1,
+                    Some(93) => {
+                        *cursor += 1;
+                        return Ok(());
+                    }
+                    _ => return Err("JSON_ARRAY_SEPARATOR_EXPECTED".to_owned()),
                 }
             }
         }
-        Some(b'"') => {
+        Some(34) => {
             let token = scan_json_string_token(bytes, cursor)?;
-            serde_json::from_str::<String>(token).map(|_| ()).map_err(|e| format!("JSON_STRING_INVALID: {e}"))
+            serde_json::from_str::<String>(token)
+                .map(|_| ())
+                .map_err(|error| format!("JSON_STRING_INVALID: {error}"))
         }
         Some(_) => {
             let start = *cursor;
-            while bytes.get(*cursor).is_some_and(|b| !matches!(b, b' ' | b'\\n' | b'\\r' | b'\\t' | b',' | b']' | b'}')) {
+            while bytes.get(*cursor).is_some_and(|byte| {
+                !matches!(*byte, 32 | 10 | 13 | 9 | 44 | 93 | 125)
+            }) {
                 *cursor += 1;
             }
-            if *cursor == start { Err("JSON_VALUE_EXPECTED".into()) } else { Ok(()) }
+            if *cursor == start {
+                Err("JSON_VALUE_EXPECTED".to_owned())
+            } else {
+                Ok(())
+            }
         }
-        None => Err("JSON_VALUE_EXPECTED".into()),
+        None => Err("JSON_VALUE_EXPECTED".to_owned()),
     }
 }
+
 /// Reject duplicate keys in the original byte stream, then perform complete JSON syntax validation.
 fn parse_unique_json_bytes(bytes: &[u8]) -> Result<Value, String> {
     let input = std::str::from_utf8(bytes).map_err(|_| "JSON_NOT_UTF8".to_owned())?;
     let mut cursor = 0;
     scan_json_value(bytes, &mut cursor)?;
     skip_json_whitespace(bytes, &mut cursor);
-    if cursor != bytes.len() { return Err("JSON_TRAILING_CONTENT".into()); }
-    serde_json::from_str(input).map_err(|e| format!("JSON_PARSE_FAILED: {e}"))
+    if cursor != bytes.len() {
+        return Err("JSON_TRAILING_CONTENT".to_owned());
+    }
+    serde_json::from_str(input).map_err(|error| format!("JSON_PARSE_FAILED: {error}"))
 }
+
 fn build_field_rules(
     policy: &Value,
     document: &str,
     expected_schema_version: &str,
 ) -> Option<std::collections::HashMap<String, std::collections::HashSet<String>>> {
-    if policy.get("policy_version").and_then(Value::as_str) != Some(STRICT_FIELD_POLICY_VERSION) { return None; }
+    if policy.get("policy_version").and_then(Value::as_str)
+        != Some(STRICT_FIELD_POLICY_VERSION)
+    {
+        return None;
+    }
     let doc = policy.get("documents")?.get(document)?;
-    if doc.get("schema_version").and_then(Value::as_str) != Some(expected_schema_version) { return None; }
+    if doc.get("schema_version").and_then(Value::as_str) != Some(expected_schema_version) {
+        return None;
+    }
     let mut rules = std::collections::HashMap::new();
     for entry in doc.get("object_paths")?.as_array()? {
         let path = entry.get("path")?.as_str()?;
-        if !path.starts_with('
+        if !path.starts_with("$") {
+            return None;
+        }
+        let mut allowed = std::collections::HashSet::new();
+        for key in entry.get("allowed_keys")?.as_array()? {
+            if !allowed.insert(key.as_str()?.to_owned()) {
+                return None;
+            }
+        }
+        if rules.insert(path.to_owned(), allowed).is_some() {
+            return None;
+        }
+    }
+    rules.contains_key("$").then_some(rules)
+}
+
+fn has_unlisted_or_undeclared_object_fields(
+    value: &Value,
+    path: &str,
+    rules: &std::collections::HashMap<String, std::collections::HashSet<String>>,
+) -> bool {
+    if let Some(object) = value.as_object() {
+        let Some(allowed) = rules.get(path) else {
+            return true;
+        };
+        if object.keys().any(|key| !allowed.contains(key)) {
+            return true;
+        }
+        object.iter().any(|(key, child)| {
+            has_unlisted_or_undeclared_object_fields(child, &format!("{path}.{key}"), rules)
+        })
+    } else if let Some(array) = value.as_array() {
+        array.iter().any(|child| {
+            has_unlisted_or_undeclared_object_fields(child, &format!("{path}[]"), rules)
+        })
+    } else {
+        false
+    }
+}
+
 const EXPECTED_FAMILIES: [&str; 4] = [
     "courtyard_cloister",
     "winged_great_hall",
