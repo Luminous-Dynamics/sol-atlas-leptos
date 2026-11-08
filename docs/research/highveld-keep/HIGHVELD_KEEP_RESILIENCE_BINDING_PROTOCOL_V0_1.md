@@ -58,6 +58,29 @@ The paired comparison is admitted only after:
 
 Only then may the Symtropy #1848 owner output be used to compare the remaining candidates. The adapter does not perform local dominance or choose a universal winner.
 
+## 4B. Machine-pinned owner qualification receipt
+
+The manifest's `verified_owner_qualifications` entry is an immutable *reference* to the Symtropy #1849 software-oracle qualification observed on 8 November 2026. It pins:
+- candidate source head `b0da4a10115861798d6b32e5940efb3b775044dd`;
+- dedicated qualifier workflow run #95 and general CI run #11785;
+- artifact ID `13606874236` and archive digest `8ee7edda499ddb7e47b94e3429bf2d515c287866563a4e0f58409f02f75d8162`.
+
+The Rust binding checker rejects a different owner SHA, failed/mismatched workflow IDs, a replacement artifact digest, or an expanded claim ceiling. This is a stale-receipt and authority-ceiling guard, not an independent re-execution of Symtropy's verifier. Re-execution remains the responsibility of the owner workflow at the current candidate head. The archive digest applies only to the ZIP container; individual JSON receipts and dependency lock are contained within it.
+
+## 4A. Verified upstream trajectory software oracle — exact-head receipt
+
+The Symtropy [SPATIAL-RESILIENCE-001 #1848](https://github.com/Luminous-Dynamics/symtropy/issues/1848) owner now has a verified software-oracle candidate at commit `b0da4a10115861798d6b32e5940efb3b775044dd`, from [draft PR #1849](https://github.com/Luminous-Dynamics/symtropy/pull/1849).
+
+Exact-head evidence, observed 8 November 2026:
+
+- [Dedicated qualifier workflow #95](https://github.com/Luminous-Dynamics/symtropy/actions/runs/42456052062): **57/57 Rust tests**, timeline 8/8, paired outcomes 5/5, decision impact 8/8, adaptive policy 3/3 cases and 5/5 policies; formatting, embedded schema validation and receipt upload passed.
+- [General CI #11785](https://github.com/Luminous-Dynamics/symtropy/actions/runs/42456052102): Linux, Windows and macOS checks passed.
+- [Exact-head receipt artifact #13606874236](https://github.com/Luminous-Dynamics/symtropy/actions/runs/42456052062/artifacts/13606874236), archive SHA-256 `8ee7edda499ddb7e47b94e3429bf2d515c287866563a4e0f58409f02f75d8162`.
+
+The manifest records these workflow IDs, candidate SHA and archive digest in `verified_owner_qualifications`. The digest is explicitly the GitHub artifact ZIP archive, not the digest of any individual source or model output.
+
+This changes the owner status only for its **synthetic software-oracle semantics**. It does not qualify EnergyPlus #1900 for Highveld; real weather, observed compound events, resident thresholds, physical performance, health/safety, statutory compliance and professional approval remain unqualified.
+
 ## 5. Risk-proportionate VVUQ
 
 NIST AMS 100-85 (published 5 October 2026) recommends aligning computational-model credibility effort with model influence and decision consequence, and explicitly treats uncertainty propagation and empirical metrology together. This supports a staged assurance ladder:
