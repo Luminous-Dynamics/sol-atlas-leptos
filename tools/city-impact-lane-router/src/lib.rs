@@ -337,18 +337,24 @@ pub fn evaluate_case(case: &Value, registry: &Value) -> Value {
     }
     let system_time = event.get("system_time").unwrap_or(&Value::Null);
     let recorded_at = text(system_time, "recorded_at");
-    let trusted_at = text(system_time, "trusted_at");
-    let trusted_receipt = text(system_time, "trusted_timestamp_receipt_sha256");
+    let trusted_at_value = system_time.get("trusted_at");
+    let trusted_receipt_value = system_time.get("trusted_timestamp_receipt_sha256");
+    let trusted_at = trusted_at_value.and_then(Value::as_str).unwrap_or("");
+    let trusted_receipt = trusted_receipt_value.and_then(Value::as_str).unwrap_or("");
+    let explicitly_untrusted = trusted_at_value.is_some_and(Value::is_null)
+        && trusted_receipt_value.is_some_and(Value::is_null);
+    let trusted_pair_valid = valid_utc_timestamp(trusted_at)
+        && is_lower_hex(trusted_receipt, 64);
     if system_time.get("recorded_at").is_none()
-        || system_time.get("trusted_at").is_none()
-        || system_time.get("trusted_timestamp_receipt_sha256").is_none()
+        || trusted_at_value.is_none()
+        || trusted_receipt_value.is_none()
         || !valid_utc_timestamp(recorded_at)
-        || (!trusted_at.is_empty() && !valid_utc_timestamp(trusted_at))
-        || (!trusted_receipt.is_empty() && !is_lower_hex(trusted_receipt, 64))
-        || (trusted_at.is_empty() != trusted_receipt.is_empty())
+        || (!explicitly_untrusted && !trusted_pair_valid)
     {
         global_reasons.insert("CHANGE_EVENT_SYSTEM_TIME_BINDING_INCOMPLETE".to_owned());
-    } else if !trusted_at.is_empty() && trusted_at < recorded_at {
+    } else if explicitly_untrusted {
+        global_reasons.insert("EVENT_SYSTEM_TIME_UNTRUSTED".to_owned());
+    } else if trusted_at < recorded_at {
         global_reasons.insert("EVENT_TRUST_TIME_ORDER_INVALID".to_owned());
     }
     if text(query, "scope_id").is_empty()
