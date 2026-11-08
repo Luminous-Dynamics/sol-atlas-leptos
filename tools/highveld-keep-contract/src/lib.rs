@@ -12,14 +12,18 @@ pub const PARAMETER_JSON: &str =
 
 pub const SCENARIO_ID: &str = "HIGHVELD-KEEP-SYNTHETIC-001";
 
-pub const STRICT_FIELD_POLICY_JSON: &str =
-    include_str!("../../../docs/research/highveld-keep/HIGHVELD_KEEP_STRICT_FIELD_POLICY_V0_1.json");
+pub const STRICT_FIELD_POLICY_JSON: &str = include_str!(
+    "../../../docs/research/highveld-keep/HIGHVELD_KEEP_STRICT_FIELD_POLICY_V0_1.json"
+);
 const STRICT_FIELD_POLICY_VERSION: &str = "luminous.highveld-keep-strict-field-policy/0.1";
 const SCENARIO_SCHEMA_VERSION: &str = "luminous.habitat.reference-scenario/0.1";
 const PARAMETER_SCHEMA_VERSION: &str = "luminous.habitat.parameter-space/0.1";
 
 fn skip_json_whitespace(bytes: &[u8], cursor: &mut usize) {
-    while bytes.get(*cursor).is_some_and(|byte| matches!(*byte, 32 | 10 | 13 | 9)) {
+    while bytes
+        .get(*cursor)
+        .is_some_and(|byte| matches!(*byte, 32 | 10 | 13 | 9))
+    {
         *cursor += 1;
     }
 }
@@ -148,9 +152,7 @@ fn build_field_rules(
     document: &str,
     expected_schema_version: &str,
 ) -> Option<std::collections::HashMap<String, std::collections::HashSet<String>>> {
-    if policy.get("policy_version").and_then(Value::as_str)
-        != Some(STRICT_FIELD_POLICY_VERSION)
-    {
+    if policy.get("policy_version").and_then(Value::as_str) != Some(STRICT_FIELD_POLICY_VERSION) {
         return None;
     }
     let doc = policy.get("documents")?.get(document)?;
@@ -273,19 +275,20 @@ pub fn validate_values(scenario: &Value, parameters: &Value) -> ValidationReport
     match parse_unique_json_bytes(STRICT_FIELD_POLICY_JSON.as_bytes()) {
         Ok(policy) => {
             match build_field_rules(&policy, "scenario", SCENARIO_SCHEMA_VERSION) {
-                Some(rules) if !has_unlisted_or_undeclared_object_fields(scenario, "$", &rules) => {}
+                Some(rules) if !has_unlisted_or_undeclared_object_fields(scenario, "$", &rules) => {
+                }
                 Some(_) => violations.push("SCENARIO_JSON_UNKNOWN_OR_UNDECLARED_FIELD"),
                 None => violations.push("SCENARIO_STRICT_FIELD_POLICY_INVALID"),
             }
             match build_field_rules(&policy, "parameters", PARAMETER_SCHEMA_VERSION) {
-                Some(rules) if !has_unlisted_or_undeclared_object_fields(parameters, "$", &rules) => {}
+                Some(rules)
+                    if !has_unlisted_or_undeclared_object_fields(parameters, "$", &rules) => {}
                 Some(_) => violations.push("PARAMETER_JSON_UNKNOWN_OR_UNDECLARED_FIELD"),
                 None => violations.push("PARAMETER_STRICT_FIELD_POLICY_INVALID"),
             }
         }
         Err(_) => violations.push("STRICT_FIELD_POLICY_JSON_INVALID"),
     }
-
 
     let scenario_id = string_at(scenario, &["scenario_id"])
         .unwrap_or("UNKNOWN_SCENARIO_ID")
@@ -1732,7 +1735,10 @@ mod tests {
         let (mut scenario, parameters) = documents();
         scenario["unreviewed_root_extension"] = json!(true);
         let report = validate_values(&scenario, &parameters);
-        assert!(contains(&report, "SCENARIO_JSON_UNKNOWN_OR_UNDECLARED_FIELD"));
+        assert!(contains(
+            &report,
+            "SCENARIO_JSON_UNKNOWN_OR_UNDECLARED_FIELD"
+        ));
     }
 
     #[test]
@@ -1740,7 +1746,10 @@ mod tests {
         let (scenario, mut parameters) = documents();
         parameters["unreviewed_root_extension"] = json!(true);
         let report = validate_values(&scenario, &parameters);
-        assert!(contains(&report, "PARAMETER_JSON_UNKNOWN_OR_UNDECLARED_FIELD"));
+        assert!(contains(
+            &report,
+            "PARAMETER_JSON_UNKNOWN_OR_UNDECLARED_FIELD"
+        ));
     }
 
     #[test]
@@ -1748,22 +1757,34 @@ mod tests {
         let (mut scenario, parameters) = documents();
         scenario["climate_inputs"]["unreviewed_nested_field"] = json!(true);
         let report = validate_values(&scenario, &parameters);
-        assert!(contains(&report, "SCENARIO_JSON_UNKNOWN_OR_UNDECLARED_FIELD"));
+        assert!(contains(
+            &report,
+            "SCENARIO_JSON_UNKNOWN_OR_UNDECLARED_FIELD"
+        ));
 
         let (mut scenario, parameters) = documents();
         scenario["geography"]["unreviewed_nested_field"] = json!(true);
         let report = validate_values(&scenario, &parameters);
-        assert!(contains(&report, "SCENARIO_JSON_UNKNOWN_OR_UNDECLARED_FIELD"));
+        assert!(contains(
+            &report,
+            "SCENARIO_JSON_UNKNOWN_OR_UNDECLARED_FIELD"
+        ));
 
         let (mut scenario, parameters) = documents();
         scenario["architectural_alternatives"][0]["unreviewed_nested_field"] = json!(true);
         let report = validate_values(&scenario, &parameters);
-        assert!(contains(&report, "SCENARIO_JSON_UNKNOWN_OR_UNDECLARED_FIELD"));
+        assert!(contains(
+            &report,
+            "SCENARIO_JSON_UNKNOWN_OR_UNDECLARED_FIELD"
+        ));
 
         let (mut scenario, parameters) = documents();
         scenario["functional_relationships"][0]["unreviewed_nested_field"] = json!(true);
         let report = validate_values(&scenario, &parameters);
-        assert!(contains(&report, "SCENARIO_JSON_UNKNOWN_OR_UNDECLARED_FIELD"));
+        assert!(contains(
+            &report,
+            "SCENARIO_JSON_UNKNOWN_OR_UNDECLARED_FIELD"
+        ));
     }
 
     #[test]
@@ -1771,7 +1792,10 @@ mod tests {
         let (scenario, mut parameters) = documents();
         parameters["topology_variables"][0]["unreviewed_nested_field"] = json!(true);
         let report = validate_values(&scenario, &parameters);
-        assert!(contains(&report, "PARAMETER_JSON_UNKNOWN_OR_UNDECLARED_FIELD"));
+        assert!(contains(
+            &report,
+            "PARAMETER_JSON_UNKNOWN_OR_UNDECLARED_FIELD"
+        ));
     }
 
     #[test]
@@ -1787,8 +1811,7 @@ mod tests {
     #[test]
     fn duplicate_claim_ceiling_with_conflicting_value_is_rejected() {
         let needle = r#""claim_ceiling": "synthetic_requirements_and_design_space_only","#;
-        let replacement =
-            format!("{needle}\n  \"claim_ceiling\": \"unbounded_approval\",");
+        let replacement = format!("{needle}\n  \"claim_ceiling\": \"unbounded_approval\",");
         let raw = SCENARIO_JSON.replacen(needle, &replacement, 1);
         assert_ne!(raw, SCENARIO_JSON);
         let error = parse_unique_json_bytes(raw.as_bytes()).unwrap_err();
