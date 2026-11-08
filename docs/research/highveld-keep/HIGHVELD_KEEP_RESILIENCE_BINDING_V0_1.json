@@ -21,8 +21,9 @@
       "issue": "https://github.com/Luminous-Dynamics/symtropy/issues/1848",
       "implementation": "https://github.com/Luminous-Dynamics/symtropy/pull/1849",
       "contract_version": "0.1.0",
-      "status": "OWNER_CONTRACT_EXISTS_IMPLEMENTATION_DRAFT_EXACT_HEAD_REVIEW_REQUIRED",
-      "authority": "paired_service_trajectories_recovery_and_noncompensatory_pareto"
+      "status": "SOFTWARE_ORACLE_QUALIFIED_E1_SYNTHETIC_EXACT_HEAD",
+      "authority": "paired_service_trajectories_recovery_and_noncompensatory_pareto",
+      "qualification_receipt_id": "SYM-SPATIAL-RESILIENCE-001-QUAL-2026-11-08"
     },
     {
       "owner": "Symtropy",
@@ -623,5 +624,45 @@
     "site_weather_claim_without_parcel_survey_and_representativeness_review": "0",
     "interpretation": "targets_for_contract_and_adapter_qualification_not_physical_performance_or_safety_targets",
     "compound_event_trace_dependency_loss": "0"
-  }
+  },
+  "verified_owner_qualifications": [
+    {
+      "qualification_id": "SYM-SPATIAL-RESILIENCE-001-QUAL-2026-11-08",
+      "owner": "Symtropy",
+      "owner_contract": "SPATIAL-RESILIENCE-001",
+      "owner_repository": "Luminous-Dynamics/symtropy",
+      "owner_issue": "https://github.com/Luminous-Dynamics/symtropy/issues/1848",
+      "owner_pull_request": "https://github.com/Luminous-Dynamics/symtropy/pull/1849",
+      "candidate_head_sha": "b0da4a10115861798d6b32e5940efb3b775044dd",
+      "dedicated_qualifier": {
+        "workflow_run_id": 42456052062,
+        "workflow_run_url": "https://github.com/Luminous-Dynamics/symtropy/actions/runs/42456052062",
+        "conclusion": "success",
+        "unit_tests": "57_passed",
+        "timeline_corpus": "8_of_8_passed",
+        "paired_outcomes_corpus": "5_of_5_passed",
+        "decision_impact_corpus": "8_of_8_passed",
+        "adaptive_policy_corpus": "3_of_3_cases_and_5_of_5_policies_passed"
+      },
+      "general_ci": {
+        "workflow_run_id": 42456052102,
+        "workflow_run_url": "https://github.com/Luminous-Dynamics/symtropy/actions/runs/42456052102",
+        "conclusion": "success",
+        "platforms": [
+          "ubuntu-latest",
+          "windows-latest",
+          "macos-latest"
+        ]
+      },
+      "receipt_artifact": {
+        "artifact_id": 13606874236,
+        "artifact_url": "https://github.com/Luminous-Dynamics/symtropy/actions/runs/42456052062/artifacts/13606874236",
+        "archive_sha256": "8ee7edda499ddb7e47b94e3429bf2d515c287866563a4e0f58409f02f75d8162",
+        "digest_scope": "GitHub Actions artifact ZIP archive; artifact contains exact-head JSON receipts and dependency lock"
+      },
+      "verified_date": "2026-11-08",
+      "qualification_scope": "synthetic deterministic trajectory, timeline, paired-outcome, decision-impact and adaptive-policy software oracle contracts",
+      "claim_ceiling": "software_oracle_semantics_only_no_real_building_weather_thermal_performance_health_safety_statutory_or_professional_approval"
+    }
+  ]
 }
