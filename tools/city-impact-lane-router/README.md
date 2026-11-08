@@ -104,6 +104,6 @@ Every change event now carries separate `valid_time` and `system_time` envelopes
 - `system_time.recorded_at`, `trusted_at` and `trusted_timestamp_receipt_sha256`;
 - the query's `evaluation_at`.
 
-The router requires canonical UTC whole-second timestamps. Unknown or disputed effective-time confidence yields Insufficient; a trusted timestamp before the recorded event is invalid; a report with a different temporal envelope is rejected. This is binding and ordering validation only. The router does not authenticate the trusted timestamp receipt or determine the truth of the asserted effective time.
+The event declares `time_basis=UTC_RFC3339_SECONDS`; the router requires canonical UTC RFC 3339 whole-second timestamps. Unknown or disputed effective-time confidence yields Insufficient; a trusted timestamp before the recorded event is invalid; a report with a different temporal envelope is rejected. This is binding and ordering validation only. The router does not authenticate the trusted timestamp receipt or determine the truth of the asserted effective time.
 
 The corpus adds four temporal adversarial controls: missing recorded time, disputed effective-time confidence, reversed recorded/trusted time, and one owner report using a different system-time envelope.
