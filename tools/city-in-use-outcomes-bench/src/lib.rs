@@ -735,7 +735,10 @@ mod tests {
         let metric = &result["metric_results"][0];
         assert_eq!(metric["static_gap_state"], "Unknown");
         assert_eq!(metric["dynamic_gap_state"], "Comparable");
-        assert_eq!(metric["dynamic_gap_value"], 10);
+        assert_eq!(
+            metric["dynamic_gap_value"].as_f64(),
+            Some(10.0)
+        );
     }
 
     #[test]
@@ -871,7 +874,16 @@ mod tests {
 
     #[test]
     fn incompatible_units_and_duplicate_observations_fail_closed() {
-        assert_eq!(evaluate_case(&case("OI-008"))["disposition"], "Unsupported");
+        let incompatible_unit = evaluate_case(&case("OI-008"));
+        assert_eq!(incompatible_unit["disposition"], "Evaluated");
+        assert_eq!(
+            incompatible_unit["metric_results"][0]["observation_state"],
+            "Unsupported"
+        );
+        assert_eq!(
+            incompatible_unit["metric_results"][0]["reason_codes"],
+            serde_json::json!(["OBSERVATION_UNIT_MISMATCH"])
+        );
         assert_eq!(evaluate_case(&case("OI-014"))["disposition"], "Unsupported");
     }
 
