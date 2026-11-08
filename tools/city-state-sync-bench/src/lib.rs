@@ -1016,6 +1016,34 @@ mod tests {
     }
 
     #[test]
+    fn approval_without_a_proposal_is_unsupported() {
+        let stages = vec![json!({
+            "event_id":"A","intervention_id":"I-1","stage":"approval",
+            "predecessor_event_id":null,"owner_repo":"owner/a","scope_digest":hash('d'),
+            "horizon_id":"H-1","occurred_at":890,"recorded_at":900,"ingested_at":910,
+            "disposition":"approved"
+        })];
+        let data = json!({"as_of":{"valid_at":1000,"recorded_at":1100,"ingested_at":1200}});
+        let result = evaluate_intervention(&data, "I-1", &stages);
+        assert_eq!(result["state"], "Unsupported");
+        assert_eq!(result["reason_codes"][0], "INTERVENTION_PREDECESSOR_MISSING");
+    }
+
+    #[test]
+    fn intervention_with_invalid_time_order_is_unsupported() {
+        let stages = vec![json!({
+            "event_id":"P","intervention_id":"I-1","stage":"proposal",
+            "predecessor_event_id":null,"owner_repo":"owner/a","scope_digest":hash('d'),
+            "horizon_id":"H-1","occurred_at":950,"recorded_at":900,"ingested_at":910,
+            "disposition":"proposed"
+        })];
+        let data = json!({"as_of":{"valid_at":1000,"recorded_at":1100,"ingested_at":1200}});
+        let result = evaluate_intervention(&data, "I-1", &stages);
+        assert_eq!(result["state"], "Unsupported");
+        assert_eq!(result["reason_codes"][0], "INTERVENTION_TIME_ORDER_INVALID");
+    }
+
+    #[test]
     fn complete_feedback_chain_does_not_claim_causality() {
         let names = ["proposal", "approval", "execution", "inspection", "outcome"];
         let mut stages = Vec::new();
