@@ -193,8 +193,8 @@
     },
     "scenario_families": {
       "type": "array",
-      "minItems": 9,
-      "maxItems": 9,
+      "minItems": 10,
+      "maxItems": 10,
       "items": {
         "type": "object",
         "required": [
@@ -279,7 +279,8 @@
         "service_floor_semantics",
         "unknown_or_missing_evidence",
         "stable_recovery",
-        "pareto"
+        "pareto",
+        "joint_event_dependency_semantics"
       ],
       "properties": {
         "same_exogenous_trace_required": {
@@ -313,6 +314,10 @@
         },
         "pareto": {
           "type": "string"
+        },
+        "joint_event_dependency_semantics": {
+          "type": "string",
+          "minLength": 30
         }
       }
     },
@@ -449,7 +454,8 @@
         "admitted_result_exact_input_revision_binding",
         "unqualified_tmy_promoted_to_extreme_or_future_scenario",
         "site_weather_claim_without_parcel_survey_and_representativeness_review",
-        "interpretation"
+        "interpretation",
+        "compound_event_trace_dependency_loss"
       ],
       "properties": {
         "paired_trace_identity_match": {
@@ -472,6 +478,9 @@
         },
         "interpretation": {
           "type": "string"
+        },
+        "compound_event_trace_dependency_loss": {
+          "const": "0"
         }
       }
     }
