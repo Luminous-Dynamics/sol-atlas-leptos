@@ -309,54 +309,55 @@ fn source_binding_exists(binding: &Value, source: &Value, scope: &Value) -> bool
 fn owner_receipts_bound(input: &Value, reasons: &mut BTreeSet<String>) {
     let binding = object(input, "scope_binding");
     let scope = object(input, "requested_scope");
+    let contract = object(input, "service_contract");
+    let restoration = object(input, "restoration");
+    let interruption = object(input, "interruption");
+    let continuity = object(input, "continuity");
+    let measurement = object(input, "measurement");
+    let mut refs = vec![
+        object(contract, "source_ref"),
+        object(restoration, "source_ref"),
+        object(interruption, "source_ref"),
+        object(continuity, "source_ref"),
+        object(measurement, "source_ref"),
+    ];
+    let observation = object(measurement, "observation");
+    if !observation.is_null() {
+        refs.push(object(observation, "source_ref"));
+    }
+    let physical = object(input, "physical_output");
+    if physical.get("required").and_then(Value::as_bool) == Some(true) {
+        refs.push(object(physical, "source_ref"));
+    }
+
     match text(binding, "binding_state") {
         "NotComparable" => {
             add(reasons, "COMMON_SCOPE_NOT_COMPARABLE");
-            add(reasons, "OWNER_RECEIPT_NOT_BOUND_TO_COMMON_SCOPE");
         }
         "Unknown" => {
             add(reasons, "COMMON_SCOPE_BINDING_UNKNOWN");
-            add(reasons, "OWNER_RECEIPT_NOT_BOUND_TO_COMMON_SCOPE");
         }
-        "Bound" => {
-            let contract = object(input, "service_contract");
-            let restoration = object(input, "restoration");
-            let interruption = object(input, "interruption");
-            let continuity = object(input, "continuity");
-            let measurement = object(input, "measurement");
-            let mut refs = vec![
-                object(contract, "source_ref"),
-                object(restoration, "source_ref"),
-                object(interruption, "source_ref"),
-                object(continuity, "source_ref"),
-                object(measurement, "source_ref"),
-            ];
-            let observation = object(measurement, "observation");
-            if !observation.is_null() {
-                refs.push(object(observation, "source_ref"));
-            }
-            let physical = object(input, "physical_output");
-            if physical.get("required").and_then(Value::as_bool) == Some(true) {
-                refs.push(object(physical, "source_ref"));
-            }
-            if refs
-                .iter()
-                .any(|source| !source_binding_exists(binding, source, scope))
-            {
-                add(reasons, "OWNER_RECEIPT_NOT_BOUND_TO_COMMON_SCOPE");
-            }
-        }
+        "Bound" => {}
         _ => {
             add(reasons, "COMMON_SCOPE_BINDING_UNKNOWN");
-            add(reasons, "OWNER_RECEIPT_NOT_BOUND_TO_COMMON_SCOPE");
         }
     }
 
+    // Keep common-scope comparability separate from native receipt binding.
+    // A common scope may be rejected while each source receipt is still
+    // individually bound to its declared subject, functional unit and
+    // population frame. Conversely, a nominally Bound binder cannot rescue
+    // a receipt whose native binding row does not match.
+    if refs
+        .iter()
+        .any(|source| !source_binding_exists(binding, source, scope))
+    {
+        add(reasons, "OWNER_RECEIPT_NOT_BOUND_TO_COMMON_SCOPE");
+    }
+
     // Check the measurement's underlying observation separately from the
-    // aggregate evaluator receipt. This also applies when common-scope
-    // binding is Unknown, where we must report both failures.
-    let measurement = object(input, "measurement");
-    let observation = object(measurement, "observation");
+    // aggregate evaluator receipt, even when common-scope comparability is
+    // Unknown or NotComparable.
     let observation_ref = object(observation, "source_ref");
     if !observation.is_null()
         && !observation_ref.is_null()
@@ -365,6 +366,7 @@ fn owner_receipts_bound(input: &Value, reasons: &mut BTreeSet<String>) {
         add(reasons, "MEASUREMENT_OWNER_RECEIPT_BINDING_INVALID");
     }
 }
+
 
 fn source_authority_valid(source: &Value) -> bool {
     !source.is_null()
@@ -1195,6 +1197,21 @@ mod tests {
             result["reason_codes"],
             json!(["STABLE_ADEQUACY_INTERVAL_NOT_ESTABLISHED"])
         );
+    }
+
+    #[test]
+    fn not_comparable_scope_does_not_imply_individual_receipts_are_unbound() {
+        let corpus = corpus();
+        let case = list(&corpus, "cases")
+            .iter()
+            .find(|case| text(case, "case_id") == "HRO-026")
+            .expect("HRO-026 exists");
+        let result = evaluate_case(case);
+        let reasons = result["reason_codes"]
+            .as_array()
+            .expect("reason codes are an array");
+        assert!(reasons.iter().any(|reason| reason == "COMMON_SCOPE_NOT_COMPARABLE"));
+        assert!(!reasons.iter().any(|reason| reason == "OWNER_RECEIPT_NOT_BOUND_TO_COMMON_SCOPE"));
     }
 
     #[test]
