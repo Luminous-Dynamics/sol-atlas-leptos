@@ -789,7 +789,7 @@ mod tests {
     }
 
     #[test]
-    fn router_corpus_contains_41_unique_cases() {
+    fn router_corpus_contains_44_unique_cases() {
         let corpus_data = corpus();
         let cases = corpus_data["cases"].as_array().unwrap();
         assert_eq!(cases.len(), 44);
