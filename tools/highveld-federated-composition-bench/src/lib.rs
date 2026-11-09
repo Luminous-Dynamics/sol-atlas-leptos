@@ -314,7 +314,10 @@ fn validate_record(record: &Value, index: usize, profiles: &Value, errors: &mut 
     }
     check_sha(record, "payload_sha256", &path, errors);
     check_sha(record, "scope_digest", &path, errors);
-    check_sha(record, "verifier_build", &path, errors);
+    let verifier_build = string(record, "verifier_build");
+    if !verifier_build.strip_prefix("sha256:").is_some_and(|value| is_lower_hex(value, 64)) {
+        push_error(errors, &path, "INVALID_SHA256:verifier_build");
+    }
     for field in ["valid_from", "observed_at", "recorded_at", "registered_at", "ingested_at"] {
         if number(record, field).is_none() {
             push_error(errors, &path, &format!("UNSIGNED_TIMESTAMP_REQUIRED:{field}"));
@@ -454,6 +457,32 @@ pub fn validate_case(case: &Value, profiles: &Value) -> Vec<String> {
     }
     if string(input.get("decision").unwrap_or(&Value::Null), "scope_digest").len() != 64 {
         push_error(&mut errors, "input.decision", "SCOPE_DIGEST_INVALID");
+    }
+    errors.sort();
+    errors
+}
+
+pub fn validate_corpus(corpus: &Value, profiles: &Value) -> Vec<String> {
+    let mut errors = Vec::new();
+    check_keys(corpus, "corpus", ROOT_KEYS, ROOT_KEYS, &mut errors);
+    if string(corpus, "corpus_id") != CORPUS_ID
+        || string(corpus, "schema_version") != CORPUS_SCHEMA_VERSION
+        || string(corpus, "classification") != CORPUS_CLASSIFICATION
+        || string(corpus, "claim_ceiling") != CLAIM_CEILING
+        || string(corpus, "composition_default") != "federated"
+    {
+        push_error(&mut errors, "corpus", "IDENTITY_VERSION_CLASSIFICATION_OR_CLAIM_CEILING_INVALID");
+    }
+    if array(corpus, "cases").len() != 18 {
+        push_error(&mut errors, "corpus", "UNEXPECTED_CASE_COUNT");
+    }
+    let mut case_ids = HashSet::new();
+    for (index, case) in array(corpus, "cases").iter().enumerate() {
+        let case_id = string(case, "case_id");
+        if case_id.is_empty() || !case_ids.insert(case_id.to_owned()) {
+            push_error(&mut errors, &format!("cases[{index}]"), "EMPTY_OR_DUPLICATE_CASE_ID");
+        }
+        errors.extend(validate_case(case, profiles));
     }
     errors.sort();
     errors
