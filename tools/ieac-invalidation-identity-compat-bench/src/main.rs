@@ -38,7 +38,9 @@ fn parse_json(bytes: &[u8], name: &str) -> Result<Value, String> {
 fn main() -> ExitCode {
     let mut args = env::args().skip(1);
     let Some(corpus_path) = args.next() else {
-        return invalid("usage: ieac-invalidation-identity-compat-reference CORPUS.json CORPUS_SCHEMA.json GRAPH_SCHEMA.json EVENT_SCHEMA.json REPORT_SCHEMA.json --source-commit <40-lowercase-hex-sha>");
+        return invalid(
+            "usage: ieac-invalidation-identity-compat-reference CORPUS.json CORPUS_SCHEMA.json GRAPH_SCHEMA.json EVENT_SCHEMA.json REPORT_SCHEMA.json --source-commit <40-lowercase-hex-sha>",
+        );
     };
     let Some(corpus_schema_path) = args.next() else {
         return invalid("missing corpus schema path");
@@ -189,7 +191,10 @@ fn main() -> ExitCode {
         "claim_ceiling": CLAIM_CEILING,
         "scenarios": scenarios
     });
-    println!("{}", serde_json::to_string_pretty(&receipt).expect("receipt serializes"));
+    println!(
+        "{}",
+        serde_json::to_string_pretty(&receipt).expect("receipt serializes")
+    );
     if failures == 0 {
         ExitCode::SUCCESS
     } else {
