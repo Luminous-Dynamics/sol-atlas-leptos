@@ -1,0 +1,441 @@
+{
+  "schema_version": "0.1.0",
+  "as_of": "2026-11-09",
+  "registry_status": "discovery_only_not_admitted",
+  "claim_ceiling": "This register records discovery sources and availability facts only. No raw source snapshot has been ingested, independently parsed, licensed for redistribution, spatially validated, calibrated or admitted as a site-level resource value. No entry authorizes project ranking or plant-yield claims.",
+  "entries": [
+    {
+      "source_id": "global-solar-atlas-south-africa-country-2019",
+      "source_name": "Global Solar Atlas — South Africa country/region download set",
+      "provider": "Solargis for the World Bank",
+      "source_url": "https://globalsolaratlas.info/download/south-africa",
+      "source_type": "dataset",
+      "resource_families": ["solar"],
+      "evidence_basis": "modeled_resource_atlas",
+      "availability_state": "available_pending_snapshot_pin",
+      "source_version": {
+        "label": "South Africa country/region maps and GIS; page states last updated 2019",
+        "release_or_publication_date": "2019",
+        "data_period": "Through 2018",
+        "metadata_updated": null,
+        "notes": "Country/region data must not be represented as the 2026 global GIS layer. Exact downloadable file identifiers and checksums remain to be captured."
+      },
+      "spatial_scope": "South Africa country/region products",
+      "spatial_resolution": "Not stated on the discovery page; capture exact raster cell size and CRS from each downloaded artifact",
+      "temporal_scope": "Historical resource assessment with data period through 2018",
+      "temporal_resolution": "Long-term climatological layers; exact variable-specific temporal basis must be confirmed from metadata",
+      "variables": ["GHI", "DNI", "diffuse irradiation", "GTI", "optimum tilt", "PVOUT"],
+      "license_status": {
+        "status": "identified_requires_review",
+        "details": "Download page states CC BY 4.0 with a mandatory and binding additional condition. Review the complete terms and attribution requirements before reuse or redistribution."
+      },
+      "claim_ceiling": "Historical modeled solar-resource screening only; not current weather, parcel-level measurement, net plant output, grid deliverability or bankability.",
+      "limitations": [
+        "The regional/country products are stated to represent data up to 2018 and were last updated in 2019.",
+        "A long-term raster climatology cannot replace site-specific irradiance and temperature measurements.",
+        "PVOUT depends on declared system assumptions and is not a measured plant performance ratio."
+      ],
+      "admission_requirements": [
+        "Pin exact file names, source release, raster CRS, cell size, nodata semantics and raw SHA-256.",
+        "Capture the variable definitions, averaging window, uncertainty and all PV system assumptions.",
+        "Review and satisfy the complete CC BY 4.0 additional condition.",
+        "Independently parse selected cells and compare against a second implementation or hand-audited fixture."
+      ],
+      "raw_snapshot_ingested": false,
+      "snapshot_digest": null
+    },
+    {
+      "source_id": "global-solar-atlas-world-gis-2026",
+      "source_name": "Global Solar Atlas — global GIS data layers",
+      "provider": "Solargis for the World Bank",
+      "source_url": "https://dev.globalsolaratlas.info/support/data-outputs",
+      "source_type": "dataset",
+      "resource_families": ["solar"],
+      "evidence_basis": "modeled_resource_atlas",
+      "availability_state": "available_pending_snapshot_pin",
+      "source_version": {
+        "label": "Global GIS data layers; page states last updated 2026",
+        "release_or_publication_date": "2026",
+        "data_period": "Through 2025",
+        "metadata_updated": null,
+        "notes": "The exact global layer editions and downloadable object identifiers must be pinned separately; do not silently substitute these for the older South Africa country package."
+      },
+      "spatial_scope": "Global, including South Africa",
+      "spatial_resolution": "Capture exact cell size and CRS per layer from artifact metadata",
+      "temporal_scope": "Data period through 2025 according to the current data-outputs page",
+      "temporal_resolution": "Variable-dependent long-term climatological layers; exact basis needs metadata admission",
+      "variables": ["GHI", "DNI", "diffuse irradiation", "GTI", "PVOUT"],
+      "license_status": {
+        "status": "identified_requires_review",
+        "details": "Global Solar Atlas download terms identify CC BY 4.0 with an additional binding condition. Check the exact data product terms and attribution before redistribution."
+      },
+      "claim_ceiling": "Modeled global solar screening at the downloaded layer's actual resolution; not site measurement, project design yield or a current time-series forecast.",
+      "limitations": [
+        "A 2026 page update and 2025 data period do not establish that every variable uses the same temporal window.",
+        "Global gridded values do not establish parcel-level irradiance, horizon shading, soiling or plant availability.",
+        "PVOUT is model-dependent and must not be treated as a guaranteed net export quantity."
+      ],
+      "admission_requirements": [
+        "Record exact product names, release identifiers, file hashes, CRS, units, nodata and temporal basis.",
+        "Record the applied PV configuration for any PVOUT value.",
+        "Cross-check selected layers against available SAWS or other calibrated station evidence without spatial leakage.",
+        "Complete licence and attribution review."
+      ],
+      "raw_snapshot_ingested": false,
+      "snapshot_digest": null
+    },
+    {
+      "source_id": "global-wind-atlas-4-0",
+      "source_name": "Global Wind Atlas 4.0",
+      "provider": "DTU Wind and Energy Systems with World Bank ESMAP partnership",
+      "source_url": "https://globalwindatlas.info/about/introduction",
+      "source_type": "dataset",
+      "resource_families": ["onshore_wind", "offshore_wind"],
+      "evidence_basis": "modeled_resource_atlas",
+      "availability_state": "available_pending_snapshot_pin",
+      "source_version": {
+        "label": "Global Wind Atlas 4.0",
+        "release_or_publication_date": "2025-06-18",
+        "data_period": "Predicted wind climate derived from model inputs; not a 30-year observed time series",
+        "metadata_updated": null,
+        "notes": "The GWA 4.0 release describes new microscale modelling at 250 m across country boundaries, including offshore exclusive economic zones."
+      },
+      "spatial_scope": "Global country boundaries and offshore exclusive economic zones",
+      "spatial_resolution": "250 m microscale predicted wind-climate grid described by the GWA 4.0 methodology",
+      "temporal_scope": "Climatological/model-derived resource; exact meteorological reference period and product-specific metadata must be recorded at ingest",
+      "temporal_resolution": "Long-term predicted wind climate; not an hourly operational forecast",
+      "variables": ["mean wind speed", "mean wind power density", "capacity factor layers by IEC class", "fatigue-load class", "extreme-load class", "roughness", "orography", "bathymetry"],
+      "license_status": {
+        "status": "not_assessed",
+        "details": "The atlas is freely accessible; exact dataset download terms, attribution and redistribution requirements must be captured from the current terms before republishing source artifacts."
+      },
+      "claim_ceiling": "Modeled resource screening and preliminary generic-turbine yield assessment only; not a measured site wind climate, bankable AEP, turbine power curve or structural design basis.",
+      "limitations": [
+        "250 m is the microscale model grid, not evidence that a parcel or turbine location has been measured at 250 m accuracy.",
+        "GWA's own validation coverage is country- and campaign-specific; record whether South Africa's relevant region is in its validated set.",
+        "Generic energy yield estimates are conditional on turbine power curves, hub height, losses, wakes and availability."
+      ],
+      "admission_requirements": [
+        "Pin the exact GWA 4.0 downloadable raster or WAsP GWC object and raw SHA-256.",
+        "Capture model chain, reference period, hub heights, variables, units, CRS and cell size.",
+        "Determine validation coverage and independent South African mast/lidar data availability.",
+        "Keep offshore wind screening separate from sea-state, seabed, port, cable and grid evidence."
+      ],
+      "raw_snapshot_ingested": false,
+      "snapshot_digest": null
+    },
+    {
+      "source_id": "wasa-south-africa-time-series-portal-availability",
+      "source_name": "Wind Atlas for South Africa (WASA) time-series portal — availability status",
+      "provider": "Climate System Analysis Group, University of Cape Town",
+      "source_url": "https://www.csag.uct.ac.za/wind-atlas-for-south-africa-time-series-data/",
+      "source_type": "portal_status",
+      "resource_families": ["onshore_wind"],
+      "evidence_basis": "availability_notice",
+      "availability_state": "temporarily_unavailable",
+      "source_version": {
+        "label": "WASA time-series portal availability notice dated 2026-09-01",
+        "release_or_publication_date": "2026-09-01",
+        "data_period": "Portal was intended to serve the full 30-year mesoscale WRF time series; no usable portal dataset was available at the notice date",
+        "metadata_updated": "2026-09-01",
+        "notes": "The notice says several hard-drive failures corrupted the time-series portal data and that regeneration from original WRF data was underway. WASA3 reports are stated to remain available."
+      },
+      "spatial_scope": "South African WASA mesoscale grid",
+      "spatial_resolution": "Grid-level data; exact grid and resolution should be taken from WASA3 reports and metadata, not inferred from the portal notice",
+      "temporal_scope": "Intended 30-year modeled time series; current download availability is not established",
+      "temporal_resolution": "Time-series data; exact interval must be confirmed from metadata when restored",
+      "variables": ["WRF-derived wind time series; exact channel list requires WASA metadata"],
+      "license_status": {
+        "status": "not_assessed",
+        "details": "Confirm rights and citation terms for the reports and any regenerated time-series data before ingestion or redistribution."
+      },
+      "claim_ceiling": "Availability warning only. Do not claim access to, or use reconstructed values from, the corrupted portal dataset.",
+      "limitations": [
+        "As of the 2026-09-01 notice, the 30-year time-series portal data could not be served.",
+        "The portal's regeneration work is not evidence that a replacement dataset is available or validated.",
+        "WASA3 reports may support methodology review but are not substitutes for the missing time-series files."
+      ],
+      "admission_requirements": [
+        "Recheck portal availability on the actual ingestion date.",
+        "If restored, obtain the original WRF run metadata, grid, time step, file hashes and data licence.",
+        "Independently verify chronology, units and representative stations before calibration use.",
+        "If unavailable, use an explicitly named alternative dataset and preserve the substitution rationale."
+      ],
+      "raw_snapshot_ingested": false,
+      "snapshot_digest": null
+    },
+    {
+      "source_id": "dee-south-africa-small-hydro-historical-baseline",
+      "source_name": "South African Department of Electricity and Energy — hydro-power information",
+      "provider": "Department of Electricity and Energy, Republic of South Africa",
+      "source_url": "https://www.dee.gov.za/hydro-power/",
+      "source_type": "government_page",
+      "resource_families": ["hydropower"],
+      "evidence_basis": "government_historical_assessment",
+      "availability_state": "context_only",
+      "source_version": {
+        "label": "Government hydro-power information citing a 2002 small-hydropower baseline",
+        "release_or_publication_date": null,
+        "data_period": "Underlying cited baseline study dated 2002",
+        "metadata_updated": null,
+        "notes": "The page identifies Eastern Cape and KwaZulu-Natal as historically promising regions for small hydro below 10 MW and references the 2002 baseline."
+      },
+      "spatial_scope": "Regional South African research lead: Eastern Cape and KwaZulu-Natal",
+      "spatial_resolution": "Regional context only; no site-scale hydrology or head resolution is admitted",
+      "temporal_scope": "Underlying study baseline from 2002; current hydrology not established",
+      "temporal_resolution": "Not established on the discovery page",
+      "variables": ["historical small-hydro potential", "regional screening context"],
+      "license_status": {
+        "status": "not_assessed",
+        "details": "The source page and underlying report reuse terms must be checked separately."
+      },
+      "claim_ceiling": "Historical regional discovery lead only; not contemporary streamflow, ecological flow, water entitlement, project capacity or site feasibility.",
+      "limitations": [
+        "The underlying national small-hydro baseline is from 2002.",
+        "No gauge-level flow-duration curve, usable head, environmental-flow allocation or current water-right evidence is admitted.",
+        "Regional historical potential cannot be used to rank sites."
+      ],
+      "admission_requirements": [
+        "Retrieve the cited 2002 baseline and pin its exact report version and file digest.",
+        "Identify current DWS flow gauges and obtain data permissions and station metadata.",
+        "Require head survey, flow-duration analysis, environmental-flow assessment and water-right screening for any site-level case."
+      ],
+      "raw_snapshot_ingested": false,
+      "snapshot_digest": null
+    },
+    {
+      "source_id": "cgs-south-africa-geothermal-project-context",
+      "source_name": "Council for Geoscience — Geothermal Energy Potential of South Africa project",
+      "provider": "Council for Geoscience, Republic of South Africa",
+      "source_url": "https://www.geoscience.org.za/project/geothermal-energy-potential-of-south-africa-project/",
+      "source_type": "government_page",
+      "resource_families": ["geothermal"],
+      "evidence_basis": "government_research_context",
+      "availability_state": "needs_access_or_measurement",
+      "source_version": {
+        "label": "Project description; preliminary low-enthalpy potential and magnetotelluric exploration",
+        "release_or_publication_date": null,
+        "data_period": "Project status information; dated site-specific observation series not identified",
+        "metadata_updated": null,
+        "notes": "The project page describes magnetotelluric work around known hot springs to investigate possible deeper hot-water reservoirs and fluid pathways."
+      },
+      "spatial_scope": "South African known hot-spring and geothermal exploration contexts; exact survey polygons not admitted",
+      "spatial_resolution": "Not stated on the project page",
+      "temporal_scope": "Undated project-context page; no admitted time series",
+      "temporal_resolution": "Not applicable until site-specific data are obtained",
+      "variables": ["low-enthalpy geothermal context", "magnetotelluric exploration", "hot-spring locations"],
+      "license_status": {
+        "status": "not_assessed",
+        "details": "Request the underlying survey/data rights and publication terms from the source custodian."
+      },
+      "claim_ceiling": "Exploration context only. Does not establish reservoir temperature at depth, permeability, sustainable flow, reinjection feasibility or electricity-generation potential.",
+      "limitations": [
+        "No site-specific borehole temperature-depth series, flow test or reservoir model has been admitted.",
+        "Surface hot springs do not establish a viable deep reservoir or electricity-grade resource.",
+        "Direct-use heat and electricity-generation potential require separate technical assessments."
+      ],
+      "admission_requirements": [
+        "Obtain available CGS borehole, heat-flow, geochemical and magnetotelluric data with metadata and access conditions.",
+        "Record instrument, depth, calibration, sampling date and uncertainty for each measurement.",
+        "Keep low-temperature direct heat separate from electricity-generation screening."
+      ],
+      "raw_snapshot_ingested": false,
+      "snapshot_digest": null
+    },
+    {
+      "source_id": "meyer-et-al-agulhas-current-2017",
+      "source_name": "Mapping the ocean current strength and persistence in the Agulhas to inform marine energy development",
+      "provider": "Meyer, Braby, Krug and Backeberg; CSIR ResearchSpace record / Springer chapter preprint",
+      "source_url": "https://researchspace.csir.co.za/items/03da0c93-9c5e-486e-910e-15bef2fbc09c/full",
+      "source_type": "research_publication",
+      "resource_families": ["ocean_current", "marine_physics"],
+      "evidence_basis": "published_field_observation",
+      "availability_state": "context_only",
+      "source_version": {
+        "label": "Meyer et al., published 2017-04; ResearchSpace preprint record",
+        "release_or_publication_date": "2017-04",
+        "data_period": "Historical ADCP deployments at two studied sites; exact acquisition windows require the full paper/data",
+        "metadata_updated": "2018-06-15",
+        "notes": "The study reports mean current velocities at 30 m depth of 1.34 m/s at a mid-shelf site and 1.59 m/s at an offshore site, and compares satellite/predictive products with in-situ ADCP observations."
+      },
+      "spatial_scope": "Two sampled locations off South Africa's East Coast; study abstract gives approximate regional location, but no coast-wide inference is permitted",
+      "spatial_resolution": "Point/mooring observations; not a gridded coast-wide product",
+      "temporal_scope": "Historical 2017 publication; measurement campaign dates and duration must be extracted from full methods before use",
+      "temporal_resolution": "ADCP profile observations; exact cadence and record duration must be extracted from full dataset/methods",
+      "variables": ["ocean-current velocity profile", "ADCP observations", "satellite/predictive current estimates"],
+      "license_status": {
+        "status": "identified_requires_review",
+        "details": "ResearchSpace states the attached PDF is a pre-print due to Springer copyright restrictions. The published version is subject to publisher terms; do not redistribute beyond permitted preprint conditions."
+      },
+      "claim_ceiling": "Historical two-site field-study reference only. The reported velocities must not be extrapolated to the whole Agulhas Current or treated as present-day annual resource statistics or turbine output.",
+      "limitations": [
+        "The study is from 2017, not a 2026 measurement campaign.",
+        "Only two deployments are described in the abstract; local representativeness and long-term persistence remain unresolved.",
+        "Velocity does not equal extractable electric power; turbine swept area, blockage, wake, load, mooring, cable and survivability remain separate."
+      ],
+      "admission_requirements": [
+        "Read the full methods and figures to recover exact deployment periods, depth bins, ADCP configuration and uncertainty.",
+        "Determine whether raw current time series are available and under which rights.",
+        "Retain the two sites as separate historical reference cases and compare with current Copernicus/other products only after time alignment."
+      ],
+      "raw_snapshot_ingested": false,
+      "snapshot_digest": null
+    },
+    {
+      "source_id": "copernicus-global-multiyear-wave-reanalysis",
+      "source_name": "Copernicus Marine — Global Ocean Waves Reanalysis",
+      "provider": "Copernicus Marine Service / Mercator Ocean International",
+      "source_url": "https://data.marine.copernicus.eu/product/GLOBAL_MULTIYEAR_WAV_001_032/description",
+      "source_type": "dataset",
+      "resource_families": ["wave"],
+      "evidence_basis": "modeled_reanalysis",
+      "availability_state": "available_pending_snapshot_pin",
+      "source_version": {
+        "label": "GLOBAL_MULTIYEAR_WAV_001_032 (WAVERYS)",
+        "release_or_publication_date": null,
+        "data_period": "1980-01-01 to 2026-08-31 as exposed by the product page at the 2026-11-09 check",
+        "metadata_updated": "2024-11-26",
+        "notes": "Global wave reanalysis; 0.2 degree irregular grid; hourly/monthly variables; Numerical model, Level 4, NetCDF-4; DOI 10.48670/moi-00022."
+      },
+      "spatial_scope": "Global ocean, latitude -89.8 to 89.8 degrees and longitude -180 to 179.8 degrees",
+      "spatial_resolution": "0.2 degrees x 0.2 degrees (irregular grid)",
+      "temporal_scope": "1980-01-01 through 2026-08-31",
+      "temporal_resolution": "Hourly and monthly",
+      "variables": ["significant wave height", "wave direction", "mean wave period", "primary and secondary swell height/direction/period", "wind-wave height/direction/period", "Stokes drift"],
+      "license_status": {
+        "status": "identified_requires_review",
+        "details": "Read the current Copernicus Marine licence and attribution terms for the exact product and any derived redistribution."
+      },
+      "claim_ceiling": "Global historical wave-climate screening at roughly 0.2 degree scale; not nearshore engineering design or a calibrated wave-converter performance prediction.",
+      "limitations": [
+        "The grid is too coarse to resolve many coastal/nearshore effects, bathymetric transformations or local wave climates.",
+        "The product is a numerical reanalysis, not direct measurement at every grid cell.",
+        "A product metadata update date is not necessarily the underlying model version date."
+      ],
+      "admission_requirements": [
+        "Pin product ID, dataset version, subset request, download date, raw file digest, NetCDF conventions and licence.",
+        "Inspect the Quality Information Document and validation metrics for the South African coast.",
+        "Compare at matched time/location with buoys or other in-situ wave observations where available.",
+        "Do not use coarse-grid values to establish final nearshore structure design conditions."
+      ],
+      "raw_snapshot_ingested": false,
+      "snapshot_digest": null
+    },
+    {
+      "source_id": "copernicus-global-wave-analysis-forecast",
+      "source_name": "Copernicus Marine — Global Ocean Waves Analysis and Forecast",
+      "provider": "Copernicus Marine Service / Mercator Ocean International",
+      "source_url": "https://data.marine.copernicus.eu/product/GLOBAL_ANALYSISFORECAST_WAV_001_027/description",
+      "source_type": "dataset",
+      "resource_families": ["wave"],
+      "evidence_basis": "modeled_analysis_forecast",
+      "availability_state": "available_pending_snapshot_pin",
+      "source_version": {
+        "label": "GLOBAL_ANALYSISFORECAST_WAV_001_027",
+        "release_or_publication_date": null,
+        "data_period": "Product page exposed 2022-11-01 to 2026-11-18 on the 2026-11-09 check; the future portion is forecast, not a retrospective climate record",
+        "metadata_updated": "2023-11-30",
+        "notes": "Global wave analysis/forecast product; 0.083 degree grid; hourly; update frequency twice daily; Level 4 NetCDF-4."
+      },
+      "spatial_scope": "Global ocean, latitude -80 to 90 degrees and longitude -180 to 179.92 degrees",
+      "spatial_resolution": "0.083 degrees x 0.083 degrees",
+      "temporal_scope": "Analysis starts 2022-11-01; the product page showed forecast horizon through 2026-11-18 at registry check time",
+      "temporal_resolution": "Hourly; operational analysis/forecast updates",
+      "variables": ["significant wave height", "wave direction", "mean wave period", "swell and wind-wave parameters", "Stokes drift"],
+      "license_status": {
+        "status": "identified_requires_review",
+        "details": "Read current Copernicus Marine licence and attribution terms; pin product version and forecast initialization time."
+      },
+      "claim_ceiling": "Operational wave analysis/forecast for declared initialization and horizon only; not a long-term resource climatology or engineering design percentile.",
+      "limitations": [
+        "Do not use forecast lead times as observed historical measurements.",
+        "A forecast product should not replace a long-term reanalysis and in-situ validation.",
+        "Coastal model resolution and bathymetric representation may be insufficient for site-specific wave-energy design."
+      ],
+      "admission_requirements": [
+        "Pin each forecast initialization/run and the exact selected forecast lead time.",
+        "Retain analysis and forecast samples as separate evidence classes.",
+        "Compare against independent wave-buoy observations before local use."
+      ],
+      "raw_snapshot_ingested": false,
+      "snapshot_digest": null
+    },
+    {
+      "source_id": "copernicus-global-ocean-physics-analysis-forecast",
+      "source_name": "Copernicus Marine — Global Ocean Physics Analysis and Forecast",
+      "provider": "Copernicus Marine Service / Mercator Ocean International",
+      "source_url": "https://data.marine.copernicus.eu/product/GLOBAL_ANALYSISFORECAST_PHY_001_024/description",
+      "source_type": "dataset",
+      "resource_families": ["ocean_current", "marine_physics"],
+      "evidence_basis": "modeled_analysis_forecast",
+      "availability_state": "available_pending_snapshot_pin",
+      "source_version": {
+        "label": "GLOBAL_ANALYSISFORECAST_PHY_001_024",
+        "release_or_publication_date": null,
+        "data_period": "Product catalogue showed 2020-11-01 to 2026-11-19 on the 2026-11-09 check; future tail is forecast",
+        "metadata_updated": null,
+        "notes": "Global ocean physics analysis/forecast; 0.083 degree horizontal grid and 50 vertical levels; hourly, daily and monthly products."
+      },
+      "spatial_scope": "Global ocean, 0.083 degree horizontal grid with 50 vertical levels",
+      "spatial_resolution": "0.083 degrees x 0.083 degrees; 50 vertical levels",
+      "temporal_scope": "Analysis begins 2020-11-01; catalogue includes a forecast tail beyond registry check time",
+      "temporal_resolution": "Hourly, daily and monthly",
+      "variables": ["ocean velocity", "temperature", "salinity", "sea-surface height", "mixed-layer thickness"],
+      "license_status": {
+        "status": "identified_requires_review",
+        "details": "Read the current Copernicus Marine licence and attribution terms for this exact product."
+      },
+      "claim_ceiling": "Coarse global ocean analysis/forecast context; not a validated turbine-depth current time series or a site design basis.",
+      "limitations": [
+        "The model's horizontal and vertical grids do not resolve all shelf, bathymetric and boundary-current structures relevant to turbine siting.",
+        "Analysis and forecast periods must remain distinct.",
+        "The product requires regional validation against ADCP/mooring observations."
+      ],
+      "admission_requirements": [
+        "Pin product version, vertical coordinate, depth interpolation procedure, initialization and data digest.",
+        "Validate velocity profiles against ADCP data at matched location, depth and time.",
+        "Retain uncertainty and representativeness limitations; do not infer turbine output directly from current velocity."
+      ],
+      "raw_snapshot_ingested": false,
+      "snapshot_digest": null
+    },
+    {
+      "source_id": "world-bank-offshore-wind-south-africa-2026",
+      "source_name": "A Strategic Framework for Offshore Wind Development in South Africa",
+      "provider": "World Bank Group",
+      "source_url": "https://documents.worldbank.org/en/publication/documents-reports/documentdetail/099091026151019349",
+      "source_type": "sector_report",
+      "resource_families": ["offshore_wind", "cross_resource"],
+      "evidence_basis": "sector_policy_report",
+      "availability_state": "context_only",
+      "source_version": {
+        "label": "World Bank report 214719, Volume 1",
+        "release_or_publication_date": "2026-09-30",
+        "data_period": "Strategic sector analysis; not a meteorological resource time series",
+        "metadata_updated": "2026-11-06",
+        "notes": "Document date 2026-09-30; disclosure date 2026-11-06. Use for sector, institutional, port and transmission context."
+      },
+      "spatial_scope": "South Africa national offshore wind sector",
+      "spatial_resolution": "National / strategic context; not site resource grid",
+      "temporal_scope": "Strategic policy and infrastructure context as of report preparation",
+      "temporal_resolution": "Not a time-series resource product",
+      "variables": ["sector development scenarios", "institutional constraints", "port and transmission context"],
+      "license_status": {
+        "status": "not_assessed",
+        "details": "Review report copyright and reuse terms before copying or redistributing full report content."
+      },
+      "claim_ceiling": "Sector strategy context only; not site-specific wind yield, grid allocation, environmental approval or project bankability.",
+      "limitations": [
+        "The report does not replace a project-specific wind measurement campaign or connection agreement.",
+        "Strategic scenarios are not observations or guaranteed procurement outcomes."
+      ],
+      "admission_requirements": [
+        "Pin report version, official PDF digest and citation metadata.",
+        "Extract only claims with exact page references and classify policy/scenario statements separately.",
+        "Link every candidate site to project-specific resource and POC evidence."
+      ],
+      "raw_snapshot_ingested": false,
+      "snapshot_digest": null
+    }
+  ]
+}
