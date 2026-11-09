@@ -14,7 +14,7 @@ The composition requires service, functional-unit, subject, scenario, beneficiar
 
 ## Corpus
 
-The 24 frozen known-answer cases cover restoration failure/instability/revocation, potential access constraints, unknown and inaccessible routes, operational service failure, source and scope mismatch, demand/frame mismatch, delivery missing/stale/below-demand, an aggregate-versus-subgroup counterexample, and consent-denied experience evidence.
+The 28 frozen known-answer cases cover restoration failure/instability/revocation, potential access constraints, unknown and inaccessible routes, operational service failure, source and scope mismatch, demand/frame mismatch, delivery missing/stale/below-demand, an aggregate-versus-subgroup counterexample, and consent-denied experience evidence.
 
 All fixtures are synthetic. They do not qualify Johannesburg services, public delivery, resident coverage, equity, causal impact, regulatory compliance or deployment readiness.
 
