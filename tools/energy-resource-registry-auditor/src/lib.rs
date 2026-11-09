@@ -838,10 +838,7 @@ fn valid_https_url(value: &str) -> bool {
     if rest.is_empty() || rest.chars().any(char::is_whitespace) {
         return false;
     }
-    let authority = rest
-        .split(['/', '?', '#'])
-        .next()
-        .unwrap_or_default();
+    let authority = rest.split(['/', '?', '#']).next().unwrap_or_default();
     !authority.is_empty()
         && !authority.starts_with('.')
         && !authority.ends_with('.')
