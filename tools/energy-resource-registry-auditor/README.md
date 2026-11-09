@@ -61,3 +61,12 @@ The two WASA records are intentionally separate: the full-period 30-year point t
 
 
 The v0.1 evidence basis includes `literature_review` so review/synthesis papers (such as the 2026 water-distribution hydropower review) cannot be misrepresented as a direct field observation. The source register also separates the WRC South African Hydropower Atlas report, its ArcGIS E-Tool catalogue entry, the DWS sector strategy and the 2026 literature review. All remain discovery/context records, not admitted site measurements.
+
+
+The evidence basis now includes `laboratory_measurement` in addition to `published_field_observation` and `literature_review`. The South African registry therefore distinguishes:
+- measured full-scale PAT/PRV operation in Antalya (published operational observations, one installation and an initial ~5-month period);
+- experimental PAT characteristic curves from laboratory/test-rig studies (including two-machine and 16-machine datasets);
+- modelled PAT network optimisation and closed-loop control papers;
+- technology literature reviews.
+
+A regression suite checks that Antalya stays a published field observation while the 2016/2025 PAT curves and Parra 2018 PAT/PRV tests stay laboratory measurement evidence. The sources are external comparators, not South African validation.
