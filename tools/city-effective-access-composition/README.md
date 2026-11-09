@@ -32,3 +32,9 @@ cargo run --locked --quiet --manifest-path tools/city-effective-access-compositi
 ## Input hardening
 
 The command-line receipt path validates original JSON bytes before map creation: duplicate decoded keys (including escaped spellings) and trailing content are rejected. Corpus validation rejects unknown nested fields and missing required fields. These checks protect the synthetic oracle contract; they do not replace source-owner signature verification or real data-rights review.
+
+## Current owner-integration boundary
+
+The access fixture now uses CityMorph's native `reason_codes` field. However, CityMorph #564 currently exposes group-level capacity potential plus accessible/unknown service ID lists; it does not yet emit a complete service-scoped opportunity row for a named facility. The `opportunity.service_id` in this prototype is therefore an explicit synthetic binding, not a claim that a direct owner-native per-facility receipt already exists.
+
+Issue #686 defines the missing CityMorph owner output: a deterministic per-service opportunity row with route, availability, affordability, eligibility, step-free and capacity states. Until that owner contract is implemented and qualified, this PR remains a synthetic composition prototype rather than an executable CityMorph integration.
