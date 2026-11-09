@@ -1,0 +1,90 @@
+name: City Habitat Service Evidence Composition Synthetic Oracle
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - "tools/city-habitat-service-composition-bench/**"
+      - "docs/research/city-habitat-service-composition/**"
+      - ".github/workflows/city-habitat-service-composition.yml"
+  push:
+    branches: ["main", "research/city-habitat-service-composition-v0.1"]
+    paths:
+      - "tools/city-habitat-service-composition-bench/**"
+      - "docs/research/city-habitat-service-composition/**"
+      - ".github/workflows/city-habitat-service-composition.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: city-habitat-service-composition-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  composition-oracle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: 1.96.0
+          components: rustfmt, clippy
+      - name: Validate corpus identity and cardinality
+        run: |
+          set -euo pipefail
+          jq -e '
+            .schema_id == "org.luminousdynamics.city-habitat-service-composition.corpus"
+            and .schema_version == "0.1.0"
+            and .corpus_id == "CITY-HABITAT-SERVICE-COMPOSITION-CORPUS-V0.1"
+            and .classification == "synthetic_fixture_only"
+            and (.cases | length == 24)
+            and ([.cases[].case_id] | unique | length == 24)
+          ' docs/research/city-habitat-service-composition/CITY_HABITAT_SERVICE_COMPOSITION_CORPUS_V0_1.json
+          jq -e '
+            ." $schema " == null or .type == "object"
+          ' docs/research/city-habitat-service-composition/CITY_HABITAT_SERVICE_COMPOSITION_CORPUS_V0_1.schema.json
+      - name: Check formatting
+        run: cargo fmt --manifest-path tools/city-habitat-service-composition-bench/Cargo.toml --all -- --check
+      - name: Run frozen composition and hostile-control tests
+        run: cargo test --locked --manifest-path tools/city-habitat-service-composition-bench/Cargo.toml
+      - name: Run strict Clippy
+        run: cargo clippy --locked --manifest-path tools/city-habitat-service-composition-bench/Cargo.toml --all-targets -- -D warnings
+      - name: Compile WASM target
+        run: |
+          rustup target add wasm32-unknown-unknown
+          cargo check --locked --manifest-path tools/city-habitat-service-composition-bench/Cargo.toml --target wasm32-unknown-unknown
+      - name: Emit exact-head composition receipt
+        shell: bash
+        run: |
+          set -euo pipefail
+          source_commit="$(git rev-parse HEAD)"
+          test "$source_commit" = "${{ github.event.pull_request.head.sha || github.sha }}"
+          cargo run --locked --quiet --manifest-path tools/city-habitat-service-composition-bench/Cargo.toml -- \
+            docs/research/city-habitat-service-composition/CITY_HABITAT_SERVICE_COMPOSITION_CORPUS_V0_1.json \
+            --source-commit "$source_commit" > city-habitat-service-composition-receipt.json
+          jq -e '
+            .result == "pass"
+            and .corpus_id == "CITY-HABITAT-SERVICE-COMPOSITION-CORPUS-V0.1"
+            and .corpus_classification == "synthetic_fixture_only"
+            and .scenario_count == 24
+            and .expected_scenario_count == 24
+            and .passed_count == 24
+            and .failure_count == 0
+            and (.corpus_sha256 | test("^[0-9a-f]{64}$"))
+            and (.source_commit | test("^[0-9a-f]{40}$"))
+            and .realized_use_claim == "none"
+            and .action_authority == "none"
+          ' city-habitat-service-composition-receipt.json
+      - name: Upload exact-head composition receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: city-habitat-service-composition-reference-receipt
+          path: city-habitat-service-composition-receipt.json
+          if-no-files-found: error
+          retention-days: 90
