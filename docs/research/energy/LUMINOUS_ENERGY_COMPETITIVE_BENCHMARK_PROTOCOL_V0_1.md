@@ -191,3 +191,40 @@ Never use "CI pending", "runner queued" or "branch exists" as evidence that any 
 ## 8. Final rule
 
 Optimize **useful, reliable service delivered over the entire asset lifecycle**—not nameplate MW, a single conversion efficiency, one average LCOE, or a novelty score. Keep cost, service, emissions, water, materials, land, reliability, equity, uncertainty and evidence quality visible as separate decision dimensions.
+
+
+## 9. Reproducible comparator version lock (checked 2026-11-09)
+
+The exact machine-readable lock is `ENERGY_COMPETITOR_VERSION_LOCK_V0_1.json`. Version strings below are not enough on their own: each run must also pin package manifests, solver, inputs, model configuration and source snapshots.
+
+| Comparator | Version to pin | Use in this programme | Current caution |
+|---|---|---|---|
+| NLR SAM | 2026.7.3 / SSC 308 | PV, PV-battery, CSP, geothermal and selected storage plant/component comparisons | Not a standalone battery CLI model; mapped battery channels and plant-loss boundaries must be explicit |
+| REopt | API v3 stable / exact REopt.jl package and commit | Distributed DER sizing, facility/campus/community microgrid economics and resilience | The API is stable v3; pin the underlying REopt.jl package and solver for each run |
+| PyPSA | v1.4.0 (2026-10-09) | Multi-carrier chronological optimization, unit commitment and network-constrained linear planning | Release notes identify behavior-changing fixes to rolling-horizon unit commitment and security-constrained optimization; use the current version, not a stale v1.2-era baseline |
+| GenX.jl | v0.4.5 published release for reproducible comparator | Long-term capacity expansion / operations | The release list showed v0.4.5 while the repository README referred to v0.4.6; treat main/unreleased code as a separate comparator |
+| NLR ATB | 2025 edition, latest published edition confirmed in this check | Technology cost/performance scenario assumptions | U.S. reference costs are not South African project prices; translate currency year, finance, logistics, taxes, grid and local supply assumptions explicitly |
+| PGLib-OPF | v23.07 | Network OPF benchmark corpus | Primarily AC-OPF curated; DC-OPF is a separately declared formulation |
+| IEC PV monitoring | IEC 61724-1:2021 Ed. 2.0 | PV sensor and performance-monitoring methodology | Edition 3.0 remains under development with forecast publication in 2027; do not claim draft compliance |
+| IEC wind performance | IEC 61400-12-1:2022 Ed. 3.0 + COR1:2025 | Turbine power-curve and uncertainty measurement | Generic atlas curves are not a measured turbine performance test |
+| SAWEM | Market Code Rev 2.3 (2026-02) | South African wholesale trading and settlement assumptions | A published code does not prove that a particular market participant, licence or project is operationally admitted |
+
+PyPSA's v1.3.0 release added piecewise-linear marginal/capital-cost curves and piecewise efficiency/rate support, plus maintenance scheduling for Generator, Link and Process components. PyPSA v1.4.0 (2026-10-09) is the pinned current comparison and lists corrections affecting rolling-horizon unit commitment and security-constrained optimization. A benchmark must freeze the exact release so these changes are not mistaken for Luminous improvements.
+
+NLR SAM's current downloads page identifies 2026.7.3 / SSC 308. Its battery-life documentation distinguishes cycle degradation from calendar degradation and documents chemistry-specific model options. Symthaea's simplified cycle-fade model must not claim equivalence to the detailed SAM ageing models without a parameter mapping and trajectory comparison.
+
+GenX's release-list / repository-README discrepancy is material: freeze the published v0.4.5 tag for a release-level baseline. If v0.4.6 or main is used, record its exact immutable commit and label it unreleased/development.
+
+## 10. South African resource input lock
+
+Do not benchmark an optimizer on synthetic-perfect South African resource profiles and then describe the result as regional operational superiority.
+
+- GWA 4.0 is a 250 m microscale modeled wind-climate screening layer; it is not an observed time series.
+- The WASA 30-year portal download is currently flagged unavailable in its 2026-09-01 notice pending regeneration. Do not claim to use it until the exact source files have been restored and hashed.
+- The CSIR Agulhas-current field reference is a 2017 two-site study; it is not a coast-wide contemporary dataset.
+- GSA South Africa country/region layers (last updated 2019, data through 2018) and 2026 global GIS layers (data through 2025) are different inputs and must not be merged under one dataset identity.
+- Copernicus wave reanalysis and analysis/forecast products have different spatial and temporal characteristics. Keep reanalysis, near-real-time analysis and forecast horizons separate.
+- The South African government's 2026 proposed IRP section 34 approach prioritizes 4,600 MW of BESS and 5,000 MW of gas-to-power in its first determination, and explicitly treats transmission, grid connection, fuel availability and commissioning as linked constraints. Do not model proposed capacity as already procured or connected.
+- The 2026 GASIPPPP Bid Window 1 announcement reported four bids offering 2,830 MW against the 2,000 MW procurement target and noted that South Africa imports most gas requirements from Mozambique and has no LNG receiving terminal. Any gas-to-power scenario must therefore model actual fuel logistics and delivery risk rather than treating nameplate gas capacity as unconditionally firm.
+
+These are input and policy context constraints, not statements that the cited projects, procurements or regional assets are built or operational.
