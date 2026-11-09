@@ -72,11 +72,20 @@ fn source_matches_scope(source: &Value, scope: &Value) -> bool {
         && text(source, "tick_unit") == text(window, "tick_unit")
 }
 
-fn validate_source(source: &Value, scope: &Value, lane: &str, reasons: &mut BTreeSet<String>) {
+fn validate_source(
+    source: &Value,
+    scope: &Value,
+    lane: &str,
+    reasons: &mut BTreeSet<String>,
+) -> (bool, bool) {
     if !source_authorized(source) {
         add(reasons, &format!("{lane}_OWNER_EVIDENCE_INVALID_OR_NOT_CURRENT"));
+        (false, false)
     } else if !source_matches_scope(source, scope) {
         add(reasons, &format!("{lane}_SOURCE_SCOPE_OR_TIME_NOT_COMPARABLE"));
+        (true, false)
+    } else {
+        (true, true)
     }
 }
 
@@ -87,12 +96,18 @@ fn scope_demand(scope: &Value) -> (&Value, f64, &str) {
 
 fn evaluate_restoration(input: &Value, scope: &Value, reasons: &mut BTreeSet<String>) -> String {
     let restoration = object(input, "restoration");
-    validate_source(
+    let (authorized, comparable) = validate_source(
         object(restoration, "source_ref"),
         scope,
         "RESTORATION",
         reasons,
     );
+    if !authorized {
+        return "Invalid".to_owned();
+    }
+    if !comparable {
+        return "NotComparable".to_owned();
+    }
     if text(restoration, "service_id") != text(scope, "service_id")
         || text(restoration, "service_revision") != text(scope, "service_revision")
     {
@@ -128,7 +143,14 @@ fn evaluate_restoration(input: &Value, scope: &Value, reasons: &mut BTreeSet<Str
 
 fn evaluate_access(input: &Value, scope: &Value, reasons: &mut BTreeSet<String>) -> String {
     let access = object(input, "access");
-    validate_source(object(access, "source_ref"), scope, "ACCESS", reasons);
+    let (authorized, comparable) =
+        validate_source(object(access, "source_ref"), scope, "ACCESS", reasons);
+    if !authorized {
+        return "Unknown".to_owned();
+    }
+    if !comparable {
+        return "NotComparable".to_owned();
+    }
     let group = object(access, "group");
     let opportunity = object(access, "opportunity");
     let (demand, demand_value, demand_unit) = scope_demand(scope);
@@ -189,7 +211,14 @@ fn evaluate_access(input: &Value, scope: &Value, reasons: &mut BTreeSet<String>)
 
 fn evaluate_in_use(input: &Value, scope: &Value, reasons: &mut BTreeSet<String>) -> String {
     let in_use = object(input, "in_use");
-    validate_source(object(in_use, "source_ref"), scope, "IN_USE", reasons);
+    let (authorized, comparable) =
+        validate_source(object(in_use, "source_ref"), scope, "IN_USE", reasons);
+    if !authorized {
+        return "Invalid".to_owned();
+    }
+    if !comparable {
+        return "NotComparable".to_owned();
+    }
     if text(in_use, "service_id") != text(scope, "service_id") {
         add(reasons, "IN_USE_SERVICE_IDENTITY_MISMATCH");
         return "NotComparable".to_owned();
@@ -233,12 +262,18 @@ fn evaluate_delivery(
     if delivery.is_null() {
         return ("NotProvided".to_owned(), None, None, "NotProvided".to_owned());
     }
-    validate_source(
+    let (authorized, comparable) = validate_source(
         object(delivery, "source_ref"),
         scope,
         "DELIVERY",
         reasons,
     );
+    if !authorized {
+        return ("Invalid".to_owned(), None, None, "Unknown".to_owned());
+    }
+    if !comparable {
+        return ("Unknown".to_owned(), None, None, "Unknown".to_owned());
+    }
     let (demand, demand_value, demand_unit) = scope_demand(scope);
     if text(delivery, "service_id") != text(scope, "service_id")
         || text(delivery, "group_id") != text(scope, "group_id")
@@ -355,6 +390,8 @@ pub fn evaluate_case(case: &Value) -> Value {
     } else if operational_service_state == "Fail" {
         "OperationalServiceBelowFloor"
     } else if operational_service_state != "Pass" {
+        "InsufficientEvidence"
+    } else if !object(input, "beneficiary_delivery").is_null() && delivery_state == "Unknown" {
         "InsufficientEvidence"
     } else if delivery_state == "BelowDemand" {
         "BeneficiaryDeliveryBelowDemand"
