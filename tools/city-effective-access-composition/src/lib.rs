@@ -791,9 +791,15 @@ pub fn validate_corpus(corpus: &Value) -> Vec<String> {
                 &mut errors,
             );
         }
-        if !case.get("expected").is_some_and(Value::is_object) {
-            errors.push(format!("{case_path}:EXPECTED_OBJECT_MISSING"));
-        }
+        const EXPECTED: &[&str] = &[
+            "case_id", "restoration_state", "potential_access_state",
+            "operational_service_state", "beneficiary_delivery_state",
+            "group_delivery_coverage_fraction", "aggregate_delivery_state",
+            "aggregate_delivery_coverage_fraction", "experience_disclosure_state",
+            "composition_disposition", "reason_codes", "action_authority", "claim_ceiling",
+        ];
+        check_keys(object(case, "expected"), EXPECTED, &format!("{case_path}.expected"), &mut errors);
+        require_keys(object(case, "expected"), EXPECTED, &format!("{case_path}.expected"), &mut errors);
     }
     errors.sort();
     errors
@@ -859,7 +865,7 @@ mod tests {
     #[test]
     fn duplicate_decoded_json_keys_are_rejected_before_map_creation() {
         assert!(parse_unique_json_bytes(br#"{"claim":1,"claim":2}"#).is_err());
-        assert!(parse_unique_json_bytes(br#"{"claim":1,"\\u0063laim":2}"#).is_err());
+        assert!(parse_unique_json_bytes(br#"{"claim":1,"\u0063laim":2}"#).is_err());
         assert!(parse_unique_json_bytes(br#"{"ok":true} trailing"#).is_err());
     }
 
