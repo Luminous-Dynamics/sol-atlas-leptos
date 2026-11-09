@@ -5,12 +5,13 @@
   "type": "object",
   "additionalProperties": false,
   "required": [
-    "corpus_id",
+    "schema_id",
     "schema_version",
+    "corpus_id",
     "classification",
-    "policy",
-    "claim_ceiling",
+    "policy_note",
     "source_refs",
+    "claim_ceiling",
     "cases"
   ],
   "properties": {
@@ -22,10 +23,6 @@
     },
     "classification": {
       "const": "synthetic_fixture_only"
-    },
-    "policy": {
-      "type": "string",
-      "minLength": 1
     },
     "claim_ceiling": {
       "const": "synthetic_service_restoration_composition_only"
@@ -58,6 +55,13 @@
           }
         }
       }
+    },
+    "schema_id": {
+      "const": "org.luminousdynamics.city-restoration-outcome-bridge.synthetic-corpus"
+    },
+    "policy_note": {
+      "type": "string",
+      "minLength": 1
     }
   }
 }
