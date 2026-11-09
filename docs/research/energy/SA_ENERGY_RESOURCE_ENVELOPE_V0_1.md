@@ -348,3 +348,41 @@ The next frontier is a *water-first, pressure/leakage-aware energy control syste
 7. Include safe fallback and explicit indeterminate states when sensing, model fit or solver convergence is inadequate.
 
 The current programme issue for this work is Symtropy #4397. Its candidate controller is a proposed robust/service-constrained MPC benchmark, not a current field controller or claimed winner.
+
+
+## 15. PAT evidence ladder: laboratory curves, full-scale operation and South African transfer
+
+The source register now preserves several distinct types of PAT evidence. They must not be treated as interchangeable:
+
+**Component laboratory curves**
+- Pugliese et al. (2016) experimentally characterized two pumps operating in turbine mode and compared results with prediction relationships. The paper is particularly relevant because it identifies limited reverse-mode manufacturer information and the scarcity of experimental PAT curves as an unresolved issue.
+- Manservigi et al. (2025) compare hydraulic and electrical regulation using experimental characteristic curves for 16 turbomachines, applied to a real Northern Italian WDN serving approximately 5,000 users. The study reports 44.1% recovery of available network hydraulic energy for its selected PAT and case-specific LCOE/capital costs. Its experimental curves are component evidence; the WDN energy and financial results are a model/case evaluation, not 16 field installations.
+- Parra et al. (2018) test an intelligent PAT/PRV pressure-management arrangement under variable discharges. The abstract reports critical-point pressure maintenance, up to 2.3 kW at PAT full load, maximum total net system efficiency of 40%, and up to 16% water savings over the tested conventional PRV baseline. These are experimental results for a German case, not South African network performance.
+
+**Full-scale field operation**
+- Muhammetoglu et al. (2018) report approximately five months of online monitoring of a full-scale PAT installed in parallel with a PRV in the Antalya WDN. The abstract gives 130–300 m³/h inflows, 0.7–8.4 kWh reported energy values for approximately 100 kPa pressure reduction, and 60% average efficiency. The abstract does not state the time denominator for those kWh values. We must not convert them to kW, daily energy or annual yield without the full article. The reported payback is an initial case calculation, not a South African commercial forecast. The related 2017 ASCE paper describes the same installation, not an independent second plant.
+
+**South African transfer baseline**
+- Cornubia 2022 is EPANET 2.2-based and uses PRV proxies for the PAT branches; the five-PAT 166.31 kW / 45.59 kL/month result is modelled rather than metered output.
+- The UKZN 2021 dissertation has overlapping Cornubia geography. It is not an independent replication until network input and placement assumptions are cross-walked.
+- The 2025 Jowitt study is a different network and shows that DDA/PDA and PAT selection based on max/mean/minimum discharge change results; its results are simulations, not field observations.
+- The 2026 multi-node PAT controller combines Kalman filtering, multi-output tracking MPC and actuator-setting optimization in closed-loop simulation on a pressure-driven unsteady-flow network; it is a current control-method comparator, not yet South African field evidence.
+
+### Luminous benchmark strategy
+
+Our target should be a reproducible evidence chain across all four levels:
+1. Reproduce a laboratory PAT head-flow-efficiency map within its test uncertainty.
+2. Reproduce a full-scale PAT operating trajectory using the actual data boundary and sampling interval.
+3. Reproduce network-scale water balance, pressure, leakage and PAT-energy results against an exact EPANET baseline.
+4. Compare fixed controls, pressure-management-only, static PAT, hydraulic regulation, electrical regulation, Kalman/MPC and robust service-constrained MPC under matched demand, sensor, map and compute budgets.
+
+A “better than SOTA” result must show matched improvements in net kWh, leakage, pressure compliance, delivered demand, actuator effort, lifecycle cost and uncertainty—not one attractive energy number. For independent South African transfer, hold out a complete zone and period never used for map fitting, placement tuning or controller calibration.
+
+References:
+- Antalya full-scale operation: https://doi.org/10.2166/ws.2017.087
+- Parra PAT/PRV experimental control: https://doi.org/10.2166/ws.2017.154
+- Manservigi 16 experimental PAT curves: https://doi.org/10.1017/wat.2025.10004
+- Pugliese two-PAT test-rig characterization: https://doi.org/10.1016/j.renene.2016.06.051
+- Cornubia 2022: https://doi.org/10.3390/w14071150
+- Jowitt 2025: https://doi.org/10.1016/j.egyr.2025.09.034
+- Multi-node PAT RTC/MPC 2026: https://doi.org/10.1016/j.conengprac.2026.106777
