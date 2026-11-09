@@ -1134,8 +1134,8 @@ mod tests {
         let receipt = audit_bytes(SCHEMA_BYTES, REGISTRY_BYTES)
             .expect("checked-in schema and source registry must decode");
         assert_eq!(receipt.disposition, "accepted");
-        assert_eq!(receipt.entry_count, 26);
-        assert_eq!(receipt.source_ids.len(), 26);
+        assert_eq!(receipt.entry_count, 29);
+        assert_eq!(receipt.source_ids.len(), 29);
         assert_eq!(receipt.findings.len(), 0);
     }
 
@@ -1165,7 +1165,7 @@ mod tests {
         let receipt = audit_bytes(SCHEMA_BYTES, REGISTRY_BYTES)
             .expect("updated registry should remain structurally valid");
         assert_eq!(receipt.disposition, "accepted");
-        assert_eq!(receipt.entry_count, 26);
+        assert_eq!(receipt.entry_count, 29);
     }
 
     #[test]
@@ -1215,7 +1215,7 @@ mod tests {
         let receipt =
             audit_bytes(SCHEMA_BYTES, REGISTRY_BYTES).expect("updated registry should conform");
         assert_eq!(receipt.disposition, "accepted");
-        assert_eq!(receipt.entry_count, 26);
+        assert_eq!(receipt.entry_count, 29);
     }
 
     #[test]
@@ -1264,7 +1264,7 @@ mod tests {
         let receipt =
             audit_bytes(SCHEMA_BYTES, REGISTRY_BYTES).expect("updated source register conforms");
         assert_eq!(receipt.disposition, "accepted");
-        assert_eq!(receipt.entry_count, 26);
+        assert_eq!(receipt.entry_count, 29);
     }
 
     #[test]
@@ -1285,8 +1285,79 @@ mod tests {
         );
         let receipt = audit_bytes(SCHEMA_BYTES, REGISTRY_BYTES)
             .expect("updated 26-entry source register conforms");
-        assert_eq!(receipt.entry_count, 26);
+        assert_eq!(receipt.entry_count, 29);
         assert_eq!(receipt.disposition, "accepted");
+    }
+
+    #[test]
+    fn queenswood_pat_pilot_is_measured_point_data_not_a_sustained_yield() {
+        let value = parse_registry_value();
+        let entry = value["entries"]
+            .as_array()
+            .expect("entries array")
+            .iter()
+            .find(|entry| {
+                entry["source_id"] == "wrc-pressurised-conduit-pat-pilot-kv238-10-2010"
+            })
+            .expect("WRC Queenswood pilot record");
+        assert_eq!(entry["evidence_basis"], "published_field_observation");
+        assert_eq!(entry["availability_state"], "context_only");
+        assert!(entry["limitations"]
+            .as_array()
+            .expect("limitations")
+            .iter()
+            .any(|item| item.as_str().is_some_and(|text| text.contains("five time-stamped"))));
+        assert!(entry["claim_ceiling"]
+            .as_str()
+            .is_some_and(|claim| claim.contains("Not a sustained operating record")));
+    }
+
+    #[test]
+    fn pvr_site_is_distinct_and_queenswood_is_not_double_counted() {
+        let value = parse_registry_value();
+        let entry = value["entries"]
+            .as_array()
+            .expect("entries array")
+            .iter()
+            .find(|entry| {
+                entry["source_id"]
+                    == "tshwane-conduit-hydropower-pilot-installations-pierre-van-ryneveld-queenswood-2014"
+            })
+            .expect("Tshwane installation evidence record");
+        assert_eq!(entry["evidence_basis"], "published_field_observation");
+        let notes = entry["source_version"]["notes"].as_str().expect("source notes");
+        assert!(notes.contains("Pierre van Ryneveld"));
+        assert!(notes.contains("Queenswood"));
+        assert!(entry["limitations"]
+            .as_array()
+            .expect("limitations")
+            .iter()
+            .any(|item| item.as_str().is_some_and(|text| text.contains("same installation"))));
+    }
+
+    #[test]
+    fn leliefontein_meter_totals_are_flagged_as_unresolved() {
+        let value = parse_registry_value();
+        let entry = value["entries"]
+            .as_array()
+            .expect("entries array")
+            .iter()
+            .find(|entry| {
+                entry["source_id"] == "drakenstein-leliefontein-bidirectional-pat-station-imesa-2021"
+            })
+            .expect("Leliefontein PAT station record");
+        assert_eq!(entry["evidence_basis"], "published_field_observation");
+        let notes = entry["source_version"]["notes"].as_str().expect("source notes");
+        assert!(notes.contains("320 MWh/year"));
+        assert!(notes.contains("271,236 MWh"));
+        assert!(entry["limitations"]
+            .as_array()
+            .expect("limitations")
+            .iter()
+            .any(|item| item.as_str().is_some_and(|text| text.contains("internally inconsistent"))));
+        assert!(entry["claim_ceiling"]
+            .as_str()
+            .is_some_and(|claim| claim.contains("estimated")));
     }
 
     #[test]
