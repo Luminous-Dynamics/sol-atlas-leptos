@@ -1305,6 +1305,170 @@
       ],
       "raw_snapshot_ingested": false,
       "snapshot_digest": null
+    },
+    {
+      "source_id": "wrc-pressurised-conduit-pat-pilot-kv238-10-2010",
+      "source_name": "A High Level Scoping Investigation into the Potential of Energy Saving and Production/Generation in the Supply of Water Through Pressurized Conduits",
+      "provider": "Water Research Commission; University of Pretoria",
+      "source_url": "https://www.wrc.org.za/wp-content/uploads/mdocs/KV%20238-10.pdf",
+      "source_type": "research_publication",
+      "resource_families": [
+        "hydropower"
+      ],
+      "evidence_basis": "published_field_observation",
+      "availability_state": "context_only",
+      "source_version": {
+        "label": "WRC Report KV 238/10, April 2010, ISBN 978-1-77005-954-2",
+        "release_or_publication_date": "2010-04",
+        "data_period": "Short-duration observational pilot measurements at Queenswood Reservoir, Tshwane; exact dates and sample cadence are not provided in the report's summary table",
+        "metadata_updated": null,
+        "notes": "The report documents a low-budget PAT pilot at Queenswood Reservoir. Its Table i reports five time-stamped observations of flow, voltage, current, rotational speed, measured electrical power, head drop and calculated minimum efficiency. Measured output values are 2,323.2–4,521.0 W at flows 27.55–32.49 L/s and head drops 25.04–30.94 m. The report describes the unit as not optimized and the trial as an observational experiment, not a long-term operating plant. The pump is a Sulzer AZ-100/400; its pump-mode BEP is 180 m3/h at 50 m head, with manufacturer-provided reverse-mode estimates."
+      },
+      "spatial_scope": "Queenswood Reservoir inlet / valve chamber, Tshwane, Gauteng, South Africa",
+      "spatial_resolution": "One pilot bypass and turbine/PAT test arrangement within the existing bulk pipeline; site coordinates and raw time series not admitted",
+      "temporal_scope": "Short-duration pilot readings documented in WRC Report KV 238/10; sample timestamps 10:52, 11:15, 11:27, 12:05 and 12:10",
+      "temporal_resolution": "Five time-stamped sample points; not a continuous or seasonal time series",
+      "variables": [
+        "measured turbine-branch flow",
+        "generator voltage",
+        "generator current",
+        "rotational speed",
+        "measured electrical power",
+        "head drop",
+        "maximum head drop",
+        "calculated minimum efficiency"
+      ],
+      "license_status": {
+        "status": "not_assessed",
+        "details": "The report is available for public reading and citation from WRC. Reuse/redistribution of the full report, tables, photographs and underlying pilot data should be checked against WRC terms before reproducing artifacts."
+      },
+      "claim_ceiling": "Published measured pilot observations at Queenswood Reservoir showing several-kilowatt PAT output at measured flow/head points. Not a sustained operating record, annual yield, optimised PAT map, long-term reliability result or bankable plant.",
+      "limitations": [
+        "The WRC report describes the pilot as not optimized and its observations as initial trial runs.",
+        "Only five time-stamped readings are presented in the summary table; this is not a continuous duty-cycle or seasonal record.",
+        "The report labels a table section as measured output energy but its column reports instantaneous power in watts; preserve the actual unit and do not interpret these values as kWh.",
+        "The calculated minimum efficiency is not a complete uncertainty-qualified turbine/generator net system efficiency.",
+        "The Sulzer reverse-mode characteristic curve was estimated/provided for this pilot; exact independent reverse-mode full map and uncertainty are not established.",
+        "The 2014 Tshwane paper documents the same Queenswood pilot and must not be counted as a second installation."
+      ],
+      "admission_requirements": [
+        "Pin the WRC PDF bytes/checksum and exact Table i / site description pages.",
+        "Recover original time series, meter calibration, measurement interval, electrical connection and head/flow sensor locations from University of Pretoria/Tshwane custodians if available.",
+        "Cross-link the 2014 Tshwane paper to the same Queenswood installation ID.",
+        "Keep measured sample powers separate from calculated annual potential; do not extrapolate five samples to annual energy.",
+        "Obtain permission before ingesting or redistributing any raw operator data or report figures."
+      ],
+      "raw_snapshot_ingested": false,
+      "snapshot_digest": null
+    },
+    {
+      "source_id": "tshwane-conduit-hydropower-pilot-installations-pierre-van-ryneveld-queenswood-2014",
+      "source_name": "Conduit-hydropower potential in the City of Tshwane water distribution system: A discussion of potential applications, financial and other benefits",
+      "provider": "Loots, van Dijk, van Vuuren, Bhagwan and Kurtz; Journal of the South African Institution of Civil Engineering",
+      "source_url": "https://www.scielo.org.za/scielo.php?pid=S1021-20192014000300001&script=sci_arttext",
+      "source_type": "research_publication",
+      "resource_families": [
+        "hydropower"
+      ],
+      "evidence_basis": "published_field_observation",
+      "availability_state": "context_only",
+      "source_version": {
+        "label": "Journal of the South African Institution of Civil Engineering, Vol. 56 No. 3, October 2014",
+        "release_or_publication_date": "2014-10",
+        "data_period": "Queenswood low-budget pilot constructed/tested from 2008; Pierre van Ryneveld cross-flow conduit-hydropower installation completed/commissioned 2011",
+        "metadata_updated": null,
+        "notes": "The paper documents the same Queenswood PAT pilot covered in WRC KV 238/10 and a separate Pierre van Ryneveld (PvR) conduit-hydropower installation. At PvR it reports three field experiments, a cross-flow turbine and synchronous generator, approximately 15 kW maximum capacity depending on flow/head, and the 29 November 2011 launch with site lighting switched from grid to hydropower. The paper explicitly identifies operating problems: generator frequency control, sudden load rejection, PRV hunting from slow response, variable supply flow/head, and manual operation."
+      },
+      "spatial_scope": "Queenswood Reservoir and Pierre van Ryneveld Reservoir / Country Lane Estate, City of Tshwane, Gauteng, South Africa",
+      "spatial_resolution": "Two distinct pilot/installation sites; the Queenswood data share installation identity with WRC KV 238/10",
+      "temporal_scope": "Queenswood pilot from 2008; PvR plant launched 2011; paper published October 2014",
+      "temporal_resolution": "Queenswood summary observations are point samples in the cited WRC report; PvR experiments are described as field experiments without a continuous SCADA record",
+      "variables": [
+        "pressure head",
+        "flow variation",
+        "Queenswood PAT test points",
+        "PvR cross-flow turbine maximum capacity",
+        "generator voltage/frequency control",
+        "on-site lighting load",
+        "load-rejection response",
+        "PRV hunting and control issues"
+      ],
+      "license_status": {
+        "status": "identified_requires_review",
+        "details": "The article is publicly readable on SciELO. Confirm the journal's reuse terms before republishing full figures/tables or raw measurements; citation and abstract-level findings do not imply unrestricted dataset rights."
+      },
+      "claim_ceiling": "Published South African field/pilot evidence for conduit-hydropower installations at Queenswood and Pierre van Ryneveld. The PvR 15 kW value is a maximum capacity statement, not an annual average or metered energy record. This source also includes preliminary national/site potential estimates that are not admitted as measured capacity.",
+      "limitations": [
+        "Queenswood pilot is the same installation described in WRC Report KV 238/10; not an independent second plant.",
+        "PvR's approximately 15 kW maximum depends on flow and head; the paper does not provide a multi-year metered generation profile.",
+        "The authors list unresolved generator frequency control, sudden load rejection, PRV hunting, variable water supply and manual operation.",
+        "The article's 10,000 MWh/a top-ten Tshwane potential and other financial estimates are preliminary resource/economic screening, not installed or measured fleet output.",
+        "The PvR pilot's flow/head measurements do not establish year-round water service, modern control performance or current operational status."
+      ],
+      "admission_requirements": [
+        "Recover the original PvR field experiment files, flow/pressure chronology, generator power measurements and measurement uncertainty from Tshwane/UP custodians if available.",
+        "Identify whether the plant remains in operation and whether the original cross-flow turbine/generator has since been maintained or modified.",
+        "Keep the Queenswood and PvR installation identities separate; cross-link Queenswood to WRC KV 238/10.",
+        "Test the listed frequency, load rejection, PRV hunting and manual-control problems as negative controls in the modern controller benchmark.",
+        "Obtain operator permission before ingesting raw site telemetry or asset drawings."
+      ],
+      "raw_snapshot_ingested": false,
+      "snapshot_digest": null
+    },
+    {
+      "source_id": "drakenstein-leliefontein-bidirectional-pat-station-imesa-2021",
+      "source_name": "Leliefontein Pump-As-Turbine Station",
+      "provider": "Steyn et al.; Proceedings of the 84th Conference of the Institute of Municipal Engineering of Southern Africa (IMESA), Paper 17",
+      "source_url": "https://researchspace.csir.co.za/bitstream/handle/10204/12279/Steyn_2021.pdf",
+      "source_type": "research_publication",
+      "resource_families": [
+        "hydropower"
+      ],
+      "evidence_basis": "published_field_observation",
+      "availability_state": "context_only",
+      "source_version": {
+        "label": "IMESA 84th Conference proceedings, 17–19 November 2021; paper pp. 176–178",
+        "release_or_publication_date": "2021-11",
+        "data_period": "Leliefontein PAT station reported in operation since June 2018; annual generation and 2018–2041 totals are estimates in the paper",
+        "metadata_updated": null,
+        "notes": "The paper describes a bidirectional pump/PAT installation for Drakenstein Municipality in the Western Cape, combining pump and turbine mode using reversible flow, reverse rotation, active-front-end variable-speed drives, actuated valves, custom DN630 pipeline connections, a bidirectional power meter, grid protection and SCADA. It reports estimated average generation of 320 MWh/year, an estimated 9.9 GWh total over 2018–2041, and 57 kW for six generating hours to offset one hour of 300 kW pumping at 30 ML/day. The same paper includes a conflicting statement of 271,236 MWh generated and 53,577 MWh consumed; those figures are internally inconsistent with its annual and lifetime estimates and likely have a unit transcription error. Do not use those cumulative meter figures as MWh."
+      },
+      "spatial_scope": "Leliefontein pump/PAT station, Drakenstein Municipality, Western Cape, South Africa; serving the Wellington/Paarl water supply system",
+      "spatial_resolution": "One municipal pump/PAT station connected to existing gravity-fed reservoirs and the municipal electrical grid; SCADA and power meter described but raw records not included",
+      "temporal_scope": "Operating since June 2018; paper published November 2021; annual and 2018–2041 totals are estimates",
+      "temporal_resolution": "SCADA monitoring and bidirectional meter are described; raw time-series sampling interval and full meter export are not provided",
+      "variables": [
+        "turbining and pumping operating modes",
+        "PAT turbine curves at 920 rpm",
+        "bidirectional electrical energy meter",
+        "grid import/export",
+        "SCADA status/performance/efficiency",
+        "estimated annual generation",
+        "pump-mode energy consumption",
+        "actuated valve and active-front-end drive control"
+      ],
+      "license_status": {
+        "status": "identified_requires_review",
+        "details": "Conference proceedings are publicly available for reading and citation. Confirm IMESA/CSIR reuse conditions before redistributing the paper, photos, diagrams or any underlying municipal SCADA data."
+      },
+      "claim_ceiling": "Published South African full-scale bidirectional municipal PAT installation with described grid export, bidirectional power metering and SCADA monitoring. The paper's 320 MWh/year and 9.9 GWh values are estimates; no raw independently audited interval data are included. It is not a complete metered efficiency or reliability time series.",
+      "limitations": [
+        "The paper contains an internal unit inconsistency: 271,236 MWh generated and 53,577 MWh consumed are inconsistent with the stated 320 MWh/year estimate and 9.9 GWh over 2018–2041. The cumulative values must be treated as unresolved and not used as MWh.",
+        "The paper's 320 MWh/year and 9.9 GWh are estimates, not independently audited metered totals.",
+        "The station serves both pumping and generation duties; net energy benefit must subtract pump-mode consumption and distinguish time in each mode.",
+        "The stated maximum 57 kW for six hours and 300 kW pumping for one hour is a balancing illustration, not a typical operating duty cycle.",
+        "The source does not provide raw SCADA, meter calibration, time intervals, uncertainty or a complete availability/maintenance record.",
+        "It reports 10% incremental project capital cost but does not supply an independently normalized CAPEX/OPEX or South African replication cost model."
+      ],
+      "admission_requirements": [
+        "Request original bidirectional meter exports and SCADA histories from Drakenstein Municipality, including timestamps, meter direction/register, calibration, quality flags and sampling interval.",
+        "Resolve the 271,236 / 53,577 cumulative meter unit inconsistency directly with the paper authors or municipality before using these totals.",
+        "Reconstruct annual net import/export, pumping energy, turbine energy, parasitics, downtime, bypass and pump/turbine mode chronology.",
+        "Recover the KSB turbine-mode map, exact pump models, active-front-end drive revisions, valve sequencing and protection settings.",
+        "Obtain operator permission and confirm current operational status before claiming continuing performance."
+      ],
+      "raw_snapshot_ingested": false,
+      "snapshot_digest": null
     }
   ]
 }
