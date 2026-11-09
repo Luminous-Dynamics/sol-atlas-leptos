@@ -216,6 +216,53 @@
         "https://www.irena.org/Publications/2026/Jul/Renewable-Power-Generation-Costs-in-2025",
         "https://www.irena.org/-/media/Files/IRENA/Agency/Publication/2026/Jul/IRENA_TEC_RPGC_in_2025_2026.pdf"
       ]
+    },
+    {
+      "name": "ETHOS.RESKit",
+      "artifact": "ETHOS.RESKit global wind-power workflow",
+      "pinned_release": "Paper-specific archive: Zenodo 10.5281/zenodo.17668776 (2025); current RESKit code release v0.5.0 (2026-07-10)",
+      "companion_engine": "Python; pin exact archived paper environment separately from the current toolkit release",
+      "release_date": "2026-01-14",
+      "role": [
+        "global onshore/offshore wind power time-series modelling",
+        "GWA4 and ERA5 wind-speed bias calibration",
+        "turbine configuration and power-curve comparison",
+        "wind-power model-to-observation validation"
+      ],
+      "paper_reported_results": {
+        "mast_calibration": "213 global mast locations across 25 countries; over 8 million filtered hourly measurements; paper states South Africa is among the geographic regions with mast observations",
+        "turbine_power_validation": "More than 8 million hours from 152 turbine/wind-farm measurement sites; raw records are restricted by third-party agreements",
+        "hourly_capacity_factor_validation": {
+          "relative_mean_error": 0.056,
+          "pearson_r": 0.844,
+          "rmse": 0.196,
+          "perkins_skill_score": 0.9,
+          "cohort_note": "Paper Table 2; calibrated hourly turbine/farm capacity-factor comparison. Non-calibrated relative mean error is reported as 0.292."
+        },
+        "country_aggregate_validation": {
+          "cohort": "IEA country-level capacity/generation statistics, 2017-2021; up to 71 countries and offshore regions, with data gaps especially in Africa",
+          "main_text_global_capacity_factor": "Model 0.287 versus IEA 0.306; main text reports 6.2% relative deviation and 23.1% for the non-calibrated workflow",
+          "abstract_note": "The abstract separately states a 0.6% mean error for annual aggregate energy output; do not merge this with the main-text capacity-factor deviation without reproducing the exact metric and denominator."
+        }
+      },
+      "important_limits": [
+        "South African meteorological mast observations occur in the study's wider mast calibration geography, but the accessible article does not provide the exact site/record crosswalk needed to determine overlap for a new local holdout.",
+        "Do not use a South African WASA mast as a blind validation site until the exact mast ID, dates, heights and data overlap with the 213-mast calibration cohort are resolved.",
+        "Turbine/farm power validation is a separate dataset. The paper does not establish South African turbine-generation holdout validation; the raw power time series are restricted by third-party agreements.",
+        "The proprietary wind-farm inventory cannot be redistributed; it is obtained under a commercial licence.",
+        "The authors state the workflow is better suited to larger-scale assessments than exact single locations because ERA5/GWA4 cannot fully represent local wind conditions; diurnal, seasonal and terrain-based biases remain outside the presented correction method.",
+        "The abstract's annual aggregate 0.6% mean error is not the same metric as the detailed main-text global capacity-factor deviation (6.2%); preserve exact cohort, denominator and formula.",
+        "The current RESKit v0.5.0 release is not automatically identical to the paper-specific Zenodo archive. Pin and benchmark them separately."
+      ],
+      "pin_policy": "For paper reproduction, pin Zenodo record 10.5281/zenodo.17668776 and its exact archived files/checksums. For a current software comparator, pin immutable Git tag v0.5.0 commit b41cf859fd619c5be717af84db5502b0ac4ca3e5, Python environment lock, GWA4/ERA5 inputs, turbine-library version, correction factors and exact metric cohort.",
+      "references": [
+        "https://pmc.ncbi.nlm.nih.gov/articles/PMC12804690/",
+        "https://doi.org/10.1038/s41467-026-68337-z",
+        "https://doi.org/10.5281/zenodo.17668776",
+        "https://github.com/FZJ-IEK3-VSA/RESKit",
+        "https://github.com/FZJ-IEK3-VSA/RESKit/releases/tag/v0.5.0",
+        "https://api.github.com/repos/FZJ-IEK3-VSA/RESKit/git/refs/tags/v0.5.0"
+      ]
     }
   ]
 }
