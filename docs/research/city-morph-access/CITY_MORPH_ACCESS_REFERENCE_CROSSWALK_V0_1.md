@@ -101,6 +101,21 @@ No single metric substitutes for the others. Any weighted score must publish its
 CityMorph should not claim SOTA superiority from a synthetic corpus or an interface feature comparison. A defensible claim requires matched inputs, published reference implementations, exact method reproduction, independent validation and clear uncertainty. The planned differentiator is a more complete evidence/decision layer, not a blanket claim that one engine routes better than R5 or OTP.
 
 
+## Johannesburg Universal Design Access Plan (UDAP) — local validation reference (2026-11-09)
+
+JDA announced completion of the City's Universal Design Access Plan on 9 June 2026. The public description says the plan uses facility audits, surveys, stakeholder engagement and capacity building; covers Rea Vaya, Metrobus and other operators; and assesses the entire passenger journey from trip planning and pedestrian access to boarding, vehicles, transfers, information and destination access. The City's August 2026 explanation identifies continuing issues in pedestrian links, passenger information, facility consistency, vehicle/platform interfaces, maintenance, staff training and intermodal integration.
+
+**What this contributes:** a locally authored audit and intervention framework for expanding CityMorph's universal-access evidence dimensions beyond the graph's step-free boolean. It is especially relevant to station/stop approach, crossings, wayfinding, ticketing/fare interfaces, vehicle/platform gaps, onboard access, transfer and information-system accessibility.
+
+**What it does not yet provide to this repository:** the full plan document, facility-level audit tables, the risk register, machine-readable station/vehicle identifiers, audit scores, survey instruments, sample coverage, dated operator/service revisions, funded actions or reuse terms. The source register records only the public completion announcement as VerifiedPublic and leaves rights Unknown. No station or route is treated as accessible because it appears in the plan.
+
+**Next benchmark increment:** when JDA releases the full outputs, map each travel-chain audit field to an owner-native CityMorph constraint and test missing/stale/unknown facility evidence. Join each audited facility to the network graph by stable identifier and position, with explicit match uncertainty. Preserve the distinction between a reported barrier, a planned intervention, an implemented intervention and an independently re-audited barrier removal.
+
+Sources:
+- JDA completion announcement: https://www.jda.org.za/jda-completes-landmark-universal-design-access-plan-to-advance-inclusive-public-transport-in-johannesburg/
+- City/JDA explanation of travel-chain coverage and unresolved barriers: https://joburg.org.za/media_/Newsroom/Pages/2026-News-Articles/JDAs-plan-puts-people-at-the-heart-of-Joburgs-public-transport.aspx
+- City completion summary: https://joburg.org.za/media_/Newsroom/Pages/2026-News-Articles/JDA-completes-universal-design-plan-for-public-transport.aspx
+
 ## Repository ownership correction (2026-11-06)
 
 A repository-wide audit found existing robust multi-objective owners:
