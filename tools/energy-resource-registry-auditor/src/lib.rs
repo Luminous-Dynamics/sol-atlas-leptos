@@ -1106,9 +1106,57 @@ mod tests {
         let receipt = audit_bytes(SCHEMA_BYTES, REGISTRY_BYTES)
             .expect("checked-in schema and source registry must decode");
         assert_eq!(receipt.disposition, "accepted");
-        assert_eq!(receipt.entry_count, 11);
-        assert_eq!(receipt.source_ids.len(), 11);
+        assert_eq!(receipt.entry_count, 13);
+        assert_eq!(receipt.source_ids.len(), 13);
         assert_eq!(receipt.findings.len(), 0);
+    }
+
+    #[test]
+    fn wasa3_resource_raster_is_distinct_from_unavailable_timeseries_portal() {
+        let value = parse_registry_value();
+        let entries = value["entries"].as_array().expect("entries array");
+        let raster = entries
+            .iter()
+            .find(|entry| {
+                entry["source_id"] == "wasa3-high-resolution-wind-resource-map-2020"
+            })
+            .expect("WASA3 raster source record");
+        let portal = entries
+            .iter()
+            .find(|entry| {
+                entry["source_id"] == "wasa-south-africa-time-series-portal-availability"
+            })
+            .expect("WASA time-series portal source record");
+
+        assert_eq!(raster["source_type"], "dataset");
+        assert_eq!(raster["evidence_basis"], "modeled_resource_atlas");
+        assert_eq!(raster["availability_state"], "available_pending_snapshot_pin");
+        assert_eq!(portal["source_type"], "portal_status");
+        assert_eq!(portal["evidence_basis"], "availability_notice");
+        assert_eq!(portal["availability_state"], "temporarily_unavailable");
+
+        let receipt = audit_bytes(SCHEMA_BYTES, REGISTRY_BYTES)
+            .expect("updated registry should remain structurally valid");
+        assert_eq!(receipt.disposition, "accepted");
+        assert_eq!(receipt.entry_count, 13);
+    }
+
+    #[test]
+    fn gwas_validation_cohort_does_not_claim_south_africa() {
+        let value = parse_registry_value();
+        let gwa = value["entries"]
+            .as_array()
+            .expect("entries array")
+            .iter()
+            .find(|entry| entry["source_id"] == "global-wind-atlas-4-0")
+            .expect("GWA4 source record");
+        let limitations = gwa["limitations"]
+            .as_array()
+            .expect("limitations array");
+        assert!(limitations.iter().any(|item| {
+            item.as_str()
+                .is_some_and(|text| text.contains("does not include South Africa"))
+        }));
     }
 
     #[test]
