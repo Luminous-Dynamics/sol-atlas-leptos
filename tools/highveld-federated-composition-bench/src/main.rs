@@ -51,10 +51,7 @@ fn main() -> ExitCode {
     let Some(source_commit) = args.next() else {
         return invalid_input("missing source commit SHA");
     };
-    if flag != "--source-commit"
-        || !valid_commit(&source_commit)
-        || args.next().is_some()
-    {
+    if flag != "--source-commit" || !valid_commit(&source_commit) || args.next().is_some() {
         return invalid_input(
             "source commit must be a lowercase 40-character hex SHA; no extra arguments are accepted",
         );
@@ -104,11 +101,17 @@ fn main() -> ExitCode {
 
     let profile_errors = validate_profiles(&profiles);
     if !profile_errors.is_empty() {
-        return invalid_input(&format!("invalid owner profiles: {}", profile_errors.join(",")));
+        return invalid_input(&format!(
+            "invalid owner profiles: {}",
+            profile_errors.join(",")
+        ));
     }
     let corpus_errors = validate_corpus(&corpus, &profiles);
     if !corpus_errors.is_empty() {
-        return invalid_input(&format!("invalid corpus structure: {}", corpus_errors.join(",")));
+        return invalid_input(&format!(
+            "invalid corpus structure: {}",
+            corpus_errors.join(",")
+        ));
     }
 
     let cases = corpus["cases"].as_array().expect("validated cases array");
