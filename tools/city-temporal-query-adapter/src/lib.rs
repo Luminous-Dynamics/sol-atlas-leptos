@@ -189,7 +189,11 @@ fn event_dimensions(
         trust_state = "invalid";
     } else {
         late_arrival = valid_utc_timestamp(effective_at) && recorded_at > effective_at;
-        if !valid_utc_timestamp(knowledge_as_of) {
+        let evaluated_at = string(query, "evaluated_at");
+        if valid_utc_timestamp(evaluated_at) && recorded_at > evaluated_at {
+            reasons.insert("EVENT_RECORDED_AFTER_EVALUATION_TIME".to_owned());
+            knowledge_state = "recorded_after_evaluation";
+        } else if !valid_utc_timestamp(knowledge_as_of) {
             knowledge_state = "unknown";
         } else if recorded_at > knowledge_as_of {
             reasons.insert("EVENT_RECORDED_AFTER_KNOWLEDGE_CUTOFF".to_owned());
@@ -204,6 +208,9 @@ fn event_dimensions(
         } else if trusted_at < recorded_at {
             reasons.insert("EVENT_TRUST_TIME_ORDER_INVALID".to_owned());
             trust_state = "invalid";
+        } else if valid_utc_timestamp(evaluated_at) && trusted_at > evaluated_at {
+            reasons.insert("EVENT_TRUSTED_AFTER_EVALUATION_TIME".to_owned());
+            trust_state = "trusted_after_evaluation";
         } else if !valid_utc_timestamp(trust_as_of) {
             trust_state = "unknown";
         } else if trusted_at > trust_as_of {
@@ -264,6 +271,15 @@ pub fn evaluate_case(case: &Value) -> Value {
     }
     if query_time_invalid {
         reasons.insert("TEMPORAL_QUERY_TIME_INVALID".to_owned());
+    }
+    let evaluated_at = string(query, "evaluated_at");
+    let knowledge_as_of = string(query, "knowledge_time_as_of");
+    let trust_as_of = string(query, "trust_time_as_of");
+    if valid_utc_timestamp(evaluated_at)
+        && ((valid_utc_timestamp(knowledge_as_of) && knowledge_as_of > evaluated_at)
+            || (valid_utc_timestamp(trust_as_of) && trust_as_of > evaluated_at))
+    {
+        reasons.insert("TEMPORAL_QUERY_CUTOFF_AFTER_EVALUATION".to_owned());
     }
 
     let perspective = string(query, "temporal_perspective");
@@ -357,8 +373,13 @@ pub fn evaluate_case(case: &Value) -> Value {
     let excluded = matches!(
         world_state.as_str(),
         "not_yet_effective" | "expired"
-    ) || knowledge_state == "recorded_after_cutoff"
-        || trust_state == "trusted_after_cutoff";
+    ) || matches!(
+        knowledge_state.as_str(),
+        "recorded_after_cutoff" | "recorded_after_evaluation"
+    ) || matches!(
+        trust_state.as_str(),
+        "trusted_after_cutoff" | "trusted_after_evaluation"
+    );
 
     let disposition = if invalid {
         "invalid_input"
