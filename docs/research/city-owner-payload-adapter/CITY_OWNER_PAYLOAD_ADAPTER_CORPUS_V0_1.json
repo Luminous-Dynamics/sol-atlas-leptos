@@ -698,7 +698,7 @@
             "payload_verification_state": "mismatch",
             "payload_bytes_verified": false,
             "raw_byte_equality_verified": false,
-            "byte_length_comparison_state": "mismatch",
+            "byte_length_comparison_state": "not_assessed",
             "owner_rights_state": "verified",
             "rights_use_declaration_state": "owner_declares_permitted"
           }
