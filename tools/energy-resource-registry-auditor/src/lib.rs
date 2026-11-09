@@ -325,7 +325,7 @@ fn schema_has_exact_fields(
     }
     match string_set(Some(required)) {
         Some(actual) if actual == expected => {
-            if required.as_array().map_or(0, Vec::len) != expected.len() {
+            if required.as_array().is_none_or(|values| values.len() != expected.len()) {
                 findings.push(AuditFinding::fail(
                     predicate,
                     "required array contains duplicate or non-string values",
@@ -364,7 +364,7 @@ fn check_enum(
     let expected = expected_set(expected_values);
     match string_set(Some(value)) {
         Some(actual) if actual == expected => {
-            if value.as_array().map_or(0, Vec::len) != expected.len() {
+            if value.as_array().is_none_or(|values| values.len() != expected.len()) {
                 findings.push(AuditFinding::fail(
                     predicate,
                     "enum contains duplicate or non-string values",
@@ -1015,12 +1015,14 @@ pub fn audit_bytes(schema_bytes: &[u8], registry_bytes: &[u8]) -> Result<AuditRe
     };
     let claim_ceiling = "Structural and semantic conformance to the pinned discovery-only source-registry v0.1 contract. This receipt does not authenticate source publishers, prove licences, validate resource science, establish site suitability, or authorize projects.";
 
+    let schema_digest = sha256(schema_bytes);
+    let registry_digest = sha256(registry_bytes);
     let subject = ReceiptSubject {
         receipt_schema: RECEIPT_SCHEMA,
         auditor_id: AUDITOR_ID,
         auditor_version: AUDITOR_VERSION,
-        schema_sha256: &sha256(schema_bytes),
-        registry_sha256: &sha256(registry_bytes),
+        schema_sha256: &schema_digest,
+        registry_sha256: &registry_digest,
         registry_status: &registry.registry_status,
         entry_count: registry.entries.len(),
         source_ids: &source_ids,
