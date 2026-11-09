@@ -347,7 +347,7 @@ fn owner_receipts_bound(input: &Value, reasons: &mut BTreeSet<String>) {
             }
             if refs
                 .iter()
-                .any(|source| !source_binding_exists(binding, source))
+                .any(|source| !source_binding_exists(binding, source, scope))
             {
                 add(reasons, "OWNER_RECEIPT_NOT_BOUND_TO_COMMON_SCOPE");
             }
