@@ -417,6 +417,8 @@ fn evaluate_lane(
                     if invalid != 0 {
                         reasons.insert("SOURCE_INVENTORY_MANIFEST_INVALID".to_owned());
                     }
+                } else {
+                    reasons.insert("SOURCE_INVENTORY_CLOSURE_COUNTS_MISSING".to_owned());
                 }
                 if text(owner_presence, "disposition") != "expected_owner_manifests_present"
                     || number(owner_presence, "missing_required_owner_count") != Some(0)
