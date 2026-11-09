@@ -478,10 +478,17 @@ fn evaluate_current(input: &Value) -> (String, BTreeSet<String>) {
     if physical.get("required").and_then(Value::as_bool) == Some(true) {
         authority_refs.push(object(physical, "source_ref"));
     }
-    if authority_refs
-        .iter()
-        .any(|source| !source.is_null() && !source_authority_valid(source))
-    {
+    let revoked_or_disputed_owner_evidence = authority_refs.iter().any(|source| {
+        matches!(text(source, "evidence_state"), "revoked" | "disputed")
+    });
+    if revoked_or_disputed_owner_evidence {
+        add(&mut reasons, "OWNER_EVIDENCE_REVOKED_OR_DISPUTED");
+    }
+    if authority_refs.iter().any(|source| {
+        !source.is_null()
+            && !source_authority_valid(source)
+            && !matches!(text(source, "evidence_state"), "revoked" | "disputed")
+    }) {
         add(&mut reasons, "OWNER_EVIDENCE_NOT_CURRENT_AUTHORIZED");
     }
 
