@@ -44,7 +44,7 @@ jobs:
             and .corpus_id == "CITY-EFFECTIVE-ACCESS-COMPOSITION-CORPUS-V0.1"
             and .classification == "synthetic_fixture_only"
             and (.cases | length == 28)
-            and ([.cases[].case_id] | unique | length == 24)
+            and ([.cases[].case_id] | unique | length == 28)
           ' docs/research/city-effective-access-composition/CITY_EFFECTIVE_ACCESS_COMPOSITION_CORPUS_V0_1.json
           jq -e '
             .[ "$schema" ] == "https://json-schema.org/draft/2020-12/schema"
