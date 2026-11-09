@@ -326,6 +326,19 @@
         "compatibility": "v0_2_identity_and_content_bound",
         "reason_codes": []
       }
+    },
+    {
+      "case_id": "IEAC-026",
+      "mutation": "missing_impact_result_for_existing_target",
+      "expected": {
+        "case_id": "IEAC-026",
+        "mutation": "missing_impact_result_for_existing_target",
+        "accepted": false,
+        "compatibility": "v0_2_identity_and_content_bound",
+        "reason_codes": [
+          "IMPACT_RESULT_MISSING_INVALIDATION_TARGET"
+        ]
+      }
     }
   ]
 }
