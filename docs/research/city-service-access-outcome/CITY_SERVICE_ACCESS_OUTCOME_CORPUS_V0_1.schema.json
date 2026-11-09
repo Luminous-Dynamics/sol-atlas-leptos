@@ -1,0 +1,181 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/city-service-access-outcome-composition-corpus-v0.1.schema.json",
+  "title": "City service access and realized outcome composition corpus v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_id",
+    "schema_version",
+    "corpus_id",
+    "classification",
+    "policy_note",
+    "semantics",
+    "cases"
+  ],
+  "properties": {
+    "schema_id": {
+      "const": "org.luminousdynamics.city-service-access-outcome-composition.corpus"
+    },
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "corpus_id": {
+      "const": "CITY-SERVICE-ACCESS-OUTCOME-COMPOSITION-CORPUS-V0.1"
+    },
+    "classification": {
+      "const": "synthetic_fixture_only"
+    },
+    "policy_note": {
+      "type": "string",
+      "minLength": 1
+    },
+    "semantics": {
+      "type": "object",
+      "additionalProperties": {
+        "type": [
+          "string",
+          "boolean"
+        ]
+      }
+    },
+    "cases": {
+      "type": "array",
+      "minItems": 30,
+      "maxItems": 30,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "case_id",
+          "input",
+          "expected"
+        ],
+        "properties": {
+          "case_id": {
+            "type": "string",
+            "pattern": "^SAO-[0-9]{3}$"
+          },
+          "input": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "expected": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "case_id",
+              "composition_state",
+              "restoration_state",
+              "potential_access_state",
+              "beneficiary_frame_state",
+              "operational_evidence_state",
+              "realized_service_use_state",
+              "delivery_to_declared_demand_ratio",
+              "resident_experience_state",
+              "reason_codes",
+              "claim_ceiling",
+              "action_authority"
+            ],
+            "properties": {
+              "case_id": {
+                "type": "string"
+              },
+              "composition_state": {
+                "enum": [
+                  "invalid_evidence",
+                  "not_authorized",
+                  "not_comparable",
+                  "restoration_not_qualified",
+                  "potential_access_infeasible",
+                  "potential_access_constrained",
+                  "potential_access_unknown",
+                  "insufficient_evidence",
+                  "realized_service_outcome_established",
+                  "restored_potentially_accessible_zero_demand",
+                  "restored_and_potentially_accessible"
+                ]
+              },
+              "restoration_state": {
+                "enum": [
+                  "restored",
+                  "not_restored",
+                  "not_qualified",
+                  "unknown",
+                  "invalid"
+                ]
+              },
+              "potential_access_state": {
+                "enum": [
+                  "accessible_and_capacity_adequate_potential",
+                  "capacity_constrained_potential",
+                  "inaccessible",
+                  "unknown",
+                  "invalid"
+                ]
+              },
+              "beneficiary_frame_state": {
+                "enum": [
+                  "qualified",
+                  "not_established",
+                  "not_comparable",
+                  "not_authorized",
+                  "invalid"
+                ]
+              },
+              "operational_evidence_state": {
+                "enum": [
+                  "qualified",
+                  "not_collected",
+                  "insufficient",
+                  "not_comparable",
+                  "invalid"
+                ]
+              },
+              "realized_service_use_state": {
+                "enum": [
+                  "observed",
+                  "not_collected",
+                  "unknown",
+                  "not_comparable",
+                  "invalid",
+                  "zero_demand_not_applicable"
+                ]
+              },
+              "delivery_to_declared_demand_ratio": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0
+              },
+              "resident_experience_state": {
+                "enum": [
+                  "not_requested",
+                  "consent_denied",
+                  "not_collected",
+                  "observed",
+                  "not_comparable",
+                  "invalid"
+                ]
+              },
+              "reason_codes": {
+                "type": "array",
+                "uniqueItems": true,
+                "items": {
+                  "type": "string"
+                }
+              },
+              "claim_ceiling": {
+                "const": "synthetic_cross_owner_composition_only"
+              },
+              "action_authority": {
+                "const": "none"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
