@@ -212,3 +212,46 @@ A result can be called better only when:
 - physical safety, permits and operator approvals are not inferred from simulation.
 
 The target is not to win one benchmark by hiding costs or weakening constraints. The target is a reproducible Pareto improvement in delivered service, cost, reliability, maintainability, environmental impact and evidence quality.
+
+
+## 6. South African mine-shaft pumped storage and gravity storage
+
+A further South African storage research route is to re-use appropriate mine shafts and connected workings as part of an underground pumped-storage (UPHS) system. The 2015 South African Energy Storage Technology and Market Assessment explicitly identified unused/abandoned mineshafts as an initial high-head pumped-hydro screening option, but it did not identify a feasible shaft or complete a site-specific engineering study. This is a research lead, not a mine asset shortlist.
+
+South Africa's baseline is already substantial conventional reservoir pumped storage: Eskom's 2024 fact sheet describes Drakensberg at 1,000 MW, Palmiet at 400 MW and Ingula at 1,332 MW. Eskom's October 13, 2026 Tubatse RFQ describes a separate conventional reservoir scheme with up to 1.5 GW / approximately 21 GWh, four reversible pump-turbine units and up to 14 hours at full output. Tubatse is a development, not operating capacity—and it is not an underground mine project.
+
+### Do not conflate the three mine-related architectures
+
+1. **Underground pumped hydro:** water moves between qualified upper and lower reservoirs using reversible pumps/turbines. The capacity depends on usable water volume and net head; performance requires hydraulic loss, water containment and cyclic geomechanical evidence.
+2. **Solid gravity energy storage:** a solid mass is raised/lowered through a shaft or other mechanism. It has different energy density, hoist, braking, structural, response and lifecycle characteristics. A shaft-based solid-gravity device is not pumped hydro.
+3. **Mine-water thermal storage:** heat is stored/exchanged in mine water and surrounding rock, usually with heat pumps. It is owned separately in the mine-thermal programme; thermal MWh cannot be counted as pumped-hydro electrical MWh.
+
+A combined mine energy hub may integrate underground pumped hydro, PV/PVT, BESS and thermal systems, but each carrier and storage state requires its own measured boundary and balance.
+
+### What must be proven before any underground storage capacity is counted
+
+- a surveyed upper/lower reservoir geometry and usable operating volume;
+- hydraulic head and conveyance route;
+- shaft/lining/rock mass condition, fractures, connected workings and subsidence evidence;
+- groundwater connectivity, leakage, water availability and permitted abstraction/reinjection;
+- water chemistry, contamination, sediment, corrosion and treatment;
+- cyclic water pressure, saturation effects, rock-mass stability and containment;
+- pump/turbine maps and grid-side import/export metering;
+- transient pressure/surge, water-hammer and emergency-stop analysis by qualified specialists;
+- closure/remediation liabilities, access, maintenance, environmental impacts and independent inspection.
+
+The 2025 abandoned-coal-mine workflow highlights heterogeneous rock and low permeability as challenges for stability and hydraulic tightness. The 2026 gravity-energy systematic review (107 studies) identifies low intrinsic energy density, infrastructure dependence, inconsistent techno-economic assessment and limited long-term operating data. A 2026 integrated abandoned-mine hub paper reports a modelled 2.22 GWh storage and COP 5.54; those values are scenario outputs, not field results.
+
+### Competitive benchmark
+
+Compare B0 no-build/closure, B1 conventional surface-reservoir PHS, B2 mine-shaft UPHS, B3 connected-mine lower-reservoir UPHS where proven, B4 surface + underground hybrid, B5 solid-mass shaft gravity, B6 BESS/CAES, and B7 a hybrid renewable portfolio. Hold useful grid service, power, usable energy, duration, response, cycle frequency and cost horizon constant. Report net grid-side round-trip efficiency, usable MWh, MW, duration, water loss, pumping energy, auxiliary load, availability, maintenance, civil/rehabilitation cost, closure liability and independent evidence coverage. Storage is not primary generation: it shifts energy and returns less than it uses.
+
+The existing Symtropy [BROWNFIELD-UNDERGROUND-001 #1951](https://github.com/Luminous-Dynamics/symtropy/issues/1951) owns reuse-versus-new-build/no-build and site-use evidence. New Symtropy [MINE-SHAFT-PUMPED-STORAGE-001 #4424](https://github.com/Luminous-Dynamics/symtropy/issues/4424) specializes liquid pumped-hydro shaft qualification. Symtropy [MINE-THERMAL-STORE-001 #4070](https://github.com/Luminous-Dynamics/symtropy/issues/4070) owns mine/cavern thermal storage. These owners must compose and must not duplicate their physical models.
+
+Sources:
+- South African Energy Storage Technology and Market Assessment: https://www.eskom.co.za/eia/dx/wp-content/uploads/migrated/HexBESS/Appendix-H-1-South-African-Energy-Storage-Technology-and-Marketing-Assessment-1.pdf
+- Eskom existing PHS fact sheet: https://www.eskom.co.za/wp-content/uploads/2024/07/HY-0001-Pumped-Storage-Scheme-and-Water-Transfer-Rev-12.pdf
+- Eskom Tubatse project RFQ: https://www.eskom.co.za/eskom-green-launches-strategic-partner-selection-process-for-up-to-1-5gw-21gwh-of-tubatse-pumped-storage-scheme-set-to-be-south-africas-largest-energy-storage-system-ess-to-integrate-inc/
+- Colas et al. (2025) abandoned-mine storage geology: https://doi.org/10.1016/j.est.2024.115101
+- 2026 Gravity Energy Storage systematic review (107 studies): https://doi.org/10.3390/eng7090463
+- Integrated abandoned-mine hub modelling (2026): https://doi.org/10.1016/j.seta.2025.104757
