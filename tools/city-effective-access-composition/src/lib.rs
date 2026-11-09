@@ -183,6 +183,25 @@ fn evaluate_access(input: &Value, scope: &Value, reasons: &mut BTreeSet<String>)
     }
 
     let capacity = number(opportunity, "reachable_capacity_potential");
+    if let Some(owner_codes) = access.get("owner_reason_codes").and_then(Value::as_array) {
+        for owner_code in owner_codes.iter().filter_map(Value::as_str) {
+            if matches!(
+                owner_code,
+                "NETWORK_EDGE_UNKNOWN"
+                    | "NETWORK_EVIDENCE_STALE"
+                    | "SERVICE_AVAILABILITY_UNKNOWN"
+                    | "SERVICE_PRICE_UNKNOWN"
+                    | "SERVICE_ELIGIBILITY_UNKNOWN"
+                    | "SERVICE_STEP_FREE_UNKNOWN"
+                    | "SERVICE_CAPACITY_EVIDENCE_UNKNOWN"
+            ) {
+                add(reasons, owner_code);
+            } else {
+                add(reasons, "ACCESS_OWNER_REASON_CODE_UNSUPPORTED");
+            }
+        }
+    }
+
     match text(opportunity, "status") {
         "Inaccessible" => "Inaccessible".to_owned(),
         "Unknown" => "Unknown".to_owned(),
@@ -452,8 +471,8 @@ pub fn validate_corpus(corpus: &Value) -> Vec<String> {
         errors.push("CORPUS_CASES_MISSING".to_owned());
         return errors;
     };
-    if cases.len() != 24 {
-        errors.push("CORPUS_CASE_COUNT_NOT_24".to_owned());
+    if cases.len() != 28 {
+        errors.push("CORPUS_CASE_COUNT_NOT_28".to_owned());
     }
     let mut ids = BTreeSet::new();
     for (index, case) in cases.iter().enumerate() {
@@ -489,7 +508,7 @@ mod tests {
     }
 
     #[test]
-    fn all_24_frozen_scenarios_match_exactly() {
+    fn all_28_frozen_scenarios_match_exactly() {
         let corpus = corpus();
         let errors = validate_corpus(&corpus);
         assert!(errors.is_empty(), "{errors:?}");
