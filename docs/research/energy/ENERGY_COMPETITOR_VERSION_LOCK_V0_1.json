@@ -464,6 +464,139 @@
         "https://iss.rs/en/project/show/iec%3Aproj%3A138148",
         "https://iss.rs/en/project/show/iss%3Aproj%3A35001"
       ]
+    },
+    {
+      "name": "Open Water Analytics EPANET",
+      "artifact": "OWA-EPANET network hydraulic analysis engine",
+      "pinned_release": "v2.3.5; immutable tag commit 444725fbf16ab28b0470ef0ed281dc4849d49583; release published 2026-02-20",
+      "companion_engine": "EPANET Toolkit / C API",
+      "release_date": "2026-02-20",
+      "role": [
+        "Current open-source distribution-network hydraulic baseline",
+        "Pressure-driven demand and FAVAD pressure-dependent leakage analysis",
+        "Multi-node pressure/flow, valve and network flow-balance simulation"
+      ],
+      "important_limits": [
+        "EPANET is a network hydraulic engine, not a native PAT electrical-conversion model or a certified transient water-hammer safety solver.",
+        "EPANET 2.3 introduced FAVAD pressure-dependent pipe leakage, a Positional Control Valve, independent pressure-unit support and a Flow Balance report; v2.3.5 is a patch release fixing flow-unit conversion for Generic curves and mixed-unit behavior.",
+        "Do not represent a PAT only as a PRV and call its electrical output physically validated. A calibrated hydraulic characteristic may be represented in the network only if it reproduces the declared PAT hydraulic boundary; electrical conversion remains a separate evidence-backed model.",
+        "No South African network site, leakage parameter or operating data is supplied by EPANET itself."
+      ],
+      "pin_policy": "Pin OWA EPANET tag v2.3.5 and commit 444725fbf16ab28b0470ef0ed281dc4849d49583; record compiler/build flags, toolkit library digest, solver settings, units, input INP digest, demand/leakage/roughness parameters and complete report bytes.",
+      "references": [
+        "https://github.com/OpenWaterAnalytics/EPANET/releases/tag/v2.3.5",
+        "https://github.com/OpenWaterAnalytics/EPANET/releases",
+        "https://github.com/OpenWaterAnalytics/EPANET"
+      ]
+    },
+    {
+      "name": "Open Water Analytics EPANET historical replay",
+      "artifact": "OWA-EPANET network hydraulic analysis engine for historical study reproduction",
+      "pinned_release": "v2.2; immutable tag commit 4d8d82ddc260fce216af9321fc3d9a4646ac6827; release published 2019-12-10",
+      "companion_engine": "EPANET Toolkit / C API",
+      "release_date": "2019-12-10",
+      "role": [
+        "Exact historical engine replay for the Cornubia 2022 PAT feasibility paper",
+        "Matched reproduction of EPANET 2.2 demand/pressure model behavior"
+      ],
+      "important_limits": [
+        "This is a historical reproduction pin, not the contemporary default engine.",
+        "The 2022 Cornubia paper explicitly used EPANET 2.2. Do not substitute 2.3.5 and label the result an exact reproduction.",
+        "The paper represented PAT sites through PRV proxies and calculated PAT energy separately; reproduction of that method must preserve its limitations.",
+        "The original Cornubia network data and rights must be independently resolved before claiming exact reproduction."
+      ],
+      "pin_policy": "Pin OWA EPANET tag v2.2 and commit 4d8d82ddc260fce216af9321fc3d9a4646ac6827; bind the original Cornubia study network, inputs, controls, demand profiles and every annualization assumption before a result can be called reproduced.",
+      "references": [
+        "https://github.com/OpenWaterAnalytics/EPANET/releases/tag/v2.2",
+        "https://doi.org/10.3390/w14071150"
+      ]
+    },
+    {
+      "name": "Cornubia PAT feasibility study",
+      "artifact": "Feasibility Analysis of Energy Recovery Using PATs in Water Distribution Networks",
+      "pinned_release": "Water 2022, 14(7), 1150; DOI 10.3390/w14071150; published 2022-04-02",
+      "companion_engine": "OWA-EPANET 2.2",
+      "release_date": "2022-04-02",
+      "role": [
+        "South African water-distribution PAT placement baseline",
+        "Matched Cornubia network pressure/leakage/energy model reproduction"
+      ],
+      "important_limits": [
+        "Five proposed PATs are modelled at 166.31 kW total candidate power; estimated leakage savings are 45.59 kL/month (18.16%). These are simulation outputs, not measured plant performance.",
+        "The paper used PRV proxies within EPANET 2.2 because the engine did not accurately model PAT components, then calculated output using pressure-drop/flow and empirical BEP assumptions.",
+        "Assumed operating windows (12 hours/day and 335 days/year) must be preserved during exact reproduction.",
+        "The network model and input data are not automatically open/redistributable just because the article is CC BY 4.0."
+      ],
+      "pin_policy": "Pin the exact article/PDF, EPANET 2.2 commit, full network input, demand chronology, PAT pump curves/BEP equations, pressure target, PAT operating hours and leakage model. Preserve all assumptions in the report.",
+      "references": [
+        "https://doi.org/10.3390/w14071150",
+        "https://www.mdpi.com/2073-4441/14/7/1150"
+      ]
+    },
+    {
+      "name": "UKZN PRV/PAT network optimization dissertation",
+      "artifact": "Development of an automation model for leakage reduction and energy harnessing through optimised placement and setting of PRVs and PATs in WDNs",
+      "pinned_release": "University of KwaZulu-Natal master's dissertation, 2021",
+      "companion_engine": "MATLAB / EPANET",
+      "release_date": "2021",
+      "role": [
+        "South African Cornubia and Pat Marshal PRV/PAT siting and settings comparator",
+        "Leakage-reduction and candidate PAT power model reproduction"
+      ],
+      "important_limits": [
+        "Reported Cornubia and Pat Marshal capacities and annual energy are modelled estimates, not metered electricity.",
+        "Cornubia overlaps the 2022 peer-reviewed Cornubia study; the two must not be treated as independent replications until network geometry, demand and candidate sites are crosswalked.",
+        "Public repository rights are stated as all rights reserved unless otherwise indicated; do not redistribute the dissertation or extract fixtures without permission."
+      ],
+      "pin_policy": "Pin repository item 56056829-50d7-4258-b11e-e93233126edf, exact PDF and checksum, MATLAB/EPANET versions, network models, demand profiles, optimization setup and annualization assumptions.",
+      "references": [
+        "https://researchspace.ukzn.ac.za/items/56056829-50d7-4258-b11e-e93233126edf"
+      ]
+    },
+    {
+      "name": "Jowitt WDN PAT pressure-management study",
+      "artifact": "Pressure management and energy production approaches in urban water distribution networks using pumps as turbines",
+      "pinned_release": "Energy Reports 14, December 2025, pp. 2593-2606; DOI 10.1016/j.egyr.2025.09.034",
+      "companion_engine": "Jowitt benchmark WDN; DDA and PDA extended-period simulations",
+      "release_date": "2025-12",
+      "role": [
+        "PAT count/placement and discharge-selection strategy comparison",
+        "Demand-driven versus pressure-driven WDN method comparison",
+        "Leakage-pressure-energy trade-off comparator"
+      ],
+      "important_limits": [
+        "The study uses the Jowitt benchmark network, not a South African utility network.",
+        "Its reported one-to-five PAT energy totals differ between DDA and PDA; exact units, periods, scenarios and assumptions must be retained.",
+        "The article reports higher leakage reduction and lower pressures for PRVs in the tested configurations, so energy and water-loss results must remain separate.",
+        "Data are available on request rather than as a public matched validation corpus."
+      ],
+      "pin_policy": "Pin article/PDF, exact Jowitt network data and demand pattern, PAT model, DDA/PDA settings, 24-hour horizon, PAT count, discharge selection and reported metric definitions.",
+      "references": [
+        "https://doi.org/10.1016/j.egyr.2025.09.034"
+      ]
+    },
+    {
+      "name": "Multi-node PAT real-time control",
+      "artifact": "Multi-Node real time control for pressure regulation and energy recovery in WDNs using Pump-as-Turbines",
+      "pinned_release": "Control Engineering Practice 169, April 2026, Article 106777; DOI 10.1016/j.conengprac.2026.106777",
+      "companion_engine": "Pressure-driven unsteady-flow model; Kalman filter + tracking MPC + PAT actuator-settings optimiser",
+      "release_date": "2026-04",
+      "role": [
+        "Current multi-node PAT pressure-control research comparator",
+        "Kalman state/disturbance estimation and tracking MPC benchmark",
+        "Coordinated pressure and energy-recovery controller method"
+      ],
+      "important_limits": [
+        "Reported results are closed-loop simulations, not a field controller deployment.",
+        "The article uses an existing WDN and pressure-driven unsteady-flow model; do not compare its network controller directly with a one-conduit steady-state power calculator.",
+        "No South African field validation is established by the paper.",
+        "A controller method does not confer OT write authority, operational approval or water-service safety certification."
+      ],
+      "pin_policy": "Pin the exact paper/PDF, supplementary files, network/measurement data and method implementation; reproduce the Kalman filter, multi-output tracking MPC and actuator-settings optimiser before numerical comparison.",
+      "references": [
+        "https://doi.org/10.1016/j.conengprac.2026.106777",
+        "https://www.sciencedirect.com/science/article/pii/S0967066126000213"
+      ]
     }
   ]
 }
