@@ -633,6 +633,211 @@
       ],
       "raw_snapshot_ingested": false,
       "snapshot_digest": null
+    },
+    {
+      "source_id": "south-african-hydropower-atlas-report-tt916-23",
+      "source_name": "The South African Hydropower Atlas, WRC Report TT 916/23",
+      "provider": "Water Research Commission; University of Pretoria",
+      "source_url": "https://wrcwebsite.azurewebsites.net/wp-content/uploads/mdocs/TT%20916%20final%20web.pdf",
+      "source_type": "research_publication",
+      "resource_families": [
+        "hydropower"
+      ],
+      "evidence_basis": "modeled_resource_atlas",
+      "availability_state": "context_only",
+      "source_version": {
+        "label": "WRC Report TT 916/23, ISBN 978-0-6392-0441-3, June 2023",
+        "release_or_publication_date": "2023-06",
+        "data_period": "Underlying source layers use heterogeneous reference periods; exact per-layer periods must be taken from the report and atlas metadata",
+        "metadata_updated": null,
+        "notes": "The report documents the first in-depth South African hydropower atlas and assessment frameworks for conduit, hydrokinetic, run-of-river, storage, pumped storage, WWTW, WTW, weirs and transfer schemes. It cites 284 municipalities and multiple utilities/mines with gravity water distribution infrastructure. The reported potential table is preliminary and continuously updateable."
+      },
+      "spatial_scope": "South Africa; water infrastructure and river systems at national/regional screening scale",
+      "spatial_resolution": "Heterogeneous source layers / atlas features; exact resolution varies by dataset and must be recovered per layer",
+      "temporal_scope": "Published June 2023, with mixed observation/model baselines for underlying atlas layers",
+      "temporal_resolution": "Not a single time-series product; each hydrological or infrastructure layer has its own temporal basis",
+      "variables": [
+        "conduit flow and pressure head",
+        "WTW and WWTW inlet/outlet head and flow context",
+        "run-of-river head and flow",
+        "hydrokinetic channel velocity",
+        "weir flow and upstream/downstream head",
+        "existing dam/storage and transfer-scheme context",
+        "pumped-storage candidate pairs"
+      ],
+      "license_status": {
+        "status": "not_assessed",
+        "details": "The WRC report is openly downloadable for reading/citation; copyright and reuse of report figures, atlas layers and underlying source data must be checked before redistribution."
+      },
+      "claim_ceiling": "South African hydropower resource-discovery and preliminary screening reference. Its candidate potential is not measured site flow/head, available water rights, environmental approval, grid connection, bankable output or buildable capacity.",
+      "limitations": [
+        "The report says initial criteria were assumed for several hydro types because data were limited and evaluation reliability would improve as more feasibility studies are completed.",
+        "Conduit potential is driven by pressure head and flow; the report notes that limited data particularly affected the assessment of conduit opportunities.",
+        "WWTW/WTW outflow evaluation was described as relatively unexplored and used assumptions due data limitations.",
+        "The atlas reports South African hydrokinetic case studies as scarce and notes variance between estimated and real flows.",
+        "The 31,000 MW pumped-storage figure is based on an assumed 12-hour/day generating duration and overlapping sites; the report explicitly states actual potential is significantly lower.",
+        "Identified pumped-storage sites were not evaluated using geological, hydrological or environmental data, and detailed investigation may find some unsuitable.",
+        "The atlas is a discovery and pre-feasibility aid, not a project-level engineering or water-use authorisation."
+      ],
+      "admission_requirements": [
+        "Pin the PDF bytes, SHA-256, report edition, citation metadata and licence/reuse rules.",
+        "Identify each atlas layer and its original provider, exact snapshot, CRS, spatial resolution, units and valid period.",
+        "Separate candidate counts and preliminary model values by hydro archetype; never collapse conduit, run-of-river, hydrokinetic, WTW/WWTW and pumped storage.",
+        "For a selected conduit/PRS candidate, obtain operator-owned pressure and flow chronology, pipe/valve details, normal minimum service pressure and surge data.",
+        "For river/WWTW/WTW candidates, obtain site-specific hydrology, head, water quality, operational schedules and ecological-flow / discharge approvals.",
+        "Treat pumped-storage headline potential as an overlapping screening layer until geological, hydrological, environmental and reservoir-pair studies are complete."
+      ],
+      "raw_snapshot_ingested": false,
+      "snapshot_digest": null
+    },
+    {
+      "source_id": "sa-hydropower-atlas-interactive-etool",
+      "source_name": "SA Hydropower Atlas — Interactive Hydropower Atlas of South Africa (E-Tool)",
+      "provider": "Water Research Commission; University of Pretoria",
+      "source_url": "https://search.wrc.org.za/reports/ada2ec32-f2c3-4703-af7f-d632d9965a90",
+      "source_type": "dataset_catalogue",
+      "resource_families": [
+        "hydropower"
+      ],
+      "evidence_basis": "discovery_catalogue",
+      "availability_state": "catalogue_only",
+      "source_version": {
+        "label": "WRC E-Tool catalogue entry, published 2022; related technical report TT 916/23 published June 2023",
+        "release_or_publication_date": "2022",
+        "data_period": "Atlas layer-specific; exact source dates must be obtained from the ArcGIS item metadata",
+        "metadata_updated": null,
+        "notes": "WRC describes the SA Hydropower Atlas as an ArcGIS Online tool bringing together existing hydropower and hydropower potential in South Africa. The 2023 report links to the ArcGIS web application. A listing is not proof that every layer endpoint, data export or service remains available."
+      },
+      "spatial_scope": "South Africa",
+      "spatial_resolution": "Mixed GIS layers; item-level spatial resolution and CRS are not established by the WRC catalogue summary",
+      "temporal_scope": "WRC catalogue publication 2022; layer-specific valid periods unknown until ArcGIS item metadata are captured",
+      "temporal_resolution": "Layer-specific; not a single hydrological time series",
+      "variables": [
+        "existing hydropower assets",
+        "hydropower potential layers",
+        "conduit",
+        "run-of-river",
+        "hydrokinetic",
+        "weirs",
+        "WTW",
+        "WWTW",
+        "storage and pumped-storage screening"
+      ],
+      "license_status": {
+        "status": "not_assessed",
+        "details": "ArcGIS item-level data rights, underlying source-provider licences and export/redistribution terms must be reviewed independently. WRC catalogue access alone does not grant all underlying data rights."
+      },
+      "claim_ceiling": "Discovery catalogue for locating South African hydropower layers only. No individual layer is admitted, verified, current or suitable for project design by this record.",
+      "limitations": [
+        "The WRC catalogue summary does not provide a complete source inventory, CRS, resolution, data date or item-level licence statement.",
+        "ArcGIS layer availability and underlying source terms may differ between individual layers.",
+        "Atlas screening criteria are not project-level hydraulic or environmental feasibility."
+      ],
+      "admission_requirements": [
+        "Resolve the exact ArcGIS application/item and each feature service or raster endpoint.",
+        "Capture item IDs, owner, service URLs, layer IDs, metadata, spatial references, feature counts, edit timestamps and original source citations.",
+        "Review item-level copyright, licensing and redistribution conditions before export.",
+        "Snapshot exact layer data only after the WRC/ArcGIS custodian confirms permitted access and preserve original feature attributes without silently normalising values."
+      ],
+      "raw_snapshot_ingested": false,
+      "snapshot_digest": null
+    },
+    {
+      "source_id": "dws-water-sanitation-climate-response-strategy-pat-2025",
+      "source_name": "Climate Change Response Strategy for the Water and Sanitation Sector in South Africa",
+      "provider": "Department of Water and Sanitation, Republic of South Africa",
+      "source_url": "https://www.dws.gov.za/documents/Other/Water%20and%20Sanitation%20Sector/2025/NCC_2025_Final_01H_4%20%282%29.pdf",
+      "source_type": "sector_report",
+      "resource_families": [
+        "hydropower",
+        "cross_resource"
+      ],
+      "evidence_basis": "sector_policy_report",
+      "availability_state": "context_only",
+      "source_version": {
+        "label": "DWS Water and Sanitation Sector Climate Change Response Strategy; January 2025 publication",
+        "release_or_publication_date": "2025-01",
+        "data_period": "Policy and sector context; not a hydraulic measurement time series",
+        "metadata_updated": null,
+        "notes": "The strategy discusses water/wastewater energy efficiency and states that distributed micro-hydropower has been implemented in South Africa using pump-as-turbine systems, including potential replacement of pressure-reducing valves. It also describes energy recovery from gravity pipelines and other wastewater energy options."
+      },
+      "spatial_scope": "National South African water and sanitation sector",
+      "spatial_resolution": "National sector context; not site-specific",
+      "temporal_scope": "Published January 2025",
+      "temporal_resolution": "Policy and sector context; not a time series",
+      "variables": [
+        "water and wastewater energy consumption",
+        "existing PAT examples in South Africa",
+        "pressure-reducing valve energy-recovery opportunity",
+        "gravity-pipeline energy recovery"
+      ],
+      "license_status": {
+        "status": "not_assessed",
+        "details": "The DWS document is marked copyright reserved and requests full acknowledgement. Review reuse requirements before reproducing content or figures."
+      },
+      "claim_ceiling": "Government sector-policy context that PAT/pressure-reducing-valve energy recovery has been considered or implemented in South Africa. It does not identify the sites, measured output, present operating status or project costs.",
+      "limitations": [
+        "The strategy's PAT statement cites earlier work and is not a complete site inventory or independent performance audit.",
+        "No individual site, turbine, flow, head, capacity factor or annual energy series is admitted in this record.",
+        "The strategy notes that water and sanitation energy performance is facility-specific; treatment and delivery requirements must remain primary."
+      ],
+      "admission_requirements": [
+        "Recover the cited primary PAT case studies (including Samora et al. 2016) and identify site, operator, equipment, measured head/flow, power and operating period.",
+        "Seek permission from operators before reusing site or telemetry data.",
+        "Keep PAT presence as context until a measured operating record and equipment configuration are independently verified."
+      ],
+      "raw_snapshot_ingested": false,
+      "snapshot_digest": null
+    },
+    {
+      "source_id": "wdn-hydropower-review-2026",
+      "source_name": "Review of Hydropower Technology and Potential for Energy Recovery from Water Distribution Networks Towards Improvement of Their Sustainability",
+      "provider": "Stamos, Kogioumtzidis, Vafiadis and Tourlidakis; Energies",
+      "source_url": "https://www.mdpi.com/1996-1073/19/2/320",
+      "source_type": "research_publication",
+      "resource_families": [
+        "hydropower"
+      ],
+      "evidence_basis": "literature_review",
+      "availability_state": "context_only",
+      "source_version": {
+        "label": "Energies 2026, 19(2), 320; published 2026-01-08",
+        "release_or_publication_date": "2026-01-08",
+        "data_period": "Literature review of prior water-distribution-network hydropower studies; not a single measured field series",
+        "metadata_updated": null,
+        "notes": "The review compares conventional turbines, pump-as-turbines (PAT), low-power in-pipe harvesters and hydraulic/electric regulation strategies. It notes that PATs are attractive due to standardised mass-produced pump hardware and parts availability, despite lower peak efficiency than purpose-built large turbines; it also discusses small off-grid energy harvesting for water network monitoring and telemetry."
+      },
+      "spatial_scope": "International literature, including water distribution network case studies; not South Africa-specific site data",
+      "spatial_resolution": "Review-level synthesis; source studies have heterogeneous spatial and temporal resolution",
+      "temporal_scope": "Literature published before 2026-01-08",
+      "temporal_resolution": "Heterogeneous across studies; no unified time series",
+      "variables": [
+        "pressure head",
+        "flow rate",
+        "turbine/PAT performance",
+        "energy recovery",
+        "hydraulic regulation",
+        "energy harvesting for monitoring and telemetry"
+      ],
+      "license_status": {
+        "status": "identified_requires_review",
+        "details": "The article is open access; verify the exact CC BY 4.0 article metadata and source-study reuse rights. Do not assume the review's cited third-party figures or data are separately redistributable."
+      },
+      "claim_ceiling": "Literature synthesis and technology-selection context. Its efficiency ranges and case studies are not guarantees for a specific South African asset or device.",
+      "limitations": [
+        "The review explains that water networks have variable flow and head; a fixed operating point and constant turbine efficiency are not representative.",
+        "The cited small PAT/micro-hydro efficiency band (approximately 40-75%) is a broad literature range, not a universal design value; manufacturer maps and site measurements are required.",
+        "The review notes that small-scale energy harvesting may be more valuable for local sensors and leak detection than for grid-export revenue.",
+        "Network complexity and the need to preserve consumer service make site-specific economic and operational assessment essential."
+      ],
+      "admission_requirements": [
+        "Pin the article PDF, SHA-256, DOI and exact table/section for every efficiency or cost figure used.",
+        "Trace each quantitative performance claim to its original primary study, turbine/PAT configuration, head/flow range and test boundary.",
+        "Use matched head-flow duty profiles to compare PAT and purpose-built turbines; do not apply one peak efficiency to all timesteps.",
+        "Keep grid-export and off-grid telemetry use cases distinct, with separate power thresholds, controls and cost boundaries."
+      ],
+      "raw_snapshot_ingested": false,
+      "snapshot_digest": null
     }
   ]
 }
