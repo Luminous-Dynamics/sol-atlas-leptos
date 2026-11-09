@@ -216,6 +216,1034 @@
         "https://www.irena.org/Publications/2026/Jul/Renewable-Power-Generation-Costs-in-2025",
         "https://www.irena.org/-/media/Files/IRENA/Agency/Publication/2026/Jul/IRENA_TEC_RPGC_in_2025_2026.pdf"
       ]
+    },
+    {
+      "name": "ETHOS.RESKit",
+      "artifact": "ETHOS.RESKit global wind-power workflow",
+      "pinned_release": "Paper-specific archive: Zenodo 10.5281/zenodo.17668776 (2025); current RESKit code release v0.5.0 (2026-07-10)",
+      "companion_engine": "Python; pin exact archived paper environment separately from the current toolkit release",
+      "release_date": "2026-01-14",
+      "role": [
+        "global onshore/offshore wind power time-series modelling",
+        "GWA4 and ERA5 wind-speed bias calibration",
+        "turbine configuration and power-curve comparison",
+        "wind-power model-to-observation validation"
+      ],
+      "paper_reported_results": {
+        "mast_calibration": "213 global mast locations across 25 countries; over 8 million filtered hourly measurements; paper states South Africa is among the geographic regions with mast observations",
+        "turbine_power_validation": "More than 8 million hours from 152 turbine/wind-farm measurement sites; raw records are restricted by third-party agreements",
+        "hourly_capacity_factor_validation": {
+          "relative_mean_error": 0.056,
+          "pearson_r": 0.844,
+          "rmse": 0.196,
+          "perkins_skill_score": 0.9,
+          "cohort_note": "Paper Table 2; calibrated hourly turbine/farm capacity-factor comparison. Non-calibrated relative mean error is reported as 0.292."
+        },
+        "country_aggregate_validation": {
+          "cohort": "IEA country-level capacity/generation statistics, 2017-2021; up to 71 countries and offshore regions, with data gaps especially in Africa",
+          "main_text_global_capacity_factor": "Model 0.287 versus IEA 0.306; main text reports 6.2% relative deviation and 23.1% for the non-calibrated workflow",
+          "abstract_note": "The abstract separately states a 0.6% mean error for annual aggregate energy output; do not merge this with the main-text capacity-factor deviation without reproducing the exact metric and denominator."
+        }
+      },
+      "important_limits": [
+        "South African meteorological mast observations occur in the study's wider mast calibration geography, but the accessible article does not provide the exact site/record crosswalk needed to determine overlap for a new local holdout.",
+        "Do not use a South African WASA mast as a blind validation site until the exact mast ID, dates, heights and data overlap with the 213-mast calibration cohort are resolved.",
+        "Turbine/farm power validation is a separate dataset. The paper does not establish South African turbine-generation holdout validation; the raw power time series are restricted by third-party agreements.",
+        "The proprietary wind-farm inventory cannot be redistributed; it is obtained under a commercial licence.",
+        "The authors state the workflow is better suited to larger-scale assessments than exact single locations because ERA5/GWA4 cannot fully represent local wind conditions; diurnal, seasonal and terrain-based biases remain outside the presented correction method.",
+        "The abstract's annual aggregate 0.6% mean error is not the same metric as the detailed main-text global capacity-factor deviation (6.2%); preserve exact cohort, denominator and formula.",
+        "The current RESKit v0.5.0 release is not automatically identical to the paper-specific Zenodo archive. Pin and benchmark them separately."
+      ],
+      "pin_policy": "For paper reproduction, pin Zenodo record 10.5281/zenodo.17668776 and its exact archived files/checksums. For a current software comparator, pin immutable Git tag v0.5.0 commit b41cf859fd619c5be717af84db5502b0ac4ca3e5, Python environment lock, GWA4/ERA5 inputs, turbine-library version, correction factors and exact metric cohort.",
+      "references": [
+        "https://pmc.ncbi.nlm.nih.gov/articles/PMC12804690/",
+        "https://doi.org/10.1038/s41467-026-68337-z",
+        "https://doi.org/10.5281/zenodo.17668776",
+        "https://github.com/FZJ-IEK3-VSA/RESKit",
+        "https://github.com/FZJ-IEK3-VSA/RESKit/releases/tag/v0.5.0",
+        "https://api.github.com/repos/FZJ-IEK3-VSA/RESKit/git/refs/tags/v0.5.0"
+      ]
+    },
+    {
+      "name": "South African Hydropower Atlas",
+      "artifact": "WRC Report TT 916/23 and SAHA ArcGIS E-Tool",
+      "pinned_release": "Report TT 916/23, June 2023; E-Tool catalogue published 2022",
+      "companion_engine": null,
+      "release_date": "2023-06",
+      "role": [
+        "South African hydropower site-discovery baseline",
+        "conduit/PRS, run-of-river, hydrokinetic, weir, WTW/WWTW and pumped-storage screening taxonomy"
+      ],
+      "important_limits": [
+        "The atlas is a South African discovery/pre-feasibility reference, not a bankable project register or measured site-data archive.",
+        "Initial criteria for several types were assumed because detailed data are limited; WWTW/WTW methods explicitly relied on assumptions.",
+        "Hydrokinetic South African case studies were scarce and flow estimates may diverge substantially from actual flow.",
+        "The 31,000 MW pumped-storage estimate is based on a 12-hour/day assumption and overlapping site pairs; the report states actual potential is significantly lower.",
+        "Geological, hydrological and environmental feasibility is not established for the identified pumped-storage candidates.",
+        "Do not compare a theoretical atlas estimate with a turbine test, metered generation or connected project capacity."
+      ],
+      "pin_policy": "Pin the report PDF bytes and SHA-256, E-Tool ArcGIS item IDs, each feature/raster service ID, original layer owner, CRS, resolution, data periods and rights. Treat report-derived estimates and actual feature data separately.",
+      "references": [
+        "https://wrcwebsite.azurewebsites.net/wp-content/uploads/mdocs/TT%20916%20final%20web.pdf",
+        "https://search.wrc.org.za/reports/ada2ec32-f2c3-4703-af7f-d632d9965a90"
+      ]
+    },
+    {
+      "name": "Water-distribution-network hydropower technology review",
+      "artifact": "Energies 2026, 19(2), 320",
+      "pinned_release": "Published 2026-01-08; DOI 10.3390/en19020320",
+      "companion_engine": null,
+      "release_date": "2026-01-08",
+      "role": [
+        "PAT and in-pipe turbine technology landscape",
+        "water-distribution energy recovery architectures",
+        "pressure regulation and off-grid telemetry energy harvesting context"
+      ],
+      "important_limits": [
+        "This is a literature review, not an independent performance test of a specific South African installation.",
+        "Its 40–75% broad PAT/micro-hydro efficiency range is not a universal design curve; use exact manufacturer maps or measured tests.",
+        "The review notes variable flow/head and service preservation issues; a fixed operating point is not representative.",
+        "Small harvested power may be more useful for off-grid sensors than grid export; evaluate those service boundaries separately."
+      ],
+      "pin_policy": "Pin the article version, DOI, PDF checksum, exact table/section and underlying primary source for any quantitative statement; do not treat cited case studies as raw reusable observations.",
+      "references": [
+        "https://www.mdpi.com/1996-1073/19/2/320",
+        "https://doi.org/10.3390/en19020320"
+      ]
+    },
+    {
+      "name": "IEC pumped-storage hydropower trends",
+      "artifact": "The future of pumped storage hydropower — Technology innovation and standardization trends (2025-2035)",
+      "pinned_release": "IEC Trend Report, 2026 Edition 0.0",
+      "companion_engine": null,
+      "release_date": "2026-08-05",
+      "role": [
+        "pumped-storage technology and standardization trend context",
+        "technology and interoperability research horizon"
+      ],
+      "important_limits": [
+        "This is a trend report, not a component design standard, project approval, measured plant benchmark or site feasibility dataset.",
+        "Pumped storage is a storage asset: pumping input, generating output and round-trip losses must be kept separate from primary hydropower generation.",
+        "Do not use global deployment trends as a substitute for South African reservoir, geology, water rights or environmental assessment."
+      ],
+      "pin_policy": "Pin IEC publication identifier 115300, report edition/date and exact pages for each technical trend. Apply actual published standards separately for design/acceptance.",
+      "references": [
+        "https://webstore.iec.ch/en/publication/115300"
+      ]
+    },
+    {
+      "name": "International Hydropower Association World Hydropower Outlook",
+      "artifact": "2026 World Hydropower Outlook",
+      "pinned_release": "2026 edition",
+      "companion_engine": null,
+      "release_date": "2026",
+      "role": [
+        "global hydropower and pumped-storage deployment context",
+        "global market and development-pipeline trend comparison"
+      ],
+      "important_limits": [
+        "IHA database aggregates global industry development information; it is not a South African site-resource assessment.",
+        "Distinguish operating capacity, additions commissioned in the reporting year, projects under construction and the wider development pipeline.",
+        "Do not use pipeline capacity as an operating or bankable project."
+      ],
+      "pin_policy": "Pin the exact report PDF, database snapshot, geography, project status definition and reporting date.",
+      "references": [
+        "https://www.hydropower.org/publications/2026-world-hydropower-outlook"
+      ]
+    },
+    {
+      "name": "DWS Water and Sanitation Sector Climate Response Strategy",
+      "artifact": "Climate Change Response Strategy for Water and Sanitation Sector in South Africa",
+      "pinned_release": "January 2025",
+      "companion_engine": null,
+      "release_date": "2025-01",
+      "role": [
+        "South African water/wastewater sector energy context",
+        "PAT and PRV energy recovery policy/sector precedent"
+      ],
+      "important_limits": [
+        "The report refers to PAT examples and pressure-reducing-valve recovery opportunities but is not an operating-site register or a metered performance database.",
+        "The document is copyright reserved; full acknowledgement is required and all figure/data reuse rights must be reviewed.",
+        "It does not establish the hydraulic profile, present status, measured output or owner consent of any specific site."
+      ],
+      "pin_policy": "Pin the official DWS PDF and exact pages, cite secondary claims only as context, and trace PAT examples to primary case studies/operator data before quantitative use.",
+      "references": [
+        "https://www.dws.gov.za/documents/Other/Water%20and%20Sanitation%20Sector/2025/NCC_2025_Final_01H_4%20%282%29.pdf"
+      ]
+    },
+    {
+      "name": "IEC 60041 — hydraulic machine field acceptance",
+      "artifact": "Field acceptance tests to determine the hydraulic performance of hydraulic turbines, storage pumps and pump-turbines",
+      "pinned_release": "IEC 60041:1991, current published edition checked 2026-11-09",
+      "companion_engine": null,
+      "release_date": "1991-11-30",
+      "role": [
+        "field acceptance test method for hydraulic turbine, storage pump and pump-turbine performance",
+        "contract-guarantee verification and uncertainty-aware field test reporting"
+      ],
+      "important_limits": [
+        "The standard defines test arrangements and calculation/reporting methods; it does not provide an unmeasured project's resource estimate, design approval or water-use authorisation.",
+        "A software trajectory is not a field acceptance test."
+      ],
+      "pin_policy": "Pin IEC publication and corrigenda, exact test class, metrology, boundary, instrument calibration, uncertainty budget and test report.",
+      "references": [
+        "https://webstore.iec.ch/"
+      ]
+    },
+    {
+      "name": "IEC 60193 — hydraulic machine model acceptance",
+      "artifact": "Hydraulic turbines, storage pumps and pump-turbines — Model acceptance tests",
+      "pinned_release": "IEC 60193:2019 Edition 3.0",
+      "companion_engine": null,
+      "release_date": "2019",
+      "role": [
+        "laboratory model acceptance and prototype-transposition test protocol for hydraulic machines"
+      ],
+      "important_limits": [
+        "Primary scope is models of machines above 5 MW unit power or 3 m reference diameter; application to smaller units is not generally justified except by agreement.",
+        "Does not replace field acceptance of an installed small-hydro unit or structural/mechanical qualification."
+      ],
+      "pin_policy": "Pin edition, model geometry, test rig calibration, scale/transposition method and purchaser/supplier agreement where applied below normal scope.",
+      "references": [
+        "https://webstore.iec.ch/en/publication/60951"
+      ]
+    },
+    {
+      "name": "IEC 61362 — hydraulic turbine governing systems",
+      "artifact": "Guidelines to specification of hydraulic turbine governing systems",
+      "pinned_release": "IEC 61362:2024 Edition 3.0",
+      "companion_engine": null,
+      "release_date": "2024-09-17",
+      "role": [
+        "turbine governing-system specification and performance requirements",
+        "speed, power, water-level, opening/flow control and emergency shutdown specification"
+      ],
+      "important_limits": [
+        "This is a specification guideline, not an acceptance-test standard; acceptance procedures and guarantees are outside its scope.",
+        "Governing specification is not a complete water-service/surge safety case."
+      ],
+      "pin_policy": "Pin edition and governing-system data sheets, actuator-energy provisions, emergency shutdown and required guarantee/test documents.",
+      "references": [
+        "https://webstore.iec.ch/en/publication/72909"
+      ]
+    },
+    {
+      "name": "IEC 60545 — commissioning and operation",
+      "artifact": "Guidelines for commissioning and operation of hydraulic turbines, pump-turbines and storage pumps",
+      "pinned_release": "IEC 60545:2021 Edition 2.0",
+      "companion_engine": null,
+      "release_date": "2021-06-23",
+      "role": [
+        "commissioning and operation procedures for hydraulic machines",
+        "operational test and machine handover context"
+      ],
+      "important_limits": [
+        "Commissioning and operation guidelines do not establish ongoing maintenance, site rights, ecological acceptability or project safety by themselves."
+      ],
+      "pin_policy": "Pin edition and commissioning plan, tests, operational settings, machine configuration and handover record.",
+      "references": [
+        "https://webstore.iec.ch/en/publication/64109"
+      ]
+    },
+    {
+      "name": "IEC 62006 — small hydro acceptance testing",
+      "artifact": "Hydraulic machines — Acceptance tests of small hydroelectric installations",
+      "pinned_release": "IEC 62006:2010 Edition 1.0 published; Edition 2 is a development project as of 2026-11-09",
+      "companion_engine": null,
+      "release_date": "2010",
+      "role": [
+        "small-hydro field acceptance, safety approval, trial operation, reliability, cavitation/noise/vibration and performance verification"
+      ],
+      "important_limits": [
+        "IEC 62006:2010 applies to small hydro units up to about 15 MW and reference diameter around 3 m; it defines A/B/C acceptance test classes.",
+        "A second edition project is under development; do not claim that a draft or committee project is a published standard."
+      ],
+      "pin_policy": "Use published IEC 62006:2010 for current test planning unless a formally published replacement is confirmed. Track Edition 2 project separately and recheck its publication status before use.",
+      "references": [
+        "https://webstore.iec.ch/",
+        "https://iss.rs/en/project/show/iec%3Aproj%3A138148",
+        "https://iss.rs/en/project/show/iss%3Aproj%3A35001"
+      ]
+    },
+    {
+      "name": "Open Water Analytics EPANET",
+      "artifact": "OWA-EPANET network hydraulic analysis engine",
+      "pinned_release": "v2.3.5; immutable tag commit 444725fbf16ab28b0470ef0ed281dc4849d49583; release published 2026-02-20",
+      "companion_engine": "EPANET Toolkit / C API",
+      "release_date": "2026-02-20",
+      "role": [
+        "Current open-source distribution-network hydraulic baseline",
+        "Pressure-driven demand and FAVAD pressure-dependent leakage analysis",
+        "Multi-node pressure/flow, valve and network flow-balance simulation"
+      ],
+      "important_limits": [
+        "EPANET is a network hydraulic engine, not a native PAT electrical-conversion model or a certified transient water-hammer safety solver.",
+        "EPANET 2.3 introduced FAVAD pressure-dependent pipe leakage, a Positional Control Valve, independent pressure-unit support and a Flow Balance report; v2.3.5 is a patch release fixing flow-unit conversion for Generic curves and mixed-unit behavior.",
+        "Do not represent a PAT only as a PRV and call its electrical output physically validated. A calibrated hydraulic characteristic may be represented in the network only if it reproduces the declared PAT hydraulic boundary; electrical conversion remains a separate evidence-backed model.",
+        "No South African network site, leakage parameter or operating data is supplied by EPANET itself."
+      ],
+      "pin_policy": "Pin OWA EPANET tag v2.3.5 and commit 444725fbf16ab28b0470ef0ed281dc4849d49583; record compiler/build flags, toolkit library digest, solver settings, units, input INP digest, demand/leakage/roughness parameters and complete report bytes.",
+      "references": [
+        "https://github.com/OpenWaterAnalytics/EPANET/releases/tag/v2.3.5",
+        "https://github.com/OpenWaterAnalytics/EPANET/releases",
+        "https://github.com/OpenWaterAnalytics/EPANET"
+      ]
+    },
+    {
+      "name": "Open Water Analytics EPANET historical replay",
+      "artifact": "OWA-EPANET network hydraulic analysis engine for historical study reproduction",
+      "pinned_release": "v2.2; immutable tag commit 4d8d82ddc260fce216af9321fc3d9a4646ac6827; release published 2019-12-10",
+      "companion_engine": "EPANET Toolkit / C API",
+      "release_date": "2019-12-10",
+      "role": [
+        "Exact historical engine replay for the Cornubia 2022 PAT feasibility paper",
+        "Matched reproduction of EPANET 2.2 demand/pressure model behavior"
+      ],
+      "important_limits": [
+        "This is a historical reproduction pin, not the contemporary default engine.",
+        "The 2022 Cornubia paper explicitly used EPANET 2.2. Do not substitute 2.3.5 and label the result an exact reproduction.",
+        "The paper represented PAT sites through PRV proxies and calculated PAT energy separately; reproduction of that method must preserve its limitations.",
+        "The original Cornubia network data and rights must be independently resolved before claiming exact reproduction."
+      ],
+      "pin_policy": "Pin OWA EPANET tag v2.2 and commit 4d8d82ddc260fce216af9321fc3d9a4646ac6827; bind the original Cornubia study network, inputs, controls, demand profiles and every annualization assumption before a result can be called reproduced.",
+      "references": [
+        "https://github.com/OpenWaterAnalytics/EPANET/releases/tag/v2.2",
+        "https://doi.org/10.3390/w14071150"
+      ]
+    },
+    {
+      "name": "Cornubia PAT feasibility study",
+      "artifact": "Feasibility Analysis of Energy Recovery Using PATs in Water Distribution Networks",
+      "pinned_release": "Water 2022, 14(7), 1150; DOI 10.3390/w14071150; published 2022-04-02",
+      "companion_engine": "OWA-EPANET 2.2",
+      "release_date": "2022-04-02",
+      "role": [
+        "South African water-distribution PAT placement baseline",
+        "Matched Cornubia network pressure/leakage/energy model reproduction"
+      ],
+      "important_limits": [
+        "Five proposed PATs are modelled at 166.31 kW total candidate power; estimated leakage savings are 45.59 kL/month (18.16%). These are simulation outputs, not measured plant performance.",
+        "The paper used PRV proxies within EPANET 2.2 because the engine did not accurately model PAT components, then calculated output using pressure-drop/flow and empirical BEP assumptions.",
+        "Assumed operating windows (12 hours/day and 335 days/year) must be preserved during exact reproduction.",
+        "The network model and input data are not automatically open/redistributable just because the article is CC BY 4.0."
+      ],
+      "pin_policy": "Pin the exact article/PDF, EPANET 2.2 commit, full network input, demand chronology, PAT pump curves/BEP equations, pressure target, PAT operating hours and leakage model. Preserve all assumptions in the report.",
+      "references": [
+        "https://doi.org/10.3390/w14071150",
+        "https://www.mdpi.com/2073-4441/14/7/1150"
+      ]
+    },
+    {
+      "name": "UKZN PRV/PAT network optimization dissertation",
+      "artifact": "Development of an automation model for leakage reduction and energy harnessing through optimised placement and setting of PRVs and PATs in WDNs",
+      "pinned_release": "University of KwaZulu-Natal master's dissertation, 2021",
+      "companion_engine": "MATLAB / EPANET",
+      "release_date": "2021",
+      "role": [
+        "South African Cornubia and Pat Marshal PRV/PAT siting and settings comparator",
+        "Leakage-reduction and candidate PAT power model reproduction"
+      ],
+      "important_limits": [
+        "Reported Cornubia and Pat Marshal capacities and annual energy are modelled estimates, not metered electricity.",
+        "Cornubia overlaps the 2022 peer-reviewed Cornubia study; the two must not be treated as independent replications until network geometry, demand and candidate sites are crosswalked.",
+        "Public repository rights are stated as all rights reserved unless otherwise indicated; do not redistribute the dissertation or extract fixtures without permission."
+      ],
+      "pin_policy": "Pin repository item 56056829-50d7-4258-b11e-e93233126edf, exact PDF and checksum, MATLAB/EPANET versions, network models, demand profiles, optimization setup and annualization assumptions.",
+      "references": [
+        "https://researchspace.ukzn.ac.za/items/56056829-50d7-4258-b11e-e93233126edf"
+      ]
+    },
+    {
+      "name": "Jowitt WDN PAT pressure-management study",
+      "artifact": "Pressure management and energy production approaches in urban water distribution networks using pumps as turbines",
+      "pinned_release": "Energy Reports 14, December 2025, pp. 2593-2606; DOI 10.1016/j.egyr.2025.09.034",
+      "companion_engine": "Jowitt benchmark WDN; DDA and PDA extended-period simulations",
+      "release_date": "2025-12",
+      "role": [
+        "PAT count/placement and discharge-selection strategy comparison",
+        "Demand-driven versus pressure-driven WDN method comparison",
+        "Leakage-pressure-energy trade-off comparator"
+      ],
+      "important_limits": [
+        "The study uses the Jowitt benchmark network, not a South African utility network.",
+        "Its reported one-to-five PAT energy totals differ between DDA and PDA; exact units, periods, scenarios and assumptions must be retained.",
+        "The article reports higher leakage reduction and lower pressures for PRVs in the tested configurations, so energy and water-loss results must remain separate.",
+        "Data are available on request rather than as a public matched validation corpus."
+      ],
+      "pin_policy": "Pin article/PDF, exact Jowitt network data and demand pattern, PAT model, DDA/PDA settings, 24-hour horizon, PAT count, discharge selection and reported metric definitions.",
+      "references": [
+        "https://doi.org/10.1016/j.egyr.2025.09.034"
+      ]
+    },
+    {
+      "name": "Multi-node PAT real-time control",
+      "artifact": "Multi-Node real time control for pressure regulation and energy recovery in WDNs using Pump-as-Turbines",
+      "pinned_release": "Control Engineering Practice 169, April 2026, Article 106777; DOI 10.1016/j.conengprac.2026.106777",
+      "companion_engine": "Pressure-driven unsteady-flow model; Kalman filter + tracking MPC + PAT actuator-settings optimiser",
+      "release_date": "2026-04",
+      "role": [
+        "Current multi-node PAT pressure-control research comparator",
+        "Kalman state/disturbance estimation and tracking MPC benchmark",
+        "Coordinated pressure and energy-recovery controller method"
+      ],
+      "important_limits": [
+        "Reported results are closed-loop simulations, not a field controller deployment.",
+        "The article uses an existing WDN and pressure-driven unsteady-flow model; do not compare its network controller directly with a one-conduit steady-state power calculator.",
+        "No South African field validation is established by the paper.",
+        "A controller method does not confer OT write authority, operational approval or water-service safety certification."
+      ],
+      "pin_policy": "Pin the exact paper/PDF, supplementary files, network/measurement data and method implementation; reproduce the Kalman filter, multi-output tracking MPC and actuator-settings optimiser before numerical comparison.",
+      "references": [
+        "https://doi.org/10.1016/j.conengprac.2026.106777",
+        "https://www.sciencedirect.com/science/article/pii/S0967066126000213"
+      ]
+    },
+    {
+      "name": "EPANET-RS native Rust hydraulic solver",
+      "artifact": "epanet-rs hydraulic solver reimplementation",
+      "pinned_release": "Crates.io epanet-rs 0.2.3, published 2026-07-02",
+      "companion_engine": "OWA-EPANET 2.3.5 reference oracle",
+      "release_date": "2026-07-02",
+      "role": [
+        "Experimental Rust hydraulic engine for differential parity",
+        "Possible parallel Monte Carlo scenario solver"
+      ],
+      "important_limits": [
+        "Upstream describes numerical parity as a design goal, not a completed independent qualification.",
+        "Upstream claims up to 5x parallel speedup only for supported extended-period networks without tanks or controls; reproduce on identical inputs.",
+        "The 0.2.3 feature checklist marks leakage, rules, energy and quality as not implemented. Do not substitute for OWA where pipe leakage/FAVAD is required.",
+        "The API is described as partially compatible with OWA. Unsupported cases must fall back to the reference solver."
+      ],
+      "pin_policy": "Pin exact crates.io version and Cargo.lock checksum; separately record the inspected source revision and the OWA reference commit. Retain the same INP inputs and options for differential comparison.",
+      "references": [
+        "https://crates.io/crates/epanet-rs/0.2.3",
+        "https://docs.rs/crate/epanet-rs/0.2.3",
+        "https://github.com/Vitens/epanet-rs/tree/fee0d03b11ed71a6da7366f07290d6e44556add4"
+      ]
+    },
+    {
+      "name": "Rust safe OWA EPANET API wrapper",
+      "artifact": "epanet 0.3.0 safe Rust wrapper around the OWA EPANET 2.3 C API",
+      "pinned_release": "Crates.io/docs.rs epanet 0.3.0; underlying epanet-sys 2.3.0",
+      "companion_engine": "OpenWaterAnalytics EPANET C toolkit",
+      "release_date": null,
+      "role": [
+        "Safe Rust interface to the official OWA EPANET C engine",
+        "Extended-period hydraulic simulation and node/link result retrieval"
+      ],
+      "important_limits": [
+        "This wraps the OWA C solver; it is not an independent hydraulic solver.",
+        "The EPANET project handle is Send but not Sync; a project instance requires synchronization for shared concurrent access.",
+        "The lower-level epanet-sys crate builds the C submodule with CMake and bindgen and requires a C compiler and libclang.",
+        "Cross-platform builds and exact compatibility with the pinned 2.3.5 source must be verified."
+      ],
+      "pin_policy": "Pin epanet 0.3.0 and transitive dependencies; pin exact OWA EPANET C engine tag/commit, native build configuration and platform binary/source digests.",
+      "references": [
+        "https://docs.rs/epanet/0.3.0/epanet/",
+        "https://docs.rs/epanet-sys/2.3.0/epanet_sys/",
+        "https://github.com/OpenWaterAnalytics/EPANET/releases/tag/v2.3.5"
+      ]
+    },
+    {
+      "name": "Antalya full-scale PAT water-network operation",
+      "artifact": "Evaluation of performance and environmental benefits of a full-scale pump as turbine system in Antalya water distribution network",
+      "pinned_release": "Water Supply 2018, 18(1), 130–141; DOI 10.2166/ws.2017.087",
+      "companion_engine": null,
+      "release_date": "2018",
+      "role": [
+        "full-scale PAT/PRV bypass field operation",
+        "online flow, pressure and power monitoring",
+        "real-world pressure management and energy recovery"
+      ],
+      "important_limits": [
+        "Initial operational evidence covers approximately five months, not multi-year fleet reliability.",
+        "Published abstract reports 130–300 m3/h and 0.7–8.4 kWh for about 100 kPa pressure reduction, but the abstract does not state the energy interval; do not convert to kW or annual energy without the full paper.",
+        "Average efficiency 60% and 53-day / 1.8-month payback are case-specific; payback uses study financial/environmental assumptions.",
+        "2017 ASCE publication DOI 10.1061/(ASCE)WR.1943-5452.0000795 describes the same Antalya installation; do not treat it as an independent second plant."
+      ],
+      "pin_policy": "Pin the IWA Water Supply article, exact operational period, SCADA sampling interval, PAT/PRV topology, meter boundaries, uncertainty and any supplementary time series. Link the 2017 ASCE paper to the same installation identity.",
+      "references": [
+        "https://doi.org/10.2166/ws.2017.087",
+        "https://doi.org/10.1061/(ASCE)WR.1943-5452.0000795",
+        "https://iwaponline.com/ws/article-abstract/18/1/130/38216/Evaluation-of-performance-and-environmental"
+      ]
+    },
+    {
+      "name": "Manservigi et al. PAT regulation and 16 experimental turbomachine maps",
+      "artifact": "Hydraulic and electrical regulations of pumps as turbines for energy recovery in water distribution networks: Energy and economic analysis",
+      "pinned_release": "Cambridge Prisms: Water; published online 2025-06-16; DOI 10.1017/wat.2025.10004",
+      "companion_engine": null,
+      "release_date": "2025-06-16",
+      "role": [
+        "experimental PAT curves for 16 turbomachines",
+        "hydraulic versus electrical regulation comparison",
+        "real-world WDN techno-economic selection"
+      ],
+      "important_limits": [
+        "The 16 machine characteristic curves are experimental component evidence; the Northern Italy WDN integration is a model/case evaluation, not 16 commissioned field PATs.",
+        "The network serves approximately 5,000 users in Northern Italy and is not a South African validation site.",
+        "The paper reports 44.1% of available network hydraulic energy recoverable for its selected candidate, maximum investment €24,500, LCOE €74–180/MWh for hydraulic regulation and €269/MWh for electrical regulation under its case assumptions.",
+        "Electrical regulation bypasses the selected PAT in 72.4% of cases in the reported scenario; hydraulic/electrical operating policy and bypass losses materially affect recovery.",
+        "Article reuse licence is CC BY-NC; non-commercial reuse only, with commercial permission required."
+      ],
+      "pin_policy": "Pin article PDF/DOI, the exact 16 turbine-mode characteristic curves, measurement boundary and uncertainty. Reproduce the case study separately from the experimental curves; preserve non-commercial licence restrictions.",
+      "references": [
+        "https://doi.org/10.1017/wat.2025.10004",
+        "https://www.cambridge.org/core/journals/cambridge-prisms-water/article/hydraulic-and-electrical-regulations-of-pumps-as-turbines-for-energy-recovery-in-water-distribution-networks-energy-and-economic-analysis/11A8E6728AE92434D1A085B84378FC64"
+      ]
+    },
+    {
+      "name": "Pugliese et al. PAT test-rig characterization",
+      "artifact": "Experimental characterization of two Pumps As Turbines for hydropower generation",
+      "pinned_release": "Renewable Energy 99 (2016), 180–187; DOI 10.1016/j.renene.2016.06.051",
+      "companion_engine": null,
+      "release_date": "2016-12",
+      "role": [
+        "laboratory characterization of two pumps in turbine mode",
+        "comparison of experimental PAT curves to theoretical pump-to-turbine conversion models"
+      ],
+      "important_limits": [
+        "Only two pump configurations are described in the abstract; no universal pump-to-turbine conversion curve follows.",
+        "The paper notes the lack of manufacturer reverse-mode information and limited laboratory campaigns as an unresolved prediction problem.",
+        "Exact maps, test uncertainty and operating domains require full-paper data extraction."
+      ],
+      "pin_policy": "Pin exact pump identities, test-rig geometry, head, flow, rotational speed, torque/power, test uncertainty and original characteristic-curve tables before using the data.",
+      "references": [
+        "https://doi.org/10.1016/j.renene.2016.06.051",
+        "https://www.sciencedirect.com/science/article/pii/S0960148116305754"
+      ]
+    },
+    {
+      "name": "Parra et al. intelligent PAT/PRV pressure-control experiment",
+      "artifact": "Intelligent pressure management by pumps as turbines in water distribution systems: results of experimentation",
+      "pinned_release": "Water Supply 2018, 18(3), 778–789; DOI 10.2166/ws.2017.154",
+      "companion_engine": null,
+      "release_date": "2018-06",
+      "role": [
+        "laboratory PAT+PRV pressure modulation under variable discharge",
+        "critical-node pressure tracking",
+        "comparison with conventional PRV water-saving baseline"
+      ],
+      "important_limits": [
+        "Study combines hydraulic modelling and extensive experimentation for a German case; it is not a South African full-scale field trial.",
+        "2.3 kW is reported as a full-load maximum and 40% as maximum total net system efficiency; neither should be treated as sustained average output.",
+        "The up-to-16% water savings are relative to the tested conventional PRV setup and demand profile, not a universal leakage reduction.",
+        "Seasonal flow/pressure variability, investment and operational suitability require site-level analysis."
+      ],
+      "pin_policy": "Pin the full article/supplement, PAT model, variable-discharge test sequence, critical-point pressure target, flow/power metrology and exact net-system efficiency boundary.",
+      "references": [
+        "https://doi.org/10.2166/ws.2017.154",
+        "https://iwaponline.com/ws/article-abstract/18/3/778/38286/Intelligent-pressure-management-by-pumps-as"
+      ]
+    },
+    {
+      "name": "WRC Queenswood PAT pilot — measured point observations",
+      "artifact": "A High Level Scoping Investigation into the Potential of Energy Saving and Production/Generation in the Supply of Water Through Pressurised Conduits",
+      "pinned_release": "WRC Report KV 238/10, April 2010",
+      "companion_engine": null,
+      "release_date": "2010-04",
+      "role": [
+        "South African PAT pilot point-measurement reference",
+        "Queenswood measured flow/head/electrical output known-point reconstruction"
+      ],
+      "important_limits": [
+        "Report Table i contains five time-stamped observations, with measured output 2.323–4.521 kW at 27.55–32.49 L/s and 25.04–30.94 m reported head drops.",
+        "Only five point observations; no continuous duty cycle, seasonal availability or annual generation evidence.",
+        "The report describes the pilot as not optimized; reverse-mode characteristics were estimated/provided by the pump manufacturer rather than established as a fully characterized PAT map.",
+        "The 2014 Tshwane article describes this same Queenswood installation; it is not a second independent field installation.",
+        "One WRC table heading uses 'energy' where the reported values are watts; preserve measured power units and do not reinterpret as kWh."
+      ],
+      "pin_policy": "Pin the WRC report PDF and Table i; recover raw test logs, meter calibration, time intervals, sensor locations and exact head boundary from the University of Pretoria/Tshwane custodians. Keep the 2014 Queenswood citation linked to this same installation ID.",
+      "references": [
+        "https://www.wrc.org.za/wp-content/uploads/mdocs/KV%20238-10.pdf",
+        "https://doi.org/10.1016/j.jup.2014.06.006"
+      ]
+    },
+    {
+      "name": "Tshwane Pierre van Ryneveld 15 kW conduit hydro pilot",
+      "artifact": "Conduit-hydropower potential in the City of Tshwane water distribution system: A discussion of potential applications, financial and other benefits",
+      "pinned_release": "Journal of the South African Institution of Civil Engineering, Vol. 56 No. 3, October 2014",
+      "companion_engine": null,
+      "release_date": "2014-10",
+      "role": [
+        "South African municipal conduit-hydropower installation",
+        "Cross-flow turbine / synchronous generator on existing water supply infrastructure",
+        "Generator frequency/load rejection/PRV response fault-case evidence"
+      ],
+      "important_limits": [
+        "The paper documents three field experiments and a 29 November 2011 launch, with a cross-flow turbine and synchronous generator; approximately 15 kW is a maximum capacity depending on head/flow, not an annual average.",
+        "Queenswood and Pierre van Ryneveld are distinct installations; Queenswood is the WRC KV 238/10 pilot and must not be double counted.",
+        "Authors report generator frequency control, load rejection, PRV hunting, variable water supply and manual operation as issues requiring improvement.",
+        "National/Tshwane theoretical MWh figures are preliminary screening potential, not measured output.",
+        "Current operating status and raw multi-year power/flow data are not established."
+      ],
+      "pin_policy": "Pin the SciELO article, exact site identity, three experiment conditions and launch evidence. Obtain the original Tshwane operational logs and permission before using any telemetry.",
+      "references": [
+        "https://www.scielo.org.za/scielo.php?pid=S1021-20192014000300001&script=sci_arttext"
+      ]
+    },
+    {
+      "name": "Drakenstein Leliefontein bidirectional municipal PAT station",
+      "artifact": "Leliefontein Pump-As-Turbine Station",
+      "pinned_release": "IMESA 84th Conference Proceedings, 17–19 November 2021, Paper 17",
+      "companion_engine": "SCADA + bidirectional power meter + active-front-end variable-speed drives",
+      "release_date": "2021-11",
+      "role": [
+        "South African bidirectional pump/PAT station",
+        "Grid import/export and SCADA instrumentation reference",
+        "Pumping-versus-generating net-energy accounting"
+      ],
+      "important_limits": [
+        "The paper reports the installation operating since June 2018, with bidirectional operation, active-front-end drives, actuated valves, grid protection, power metering and SCADA.",
+        "320 MWh/year and 9.9 GWh over 2018–2041 are estimates, not an admitted independently audited interval-meter series.",
+        "The paper also gives cumulative numbers of 271,236 MWh generated and 53,577 MWh consumed which are inconsistent with those annual/lifetime estimates; treat their units as unresolved and do not use as MWh without confirmation.",
+        "The station serves both pumping and generation roles; calculate net energy benefit after pumping consumption and parasitic loads.",
+        "Raw SCADA/meter exports, calibration, sample intervals and current operating status are not supplied in the paper."
+      ],
+      "pin_policy": "Pin the IMESA paper, request Drakenstein SCADA and bidirectional-meter exports with calibration certificates, import/export registers, timestamp granularity and pump/turbine mode status. Resolve the conflicting cumulative units with the authors/municipality before benchmarking.",
+      "references": [
+        "https://researchspace.csir.co.za/bitstream/handle/10204/12279/Steyn_2021.pdf"
+      ]
+    },
+    {
+      "name": "South African low-enthalpy geothermal prospectivity study",
+      "artifact": "South Africa's geothermal energy hotspots inferred from subsurface temperature and geology",
+      "pinned_release": "South African Journal of Science 113(11/12), 2017; DOI 10.17159/sajs.2017/20170092",
+      "companion_engine": null,
+      "release_date": "2017-11-29",
+      "role": [
+        "South African geothermal geology and low-enthalpy prospectivity context",
+        "Geothermal exploration evidence gap baseline"
+      ],
+      "important_limits": [
+        "The study combines available subsurface temperature and heat-flow measurements with solute geothermometry and geology; it is not a proven power reservoir.",
+        "The paper explicitly calls for new temperature measurements and structural, hydrogeological and economic investigations.",
+        "Low-enthalpy direct heat is not the same use case as high-temperature electricity generation."
+      ],
+      "pin_policy": "Pin article and underlying observation references, well depths, temperature measurements, geochemistry, date and uncertainty. Preserve regional prospectivity as an exploration lead, not proven reserve.",
+      "references": [
+        "https://doi.org/10.17159/sajs.2017/20170092"
+      ]
+    },
+    {
+      "name": "South African marine renewable resource and spatial-planning context",
+      "artifact": "Marine Spatial Planning National Data: Uses and Interests — Marine Renewable Energy",
+      "pinned_release": "DFFE marine spatial planning report, section 3.7.4; published circa 2021",
+      "companion_engine": null,
+      "release_date": "2021",
+      "role": [
+        "South African wave/current/offshore wind/OTEC resource context",
+        "Tidal-range suitability negative control",
+        "Marine spatial planning and consent context"
+      ],
+      "important_limits": [
+        "The report cites theoretical coastal wave power locally up to 100 kW/m; this is not device-captured energy or P90 yield.",
+        "It states that South African tidal ranges are too small for appreciable tidal-range power; this is distinct from Agulhas Current extraction and wave energy.",
+        "It says early assessment had not identified project-ready sites and flags local industry, cost and regulatory uncertainty."
+      ],
+      "pin_policy": "Pin report version, spatial layers and underlying measurement/hindcast sources; do not treat national-scale resource statements as a project site or environmental permit.",
+      "references": [
+        "https://www.dffe.gov.za/sites/default/files/reports/research/oceans/marinespatialplanning_nationaldata.pdf"
+      ]
+    },
+    {
+      "name": "Fervo Cape Station GeoBlock 1 commercial EGS operation",
+      "artifact": "Fervo Energy Q3 2026 results and Cape Station GeoBlock 1 commercial-operation milestone",
+      "pinned_release": "Company Q3 2026 release published 2026-11-09; GeoBlock 1 COD 2026-09-30",
+      "companion_engine": null,
+      "release_date": "2026-11-09",
+      "role": [
+        "Current commercial EGS deployment comparator",
+        "33 MW net GeoBlock commercial operation and PPA delivery reference"
+      ],
+      "important_limits": [
+        "The 33 MW net output and status are company-reported; public release does not include raw third-party-audited interval meter data.",
+        "A 396 MW future Google offtake and optional expansion are future delivery commitments, not currently operating capacity.",
+        "Utah geothermal, permitting, drilling supply chain, financing and PPA context do not transfer to South Africa."
+      ],
+      "pin_policy": "Pin company release and date. Independently obtain net meter series, availability, parasitic loads, wellfield decline, drilling and surface plant costs before treating results as verified operating performance.",
+      "references": [
+        "https://fervoenergy.gcs-web.com/news-releases/news-release-details/fervo-energy-reports-third-quarter-2026-results",
+        "https://fervoenergy.gcs-web.com/news-releases/news-release-details/fervo-energy-declares-commercial-operation-cape-station-ahead"
+      ]
+    },
+    {
+      "name": "Geothermal global experience-rate dataset and cost-learning analysis",
+      "artifact": "Experience rates of current and future geothermal power technologies",
+      "pinned_release": "iScience, published 2026-08-21; DOI 10.1016/j.isci.2026.117113",
+      "companion_engine": null,
+      "release_date": "2026-08-21",
+      "role": [
+        "Geothermal historical cost-learning comparator",
+        "Hydrothermal vs EGS/closed-loop evidence boundary"
+      ],
+      "important_limits": [
+        "Global hydrothermal experience rate of approximately -20% is a historical study result, not a forecast for every geothermal project.",
+        "Country experience rates vary substantially; global averages can hide local learning and institutional differences.",
+        "EGS and closed-loop technologies have much shorter commercial histories and weaker cost-learning evidence."
+      ],
+      "pin_policy": "Pin source dataset and cost-normalization methods; retain country and technology classes separately. Treat EGS/closed-loop cost trajectories as uncertain, not a direct continuation of hydrothermal history.",
+      "references": [
+        "https://doi.org/10.1016/j.isci.2026.117113"
+      ]
+    },
+    {
+      "name": "Perovskite-silicon tandem manufacturing and stability research",
+      "artifact": "Scalable ambient fabrication of single-junction and perovskite–silicon tandem solar cells",
+      "pinned_release": "Nature Sustainability, published 2026-08-13",
+      "companion_engine": null,
+      "release_date": "2026-08-13",
+      "role": [
+        "Advanced PV laboratory efficiency comparator",
+        "Ambient blade-coated process and early module-scale stability reference"
+      ],
+      "important_limits": [
+        "The paper reports a 33.0% certified tandem cell, 26.5% certified single-junction cell and 23.2% module; these are different device boundaries.",
+        "The 1,200-hour light-soaking retention is a laboratory condition, not a 25-year field warranty.",
+        "Factory yield, module area, throughput, capex, bankability, outdoor degradation and end-of-life lead management remain unresolved."
+      ],
+      "pin_policy": "Pin article and supplementary data. Compare cell and module separately; require independent IEC/ISOS testing, scale yield, field degradation, encapsulation, lead containment and recycling before commercial product claims.",
+      "references": [
+        "https://www.nature.com/articles/s41893-026-01916-6"
+      ]
+    },
+    {
+      "name": "Low-head hydropower full-scale validation gap review",
+      "artifact": "Full-scale validation gaps and opportunities for low-head hydropower: a review and perspective",
+      "pinned_release": "Sustainable Energy Technologies and Assessments 93, article 105218; September 2026",
+      "companion_engine": null,
+      "release_date": "2026-09",
+      "role": [
+        "Low-head hydro technology validation and test-rig capability comparison",
+        "Retired/underused hydraulic infrastructure as potential full-scale test bed"
+      ],
+      "important_limits": [
+        "U.S. test-facility flow capability figures are a U.S. case study, not South African test-facility capability.",
+        "The article is a review/perspective, not a turbine test result or a site-specific resource study.",
+        "Fish passage, sediment continuity and water quality require independent field evidence."
+      ],
+      "pin_policy": "Pin article, reviewed facility capability data and turbine classes. Perform a separate South African test-site access, head/flow, safety and environmental capability audit.",
+      "references": [
+        "https://doi.org/10.1016/j.seta.2026.105218"
+      ]
+    },
+    {
+      "name": "Shallow-water hydrokinetic design and validation review",
+      "artifact": "Shallow-Water Hydrokinetic Turbines: A Critical Systematic Review of Design Parameters, Performance Validation, and Deployment Challenges",
+      "pinned_release": "Journal of Sustainable Development of Energy, Water and Environment Systems 14(3), 2026; DOI 10.13044/j.sdewes.d14.0715",
+      "companion_engine": null,
+      "release_date": "2026-09-14",
+      "role": [
+        "Hydrokinetic cross-flow and floating-water-wheel performance comparator",
+        "Laboratory-to-field scale-effect and uncertainty benchmark"
+      ],
+      "important_limits": [
+        "The reported 15–45% laboratory-to-field degradation applies to reviewed shallow-water hydrokinetic devices, not automatically to pressurized conduit PATs.",
+        "Cross-flow turbine power coefficients depend on blockage, depth and free-surface assumptions.",
+        "The review characterizes shallow-water hydrokinetics as niche in its reviewed market context, not a low-cost general substitute for solar."
+      ],
+      "pin_policy": "Pin review and included device evidence. Keep power coefficient, head-based turbine efficiency and net electrical efficiency distinct; test field/scale derating for the exact product family.",
+      "references": [
+        "https://doi.org/10.13044/j.sdewes.d14.0715"
+      ]
+    },
+    {
+      "name": "Compressed-air energy storage and thermal integration review",
+      "artifact": "Technologies and prospects for compressed air energy storage",
+      "pinned_release": "Nature Reviews Clean Technology 2, published 2026-02-25",
+      "companion_engine": null,
+      "release_date": "2026-02-25",
+      "role": [
+        "Long-duration mechanical storage comparator",
+        "Adiabatic CAES / thermal-storage integration and part-load performance"
+      ],
+      "important_limits": [
+        "The 50–70% round-trip efficiency range is a broad review value dependent on system configuration, not a guarantee for a new project.",
+        "Geological reservoir, sealing, fatigue, thermal retention and compressor/expander part-load maps are site- and design-specific.",
+        "Do not compare storage-level USD/kWh with generator LCOE without duration, power, round-trip losses and delivered-service boundary."
+      ],
+      "pin_policy": "Pin review and demonstration dataset; model compression, thermal storage, expansion, parasitics, pressure, cycling and seasonal standby on matched duty with other storage technologies.",
+      "references": [
+        "https://www.nature.com/articles/s44359-026-00150-9"
+      ]
+    },
+    {
+      "name": "European marine renewable levelized-cost and deployment comparator",
+      "artifact": "Marine Renewable Energy — EU Blue Economy Observatory",
+      "pinned_release": "European Commission Blue Economy Observatory page, updated 2026",
+      "companion_engine": null,
+      "release_date": "2026",
+      "role": [
+        "Tidal-stream and wave LCOE market comparator",
+        "Marine technology commercial maturity and CfD reference"
+      ],
+      "important_limits": [
+        "Published European LCOE ranges are EUR 110–480/MWh for tidal stream and EUR 160–750/MWh for wave; these are broad European technology/project ranges, not South African costs.",
+        "Flowatt reference prices and UK CfD strike prices are jurisdiction-specific and include policy/contract context.",
+        "Marine technology LCOE is highly deployment-, resource-, survivability- and finance-dependent."
+      ],
+      "pin_policy": "Pin page revision/date and the underlying IRENA/OceanSET/auction source definitions. Preserve EUR year, technology maturity, project scope and contract assumptions.",
+      "references": [
+        "https://blue-economy-observatory.ec.europa.eu/eu-blue-economy-sectors/marine-renewable-energy_en"
+      ]
+    },
+    {
+      "name": "Oppelt et al. 2025 mine-water energy and monitoring review",
+      "artifact": "Mine Water as an Energy Source: Overview of Technical Basics, Existing Plants, and Monitoring Results",
+      "pinned_release": "Mine Water and the Environment 44, 519–543; published 2025-05-15; DOI 10.1007/s10230-025-01057-w",
+      "companion_engine": null,
+      "release_date": "2025-05-15",
+      "role": [
+        "Mine-water heating/cooling technical architecture comparator",
+        "Mine-water renewal, pumping head, chemistry and nearby-consumer requirements"
+      ],
+      "important_limits": [
+        "Useful thermal energy depends on stable flow, mine-water renewal, temperature and consumer proximity; mine void volume alone is not a sustainable heat resource.",
+        "Pumping head, heat exchanger mineralization, reinjection temperature and chemistry can dominate system economics.",
+        "International case studies are not South African site validation."
+      ],
+      "pin_policy": "Pin review version and original operating-plant case sources. Extract each case with its own system boundary, raw metering and uncertainty; do not pool reported COP or costs across different systems.",
+      "references": [
+        "https://doi.org/10.1007/s10230-025-01057-w"
+      ]
+    },
+    {
+      "name": "2026 operating mine-water heating and feasibility case",
+      "artifact": "Technical lessons learned from the usage of geothermal mine water for heat supply and economic scenarios to predict feasibility",
+      "pinned_release": "Energy Conversion and Management 349, article 120809; 2026-02-01; DOI 10.1016/j.enconman.2025.120809",
+      "companion_engine": null,
+      "release_date": "2026-02-01",
+      "role": [
+        "Operating mine-water heating case comparator",
+        "Heat-network loss and heat-exchanger mineralization benchmark",
+        "Economic sensitivity to energy and carbon prices"
+      ],
+      "important_limits": [
+        "The study reports 14–22-year amortization scenarios for its specific project assumptions; not a South African payback estimate.",
+        "Heat-network losses and mineralization are critical optimization issues in the case, but site-specific exchanger and chemistry behaviour differ.",
+        "The published abstract does not provide raw operator meter exports for an independent Luminous reproduction."
+      ],
+      "pin_policy": "Pin complete paper, monitoring boundary, heat-meter and pumping measurements, chemistry, maintenance and scenario assumptions. Recompute economics for each South African site's tariffs and finance.",
+      "references": [
+        "https://doi.org/10.1016/j.enconman.2025.120809"
+      ]
+    },
+    {
+      "name": "CSIR/SANEDI South African industrial thermal test capability",
+      "artifact": "Supporting Industry with Thermal Systems",
+      "pinned_release": "CSIR Energy Research Centre / SANEDI industrial thermal systems support programme",
+      "companion_engine": null,
+      "release_date": null,
+      "role": [
+        "South African thermal test capability and collaboration lead",
+        "Industrial solar heat, heat pumps, thermal storage and waste-heat testing context"
+      ],
+      "important_limits": [
+        "The page describes existing and planned capability; planned facilities must not be represented as operational test rigs until confirmed.",
+        "No product qualification or full industrial site performance is established by the programme page."
+      ],
+      "pin_policy": "Confirm current operating capability, instrument ranges, calibration, uncertainty, safety certification and available collaboration terms directly with CSIR/SANEDI.",
+      "references": [
+        "https://www.csir.co.za/supporting-industry-thermal-systems"
+      ]
+    },
+    {
+      "name": "GreenCape 2026 South African industrial heating alternatives",
+      "artifact": "Decarbonising Industrial Heating: Evaluating Low-Carbon Alternatives for Industrial Thermal Systems",
+      "pinned_release": "GreenCape industrial heating brief; published 2026-08-28",
+      "companion_engine": null,
+      "release_date": "2026-08-28",
+      "role": [
+        "South African industrial process heat and steam context",
+        "LCOH, carbon liability and operational suitability comparison"
+      ],
+      "important_limits": [
+        "A sector brief is not a substitute for an individual plant's process temperature, duty, boiler efficiency, production continuity or fuel records.",
+        "Published cost and policy assumptions require site-specific tariff and financing updates."
+      ],
+      "pin_policy": "Pin report and any underlying tables; construct a plant-level comparison using measured process heat profiles and include backup/production constraints.",
+      "references": [
+        "https://greencape.co.za/library/decarbonising-industrial-heating/"
+      ]
+    },
+    {
+      "name": "High-temperature heat-pump technology and industrial applications",
+      "artifact": "High-temperature heat pumps: key technologies and industrial applications toward carbon-neutral process heating",
+      "pinned_release": "Carbon Neutral Systems 1, article 21; 2025-12-29; DOI 10.1007/s44438-025-00021-z",
+      "companion_engine": null,
+      "release_date": "2025-12-29",
+      "role": [
+        "Industrial heat-pump cycle and working-fluid comparator",
+        "80–160°C process heat application and temperature-lift analysis"
+      ],
+      "important_limits": [
+        "Temperature ranges in the review are application context, not guaranteed unit performance.",
+        "COP depends on source/sink temperature, lift, refrigerant, compressor, part-load and auxiliary power.",
+        "A process heat project requires continuous duty and product-quality constraints, not just a rated outlet temperature."
+      ],
+      "pin_policy": "Pin review version and underlying experimental maps. Compare on same source temperature, delivery temperature, thermal load chronology and system COP including auxiliaries.",
+      "references": [
+        "https://doi.org/10.1007/s44438-025-00021-z"
+      ]
+    },
+    {
+      "name": "Freiberg mine-water thermal storage pilot",
+      "artifact": "Mine water heat storage with heat pump as a solution for decarbonisation in urban areas",
+      "pinned_release": "HPT conference paper, published 2026-05-26",
+      "companion_engine": null,
+      "release_date": "2026-05-26",
+      "role": [
+        "Seasonal mine-water thermal storage pilot comparator",
+        "Long-duration heat/cooling storage and heat-pump integration"
+      ],
+      "important_limits": [
+        "The 45–65% storage-efficiency range and >2-year testing refer to one Freiberg mine pilot; not a universal mine thermal-storage efficiency.",
+        "Up-to-80% district self-sufficiency and >3-month duration are modelled district scenarios, not measured South African field service.",
+        "Mine-water temperature, replenishment and geology differ from South African mines."
+      ],
+      "pin_policy": "Pin paper, raw pilot time series, storage efficiency formula, temperature/flow measurement boundary and model-vs-measured distinction.",
+      "references": [
+        "https://heatpumpingtechnologies.org/publications/mine-water-heat-storage-with-heat-pump-as-a-solution-fordecarbonisation-in-urban-areas/"
+      ]
+    },
+    {
+      "name": "Council for Geoscience mine-water and environmental-water management",
+      "artifact": "Mine and Environmental Water Management Project",
+      "pinned_release": "Council for Geoscience project page; no publication date stated",
+      "companion_engine": null,
+      "release_date": null,
+      "role": [
+        "South African mine-water management source lead",
+        "Witwatersrand water ingress, pump-and-treat and acid mine drainage context"
+      ],
+      "important_limits": [
+        "The project page is water/environmental management context, not a thermal resource or mine-water heat potential dataset.",
+        "Mine-water containment, treatment and clean-water protection are primary; energy recovery is secondary and requires separate rights."
+      ],
+      "pin_policy": "Obtain mine- and operator-specific data, water-use/ discharge approvals and environmental constraints; do not infer heat capacity from project location.",
+      "references": [
+        "https://www.geoscience.org.za/project/mine-and-environmental-water-management-project/"
+      ]
+    },
+    {
+      "name": "South African abandoned-mineshaft pumped-storage screening (historical)",
+      "artifact": "South African Energy Storage Technology and Market Assessment",
+      "pinned_release": "USTDA / South African energy storage assessment, circa 2015",
+      "companion_engine": null,
+      "release_date": "2015",
+      "role": [
+        "South African precedent for considering high-head PHS in unused/abandoned mine shafts",
+        "Historical energy-storage market-screening baseline"
+      ],
+      "important_limits": [
+        "The assessment says mine-shaft pumped storage would be considered initially; it does not report a completed site-specific engineering or bankability study.",
+        "An abandoned shaft is not a pumped-storage reservoir by itself; upper/lower reservoirs, containment, shaft lining, rock mass, water availability and grid interfaces are necessary.",
+        "The source is a historical national assessment; closure status, mine data, tariffs and regulation must be refreshed."
+      ],
+      "pin_policy": "Pin report bytes and exact sections. Treat mine shafts only as screening leads until mine plans, geotechnical/hydrogeological surveys and water-use rights are confirmed.",
+      "references": [
+        "https://www.eskom.co.za/eia/dx/wp-content/uploads/migrated/HexBESS/Appendix-H-1-South-African-Energy-Storage-Technology-and-Marketing-Assessment-1.pdf"
+      ]
+    },
+    {
+      "name": "South African operating pumped-storage fleet",
+      "artifact": "Eskom Pumped Storage Schemes and Water Transfer fact sheet",
+      "pinned_release": "Eskom HY 0001 Revision 12, June 2024",
+      "companion_engine": null,
+      "release_date": "2024-06",
+      "role": [
+        "South African operating PHS plant-capacity reference",
+        "Water-transfer and electricity-storage multi-service comparator"
+      ],
+      "important_limits": [
+        "Drakensberg 1,000 MW, Palmiet 400 MW and Ingula 1,332 MW are generating capacities, not energy storage MWh or current availability.",
+        "Drakensberg and Palmiet also perform water-transfer duties that must remain separate from electrical storage service.",
+        "The factsheet is not an interval dispatch or round-trip efficiency dataset."
+      ],
+      "pin_policy": "Use as installed-capacity and scheme-configuration context only. Obtain current operator telemetry and storage-MWh/availability/efficiency data for performance comparison.",
+      "references": [
+        "https://www.eskom.co.za/wp-content/uploads/2024/07/HY-0001-Pumped-Storage-Scheme-and-Water-Transfer-Rev-12.pdf"
+      ]
+    },
+    {
+      "name": "Eskom Tubatse 1.5 GW / 21 GWh pumped-storage development",
+      "artifact": "Eskom Green strategic partner RFQ for the Tubatse Pumped Storage Scheme",
+      "pinned_release": "Eskom statement 2026-10-13; RFQ E3611GXR",
+      "companion_engine": null,
+      "release_date": "2026-10-13",
+      "role": [
+        "Current South African long-duration PHS development comparator",
+        "1.5 GW / ~21 GWh design, 14-hour duration and four reversible pump-turbine units"
+      ],
+      "important_limits": [
+        "Tubatse is a conventional upper/lower-reservoir scheme, not an underground mineshaft project.",
+        "It is a development/partner-selection programme, not a commissioned or operating station.",
+        "14-hour output duration and 1.5 GW / 21 GWh are project design values, not measured availability/round-trip or commercial results."
+      ],
+      "pin_policy": "Pin the RFQ, environmental authorization, water availability, technical study revision and subsequent RFP. Compare mine-shaft options to the same service and storage duration, not to nameplate alone.",
+      "references": [
+        "https://www.eskom.co.za/eskom-green-launches-strategic-partner-selection-process-for-up-to-1-5gw-21gwh-of-tubatse-pumped-storage-scheme-set-to-be-south-africas-largest-energy-storage-system-ess-to-integrate-inc/"
+      ]
+    },
+    {
+      "name": "Colas et al. abandoned coal-mine geology and underground storage workflow",
+      "artifact": "Geological and mining factors influencing further use of abandoned coal mines — a multidisciplinary workflow towards sustainable underground storage",
+      "pinned_release": "Journal of Energy Storage 108, article 115101; 2025-02-01; DOI 10.1016/j.est.2024.115101",
+      "companion_engine": null,
+      "release_date": "2025-02-01",
+      "role": [
+        "Geotechnical/hydrogeological site screening for abandoned-mine underground storage",
+        "Prosper-Haniel 3D mine model and rock-mass stability/containment context"
+      ],
+      "important_limits": [
+        "German geology/mine design are not directly transferable to South African gold/coal workings.",
+        "Heterogeneous rock mass and low permeability pose stability and tightness challenges.",
+        "A 3D mine model does not establish a qualified geotechnical safety case or water containment."
+      ],
+      "pin_policy": "Pin article and mine model assumptions. Require local mine plans, shaft surveys, core/geophysics, rock-mass, permeability, groundwater and closure/rehabilitation data.",
+      "references": [
+        "https://doi.org/10.1016/j.est.2024.115101"
+      ]
+    },
+    {
+      "name": "Integrated abandoned-mine pumped-hydro, solar-thermal and heat-pump energy hub",
+      "artifact": "A sustainable energy hub from abandoned mines: integrated pumped hydro, solar-thermal and heat-pump system for carbon-neutral communities",
+      "pinned_release": "Sustainable Energy Technologies and Assessments 85, article 104757; January 2026; DOI 10.1016/j.seta.2025.104757",
+      "companion_engine": null,
+      "release_date": "2026-01",
+      "role": [
+        "Integrated mine energy hub architecture comparator",
+        "Pumped hydro + photovoltaic-thermal + reservoir-coupled heat pump scenario"
+      ],
+      "important_limits": [
+        "2.22 million kWh of storage and average heat-pump COP 5.54 are model outputs, not measured operating results.",
+        "Multiple subsystem models are coupled; this does not independently validate mine stability, reservoir containment or heat-pump/thermal store performance.",
+        "Not a South African site study."
+      ],
+      "pin_policy": "Reproduce the model boundary and parameter assumptions. Keep pumped hydro, thermal store, PVT and heat pump as separately metered/validated modules; do not double-count shared mine water or energy.",
+      "references": [
+        "https://doi.org/10.1016/j.seta.2025.104757"
+      ]
+    },
+    {
+      "name": "Gravity energy storage architectures and techno-economic review (107 studies)",
+      "artifact": "A Systematic Review of Gravity Energy Storage: Technologies, Modeling, Integration, and Future Perspectives",
+      "pinned_release": "Eng 2026, 7(9), 463; published 2026-09-08; DOI 10.3390/eng7090463",
+      "companion_engine": null,
+      "release_date": "2026-09-08",
+      "role": [
+        "Shaft/tower/rail/mountain/piston/modular solid gravity storage architecture comparison",
+        "System boundary and evidence gap benchmark across gravity energy storage"
+      ],
+      "important_limits": [
+        "The review identifies low intrinsic energy density and strong infrastructure dependence; volume/height/mass are first-order constraints.",
+        "It finds inconsistent techno-economic assessment and limited long-term operational data across GES architecture families.",
+        "A shaft solid-mass system and a water-based underground pumped-storage system have different conversion physics and must not share one unqualified efficiency curve."
+      ],
+      "pin_policy": "Pin the full review and 107-study bibliography. Compare each architecture on matched energy, power, duration, response, round-trip, site and maintenance boundaries.",
+      "references": [
+        "https://doi.org/10.3390/eng7090463"
+      ]
     }
   ]
 }

@@ -10,7 +10,9 @@
       "provider": "Solargis for the World Bank",
       "source_url": "https://globalsolaratlas.info/download/south-africa",
       "source_type": "dataset",
-      "resource_families": ["solar"],
+      "resource_families": [
+        "solar"
+      ],
       "evidence_basis": "modeled_resource_atlas",
       "availability_state": "available_pending_snapshot_pin",
       "source_version": {
@@ -24,7 +26,14 @@
       "spatial_resolution": "Not stated on the discovery page; capture exact raster cell size and CRS from each downloaded artifact",
       "temporal_scope": "Historical resource assessment with data period through 2018",
       "temporal_resolution": "Long-term climatological layers; exact variable-specific temporal basis must be confirmed from metadata",
-      "variables": ["GHI", "DNI", "diffuse irradiation", "GTI", "optimum tilt", "PVOUT"],
+      "variables": [
+        "GHI",
+        "DNI",
+        "diffuse irradiation",
+        "GTI",
+        "optimum tilt",
+        "PVOUT"
+      ],
       "license_status": {
         "status": "identified_requires_review",
         "details": "Download page states CC BY 4.0 with a mandatory and binding additional condition. Review the complete terms and attribution requirements before reuse or redistribution."
@@ -50,7 +59,9 @@
       "provider": "Solargis for the World Bank",
       "source_url": "https://dev.globalsolaratlas.info/support/data-outputs",
       "source_type": "dataset",
-      "resource_families": ["solar"],
+      "resource_families": [
+        "solar"
+      ],
       "evidence_basis": "modeled_resource_atlas",
       "availability_state": "available_pending_snapshot_pin",
       "source_version": {
@@ -64,7 +75,13 @@
       "spatial_resolution": "Capture exact cell size and CRS per layer from artifact metadata",
       "temporal_scope": "Data period through 2025 according to the current data-outputs page",
       "temporal_resolution": "Variable-dependent long-term climatological layers; exact basis needs metadata admission",
-      "variables": ["GHI", "DNI", "diffuse irradiation", "GTI", "PVOUT"],
+      "variables": [
+        "GHI",
+        "DNI",
+        "diffuse irradiation",
+        "GTI",
+        "PVOUT"
+      ],
       "license_status": {
         "status": "identified_requires_review",
         "details": "Global Solar Atlas download terms identify CC BY 4.0 with an additional binding condition. Check the exact data product terms and attribution before redistribution."
@@ -90,7 +107,10 @@
       "provider": "DTU Wind and Energy Systems with World Bank ESMAP partnership",
       "source_url": "https://globalwindatlas.info/about/introduction",
       "source_type": "dataset",
-      "resource_families": ["onshore_wind", "offshore_wind"],
+      "resource_families": [
+        "onshore_wind",
+        "offshore_wind"
+      ],
       "evidence_basis": "modeled_resource_atlas",
       "availability_state": "available_pending_snapshot_pin",
       "source_version": {
@@ -98,13 +118,22 @@
         "release_or_publication_date": "2025-06-18",
         "data_period": "Predicted wind climate derived from model inputs; not a 30-year observed time series",
         "metadata_updated": null,
-        "notes": "The GWA 4.0 release describes new microscale modelling at 250 m across country boundaries, including offshore exclusive economic zones."
+        "notes": "The GWA 4.0 release describes new microscale modelling at 250 m across country boundaries, including offshore exclusive economic zones. The official validation page checked 2026-11-09 lists 52 validation sites in Bangladesh, Ethiopia, Maldives, Pakistan, Papua New Guinea, Vietnam and Zambia; South Africa is not among the listed GWA4 validation countries."
       },
       "spatial_scope": "Global country boundaries and offshore exclusive economic zones",
       "spatial_resolution": "250 m microscale predicted wind-climate grid described by the GWA 4.0 methodology",
       "temporal_scope": "Climatological/model-derived resource; exact meteorological reference period and product-specific metadata must be recorded at ingest",
       "temporal_resolution": "Long-term predicted wind climate; not an hourly operational forecast",
-      "variables": ["mean wind speed", "mean wind power density", "capacity factor layers by IEC class", "fatigue-load class", "extreme-load class", "roughness", "orography", "bathymetry"],
+      "variables": [
+        "mean wind speed",
+        "mean wind power density",
+        "capacity factor layers by IEC class",
+        "fatigue-load class",
+        "extreme-load class",
+        "roughness",
+        "orography",
+        "bathymetry"
+      ],
       "license_status": {
         "status": "not_assessed",
         "details": "The atlas is freely accessible; exact dataset download terms, attribution and redistribution requirements must be captured from the current terms before republishing source artifacts."
@@ -113,13 +142,15 @@
       "limitations": [
         "250 m is the microscale model grid, not evidence that a parcel or turbine location has been measured at 250 m accuracy.",
         "GWA's own validation coverage is country- and campaign-specific; record whether South Africa's relevant region is in its validated set.",
-        "Generic energy yield estimates are conditional on turbine power curves, hub height, losses, wakes and availability."
+        "Generic energy yield estimates are conditional on turbine power curves, hub height, losses, wakes and availability.",
+        "The published GWA4 validation-country list checked 2026-11-09 does not include South Africa; do not label South African GWA4 output as locally validated."
       ],
       "admission_requirements": [
         "Pin the exact GWA 4.0 downloadable raster or WAsP GWC object and raw SHA-256.",
         "Capture model chain, reference period, hub heights, variables, units, CRS and cell size.",
         "Determine validation coverage and independent South African mast/lidar data availability.",
-        "Keep offshore wind screening separate from sea-state, seabed, port, cable and grid evidence."
+        "Keep offshore wind screening separate from sea-state, seabed, port, cable and grid evidence.",
+        "Preserve the GWA4 validation-country list and version date in the manifest; obtain independent South African mast/lidar evidence before making local accuracy claims."
       ],
       "raw_snapshot_ingested": false,
       "snapshot_digest": null
@@ -130,7 +161,9 @@
       "provider": "Climate System Analysis Group, University of Cape Town",
       "source_url": "https://www.csag.uct.ac.za/wind-atlas-for-south-africa-time-series-data/",
       "source_type": "portal_status",
-      "resource_families": ["onshore_wind"],
+      "resource_families": [
+        "onshore_wind"
+      ],
       "evidence_basis": "availability_notice",
       "availability_state": "temporarily_unavailable",
       "source_version": {
@@ -138,13 +171,15 @@
         "release_or_publication_date": "2026-09-01",
         "data_period": "Portal was intended to serve the full 30-year mesoscale WRF time series; no usable portal dataset was available at the notice date",
         "metadata_updated": "2026-09-01",
-        "notes": "The notice says several hard-drive failures corrupted the time-series portal data and that regeneration from original WRF data was underway. WASA3 reports are stated to remain available."
+        "notes": "The notice says several hard-drive failures corrupted the time-series portal data and that regeneration from original WRF data was underway. WASA3 reports are stated to remain available. This availability notice applies specifically to the 30-year point time-series extraction portal. It does not mean all WASA3 resource-map, generalized-wind-climate (LIB) or mast metadata products are unavailable."
       },
-      "spatial_scope": "South African WASA mesoscale grid",
+      "spatial_scope": "South African WASA mesoscale time-series point-extraction portal (631 x 454 domain; 286,474 grid cells), not the separate WASA3 raster/GWC download products",
       "spatial_resolution": "Grid-level data; exact grid and resolution should be taken from WASA3 reports and metadata, not inferred from the portal notice",
       "temporal_scope": "Intended 30-year modeled time series; current download availability is not established",
       "temporal_resolution": "Time-series data; exact interval must be confirmed from metadata when restored",
-      "variables": ["WRF-derived wind time series; exact channel list requires WASA metadata"],
+      "variables": [
+        "WRF-derived wind time series; exact channel list requires WASA metadata"
+      ],
       "license_status": {
         "status": "not_assessed",
         "details": "Confirm rights and citation terms for the reports and any regenerated time-series data before ingestion or redistribution."
@@ -153,13 +188,15 @@
       "limitations": [
         "As of the 2026-09-01 notice, the 30-year time-series portal data could not be served.",
         "The portal's regeneration work is not evidence that a replacement dataset is available or validated.",
-        "WASA3 reports may support methodology review but are not substitutes for the missing time-series files."
+        "WASA3 reports may support methodology review but are not substitutes for the missing time-series files.",
+        "The outage applies to the separate full-period point time-series portal. The WASAData download page separately lists the High-Resolution Wind Resource Map for South Africa 2020, WASA3 LIB/GWC archives and mast location metadata; those products have their own availability, rights and provenance."
       ],
       "admission_requirements": [
         "Recheck portal availability on the actual ingestion date.",
         "If restored, obtain the original WRF run metadata, grid, time step, file hashes and data licence.",
         "Independently verify chronology, units and representative stations before calibration use.",
-        "If unavailable, use an explicitly named alternative dataset and preserve the substitution rationale."
+        "If unavailable, use an explicitly named alternative dataset and preserve the substitution rationale.",
+        "Do not propagate this portal outage to the separate WASA3 2020 raster, LIB/GWC archives or mast records; create and qualify separate source records for each."
       ],
       "raw_snapshot_ingested": false,
       "snapshot_digest": null
@@ -170,7 +207,9 @@
       "provider": "Department of Electricity and Energy, Republic of South Africa",
       "source_url": "https://www.dee.gov.za/hydro-power/",
       "source_type": "government_page",
-      "resource_families": ["hydropower"],
+      "resource_families": [
+        "hydropower"
+      ],
       "evidence_basis": "government_historical_assessment",
       "availability_state": "context_only",
       "source_version": {
@@ -184,7 +223,10 @@
       "spatial_resolution": "Regional context only; no site-scale hydrology or head resolution is admitted",
       "temporal_scope": "Underlying study baseline from 2002; current hydrology not established",
       "temporal_resolution": "Not established on the discovery page",
-      "variables": ["historical small-hydro potential", "regional screening context"],
+      "variables": [
+        "historical small-hydro potential",
+        "regional screening context"
+      ],
       "license_status": {
         "status": "not_assessed",
         "details": "The source page and underlying report reuse terms must be checked separately."
@@ -209,7 +251,9 @@
       "provider": "Council for Geoscience, Republic of South Africa",
       "source_url": "https://www.geoscience.org.za/project/geothermal-energy-potential-of-south-africa-project/",
       "source_type": "government_page",
-      "resource_families": ["geothermal"],
+      "resource_families": [
+        "geothermal"
+      ],
       "evidence_basis": "government_research_context",
       "availability_state": "needs_access_or_measurement",
       "source_version": {
@@ -223,7 +267,11 @@
       "spatial_resolution": "Not stated on the project page",
       "temporal_scope": "Undated project-context page; no admitted time series",
       "temporal_resolution": "Not applicable until site-specific data are obtained",
-      "variables": ["low-enthalpy geothermal context", "magnetotelluric exploration", "hot-spring locations"],
+      "variables": [
+        "low-enthalpy geothermal context",
+        "magnetotelluric exploration",
+        "hot-spring locations"
+      ],
       "license_status": {
         "status": "not_assessed",
         "details": "Request the underlying survey/data rights and publication terms from the source custodian."
@@ -248,7 +296,10 @@
       "provider": "Meyer, Braby, Krug and Backeberg; CSIR ResearchSpace record / Springer chapter preprint",
       "source_url": "https://researchspace.csir.co.za/items/03da0c93-9c5e-486e-910e-15bef2fbc09c/full",
       "source_type": "research_publication",
-      "resource_families": ["ocean_current", "marine_physics"],
+      "resource_families": [
+        "ocean_current",
+        "marine_physics"
+      ],
       "evidence_basis": "published_field_observation",
       "availability_state": "context_only",
       "source_version": {
@@ -262,7 +313,11 @@
       "spatial_resolution": "Point/mooring observations; not a gridded coast-wide product",
       "temporal_scope": "Historical 2017 publication; measurement campaign dates and duration must be extracted from full methods before use",
       "temporal_resolution": "ADCP profile observations; exact cadence and record duration must be extracted from full dataset/methods",
-      "variables": ["ocean-current velocity profile", "ADCP observations", "satellite/predictive current estimates"],
+      "variables": [
+        "ocean-current velocity profile",
+        "ADCP observations",
+        "satellite/predictive current estimates"
+      ],
       "license_status": {
         "status": "identified_requires_review",
         "details": "ResearchSpace states the attached PDF is a pre-print due to Springer copyright restrictions. The published version is subject to publisher terms; do not redistribute beyond permitted preprint conditions."
@@ -287,7 +342,9 @@
       "provider": "Copernicus Marine Service / Mercator Ocean International",
       "source_url": "https://data.marine.copernicus.eu/product/GLOBAL_MULTIYEAR_WAV_001_032/description",
       "source_type": "dataset",
-      "resource_families": ["wave"],
+      "resource_families": [
+        "wave"
+      ],
       "evidence_basis": "modeled_reanalysis",
       "availability_state": "available_pending_snapshot_pin",
       "source_version": {
@@ -301,7 +358,14 @@
       "spatial_resolution": "0.2 degrees x 0.2 degrees (irregular grid)",
       "temporal_scope": "1980-01-01 through 2026-08-31",
       "temporal_resolution": "Hourly and monthly",
-      "variables": ["significant wave height", "wave direction", "mean wave period", "primary and secondary swell height/direction/period", "wind-wave height/direction/period", "Stokes drift"],
+      "variables": [
+        "significant wave height",
+        "wave direction",
+        "mean wave period",
+        "primary and secondary swell height/direction/period",
+        "wind-wave height/direction/period",
+        "Stokes drift"
+      ],
       "license_status": {
         "status": "identified_requires_review",
         "details": "Read the current Copernicus Marine licence and attribution terms for the exact product and any derived redistribution."
@@ -327,7 +391,9 @@
       "provider": "Copernicus Marine Service / Mercator Ocean International",
       "source_url": "https://data.marine.copernicus.eu/product/GLOBAL_ANALYSISFORECAST_WAV_001_027/description",
       "source_type": "dataset",
-      "resource_families": ["wave"],
+      "resource_families": [
+        "wave"
+      ],
       "evidence_basis": "modeled_analysis_forecast",
       "availability_state": "available_pending_snapshot_pin",
       "source_version": {
@@ -341,7 +407,13 @@
       "spatial_resolution": "0.083 degrees x 0.083 degrees",
       "temporal_scope": "Analysis starts 2022-11-01; the product page showed forecast horizon through 2026-11-18 at registry check time",
       "temporal_resolution": "Hourly; operational analysis/forecast updates",
-      "variables": ["significant wave height", "wave direction", "mean wave period", "swell and wind-wave parameters", "Stokes drift"],
+      "variables": [
+        "significant wave height",
+        "wave direction",
+        "mean wave period",
+        "swell and wind-wave parameters",
+        "Stokes drift"
+      ],
       "license_status": {
         "status": "identified_requires_review",
         "details": "Read current Copernicus Marine licence and attribution terms; pin product version and forecast initialization time."
@@ -366,7 +438,10 @@
       "provider": "Copernicus Marine Service / Mercator Ocean International",
       "source_url": "https://data.marine.copernicus.eu/product/GLOBAL_ANALYSISFORECAST_PHY_001_024/description",
       "source_type": "dataset",
-      "resource_families": ["ocean_current", "marine_physics"],
+      "resource_families": [
+        "ocean_current",
+        "marine_physics"
+      ],
       "evidence_basis": "modeled_analysis_forecast",
       "availability_state": "available_pending_snapshot_pin",
       "source_version": {
@@ -380,7 +455,13 @@
       "spatial_resolution": "0.083 degrees x 0.083 degrees; 50 vertical levels",
       "temporal_scope": "Analysis begins 2020-11-01; catalogue includes a forecast tail beyond registry check time",
       "temporal_resolution": "Hourly, daily and monthly",
-      "variables": ["ocean velocity", "temperature", "salinity", "sea-surface height", "mixed-layer thickness"],
+      "variables": [
+        "ocean velocity",
+        "temperature",
+        "salinity",
+        "sea-surface height",
+        "mixed-layer thickness"
+      ],
       "license_status": {
         "status": "identified_requires_review",
         "details": "Read the current Copernicus Marine licence and attribution terms for this exact product."
@@ -405,7 +486,10 @@
       "provider": "World Bank Group",
       "source_url": "https://documents.worldbank.org/en/publication/documents-reports/documentdetail/099091026151019349",
       "source_type": "sector_report",
-      "resource_families": ["offshore_wind", "cross_resource"],
+      "resource_families": [
+        "offshore_wind",
+        "cross_resource"
+      ],
       "evidence_basis": "sector_policy_report",
       "availability_state": "context_only",
       "source_version": {
@@ -419,7 +503,11 @@
       "spatial_resolution": "National / strategic context; not site resource grid",
       "temporal_scope": "Strategic policy and infrastructure context as of report preparation",
       "temporal_resolution": "Not a time-series resource product",
-      "variables": ["sector development scenarios", "institutional constraints", "port and transmission context"],
+      "variables": [
+        "sector development scenarios",
+        "institutional constraints",
+        "port and transmission context"
+      ],
       "license_status": {
         "status": "not_assessed",
         "details": "Review report copyright and reuse terms before copying or redistributing full report content."
@@ -433,6 +521,2065 @@
         "Pin report version, official PDF digest and citation metadata.",
         "Extract only claims with exact page references and classify policy/scenario statements separately.",
         "Link every candidate site to project-specific resource and POC evidence."
+      ],
+      "raw_snapshot_ingested": false,
+      "snapshot_digest": null
+    },
+    {
+      "source_id": "wasa3-high-resolution-wind-resource-map-2020",
+      "source_name": "High-Resolution Wind Resource Map for South Africa 2020 (WASA3)",
+      "provider": "DTU Wind Energy and Council for Scientific and Industrial Research (CSIR)",
+      "source_url": "https://wasadata.csir.co.za/wasa1/WASAData?pemail=nimo%40risoe.dtu.dk&pscreen=resource2021",
+      "source_type": "dataset",
+      "resource_families": [
+        "onshore_wind"
+      ],
+      "evidence_basis": "modeled_resource_atlas",
+      "availability_state": "available_pending_snapshot_pin",
+      "source_version": {
+        "label": "High-Resolution Wind Resource Map for South Africa 2020; compiled and published March 2021",
+        "release_or_publication_date": "2021-03",
+        "data_period": "Wind-climatological input: 3.3-km VNWA WRF 3.8.1 with ERA5 boundary conditions for 1990-2019; air-density input ERA5 2010-2019; annual mean resource rasters",
+        "metadata_updated": null,
+        "notes": "The WASAData page lists separate TIF and Arc/Info ASCII grid products for the South African land area, with 0.0025-degree grid spacing in WGS84 and no interpolation. It also lists generalized wind-climate LIB archives at 10, 25, 50, 100 and 250 m and a coordinate CSV for 285,390 grid points."
+      },
+      "spatial_scope": "Land area of South Africa, covering nine provinces and approximately 1,221,000 km2",
+      "spatial_resolution": "0.0025-degree geographic grid in WGS84; do not restate as a uniform metric resolution without local geodetic conversion",
+      "temporal_scope": "Annual mean resource layers derived from VNWA wind-climatological input (WRF 1990-2019) and ERA5 air-density input (2010-2019)",
+      "temporal_resolution": "Annual mean/climatological rasters; not an hourly operational time series",
+      "variables": [
+        "mean wind speed at 20/50/100/150 m AGL",
+        "mean power density at 20/50/100/150 m AGL",
+        "mean air density at 20/50/100/150 m AGL",
+        "Weibull scale A at 20/50/100/150 m AGL",
+        "Weibull shape k at 20/50/100/150 m AGL",
+        "WAsP ruggedness index RIX",
+        "terrain elevation"
+      ],
+      "license_status": {
+        "status": "not_assessed",
+        "details": "The WASAData page points to the general WASA download-site disclaimer. Exact data access, permitted reuse and redistribution terms have not been independently assessed; do not redistribute raw raster/LIB files until DTU/CSIR terms are confirmed."
+      },
+      "claim_ceiling": "Modelled, planning-level South African wind-resource screening. Not measured parcel wind, local turbine power curve, hourly generation profile, bankable AEP, grid export or structural design basis.",
+      "limitations": [
+        "The product was developed for GIS-based strategic environmental assessment and planning, not detailed site-specific wind-farm design.",
+        "The page states that accuracy depends on VNWA, WAsP microscale modelling and topographic input data.",
+        "In complex terrain with RIX > 5%, the WAsP IBZ microscale model may significantly overestimate wind resource.",
+        "Results near or above built-up areas and forested areas are less reliable.",
+        "The page recommends local on-site measurement for detailed assessment of actual wind farms.",
+        "VNWA validation against 19 WASA measurement masts is not evidence that every 0.0025-degree cell or prospective turbine site has been independently measured or validated."
+      ],
+      "admission_requirements": [
+        "Pin each exact TIF/ASC/LIB file name, product/version identifier, raw byte digest, CRS, cell size, units, nodata values and download timestamp.",
+        "Record the 3.3-km WRF / ERA5 input period, WRF model version, topography and land-cover input versions, and any WAsP settings.",
+        "Confirm data access and redistribution rights with DTU/CSIR before copying raw raster or LIB files into public fixtures.",
+        "Compare selected values to mast observations only after the 19-mast VNWA calibration/validation crosswalk and any overlap with external benchmark training sets are known.",
+        "Retain RIX, urban/forest masks and explicit local-measurement needs as separate limitations; never collapse them into a single site score."
+      ],
+      "raw_snapshot_ingested": false,
+      "snapshot_digest": null
+    },
+    {
+      "source_id": "ethos-reskit-2026-global-wind-validation-study",
+      "source_name": "Towards high resolution, validated and open global wind power assessments",
+      "provider": "Peña-Sánchez et al.; Forschungszentrum Jülich / ETHOS.RESKit contributors",
+      "source_url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12804690/",
+      "source_type": "research_publication",
+      "resource_families": [
+        "onshore_wind",
+        "offshore_wind"
+      ],
+      "evidence_basis": "published_field_observation",
+      "availability_state": "context_only",
+      "source_version": {
+        "label": "Nature Communications 17, 539; published 2026-01-14",
+        "release_or_publication_date": "2026-01-14",
+        "data_period": "Meteorological mast and turbine validation data span 2002-2021; country-level official wind generation/capacity comparisons use 2017-2021",
+        "metadata_updated": null,
+        "notes": "The paper describes ETHOS.RESKit as a GWA4 plus ERA5 time-resolved wind-power workflow. It reports calibration with 213 weather-mast locations in 25 countries and more than 8 million filtered hourly mast observations; the paper states that its mast-measurement geography includes South Africa. It validates simulated power against more than 8 million hours from 152 turbines/wind-farm sites, and discusses national statistics for up to 71 countries. The paper-specific code archive is distinct from the current RESKit v0.5.0 release."
+      },
+      "spatial_scope": "Global model and validation study: meteorological masts in 25 countries including South Africa; turbine/farm power observations at a separate set of 152 sites; country-level statistics with data gaps concentrated in Africa and other regions",
+      "spatial_resolution": "Model input combines GWA4 high-resolution resource grids and ERA5 chronology; calibration and validation observations are point/site based, with no single homogeneous resolution",
+      "temporal_scope": "Historical calibration/validation observations from 2002-2021 and annual country-level statistics from 2017-2021",
+      "temporal_resolution": "Filtered hourly mast and turbine/farm observations; annual country-level generation/capacity comparisons",
+      "variables": [
+        "wind speed",
+        "hub-height wind-speed bias correction",
+        "turbine capacity factor",
+        "hourly wind-turbine/farm power",
+        "wind-speed correction factors",
+        "country capacity-factor correction factors"
+      ],
+      "license_status": {
+        "status": "identified_requires_review",
+        "details": "The article is CC BY 4.0. The paper states that turbine power measurement data are restricted by third-party agreements and not publicly available; the wind-farm database is obtained under a commercial licence. The open paper and code do not grant rights to restricted input data."
+      },
+      "claim_ceiling": "Published external methodology and reported validation results for a global wind-power workflow. Not an independently reproduced Luminous benchmark, not evidence of South African turbine-generation holdout validation, and not a local site AEP guarantee.",
+      "limitations": [
+        "The paper reports South African meteorological mast measurements within the wider calibration geography, but does not provide a public site-by-site crosswalk sufficient here to establish whether a proposed WASA mast is in calibration or cross-validation.",
+        "No South African turbine/farm power-output holdout is established by the information currently admitted to this registry.",
+        "The raw turbine power data are restricted; the commercial wind-farm inventory is not openly redistributable.",
+        "The study itself notes that global correction cannot remove all regional/seasonal/terrain biases and that local single-site accuracy is limited by the underlying ERA5/GWA4 spatial representation.",
+        "The abstract and detailed paper sections present aggregate statistics with different cohorts and definitions; do not compress all reported error figures into one universal accuracy number.",
+        "A model's globally calibrated performance does not prove its local transfer to South African sites."
+      ],
+      "admission_requirements": [
+        "Pin the paper DOI, full article version and supplementary source-data files, then map all reported metrics to exact cohort, sample count and definition.",
+        "Obtain the paper-specific ETHOS.RESKit archived code artifact and exact version; keep it distinct from current RESKit v0.5.0.",
+        "Resolve which South African mast IDs occur in the 213-mast calibration set before constructing independent holdout tests.",
+        "Use site/time-blocked holdouts not used in model calibration and compare against available WASA mast or other independent observations.",
+        "Preserve rights restrictions for turbine power data and wind-farm inventory; do not redistribute raw source data.",
+        "Reproduce the published 5.6% relative mean capacity-factor error and Pearson r=0.844 only on a matched, lawfully accessible validation cohort and identical metric definitions."
+      ],
+      "raw_snapshot_ingested": false,
+      "snapshot_digest": null
+    },
+    {
+      "source_id": "south-african-hydropower-atlas-report-tt916-23",
+      "source_name": "The South African Hydropower Atlas, WRC Report TT 916/23",
+      "provider": "Water Research Commission; University of Pretoria",
+      "source_url": "https://wrcwebsite.azurewebsites.net/wp-content/uploads/mdocs/TT%20916%20final%20web.pdf",
+      "source_type": "research_publication",
+      "resource_families": [
+        "hydropower"
+      ],
+      "evidence_basis": "modeled_resource_atlas",
+      "availability_state": "context_only",
+      "source_version": {
+        "label": "WRC Report TT 916/23, ISBN 978-0-6392-0441-3, June 2023",
+        "release_or_publication_date": "2023-06",
+        "data_period": "Underlying source layers use heterogeneous reference periods; exact per-layer periods must be taken from the report and atlas metadata",
+        "metadata_updated": null,
+        "notes": "The report documents the first in-depth South African hydropower atlas and assessment frameworks for conduit, hydrokinetic, run-of-river, storage, pumped storage, WWTW, WTW, weirs and transfer schemes. It cites 284 municipalities and multiple utilities/mines with gravity water distribution infrastructure. The reported potential table is preliminary and continuously updateable."
+      },
+      "spatial_scope": "South Africa; water infrastructure and river systems at national/regional screening scale",
+      "spatial_resolution": "Heterogeneous source layers / atlas features; exact resolution varies by dataset and must be recovered per layer",
+      "temporal_scope": "Published June 2023, with mixed observation/model baselines for underlying atlas layers",
+      "temporal_resolution": "Not a single time-series product; each hydrological or infrastructure layer has its own temporal basis",
+      "variables": [
+        "conduit flow and pressure head",
+        "WTW and WWTW inlet/outlet head and flow context",
+        "run-of-river head and flow",
+        "hydrokinetic channel velocity",
+        "weir flow and upstream/downstream head",
+        "existing dam/storage and transfer-scheme context",
+        "pumped-storage candidate pairs"
+      ],
+      "license_status": {
+        "status": "not_assessed",
+        "details": "The WRC report is openly downloadable for reading/citation; copyright and reuse of report figures, atlas layers and underlying source data must be checked before redistribution."
+      },
+      "claim_ceiling": "South African hydropower resource-discovery and preliminary screening reference. Its candidate potential is not measured site flow/head, available water rights, environmental approval, grid connection, bankable output or buildable capacity.",
+      "limitations": [
+        "The report says initial criteria were assumed for several hydro types because data were limited and evaluation reliability would improve as more feasibility studies are completed.",
+        "Conduit potential is driven by pressure head and flow; the report notes that limited data particularly affected the assessment of conduit opportunities.",
+        "WWTW/WTW outflow evaluation was described as relatively unexplored and used assumptions due data limitations.",
+        "The atlas reports South African hydrokinetic case studies as scarce and notes variance between estimated and real flows.",
+        "The 31,000 MW pumped-storage figure is based on an assumed 12-hour/day generating duration and overlapping sites; the report explicitly states actual potential is significantly lower.",
+        "Identified pumped-storage sites were not evaluated using geological, hydrological or environmental data, and detailed investigation may find some unsuitable.",
+        "The atlas is a discovery and pre-feasibility aid, not a project-level engineering or water-use authorisation."
+      ],
+      "admission_requirements": [
+        "Pin the PDF bytes, SHA-256, report edition, citation metadata and licence/reuse rules.",
+        "Identify each atlas layer and its original provider, exact snapshot, CRS, spatial resolution, units and valid period.",
+        "Separate candidate counts and preliminary model values by hydro archetype; never collapse conduit, run-of-river, hydrokinetic, WTW/WWTW and pumped storage.",
+        "For a selected conduit/PRS candidate, obtain operator-owned pressure and flow chronology, pipe/valve details, normal minimum service pressure and surge data.",
+        "For river/WWTW/WTW candidates, obtain site-specific hydrology, head, water quality, operational schedules and ecological-flow / discharge approvals.",
+        "Treat pumped-storage headline potential as an overlapping screening layer until geological, hydrological, environmental and reservoir-pair studies are complete."
+      ],
+      "raw_snapshot_ingested": false,
+      "snapshot_digest": null
+    },
+    {
+      "source_id": "sa-hydropower-atlas-interactive-etool",
+      "source_name": "SA Hydropower Atlas — Interactive Hydropower Atlas of South Africa (E-Tool)",
+      "provider": "Water Research Commission; University of Pretoria",
+      "source_url": "https://search.wrc.org.za/reports/ada2ec32-f2c3-4703-af7f-d632d9965a90",
+      "source_type": "dataset_catalogue",
+      "resource_families": [
+        "hydropower"
+      ],
+      "evidence_basis": "discovery_catalogue",
+      "availability_state": "catalogue_only",
+      "source_version": {
+        "label": "WRC E-Tool catalogue entry, published 2022; related technical report TT 916/23 published June 2023",
+        "release_or_publication_date": "2022",
+        "data_period": "Atlas layer-specific; exact source dates must be obtained from the ArcGIS item metadata",
+        "metadata_updated": null,
+        "notes": "WRC describes the SA Hydropower Atlas as an ArcGIS Online tool bringing together existing hydropower and hydropower potential in South Africa. The 2023 report links to the ArcGIS web application. A listing is not proof that every layer endpoint, data export or service remains available. The report's atlas web-app URL is https://uparcgis.maps.arcgis.com/apps/webappviewer/index.html?id=9618bcec00ad4f5398f4cc0cd1a447b8; the WRC E-Tools page links to https://www.wrc.org.za/e-tool/sa-hydropower-atlas/. A separate ArcGIS item titled SAHA – South African Hydropower Atlas is item 4ee5b39dc5ed4b25af6b0af856d746b8. The web-map viewer and item catalogue do not by themselves prove each underlying layer's availability, accuracy or rights."
+      },
+      "spatial_scope": "South Africa",
+      "spatial_resolution": "Mixed GIS layers; item-level spatial resolution and CRS are not established by the WRC catalogue summary",
+      "temporal_scope": "WRC catalogue publication 2022; layer-specific valid periods unknown until ArcGIS item metadata are captured",
+      "temporal_resolution": "Layer-specific; not a single hydrological time series",
+      "variables": [
+        "existing hydropower assets",
+        "hydropower potential layers",
+        "conduit",
+        "run-of-river",
+        "hydrokinetic",
+        "weirs",
+        "WTW",
+        "WWTW",
+        "storage and pumped-storage screening"
+      ],
+      "license_status": {
+        "status": "not_assessed",
+        "details": "ArcGIS item-level data rights, underlying source-provider licences and export/redistribution terms must be reviewed independently. WRC catalogue access alone does not grant all underlying data rights."
+      },
+      "claim_ceiling": "Discovery catalogue for locating South African hydropower layers only. No individual layer is admitted, verified, current or suitable for project design by this record.",
+      "limitations": [
+        "The WRC catalogue summary does not provide a complete source inventory, CRS, resolution, data date or item-level licence statement.",
+        "ArcGIS layer availability and underlying source terms may differ between individual layers.",
+        "Atlas screening criteria are not project-level hydraulic or environmental feasibility."
+      ],
+      "admission_requirements": [
+        "Resolve the exact ArcGIS application/item and each feature service or raster endpoint.",
+        "Capture item IDs, owner, service URLs, layer IDs, metadata, spatial references, feature counts, edit timestamps and original source citations.",
+        "Review item-level copyright, licensing and redistribution conditions before export.",
+        "Snapshot exact layer data only after the WRC/ArcGIS custodian confirms permitted access and preserve original feature attributes without silently normalising values.",
+        "Pin web application ID 9618bcec00ad4f5398f4cc0cd1a447b8 and item ID 4ee5b39dc5ed4b25af6b0af856d746b8 separately; obtain the live web-map JSON and enumerate all feature services before source admission."
+      ],
+      "raw_snapshot_ingested": false,
+      "snapshot_digest": null
+    },
+    {
+      "source_id": "dws-water-sanitation-climate-response-strategy-pat-2025",
+      "source_name": "Climate Change Response Strategy for the Water and Sanitation Sector in South Africa",
+      "provider": "Department of Water and Sanitation, Republic of South Africa",
+      "source_url": "https://www.dws.gov.za/documents/Other/Water%20and%20Sanitation%20Sector/2025/NCC_2025_Final_01H_4%20%282%29.pdf",
+      "source_type": "sector_report",
+      "resource_families": [
+        "hydropower",
+        "cross_resource"
+      ],
+      "evidence_basis": "sector_policy_report",
+      "availability_state": "context_only",
+      "source_version": {
+        "label": "DWS Water and Sanitation Sector Climate Change Response Strategy; January 2025 publication",
+        "release_or_publication_date": "2025-01",
+        "data_period": "Policy and sector context; not a hydraulic measurement time series",
+        "metadata_updated": null,
+        "notes": "The strategy discusses water/wastewater energy efficiency and states that distributed micro-hydropower has been implemented in South Africa using pump-as-turbine systems, including potential replacement of pressure-reducing valves. It also describes energy recovery from gravity pipelines and other wastewater energy options."
+      },
+      "spatial_scope": "National South African water and sanitation sector",
+      "spatial_resolution": "National sector context; not site-specific",
+      "temporal_scope": "Published January 2025",
+      "temporal_resolution": "Policy and sector context; not a time series",
+      "variables": [
+        "water and wastewater energy consumption",
+        "existing PAT examples in South Africa",
+        "pressure-reducing valve energy-recovery opportunity",
+        "gravity-pipeline energy recovery"
+      ],
+      "license_status": {
+        "status": "not_assessed",
+        "details": "The DWS document is marked copyright reserved and requests full acknowledgement. Review reuse requirements before reproducing content or figures."
+      },
+      "claim_ceiling": "Government sector-policy context that PAT/pressure-reducing-valve energy recovery has been considered or implemented in South Africa. It does not identify the sites, measured output, present operating status or project costs.",
+      "limitations": [
+        "The strategy's PAT statement cites earlier work and is not a complete site inventory or independent performance audit.",
+        "No individual site, turbine, flow, head, capacity factor or annual energy series is admitted in this record.",
+        "The strategy notes that water and sanitation energy performance is facility-specific; treatment and delivery requirements must remain primary."
+      ],
+      "admission_requirements": [
+        "Recover the cited primary PAT case studies (including Samora et al. 2016) and identify site, operator, equipment, measured head/flow, power and operating period.",
+        "Seek permission from operators before reusing site or telemetry data.",
+        "Keep PAT presence as context until a measured operating record and equipment configuration are independently verified."
+      ],
+      "raw_snapshot_ingested": false,
+      "snapshot_digest": null
+    },
+    {
+      "source_id": "wdn-hydropower-review-2026",
+      "source_name": "Review of Hydropower Technology and Potential for Energy Recovery from Water Distribution Networks Towards Improvement of Their Sustainability",
+      "provider": "Stamos, Kogioumtzidis, Vafiadis and Tourlidakis; Energies",
+      "source_url": "https://www.mdpi.com/1996-1073/19/2/320",
+      "source_type": "research_publication",
+      "resource_families": [
+        "hydropower"
+      ],
+      "evidence_basis": "literature_review",
+      "availability_state": "context_only",
+      "source_version": {
+        "label": "Energies 2026, 19(2), 320; published 2026-01-08",
+        "release_or_publication_date": "2026-01-08",
+        "data_period": "Literature review of prior water-distribution-network hydropower studies; not a single measured field series",
+        "metadata_updated": null,
+        "notes": "The review compares conventional turbines, pump-as-turbines (PAT), low-power in-pipe harvesters and hydraulic/electric regulation strategies. It notes that PATs are attractive due to standardised mass-produced pump hardware and parts availability, despite lower peak efficiency than purpose-built large turbines; it also discusses small off-grid energy harvesting for water network monitoring and telemetry."
+      },
+      "spatial_scope": "International literature, including water distribution network case studies; not South Africa-specific site data",
+      "spatial_resolution": "Review-level synthesis; source studies have heterogeneous spatial and temporal resolution",
+      "temporal_scope": "Literature published before 2026-01-08",
+      "temporal_resolution": "Heterogeneous across studies; no unified time series",
+      "variables": [
+        "pressure head",
+        "flow rate",
+        "turbine/PAT performance",
+        "energy recovery",
+        "hydraulic regulation",
+        "energy harvesting for monitoring and telemetry"
+      ],
+      "license_status": {
+        "status": "identified_requires_review",
+        "details": "The article is open access; verify the exact CC BY 4.0 article metadata and source-study reuse rights. Do not assume the review's cited third-party figures or data are separately redistributable."
+      },
+      "claim_ceiling": "Literature synthesis and technology-selection context. Its efficiency ranges and case studies are not guarantees for a specific South African asset or device.",
+      "limitations": [
+        "The review explains that water networks have variable flow and head; a fixed operating point and constant turbine efficiency are not representative.",
+        "The cited small PAT/micro-hydro efficiency band (approximately 40-75%) is a broad literature range, not a universal design value; manufacturer maps and site measurements are required.",
+        "The review notes that small-scale energy harvesting may be more valuable for local sensors and leak detection than for grid-export revenue.",
+        "Network complexity and the need to preserve consumer service make site-specific economic and operational assessment essential."
+      ],
+      "admission_requirements": [
+        "Pin the article PDF, SHA-256, DOI and exact table/section for every efficiency or cost figure used.",
+        "Trace each quantitative performance claim to its original primary study, turbine/PAT configuration, head/flow range and test boundary.",
+        "Use matched head-flow duty profiles to compare PAT and purpose-built turbines; do not apply one peak efficiency to all timesteps.",
+        "Keep grid-export and off-grid telemetry use cases distinct, with separate power thresholds, controls and cost boundaries."
+      ],
+      "raw_snapshot_ingested": false,
+      "snapshot_digest": null
+    },
+    {
+      "source_id": "saha-wastewater-treatment-works-infrastructure-layer",
+      "source_name": "SAHA Wastewater Treatment Works infrastructure layer",
+      "provider": "Department of Water and Sanitation; South African Hydropower Atlas / University of Pretoria",
+      "source_url": "https://www.arcgis.com/home/item.html?id=15265200a008406a951e40b7fb6d976f",
+      "source_type": "dataset",
+      "resource_families": [
+        "hydropower"
+      ],
+      "evidence_basis": "discovery_catalogue",
+      "availability_state": "available_pending_snapshot_pin",
+      "source_version": {
+        "label": "ArcGIS item 15265200a008406a951e40b7fb6d976f; last updated 2025-02-27",
+        "release_or_publication_date": "2025-02-27",
+        "data_period": "Infrastructure-location layer; underlying facility observation/update dates are not established by item summary",
+        "metadata_updated": "2025-02-27",
+        "notes": "ArcGIS item is titled SAHA Wastewater Treatment Works, describes wastewater treatment works in South Africa, indicates WFS source, and states data are available for download with DWS attribution required. The item links to the DWS GIS data portal. It is a facility-location layer, not measured flow/head, outlet levels, operating time series or hydropower potential."
+      },
+      "spatial_scope": "South Africa; wastewater-treatment-work locations",
+      "spatial_resolution": "Feature points / geometries; item-level CRS and positional accuracy require metadata capture",
+      "temporal_scope": "Layer item last updated 2025-02-27; facility validity periods unknown until source attributes are inspected",
+      "temporal_resolution": "Static infrastructure inventory snapshot, not a time series",
+      "variables": [
+        "wastewater-treatment-works location",
+        "facility attributes as supplied by the DWS layer"
+      ],
+      "license_status": {
+        "status": "identified_requires_review",
+        "details": "ArcGIS item states data are available for download and that the Department of Water and Sanitation must be acknowledged. Underlying source terms and redistribution permissions must be checked against DWS GIS data portal terms."
+      },
+      "claim_ceiling": "Discovery of wastewater-treatment-work locations for site-owner and hydraulic-data enquiries only. Does not establish current operating status, actual outflow, available head, effluent compliance or energy potential.",
+      "limitations": [
+        "The item has no in-depth description of attribute fields; its own page contains a 2025 request for accompanying field metadata.",
+        "A mapped WWTW location does not imply a suitable hydraulic drop, constant flow, access permission or turbine installation feasibility.",
+        "The layer is an infrastructure locator, not a hydropower-resource estimate."
+      ],
+      "admission_requirements": [
+        "Resolve the exact WFS/service URL, feature-layer ID, CRS, geometry type, feature count, field schema and edit timestamp.",
+        "Record source provider, DWS GIS catalogue metadata and exact download-byte digest.",
+        "Require DWS attribution and confirm rights before copying or redistributing the feature data.",
+        "For any candidate facility, obtain owner confirmation, hydraulic grade, measured inlet/outlet flow and head, effluent quality and time-dependent operating records."
+      ],
+      "raw_snapshot_ingested": false,
+      "snapshot_digest": null
+    },
+    {
+      "source_id": "cornubia-wdn-pat-feasibility-study-2022",
+      "source_name": "Feasibility Analysis of Energy Recovery Using PATs in Water Distribution Networks",
+      "provider": "Pillay et al.; University of KwaZulu-Natal; Water",
+      "source_url": "https://doi.org/10.3390/w14071150",
+      "source_type": "research_publication",
+      "resource_families": [
+        "hydropower",
+        "cross_resource"
+      ],
+      "evidence_basis": "modeled_analysis_forecast",
+      "availability_state": "context_only",
+      "source_version": {
+        "label": "Water 2022, 14(7), 1150; published 2022-04-02",
+        "release_or_publication_date": "2022-04-02",
+        "data_period": "Cornubia Integrated Human Settlement Development Phase 2A Zone 1; step-wise steady-state EPANET 2.2 simulations with time-varying demand multipliers and 12-hour/day PAT operating assumption",
+        "metadata_updated": null,
+        "notes": "The study uses EPANET 2.2 for the Cornubia WDN and reports a five-PAT configuration with 166.31 kW total candidate power and calculated leakage reduction of 45.59 kL/month (18.16%). It models PAT sites as PRVs in EPANET because the engine could not accurately represent PATs, calculates PAT output from recorded pressure drop/flow and an empirical BEP relationship, assumes 12 hours/day and 335 operating days/year, and treats network hydraulics as step-wise steady state."
+      },
+      "spatial_scope": "Cornubia Integrated Human Settlement Development Phase 2A, Zone 1, Durban, KwaZulu-Natal, South Africa",
+      "spatial_resolution": "Specific urban water-distribution network model with nodal and pipe-level hydraulic states; exact network model files require source permission/access",
+      "temporal_scope": "Model study published 2022-04-02; daily demand-pattern simulation and 12-hour/day assumed PAT operation",
+      "temporal_resolution": "Step-wise steady-state extended-period simulation; not transient field monitoring",
+      "variables": [
+        "nodal pressure head",
+        "pipe flow",
+        "PAT head drop",
+        "PAT power output",
+        "estimated night-time background leakage",
+        "water savings",
+        "equipment capital-payback estimate"
+      ],
+      "license_status": {
+        "status": "identified_requires_review",
+        "details": "The article is open access under CC BY 4.0. Its data availability statement is not applicable; underlying municipal network data and third-party input datasets must not be presumed redistributable."
+      },
+      "claim_ceiling": "Published, modelled South African Cornubia WDN case-study results and method comparator. Not measured PAT generation, a commissioned asset, independently validated leakage savings, or bankable energy yield.",
+      "limitations": [
+        "EPANET 2.2 was not used to solve a native PAT component; PRVs served as hydraulic proxies and PAT power was derived afterward from head/flow and an empirical BEP method.",
+        "The paper assumes operation for 12 hours/day and 335 days/year; it does not demonstrate measured annual PAT availability or net AC generation.",
+        "PATs are represented at best-efficiency points using selected pump characteristic curves rather than full field-validated off-design efficiency maps.",
+        "Leakage savings are model-derived using pressure/leakage relationships, not reported as post-installation metered water-balance measurements.",
+        "Do not count this paper and the 2021 UKZN dissertation as independent Cornubia network replications until their input network geometry, demand data and study-zone overlap are resolved."
+      ],
+      "admission_requirements": [
+        "Pin the article PDF, DOI, exact tables/figures and article checksum.",
+        "Recover the Cornubia input network, demand pattern, pressure/flow measurement provenance, PAT pump curves, empirical conversion formula and all assumed operating periods.",
+        "Reproduce the five-PAT 166.31 kW and 45.59 kL/month leakage-reduction results on the exact study boundary before reporting a matched comparison.",
+        "Separate installed/actual equipment from proposed/modelled PATs; no field-output claims without operator telemetry and meter evidence.",
+        "Resolve overlap with the 2021 UKZN dissertation before treating either as an independent validation cohort."
+      ],
+      "raw_snapshot_ingested": false,
+      "snapshot_digest": null
+    },
+    {
+      "source_id": "cornubia-pat-prv-optimization-dissertation-2021",
+      "source_name": "Development of an automation model for leakage reduction and energy harnessing through optimised placement and setting of PRVs and PATs in water distribution networks",
+      "provider": "Ethan Pillay; University of KwaZulu-Natal",
+      "source_url": "https://researchspace.ukzn.ac.za/items/56056829-50d7-4258-b11e-e93233126edf",
+      "source_type": "research_publication",
+      "resource_families": [
+        "hydropower",
+        "cross_resource"
+      ],
+      "evidence_basis": "modeled_analysis_forecast",
+      "availability_state": "context_only",
+      "source_version": {
+        "label": "Master's dissertation; completed 2021",
+        "release_or_publication_date": "2021",
+        "data_period": "Cornubia Integrated Human Settlement Development Phase 2A Zone 1 and Pat Marshal Housing Project; MATLAB/EPANET model study",
+        "metadata_updated": null,
+        "notes": "The abstract reports a modelled optimisation with five new PRVs and 12.8011% leakage reduction in Cornubia; two new PRVs and 27.907% leakage reduction in Pat Marshal; nine of 36 Cornubia PRVs replaced by candidate PATs with estimated 135.48 kW and 948.67 MWh/year; one Pat Marshal PAT with estimated 24.55 kW and 131.6 MWh/year. All power and leakage figures are optimisation outputs, not verified operating-plant measurements."
+      },
+      "spatial_scope": "Cornubia Phase 2A / Zone 1 and Pat Marshal Housing Project, KwaZulu-Natal, South Africa",
+      "spatial_resolution": "Two named water-distribution network models with pipe/node-level constraints; original model data and exact boundaries require recovery",
+      "temporal_scope": "Dissertation published 2021; modelled network duty periods and annualized outputs",
+      "temporal_resolution": "Model-based operating and annualized values; not a measured time series",
+      "variables": [
+        "network node pressures",
+        "pipe flow",
+        "pressure-reducing valve placement and settings",
+        "PAT placement and estimated power",
+        "estimated leakage reduction",
+        "annualized energy output",
+        "gross margin"
+      ],
+      "license_status": {
+        "status": "identified_requires_review",
+        "details": "UKZN ResearchSpace identifies the full dissertation PDF; the repository states items are copyright-protected and all rights reserved unless otherwise indicated. Cite the abstract and obtain permission for any redistribution or fixture use."
+      },
+      "claim_ceiling": "South African modelled multiobjective PRV/leakage/PAT placement study. Not measured energy generation, independently validated leakage savings, commissioned equipment or bankable output.",
+      "limitations": [
+        "The model was automated using MATLAB and EPANET; the abstract does not establish field commissioning or post-installation measurement.",
+        "The 135.48 kW / 948.67 MWh/year Cornubia values and 24.55 kW / 131.6 MWh/year Pat Marshal values are model-derived estimates.",
+        "The Cornubia Phase 2A network overlaps the subject geography of the 2022 peer-reviewed Cornubia PAT paper; do not treat the studies as independent test replications without comparing model inputs and study boundaries.",
+        "PAT equipment, full off-design maps, transient surge, generator losses, parasitic loads and metered output are not established by the public abstract."
+      ],
+      "admission_requirements": [
+        "Retrieve the exact dissertation and checksum; preserve rights restrictions.",
+        "Extract and pin full network topology, demand patterns, constraints, objective formulation, PAT/pump selection, pressure boundaries and annualization assumptions.",
+        "Reproduce 2021 abstract results using exact model inputs before comparing against the 2022 article.",
+        "Resolve whether the 2021 and 2022 Cornubia studies use the same network model, demand inputs and candidate sites.",
+        "Seek operator-provided pressure, flow, leakage and meter records for any independent real-world validation."
+      ],
+      "raw_snapshot_ingested": false,
+      "snapshot_digest": null
+    },
+    {
+      "source_id": "wdn-pat-pressure-management-jowitt-2025",
+      "source_name": "Pressure management and energy production approaches in urban water distribution networks using pumps as turbines",
+      "provider": "Energy Reports authors; Elsevier",
+      "source_url": "https://doi.org/10.1016/j.egyr.2025.09.034",
+      "source_type": "research_publication",
+      "resource_families": [
+        "hydropower",
+        "cross_resource"
+      ],
+      "evidence_basis": "modeled_analysis_forecast",
+      "availability_state": "context_only",
+      "source_version": {
+        "label": "Energy Reports 14, December 2025, pp. 2593-2606",
+        "release_or_publication_date": "2025-12",
+        "data_period": "Jowitt benchmark water-distribution network; 24-hour extended-period simulations using demand-driven and pressure-driven analysis",
+        "metadata_updated": null,
+        "notes": "The paper compares PAT placement and selection based on maximum, average and minimum 24-hour discharge. As PAT count increases from one to five, reported energy increases from 33.39 to 107.42 kWh under DDA and from 44.88 to 114.9 kWh under PDA. It reports that PRVs achieve greater leakage reduction and lower pressure heads, and that PDA is more realistic under pressure-sensitive conditions. These are simulation results for the Jowitt network, not South African field performance."
+      },
+      "spatial_scope": "Jowitt benchmark water distribution network; non-South-African methodological comparator",
+      "spatial_resolution": "Network node/link-level hydraulic model",
+      "temporal_scope": "Published December 2025; 24-hour daily operating profile",
+      "temporal_resolution": "Extended-period 24-hour simulation",
+      "variables": [
+        "PAT placement",
+        "PDA/DDA demand model",
+        "pressure",
+        "flow",
+        "leakage",
+        "energy recovery",
+        "PAT count and discharge-selection strategy"
+      ],
+      "license_status": {
+        "status": "identified_requires_review",
+        "details": "The paper is identified as open access under a Creative Commons licence; confirm the exact licence and third-party data conditions before reproducing figures or data. The paper states data are available on request."
+      },
+      "claim_ceiling": "Published non-South-African model-comparison methodology and simulation reference. Not a South African performance result or measured operating record.",
+      "limitations": [
+        "The Jowitt network and its demand/pipe parameters are not a South African water utility dataset.",
+        "The headline energy ranges depend on the number of PATs and whether DDA or PDA is used; preserve the exact metric and scenario count.",
+        "The paper reports greater leakage reduction and lower pressure heads for PRVs than PATs in its tested configurations; energy and leakage outcomes must not be collapsed into one score.",
+        "Source data are available on request rather than provided as an openly downloadable matched validation corpus."
+      ],
+      "admission_requirements": [
+        "Pin the paper PDF/DOI, exact tables, DDA/PDA demand settings and data availability condition.",
+        "Recreate all one-to-five PAT configurations under identical 24-hour duty and demand assumptions.",
+        "Report pressure, service delivery, leakage and energy separately for each strategy.",
+        "Keep the Jowitt case as an external algorithmic comparator; do not use its numerical output as a South African site benchmark."
+      ],
+      "raw_snapshot_ingested": false,
+      "snapshot_digest": null
+    },
+    {
+      "source_id": "wdn-multinode-pat-rtc-mpc-2026",
+      "source_name": "Multi-Node real time control for pressure regulation and energy recovery in water distribution networks using Pump-as-Turbines",
+      "provider": "Control Engineering Practice authors; Elsevier",
+      "source_url": "https://doi.org/10.1016/j.conengprac.2026.106777",
+      "source_type": "research_publication",
+      "resource_families": [
+        "hydropower",
+        "cross_resource"
+      ],
+      "evidence_basis": "modeled_analysis_forecast",
+      "availability_state": "context_only",
+      "source_version": {
+        "label": "Control Engineering Practice 169, April 2026, Article 106777",
+        "release_or_publication_date": "2026-04",
+        "data_period": "Closed-loop simulated WDN scenarios using a detailed pressure-driven unsteady-flow model",
+        "metadata_updated": null,
+        "notes": "The paper proposes a multi-node real-time control structure combining a Kalman filter for joint state/disturbance estimation, tracking model-predictive control for multi-output pressure regulation, and an actuator-settings optimizer for PAT operation. The abstract reports closed-loop simulations and claims modularity/scalability; it does not establish a field deployment or provide a public numerical performance table in the abstract."
+      },
+      "spatial_scope": "International water-distribution network modelling; no South African field deployment established",
+      "spatial_resolution": "Multi-node network and actuator model; exact node count and model details require article/supplementary-data extraction",
+      "temporal_scope": "Published April 2026; closed-loop simulated control episodes",
+      "temporal_resolution": "Real-time-control simulation using pressure-driven unsteady-flow model",
+      "variables": [
+        "multi-node service pressure",
+        "state/disturbance estimates",
+        "PAT operating settings",
+        "closed-loop control response",
+        "energy recovery",
+        "pressure-regulation constraints"
+      ],
+      "license_status": {
+        "status": "identified_requires_review",
+        "details": "The publication is reported as open access under a Creative Commons licence. Confirm article and supplementary-data licence, and any third-party model or dataset restrictions before redistribution."
+      },
+      "claim_ceiling": "Published 2026 modelled real-time-control method comparator. Not a field-validated controller, South African site result, or proof of safe/authorized OT operation.",
+      "limitations": [
+        "The reported results are closed-loop simulations using a detailed pressure-driven unsteady-flow model, not a field trial.",
+        "The abstract does not establish a publicly downloadable matched network/measurement corpus or numeric superiority threshold.",
+        "The paper's controller operates over a multi-node system; a single-conduit steady-state energy ledger does not reproduce its control problem.",
+        "The method does not transfer operational authority to an external controller or prove local cyber/OT safety."
+      ],
+      "admission_requirements": [
+        "Pin the paper PDF, DOI, exact version, supplementary files, algorithm definitions and all reported metrics.",
+        "Reproduce the paper's baseline controller, Kalman state/disturbance estimator, tracking MPC and actuator-settings optimizer on its declared network/scenarios if data are available.",
+        "Compare on matched pressure tracking, minimum service, leakage, recovered energy, constraint violations, control switching, robustness to sensor/model error and computation budget.",
+        "Use its method as a controller SOTA reference, not as a claim of South African field validation."
+      ],
+      "raw_snapshot_ingested": false,
+      "snapshot_digest": null
+    },
+    {
+      "source_id": "antalya-full-scale-pat-operational-study-2018",
+      "source_name": "Evaluation of performance and environmental benefits of a full-scale pump as turbine system in Antalya water distribution network",
+      "provider": "Muhammetoglu et al.; Water Science and Technology: Water Supply / IWA Publishing",
+      "source_url": "https://iwaponline.com/ws/article-abstract/18/1/130/38216/Evaluation-of-performance-and-environmental",
+      "source_type": "research_publication",
+      "resource_families": [
+        "hydropower"
+      ],
+      "evidence_basis": "published_field_observation",
+      "availability_state": "context_only",
+      "source_version": {
+        "label": "Water Supply 2018, 18(1), 130–141; DOI 10.2166/ws.2017.087",
+        "release_or_publication_date": "2018",
+        "data_period": "First approximately five months of full-scale operation; PAT operational since 2016-01-26",
+        "metadata_updated": null,
+        "notes": "The study reports continuous online monitoring of flow rate, electrical power and inlet/outlet pressures for a full-scale PAT installed in parallel with a PRV in the Antalya City water distribution network. The abstract reports 130–300 m3/h inflows, 0.7–8.4 kWh generated for approximately 100 kPa pressure reduction, average efficiency of 60%, and a case-specific payback calculation of 53 days / 1.8 months using initial operating data and environmental-benefit assumptions. A related 2017 ASCE paper (DOI 10.1061/(ASCE)WR.1943-5452.0000795) describes the same installation; these publications are not independent replications."
+      },
+      "spatial_scope": "Antalya City, Turkey; one full-scale pressure management / water distribution network installation",
+      "spatial_resolution": "One PAT/PRV bypass installation; component and network monitoring, exact coordinates and network layer resolution not admitted",
+      "temporal_scope": "First approximately five months of operation from 2016-01-26; study published 2018",
+      "temporal_resolution": "Online monitoring of flow, power and inlet/outlet pressure; exact sample interval not specified in abstract",
+      "variables": [
+        "upstream/inlet pressure",
+        "downstream/outlet pressure",
+        "flow rate",
+        "electrical energy generated",
+        "average operating efficiency",
+        "pressure reduction",
+        "case-specific financial payback"
+      ],
+      "license_status": {
+        "status": "identified_requires_review",
+        "details": "IWA Publishing article access and reuse terms need review before copying full text, figures or supplementary data. Bibliographic metadata and abstract-level claims can be cited; raw operational data availability and redistribution permission are not established by the abstract."
+      },
+      "claim_ceiling": "Published full-scale operational evidence that a PAT/PRV parallel installation ran under a real WDN duty profile in Antalya for an initial approximately five-month period. Not South African validation, not independent long-term reliability evidence, and not a transferable project payback or output guarantee.",
+      "limitations": [
+        "The monitored installation is in Antalya, Turkey; hydraulic network, tariffs, climate, water demand, asset condition and regulatory context differ from South Africa.",
+        "The abstract does not state the time denominator for the 0.7–8.4 kWh reported energy values; do not convert these to kW, daily energy or annual yield without the full article's exact interval definition.",
+        "The approximately five-month initial period is not multi-year durability or availability evidence.",
+        "The 60% average efficiency and reported 53-day/1.8-month payback are case-specific study results; the payback depends on the study's financial and environmental-benefit assumptions.",
+        "The related 2017 ASCE full-scale paper describes the same installation and must not be counted as an independent second site."
+      ],
+      "admission_requirements": [
+        "Obtain the full paper and supplementary data, then pin exact monitoring intervals, measurement boundaries, uncertainty, calibration and energy units.",
+        "Recover raw or sufficiently resolved time series for flow, pressure, PAT electrical power, bypass state and PRV operation if the authors/operator permit access.",
+        "Separate PAT hydraulic efficiency, generator/inverter efficiency and net system efficiency; verify the published 60% definition.",
+        "Reconstruct the operational availability, downtime, maintenance, seasonal variation and bypass/fallback periods before using as a reliability comparator.",
+        "Keep the 2017 ASCE and 2018 IWA papers linked to one installation identity to prevent double counting.",
+        "Do not transfer the 53-day payback estimate to South African tariff, labour, import, spares or finance assumptions."
+      ],
+      "raw_snapshot_ingested": false,
+      "snapshot_digest": null
+    },
+    {
+      "source_id": "manservigi-et-al-pat-regulation-2025-experimental-curves",
+      "source_name": "Hydraulic and electrical regulations of pumps as turbines for energy recovery in water distribution networks: Energy and economic analysis",
+      "provider": "Manservigi et al.; Cambridge Prisms: Water, Cambridge University Press",
+      "source_url": "https://www.cambridge.org/core/journals/cambridge-prisms-water/article/hydraulic-and-electrical-regulations-of-pumps-as-turbines-for-energy-recovery-in-water-distribution-networks-energy-and-economic-analysis/11A8E6728AE92434D1A085B84378FC64",
+      "source_type": "research_publication",
+      "resource_families": [
+        "hydropower"
+      ],
+      "evidence_basis": "laboratory_measurement",
+      "availability_state": "context_only",
+      "source_version": {
+        "label": "Cambridge Prisms: Water; published online 2025-06-16; DOI 10.1017/wat.2025.10004",
+        "release_or_publication_date": "2025-06-16",
+        "data_period": "Experimental characteristic curves for 16 turbomachines; applied to a real-world Northern Italy water distribution network serving approximately 5,000 users",
+        "metadata_updated": null,
+        "notes": "The study compares hydraulic and electrical PAT regulation and applies experimental pump/turbine-mode characteristic curves for 16 machines to a real WDN. It reports 44.1% of the network's available hydraulic energy recoverable by the selected PAT at a maximum investment cost of €24,500. For PAT #12, electrical regulation bypassed the PAT in 72.4% of operating cases; hydraulic regulation produced LCOE €74–180/MWh while electrical regulation produced €269/MWh in the case assumptions. The paper identifies 25.2% of total hydraulic energy losses as due to PAT inefficiency in the evaluated hydraulic-regulation case."
+      },
+      "spatial_scope": "Northern Italy; one real water distribution network serving approximately 5,000 users, with experimental component curves for 16 turbomachines",
+      "spatial_resolution": "One network-level case study and 16 experimental turbomachine characteristic datasets; not South Africa",
+      "temporal_scope": "Published 2025; case-study demand/operating profiles and experiment datasets as described in the article",
+      "temporal_resolution": "Network operating profile with machine characteristic maps; exact curve sampling and chronology must be recovered from article data",
+      "variables": [
+        "pump-mode and turbine-mode characteristic curves",
+        "PAT head-flow-efficiency operating maps",
+        "hydraulic versus electrical regulation",
+        "network pressure and flow",
+        "energy recovery fraction",
+        "LCOE",
+        "payback period",
+        "PAT bypass and operating losses"
+      ],
+      "license_status": {
+        "status": "identified_requires_review",
+        "details": "The article is Open Access under a Creative Commons Attribution-NonCommercial licence. Non-commercial reuse is permitted subject to the exact terms and citation; commercial use requires permission from Cambridge University Press. Underlying third-party data/figures may have additional terms."
+      },
+      "claim_ceiling": "Published experimental PAT characteristic curves and a model-based techno-economic comparison on a real Northern Italian WDN. Not a South African site validation, not 16 independently commissioned WDN installations, and not a commercial quotation or local LCOE.",
+      "limitations": [
+        "The 16 turbomachine characteristic curves are experimental component data; the WDN integration and 44.1% energy recovery result are a case-study evaluation, not evidence that all 16 machines were operated in that field network.",
+        "The network and tariff/cost assumptions are from Northern Italy and cannot be transferred to South Africa without local inputs.",
+        "The study's €24,500 maximum investment, LCOE €74–180/MWh hydraulic-regulation range and €269/MWh electrical-regulation result are case-specific.",
+        "Electrical regulation bypassed the selected PAT in 72.4% of cases under the reported scenario; this is a strong negative-control case for operating strategy, but not a universal result.",
+        "The article's NonCommercial licence is not commercial reuse permission for a Luminous product."
+      ],
+      "admission_requirements": [
+        "Pin the full article version, supplementary data, experimental curve files, exact 16 machine identities, test boundaries, uncertainties and calibration.",
+        "Reconstruct the 16 pump/turbine characteristic maps without smoothing or extrapolation beyond the observed domain.",
+        "Reproduce the paper's hydraulic/electrical regulation cases under the exact source network, demand profiles, energy boundary and cost assumptions.",
+        "Keep component experiment results distinct from simulated WDN integration and financial results.",
+        "Preserve the CC BY-NC reuse restrictions; obtain separate permissions for commercial data or figure reuse.",
+        "Use as an international comparator only; no South African transfer claim until tested against an independent SA network."
+      ],
+      "raw_snapshot_ingested": false,
+      "snapshot_digest": null
+    },
+    {
+      "source_id": "pugliese-et-al-pat-experimental-characterization-2016",
+      "source_name": "Experimental characterization of two Pumps As Turbines for hydropower generation",
+      "provider": "Pugliese, De Paola, Fontana, Giugni and Marini; Renewable Energy",
+      "source_url": "https://www.sciencedirect.com/science/article/pii/S0960148116305754",
+      "source_type": "research_publication",
+      "resource_families": [
+        "hydropower"
+      ],
+      "evidence_basis": "laboratory_measurement",
+      "availability_state": "context_only",
+      "source_version": {
+        "label": "Renewable Energy 99 (2016), 180–187; DOI 10.1016/j.renene.2016.06.051",
+        "release_or_publication_date": "2016-12",
+        "data_period": "Experimental test-rig characterization of one horizontal single-stage centrifugal pump and one vertical multistage pump operating in reverse turbine mode",
+        "metadata_updated": null,
+        "notes": "The paper experimentally characterizes two pumps in turbine mode and compares test results with theoretical conversion/selection models. Its motivation is the shortage of measured PAT characteristic curves and the limited reliability of generic pump-to-turbine extrapolation relationships."
+      },
+      "spatial_scope": "Laboratory test rig; two pump models, not a water distribution network installation",
+      "spatial_resolution": "Component test-rig operating points; exact head/flow and instrumentation ranges require full-paper extraction",
+      "temporal_scope": "Published December 2016",
+      "temporal_resolution": "Steady/experimental operating points; exact measurement duration and point grid require the full article",
+      "variables": [
+        "PAT head-flow relationship",
+        "pump-to-turbine performance conversion",
+        "efficiency",
+        "rotational speed",
+        "experimental deviation from theoretical prediction"
+      ],
+      "license_status": {
+        "status": "identified_requires_review",
+        "details": "Elsevier article access and reuse terms require review. Bibliographic metadata and abstract-level claims can be cited; raw test data or figures are not assumed to be redistributable."
+      },
+      "claim_ceiling": "Published laboratory measurement evidence that two pump types were experimentally characterized in turbine mode. Not a South African field installation, not an unrestricted manufacturer catalogue, and not a universal pump-to-turbine conversion law.",
+      "limitations": [
+        "Only two pump configurations are described in the abstract; results cannot be generalized to all centrifugal pump families.",
+        "The article highlights that PAT characteristic curve prediction remains an unresolved problem because manufacturers often provide limited reverse-mode data.",
+        "Exact numerical maps, test uncertainty, instrumentation and operating domain must be recovered from the full paper before curve reproduction.",
+        "No network service, leakage, grid-interconnection or long-term PAT availability was tested by this component study."
+      ],
+      "admission_requirements": [
+        "Pin the complete paper version, experimental tables/curve data and exact test-rig conditions.",
+        "Recover pump geometry/model identity, impeller diameter, rotational speed, head, flow, torque/power, measurement uncertainty and test repeatability.",
+        "Use the measured turbine-mode curves rather than applying a generic BEP transformation.",
+        "Compare the published correlations only within the two measured pump domains; extrapolation requires independent evidence.",
+        "Keep laboratory component data separate from full-scale WDN operational observations."
+      ],
+      "raw_snapshot_ingested": false,
+      "snapshot_digest": null
+    },
+    {
+      "source_id": "parra-et-al-intelligent-pat-prv-experiment-2018",
+      "source_name": "Intelligent pressure management by pumps as turbines in water distribution systems: results of experimentation",
+      "provider": "Parra, Krause, Krönlein, Günthert and Klunke; Water Supply / IWA Publishing",
+      "source_url": "https://iwaponline.com/ws/article-abstract/18/3/778/38286/Intelligent-pressure-management-by-pumps-as",
+      "source_type": "research_publication",
+      "resource_families": [
+        "hydropower"
+      ],
+      "evidence_basis": "laboratory_measurement",
+      "availability_state": "context_only",
+      "source_version": {
+        "label": "Water Supply 2018, 18(3), 778–789; DOI 10.2166/ws.2017.154; accepted 2017-07-10",
+        "release_or_publication_date": "2018",
+        "data_period": "Laboratory / experimental evaluation of a PRV + PAT pressure management arrangement under variable discharges representative of a characteristic demand day",
+        "metadata_updated": null,
+        "notes": "The paper combines hydraulic modelling and extensive experimentation for a German WDN case. During laboratory tests, critical-point pressure was maintained at the selected value under variable discharge; it reports up to 2.3 kW electrical energy recovered at PAT full load, maximum total net system efficiency of 40%, and up to 16% greater water savings than conventional PRVs."
+      },
+      "spatial_scope": "Germany case study and laboratory PAT/PRV test arrangement; not South Africa",
+      "spatial_resolution": "One laboratory/test configuration and associated hydraulic model, not a measured national/network fleet",
+      "temporal_scope": "Published 2018; experimental operating profile representative of a characteristic demand day",
+      "temporal_resolution": "Variable discharge operating points; exact test sample intervals require full article and supplementary data",
+      "variables": [
+        "variable flow",
+        "critical-node pressure",
+        "PAT electrical output",
+        "net system efficiency",
+        "water savings versus PRV baseline",
+        "pressure modulation"
+      ],
+      "license_status": {
+        "status": "identified_requires_review",
+        "details": "IWA Publishing access and article reuse terms must be checked before reuse of full text, figures or datasets. Abstract-level published claims may be cited; raw test data are not presumed redistributable."
+      },
+      "claim_ceiling": "Published experimental PAT/PRV control evidence under a variable-discharge laboratory profile. Not a South African field installation, not long-term operational availability, and not a project-specific energy or water-savings guarantee.",
+      "limitations": [
+        "The reported 2.3 kW is an observed full-load maximum, not a sustained average or annual energy yield.",
+        "The 40% figure is the maximum total net system efficiency reported by this study; its exact measurement boundary must be preserved and must not be compared directly to turbine-only or generator-only efficiency.",
+        "The up-to-16% water savings are relative to the tested conventional PRV arrangement and operating profile, not a universal leakage reduction.",
+        "The study uses a German case and laboratory experiments; it does not validate South African network hydraulics or water-rights conditions.",
+        "Full operational lifetime, fouling, maintenance, seasonal flow variability and long-term grid performance are not established by the abstract."
+      ],
+      "admission_requirements": [
+        "Pin the full paper and supplementary materials, exact test setup, PAT model, electrical/hydraulic measurement points and uncertainty.",
+        "Recover the exact net-system-efficiency denominator and the baseline water-saving definition.",
+        "Reproduce the variable-discharge pressure tracking case with the same pressure target, flow profile and PRV comparator.",
+        "Keep full-load maximum power separate from time-integrated generation and long-term availability.",
+        "Do not transfer the German case-study savings to South African networks without local validation."
+      ],
+      "raw_snapshot_ingested": false,
+      "snapshot_digest": null
+    },
+    {
+      "source_id": "wrc-pressurised-conduit-pat-pilot-kv238-10-2010",
+      "source_name": "A High Level Scoping Investigation into the Potential of Energy Saving and Production/Generation in the Supply of Water Through Pressurized Conduits",
+      "provider": "Water Research Commission; University of Pretoria",
+      "source_url": "https://www.wrc.org.za/wp-content/uploads/mdocs/KV%20238-10.pdf",
+      "source_type": "research_publication",
+      "resource_families": [
+        "hydropower"
+      ],
+      "evidence_basis": "published_field_observation",
+      "availability_state": "context_only",
+      "source_version": {
+        "label": "WRC Report KV 238/10, April 2010, ISBN 978-1-77005-954-2",
+        "release_or_publication_date": "2010-04",
+        "data_period": "Short-duration observational pilot measurements at Queenswood Reservoir, Tshwane; exact dates and sample cadence are not provided in the report's summary table",
+        "metadata_updated": null,
+        "notes": "The report documents a low-budget PAT pilot at Queenswood Reservoir. Its Table i reports five time-stamped observations of flow, voltage, current, rotational speed, measured electrical power, head drop and calculated minimum efficiency. Measured output values are 2,323.2–4,521.0 W at flows 27.55–32.49 L/s and head drops 25.04–30.94 m. The report describes the unit as not optimized and the trial as an observational experiment, not a long-term operating plant. The pump is a Sulzer AZ-100/400; its pump-mode BEP is 180 m3/h at 50 m head, with manufacturer-provided reverse-mode estimates."
+      },
+      "spatial_scope": "Queenswood Reservoir inlet / valve chamber, Tshwane, Gauteng, South Africa",
+      "spatial_resolution": "One pilot bypass and turbine/PAT test arrangement within the existing bulk pipeline; site coordinates and raw time series not admitted",
+      "temporal_scope": "Short-duration pilot readings documented in WRC Report KV 238/10; sample timestamps 10:52, 11:15, 11:27, 12:05 and 12:10",
+      "temporal_resolution": "Five time-stamped sample points; not a continuous or seasonal time series",
+      "variables": [
+        "measured turbine-branch flow",
+        "generator voltage",
+        "generator current",
+        "rotational speed",
+        "measured electrical power",
+        "head drop",
+        "maximum head drop",
+        "calculated minimum efficiency"
+      ],
+      "license_status": {
+        "status": "not_assessed",
+        "details": "The report is available for public reading and citation from WRC. Reuse/redistribution of the full report, tables, photographs and underlying pilot data should be checked against WRC terms before reproducing artifacts."
+      },
+      "claim_ceiling": "Published measured pilot observations at Queenswood Reservoir showing several-kilowatt PAT output at measured flow/head points. Not a sustained operating record, annual yield, optimised PAT map, long-term reliability result or bankable plant.",
+      "limitations": [
+        "The WRC report describes the pilot as not optimized and its observations as initial trial runs.",
+        "Only five time-stamped readings are presented in the summary table; this is not a continuous duty-cycle or seasonal record.",
+        "The report labels a table section as measured output energy but its column reports instantaneous power in watts; preserve the actual unit and do not interpret these values as kWh.",
+        "The calculated minimum efficiency is not a complete uncertainty-qualified turbine/generator net system efficiency.",
+        "The Sulzer reverse-mode characteristic curve was estimated/provided for this pilot; exact independent reverse-mode full map and uncertainty are not established.",
+        "The 2014 Tshwane paper documents the same Queenswood pilot and must not be counted as a second installation."
+      ],
+      "admission_requirements": [
+        "Pin the WRC PDF bytes/checksum and exact Table i / site description pages.",
+        "Recover original time series, meter calibration, measurement interval, electrical connection and head/flow sensor locations from University of Pretoria/Tshwane custodians if available.",
+        "Cross-link the 2014 Tshwane paper to the same Queenswood installation ID.",
+        "Keep measured sample powers separate from calculated annual potential; do not extrapolate five samples to annual energy.",
+        "Obtain permission before ingesting or redistributing any raw operator data or report figures."
+      ],
+      "raw_snapshot_ingested": false,
+      "snapshot_digest": null
+    },
+    {
+      "source_id": "tshwane-conduit-hydropower-pilot-installations-pierre-van-ryneveld-queenswood-2014",
+      "source_name": "Conduit-hydropower potential in the City of Tshwane water distribution system: A discussion of potential applications, financial and other benefits",
+      "provider": "Loots, van Dijk, van Vuuren, Bhagwan and Kurtz; Journal of the South African Institution of Civil Engineering",
+      "source_url": "https://www.scielo.org.za/scielo.php?pid=S1021-20192014000300001&script=sci_arttext",
+      "source_type": "research_publication",
+      "resource_families": [
+        "hydropower"
+      ],
+      "evidence_basis": "published_field_observation",
+      "availability_state": "context_only",
+      "source_version": {
+        "label": "Journal of the South African Institution of Civil Engineering, Vol. 56 No. 3, October 2014",
+        "release_or_publication_date": "2014-10",
+        "data_period": "Queenswood low-budget pilot constructed/tested from 2008; Pierre van Ryneveld cross-flow conduit-hydropower installation completed/commissioned 2011",
+        "metadata_updated": null,
+        "notes": "The paper documents the same Queenswood PAT pilot covered in WRC KV 238/10 and a separate Pierre van Ryneveld (PvR) conduit-hydropower installation. At PvR it reports three field experiments, a cross-flow turbine and synchronous generator, approximately 15 kW maximum capacity depending on flow/head, and the 29 November 2011 launch with site lighting switched from grid to hydropower. The paper explicitly identifies operating problems: generator frequency control, sudden load rejection, PRV hunting from slow response, variable supply flow/head, and manual operation."
+      },
+      "spatial_scope": "Queenswood Reservoir and Pierre van Ryneveld Reservoir / Country Lane Estate, City of Tshwane, Gauteng, South Africa",
+      "spatial_resolution": "Two distinct pilot/installation sites; the Queenswood data share installation identity with WRC KV 238/10",
+      "temporal_scope": "Queenswood pilot from 2008; PvR plant launched 2011; paper published October 2014",
+      "temporal_resolution": "Queenswood summary observations are point samples in the cited WRC report; PvR experiments are described as field experiments without a continuous SCADA record",
+      "variables": [
+        "pressure head",
+        "flow variation",
+        "Queenswood PAT test points",
+        "PvR cross-flow turbine maximum capacity",
+        "generator voltage/frequency control",
+        "on-site lighting load",
+        "load-rejection response",
+        "PRV hunting and control issues"
+      ],
+      "license_status": {
+        "status": "identified_requires_review",
+        "details": "The article is publicly readable on SciELO. Confirm the journal's reuse terms before republishing full figures/tables or raw measurements; citation and abstract-level findings do not imply unrestricted dataset rights."
+      },
+      "claim_ceiling": "Published South African field/pilot evidence for conduit-hydropower installations at Queenswood and Pierre van Ryneveld. The PvR 15 kW value is a maximum capacity statement, not an annual average or metered energy record. This source also includes preliminary national/site potential estimates that are not admitted as measured capacity.",
+      "limitations": [
+        "Queenswood pilot is the same installation described in WRC Report KV 238/10; not an independent second plant.",
+        "PvR's approximately 15 kW maximum depends on flow and head; the paper does not provide a multi-year metered generation profile.",
+        "The authors list unresolved generator frequency control, sudden load rejection, PRV hunting, variable water supply and manual operation.",
+        "The article's 10,000 MWh/a top-ten Tshwane potential and other financial estimates are preliminary resource/economic screening, not installed or measured fleet output.",
+        "The PvR pilot's flow/head measurements do not establish year-round water service, modern control performance or current operational status."
+      ],
+      "admission_requirements": [
+        "Recover the original PvR field experiment files, flow/pressure chronology, generator power measurements and measurement uncertainty from Tshwane/UP custodians if available.",
+        "Identify whether the plant remains in operation and whether the original cross-flow turbine/generator has since been maintained or modified.",
+        "Keep the Queenswood and PvR installation identities separate; cross-link Queenswood to WRC KV 238/10.",
+        "Test the listed frequency, load rejection, PRV hunting and manual-control problems as negative controls in the modern controller benchmark.",
+        "Obtain operator permission before ingesting raw site telemetry or asset drawings."
+      ],
+      "raw_snapshot_ingested": false,
+      "snapshot_digest": null
+    },
+    {
+      "source_id": "drakenstein-leliefontein-bidirectional-pat-station-imesa-2021",
+      "source_name": "Leliefontein Pump-As-Turbine Station",
+      "provider": "Steyn et al.; Proceedings of the 84th Conference of the Institute of Municipal Engineering of Southern Africa (IMESA), Paper 17",
+      "source_url": "https://researchspace.csir.co.za/bitstream/handle/10204/12279/Steyn_2021.pdf",
+      "source_type": "research_publication",
+      "resource_families": [
+        "hydropower"
+      ],
+      "evidence_basis": "published_field_observation",
+      "availability_state": "context_only",
+      "source_version": {
+        "label": "IMESA 84th Conference proceedings, 17–19 November 2021; paper pp. 176–178",
+        "release_or_publication_date": "2021-11",
+        "data_period": "Leliefontein PAT station reported in operation since June 2018; annual generation and 2018–2041 totals are estimates in the paper",
+        "metadata_updated": null,
+        "notes": "The paper describes a bidirectional pump/PAT installation for Drakenstein Municipality in the Western Cape, combining pump and turbine mode using reversible flow, reverse rotation, active-front-end variable-speed drives, actuated valves, custom DN630 pipeline connections, a bidirectional power meter, grid protection and SCADA. It reports estimated average generation of 320 MWh/year, an estimated 9.9 GWh total over 2018–2041, and 57 kW for six generating hours to offset one hour of 300 kW pumping at 30 ML/day. The same paper includes a conflicting statement of 271,236 MWh generated and 53,577 MWh consumed; those figures are internally inconsistent with its annual and lifetime estimates and likely have a unit transcription error. Do not use those cumulative meter figures as MWh."
+      },
+      "spatial_scope": "Leliefontein pump/PAT station, Drakenstein Municipality, Western Cape, South Africa; serving the Wellington/Paarl water supply system",
+      "spatial_resolution": "One municipal pump/PAT station connected to existing gravity-fed reservoirs and the municipal electrical grid; SCADA and power meter described but raw records not included",
+      "temporal_scope": "Operating since June 2018; paper published November 2021; annual and 2018–2041 totals are estimates",
+      "temporal_resolution": "SCADA monitoring and bidirectional meter are described; raw time-series sampling interval and full meter export are not provided",
+      "variables": [
+        "turbining and pumping operating modes",
+        "PAT turbine curves at 920 rpm",
+        "bidirectional electrical energy meter",
+        "grid import/export",
+        "SCADA status/performance/efficiency",
+        "estimated annual generation",
+        "pump-mode energy consumption",
+        "actuated valve and active-front-end drive control"
+      ],
+      "license_status": {
+        "status": "identified_requires_review",
+        "details": "Conference proceedings are publicly available for reading and citation. Confirm IMESA/CSIR reuse conditions before redistributing the paper, photos, diagrams or any underlying municipal SCADA data."
+      },
+      "claim_ceiling": "Published South African full-scale bidirectional municipal PAT installation with described grid export, bidirectional power metering and SCADA monitoring. The paper's 320 MWh/year and 9.9 GWh values are estimates; no raw independently audited interval data are included. It is not a complete metered efficiency or reliability time series.",
+      "limitations": [
+        "The paper contains an internal unit inconsistency: 271,236 MWh generated and 53,577 MWh consumed are inconsistent with the stated 320 MWh/year estimate and 9.9 GWh over 2018–2041. The cumulative values must be treated as unresolved and not used as MWh.",
+        "The paper's 320 MWh/year and 9.9 GWh are estimates, not independently audited metered totals.",
+        "The station serves both pumping and generation duties; net energy benefit must subtract pump-mode consumption and distinguish time in each mode.",
+        "The stated maximum 57 kW for six hours and 300 kW pumping for one hour is a balancing illustration, not a typical operating duty cycle.",
+        "The source does not provide raw SCADA, meter calibration, time intervals, uncertainty or a complete availability/maintenance record.",
+        "It reports 10% incremental project capital cost but does not supply an independently normalized CAPEX/OPEX or South African replication cost model."
+      ],
+      "admission_requirements": [
+        "Request original bidirectional meter exports and SCADA histories from Drakenstein Municipality, including timestamps, meter direction/register, calibration, quality flags and sampling interval.",
+        "Resolve the 271,236 / 53,577 cumulative meter unit inconsistency directly with the paper authors or municipality before using these totals.",
+        "Reconstruct annual net import/export, pumping energy, turbine energy, parasitics, downtime, bypass and pump/turbine mode chronology.",
+        "Recover the KSB turbine-mode map, exact pump models, active-front-end drive revisions, valve sequencing and protection settings.",
+        "Obtain operator permission and confirm current operational status before claiming continuing performance."
+      ],
+      "raw_snapshot_ingested": false,
+      "snapshot_digest": null
+    },
+    {
+      "source_id": "south-africa-geothermal-hotspots-dhansay-et-al-2017",
+      "source_name": "South Africa's geothermal energy hotspots inferred from subsurface temperature and geology",
+      "provider": "Dhansay, Musekiwa, Ntholi, Chevallier, Cole and de Wit; South African Journal of Science",
+      "source_url": "https://doi.org/10.17159/sajs.2017/20170092",
+      "source_type": "research_publication",
+      "resource_families": [
+        "geothermal"
+      ],
+      "evidence_basis": "published_field_observation",
+      "availability_state": "context_only",
+      "source_version": {
+        "label": "South African Journal of Science 113(11/12), 2017; DOI 10.17159/sajs.2017/20170092",
+        "release_or_publication_date": "2017-11-29",
+        "data_period": "Published subsurface temperature, heat-flow and solute-geothermometry observations available to the authors in 2017",
+        "metadata_updated": null,
+        "notes": "The study combines existing subsurface temperature and heat-flow measurements with solute-based hydrochemical geothermometry and geological/tectonic interpretation to identify possible low-enthalpy geothermal anomalies. It concludes that South Africa may have realistic low-enthalpy potential but requires new temperature measurements, structural/hydrogeological characterization and economic investigation."
+      },
+      "spatial_scope": "South Africa; regional low-enthalpy geothermal target regions inferred from available subsurface measurements and geology",
+      "spatial_resolution": "Regional anomalies and mapped geological/tectonic context; not a field-verified reservoir boundary or drill-site model",
+      "temporal_scope": "Evidence compiled and published in 2017",
+      "temporal_resolution": "Sparse existing borehole/temperature/heat-flow and geochemical observations; no continuous reservoir production history",
+      "variables": [
+        "subsurface temperature",
+        "geothermal gradient",
+        "heat flow",
+        "hydrochemical geothermometry",
+        "tectonic structures",
+        "geological context"
+      ],
+      "license_status": {
+        "status": "identified_requires_review",
+        "details": "The article is published under CC BY 4.0. Confirm figure/source attribution and any underlying third-party data terms before redistribution."
+      },
+      "claim_ceiling": "Published regional evidence for possible South African low-enthalpy geothermal anomalies. Does not establish a producible high-temperature reservoir, well productivity, electricity capacity, drilling cost, commercial project or bankable reserve.",
+      "limitations": [
+        "This is a regional prospectivity study, not a modern national geothermal atlas or resource certification.",
+        "The authors explicitly call for new temperature measurements and structural, hydrogeological and economic studies.",
+        "Low-enthalpy direct heat and geothermal electricity are different use cases; this record does not demonstrate commercial power generation.",
+        "A geothermal gradient anomaly does not prove sustainable fluid production, permeability, reservoir temperature at depth or acceptable drilling economics."
+      ],
+      "admission_requirements": [
+        "Recover all original observation locations, depths, dates, methods and measurement uncertainty where accessible.",
+        "Cross-reference modern borehole temperature, heat-flow, geology, faults, hydrochemistry and mine-water datasets without treating interpolated maps as field measurements.",
+        "Prioritize direct-use heat screening separately from electricity-grade resource screening.",
+        "Require site-specific exploration, drilling, flow testing, reinjection and environmental evidence before capacity or yield claims."
+      ],
+      "raw_snapshot_ingested": false,
+      "snapshot_digest": null
+    },
+    {
+      "source_id": "dffe-south-africa-marine-renewable-spatial-planning-context-2021",
+      "source_name": "Marine Spatial Planning National Data: Uses and Interests — Marine Renewable Energy",
+      "provider": "South African Department of Forestry, Fisheries and the Environment",
+      "source_url": "https://www.dffe.gov.za/sites/default/files/reports/research/oceans/marinespatialplanning_nationaldata.pdf",
+      "source_type": "sector_report",
+      "resource_families": [
+        "ocean_current",
+        "wave",
+        "offshore_wind",
+        "marine_physics"
+      ],
+      "evidence_basis": "sector_policy_report",
+      "availability_state": "context_only",
+      "source_version": {
+        "label": "Marine Spatial Planning National Data: Uses and Interests; section 3.7.4",
+        "release_or_publication_date": "2021",
+        "data_period": "National marine spatial-planning research and resource context available in the cited report",
+        "metadata_updated": null,
+        "notes": "The report identifies the Agulhas Current, Southern Ocean wave climate, offshore wind and ocean thermal gradients off northern KwaZulu-Natal as marine-energy resource themes. It cites theoretical southern African coastal wave power locally up to 100 kW/m. It states that tidal ranges are too small to generate appreciable power in South Africa. The report also notes immature local industry capability, cost uncertainty, regulatory challenges and that early assessments had not yet identified project-ready sites."
+      },
+      "spatial_scope": "South African coastline, Agulhas Current, offshore wind and northern KwaZulu-Natal ocean thermal gradients",
+      "spatial_resolution": "National marine spatial-planning context; the report does not provide a project-ready, instrumented device site or detailed turbine-array layout",
+      "temporal_scope": "Report published approximately 2021; baseline resource/planning context",
+      "temporal_resolution": "Resource and marine spatial-planning context; not a continuous wave/current/tidal measurement time series",
+      "variables": [
+        "wave power per metre of wave crest",
+        "Agulhas Current",
+        "offshore wind",
+        "ocean temperature differential",
+        "tidal range",
+        "marine spatial planning constraints"
+      ],
+      "license_status": {
+        "status": "identified_requires_review",
+        "details": "Government report is publicly accessible. Confirm document, dataset and map reuse terms and any third-party data attribution before redistribution."
+      },
+      "claim_ceiling": "Government marine-energy resource and planning context. Does not establish a permitted or bankable South African marine-energy site, annual device output, ecological acceptability or grid connection.",
+      "limitations": [
+        "The stated wave-power value is theoretical coastal resource context, not device-capture output or a P90 energy yield.",
+        "The report concludes that South African tidal range is too small for appreciable tidal-range power; this does not by itself rule out current-driven marine energy, which is a distinct resource.",
+        "The Agulhas Current and OTEC indications are resource hypotheses requiring depth-resolved measurement, engineering and environmental assessment.",
+        "The report states that early assessments had not identified specific candidate sites and describes local industry/regulatory capability as immature."
+      ],
+      "admission_requirements": [
+        "Separate tidal-range, tidal-stream/ocean-current, wave, offshore-wind and OTEC architectures; do not conflate their resource mechanisms.",
+        "Obtain current bathymetry, metocean hindcasts, in-situ measurement, extreme-event and environmental datasets at candidate sites.",
+        "Assess mooring/foundation, subsea cable, vessel access, survivability, biofouling, maintenance windows and marine spatial approvals.",
+        "Benchmark against full-system net energy, availability, survivability and maintenance rather than theoretical wave power alone."
+      ],
+      "raw_snapshot_ingested": false,
+      "snapshot_digest": null
+    },
+    {
+      "source_id": "fervo-cape-station-egs-33mw-commercial-operation-2026",
+      "source_name": "Cape Station GeoBlock 1 enhanced geothermal commercial operation",
+      "provider": "Fervo Energy Company; Q3 2026 operating and financial results",
+      "source_url": "https://fervoenergy.gcs-web.com/news-releases/news-release-details/fervo-energy-reports-third-quarter-2026-results",
+      "source_type": "sector_report",
+      "resource_families": [
+        "geothermal"
+      ],
+      "evidence_basis": "published_field_observation",
+      "availability_state": "context_only",
+      "source_version": {
+        "label": "Fervo Energy Q3 2026 results; published 2026-11-09",
+        "release_or_publication_date": "2026-11-09",
+        "data_period": "Cape Station Phase I GeoBlock 1 declared commercial operation 2026-09-30; GeoBlocks 2 and 3 in commissioning as of Q3 results",
+        "metadata_updated": null,
+        "notes": "Fervo reports that Cape Station GeoBlock 1 achieved contractual commercial operation on 2026-09-30 and is delivering 33 MW net power under its PPA. The company reported GeoBlock 2 grid-synchronized and exporting test energy, with GeoBlock 3 in cold commissioning. The 396 MW Google offtake described in the release relates to future supply beginning in 2028, not current operating capacity."
+      },
+      "spatial_scope": "Cape Station, Beaver County, Utah, United States",
+      "spatial_resolution": "One 33 MW net enhanced-geothermal GeoBlock within a multi-block project",
+      "temporal_scope": "Commercial operation declared 2026-09-30; company update published 2026-11-09",
+      "temporal_resolution": "Company operating update; public release does not include raw meter series or third-party audited availability data",
+      "variables": [
+        "net electrical capacity",
+        "commercial operation date",
+        "PPA delivery",
+        "grid synchronization",
+        "commissioning state",
+        "project construction"
+      ],
+      "license_status": {
+        "status": "identified_requires_review",
+        "details": "Public company investor-relations release. Use for citation and benchmark context; verify any data redistribution and independently corroborate operating performance before engineering or investment claims."
+      },
+      "claim_ceiling": "Company-reported first commercial 33 MW net EGS GeoBlock operating in Utah. Demonstrates a commercial-scale EGS milestone as reported by the developer; it is not an independently audited performance dataset, South African resource validation or proof that other closed-loop/EGS concepts will share the same economics.",
+      "limitations": [
+        "The 33 MW net output and operating status are reported by the project developer; the public release does not supply raw metering, uncertainty, availability or independent performance audit.",
+        "The 396 MW PPA and near-1 GW expansion option concern future contracted supply, not capacity already operating at Cape Station.",
+        "The first GeoBlock's performance does not establish reservoir lifetime, decline, drilling reproducibility or cost for a different geology.",
+        "Utah's geothermal resource, drilling supply chain, permitting, finance and PPA structure differ from South Africa."
+      ],
+      "admission_requirements": [
+        "Obtain independent net-metered generation, auxiliary consumption, parasitic pumping and availability data over a meaningful operating period.",
+        "Separate drilling and surface-plant cost by block, shared infrastructure, financing, wellfield and commissioning boundary.",
+        "Recover well spacing/lateral design, temperature/flow/pressure histories, thermal drawdown, fluid loss and induced-seismicity monitoring boundaries.",
+        "Use as an EGS commercial execution comparator only; do not transfer power density or cost assumptions to South African prospects."
+      ],
+      "raw_snapshot_ingested": false,
+      "snapshot_digest": null
+    },
+    {
+      "source_id": "geothermal-experience-rates-514-plant-global-dataset-2026",
+      "source_name": "Experience rates of current and future geothermal power technologies",
+      "provider": "Mueller, Steffen and Schmidt; iScience",
+      "source_url": "https://doi.org/10.1016/j.isci.2026.117113",
+      "source_type": "research_publication",
+      "resource_families": [
+        "geothermal"
+      ],
+      "evidence_basis": "literature_review",
+      "availability_state": "context_only",
+      "source_version": {
+        "label": "iScience, published 2026-08-21; DOI 10.1016/j.isci.2026.117113",
+        "release_or_publication_date": "2026-08-21",
+        "data_period": "Global dataset covers 514 geothermal plants built over seven decades, with cost data for 206 plants",
+        "metadata_updated": null,
+        "notes": "The study estimates a negative global geothermal experience rate of approximately -20% for hydrothermal systems, with substantial country-level differences. It uses expert interviews to examine the role of hydrogeology, regulation, knowledge spillovers and local conditions, and assesses whether enhanced and closed-loop geothermal systems can change cost dynamics."
+      },
+      "spatial_scope": "Global geothermal plant fleet; country-level comparisons where sufficient cost history exists",
+      "spatial_resolution": "514 historical plants, 206 with cost data; the abstract does not provide site-specific South African resource data",
+      "temporal_scope": "Seven decades of geothermal plant deployment; paper published in 2026",
+      "temporal_resolution": "Plant build-year and project-cost observations; not an operating time-series dataset for a single facility",
+      "variables": [
+        "installed geothermal plant cost",
+        "plant construction date",
+        "country-level experience rate",
+        "hydrothermal technology",
+        "enhanced geothermal systems",
+        "closed-loop geothermal systems"
+      ],
+      "license_status": {
+        "status": "identified_requires_review",
+        "details": "Open-access iScience article. Confirm the article's CC licence and any underlying third-party cost-data restrictions before redistribution."
+      },
+      "claim_ceiling": "Published historical cost-learning analysis of geothermal deployment. Its negative global experience rate is a statistical historical result, not a forecast that every future geothermal project will become more expensive or a direct EGS cost estimate.",
+      "limitations": [
+        "Global negative experience rate reflects the study's historical sample and methodology; it should not be applied as a universal project cost escalation rate.",
+        "Country-level experience rates vary substantially, so global averaging can hide local learning and institutional effects.",
+        "New EGS and closed-loop concepts have limited commercial deployment history relative to hydrothermal plants.",
+        "A learning rate does not replace site-specific drilling, reservoir, permitting, surface-plant, finance and supply-chain estimates."
+      ],
+      "admission_requirements": [
+        "Pin the paper dataset and cost-normalization methodology before using the numeric experience rates.",
+        "Keep conventional hydrothermal, EGS and closed-loop project classes separate.",
+        "Use country/region-specific cost evidence and uncertainty distributions where samples are adequate.",
+        "Treat South African geothermal costs as unknown until exploration, wells, flow tests, supply chain and finance are evidenced."
+      ],
+      "raw_snapshot_ingested": false,
+      "snapshot_digest": null
+    },
+    {
+      "source_id": "irenarenewable-power-generation-costs-2025-global-benchmark-2026",
+      "source_name": "Renewable Power Generation Costs in 2025",
+      "provider": "International Renewable Energy Agency",
+      "source_url": "https://www.irena.org/Publications/2026/Jul/Renewable-Power-Generation-Costs-in-2025",
+      "source_type": "sector_report",
+      "resource_families": [
+        "solar",
+        "onshore_wind",
+        "offshore_wind",
+        "hydropower",
+        "geothermal",
+        "cross_resource"
+      ],
+      "evidence_basis": "sector_policy_report",
+      "availability_state": "context_only",
+      "source_version": {
+        "label": "IRENA Renewable Power Generation Costs in 2025; published July 2026",
+        "release_or_publication_date": "2026-07",
+        "data_period": "Global renewable projects commissioned in 2025; cost methodology and sample described in report annex",
+        "metadata_updated": null,
+        "notes": "IRENA reports global weighted-average LCOE values for 2025 of approximately USD 44/MWh for solar PV, USD 33/MWh for onshore wind, USD 78/MWh for offshore wind, USD 62/MWh for hydropower, USD 89/MWh for geothermal and USD 115/MWh for CSP. More than 90% of utility-scale renewable projects commissioned in 2025 were reported below the cost of the cheapest new fossil-fuel plant in their market."
+      },
+      "spatial_scope": "Global project sample, with technology and regional variation; not a South African tariff or project quotation",
+      "spatial_resolution": "Global weighted-average technology metrics; detailed project and region distributions require report tables and data annex",
+      "temporal_scope": "Projects commissioned in 2025; report published July 2026",
+      "temporal_resolution": "Project-level cost observations aggregated to global weighted-average LCOE",
+      "variables": [
+        "levelized cost of electricity",
+        "installed cost",
+        "capacity factor",
+        "technology class",
+        "renewable project commissioning year",
+        "fossil-fuel cost comparison"
+      ],
+      "license_status": {
+        "status": "identified_requires_review",
+        "details": "IRENA report is publicly downloadable. Check its licence and the underlying database terms before redistributing extracted tables or raw data."
+      },
+      "claim_ceiling": "Global reference cost benchmark for renewable technologies commissioned in 2025. It is not a South African bid price, site-specific PPA, financing quote, dispatchable/firm energy cost or lifetime-cost result for an individual design.",
+      "limitations": [
+        "Global weighted averages conceal country-specific financing, grid, resource, labour, tax and supply-chain differences.",
+        "LCOE does not by itself measure firm capacity, hourly service, storage needs, network reinforcement, curtailment or ancillary-service value.",
+        "Hydropower and geothermal projects differ strongly by resource and project scale; the global averages should not be transferred as design targets.",
+        "A project-specific comparison must harmonize currency year, discount rate, capacity factor, system boundary, financing and cost inclusions."
+      ],
+      "admission_requirements": [
+        "Pin report version, annex, cost sample, currency year, discount rate and project boundary.",
+        "Use as a comparator only after matching technology scope, country, delivery profile, capacity factor, financing and grid-connection cost.",
+        "Report energy-only LCOE and firm/useful-service costs separately.",
+        "Retain project-level distributions and sensitivity; do not treat the weighted average as a hard price target."
+      ],
+      "raw_snapshot_ingested": false,
+      "snapshot_digest": null
+    },
+    {
+      "source_id": "perovskite-silicon-tandem-scalable-ambient-fabrication-2026",
+      "source_name": "Scalable ambient fabrication of single-junction and perovskite–silicon tandem solar cells",
+      "provider": "Nature Sustainability research article",
+      "source_url": "https://www.nature.com/articles/s41893-026-01916-6",
+      "source_type": "research_publication",
+      "resource_families": [
+        "solar"
+      ],
+      "evidence_basis": "laboratory_measurement",
+      "availability_state": "context_only",
+      "source_version": {
+        "label": "Nature Sustainability; published 2026-08-13",
+        "release_or_publication_date": "2026-08-13",
+        "data_period": "Laboratory and module fabrication, light-soaking stability and perovskite-silicon tandem cell evaluation reported in 2026",
+        "metadata_updated": null,
+        "notes": "The paper reports ambient-air blade-coated perovskite solar cells with 26.5% certified cell efficiency, 23.2% module efficiency, and certified 33.0% monolithic perovskite-silicon tandem cell efficiency. The paper reports 99.8% retention of initial efficiency after 1,200 hours of continuous light soaking for the cited single-junction cells; this laboratory stress result is not a 25-year outdoor module warranty."
+      },
+      "spatial_scope": "Laboratory and pilot-scale module fabrication; no South African outdoor plant",
+      "spatial_resolution": "Cell and module specimens; module area and production-line throughput must be taken from the full paper and supplementary information",
+      "temporal_scope": "Published 2026; laboratory stability test duration up to 1,200 hours for the specified condition",
+      "temporal_resolution": "Device/module fabrication and accelerated laboratory testing; not multi-year field degradation data",
+      "variables": [
+        "cell power conversion efficiency",
+        "module power conversion efficiency",
+        "tandem cell efficiency",
+        "ambient blade coating",
+        "light-soaking stability",
+        "manufacturing process"
+      ],
+      "license_status": {
+        "status": "identified_requires_review",
+        "details": "Review the publisher's open-access licence, supplementary data terms and any third-party figure restrictions before reuse."
+      },
+      "claim_ceiling": "Laboratory/pilot fabrication and efficiency evidence for perovskite and perovskite-silicon tandem devices. Does not establish commercial factory yield, multi-year field degradation, bankability, warranty performance, module-level safety certification or cost advantage.",
+      "limitations": [
+        "Cell efficiency and module efficiency are different measurements and must not be interchanged.",
+        "The 1,200-hour stability result is condition-specific laboratory evidence; it does not prove outdoor 20–30-year lifetime.",
+        "Lead-containing perovskite material management, encapsulation, moisture/thermal/UV stability, fire behaviour, recycling and factory yield remain product qualification issues.",
+        "The 33.0% certified tandem result is a cell result, not a commercial module fleet output."
+      ],
+      "admission_requirements": [
+        "Recover cell/module area, fabrication yield, process throughput, failure distribution and full supplementary data.",
+        "Run independent module qualification under relevant IEC and ISOS protocols, including UV, thermal cycling, damp heat, humidity-freeze, mechanical load and reverse-bias/shading stress.",
+        "Measure lead containment/recovery and end-of-life handling.",
+        "Use field outdoor degradation and warranty-compatible reliability data before commercial project selection."
+      ],
+      "raw_snapshot_ingested": false,
+      "snapshot_digest": null
+    },
+    {
+      "source_id": "low-head-hydro-full-scale-validation-gaps-review-2026",
+      "source_name": "Full-scale validation gaps and opportunities for low-head hydropower: a review and perspective",
+      "provider": "Tseng, Ham, Sasthav, Kao and Musa; Sustainable Energy Technologies and Assessments",
+      "source_url": "https://doi.org/10.1016/j.seta.2026.105218",
+      "source_type": "research_publication",
+      "resource_families": [
+        "hydropower"
+      ],
+      "evidence_basis": "literature_review",
+      "availability_state": "context_only",
+      "source_version": {
+        "label": "Sustainable Energy Technologies and Assessments 93, article 105218; published September 2026",
+        "release_or_publication_date": "2026-09",
+        "data_period": "Review of low-head hydropower trends, environmental mitigation and full-scale hydraulic test capabilities",
+        "metadata_updated": null,
+        "notes": "The review identifies a gap between low-head technology requirements and available full-scale testing infrastructure. It reports that many emerging technologies require flows beyond existing U.S. testing capability and argues for repurposing retired or underused hydraulic infrastructure as full-scale test facilities to reduce first-adoption risk."
+      },
+      "spatial_scope": "Technology and testing-capability review with U.S. laboratory capacity as a case study; global relevance, not South African capacity measurement",
+      "spatial_resolution": "Review of test facilities and low-head turbine classes; not a site-level hydro resource map",
+      "temporal_scope": "Published September 2026",
+      "temporal_resolution": "Literature and facility capability comparison, not an operating-plant time series",
+      "variables": [
+        "low-head turbine operating range",
+        "test-facility flow/head capacity",
+        "full-scale validation",
+        "fish passage",
+        "sediment continuity",
+        "water quality",
+        "retrofit infrastructure"
+      ],
+      "license_status": {
+        "status": "identified_requires_review",
+        "details": "Review publisher and institutional repository reuse conditions; underlying source papers and datasets may have separate rights."
+      },
+      "claim_ceiling": "Published assessment of the low-head hydro full-scale validation gap and testing infrastructure needs. Does not establish a South African test site's readiness or any particular turbine's field performance.",
+      "limitations": [
+        "The article uses U.S. testing facilities as a case study; its capacity figures cannot be copied as South African facility capability.",
+        "Full-scale environmental validation is difficult to infer from reduced-scale hydraulic models.",
+        "Repurposing infrastructure requires owner approval, asset condition assessment, safe isolation and a test-specific environmental/safety case."
+      ],
+      "admission_requirements": [
+        "Crosswalk South African decommissioned/underused hydraulic assets and operator access opportunities.",
+        "Measure actual available head, discharge, structures, water rights and outage/access requirements before nominating a test site.",
+        "Define full-scale test measurements, independent acceptance, fish/water-quality requirements and transient safety scope.",
+        "Use testbed data to qualify a specific product map, not to claim all low-head turbines are equivalent."
+      ],
+      "raw_snapshot_ingested": false,
+      "snapshot_digest": null
+    },
+    {
+      "source_id": "shallow-water-hydrokinetic-performance-validation-review-2026",
+      "source_name": "Shallow-Water Hydrokinetic Turbines: A Critical Systematic Review of Design Parameters, Performance Validation, and Deployment Challenges",
+      "provider": "Ruttanawijit, Tiaple and Zhang; Journal of Sustainable Development of Energy, Water and Environment Systems",
+      "source_url": "https://doi.org/10.13044/j.sdewes.d14.0715",
+      "source_type": "research_publication",
+      "resource_families": [
+        "hydropower",
+        "ocean_current"
+      ],
+      "evidence_basis": "literature_review",
+      "availability_state": "context_only",
+      "source_version": {
+        "label": "Journal of Sustainable Development of Energy, Water and Environment Systems 14(3), 2026; DOI 10.13044/j.sdewes.d14.0715",
+        "release_or_publication_date": "2026-09-14",
+        "data_period": "Systematic review of studies published 2015–2025 with legacy background studies",
+        "metadata_updated": null,
+        "notes": "The review synthesizes shallow-water hydrokinetic technologies and validation. It reports field-validated power coefficients of 0.18–0.28 for reviewed cross-flow impulse turbines and 15–45% laboratory-to-field performance degradation across the reviewed device literature. It also identifies prediction uncertainty, blockage/free-surface modelling limitations and high field costs. These values belong to the reviewed device families and must not be applied as a universal derating factor to PATs or conventional hydropower."
+      },
+      "spatial_scope": "Global shallow-water hydrokinetic technology review, water depth less than 3 m",
+      "spatial_resolution": "Review of 38 studies plus legacy background studies; no South African field-device cohort",
+      "temporal_scope": "Studies published 2015–2025; review published 2026",
+      "temporal_resolution": "Cross-study results; no unified operational time series",
+      "variables": [
+        "hydrokinetic power coefficient",
+        "laboratory-to-field degradation",
+        "blockage ratio",
+        "free-surface effects",
+        "field capital cost",
+        "levelized cost of electricity"
+      ],
+      "license_status": {
+        "status": "identified_requires_review",
+        "details": "Check journal licence and rights for figure/table reuse before redistribution."
+      },
+      "claim_ceiling": "Literature synthesis of shallow-water hydrokinetic technology performance. Its 15–45% lab-to-field gap is evidence that scale/field effects matter in the reviewed devices; it is not a PAT or low-head turbine universal derating coefficient.",
+      "limitations": [
+        "Shallow-water hydrokinetic devices are not the same physical class as a pressurized conduit PAT or a conventional head-based hydro turbine.",
+        "Cross-study power coefficients and economic metrics depend on depth, blockage, flow regime, measurement boundary and technology family.",
+        "The review concludes shallow-water hydrokinetic use is niche rather than a mainstream low-cost substitute for solar PV in the reviewed market context."
+      ],
+      "admission_requirements": [
+        "Use only for matching shallow-water hydrokinetic design cases and clearly labelled comparisons.",
+        "Do not apply the 15–45% degradation band to PATs without a matched test programme.",
+        "Require full-scale, site-specific field validation and transparent blockage/free-surface correction before making deployment claims."
+      ],
+      "raw_snapshot_ingested": false,
+      "snapshot_digest": null
+    },
+    {
+      "source_id": "compressed-air-energy-storage-technology-prospects-review-2026",
+      "source_name": "Technologies and prospects for compressed air energy storage",
+      "provider": "Nature Reviews Clean Technology",
+      "source_url": "https://www.nature.com/articles/s44359-026-00150-9",
+      "source_type": "research_publication",
+      "resource_families": [
+        "cross_resource"
+      ],
+      "evidence_basis": "literature_review",
+      "availability_state": "context_only",
+      "source_version": {
+        "label": "Nature Reviews Clean Technology 2, 2026; published 2026-02-25",
+        "release_or_publication_date": "2026-02-25",
+        "data_period": "Review of CAES technology, demonstrations, operating systems and thermal integration",
+        "metadata_updated": null,
+        "notes": "The review describes large-scale CAES facilities above 300 MW and reports a broad 50–70% round-trip-efficiency range, depending on configuration. It highlights thermal energy storage integration, part-load compressor/expander performance, geological/artificial air storage, sealing and fatigue as major design variables. These are cross-technology review values, not a site quote or a guaranteed efficiency."
+      },
+      "spatial_scope": "Global compressed-air energy storage technology review",
+      "spatial_resolution": "System-architecture and plant-class review; not one site-specific storage project",
+      "temporal_scope": "Published February 2026",
+      "temporal_resolution": "Demonstration and operational literature; no single harmonized dispatch time series",
+      "variables": [
+        "storage power",
+        "storage duration",
+        "round-trip efficiency",
+        "compressor/expander off-design performance",
+        "thermal energy storage",
+        "reservoir pressure",
+        "fatigue and sealing"
+      ],
+      "license_status": {
+        "status": "identified_requires_review",
+        "details": "Review publisher's article licence and reuse terms before distributing figures, tables or supplementary data."
+      },
+      "claim_ceiling": "Technology review of CAES and thermal integration. It does not establish a South African cavern, suitable geology, project cost, permitting, grid service or guaranteed 50–70% round-trip efficiency for a new design.",
+      "limitations": [
+        "CAES efficiency depends strongly on thermodynamic configuration, thermal storage, pressure, compressor/expander maps and operating regime.",
+        "Geological storage suitability, caprock integrity, cycling fatigue, seals and site-specific permitting require independent investigation.",
+        "The technology is not directly comparable with a battery by USD/kWh alone; report power, energy, duration, round-trip loss, auxiliary heat and response separately."
+      ],
+      "admission_requirements": [
+        "Screen South African geology and subsurface storage only with qualified geotechnical/geological evidence.",
+        "Model compressor, expander and thermal-store maps across part-load and variable renewable input.",
+        "Test cycling, leakage, fatigue, thermal retention and safe pressure limits.",
+        "Compare with pumped hydro, electrochemical, thermal and curtailment alternatives on matched service duration and dispatch duty."
+      ],
+      "raw_snapshot_ingested": false,
+      "snapshot_digest": null
+    },
+    {
+      "source_id": "mine-water-energy-technical-basics-and-monitoring-review-2025",
+      "source_name": "Mine Water as an Energy Source: Overview of Technical Basics, Existing Plants, and Monitoring Results",
+      "provider": "Oppelt, Grab, Ebel, Wunderlich, Fieback and Storch; Mine Water and the Environment",
+      "source_url": "https://doi.org/10.1007/s10230-025-01057-w",
+      "source_type": "research_publication",
+      "resource_families": [
+        "geothermal",
+        "cross_resource"
+      ],
+      "evidence_basis": "literature_review",
+      "availability_state": "context_only",
+      "source_version": {
+        "label": "Mine Water and the Environment 44, 519–543; published 2025-05-15",
+        "release_or_publication_date": "2025-05-15",
+        "data_period": "Review of mine-water heat systems, existing installations and monitoring results",
+        "metadata_updated": null,
+        "notes": "The review explains mine-water heating/cooling pathways and existing plants. Useful capacity depends on stable flow, mine-water renewal, temperature, pumping head, reinjection temperature, chemistry and nearby consumers. It notes that mine-water temperature can be too low for direct heating and heat pumps may be needed."
+      },
+      "spatial_scope": "International mine-water installations and technical examples; not a South African resource map",
+      "spatial_resolution": "Review of mine systems and case studies; site boundaries and raw data vary by source",
+      "temporal_scope": "Published 2025; reviews earlier operating installations and monitoring evidence",
+      "temporal_resolution": "Cross-study operational and monitoring examples; not a single harmonized time series",
+      "variables": [
+        "mine-water flow and renewal",
+        "mine-water temperature",
+        "pumping head",
+        "heat-pump COP",
+        "reinjection temperature",
+        "chemistry and fouling",
+        "consumer distance",
+        "thermal energy delivered"
+      ],
+      "license_status": {
+        "status": "identified_requires_review",
+        "details": "Publisher's article access and reuse conditions must be checked, including third-party figures and underlying monitoring data."
+      },
+      "claim_ceiling": "Technical review and cross-case evidence for mine-water heat and cooling. Does not prove a specific South African mine has sustainable thermal flow, water rights, suitable chemistry or economic connection to consumers.",
+      "limitations": [
+        "Usable energy depends on stable inflow/replenishment and temperature, not the geometric volume of a flooded mine alone.",
+        "Pumping head and distance between the mine-water source and consumers can dominate system losses and economics.",
+        "Reinjection temperature, chemistry, scaling, mineral precipitation and corrosion must be assessed for each site.",
+        "International mine-water case studies and heat-pump COP values are not transferable to South African sites without measured source/sink conditions."
+      ],
+      "admission_requirements": [
+        "Recover original case-site flow/temperature histories and meter boundaries for any quantitative use.",
+        "For South African candidates obtain operator-approved mine-water temperatures, flow, pump/treatment energy, chemistry, reinjection/discharge limits and consumer profiles.",
+        "Model source renewal and thermal recovery; do not assume a mine void is a lossless storage tank.",
+        "Separate source heat, compressor work, auxiliaries, distribution losses and useful consumer heat/cooling."
+      ],
+      "raw_snapshot_ingested": false,
+      "snapshot_digest": null
+    },
+    {
+      "source_id": "mine-water-heating-system-operational-lessons-economic-scenarios-2026",
+      "source_name": "Technical lessons learned from the usage of geothermal mine water for heat supply and economic scenarios to predict feasibility",
+      "provider": "Energy Conversion and Management",
+      "source_url": "https://doi.org/10.1016/j.enconman.2025.120809",
+      "source_type": "research_publication",
+      "resource_families": [
+        "geothermal",
+        "cross_resource"
+      ],
+      "evidence_basis": "published_field_observation",
+      "availability_state": "context_only",
+      "source_version": {
+        "label": "Energy Conversion and Management 349, article 120809; published 2026-02-01",
+        "release_or_publication_date": "2026-02-01",
+        "data_period": "Technical analysis of an operating mine-water heating system plus alternative economic scenarios",
+        "metadata_updated": null,
+        "notes": "The paper evaluates an operating geothermal mine-water heat-supply system. Its highlights identify heat-network losses and mineralization at heat exchangers as critical optimization issues. The abstract reports case-specific amortization periods of 14–22 years depending on energy and carbon prices, and notes the need for subsidies under the study's investment scenario."
+      },
+      "spatial_scope": "One international mine-water heating case study; not South Africa",
+      "spatial_resolution": "Operating mine-water heating system and its heat-network/exchanger boundary; exact site data require the full paper",
+      "temporal_scope": "Published February 2026; operating system and scenario-based economics",
+      "temporal_resolution": "Operational observations and modelled economic scenarios; full monitoring cadence must be recovered from article",
+      "variables": [
+        "mine-water heat supply",
+        "heat-network losses",
+        "heat-exchanger mineralization",
+        "heating demand",
+        "energy cost",
+        "carbon price",
+        "amortization period"
+      ],
+      "license_status": {
+        "status": "identified_requires_review",
+        "details": "Open-access article is identified; verify the exact Creative Commons licence and third-party figure/data rights before reuse."
+      },
+      "claim_ceiling": "Published operating-system case study and techno-economic scenarios for geothermal mine-water heating. Its 14–22-year amortization is a case-specific result, not a South African payback estimate.",
+      "limitations": [
+        "The project is not a South African mine-water installation; geology, pumping, chemistry, consumer density, energy prices and regulation differ.",
+        "The economics are sensitive to heat-network loss, exchanger mineralization and energy/carbon-price assumptions.",
+        "The abstract does not provide a raw meter export or an independently audited South African performance series."
+      ],
+      "admission_requirements": [
+        "Recover the full article's operating heat/flow/temperature and meter boundaries before numerical reproduction.",
+        "Crosswalk the heat exchanger mineralization and maintenance data to South African mine-water chemistry only where comparable.",
+        "Recompute economics under a South African tariff, grid emissions, water treatment, labour, financing and consumer load profile.",
+        "Preserve observed performance separately from scenario-modelled amortization."
+      ],
+      "raw_snapshot_ingested": false,
+      "snapshot_digest": null
+    },
+    {
+      "source_id": "csir-sanedi-south-africa-industrial-thermal-systems-support",
+      "source_name": "Supporting Industry with Thermal Systems",
+      "provider": "Council for Scientific and Industrial Research (CSIR), with South African National Energy Development Institute (SANEDI)",
+      "source_url": "https://www.csir.co.za/supporting-industry-thermal-systems",
+      "source_type": "government_page",
+      "resource_families": [
+        "cross_resource",
+        "solar",
+        "geothermal"
+      ],
+      "evidence_basis": "government_research_context",
+      "availability_state": "context_only",
+      "source_version": {
+        "label": "CSIR Energy Research Centre thermal-systems support programme page",
+        "release_or_publication_date": null,
+        "data_period": "Existing and planned thermal laboratory/test capabilities described on the project page",
+        "metadata_updated": null,
+        "notes": "The CSIR page describes local thermal-system support work and capabilities including materials characterization, low-pressure steam supply/distribution, lab-scale thermal storage and performance testing of evacuated-tube collectors for 70–150°C water heating and concentrating/tracking solar collectors for 100–400°C industrial heat. It describes planned heat-pump, pilot thermal-storage, flue-gas and thermal-oil testing capability."
+      },
+      "spatial_scope": "South Africa; CSIR thermal testing and industrial energy-support capability",
+      "spatial_resolution": "Laboratory/test-facility capability; not a commercial plant or site heat-resource layer",
+      "temporal_scope": "Programme page; includes existing and planned equipment capability",
+      "temporal_resolution": "Facility and test capability description; no continuous plant-output data",
+      "variables": [
+        "industrial process heat",
+        "solar thermal collector testing",
+        "low-pressure steam",
+        "heat-pump test capability",
+        "thermal energy storage",
+        "materials characterization",
+        "waste-heat recovery"
+      ],
+      "license_status": {
+        "status": "identified_requires_review",
+        "details": "Government research programme web page is publicly accessible; confirm terms for reuse of figures, programme descriptions and test datasets."
+      },
+      "claim_ceiling": "Evidence that South African thermal-system R&D/testing capability and an industry support programme exist. Does not establish that planned equipment is already commissioned, that a specific project has been tested, or that a particular supplier/device meets performance requirements.",
+      "limitations": [
+        "The page describes both existing and planned testing capability; planned facilities must not be presented as already commissioned.",
+        "No public test reports or full measurement-uncertainty datasets are admitted by this source record.",
+        "A laboratory capability does not establish industrial customer suitability, process uptime or bankable LCOH."
+      ],
+      "admission_requirements": [
+        "Confirm which facilities are currently operational and their test envelopes with CSIR/SANEDI.",
+        "Obtain independent calibration, uncertainty, safety and measurement-boundary documentation for each test rig.",
+        "Use the lab for matched heat-pump, collector, recuperator and storage testing only within its declared envelope.",
+        "Keep supplier/product trials distinct from commercial operating evidence."
+      ],
+      "raw_snapshot_ingested": false,
+      "snapshot_digest": null
+    },
+    {
+      "source_id": "greencape-south-africa-industrial-heating-decarbonisation-brief-2026",
+      "source_name": "Decarbonising Industrial Heating: Evaluating Low-Carbon Alternatives for Industrial Thermal Systems",
+      "provider": "GreenCape, supported by Agora Energiewende",
+      "source_url": "https://greencape.co.za/library/decarbonising-industrial-heating/",
+      "source_type": "sector_report",
+      "resource_families": [
+        "cross_resource",
+        "solar",
+        "geothermal"
+      ],
+      "evidence_basis": "sector_policy_report",
+      "availability_state": "context_only",
+      "source_version": {
+        "label": "GreenCape industrial heating brief; published 2026-08-28",
+        "release_or_publication_date": "2026-08-28",
+        "data_period": "South African industrial thermal-system alternatives and market/policy context",
+        "metadata_updated": null,
+        "notes": "The brief targets South African industrial businesses relying on boilers for process heat and steam. It discusses technical, financial and regulatory pathways and evaluates low-carbon alternatives, LCOH, carbon liability and operational suitability for industrial heating."
+      },
+      "spatial_scope": "South African industrial sector; national technology and market context",
+      "spatial_resolution": "Sector/industry brief; not individual plant hourly heat-demand measurements",
+      "temporal_scope": "Published 2026-08-28",
+      "temporal_resolution": "Technology, policy and market assessment; no continuous industrial process time series",
+      "variables": [
+        "industrial process heat and steam",
+        "boiler fuel use",
+        "low-carbon heat alternatives",
+        "levelized cost of heat",
+        "carbon tax/liability",
+        "operational suitability"
+      ],
+      "license_status": {
+        "status": "identified_requires_review",
+        "details": "Free publication is accessible from GreenCape; confirm report reuse, underlying dataset and third-party chart terms before redistribution."
+      },
+      "claim_ceiling": "South African market and technology-pathway context for decarbonizing industrial heat. Does not prove any plant-specific LCOH, heat-pump duty, resource availability or project return.",
+      "limitations": [
+        "The brief is a technology/market guide, not an independently audited industrial-site load/resource dataset.",
+        "Site-level steam pressure, temperature, return condensate, operating hours, boiler efficiency and production constraints are required for design.",
+        "Carbon price, tariffs, finance and process continuity assumptions may change the result materially."
+      ],
+      "admission_requirements": [
+        "Recover site-specific heat/steam demand by interval and temperature/pressure grade.",
+        "Measure boiler efficiency, fuel/auxiliary consumption, condensate return, waste-heat source/sink and process uptime.",
+        "Compare heat pumps, solar thermal, waste-heat recovery, thermal storage and hybrid alternatives at the useful heat boundary.",
+        "Recalculate LCOH and abatement cost under each site's tariff, finance, carbon and maintenance assumptions."
+      ],
+      "raw_snapshot_ingested": false,
+      "snapshot_digest": null
+    },
+    {
+      "source_id": "high-temperature-heat-pumps-industrial-process-heating-review-2025",
+      "source_name": "High-temperature heat pumps: key technologies and industrial applications toward carbon-neutral process heating",
+      "provider": "Wu, Yang and Zhang; Carbon Neutral Systems",
+      "source_url": "https://doi.org/10.1007/s44438-025-00021-z",
+      "source_type": "research_publication",
+      "resource_families": [
+        "cross_resource",
+        "geothermal"
+      ],
+      "evidence_basis": "literature_review",
+      "availability_state": "context_only",
+      "source_version": {
+        "label": "Carbon Neutral Systems 1, article 21; published 2025-12-29",
+        "release_or_publication_date": "2025-12-29",
+        "data_period": "Review of high-temperature heat-pump cycles, working fluids and industrial applications",
+        "metadata_updated": null,
+        "notes": "The review discusses medium-temperature heat pumps around 80–100°C and high-temperature systems in approximately 100–160°C industrial heat applications, including upgrading low-grade waste heat to process heat. It identifies cycle selection, temperature lift, working-fluid compatibility and integration with industrial duty as key design variables."
+      },
+      "spatial_scope": "International industrial-process-heat review",
+      "spatial_resolution": "Technology and application classes; not a South African industrial load database",
+      "temporal_scope": "Published 2025-12-29",
+      "temporal_resolution": "Review of experimental, modelling and application studies; no single harmonized operating time series",
+      "variables": [
+        "heat-pump delivery temperature",
+        "source temperature",
+        "temperature lift",
+        "compressor electricity",
+        "cycle topology",
+        "working-fluid selection",
+        "industrial process heat",
+        "COP"
+      ],
+      "license_status": {
+        "status": "identified_requires_review",
+        "details": "The article is identified as open access; confirm exact licence and any third-party figure restrictions before reuse."
+      },
+      "claim_ceiling": "Review of high-temperature heat-pump technology and industrial use cases. The temperature ranges are review context, not guaranteed performance for a commercial unit at every temperature lift.",
+      "limitations": [
+        "COP depends on source/sink temperature, cycle, working fluid, compressor, part-load and auxiliaries; the abstract does not give one universal COP.",
+        "Process heat at 100–160°C may require different cycle architectures and materials than low-temperature space heating.",
+        "Real industrial integration depends on process continuity, heat-exchanger fouling, available source heat and backup requirements."
+      ],
+      "admission_requirements": [
+        "Use measured source/sink temperature and duty profiles, not nominal temperatures alone.",
+        "Obtain manufacturer and independent maps at the exact lift and part-load range.",
+        "Include all compressor, circulation, treatment and distribution electricity in system COP.",
+        "Compare with direct electric heat, boiler, solar thermal and waste-heat recovery using matched service quality and temperature grade."
+      ],
+      "raw_snapshot_ingested": false,
+      "snapshot_digest": null
+    },
+    {
+      "source_id": "freiberg-mine-water-seasonal-thermal-storage-pilot-2026",
+      "source_name": "Mine water heat storage with heat pump as a solution for decarbonisation in urban areas",
+      "provider": "Heat Pumping Technologies / International Energy Agency Heat Pumping Technologies TCP conference paper",
+      "source_url": "https://heatpumpingtechnologies.org/publications/mine-water-heat-storage-with-heat-pump-as-a-solution-fordecarbonisation-in-urban-areas/",
+      "source_type": "research_publication",
+      "resource_families": [
+        "geothermal",
+        "cross_resource"
+      ],
+      "evidence_basis": "published_field_observation",
+      "availability_state": "context_only",
+      "source_version": {
+        "label": "HPT conference proceedings paper; published 2026-05-26",
+        "release_or_publication_date": "2026-05-26",
+        "data_period": "Freiberg former silver mine pilot reported continuously in test mode for over two years",
+        "metadata_updated": null,
+        "notes": "The paper reports a pilot-scale mine-water thermal storage system in Freiberg, Germany, operated in test mode for over two years. It reports storage efficiencies of 45–65%, mine-water temperatures ranging from 2°C to 40°C, and modelled district self-sufficiency up to 80% with storage duration over three months for three German district scenarios. The self-sufficiency and economic projections are modelled; the pilot storage-efficiency and temperature observations are separate evidence."
+      },
+      "spatial_scope": "Freiberg, Germany; one former silver-mine thermal-storage pilot and three modelled district scenarios",
+      "spatial_resolution": "Pilot mine-water store and heat-pump loop; consumer districts are modelled cases",
+      "temporal_scope": "Pilot test operation over more than two years, paper published May 2026",
+      "temporal_resolution": "Long-running pilot operation; exact sensor cadence and uncertainty must be recovered from proceedings",
+      "variables": [
+        "mine-water temperature",
+        "thermal storage charge/discharge",
+        "storage efficiency",
+        "heat-pump operation",
+        "seasonal storage duration",
+        "district heat demand",
+        "self-sufficiency"
+      ],
+      "license_status": {
+        "status": "identified_requires_review",
+        "details": "Review conference-paper licence, source data ownership and reuse terms before copying charts or detailed data."
+      },
+      "claim_ceiling": "Published field/pilot evidence for one German mine-water thermal-storage system with modelled district applications. It is not South African field validation or a universal 45–65% mine-thermal-storage efficiency.",
+      "limitations": [
+        "Pilot results depend on the specific flooded mine, flow renewal, geology, temperature, heat-pump configuration and monitoring boundary.",
+        "The reported up-to-80% self-sufficiency and greater-than-three-month duration are modelled district results, not measured service in an operating South African district.",
+        "A mine thermal store can cool or warm over time; sustainable use depends on water renewal and thermal recovery."
+      ],
+      "admission_requirements": [
+        "Recover raw pilot temperature/flow/heat meter data, storage-boundary definitions, efficiency formula and uncertainty.",
+        "Compare the German pilot with South African mine geometry, water renewal, chemistry and surface network distances.",
+        "Keep pilot storage observations distinct from modelled district self-sufficiency and economic projections.",
+        "Use site-specific thermal-hydraulic modelling and environmental approval before proposing a South African installation."
+      ],
+      "raw_snapshot_ingested": false,
+      "snapshot_digest": null
+    },
+    {
+      "source_id": "council-for-geoscience-south-africa-mine-water-management-research",
+      "source_name": "Mine and Environmental Water Management Project",
+      "provider": "Council for Geoscience, South Africa",
+      "source_url": "https://www.geoscience.org.za/project/mine-and-environmental-water-management-project/",
+      "source_type": "government_page",
+      "resource_families": [
+        "geothermal",
+        "cross_resource"
+      ],
+      "evidence_basis": "government_research_context",
+      "availability_state": "context_only",
+      "source_version": {
+        "label": "Council for Geoscience project page",
+        "release_or_publication_date": null,
+        "data_period": "Long-running research and mine-water management activities in Witwatersrand gold and coal mining areas",
+        "metadata_updated": null,
+        "notes": "The Council for Geoscience describes research into mine-water ingress, pump-and-treat infrastructure, acid-mine-drainage risks, water management and passive-treatment pilot tests. This is a lead for mine-water operators/data and environmental constraints, not a record of measured thermal potential."
+      },
+      "spatial_scope": "South Africa, particularly Witwatersrand goldfields and coalfield mine-water management",
+      "spatial_resolution": "Research project areas and mine-water management regions; not individual heat-resource wells or thermal network zones",
+      "temporal_scope": "Long-running project context; page has no single data observation period",
+      "temporal_resolution": "Project description; no continuous flow/temperature record provided by the page",
+      "variables": [
+        "mine-water ingress",
+        "pumping and treatment",
+        "acid mine drainage",
+        "water quality",
+        "mine-water management",
+        "passive treatment"
+      ],
+      "license_status": {
+        "status": "identified_requires_review",
+        "details": "Government project page is publicly accessible; verify reuse of maps, project outputs and underlying water data with the Council for Geoscience."
+      },
+      "claim_ceiling": "Official evidence that mine-water management, pumping, treatment and water-quality research is underway in South Africa. It does not establish thermal output, stable mine-water flow, ownership or a heat-use right.",
+      "limitations": [
+        "Mine-water management is primarily a water/environmental obligation; energy recovery must not undermine containment, treatment or clean-water protection.",
+        "No temperatures, flow rates, pumping head or thermal-yield series are supplied by this project page.",
+        "Acid mine drainage, metals, salinity and water quality may make heat-exchanger design and reinjection difficult."
+      ],
+      "admission_requirements": [
+        "Request mine-specific flow, pump, treatment, temperature and chemistry data from the responsible operator and public agencies.",
+        "Keep environmental remediation and water-security requirements as hard constraints; thermal energy is a secondary use.",
+        "Confirm ownership, water-use permits, discharge/reinjection rights and liability before site screening.",
+        "Do not assume a mine-water source can be safely abstracted or reinjected because it appears on a map."
+      ],
+      "raw_snapshot_ingested": false,
+      "snapshot_digest": null
+    },
+    {
+      "source_id": "south-africa-energy-storage-assessment-abandoned-mineshafts-2015",
+      "source_name": "South African Energy Storage Technology and Market Assessment",
+      "provider": "United States Trade and Development Agency / South African energy-storage market assessment authors",
+      "source_url": "https://www.eskom.co.za/eia/dx/wp-content/uploads/migrated/HexBESS/Appendix-H-1-South-African-Energy-Storage-Technology-and-Marketing-Assessment-1.pdf",
+      "source_type": "sector_report",
+      "resource_families": [
+        "hydropower",
+        "cross_resource"
+      ],
+      "evidence_basis": "government_historical_assessment",
+      "availability_state": "context_only",
+      "source_version": {
+        "label": "South Africa Energy Storage Technology and Market Assessment; 2015-era assessment",
+        "release_or_publication_date": "2015",
+        "data_period": "South African storage market and technology assessment; mine-shaft pumped hydro listed as a potential consideration",
+        "metadata_updated": null,
+        "notes": "The assessment notes that South Africa already had three large pumped-storage schemes (Steenbras, Palmiet and Drakensberg at the time, with Ingula commissioning context elsewhere in the report) and states that potential high-head pumped hydro in unused/abandoned mineshafts would be considered initially based on availability and geographic diversity. This is an early screening lead, not a mine-shaft feasibility finding or selected site."
+      },
+      "spatial_scope": "South Africa; national storage technology market assessment",
+      "spatial_resolution": "National technology-screening context; no mine-specific shaft geometry, geotechnical, hydrogeological or grid model admitted by this record",
+      "temporal_scope": "Published circa 2015; historical sector assessment",
+      "temporal_resolution": "Planning/market assessment, not operating time-series or site measurement",
+      "variables": [
+        "pumped hydro storage",
+        "existing national pumped-storage schemes",
+        "abandoned mineshaft screening",
+        "storage market",
+        "grid storage need"
+      ],
+      "license_status": {
+        "status": "identified_requires_review",
+        "details": "Public assessment report. Confirm USTDA and underlying author reuse and third-party data conditions before redistributing extracted figures or tables."
+      },
+      "claim_ceiling": "Historical South African evidence that unused/abandoned mine shafts were identified as a possible high-head pumped-storage screening route. Does not establish a suitable shaft, reservoir, water supply, geology, grid connection, cost or environmental feasibility.",
+      "limitations": [
+        "The report says mine-shaft pumped storage would be considered initially; it does not report a completed mine-shaft site investigation or a project-ready design.",
+        "A shaft is not by itself a pumped-storage system: upper/lower reservoirs, water conveyance, hydraulic losses, geomechanical integrity, containment and grid interfaces must be established.",
+        "The assessment is historical and does not represent current South African tariffs, mine closure status, water-use regulation or project pipeline."
+      ],
+      "admission_requirements": [
+        "Identify exact mine shafts and current owner/closure status before screening.",
+        "Obtain shaft/drift surveys, mine plans, rock-mass/geotechnical data, hydrogeology, water quality, groundwater inflow and closure/rehabilitation obligations.",
+        "Measure upper/lower reservoir elevation, usable volume, water source/replenishment and hydraulic route.",
+        "Obtain grid proximity/connection capacity and matched storage duty profile before calculating capacity or economics."
+      ],
+      "raw_snapshot_ingested": false,
+      "snapshot_digest": null
+    },
+    {
+      "source_id": "eskom-tubatse-pumped-storage-scheme-1500mw-21gwh-2026",
+      "source_name": "Tubatse Pumped Storage Scheme strategic partner RFQ",
+      "provider": "Eskom Holdings / Eskom Green",
+      "source_url": "https://www.eskom.co.za/eskom-green-launches-strategic-partner-selection-process-for-up-to-1-5gw-21gwh-of-tubatse-pumped-storage-scheme-set-to-be-south-africas-largest-energy-storage-system-ess-to-integrate-inc/",
+      "source_type": "government_page",
+      "resource_families": [
+        "hydropower",
+        "cross_resource"
+      ],
+      "evidence_basis": "sector_policy_report",
+      "availability_state": "context_only",
+      "source_version": {
+        "label": "Eskom media statement / RFQ E3611GXR; issued 2026-10-13",
+        "release_or_publication_date": "2026-10-13",
+        "data_period": "Tubatse pumped-storage development and strategic-partner selection status reported October 2026",
+        "metadata_updated": null,
+        "notes": "Eskom says the planned Tubatse scheme near Roossenekal, Limpopo, is up to 1.5 GW and approximately 21 GWh, four reversible pump-turbine units, up to 14 hours at full output. Land is secured, Environmental Authorisation granted, key studies/access-road designs advanced, and DWS confirmed water availability from De Hoop Dam. A strategic-partner RFQ process is underway; the project is not operating."
+      },
+      "spatial_scope": "Near Roossenekal, Limpopo Province, South Africa",
+      "spatial_resolution": "One proposed utility-scale pumped-storage development; no mine-shaft site",
+      "temporal_scope": "Development status reported 2026-10-13; strategic partner RFQ and later RFP expected",
+      "temporal_resolution": "Project development milestone report; no operating interval generation/round-trip data",
+      "variables": [
+        "planned generation capacity",
+        "planned storage energy",
+        "storage duration",
+        "reversible pump-turbine units",
+        "water availability",
+        "environmental authorization",
+        "grid services",
+        "procurement stage"
+      ],
+      "license_status": {
+        "status": "identified_requires_review",
+        "details": "Official Eskom public media statement. Confirm RFQ/tender document terms before copying procurement materials or non-public details."
+      },
+      "claim_ceiling": "Officially announced South African greenfield pumped-storage development with a 1.5 GW / approximately 21 GWh design target and advanced development milestones. It is not a commissioned plant or measured round-trip efficiency dataset.",
+      "limitations": [
+        "Tubatse is a conventional upper/lower-reservoir project, not underground mine-shaft storage; do not conflate its design with abandoned-mine concepts.",
+        "The scheme is in development/partner selection, not operating; 1.5 GW and 21 GWh are project design figures.",
+        "The 14-hour output duration is the planned full-output duration; it is not evidence of availability, cycle efficiency or annual revenue."
+      ],
+      "admission_requirements": [
+        "Use as a South African utility-scale pumped-storage project benchmark for power, energy and duration, not as proof of mine-shaft feasibility.",
+        "Pin the RFQ, Environmental Authorisation and public technical studies for exact scope, design revisions and assumptions.",
+        "Compare mine-shaft proposals on matched power, usable MWh, duration, round-trip losses, response and grid service."
+      ],
+      "raw_snapshot_ingested": false,
+      "snapshot_digest": null
+    },
+    {
+      "source_id": "eskom-existing-pumped-storage-scheme-fleet-2024",
+      "source_name": "Eskom pumped-storage schemes and water transfer fact sheet",
+      "provider": "Eskom Generation Communication",
+      "source_url": "https://www.eskom.co.za/wp-content/uploads/2024/07/HY-0001-Pumped-Storage-Scheme-and-Water-Transfer-Rev-12.pdf",
+      "source_type": "sector_report",
+      "resource_families": [
+        "hydropower"
+      ],
+      "evidence_basis": "government_historical_assessment",
+      "availability_state": "context_only",
+      "source_version": {
+        "label": "HY 0001 Revision 12, June 2024",
+        "release_or_publication_date": "2024-06",
+        "data_period": "Drakensberg, Palmiet and Ingula scheme description and operating purpose",
+        "metadata_updated": null,
+        "notes": "Eskom reports Drakensberg 1,000 MW, Palmiet 400 MW and Ingula 1,332 MW. Drakensberg also forms part of the Tugela-Vaal Water Transfer Scheme; Palmiet transfers water between catchments and supports Cape Town water supply; Ingula is described as a pumped-storage facility for peak generation."
+      },
+      "spatial_scope": "South Africa; Drakensberg, Palmiet and Ingula pumped-storage schemes",
+      "spatial_resolution": "Three existing utility pumped-storage sites; not individual unit performance time-series",
+      "temporal_scope": "Fact sheet revision June 2024",
+      "temporal_resolution": "Plant configuration and capacity facts; not current interval availability or dispatch",
+      "variables": [
+        "installed pumped-storage capacity",
+        "water-transfer duty",
+        "upper/lower reservoir schemes",
+        "grid peak generation"
+      ],
+      "license_status": {
+        "status": "identified_requires_review",
+        "details": "Eskom public fact sheet. Confirm reuse/attribution terms before redistributing figures or diagrams."
+      },
+      "claim_ceiling": "Official historical reference for the scale and multifunctional water/grid roles of South Africa's existing pumped-storage fleet. Does not provide full current dispatch availability, round-trip efficiency or plant-specific operating cost.",
+      "limitations": [
+        "Installed capacity does not equal usable storage energy or continuous output duration.",
+        "Drakensberg and Palmiet provide water-transfer functions in addition to electricity storage; water-service constraints must be preserved.",
+        "The factsheet is a 2024 description, not a live operational status or availability series."
+      ],
+      "admission_requirements": [
+        "Use current operator telemetry for availability, usable storage MWh, pumping/generation losses, outage history and water-transfer constraints.",
+        "Keep electricity generation, pumping consumption and municipal/water-transfer service separate.",
+        "Pin technical brochures and exact plant configuration revisions when making detailed comparisons."
+      ],
+      "raw_snapshot_ingested": false,
+      "snapshot_digest": null
+    },
+    {
+      "source_id": "abandoned-coal-mine-geological-mining-underground-storage-workflow-2025",
+      "source_name": "Geological and mining factors influencing further use of abandoned coal mines — a multidisciplinary workflow towards sustainable underground storage",
+      "provider": "Colas, Kukla, Amann and Back; Journal of Energy Storage",
+      "source_url": "https://doi.org/10.1016/j.est.2024.115101",
+      "source_type": "research_publication",
+      "resource_families": [
+        "hydropower",
+        "cross_resource"
+      ],
+      "evidence_basis": "literature_review",
+      "availability_state": "context_only",
+      "source_version": {
+        "label": "Journal of Energy Storage 108, article 115101; 2025-02-01",
+        "release_or_publication_date": "2025-02-01",
+        "data_period": "Multidisciplinary assessment of abandoned coal mines and Prosper-Haniel mine repurposing potential",
+        "metadata_updated": null,
+        "notes": "The paper examines geological and mining factors for reusing abandoned coal mines as sustainable underground storage, with a 3D model of Prosper-Haniel. It highlights heterogeneous rock masses, low permeability, stability and tightness as central constraints for underground pumped storage."
+      },
+      "spatial_scope": "German abandoned coal mine context; Prosper-Haniel reference case",
+      "spatial_resolution": "Mine/rock-mass and 3D geometric assessment framework; not South Africa",
+      "temporal_scope": "Published 2025",
+      "temporal_resolution": "Geological/mining model and conceptual assessment; not a long-duration operating storage time series",
+      "variables": [
+        "mine geometry",
+        "rock-mass heterogeneity",
+        "permeability",
+        "underground reservoir stability",
+        "hydraulic containment",
+        "shaft/drift reuse"
+      ],
+      "license_status": {
+        "status": "identified_requires_review",
+        "details": "Open-access article; confirm exact CC licence and any underlying mine-plan/third-party data restrictions before reuse."
+      },
+      "claim_ceiling": "Literature and case-study workflow for geological/mining screening of abandoned coal mines as potential underground storage. Does not prove a South African shaft or mine void is hydraulically tight, structurally suitable or permitted.",
+      "limitations": [
+        "German mining geology and mine design are not directly transferable to South African coal/gold mine workings.",
+        "Heterogeneous rock mass and low permeability complicate sealing, stability and reservoir performance.",
+        "A 3D geometric model is not a certified geotechnical/hydrogeological safety case."
+      ],
+      "admission_requirements": [
+        "Obtain mine plans, shaft/drift geometry, rock-mass characterization, support/lining condition and groundwater records.",
+        "Use calibrated geomechanical and hydrogeological models, with independent specialist review and field verification.",
+        "Assess cyclic load, pore pressure, leakage, water chemistry and mine closure liabilities before energy-system design."
+      ],
+      "raw_snapshot_ingested": false,
+      "snapshot_digest": null
+    },
+    {
+      "source_id": "abandoned-mine-integrated-pumped-hydro-solar-thermal-heat-pump-hub-2026",
+      "source_name": "A sustainable energy hub from abandoned mines: integrated pumped hydro, solar-thermal and heat-pump system for carbon-neutral communities",
+      "provider": "Zhang et al.; Sustainable Energy Technologies and Assessments",
+      "source_url": "https://doi.org/10.1016/j.seta.2025.104757",
+      "source_type": "research_publication",
+      "resource_families": [
+        "hydropower",
+        "solar",
+        "geothermal",
+        "cross_resource"
+      ],
+      "evidence_basis": "modeled_analysis_forecast",
+      "availability_state": "context_only",
+      "source_version": {
+        "label": "Sustainable Energy Technologies and Assessments 85, article 104757; January 2026",
+        "release_or_publication_date": "2026-01",
+        "data_period": "Integrated abandoned-mine pumped hydro, PV-thermal and reservoir-coupled heat-pump system model",
+        "metadata_updated": null,
+        "notes": "The research models an integrated mine energy hub combining underground pumped hydro, photovoltaic-thermal collectors and reservoir-coupled heat pumps. It reports 2.22 million kWh of electricity storage and an average heat-pump COP of 5.54 for its modelled system. These are model outputs, not measured plant data."
+      },
+      "spatial_scope": "Modelled abandoned-mine energy hub; non-South-African case context",
+      "spatial_resolution": "Integrated system model linking underground reservoirs, PVT and heat-pump loops",
+      "temporal_scope": "Published January 2026",
+      "temporal_resolution": "Modelled operating scenario; raw field operating time series not established by the abstract",
+      "variables": [
+        "pumped hydro storage capacity",
+        "PV-thermal output",
+        "heat-pump COP",
+        "thermal exchange",
+        "integrated energy hub"
+      ],
+      "license_status": {
+        "status": "identified_requires_review",
+        "details": "Publisher access and reuse terms should be checked; underlying simulation models, data and figures may have separate restrictions."
+      },
+      "claim_ceiling": "Modelled integrated mine-energy-hub architecture combining pumped storage, PVT and heat pumps. It is not a field-proven system, does not validate mine-shaft containment or establish South African performance.",
+      "limitations": [
+        "2.22 GWh storage and COP 5.54 are scenario/model results, not measured field performance.",
+        "Architecture combines several subsystems; each hydraulic, thermal, electrical and geotechnical boundary needs independent validation.",
+        "The design is not a substitute for mine stability, water rights, reinjection or environmental approvals."
+      ],
+      "admission_requirements": [
+        "Recover full model boundary and parameter assumptions before reproducing values.",
+        "Separate underground pumped hydro, solid gravity and mine-water thermal storage as distinct physical subsystems.",
+        "Compare model outputs against the independent mine-water thermal and hydro storage physical owners; do not duplicate their kernels.",
+        "Only use as an architecture comparator, not a South African capacity claim."
+      ],
+      "raw_snapshot_ingested": false,
+      "snapshot_digest": null
+    },
+    {
+      "source_id": "gravity-energy-storage-systematic-review-2026",
+      "source_name": "A Systematic Review of Gravity Energy Storage: Technologies, Modeling, Integration, and Future Perspectives",
+      "provider": "Amorim et al.; Eng",
+      "source_url": "https://doi.org/10.3390/eng7090463",
+      "source_type": "research_publication",
+      "resource_families": [
+        "hydropower",
+        "cross_resource"
+      ],
+      "evidence_basis": "literature_review",
+      "availability_state": "context_only",
+      "source_version": {
+        "label": "Eng 2026, 7(9), 463; published 2026-09-08",
+        "release_or_publication_date": "2026-09-08",
+        "data_period": "Systematic review of 107 studies from four databases across gravity-energy architectures and system performance",
+        "metadata_updated": null,
+        "notes": "The review compares liquid-based and solid gravity systems including tower, shaft, rail, mountain, piston and modular architectures. It identifies low intrinsic energy density, dependence on large infrastructure, lack of standardized techno-economic assessment and limited long-term operational data. It positions gravity storage as a complementary technology rather than a direct universal substitute for batteries or pumped hydro."
+      },
+      "spatial_scope": "Global gravity-energy storage literature",
+      "spatial_resolution": "107 publications across several storage architectures; not a specific mine or operating fleet",
+      "temporal_scope": "Published 2026-09-08; reviewed studies retrieved from four databases",
+      "temporal_resolution": "Cross-study technology/model review, not continuous asset telemetry",
+      "variables": [
+        "gravity storage architectures",
+        "shaft storage",
+        "liquid pumped hydro",
+        "solid mass storage",
+        "round-trip efficiency",
+        "energy density",
+        "response",
+        "techno-economics"
+      ],
+      "license_status": {
+        "status": "identified_requires_review",
+        "details": "Open-access review; verify CC BY terms and reuse rights for source tables/figures."
+      },
+      "claim_ceiling": "Systematic review of gravity-storage architectures and evidence gaps. Does not establish commercial performance, standardized project cost or suitability of a particular South African mine shaft.",
+      "limitations": [
+        "Low energy density means large mass/volume/height or reservoir volume may be needed.",
+        "The review finds no standardized techno-economic assessment, limiting direct comparison across architectures.",
+        "Long-term operational field data remain limited; laboratory or simulation results are not bankable plant performance."
+      ],
+      "admission_requirements": [
+        "Compare architectures with explicit physical boundaries and matched power, energy, duration, response and land/geology constraints.",
+        "Require full round-trip metering and lifecycle maintenance evidence.",
+        "Do not apply performance claims from one shaft/tower/rail architecture to another without a matched qualification programme."
       ],
       "raw_snapshot_ingested": false,
       "snapshot_digest": null

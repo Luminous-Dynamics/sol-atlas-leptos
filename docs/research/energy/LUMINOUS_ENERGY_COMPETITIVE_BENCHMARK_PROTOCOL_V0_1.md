@@ -257,3 +257,314 @@ Therefore:
 - do not claim a novel system beats solar/wind on LCOE unless technology, boundary, commissioning cohort, financing and system service are genuinely matched.
 
 A useful Luminous result may be a portfolio with a higher plant-gate LCOE but lower total cost per unit of essential service delivered, lower outage risk or better industrial heat integration. That conclusion must be demonstrated with paired models and independently checked service receipts—not inferred from the technology labels.
+
+
+## 12. Wind-model SOTA comparator: ETHOS.RESKit and the South African blind-holdout problem
+The 2026-01-14 Nature Communications paper *Towards high resolution, validated and open global wind power assessments* (Peña-Sánchez et al.) is an important new reference for wind-power simulation.
+
+The paper describes ETHOS.RESKit as a time-resolved GWA4 + ERA5 wind-power workflow and reports:
+- Calibration using 213 global weather-mast locations in 25 countries and more than 8 million filtered hourly observations. The paper states that the mast-measurement geography includes South Africa.
+- A separate turbine/farm power-validation set with more than 8 million hourly observations from 152 turbine/farm sites. The raw turbine power records are restricted by third-party agreements.
+- On its reported hourly turbine/farm capacity-factor comparison (Table 2): relative mean error 0.056, Pearson correlation 0.844, RMSE 0.196 and Perkins skill score 0.90 for the calibrated workflow; the uncalibrated relative mean error is 0.292.
+- A separate global/country comparison using IEA statistics. The abstract mentions a 0.6% mean error for annual aggregated energy output, while the detailed main text reports a 6.2% relative deviation between global average capacity factor 0.287 (model) and 0.306 (IEA). These are different cohorts/metrics; benchmark manifests must preserve the precise denominator, formula, temporal aggregation and source data rather than compressing them into one “accuracy” figure.
+- More than 800 / 880 turbine model types and support for synthetic power curves. Pin the exact model release/archive before claiming the current turbine library size.
+
+The authors report South African mast measurements in the global calibration geography, but do not establish South African turbine-generation holdout validation. They also warn that the workflow is more appropriate for large-scale assessments than exact single locations; ERA5/GWA4 spatial representation, local terrain, diurnal and seasonal biases remain limitations. The paper's raw wind-farm database is commercially licensed and the turbine power records are restricted.
+
+### Pinning
+
+- Paper-specific reproduction: pin Zenodo archive DOI **10.5281/zenodo.17668776** and all archived files/checksums.
+- Current software comparator: pin immutable GitHub tag **RESKit v0.5.0**, released 2026-07-10, commit `b41cf859fd619c5be717af84db5502b0ac4ca3e5`, plus exact Python environment and input data. This release is not assumed identical to the paper archive.
+- Also compare baseline workflows such as Renewables.ninja, pyGRETA and atlite only with identical ERA5/GWA4 periods, turbine types, hub height, power curves, wake/availability losses, site set and evaluation metrics.
+
+### South African evaluation rule
+
+Do not blindly reuse a WASA mast for validation if it contributed to the ETHOS.RESKit calibration cohort. First recover the exact 213-mast source table/site IDs and match them to WASA mast identifiers, including instrument height, period, quality flags and data overlaps. Partition by site and time—not by random hourly rows—so correlated samples from one mast cannot leak across training and blind holdout.
+
+Where South African masts overlap the calibration set, reserve other genuinely independent SAWS/CSIR/lidar campaigns, new measurement periods or turbine/farm telemetry as the blind set. If no independent turbine power series can be lawfully accessed, the result must remain `NEEDS_INDEPENDENT_POWER_DATA`; no local turbine-AEP superiority claim is permitted.
+
+### Luminous research opportunity
+
+A fair “better than SOTA” study should test four distinct outputs:
+1. Resource field: GWA4 / WASA3 / ERA5 against independent wind-speed observations by height, season and terrain regime.
+2. Turbine conversion: manufacturer curve and air-density correction, independently measured power curve where available.
+3. Chronological generation: site/time-blocked capacity-factor and power-trajectory error, calibration, extreme/lull tail behavior, and uncertainty interval coverage.
+4. Portfolio decision: delivered service, curtailment, storage sizing, grid constraints and lifecycle cost after using the resource model.
+
+Do not fit a single global correction factor and claim universal local validation. Test a hierarchy of global, climate-region, terrain/regime and site-specific corrections with leakage-safe ablation, uncertainty propagation and minimum data sufficiency. A local correction is only eligible when independent data justify it and the calibration/holdout split is disclosed.
+
+
+## 13. Hydropower benchmark lane: net energy recovery under protected water service
+### Local reference ladder
+
+| Reference | Appropriate use | Limits |
+|---|---|---|
+| WRC South African Hydropower Atlas TT 916/23 (2023) + SAHA E-Tool | Existing South African asset/resource discovery by hydro archetype | Preliminary criteria, heterogenous source layers, incomplete flow/head data, WWTW/WTW assumptions and pumped-storage overlap |
+| DWS Water/Sanitation Climate Response Strategy (Jan 2025) | Confirms PAT and PRV energy-recovery as an explored South African option | Sector context, not a site-level asset register or measured performance data |
+| 2026 WDN hydropower review | Compare conventional turbines, PAT, in-pipe harvesters, hydraulic/electric regulation and low-power telemetry use | Literature review; device/site measurements and manufacturer curves remain required |
+| IEC 2026 pumped-storage trend report | Technology and standardization trends for storage | Trend report, not a project or component acceptance standard |
+| NLR ATB hydropower / pumped storage | Reference cost/performance assumptions in the declared U.S. scenario | Not South African project costs; translate local works, water, finance, grid and environmental conditions |
+
+### Match the engineering boundary
+
+For conduit/PRS, compare PRV-only baseline versus turbine/PAT bypass using the exact same time-indexed upstream pressure, downstream minimum pressure, flow and water demand. For WTW/WWTW, compare the identical inlet/outlet hydraulic boundary and preserve treatment and effluent compliance. For rivers/weirs/canals, compare the same seasonal hydrograph and environmental-flow obligations.
+
+Report independently:
+- water-service pressure compliance, volume delivered, treatment/effluent performance, availability and restoration after faults;
+- gross hydraulic power, turbine/generator efficiency map, auxiliary electricity, net exported/self-consumed kWh, and recovered kWh per cubic metre;
+- flow/pressure variability, part-load efficiency, bypass duty, starts/stops, surge, cavitation, debris, sediment, corrosion, fouling, maintenance availability and spare-parts lead time;
+- environmental flow, fish passage/ecological impact, water quality and downstream service;
+- CAPEX/OPEX, civil works, interconnection, outage costs, lifecycle replacement and cost of useful delivered service.
+
+### Reference physics
+
+For a conduit or conventional head-driven turbine, the screening identity is (P=\rho g Q H_{net}\eta_{hyd}\eta_{gen}), where (Q) is measured flow and (H_{net}) includes conveyance losses. For hydrokinetic devices, kinetic resource is related to (\frac{1}{2}\rho A V^3) times a device-specific capture coefficient/efficiency; do not substitute static head or use mean current velocity without its time profile and swept area. Neither equation replaces a validated transient hydraulic model, turbine curve, or operational pressure check.
+
+For a pumped-storage case, keep (E_{pump}\), (E_{generate}\), usable storage, hydraulic losses, electrical losses, round-trip efficiency and environmental/water constraints distinct. It is not new primary generation.
+
+### Targeted benchmark controls
+
+- Analytic power identity and dimensional/unit fixtures for head, pressure, flow, density and net output.
+- Efficiency must not exceed the declared physical/equipment map or Carnot (when heat conversion is involved); no output at zero flow/head/velocity.
+- Turbine/PAT off-design flow and head profiles must use the appropriate efficiency surface, not peak efficiency.
+- Water pressure/flow service floors and environmental-flow constraints are hard feasibility gates, not soft penalties.
+- Seeded water hammer, PRV/bypass failure, turbine trip, sensor failure, blockage, grid outage and unsafe restart must be detected or return indeterminate.
+- Pumped-storage pairs must reject overlapping reservoir double counts, missing head/active volume, incomplete geology/hydrology, or a new reservoir without rights/environmental evidence.
+- Compare no-build, PRV-only, PAT and purpose-built turbine under identical time series, financing, component lifetime, parasitic losses and service requirements.
+
+Do not call any potential total a measured capacity. The WRC 2023 atlas explicitly states that its initial WWTW/WTW criteria relied on assumptions, hydrokinetic data were limited, and its 31,000 MW pumped-storage potential is overstated by overlapping candidate sites and unverified geology/hydrology/environment. Luminous should compete by improving source quality and decision confidence, not inflating the resource total.
+
+
+### Hydraulic-machine standard references and water-use authorization
+
+For the South African conduit-hydro vertical slice, benchmark to the published standard edition that matches the unit size and test boundary:
+
+| Standard | Use | Boundary |
+|---|---|---|
+| IEC 60041:1991 | Field hydraulic-performance acceptance for turbines, pumps and pump-turbines | Field acceptance / contractual guarantees |
+| IEC 60193:2019 | Model acceptance tests | Primarily >5 MW or >3 m reference diameter; smaller by agreement |
+| IEC 61362:2024 | Governing-system requirements and performance specification | Not an acceptance test or water-service safety case |
+| IEC 60545:2021 | Commissioning and operation | Operational handover and commissioning guidelines |
+| IEC 62006:2010 | Small-hydro acceptance tests; safety, trial operation, reliability, cavitation/noise/vibration and performance classes | Published first edition; Edition 2 remains a development project as of 9 November 2026 |
+
+Treat these standards as references for test plans, not proof that a candidate is compliant. A simulation can reproduce the equations but cannot issue a field or model acceptance certificate.
+
+South African legal gate: The National Water Act 36 of 1998 and DWS Water Use Authorization Process govern water-use authorization. The project must identify whether its activity falls under a licence, general authorization, existing lawful use or other applicable route, and preserve the Reserve / ecological and basic-human-needs constraints. Water-use authorization and environmental approvals are independent of grid connection and turbine performance.
+
+Sources:
+- National Water Act: https://www.gov.za/documents/national-water-act
+- DWS authorization process: https://www.dws.gov.za/ewulaas/WUA.aspx
+- IEC standards and current editions: links in `ENERGY_COMPETITOR_VERSION_LOCK_V0_1.json`
+
+The programme's hydro scorecard must keep water service, treatment/effluent quality, environmental flow, rights/authorization, hydraulic performance, net energy and lifecycle economics as separate results and hard gates.
+
+
+## 14. Water-distribution network PAT benchmark: EPANET + service-constrained co-optimization
+
+### Immutable engine pins
+- Contemporary network engine: OWA-EPANET **v2.3.5**, commit `444725fbf16ab28b0470ef0ed281dc4849d49583`, released 2026-02-20.
+- Historical paper replay: OWA-EPANET **v2.2**, commit `4d8d82ddc260fce216af9321fc3d9a4646ac6827`.
+- EPANET 2.3 adds FAVAD pressure-dependent leakage, PCV, independent pressure units and Flow Balance reporting. Version 2.3.5 fixes flow-unit conversion for Generic curves and mixed-unit behavior.
+- Keep any Python orchestration package such as EPyT separately pinned; it is an interface, not the hydraulic solver. Production implementation should use the pinned OWA toolkit through an explicit Rust/C boundary where practical.
+
+### Matched comparisons
+1. Fixed PRV baseline.
+2. Static PAT at a declared BEP point.
+3. PAT selected using maximum, average and minimum discharge.
+4. 2021 UKZN PRV/PAT placement/setting optimizer, only after exact source model recovery.
+5. 2022 Cornubia five-PAT configuration reproduced using EPANET 2.2 and the study's original PRV-proxy/post-processing assumptions.
+6. 2025 Jowitt WDN study, preserving its DDA vs PDA and one-to-five PAT scenario matrix.
+7. 2026 Kalman filter + tracking MPC + actuator-settings-optimizer baseline.
+8. Proposed Luminous robust/service-constrained MPC candidate with coordinated PRV/PAT control and leakage-aware pressure management.
+
+### Co-simulation boundary
+- EPANET owns multi-node network hydraulics, demand, pressure, leakage, valve and flow-balance calculations.
+- A PAT-specific, evidence-backed hydraulic characteristic must reproduce the actual equipment pressure-drop/flow relationship. A generic head-loss curve/GPV representation is only valid after model- or field-test calibration and must not be described as native PAT physics.
+- Symtropy #4386 owns the matched component conversion from net head/flow through turbine/PAT efficiency, generator and auxiliaries to net electrical output.
+- A coupling iteration reconciles network pressure/flow with PAT settings. Non-convergence, map-domain violations or missing evidence return infeasible/indeterminate, never an extrapolated kW result.
+- Pressure-dependent leakage is part of the water balance. Water saved by pressure control and electricity recovered by PATs are separate outcomes.
+- Water hammer, surge, cavitation and protection remain specialist validation boundaries; steady EPANET runs do not certify them.
+
+### Primary metrics
+- Critical-node pressure: minimum margin, node-hours below minimum, worst pressure deficit and recovery time.
+- Delivered service: demanded vs delivered volume, pressure-driven demand deficit and service availability.
+- Leakage: kL/day and kL/month, pressure/leakage calibration residual, water-balance closure and uncertainty.
+- Energy: hydraulic input, shaft output, gross electrical, auxiliaries, net AC/DC, net kWh per m³ through the PAT, map coverage and export/self-consumption.
+- Controller: pressure tracking error, constraints violated, actuator movement/switching, starts/stops, chattering and fallback latency.
+- Robustness: held-out demand chronology, sensor noise/dropout, pressure/flow bias, pipe-roughness uncertainty, leakage-law mismatch, reservoir level and PAT-map drift.
+- Economics: energy value, avoided water-loss cost, lifecycle replacement/maintenance, outage and civil-work cost.
+- Computation: worst-case solve time, wall-clock/update, memory, deterministic replay and abstention rate.
+
+### Non-compensable gates
+Zero hard service-floor violations on the frozen synthetic negative-control corpus; no unexplained flow-balance residual; no PAT branch output outside its equipment map; no leakage/flow counted twice; no controller win achieved by reducing delivered demand; no use of PRV proxy as measured PAT evidence; no credited generation while bypass-only or without available head/flow.
+
+### Reproduction before superiority claims
+Reproduce the 2022 Cornubia 2.2 model outputs on exact data (166.31 kW and 45.59 kL/month under its declared assumptions). Then reproduce the 2025 DDA/PDA Jowitt matrix and the 2026 multi-node RTC baseline where full inputs are obtainable. Treat missing network files or supplementary data as `NOT_REPRODUCIBLE_FROM_PUBLIC_ARTIFACT`. The 2021 and 2022 Cornubia studies share geography and are not independent replications until their input networks/demand data are crosswalked.
+
+The candidate is **not “better than SOTA”** until it wins matched held-out network/time cases against these pinned baselines under equal sensor access, model calibration budget, computation budget and equipment evidence. Publish matched wins, losses and indeterminate cases.
+
+
+## 15. Rust-native EPANET differential qualification
+
+Two Rust integration paths are worth testing, but their roles must remain distinct:
+
+- Safe wrapper `epanet 0.3.0` wraps the official OWA EPANET C API. It is an integration boundary for the reference engine, not an independent solver. The project handle is `Send` but not `Sync`; concurrent access to a single project requires synchronization. The lower-level `epanet-sys 2.3.0` crate builds OWA C through CMake/bindgen and requires a C compiler and libclang.
+- `epanet-rs 0.2.3` is a Rust-native reimplementation. The published feature checklist marks INP, PDA, controls, emitters, and partial API compatibility as implemented; leakage, rules, energy and water-quality support are unchecked. Its maintainers claim up to 5× parallel extended-period speedup only for supported networks without tanks or controls. Treat that as an upstream claim to reproduce, not our measured result.
+
+### Solver-routing policy
+
+1. **OWA EPANET 2.3.5 remains the reference oracle** for benchmark acceptance, FAVAD pipe leakage, full feature support and any case whose behavior is not explicitly qualified on the Rust implementation.
+2. Use the safe `epanet` wrapper if it simplifies Rust integration with the official OWA API; still pin the native OWA commit, build flags and exact library bytes.
+3. Use `epanet-rs` only for feature subsets where differential tests establish parity. Initially target canonical no-tank/no-control networks, then sequential PDA / control cases if the exact behavior matches.
+4. Do not route FAVAD/pipe-leakage cases to `epanet-rs` until its missing leakage capability is implemented upstream or an independently qualified adapter reproduces OWA link leakage and total water balance.
+5. When a feature is unsupported, the case returns an explicit fallback-to-OWA or `UNSUPPORTED_BY_RUST_SOLVER` disposition; it never silently drops the feature.
+
+### Benchmark gates
+
+- Compare all node heads/pressures, link flows/headloss, delivered demands, deficit, leakage where applicable, control states, tanks and time chronology.
+- Compare convergence state and mass/flow balance; a low aggregate RMS error cannot conceal one failed critical node.
+- Reproduce upstream speedup only on the stated no-tanks/no-controls class and then quantify actual speedup on PAT/WDN cases. Do not extrapolate the 5× claim to FAVAD, controls, tank or PAT workloads.
+- The Rust solver is a candidate scenario-ensemble accelerator, not a production replacement. A feature-specific parity receipt and deterministic run identity are prerequisites for every accelerated result.
+
+External pins:
+- `epanet` safe OWA wrapper 0.3.0: https://docs.rs/epanet/0.3.0/epanet/
+- `epanet-sys` raw OWA API 2.3.0: https://docs.rs/epanet-sys/2.3.0/epanet_sys/
+- `epanet-rs` native solver 0.2.3: https://docs.rs/crate/epanet-rs/0.2.3
+- Upstream source revision reviewed 2026-11-09: https://github.com/Vitens/epanet-rs/tree/fee0d03b11ed71a6da7366f07290d6e44556add4
+
+This is separately tracked in Symtropy [EPANET-RS-DIFF-001 #4398](https://github.com/Luminous-Dynamics/symtropy/issues/4398).
+
+## 14. Stronger PAT benchmark ladder: component truth → full-scale operation → network and controller
+
+A fair current comparator set must separate four evidence levels.
+
+| Evidence level | Comparator | What it actually establishes | What it does not establish |
+|---|---|---|---|
+| Laboratory component map | Pugliese et al. 2016, two PAT test-rig characterizations | Experimental reverse-mode curves for two specific pump models | General pump-to-turbine conversion, WDN field performance |
+| Laboratory control experiment | Parra et al. 2018 PAT/PRV pressure modulation | Variable-discharge critical-pressure tracking; up to 2.3 kW full-load, 40% maximum net system efficiency, up to 16% water savings in a German test case | South African field transfer or long-term reliability |
+| Full-scale WDN operation | Muhammetoglu et al. 2018 Antalya PAT/PRV bypass | Approximately five months online flow/power/pressure monitoring at 130–300 m³/h; 0.7–8.4 kWh reported energy values for ~100 kPa reduction; 60% average efficiency | kW/annual energy from abstract (interval missing), multi-year availability, South African economics |
+| Experimental fleet + modelled WDN | Manservigi et al. 2025, 16 experimental turbomachine curves in a 5,000-user Italian WDN | Matched hydraulic/electrical regulation comparison; 44.1% of available hydraulic energy recovered for selected candidate; case-specific LCOE/cost | 16 field installations or South African performance |
+| South African modelled placement | Cornubia 2022 / UKZN 2021 | Local network topology and candidate-placement research | Measured PAT generation or independent replication |
+| Modern simulated network control | Jowitt 2025; Galuppini et al. 2026 | DDA/PDA sensitivity and multi-node Kalman + MPC control architecture | Field-validated South African OT controller |
+
+### Target metrics by evidence level
+
+**Component map**
+- Head, flow, torque/speed where available, hydraulic efficiency, generator/inverter losses and uncertainty.
+- Curve prediction residual across the observed domain; no extrapolation to unmeasured head/flow.
+- Best-efficiency-point distance and off-design efficiency distribution.
+- Repeatability, calibration uncertainty and model-to-lab residual.
+
+**Full-scale operation**
+- Net AC/DC energy with explicit interval boundaries and auxiliaries.
+- Flow, upstream/downstream pressure and bypass chronology.
+- Service pressure compliance, pressure cycling, trip/fallback behaviour, availability, maintenance and meter uncertainty.
+- Energy and water-balance residuals; reported kWh without interval duration cannot be normalized to kW.
+
+**Network/control**
+- Node-hours below minimum pressure, worst pressure deficit, delivered-demand deficit, leakage volume and water balance.
+- PAT net kWh, hydraulic-energy recovery ratio, bypass fraction and off-design hours.
+- Controller settling/overshoot, actuator travel, starts/stops, chattering, fail-safe latency, and constraint violations.
+- Sensitivity to DDA versus PDA, FAVAD coefficients, demand forecast error, telemetry dropout, PAT map uncertainty and reservoir level.
+- Matched LCOE / lifetime cost with water-service value, replacement, installation, O&M and tariff assumptions.
+
+### Concrete Luminous research target
+
+The target is not to beat the 44.1% energy-recovery figure by maximizing extraction. It is to beat a matched set of baselines on **net useful value while preserving the water service**. A credible result could have lower gross kWh yet outperform by preserving critical pressures, reducing leakage, avoiding bypass, improving metering uncertainty, decreasing controller wear, or delivering a better cost/service frontier.
+
+Do not compare:
+- 2.3 kW full-load output with a daily-energy or installed-capacity value;
+- Antalya 0.7–8.4 kWh with kW without its interval;
+- PAT turbine hydraulic efficiency with net system efficiency;
+- 44.1% of available hydraulic energy with turbine-only efficiency;
+- experimental pump curves with full-scale network energy as if they share a physical boundary;
+- modelled Cornubia estimates with Antalya metered operation.
+
+Sources and exact comparator pins are recorded in `ENERGY_COMPETITOR_VERSION_LOCK_V0_1.json`.
+
+
+## 15. South African PAT field benchmark: measured pilots and bidirectional municipal operation
+
+The South African comparator set now includes three local site records, but their evidence boundaries differ.
+
+### Queenswood PAT pilot (WRC KV 238/10, 2010)
+
+The WRC report includes five time-stamped pilot readings. The reported measured output spans approximately 2.32–4.52 kW for flows 27.55–32.49 L/s and head drops 25.04–30.94 m. This is **point-observation evidence**, not a continuous time series. The test was described as not optimized; the PAT reverse-mode characteristics were partly based on manufacturer estimates rather than a complete independently mapped curve.
+
+Target reproduction:
+- reproduce the exact five points, units and meter boundaries;
+- recover original test durations and calibration, or leave energy/yield unknown;
+- compare measured power against the analytic component ledger;
+- quantify uncertainty only when meter calibration and input uncertainties are available;
+- do not infer annual energy, availability or efficiency distribution from five points.
+
+### Pierre van Ryneveld conduit-hydro plant (Tshwane, launched 2011)
+
+The 2014 journal paper documents a separate cross-flow turbine/synchronous generator installation with approximately 15 kW maximum capacity dependent on flow/head. It describes three field experiments, local site loads, and operational problems: generator frequency regulation, load rejection, PRV hunting, variable supply and manual controls.
+
+Target reproduction:
+- locate the three experiment records and exact flow/head/power points;
+- test load-rejection and frequency stability against the reported limitations;
+- reconstruct the local lighting/communications service boundary;
+- verify present status and any modifications before using as a current operational comparator.
+
+### Leliefontein bidirectional PAT station (Drakenstein, reported operating since June 2018)
+
+The 2021 IMESA paper describes a bidirectional pump/PAT station with reversible flow/rotation, active-front-end drives, actuated valves, grid protection, bidirectional metering and SCADA. It estimates 320 MWh/year generation and 9.9 GWh total over 2018–2041. A separate cumulative-register passage gives 271,236 MWh generation and 53,577 MWh pumping consumption; these figures conflict with the annual/lifetime estimates and must remain **unresolved** until the original meter exports or author/municipal clarification establish the units. No calculation may silently choose the more favourable interpretation.
+
+Target reproduction:
+- acquire original bidirectional meter import/export registers, SCADA chronology, meter calibration and pump/turbine mode flags;
+- reconstruct net export after pumping energy, auxiliaries and downtime;
+- resolve the cumulative-unit anomaly with the operator or authors;
+- quantify the duty cycle of pump vs turbine mode, seasonal water-service constraints, bypass and grid export limits.
+
+### South African holdout strategy
+
+These published sites are valuable local evidence, but we must not pretend they are a representative fleet or automatically comparable datasets. The next step is operator-authorized data retrieval:
+- WRC / University of Pretoria / Tshwane for Queenswood original logs;
+- City of Tshwane / University of Pretoria for Pierre van Ryneveld field tests and present asset status;
+- Drakenstein Municipality / CSIR authors for Leliefontein meter exports, SCADA, mode histories and the contradictory cumulative totals.
+
+A public benchmark must use only permissioned data. Preserve site IDs, privacy/security restrictions, raw file checksums, source time zone, calibration metadata, meter register semantics, actual sampling interval and all missing/gap flags. A site used to fit PAT maps or controller parameters cannot also be the blind holdout. Reserve a separate South African zone/time period, or a genuinely independent installation, for final validation.
+
+Sources:
+- WRC KV 238/10: https://www.wrc.org.za/wp-content/uploads/mdocs/KV%20238-10.pdf
+- Tshwane 2014 conduit-hydro installations: https://www.scielo.org.za/scielo.php?pid=S1021-20192014000300001&script=sci_arttext
+- Leliefontein IMESA 2021: https://researchspace.csir.co.za/bitstream/handle/10204/12279/Steyn_2021.pdf
+
+
+## 16. South African field PAT benchmarks — distinguish point pilots, maximum capacity and bidirectional net energy
+
+Three local sources now anchor the South African PAT ladder:
+
+### Queenswood (WRC KV 238/10, 2010)
+- Five time-stamped pilot points, 2.32–4.52 kW measured electrical output, flow 27.55–32.49 L/s and head drop 25.04–30.94 m.
+- Pilot not optimized; manufacturer reverse-mode estimates used for aspects of the PAT curve.
+- No continuous duration, duty profile, annual availability or annual energy.
+- The 2014 Tshwane paper describes the same Queenswood installation. One asset ID, not two benchmark sites.
+
+### Pierre van Ryneveld (Tshwane, 2011)
+- Separate cross-flow turbine/synchronous generator installation launched 29 November 2011; approx. 15 kW maximum capacity depending on head/flow.
+- Three field experiments and local lighting/communications loads are described.
+- Published issues include generator frequency regulation, load rejection, PRV hunting, variable flow/head and manual operation.
+- Maximum capacity is not an average, measured annual energy or current status claim.
+
+### Leliefontein (Drakenstein, operating since 2018; IMESA 2021)
+- Bidirectional pump/PAT station with reverse flow/rotation, active-front-end drives, actuated valves, grid protection, bidirectional meter and SCADA.
+- 320 MWh/year / 9.9 GWh lifetime are reported estimates.
+- A separate statement of 271,236 MWh generated and 53,577 MWh pumping energy conflicts with the annual/lifetime figures. Treat the units as unresolved; exclude these totals from quantitative comparisons until the operator/authors verify the original meter register semantics.
+- Pump-mode consumption and generator auxiliaries must be subtracted from turbine-mode output; do not evaluate as a one-way generator.
+
+### Local blind-benchmark requirements
+
+Request permissioned source data from WRC / University of Pretoria / City of Tshwane for Queenswood and Pierre van Ryneveld, and Drakenstein Municipality / CSIR authors for Leliefontein. Require original sampling intervals, time zone, meter import/export semantics, CT/PT ratios, calibration certificates, flow/head/pressure meter location, bypass and pump/turbine mode state, missingness and maintenance. Preserve original bytes and rights, and do not generate digests before lawful receipt.
+
+Targets:
+1. Reproduce the Queenswood five points within measurement uncertainty without extrapolating to annual yield.
+2. Reconstruct PvR frequency/load-rejection/PRV-hunting observations and quantify whether controller actions respect the water-service envelope.
+3. Reconstruct Leliefontein net energy with pump-mode consumption, turbine export, auxiliaries, downtime and meter register semantics reconciled.
+4. Hold out an independent site or period not used for map fitting, network calibration or controller tuning.
+
+The test set should measure **net useful energy and water service together**: pressure compliance, delivered demand, ecological flow, leakage/water balance, bypass fraction, PAT off-design time, generator power quality, actuator duty/fault recovery, metering uncertainty and lifecycle cost. Do not rank sites by maximum kW or annual theoretical yield alone.
+
+No South African raw telemetry has yet been admitted. Published papers are field-evidence references, not substitutes for operator-authorized raw data.
