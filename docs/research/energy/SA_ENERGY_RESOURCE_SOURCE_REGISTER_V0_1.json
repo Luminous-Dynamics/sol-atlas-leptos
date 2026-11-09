@@ -2286,6 +2286,303 @@
       ],
       "raw_snapshot_ingested": false,
       "snapshot_digest": null
+    },
+    {
+      "source_id": "south-africa-energy-storage-assessment-abandoned-mineshafts-2015",
+      "source_name": "South African Energy Storage Technology and Market Assessment",
+      "provider": "United States Trade and Development Agency / South African energy-storage market assessment authors",
+      "source_url": "https://www.eskom.co.za/eia/dx/wp-content/uploads/migrated/HexBESS/Appendix-H-1-South-African-Energy-Storage-Technology-and-Marketing-Assessment-1.pdf",
+      "source_type": "sector_report",
+      "resource_families": [
+        "hydropower",
+        "cross_resource"
+      ],
+      "evidence_basis": "government_historical_assessment",
+      "availability_state": "context_only",
+      "source_version": {
+        "label": "South Africa Energy Storage Technology and Market Assessment; 2015-era assessment",
+        "release_or_publication_date": "2015",
+        "data_period": "South African storage market and technology assessment; mine-shaft pumped hydro listed as a potential consideration",
+        "metadata_updated": null,
+        "notes": "The assessment notes that South Africa already had three large pumped-storage schemes (Steenbras, Palmiet and Drakensberg at the time, with Ingula commissioning context elsewhere in the report) and states that potential high-head pumped hydro in unused/abandoned mineshafts would be considered initially based on availability and geographic diversity. This is an early screening lead, not a mine-shaft feasibility finding or selected site."
+      },
+      "spatial_scope": "South Africa; national storage technology market assessment",
+      "spatial_resolution": "National technology-screening context; no mine-specific shaft geometry, geotechnical, hydrogeological or grid model admitted by this record",
+      "temporal_scope": "Published circa 2015; historical sector assessment",
+      "temporal_resolution": "Planning/market assessment, not operating time-series or site measurement",
+      "variables": [
+        "pumped hydro storage",
+        "existing national pumped-storage schemes",
+        "abandoned mineshaft screening",
+        "storage market",
+        "grid storage need"
+      ],
+      "license_status": {
+        "status": "identified_requires_review",
+        "details": "Public assessment report. Confirm USTDA and underlying author reuse and third-party data conditions before redistributing extracted figures or tables."
+      },
+      "claim_ceiling": "Historical South African evidence that unused/abandoned mine shafts were identified as a possible high-head pumped-storage screening route. Does not establish a suitable shaft, reservoir, water supply, geology, grid connection, cost or environmental feasibility.",
+      "limitations": [
+        "The report says mine-shaft pumped storage would be considered initially; it does not report a completed mine-shaft site investigation or a project-ready design.",
+        "A shaft is not by itself a pumped-storage system: upper/lower reservoirs, water conveyance, hydraulic losses, geomechanical integrity, containment and grid interfaces must be established.",
+        "The assessment is historical and does not represent current South African tariffs, mine closure status, water-use regulation or project pipeline."
+      ],
+      "admission_requirements": [
+        "Identify exact mine shafts and current owner/closure status before screening.",
+        "Obtain shaft/drift surveys, mine plans, rock-mass/geotechnical data, hydrogeology, water quality, groundwater inflow and closure/rehabilitation obligations.",
+        "Measure upper/lower reservoir elevation, usable volume, water source/replenishment and hydraulic route.",
+        "Obtain grid proximity/connection capacity and matched storage duty profile before calculating capacity or economics."
+      ],
+      "raw_snapshot_ingested": false,
+      "snapshot_digest": null
+    },
+    {
+      "source_id": "eskom-tubatse-pumped-storage-scheme-1500mw-21gwh-2026",
+      "source_name": "Tubatse Pumped Storage Scheme strategic partner RFQ",
+      "provider": "Eskom Holdings / Eskom Green",
+      "source_url": "https://www.eskom.co.za/eskom-green-launches-strategic-partner-selection-process-for-up-to-1-5gw-21gwh-of-tubatse-pumped-storage-scheme-set-to-be-south-africas-largest-energy-storage-system-ess-to-integrate-inc/",
+      "source_type": "government_page",
+      "resource_families": [
+        "hydropower",
+        "cross_resource"
+      ],
+      "evidence_basis": "sector_policy_report",
+      "availability_state": "context_only",
+      "source_version": {
+        "label": "Eskom media statement / RFQ E3611GXR; issued 2026-10-13",
+        "release_or_publication_date": "2026-10-13",
+        "data_period": "Tubatse pumped-storage development and strategic-partner selection status reported October 2026",
+        "metadata_updated": null,
+        "notes": "Eskom says the planned Tubatse scheme near Roossenekal, Limpopo, is up to 1.5 GW and approximately 21 GWh, four reversible pump-turbine units, up to 14 hours at full output. Land is secured, Environmental Authorisation granted, key studies/access-road designs advanced, and DWS confirmed water availability from De Hoop Dam. A strategic-partner RFQ process is underway; the project is not operating."
+      },
+      "spatial_scope": "Near Roossenekal, Limpopo Province, South Africa",
+      "spatial_resolution": "One proposed utility-scale pumped-storage development; no mine-shaft site",
+      "temporal_scope": "Development status reported 2026-10-13; strategic partner RFQ and later RFP expected",
+      "temporal_resolution": "Project development milestone report; no operating interval generation/round-trip data",
+      "variables": [
+        "planned generation capacity",
+        "planned storage energy",
+        "storage duration",
+        "reversible pump-turbine units",
+        "water availability",
+        "environmental authorization",
+        "grid services",
+        "procurement stage"
+      ],
+      "license_status": {
+        "status": "identified_requires_review",
+        "details": "Official Eskom public media statement. Confirm RFQ/tender document terms before copying procurement materials or non-public details."
+      },
+      "claim_ceiling": "Officially announced South African greenfield pumped-storage development with a 1.5 GW / approximately 21 GWh design target and advanced development milestones. It is not a commissioned plant or measured round-trip efficiency dataset.",
+      "limitations": [
+        "Tubatse is a conventional upper/lower-reservoir project, not underground mine-shaft storage; do not conflate its design with abandoned-mine concepts.",
+        "The scheme is in development/partner selection, not operating; 1.5 GW and 21 GWh are project design figures.",
+        "The 14-hour output duration is the planned full-output duration; it is not evidence of availability, cycle efficiency or annual revenue."
+      ],
+      "admission_requirements": [
+        "Use as a South African utility-scale pumped-storage project benchmark for power, energy and duration, not as proof of mine-shaft feasibility.",
+        "Pin the RFQ, Environmental Authorisation and public technical studies for exact scope, design revisions and assumptions.",
+        "Compare mine-shaft proposals on matched power, usable MWh, duration, round-trip losses, response and grid service."
+      ],
+      "raw_snapshot_ingested": false,
+      "snapshot_digest": null
+    },
+    {
+      "source_id": "eskom-existing-pumped-storage-scheme-fleet-2024",
+      "source_name": "Eskom pumped-storage schemes and water transfer fact sheet",
+      "provider": "Eskom Generation Communication",
+      "source_url": "https://www.eskom.co.za/wp-content/uploads/2024/07/HY-0001-Pumped-Storage-Scheme-and-Water-Transfer-Rev-12.pdf",
+      "source_type": "sector_report",
+      "resource_families": [
+        "hydropower"
+      ],
+      "evidence_basis": "government_historical_assessment",
+      "availability_state": "context_only",
+      "source_version": {
+        "label": "HY 0001 Revision 12, June 2024",
+        "release_or_publication_date": "2024-06",
+        "data_period": "Drakensberg, Palmiet and Ingula scheme description and operating purpose",
+        "metadata_updated": null,
+        "notes": "Eskom reports Drakensberg 1,000 MW, Palmiet 400 MW and Ingula 1,332 MW. Drakensberg also forms part of the Tugela-Vaal Water Transfer Scheme; Palmiet transfers water between catchments and supports Cape Town water supply; Ingula is described as a pumped-storage facility for peak generation."
+      },
+      "spatial_scope": "South Africa; Drakensberg, Palmiet and Ingula pumped-storage schemes",
+      "spatial_resolution": "Three existing utility pumped-storage sites; not individual unit performance time-series",
+      "temporal_scope": "Fact sheet revision June 2024",
+      "temporal_resolution": "Plant configuration and capacity facts; not current interval availability or dispatch",
+      "variables": [
+        "installed pumped-storage capacity",
+        "water-transfer duty",
+        "upper/lower reservoir schemes",
+        "grid peak generation"
+      ],
+      "license_status": {
+        "status": "identified_requires_review",
+        "details": "Eskom public fact sheet. Confirm reuse/attribution terms before redistributing figures or diagrams."
+      },
+      "claim_ceiling": "Official historical reference for the scale and multifunctional water/grid roles of South Africa's existing pumped-storage fleet. Does not provide full current dispatch availability, round-trip efficiency or plant-specific operating cost.",
+      "limitations": [
+        "Installed capacity does not equal usable storage energy or continuous output duration.",
+        "Drakensberg and Palmiet provide water-transfer functions in addition to electricity storage; water-service constraints must be preserved.",
+        "The factsheet is a 2024 description, not a live operational status or availability series."
+      ],
+      "admission_requirements": [
+        "Use current operator telemetry for availability, usable storage MWh, pumping/generation losses, outage history and water-transfer constraints.",
+        "Keep electricity generation, pumping consumption and municipal/water-transfer service separate.",
+        "Pin technical brochures and exact plant configuration revisions when making detailed comparisons."
+      ],
+      "raw_snapshot_ingested": false,
+      "snapshot_digest": null
+    },
+    {
+      "source_id": "abandoned-coal-mine-geological-mining-underground-storage-workflow-2025",
+      "source_name": "Geological and mining factors influencing further use of abandoned coal mines — a multidisciplinary workflow towards sustainable underground storage",
+      "provider": "Colas, Kukla, Amann and Back; Journal of Energy Storage",
+      "source_url": "https://doi.org/10.1016/j.est.2024.115101",
+      "source_type": "research_publication",
+      "resource_families": [
+        "hydropower",
+        "cross_resource"
+      ],
+      "evidence_basis": "literature_review",
+      "availability_state": "context_only",
+      "source_version": {
+        "label": "Journal of Energy Storage 108, article 115101; 2025-02-01",
+        "release_or_publication_date": "2025-02-01",
+        "data_period": "Multidisciplinary assessment of abandoned coal mines and Prosper-Haniel mine repurposing potential",
+        "metadata_updated": null,
+        "notes": "The paper examines geological and mining factors for reusing abandoned coal mines as sustainable underground storage, with a 3D model of Prosper-Haniel. It highlights heterogeneous rock masses, low permeability, stability and tightness as central constraints for underground pumped storage."
+      },
+      "spatial_scope": "German abandoned coal mine context; Prosper-Haniel reference case",
+      "spatial_resolution": "Mine/rock-mass and 3D geometric assessment framework; not South Africa",
+      "temporal_scope": "Published 2025",
+      "temporal_resolution": "Geological/mining model and conceptual assessment; not a long-duration operating storage time series",
+      "variables": [
+        "mine geometry",
+        "rock-mass heterogeneity",
+        "permeability",
+        "underground reservoir stability",
+        "hydraulic containment",
+        "shaft/drift reuse"
+      ],
+      "license_status": {
+        "status": "identified_requires_review",
+        "details": "Open-access article; confirm exact CC licence and any underlying mine-plan/third-party data restrictions before reuse."
+      },
+      "claim_ceiling": "Literature and case-study workflow for geological/mining screening of abandoned coal mines as potential underground storage. Does not prove a South African shaft or mine void is hydraulically tight, structurally suitable or permitted.",
+      "limitations": [
+        "German mining geology and mine design are not directly transferable to South African coal/gold mine workings.",
+        "Heterogeneous rock mass and low permeability complicate sealing, stability and reservoir performance.",
+        "A 3D geometric model is not a certified geotechnical/hydrogeological safety case."
+      ],
+      "admission_requirements": [
+        "Obtain mine plans, shaft/drift geometry, rock-mass characterization, support/lining condition and groundwater records.",
+        "Use calibrated geomechanical and hydrogeological models, with independent specialist review and field verification.",
+        "Assess cyclic load, pore pressure, leakage, water chemistry and mine closure liabilities before energy-system design."
+      ],
+      "raw_snapshot_ingested": false,
+      "snapshot_digest": null
+    },
+    {
+      "source_id": "abandoned-mine-integrated-pumped-hydro-solar-thermal-heat-pump-hub-2026",
+      "source_name": "A sustainable energy hub from abandoned mines: integrated pumped hydro, solar-thermal and heat-pump system for carbon-neutral communities",
+      "provider": "Zhang et al.; Sustainable Energy Technologies and Assessments",
+      "source_url": "https://doi.org/10.1016/j.seta.2025.104757",
+      "source_type": "research_publication",
+      "resource_families": [
+        "hydropower",
+        "solar",
+        "geothermal",
+        "cross_resource"
+      ],
+      "evidence_basis": "modeled_analysis_forecast",
+      "availability_state": "context_only",
+      "source_version": {
+        "label": "Sustainable Energy Technologies and Assessments 85, article 104757; January 2026",
+        "release_or_publication_date": "2026-01",
+        "data_period": "Integrated abandoned-mine pumped hydro, PV-thermal and reservoir-coupled heat-pump system model",
+        "metadata_updated": null,
+        "notes": "The research models an integrated mine energy hub combining underground pumped hydro, photovoltaic-thermal collectors and reservoir-coupled heat pumps. It reports 2.22 million kWh of electricity storage and an average heat-pump COP of 5.54 for its modelled system. These are model outputs, not measured plant data."
+      },
+      "spatial_scope": "Modelled abandoned-mine energy hub; non-South-African case context",
+      "spatial_resolution": "Integrated system model linking underground reservoirs, PVT and heat-pump loops",
+      "temporal_scope": "Published January 2026",
+      "temporal_resolution": "Modelled operating scenario; raw field operating time series not established by the abstract",
+      "variables": [
+        "pumped hydro storage capacity",
+        "PV-thermal output",
+        "heat-pump COP",
+        "thermal exchange",
+        "integrated energy hub"
+      ],
+      "license_status": {
+        "status": "identified_requires_review",
+        "details": "Publisher access and reuse terms should be checked; underlying simulation models, data and figures may have separate restrictions."
+      },
+      "claim_ceiling": "Modelled integrated mine-energy-hub architecture combining pumped storage, PVT and heat pumps. It is not a field-proven system, does not validate mine-shaft containment or establish South African performance.",
+      "limitations": [
+        "2.22 GWh storage and COP 5.54 are scenario/model results, not measured field performance.",
+        "Architecture combines several subsystems; each hydraulic, thermal, electrical and geotechnical boundary needs independent validation.",
+        "The design is not a substitute for mine stability, water rights, reinjection or environmental approvals."
+      ],
+      "admission_requirements": [
+        "Recover full model boundary and parameter assumptions before reproducing values.",
+        "Separate underground pumped hydro, solid gravity and mine-water thermal storage as distinct physical subsystems.",
+        "Compare model outputs against the independent mine-water thermal and hydro storage physical owners; do not duplicate their kernels.",
+        "Only use as an architecture comparator, not a South African capacity claim."
+      ],
+      "raw_snapshot_ingested": false,
+      "snapshot_digest": null
+    },
+    {
+      "source_id": "gravity-energy-storage-systematic-review-2026",
+      "source_name": "A Systematic Review of Gravity Energy Storage: Technologies, Modeling, Integration, and Future Perspectives",
+      "provider": "Amorim et al.; Eng",
+      "source_url": "https://doi.org/10.3390/eng7090463",
+      "source_type": "research_publication",
+      "resource_families": [
+        "hydropower",
+        "cross_resource"
+      ],
+      "evidence_basis": "literature_review",
+      "availability_state": "context_only",
+      "source_version": {
+        "label": "Eng 2026, 7(9), 463; published 2026-09-08",
+        "release_or_publication_date": "2026-09-08",
+        "data_period": "Systematic review of 107 studies from four databases across gravity-energy architectures and system performance",
+        "metadata_updated": null,
+        "notes": "The review compares liquid-based and solid gravity systems including tower, shaft, rail, mountain, piston and modular architectures. It identifies low intrinsic energy density, dependence on large infrastructure, lack of standardized techno-economic assessment and limited long-term operational data. It positions gravity storage as a complementary technology rather than a direct universal substitute for batteries or pumped hydro."
+      },
+      "spatial_scope": "Global gravity-energy storage literature",
+      "spatial_resolution": "107 publications across several storage architectures; not a specific mine or operating fleet",
+      "temporal_scope": "Published 2026-09-08; reviewed studies retrieved from four databases",
+      "temporal_resolution": "Cross-study technology/model review, not continuous asset telemetry",
+      "variables": [
+        "gravity storage architectures",
+        "shaft storage",
+        "liquid pumped hydro",
+        "solid mass storage",
+        "round-trip efficiency",
+        "energy density",
+        "response",
+        "techno-economics"
+      ],
+      "license_status": {
+        "status": "identified_requires_review",
+        "details": "Open-access review; verify CC BY terms and reuse rights for source tables/figures."
+      },
+      "claim_ceiling": "Systematic review of gravity-storage architectures and evidence gaps. Does not establish commercial performance, standardized project cost or suitability of a particular South African mine shaft.",
+      "limitations": [
+        "Low energy density means large mass/volume/height or reservoir volume may be needed.",
+        "The review finds no standardized techno-economic assessment, limiting direct comparison across architectures.",
+        "Long-term operational field data remain limited; laboratory or simulation results are not bankable plant performance."
+      ],
+      "admission_requirements": [
+        "Compare architectures with explicit physical boundaries and matched power, energy, duration, response and land/geology constraints.",
+        "Require full round-trip metering and lifecycle maintenance evidence.",
+        "Do not apply performance claims from one shaft/tower/rail architecture to another without a matched qualification programme."
+      ],
+      "raw_snapshot_ingested": false,
+      "snapshot_digest": null
     }
   ]
 }
