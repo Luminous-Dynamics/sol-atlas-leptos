@@ -263,6 +263,93 @@
         "https://github.com/FZJ-IEK3-VSA/RESKit/releases/tag/v0.5.0",
         "https://api.github.com/repos/FZJ-IEK3-VSA/RESKit/git/refs/tags/v0.5.0"
       ]
+    },
+    {
+      "name": "South African Hydropower Atlas",
+      "artifact": "WRC Report TT 916/23 and SAHA ArcGIS E-Tool",
+      "pinned_release": "Report TT 916/23, June 2023; E-Tool catalogue published 2022",
+      "companion_engine": null,
+      "release_date": "2023-06",
+      "role": [
+        "South African hydropower site-discovery baseline",
+        "conduit/PRS, run-of-river, hydrokinetic, weir, WTW/WWTW and pumped-storage screening taxonomy"
+      ],
+      "important_limits": [
+        "The atlas is a South African discovery/pre-feasibility reference, not a bankable project register or measured site-data archive.",
+        "Initial criteria for several types were assumed because detailed data are limited; WWTW/WTW methods explicitly relied on assumptions.",
+        "Hydrokinetic South African case studies were scarce and flow estimates may diverge substantially from actual flow.",
+        "The 31,000 MW pumped-storage estimate is based on a 12-hour/day assumption and overlapping site pairs; the report states actual potential is significantly lower.",
+        "Geological, hydrological and environmental feasibility is not established for the identified pumped-storage candidates.",
+        "Do not compare a theoretical atlas estimate with a turbine test, metered generation or connected project capacity."
+      ],
+      "pin_policy": "Pin the report PDF bytes and SHA-256, E-Tool ArcGIS item IDs, each feature/raster service ID, original layer owner, CRS, resolution, data periods and rights. Treat report-derived estimates and actual feature data separately.",
+      "references": [
+        "https://wrcwebsite.azurewebsites.net/wp-content/uploads/mdocs/TT%20916%20final%20web.pdf",
+        "https://search.wrc.org.za/reports/ada2ec32-f2c3-4703-af7f-d632d9965a90"
+      ]
+    },
+    {
+      "name": "Water-distribution-network hydropower technology review",
+      "artifact": "Energies 2026, 19(2), 320",
+      "pinned_release": "Published 2026-01-08; DOI 10.3390/en19020320",
+      "companion_engine": null,
+      "release_date": "2026-01-08",
+      "role": [
+        "PAT and in-pipe turbine technology landscape",
+        "water-distribution energy recovery architectures",
+        "pressure regulation and off-grid telemetry energy harvesting context"
+      ],
+      "important_limits": [
+        "This is a literature review, not an independent performance test of a specific South African installation.",
+        "Its 40–75% broad PAT/micro-hydro efficiency range is not a universal design curve; use exact manufacturer maps or measured tests.",
+        "The review notes variable flow/head and service preservation issues; a fixed operating point is not representative.",
+        "Small harvested power may be more useful for off-grid sensors than grid export; evaluate those service boundaries separately."
+      ],
+      "pin_policy": "Pin the article version, DOI, PDF checksum, exact table/section and underlying primary source for any quantitative statement; do not treat cited case studies as raw reusable observations.",
+      "references": [
+        "https://www.mdpi.com/1996-1073/19/2/320",
+        "https://doi.org/10.3390/en19020320"
+      ]
+    },
+    {
+      "name": "IEC pumped-storage hydropower trends",
+      "artifact": "The future of pumped storage hydropower — Technology innovation and standardization trends (2025-2035)",
+      "pinned_release": "IEC Trend Report, 2026 Edition 0.0",
+      "companion_engine": null,
+      "release_date": "2026-08-05",
+      "role": [
+        "pumped-storage technology and standardization trend context",
+        "technology and interoperability research horizon"
+      ],
+      "important_limits": [
+        "This is a trend report, not a component design standard, project approval, measured plant benchmark or site feasibility dataset.",
+        "Pumped storage is a storage asset: pumping input, generating output and round-trip losses must be kept separate from primary hydropower generation.",
+        "Do not use global deployment trends as a substitute for South African reservoir, geology, water rights or environmental assessment."
+      ],
+      "pin_policy": "Pin IEC publication identifier 115300, report edition/date and exact pages for each technical trend. Apply actual published standards separately for design/acceptance.",
+      "references": [
+        "https://webstore.iec.ch/en/publication/115300"
+      ]
+    },
+    {
+      "name": "International Hydropower Association World Hydropower Outlook",
+      "artifact": "2026 World Hydropower Outlook",
+      "pinned_release": "2026 edition",
+      "companion_engine": null,
+      "release_date": "2026",
+      "role": [
+        "global hydropower and pumped-storage deployment context",
+        "global market and development-pipeline trend comparison"
+      ],
+      "important_limits": [
+        "IHA database aggregates global industry development information; it is not a South African site-resource assessment.",
+        "Distinguish operating capacity, additions commissioned in the reporting year, projects under construction and the wider development pipeline.",
+        "Do not use pipeline capacity as an operating or bankable project."
+      ],
+      "pin_policy": "Pin the exact report PDF, database snapshot, geography, project status definition and reporting date.",
+      "references": [
+        "https://www.hydropower.org/publications/2026-world-hydropower-outlook"
+      ]
     }
   ]
 }
