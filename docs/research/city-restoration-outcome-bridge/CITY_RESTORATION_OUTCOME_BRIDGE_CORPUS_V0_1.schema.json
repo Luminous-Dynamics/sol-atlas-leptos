@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/city-restoration-outcome-bridge-corpus-v0.1.schema.json",
+  "title": "City Restoration Outcome Bridge Synthetic Corpus v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "corpus_id",
+    "schema_version",
+    "classification",
+    "policy",
+    "claim_ceiling",
+    "source_refs",
+    "cases"
+  ],
+  "properties": {
+    "corpus_id": {
+      "const": "CITY-RESTORATION-OUTCOME-BRIDGE-CORPUS-V0.1"
+    },
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "classification": {
+      "const": "synthetic_fixture_only"
+    },
+    "policy": {
+      "type": "string",
+      "minLength": 1
+    },
+    "claim_ceiling": {
+      "const": "synthetic_service_restoration_composition_only"
+    },
+    "source_refs": {
+      "type": "object"
+    },
+    "cases": {
+      "type": "array",
+      "minItems": 26,
+      "maxItems": 26,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "case_id",
+          "input",
+          "expected"
+        ],
+        "properties": {
+          "case_id": {
+            "type": "string",
+            "pattern": "^HRO-[0-9]{3}$"
+          },
+          "input": {
+            "type": "object"
+          },
+          "expected": {
+            "type": "object"
+          }
+        }
+      }
+    }
+  }
+}
