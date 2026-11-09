@@ -39,7 +39,7 @@ v0.1 schemas and historical fixtures are not modified. The v0.2 files are additi
 
 ## Frozen synthetic corpus
 
-The 25 known-answer cases cover positive `source_evidence`, `engineering_artifact` and `engineering_receipt` node types; legacy v0.1 preservation; version-matrix rejection; wrong identity, content digest or node type; absent targets; graph/event/report digest mismatch; duplicate node identities; unknown node types; retroactive time uncertainty; pending authority review; component-order invariance; and identical payload digests for distinct native identities.
+The 26 known-answer cases cover positive `source_evidence`, `engineering_artifact` and `engineering_receipt` node types; legacy v0.1 preservation; version-matrix rejection; wrong identity, content digest or node type; absent targets; graph/event/report digest mismatch; duplicate node identities; unknown node types; retroactive time uncertainty; pending authority review; component-order invariance; and identical payload digests for distinct native identities.
 
 All fixture identities, content and timestamps are synthetic. The evaluator does not authenticate real issuer signatures, SCITT transparency receipts, owner rights or the authority of a revoker.
 
