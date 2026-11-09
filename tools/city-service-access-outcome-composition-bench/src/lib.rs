@@ -165,17 +165,23 @@ fn restoration_state(
     let service = object(input, "service_contract");
     let restoration = object(input, "restoration");
     let reference = object(restoration, "source_ref");
+    let mut local_invalid = false;
+    let mut local_not_comparable = false;
+    let mut local_not_authorized = false;
 
     add_source_binding_result(
         binding,
         reference,
         scope,
         reasons,
-        invalid,
-        not_comparable,
-        not_authorized,
+        &mut local_invalid,
+        &mut local_not_comparable,
+        &mut local_not_authorized,
         "RESTORATION",
     );
+    *invalid |= local_invalid;
+    *not_comparable |= local_not_comparable;
+    *not_authorized |= local_not_authorized;
 
     if text(restoration, "service_id") != text(scope, "service_id")
         || text(restoration, "service_contract_revision") != text(service, "contract_revision")
@@ -185,6 +191,7 @@ fn restoration_state(
         || text(restoration, "scenario_id") != text(scope, "scenario_id")
     {
         add(reasons, "RESTORATION_SCOPE_OR_SERVICE_MISMATCH");
+        local_not_comparable = true;
         *not_comparable = true;
     }
     if !valid_sha256(text(restoration, "output_sha256"))
@@ -193,6 +200,7 @@ fn restoration_state(
         || !valid_commit(text(restoration, "source_commit"))
     {
         add(reasons, "RESTORATION_RECEIPT_BINDING_INVALID");
+        local_invalid = true;
         *invalid = true;
     }
 
@@ -209,9 +217,10 @@ fn restoration_state(
     let receipt_ticks = stable.get("minimum_ticks").and_then(Value::as_u64);
     if min_ticks.is_none() || min_ticks != receipt_ticks {
         add(reasons, "RESTORATION_STABILITY_POLICY_MISMATCH");
+        local_not_comparable = true;
         *not_comparable = true;
     }
-    if *invalid || *not_comparable || *not_authorized {
+    if local_invalid || local_not_comparable || local_not_authorized {
         return "not_qualified".to_owned();
     }
     if disposition == "RestoredForDeclaredScope" && qualified && continuity == "Adequate" && stable_ok {
