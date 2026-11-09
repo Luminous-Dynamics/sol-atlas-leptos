@@ -350,8 +350,7 @@ pub fn validate_profiles(profiles: &Value) -> Vec<String> {
         ],
         &mut errors,
     );
-    if string(profiles, "profile_id") != PROFILE_ID
-        || string(profiles, "schema_version") != "0.1.0"
+    if string(profiles, "profile_id") != PROFILE_ID || string(profiles, "schema_version") != "0.1.0"
     {
         push_error(
             &mut errors,
@@ -782,7 +781,11 @@ pub fn validate_case(case: &Value, profiles: &Value) -> Vec<String> {
         "input.building_service_claim",
         &mut errors,
     );
-    if input.get("building_service_claim").and_then(|v| v.get("received_owner_refs")).is_some() {
+    if input
+        .get("building_service_claim")
+        .and_then(|v| v.get("received_owner_refs"))
+        .is_some()
+    {
         check_string_array(
             input.get("building_service_claim").unwrap_or(&Value::Null),
             "received_owner_refs",
@@ -792,16 +795,33 @@ pub fn validate_case(case: &Value, profiles: &Value) -> Vec<String> {
     }
 
     let expected = case.get("expected").unwrap_or(&Value::Null);
-    check_keys(expected, "expected", EXPECTED_KEYS, EXPECTED_KEYS, &mut errors);
+    check_keys(
+        expected,
+        "expected",
+        EXPECTED_KEYS,
+        EXPECTED_KEYS,
+        &mut errors,
+    );
     check_string_array(expected, "disclosed_fields", "expected", &mut errors);
     check_string_array(expected, "reason_codes", "expected", &mut errors);
     if string(input, "classification") != CORPUS_CLASSIFICATION {
         push_error(&mut errors, "input", "CLASSIFICATION_UNSUPPORTED");
     }
     let decision = input.get("decision").unwrap_or(&Value::Null);
-    for key in ["decision_id", "purpose", "subject_id", "functional_unit", "claim_id", "claim_type"] {
+    for key in [
+        "decision_id",
+        "purpose",
+        "subject_id",
+        "functional_unit",
+        "claim_id",
+        "claim_type",
+    ] {
         if string(decision, key).is_empty() {
-            push_error(&mut errors, "input.decision", &format!("EMPTY_DECISION_FIELD:{key}"));
+            push_error(
+                &mut errors,
+                "input.decision",
+                &format!("EMPTY_DECISION_FIELD:{key}"),
+            );
         }
     }
     if number(decision, "decided_at").is_none() {
@@ -821,7 +841,12 @@ pub fn validate_corpus(corpus: &Value, profiles: &Value) -> Vec<String> {
         || string(corpus, "claim_ceiling") != CLAIM_CEILING
         || string(corpus, "composition_default") != "federated"
         || corpus.get("temporal_model")
-            != Some(&json!(["valid_at", "recorded_at", "registered_at", "ingested_at"]))
+            != Some(&json!([
+                "valid_at",
+                "recorded_at",
+                "registered_at",
+                "ingested_at"
+            ]))
     {
         push_error(
             &mut errors,
