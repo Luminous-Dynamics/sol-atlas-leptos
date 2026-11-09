@@ -1,4 +1,4 @@
-use energy_resource_registry_auditor::{audit_bytes, MAX_INPUT_BYTES};
+use energy_resource_registry_auditor::{MAX_INPUT_BYTES, audit_bytes};
 use std::env;
 use std::fs::{File, OpenOptions};
 use std::io::{Read, Write};
@@ -6,8 +6,7 @@ use std::path::PathBuf;
 use std::process::ExitCode;
 
 fn read_bounded(path: &PathBuf) -> Result<Vec<u8>, String> {
-    let file = File::open(path)
-        .map_err(|cause| format!("open {}: {cause}", path.display()))?;
+    let file = File::open(path).map_err(|cause| format!("open {}: {cause}", path.display()))?;
     let metadata = file
         .metadata()
         .map_err(|cause| format!("inspect {}: {cause}", path.display()))?;
