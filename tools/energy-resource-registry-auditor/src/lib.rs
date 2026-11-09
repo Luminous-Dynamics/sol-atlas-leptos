@@ -1296,20 +1296,24 @@ mod tests {
             .as_array()
             .expect("entries array")
             .iter()
-            .find(|entry| {
-                entry["source_id"] == "wrc-pressurised-conduit-pat-pilot-kv238-10-2010"
-            })
+            .find(|entry| entry["source_id"] == "wrc-pressurised-conduit-pat-pilot-kv238-10-2010")
             .expect("WRC Queenswood pilot record");
         assert_eq!(entry["evidence_basis"], "published_field_observation");
         assert_eq!(entry["availability_state"], "context_only");
-        assert!(entry["limitations"]
-            .as_array()
-            .expect("limitations")
-            .iter()
-            .any(|item| item.as_str().is_some_and(|text| text.contains("five time-stamped"))));
-        assert!(entry["claim_ceiling"]
-            .as_str()
-            .is_some_and(|claim| claim.contains("Not a sustained operating record")));
+        assert!(
+            entry["limitations"]
+                .as_array()
+                .expect("limitations")
+                .iter()
+                .any(|item| item
+                    .as_str()
+                    .is_some_and(|text| text.contains("five time-stamped")))
+        );
+        assert!(
+            entry["claim_ceiling"]
+                .as_str()
+                .is_some_and(|claim| claim.contains("Not a sustained operating record"))
+        );
     }
 
     #[test]
@@ -1325,14 +1329,20 @@ mod tests {
             })
             .expect("Tshwane installation evidence record");
         assert_eq!(entry["evidence_basis"], "published_field_observation");
-        let notes = entry["source_version"]["notes"].as_str().expect("source notes");
+        let notes = entry["source_version"]["notes"]
+            .as_str()
+            .expect("source notes");
         assert!(notes.contains("Pierre van Ryneveld"));
         assert!(notes.contains("Queenswood"));
-        assert!(entry["limitations"]
-            .as_array()
-            .expect("limitations")
-            .iter()
-            .any(|item| item.as_str().is_some_and(|text| text.contains("same installation"))));
+        assert!(
+            entry["limitations"]
+                .as_array()
+                .expect("limitations")
+                .iter()
+                .any(|item| item
+                    .as_str()
+                    .is_some_and(|text| text.contains("same installation")))
+        );
     }
 
     #[test]
@@ -1343,21 +1353,28 @@ mod tests {
             .expect("entries array")
             .iter()
             .find(|entry| {
-                entry["source_id"] == "drakenstein-leliefontein-bidirectional-pat-station-imesa-2021"
+                entry["source_id"]
+                    == "drakenstein-leliefontein-bidirectional-pat-station-imesa-2021"
             })
             .expect("Leliefontein PAT station record");
         assert_eq!(entry["evidence_basis"], "published_field_observation");
         let notes = entry["source_version"]["notes"].as_str().expect("source notes");
         assert!(notes.contains("320 MWh/year"));
         assert!(notes.contains("271,236 MWh"));
-        assert!(entry["limitations"]
-            .as_array()
-            .expect("limitations")
-            .iter()
-            .any(|item| item.as_str().is_some_and(|text| text.contains("internally inconsistent"))));
-        assert!(entry["claim_ceiling"]
-            .as_str()
-            .is_some_and(|claim| claim.contains("estimated")));
+        assert!(
+            entry["limitations"]
+                .as_array()
+                .expect("limitations")
+                .iter()
+                .any(|item| item
+                    .as_str()
+                    .is_some_and(|text| text.contains("internally inconsistent")))
+        );
+        assert!(
+            entry["claim_ceiling"]
+                .as_str()
+                .is_some_and(|claim| claim.contains("estimated"))
+        );
     }
 
     #[test]
