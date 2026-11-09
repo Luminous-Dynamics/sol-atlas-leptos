@@ -735,6 +735,75 @@
         "https://doi.org/10.2166/ws.2017.154",
         "https://iwaponline.com/ws/article-abstract/18/3/778/38286/Intelligent-pressure-management-by-pumps-as"
       ]
+    },
+    {
+      "name": "WRC Queenswood PAT pilot — measured point observations",
+      "artifact": "A High Level Scoping Investigation into the Potential of Energy Saving and Production/Generation in the Supply of Water Through Pressurised Conduits",
+      "pinned_release": "WRC Report KV 238/10, April 2010",
+      "companion_engine": null,
+      "release_date": "2010-04",
+      "role": [
+        "South African PAT pilot point-measurement reference",
+        "Queenswood measured flow/head/electrical output known-point reconstruction"
+      ],
+      "important_limits": [
+        "Report Table i contains five time-stamped observations, with measured output 2.323–4.521 kW at 27.55–32.49 L/s and 25.04–30.94 m reported head drops.",
+        "Only five point observations; no continuous duty cycle, seasonal availability or annual generation evidence.",
+        "The report describes the pilot as not optimized; reverse-mode characteristics were estimated/provided by the pump manufacturer rather than established as a fully characterized PAT map.",
+        "The 2014 Tshwane article describes this same Queenswood installation; it is not a second independent field installation.",
+        "One WRC table heading uses 'energy' where the reported values are watts; preserve measured power units and do not reinterpret as kWh."
+      ],
+      "pin_policy": "Pin the WRC report PDF and Table i; recover raw test logs, meter calibration, time intervals, sensor locations and exact head boundary from the University of Pretoria/Tshwane custodians. Keep the 2014 Queenswood citation linked to this same installation ID.",
+      "references": [
+        "https://www.wrc.org.za/wp-content/uploads/mdocs/KV%20238-10.pdf",
+        "https://doi.org/10.1016/j.jup.2014.06.006"
+      ]
+    },
+    {
+      "name": "Tshwane Pierre van Ryneveld 15 kW conduit hydro pilot",
+      "artifact": "Conduit-hydropower potential in the City of Tshwane water distribution system: A discussion of potential applications, financial and other benefits",
+      "pinned_release": "Journal of the South African Institution of Civil Engineering, Vol. 56 No. 3, October 2014",
+      "companion_engine": null,
+      "release_date": "2014-10",
+      "role": [
+        "South African municipal conduit-hydropower installation",
+        "Cross-flow turbine / synchronous generator on existing water supply infrastructure",
+        "Generator frequency/load rejection/PRV response fault-case evidence"
+      ],
+      "important_limits": [
+        "The paper documents three field experiments and a 29 November 2011 launch, with a cross-flow turbine and synchronous generator; approximately 15 kW is a maximum capacity depending on head/flow, not an annual average.",
+        "Queenswood and Pierre van Ryneveld are distinct installations; Queenswood is the WRC KV 238/10 pilot and must not be double counted.",
+        "Authors report generator frequency control, load rejection, PRV hunting, variable water supply and manual operation as issues requiring improvement.",
+        "National/Tshwane theoretical MWh figures are preliminary screening potential, not measured output.",
+        "Current operating status and raw multi-year power/flow data are not established."
+      ],
+      "pin_policy": "Pin the SciELO article, exact site identity, three experiment conditions and launch evidence. Obtain the original Tshwane operational logs and permission before using any telemetry.",
+      "references": [
+        "https://www.scielo.org.za/scielo.php?pid=S1021-20192014000300001&script=sci_arttext"
+      ]
+    },
+    {
+      "name": "Drakenstein Leliefontein bidirectional municipal PAT station",
+      "artifact": "Leliefontein Pump-As-Turbine Station",
+      "pinned_release": "IMESA 84th Conference Proceedings, 17–19 November 2021, Paper 17",
+      "companion_engine": "SCADA + bidirectional power meter + active-front-end variable-speed drives",
+      "release_date": "2021-11",
+      "role": [
+        "South African bidirectional pump/PAT station",
+        "Grid import/export and SCADA instrumentation reference",
+        "Pumping-versus-generating net-energy accounting"
+      ],
+      "important_limits": [
+        "The paper reports the installation operating since June 2018, with bidirectional operation, active-front-end drives, actuated valves, grid protection, power metering and SCADA.",
+        "320 MWh/year and 9.9 GWh over 2018–2041 are estimates, not an admitted independently audited interval-meter series.",
+        "The paper also gives cumulative numbers of 271,236 MWh generated and 53,577 MWh consumed which are inconsistent with those annual/lifetime estimates; treat their units as unresolved and do not use as MWh without confirmation.",
+        "The station serves both pumping and generation roles; calculate net energy benefit after pumping consumption and parasitic loads.",
+        "Raw SCADA/meter exports, calibration, sample intervals and current operating status are not supplied in the paper."
+      ],
+      "pin_policy": "Pin the IMESA paper, request Drakenstein SCADA and bidirectional-meter exports with calibration certificates, import/export registers, timestamp granularity and pump/turbine mode status. Resolve the conflicting cumulative units with the authors/municipality before benchmarking.",
+      "references": [
+        "https://researchspace.csir.co.za/bitstream/handle/10204/12279/Steyn_2021.pdf"
+      ]
     }
   ]
 }
