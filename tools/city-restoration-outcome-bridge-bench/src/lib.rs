@@ -408,6 +408,33 @@ fn evaluate_current(input: &Value) -> (String, BTreeSet<String>) {
     let mut reasons = BTreeSet::new();
     owner_receipts_bound(input, &mut reasons);
 
+    let temporal_cuts = object(input, "temporal_cuts");
+    let current_cut = object(temporal_cuts, "current");
+    let contract_ref = object(object(input, "service_contract"), "source_ref");
+    let restoration_ref = object(object(input, "restoration"), "source_ref");
+    let interruption_ref = object(object(input, "interruption"), "source_ref");
+    let continuity_ref = object(object(input, "continuity"), "source_ref");
+    let measurement = object(input, "measurement");
+    let measurement_ref = object(measurement, "source_ref");
+    let observation_ref = object(object(measurement, "observation"), "source_ref");
+    let physical_ref = object(object(input, "physical_output"), "source_ref");
+    let all_receipts = [
+        contract_ref,
+        restoration_ref,
+        interruption_ref,
+        continuity_ref,
+        measurement_ref,
+        observation_ref,
+        physical_ref,
+    ];
+    if all_receipts
+        .iter()
+        .filter(|source| !source.is_null())
+        .any(|source| !ref_is_visible(source, current_cut))
+    {
+        add(&mut reasons, "OWNER_RECEIPT_NOT_VISIBLE_AT_CURRENT_CUT");
+    }
+
     let scope = object(input, "requested_scope");
     let contract = object(input, "service_contract");
     let restoration = object(input, "restoration");
@@ -468,9 +495,13 @@ fn evaluate_current(input: &Value) -> (String, BTreeSet<String>) {
         add(&mut reasons, "SERVICE_NOT_ADEQUATE");
     }
     let stable = object(continuity, "stable_adequacy");
+    let contract_minimum =
+        tick(object(contract, "stability_policy"), "minimum_contiguous_adequate_ticks")
+            .unwrap_or(u64::MAX);
+    let receipt_minimum = tick(stable, "minimum_ticks").unwrap_or(0);
     if stable.get("qualified").and_then(Value::as_bool) != Some(true)
-        || tick(stable, "observed_ticks").unwrap_or(0)
-            < tick(stable, "minimum_ticks").unwrap_or(u64::MAX)
+        || tick(stable, "observed_ticks").unwrap_or(0) < contract_minimum
+        || receipt_minimum != contract_minimum
     {
         add(&mut reasons, "STABLE_ADEQUACY_INTERVAL_NOT_ESTABLISHED");
     }
@@ -494,6 +525,14 @@ fn evaluate_current(input: &Value) -> (String, BTreeSet<String>) {
 
     if contract.get("measurement_required").and_then(Value::as_bool) == Some(true) {
         let observation = object(measurement, "observation");
+        let observation_ref = object(observation, "source_ref");
+        let current_cut = object(object(input, "temporal_cuts"), "current");
+        if observation.is_null()
+            || observation_ref.is_null()
+            || !ref_is_visible(observation_ref, current_cut)
+        {
+            add(&mut reasons, "MEASUREMENT_NOT_VISIBLE_AT_CURRENT_CUT");
+        }
         if tick(observation, "observed_tick").unwrap_or(0)
             < tick(intervention, "completed_tick").unwrap_or(u64::MAX)
         {
@@ -919,6 +958,33 @@ mod tests {
         let result = evaluate_case(&case);
         assert_eq!(result["historical_disposition"], "InsufficientEvidence");
         assert_eq!(result["bridge_disposition"], "RestoredForDeclaredScope");
+    }
+
+    #[test]
+    fn current_replay_rejects_a_late_ingested_owner_receipt() {
+        let mut case = corpus()["cases"][0].clone();
+        case["input"]["measurement"]["observation"]["source_ref"]["ingested_tick"] = json!(16);
+        let result = evaluate_case(&case);
+        assert_eq!(result["bridge_disposition"], "InsufficientEvidence");
+        assert!(
+            result["reason_codes"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|reason| reason == "OWNER_RECEIPT_NOT_VISIBLE_AT_CURRENT_CUT")
+        );
+    }
+
+    #[test]
+    fn stable_period_must_match_the_service_contract_floor() {
+        let mut case = corpus()["cases"][0].clone();
+        case["input"]["continuity"]["stable_adequacy"]["minimum_ticks"] = json!(1);
+        let result = evaluate_case(&case);
+        assert_eq!(result["bridge_disposition"], "ProvisionalRecovery");
+        assert_eq!(
+            result["reason_codes"],
+            json!(["STABLE_ADEQUACY_INTERVAL_NOT_ESTABLISHED"])
+        );
     }
 
     #[test]
