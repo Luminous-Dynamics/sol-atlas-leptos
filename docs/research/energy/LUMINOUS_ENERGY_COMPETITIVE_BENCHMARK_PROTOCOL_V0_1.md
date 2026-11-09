@@ -402,3 +402,34 @@ Zero hard service-floor violations on the frozen synthetic negative-control corp
 Reproduce the 2022 Cornubia 2.2 model outputs on exact data (166.31 kW and 45.59 kL/month under its declared assumptions). Then reproduce the 2025 DDA/PDA Jowitt matrix and the 2026 multi-node RTC baseline where full inputs are obtainable. Treat missing network files or supplementary data as `NOT_REPRODUCIBLE_FROM_PUBLIC_ARTIFACT`. The 2021 and 2022 Cornubia studies share geography and are not independent replications until their input networks/demand data are crosswalked.
 
 The candidate is **not “better than SOTA”** until it wins matched held-out network/time cases against these pinned baselines under equal sensor access, model calibration budget, computation budget and equipment evidence. Publish matched wins, losses and indeterminate cases.
+
+
+## 15. Rust-native EPANET differential qualification
+
+Two Rust integration paths are worth testing, but their roles must remain distinct:
+
+- Safe wrapper `epanet 0.3.0` wraps the official OWA EPANET C API. It is an integration boundary for the reference engine, not an independent solver. The project handle is `Send` but not `Sync`; concurrent access to a single project requires synchronization. The lower-level `epanet-sys 2.3.0` crate builds OWA C through CMake/bindgen and requires a C compiler and libclang.
+- `epanet-rs 0.2.3` is a Rust-native reimplementation. The published feature checklist marks INP, PDA, controls, emitters, and partial API compatibility as implemented; leakage, rules, energy and water-quality support are unchecked. Its maintainers claim up to 5× parallel extended-period speedup only for supported networks without tanks or controls. Treat that as an upstream claim to reproduce, not our measured result.
+
+### Solver-routing policy
+
+1. **OWA EPANET 2.3.5 remains the reference oracle** for benchmark acceptance, FAVAD pipe leakage, full feature support and any case whose behavior is not explicitly qualified on the Rust implementation.
+2. Use the safe `epanet` wrapper if it simplifies Rust integration with the official OWA API; still pin the native OWA commit, build flags and exact library bytes.
+3. Use `epanet-rs` only for feature subsets where differential tests establish parity. Initially target canonical no-tank/no-control networks, then sequential PDA / control cases if the exact behavior matches.
+4. Do not route FAVAD/pipe-leakage cases to `epanet-rs` until its missing leakage capability is implemented upstream or an independently qualified adapter reproduces OWA link leakage and total water balance.
+5. When a feature is unsupported, the case returns an explicit fallback-to-OWA or `UNSUPPORTED_BY_RUST_SOLVER` disposition; it never silently drops the feature.
+
+### Benchmark gates
+
+- Compare all node heads/pressures, link flows/headloss, delivered demands, deficit, leakage where applicable, control states, tanks and time chronology.
+- Compare convergence state and mass/flow balance; a low aggregate RMS error cannot conceal one failed critical node.
+- Reproduce upstream speedup only on the stated no-tanks/no-controls class and then quantify actual speedup on PAT/WDN cases. Do not extrapolate the 5× claim to FAVAD, controls, tank or PAT workloads.
+- The Rust solver is a candidate scenario-ensemble accelerator, not a production replacement. A feature-specific parity receipt and deterministic run identity are prerequisites for every accelerated result.
+
+External pins:
+- `epanet` safe OWA wrapper 0.3.0: https://docs.rs/epanet/0.3.0/epanet/
+- `epanet-sys` raw OWA API 2.3.0: https://docs.rs/epanet-sys/2.3.0/epanet_sys/
+- `epanet-rs` native solver 0.2.3: https://docs.rs/crate/epanet-rs/0.2.3
+- Upstream source revision reviewed 2026-11-09: https://github.com/Vitens/epanet-rs/tree/fee0d03b11ed71a6da7366f07290d6e44556add4
+
+This is separately tracked in Symtropy [EPANET-RS-DIFF-001 #4398](https://github.com/Luminous-Dynamics/symtropy/issues/4398).
