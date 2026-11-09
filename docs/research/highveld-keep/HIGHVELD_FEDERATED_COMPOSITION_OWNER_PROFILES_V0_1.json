@@ -1,0 +1,107 @@
+{
+  "profile_id": "HIGHVELD-FEDERATED-OWNER-PROFILES-V0.1",
+  "schema_version": "0.1.0",
+  "common_required": [
+    "record_id",
+    "owner",
+    "owner_native_id",
+    "native_revision",
+    "schema_id",
+    "schema_version",
+    "payload_ref",
+    "payload_sha256",
+    "payload_bytes_state",
+    "issuer_state",
+    "rights_state",
+    "evidence_state",
+    "scope_digest",
+    "functional_unit",
+    "valid_from",
+    "valid_until",
+    "observed_at",
+    "recorded_at",
+    "registered_at",
+    "ingested_at",
+    "source_timezone",
+    "clock_id",
+    "clock_uncertainty_ms",
+    "verifier_id",
+    "verifier_build",
+    "claim_refs"
+  ],
+  "profiles": [
+    {
+      "owner": "design",
+      "schema_id": "design.contract",
+      "schema_version": "1.0.0",
+      "additional_allowed": [
+        "display_name",
+        "design_revision"
+      ]
+    },
+    {
+      "owner": "geometry",
+      "schema_id": "geometry.contract",
+      "schema_version": "1.0.0",
+      "additional_allowed": [
+        "display_name",
+        "geometry_digest",
+        "geometry_verification",
+        "coordinate_frame",
+        "units",
+        "ifc_schema",
+        "ids_status",
+        "adapter_state"
+      ]
+    },
+    {
+      "owner": "solver",
+      "schema_id": "solver.contract",
+      "schema_version": "1.0.0",
+      "additional_allowed": [
+        "solver_id",
+        "solver_version",
+        "solver_input_geometry_digest",
+        "convergence_state",
+        "validation_scope",
+        "claim_ceiling",
+        "input_bom_revision"
+      ]
+    },
+    {
+      "owner": "product",
+      "schema_id": "product.contract",
+      "schema_version": "1.0.0",
+      "additional_allowed": [
+        "product_id",
+        "bom_revision",
+        "approval_scope"
+      ]
+    },
+    {
+      "owner": "provenance",
+      "schema_id": "provenance.contract",
+      "schema_version": "1.0.0",
+      "additional_allowed": [
+        "lot_id",
+        "lot_state",
+        "custody_state",
+        "inspection_state",
+        "event_kind",
+        "target_record_id"
+      ]
+    },
+    {
+      "owner": "workcell",
+      "schema_id": "workcell.contract",
+      "schema_version": "1.0.0",
+      "additional_allowed": [
+        "work_package_id",
+        "cell_id",
+        "accepted_output_state",
+        "metrology_state",
+        "as_built_geometry_digest"
+      ]
+    }
+  ]
+}
