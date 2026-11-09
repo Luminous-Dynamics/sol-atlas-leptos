@@ -1013,8 +1013,8 @@ pub fn validate_corpus(corpus: &Value) -> Vec<String> {
         errors.push("CORPUS_ID_VERSION_CLASSIFICATION_OR_CLAIM_CEILING_INVALID".to_owned());
     }
     let cases = array(corpus, "cases");
-    if cases.len() != 25 {
-        errors.push("CORPUS_CASE_COUNT_NOT_25".to_owned());
+    if cases.len() != 26 {
+        errors.push("CORPUS_CASE_COUNT_NOT_26".to_owned());
     }
     let mut seen = BTreeSet::new();
     for case in cases {
