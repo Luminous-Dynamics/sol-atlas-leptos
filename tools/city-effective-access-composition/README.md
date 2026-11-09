@@ -28,3 +28,7 @@ cargo run --locked --quiet --manifest-path tools/city-effective-access-compositi
   docs/research/city-effective-access-composition/CITY_EFFECTIVE_ACCESS_COMPOSITION_CORPUS_V0_1.json \
   --source-commit "$(git rev-parse HEAD)"
 ```
+
+## Input hardening
+
+The command-line receipt path validates original JSON bytes before map creation: duplicate decoded keys (including escaped spellings) and trailing content are rejected. Corpus validation rejects unknown nested fields and missing required fields. These checks protect the synthetic oracle contract; they do not replace source-owner signature verification or real data-rights review.
