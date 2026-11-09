@@ -63,7 +63,7 @@ jobs:
           jq -e '
             .result == "pass"
             and .corpus_id == "IEAC-INVALIDATION-IDENTITY-COMPAT-CORPUS-V0.1"
-            and .scenario_count == 25
+            and .scenario_count == 26
             and .failure_count == 0
             and (.corpus_sha256 | test("^[0-9a-f]{64}$"))
             and (.corpus_schema_sha256 | test("^[0-9a-f]{64}$"))
@@ -77,7 +77,7 @@ jobs:
             and .scitt_authentication == "not_performed"
             and .action_authority == "none"
             and .claim_ceiling == "synthetic_identity_content_compatibility_only"
-            and (.scenarios | length == 25)
+            and (.scenarios | length == 26)
             and (.scenarios | all(.status == "pass"))
           ' ieac-invalidation-identity-compat-receipt.json
       - name: Upload exact-head compatibility receipt
