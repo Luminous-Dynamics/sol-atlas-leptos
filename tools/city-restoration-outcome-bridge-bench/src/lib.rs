@@ -478,9 +478,9 @@ fn evaluate_current(input: &Value) -> (String, BTreeSet<String>) {
     if physical.get("required").and_then(Value::as_bool) == Some(true) {
         authority_refs.push(object(physical, "source_ref"));
     }
-    let revoked_or_disputed_owner_evidence = authority_refs.iter().any(|source| {
-        matches!(text(source, "evidence_state"), "revoked" | "disputed")
-    });
+    let revoked_or_disputed_owner_evidence = authority_refs
+        .iter()
+        .any(|source| matches!(text(source, "evidence_state"), "revoked" | "disputed"));
     if revoked_or_disputed_owner_evidence {
         add(&mut reasons, "OWNER_EVIDENCE_REVOKED_OR_DISPUTED");
     }
