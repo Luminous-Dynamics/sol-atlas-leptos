@@ -1,0 +1,230 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/spatial-economic-service-network-stress-assessment-v0.1.schema.json",
+  "title": "Spatial-Economic Exhaustive Network Stress Assessment",
+  "description": "Exhaustive single-, double-, or triple-link outage results, plus explicit caller-declared common-cause and hazard bundles. Case counts are not probabilities, and no partial output is produced when the requested set exceeds case or graph-materialization budgets.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "experiment_id",
+    "baseline_scenario_id",
+    "service_entity_id",
+    "as_of",
+    "unit",
+    "max_simultaneous_failures",
+    "active_link_count",
+    "candidate_failure_case_count",
+    "evaluated_failure_case_count",
+    "exhaustive",
+    "baseline",
+    "worst_case_conservative_capacity",
+    "worst_case_optimistic_capacity",
+    "worst_case_conservative_capacity_loss",
+    "worst_case_optimistic_capacity_loss",
+    "worst_case_conservative_failure_sets",
+    "worst_case_optimistic_failure_sets",
+    "cases",
+    "declared_failure_set_count"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "experiment_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "baseline_scenario_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "service_entity_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "as_of": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
+    },
+    "unit": {
+      "type": "string",
+      "minLength": 1
+    },
+    "max_simultaneous_failures": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 3
+    },
+    "active_link_count": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "candidate_failure_case_count": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 10000
+    },
+    "evaluated_failure_case_count": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 10000
+    },
+    "exhaustive": {
+      "const": true
+    },
+    "baseline": {
+      "$ref": "https://luminousdynamics.io/schemas/spatial-economic-service-capacity-network-assessment-v0.1.schema.json"
+    },
+    "worst_case_conservative_capacity": {
+      "type": "number",
+      "minimum": 0
+    },
+    "worst_case_optimistic_capacity": {
+      "type": "number",
+      "minimum": 0
+    },
+    "worst_case_conservative_capacity_loss": {
+      "type": "number",
+      "minimum": 0
+    },
+    "worst_case_optimistic_capacity_loss": {
+      "type": "number",
+      "minimum": 0
+    },
+    "worst_case_conservative_failure_sets": {
+      "type": "array",
+      "items": {
+        "type": "array",
+        "minItems": 1,
+        "uniqueItems": true,
+        "items": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "worst_case_optimistic_failure_sets": {
+      "type": "array",
+      "items": {
+        "type": "array",
+        "minItems": 1,
+        "uniqueItems": true,
+        "items": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "cases": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/case"
+      }
+    },
+    "declared_failure_set_count": {
+      "type": "integer",
+      "minimum": 0
+    }
+  },
+  "$defs": {
+    "case": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "case_id",
+        "origin",
+        "rationale",
+        "failed_link_ids",
+        "assessment",
+        "conservative_capacity_loss",
+        "optimistic_capacity_loss"
+      ],
+      "properties": {
+        "case_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "failed_link_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "assessment": {
+          "$ref": "https://luminousdynamics.io/schemas/spatial-economic-service-capacity-network-assessment-v0.1.schema.json"
+        },
+        "conservative_capacity_loss": {
+          "type": "number",
+          "minimum": 0
+        },
+        "optimistic_capacity_loss": {
+          "type": "number",
+          "minimum": 0
+        },
+        "origin": {
+          "enum": [
+            "enumerated_link_combination",
+            "declared_common_cause",
+            "declared_hazard_bundle",
+            "declared_other"
+          ]
+        },
+        "failure_set_id": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Required for caller-declared event bundles; omitted for enumerated link combinations."
+        },
+        "rationale": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "origin": {
+                "const": "enumerated_link_combination"
+              }
+            },
+            "required": [
+              "origin"
+            ]
+          },
+          "then": {
+            "not": {
+              "required": [
+                "failure_set_id"
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "origin": {
+                "enum": [
+                  "declared_common_cause",
+                  "declared_hazard_bundle",
+                  "declared_other"
+                ]
+              }
+            },
+            "required": [
+              "origin"
+            ]
+          },
+          "then": {
+            "required": [
+              "failure_set_id"
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

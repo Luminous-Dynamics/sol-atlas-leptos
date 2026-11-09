@@ -1,0 +1,706 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/spatial-economic-water-energy-stress-intervention-comparison-assessment-v0.1.schema.json",
+  "title": "Spatial-Economic Paired Joint-Failure Intervention Comparison Assessment",
+  "description": "Compares baseline and candidate under the identical explicit failure suite. A possible protected-floor regression takes precedence over aggregate improvements; outputs are modeled counterfactuals, not causal evidence.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "comparison_id",
+    "baseline_experiment_id",
+    "candidate_experiment_id",
+    "service_count",
+    "declared_failure_scenario_count",
+    "compared_case_count",
+    "exhaustive_over_paired_declared_scenarios",
+    "total_paired_service_step_assessments",
+    "effect",
+    "possible_protected_floor_regression",
+    "worst_case_unmet_demand_reduction_lower_bound_m3",
+    "worst_case_unmet_demand_reduction_upper_bound_m3",
+    "worst_case_customer_delivery_delta_lower_bound_m3",
+    "worst_case_customer_delivery_delta_upper_bound_m3",
+    "worst_case_floor_compliance_delta_lower_bound",
+    "worst_case_floor_compliance_delta_upper_bound",
+    "cases",
+    "baseline_supporting_evidence_ids",
+    "candidate_supporting_evidence_ids",
+    "interpretation_boundary"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "comparison_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "baseline_experiment_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "candidate_experiment_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "service_count": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "declared_failure_scenario_count": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "compared_case_count": {
+      "type": "integer",
+      "minimum": 2
+    },
+    "exhaustive_over_paired_declared_scenarios": {
+      "type": "boolean"
+    },
+    "total_paired_service_step_assessments": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 2000000
+    },
+    "effect": {
+      "$ref": "#/$defs/effect"
+    },
+    "possible_protected_floor_regression": {
+      "type": "boolean"
+    },
+    "worst_case_unmet_demand_reduction_lower_bound_m3": {
+      "type": "number"
+    },
+    "worst_case_unmet_demand_reduction_upper_bound_m3": {
+      "type": "number"
+    },
+    "worst_case_customer_delivery_delta_lower_bound_m3": {
+      "type": "number"
+    },
+    "worst_case_customer_delivery_delta_upper_bound_m3": {
+      "type": "number"
+    },
+    "worst_case_floor_compliance_delta_lower_bound": {
+      "type": "number"
+    },
+    "worst_case_floor_compliance_delta_upper_bound": {
+      "type": "number"
+    },
+    "cases": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "$ref": "#/$defs/case"
+      }
+    },
+    "baseline_supporting_evidence_ids": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "candidate_supporting_evidence_ids": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "interpretation_boundary": {
+      "const": "modeled_counterfactual_not_causal_evidence"
+    }
+  },
+  "$defs": {
+    "floor_status": {
+      "enum": [
+        "meets_floor",
+        "below_floor",
+        "indeterminate"
+      ]
+    },
+    "service_state": {
+      "enum": [
+        "adequate",
+        "degraded",
+        "unavailable",
+        "indeterminate"
+      ]
+    },
+    "case_kind": {
+      "enum": [
+        "baseline",
+        "common_cause",
+        "hazard_bundle",
+        "other"
+      ]
+    },
+    "effect": {
+      "enum": [
+        "robust_improvement",
+        "robust_regression",
+        "no_material_change",
+        "protected_floor_regression",
+        "mixed_effects",
+        "indeterminate"
+      ]
+    },
+    "step": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "service_request_id",
+        "community_id",
+        "step_id",
+        "as_of",
+        "step_hours",
+        "baseline_state",
+        "candidate_state",
+        "baseline_floor_status",
+        "candidate_floor_status",
+        "possible_protected_floor_regression",
+        "baseline_coverage_lower_bound",
+        "baseline_coverage_upper_bound",
+        "candidate_coverage_lower_bound",
+        "candidate_coverage_upper_bound",
+        "baseline_unmet_demand_lower_bound_m3",
+        "baseline_unmet_demand_upper_bound_m3",
+        "candidate_unmet_demand_lower_bound_m3",
+        "candidate_unmet_demand_upper_bound_m3",
+        "unmet_demand_reduction_lower_bound_m3",
+        "unmet_demand_reduction_upper_bound_m3",
+        "baseline_customer_delivery_lower_bound_m3",
+        "baseline_customer_delivery_upper_bound_m3",
+        "candidate_customer_delivery_lower_bound_m3",
+        "candidate_customer_delivery_upper_bound_m3",
+        "customer_delivery_delta_lower_bound_m3",
+        "customer_delivery_delta_upper_bound_m3",
+        "baseline_supporting_evidence_ids",
+        "candidate_supporting_evidence_ids"
+      ],
+      "properties": {
+        "service_request_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "community_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "step_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "as_of": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "Z$"
+        },
+        "step_hours": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "baseline_state": {
+          "$ref": "#/$defs/service_state"
+        },
+        "candidate_state": {
+          "$ref": "#/$defs/service_state"
+        },
+        "baseline_floor_status": {
+          "$ref": "#/$defs/floor_status"
+        },
+        "candidate_floor_status": {
+          "$ref": "#/$defs/floor_status"
+        },
+        "possible_protected_floor_regression": {
+          "type": "boolean"
+        },
+        "baseline_coverage_lower_bound": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "baseline_coverage_upper_bound": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "candidate_coverage_lower_bound": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "candidate_coverage_upper_bound": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "baseline_unmet_demand_lower_bound_m3": {
+          "type": "number",
+          "minimum": 0
+        },
+        "baseline_unmet_demand_upper_bound_m3": {
+          "type": "number",
+          "minimum": 0
+        },
+        "candidate_unmet_demand_lower_bound_m3": {
+          "type": "number",
+          "minimum": 0
+        },
+        "candidate_unmet_demand_upper_bound_m3": {
+          "type": "number",
+          "minimum": 0
+        },
+        "unmet_demand_reduction_lower_bound_m3": {
+          "type": "number"
+        },
+        "unmet_demand_reduction_upper_bound_m3": {
+          "type": "number"
+        },
+        "baseline_customer_delivery_lower_bound_m3": {
+          "type": "number",
+          "minimum": 0
+        },
+        "baseline_customer_delivery_upper_bound_m3": {
+          "type": "number",
+          "minimum": 0
+        },
+        "candidate_customer_delivery_lower_bound_m3": {
+          "type": "number",
+          "minimum": 0
+        },
+        "candidate_customer_delivery_upper_bound_m3": {
+          "type": "number",
+          "minimum": 0
+        },
+        "customer_delivery_delta_lower_bound_m3": {
+          "type": "number"
+        },
+        "customer_delivery_delta_upper_bound_m3": {
+          "type": "number"
+        },
+        "baseline_supporting_evidence_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "candidate_supporting_evidence_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "service": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "service_request_id",
+        "service_entity_id",
+        "community_id",
+        "beneficiary_weight",
+        "essential_coverage_floor",
+        "baseline_floor_status",
+        "candidate_floor_status",
+        "possible_protected_floor_regression",
+        "baseline_unmet_demand_lower_bound_m3",
+        "baseline_unmet_demand_upper_bound_m3",
+        "candidate_unmet_demand_lower_bound_m3",
+        "candidate_unmet_demand_upper_bound_m3",
+        "unmet_demand_reduction_lower_bound_m3",
+        "unmet_demand_reduction_upper_bound_m3",
+        "baseline_customer_delivery_lower_bound_m3",
+        "baseline_customer_delivery_upper_bound_m3",
+        "candidate_customer_delivery_lower_bound_m3",
+        "candidate_customer_delivery_upper_bound_m3",
+        "customer_delivery_delta_lower_bound_m3",
+        "customer_delivery_delta_upper_bound_m3",
+        "baseline_maximum_normalized_deficit_lower_bound",
+        "baseline_maximum_normalized_deficit_upper_bound",
+        "candidate_maximum_normalized_deficit_lower_bound",
+        "candidate_maximum_normalized_deficit_upper_bound",
+        "steps",
+        "baseline_supporting_evidence_ids",
+        "candidate_supporting_evidence_ids"
+      ],
+      "properties": {
+        "service_request_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "service_entity_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "community_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "beneficiary_weight": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "essential_coverage_floor": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "baseline_floor_status": {
+          "$ref": "#/$defs/floor_status"
+        },
+        "candidate_floor_status": {
+          "$ref": "#/$defs/floor_status"
+        },
+        "possible_protected_floor_regression": {
+          "type": "boolean"
+        },
+        "baseline_unmet_demand_lower_bound_m3": {
+          "type": "number",
+          "minimum": 0
+        },
+        "baseline_unmet_demand_upper_bound_m3": {
+          "type": "number",
+          "minimum": 0
+        },
+        "candidate_unmet_demand_lower_bound_m3": {
+          "type": "number",
+          "minimum": 0
+        },
+        "candidate_unmet_demand_upper_bound_m3": {
+          "type": "number",
+          "minimum": 0
+        },
+        "unmet_demand_reduction_lower_bound_m3": {
+          "type": "number"
+        },
+        "unmet_demand_reduction_upper_bound_m3": {
+          "type": "number"
+        },
+        "baseline_customer_delivery_lower_bound_m3": {
+          "type": "number",
+          "minimum": 0
+        },
+        "baseline_customer_delivery_upper_bound_m3": {
+          "type": "number",
+          "minimum": 0
+        },
+        "candidate_customer_delivery_lower_bound_m3": {
+          "type": "number",
+          "minimum": 0
+        },
+        "candidate_customer_delivery_upper_bound_m3": {
+          "type": "number",
+          "minimum": 0
+        },
+        "customer_delivery_delta_lower_bound_m3": {
+          "type": "number"
+        },
+        "customer_delivery_delta_upper_bound_m3": {
+          "type": "number"
+        },
+        "baseline_maximum_normalized_deficit_lower_bound": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "baseline_maximum_normalized_deficit_upper_bound": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "candidate_maximum_normalized_deficit_lower_bound": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "candidate_maximum_normalized_deficit_upper_bound": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "steps": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/step"
+          }
+        },
+        "baseline_supporting_evidence_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "candidate_supporting_evidence_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "community": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "community_id",
+        "service_cell_count",
+        "beneficiary_weight",
+        "baseline_floor_compliance_lower_bound",
+        "baseline_floor_compliance_upper_bound",
+        "candidate_floor_compliance_lower_bound",
+        "candidate_floor_compliance_upper_bound",
+        "floor_compliance_delta_lower_bound",
+        "floor_compliance_delta_upper_bound",
+        "possible_protected_floor_regression"
+      ],
+      "properties": {
+        "community_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "service_cell_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "beneficiary_weight": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "baseline_floor_compliance_lower_bound": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "baseline_floor_compliance_upper_bound": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "candidate_floor_compliance_lower_bound": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "candidate_floor_compliance_upper_bound": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "floor_compliance_delta_lower_bound": {
+          "type": "number"
+        },
+        "floor_compliance_delta_upper_bound": {
+          "type": "number"
+        },
+        "possible_protected_floor_regression": {
+          "type": "boolean"
+        }
+      }
+    },
+    "case": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scenario_id",
+        "kind",
+        "rationale",
+        "overrides_applied",
+        "effect",
+        "possible_protected_floor_regression",
+        "baseline_total_unmet_demand_lower_bound_m3",
+        "baseline_total_unmet_demand_upper_bound_m3",
+        "candidate_total_unmet_demand_lower_bound_m3",
+        "candidate_total_unmet_demand_upper_bound_m3",
+        "unmet_demand_reduction_lower_bound_m3",
+        "unmet_demand_reduction_upper_bound_m3",
+        "baseline_customer_delivery_lower_bound_m3",
+        "baseline_customer_delivery_upper_bound_m3",
+        "candidate_customer_delivery_lower_bound_m3",
+        "candidate_customer_delivery_upper_bound_m3",
+        "customer_delivery_delta_lower_bound_m3",
+        "customer_delivery_delta_upper_bound_m3",
+        "baseline_floor_compliance_lower_bound",
+        "baseline_floor_compliance_upper_bound",
+        "candidate_floor_compliance_lower_bound",
+        "candidate_floor_compliance_upper_bound",
+        "floor_compliance_delta_lower_bound",
+        "floor_compliance_delta_upper_bound",
+        "baseline_maximum_normalized_deficit_lower_bound",
+        "baseline_maximum_normalized_deficit_upper_bound",
+        "candidate_maximum_normalized_deficit_lower_bound",
+        "candidate_maximum_normalized_deficit_upper_bound",
+        "communities",
+        "services",
+        "baseline_supporting_evidence_ids",
+        "candidate_supporting_evidence_ids"
+      ],
+      "properties": {
+        "scenario_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "$ref": "#/$defs/case_kind"
+        },
+        "rationale": {
+          "type": "string",
+          "minLength": 1
+        },
+        "overrides_applied": {
+          "type": "array",
+          "items": {
+            "$ref": "https://luminousdynamics.io/schemas/spatial-economic-water-energy-stress-sweep-v0.1.schema.json#/$defs/failure_override"
+          }
+        },
+        "effect": {
+          "$ref": "#/$defs/effect"
+        },
+        "possible_protected_floor_regression": {
+          "type": "boolean"
+        },
+        "baseline_total_unmet_demand_lower_bound_m3": {
+          "type": "number",
+          "minimum": 0
+        },
+        "baseline_total_unmet_demand_upper_bound_m3": {
+          "type": "number",
+          "minimum": 0
+        },
+        "candidate_total_unmet_demand_lower_bound_m3": {
+          "type": "number",
+          "minimum": 0
+        },
+        "candidate_total_unmet_demand_upper_bound_m3": {
+          "type": "number",
+          "minimum": 0
+        },
+        "unmet_demand_reduction_lower_bound_m3": {
+          "type": "number"
+        },
+        "unmet_demand_reduction_upper_bound_m3": {
+          "type": "number"
+        },
+        "baseline_customer_delivery_lower_bound_m3": {
+          "type": "number",
+          "minimum": 0
+        },
+        "baseline_customer_delivery_upper_bound_m3": {
+          "type": "number",
+          "minimum": 0
+        },
+        "candidate_customer_delivery_lower_bound_m3": {
+          "type": "number",
+          "minimum": 0
+        },
+        "candidate_customer_delivery_upper_bound_m3": {
+          "type": "number",
+          "minimum": 0
+        },
+        "customer_delivery_delta_lower_bound_m3": {
+          "type": "number"
+        },
+        "customer_delivery_delta_upper_bound_m3": {
+          "type": "number"
+        },
+        "baseline_floor_compliance_lower_bound": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "baseline_floor_compliance_upper_bound": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "candidate_floor_compliance_lower_bound": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "candidate_floor_compliance_upper_bound": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "floor_compliance_delta_lower_bound": {
+          "type": "number"
+        },
+        "floor_compliance_delta_upper_bound": {
+          "type": "number"
+        },
+        "baseline_maximum_normalized_deficit_lower_bound": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "baseline_maximum_normalized_deficit_upper_bound": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "candidate_maximum_normalized_deficit_lower_bound": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "candidate_maximum_normalized_deficit_upper_bound": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "communities": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/community"
+          }
+        },
+        "services": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/service"
+          }
+        },
+        "baseline_supporting_evidence_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "candidate_supporting_evidence_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    }
+  }
+}

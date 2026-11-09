@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/spatial-economic-service-equity-v0.1.schema.json",
+  "title": "Spatial-Economic Essential Service-Floor Equity Scenario",
+  "description": "A set of explicit community/service coverage floors and comparable beneficiary weights. Weights are service-cell exposures, not necessarily unique people across services.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "id",
+    "as_of",
+    "cells"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "as_of": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
+    },
+    "cells": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "service_scenario_id",
+          "community_id",
+          "beneficiary_weight",
+          "essential_coverage_floor"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "service_scenario_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "community_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "beneficiary_weight": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "essential_coverage_floor": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          }
+        }
+      }
+    }
+  }
+}

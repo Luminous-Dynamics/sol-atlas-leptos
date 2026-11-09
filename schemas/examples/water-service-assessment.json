@@ -1,0 +1,42 @@
+{
+  "schema_version": "0.1.0",
+  "scenario_id": "synthetic-north-district-water-stress",
+  "service_entity_id": "service-north",
+  "as_of": "2026-10-16T09:00:00Z",
+  "state": "degraded",
+  "step_hours": 1,
+  "demand_volume_lower_bound": 100,
+  "demand_volume_upper_bound": 100,
+  "treated_volume_lower_bound": 65,
+  "treated_volume_upper_bound": 65,
+  "customer_delivery_capacity_lower_bound": 52.8,
+  "customer_delivery_capacity_upper_bound": 55.2,
+  "coverage_lower_bound": 0.528,
+  "coverage_upper_bound": 0.552,
+  "conservative_path": {
+    "demand_volume": 100,
+    "treated_volume": 65,
+    "available_water_volume": 165,
+    "raw_distribution_withdrawal": 60,
+    "customer_delivered_volume": 52.8,
+    "ending_storage_volume": 105,
+    "spilled_volume": 0,
+    "mass_balance_residual": 0,
+    "distribution_loss_volume": 7.2
+  },
+  "optimistic_path": {
+    "demand_volume": 100,
+    "treated_volume": 65,
+    "available_water_volume": 165,
+    "raw_distribution_withdrawal": 60,
+    "customer_delivered_volume": 55.2,
+    "ending_storage_volume": 105,
+    "spilled_volume": 0,
+    "mass_balance_residual": 0,
+    "distribution_loss_volume": 4.8
+  },
+  "supporting_evidence_ids": [],
+  "rate_unit": "m3/h",
+  "volume_unit": "m3",
+  "time_unit": "h"
+}

@@ -1,0 +1,230 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/spatial-economic-water-trajectory-intervention-assessment-v0.1.schema.json",
+  "title": "Water Service Trajectory Intervention Comparison",
+  "description": "Paired bounded service counterfactual comparison; not proof of causal impact.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "comparison_id",
+    "rationale",
+    "service_entity_id",
+    "baseline_trajectory_id",
+    "candidate_trajectory_id",
+    "rate_unit",
+    "volume_unit",
+    "time_unit",
+    "paired_interval_count",
+    "baseline_unmet_demand_lower_bound",
+    "baseline_unmet_demand_upper_bound",
+    "candidate_unmet_demand_lower_bound",
+    "candidate_unmet_demand_upper_bound",
+    "unmet_demand_reduction_lower_bound",
+    "unmet_demand_reduction_upper_bound",
+    "customer_delivery_delta_lower_bound",
+    "customer_delivery_delta_upper_bound",
+    "effect",
+    "recovery_comparison",
+    "interpretation_boundary",
+    "steps",
+    "supporting_evidence_ids"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "comparison_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "rationale": {
+      "type": "string",
+      "minLength": 1
+    },
+    "service_entity_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "baseline_trajectory_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "candidate_trajectory_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "rate_unit": {
+      "const": "m3/h"
+    },
+    "volume_unit": {
+      "const": "m3"
+    },
+    "time_unit": {
+      "const": "h"
+    },
+    "paired_interval_count": {
+      "type": "integer",
+      "minimum": 2
+    },
+    "baseline_unmet_demand_lower_bound": {
+      "type": "number",
+      "minimum": 0
+    },
+    "baseline_unmet_demand_upper_bound": {
+      "type": "number",
+      "minimum": 0
+    },
+    "candidate_unmet_demand_lower_bound": {
+      "type": "number",
+      "minimum": 0
+    },
+    "candidate_unmet_demand_upper_bound": {
+      "type": "number",
+      "minimum": 0
+    },
+    "unmet_demand_reduction_lower_bound": {
+      "type": "number"
+    },
+    "unmet_demand_reduction_upper_bound": {
+      "type": "number"
+    },
+    "customer_delivery_delta_lower_bound": {
+      "type": "number"
+    },
+    "customer_delivery_delta_upper_bound": {
+      "type": "number"
+    },
+    "effect": {
+      "enum": [
+        "robust_improvement",
+        "robust_regression",
+        "no_material_change",
+        "indeterminate"
+      ]
+    },
+    "recovery_comparison": {
+      "enum": [
+        "candidate_earlier",
+        "baseline_earlier",
+        "both_same_sample",
+        "candidate_only_within_window",
+        "baseline_only_within_window",
+        "neither_within_window"
+      ]
+    },
+    "baseline_first_adequate_as_of": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
+    },
+    "candidate_first_adequate_as_of": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
+    },
+    "interpretation_boundary": {
+      "const": "modeled_counterfactual_not_causal_evidence"
+    },
+    "steps": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "$ref": "#/$defs/step"
+      }
+    },
+    "supporting_evidence_ids": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    }
+  },
+  "$defs": {
+    "state": {
+      "enum": [
+        "adequate",
+        "degraded",
+        "unavailable",
+        "indeterminate"
+      ]
+    },
+    "step": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "as_of",
+        "baseline_step_id",
+        "candidate_step_id",
+        "baseline_state",
+        "candidate_state",
+        "baseline_unmet_demand_lower_bound",
+        "baseline_unmet_demand_upper_bound",
+        "candidate_unmet_demand_lower_bound",
+        "candidate_unmet_demand_upper_bound",
+        "unmet_demand_reduction_lower_bound",
+        "unmet_demand_reduction_upper_bound",
+        "baseline_supporting_evidence_ids",
+        "candidate_supporting_evidence_ids"
+      ],
+      "properties": {
+        "as_of": {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
+        },
+        "baseline_step_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "candidate_step_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "baseline_state": {
+          "$ref": "#/$defs/state"
+        },
+        "candidate_state": {
+          "$ref": "#/$defs/state"
+        },
+        "baseline_unmet_demand_lower_bound": {
+          "type": "number",
+          "minimum": 0
+        },
+        "baseline_unmet_demand_upper_bound": {
+          "type": "number",
+          "minimum": 0
+        },
+        "candidate_unmet_demand_lower_bound": {
+          "type": "number",
+          "minimum": 0
+        },
+        "candidate_unmet_demand_upper_bound": {
+          "type": "number",
+          "minimum": 0
+        },
+        "unmet_demand_reduction_lower_bound": {
+          "type": "number"
+        },
+        "unmet_demand_reduction_upper_bound": {
+          "type": "number"
+        },
+        "baseline_supporting_evidence_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "candidate_supporting_evidence_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,89 @@
+{
+  "schema_version": "0.1.0",
+  "id": "stress:shared-trunk-n1",
+  "baseline_scenario": {
+    "schema_version": "0.1.0",
+    "id": "network:shared-trunk",
+    "as_of": "2026-10-16T10:00:00Z",
+    "service_entity_id": "service:water",
+    "topology_completeness": "complete",
+    "source_entity_ids": [
+      "source:reservoir"
+    ],
+    "required_capacity": {
+      "entity_id": "service:water",
+      "quantity": {
+        "value": 8,
+        "unit": "m3/h",
+        "uncertainty_abs": 0
+      },
+      "basis": "assumed",
+      "rationale": "Synthetic demand at the target water service.",
+      "supporting_evidence_ids": []
+    },
+    "links": [
+      {
+        "id": "supply",
+        "from_entity_id": "source:reservoir",
+        "to_entity_id": "junction",
+        "capacity": {
+          "entity_id": "supply",
+          "quantity": {
+            "value": 10,
+            "unit": "m3/h",
+            "uncertainty_abs": 0
+          },
+          "basis": "assumed",
+          "rationale": "Synthetic upstream link capacity.",
+          "supporting_evidence_ids": []
+        },
+        "availability": "active",
+        "availability_basis": "assumed",
+        "availability_rationale": "Synthetic intact baseline.",
+        "availability_supporting_evidence_ids": []
+      },
+      {
+        "id": "route-a",
+        "from_entity_id": "junction",
+        "to_entity_id": "service:water",
+        "capacity": {
+          "entity_id": "route-a",
+          "quantity": {
+            "value": 4,
+            "unit": "m3/h",
+            "uncertainty_abs": 0
+          },
+          "basis": "assumed",
+          "rationale": "Synthetic route A capacity.",
+          "supporting_evidence_ids": []
+        },
+        "availability": "active",
+        "availability_basis": "assumed",
+        "availability_rationale": "Synthetic intact baseline.",
+        "availability_supporting_evidence_ids": []
+      },
+      {
+        "id": "route-b",
+        "from_entity_id": "junction",
+        "to_entity_id": "service:water",
+        "capacity": {
+          "entity_id": "route-b",
+          "quantity": {
+            "value": 3,
+            "unit": "m3/h",
+            "uncertainty_abs": 0
+          },
+          "basis": "assumed",
+          "rationale": "Synthetic route B capacity.",
+          "supporting_evidence_ids": []
+        },
+        "availability": "active",
+        "availability_basis": "assumed",
+        "availability_rationale": "Synthetic intact baseline.",
+        "availability_supporting_evidence_ids": []
+      }
+    ]
+  },
+  "max_simultaneous_failures": 1,
+  "max_failure_cases": 10
+}

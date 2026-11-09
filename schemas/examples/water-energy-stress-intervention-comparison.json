@@ -1,0 +1,472 @@
+{
+  "schema_version": "0.1.0",
+  "id": "synthetic-storage-intervention-comparison",
+  "baseline": {
+    "schema_version": "0.1.0",
+    "id": "synthetic-storage-intervention-baseline",
+    "baseline_services": [
+      {
+        "schema_version": "0.1.0",
+        "id": "cell-a",
+        "trajectory": {
+          "schema_version": "0.1.0",
+          "id": "trajectory-cell-a",
+          "service_entity_id": "community",
+          "initial_storage": {
+            "entity_id": "tank",
+            "quantity": {
+              "value": 0,
+              "unit": "m3"
+            },
+            "basis": "assumed",
+            "rationale": "Synthetic initial inventory."
+          },
+          "storage_capacity": {
+            "entity_id": "tank",
+            "quantity": {
+              "value": 100,
+              "unit": "m3"
+            },
+            "basis": "assumed",
+            "rationale": "Synthetic tank capacity."
+          },
+          "steps": [
+            {
+              "id": "hour-09",
+              "as_of": "2026-10-16T09:00:00Z",
+              "step_hours": 1,
+              "source_flow_rate": {
+                "entity_id": "source",
+                "quantity": {
+                  "value": 100,
+                  "unit": "m3/h"
+                },
+                "basis": "assumed",
+                "rationale": "Synthetic source capacity."
+              },
+              "pump_capacity": {
+                "entity_id": "pump",
+                "quantity": {
+                  "value": 100,
+                  "unit": "m3/h"
+                },
+                "basis": "assumed",
+                "rationale": "Synthetic mechanical pump capacity."
+              },
+              "treatment_capacity": {
+                "entity_id": "treatment",
+                "quantity": {
+                  "value": 100,
+                  "unit": "m3/h"
+                },
+                "basis": "assumed",
+                "rationale": "Synthetic treatment capacity."
+              },
+              "distribution_capacity": {
+                "entity_id": "distribution",
+                "quantity": {
+                  "value": 120,
+                  "unit": "m3/h"
+                },
+                "basis": "assumed",
+                "rationale": "Synthetic distribution capacity."
+              },
+              "demand_rate": {
+                "entity_id": "community",
+                "quantity": {
+                  "value": 100,
+                  "unit": "m3/h"
+                },
+                "basis": "assumed",
+                "rationale": "Synthetic service demand."
+              },
+              "distribution_loss_fraction": {
+                "entity_id": "distribution",
+                "quantity": {
+                  "value": 0,
+                  "unit": "1"
+                },
+                "basis": "assumed",
+                "rationale": "Synthetic zero-loss scenario."
+              }
+            },
+            {
+              "id": "hour-10",
+              "as_of": "2026-10-16T10:00:00Z",
+              "step_hours": 1,
+              "source_flow_rate": {
+                "entity_id": "source",
+                "quantity": {
+                  "value": 100,
+                  "unit": "m3/h"
+                },
+                "basis": "assumed",
+                "rationale": "Synthetic source capacity."
+              },
+              "pump_capacity": {
+                "entity_id": "pump",
+                "quantity": {
+                  "value": 100,
+                  "unit": "m3/h"
+                },
+                "basis": "assumed",
+                "rationale": "Synthetic mechanical pump capacity."
+              },
+              "treatment_capacity": {
+                "entity_id": "treatment",
+                "quantity": {
+                  "value": 100,
+                  "unit": "m3/h"
+                },
+                "basis": "assumed",
+                "rationale": "Synthetic treatment capacity."
+              },
+              "distribution_capacity": {
+                "entity_id": "distribution",
+                "quantity": {
+                  "value": 120,
+                  "unit": "m3/h"
+                },
+                "basis": "assumed",
+                "rationale": "Synthetic distribution capacity."
+              },
+              "demand_rate": {
+                "entity_id": "community",
+                "quantity": {
+                  "value": 100,
+                  "unit": "m3/h"
+                },
+                "basis": "assumed",
+                "rationale": "Synthetic service demand."
+              },
+              "distribution_loss_fraction": {
+                "entity_id": "distribution",
+                "quantity": {
+                  "value": 0,
+                  "unit": "1"
+                },
+                "basis": "assumed",
+                "rationale": "Synthetic zero-loss scenario."
+              }
+            }
+          ]
+        },
+        "steps": [
+          {
+            "step_id": "hour-09",
+            "as_of": "2026-10-16T09:00:00Z",
+            "operating_regime_id": "pump-regime",
+            "power_measurement_location": "pump_terminals",
+            "available_power": {
+              "entity_id": "pump",
+              "quantity": {
+                "value": 40,
+                "unit": "kW"
+              },
+              "basis": "assumed",
+              "rationale": "Synthetic power available at pump terminals."
+            },
+            "specific_energy": {
+              "entity_id": "pump-regime",
+              "quantity": {
+                "value": 0.5,
+                "unit": "kWh/m3"
+              },
+              "basis": "assumed",
+              "rationale": "Synthetic specific-energy estimate for the declared regime."
+            }
+          },
+          {
+            "step_id": "hour-10",
+            "as_of": "2026-10-16T10:00:00Z",
+            "operating_regime_id": "pump-regime",
+            "power_measurement_location": "pump_terminals",
+            "available_power": {
+              "entity_id": "pump",
+              "quantity": {
+                "value": 40,
+                "unit": "kW"
+              },
+              "basis": "assumed",
+              "rationale": "Synthetic power available at pump terminals."
+            },
+            "specific_energy": {
+              "entity_id": "pump-regime",
+              "quantity": {
+                "value": 0.5,
+                "unit": "kWh/m3"
+              },
+              "basis": "assumed",
+              "rationale": "Synthetic specific-energy estimate for the declared regime."
+            }
+          }
+        ]
+      }
+    ],
+    "failure_scenarios": [
+      {
+        "id": "grid-outage",
+        "kind": "common_cause",
+        "rationale": "Synthetic common-cause scenario removes electrical power available at the pump terminals for both sampled intervals; this does not claim a real outage occurred.",
+        "overrides": [
+          {
+            "service_request_id": "cell-a",
+            "step_id": "hour-09",
+            "target": "pump_available_power",
+            "forced_value": 0
+          },
+          {
+            "service_request_id": "cell-a",
+            "step_id": "hour-10",
+            "target": "pump_available_power",
+            "forced_value": 0
+          }
+        ]
+      }
+    ],
+    "protected_service_floors": [
+      {
+        "service_request_id": "cell-a",
+        "community_id": "community",
+        "beneficiary_weight": 100,
+        "essential_coverage_floor": 0.8
+      }
+    ],
+    "max_failure_scenarios": 10,
+    "max_service_step_assessments": 100
+  },
+  "candidate": {
+    "schema_version": "0.1.0",
+    "id": "synthetic-storage-intervention-candidate",
+    "baseline_services": [
+      {
+        "schema_version": "0.1.0",
+        "id": "cell-a",
+        "trajectory": {
+          "schema_version": "0.1.0",
+          "id": "trajectory-cell-a",
+          "service_entity_id": "community",
+          "initial_storage": {
+            "entity_id": "tank",
+            "quantity": {
+              "value": 200,
+              "unit": "m3"
+            },
+            "basis": "assumed",
+            "rationale": "Synthetic initial inventory."
+          },
+          "storage_capacity": {
+            "entity_id": "tank",
+            "quantity": {
+              "value": 200,
+              "unit": "m3"
+            },
+            "basis": "assumed",
+            "rationale": "Synthetic tank capacity."
+          },
+          "steps": [
+            {
+              "id": "hour-09",
+              "as_of": "2026-10-16T09:00:00Z",
+              "step_hours": 1,
+              "source_flow_rate": {
+                "entity_id": "source",
+                "quantity": {
+                  "value": 100,
+                  "unit": "m3/h"
+                },
+                "basis": "assumed",
+                "rationale": "Synthetic source capacity."
+              },
+              "pump_capacity": {
+                "entity_id": "pump",
+                "quantity": {
+                  "value": 100,
+                  "unit": "m3/h"
+                },
+                "basis": "assumed",
+                "rationale": "Synthetic mechanical pump capacity."
+              },
+              "treatment_capacity": {
+                "entity_id": "treatment",
+                "quantity": {
+                  "value": 100,
+                  "unit": "m3/h"
+                },
+                "basis": "assumed",
+                "rationale": "Synthetic treatment capacity."
+              },
+              "distribution_capacity": {
+                "entity_id": "distribution",
+                "quantity": {
+                  "value": 120,
+                  "unit": "m3/h"
+                },
+                "basis": "assumed",
+                "rationale": "Synthetic distribution capacity."
+              },
+              "demand_rate": {
+                "entity_id": "community",
+                "quantity": {
+                  "value": 100,
+                  "unit": "m3/h"
+                },
+                "basis": "assumed",
+                "rationale": "Synthetic service demand."
+              },
+              "distribution_loss_fraction": {
+                "entity_id": "distribution",
+                "quantity": {
+                  "value": 0,
+                  "unit": "1"
+                },
+                "basis": "assumed",
+                "rationale": "Synthetic zero-loss scenario."
+              }
+            },
+            {
+              "id": "hour-10",
+              "as_of": "2026-10-16T10:00:00Z",
+              "step_hours": 1,
+              "source_flow_rate": {
+                "entity_id": "source",
+                "quantity": {
+                  "value": 100,
+                  "unit": "m3/h"
+                },
+                "basis": "assumed",
+                "rationale": "Synthetic source capacity."
+              },
+              "pump_capacity": {
+                "entity_id": "pump",
+                "quantity": {
+                  "value": 100,
+                  "unit": "m3/h"
+                },
+                "basis": "assumed",
+                "rationale": "Synthetic mechanical pump capacity."
+              },
+              "treatment_capacity": {
+                "entity_id": "treatment",
+                "quantity": {
+                  "value": 100,
+                  "unit": "m3/h"
+                },
+                "basis": "assumed",
+                "rationale": "Synthetic treatment capacity."
+              },
+              "distribution_capacity": {
+                "entity_id": "distribution",
+                "quantity": {
+                  "value": 120,
+                  "unit": "m3/h"
+                },
+                "basis": "assumed",
+                "rationale": "Synthetic distribution capacity."
+              },
+              "demand_rate": {
+                "entity_id": "community",
+                "quantity": {
+                  "value": 100,
+                  "unit": "m3/h"
+                },
+                "basis": "assumed",
+                "rationale": "Synthetic service demand."
+              },
+              "distribution_loss_fraction": {
+                "entity_id": "distribution",
+                "quantity": {
+                  "value": 0,
+                  "unit": "1"
+                },
+                "basis": "assumed",
+                "rationale": "Synthetic zero-loss scenario."
+              }
+            }
+          ]
+        },
+        "steps": [
+          {
+            "step_id": "hour-09",
+            "as_of": "2026-10-16T09:00:00Z",
+            "operating_regime_id": "pump-regime",
+            "power_measurement_location": "pump_terminals",
+            "available_power": {
+              "entity_id": "pump",
+              "quantity": {
+                "value": 40,
+                "unit": "kW"
+              },
+              "basis": "assumed",
+              "rationale": "Synthetic power available at pump terminals."
+            },
+            "specific_energy": {
+              "entity_id": "pump-regime",
+              "quantity": {
+                "value": 0.5,
+                "unit": "kWh/m3"
+              },
+              "basis": "assumed",
+              "rationale": "Synthetic specific-energy estimate for the declared regime."
+            }
+          },
+          {
+            "step_id": "hour-10",
+            "as_of": "2026-10-16T10:00:00Z",
+            "operating_regime_id": "pump-regime",
+            "power_measurement_location": "pump_terminals",
+            "available_power": {
+              "entity_id": "pump",
+              "quantity": {
+                "value": 40,
+                "unit": "kW"
+              },
+              "basis": "assumed",
+              "rationale": "Synthetic power available at pump terminals."
+            },
+            "specific_energy": {
+              "entity_id": "pump-regime",
+              "quantity": {
+                "value": 0.5,
+                "unit": "kWh/m3"
+              },
+              "basis": "assumed",
+              "rationale": "Synthetic specific-energy estimate for the declared regime."
+            }
+          }
+        ]
+      }
+    ],
+    "failure_scenarios": [
+      {
+        "id": "grid-outage",
+        "kind": "common_cause",
+        "rationale": "Synthetic common-cause scenario removes electrical power available at the pump terminals for both sampled intervals; this does not claim a real outage occurred.",
+        "overrides": [
+          {
+            "service_request_id": "cell-a",
+            "step_id": "hour-09",
+            "target": "pump_available_power",
+            "forced_value": 0
+          },
+          {
+            "service_request_id": "cell-a",
+            "step_id": "hour-10",
+            "target": "pump_available_power",
+            "forced_value": 0
+          }
+        ]
+      }
+    ],
+    "protected_service_floors": [
+      {
+        "service_request_id": "cell-a",
+        "community_id": "community",
+        "beneficiary_weight": 100,
+        "essential_coverage_floor": 0.8
+      }
+    ],
+    "max_failure_scenarios": 10,
+    "max_service_step_assessments": 100
+  }
+}

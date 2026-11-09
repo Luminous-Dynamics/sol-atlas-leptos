@@ -1,0 +1,124 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/spatial-economic-service-function-assessment-v0.1.schema.json",
+  "title": "Spatial-Economic Service Function Assessment Output",
+  "description": "Computed conservative functional adequacy status, capacity/demand bounds and traceability. Coverage values are dimensionless ratios; no causal or reliability claim is implied.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "scenario_id",
+    "service_entity_id",
+    "as_of",
+    "state",
+    "unit",
+    "available_capacity_value",
+    "available_capacity_lower_bound",
+    "available_capacity_upper_bound",
+    "required_capacity_value",
+    "required_capacity_lower_bound",
+    "required_capacity_upper_bound",
+    "available_capacity_basis",
+    "required_capacity_basis",
+    "available_capacity_evidence_ids",
+    "required_capacity_evidence_ids",
+    "rationale"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "scenario_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "service_entity_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "as_of": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
+    },
+    "state": {
+      "enum": [
+        "adequate",
+        "degraded",
+        "unavailable",
+        "indeterminate"
+      ]
+    },
+    "unit": {
+      "type": "string",
+      "minLength": 1
+    },
+    "available_capacity_value": {
+      "type": "number",
+      "minimum": 0
+    },
+    "available_capacity_lower_bound": {
+      "type": "number",
+      "minimum": 0
+    },
+    "available_capacity_upper_bound": {
+      "type": "number",
+      "minimum": 0
+    },
+    "required_capacity_value": {
+      "type": "number",
+      "minimum": 0
+    },
+    "required_capacity_lower_bound": {
+      "type": "number",
+      "minimum": 0
+    },
+    "required_capacity_upper_bound": {
+      "type": "number",
+      "minimum": 0
+    },
+    "coverage_ratio": {
+      "type": "number",
+      "minimum": 0
+    },
+    "coverage_lower_bound": {
+      "type": "number",
+      "minimum": 0
+    },
+    "coverage_upper_bound": {
+      "type": "number",
+      "minimum": 0
+    },
+    "available_capacity_basis": {
+      "enum": [
+        "assumed",
+        "observed"
+      ]
+    },
+    "required_capacity_basis": {
+      "enum": [
+        "assumed",
+        "observed"
+      ]
+    },
+    "available_capacity_evidence_ids": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "required_capacity_evidence_ids": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "rationale": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}

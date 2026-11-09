@@ -1,0 +1,104 @@
+{
+  "schema_version": "0.1.0",
+  "request_id": "synthetic-shared-water-pump-power",
+  "as_of": "2026-10-16T00:00:00Z",
+  "policy": "equal_coverage_progressive_fill",
+  "service_count": 2,
+  "resource_count": 2,
+  "usage_constraint_count": 4,
+  "estimated_work_units": 60,
+  "conservative_allocation_iterations": 1,
+  "optimistic_allocation_iterations": 1,
+  "total_beneficiary_weight": 100,
+  "meets_floor_weight": 60,
+  "below_floor_weight": 40,
+  "indeterminate_floor_weight": 0,
+  "floor_compliance_lower_bound": 0.6,
+  "floor_compliance_upper_bound": 0.6,
+  "services": [
+    {
+      "service_id": "service-a",
+      "service_entity_id": "service-entity-service-a",
+      "community_id": "community-a",
+      "beneficiary_weight": 60,
+      "delivery_rate_unit": "m3/h",
+      "demand_rate_lower_bound": 100,
+      "demand_rate_upper_bound": 100,
+      "conservative_allocated_delivery_rate": 40,
+      "optimistic_allocated_delivery_rate": 40,
+      "coverage_lower_bound": 0.4,
+      "coverage_upper_bound": 0.4,
+      "essential_coverage_floor": 0.3,
+      "floor_status": "meets_floor",
+      "supporting_evidence_ids": []
+    },
+    {
+      "service_id": "service-b",
+      "service_entity_id": "service-entity-service-b",
+      "community_id": "community-b",
+      "beneficiary_weight": 40,
+      "delivery_rate_unit": "m3/h",
+      "demand_rate_lower_bound": 100,
+      "demand_rate_upper_bound": 100,
+      "conservative_allocated_delivery_rate": 40,
+      "optimistic_allocated_delivery_rate": 40,
+      "coverage_lower_bound": 0.4,
+      "coverage_upper_bound": 0.4,
+      "essential_coverage_floor": 0.8,
+      "floor_status": "below_floor",
+      "supporting_evidence_ids": []
+    }
+  ],
+  "resources": [
+    {
+      "resource_id": "shared-pump-power",
+      "capacity_unit": "kW",
+      "capacity_lower_bound": 40,
+      "capacity_upper_bound": 40,
+      "conservative_allocated_capacity": 40,
+      "conservative_residual_capacity": 0,
+      "conservative_constraint_binding": true,
+      "optimistic_allocated_capacity": 40,
+      "optimistic_residual_capacity": 0,
+      "optimistic_constraint_binding": true,
+      "supporting_evidence_ids": []
+    },
+    {
+      "resource_id": "shared-water",
+      "capacity_unit": "m3/h",
+      "capacity_lower_bound": 100,
+      "capacity_upper_bound": 100,
+      "conservative_allocated_capacity": 80,
+      "conservative_residual_capacity": 20,
+      "conservative_constraint_binding": false,
+      "optimistic_allocated_capacity": 80,
+      "optimistic_residual_capacity": 20,
+      "optimistic_constraint_binding": false,
+      "supporting_evidence_ids": []
+    }
+  ],
+  "communities": [
+    {
+      "community_id": "community-a",
+      "service_count": 1,
+      "beneficiary_weight": 60,
+      "floor_compliance_lower_bound": 1,
+      "floor_compliance_upper_bound": 1,
+      "meets_floor_weight": 60,
+      "below_floor_weight": 0,
+      "indeterminate_floor_weight": 0
+    },
+    {
+      "community_id": "community-b",
+      "service_count": 1,
+      "beneficiary_weight": 40,
+      "floor_compliance_lower_bound": 0,
+      "floor_compliance_upper_bound": 0,
+      "meets_floor_weight": 0,
+      "below_floor_weight": 40,
+      "indeterminate_floor_weight": 0
+    }
+  ],
+  "supporting_evidence_ids": [],
+  "interpretation_boundary": "equal_coverage_allocation_not_physical_network_simulation"
+}

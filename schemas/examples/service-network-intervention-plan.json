@@ -1,0 +1,13 @@
+{
+  "plan": {
+    "schema_version": "0.1.0",
+    "id": "synthetic:upgrade-supply",
+    "rationale": "Synthetic what-if: increase the shared supply trunk capacity; this does not claim work was executed.",
+    "link_overrides": {
+      "supply": {
+        "capacity_value": 10,
+        "rationale": "Synthetic assumed upgrade: supply capacity increases from 5 to 10 m3/h."
+      }
+    }
+  }
+}
