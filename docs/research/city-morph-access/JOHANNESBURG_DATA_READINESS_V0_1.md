@@ -10,6 +10,7 @@ This file is a research inventory of candidate sources, not an ingested or quali
 - Johannesburg announced the ISDP/SPMS in August 2025. The announcement is not a licence grant or proof of anonymous API/download access for each layer.
 - OSM is usable under ODbL with attribution and share-alike obligations; completeness and local positional correctness must be audited.
 - No current official Johannesburg-area GTFS feed has been verified here. This is an explicit unresolved source gap, not a claim that no feed exists.
+- The Johannesburg Development Agency announced completion of the Universal Design Access Plan (UDAP) on 2026-06-09. This adds a verified public method/plan-announcement source, not a verified machine-readable facility-access dataset; audit schedules, scores, risk register and full plan appendices remain unverified.
 
 ## Johannesburg municipal spatial-data path (verified public description)
 
@@ -25,6 +26,31 @@ The City of Johannesburg Corporate Geo-Informatics page provides a more actionab
 Source: https://eservices.joburg.org.za/sites/cgismaps/Pages/default.aspx  
 Extraction guidance: https://edit.eservices.joburg.org.za/Pages/OnlineMaps.aspx
 
+## Johannesburg Universal Design Access Plan — completed 2026-06
+
+The Johannesburg Development Agency (JDA) announced on **9 June 2026** that the Universal Design Access Plan for the City's Integrated Public Transport Network had been completed and finalised. The project ran from January 2025 to June 2026. The published description says its work included research, stakeholder engagement, facility audits, customer-satisfaction surveys and capacity-building, and that it assessed Rea Vaya, Metrobus and other operators across the full passenger journey.
+
+The City/JDA's 19 August 2026 public explanation describes the plan as a roadmap covering trip planning and information, reaching a stop, boarding, travel, transfers and arrival. It identifies continuing barriers around pedestrian connections to stations, accessible passenger information, consistency across facilities, vehicle/platform interfaces, maintenance, staff training and integration between modes. The same public description says the plan would be considered through the City's Section 79 Committee and submitted to Council; the latest Council adoption status as of 9 November 2026 has not been independently verified here.
+
+**Evidence state:** the official completion announcement and public descriptions are verified public sources. The full approved plan, appendices, audit tables, risk register, facility-level scores, station/stop/vehicle identifiers, survey instruments, methods and redistribution rights have not been obtained. Do not treat the announcement or roadmap as proof that an individual station, vehicle, route or neighbourhood is accessible.
+
+### What to request before local validation
+
+1. Final UDAP and appendices, technical audit framework, accessibility risk register and intervention schedule.
+2. Facility/stop/vehicle inventory with stable IDs, operator/custodian, coordinates, audit date, source and revision.
+3. Audit observations by travel-chain element: pedestrian approach, crossings, wayfinding, digital/printed information, fare purchase, boarding/vehicle/platform interface, onboard accessibility, transfer and destination access.
+4. Survey instrument, sampling/response frame, response coverage, weighting, disaggregation, disclosure limits and rights.
+5. Action register with responsible owner, committed funding, delivery milestone, maintenance obligations and independent verification method.
+6. Council approval/adoption state, effective date and versioned implementation baseline.
+
+### How CityMorph should use the UDAP
+
+Map the UDAP's audit and intervention outputs into the existing CityMorph access owner as owner-supplied observations and barrier evidence. Do not create a second routing/access model. Use its categories to propose additional audit dimensions and known-answer fixtures, but retain Unknown for absent facility/vehicle evidence and preserve rights, dates and source revisions. Cross-check route graph and stop data separately; a completed universal-design plan is not GTFS, an operating timetable, capacity evidence or delivered trips.
+
+Sources:
+- JDA completion release (9 June 2026): https://www.jda.org.za/jda-completes-landmark-universal-design-access-plan-to-advance-inclusive-public-transport-in-johannesburg/
+- City/JDA description of remaining travel-chain barriers (19 August 2026): https://joburg.org.za/media_/Newsroom/Pages/2026-News-Articles/JDAs-plan-puts-people-at-the-heart-of-Joburgs-public-transport.aspx
+- City completion summary: https://joburg.org.za/media_/Newsroom/Pages/2026-News-Articles/JDA-completes-universal-design-plan-for-public-transport.aspx
 ## GreenBook MetroView climate-risk source
 
 GreenBook publicly describes MetroView as providing quantified spatial climate-risk information up to **ward level**, covering current and 2050 climate projections and components for hazard likelihood, exposure and vulnerability. The Johannesburg-specific link opens a JavaScript web application.
