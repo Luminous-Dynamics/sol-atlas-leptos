@@ -3,7 +3,7 @@
   "schema_version": "0.1.0",
   "register_id": "JOHANNESBURG-SOURCE-REGISTER-V0.1",
   "classification": "research_inventory_not_ingested_data",
-  "as_of": "2026-11-08",
+  "as_of": "2026-11-09",
   "claim_ceiling": "The register records discoverable candidate sources and known access/rights facts at the as-of date. It does not indicate that layers have been downloaded, licensed for redistribution or spatially validated.",
   "access_status_values": [
     "VerifiedPublic",
@@ -187,7 +187,8 @@
       "known_facts": [
         "City says external clients can access its HTML5 Online Maps Viewer through eServices; no eServices client registration is required.",
         "City guidance says some layers can be extracted as shapefile, KML or DXF; extraction is layer-dependent.",
-        "City page directs users to the relevant data custodians because CGIS does not own all layers shown in map viewers."
+        "City page directs users to the relevant data custodians because CGIS does not own all layers shown in map viewers.",
+        "The Online Maps help page states that its help manual was last updated on 2026-06-30."
       ],
       "unknowns": [
         "Per-layer extraction availability, licence, scale restrictions and usage limitations",
@@ -198,7 +199,8 @@
         "Inventory candidate layer IDs and exact publisher/custodian before extraction",
         "Capture per-layer metadata and rights notice; do not infer reuse rights from anonymous viewer access",
         "Prefer custodian-issued source data and documented permissions over scraping map tiles",
-        "Retain extract timestamp, layer revision, CRS, digest and any transformations"
+        "Retain extract timestamp, layer revision, CRS, digest and any transformations",
+        "Inspect the 2026-06-30 help-manual version and record the exact layer IDs, download format, scale limits and per-layer custodian before creating any extract."
       ],
       "evidence_urls": [
         "https://eservices.joburg.org.za/sites/cgismaps/Pages/default.aspx",
@@ -731,6 +733,48 @@
       ],
       "evidence_urls": [
         "https://mbus.joburg.org.za/about_strat_reports.aspx"
+      ]
+    },
+    {
+      "source_id": "JDA-JOHANNESBURG-UDAP-2026",
+      "name": "Johannesburg Universal Design Access Plan — official completion announcement and implementation roadmap (2026)",
+      "publisher": "Johannesburg Development Agency on behalf of the City of Johannesburg Transport Department",
+      "url": "https://www.jda.org.za/jda-completes-landmark-universal-design-access-plan-to-advance-inclusive-public-transport-in-johannesburg/",
+      "source_type": "municipal_universal_access_plan_completion_announcement",
+      "publication_date": "2026-06-09",
+      "project_period_start": "2025-01",
+      "project_period_end": "2026-06",
+      "access_status": "VerifiedPublic",
+      "rights_status": "Unknown",
+      "known_facts": [
+        "JDA announced on 2026-06-09 that it had completed and finalised the Universal Design Access Plan for the City's Integrated Public Transport Network.",
+        "The plan was developed on behalf of the City Transport Department over a project period from January 2025 to June 2026.",
+        "The official announcement says the work included research, stakeholder engagement, facility audits, customer-satisfaction surveys and capacity-building programmes.",
+        "The plan's stated coverage includes Rea Vaya BRT, Metrobus and other transport operators.",
+        "The announced assessment follows the passenger travel chain: trip planning and information, reaching a station or stop, boarding, travelling, transfers and reaching the destination.",
+        "The announced intervention areas include infrastructure, operations, passenger information, customer care, fare systems, vehicles and communications.",
+        "The City report dated 2026-08-19 says the completed plan was to be considered by the Section 79 Committee before submission to Council; the latest Council adoption status has not been verified in this inventory."
+      ],
+      "unknowns": [
+        "The full approved UDAP document, appendices, audit schedules, facility-level findings and risk register have not been located as downloadable public files.",
+        "The underlying station/stop/vehicle accessibility audit records, sampling protocols, survey instruments, score definitions and data dictionary are not available in the reviewed public announcement.",
+        "Per-facility and per-operator geographic identifiers, audit dates, route/service revisions, severity scales and implementation status are not verified.",
+        "Council consideration/adoption status as of 2026-11-09, implementation ownership, funded work packages and monitoring indicators remain unverified.",
+        "Reuse and redistribution rights for the plan, survey results, facility audits and any supporting GIS layers are not stated in the reviewed announcement."
+      ],
+      "required_checks": [
+        "Request the final UDAP and all technical appendices, including its accessibility risk register, travel-chain audit method, findings and recommended intervention register.",
+        "Request the facility/stop/vehicle inventory with stable identifiers, coordinates, audit dates, operator/owner, audit instrument revision, observed barrier states and uncertainty.",
+        "Request the customer-satisfaction survey instrument, sample design, response coverage, weighting, disaggregation, privacy controls and aggregated results.",
+        "Verify Council consideration/adoption status and map every recommendation to its responsible owner, budget, implementation milestone and verification evidence.",
+        "Confirm rights, permitted reuse, confidentiality constraints, date validity and whether underlying records may be supplied in machine-readable form.",
+        "Do not turn a plan recommendation or city-wide summary into a pass/fail fact about a particular station, route, vehicle, person or neighbourhood."
+      ],
+      "evidence_urls": [
+        "https://www.jda.org.za/jda-completes-landmark-universal-design-access-plan-to-advance-inclusive-public-transport-in-johannesburg/",
+        "https://joburg.org.za/media_/Newsroom/Pages/2026-News-Articles/JDAs-plan-puts-people-at-the-heart-of-Joburgs-public-transport.aspx",
+        "https://joburg.org.za/media_/Newsroom/Pages/2026-News-Articles/JDA-completes-universal-design-plan-for-public-transport.aspx",
+        "https://joburg.org.za/media_/Newsroom/Pages/2025-News-Articles/JDA-launches-Universal-Design-Access-Plan-to-improve-public-transport-accessibility-in-Johannesburg.aspx"
       ]
     }
   ],
