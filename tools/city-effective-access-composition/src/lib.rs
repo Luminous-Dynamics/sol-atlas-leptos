@@ -4,12 +4,140 @@
 //! authorize work, or infer individual service receipt. It composes independently
 //! evaluated owner reports under one explicit beneficiary and temporal scope.
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeSet, HashSet};
 
 use serde_json::{Value, json};
 
 pub const CORPUS_ID: &str = "CITY-EFFECTIVE-ACCESS-COMPOSITION-CORPUS-V0.1";
 pub const CLAIM_CEILING: &str = "synthetic_effective_access_and_delivery_composition_only";
+
+fn skip_json_whitespace(bytes: &[u8], cursor: &mut usize) {
+    while bytes
+        .get(*cursor)
+        .is_some_and(|byte| matches!(*byte, 32 | 10 | 13 | 9))
+    {
+        *cursor += 1;
+    }
+}
+
+fn scan_json_string_token<'a>(bytes: &'a [u8], cursor: &mut usize) -> Result<&'a str, String> {
+    let start = *cursor;
+    if bytes.get(*cursor).copied() != Some(34) {
+        return Err("JSON_STRING_EXPECTED".to_owned());
+    }
+    *cursor += 1;
+    while let Some(byte) = bytes.get(*cursor).copied() {
+        match byte {
+            34 => {
+                *cursor += 1;
+                return std::str::from_utf8(&bytes[start..*cursor])
+                    .map_err(|_| "JSON_NOT_UTF8".to_owned());
+            }
+            92 => {
+                *cursor += 1;
+                if *cursor >= bytes.len() {
+                    return Err("JSON_STRING_ESCAPE_TRUNCATED".to_owned());
+                }
+                *cursor += 1;
+            }
+            _ => *cursor += 1,
+        }
+    }
+    Err("JSON_STRING_UNTERMINATED".to_owned())
+}
+
+/// Scan original bytes before serde_json creates maps; compare decoded key spellings.
+fn scan_json_value(bytes: &[u8], cursor: &mut usize) -> Result<(), String> {
+    skip_json_whitespace(bytes, cursor);
+    match bytes.get(*cursor).copied() {
+        Some(123) => {
+            *cursor += 1;
+            skip_json_whitespace(bytes, cursor);
+            if bytes.get(*cursor).copied() == Some(125) {
+                *cursor += 1;
+                return Ok(());
+            }
+            let mut keys = HashSet::new();
+            loop {
+                skip_json_whitespace(bytes, cursor);
+                let token = scan_json_string_token(bytes, cursor)?;
+                let key: String = serde_json::from_str(token)
+                    .map_err(|_| "JSON_OBJECT_KEY_INVALID".to_owned())?;
+                if !keys.insert(key.clone()) {
+                    return Err(format!("JSON_DUPLICATE_MEMBER_KEY:{key}"));
+                }
+                skip_json_whitespace(bytes, cursor);
+                if bytes.get(*cursor).copied() != Some(58) {
+                    return Err("JSON_OBJECT_COLON_EXPECTED".to_owned());
+                }
+                *cursor += 1;
+                scan_json_value(bytes, cursor)?;
+                skip_json_whitespace(bytes, cursor);
+                match bytes.get(*cursor).copied() {
+                    Some(44) => *cursor += 1,
+                    Some(125) => {
+                        *cursor += 1;
+                        return Ok(());
+                    }
+                    _ => return Err("JSON_OBJECT_SEPARATOR_EXPECTED".to_owned()),
+                }
+            }
+        }
+        Some(91) => {
+            *cursor += 1;
+            skip_json_whitespace(bytes, cursor);
+            if bytes.get(*cursor).copied() == Some(93) {
+                *cursor += 1;
+                return Ok(());
+            }
+            loop {
+                scan_json_value(bytes, cursor)?;
+                skip_json_whitespace(bytes, cursor);
+                match bytes.get(*cursor).copied() {
+                    Some(44) => *cursor += 1,
+                    Some(93) => {
+                        *cursor += 1;
+                        return Ok(());
+                    }
+                    _ => return Err("JSON_ARRAY_SEPARATOR_EXPECTED".to_owned()),
+                }
+            }
+        }
+        Some(34) => {
+            let token = scan_json_string_token(bytes, cursor)?;
+            serde_json::from_str::<String>(token)
+                .map(|_| ())
+                .map_err(|_| "JSON_STRING_INVALID".to_owned())
+        }
+        Some(_) => {
+            let start = *cursor;
+            while bytes
+                .get(*cursor)
+                .is_some_and(|byte| !matches!(*byte, 32 | 10 | 13 | 9 | 44 | 93 | 125))
+            {
+                *cursor += 1;
+            }
+            if *cursor == start {
+                Err("JSON_VALUE_EXPECTED".to_owned())
+            } else {
+                Ok(())
+            }
+        }
+        None => Err("JSON_VALUE_EXPECTED".to_owned()),
+    }
+}
+
+/// Reject duplicate decoded keys, malformed UTF-8, invalid JSON and trailing bytes.
+pub fn parse_unique_json_bytes(bytes: &[u8]) -> Result<Value, String> {
+    let input = std::str::from_utf8(bytes).map_err(|_| "JSON_NOT_UTF8".to_owned())?;
+    let mut cursor = 0;
+    scan_json_value(bytes, &mut cursor)?;
+    skip_json_whitespace(bytes, &mut cursor);
+    if cursor != bytes.len() {
+        return Err("JSON_TRAILING_CONTENT".to_owned());
+    }
+    serde_json::from_str(input).map_err(|error| format!("JSON_PARSE_FAILED:{error}"))
+}
 
 fn text<'a>(value: &'a Value, key: &str) -> &'a str {
     value.get(key).and_then(Value::as_str).unwrap_or("")
@@ -449,14 +577,38 @@ fn check_keys(value: &Value, allowed: &[&str], path: &str, errors: &mut Vec<Stri
     }
 }
 
+fn require_keys(value: &Value, required: &[&str], path: &str, errors: &mut Vec<String>) {
+    for key in required {
+        if value.get(*key).is_none() {
+            errors.push(format!("{path}:REQUIRED_FIELD_MISSING:{key}"));
+        }
+    }
+}
+
 pub fn validate_corpus(corpus: &Value) -> Vec<String> {
+    const ROOT: &[&str] = &[
+        "schema_id", "schema_version", "corpus_id", "classification", "policy_note",
+        "claim_ceiling", "cases",
+    ];
+    const CASE: &[&str] = &["case_id", "input", "expected"];
+    const INPUT: &[&str] = &[
+        "scope", "restoration", "access", "in_use", "beneficiary_delivery", "experience",
+    ];
+    const SCOPE: &[&str] = &[
+        "service_id", "service_revision", "subject_id", "subject_digest", "functional_unit",
+        "group_id", "population_frame_id", "population", "scenario_id", "common_scope_digest",
+        "operating_window_id", "demand", "observation_window", "service_floor",
+    ];
+    const SOURCE: &[&str] = &[
+        "owner", "contract_id", "contract_revision", "receipt_id", "source_commit",
+        "source_case_id", "content_sha256", "service_id", "service_revision", "subject_id",
+        "subject_digest", "functional_unit", "group_id", "population_frame_id", "scenario_id",
+        "common_scope_digest", "operating_window_id", "observation_window_id", "start_tick",
+        "end_tick", "tick_unit", "evidence_state", "rights_state", "issuer_state",
+    ];
     let mut errors = Vec::new();
-    check_keys(
-        corpus,
-        &["schema_id", "schema_version", "corpus_id", "classification", "policy_note", "claim_ceiling", "cases"],
-        "corpus",
-        &mut errors,
-    );
+    check_keys(corpus, ROOT, "corpus", &mut errors);
+    require_keys(corpus, ROOT, "corpus", &mut errors);
     if text(corpus, "schema_id")
         != "org.luminousdynamics.city-effective-access-composition.synthetic-corpus"
         || text(corpus, "schema_version") != "0.1.0"
@@ -476,19 +628,171 @@ pub fn validate_corpus(corpus: &Value) -> Vec<String> {
     }
     let mut ids = BTreeSet::new();
     for (index, case) in cases.iter().enumerate() {
-        check_keys(case, &["case_id", "input", "expected"], &format!("cases[{index}]"), &mut errors);
+        let case_path = format!("cases[{index}]");
+        check_keys(case, CASE, &case_path, &mut errors);
+        require_keys(case, CASE, &case_path, &mut errors);
         let id = text(case, "case_id");
         if id.is_empty() || !ids.insert(id.to_owned()) {
-            errors.push(format!("cases[{index}]:EMPTY_OR_DUPLICATE_CASE_ID"));
+            errors.push(format!("{case_path}:EMPTY_OR_DUPLICATE_CASE_ID"));
         }
+        let input = object(case, "input");
+        check_keys(input, INPUT, &format!("{case_path}.input"), &mut errors);
+        require_keys(input, &["scope", "restoration", "access", "in_use"], &format!("{case_path}.input"), &mut errors);
+
+        let scope = object(input, "scope");
+        check_keys(scope, SCOPE, &format!("{case_path}.input.scope"), &mut errors);
+        require_keys(scope, SCOPE, &format!("{case_path}.input.scope"), &mut errors);
+        check_keys(object(scope, "demand"), &["value", "unit"], &format!("{case_path}.scope.demand"), &mut errors);
+        require_keys(object(scope, "demand"), &["value", "unit"], &format!("{case_path}.scope.demand"), &mut errors);
         check_keys(
-            object(case, "input"),
-            &["scope", "restoration", "access", "in_use", "beneficiary_delivery", "experience"],
-            &format!("cases[{index}].input"),
+            object(scope, "observation_window"),
+            &["window_id", "start_tick", "end_tick", "tick_unit"],
+            &format!("{case_path}.scope.observation_window"),
             &mut errors,
         );
+        require_keys(
+            object(scope, "observation_window"),
+            &["window_id", "start_tick", "end_tick", "tick_unit"],
+            &format!("{case_path}.scope.observation_window"),
+            &mut errors,
+        );
+        check_keys(
+            object(scope, "service_floor"),
+            &["metric_id", "unit", "direction", "threshold"],
+            &format!("{case_path}.scope.service_floor"),
+            &mut errors,
+        );
+        require_keys(
+            object(scope, "service_floor"),
+            &["metric_id", "unit", "direction", "threshold"],
+            &format!("{case_path}.scope.service_floor"),
+            &mut errors,
+        );
+
+        let restoration = object(input, "restoration");
+        check_keys(
+            restoration,
+            &["service_id", "service_revision", "bridge_disposition", "qualified", "stable_adequacy", "source_ref"],
+            &format!("{case_path}.restoration"),
+            &mut errors,
+        );
+        require_keys(
+            restoration,
+            &["service_id", "service_revision", "bridge_disposition", "qualified", "stable_adequacy", "source_ref"],
+            &format!("{case_path}.restoration"),
+            &mut errors,
+        );
+        check_keys(
+            object(restoration, "stable_adequacy"),
+            &["qualified", "minimum_ticks", "observed_ticks", "start_tick", "confirmed_tick"],
+            &format!("{case_path}.restoration.stable_adequacy"),
+            &mut errors,
+        );
+        require_keys(
+            object(restoration, "stable_adequacy"),
+            &["qualified", "minimum_ticks", "observed_ticks"],
+            &format!("{case_path}.restoration.stable_adequacy"),
+            &mut errors,
+        );
+        check_keys(object(restoration, "source_ref"), SOURCE, &format!("{case_path}.restoration.source_ref"), &mut errors);
+        require_keys(object(restoration, "source_ref"), SOURCE, &format!("{case_path}.restoration.source_ref"), &mut errors);
+
+        let access = object(input, "access");
+        check_keys(
+            access,
+            &["source_ref", "group", "opportunity", "owner_reason_codes"],
+            &format!("{case_path}.access"),
+            &mut errors,
+        );
+        require_keys(access, &["source_ref", "group", "opportunity"], &format!("{case_path}.access"), &mut errors);
+        check_keys(
+            object(access, "group"),
+            &["group_id", "population_frame_id", "population", "demand", "demand_unit"],
+            &format!("{case_path}.access.group"),
+            &mut errors,
+        );
+        require_keys(
+            object(access, "group"),
+            &["group_id", "population_frame_id", "population", "demand", "demand_unit"],
+            &format!("{case_path}.access.group"),
+            &mut errors,
+        );
+        check_keys(
+            object(access, "opportunity"),
+            &["service_id", "status", "reachable_capacity_potential", "capacity_unit", "operating_window_id"],
+            &format!("{case_path}.access.opportunity"),
+            &mut errors,
+        );
+        require_keys(
+            object(access, "opportunity"),
+            &["service_id", "status", "reachable_capacity_potential", "capacity_unit", "operating_window_id"],
+            &format!("{case_path}.access.opportunity"),
+            &mut errors,
+        );
+        check_keys(object(access, "source_ref"), SOURCE, &format!("{case_path}.access.source_ref"), &mut errors);
+        require_keys(object(access, "source_ref"), SOURCE, &format!("{case_path}.access.source_ref"), &mut errors);
+
+        let in_use = object(input, "in_use");
+        check_keys(
+            in_use,
+            &["source_ref", "service_id", "evaluation_state", "observation_window_id", "metric"],
+            &format!("{case_path}.in_use"),
+            &mut errors,
+        );
+        require_keys(
+            in_use,
+            &["source_ref", "service_id", "evaluation_state", "observation_window_id", "metric"],
+            &format!("{case_path}.in_use"),
+            &mut errors,
+        );
+        check_keys(
+            object(in_use, "metric"),
+            &["metric_id", "evidence_class", "observation_state", "threshold_state", "observed_value", "unit", "direction", "threshold"],
+            &format!("{case_path}.in_use.metric"),
+            &mut errors,
+        );
+        require_keys(
+            object(in_use, "metric"),
+            &["metric_id", "evidence_class", "observation_state", "threshold_state", "unit", "direction", "threshold"],
+            &format!("{case_path}.in_use.metric"),
+            &mut errors,
+        );
+        check_keys(object(in_use, "source_ref"), SOURCE, &format!("{case_path}.in_use.source_ref"), &mut errors);
+        require_keys(object(in_use, "source_ref"), SOURCE, &format!("{case_path}.in_use.source_ref"), &mut errors);
+
+        if !object(input, "beneficiary_delivery").is_null() {
+            let delivery = object(input, "beneficiary_delivery");
+            check_keys(
+                delivery,
+                &["service_id", "group_id", "population_frame_id", "demand", "demand_unit", "delivered", "delivered_unit", "aggregate_demand", "aggregate_delivered", "window_id", "evidence_state", "source_ref"],
+                &format!("{case_path}.beneficiary_delivery"),
+                &mut errors,
+            );
+            require_keys(
+                delivery,
+                &["service_id", "group_id", "population_frame_id", "demand", "demand_unit", "delivered", "delivered_unit", "window_id", "evidence_state", "source_ref"],
+                &format!("{case_path}.beneficiary_delivery"),
+                &mut errors,
+            );
+            check_keys(object(delivery, "source_ref"), SOURCE, &format!("{case_path}.beneficiary_delivery.source_ref"), &mut errors);
+            require_keys(object(delivery, "source_ref"), SOURCE, &format!("{case_path}.beneficiary_delivery.source_ref"), &mut errors);
+        }
+        if !object(input, "experience").is_null() {
+            check_keys(
+                object(input, "experience"),
+                &["requested", "consent_state", "purpose_state", "disclosure_state"],
+                &format!("{case_path}.experience"),
+                &mut errors,
+            );
+            require_keys(
+                object(input, "experience"),
+                &["requested", "consent_state", "purpose_state", "disclosure_state"],
+                &format!("{case_path}.experience"),
+                &mut errors,
+            );
+        }
         if !case.get("expected").is_some_and(Value::is_object) {
-            errors.push(format!("cases[{index}]:EXPECTED_OBJECT_MISSING"));
+            errors.push(format!("{case_path}:EXPECTED_OBJECT_MISSING"));
         }
     }
     errors.sort();
@@ -550,6 +854,24 @@ mod tests {
         let result = evaluate_case(&case);
         assert_eq!(result["experience_disclosure_state"], "Restricted");
         assert_eq!(result["composition_disposition"], "RestoredAndPotentiallyAccessibleOnly");
+    }
+
+    #[test]
+    fn duplicate_decoded_json_keys_are_rejected_before_map_creation() {
+        assert!(parse_unique_json_bytes(br#"{"claim":1,"claim":2}"#).is_err());
+        assert!(parse_unique_json_bytes(br#"{"claim":1,"\\u0063laim":2}"#).is_err());
+        assert!(parse_unique_json_bytes(br#"{"ok":true} trailing"#).is_err());
+    }
+
+    #[test]
+    fn unknown_nested_fields_fail_closed() {
+        let mut corpus = corpus();
+        corpus["cases"][0]["input"]["scope"]["future_field"] = json!(true);
+        assert!(!validate_corpus(&corpus).is_empty());
+
+        let mut corpus = corpus();
+        corpus["cases"][0]["input"]["access"]["opportunity"]["silent_fallback"] = json!(true);
+        assert!(!validate_corpus(&corpus).is_empty());
     }
 
     #[test]
