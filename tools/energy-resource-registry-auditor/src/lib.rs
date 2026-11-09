@@ -1224,23 +1224,25 @@ mod tests {
         let entries = value["entries"].as_array().expect("entries array");
         let field = entries
             .iter()
-            .find(|entry| {
-                entry["source_id"] == "antalya-full-scale-pat-operational-study-2018"
-            })
+            .find(|entry| entry["source_id"] == "antalya-full-scale-pat-operational-study-2018")
             .expect("Antalya full-scale PAT field record");
 
         assert_eq!(field["evidence_basis"], "published_field_observation");
         assert_eq!(field["availability_state"], "context_only");
-        assert!(field["claim_ceiling"]
-            .as_str()
-            .is_some_and(|claim| claim.contains("not South African validation")));
-        assert!(field["limitations"]
-            .as_array()
-            .expect("limitations")
-            .iter()
-            .any(|limitation| limitation
+        assert!(
+            field["claim_ceiling"]
                 .as_str()
-                .is_some_and(|text| text.contains("0.7–8.4 kWh"))));
+                .is_some_and(|claim| claim.contains("not South African validation"))
+        );
+        assert!(
+            field["limitations"]
+                .as_array()
+                .expect("limitations")
+                .iter()
+                .any(|limitation| limitation
+                    .as_str()
+                    .is_some_and(|text| text.contains("0.7–8.4 kWh")))
+        );
     }
 
     #[test]
@@ -1259,8 +1261,8 @@ mod tests {
             assert_ne!(entry["evidence_basis"], "published_field_observation");
             assert_ne!(entry["evidence_basis"], "literature_review");
         }
-        let receipt = audit_bytes(SCHEMA_BYTES, REGISTRY_BYTES)
-            .expect("updated source register conforms");
+        let receipt =
+            audit_bytes(SCHEMA_BYTES, REGISTRY_BYTES).expect("updated source register conforms");
         assert_eq!(receipt.disposition, "accepted");
         assert_eq!(receipt.entry_count, 26);
     }
@@ -1276,9 +1278,11 @@ mod tests {
             .expect("Parra PAT/PRV experimental record");
         assert_eq!(entry["evidence_basis"], "laboratory_measurement");
         assert_eq!(entry["availability_state"], "context_only");
-        assert!(entry["claim_ceiling"]
-            .as_str()
-            .is_some_and(|claim| claim.contains("not a South African field installation")));
+        assert!(
+            entry["claim_ceiling"]
+                .as_str()
+                .is_some_and(|claim| claim.contains("not a South African field installation"))
+        );
         let receipt = audit_bytes(SCHEMA_BYTES, REGISTRY_BYTES)
             .expect("updated 26-entry source register conforms");
         assert_eq!(receipt.entry_count, 26);
