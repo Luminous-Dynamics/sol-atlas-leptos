@@ -804,6 +804,188 @@
       "references": [
         "https://researchspace.csir.co.za/bitstream/handle/10204/12279/Steyn_2021.pdf"
       ]
+    },
+    {
+      "name": "South African low-enthalpy geothermal prospectivity study",
+      "artifact": "South Africa's geothermal energy hotspots inferred from subsurface temperature and geology",
+      "pinned_release": "South African Journal of Science 113(11/12), 2017; DOI 10.17159/sajs.2017/20170092",
+      "companion_engine": null,
+      "release_date": "2017-11-29",
+      "role": [
+        "South African geothermal geology and low-enthalpy prospectivity context",
+        "Geothermal exploration evidence gap baseline"
+      ],
+      "important_limits": [
+        "The study combines available subsurface temperature and heat-flow measurements with solute geothermometry and geology; it is not a proven power reservoir.",
+        "The paper explicitly calls for new temperature measurements and structural, hydrogeological and economic investigations.",
+        "Low-enthalpy direct heat is not the same use case as high-temperature electricity generation."
+      ],
+      "pin_policy": "Pin article and underlying observation references, well depths, temperature measurements, geochemistry, date and uncertainty. Preserve regional prospectivity as an exploration lead, not proven reserve.",
+      "references": [
+        "https://doi.org/10.17159/sajs.2017/20170092"
+      ]
+    },
+    {
+      "name": "South African marine renewable resource and spatial-planning context",
+      "artifact": "Marine Spatial Planning National Data: Uses and Interests — Marine Renewable Energy",
+      "pinned_release": "DFFE marine spatial planning report, section 3.7.4; published circa 2021",
+      "companion_engine": null,
+      "release_date": "2021",
+      "role": [
+        "South African wave/current/offshore wind/OTEC resource context",
+        "Tidal-range suitability negative control",
+        "Marine spatial planning and consent context"
+      ],
+      "important_limits": [
+        "The report cites theoretical coastal wave power locally up to 100 kW/m; this is not device-captured energy or P90 yield.",
+        "It states that South African tidal ranges are too small for appreciable tidal-range power; this is distinct from Agulhas Current extraction and wave energy.",
+        "It says early assessment had not identified project-ready sites and flags local industry, cost and regulatory uncertainty."
+      ],
+      "pin_policy": "Pin report version, spatial layers and underlying measurement/hindcast sources; do not treat national-scale resource statements as a project site or environmental permit.",
+      "references": [
+        "https://www.dffe.gov.za/sites/default/files/reports/research/oceans/marinespatialplanning_nationaldata.pdf"
+      ]
+    },
+    {
+      "name": "Fervo Cape Station GeoBlock 1 commercial EGS operation",
+      "artifact": "Fervo Energy Q3 2026 results and Cape Station GeoBlock 1 commercial-operation milestone",
+      "pinned_release": "Company Q3 2026 release published 2026-11-09; GeoBlock 1 COD 2026-09-30",
+      "companion_engine": null,
+      "release_date": "2026-11-09",
+      "role": [
+        "Current commercial EGS deployment comparator",
+        "33 MW net GeoBlock commercial operation and PPA delivery reference"
+      ],
+      "important_limits": [
+        "The 33 MW net output and status are company-reported; public release does not include raw third-party-audited interval meter data.",
+        "A 396 MW future Google offtake and optional expansion are future delivery commitments, not currently operating capacity.",
+        "Utah geothermal, permitting, drilling supply chain, financing and PPA context do not transfer to South Africa."
+      ],
+      "pin_policy": "Pin company release and date. Independently obtain net meter series, availability, parasitic loads, wellfield decline, drilling and surface plant costs before treating results as verified operating performance.",
+      "references": [
+        "https://fervoenergy.gcs-web.com/news-releases/news-release-details/fervo-energy-reports-third-quarter-2026-results",
+        "https://fervoenergy.gcs-web.com/news-releases/news-release-details/fervo-energy-declares-commercial-operation-cape-station-ahead"
+      ]
+    },
+    {
+      "name": "Geothermal global experience-rate dataset and cost-learning analysis",
+      "artifact": "Experience rates of current and future geothermal power technologies",
+      "pinned_release": "iScience, published 2026-08-21; DOI 10.1016/j.isci.2026.117113",
+      "companion_engine": null,
+      "release_date": "2026-08-21",
+      "role": [
+        "Geothermal historical cost-learning comparator",
+        "Hydrothermal vs EGS/closed-loop evidence boundary"
+      ],
+      "important_limits": [
+        "Global hydrothermal experience rate of approximately -20% is a historical study result, not a forecast for every geothermal project.",
+        "Country experience rates vary substantially; global averages can hide local learning and institutional differences.",
+        "EGS and closed-loop technologies have much shorter commercial histories and weaker cost-learning evidence."
+      ],
+      "pin_policy": "Pin source dataset and cost-normalization methods; retain country and technology classes separately. Treat EGS/closed-loop cost trajectories as uncertain, not a direct continuation of hydrothermal history.",
+      "references": [
+        "https://doi.org/10.1016/j.isci.2026.117113"
+      ]
+    },
+    {
+      "name": "Perovskite-silicon tandem manufacturing and stability research",
+      "artifact": "Scalable ambient fabrication of single-junction and perovskite–silicon tandem solar cells",
+      "pinned_release": "Nature Sustainability, published 2026-08-13",
+      "companion_engine": null,
+      "release_date": "2026-08-13",
+      "role": [
+        "Advanced PV laboratory efficiency comparator",
+        "Ambient blade-coated process and early module-scale stability reference"
+      ],
+      "important_limits": [
+        "The paper reports a 33.0% certified tandem cell, 26.5% certified single-junction cell and 23.2% module; these are different device boundaries.",
+        "The 1,200-hour light-soaking retention is a laboratory condition, not a 25-year field warranty.",
+        "Factory yield, module area, throughput, capex, bankability, outdoor degradation and end-of-life lead management remain unresolved."
+      ],
+      "pin_policy": "Pin article and supplementary data. Compare cell and module separately; require independent IEC/ISOS testing, scale yield, field degradation, encapsulation, lead containment and recycling before commercial product claims.",
+      "references": [
+        "https://www.nature.com/articles/s41893-026-01916-6"
+      ]
+    },
+    {
+      "name": "Low-head hydropower full-scale validation gap review",
+      "artifact": "Full-scale validation gaps and opportunities for low-head hydropower: a review and perspective",
+      "pinned_release": "Sustainable Energy Technologies and Assessments 93, article 105218; September 2026",
+      "companion_engine": null,
+      "release_date": "2026-09",
+      "role": [
+        "Low-head hydro technology validation and test-rig capability comparison",
+        "Retired/underused hydraulic infrastructure as potential full-scale test bed"
+      ],
+      "important_limits": [
+        "U.S. test-facility flow capability figures are a U.S. case study, not South African test-facility capability.",
+        "The article is a review/perspective, not a turbine test result or a site-specific resource study.",
+        "Fish passage, sediment continuity and water quality require independent field evidence."
+      ],
+      "pin_policy": "Pin article, reviewed facility capability data and turbine classes. Perform a separate South African test-site access, head/flow, safety and environmental capability audit.",
+      "references": [
+        "https://doi.org/10.1016/j.seta.2026.105218"
+      ]
+    },
+    {
+      "name": "Shallow-water hydrokinetic design and validation review",
+      "artifact": "Shallow-Water Hydrokinetic Turbines: A Critical Systematic Review of Design Parameters, Performance Validation, and Deployment Challenges",
+      "pinned_release": "Journal of Sustainable Development of Energy, Water and Environment Systems 14(3), 2026; DOI 10.13044/j.sdewes.d14.0715",
+      "companion_engine": null,
+      "release_date": "2026-09-14",
+      "role": [
+        "Hydrokinetic cross-flow and floating-water-wheel performance comparator",
+        "Laboratory-to-field scale-effect and uncertainty benchmark"
+      ],
+      "important_limits": [
+        "The reported 15–45% laboratory-to-field degradation applies to reviewed shallow-water hydrokinetic devices, not automatically to pressurized conduit PATs.",
+        "Cross-flow turbine power coefficients depend on blockage, depth and free-surface assumptions.",
+        "The review characterizes shallow-water hydrokinetics as niche in its reviewed market context, not a low-cost general substitute for solar."
+      ],
+      "pin_policy": "Pin review and included device evidence. Keep power coefficient, head-based turbine efficiency and net electrical efficiency distinct; test field/scale derating for the exact product family.",
+      "references": [
+        "https://doi.org/10.13044/j.sdewes.d14.0715"
+      ]
+    },
+    {
+      "name": "Compressed-air energy storage and thermal integration review",
+      "artifact": "Technologies and prospects for compressed air energy storage",
+      "pinned_release": "Nature Reviews Clean Technology 2, published 2026-02-25",
+      "companion_engine": null,
+      "release_date": "2026-02-25",
+      "role": [
+        "Long-duration mechanical storage comparator",
+        "Adiabatic CAES / thermal-storage integration and part-load performance"
+      ],
+      "important_limits": [
+        "The 50–70% round-trip efficiency range is a broad review value dependent on system configuration, not a guarantee for a new project.",
+        "Geological reservoir, sealing, fatigue, thermal retention and compressor/expander part-load maps are site- and design-specific.",
+        "Do not compare storage-level USD/kWh with generator LCOE without duration, power, round-trip losses and delivered-service boundary."
+      ],
+      "pin_policy": "Pin review and demonstration dataset; model compression, thermal storage, expansion, parasitics, pressure, cycling and seasonal standby on matched duty with other storage technologies.",
+      "references": [
+        "https://www.nature.com/articles/s44359-026-00150-9"
+      ]
+    },
+    {
+      "name": "European marine renewable levelized-cost and deployment comparator",
+      "artifact": "Marine Renewable Energy — EU Blue Economy Observatory",
+      "pinned_release": "European Commission Blue Economy Observatory page, updated 2026",
+      "companion_engine": null,
+      "release_date": "2026",
+      "role": [
+        "Tidal-stream and wave LCOE market comparator",
+        "Marine technology commercial maturity and CfD reference"
+      ],
+      "important_limits": [
+        "Published European LCOE ranges are EUR 110–480/MWh for tidal stream and EUR 160–750/MWh for wave; these are broad European technology/project ranges, not South African costs.",
+        "Flowatt reference prices and UK CfD strike prices are jurisdiction-specific and include policy/contract context.",
+        "Marine technology LCOE is highly deployment-, resource-, survivability- and finance-dependent."
+      ],
+      "pin_policy": "Pin page revision/date and the underlying IRENA/OceanSET/auction source definitions. Preserve EUR year, technology maturity, project scope and contract assumptions.",
+      "references": [
+        "https://blue-economy-observatory.ec.europa.eu/eu-blue-economy-sectors/marine-renewable-energy_en"
+      ]
     }
   ]
 }
