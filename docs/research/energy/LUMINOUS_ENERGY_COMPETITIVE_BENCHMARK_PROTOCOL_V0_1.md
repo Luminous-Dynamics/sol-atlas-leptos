@@ -292,3 +292,44 @@ A fair “better than SOTA” study should test four distinct outputs:
 4. Portfolio decision: delivered service, curtailment, storage sizing, grid constraints and lifecycle cost after using the resource model.
 
 Do not fit a single global correction factor and claim universal local validation. Test a hierarchy of global, climate-region, terrain/regime and site-specific corrections with leakage-safe ablation, uncertainty propagation and minimum data sufficiency. A local correction is only eligible when independent data justify it and the calibration/holdout split is disclosed.
+
+
+## 13. Hydropower benchmark lane: net energy recovery under protected water service
+### Local reference ladder
+
+| Reference | Appropriate use | Limits |
+|---|---|---|
+| WRC South African Hydropower Atlas TT 916/23 (2023) + SAHA E-Tool | Existing South African asset/resource discovery by hydro archetype | Preliminary criteria, heterogenous source layers, incomplete flow/head data, WWTW/WTW assumptions and pumped-storage overlap |
+| DWS Water/Sanitation Climate Response Strategy (Jan 2025) | Confirms PAT and PRV energy-recovery as an explored South African option | Sector context, not a site-level asset register or measured performance data |
+| 2026 WDN hydropower review | Compare conventional turbines, PAT, in-pipe harvesters, hydraulic/electric regulation and low-power telemetry use | Literature review; device/site measurements and manufacturer curves remain required |
+| IEC 2026 pumped-storage trend report | Technology and standardization trends for storage | Trend report, not a project or component acceptance standard |
+| NLR ATB hydropower / pumped storage | Reference cost/performance assumptions in the declared U.S. scenario | Not South African project costs; translate local works, water, finance, grid and environmental conditions |
+
+### Match the engineering boundary
+
+For conduit/PRS, compare PRV-only baseline versus turbine/PAT bypass using the exact same time-indexed upstream pressure, downstream minimum pressure, flow and water demand. For WTW/WWTW, compare the identical inlet/outlet hydraulic boundary and preserve treatment and effluent compliance. For rivers/weirs/canals, compare the same seasonal hydrograph and environmental-flow obligations.
+
+Report independently:
+- water-service pressure compliance, volume delivered, treatment/effluent performance, availability and restoration after faults;
+- gross hydraulic power, turbine/generator efficiency map, auxiliary electricity, net exported/self-consumed kWh, and recovered kWh per cubic metre;
+- flow/pressure variability, part-load efficiency, bypass duty, starts/stops, surge, cavitation, debris, sediment, corrosion, fouling, maintenance availability and spare-parts lead time;
+- environmental flow, fish passage/ecological impact, water quality and downstream service;
+- CAPEX/OPEX, civil works, interconnection, outage costs, lifecycle replacement and cost of useful delivered service.
+
+### Reference physics
+
+For a conduit or conventional head-driven turbine, the screening identity is (P=\rho g Q H_{net}\eta_{hyd}\eta_{gen}), where (Q) is measured flow and (H_{net}) includes conveyance losses. For hydrokinetic devices, kinetic resource is related to (\frac{1}{2}\rho A V^3) times a device-specific capture coefficient/efficiency; do not substitute static head or use mean current velocity without its time profile and swept area. Neither equation replaces a validated transient hydraulic model, turbine curve, or operational pressure check.
+
+For a pumped-storage case, keep (E_{pump}\), (E_{generate}\), usable storage, hydraulic losses, electrical losses, round-trip efficiency and environmental/water constraints distinct. It is not new primary generation.
+
+### Targeted benchmark controls
+
+- Analytic power identity and dimensional/unit fixtures for head, pressure, flow, density and net output.
+- Efficiency must not exceed the declared physical/equipment map or Carnot (when heat conversion is involved); no output at zero flow/head/velocity.
+- Turbine/PAT off-design flow and head profiles must use the appropriate efficiency surface, not peak efficiency.
+- Water pressure/flow service floors and environmental-flow constraints are hard feasibility gates, not soft penalties.
+- Seeded water hammer, PRV/bypass failure, turbine trip, sensor failure, blockage, grid outage and unsafe restart must be detected or return indeterminate.
+- Pumped-storage pairs must reject overlapping reservoir double counts, missing head/active volume, incomplete geology/hydrology, or a new reservoir without rights/environmental evidence.
+- Compare no-build, PRV-only, PAT and purpose-built turbine under identical time series, financing, component lifetime, parasitic losses and service requirements.
+
+Do not call any potential total a measured capacity. The WRC 2023 atlas explicitly states that its initial WWTW/WTW criteria relied on assumptions, hydrokinetic data were limited, and its 31,000 MW pumped-storage potential is overstated by overlapping candidate sites and unverified geology/hydrology/environment. Luminous should compete by improving source quality and decision confidence, not inflating the resource total.
