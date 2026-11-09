@@ -1,0 +1,109 @@
+name: City Owner Payload Adapter Synthetic Oracle
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - "tools/city-owner-payload-adapter/**"
+      - "docs/research/city-owner-payload-adapter/**"
+      - ".github/workflows/city-owner-payload-adapter.yml"
+  push:
+    branches: ["main", "research/city-owner-payload-adapter-v0.1"]
+    paths:
+      - "tools/city-owner-payload-adapter/**"
+      - "docs/research/city-owner-payload-adapter/**"
+      - ".github/workflows/city-owner-payload-adapter.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: city-owner-payload-adapter-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  adapter-oracle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: 1.96.0
+          components: rustfmt, clippy
+      - name: Check JSON inputs parse and corpus identity
+        run: |
+          set -euo pipefail
+          jq -e '
+            .schema == "city-owner-payload-adapter-corpus/0.1"
+            and .schema_version == "0.1.0"
+            and .corpus_id == "CITY-OWNER-PAYLOAD-ADAPTER-CORPUS-V0.1"
+            and .classification == "synthetic_fixture_only"
+            and (.cases | length == 24)
+            and ([.cases[].case_id] | unique | length == 24)
+          ' docs/research/city-owner-payload-adapter/CITY_OWNER_PAYLOAD_ADAPTER_CORPUS_V0_1.json
+          jq -e '
+            ."$schema" == "https://json-schema.org/draft/2020-12/schema"
+            and .title == "CityMaker Owner Payload Adapter Corpus v0.1"
+            and .type == "object"
+          ' docs/research/city-owner-payload-adapter/CITY_OWNER_PAYLOAD_ADAPTER_CORPUS_V0_1.schema.json
+
+          jq -e '
+            all(.cases[];
+              (.input.scope_binding.required_use | type == "string")
+              and (.input.owner_artifacts | length > 0)
+              and all(.input.owner_artifacts[];
+                (.descriptor_binding.owner_contract_id == .contract_id)
+                and (.descriptor_binding.owner_contract_version == .contract_version)
+                and (.descriptor_binding.schema_id == .descriptor.source_payload.schema_id)
+                and (.descriptor_binding.schema_version == .descriptor.source_payload.schema_version)
+                and (.descriptor_binding.record_key == (.descriptor.record_kind + ":" + .descriptor.case_record_id))
+                and (.descriptor.owner_namespace == .descriptor_binding.owner_namespace)
+              )
+              and ((.input.report_binding.raw_report_json | fromjson) as $report
+                | ($report.descriptor_count == ($report.payload_count + $report.not_attempted_count))
+                and ($report.payload_count == ($report.payload_results | length))
+                and ($report.catalog_validation.catalog_id == $report.catalog_id)
+                and ($report.catalog_validation.catalog_representation_sha256 == $report.catalog_representation_sha256)
+              )
+            )
+          ' docs/research/city-owner-payload-adapter/CITY_OWNER_PAYLOAD_ADAPTER_CORPUS_V0_1.json
+      - name: Check formatting
+        run: cargo fmt --manifest-path tools/city-owner-payload-adapter/Cargo.toml --all -- --check
+      - name: Run report-adapter and hostile-control tests
+        run: cargo test --locked --manifest-path tools/city-owner-payload-adapter/Cargo.toml
+      - name: Run strict Clippy
+        run: cargo clippy --locked --manifest-path tools/city-owner-payload-adapter/Cargo.toml --all-targets -- -D warnings
+      - name: Emit exact-head adapter receipt
+        shell: bash
+        run: |
+          set -euo pipefail
+          source_commit="$(git rev-parse HEAD)"
+          test "$source_commit" = "${{ github.event.pull_request.head.sha || github.sha }}"
+          cargo run --locked --quiet --manifest-path tools/city-owner-payload-adapter/Cargo.toml -- \
+            docs/research/city-owner-payload-adapter/CITY_OWNER_PAYLOAD_ADAPTER_CORPUS_V0_1.json \
+            --source-commit "$source_commit" > city-owner-payload-adapter-receipt.json
+          jq -e '
+            .result == "pass"
+            and .corpus_id == "CITY-OWNER-PAYLOAD-ADAPTER-CORPUS-V0.1"
+            and .corpus_classification == "synthetic_fixture_only"
+            and .scenario_count == 24
+            and .failure_count == 0
+            and (.corpus_sha256 | test("^[0-9a-f]{64}$"))
+            and (.source_commit | test("^[0-9a-f]{40}$"))
+            and (.scenarios | length == 24)
+            and (.scenarios | all(.status == "pass"))
+            and .action_authority == "none"
+            and .owner_result_promotion == "none"
+          ' city-owner-payload-adapter-receipt.json
+      - name: Upload exact-head adapter receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: city-owner-payload-adapter-reference-receipt
+          path: city-owner-payload-adapter-receipt.json
+          if-no-files-found: error
+          retention-days: 90
