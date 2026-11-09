@@ -41,7 +41,7 @@ The receipt contains exact SHA-256 values for the schema and registry bytes, val
 
 ## Tests
 
-The 29-test unit suite includes the checked-in 45-entry source register, South African geothermal/marine claim-boundary controls, and separate field/laboratory/sector-report/literature-review tests for current geothermal, solar, hydro and storage evidence. Hostile controls cover duplicate keys, trailing bytes, oversize input, unknown fields, duplicate IDs, fabricated snapshot admission, unavailable-source relabelling, HTTP locators, invalid dates, schema enum drift and discovery-status mutation.
+The 31-test unit suite includes the checked-in 51-entry source register, South African geothermal/marine and mine-shaft/PHS claim-boundary controls, and separate field/laboratory/sector-report/literature-review tests for geothermal, solar, hydro, mine-water, pumped-storage and gravity-storage evidence. Hostile controls cover duplicate keys, trailing bytes, oversize input, unknown fields, duplicate IDs, fabricated snapshot admission, unavailable-source relabelling, HTTP locators, invalid dates, schema enum drift and discovery-status mutation.
 
 ## Important boundary
 
