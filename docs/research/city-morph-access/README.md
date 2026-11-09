@@ -2,6 +2,8 @@
 
 Parent: Sol-Atlas [CITY-MORPH-ACCESS-001 #555](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/555) and [CITY-MAKER-001 #549](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/549).
 
+The Johannesburg source register contains 22 candidate records, including the JDA's 2026 Universal Design Access Plan completion announcement. The plan is recorded as a public method/roadmap source only; its full audit records and facility-level data remain unverified.
+
 This 24-case corpus is entirely synthetic. It tests network access, usable-service constraints, individual group thresholds, reachable capacity potential and once-counted aggregate category capacity. It is not a Johannesburg data set or a real accessibility evaluation.
 
 ## Interpretation
