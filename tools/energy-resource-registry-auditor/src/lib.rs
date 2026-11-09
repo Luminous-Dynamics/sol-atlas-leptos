@@ -1358,7 +1358,9 @@ mod tests {
             })
             .expect("Leliefontein PAT station record");
         assert_eq!(entry["evidence_basis"], "published_field_observation");
-        let notes = entry["source_version"]["notes"].as_str().expect("source notes");
+        let notes = entry["source_version"]["notes"]
+            .as_str()
+            .expect("source notes");
         assert!(notes.contains("320 MWh/year"));
         assert!(notes.contains("271,236 MWh"));
         assert!(
