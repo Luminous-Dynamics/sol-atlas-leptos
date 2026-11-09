@@ -553,16 +553,8 @@ pub fn validate_case(case: &Value, profiles: &Value) -> Vec<String> {
                 "DEPENDENCY_EDGE_FIELD_EMPTY",
             );
         }
-        let records = array(input, "records");
-        let from_exists = records.iter().any(|record| string(record, "record_id") == string(edge, "from"));
-        let to_exists = records.iter().any(|record| string(record, "record_id") == string(edge, "to"));
-        if !from_exists || !to_exists {
-            push_error(
-                &mut errors,
-                &format!("input.dependency_edges[{index}]"),
-                "DEPENDENCY_EDGE_DANGLING_REFERENCE",
-            );
-        }
+        // A missing endpoint is an evidence gap, not malformed input. Mandatory
+        // owner coverage below decides whether that gap blocks reliance.
     }
 
     for key in ["required_owner_refs"] {
