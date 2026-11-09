@@ -1127,6 +1127,16 @@
                 "demand_unit": "visits/day",
                 "reason_codes": []
               }
+            ],
+            "category_totals": [
+              {
+                "category": "health",
+                "demand": 100,
+                "demand_unit": "visits/day",
+                "declared_open_capacity": 200,
+                "unknown_capacity_service_count": 0,
+                "status": "KnownAggregateCapacityAdequate"
+              }
             ]
           }
         },
