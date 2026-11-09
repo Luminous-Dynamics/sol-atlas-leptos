@@ -91,6 +91,7 @@ const EVIDENCE_BASIS_VALUES: &[&str] = &[
     "discovery_catalogue",
     "availability_notice",
     "literature_review",
+    "laboratory_measurement",
 ];
 
 const AVAILABILITY_STATE_VALUES: &[&str] = &[
@@ -701,6 +702,7 @@ enum EvidenceBasis {
     DiscoveryCatalogue,
     AvailabilityNotice,
     LiteratureReview,
+    LaboratoryMeasurement,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
@@ -1214,6 +1216,53 @@ mod tests {
             audit_bytes(SCHEMA_BYTES, REGISTRY_BYTES).expect("updated registry should conform");
         assert_eq!(receipt.disposition, "accepted");
         assert_eq!(receipt.entry_count, 22);
+    }
+
+    #[test]
+    fn full_scale_antalya_pat_is_published_operational_evidence_not_a_lab_or_sa_case() {
+        let value = parse_registry_value();
+        let entries = value["entries"].as_array().expect("entries array");
+        let field = entries
+            .iter()
+            .find(|entry| {
+                entry["source_id"] == "antalya-full-scale-pat-operational-study-2018"
+            })
+            .expect("Antalya full-scale PAT field record");
+
+        assert_eq!(field["evidence_basis"], "published_field_observation");
+        assert_eq!(field["availability_state"], "context_only");
+        assert!(field["claim_ceiling"]
+            .as_str()
+            .is_some_and(|claim| claim.contains("not South African validation")));
+        assert!(field["limitations"]
+            .as_array()
+            .expect("limitations")
+            .iter()
+            .any(|limitation| limitation
+                .as_str()
+                .is_some_and(|text| text.contains("0.7–8.4 kWh"))));
+    }
+
+    #[test]
+    fn experimental_pat_curves_are_distinct_from_field_observations_and_reviews() {
+        let value = parse_registry_value();
+        let entries = value["entries"].as_array().expect("entries array");
+        for id in [
+            "manservigi-et-al-pat-regulation-2025-experimental-curves",
+            "pugliese-et-al-pat-experimental-characterization-2016",
+        ] {
+            let entry = entries
+                .iter()
+                .find(|entry| entry["source_id"] == id)
+                .expect("experimental PAT record");
+            assert_eq!(entry["evidence_basis"], "laboratory_measurement");
+            assert_ne!(entry["evidence_basis"], "published_field_observation");
+            assert_ne!(entry["evidence_basis"], "literature_review");
+        }
+        let receipt = audit_bytes(SCHEMA_BYTES, REGISTRY_BYTES)
+            .expect("updated source register conforms");
+        assert_eq!(receipt.disposition, "accepted");
+        assert_eq!(receipt.entry_count, 25);
     }
 
     #[test]
