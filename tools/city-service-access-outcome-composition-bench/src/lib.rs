@@ -36,11 +36,18 @@ fn object<'a>(value: &'a Value, key: &str) -> &'a Value {
 }
 
 fn array<'a>(value: &'a Value, key: &str) -> &'a [Value] {
-    value.get(key).and_then(Value::as_array).map(Vec::as_slice).unwrap_or(&[])
+    value
+        .get(key)
+        .and_then(Value::as_array)
+        .map(Vec::as_slice)
+        .unwrap_or(&[])
 }
 
 fn number(value: &Value, key: &str) -> Option<f64> {
-    value.get(key).and_then(Value::as_f64).filter(|x| x.is_finite())
+    value
+        .get(key)
+        .and_then(Value::as_f64)
+        .filter(|x| x.is_finite())
 }
 
 fn bool_value(value: &Value, key: &str) -> Option<bool> {
@@ -49,12 +56,16 @@ fn bool_value(value: &Value, key: &str) -> Option<bool> {
 
 fn valid_sha256(value: &str) -> bool {
     value.len() == 64
-        && value.bytes().all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
+        && value
+            .bytes()
+            .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
 }
 
 fn valid_commit(value: &str) -> bool {
     value.len() == 40
-        && value.bytes().all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
+        && value
+            .bytes()
+            .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
 }
 
 fn add(reasons: &mut BTreeSet<String>, code: &str) {
@@ -124,14 +135,20 @@ fn add_source_binding_result(
     let rights_state = text(source, "rights_state");
     let issuer_state = text(source, "issuer_state");
     if matches!(evidence_state, "revoked" | "disputed") {
-        add(reasons, &format!("{code_prefix}_SOURCE_REVOKED_OR_DISPUTED"));
+        add(
+            reasons,
+            &format!("{code_prefix}_SOURCE_REVOKED_OR_DISPUTED"),
+        );
         *invalid = true;
     } else if evidence_state != "current" {
         add(reasons, &format!("{code_prefix}_SOURCE_NOT_CURRENT"));
         *not_comparable = true;
     }
     if rights_state == "restricted" || rights_state == "revoked" {
-        add(reasons, &format!("{code_prefix}_SOURCE_RIGHTS_NOT_PERMITTED"));
+        add(
+            reasons,
+            &format!("{code_prefix}_SOURCE_RIGHTS_NOT_PERMITTED"),
+        );
         *not_authorized = true;
     } else if rights_state != "permitted" {
         add(reasons, &format!("{code_prefix}_SOURCE_RIGHTS_UNKNOWN"));
@@ -142,7 +159,10 @@ fn add_source_binding_result(
         *not_authorized = true;
     }
     if !source_binding_matches(binding, source, scope) {
-        add(reasons, &format!("{code_prefix}_SOURCE_NOT_BOUND_TO_EXACT_SCOPE"));
+        add(
+            reasons,
+            &format!("{code_prefix}_SOURCE_NOT_BOUND_TO_EXACT_SCOPE"),
+        );
         *not_comparable = true;
     }
     if !valid_sha256(text(source, "source_scope_digest"))
@@ -209,8 +229,14 @@ fn restoration_state(
     let continuity = text(restoration, "continuity_state");
     let stable = object(restoration, "stable_adequacy");
     let stable_ok = bool_value(stable, "qualified") == Some(true)
-        && stable.get("observed_ticks").and_then(Value::as_u64).unwrap_or(0)
-            >= stable.get("minimum_ticks").and_then(Value::as_u64).unwrap_or(u64::MAX);
+        && stable
+            .get("observed_ticks")
+            .and_then(Value::as_u64)
+            .unwrap_or(0)
+            >= stable
+                .get("minimum_ticks")
+                .and_then(Value::as_u64)
+                .unwrap_or(u64::MAX);
     let min_ticks = object(service, "stability_policy")
         .get("minimum_contiguous_adequate_ticks")
         .and_then(Value::as_u64);
@@ -223,7 +249,11 @@ fn restoration_state(
     if local_invalid || local_not_comparable || local_not_authorized {
         return "not_qualified".to_owned();
     }
-    if disposition == "RestoredForDeclaredScope" && qualified && continuity == "Adequate" && stable_ok {
+    if disposition == "RestoredForDeclaredScope"
+        && qualified
+        && continuity == "Adequate"
+        && stable_ok
+    {
         "restored".to_owned()
     } else if matches!(disposition, "Invalid" | "InvalidEvidence") {
         add(reasons, "RESTORATION_EVIDENCE_INVALID");
@@ -277,7 +307,10 @@ fn access_state(
         || text(access, "service_id") != text(scope, "service_id")
         || text(access, "group_id") != text(scope, "group_id")
         || text(access, "scenario_id") != text(scope, "scenario_id")
-        || !same_window(object(access, "observation_window"), object(scope, "observation_window"))
+        || !same_window(
+            object(access, "observation_window"),
+            object(scope, "observation_window"),
+        )
     {
         add(reasons, "ACCESS_SCOPE_OR_WINDOW_MISMATCH");
         *not_comparable = true;
@@ -308,7 +341,10 @@ fn access_state(
         add(reasons, "ACCESS_DEMAND_FRAME_MISMATCH");
         *not_comparable = true;
     }
-    if !matches!(text(access, "disposition"), "FeasibleForSyntheticCase" | "Infeasible" | "Unknown" | "Unsupported") {
+    if !matches!(
+        text(access, "disposition"),
+        "FeasibleForSyntheticCase" | "Infeasible" | "Unknown" | "Unsupported"
+    ) {
         add(reasons, "ACCESS_DISPOSITION_UNSUPPORTED");
         *invalid = true;
     }
@@ -398,7 +434,11 @@ fn frame_state(
         add(reasons, "BENEFICIARY_FRAME_NOT_QUALIFIED");
         *not_comparable = true;
     }
-    if frame.get("population_count").and_then(Value::as_u64).is_none_or(|v| v == 0) {
+    if frame
+        .get("population_count")
+        .and_then(Value::as_u64)
+        .is_none_or(|v| v == 0)
+    {
         add(reasons, "BENEFICIARY_POPULATION_COUNT_INVALID");
         *invalid = true;
     }
@@ -450,7 +490,10 @@ fn in_use_state(
         || text(in_use, "scenario_id") != text(scope, "scenario_id")
         || text(in_use, "design_revision") != text(scope, "design_revision")
         || text(in_use, "bom_revision") != text(scope, "bom_revision")
-        || !same_window(object(in_use, "observation_window"), object(scope, "observation_window"))
+        || !same_window(
+            object(in_use, "observation_window"),
+            object(scope, "observation_window"),
+        )
     {
         add(reasons, "IN_USE_SCOPE_OR_WINDOW_MISMATCH");
         *not_comparable = true;
@@ -563,7 +606,10 @@ fn realized_use_state(
         || text(realized, "frame_id") != text(frame, "frame_id")
         || text(realized, "frame_sha256") != text(frame, "frame_sha256")
         || text(realized, "scope_digest") != text(scope, "common_scope_digest")
-        || !same_window(object(realized, "observation_window"), object(scope, "observation_window"))
+        || !same_window(
+            object(realized, "observation_window"),
+            object(scope, "observation_window"),
+        )
         || number(realized, "coverage_fraction").is_none_or(|v| {
             v < number(service, "minimum_realized_use_coverage_fraction").unwrap_or(1.0)
         })
@@ -642,9 +688,16 @@ fn resident_experience_state(
                 || text(experience, "frame_id") != text(frame, "frame_id")
                 || text(experience, "frame_sha256") != text(frame, "frame_sha256")
                 || text(experience, "scope_digest") != text(scope, "common_scope_digest")
-                || !same_window(object(experience, "observation_window"), object(scope, "observation_window"))
+                || !same_window(
+                    object(experience, "observation_window"),
+                    object(scope, "observation_window"),
+                )
                 || number(experience, "coverage_fraction").is_none_or(|v| {
-                    v < number(object(input, "service_contract"), "minimum_experience_coverage_fraction").unwrap_or(1.0)
+                    v < number(
+                        object(input, "service_contract"),
+                        "minimum_experience_coverage_fraction",
+                    )
+                    .unwrap_or(1.0)
                 })
                 || metric_output.is_none_or(|row| text(row, "observation_state") != "Current")
                 || metric_binding.is_none_or(|row| {
@@ -686,7 +739,10 @@ pub fn evaluate_case(case: &Value) -> Evaluation {
         invalid = true;
     }
     if text(input, "classification") != "synthetic_fixture_only" {
-        add(&mut reasons, "NON_SYNTHETIC_INPUT_NOT_SUPPORTED_BY_REFERENCE_ORACLE");
+        add(
+            &mut reasons,
+            "NON_SYNTHETIC_INPUT_NOT_SUPPORTED_BY_REFERENCE_ORACLE",
+        );
         invalid = true;
     }
     if [
@@ -718,7 +774,11 @@ pub fn evaluate_case(case: &Value) -> Evaluation {
     let window = object(scope, "observation_window");
     if text(window, "window_id").is_empty()
         || text(window, "tick_unit").is_empty()
-        || window.get("start_tick").and_then(Value::as_i64).zip(window.get("end_tick").and_then(Value::as_i64)).is_none_or(|(a,b)| b <= a)
+        || window
+            .get("start_tick")
+            .and_then(Value::as_i64)
+            .zip(window.get("end_tick").and_then(Value::as_i64))
+            .is_none_or(|(a, b)| b <= a)
     {
         add(&mut reasons, "OBSERVATION_WINDOW_INVALID");
         invalid = true;
@@ -731,7 +791,10 @@ pub fn evaluate_case(case: &Value) -> Evaluation {
         || text(service, "functional_unit") != text(scope, "functional_unit")
         || text(service, "group_id") != text(scope, "group_id")
         || text(service, "scenario_id") != text(scope, "scenario_id")
-        || !matches!(text(service, "owner"), "symthaea" | "sol-atlas" | "mycelix" | "symtropy")
+        || !matches!(
+            text(service, "owner"),
+            "symthaea" | "sol-atlas" | "mycelix" | "symtropy"
+        )
     {
         add(&mut reasons, "SERVICE_CONTRACT_SCOPE_MISMATCH");
         not_comparable = true;
@@ -751,23 +814,82 @@ pub fn evaluate_case(case: &Value) -> Evaluation {
         "SERVICE_CONTRACT",
     );
 
-    let frame = frame_state(frame, scope, binding, &mut reasons, &mut invalid, &mut not_comparable, &mut not_authorized);
-    let restoration = restoration_state(input, scope, binding, &mut reasons, &mut invalid, &mut not_comparable, &mut not_authorized);
-    let access = access_state(input, scope, object(input, "beneficiary_frame"), binding, &mut reasons, &mut invalid, &mut not_comparable, &mut not_authorized);
-    let operational = in_use_state(input, scope, binding, &mut reasons, &mut invalid, &mut not_comparable, &mut not_authorized);
-    let (realized_use, delivery_ratio) = realized_use_state(input, scope, object(input, "beneficiary_frame"), binding, &mut reasons, &mut invalid, &mut not_comparable, &mut not_authorized);
-    let experience = resident_experience_state(input, scope, object(input, "beneficiary_frame"), binding, &mut reasons, &mut invalid, &mut not_comparable, &mut not_authorized);
+    let frame = frame_state(
+        frame,
+        scope,
+        binding,
+        &mut reasons,
+        &mut invalid,
+        &mut not_comparable,
+        &mut not_authorized,
+    );
+    let restoration = restoration_state(
+        input,
+        scope,
+        binding,
+        &mut reasons,
+        &mut invalid,
+        &mut not_comparable,
+        &mut not_authorized,
+    );
+    let access = access_state(
+        input,
+        scope,
+        object(input, "beneficiary_frame"),
+        binding,
+        &mut reasons,
+        &mut invalid,
+        &mut not_comparable,
+        &mut not_authorized,
+    );
+    let operational = in_use_state(
+        input,
+        scope,
+        binding,
+        &mut reasons,
+        &mut invalid,
+        &mut not_comparable,
+        &mut not_authorized,
+    );
+    let (realized_use, delivery_ratio) = realized_use_state(
+        input,
+        scope,
+        object(input, "beneficiary_frame"),
+        binding,
+        &mut reasons,
+        &mut invalid,
+        &mut not_comparable,
+        &mut not_authorized,
+    );
+    let experience = resident_experience_state(
+        input,
+        scope,
+        object(input, "beneficiary_frame"),
+        binding,
+        &mut reasons,
+        &mut invalid,
+        &mut not_comparable,
+        &mut not_authorized,
+    );
 
     let frame_state = frame;
     if bool_value(service, "realized_use_required") == Some(true)
-        && !matches!(realized_use.as_str(), "observed" | "zero_demand_not_applicable")
+        && !matches!(
+            realized_use.as_str(),
+            "observed" | "zero_demand_not_applicable"
+        )
     {
         insufficient = true;
     }
-    if bool_value(service, "operational_metric_required") == Some(true) && operational != "qualified" {
+    if bool_value(service, "operational_metric_required") == Some(true)
+        && operational != "qualified"
+    {
         insufficient = true;
     }
-    if restoration != "restored" || access == "inaccessible" || access == "capacity_constrained_potential" {
+    if restoration != "restored"
+        || access == "inaccessible"
+        || access == "capacity_constrained_potential"
+    {
         insufficient = true;
     }
     if frame_state != "qualified" {
@@ -788,7 +910,11 @@ pub fn evaluate_case(case: &Value) -> Evaluation {
         "potential_access_constrained"
     } else if access == "unknown" {
         "potential_access_unknown"
-    } else if restoration == "unknown" || frame_state != "qualified" || operational != "qualified" || insufficient {
+    } else if restoration == "unknown"
+        || frame_state != "qualified"
+        || operational != "qualified"
+        || insufficient
+    {
         "insufficient_evidence"
     } else if realized_use == "observed" {
         "realized_service_outcome_established"
@@ -812,7 +938,13 @@ pub fn evaluate_case(case: &Value) -> Evaluation {
         "claim_ceiling": CLAIM_CEILING,
         "action_authority": "none"
     });
-    Evaluation { output, invalid, not_comparable, not_authorized, insufficient }
+    Evaluation {
+        output,
+        invalid,
+        not_comparable,
+        not_authorized,
+        insufficient,
+    }
 }
 
 pub fn validate_corpus(corpus: &Value) -> Vec<String> {
@@ -879,18 +1011,29 @@ mod tests {
     #[test]
     fn absence_of_use_is_not_promoted_to_zero_use() {
         let case = corpus()["cases"]
-            .as_array().unwrap()
-            .iter().find(|x| x["case_id"] == "SAO-001").unwrap().clone();
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|x| x["case_id"] == "SAO-001")
+            .unwrap()
+            .clone();
         let result = evaluate_case(&case);
         assert_eq!(result.output["realized_service_use_state"], "not_collected");
-        assert_eq!(result.output["delivery_to_declared_demand_ratio"], Value::Null);
+        assert_eq!(
+            result.output["delivery_to_declared_demand_ratio"],
+            Value::Null
+        );
     }
 
     #[test]
     fn consent_denial_is_not_a_negative_experience_result() {
         let case = corpus()["cases"]
-            .as_array().unwrap()
-            .iter().find(|x| x["case_id"] == "SAO-004").unwrap().clone();
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|x| x["case_id"] == "SAO-004")
+            .unwrap()
+            .clone();
         let result = evaluate_case(&case);
         assert_eq!(result.output["resident_experience_state"], "consent_denied");
     }
@@ -898,21 +1041,41 @@ mod tests {
     #[test]
     fn potential_access_does_not_imply_realized_service() {
         let case = corpus()["cases"]
-            .as_array().unwrap()
-            .iter().find(|x| x["case_id"] == "SAO-001").unwrap().clone();
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|x| x["case_id"] == "SAO-001")
+            .unwrap()
+            .clone();
         let result = evaluate_case(&case);
-        assert_eq!(result.output["potential_access_state"], "accessible_and_capacity_adequate_potential");
+        assert_eq!(
+            result.output["potential_access_state"],
+            "accessible_and_capacity_adequate_potential"
+        );
         assert_ne!(result.output["realized_service_use_state"], "observed");
-        assert_eq!(result.output["composition_state"], "restored_and_potentially_accessible");
+        assert_eq!(
+            result.output["composition_state"],
+            "restored_and_potentially_accessible"
+        );
     }
 
     #[test]
     fn zero_demand_is_not_divided_by_zero_or_silently_assumed() {
         let case = corpus()["cases"]
-            .as_array().unwrap()
-            .iter().find(|x| x["case_id"] == "SAO-022").unwrap().clone();
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|x| x["case_id"] == "SAO-022")
+            .unwrap()
+            .clone();
         let result = evaluate_case(&case);
-        assert_eq!(result.output["delivery_to_declared_demand_ratio"], Value::Null);
-        assert_eq!(result.output["realized_service_use_state"], "zero_demand_not_applicable");
+        assert_eq!(
+            result.output["delivery_to_declared_demand_ratio"],
+            Value::Null
+        );
+        assert_eq!(
+            result.output["realized_service_use_state"],
+            "zero_demand_not_applicable"
+        );
     }
 }
