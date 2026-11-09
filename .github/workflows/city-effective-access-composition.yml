@@ -47,7 +47,7 @@ jobs:
             and ([.cases[].case_id] | unique | length == 24)
           ' docs/research/city-effective-access-composition/CITY_EFFECTIVE_ACCESS_COMPOSITION_CORPUS_V0_1.json
           jq -e '
-            ."\$schema" == "https://json-schema.org/draft/2020-12/schema"
+            .[ "$schema" ] == "https://json-schema.org/draft/2020-12/schema"
             and .title == "City Effective Access Composition Corpus v0.1"
             and .type == "object"
           ' docs/research/city-effective-access-composition/CITY_EFFECTIVE_ACCESS_COMPOSITION_CORPUS_V0_1.schema.json
