@@ -47,7 +47,8 @@ jobs:
             and ([.cases[].case_id] | unique | length == 24)
           ' docs/research/city-habitat-service-composition/CITY_HABITAT_SERVICE_COMPOSITION_CORPUS_V0_1.json
           jq -e '
-            ." $schema " == null or .type == "object"
+            ."$schema" == "https://json-schema.org/draft/2020-12/schema"
+            and .type == "object"
           ' docs/research/city-habitat-service-composition/CITY_HABITAT_SERVICE_COMPOSITION_CORPUS_V0_1.schema.json
       - name: Check formatting
         run: cargo fmt --manifest-path tools/city-habitat-service-composition-bench/Cargo.toml --all -- --check
