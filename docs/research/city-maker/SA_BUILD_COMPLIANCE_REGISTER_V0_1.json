@@ -1,0 +1,263 @@
+{
+  "schema_id": "org.luminousdynamics.citymaker.sa-build-compliance-register",
+  "schema_version": "0.1.0",
+  "register_id": "SA-BUILD-COMPLIANCE-REGISTER-V0.1",
+  "as_of": "2026-11-07",
+  "classification": "research_register_not_legal_advice",
+  "claim_ceiling": "The register identifies candidate legal/standards pathways and source states. It does not determine applicability or authorize a project, product, contractor, or site.",
+  "states": [
+    "Operative_Anchor",
+    "Published_Current_Guidance",
+    "Draft_Not_Operative",
+    "Announced_Not_Verified_Gazetted",
+    "Invalidated",
+    "Dynamic_Register_Snapshot_Required",
+    "Version_or_Applicability_Unknown",
+    "NotApplicable_Only_With_Rationale"
+  ],
+  "sources": [
+    {
+      "source_id": "SA-NBR-BUILDING-ACT-103-1977",
+      "name": "National Building Regulations and Building Standards Act 103 of 1977",
+      "publisher": "Republic of South Africa",
+      "url": "https://www.gov.za/documents/national-building-regulations-and-building-standards-act-16-apr-2015-1302",
+      "state": "Operative_Anchor",
+      "known_position": "National building-control statutory anchor. Project duties depend on current regulations, use, scope, jurisdiction and applicable standards.",
+      "required_checks": [
+        "Confirm current amended Act text at project decision date",
+        "Map relevant National Building Regulations and current SANS 10400 parts to building use, height, occupancy and project type",
+        "Obtain municipal building-plan, inspection and occupation evidence where required"
+      ],
+      "scope": "Building works and standards pathway; applicability must be determined for each project"
+    },
+    {
+      "source_id": "SA-SANS-10400-SERIES",
+      "name": "SANS 10400 series",
+      "publisher": "South African Bureau of Standards",
+      "url": "https://store.sabs.co.za/",
+      "state": "Version_or_Applicability_Unknown",
+      "known_position": "The applicable parts/editions and amendments must be confirmed from SABS for each building use and system. Standards are copyrighted; do not redistribute their text without rights.",
+      "required_checks": [
+        "Check current edition and amendments directly with SABS",
+        "Map each applicable part to a requirement and system/product revision",
+        "Record lawful access/licence and edition date; do not infer from a secondary summary"
+      ],
+      "scope": "Part-specific, building/use-specific"
+    },
+    {
+      "source_id": "SA-SANS-10400-XA",
+      "name": "SANS 10400-XA energy usage in buildings",
+      "publisher": "South African Bureau of Standards",
+      "url": "https://store.sabs.co.za/",
+      "state": "Version_or_Applicability_Unknown",
+      "known_position": "SAIAT's professional CPD portal identifies SANS 10400-XA:2026 Edition 3 and says it was published early in 2026, noting a change to the method for satisfying energy-efficient hot-water requirements. This is specialist secondary evidence, not a substitute for the SABS catalogue or copyrighted standard. The exact SABS publication metadata, effective/transition dates, full text and project applicability have not been independently verified. Do not treat Edition 2 (2021) as the latest edition.",
+      "required_checks": [
+        "Retrieve the exact SABS catalogue record for SANS 10400-XA:2026 Edition 3 and confirm its approval/publication date, status, effective date and any transition arrangements",
+        "Acquire and review the official standard under lawful access; do not reconstruct copyrighted clause text from secondary summaries",
+        "Compare Edition 3 with Edition 2 and verify all changes, including the hot-water compliance route identified by SAIAT",
+        "Confirm applicable occupancy/building classes, compliance route and project/municipal treatment with the responsible qualified person and authority",
+        "Bind calculations, equipment/product declarations, source/weather inputs and professional responsibility to the exact project and design revision"
+      ],
+      "scope": "Where energy provisions apply; project-dependent",
+      "latest_identified_edition": "SANS 10400-XA:2026 Edition 3",
+      "latest_edition_evidence": {
+        "source": "SAIAT professional CPD portal",
+        "source_url": "https://cpd.saiat.org.za/sans-10400-xa-3rd-edition-cc",
+        "observation_date": "2026-11-07",
+        "reported_publication_timing": "early 2026",
+        "reported_change_focus": "method for satisfying energy-efficient hot-water requirements",
+        "source_quality": "specialist_secondary_source; presenter identified as chair of SABS TC060 and member of the latest review workgroup",
+        "primary_sabs_catalogue_and_full_text_independently_verified": false
+      }
+    },
+    {
+      "source_id": "SA-AGREMENT-CERTIFICATION",
+      "name": "Agrément South Africa certification",
+      "publisher": "Agrément South Africa",
+      "url": "https://agrement.co.za/certification-process/",
+      "state": "Published_Current_Guidance",
+      "known_position": "Agrément describes fitness-for-purpose evaluation of non-standardised construction products, materials and systems against performance criteria, with assessment of the applicant's quality system.",
+      "required_checks": [
+        "Check certificate status, holder/licensee, technical scope, exclusions, expiry and conditions",
+        "Match exact product/system, material, factory/process and installation configuration",
+        "Check whether proposed substitutions or site/design changes invalidate applicability"
+      ],
+      "scope": "Non-standardised products/materials/systems; not automatic building-plan approval or universal project approval"
+    },
+    {
+      "source_id": "SA-AGREMENT-CRITERIA-REVIEW-2026",
+      "name": "Agrément performance criteria review for building, walling systems and products",
+      "publisher": "Agrément South Africa",
+      "url": "https://agrement.co.za/important-notification-review-of-agrement-south-africa-performance-criteria/",
+      "state": "Version_or_Applicability_Unknown",
+      "announcement_date": "2026-08",
+      "target_completion_date": "2026-10-31",
+      "known_position": "Published notice says criteria covering structural strength/stability/serviceability, fire, water penetration/damp, acoustics, thermal/energy/condensation, durability and technical-drawing guidance were under review with a target completion date of 31 October 2026. The notice itself does not prove that a revised criteria version was issued.",
+      "required_checks": [
+        "Obtain written/current criteria version from Agrément",
+        "Record effective date and transition rules",
+        "Do not treat the target date as proof of publication or apply an assumed revised edition"
+      ],
+      "scope": "Agrément assessment criteria"
+    },
+    {
+      "source_id": "SA-NHBRC-HOMEBUILDING",
+      "name": "NHBRC registration, enrolment and Home Building Manual requirements",
+      "publisher": "National Home Builders Registration Council",
+      "url": "https://www.nhbrc.org.za/",
+      "state": "Version_or_Applicability_Unknown",
+      "known_position": "NHBRC requirements may apply to covered homebuilding activity. Applicability and current manual/technical requirements need to be checked for each housing project and participant.",
+      "required_checks": [
+        "Check current Act, enrolment requirements and exemptions with NHBRC",
+        "Verify builder registration and project enrolment where applicable",
+        "Bind inspection/defect/repair obligations and exact homebuilding scope"
+      ],
+      "scope": "Residential homebuilding; not automatically applicable to every non-residential asset"
+    },
+    {
+      "source_id": "SA-NHBRC-IBT-DATABASE",
+      "name": "NHBRC Innovative Building Technologies dynamic database",
+      "publisher": "National Home Builders Registration Council",
+      "url": "https://www.nhbrc.org.za/innovative-building-technologies/",
+      "state": "Dynamic_Register_Snapshot_Required",
+      "known_position": "NHBRC publishes downloadable dynamic IBT database spreadsheets and states that it is researching structural performance of registered innovative building systems because performance information is limited. A database entry is not blanket approval of every design, site, application, installer or revision.",
+      "required_checks": [
+        "Download and hash the database snapshot used for a project decision",
+        "Verify status, system, holder, conditions and scope with NHBRC",
+        "Check project-specific structural, fire, durability and municipal evidence; no transfer to altered system configurations"
+      ],
+      "scope": "Innovative building technology register; project-specific requirements remain"
+    },
+    {
+      "source_id": "SA-OHSA-CONSTRUCTION-REGULATIONS",
+      "name": "Occupational Health and Safety Act and Construction Regulations",
+      "publisher": "Department of Employment and Labour",
+      "url": "https://www.labour.gov.za/",
+      "state": "Version_or_Applicability_Unknown",
+      "known_position": "The Department published draft Construction Regulations 2025 for comment, intended to replace Construction Regulations 2014. The draft/final operative status and commencement must be verified from official gazette/legal sources at the date of work.",
+      "required_checks": [
+        "Determine current in-force regulations and amendments",
+        "Check construction work permit/notification thresholds and responsible appointments for project scope",
+        "Require site-specific risk assessments and task/human-robot system risk assessment",
+        "Do not treat draft 2025 text as operative law"
+      ],
+      "scope": "Construction work and occupational safety"
+    },
+    {
+      "source_id": "SA-CBE-PUBLIC-INTEREST-SAFETY-2026",
+      "name": "CBE Public Interest and Safety Regulations announced with National Built Environment and Construction Safety Framework",
+      "publisher": "Department of Public Works and Infrastructure / Council for the Built Environment",
+      "url": "https://www.gov.za/news/speeches/minister-dean-macpherson-launch-national-built-environment-and-construction-safety",
+      "state": "Announced_Not_Verified_Gazetted",
+      "announcement_date": "2026-07-03",
+      "known_position": "The minister announced that regulations would be gazetted, focusing on structural/dolomitic occurrences, construction compliance and competency certification aligned to SANS 17024. The launch announcement is not a gazette or proof of commencement.",
+      "required_checks": [
+        "Find and verify actual gazette number, text, effective date and transition if promulgated",
+        "Until verified, do not state that the announced regulations are operative",
+        "Map only after publication and scope analysis"
+      ],
+      "scope": "Professional competence and built-environment safety if/when made operative"
+    },
+    {
+      "source_id": "SA-CIDB-PRESCRIPTS-CURRENT",
+      "name": "cidb construction procurement prescripts",
+      "publisher": "Construction Industry Development Board",
+      "url": "https://www.cidb.org.za/clients/procurement-prescripts/cidb-prescripts/",
+      "state": "Published_Current_Guidance",
+      "known_position": "cidb states that its prescripts govern public-sector construction procurement; Treasury regulations also apply. The exact operative prescript/version must be captured for the procuring institution, contract type and decision date.",
+      "required_checks": [
+        "Record client type, infrastructure procurement scope and governing statutes",
+        "Identify exact operative Standard for Uniformity and amendments",
+        "Check PFMA/MFMA, applicable Treasury instructions, cidb regulations and institutional policy",
+        "Do not treat a draft standard as operative"
+      ],
+      "scope": "Public-sector infrastructure procurement; not all private-sector goods/services"
+    },
+    {
+      "source_id": "SA-PUBLIC-PROCUREMENT-ACT-28-2024",
+      "name": "Public Procurement Act 28 of 2024",
+      "publisher": "Republic of South Africa / Constitutional Court",
+      "url": "https://www3.saflii.org/za/cases/ZACC/2026/37.html",
+      "state": "Invalidated",
+      "decision_date": "2026-09-17",
+      "known_position": "In Premier of the Western Cape Government and Another v Speaker of the National Assembly and Others; City of Cape Town and Others v Speaker of the National Assembly and Others, [2026] ZACC 37, the Constitutional Court declared the Act invalid for failure to facilitate public involvement. The order was not suspended; the judgment says the Act had not been brought into operation and existing legislation continued to govern.",
+      "required_checks": [
+        "Do not treat the 2024 Act as operative law",
+        "Use the judgment and current PFMA/MFMA/PPPFA/cidb framework relevant to the procurement, verified at decision date",
+        "Check for subsequent constitutionally compliant replacement legislation"
+      ],
+      "scope": "Public procurement framework; project-specific law and prescripts remain"
+    },
+    {
+      "source_id": "SA-CIDB-SFU-DRAFT-2026-BN986",
+      "name": "Draft second edition of Standard for Uniformity in Construction Procurement (BN 986, Gazette 55409)",
+      "publisher": "Construction Industry Development Board",
+      "url": "https://www.gov.za/document?field_gcisdoc_doctype=All&field_gcisdoc_subjects=All&search_query=procurement",
+      "state": "Draft_Not_Operative",
+      "gazette": "55409",
+      "notice": "BN 986",
+      "publication_date": "2026-09-18",
+      "known_position": "A further draft second-edition notice was published in Gazette 55409 on 18 September 2026, after the July 2026 draft. The cidb page still also surfaces the July notice; the later draft follows the Constitutional Court's 17 September 2026 invalidation of the Public Procurement Act 2024. No final operative second-edition standard has been verified here.",
+      "required_checks": [
+        "Retrieve the exact Gazette 55409 notice and draft text",
+        "Resolve the actual consultation process/deadline and legal basis from the official notice and cidb",
+        "Wait for final operative publication and commencement before treating as prescript",
+        "Use currently operative prescripts for actual procurement"
+      ],
+      "scope": "Draft public infrastructure procurement standard"
+    },
+    {
+      "source_id": "SA-CIDB-BUILD-STANDARDS",
+      "name": "cidb B.U.I.L.D programme standards",
+      "publisher": "Construction Industry Development Board",
+      "url": "https://www.cidb.org.za/build-programme/build-standards/",
+      "state": "Published_Current_Guidance",
+      "revision_date": "2026-03-31",
+      "known_position": "cidb says the B.U.I.L.D standards were revised on 31 March 2026 and apply to qualifying infrastructure projects. The relevant project threshold, grade and scope must be checked rather than assumed.",
+      "required_checks": [
+        "Verify current standard version and effective date",
+        "Check project value/type/grade thresholds and applicable client",
+        "Bind the applicable standard and audit evidence to the contract"
+      ],
+      "scope": "Qualifying infrastructure projects"
+    },
+    {
+      "source_id": "SA-MUNICIPAL-JOBURG-APPROVALS",
+      "name": "City of Johannesburg land-use, building-plan, inspection and occupation approvals",
+      "publisher": "City of Johannesburg",
+      "url": "https://joburg.org.za/",
+      "state": "Version_or_Applicability_Unknown",
+      "known_position": "Municipal planning/building-control requirements depend on land use, location, building class/use and submission context. The correct municipal process and current bylaws/forms must be verified for each site.",
+      "required_checks": [
+        "Confirm zoning/land-use rights and conditions",
+        "Confirm applicable building-control submission and current forms",
+        "Retain building-plan decision, inspections and occupation certificate evidence where required",
+        "Map roads/reserves/public-space permits separately"
+      ],
+      "scope": "City of Johannesburg municipal jurisdiction"
+    },
+    {
+      "source_id": "SA-ENVIRONMENTAL-WATER-HERITAGE-PERMITS",
+      "name": "Environmental authorisation, water-use, waste, heritage and land permissions",
+      "publisher": "Relevant national/provincial/municipal authorities",
+      "url": "https://www.gov.za/",
+      "state": "Version_or_Applicability_Unknown",
+      "known_position": "Requirements are activity-, site- and resource-dependent. The inventory must not assume every permit applies or infer NotApplicable without a documented screening rationale.",
+      "required_checks": [
+        "Screen listed activities and environmental triggers",
+        "Check National Water Act/water-use requirements where relevant",
+        "Check waste licences/permits and lawful recovery destinations",
+        "Check heritage/road reserve/public-space permissions where relevant"
+      ],
+      "scope": "Site and activity specific"
+    }
+  ],
+  "global_rules": [
+    "A press release, target date or consultation notice is not evidence of an operative law or final standard.",
+    "A standard's existence is not proof of product conformity.",
+    "A product certificate does not automatically transfer to a different system, factory, material, installer, site or design revision.",
+    "Draft, operative, superseded, invalidated, announced, expired, revoked and unknown must remain distinct.",
+    "SANS standards text is copyrighted; record identifiers, edition, scope and lawful access, but do not redistribute text without rights.",
+    "Every real project requires applicability screening by qualified professionals and the relevant authority."
+  ]
+}
