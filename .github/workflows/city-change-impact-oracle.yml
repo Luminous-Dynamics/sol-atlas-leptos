@@ -1,0 +1,73 @@
+name: City Change Impact Projection Synthetic Oracle
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - "tools/city-change-impact-bench/**"
+      - "docs/research/city-change-impact/**"
+      - ".github/workflows/city-change-impact-oracle.yml"
+  push:
+    branches: ["main", "research/city-change-impact-v0.1"]
+    paths:
+      - "tools/city-change-impact-bench/**"
+      - "docs/research/city-change-impact/**"
+      - ".github/workflows/city-change-impact-oracle.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: city-change-impact-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  change-impact-projection:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: 1.96.0
+          components: rustfmt, clippy
+      - name: Check package formatting
+        run: cargo fmt --manifest-path tools/city-change-impact-bench/Cargo.toml --all -- --check
+      - name: Run locked Rust tests
+        run: cargo test --locked --manifest-path tools/city-change-impact-bench/Cargo.toml
+      - name: Run strict Clippy
+        run: cargo clippy --locked --manifest-path tools/city-change-impact-bench/Cargo.toml --all-targets -- -D warnings
+      - name: Emit exact-head change-impact receipt
+        shell: bash
+        run: |
+          set -euo pipefail
+          source_commit="$(git rev-parse HEAD)"
+          test "$source_commit" = "${{ github.event.pull_request.head.sha || github.sha }}"
+          cargo run --locked --quiet --manifest-path tools/city-change-impact-bench/Cargo.toml -- \
+            docs/research/city-change-impact/CITY_CHANGE_IMPACT_CORPUS_V0_1.json \
+            --source-commit "$source_commit" > city-change-impact-receipt.json
+          jq -e '
+            .result == "pass"
+            and .corpus_schema == "city-change-impact-corpus/0.1"
+            and .corpus_schema_version == "0.1.0"
+            and .corpus_profile == "owner_report_projection_v0.1"
+            and .evidence_class == "synthetic_fixture_only"
+            and .scenario_count == 28
+            and .failure_count == 0
+            and .action_authority == "none"
+            and (.corpus_sha256 | test("^[0-9a-f]{64}$"))
+            and (.source_commit | test("^[0-9a-f]{40}$"))
+            and (.scenarios | length == 28)
+            and (.scenarios | all(.status == "pass"))
+          ' city-change-impact-receipt.json
+      - name: Upload exact-head change-impact receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: city-change-impact-reference-receipt
+          path: city-change-impact-receipt.json
+          if-no-files-found: error
+          retention-days: 90
