@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "City Effective Access Composition Corpus v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_id",
+    "schema_version",
+    "corpus_id",
+    "classification",
+    "policy_note",
+    "claim_ceiling",
+    "cases"
+  ],
+  "properties": {
+    "schema_id": {
+      "const": "org.luminousdynamics.city-effective-access-composition.synthetic-corpus"
+    },
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "corpus_id": {
+      "const": "CITY-EFFECTIVE-ACCESS-COMPOSITION-CORPUS-V0.1"
+    },
+    "classification": {
+      "const": "synthetic_fixture_only"
+    },
+    "policy_note": {
+      "type": "string",
+      "minLength": 1
+    },
+    "claim_ceiling": {
+      "const": "synthetic_effective_access_and_delivery_composition_only"
+    },
+    "cases": {
+      "type": "array",
+      "minItems": 24,
+      "maxItems": 24,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "case_id",
+          "input",
+          "expected"
+        ],
+        "properties": {
+          "case_id": {
+            "type": "string",
+            "pattern": "^EAC-[0-9]{3}$"
+          },
+          "input": {
+            "type": "object"
+          },
+          "expected": {
+            "type": "object"
+          }
+        }
+      }
+    }
+  }
+}
