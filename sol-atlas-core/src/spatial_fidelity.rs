@@ -150,7 +150,7 @@ fn nearest_reference(
 
 fn f1(precision: f64, recall: f64) -> f64 {
     let denominator = precision + recall;
-    if denominator == 0.0 {
+    if denominator <= 0.0 {
         0.0
     } else {
         2.0 * precision * recall / denominator
@@ -193,7 +193,7 @@ fn validate_inputs(
         .map(|point| point.importance_weight)
         .fold(0.0, f64::max);
     for (point_index, point) in reference.iter().enumerate() {
-        if point.importance_weight / max_importance_weight == 0.0 {
+        if point.importance_weight / max_importance_weight <= 0.0 {
             return Err(SpatialFidelityError::InvalidImportanceWeight { point: point_index });
         }
     }
