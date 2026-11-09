@@ -243,6 +243,69 @@ fn legacy_v01(graph: &Value, event: &Value, report: &Value) -> Evaluation {
 
 fn evaluate_v02(graph: &Value, event: &Value, report: &Value) -> Evaluation {
     let mut reasons = BTreeSet::new();
+    check_exact_keys(
+        graph,
+        &[
+            "schema_version",
+            "graph_id",
+            "captured_at",
+            "graph_snapshot_sha256",
+            "nodes",
+            "edges",
+            "claim_ceiling",
+            "action_authority",
+        ],
+        "GRAPH_ROOT_FIELD_SET_INVALID",
+        &mut reasons,
+    );
+    check_exact_keys(
+        event,
+        &[
+            "schema_version",
+            "event_id",
+            "issuer_id",
+            "authority_sequence",
+            "previous_event_sha256",
+            "statement_sha256",
+            "cause_class",
+            "targets",
+            "scope",
+            "valid_time",
+            "system_time",
+            "invalidation_semantics",
+            "evidence_references",
+            "authority",
+            "dispute_state",
+            "action_authority",
+            "graph_schema_version",
+            "graph_snapshot_sha256",
+            "event_sha256",
+        ],
+        "EVENT_ROOT_FIELD_SET_INVALID",
+        &mut reasons,
+    );
+    check_exact_keys(
+        report,
+        &[
+            "schema_version",
+            "report_id",
+            "graph_schema_version",
+            "invalidation_event_schema_version",
+            "graph_snapshot_sha256",
+            "invalidation_event_sha256",
+            "impact_policy_sha256",
+            "impact_engine_build_sha256",
+            "evaluated_at",
+            "results",
+            "summary",
+            "historical_record_preserved",
+            "not_checked",
+            "claim_ceiling",
+            "action_authority",
+        ],
+        "REPORT_ROOT_FIELD_SET_INVALID",
+        &mut reasons,
+    );
     if text(graph, "schema_version") != GRAPH_V02
         || text(event, "schema_version") != EVENT_V02
         || text(report, "schema_version") != REPORT_V02
@@ -280,6 +343,39 @@ fn evaluate_v02(graph: &Value, event: &Value, report: &Value) -> Evaluation {
 
     let mut graph_ids = HashSet::new();
     for node in array(graph, "nodes") {
+        check_exact_keys(
+            node,
+            &[
+                "node_id",
+                "node_type",
+                "identity",
+                "identity_sha256",
+                "artifact_sha256",
+                "artifact_media_type",
+                "schema_version",
+                "issuer_id",
+                "scope",
+                "valid_time",
+                "observation_time",
+                "verification",
+            ],
+            "GRAPH_NODE_FIELD_SET_INVALID",
+            &mut reasons,
+        );
+        check_exact_keys(
+            node.get("identity").unwrap_or(&Value::Null),
+            &["identity_namespace", "components"],
+            "GRAPH_NODE_IDENTITY_FIELD_SET_INVALID",
+            &mut reasons,
+        );
+        for component in array(node.get("identity").unwrap_or(&Value::Null), "components") {
+            check_exact_keys(
+                component,
+                &["name", "value"],
+                "GRAPH_IDENTITY_COMPONENT_FIELD_SET_INVALID",
+                &mut reasons,
+            );
+        }
         if !graph_ids.insert(text(node, "node_id").to_owned()) {
             add(&mut reasons, "DUPLICATE_GRAPH_NODE_ID");
         }
@@ -288,7 +384,32 @@ fn evaluate_v02(graph: &Value, event: &Value, report: &Value) -> Evaluation {
 
     let semantics = text(event, "invalidation_semantics");
     let valid_time = event.get("valid_time").unwrap_or(&Value::Null);
+    let system_time = event.get("system_time").unwrap_or(&Value::Null);
     let authority = event.get("authority").unwrap_or(&Value::Null);
+    check_exact_keys(
+        valid_time,
+        &["effective_at", "effective_until", "effective_time_confidence"],
+        "EVENT_VALID_TIME_FIELD_SET_INVALID",
+        &mut reasons,
+    );
+    check_exact_keys(
+        system_time,
+        &["recorded_at", "trusted_at", "trusted_timestamp_receipt_sha256"],
+        "EVENT_SYSTEM_TIME_FIELD_SET_INVALID",
+        &mut reasons,
+    );
+    check_exact_keys(
+        authority,
+        &[
+            "authority_id",
+            "key_id",
+            "scope_policy_sha256",
+            "authorization_receipt_sha256",
+            "independent_review",
+        ],
+        "EVENT_AUTHORITY_FIELD_SET_INVALID",
+        &mut reasons,
+    );
     if semantics == "retroactive_from_effective_time"
         && (text(valid_time, "effective_time_confidence") != "verified"
             || text(valid_time, "effective_at").is_empty()
@@ -307,6 +428,12 @@ fn evaluate_v02(graph: &Value, event: &Value, report: &Value) -> Evaluation {
 
     let mut targets = BTreeSet::new();
     for target in array(event, "targets") {
+        check_exact_keys(
+            target,
+            &["node_id", "node_type", "identity_sha256", "artifact_sha256"],
+            "EVENT_TARGET_FIELD_SET_INVALID",
+            &mut reasons,
+        );
         let id = text(target, "node_id");
         if !targets.insert(id.to_owned()) {
             add(&mut reasons, "DUPLICATE_INVALIDATION_TARGET");
@@ -326,6 +453,22 @@ fn evaluate_v02(graph: &Value, event: &Value, report: &Value) -> Evaluation {
 
     let mut results = BTreeSet::new();
     for result in array(report, "results") {
+        check_exact_keys(
+            result,
+            &[
+                "node_id",
+                "node_type",
+                "identity_sha256",
+                "artifact_sha256",
+                "impact_class",
+                "historical_authenticity",
+                "current_reliance",
+                "dependency_path",
+                "reason_codes",
+            ],
+            "REPORT_RESULT_FIELD_SET_INVALID",
+            &mut reasons,
+        );
         let id = text(result, "node_id");
         if !results.insert(id.to_owned()) {
             add(&mut reasons, "DUPLICATE_IMPACT_RESULT_NODE");
