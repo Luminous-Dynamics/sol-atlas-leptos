@@ -453,6 +453,12 @@ fn frame_state(
     }
 }
 
+fn matching_rows<'a>(rows: &'a [Value], metric_id: &str) -> Vec<&'a Value> {
+    rows.iter()
+        .filter(|row| text(row, "metric_id") == metric_id)
+        .collect()
+}
+
 fn in_use_state(
     input: &Value,
     scope: &Value,
@@ -505,17 +511,23 @@ fn in_use_state(
 
     let service = object(input, "service_contract");
     let metric_id = text(service, "required_operational_metric_id");
-    let metric = array(in_use, "metric_results")
-        .iter()
-        .find(|row| text(row, "metric_id") == metric_id);
-    let Some(metric) = metric else {
+    let metric_rows = matching_rows(array(in_use, "metric_results"), metric_id);
+    if metric_rows.len() > 1 {
+        add(reasons, "REQUIRED_OPERATIONAL_METRIC_RESULT_DUPLICATE");
+        *invalid = true;
+        return "invalid".to_owned();
+    }
+    let Some(metric) = metric_rows.first().copied() else {
         add(reasons, "REQUIRED_OPERATIONAL_METRIC_MISSING");
         return "not_collected".to_owned();
     };
-    let metric_binding = array(in_use, "metric_bindings")
-        .iter()
-        .find(|row| text(row, "metric_id") == metric_id);
-    let Some(metric_binding) = metric_binding else {
+    let binding_rows = matching_rows(array(in_use, "metric_bindings"), metric_id);
+    if binding_rows.len() > 1 {
+        add(reasons, "REQUIRED_OPERATIONAL_METRIC_BINDING_DUPLICATE");
+        *invalid = true;
+        return "invalid".to_owned();
+    }
+    let Some(metric_binding) = binding_rows.first().copied() else {
         add(reasons, "REQUIRED_OPERATIONAL_METRIC_BINDING_MISSING");
         *not_comparable = true;
         return "not_comparable".to_owned();
@@ -676,12 +688,15 @@ fn resident_experience_state(
             );
             let in_use = object(input, "in_use");
             let metric_id = text(experience, "metric_id");
-            let metric_output = array(in_use, "metric_results")
-                .iter()
-                .find(|row| text(row, "metric_id") == metric_id);
-            let metric_binding = array(in_use, "metric_bindings")
-                .iter()
-                .find(|row| text(row, "metric_id") == metric_id);
+            let metric_outputs = matching_rows(array(in_use, "metric_results"), metric_id);
+            let metric_bindings = matching_rows(array(in_use, "metric_bindings"), metric_id);
+            if metric_outputs.len() > 1 || metric_bindings.len() > 1 {
+                add(reasons, "RESIDENT_EXPERIENCE_METRIC_BINDING_DUPLICATE");
+                *invalid = true;
+                return "invalid".to_owned();
+            }
+            let metric_output = metric_outputs.first().copied();
+            let metric_binding = metric_bindings.first().copied();
             if text(experience, "consent_state") != "authorized"
                 || text(experience, "purpose") != "service-assurance"
                 || text(experience, "evidence_kind") != "consented_survey"
