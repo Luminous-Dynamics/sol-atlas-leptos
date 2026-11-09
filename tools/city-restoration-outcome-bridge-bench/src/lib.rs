@@ -284,8 +284,16 @@ fn ref_is_visible(source: &Value, cut: &Value) -> bool {
         && ingested <= ingested_at
 }
 
-fn source_binding_exists(binding: &Value, source: &Value) -> bool {
+fn source_binding_exists(binding: &Value, source: &Value, scope: &Value) -> bool {
     if source.is_null() {
+        return false;
+    }
+    let source_matches_scope = text(source, "subject_id") == text(scope, "subject_id")
+        && text(source, "subject_digest") == text(scope, "subject_digest")
+        && text(source, "functional_unit") == text(scope, "functional_unit")
+        && text(source, "group_id") == text(scope, "group_id")
+        && text(source, "scenario_id") == text(scope, "scenario_id");
+    if !source_matches_scope {
         return false;
     }
     list(binding, "source_bindings").iter().any(|candidate| {
@@ -293,6 +301,12 @@ fn source_binding_exists(binding: &Value, source: &Value) -> bool {
             && text(candidate, "contract_id") == text(source, "contract_id")
             && text(candidate, "contract_revision") == text(source, "contract_revision")
             && text(candidate, "receipt_id") == text(source, "receipt_id")
+            && text(candidate, "source_scope_digest") == text(source, "source_scope_digest")
+            && text(candidate, "subject_id") == text(scope, "subject_id")
+            && text(candidate, "subject_digest") == text(scope, "subject_digest")
+            && text(candidate, "functional_unit") == text(scope, "functional_unit")
+            && text(candidate, "group_id") == text(scope, "group_id")
+            && text(candidate, "scenario_id") == text(scope, "scenario_id")
             && text(candidate, "binding_state") == "Bound"
             && text(candidate, "common_scope_digest") == text(binding, "common_scope_digest")
     })
@@ -300,6 +314,7 @@ fn source_binding_exists(binding: &Value, source: &Value) -> bool {
 
 fn owner_receipts_bound(input: &Value, reasons: &mut BTreeSet<String>) {
     let binding = object(input, "scope_binding");
+    let scope = object(input, "requested_scope");
     match text(binding, "binding_state") {
         "NotComparable" => {
             add(reasons, "COMMON_SCOPE_NOT_COMPARABLE");
@@ -351,7 +366,7 @@ fn owner_receipts_bound(input: &Value, reasons: &mut BTreeSet<String>) {
     let observation_ref = object(observation, "source_ref");
     if !observation.is_null()
         && !observation_ref.is_null()
-        && !source_binding_exists(binding, observation_ref)
+        && !source_binding_exists(binding, observation_ref, scope)
     {
         add(reasons, "MEASUREMENT_OWNER_RECEIPT_BINDING_INVALID");
     }
@@ -578,7 +593,11 @@ fn evaluate_current(input: &Value) -> (String, BTreeSet<String>) {
         let observation_ref = object(observation, "source_ref");
         if !observation_ref.is_null()
             && (!source_authority_valid(observation_ref)
-                || !source_binding_exists(object(input, "scope_binding"), observation_ref))
+                || !source_binding_exists(
+                object(input, "scope_binding"),
+                observation_ref,
+                object(input, "requested_scope"),
+            ))
         {
             add(&mut reasons, "MEASUREMENT_OWNER_RECEIPT_BINDING_INVALID");
             add(&mut reasons, "OWNER_RECEIPT_NOT_BOUND_TO_COMMON_SCOPE");
@@ -1093,6 +1112,51 @@ mod tests {
         let result = evaluate_case(&case);
         assert_eq!(result["historical_disposition"], "InsufficientEvidence");
         assert_eq!(result["bridge_disposition"], "RestoredForDeclaredScope");
+    }
+
+    #[test]
+    fn scope_binding_must_match_source_scope_digest_and_population_identity() {
+        let mut case = corpus()["cases"][0].clone();
+        case["input"]["scope_binding"]["source_bindings"][0]["source_scope_digest"] =
+            json!("9999999999999999999999999999999999999999999999999999999999999999");
+        let result = evaluate_case(&case);
+        assert_eq!(result["bridge_disposition"], "InsufficientEvidence");
+        assert!(
+            result["reason_codes"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|reason| reason == "OWNER_RECEIPT_NOT_BOUND_TO_COMMON_SCOPE")
+        );
+
+        let mut case = corpus()["cases"][0].clone();
+        case["input"]["scope_binding"]["source_bindings"][0]["subject_digest"] =
+            json!("9999999999999999999999999999999999999999999999999999999999999999");
+        let result = evaluate_case(&case);
+        assert_eq!(result["bridge_disposition"], "InsufficientEvidence");
+        assert!(
+            result["reason_codes"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|reason| reason == "OWNER_RECEIPT_NOT_BOUND_TO_COMMON_SCOPE")
+        );
+    }
+
+    #[test]
+    fn scope_binding_rejects_a_receipt_bound_to_another_functional_unit() {
+        let mut case = corpus()["cases"][0].clone();
+        case["input"]["scope_binding"]["source_bindings"][0]["functional_unit"] =
+            json!("FU-BLDG-01");
+        let result = evaluate_case(&case);
+        assert_eq!(result["bridge_disposition"], "InsufficientEvidence");
+        assert!(
+            result["reason_codes"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|reason| reason == "OWNER_RECEIPT_NOT_BOUND_TO_COMMON_SCOPE")
+        );
     }
 
     #[test]
