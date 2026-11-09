@@ -4,7 +4,7 @@
 //! feasibility, continuity, in-use outcomes, physical acceptance, or service
 //! delivery. Its claim ceiling is synthetic composition mechanics only.
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeSet, HashSet};
 
 use serde_json::{Value, json};
 
