@@ -761,9 +761,7 @@ pub fn validate_case(case: &Value, profiles: &Value) -> Vec<String> {
         // owner coverage below decides whether that gap blocks reliance.
     }
 
-    for key in ["required_owner_refs"] {
-        check_string_array(input, key, "input", &mut errors);
-    }
+    check_string_array(input, "required_owner_refs", "input", &mut errors);
     check_string_array(
         input.get("disclosure_request").unwrap_or(&Value::Null),
         "requested_fields",
