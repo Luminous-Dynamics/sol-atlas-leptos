@@ -357,3 +357,48 @@ Sources:
 - IEC standards and current editions: links in `ENERGY_COMPETITOR_VERSION_LOCK_V0_1.json`
 
 The programme's hydro scorecard must keep water service, treatment/effluent quality, environmental flow, rights/authorization, hydraulic performance, net energy and lifecycle economics as separate results and hard gates.
+
+
+## 14. Water-distribution network PAT benchmark: EPANET + service-constrained co-optimization
+
+### Immutable engine pins
+- Contemporary network engine: OWA-EPANET **v2.3.5**, commit `444725fbf16ab28b0470ef0ed281dc4849d49583`, released 2026-02-20.
+- Historical paper replay: OWA-EPANET **v2.2**, commit `4d8d82ddc260fce216af9321fc3d9a4646ac6827`.
+- EPANET 2.3 adds FAVAD pressure-dependent leakage, PCV, independent pressure units and Flow Balance reporting. Version 2.3.5 fixes flow-unit conversion for Generic curves and mixed-unit behavior.
+- Keep any Python orchestration package such as EPyT separately pinned; it is an interface, not the hydraulic solver. Production implementation should use the pinned OWA toolkit through an explicit Rust/C boundary where practical.
+
+### Matched comparisons
+1. Fixed PRV baseline.
+2. Static PAT at a declared BEP point.
+3. PAT selected using maximum, average and minimum discharge.
+4. 2021 UKZN PRV/PAT placement/setting optimizer, only after exact source model recovery.
+5. 2022 Cornubia five-PAT configuration reproduced using EPANET 2.2 and the study's original PRV-proxy/post-processing assumptions.
+6. 2025 Jowitt WDN study, preserving its DDA vs PDA and one-to-five PAT scenario matrix.
+7. 2026 Kalman filter + tracking MPC + actuator-settings-optimizer baseline.
+8. Proposed Luminous robust/service-constrained MPC candidate with coordinated PRV/PAT control and leakage-aware pressure management.
+
+### Co-simulation boundary
+- EPANET owns multi-node network hydraulics, demand, pressure, leakage, valve and flow-balance calculations.
+- A PAT-specific, evidence-backed hydraulic characteristic must reproduce the actual equipment pressure-drop/flow relationship. A generic head-loss curve/GPV representation is only valid after model- or field-test calibration and must not be described as native PAT physics.
+- Symtropy #4386 owns the matched component conversion from net head/flow through turbine/PAT efficiency, generator and auxiliaries to net electrical output.
+- A coupling iteration reconciles network pressure/flow with PAT settings. Non-convergence, map-domain violations or missing evidence return infeasible/indeterminate, never an extrapolated kW result.
+- Pressure-dependent leakage is part of the water balance. Water saved by pressure control and electricity recovered by PATs are separate outcomes.
+- Water hammer, surge, cavitation and protection remain specialist validation boundaries; steady EPANET runs do not certify them.
+
+### Primary metrics
+- Critical-node pressure: minimum margin, node-hours below minimum, worst pressure deficit and recovery time.
+- Delivered service: demanded vs delivered volume, pressure-driven demand deficit and service availability.
+- Leakage: kL/day and kL/month, pressure/leakage calibration residual, water-balance closure and uncertainty.
+- Energy: hydraulic input, shaft output, gross electrical, auxiliaries, net AC/DC, net kWh per m³ through the PAT, map coverage and export/self-consumption.
+- Controller: pressure tracking error, constraints violated, actuator movement/switching, starts/stops, chattering and fallback latency.
+- Robustness: held-out demand chronology, sensor noise/dropout, pressure/flow bias, pipe-roughness uncertainty, leakage-law mismatch, reservoir level and PAT-map drift.
+- Economics: energy value, avoided water-loss cost, lifecycle replacement/maintenance, outage and civil-work cost.
+- Computation: worst-case solve time, wall-clock/update, memory, deterministic replay and abstention rate.
+
+### Non-compensable gates
+Zero hard service-floor violations on the frozen synthetic negative-control corpus; no unexplained flow-balance residual; no PAT branch output outside its equipment map; no leakage/flow counted twice; no controller win achieved by reducing delivered demand; no use of PRV proxy as measured PAT evidence; no credited generation while bypass-only or without available head/flow.
+
+### Reproduction before superiority claims
+Reproduce the 2022 Cornubia 2.2 model outputs on exact data (166.31 kW and 45.59 kL/month under its declared assumptions). Then reproduce the 2025 DDA/PDA Jowitt matrix and the 2026 multi-node RTC baseline where full inputs are obtainable. Treat missing network files or supplementary data as `NOT_REPRODUCIBLE_FROM_PUBLIC_ARTIFACT`. The 2021 and 2022 Cornubia studies share geography and are not independent replications until their input networks/demand data are crosswalked.
+
+The candidate is **not “better than SOTA”** until it wins matched held-out network/time cases against these pinned baselines under equal sensor access, model calibration budget, computation budget and equipment evidence. Publish matched wins, losses and indeterminate cases.
