@@ -448,11 +448,21 @@ fn evaluate_current(input: &Value) -> (String, BTreeSet<String>) {
         add(&mut reasons, "COMMON_SCOPE_NOT_COMPARABLE");
     }
 
-    if !source_authority_valid(object(contract, "source_ref"))
-        || !source_authority_valid(object(restoration, "source_ref"))
-        || !source_authority_valid(object(interruption(input), "source_ref"))
+    let mut authority_refs = vec![
+        object(contract, "source_ref"),
+        object(restoration, "source_ref"),
+        object(interruption(input), "source_ref"),
+        object(continuity, "source_ref"),
+        object(measurement, "source_ref"),
+        object(object(measurement, "observation"), "source_ref"),
+    ];
+    if physical.get("required").and_then(Value::as_bool) == Some(true) {
+        authority_refs.push(object(physical, "source_ref"));
+    }
+    if authority_refs
+        .iter()
+        .any(|source| !source.is_null() && !source_authority_valid(source))
     {
-        // The continuity owner has its own explicit current/revoked state below.
         add(&mut reasons, "OWNER_EVIDENCE_NOT_CURRENT_AUTHORIZED");
     }
 
