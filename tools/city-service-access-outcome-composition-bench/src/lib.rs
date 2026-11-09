@@ -276,7 +276,7 @@ fn access_state(
         || text(population, "demand_unit") != text(frame, "demand_unit")
         || number(result, "demand") != number(frame, "demand")
         || text(result, "demand_unit") != text(frame, "demand_unit")
-        || population.get("population_count") != frame.get("population_count")
+        || population.get("population") != frame.get("population_count")
     {
         add(reasons, "ACCESS_DEMAND_FRAME_MISMATCH");
         *not_comparable = true;
@@ -433,7 +433,8 @@ fn in_use_state(
         *not_comparable = true;
     }
 
-    let metric_id = text(object(input, "service_contract"), "required_operational_metric_id");
+    let service = object(input, "service_contract");
+    let metric_id = text(service, "required_operational_metric_id");
     let metric = array(in_use, "metric_results")
         .iter()
         .find(|row| text(row, "metric_id") == metric_id);
@@ -441,13 +442,35 @@ fn in_use_state(
         add(reasons, "REQUIRED_OPERATIONAL_METRIC_MISSING");
         return "not_collected".to_owned();
     };
-    if text(metric, "evidence_class") != "service"
+    let metric_binding = array(in_use, "metric_bindings")
+        .iter()
+        .find(|row| text(row, "metric_id") == metric_id);
+    let Some(metric_binding) = metric_binding else {
+        add(reasons, "REQUIRED_OPERATIONAL_METRIC_BINDING_MISSING");
+        *not_comparable = true;
+        return "not_comparable".to_owned();
+    };
+    add_source_binding_result(
+        object(input, "scope_binding"),
+        object(metric_binding, "source_ref"),
+        scope,
+        reasons,
+        invalid,
+        not_comparable,
+        not_authorized,
+        "OPERATIONAL_METRIC",
+    );
+    if text(metric_binding, "evidence_class") != "service"
+        || text(metric_binding, "evidence_kind") != "service_receipt"
+        || text(metric_binding, "unit") != text(service, "required_operational_metric_unit")
+        || text(metric_binding, "calibration_state") != "current"
+        || number(metric_binding, "coverage_fraction").is_none_or(|v| {
+            v < number(service, "minimum_operational_coverage_fraction").unwrap_or(1.0)
+        })
         || text(metric, "observation_state") != "Current"
         || text(metric, "threshold_state") != "Pass"
-        || text(metric, "unit") != text(object(input, "service_contract"), "required_operational_metric_unit")
-        || number(metric, "coverage_fraction").is_none_or(|v| {
-            v < number(object(input, "service_contract"), "minimum_operational_coverage_fraction").unwrap_or(1.0)
-        })
+        || number(metric, "observed_value").is_none()
+        || text(metric, "unit") != text(service, "required_operational_metric_unit")
     {
         add(reasons, "REQUIRED_OPERATIONAL_METRIC_NOT_QUALIFIED");
         return "insufficient".to_owned();
@@ -578,6 +601,14 @@ fn resident_experience_state(
                 not_authorized,
                 "EXPERIENCE",
             );
+            let in_use = object(input, "in_use");
+            let metric_id = text(experience, "metric_id");
+            let metric_output = array(in_use, "metric_results")
+                .iter()
+                .find(|row| text(row, "metric_id") == metric_id);
+            let metric_binding = array(in_use, "metric_bindings")
+                .iter()
+                .find(|row| text(row, "metric_id") == metric_id);
             if text(experience, "consent_state") != "authorized"
                 || text(experience, "purpose") != "service-assurance"
                 || text(experience, "evidence_kind") != "consented_survey"
@@ -588,7 +619,12 @@ fn resident_experience_state(
                 || number(experience, "coverage_fraction").is_none_or(|v| {
                     v < number(object(input, "service_contract"), "minimum_experience_coverage_fraction").unwrap_or(1.0)
                 })
-                || text(experience, "metric_id").is_empty()
+                || metric_output.is_none_or(|row| text(row, "observation_state") != "Current")
+                || metric_binding.is_none_or(|row| {
+                    text(row, "evidence_class") != "experience"
+                        || text(row, "evidence_kind") != "consented_survey"
+                })
+                || metric_id.is_empty()
                 || number(experience, "observed_value").is_none()
             {
                 add(reasons, "RESIDENT_EXPERIENCE_EVIDENCE_NOT_QUALIFIED");
@@ -677,6 +713,16 @@ pub fn evaluate_case(case: &Value) -> Evaluation {
         add(&mut reasons, "SERVICE_CONTRACT_RECEIPT_INVALID");
         invalid = true;
     }
+    add_source_binding_result(
+        binding,
+        object(service, "source_ref"),
+        scope,
+        &mut reasons,
+        &mut invalid,
+        &mut not_comparable,
+        &mut not_authorized,
+        "SERVICE_CONTRACT",
+    );
 
     let frame = frame_state(frame, scope, binding, &mut reasons, &mut invalid, &mut not_comparable, &mut not_authorized);
     let restoration = restoration_state(input, scope, binding, &mut reasons, &mut invalid, &mut not_comparable, &mut not_authorized);
@@ -715,7 +761,7 @@ pub fn evaluate_case(case: &Value) -> Evaluation {
         "potential_access_constrained"
     } else if access == "unknown" {
         "potential_access_unknown"
-    } else if restoration == "unknown" || frame_state != "qualified" || operational != "qualified" {
+    } else if restoration == "unknown" || frame_state != "qualified" || operational != "qualified" || insufficient {
         "insufficient_evidence"
     } else if realized_use == "observed" {
         "realized_service_outcome_established"
