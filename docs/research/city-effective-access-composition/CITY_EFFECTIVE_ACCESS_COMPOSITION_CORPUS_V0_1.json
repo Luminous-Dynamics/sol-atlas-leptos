@@ -1487,7 +1487,11 @@
             "reachable_capacity_potential": 150,
             "capacity_unit": "visits/day",
             "operating_window_id": "weekday_day"
-          }
+          },
+          "owner_reason_codes": [
+            "SERVICE_AVAILABILITY_UNKNOWN",
+            "NETWORK_EDGE_UNKNOWN"
+          ]
         },
         "in_use": {
           "source_ref": {
@@ -1542,7 +1546,10 @@
         "aggregate_delivery_coverage_fraction": null,
         "experience_disclosure_state": "NotRequested",
         "composition_disposition": "InsufficientEvidence",
-        "reason_codes": [],
+        "reason_codes": [
+          "NETWORK_EDGE_UNKNOWN",
+          "SERVICE_AVAILABILITY_UNKNOWN"
+        ],
         "action_authority": "none",
         "claim_ceiling": "synthetic_effective_access_and_delivery_composition_only"
       }
