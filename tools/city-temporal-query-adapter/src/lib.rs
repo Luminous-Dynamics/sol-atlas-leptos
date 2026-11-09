@@ -419,7 +419,8 @@ fn equivalent(actual: &Value, expected: &Value) -> bool {
             left.len() == right.len() && left.iter().zip(right).all(|(a, b)| equivalent(a, b))
         }
         (Value::Object(left), Value::Object(right)) => right.iter().all(|(key, value)| {
-            left.get(key).is_some_and(|actual_value| equivalent(actual_value, value))
+            left.get(key)
+                .is_some_and(|actual_value| equivalent(actual_value, value))
         }),
         _ => actual == expected,
     }
@@ -505,11 +506,20 @@ mod tests {
         let cases = corpus()["cases"].as_array().unwrap();
         let historical = evaluate_case(&cases[1]);
         let reconstructed = evaluate_case(&cases[2]);
-        assert_eq!(historical["disposition"], "excluded_from_temporal_projection");
+        assert_eq!(
+            historical["disposition"],
+            "excluded_from_temporal_projection"
+        );
         assert_eq!(historical["knowledge_time_state"], "recorded_after_cutoff");
-        assert_eq!(reconstructed["disposition"], "eligible_for_declared_temporal_projection");
+        assert_eq!(
+            reconstructed["disposition"],
+            "eligible_for_declared_temporal_projection"
+        );
         assert_eq!(reconstructed["late_arrival"], true);
-        assert_eq!(reconstructed["temporal_perspective"], "currently_reconstructed_history");
+        assert_eq!(
+            reconstructed["temporal_perspective"],
+            "currently_reconstructed_history"
+        );
     }
 
     #[test]
@@ -517,7 +527,10 @@ mod tests {
         let cases = corpus()["cases"].as_array().unwrap();
         for index in [13usize, 14, 15, 16, 17] {
             assert_eq!(evaluate_case(&cases[index])["disposition"], "invalid_input");
-            assert_eq!(evaluate_case(&cases[index])["report_binding_state"], "mismatch");
+            assert_eq!(
+                evaluate_case(&cases[index])["report_binding_state"],
+                "mismatch"
+            );
         }
     }
 }
