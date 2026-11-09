@@ -1,6 +1,6 @@
 use energy_resource_registry_auditor::{audit_bytes, MAX_INPUT_BYTES};
 use std::env;
-use std::fs::{self, File};
+use std::fs::File;
 use std::io::{Read, Write};
 use std::path::PathBuf;
 use std::process::ExitCode;
