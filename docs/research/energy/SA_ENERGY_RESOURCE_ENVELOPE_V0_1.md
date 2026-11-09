@@ -386,3 +386,39 @@ References:
 - Cornubia 2022: https://doi.org/10.3390/w14071150
 - Jowitt 2025: https://doi.org/10.1016/j.egyr.2025.09.034
 - Multi-node PAT RTC/MPC 2026: https://doi.org/10.1016/j.conengprac.2026.106777
+
+
+## 16. South African field evidence: Queenswood, Pierre van Ryneveld and Leliefontein
+
+Three local field records are now separate in the source register. This is a meaningful upgrade from comparing South African simulations with overseas field evidence alone.
+
+### Queenswood Reservoir, Tshwane — WRC 2010 PAT pilot
+
+WRC KV 238/10 documents a low-budget PAT pilot at Queenswood. Table i contains five time-stamped readings. It reports measured output of approximately **2.32–4.52 kW**, turbine-branch flows of **27.55–32.49 L/s**, and head drops of **25.04–30.94 m**. The report describes these as initial observations from a pilot that was not optimized; the reverse-mode characteristics were manufacturer-estimated rather than a full, independently characterized PAT map.
+
+The 2014 Tshwane paper also describes Queenswood, but it is the **same installation** and must not be counted as an independent replication. The WRC table heading refers to measured output energy, while its column is watts; retain the actual power units. Five points do not establish a duty cycle, availability, seasonal performance or annual yield.
+
+### Pierre van Ryneveld Reservoir — Tshwane 2011 conduit-hydro installation
+
+The 2014 paper separately documents a cross-flow turbine and synchronous generator at Pierre van Ryneveld Reservoir, launched on 29 November 2011 for local lighting, alarm and communications loads. It describes three field experiments and gives approximately **15 kW maximum capacity depending on flow and head**. This is not a measured annual average or a current operating-status claim.
+
+Importantly, the paper records practical controller and hydraulic issues: generator frequency regulation, sudden load rejection, PRV hunting due to slow response, variable water supply/head, and manual operation. These should become explicit negative-control and fault-injection cases for modern PAT control, not be hidden as implementation details.
+
+### Leliefontein, Drakenstein — bidirectional municipal PAT station
+
+The 2021 IMESA paper describes the Leliefontein station as operating since June 2018. It is a bidirectional pump/PAT arrangement with reversible flow/rotation, active-front-end drives, actuated valves, grid protection, bidirectional metering and SCADA. This is especially valuable because it couples pumping and generation instead of treating the site as a one-way generator.
+
+The paper's **320 MWh/year** and **9.9 GWh over 2018–2041** values are estimates, not an admitted, audited meter export. A separate statement gives cumulative figures of **271,236 MWh generated** and **53,577 MWh consumed**, which are internally inconsistent with the paper's own annual/lifetime figures. We preserve that contradiction as unresolved; do not normalize, use as MWh or infer efficiency until the authors/operator confirm the units and original register data.
+
+### What we should request from operators
+
+1. Queenswood: the original five-point test log, instrument calibration, exact sample durations, PAT/bypass valve state, turbine speed and pressure/flow meter locations.
+2. Pierre van Ryneveld: three field experiment logs, generator voltage/frequency/power, flow/head, load-rejection traces, PRV response and current operating/maintenance status.
+3. Leliefontein: bidirectional meter exports and SCADA tags with timestamps, import/export register semantics, meter calibration, pump/turbine mode flags, flow/pressure, bypass/valve states, and the raw values behind the conflicting cumulative totals.
+
+No telemetry should be copied into the public repository without operator permission and an explicit data-rights review. The source register records the papers as published field evidence but keeps all original snapshots absent and all claims below the raw-data admission gate.
+
+Sources:
+- WRC KV 238/10: https://www.wrc.org.za/wp-content/uploads/mdocs/KV%20238-10.pdf
+- Tshwane conduit-hydropower case studies: https://www.scielo.org.za/scielo.php?pid=S1021-20192014000300001&script=sci_arttext
+- Leliefontein PAT station, IMESA 2021: https://researchspace.csir.co.za/bitstream/handle/10204/12279/Steyn_2021.pdf
