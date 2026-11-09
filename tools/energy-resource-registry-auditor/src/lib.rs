@@ -90,6 +90,7 @@ const EVIDENCE_BASIS_VALUES: &[&str] = &[
     "sector_policy_report",
     "discovery_catalogue",
     "availability_notice",
+    "literature_review",
 ];
 
 const AVAILABILITY_STATE_VALUES: &[&str] = &[
@@ -678,6 +679,7 @@ enum EvidenceBasis {
     SectorPolicyReport,
     DiscoveryCatalogue,
     AvailabilityNotice,
+    LiteratureReview,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
@@ -1106,8 +1108,8 @@ mod tests {
         let receipt = audit_bytes(SCHEMA_BYTES, REGISTRY_BYTES)
             .expect("checked-in schema and source registry must decode");
         assert_eq!(receipt.disposition, "accepted");
-        assert_eq!(receipt.entry_count, 13);
-        assert_eq!(receipt.source_ids.len(), 13);
+        assert_eq!(receipt.entry_count, 17);
+        assert_eq!(receipt.source_ids.len(), 17);
         assert_eq!(receipt.findings.len(), 0);
     }
 
@@ -1138,7 +1140,7 @@ mod tests {
         let receipt = audit_bytes(SCHEMA_BYTES, REGISTRY_BYTES)
             .expect("updated registry should remain structurally valid");
         assert_eq!(receipt.disposition, "accepted");
-        assert_eq!(receipt.entry_count, 13);
+        assert_eq!(receipt.entry_count, 17);
     }
 
     #[test]
@@ -1157,6 +1159,40 @@ mod tests {
             item.as_str()
                 .is_some_and(|text| text.contains("does not include South Africa"))
         }));
+    }
+
+    #[test]
+    fn south_african_hydropower_atlas_is_context_not_admitted_capacity() {
+        let value = parse_registry_value();
+        let entries = value["entries"].as_array().expect("entries array");
+        let atlas = entries
+            .iter()
+            .find(|entry| {
+                entry["source_id"] == "south-african-hydropower-atlas-report-tt916-23"
+            })
+            .expect("SA Hydropower Atlas report record");
+        assert_eq!(atlas["evidence_basis"], "modeled_resource_atlas");
+        assert_eq!(atlas["availability_state"], "context_only");
+        assert_eq!(atlas["raw_snapshot_ingested"], false);
+        assert!(atlas["claim_ceiling"]
+            .as_str()
+            .is_some_and(|claim| claim.contains("not measured site flow/head")));
+    }
+
+    #[test]
+    fn literature_review_is_not_mislabelled_as_a_field_measurement() {
+        let value = parse_registry_value();
+        let entries = value["entries"].as_array().expect("entries array");
+        let review = entries
+            .iter()
+            .find(|entry| entry["source_id"] == "wdn-hydropower-review-2026")
+            .expect("2026 WDN hydropower review record");
+        assert_eq!(review["evidence_basis"], "literature_review");
+        assert_ne!(review["evidence_basis"], "published_field_observation");
+        let receipt = audit_bytes(SCHEMA_BYTES, REGISTRY_BYTES)
+            .expect("updated registry should conform");
+        assert_eq!(receipt.disposition, "accepted");
+        assert_eq!(receipt.entry_count, 17);
     }
 
     #[test]
