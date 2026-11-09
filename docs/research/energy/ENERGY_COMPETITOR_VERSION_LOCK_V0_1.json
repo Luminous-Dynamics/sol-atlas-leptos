@@ -643,6 +643,98 @@
         "https://docs.rs/epanet-sys/2.3.0/epanet_sys/",
         "https://github.com/OpenWaterAnalytics/EPANET/releases/tag/v2.3.5"
       ]
+    },
+    {
+      "name": "Antalya full-scale PAT water-network operation",
+      "artifact": "Evaluation of performance and environmental benefits of a full-scale pump as turbine system in Antalya water distribution network",
+      "pinned_release": "Water Supply 2018, 18(1), 130–141; DOI 10.2166/ws.2017.087",
+      "companion_engine": null,
+      "release_date": "2018",
+      "role": [
+        "full-scale PAT/PRV bypass field operation",
+        "online flow, pressure and power monitoring",
+        "real-world pressure management and energy recovery"
+      ],
+      "important_limits": [
+        "Initial operational evidence covers approximately five months, not multi-year fleet reliability.",
+        "Published abstract reports 130–300 m3/h and 0.7–8.4 kWh for about 100 kPa pressure reduction, but the abstract does not state the energy interval; do not convert to kW or annual energy without the full paper.",
+        "Average efficiency 60% and 53-day / 1.8-month payback are case-specific; payback uses study financial/environmental assumptions.",
+        "2017 ASCE publication DOI 10.1061/(ASCE)WR.1943-5452.0000795 describes the same Antalya installation; do not treat it as an independent second plant."
+      ],
+      "pin_policy": "Pin the IWA Water Supply article, exact operational period, SCADA sampling interval, PAT/PRV topology, meter boundaries, uncertainty and any supplementary time series. Link the 2017 ASCE paper to the same installation identity.",
+      "references": [
+        "https://doi.org/10.2166/ws.2017.087",
+        "https://doi.org/10.1061/(ASCE)WR.1943-5452.0000795",
+        "https://iwaponline.com/ws/article-abstract/18/1/130/38216/Evaluation-of-performance-and-environmental"
+      ]
+    },
+    {
+      "name": "Manservigi et al. PAT regulation and 16 experimental turbomachine maps",
+      "artifact": "Hydraulic and electrical regulations of pumps as turbines for energy recovery in water distribution networks: Energy and economic analysis",
+      "pinned_release": "Cambridge Prisms: Water; published online 2025-06-16; DOI 10.1017/wat.2025.10004",
+      "companion_engine": null,
+      "release_date": "2025-06-16",
+      "role": [
+        "experimental PAT curves for 16 turbomachines",
+        "hydraulic versus electrical regulation comparison",
+        "real-world WDN techno-economic selection"
+      ],
+      "important_limits": [
+        "The 16 machine characteristic curves are experimental component evidence; the Northern Italy WDN integration is a model/case evaluation, not 16 commissioned field PATs.",
+        "The network serves approximately 5,000 users in Northern Italy and is not a South African validation site.",
+        "The paper reports 44.1% of available network hydraulic energy recoverable for its selected candidate, maximum investment €24,500, LCOE €74–180/MWh for hydraulic regulation and €269/MWh for electrical regulation under its case assumptions.",
+        "Electrical regulation bypasses the selected PAT in 72.4% of cases in the reported scenario; hydraulic/electrical operating policy and bypass losses materially affect recovery.",
+        "Article reuse licence is CC BY-NC; non-commercial reuse only, with commercial permission required."
+      ],
+      "pin_policy": "Pin article PDF/DOI, the exact 16 turbine-mode characteristic curves, measurement boundary and uncertainty. Reproduce the case study separately from the experimental curves; preserve non-commercial licence restrictions.",
+      "references": [
+        "https://doi.org/10.1017/wat.2025.10004",
+        "https://www.cambridge.org/core/journals/cambridge-prisms-water/article/hydraulic-and-electrical-regulations-of-pumps-as-turbines-for-energy-recovery-in-water-distribution-networks-energy-and-economic-analysis/11A8E6728AE92434D1A085B84378FC64"
+      ]
+    },
+    {
+      "name": "Pugliese et al. PAT test-rig characterization",
+      "artifact": "Experimental characterization of two Pumps As Turbines for hydropower generation",
+      "pinned_release": "Renewable Energy 99 (2016), 180–187; DOI 10.1016/j.renene.2016.06.051",
+      "companion_engine": null,
+      "release_date": "2016-12",
+      "role": [
+        "laboratory characterization of two pumps in turbine mode",
+        "comparison of experimental PAT curves to theoretical pump-to-turbine conversion models"
+      ],
+      "important_limits": [
+        "Only two pump configurations are described in the abstract; no universal pump-to-turbine conversion curve follows.",
+        "The paper notes the lack of manufacturer reverse-mode information and limited laboratory campaigns as an unresolved prediction problem.",
+        "Exact maps, test uncertainty and operating domains require full-paper data extraction."
+      ],
+      "pin_policy": "Pin exact pump identities, test-rig geometry, head, flow, rotational speed, torque/power, test uncertainty and original characteristic-curve tables before using the data.",
+      "references": [
+        "https://doi.org/10.1016/j.renene.2016.06.051",
+        "https://www.sciencedirect.com/science/article/pii/S0960148116305754"
+      ]
+    },
+    {
+      "name": "Parra et al. intelligent PAT/PRV pressure-control experiment",
+      "artifact": "Intelligent pressure management by pumps as turbines in water distribution systems: results of experimentation",
+      "pinned_release": "Water Supply 2018, 18(3), 778–789; DOI 10.2166/ws.2017.154",
+      "companion_engine": null,
+      "release_date": "2018-06",
+      "role": [
+        "laboratory PAT+PRV pressure modulation under variable discharge",
+        "critical-node pressure tracking",
+        "comparison with conventional PRV water-saving baseline"
+      ],
+      "important_limits": [
+        "Study combines hydraulic modelling and extensive experimentation for a German case; it is not a South African full-scale field trial.",
+        "2.3 kW is reported as a full-load maximum and 40% as maximum total net system efficiency; neither should be treated as sustained average output.",
+        "The up-to-16% water savings are relative to the tested conventional PRV setup and demand profile, not a universal leakage reduction.",
+        "Seasonal flow/pressure variability, investment and operational suitability require site-level analysis."
+      ],
+      "pin_policy": "Pin the full article/supplement, PAT model, variable-discharge test sequence, critical-point pressure target, flow/power metrology and exact net-system efficiency boundary.",
+      "references": [
+        "https://doi.org/10.2166/ws.2017.154",
+        "https://iwaponline.com/ws/article-abstract/18/3/778/38286/Intelligent-pressure-management-by-pumps-as"
+      ]
     }
   ]
 }
