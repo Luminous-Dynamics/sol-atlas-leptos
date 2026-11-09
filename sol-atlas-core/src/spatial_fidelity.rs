@@ -387,6 +387,36 @@ mod tests {
     }
 
     #[test]
+    fn feature_scores_are_invariant_to_uniform_weight_rescaling() {
+        let reference_a = [
+            ReferenceSample::new([0.0, 0.0, 0.0], 1.0),
+            ReferenceSample::new([1.0, 0.0, 0.0], 4.0),
+        ];
+        let reference_b = [
+            ReferenceSample::new([0.0, 0.0, 0.0], 10.0),
+            ReferenceSample::new([1.0, 0.0, 0.0], 40.0),
+        ];
+        let reconstruction = [
+            ReconstructedSample::new([0.05, 0.0, 0.0]),
+            ReconstructedSample::new([1.2, 0.0, 0.0]),
+        ];
+
+        let metrics_a =
+            evaluate_spatial_fidelity(&reference_a, &reconstruction, 0.1).expect("valid clouds");
+        let metrics_b =
+            evaluate_spatial_fidelity(&reference_b, &reconstruction, 0.1).expect("valid clouds");
+
+        assert_eq!(
+            metrics_a.feature_weighted_symmetric_chamfer_m,
+            metrics_b.feature_weighted_symmetric_chamfer_m
+        );
+        assert_eq!(
+            metrics_a.feature_f1_at_tolerance,
+            metrics_b.feature_f1_at_tolerance
+        );
+    }
+
+    #[test]
     fn rejects_empty_clouds_and_invalid_tolerances() {
         let reference = [ReferenceSample::new([0.0, 0.0, 0.0], 1.0)];
         let reconstruction = [ReconstructedSample::new([0.0, 0.0, 0.0])];
