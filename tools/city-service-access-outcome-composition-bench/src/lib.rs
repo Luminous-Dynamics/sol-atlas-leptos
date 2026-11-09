@@ -82,23 +82,27 @@ fn source_binding_matches(binding: &Value, source: &Value, scope: &Value) -> boo
     if source.is_null() || !same_scope_fields(source, scope) {
         return false;
     }
-    array(binding, "source_bindings").iter().any(|candidate| {
-        text(candidate, "owner") == text(source, "owner")
-            && text(candidate, "contract_id") == text(source, "contract_id")
-            && text(candidate, "contract_revision") == text(source, "contract_revision")
-            && text(candidate, "receipt_id") == text(source, "receipt_id")
-            && text(candidate, "source_scope_digest") == text(source, "source_scope_digest")
-            && text(candidate, "subject_id") == text(scope, "subject_id")
-            && text(candidate, "subject_digest") == text(scope, "subject_digest")
-            && text(candidate, "functional_unit") == text(scope, "functional_unit")
-            && text(candidate, "group_id") == text(scope, "group_id")
-            && text(candidate, "scenario_id") == text(scope, "scenario_id")
-            && text(candidate, "binding_state") == "Bound"
-            && text(candidate, "evidence_state") == "current"
-            && text(candidate, "rights_state") == "permitted"
-            && text(candidate, "issuer_state") == "authorized"
-            && text(candidate, "common_scope_digest") == text(binding, "common_scope_digest")
-    })
+    array(binding, "source_bindings")
+        .iter()
+        .filter(|candidate| {
+            text(candidate, "owner") == text(source, "owner")
+                && text(candidate, "contract_id") == text(source, "contract_id")
+                && text(candidate, "contract_revision") == text(source, "contract_revision")
+                && text(candidate, "receipt_id") == text(source, "receipt_id")
+                && text(candidate, "source_scope_digest") == text(source, "source_scope_digest")
+                && text(candidate, "subject_id") == text(scope, "subject_id")
+                && text(candidate, "subject_digest") == text(scope, "subject_digest")
+                && text(candidate, "functional_unit") == text(scope, "functional_unit")
+                && text(candidate, "group_id") == text(scope, "group_id")
+                && text(candidate, "scenario_id") == text(scope, "scenario_id")
+                && text(candidate, "binding_state") == "Bound"
+                && text(candidate, "evidence_state") == "current"
+                && text(candidate, "rights_state") == "permitted"
+                && text(candidate, "issuer_state") == "authorized"
+                && text(candidate, "common_scope_digest") == text(binding, "common_scope_digest")
+        })
+        .count()
+        == 1
 }
 
 fn add_source_binding_result(
@@ -215,7 +219,9 @@ fn restoration_state(
         add(reasons, "RESTORATION_EVIDENCE_INVALID");
         *invalid = true;
         "invalid".to_owned()
-    } else if matches!(disposition, "NotRestored" | "ProvisionalRecovery") || continuity != "Adequate" {
+    } else if matches!(disposition, "NotRestored" | "ProvisionalRecovery")
+        || matches!(continuity, "Constrained" | "Inaccessible")
+    {
         add(reasons, "RESTORATION_NOT_QUALIFIED_FOR_DECLARED_SCOPE");
         "not_restored".to_owned()
     } else {
@@ -268,7 +274,18 @@ fn access_state(
     }
 
     let population = object(access, "population_group");
-    let result = object(access, "group_result");
+    let group_results = array(access, "group_results");
+    if group_results.len() != 1 {
+        if group_results.len() > 1 {
+            add(reasons, "ACCESS_GROUP_RESULT_DUPLICATE");
+            *invalid = true;
+        } else {
+            add(reasons, "ACCESS_GROUP_RESULT_MISSING");
+            *not_comparable = true;
+        }
+        return "invalid".to_owned();
+    }
+    let result = &group_results[0];
     if text(population, "id") != text(scope, "group_id")
         || text(population, "frame_id") != text(frame, "frame_id")
         || text(result, "group_id") != text(scope, "group_id")
