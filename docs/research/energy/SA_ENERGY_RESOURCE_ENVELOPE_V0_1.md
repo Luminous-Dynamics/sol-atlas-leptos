@@ -312,3 +312,39 @@ Sources:
 - DWS Water Use Authorization Process: https://www.dws.gov.za/ewulaas/WUA.aspx
 
 No model result or SAHA candidate substitutes for a project-specific authorization, environmental-flow requirement, owner agreement or field acceptance test.
+
+
+## 15. WDN pressure, leakage and PAT control: contemporary benchmark architecture (checked 2026-11-09)
+
+The WDN research branch is now source-backed by five distinct South African and international references:
+- SAHA Wastewater Treatment Works layer (ArcGIS item 15265200a008406a951e40b7fb6d976f), a facility locator only; it has no measured outlet head/flow or current operational evidence.
+- UKZN's 2021 Cornubia/Pat Marshal optimisation dissertation; modelled PRV/PAT placement and leakage reduction, not field-metered generation.
+- The 2022 peer-reviewed Cornubia PAT study; its five-PAT configuration reports 166.31 kW candidate output and calculated 45.59 kL/month (18.16%) leakage reduction. It used EPANET 2.2 PRV proxies and post-processed PAT power using empirical BEP/flow/head assumptions, with 12-hour/day and 335-day/year operating assumptions. These are model outputs, not metered plant results.
+- The 2025 Jowitt network study compares one-to-five PAT layouts under DDA and PDA on a 24-hour extended-period simulation; reported energy differs between demand-driven and pressure-driven cases. PRVs performed better for leakage reduction in the paper's tested configurations, so pressure, delivered demand, leakage and generation must remain separate outcome fields.
+- The April 2026 multi-node PAT RTC study combines a Kalman filter for state/disturbance estimation, tracking MPC for multiple pressure outputs and an actuator-settings optimiser. Its evidence is closed-loop simulation on an unsteady pressure-driven model, not South African field deployment.
+
+### EPANET version policy
+
+Use **OWA-EPANET 2.3.5** (tag commit `444725fbf16ab28b0470ef0ed281dc4849d49583`, released 2026-02-20) as the current open network engine. EPANET 2.3 introduced:
+- FAVAD pressure-dependent pipe leakage;
+- Positional Control Valve (PCV);
+- independent pressure-unit conventions;
+- Flow Balance reporting;
+- other Toolkit and controls improvements.
+
+Version 2.3.5 fixes Generic-curve flow-unit conversion and mixed-unit handling. For a faithful replay of the 2022 Cornubia article, separately pin **OWA-EPANET 2.2** (tag commit `4d8d82ddc260fce216af9321fc3d9a4646ac6827`). A 2.3.5 result is a modern re-analysis, not an exact reproduction of a 2.2 paper result.
+
+EPANET is a network hydraulic solver, not an electrical PAT model. PAT behavior must not be represented by a PRV proxy and then reported as verified PAT power. A calibrated equipment-specific hydraulic characteristic can enter the network solution only if it reproduces the declared PAT head/flow boundary. The resulting operating point must be passed to Symtropy's evidence-bound PAT/generator map for net electrical output. This co-simulation remains a proposed benchmark architecture until validated against full manufacturer maps and physical test data.
+
+### What should distinguish Luminous
+
+The next frontier is a *water-first, pressure/leakage-aware energy control system*:
+1. Estimate node pressures, demand and disturbances with explicit sensor quality/uncertainty.
+2. Forecast demand and uncertainty across the network horizon.
+3. Keep minimum service pressure, delivered volume, treatment quality and ecological/water-use constraints as hard gates.
+4. Coordinate PRVs and PATs globally rather than maximizing each PAT's local power.
+5. Model pressure-dependent leakage and report water saved independently of electricity recovered.
+6. Use actuator penalties and equipment maps to prevent chattering, excessive cycling and out-of-domain operation.
+7. Include safe fallback and explicit indeterminate states when sensing, model fit or solver convergence is inadequate.
+
+The current programme issue for this work is Symtropy #4397. Its candidate controller is a proposed robust/service-constrained MPC benchmark, not a current field controller or claimed winner.
