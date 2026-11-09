@@ -15,7 +15,11 @@ fn text<'a>(value: &'a Value, key: &str) -> &'a str {
 }
 
 fn array<'a>(value: &'a Value, key: &str) -> &'a [Value] {
-    value.get(key).and_then(Value::as_array).map(Vec::as_slice).unwrap_or(&[])
+    value
+        .get(key)
+        .and_then(Value::as_array)
+        .map(Vec::as_slice)
+        .unwrap_or(&[])
 }
 
 fn number(value: &Value, key: &str) -> Option<u64> {
@@ -28,11 +32,10 @@ fn bool_value(value: &Value, key: &str) -> Option<bool> {
 
 fn is_lower_hex(value: &str, length: usize) -> bool {
     value.len() == length
-        && value.bytes().all(|byte| {
-            byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte)
-        })
+        && value
+            .bytes()
+            .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
 }
-
 
 fn valid_utc_timestamp(value: &str) -> bool {
     let bytes = value.as_bytes();
@@ -124,7 +127,10 @@ fn registry_validation_reasons(registry: &Value) -> BTreeSet<String> {
         if array(route, "required_families").is_empty() {
             reasons.insert("OWNER_ROUTE_HAS_NO_REQUIRED_FAMILIES".to_owned());
         }
-        for family in array(route, "required_families").iter().filter_map(Value::as_str) {
+        for family in array(route, "required_families")
+            .iter()
+            .filter_map(Value::as_str)
+        {
             if !required.insert(family.to_owned()) {
                 reasons.insert("OWNER_ROUTE_DUPLICATES_REQUIRED_FAMILY".to_owned());
             }
@@ -405,11 +411,10 @@ fn evaluate_lane(
                     if present < required || complete < required {
                         reasons.insert("SOURCE_INVENTORY_REQUIRED_OWNER_INCOMPLETE".to_owned());
                     }
-                    if complete_with_exclusions != 0
-                        || incomplete != 0
-                        || not_comparable != 0
-                    {
-                        reasons.insert("SOURCE_INVENTORY_HAS_EXCLUSIONS_OR_INCOMPLETE_MANIFESTS".to_owned());
+                    if complete_with_exclusions != 0 || incomplete != 0 || not_comparable != 0 {
+                        reasons.insert(
+                            "SOURCE_INVENTORY_HAS_EXCLUSIONS_OR_INCOMPLETE_MANIFESTS".to_owned(),
+                        );
                     }
                     if invalid != 0 {
                         reasons.insert("SOURCE_INVENTORY_MANIFEST_INVALID".to_owned());
@@ -430,9 +435,7 @@ fn evaluate_lane(
     let state = if reasons.is_empty() {
         "contract_bound_unverified"
     } else if reasons.iter().any(|reason| {
-        reason.contains("MISMATCH")
-            || reason.contains("INVALID")
-            || reason.contains("ESCALATION")
+        reason.contains("MISMATCH") || reason.contains("INVALID") || reason.contains("ESCALATION")
     }) {
         "invalid_input"
     } else {
@@ -482,7 +485,9 @@ pub fn evaluate_case(case: &Value, registry: &Value) -> Value {
     let confidence = text(valid_time, "effective_time_confidence");
     if !valid_utc_timestamp(effective_at)
         || valid_time.get("effective_until").is_none()
-        || (!valid_time.get("effective_until").is_some_and(Value::is_null)
+        || (!valid_time
+            .get("effective_until")
+            .is_some_and(Value::is_null)
             && !valid_utc_timestamp(effective_until))
         || !matches!(
             confidence,
@@ -506,8 +511,7 @@ pub fn evaluate_case(case: &Value, registry: &Value) -> Value {
     let trusted_receipt = trusted_receipt_value.and_then(Value::as_str).unwrap_or("");
     let explicitly_untrusted = trusted_at_value.is_some_and(Value::is_null)
         && trusted_receipt_value.is_some_and(Value::is_null);
-    let trusted_pair_valid = valid_utc_timestamp(trusted_at)
-        && is_lower_hex(trusted_receipt, 64);
+    let trusted_pair_valid = valid_utc_timestamp(trusted_at) && is_lower_hex(trusted_receipt, 64);
     if system_time.get("recorded_at").is_none()
         || trusted_at_value.is_none()
         || trusted_receipt_value.is_none()
@@ -851,7 +855,10 @@ mod tests {
         );
 
         let missing_trust_receipt = evaluate_case(&cases[33], &r);
-        assert_eq!(missing_trust_receipt["route_state"], "insufficient_evidence");
+        assert_eq!(
+            missing_trust_receipt["route_state"],
+            "insufficient_evidence"
+        );
         assert!(
             missing_trust_receipt["reason_codes"]
                 .as_array()
@@ -861,7 +868,10 @@ mod tests {
         );
 
         let invalid_report_with_disputed_time = evaluate_case(&cases[34], &r);
-        assert_eq!(invalid_report_with_disputed_time["route_state"], "invalid_input");
+        assert_eq!(
+            invalid_report_with_disputed_time["route_state"],
+            "invalid_input"
+        );
         assert!(
             invalid_report_with_disputed_time["reason_codes"]
                 .as_array()
@@ -889,7 +899,10 @@ mod tests {
 
         let incomplete = evaluate_case(&cases[36], &r);
         assert_eq!(incomplete["route_state"], "insufficient_evidence");
-        assert_eq!(incomplete["lane_results"][0]["state"], "insufficient_evidence");
+        assert_eq!(
+            incomplete["lane_results"][0]["state"],
+            "insufficient_evidence"
+        );
 
         let invalid = evaluate_case(&cases[37], &r);
         assert_eq!(invalid["route_state"], "invalid_input");
@@ -918,9 +931,19 @@ mod tests {
         );
         assert_eq!(
             no_impact_composition["required_families"],
-            json!(["artifact_revision", "dependency_coverage", "source_inventory"])
+            json!([
+                "artifact_revision",
+                "dependency_coverage",
+                "source_inventory"
+            ])
         );
-        assert_eq!(no_impact_composition["lane_results"].as_array().unwrap().len(), 3);
+        assert_eq!(
+            no_impact_composition["lane_results"]
+                .as_array()
+                .unwrap()
+                .len(),
+            3
+        );
 
         let bad_counter_sum = evaluate_case(&cases[42], &r);
         assert_eq!(bad_counter_sum["route_state"], "invalid_input");
@@ -933,7 +956,10 @@ mod tests {
         );
 
         let missing_observed_count = evaluate_case(&cases[43], &r);
-        assert_eq!(missing_observed_count["route_state"], "insufficient_evidence");
+        assert_eq!(
+            missing_observed_count["route_state"],
+            "insufficient_evidence"
+        );
         assert!(
             missing_observed_count["lane_results"][0]["reason_codes"]
                 .as_array()
