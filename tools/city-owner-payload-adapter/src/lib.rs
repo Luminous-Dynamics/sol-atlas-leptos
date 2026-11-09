@@ -423,19 +423,19 @@ fn evaluate_artifact(
             && text(record, "digest_basis") == digest_basis
     });
     if result_descriptor_matches && let Some(record) = result {
-            let observed_length = record.get("observed_byte_length").and_then(Value::as_u64);
-            let bytes_hashed = record.get("bytes_hashed").and_then(Value::as_u64);
-            byte_length_comparison_state =
-                match (expected_length, bool_value(record, "byte_length_matches")) {
-                    (Some(expected), Some(true))
-                        if observed_length == Some(expected) && bytes_hashed == Some(expected) =>
-                    {
-                        "matched"
-                    }
-                    (Some(_), Some(false)) | (Some(_), Some(true)) => "mismatch",
-                    (Some(_), None) => "not_verified",
-                    (None, _) => "not_declared",
-                };
+        let observed_length = record.get("observed_byte_length").and_then(Value::as_u64);
+        let bytes_hashed = record.get("bytes_hashed").and_then(Value::as_u64);
+        byte_length_comparison_state =
+            match (expected_length, bool_value(record, "byte_length_matches")) {
+                (Some(expected), Some(true))
+                    if observed_length == Some(expected) && bytes_hashed == Some(expected) =>
+                {
+                    "matched"
+                }
+                (Some(_), Some(false)) | (Some(_), Some(true)) => "mismatch",
+                (Some(_), None) => "not_verified",
+                (None, _) => "not_declared",
+            };
     }
     if !reasons.is_empty() {
         state = if reasons.iter().any(|reason| {
