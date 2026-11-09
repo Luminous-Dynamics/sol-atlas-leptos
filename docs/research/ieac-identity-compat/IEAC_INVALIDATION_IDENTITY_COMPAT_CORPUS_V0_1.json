@@ -1,0 +1,344 @@
+{
+  "corpus_id": "IEAC-INVALIDATION-IDENTITY-COMPAT-CORPUS-V0.1",
+  "schema_version": "0.1.0",
+  "classification": "synthetic_fixture_only",
+  "claim_ceiling": "synthetic_identity_content_compatibility_only",
+  "source_refs": {
+    "graph_schema": "schemas/industry-assurance-dependency-graph-v0.2.schema.json",
+    "event_schema": "schemas/industry-assurance-invalidation-event-v0.2.schema.json",
+    "report_schema": "schemas/industry-assurance-impact-report-v0.2.schema.json",
+    "identity_implementation": "PR #487 native identity v0.2",
+    "legacy_contracts": "PR #487 v0.1 invalidation event and impact report schemas"
+  },
+  "policy": "Frozen synthetic known-answer cases. The reference checker computes graph and event digests and recomputes native identity; schema compatibility is version-strict. No production event propagation or issuer authentication is performed.",
+  "cases": [
+    {
+      "case_id": "IEAC-001",
+      "mutation": "valid_source_evidence",
+      "expected": {
+        "case_id": "IEAC-001",
+        "mutation": "valid_source_evidence",
+        "accepted": true,
+        "compatibility": "v0_2_identity_and_content_bound",
+        "reason_codes": []
+      }
+    },
+    {
+      "case_id": "IEAC-002",
+      "mutation": "valid_engineering_artifact",
+      "expected": {
+        "case_id": "IEAC-002",
+        "mutation": "valid_engineering_artifact",
+        "accepted": true,
+        "compatibility": "v0_2_identity_and_content_bound",
+        "reason_codes": []
+      }
+    },
+    {
+      "case_id": "IEAC-003",
+      "mutation": "valid_engineering_receipt",
+      "expected": {
+        "case_id": "IEAC-003",
+        "mutation": "valid_engineering_receipt",
+        "accepted": true,
+        "compatibility": "v0_2_identity_and_content_bound",
+        "reason_codes": []
+      }
+    },
+    {
+      "case_id": "IEAC-004",
+      "mutation": "event_identity_mismatch",
+      "expected": {
+        "case_id": "IEAC-004",
+        "mutation": "event_identity_mismatch",
+        "accepted": false,
+        "compatibility": "v0_2_identity_and_content_bound",
+        "reason_codes": [
+          "INVALIDATION_TARGET_NODE_MISMATCH"
+        ]
+      }
+    },
+    {
+      "case_id": "IEAC-005",
+      "mutation": "event_artifact_mismatch",
+      "expected": {
+        "case_id": "IEAC-005",
+        "mutation": "event_artifact_mismatch",
+        "accepted": false,
+        "compatibility": "v0_2_identity_and_content_bound",
+        "reason_codes": [
+          "INVALIDATION_TARGET_NODE_MISMATCH"
+        ]
+      }
+    },
+    {
+      "case_id": "IEAC-006",
+      "mutation": "event_type_mismatch",
+      "expected": {
+        "case_id": "IEAC-006",
+        "mutation": "event_type_mismatch",
+        "accepted": false,
+        "compatibility": "v0_2_identity_and_content_bound",
+        "reason_codes": [
+          "INVALIDATION_TARGET_NODE_MISMATCH"
+        ]
+      }
+    },
+    {
+      "case_id": "IEAC-007",
+      "mutation": "unsupported_graph_node_type",
+      "expected": {
+        "case_id": "IEAC-007",
+        "mutation": "unsupported_graph_node_type",
+        "accepted": false,
+        "compatibility": "v0_2_identity_and_content_bound",
+        "reason_codes": [
+          "GRAPH_NODE_TYPE_UNSUPPORTED",
+          "IMPACT_RESULT_NODE_MISMATCH",
+          "INVALIDATION_TARGET_NODE_MISMATCH"
+        ]
+      }
+    },
+    {
+      "case_id": "IEAC-008",
+      "mutation": "absent_target",
+      "expected": {
+        "case_id": "IEAC-008",
+        "mutation": "absent_target",
+        "accepted": false,
+        "compatibility": "v0_2_identity_and_content_bound",
+        "reason_codes": [
+          "INVALIDATION_TARGET_NODE_MISSING"
+        ]
+      }
+    },
+    {
+      "case_id": "IEAC-009",
+      "mutation": "event_graph_snapshot_mismatch",
+      "expected": {
+        "case_id": "IEAC-009",
+        "mutation": "event_graph_snapshot_mismatch",
+        "accepted": false,
+        "compatibility": "v0_2_identity_and_content_bound",
+        "reason_codes": [
+          "EVENT_GRAPH_SNAPSHOT_MISMATCH"
+        ]
+      }
+    },
+    {
+      "case_id": "IEAC-010",
+      "mutation": "report_graph_snapshot_mismatch",
+      "expected": {
+        "case_id": "IEAC-010",
+        "mutation": "report_graph_snapshot_mismatch",
+        "accepted": false,
+        "compatibility": "v0_2_identity_and_content_bound",
+        "reason_codes": [
+          "REPORT_GRAPH_SNAPSHOT_MISMATCH"
+        ]
+      }
+    },
+    {
+      "case_id": "IEAC-011",
+      "mutation": "report_event_digest_mismatch",
+      "expected": {
+        "case_id": "IEAC-011",
+        "mutation": "report_event_digest_mismatch",
+        "accepted": false,
+        "compatibility": "v0_2_identity_and_content_bound",
+        "reason_codes": [
+          "REPORT_EVENT_DIGEST_MISMATCH"
+        ]
+      }
+    },
+    {
+      "case_id": "IEAC-012",
+      "mutation": "report_identity_mismatch",
+      "expected": {
+        "case_id": "IEAC-012",
+        "mutation": "report_identity_mismatch",
+        "accepted": false,
+        "compatibility": "v0_2_identity_and_content_bound",
+        "reason_codes": [
+          "IMPACT_RESULT_NODE_MISMATCH"
+        ]
+      }
+    },
+    {
+      "case_id": "IEAC-013",
+      "mutation": "report_artifact_mismatch",
+      "expected": {
+        "case_id": "IEAC-013",
+        "mutation": "report_artifact_mismatch",
+        "accepted": false,
+        "compatibility": "v0_2_identity_and_content_bound",
+        "reason_codes": [
+          "IMPACT_RESULT_NODE_MISMATCH"
+        ]
+      }
+    },
+    {
+      "case_id": "IEAC-014",
+      "mutation": "native_component_mutated",
+      "expected": {
+        "case_id": "IEAC-014",
+        "mutation": "native_component_mutated",
+        "accepted": false,
+        "compatibility": "v0_2_identity_and_content_bound",
+        "reason_codes": [
+          "NATIVE_IDENTITY_DIGEST_MISMATCH"
+        ]
+      }
+    },
+    {
+      "case_id": "IEAC-015",
+      "mutation": "duplicate_identity_component",
+      "expected": {
+        "case_id": "IEAC-015",
+        "mutation": "duplicate_identity_component",
+        "accepted": false,
+        "compatibility": "v0_2_identity_and_content_bound",
+        "reason_codes": [
+          "DUPLICATE_IDENTITY_COMPONENT"
+        ]
+      }
+    },
+    {
+      "case_id": "IEAC-016",
+      "mutation": "legacy_v0_1_triplet",
+      "expected": {
+        "case_id": "IEAC-016",
+        "mutation": "legacy_v0_1_triplet",
+        "accepted": true,
+        "compatibility": "legacy_v0_1_preserved_without_coercion",
+        "reason_codes": []
+      }
+    },
+    {
+      "case_id": "IEAC-017",
+      "mutation": "mixed_v02_graph_v01_event",
+      "expected": {
+        "case_id": "IEAC-017",
+        "mutation": "mixed_v02_graph_v01_event",
+        "accepted": false,
+        "compatibility": "mixed_or_unsupported_version_triplet",
+        "reason_codes": [
+          "VERSION_MATRIX_MISMATCH"
+        ]
+      }
+    },
+    {
+      "case_id": "IEAC-018",
+      "mutation": "mixed_v01_graph_v02_event",
+      "expected": {
+        "case_id": "IEAC-018",
+        "mutation": "mixed_v01_graph_v02_event",
+        "accepted": false,
+        "compatibility": "mixed_or_unsupported_version_triplet",
+        "reason_codes": [
+          "VERSION_MATRIX_MISMATCH"
+        ]
+      }
+    },
+    {
+      "case_id": "IEAC-019",
+      "mutation": "retroactive_unknown_effective_time",
+      "expected": {
+        "case_id": "IEAC-019",
+        "mutation": "retroactive_unknown_effective_time",
+        "accepted": false,
+        "compatibility": "v0_2_identity_and_content_bound",
+        "reason_codes": [
+          "INVALIDATION_AUTHORITY_INSUFFICIENT"
+        ]
+      }
+    },
+    {
+      "case_id": "IEAC-020",
+      "mutation": "pending_review_with_scitt_receipt",
+      "expected": {
+        "case_id": "IEAC-020",
+        "mutation": "pending_review_with_scitt_receipt",
+        "accepted": false,
+        "compatibility": "v0_2_identity_and_content_bound",
+        "reason_codes": [
+          "INVALIDATION_AUTHORITY_INSUFFICIENT"
+        ]
+      }
+    },
+    {
+      "case_id": "IEAC-021",
+      "mutation": "duplicate_graph_node_identity",
+      "expected": {
+        "case_id": "IEAC-021",
+        "mutation": "duplicate_graph_node_identity",
+        "accepted": false,
+        "compatibility": "v0_2_identity_and_content_bound",
+        "reason_codes": [
+          "DUPLICATE_GRAPH_NODE_ID"
+        ]
+      }
+    },
+    {
+      "case_id": "IEAC-022",
+      "mutation": "report_extra_unbound_node",
+      "expected": {
+        "case_id": "IEAC-022",
+        "mutation": "report_extra_unbound_node",
+        "accepted": false,
+        "compatibility": "v0_2_identity_and_content_bound",
+        "reason_codes": [
+          "IMPACT_RESULT_NODE_MISSING"
+        ]
+      }
+    },
+    {
+      "case_id": "IEAC-023",
+      "mutation": "legacy_v01_report_in_v02_triplet",
+      "expected": {
+        "case_id": "IEAC-023",
+        "mutation": "legacy_v01_report_in_v02_triplet",
+        "accepted": false,
+        "compatibility": "mixed_or_unsupported_version_triplet",
+        "reason_codes": [
+          "VERSION_MATRIX_MISMATCH"
+        ]
+      }
+    },
+    {
+      "case_id": "IEAC-024",
+      "mutation": "component_order_permuted",
+      "expected": {
+        "case_id": "IEAC-024",
+        "mutation": "component_order_permuted",
+        "accepted": true,
+        "compatibility": "v0_2_identity_and_content_bound",
+        "reason_codes": []
+      }
+    },
+    {
+      "case_id": "IEAC-025",
+      "mutation": "same_payload_distinct_native_identities",
+      "expected": {
+        "case_id": "IEAC-025",
+        "mutation": "same_payload_distinct_native_identities",
+        "accepted": true,
+        "compatibility": "v0_2_identity_and_content_bound",
+        "reason_codes": []
+      }
+    },
+    {
+      "case_id": "IEAC-026",
+      "mutation": "missing_impact_result_for_existing_target",
+      "expected": {
+        "case_id": "IEAC-026",
+        "mutation": "missing_impact_result_for_existing_target",
+        "accepted": false,
+        "compatibility": "v0_2_identity_and_content_bound",
+        "reason_codes": [
+          "IMPACT_RESULT_MISSING_INVALIDATION_TARGET"
+        ]
+      }
+    }
+  ]
+}

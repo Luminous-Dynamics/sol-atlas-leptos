@@ -1,0 +1,265 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/schemas/industry-assurance-impact-report-v0.2.schema.json",
+  "title": "IEAC Assurance Dependency Impact Report v0.2",
+  "description": "Deterministic impact classification over an exact IEAC v0.2 graph snapshot and v0.2 invalidation event. Native identity and current payload content remain separate typed bindings.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "report_id",
+    "graph_snapshot_sha256",
+    "invalidation_event_sha256",
+    "impact_policy_sha256",
+    "impact_engine_build_sha256",
+    "evaluated_at",
+    "results",
+    "summary",
+    "historical_record_preserved",
+    "not_checked",
+    "claim_ceiling",
+    "action_authority",
+    "graph_schema_version",
+    "invalidation_event_schema_version"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "luminous.ieac-assurance-impact-report.v0.2"
+    },
+    "report_id": {
+      "type": "string",
+      "minLength": 8,
+      "maxLength": 128
+    },
+    "graph_snapshot_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "invalidation_event_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "impact_policy_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "impact_engine_build_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "evaluated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "results": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 100000,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "node_id",
+          "node_type",
+          "artifact_sha256",
+          "impact_class",
+          "historical_authenticity",
+          "current_reliance",
+          "dependency_path",
+          "reason_codes",
+          "identity_sha256"
+        ],
+        "properties": {
+          "node_id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_-]*:identity-sha256:[0-9a-f]{64}$"
+          },
+          "node_type": {
+            "enum": [
+              "source_measurement",
+              "signed_statement",
+              "transparency_receipt",
+              "issuer_key",
+              "transparency_service_key",
+              "schema",
+              "transformation",
+              "model",
+              "policy",
+              "authority_grant",
+              "decision",
+              "action_authorization",
+              "execution",
+              "outcome",
+              "verifier_build",
+              "trust_bundle",
+              "source_evidence",
+              "engineering_artifact",
+              "engineering_receipt"
+            ]
+          },
+          "artifact_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "impact_class": {
+            "enum": [
+              "no_impact",
+              "historical_record_only",
+              "reverify_required",
+              "claim_invalidated",
+              "quarantined_pending_review"
+            ]
+          },
+          "historical_authenticity": {
+            "enum": [
+              "valid_at_time",
+              "invalid_at_time",
+              "unknown",
+              "not_applicable"
+            ]
+          },
+          "current_reliance": {
+            "enum": [
+              "eligible",
+              "reverify_required",
+              "ineligible",
+              "quarantined",
+              "not_applicable"
+            ]
+          },
+          "dependency_path": {
+            "type": "array",
+            "maxItems": 10000,
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            }
+          },
+          "reason_codes": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            }
+          },
+          "identity_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$",
+            "description": "Recomputed native identity digest for this exact node; not the payload content digest."
+          }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "node_count",
+        "no_impact_count",
+        "historical_record_only_count",
+        "reverify_required_count",
+        "claim_invalidated_count",
+        "quarantined_pending_review_count"
+      ],
+      "properties": {
+        "node_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "no_impact_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "historical_record_only_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "reverify_required_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "claim_invalidated_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "quarantined_pending_review_count": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "historical_record_preserved": {
+      "const": true
+    },
+    "claim_ceiling": {
+      "enum": [
+        "record_only",
+        "observation_only",
+        "not_identified",
+        "incomplete_or_indeterminate"
+      ]
+    },
+    "action_authority": {
+      "const": "none"
+    },
+    "not_checked": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 512
+      }
+    },
+    "graph_schema_version": {
+      "const": "luminous.ieac-assurance-dependency-graph.v0.2"
+    },
+    "invalidation_event_schema_version": {
+      "const": "luminous.ieac-assurance-invalidation-event.v0.2"
+    }
+  },
+  "allOf": [
+    {
+      "properties": {
+        "results": {
+          "items": {
+            "if": {
+              "properties": {
+                "impact_class": {
+                  "const": "no_impact"
+                }
+              },
+              "required": [
+                "impact_class"
+              ]
+            },
+            "then": {
+              "properties": {
+                "dependency_path": {
+                  "maxItems": 0
+                },
+                "historical_authenticity": {
+                  "enum": [
+                    "not_applicable",
+                    "valid_at_time"
+                  ]
+                },
+                "current_reliance": {
+                  "enum": [
+                    "eligible",
+                    "not_applicable"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

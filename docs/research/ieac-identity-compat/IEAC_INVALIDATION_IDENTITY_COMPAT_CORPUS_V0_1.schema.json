@@ -1,0 +1,100 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/ieac-invalidation-identity-compat-corpus-v0.1.schema.json",
+  "title": "IEAC Invalidation Identity Compatibility Synthetic Corpus v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "corpus_id",
+    "schema_version",
+    "classification",
+    "claim_ceiling",
+    "source_refs",
+    "policy",
+    "cases"
+  ],
+  "properties": {
+    "corpus_id": {
+      "const": "IEAC-INVALIDATION-IDENTITY-COMPAT-CORPUS-V0.1"
+    },
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "classification": {
+      "const": "synthetic_fixture_only"
+    },
+    "claim_ceiling": {
+      "const": "synthetic_identity_content_compatibility_only"
+    },
+    "source_refs": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "policy": {
+      "type": "string",
+      "minLength": 1
+    },
+    "cases": {
+      "type": "array",
+      "minItems": 26,
+      "maxItems": 26,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "case_id",
+          "mutation",
+          "expected"
+        ],
+        "properties": {
+          "case_id": {
+            "type": "string",
+            "pattern": "^IEAC-[0-9]{3}$"
+          },
+          "mutation": {
+            "type": "string",
+            "minLength": 1
+          },
+          "expected": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "case_id",
+              "mutation",
+              "accepted",
+              "compatibility",
+              "reason_codes"
+            ],
+            "properties": {
+              "case_id": {
+                "type": "string"
+              },
+              "mutation": {
+                "type": "string"
+              },
+              "accepted": {
+                "type": "boolean"
+              },
+              "compatibility": {
+                "enum": [
+                  "v0_2_identity_and_content_bound",
+                  "legacy_v0_1_preserved_without_coercion",
+                  "mixed_or_unsupported_version_triplet"
+                ]
+              },
+              "reason_codes": {
+                "type": "array",
+                "uniqueItems": true,
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
