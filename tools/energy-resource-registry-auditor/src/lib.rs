@@ -632,7 +632,7 @@ enum SourceType {
     PortalStatus,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Deserialize)]
 #[serde(rename_all = "snake_case")]
 enum ResourceFamily {
     Solar,
@@ -781,7 +781,10 @@ fn valid_https_url(value: &str) -> bool {
     if rest.is_empty() || rest.chars().any(char::is_whitespace) {
         return false;
     }
-    let authority = rest.split(['/', '?', '#']).next().unwrap_or_default();
+    let authority = rest
+        .split(|character| matches!(character, '/' | '?' | '#'))
+        .next()
+        .unwrap_or_default();
     !authority.is_empty()
         && !authority.starts_with('.')
         && !authority.ends_with('.')
@@ -1058,7 +1061,7 @@ mod tests {
         serde_json::from_slice(REGISTRY_BYTES).expect("checked-in registry JSON must parse")
     }
 
-    fn audit_mutated_registry(mut value: Value) -> AuditReceipt {
+    fn audit_mutated_registry(value: Value) -> AuditReceipt {
         let bytes = serde_json::to_vec(&value).expect("mutated JSON must serialize");
         audit_bytes(SCHEMA_BYTES, &bytes).expect("parseable registry returns a receipt")
     }
