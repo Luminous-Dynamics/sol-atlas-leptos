@@ -80,6 +80,142 @@ const EXPECTED_KEYS: &[&str] = &[
     "causal_effect_established",
 ];
 
+fn skip_json_whitespace(bytes: &[u8], cursor: &mut usize) {
+    while bytes
+        .get(*cursor)
+        .is_some_and(|byte| matches!(*byte, 32 | 10 | 13 | 9))
+    {
+        *cursor += 1;
+    }
+}
+
+fn scan_json_string_token<'a>(bytes: &'a [u8], cursor: &mut usize) -> Result<&'a str, String> {
+    let start = *cursor;
+    if bytes.get(*cursor).copied() != Some(34) {
+        return Err("JSON_STRING_EXPECTED".to_owned());
+    }
+    *cursor += 1;
+    while let Some(byte) = bytes.get(*cursor).copied() {
+        match byte {
+            34 => {
+                *cursor += 1;
+                return std::str::from_utf8(&bytes[start..*cursor])
+                    .map_err(|_| "JSON_NOT_UTF8".to_owned());
+            }
+            92 => {
+                *cursor += 1;
+                if *cursor >= bytes.len() {
+                    return Err("JSON_STRING_ESCAPE_TRUNCATED".to_owned());
+                }
+                *cursor += 1;
+            }
+            _ => *cursor += 1,
+        }
+    }
+    Err("JSON_STRING_UNTERMINATED".to_owned())
+}
+
+/// Scan original bytes before serde_json creates maps; compare decoded key spellings.
+fn scan_json_value(bytes: &[u8], cursor: &mut usize) -> Result<(), String> {
+    skip_json_whitespace(bytes, cursor);
+    match bytes.get(*cursor).copied() {
+        Some(123) => {
+            *cursor += 1;
+            skip_json_whitespace(bytes, cursor);
+            if bytes.get(*cursor).copied() == Some(125) {
+                *cursor += 1;
+                return Ok(());
+            }
+            let mut keys = HashSet::new();
+            loop {
+                skip_json_whitespace(bytes, cursor);
+                let token = scan_json_string_token(bytes, cursor)?;
+                let key: String = serde_json::from_str(token)
+                    .map_err(|_| "JSON_OBJECT_KEY_INVALID".to_owned())?;
+                if !keys.insert(key.clone()) {
+                    return Err(format!("JSON_DUPLICATE_MEMBER_KEY:{key}"));
+                }
+                skip_json_whitespace(bytes, cursor);
+                if bytes.get(*cursor).copied() != Some(58) {
+                    return Err("JSON_OBJECT_COLON_EXPECTED".to_owned());
+                }
+                *cursor += 1;
+                scan_json_value(bytes, cursor)?;
+                skip_json_whitespace(bytes, cursor);
+                match bytes.get(*cursor).copied() {
+                    Some(44) => *cursor += 1,
+                    Some(125) => {
+                        *cursor += 1;
+                        return Ok(());
+                    }
+                    _ => return Err("JSON_OBJECT_SEPARATOR_EXPECTED".to_owned()),
+                }
+            }
+        }
+        Some(91) => {
+            *cursor += 1;
+            skip_json_whitespace(bytes, cursor);
+            if bytes.get(*cursor).copied() == Some(93) {
+                *cursor += 1;
+                return Ok(());
+            }
+            loop {
+                scan_json_value(bytes, cursor)?;
+                skip_json_whitespace(bytes, cursor);
+                match bytes.get(*cursor).copied() {
+                    Some(44) => *cursor += 1,
+                    Some(93) => {
+                        *cursor += 1;
+                        return Ok(());
+                    }
+                    _ => return Err("JSON_ARRAY_SEPARATOR_EXPECTED".to_owned()),
+                }
+            }
+        }
+        Some(34) => {
+            let token = scan_json_string_token(bytes, cursor)?;
+            serde_json::from_str::<String>(token)
+                .map(|_| ())
+                .map_err(|_| "JSON_STRING_INVALID".to_owned())
+        }
+        Some(_) => {
+            let start = *cursor;
+            while bytes
+                .get(*cursor)
+                .is_some_and(|byte| !matches!(*byte, 32 | 10 | 13 | 9 | 44 | 93 | 125))
+            {
+                *cursor += 1;
+            }
+            if *cursor == start {
+                Err("JSON_VALUE_EXPECTED".to_owned())
+            } else {
+                Ok(())
+            }
+        }
+        None => Err("JSON_VALUE_EXPECTED".to_owned()),
+    }
+}
+
+/// Reject duplicate decoded keys, malformed UTF-8, invalid JSON and trailing bytes.
+pub fn parse_unique_json_bytes(bytes: &[u8]) -> Result<Value, String> {
+    let input = std::str::from_utf8(bytes).map_err(|_| "JSON_NOT_UTF8".to_owned())?;
+    let mut cursor = 0;
+    scan_json_value(bytes, &mut cursor)?;
+    skip_json_whitespace(bytes, &mut cursor);
+    if cursor != bytes.len() {
+        return Err("JSON_TRAILING_CONTENT".to_owned());
+    }
+    serde_json::from_str(input).map_err(|error| format!("JSON_PARSE_FAILED:{error}"))
+}
+
+fn profile_for<'a>(profiles: &'a Value, record: &Value) -> Option<&'a Value> {
+    array(profiles, "profiles").iter().find(|profile| {
+        string(profile, "owner") == string(record, "owner")
+            && string(profile, "schema_id") == string(record, "schema_id")
+    })
+}
+
+
 fn text<'a>(value: &'a Value, key: &str) -> &'a str {
     value.get(key).and_then(Value::as_str).unwrap_or("")
 }
@@ -629,6 +765,13 @@ mod tests {
                 case["expected"]
             );
         }
+    }
+
+    #[test]
+    fn duplicate_decoded_json_keys_are_rejected_before_map_creation() {
+        assert!(parse_unique_json_bytes(br#"{"claim":1,"claim":1}"#).is_err());
+        assert!(parse_unique_json_bytes(br#"{"claim":1,"\\u0063laim":2}"#).is_err());
+        assert!(parse_unique_json_bytes(br#"{"ok":true} trailing"#).is_err());
     }
 
     #[test]
