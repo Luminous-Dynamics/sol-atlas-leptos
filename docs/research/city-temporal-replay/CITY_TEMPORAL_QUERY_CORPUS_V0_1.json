@@ -1749,6 +1749,299 @@
           "OWNER_REPORT_EVENT_TIME_BINDING_MISMATCH"
         ]
       }
+    },
+    {
+      "case_id": "TR-25",
+      "name": "Knowledge cutoff after evaluation time is invalid",
+      "input": {
+        "query": {
+          "schema_version": "luminous.citymaker-temporal-query.v0.1",
+          "time_basis": "UTC_RFC3339_SECONDS",
+          "world_time_as_of": "2026-11-07T12:00:00Z",
+          "knowledge_time_as_of": "2026-11-10T00:00:00Z",
+          "trust_time_as_of": "2026-11-07T13:30:00Z",
+          "evaluated_at": "2026-11-09T05:30:00Z",
+          "temporal_perspective": "historically_known_then"
+        },
+        "event": {
+          "time_basis": "UTC_RFC3339_SECONDS",
+          "event_id": "EVENT-25",
+          "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "subject_node_id": "artifact:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "subject_revision": "REV-2",
+          "valid_time": {
+            "effective_at": "2026-11-06T00:00:00Z",
+            "effective_until": null,
+            "effective_time_confidence": "verified"
+          },
+          "system_time": {
+            "recorded_at": "2026-11-07T12:00:00Z",
+            "trusted_at": "2026-11-07T12:00:30Z",
+            "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          }
+        },
+        "owner_report": {
+          "report_id": "REPORT-25",
+          "event_id": "EVENT-25",
+          "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "subject_node_id": "artifact:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "subject_revision": "REV-2",
+          "query_binding": {
+            "time_basis": "UTC_RFC3339_SECONDS",
+            "world_time_as_of": "2026-11-07T12:00:00Z",
+            "knowledge_time_as_of": "2026-11-10T00:00:00Z",
+            "trust_time_as_of": "2026-11-07T13:30:00Z",
+            "evaluated_at": "2026-11-09T05:30:00Z",
+            "temporal_perspective": "historically_known_then"
+          },
+          "valid_time": {
+            "effective_at": "2026-11-06T00:00:00Z",
+            "effective_until": null,
+            "effective_time_confidence": "verified"
+          },
+          "system_time": {
+            "recorded_at": "2026-11-07T12:00:00Z",
+            "trusted_at": "2026-11-07T12:00:30Z",
+            "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          },
+          "report_evaluated_at": "2026-11-09T05:30:00Z",
+          "report_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddd00000019",
+          "report_reference": "cas:sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddd00000019",
+          "action_authority": "none"
+        }
+      },
+      "expected": {
+        "disposition": "invalid_input",
+        "temporal_perspective": "historically_known_then",
+        "world_time_state": "valid_at_world_time",
+        "knowledge_time_state": "known_by_cutoff",
+        "trust_time_state": "trusted_by_cutoff",
+        "report_binding_state": "bound",
+        "late_arrival": true,
+        "reason_codes": [
+          "TEMPORAL_QUERY_CUTOFF_AFTER_EVALUATION"
+        ]
+      }
+    },
+    {
+      "case_id": "TR-26",
+      "name": "Trust cutoff after evaluation time is invalid",
+      "input": {
+        "query": {
+          "schema_version": "luminous.citymaker-temporal-query.v0.1",
+          "time_basis": "UTC_RFC3339_SECONDS",
+          "world_time_as_of": "2026-11-07T12:00:00Z",
+          "knowledge_time_as_of": "2026-11-07T13:00:00Z",
+          "trust_time_as_of": "2026-11-10T00:00:00Z",
+          "evaluated_at": "2026-11-09T05:30:00Z",
+          "temporal_perspective": "historically_known_then"
+        },
+        "event": {
+          "time_basis": "UTC_RFC3339_SECONDS",
+          "event_id": "EVENT-26",
+          "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "subject_node_id": "artifact:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "subject_revision": "REV-2",
+          "valid_time": {
+            "effective_at": "2026-11-06T00:00:00Z",
+            "effective_until": null,
+            "effective_time_confidence": "verified"
+          },
+          "system_time": {
+            "recorded_at": "2026-11-07T12:00:00Z",
+            "trusted_at": "2026-11-07T12:00:30Z",
+            "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          }
+        },
+        "owner_report": {
+          "report_id": "REPORT-26",
+          "event_id": "EVENT-26",
+          "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "subject_node_id": "artifact:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "subject_revision": "REV-2",
+          "query_binding": {
+            "time_basis": "UTC_RFC3339_SECONDS",
+            "world_time_as_of": "2026-11-07T12:00:00Z",
+            "knowledge_time_as_of": "2026-11-07T13:00:00Z",
+            "trust_time_as_of": "2026-11-10T00:00:00Z",
+            "evaluated_at": "2026-11-09T05:30:00Z",
+            "temporal_perspective": "historically_known_then"
+          },
+          "valid_time": {
+            "effective_at": "2026-11-06T00:00:00Z",
+            "effective_until": null,
+            "effective_time_confidence": "verified"
+          },
+          "system_time": {
+            "recorded_at": "2026-11-07T12:00:00Z",
+            "trusted_at": "2026-11-07T12:00:30Z",
+            "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          },
+          "report_evaluated_at": "2026-11-09T05:30:00Z",
+          "report_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddd0000001a",
+          "report_reference": "cas:sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddd0000001a",
+          "action_authority": "none"
+        }
+      },
+      "expected": {
+        "disposition": "invalid_input",
+        "temporal_perspective": "historically_known_then",
+        "world_time_state": "valid_at_world_time",
+        "knowledge_time_state": "known_by_cutoff",
+        "trust_time_state": "trusted_by_cutoff",
+        "report_binding_state": "bound",
+        "late_arrival": true,
+        "reason_codes": [
+          "TEMPORAL_QUERY_CUTOFF_AFTER_EVALUATION"
+        ]
+      }
+    },
+    {
+      "case_id": "TR-27",
+      "name": "Event recorded after evaluation is excluded as hindsight",
+      "input": {
+        "query": {
+          "schema_version": "luminous.citymaker-temporal-query.v0.1",
+          "time_basis": "UTC_RFC3339_SECONDS",
+          "world_time_as_of": "2026-11-07T12:00:00Z",
+          "knowledge_time_as_of": "2026-11-07T13:00:00Z",
+          "trust_time_as_of": "2026-11-07T13:30:00Z",
+          "evaluated_at": "2026-11-09T05:30:00Z",
+          "temporal_perspective": "historically_known_then"
+        },
+        "event": {
+          "time_basis": "UTC_RFC3339_SECONDS",
+          "event_id": "EVENT-27",
+          "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "subject_node_id": "artifact:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "subject_revision": "REV-2",
+          "valid_time": {
+            "effective_at": "2026-11-06T00:00:00Z",
+            "effective_until": null,
+            "effective_time_confidence": "verified"
+          },
+          "system_time": {
+            "recorded_at": "2026-11-10T10:00:00Z",
+            "trusted_at": "2026-11-10T10:00:30Z",
+            "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          }
+        },
+        "owner_report": {
+          "report_id": "REPORT-27",
+          "event_id": "EVENT-27",
+          "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "subject_node_id": "artifact:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "subject_revision": "REV-2",
+          "query_binding": {
+            "time_basis": "UTC_RFC3339_SECONDS",
+            "world_time_as_of": "2026-11-07T12:00:00Z",
+            "knowledge_time_as_of": "2026-11-07T13:00:00Z",
+            "trust_time_as_of": "2026-11-07T13:30:00Z",
+            "evaluated_at": "2026-11-09T05:30:00Z",
+            "temporal_perspective": "historically_known_then"
+          },
+          "valid_time": {
+            "effective_at": "2026-11-06T00:00:00Z",
+            "effective_until": null,
+            "effective_time_confidence": "verified"
+          },
+          "system_time": {
+            "recorded_at": "2026-11-10T10:00:00Z",
+            "trusted_at": "2026-11-10T10:00:30Z",
+            "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          },
+          "report_evaluated_at": "2026-11-09T05:30:00Z",
+          "report_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddd0000001b",
+          "report_reference": "cas:sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddd0000001b",
+          "action_authority": "none"
+        }
+      },
+      "expected": {
+        "disposition": "excluded_from_temporal_projection",
+        "temporal_perspective": "historically_known_then",
+        "world_time_state": "valid_at_world_time",
+        "knowledge_time_state": "recorded_after_evaluation",
+        "trust_time_state": "trusted_after_evaluation",
+        "report_binding_state": "bound",
+        "late_arrival": true,
+        "reason_codes": [
+          "EVENT_RECORDED_AFTER_EVALUATION_TIME",
+          "EVENT_TRUSTED_AFTER_EVALUATION_TIME"
+        ]
+      }
+    },
+    {
+      "case_id": "TR-28",
+      "name": "Trust timestamp after evaluation cannot be used as trusted then",
+      "input": {
+        "query": {
+          "schema_version": "luminous.citymaker-temporal-query.v0.1",
+          "time_basis": "UTC_RFC3339_SECONDS",
+          "world_time_as_of": "2026-11-07T12:00:00Z",
+          "knowledge_time_as_of": "2026-11-07T13:00:00Z",
+          "trust_time_as_of": "2026-11-07T13:30:00Z",
+          "evaluated_at": "2026-11-09T05:30:00Z",
+          "temporal_perspective": "historically_known_then"
+        },
+        "event": {
+          "time_basis": "UTC_RFC3339_SECONDS",
+          "event_id": "EVENT-28",
+          "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "subject_node_id": "artifact:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "subject_revision": "REV-2",
+          "valid_time": {
+            "effective_at": "2026-11-06T00:00:00Z",
+            "effective_until": null,
+            "effective_time_confidence": "verified"
+          },
+          "system_time": {
+            "recorded_at": "2026-11-07T12:00:00Z",
+            "trusted_at": "2026-11-10T10:00:30Z",
+            "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          }
+        },
+        "owner_report": {
+          "report_id": "REPORT-28",
+          "event_id": "EVENT-28",
+          "event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "subject_node_id": "artifact:identity-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "subject_revision": "REV-2",
+          "query_binding": {
+            "time_basis": "UTC_RFC3339_SECONDS",
+            "world_time_as_of": "2026-11-07T12:00:00Z",
+            "knowledge_time_as_of": "2026-11-07T13:00:00Z",
+            "trust_time_as_of": "2026-11-07T13:30:00Z",
+            "evaluated_at": "2026-11-09T05:30:00Z",
+            "temporal_perspective": "historically_known_then"
+          },
+          "valid_time": {
+            "effective_at": "2026-11-06T00:00:00Z",
+            "effective_until": null,
+            "effective_time_confidence": "verified"
+          },
+          "system_time": {
+            "recorded_at": "2026-11-07T12:00:00Z",
+            "trusted_at": "2026-11-10T10:00:30Z",
+            "trusted_timestamp_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          },
+          "report_evaluated_at": "2026-11-09T05:30:00Z",
+          "report_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddd0000001c",
+          "report_reference": "cas:sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddd0000001c",
+          "action_authority": "none"
+        }
+      },
+      "expected": {
+        "disposition": "excluded_from_temporal_projection",
+        "temporal_perspective": "historically_known_then",
+        "world_time_state": "valid_at_world_time",
+        "knowledge_time_state": "known_by_cutoff",
+        "trust_time_state": "trusted_after_evaluation",
+        "report_binding_state": "bound",
+        "late_arrival": true,
+        "reason_codes": [
+          "EVENT_TRUSTED_AFTER_EVALUATION_TIME"
+        ]
+      }
     }
   ]
 }
