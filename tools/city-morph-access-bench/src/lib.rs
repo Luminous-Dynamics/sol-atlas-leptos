@@ -782,7 +782,7 @@ mod tests {
         let register = source_register();
         let count = super::validate_source_register(&register)
             .expect("source register must satisfy its evidence contract");
-        assert_eq!(count, 21);
+        assert_eq!(count, 22);
 
         let sources = register["sources"].as_array().unwrap();
         let online_maps = sources
@@ -827,6 +827,27 @@ mod tests {
         assert_eq!(transit["access_status"], "Unknown");
         assert_eq!(transit["rights_status"], "Unknown");
         assert!(transit["url"].is_null());
+
+        let udap = sources
+            .iter()
+            .find(|source| source["source_id"] == "JDA-JOHANNESBURG-UDAP-2026")
+            .unwrap();
+        assert_eq!(udap["access_status"], "VerifiedPublic");
+        assert_eq!(udap["rights_status"], "Unknown");
+        assert!(
+            udap["unknowns"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|item| item.as_str().unwrap().contains("facility-level findings"))
+        );
+        assert!(
+            udap["known_facts"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|fact| fact.as_str().unwrap().contains("2026-06-09"))
+        );
 
         let survey = sources
             .iter()
