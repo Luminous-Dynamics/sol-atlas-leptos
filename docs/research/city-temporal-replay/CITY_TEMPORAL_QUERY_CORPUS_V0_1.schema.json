@@ -95,10 +95,9 @@
                     "format": "date-time"
                   },
                   "temporal_perspective": {
-                    "enum": [
-                      "historically_known_then",
-                      "currently_reconstructed_history"
-                    ]
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Runtime permits historically_known_then or currently_reconstructed_history; unsupported values are retained as invalid-input negative controls."
                   }
                 }
               },
@@ -269,10 +268,9 @@
                         "format": "date-time"
                       },
                       "temporal_perspective": {
-                        "enum": [
-                          "historically_known_then",
-                          "currently_reconstructed_history"
-                        ]
+                        "type": "string",
+                        "minLength": 1,
+                        "description": "Must exactly equal the query perspective; unsupported values are retained as negative controls."
                       }
                     }
                   },
