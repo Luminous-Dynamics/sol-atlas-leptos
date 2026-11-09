@@ -76,10 +76,7 @@ fn main() -> ExitCode {
     }
     let errors = validate_corpus(&corpus);
     if !errors.is_empty() {
-        return invalid_input(&format!(
-            "invalid corpus structure: {}",
-            errors.join(",")
-        ));
+        return invalid_input(&format!("invalid corpus structure: {}", errors.join(",")));
     }
 
     let cases = corpus["cases"].as_array().expect("validated cases array");
@@ -124,7 +121,10 @@ fn main() -> ExitCode {
         "claim_ceiling": CLAIM_CEILING,
         "scenarios": scenarios
     });
-    println!("{}", serde_json::to_string_pretty(&receipt).expect("receipt serializes"));
+    println!(
+        "{}",
+        serde_json::to_string_pretty(&receipt).expect("receipt serializes")
+    );
 
     if failures == 0 {
         ExitCode::SUCCESS
