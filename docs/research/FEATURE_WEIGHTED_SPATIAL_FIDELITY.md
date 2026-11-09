@@ -46,6 +46,19 @@ Both directional errors are returned so a pooled score cannot hide missing refer
 
 The implementation is an O(n*m) deterministic reference oracle for modest fixtures. It deliberately does not implement registration, filtering, meshing, normal estimation, scanner calibration, rights evaluation or physical validation. Inputs must already be in the same calibrated coordinate frame. A spatial index and scalable point-cloud implementation are later optimizations, not part of this correctness baseline.
 
+### Frozen synthetic known-answer case
+
+The lost-inscription unit test contains 100 reference samples and 100 reconstructed samples. Ninety-nine ordinary surface samples are exact; one semantic feature sample (weight 100 versus weight 1 for ordinary samples) is displaced by 1 metre. At a 0.1 metre tolerance, the exact expected values are:
+
+| Metric | Expected value |
+|---|---:|
+| Global symmetric Chamfer (mean Euclidean, metres) | 0.010000 |
+| Feature-weighted symmetric Chamfer (metres) | 100 / 199 ≈ 0.502513 |
+| Global precision / recall / F1 | 0.99 / 0.99 / 0.99 |
+| Feature precision / recall / F1 | 99 / 199 / 99 / 199 / 99 / 199 ≈ 0.497487 each |
+
+This illustrates the intended measurement behavior: the global score reports a very small error because only one of one hundred points is lost, while the externally annotated high-importance feature receives a much larger penalty. It is a synthetic mathematical fixture, not a measured scan or benchmark result.
+
 ## 4. Evaluation protocol
 
 Freeze semantic annotations before candidate evaluation. Publish the annotation rubric, annotator roles, disagreement, adjudication and any community-defined authority or access restrictions. Do not infer weights from candidate model confidence or tune them after viewing benchmark outputs.
