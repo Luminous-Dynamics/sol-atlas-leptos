@@ -72,6 +72,7 @@ fn is_invalid_reason(reason: &str) -> bool {
         || reason.contains("INVALID")
         || reason.contains("ESCALATION")
         || reason == "EVENT_TRUST_TIME_ORDER_INVALID"
+        || reason == "TEMPORAL_QUERY_CUTOFF_AFTER_EVALUATION"
         || reason == "CHANGE_EVENT_SYSTEM_TIME_BINDING_INVALID"
         || reason == "CHANGE_EVENT_TEMPORAL_BINDING_INVALID"
 }
@@ -459,14 +460,44 @@ mod tests {
     }
 
     #[test]
-    fn corpus_has_24_unique_cases() {
+    fn corpus_has_28_unique_cases() {
         let cases = corpus()["cases"].as_array().unwrap();
-        assert_eq!(cases.len(), 24);
+        assert_eq!(cases.len(), 28);
         let ids = cases
             .iter()
             .map(|case| case["case_id"].as_str().unwrap())
             .collect::<std::collections::BTreeSet<_>>();
-        assert_eq!(ids.len(), 24);
+        assert_eq!(ids.len(), 28);
+    }
+
+    #[test]
+    fn no_future_knowledge_or_trust_enters_a_query() {
+        let cases = corpus()["cases"].as_array().unwrap();
+        let future_knowledge_cutoff = evaluate_case(&cases[24]);
+        assert_eq!(future_knowledge_cutoff["disposition"], "invalid_input");
+
+        let future_trust_cutoff = evaluate_case(&cases[25]);
+        assert_eq!(future_trust_cutoff["disposition"], "invalid_input");
+
+        let recorded_after_evaluation = evaluate_case(&cases[26]);
+        assert_eq!(
+            recorded_after_evaluation["disposition"],
+            "excluded_from_temporal_projection"
+        );
+        assert_eq!(
+            recorded_after_evaluation["knowledge_time_state"],
+            "recorded_after_evaluation"
+        );
+
+        let trusted_after_evaluation = evaluate_case(&cases[27]);
+        assert_eq!(
+            trusted_after_evaluation["disposition"],
+            "excluded_from_temporal_projection"
+        );
+        assert_eq!(
+            trusted_after_evaluation["trust_time_state"],
+            "trusted_after_evaluation"
+        );
     }
 
     #[test]
