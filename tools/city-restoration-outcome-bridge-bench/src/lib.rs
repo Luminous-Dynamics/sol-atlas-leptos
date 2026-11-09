@@ -209,9 +209,9 @@ pub fn parse_unique_json_bytes(bytes: &[u8]) -> Result<Value, String> {
 }
 
 fn profile_for<'a>(profiles: &'a Value, record: &Value) -> Option<&'a Value> {
-    array(profiles, "profiles").iter().find(|profile| {
-        string(profile, "owner") == string(record, "owner")
-            && string(profile, "schema_id") == string(record, "schema_id")
+    list(profiles, "profiles").iter().find(|profile| {
+        text(profile, "owner") == text(record, "owner")
+            && text(profile, "schema_id") == text(record, "schema_id")
     })
 }
 
