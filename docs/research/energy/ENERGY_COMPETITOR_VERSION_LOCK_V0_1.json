@@ -620,6 +620,29 @@
         "https://docs.rs/crate/epanet-rs/0.2.3",
         "https://github.com/Vitens/epanet-rs/tree/fee0d03b11ed71a6da7366f07290d6e44556add4"
       ]
+    },
+    {
+      "name": "Rust safe OWA EPANET API wrapper",
+      "artifact": "epanet 0.3.0 safe Rust wrapper around the OWA EPANET 2.3 C API",
+      "pinned_release": "Crates.io/docs.rs epanet 0.3.0; underlying epanet-sys 2.3.0",
+      "companion_engine": "OpenWaterAnalytics EPANET C toolkit",
+      "release_date": null,
+      "role": [
+        "Safe Rust interface to the official OWA EPANET C engine",
+        "Extended-period hydraulic simulation and node/link result retrieval"
+      ],
+      "important_limits": [
+        "This wraps the OWA C solver; it is not an independent hydraulic solver.",
+        "The EPANET project handle is Send but not Sync; a project instance requires synchronization for shared concurrent access.",
+        "The lower-level epanet-sys crate builds the C submodule with CMake and bindgen and requires a C compiler and libclang.",
+        "Cross-platform builds and exact compatibility with the pinned 2.3.5 source must be verified."
+      ],
+      "pin_policy": "Pin epanet 0.3.0 and transitive dependencies; pin exact OWA EPANET C engine tag/commit, native build configuration and platform binary/source digests.",
+      "references": [
+        "https://docs.rs/epanet/0.3.0/epanet/",
+        "https://docs.rs/epanet-sys/2.3.0/epanet_sys/",
+        "https://github.com/OpenWaterAnalytics/EPANET/releases/tag/v2.3.5"
+      ]
     }
   ]
 }
