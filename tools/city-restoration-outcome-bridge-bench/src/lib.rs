@@ -527,7 +527,8 @@ fn evaluate_current(input: &Value) -> (String, BTreeSet<String>) {
         add(&mut reasons, "ACCEPTED_PHYSICAL_OUTPUT_MISSING");
     }
 
-    if text(continuity, "state") != "Adequate" {
+    let recurrence_count = tick(object(continuity, "trajectory"), "recurrence_count").unwrap_or(0);
+    if text(continuity, "state") != "Adequate" && recurrence_count == 0 {
         add(&mut reasons, "SERVICE_NOT_ADEQUATE");
     }
     let stable = object(continuity, "stable_adequacy");
@@ -543,7 +544,7 @@ fn evaluate_current(input: &Value) -> (String, BTreeSet<String>) {
     {
         add(&mut reasons, "STABLE_ADEQUACY_INTERVAL_NOT_ESTABLISHED");
     }
-    if tick(object(continuity, "trajectory"), "recurrence_count").unwrap_or(0) > 0 {
+    if recurrence_count > 0 {
         add(&mut reasons, "RECURRENT_SERVICE_DEGRADATION");
         add(&mut reasons, "STABLE_ADEQUACY_INTERVAL_NOT_ESTABLISHED");
     }
