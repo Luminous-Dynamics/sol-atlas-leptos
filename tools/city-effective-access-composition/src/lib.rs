@@ -726,7 +726,7 @@ pub fn validate_corpus(corpus: &Value) -> Vec<String> {
         );
         require_keys(
             object(access, "opportunity"),
-            &["service_id", "status", "reachable_capacity_potential", "capacity_unit", "operating_window_id"],
+            &["service_id", "status", "reachable_capacity_potential", "capacity_unit", "operating_window_id", "reason_codes"],
             &format!("{case_path}.access.opportunity"),
             &mut errors,
         );
