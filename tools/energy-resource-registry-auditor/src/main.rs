@@ -1,6 +1,6 @@
 use energy_resource_registry_auditor::{audit_bytes, MAX_INPUT_BYTES};
 use std::env;
-use std::fs::File;
+use std::fs::{File, OpenOptions};
 use std::io::{Read, Write};
 use std::path::PathBuf;
 use std::process::ExitCode;
@@ -46,6 +46,9 @@ fn run() -> Result<u8, String> {
     let schema_path = PathBuf::from(&arguments[0]);
     let registry_path = PathBuf::from(&arguments[1]);
     let receipt_path = PathBuf::from(&arguments[2]);
+    if receipt_path == schema_path || receipt_path == registry_path {
+        return Err("receipt path must not overwrite either input file".to_owned());
+    }
 
     let schema_bytes = read_bounded(&schema_path)?;
     let registry_bytes = read_bounded(&registry_path)?;
@@ -54,8 +57,11 @@ fn run() -> Result<u8, String> {
 
     let receipt_bytes = serde_json::to_vec_pretty(&receipt)
         .map_err(|cause| format!("serialize audit receipt: {cause}"))?;
-    let mut output = File::create(&receipt_path)
-        .map_err(|cause| format!("create {}: {cause}", receipt_path.display()))?;
+    let mut output = OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .open(&receipt_path)
+        .map_err(|cause| format!("create new {}: {cause}", receipt_path.display()))?;
     output
         .write_all(&receipt_bytes)
         .map_err(|cause| format!("write {}: {cause}", receipt_path.display()))?;
