@@ -9,6 +9,7 @@ use std::collections::{BTreeSet, HashSet};
 use serde_json::{Value, json};
 
 pub const CORPUS_ID: &str = "CITY-EFFECTIVE-ACCESS-COMPOSITION-CORPUS-V0.1";
+pub const CORPUS_CASE_COUNT: usize = 28;
 pub const CLAIM_CEILING: &str = "synthetic_effective_access_and_delivery_composition_only";
 
 fn skip_json_whitespace(bytes: &[u8], cursor: &mut usize) {
@@ -623,7 +624,7 @@ pub fn validate_corpus(corpus: &Value) -> Vec<String> {
         errors.push("CORPUS_CASES_MISSING".to_owned());
         return errors;
     };
-    if cases.len() != 28 {
+    if cases.len() != CORPUS_CASE_COUNT {
         errors.push("CORPUS_CASE_COUNT_NOT_28".to_owned());
     }
     let mut ids = BTreeSet::new();
