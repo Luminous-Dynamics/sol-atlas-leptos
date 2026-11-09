@@ -725,7 +725,7 @@
         "knowledge_time_state": "known_by_cutoff",
         "trust_time_state": "untrusted",
         "report_binding_state": "bound",
-        "late_arrival": false,
+        "late_arrival": true,
         "reason_codes": [
           "EVENT_SYSTEM_TIME_UNTRUSTED"
         ]
@@ -1524,7 +1524,7 @@
         "knowledge_time_state": "unknown",
         "trust_time_state": "trusted_by_cutoff",
         "report_binding_state": "incomplete",
-        "late_arrival": false,
+        "late_arrival": true,
         "reason_codes": [
           "OWNER_REPORT_TEMPORAL_QUERY_BINDING_INCOMPLETE",
           "TEMPORAL_QUERY_BINDING_INCOMPLETE"
