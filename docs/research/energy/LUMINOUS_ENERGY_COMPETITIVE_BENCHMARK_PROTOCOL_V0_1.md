@@ -333,3 +333,27 @@ For a pumped-storage case, keep (E_{pump}\), (E_{generate}\), usable storage, hy
 - Compare no-build, PRV-only, PAT and purpose-built turbine under identical time series, financing, component lifetime, parasitic losses and service requirements.
 
 Do not call any potential total a measured capacity. The WRC 2023 atlas explicitly states that its initial WWTW/WTW criteria relied on assumptions, hydrokinetic data were limited, and its 31,000 MW pumped-storage potential is overstated by overlapping candidate sites and unverified geology/hydrology/environment. Luminous should compete by improving source quality and decision confidence, not inflating the resource total.
+
+
+### Hydraulic-machine standard references and water-use authorization
+
+For the South African conduit-hydro vertical slice, benchmark to the published standard edition that matches the unit size and test boundary:
+
+| Standard | Use | Boundary |
+|---|---|---|
+| IEC 60041:1991 | Field hydraulic-performance acceptance for turbines, pumps and pump-turbines | Field acceptance / contractual guarantees |
+| IEC 60193:2019 | Model acceptance tests | Primarily >5 MW or >3 m reference diameter; smaller by agreement |
+| IEC 61362:2024 | Governing-system requirements and performance specification | Not an acceptance test or water-service safety case |
+| IEC 60545:2021 | Commissioning and operation | Operational handover and commissioning guidelines |
+| IEC 62006:2010 | Small-hydro acceptance tests; safety, trial operation, reliability, cavitation/noise/vibration and performance classes | Published first edition; Edition 2 remains a development project as of 9 November 2026 |
+
+Treat these standards as references for test plans, not proof that a candidate is compliant. A simulation can reproduce the equations but cannot issue a field or model acceptance certificate.
+
+South African legal gate: The National Water Act 36 of 1998 and DWS Water Use Authorization Process govern water-use authorization. The project must identify whether its activity falls under a licence, general authorization, existing lawful use or other applicable route, and preserve the Reserve / ecological and basic-human-needs constraints. Water-use authorization and environmental approvals are independent of grid connection and turbine performance.
+
+Sources:
+- National Water Act: https://www.gov.za/documents/national-water-act
+- DWS authorization process: https://www.dws.gov.za/ewulaas/WUA.aspx
+- IEC standards and current editions: links in `ENERGY_COMPETITOR_VERSION_LOCK_V0_1.json`
+
+The programme's hydro scorecard must keep water service, treatment/effluent quality, environmental flow, rights/authorization, hydraulic performance, net energy and lifecycle economics as separate results and hard gates.
