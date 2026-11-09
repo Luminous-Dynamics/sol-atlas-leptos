@@ -257,6 +257,17 @@ pub fn validate_profiles(profiles: &Value) -> Vec<String> {
         push_error(&mut errors, "owner_profiles", "PROFILE_ID_OR_VERSION_UNSUPPORTED");
     }
     check_string_array(profiles, "common_required", "owner_profiles", &mut errors);
+    let declared_common = array(profiles, "common_required")
+        .iter()
+        .filter_map(Value::as_str)
+        .collect::<Vec<_>>();
+    if declared_common != COMMON_RECORD_FIELDS {
+        push_error(
+            &mut errors,
+            "owner_profiles",
+            "COMMON_RECORD_ENVELOPE_DIFFERS_FROM_PINNED_CONTRACT",
+        );
+    }
     let mut identities = HashSet::new();
     for (index, profile) in array(profiles, "profiles").iter().enumerate() {
         let path = format!("owner_profiles.profiles[{index}]");
@@ -279,6 +290,11 @@ pub fn validate_profiles(profiles: &Value) -> Vec<String> {
             push_error(&mut errors, &path, "DUPLICATE_OWNER_SCHEMA_PROFILE");
         }
         check_string_array(profile, "additional_allowed", &path, &mut errors);
+        for field in array(profile, "additional_allowed").iter().filter_map(Value::as_str) {
+            if COMMON_RECORD_FIELDS.contains(&field) {
+                push_error(&mut errors, &path, &format!("OWNER_FIELD_REPEATS_COMMON_FIELD:{field}"));
+            }
+        }
     }
     if array(profiles, "profiles").len() != 6 {
         push_error(&mut errors, "owner_profiles", "UNEXPECTED_PROFILE_COUNT");
@@ -332,12 +348,28 @@ fn validate_record(record: &Value, index: usize, profiles: &Value, errors: &mut 
     check_string_array(record, "claim_refs", &path, errors);
 }
 
+fn validate_time_cut(value: &Value, path: &str, errors: &mut Vec<String>) {
+    for key in ["valid_at", "recorded_at", "registered_at", "ingested_at"] {
+        if number(value, key).is_none() {
+            push_error(errors, path, &format!("UNSIGNED_TIME_CUTOFF_REQUIRED:{key}"));
+        }
+    }
+    if string(value, "time_basis") != "UTC_UNIX_SECONDS" {
+        push_error(errors, path, "TIME_BASIS_UNSUPPORTED");
+    }
+}
+
 pub fn validate_case(case: &Value, profiles: &Value) -> Vec<String> {
     let mut errors = Vec::new();
     check_keys(case, "case", CASE_KEYS, CASE_KEYS, &mut errors);
 
     let input = case.get("input").unwrap_or(&Value::Null);
     check_keys(input, "input", INPUT_KEYS, INPUT_KEYS, &mut errors);
+    for key in ["owner_inventory", "records", "identity_relations", "dependency_edges"] {
+        if !input.get(key).is_some_and(Value::is_array) {
+            push_error(&mut errors, "input", &format!("ARRAY_REQUIRED:{key}"));
+        }
+    }
 
     let as_of_keys = ["valid_at", "recorded_at", "registered_at", "ingested_at", "time_basis"];
     let decision_keys = [
@@ -348,14 +380,25 @@ pub fn validate_case(case: &Value, profiles: &Value) -> Vec<String> {
     check_keys(input.get("decision").unwrap_or(&Value::Null), "input.decision", &decision_keys, &decision_keys, &mut errors);
 
     for cut_name in ["as_known_at_decision", "as_known_now"] {
+        let cut = input
+            .get("query_cuts")
+            .unwrap_or(&Value::Null)
+            .get(cut_name)
+            .unwrap_or(&Value::Null);
         check_keys(
-            input.get("query_cuts").unwrap_or(&Value::Null).get(cut_name).unwrap_or(&Value::Null),
+            cut,
             &format!("input.query_cuts.{cut_name}"),
             &as_of_keys,
             &as_of_keys,
             &mut errors,
         );
+        validate_time_cut(cut, &format!("input.query_cuts.{cut_name}"), &mut errors);
     }
+    validate_time_cut(
+        input.get("as_of").unwrap_or(&Value::Null),
+        "input.as_of",
+        &mut errors,
+    );
     check_keys(
         input.get("query_cuts").unwrap_or(&Value::Null),
         "input.query_cuts",
@@ -377,6 +420,7 @@ pub fn validate_case(case: &Value, profiles: &Value) -> Vec<String> {
         &["requested", "required_owner_refs"],
         &mut errors,
     );
+    let mut inventory_owners = HashSet::new();
     for (index, owner) in array(input, "owner_inventory").iter().enumerate() {
         check_keys(
             owner,
@@ -385,6 +429,14 @@ pub fn validate_case(case: &Value, profiles: &Value) -> Vec<String> {
             &["owner", "inventory_state", "snapshot_revision"],
             &mut errors,
         );
+        let owner_name = string(owner, "owner");
+        if owner_name.is_empty() || !inventory_owners.insert(owner_name.to_owned()) {
+            push_error(
+                &mut errors,
+                &format!("input.owner_inventory[{index}]"),
+                "EMPTY_OR_DUPLICATE_OWNER_INVENTORY",
+            );
+        }
     }
     let mut record_versions = HashSet::new();
     for (index, record) in array(input, "records").iter().enumerate() {
@@ -451,13 +503,23 @@ pub fn validate_case(case: &Value, profiles: &Value) -> Vec<String> {
         );
     }
 
-    check_keys(case.get("expected").unwrap_or(&Value::Null), "expected", EXPECTED_KEYS, EXPECTED_KEYS, &mut errors);
+    let expected = case.get("expected").unwrap_or(&Value::Null);
+    check_keys(expected, "expected", EXPECTED_KEYS, EXPECTED_KEYS, &mut errors);
+    check_string_array(expected, "disclosed_fields", "expected", &mut errors);
+    check_string_array(expected, "reason_codes", "expected", &mut errors);
     if string(input, "classification") != CORPUS_CLASSIFICATION {
         push_error(&mut errors, "input", "CLASSIFICATION_UNSUPPORTED");
     }
-    if string(input.get("decision").unwrap_or(&Value::Null), "scope_digest").len() != 64 {
-        push_error(&mut errors, "input.decision", "SCOPE_DIGEST_INVALID");
+    let decision = input.get("decision").unwrap_or(&Value::Null);
+    for key in ["decision_id", "purpose", "subject_id", "functional_unit", "claim_id", "claim_type"] {
+        if string(decision, key).is_empty() {
+            push_error(&mut errors, "input.decision", &format!("EMPTY_DECISION_FIELD:{key}"));
+        }
     }
+    if number(decision, "decided_at").is_none() {
+        push_error(&mut errors, "input.decision", "DECISION_TIME_REQUIRED");
+    }
+    check_sha(decision, "scope_digest", "input.decision", &mut errors);
     errors.sort();
     errors
 }
@@ -470,6 +532,8 @@ pub fn validate_corpus(corpus: &Value, profiles: &Value) -> Vec<String> {
         || string(corpus, "classification") != CORPUS_CLASSIFICATION
         || string(corpus, "claim_ceiling") != CLAIM_CEILING
         || string(corpus, "composition_default") != "federated"
+        || corpus.get("temporal_model")
+            != Some(&json!(["valid_at", "recorded_at", "registered_at", "ingested_at"]))
     {
         push_error(&mut errors, "corpus", "IDENTITY_VERSION_CLASSIFICATION_OR_CLAIM_CEILING_INVALID");
     }
