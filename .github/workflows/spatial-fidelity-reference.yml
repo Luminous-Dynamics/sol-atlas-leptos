@@ -1,0 +1,83 @@
+name: Sol Atlas Spatial Fidelity Reference Oracle
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - "sol-atlas-core/src/spatial_fidelity.rs"
+      - "sol-atlas-core/src/lib.rs"
+      - "docs/research/FEATURE_WEIGHTED_SPATIAL_FIDELITY.md"
+      - ".github/workflows/spatial-fidelity-reference.yml"
+  push:
+    branches: ["main", "research/feature-weighted-spatial-fidelity-v0"]
+    paths:
+      - "sol-atlas-core/src/spatial_fidelity.rs"
+      - "sol-atlas-core/src/lib.rs"
+      - "docs/research/FEATURE_WEIGHTED_SPATIAL_FIDELITY.md"
+      - ".github/workflows/spatial-fidelity-reference.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: spatial-fidelity-reference-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  spatial-fidelity:
+    name: Spatial fidelity Rust reference (exact head)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      pull-requests: read
+    env:
+      EXPECTED_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.EXPECTED_SOURCE_SHA }}
+          persist-credentials: false
+      - name: Assert exact source revision
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_SOURCE_SHA"
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: 1.96.0
+          components: rustfmt, clippy
+      - name: Generate isolated core lockfile
+        run: cargo generate-lockfile --manifest-path sol-atlas-core/Cargo.toml
+      - name: Check formatting
+        run: cargo fmt --manifest-path sol-atlas-core/Cargo.toml --all -- --check
+      - name: Run strict Clippy
+        run: cargo clippy --manifest-path sol-atlas-core/Cargo.toml --all-targets --locked -- -D warnings
+      - name: Run core tests
+        run: cargo test --manifest-path sol-atlas-core/Cargo.toml --locked
+      - name: Write exact-head qualification receipt
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          {
+            echo "schema=sol-atlas-spatial-fidelity-receipt-v1"
+            echo "expected_source_sha=$EXPECTED_SOURCE_SHA"
+            echo "checked_out_sha=$(git rev-parse HEAD)"
+            echo "rustc_version=$(rustc --version)"
+            echo "cargo_version=$(cargo --version)"
+            if [ -f sol-atlas-core/Cargo.lock ]; then
+              echo "cargo_lock_sha256=$(sha256sum sol-atlas-core/Cargo.lock | cut -d' ' -f1)"
+            else
+              echo "cargo_lock_sha256=missing"
+            fi
+            sha256sum sol-atlas-core/src/spatial_fidelity.rs
+          } > sol-atlas-spatial-fidelity-receipt.txt
+      - name: Upload raw qualification evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sol-atlas-spatial-fidelity-${{ env.EXPECTED_SOURCE_SHA }}
+          path: |
+            sol-atlas-core/Cargo.lock
+            sol-atlas-spatial-fidelity-receipt.txt
+          if-no-files-found: warn
+          retention-days: 90
