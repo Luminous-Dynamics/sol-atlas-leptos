@@ -3,7 +3,7 @@ use std::fs;
 use std::process::ExitCode;
 
 use city_effective_access_composition_reference::{
-    CLAIM_CEILING, CORPUS_ID, evaluate_case, validate_corpus,
+    CLAIM_CEILING, CORPUS_ID, evaluate_case, parse_unique_json_bytes, validate_corpus,
 };
 use serde_json::json;
 use sha2::{Digest, Sha256};
@@ -48,7 +48,7 @@ fn main() -> ExitCode {
         Ok(bytes) => bytes,
         Err(error) => return invalid(&format!("cannot read corpus: {error}")),
     };
-    let corpus: serde_json::Value = match serde_json::from_slice(&bytes) {
+    let corpus: serde_json::Value = match parse_unique_json_bytes(&bytes) {
         Ok(value) => value,
         Err(error) => return invalid(&format!("corpus JSON invalid: {error}")),
     };
