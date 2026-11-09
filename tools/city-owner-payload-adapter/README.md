@@ -104,3 +104,9 @@ The verifier's expected byte length is optional for some digest bases. When it i
 ### Report integrity versus verification disposition
 
 An intact raw report can have disposition `incomplete_or_indeterminate` or `invalid_input`. A single verified record can remain individually Verified in an incomplete catalogue (for example, when owner rights remain Restricted); an exact per-record mismatch remains Mismatch even when the report overall is `invalid_input`. These axes are reported independently.
+
+## Exact-head qualification replacement
+
+This branch is a replacement qualification target for the formatter-corrected adapter implementation. Its exact-head checks must run on this PR head; the original PR #671 and its earlier rustfmt-only run are not evidence for this branch.
+
+The adapter remains read-only: it validates the raw verifier-report artifact identity and binds declared results to the owner envelope. It does not reopen or rehash payload bytes and cannot promote byte equality, common-scope comparability, owner disposition or declared rights into one another.
