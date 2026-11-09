@@ -770,7 +770,7 @@ mod tests {
     #[test]
     fn duplicate_decoded_json_keys_are_rejected_before_map_creation() {
         assert!(parse_unique_json_bytes(br#"{"claim":1,"claim":1}"#).is_err());
-        assert!(parse_unique_json_bytes(br#"{"claim":1,"\\u0063laim":2}"#).is_err());
+        assert!(parse_unique_json_bytes(br#"{"claim":1,"\u0063laim":2}"#).is_err());
         assert!(parse_unique_json_bytes(br#"{"ok":true} trailing"#).is_err());
     }
 
