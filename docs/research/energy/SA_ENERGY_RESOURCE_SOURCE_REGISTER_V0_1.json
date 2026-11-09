@@ -1094,6 +1094,165 @@
       ],
       "raw_snapshot_ingested": false,
       "snapshot_digest": null
+    },
+    {
+      "source_id": "antalya-full-scale-pat-operational-study-2018",
+      "source_name": "Evaluation of performance and environmental benefits of a full-scale pump as turbine system in Antalya water distribution network",
+      "provider": "Muhammetoglu et al.; Water Science and Technology: Water Supply / IWA Publishing",
+      "source_url": "https://iwaponline.com/ws/article-abstract/18/1/130/38216/Evaluation-of-performance-and-environmental",
+      "source_type": "research_publication",
+      "resource_families": [
+        "hydropower"
+      ],
+      "evidence_basis": "published_field_observation",
+      "availability_state": "context_only",
+      "source_version": {
+        "label": "Water Supply 2018, 18(1), 130–141; DOI 10.2166/ws.2017.087",
+        "release_or_publication_date": "2018",
+        "data_period": "First approximately five months of full-scale operation; PAT operational since 2016-01-26",
+        "metadata_updated": null,
+        "notes": "The study reports continuous online monitoring of flow rate, electrical power and inlet/outlet pressures for a full-scale PAT installed in parallel with a PRV in the Antalya City water distribution network. The abstract reports 130–300 m3/h inflows, 0.7–8.4 kWh generated for approximately 100 kPa pressure reduction, average efficiency of 60%, and a case-specific payback calculation of 53 days / 1.8 months using initial operating data and environmental-benefit assumptions. A related 2017 ASCE paper (DOI 10.1061/(ASCE)WR.1943-5452.0000795) describes the same installation; these publications are not independent replications."
+      },
+      "spatial_scope": "Antalya City, Turkey; one full-scale pressure management / water distribution network installation",
+      "spatial_resolution": "One PAT/PRV bypass installation; component and network monitoring, exact coordinates and network layer resolution not admitted",
+      "temporal_scope": "First approximately five months of operation from 2016-01-26; study published 2018",
+      "temporal_resolution": "Online monitoring of flow, power and inlet/outlet pressure; exact sample interval not specified in abstract",
+      "variables": [
+        "upstream/inlet pressure",
+        "downstream/outlet pressure",
+        "flow rate",
+        "electrical energy generated",
+        "average operating efficiency",
+        "pressure reduction",
+        "case-specific financial payback"
+      ],
+      "license_status": {
+        "status": "identified_requires_review",
+        "details": "IWA Publishing article access and reuse terms need review before copying full text, figures or supplementary data. Bibliographic metadata and abstract-level claims can be cited; raw operational data availability and redistribution permission are not established by the abstract."
+      },
+      "claim_ceiling": "Published full-scale operational evidence that a PAT/PRV parallel installation ran under a real WDN duty profile in Antalya for an initial approximately five-month period. Not South African validation, not independent long-term reliability evidence, and not a transferable project payback or output guarantee.",
+      "limitations": [
+        "The monitored installation is in Antalya, Turkey; hydraulic network, tariffs, climate, water demand, asset condition and regulatory context differ from South Africa.",
+        "The abstract does not state the time denominator for the 0.7–8.4 kWh reported energy values; do not convert these to kW, daily energy or annual yield without the full article's exact interval definition.",
+        "The approximately five-month initial period is not multi-year durability or availability evidence.",
+        "The 60% average efficiency and reported 53-day/1.8-month payback are case-specific study results; the payback depends on the study's financial and environmental-benefit assumptions.",
+        "The related 2017 ASCE full-scale paper describes the same installation and must not be counted as an independent second site."
+      ],
+      "admission_requirements": [
+        "Obtain the full paper and supplementary data, then pin exact monitoring intervals, measurement boundaries, uncertainty, calibration and energy units.",
+        "Recover raw or sufficiently resolved time series for flow, pressure, PAT electrical power, bypass state and PRV operation if the authors/operator permit access.",
+        "Separate PAT hydraulic efficiency, generator/inverter efficiency and net system efficiency; verify the published 60% definition.",
+        "Reconstruct the operational availability, downtime, maintenance, seasonal variation and bypass/fallback periods before using as a reliability comparator.",
+        "Keep the 2017 ASCE and 2018 IWA papers linked to one installation identity to prevent double counting.",
+        "Do not transfer the 53-day payback estimate to South African tariff, labour, import, spares or finance assumptions."
+      ],
+      "raw_snapshot_ingested": false,
+      "snapshot_digest": null
+    },
+    {
+      "source_id": "manservigi-et-al-pat-regulation-2025-experimental-curves",
+      "source_name": "Hydraulic and electrical regulations of pumps as turbines for energy recovery in water distribution networks: Energy and economic analysis",
+      "provider": "Manservigi et al.; Cambridge Prisms: Water, Cambridge University Press",
+      "source_url": "https://www.cambridge.org/core/journals/cambridge-prisms-water/article/hydraulic-and-electrical-regulations-of-pumps-as-turbines-for-energy-recovery-in-water-distribution-networks-energy-and-economic-analysis/11A8E6728AE92434D1A085B84378FC64",
+      "source_type": "research_publication",
+      "resource_families": [
+        "hydropower"
+      ],
+      "evidence_basis": "laboratory_measurement",
+      "availability_state": "context_only",
+      "source_version": {
+        "label": "Cambridge Prisms: Water; published online 2025-06-16; DOI 10.1017/wat.2025.10004",
+        "release_or_publication_date": "2025-06-16",
+        "data_period": "Experimental characteristic curves for 16 turbomachines; applied to a real-world Northern Italy water distribution network serving approximately 5,000 users",
+        "metadata_updated": null,
+        "notes": "The study compares hydraulic and electrical PAT regulation and applies experimental pump/turbine-mode characteristic curves for 16 machines to a real WDN. It reports 44.1% of the network's available hydraulic energy recoverable by the selected PAT at a maximum investment cost of €24,500. For PAT #12, electrical regulation bypassed the PAT in 72.4% of operating cases; hydraulic regulation produced LCOE €74–180/MWh while electrical regulation produced €269/MWh in the case assumptions. The paper identifies 25.2% of total hydraulic energy losses as due to PAT inefficiency in the evaluated hydraulic-regulation case."
+      },
+      "spatial_scope": "Northern Italy; one real water distribution network serving approximately 5,000 users, with experimental component curves for 16 turbomachines",
+      "spatial_resolution": "One network-level case study and 16 experimental turbomachine characteristic datasets; not South Africa",
+      "temporal_scope": "Published 2025; case-study demand/operating profiles and experiment datasets as described in the article",
+      "temporal_resolution": "Network operating profile with machine characteristic maps; exact curve sampling and chronology must be recovered from article data",
+      "variables": [
+        "pump-mode and turbine-mode characteristic curves",
+        "PAT head-flow-efficiency operating maps",
+        "hydraulic versus electrical regulation",
+        "network pressure and flow",
+        "energy recovery fraction",
+        "LCOE",
+        "payback period",
+        "PAT bypass and operating losses"
+      ],
+      "license_status": {
+        "status": "identified_requires_review",
+        "details": "The article is Open Access under a Creative Commons Attribution-NonCommercial licence. Non-commercial reuse is permitted subject to the exact terms and citation; commercial use requires permission from Cambridge University Press. Underlying third-party data/figures may have additional terms."
+      },
+      "claim_ceiling": "Published experimental PAT characteristic curves and a model-based techno-economic comparison on a real Northern Italian WDN. Not a South African site validation, not 16 independently commissioned WDN installations, and not a commercial quotation or local LCOE.",
+      "limitations": [
+        "The 16 turbomachine characteristic curves are experimental component data; the WDN integration and 44.1% energy recovery result are a case-study evaluation, not evidence that all 16 machines were operated in that field network.",
+        "The network and tariff/cost assumptions are from Northern Italy and cannot be transferred to South Africa without local inputs.",
+        "The study's €24,500 maximum investment, LCOE €74–180/MWh hydraulic-regulation range and €269/MWh electrical-regulation result are case-specific.",
+        "Electrical regulation bypassed the selected PAT in 72.4% of cases under the reported scenario; this is a strong negative-control case for operating strategy, but not a universal result.",
+        "The article's NonCommercial licence is not commercial reuse permission for a Luminous product."
+      ],
+      "admission_requirements": [
+        "Pin the full article version, supplementary data, experimental curve files, exact 16 machine identities, test boundaries, uncertainties and calibration.",
+        "Reconstruct the 16 pump/turbine characteristic maps without smoothing or extrapolation beyond the observed domain.",
+        "Reproduce the paper's hydraulic/electrical regulation cases under the exact source network, demand profiles, energy boundary and cost assumptions.",
+        "Keep component experiment results distinct from simulated WDN integration and financial results.",
+        "Preserve the CC BY-NC reuse restrictions; obtain separate permissions for commercial data or figure reuse.",
+        "Use as an international comparator only; no South African transfer claim until tested against an independent SA network."
+      ],
+      "raw_snapshot_ingested": false,
+      "snapshot_digest": null
+    },
+    {
+      "source_id": "pugliese-et-al-pat-experimental-characterization-2016",
+      "source_name": "Experimental characterization of two Pumps As Turbines for hydropower generation",
+      "provider": "Pugliese, De Paola, Fontana, Giugni and Marini; Renewable Energy",
+      "source_url": "https://www.sciencedirect.com/science/article/pii/S0960148116305754",
+      "source_type": "research_publication",
+      "resource_families": [
+        "hydropower"
+      ],
+      "evidence_basis": "laboratory_measurement",
+      "availability_state": "context_only",
+      "source_version": {
+        "label": "Renewable Energy 99 (2016), 180–187; DOI 10.1016/j.renene.2016.06.051",
+        "release_or_publication_date": "2016-12",
+        "data_period": "Experimental test-rig characterization of one horizontal single-stage centrifugal pump and one vertical multistage pump operating in reverse turbine mode",
+        "metadata_updated": null,
+        "notes": "The paper experimentally characterizes two pumps in turbine mode and compares test results with theoretical conversion/selection models. Its motivation is the shortage of measured PAT characteristic curves and the limited reliability of generic pump-to-turbine extrapolation relationships."
+      },
+      "spatial_scope": "Laboratory test rig; two pump models, not a water distribution network installation",
+      "spatial_resolution": "Component test-rig operating points; exact head/flow and instrumentation ranges require full-paper extraction",
+      "temporal_scope": "Published December 2016",
+      "temporal_resolution": "Steady/experimental operating points; exact measurement duration and point grid require the full article",
+      "variables": [
+        "PAT head-flow relationship",
+        "pump-to-turbine performance conversion",
+        "efficiency",
+        "rotational speed",
+        "experimental deviation from theoretical prediction"
+      ],
+      "license_status": {
+        "status": "identified_requires_review",
+        "details": "Elsevier article access and reuse terms require review. Bibliographic metadata and abstract-level claims can be cited; raw test data or figures are not assumed to be redistributable."
+      },
+      "claim_ceiling": "Published laboratory measurement evidence that two pump types were experimentally characterized in turbine mode. Not a South African field installation, not an unrestricted manufacturer catalogue, and not a universal pump-to-turbine conversion law.",
+      "limitations": [
+        "Only two pump configurations are described in the abstract; results cannot be generalized to all centrifugal pump families.",
+        "The article highlights that PAT characteristic curve prediction remains an unresolved problem because manufacturers often provide limited reverse-mode data.",
+        "Exact numerical maps, test uncertainty, instrumentation and operating domain must be recovered from the full paper before curve reproduction.",
+        "No network service, leakage, grid-interconnection or long-term PAT availability was tested by this component study."
+      ],
+      "admission_requirements": [
+        "Pin the complete paper version, experimental tables/curve data and exact test-rig conditions.",
+        "Recover pump geometry/model identity, impeller diameter, rotational speed, head, flow, torque/power, measurement uncertainty and test repeatability.",
+        "Use the measured turbine-mode curves rather than applying a generic BEP transformation.",
+        "Compare the published correlations only within the two measured pump domains; extrapolation requires independent evidence.",
+        "Keep laboratory component data separate from full-scale WDN operational observations."
+      ],
+      "raw_snapshot_ingested": false,
+      "snapshot_digest": null
     }
   ]
 }
