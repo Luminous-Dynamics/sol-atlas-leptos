@@ -1134,8 +1134,8 @@ mod tests {
         let receipt = audit_bytes(SCHEMA_BYTES, REGISTRY_BYTES)
             .expect("checked-in schema and source registry must decode");
         assert_eq!(receipt.disposition, "accepted");
-        assert_eq!(receipt.entry_count, 22);
-        assert_eq!(receipt.source_ids.len(), 22);
+        assert_eq!(receipt.entry_count, 26);
+        assert_eq!(receipt.source_ids.len(), 26);
         assert_eq!(receipt.findings.len(), 0);
     }
 
@@ -1165,7 +1165,7 @@ mod tests {
         let receipt = audit_bytes(SCHEMA_BYTES, REGISTRY_BYTES)
             .expect("updated registry should remain structurally valid");
         assert_eq!(receipt.disposition, "accepted");
-        assert_eq!(receipt.entry_count, 22);
+        assert_eq!(receipt.entry_count, 26);
     }
 
     #[test]
@@ -1215,7 +1215,7 @@ mod tests {
         let receipt =
             audit_bytes(SCHEMA_BYTES, REGISTRY_BYTES).expect("updated registry should conform");
         assert_eq!(receipt.disposition, "accepted");
-        assert_eq!(receipt.entry_count, 22);
+        assert_eq!(receipt.entry_count, 26);
     }
 
     #[test]
