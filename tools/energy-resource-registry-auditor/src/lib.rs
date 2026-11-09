@@ -5,7 +5,7 @@
 //! sufficiency, validate resource science, or admit source data into Sol-Atlas.
 
 use serde::de::{self, DeserializeSeed, MapAccess, SeqAccess, Visitor};
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize};
 use serde_json::{Map, Number, Value};
 use sha2::{Digest, Sha256};
 use std::collections::BTreeSet;
@@ -579,6 +579,13 @@ struct Registry {
     entries: Vec<SourceEntry>,
 }
 
+fn deserialize_required_nullable<'de, D>(deserializer: D) -> Result<Option<String>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    Option::<String>::deserialize(deserializer)
+}
+
 #[derive(Debug, Clone, Deserialize)]
 #[serde(deny_unknown_fields)]
 struct SourceEntry {
@@ -601,6 +608,7 @@ struct SourceEntry {
     limitations: Vec<String>,
     admission_requirements: Vec<String>,
     raw_snapshot_ingested: bool,
+    #[serde(deserialize_with = "deserialize_required_nullable")]
     snapshot_digest: Option<String>,
 }
 
@@ -608,8 +616,10 @@ struct SourceEntry {
 #[serde(deny_unknown_fields)]
 struct SourceVersion {
     label: String,
+    #[serde(deserialize_with = "deserialize_required_nullable")]
     release_or_publication_date: Option<String>,
     data_period: String,
+    #[serde(deserialize_with = "deserialize_required_nullable")]
     metadata_updated: Option<String>,
     notes: String,
 }
@@ -1109,6 +1119,17 @@ mod tests {
     fn unknown_fields_fail_closed() {
         let mut value = parse_registry_value();
         value["unexpected"] = Value::Bool(true);
+        let bytes = serde_json::to_vec(&value).expect("serialize registry");
+        assert!(audit_bytes(SCHEMA_BYTES, &bytes).is_err());
+    }
+
+    #[test]
+    fn required_nullable_fields_cannot_be_omitted() {
+        let mut value = parse_registry_value();
+        value["entries"][0]
+            .as_object_mut()
+            .expect("entry object")
+            .remove("snapshot_digest");
         let bytes = serde_json::to_vec(&value).expect("serialize registry");
         assert!(audit_bytes(SCHEMA_BYTES, &bytes).is_err());
     }
