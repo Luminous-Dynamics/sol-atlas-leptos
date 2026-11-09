@@ -855,6 +855,33 @@ mod tests {
     }
 
     #[test]
+    fn owner_reason_permutation_preserves_composition_result() {
+        let corpus = corpus();
+        let case = corpus["cases"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|case| text(case, "case_id") == "EAC-009")
+            .unwrap();
+        let original = evaluate_case(case);
+        let mut permuted = case.clone();
+        permuted["input"]["access"]["owner_reason_codes"]
+            .as_array_mut()
+            .unwrap()
+            .reverse();
+        assert_eq!(evaluate_case(&permuted), original);
+    }
+
+    #[test]
+    fn repeated_evaluation_is_deterministic() {
+        let case = corpus()["cases"][22].clone();
+        let expected = evaluate_case(&case);
+        for _ in 0..32 {
+            assert_eq!(evaluate_case(&case), expected);
+        }
+    }
+
+    #[test]
     fn experience_disclosure_is_independent_of_technical_service() {
         let case = corpus()["cases"][23].clone();
         let result = evaluate_case(&case);
