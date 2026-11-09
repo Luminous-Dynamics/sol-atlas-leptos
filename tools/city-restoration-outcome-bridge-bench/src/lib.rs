@@ -537,9 +537,11 @@ fn evaluate_current(input: &Value) -> (String, BTreeSet<String>) {
         add(&mut reasons, "SERVICE_NOT_ADEQUATE");
     }
     let stable = object(continuity, "stable_adequacy");
-    let contract_minimum =
-        tick(object(contract, "stability_policy"), "minimum_contiguous_adequate_ticks")
-            .unwrap_or(u64::MAX);
+    let contract_minimum = tick(
+        object(contract, "stability_policy"),
+        "minimum_contiguous_adequate_ticks",
+    )
+    .unwrap_or(u64::MAX);
     let receipt_minimum = tick(stable, "minimum_ticks").unwrap_or(0);
     if stable.get("qualified").and_then(Value::as_bool) != Some(true)
         || tick(stable, "observed_ticks").unwrap_or(0) < contract_minimum
@@ -594,10 +596,10 @@ fn evaluate_current(input: &Value) -> (String, BTreeSet<String>) {
         if !observation_ref.is_null()
             && (!source_authority_valid(observation_ref)
                 || !source_binding_exists(
-                object(input, "scope_binding"),
-                observation_ref,
-                object(input, "requested_scope"),
-            ))
+                    object(input, "scope_binding"),
+                    observation_ref,
+                    object(input, "requested_scope"),
+                ))
         {
             add(&mut reasons, "MEASUREMENT_OWNER_RECEIPT_BINDING_INVALID");
             add(&mut reasons, "OWNER_RECEIPT_NOT_BOUND_TO_COMMON_SCOPE");
@@ -650,7 +652,11 @@ fn historical_disposition(input: &Value, current: &str, reasons: &BTreeSet<Strin
     let observation = object(measurement, "observation");
     let cuts = object(input, "temporal_cuts");
     let historical = object(cuts, "historical");
-    if contract.get("measurement_required").and_then(Value::as_bool) == Some(true) {
+    if contract
+        .get("measurement_required")
+        .and_then(Value::as_bool)
+        == Some(true)
+    {
         let observation_ref = object(observation, "source_ref");
         if observation.is_null()
             || observation_ref.is_null()
