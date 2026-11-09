@@ -839,7 +839,7 @@ fn valid_https_url(value: &str) -> bool {
         return false;
     }
     let authority = rest
-        .split(|character| matches!(character, '/' | '?' | '#'))
+        .split(['/', '?', '#'])
         .next()
         .unwrap_or_default();
     !authority.is_empty()
