@@ -4,16 +4,34 @@
   "title": "Sol-Atlas Energy Resource Source Registry v0.1",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schema_version", "as_of", "registry_status", "claim_ceiling", "entries"],
+  "required": [
+    "schema_version",
+    "as_of",
+    "registry_status",
+    "claim_ceiling",
+    "entries"
+  ],
   "properties": {
-    "schema_version": { "const": "0.1.0" },
-    "as_of": { "type": "string", "format": "date" },
-    "registry_status": { "const": "discovery_only_not_admitted" },
-    "claim_ceiling": { "type": "string", "minLength": 1 },
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "as_of": {
+      "type": "string",
+      "format": "date"
+    },
+    "registry_status": {
+      "const": "discovery_only_not_admitted"
+    },
+    "claim_ceiling": {
+      "type": "string",
+      "minLength": 1
+    },
     "entries": {
       "type": "array",
       "minItems": 1,
-      "items": { "$ref": "#/$defs/source_entry" }
+      "items": {
+        "$ref": "#/$defs/source_entry"
+      }
     }
   },
   "$defs": {
@@ -21,77 +39,203 @@
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "source_id", "source_name", "provider", "source_url", "source_type",
-        "resource_families", "evidence_basis", "availability_state",
-        "source_version", "spatial_scope", "spatial_resolution",
-        "temporal_scope", "temporal_resolution", "variables",
-        "license_status", "claim_ceiling", "limitations",
-        "admission_requirements", "raw_snapshot_ingested", "snapshot_digest"
+        "source_id",
+        "source_name",
+        "provider",
+        "source_url",
+        "source_type",
+        "resource_families",
+        "evidence_basis",
+        "availability_state",
+        "source_version",
+        "spatial_scope",
+        "spatial_resolution",
+        "temporal_scope",
+        "temporal_resolution",
+        "variables",
+        "license_status",
+        "claim_ceiling",
+        "limitations",
+        "admission_requirements",
+        "raw_snapshot_ingested",
+        "snapshot_digest"
       ],
       "properties": {
-        "source_id": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" },
-        "source_name": { "type": "string", "minLength": 1 },
-        "provider": { "type": "string", "minLength": 1 },
-        "source_url": { "type": "string", "format": "uri" },
+        "source_id": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "source_name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "provider": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_url": {
+          "type": "string",
+          "format": "uri"
+        },
         "source_type": {
-          "enum": ["dataset", "dataset_catalogue", "research_publication", "government_page", "sector_report", "portal_status"]
+          "enum": [
+            "dataset",
+            "dataset_catalogue",
+            "research_publication",
+            "government_page",
+            "sector_report",
+            "portal_status"
+          ]
         },
         "resource_families": {
           "type": "array",
           "minItems": 1,
           "uniqueItems": true,
           "items": {
-            "enum": ["solar", "onshore_wind", "offshore_wind", "hydropower", "geothermal", "ocean_current", "wave", "marine_physics", "cross_resource"]
+            "enum": [
+              "solar",
+              "onshore_wind",
+              "offshore_wind",
+              "hydropower",
+              "geothermal",
+              "ocean_current",
+              "wave",
+              "marine_physics",
+              "cross_resource"
+            ]
           }
         },
         "evidence_basis": {
-          "enum": ["modeled_resource_atlas", "modeled_reanalysis", "modeled_analysis_forecast", "published_field_observation", "government_historical_assessment", "government_research_context", "sector_policy_report", "discovery_catalogue", "availability_notice"]
+          "enum": [
+            "modeled_resource_atlas",
+            "modeled_reanalysis",
+            "modeled_analysis_forecast",
+            "published_field_observation",
+            "government_historical_assessment",
+            "government_research_context",
+            "sector_policy_report",
+            "discovery_catalogue",
+            "availability_notice",
+            "literature_review"
+          ]
         },
         "availability_state": {
-          "enum": ["available_pending_snapshot_pin", "temporarily_unavailable", "context_only", "catalogue_only", "needs_access_or_measurement"]
+          "enum": [
+            "available_pending_snapshot_pin",
+            "temporarily_unavailable",
+            "context_only",
+            "catalogue_only",
+            "needs_access_or_measurement"
+          ]
         },
         "source_version": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["label", "release_or_publication_date", "data_period", "metadata_updated", "notes"],
+          "required": [
+            "label",
+            "release_or_publication_date",
+            "data_period",
+            "metadata_updated",
+            "notes"
+          ],
           "properties": {
-            "label": { "type": "string", "minLength": 1 },
-            "release_or_publication_date": { "type": ["string", "null"] },
-            "data_period": { "type": "string", "minLength": 1 },
-            "metadata_updated": { "type": ["string", "null"] },
-            "notes": { "type": "string", "minLength": 1 }
+            "label": {
+              "type": "string",
+              "minLength": 1
+            },
+            "release_or_publication_date": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "data_period": {
+              "type": "string",
+              "minLength": 1
+            },
+            "metadata_updated": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "notes": {
+              "type": "string",
+              "minLength": 1
+            }
           }
         },
-        "spatial_scope": { "type": "string", "minLength": 1 },
-        "spatial_resolution": { "type": "string", "minLength": 1 },
-        "temporal_scope": { "type": "string", "minLength": 1 },
-        "temporal_resolution": { "type": "string", "minLength": 1 },
+        "spatial_scope": {
+          "type": "string",
+          "minLength": 1
+        },
+        "spatial_resolution": {
+          "type": "string",
+          "minLength": 1
+        },
+        "temporal_scope": {
+          "type": "string",
+          "minLength": 1
+        },
+        "temporal_resolution": {
+          "type": "string",
+          "minLength": 1
+        },
         "variables": {
           "type": "array",
-          "items": { "type": "string", "minLength": 1 }
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
         },
         "license_status": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["status", "details"],
+          "required": [
+            "status",
+            "details"
+          ],
           "properties": {
-            "status": { "enum": ["identified_requires_review", "unknown", "not_assessed", "open_access_catalogue_only"] },
-            "details": { "type": "string", "minLength": 1 }
+            "status": {
+              "enum": [
+                "identified_requires_review",
+                "unknown",
+                "not_assessed",
+                "open_access_catalogue_only"
+              ]
+            },
+            "details": {
+              "type": "string",
+              "minLength": 1
+            }
           }
         },
-        "claim_ceiling": { "type": "string", "minLength": 1 },
+        "claim_ceiling": {
+          "type": "string",
+          "minLength": 1
+        },
         "limitations": {
           "type": "array",
           "minItems": 1,
-          "items": { "type": "string", "minLength": 1 }
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
         },
         "admission_requirements": {
           "type": "array",
           "minItems": 1,
-          "items": { "type": "string", "minLength": 1 }
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
         },
-        "raw_snapshot_ingested": { "const": false },
-        "snapshot_digest": { "type": "null" }
+        "raw_snapshot_ingested": {
+          "const": false
+        },
+        "snapshot_digest": {
+          "type": "null"
+        }
       }
     }
   }
