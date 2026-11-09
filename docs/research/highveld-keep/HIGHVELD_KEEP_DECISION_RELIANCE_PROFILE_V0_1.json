@@ -1,0 +1,338 @@
+{
+  "profile_id": "HIGHVELD-KEEP-DECISION-RELIANCE-PROFILE-V0.1",
+  "schema_version": "0.1.0",
+  "receipt_schema_version": "luminous.engineering-decision-reliance-receipt.v0.1",
+  "reference_implementation": "sol-atlas-core/src/decision_reliance.rs at PR #513 head ff69b4b90d626043d54b34ae530a269aa244cd4d",
+  "classification": "research_profile; not a qualified project or receipt",
+  "profile_compatibility": "requires_v0_2_proof_vocabulary_extension",
+  "can_emit_reliable_for_declared_scope": false,
+  "jurisdiction": "ZA-GP (project-specific statutory and professional scope must be declared separately)",
+  "purposes": [
+    "design_review",
+    "engineering_review",
+    "construction_release_review",
+    "operations",
+    "maintenance",
+    "regulatory_submission",
+    "benchmarking"
+  ],
+  "functional_units": [
+    {
+      "id": "FU-COMP-01",
+      "meaning": "installed component or assembly function",
+      "cross_unit_inference": "prohibited"
+    },
+    {
+      "id": "FU-BLDG-01",
+      "meaning": "dwelling service-year",
+      "cross_unit_inference": "prohibited"
+    },
+    {
+      "id": "FU-DIST-01",
+      "meaning": "neighbourhood service-year",
+      "cross_unit_inference": "prohibited"
+    }
+  ],
+  "required_proof_classes": [
+    "decision_event_integrity",
+    "native_source_identity",
+    "source_payload_bytes",
+    "source_use_rights",
+    "source_attestation_trust",
+    "source_coverage",
+    "projection_integrity",
+    "engineering_domain_validity",
+    "lifecycle_currentness",
+    "impact_frontier_correctness",
+    "actor_reliance_authority"
+  ],
+  "owner_evidence_map": [
+    {
+      "proof_class": "decision_event_integrity",
+      "owners": [
+        "decision-native owner",
+        "IEAC signed-statement/trust owner #347"
+      ],
+      "source_artifacts": [
+        "immutable decision event",
+        "decision payload bytes",
+        "trusted statement/registration receipt"
+      ],
+      "binding_fields": [
+        "decision_identity_sha256",
+        "decision_event_payload_sha256",
+        "event_id",
+        "system time",
+        "trusted registration time"
+      ],
+      "status_policy": "Missing or untrusted registration is insufficient; contradictory or invalid immutable event evidence is invalid"
+    },
+    {
+      "proof_class": "native_source_identity",
+      "owners": [
+        "IEAC graph projector PR #491",
+        "IEAC node identity v0.2 PR #487",
+        "IEAC invalidation compatibility draft PR #670"
+      ],
+      "source_artifacts": [
+        "v0.2 graph node",
+        "identity digest",
+        "graph snapshot"
+      ],
+      "binding_fields": [
+        "node_type",
+        "node_id",
+        "identity_sha256",
+        "artifact_sha256",
+        "graph_schema_version",
+        "graph_snapshot_sha256"
+      ],
+      "status_policy": "Identity and artifact digests must be distinct, independently recomputed and bound to one typed native node"
+    },
+    {
+      "proof_class": "source_payload_bytes",
+      "owners": [
+        "source payload byte verifier #500/#512",
+        "owner payload adapter draft PR #671"
+      ],
+      "source_artifacts": [
+        "exact-byte verification receipt",
+        "owner artifact descriptor catalogue"
+      ],
+      "binding_fields": [
+        "owner_native_id",
+        "payload_ref",
+        "expected_digest",
+        "observed_digest",
+        "byte_length",
+        "verification_build"
+      ],
+      "status_policy": "A declared digest without retrieval and independent byte comparison is not a qualified byte proof"
+    },
+    {
+      "proof_class": "source_use_rights",
+      "owners": [
+        "source-native rights/consent owner",
+        "Mycelix rights and custody owners where applicable",
+        "in-use evidence owner #633/#635"
+      ],
+      "source_artifacts": [
+        "rights grant or policy receipt",
+        "purpose-specific resident consent record where relevant"
+      ],
+      "binding_fields": [
+        "owner",
+        "subject",
+        "purpose",
+        "jurisdiction",
+        "scope",
+        "valid_from",
+        "valid_until",
+        "revocation state"
+      ],
+      "status_policy": "Unknown, expired, withdrawn or purpose-mismatched rights cannot satisfy a mandatory proof"
+    },
+    {
+      "proof_class": "source_attestation_trust",
+      "owners": [
+        "IEAC trust lifecycle #347",
+        "SCITT statement transparency owner"
+      ],
+      "source_artifacts": [
+        "signed statement",
+        "issuer key history",
+        "transparency receipt",
+        "trust bundle"
+      ],
+      "binding_fields": [
+        "issuer_id",
+        "key_id",
+        "statement_digest",
+        "trusted_at",
+        "revocation state",
+        "trust bundle digest"
+      ],
+      "status_policy": "A SCITT-shaped reference is not a verified registration; owner authority and signature/receipt verification remain distinct"
+    },
+    {
+      "proof_class": "source_coverage",
+      "owners": [
+        "IEAC source inventory coverage #488/#490"
+      ],
+      "source_artifacts": [
+        "source descriptor catalogue",
+        "bounded inventory/coverage receipt"
+      ],
+      "binding_fields": [
+        "required_owner_families",
+        "inventory_snapshot",
+        "pagination completeness",
+        "unsupported families",
+        "coverage watermark"
+      ],
+      "status_policy": "Incomplete, stale, unsupported or non-exhaustive coverage blocks reliable reliance and NoImpact"
+    },
+    {
+      "proof_class": "projection_integrity",
+      "owners": [
+        "IEAC native projection PR #491",
+        "scope binder #624"
+      ],
+      "source_artifacts": [
+        "projection receipt",
+        "graph snapshot",
+        "common scope binding receipt"
+      ],
+      "binding_fields": [
+        "source descriptor digest",
+        "projection build",
+        "graph schema version",
+        "graph snapshot digest",
+        "common scope digest"
+      ],
+      "status_policy": "Projection loss, stale graph, unbound scope or unsupported schema remains explicit; no implicit field/default projection"
+    },
+    {
+      "proof_class": "engineering_domain_validity",
+      "owners": [
+        "specialist solver owners",
+        "restoration feasibility #646",
+        "panel acceptance #622",
+        "industry benchmark #617"
+      ],
+      "source_artifacts": [
+        "solver verification/validation report",
+        "inspection and commissioning owner reports",
+        "accepted output receipt where required"
+      ],
+      "binding_fields": [
+        "exact design/BOM revision",
+        "solver input digest",
+        "applicability scope",
+        "test/reference method",
+        "professional reviewer reference"
+      ],
+      "status_policy": "Software verification, project-model validity, physical acceptance and commissioning are different proof obligations; do not promote one into another"
+    },
+    {
+      "proof_class": "lifecycle_currentness",
+      "owners": [
+        "temporal synchronization #638",
+        "IEAC invalidation event v0.2 draft PR #670",
+        "owner impact routing #651",
+        "source lifecycle owner #397"
+      ],
+      "source_artifacts": [
+        "bitemporal source records",
+        "invalidation events",
+        "revalidation obligations",
+        "owner impact lane reports"
+      ],
+      "binding_fields": [
+        "valid_time",
+        "recorded_time",
+        "trusted_registered_time",
+        "ingested_time",
+        "graph snapshot",
+        "native node identity",
+        "event digest"
+      ],
+      "status_policy": "Late corrections, revocations, supersession, expiry and unprocessed revalidation obligations must affect current reliance without rewriting historical replay"
+    },
+    {
+      "proof_class": "impact_frontier_correctness",
+      "owners": [
+        "IEAC impact-frontier oracle #484",
+        "IEAC event/report compatibility draft PR #670",
+        "city impact oracle #644",
+        "owner impact router #651"
+      ],
+      "source_artifacts": [
+        "impact report",
+        "exact graph and event digests",
+        "owner routing receipt"
+      ],
+      "binding_fields": [
+        "exact graph snapshot",
+        "event digest",
+        "target identity",
+        "artifact digest",
+        "dependency coverage",
+        "result for every target"
+      ],
+      "status_policy": "Missing target results, false NoImpact, incomplete coverage or identity/content mismatch invalidate frontier correctness"
+    },
+    {
+      "proof_class": "actor_reliance_authority",
+      "owners": [
+        "South African approval/authority owner #604",
+        "role/capability owner"
+      ],
+      "source_artifacts": [
+        "actor capability and reliance-purpose authorization receipt"
+      ],
+      "binding_fields": [
+        "actor",
+        "role",
+        "capability",
+        "purpose",
+        "jurisdiction",
+        "scope",
+        "validity interval",
+        "revocation state"
+      ],
+      "status_policy": "Reliance permission is not professional approval and neither grants construction, operational or actuation authority"
+    }
+  ],
+  "additional_blocking_obligations": [
+    {
+      "id": "professional_review",
+      "required": true,
+      "owners": [
+        "competent discipline-specific professional reviewer",
+        "South African approval owner #604"
+      ],
+      "reason": "The current #513 v0.1 proof-class vocabulary has no distinct professional_review class. Do not map this to engineering_domain_validity or actor_reliance_authority.",
+      "compatible_with_current_v0_1_engine": false
+    },
+    {
+      "id": "statutory_and_jurisdictional_approval",
+      "required": true,
+      "owners": [
+        "competent authority and South African approval owner #604"
+      ],
+      "reason": "Regulatory approval, zoning, parcel/site investigation and statutory certificates are not inferred from technical proof or a generic reliance-purpose capability.",
+      "compatible_with_current_v0_1_engine": false
+    },
+    {
+      "id": "schema_interoperability",
+      "required": true,
+      "owners": [
+        "schema owners and independent cross-implementation verifier"
+      ],
+      "reason": "The current #513 proof vocabulary has no distinct schema_interoperability class. It must be represented explicitly in a reconciled v0.2 profile, not silently folded into projection_integrity.",
+      "compatible_with_current_v0_1_engine": false
+    }
+  ],
+  "non_compensatory_rules": [
+    "No weighted score can compensate for a missing, invalid, revoked, unsupported or not-comparable mandatory proof.",
+    "Historical authenticity and current reliance are separate outputs.",
+    "The exact decision identity and exact decision-event payload digest are separate bindings.",
+    "Every mandatory proof class must cover every requested subject, purpose and jurisdiction.",
+    "The common evaluation scope and functional unit must match exactly or use an explicitly reviewed crosswalk.",
+    "A panel acceptance result does not prove building commissioning or service restoration.",
+    "A service restoration plan or commissioning result does not prove stable service continuity or measured lived outcomes.",
+    "Professional review and statutory approval remain separate blockers.",
+    "action_authority is none."
+  ],
+  "claim_ceiling": "profile mapping and synthetic integration planning only; no current Highveld decision is qualified",
+  "links": {
+    "decision_reliance_issue": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/501",
+    "decision_reliance_reference_pr": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/pull/513",
+    "alternate_schema_draft_pr": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/pull/505",
+    "identity_v0_2_pr": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/pull/487",
+    "invalidation_compatibility_pr": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/pull/670",
+    "payload_adapter_pr": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/pull/671",
+    "restoration_bridge_pr": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/pull/667"
+  }
+}

@@ -1,0 +1,75 @@
+name: Highveld Decision Reliance Profile Contract
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - "docs/research/highveld-keep/HIGHVELD_KEEP_DECISION_RELIANCE_PROFILE_V0_1.json"
+      - "schemas/highveld-keep-decision-reliance-profile-v0.1.schema.json"
+      - "docs/research/highveld-keep/HIGHVELD_KEEP_DECISION_RELIANCE_PROFILE_V0_1.md"
+      - ".github/workflows/highveld-decision-reliance-profile.yml"
+  push:
+    branches: ["main", "research/highveld-decision-reliance-profile-v0.1"]
+    paths:
+      - "docs/research/highveld-keep/HIGHVELD_KEEP_DECISION_RELIANCE_PROFILE_V0_1.json"
+      - "schemas/highveld-keep-decision-reliance-profile-v0.1.schema.json"
+      - "docs/research/highveld-keep/HIGHVELD_KEEP_DECISION_RELIANCE_PROFILE_V0_1.md"
+      - ".github/workflows/highveld-decision-reliance-profile.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: highveld-decision-reliance-profile-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  profile-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - name: Install pinned Draft 2020-12 validator
+        run: cargo install --locked jsonschema-cli --version 0.60.2 --root "$RUNNER_TEMP/jsonschema-cli"
+      - name: Validate schema and Highveld profile
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "$RUNNER_TEMP/jsonschema-cli/bin" >> "$GITHUB_PATH"
+          export PATH="$RUNNER_TEMP/jsonschema-cli/bin:$PATH"
+          schema="schemas/highveld-keep-decision-reliance-profile-v0.1.schema.json"
+          profile="docs/research/highveld-keep/HIGHVELD_KEEP_DECISION_RELIANCE_PROFILE_V0_1.json"
+          meta_schema="$RUNNER_TEMP/draft-2020-12-meta-schema.json"
+          curl --fail --location --retry 5 --retry-connrefused \
+            https://json-schema.org/draft/2020-12/schema -o "$meta_schema"
+          jsonschema-cli validate --draft 2020 --assert-format "$meta_schema" -i "$schema"
+          jsonschema-cli validate --draft 2020 --assert-format "$schema" -i "$profile"
+      - name: Verify cross-field proof and blocker invariants
+        shell: bash
+        run: |
+          set -euo pipefail
+          profile="docs/research/highveld-keep/HIGHVELD_KEEP_DECISION_RELIANCE_PROFILE_V0_1.json"
+          jq -e '
+            .profile_id == "HIGHVELD-KEEP-DECISION-RELIANCE-PROFILE-V0.1"
+            and .receipt_schema_version == "luminous.engineering-decision-reliance-receipt.v0.1"
+            and .profile_compatibility == "requires_v0_2_proof_vocabulary_extension"
+            and .can_emit_reliable_for_declared_scope == false
+            and (.required_proof_classes | length == 11)
+            and (.required_proof_classes | unique | length == 11)
+            and (.owner_evidence_map | length == 11)
+            and ([.owner_evidence_map[].proof_class] | unique | length == 11)
+            and (([.required_proof_classes[]] - [.owner_evidence_map[].proof_class]) | length == 0)
+            and (([.owner_evidence_map[].proof_class] - [.required_proof_classes[]]) | length == 0)
+            and ([.additional_blocking_obligations[].id] | sort) == [
+              "professional_review",
+              "schema_interoperability",
+              "statutory_and_jurisdictional_approval"
+            ]
+            and (.additional_blocking_obligations | all(.required == true and .compatible_with_current_v0_1_engine == false))
+            and (.non_compensatory_rules | any(contains("action_authority")))
+            and (.claim_ceiling | contains("no current Highveld decision is qualified"))
+          ' "$profile"

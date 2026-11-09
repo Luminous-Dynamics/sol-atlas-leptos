@@ -1,0 +1,210 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/highveld-keep-decision-reliance-profile-v0.1.schema.json",
+  "title": "Highveld Keep Decision Reliance Profile v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "profile_id",
+    "schema_version",
+    "receipt_schema_version",
+    "reference_implementation",
+    "classification",
+    "profile_compatibility",
+    "can_emit_reliable_for_declared_scope",
+    "jurisdiction",
+    "purposes",
+    "functional_units",
+    "required_proof_classes",
+    "owner_evidence_map",
+    "additional_blocking_obligations",
+    "non_compensatory_rules",
+    "claim_ceiling",
+    "links"
+  ],
+  "properties": {
+    "profile_id": {
+      "const": "HIGHVELD-KEEP-DECISION-RELIANCE-PROFILE-V0.1"
+    },
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "receipt_schema_version": {
+      "const": "luminous.engineering-decision-reliance-receipt.v0.1"
+    },
+    "reference_implementation": {
+      "type": "string",
+      "minLength": 1
+    },
+    "classification": {
+      "type": "string",
+      "minLength": 1
+    },
+    "profile_compatibility": {
+      "enum": [
+        "compatible_with_reference_v0.1",
+        "requires_v0_2_proof_vocabulary_extension"
+      ]
+    },
+    "can_emit_reliable_for_declared_scope": {
+      "type": "boolean"
+    },
+    "jurisdiction": {
+      "type": "string",
+      "minLength": 1
+    },
+    "purposes": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
+      }
+    },
+    "functional_units": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "meaning",
+          "cross_unit_inference"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "meaning": {
+            "type": "string"
+          },
+          "cross_unit_inference": {
+            "const": "prohibited"
+          }
+        }
+      }
+    },
+    "required_proof_classes": {
+      "type": "array",
+      "minItems": 11,
+      "maxItems": 11,
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "decision_event_integrity",
+          "native_source_identity",
+          "source_payload_bytes",
+          "source_use_rights",
+          "source_attestation_trust",
+          "source_coverage",
+          "projection_integrity",
+          "engineering_domain_validity",
+          "lifecycle_currentness",
+          "impact_frontier_correctness",
+          "actor_reliance_authority"
+        ]
+      }
+    },
+    "owner_evidence_map": {
+      "type": "array",
+      "minItems": 11,
+      "maxItems": 11,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "proof_class",
+          "owners",
+          "source_artifacts",
+          "binding_fields",
+          "status_policy"
+        ],
+        "properties": {
+          "proof_class": {
+            "type": "string"
+          },
+          "owners": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string"
+            }
+          },
+          "source_artifacts": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string"
+            }
+          },
+          "binding_fields": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string"
+            }
+          },
+          "status_policy": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "additional_blocking_obligations": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "required",
+          "owners",
+          "reason",
+          "compatible_with_current_v0_1_engine"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "required": {
+            "const": true
+          },
+          "owners": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string"
+            }
+          },
+          "reason": {
+            "type": "string"
+          },
+          "compatible_with_current_v0_1_engine": {
+            "const": false
+          }
+        }
+      }
+    },
+    "non_compensatory_rules": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
+      }
+    },
+    "claim_ceiling": {
+      "type": "string",
+      "minLength": 1
+    },
+    "links": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string",
+        "format": "uri"
+      }
+    }
+  }
+}
