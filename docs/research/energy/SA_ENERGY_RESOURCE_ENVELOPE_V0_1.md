@@ -243,3 +243,48 @@ Sources:
 - ETHOS.RESKit 2026 paper: https://pmc.ncbi.nlm.nih.gov/articles/PMC12804690/
 - ETHOS.RESKit archive: https://doi.org/10.5281/zenodo.17668776
 - Current RESKit tag v0.5.0: https://github.com/FZJ-IEK3-VSA/RESKit/releases/tag/v0.5.0
+
+
+## 13. South African hydropower: use existing water infrastructure before new dams
+The primary local reference is the **South African Hydropower Atlas**, WRC Report TT 916/23 (June 2023), plus the WRC SAHA ArcGIS E-Tool. The report explicitly covers conduit hydropower, hydrokinetic rivers/canals, run-of-river, storage dams, pumped storage, WTW, WWTW, weirs and transfer schemes. It notes 284 municipalities and multiple utilities/mines with gravity-fed water distribution systems as potential conduit-hydro owners.
+
+This is a much stronger foundation than the older 2002 national baseline, but it remains a discovery and preliminary assessment:
+- Conduit potential uses **pressure head and flow**; data availability particularly limited evaluation of conduit opportunities.
+- WWTW/WTW assessment methods are described as underexplored and initial criteria rely on assumptions.
+- Hydrokinetic South African case studies were scarce, and the report notes potential variance between estimated and actual flows.
+- The atlas's pumped-storage potential figure of 31,000 MW assumes 12 hours/day and overlapping candidate sites; it states actual potential is significantly lower. Geological, hydrological and environmental investigations were not completed for every identified pair.
+- The report says the assessment criteria should be strengthened through additional site feasibility studies.
+
+The source registry separately records the WRC report and the WRC ArcGIS catalogue entry. Do not assume that a report download grants rights to every underlying dataset or ArcGIS service.
+
+### First-order architecture hypotheses
+
+1. **Pressure-reducing station recovery:** compare a bypass turbine / PAT with the PRV baseline. The water operator's pressure setpoints, minimum delivery pressure and outage response remain hard constraints.
+2. **Water-treatment works (WTW):** recover available elevation head in an inlet/conveyance route only where the hydraulic boundary and plant operations support it.
+3. **Wastewater-treatment works (WWTW):** inspect actual inlet/outfall head and flow; include treatment performance, debris/solids, water quality and discharge compliance. Do not presume a constant outflow or that a turbine is suitable at every works.
+4. **Irrigation canals, rivers and weirs:** compare low-head diversion/chute turbines and hydrokinetic devices separately. Hydrokinetic energy depends strongly on velocity, swept area and device-specific hydrodynamics; velocity alone is not a power prediction.
+5. **Existing dam releases:** retrofit turbines into authorised water-supply, irrigation, flood-control or environmental releases without assuming extra flow or modified timing.
+6. **Pumped storage:** separate storage from generation and quantify pumping input, generating output, round-trip efficiency, reservoir active volume, head, evaporation/seepage, environmental conditions and grid services.
+
+### Service-preserving design objective
+
+Maximise **net useful energy recovered while maintaining or improving water service and environmental outcomes**. A design that reduces water delivery, violates pressure requirements, degrades treatment, compromises an ecological release or weakens system resilience is infeasible regardless of its energy revenue.
+
+Report two trajectories independently:
+- water: delivered volume, pressure at critical nodes, treatment/effluent compliance, service availability, ecological releases and recovery from faults;
+- energy: gross generation, auxiliary/parasitic load, net output, temporal profile, self-consumption, export, curtailment and recovered energy per cubic metre.
+
+The DWS January 2025 Water and Sanitation Sector Climate Response Strategy notes existing South African PAT examples and PRV-replacement energy-recovery opportunities. The 2026 WDN hydropower review describes PATs as a low-cost standardised option but reports a broad 40–75% small PAT/micro-hydro efficiency range versus >90% for suitable larger turbines. Those are literature ranges, not specific device or site performance guarantees. A PAT must be selected from a manufacturer/test efficiency map at the actual head/flow duty profile; do not apply one constant peak efficiency to all operating conditions.
+
+### WRC Atlas potential table: do not overclaim
+
+The 2023 report lists, among other categories, conduit potential >83 MW; WWTW 0.73–3.7 MW; WTW 0.67–3.3 MW; weirs 10.6–50.3 MW; hydrokinetic >16 MW; storage schemes 1,102 MW; and pumped storage 31,000 MW. These are reported preliminary atlas figures, not confirmed available plant capacity. For run-of-river it reports 760–882 kW/km with the national total still being determined. The report explicitly says figures will be updated as source data mature and small-hydro data access remains a challenge.
+
+Never sum overlapping resources, convert kW/km to site MW without a reach-specific model, or compare the pumped-storage headline to conventional generation capacity.
+
+Sources:
+- WRC Hydropower Atlas TT 916/23: https://wrcwebsite.azurewebsites.net/wp-content/uploads/mdocs/TT%20916%20final%20web.pdf
+- WRC SAHA E-Tool: https://search.wrc.org.za/reports/ada2ec32-f2c3-4703-af7f-d632d9965a90
+- DWS 2025 Climate Change Response Strategy: https://www.dws.gov.za/documents/Other/Water%20and%20Sanitation%20Sector/2025/NCC_2025_Final_01H_4%20%282%29.pdf
+- 2026 WDN hydropower review: https://doi.org/10.3390/en19020320
+- IEC 2026 pumped-storage trend report: https://webstore.iec.ch/en/publication/115300
