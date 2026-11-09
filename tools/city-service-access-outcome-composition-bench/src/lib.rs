@@ -180,6 +180,7 @@ fn restoration_state(
     if text(restoration, "service_id") != text(scope, "service_id")
         || text(restoration, "service_contract_revision") != text(service, "contract_revision")
         || text(restoration, "common_scope_digest") != text(scope, "common_scope_digest")
+        || text(restoration, "functional_unit") != text(scope, "functional_unit")
         || text(restoration, "group_id") != text(scope, "group_id")
         || text(restoration, "scenario_id") != text(scope, "scenario_id")
     {
