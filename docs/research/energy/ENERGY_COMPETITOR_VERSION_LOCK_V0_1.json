@@ -370,6 +370,100 @@
       "references": [
         "https://www.dws.gov.za/documents/Other/Water%20and%20Sanitation%20Sector/2025/NCC_2025_Final_01H_4%20%282%29.pdf"
       ]
+    },
+    {
+      "name": "IEC 60041 — hydraulic machine field acceptance",
+      "artifact": "Field acceptance tests to determine the hydraulic performance of hydraulic turbines, storage pumps and pump-turbines",
+      "pinned_release": "IEC 60041:1991, current published edition checked 2026-11-09",
+      "companion_engine": null,
+      "release_date": "1991-11-30",
+      "role": [
+        "field acceptance test method for hydraulic turbine, storage pump and pump-turbine performance",
+        "contract-guarantee verification and uncertainty-aware field test reporting"
+      ],
+      "important_limits": [
+        "The standard defines test arrangements and calculation/reporting methods; it does not provide an unmeasured project's resource estimate, design approval or water-use authorisation.",
+        "A software trajectory is not a field acceptance test."
+      ],
+      "pin_policy": "Pin IEC publication and corrigenda, exact test class, metrology, boundary, instrument calibration, uncertainty budget and test report.",
+      "references": [
+        "https://webstore.iec.ch/"
+      ]
+    },
+    {
+      "name": "IEC 60193 — hydraulic machine model acceptance",
+      "artifact": "Hydraulic turbines, storage pumps and pump-turbines — Model acceptance tests",
+      "pinned_release": "IEC 60193:2019 Edition 3.0",
+      "companion_engine": null,
+      "release_date": "2019",
+      "role": [
+        "laboratory model acceptance and prototype-transposition test protocol for hydraulic machines"
+      ],
+      "important_limits": [
+        "Primary scope is models of machines above 5 MW unit power or 3 m reference diameter; application to smaller units is not generally justified except by agreement.",
+        "Does not replace field acceptance of an installed small-hydro unit or structural/mechanical qualification."
+      ],
+      "pin_policy": "Pin edition, model geometry, test rig calibration, scale/transposition method and purchaser/supplier agreement where applied below normal scope.",
+      "references": [
+        "https://webstore.iec.ch/en/publication/60951"
+      ]
+    },
+    {
+      "name": "IEC 61362 — hydraulic turbine governing systems",
+      "artifact": "Guidelines to specification of hydraulic turbine governing systems",
+      "pinned_release": "IEC 61362:2024 Edition 3.0",
+      "companion_engine": null,
+      "release_date": "2024-09-17",
+      "role": [
+        "turbine governing-system specification and performance requirements",
+        "speed, power, water-level, opening/flow control and emergency shutdown specification"
+      ],
+      "important_limits": [
+        "This is a specification guideline, not an acceptance-test standard; acceptance procedures and guarantees are outside its scope.",
+        "Governing specification is not a complete water-service/surge safety case."
+      ],
+      "pin_policy": "Pin edition and governing-system data sheets, actuator-energy provisions, emergency shutdown and required guarantee/test documents.",
+      "references": [
+        "https://webstore.iec.ch/en/publication/72909"
+      ]
+    },
+    {
+      "name": "IEC 60545 — commissioning and operation",
+      "artifact": "Guidelines for commissioning and operation of hydraulic turbines, pump-turbines and storage pumps",
+      "pinned_release": "IEC 60545:2021 Edition 2.0",
+      "companion_engine": null,
+      "release_date": "2021-06-23",
+      "role": [
+        "commissioning and operation procedures for hydraulic machines",
+        "operational test and machine handover context"
+      ],
+      "important_limits": [
+        "Commissioning and operation guidelines do not establish ongoing maintenance, site rights, ecological acceptability or project safety by themselves."
+      ],
+      "pin_policy": "Pin edition and commissioning plan, tests, operational settings, machine configuration and handover record.",
+      "references": [
+        "https://webstore.iec.ch/en/publication/64109"
+      ]
+    },
+    {
+      "name": "IEC 62006 — small hydro acceptance testing",
+      "artifact": "Hydraulic machines — Acceptance tests of small hydroelectric installations",
+      "pinned_release": "IEC 62006:2010 Edition 1.0 published; Edition 2 is a development project as of 2026-11-09",
+      "companion_engine": null,
+      "release_date": "2010",
+      "role": [
+        "small-hydro field acceptance, safety approval, trial operation, reliability, cavitation/noise/vibration and performance verification"
+      ],
+      "important_limits": [
+        "IEC 62006:2010 applies to small hydro units up to about 15 MW and reference diameter around 3 m; it defines A/B/C acceptance test classes.",
+        "A second edition project is under development; do not claim that a draft or committee project is a published standard."
+      ],
+      "pin_policy": "Use published IEC 62006:2010 for current test planning unless a formally published replacement is confirmed. Track Edition 2 project separately and recheck its publication status before use.",
+      "references": [
+        "https://webstore.iec.ch/",
+        "https://iss.rs/en/project/show/iec%3Aproj%3A138148",
+        "https://iss.rs/en/project/show/iss%3Aproj%3A35001"
+      ]
     }
   ]
 }
