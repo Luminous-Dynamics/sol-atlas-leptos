@@ -41,7 +41,7 @@ The receipt contains exact SHA-256 values for the schema and registry bytes, val
 
 ## Tests
 
-The unit suite includes the checked-in 11-entry source register plus hostile controls for duplicate keys, trailing bytes, oversize input, unknown fields, duplicate IDs, fabricated snapshot admission, unavailable-source relabelling, HTTP locators, invalid dates, schema enum drift and discovery-status mutation.
+The unit suite includes the checked-in 13-entry source register plus hostile controls for duplicate keys, trailing bytes, oversize input, unknown fields, duplicate IDs, fabricated snapshot admission, unavailable-source relabelling, HTTP locators, invalid dates, schema enum drift and discovery-status mutation.
 
 ## Important boundary
 
@@ -56,3 +56,5 @@ A pass proves only that the exact bytes satisfy the structural/semantic rules im
 - establish project feasibility, resource yield, grid deliverability or bankability.
 
 All source entries remain discovery-only until a separate source-ingestion/admission workflow records original bytes, rights, metadata, transformations and independent validation.
+
+The two WASA records are intentionally separate: the full-period 30-year point time-series portal is marked temporarily unavailable, while the WASA3 2020 planning raster is a separate downloadable modelled dataset pending snapshot pinning. A regression test prevents this distinction from collapsing. A second regression test checks that the GWA4 source record preserves the absence of South Africa from the published GWA4 validation-country cohort.
