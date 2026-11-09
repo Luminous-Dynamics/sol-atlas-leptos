@@ -547,39 +547,123 @@ fn base_v02() -> (Value, Value, Value) {
 fn base_v01() -> (Value, Value, Value) {
     let artifact = sha256_hex(b"legacy-v0.1-payload");
     let node_id = format!("source_measurement:sha256:{artifact}");
-    let graph = json!({
+    let node = json!({
+        "node_id": node_id,
+        "node_type": "source_measurement",
+        "artifact_sha256": artifact,
+        "artifact_media_type": "application/json",
+        "schema_version": "owner.synthetic.contract@1.0.0",
+        "issuer_id": "urn:luminous:synthetic-owner:legacy",
+        "scope": {
+            "domain": "habitat",
+            "subject_pseudonyms": ["synthetic-dwelling-01"],
+            "purposes": ["engineering-assurance"]
+        },
+        "valid_time": {
+            "valid_from": "2025-01-01T00:00:00Z",
+            "valid_until": null
+        },
+        "observation_time": {
+            "artifact_created_at": "2025-01-01T00:00:00Z",
+            "recorded_at": "2025-01-01T00:01:00Z",
+            "trusted_at": "2025-01-01T00:02:00Z"
+        },
+        "verification": {
+            "result": "verified",
+            "policy_sha256": sha256_hex(b"legacy-policy"),
+            "verifier_build_sha256": sha256_hex(b"legacy-verifier"),
+            "trust_bundle_sha256": sha256_hex(b"legacy-trust-bundle"),
+            "checked_at": "2025-01-01T00:03:00Z",
+            "fresh_until": "2026-01-01T00:00:00Z"
+        }
+    });
+    let mut graph = json!({
         "schema_version": GRAPH_V01,
         "graph_id": "legacy-ieac-graph-0001",
-        "captured_at": "2025-01-01T00:00:00Z",
-        "graph_snapshot_sha256": sha256_hex(b"legacy-graph-snapshot"),
-        "nodes": [{
-            "node_id": node_id,
-            "node_type": "source_measurement",
-            "artifact_sha256": artifact
-        }],
+        "captured_at": "2025-01-01T00:04:00Z",
+        "graph_snapshot_sha256": "",
+        "nodes": [node],
         "edges": [],
         "claim_ceiling": "record_only",
         "action_authority": "none"
     });
+    let graph_sha = canonical_sha256(&graph, "graph_snapshot_sha256").unwrap_or_default();
+    graph["graph_snapshot_sha256"] = json!(graph_sha);
+
     let event = json!({
         "schema_version": EVENT_V01,
         "event_id": "legacy-invalidation-event-0001",
+        "issuer_id": "urn:luminous:synthetic-owner:legacy",
+        "authority_sequence": 1,
+        "previous_event_sha256": null,
+        "statement_sha256": sha256_hex(b"legacy-invalidation-statement"),
+        "cause_class": "source_corrected",
         "targets": [{
             "node_id": node_id,
             "node_type": "source_measurement",
             "artifact_sha256": artifact
         }],
+        "scope": {
+            "domains": ["habitat"],
+            "subject_pseudonyms": ["synthetic-dwelling-01"],
+            "purposes": ["engineering-assurance"]
+        },
+        "valid_time": {
+            "effective_at": "2025-01-01T00:05:00Z",
+            "effective_until": null,
+            "effective_time_confidence": "verified"
+        },
+        "system_time": {
+            "recorded_at": "2025-01-01T00:05:00Z",
+            "trusted_at": "2025-01-01T00:05:01Z",
+            "trusted_timestamp_receipt_sha256": sha256_hex(b"legacy-timestamp-receipt")
+        },
+        "invalidation_semantics": "reverify_required",
+        "evidence_references": [{
+            "evidence_id": "legacy-evidence-0001",
+            "artifact_sha256": sha256_hex(b"legacy-evidence"),
+            "media_type": "application/json"
+        }],
+        "authority": {
+            "authority_id": "urn:luminous:synthetic-owner:legacy",
+            "key_id": "legacy-key-001",
+            "scope_policy_sha256": sha256_hex(b"legacy-scope-policy"),
+            "authorization_receipt_sha256": sha256_hex(b"legacy-authorization"),
+            "independent_review": "approved"
+        },
+        "dispute_state": "undisputed",
         "action_authority": "none"
     });
+    let event_bytes = serde_json::to_vec(&event).expect("legacy event canonical serialization");
     let report = json!({
         "schema_version": REPORT_V01,
         "report_id": "legacy-impact-report-0001",
         "graph_snapshot_sha256": graph["graph_snapshot_sha256"],
+        "invalidation_event_sha256": sha256_hex(&event_bytes),
+        "impact_policy_sha256": sha256_hex(b"legacy-impact-policy"),
+        "impact_engine_build_sha256": sha256_hex(b"legacy-impact-engine"),
+        "evaluated_at": "2025-01-01T00:06:00Z",
         "results": [{
             "node_id": node_id,
             "node_type": "source_measurement",
-            "artifact_sha256": artifact
+            "artifact_sha256": artifact,
+            "impact_class": "reverify_required",
+            "historical_authenticity": "valid_at_time",
+            "current_reliance": "reverify_required",
+            "dependency_path": [],
+            "reason_codes": ["SOURCE_CORRECTED"]
         }],
+        "summary": {
+            "node_count": 1,
+            "no_impact_count": 0,
+            "historical_record_only_count": 0,
+            "reverify_required_count": 1,
+            "claim_invalidated_count": 0,
+            "quarantined_pending_review_count": 0
+        },
+        "historical_record_preserved": true,
+        "not_checked": ["issuer authentication", "engineering correctness"],
+        "claim_ceiling": "record_only",
         "action_authority": "none"
     });
     (graph, event, report)
