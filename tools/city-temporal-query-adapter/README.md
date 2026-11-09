@@ -45,14 +45,14 @@ The output preserves separate world, knowledge, trust and report-binding states.
 
 ## Corpus
 
-`CITY_TEMPORAL_QUERY_CORPUS_V0_1.json` contains 24 synthetic known-answer cases:
+`CITY_TEMPORAL_QUERY_CORPUS_V0_1.json` contains 28 synthetic known-answer cases:
 
 - 2 eligible temporal projections;
-- 5 excluded projections;
+- 7 excluded projections;
 - 5 insufficient-evidence cases;
-- 12 invalid-input cases.
+- 16 invalid-input cases.
 
-The controls include historical vs current reconstruction, late evidence, trust arriving after cutoff, future/expired valid intervals, disputed and authority-asserted time, null vs missing trust receipt, reversed trust/recorded ordering, invalid intervals, mismatched W/K/T/E/perspective, subject revision mismatch, noncanonical timestamps and owner-report event/time mismatches.
+The controls include historical vs current reconstruction, late evidence, trust arriving after cutoff, future/expired valid intervals, disputed and authority-asserted time, null vs missing trust receipt, reversed trust/recorded ordering, invalid intervals, mismatched W/K/T/E/perspective, subject revision mismatch, noncanonical timestamps, owner-report event/time mismatches, future knowledge/trust cutoffs, and events recorded or trusted after query evaluation.
 
 Expected outcomes are stored in the corpus and compared against the Rust evaluator. This is a synthetic oracle, not a field trial.
 
