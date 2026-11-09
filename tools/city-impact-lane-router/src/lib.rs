@@ -790,7 +790,8 @@ mod tests {
 
     #[test]
     fn router_corpus_contains_41_unique_cases() {
-        let cases = corpus()["cases"].as_array().unwrap();
+        let corpus_data = corpus();
+        let cases = corpus_data["cases"].as_array().unwrap();
         assert_eq!(cases.len(), 44);
         let ids = cases
             .iter()
@@ -802,7 +803,8 @@ mod tests {
     #[test]
     fn bitemporal_event_controls_fail_closed() {
         let r = registry();
-        let cases = corpus()["cases"].as_array().unwrap();
+        let corpus_data = corpus();
+        let cases = corpus_data["cases"].as_array().unwrap();
 
         let missing_recorded = evaluate_case(&cases[28], &r);
         assert_eq!(missing_recorded["route_state"], "insufficient_evidence");
@@ -888,7 +890,8 @@ mod tests {
     #[test]
     fn source_inventory_closure_owner_lane_fails_closed() {
         let r = registry();
-        let cases = corpus()["cases"].as_array().unwrap();
+        let corpus_data = corpus();
+        let cases = corpus_data["cases"].as_array().unwrap();
 
         let complete = evaluate_case(&cases[35], &r);
         assert_eq!(complete["route_state"], "contract_bound_unverified");
