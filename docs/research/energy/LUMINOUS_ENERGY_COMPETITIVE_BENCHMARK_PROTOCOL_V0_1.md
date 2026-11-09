@@ -257,3 +257,38 @@ Therefore:
 - do not claim a novel system beats solar/wind on LCOE unless technology, boundary, commissioning cohort, financing and system service are genuinely matched.
 
 A useful Luminous result may be a portfolio with a higher plant-gate LCOE but lower total cost per unit of essential service delivered, lower outage risk or better industrial heat integration. That conclusion must be demonstrated with paired models and independently checked service receipts—not inferred from the technology labels.
+
+
+## 12. Wind-model SOTA comparator: ETHOS.RESKit and the South African blind-holdout problem
+The 2026-01-14 Nature Communications paper *Towards high resolution, validated and open global wind power assessments* (Peña-Sánchez et al.) is an important new reference for wind-power simulation.
+
+The paper describes ETHOS.RESKit as a time-resolved GWA4 + ERA5 wind-power workflow and reports:
+- Calibration using 213 global weather-mast locations in 25 countries and more than 8 million filtered hourly observations. The paper states that the mast-measurement geography includes South Africa.
+- A separate turbine/farm power-validation set with more than 8 million hourly observations from 152 turbine/farm sites. The raw turbine power records are restricted by third-party agreements.
+- On its reported hourly turbine/farm capacity-factor comparison (Table 2): relative mean error 0.056, Pearson correlation 0.844, RMSE 0.196 and Perkins skill score 0.90 for the calibrated workflow; the uncalibrated relative mean error is 0.292.
+- A separate global/country comparison using IEA statistics. The abstract mentions a 0.6% mean error for annual aggregated energy output, while the detailed main text reports a 6.2% relative deviation between global average capacity factor 0.287 (model) and 0.306 (IEA). These are different cohorts/metrics; benchmark manifests must preserve the precise denominator, formula, temporal aggregation and source data rather than compressing them into one “accuracy” figure.
+- More than 800 / 880 turbine model types and support for synthetic power curves. Pin the exact model release/archive before claiming the current turbine library size.
+
+The authors report South African mast measurements in the global calibration geography, but do not establish South African turbine-generation holdout validation. They also warn that the workflow is more appropriate for large-scale assessments than exact single locations; ERA5/GWA4 spatial representation, local terrain, diurnal and seasonal biases remain limitations. The paper's raw wind-farm database is commercially licensed and the turbine power records are restricted.
+
+### Pinning
+
+- Paper-specific reproduction: pin Zenodo archive DOI **10.5281/zenodo.17668776** and all archived files/checksums.
+- Current software comparator: pin immutable GitHub tag **RESKit v0.5.0**, released 2026-07-10, commit `b41cf859fd619c5be717af84db5502b0ac4ca3e5`, plus exact Python environment and input data. This release is not assumed identical to the paper archive.
+- Also compare baseline workflows such as Renewables.ninja, pyGRETA and atlite only with identical ERA5/GWA4 periods, turbine types, hub height, power curves, wake/availability losses, site set and evaluation metrics.
+
+### South African evaluation rule
+
+Do not blindly reuse a WASA mast for validation if it contributed to the ETHOS.RESKit calibration cohort. First recover the exact 213-mast source table/site IDs and match them to WASA mast identifiers, including instrument height, period, quality flags and data overlaps. Partition by site and time—not by random hourly rows—so correlated samples from one mast cannot leak across training and blind holdout.
+
+Where South African masts overlap the calibration set, reserve other genuinely independent SAWS/CSIR/lidar campaigns, new measurement periods or turbine/farm telemetry as the blind set. If no independent turbine power series can be lawfully accessed, the result must remain `NEEDS_INDEPENDENT_POWER_DATA`; no local turbine-AEP superiority claim is permitted.
+
+### Luminous research opportunity
+
+A fair “better than SOTA” study should test four distinct outputs:
+1. Resource field: GWA4 / WASA3 / ERA5 against independent wind-speed observations by height, season and terrain regime.
+2. Turbine conversion: manufacturer curve and air-density correction, independently measured power curve where available.
+3. Chronological generation: site/time-blocked capacity-factor and power-trajectory error, calibration, extreme/lull tail behavior, and uncertainty interval coverage.
+4. Portfolio decision: delivered service, curtailment, storage sizing, grid constraints and lifecycle cost after using the resource model.
+
+Do not fit a single global correction factor and claim universal local validation. Test a hierarchy of global, climate-region, terrain/regime and site-specific corrections with leakage-safe ablation, uncertainty propagation and minimum data sufficiency. A local correction is only eligible when independent data justify it and the calibration/holdout split is disclosed.
