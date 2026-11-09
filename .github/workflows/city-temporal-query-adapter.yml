@@ -75,8 +75,14 @@ jobs:
           jq -e '
             all(.cases[];
               (.input.query.time_basis == "UTC_RFC3339_SECONDS")
-              and (.input.query.temporal_perspective == "historically_known_then"
-                or .input.query.temporal_perspective == "currently_reconstructed_history")
+              and (
+                (.input.query.temporal_perspective == "historically_known_then"
+                  or .input.query.temporal_perspective == "currently_reconstructed_history")
+                or (
+                  .expected.disposition == "invalid_input"
+                  and (.expected.reason_codes | index("TEMPORAL_QUERY_PERSPECTIVE_INVALID") != null)
+                )
+              )
               and (.input.owner_report.action_authority == "none")
             )
           ' "$corpus"
