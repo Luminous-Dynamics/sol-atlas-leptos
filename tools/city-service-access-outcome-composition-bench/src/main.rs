@@ -88,7 +88,10 @@ fn main() -> ExitCode {
 
     let mut failures = 0usize;
     let mut scenarios = Vec::new();
-    for case in corpus["cases"].as_array().expect("corpus validation checks cases") {
+    for case in corpus["cases"]
+        .as_array()
+        .expect("corpus validation checks cases")
+    {
         let evaluation = evaluate_case(case);
         let passed = evaluation.output == case["expected"];
         if !passed {
