@@ -83,8 +83,8 @@ fn canonical_sha256(value: &Value, excluded_key: &str) -> Result<String, String>
 }
 
 fn append_identity_field(buffer: &mut Vec<u8>, value: &str) -> Result<(), String> {
-    let length = u64::try_from(value.len())
-        .map_err(|_| "IDENTITY_COMPONENT_LENGTH_OVERFLOW".to_owned())?;
+    let length =
+        u64::try_from(value.len()).map_err(|_| "IDENTITY_COMPONENT_LENGTH_OVERFLOW".to_owned())?;
     buffer.extend_from_slice(&length.to_be_bytes());
     buffer.extend_from_slice(value.as_bytes());
     Ok(())
@@ -94,9 +94,7 @@ fn valid_component_name(name: &str) -> bool {
     let mut bytes = name.bytes();
     bytes.next().is_some_and(|byte| byte.is_ascii_lowercase())
         && bytes.all(|byte| {
-            byte.is_ascii_lowercase()
-                || byte.is_ascii_digit()
-                || matches!(byte, b'_' | b'.' | b'-')
+            byte.is_ascii_lowercase() || byte.is_ascii_digit() || matches!(byte, b'_' | b'.' | b'-')
         })
 }
 
@@ -179,7 +177,12 @@ fn check_graph_node(node: &Value, reasons: &mut BTreeSet<String>) {
     }
 }
 
-fn check_exact_keys(value: &Value, expected: &[&str], reason: &str, reasons: &mut BTreeSet<String>) {
+fn check_exact_keys(
+    value: &Value,
+    expected: &[&str],
+    reason: &str,
+    reasons: &mut BTreeSet<String>,
+) {
     let Some(object) = value.as_object() else {
         add(reasons, reason);
         return;
@@ -388,13 +391,21 @@ fn evaluate_v02(graph: &Value, event: &Value, report: &Value) -> Evaluation {
     let authority = event.get("authority").unwrap_or(&Value::Null);
     check_exact_keys(
         valid_time,
-        &["effective_at", "effective_until", "effective_time_confidence"],
+        &[
+            "effective_at",
+            "effective_until",
+            "effective_time_confidence",
+        ],
         "EVENT_VALID_TIME_FIELD_SET_INVALID",
         &mut reasons,
     );
     check_exact_keys(
         system_time,
-        &["recorded_at", "trusted_at", "trusted_timestamp_receipt_sha256"],
+        &[
+            "recorded_at",
+            "trusted_at",
+            "trusted_timestamp_receipt_sha256",
+        ],
         "EVENT_SYSTEM_TIME_FIELD_SET_INVALID",
         &mut reasons,
     );
@@ -417,9 +428,7 @@ fn evaluate_v02(graph: &Value, event: &Value, report: &Value) -> Evaluation {
     {
         add(&mut reasons, "INVALIDATION_AUTHORITY_INSUFFICIENT");
     }
-    if text(event, "dispute_state") != "undisputed"
-        && semantics != "quarantined_pending_review"
-    {
+    if text(event, "dispute_state") != "undisputed" && semantics != "quarantined_pending_review" {
         add(&mut reasons, "DISPUTED_EVENT_NOT_QUARANTINED");
     }
     if text(authority, "independent_review") == "pending" {
@@ -833,7 +842,12 @@ pub fn build_triplet(mutation: &str) -> (Value, Value, Value) {
             } else {
                 "engineering_receipt"
             };
-            let node = make_node(node_type, "native-record-001", "revision-1", "{\"service\":\"water\"}");
+            let node = make_node(
+                node_type,
+                "native-record-001",
+                "revision-1",
+                "{\"service\":\"water\"}",
+            );
             graph["nodes"][0] = node.clone();
             event["targets"][0] = target_from_node(&node);
             report["results"][0] = result_from_node(&node);
@@ -897,7 +911,10 @@ pub fn build_triplet(mutation: &str) -> (Value, Value, Value) {
         }
         "duplicate_graph_node_identity" => {
             let duplicate = graph["nodes"][0].clone();
-            graph["nodes"].as_array_mut().expect("graph nodes").push(duplicate);
+            graph["nodes"]
+                .as_array_mut()
+                .expect("graph nodes")
+                .push(duplicate);
         }
         "report_extra_unbound_node" => {
             let mut extra = report["results"][0].clone();
@@ -908,7 +925,10 @@ pub fn build_triplet(mutation: &str) -> (Value, Value, Value) {
             extra["node_type"] = json!("engineering_receipt");
             extra["identity_sha256"] = json!(sha256_hex(b"not-present-identity"));
             extra["artifact_sha256"] = json!(sha256_hex(b"not-present-payload"));
-            report["results"].as_array_mut().expect("report results").push(extra);
+            report["results"]
+                .as_array_mut()
+                .expect("report results")
+                .push(extra);
             report["summary"]["node_count"] = json!(2);
             report["summary"]["reverify_required_count"] = json!(2);
         }
@@ -932,7 +952,10 @@ pub fn build_triplet(mutation: &str) -> (Value, Value, Value) {
             let identity = identity_digest(&second).expect("second identity");
             second["identity_sha256"] = json!(identity);
             second["node_id"] = json!(format!("source_evidence:identity-sha256:{identity}"));
-            graph["nodes"].as_array_mut().expect("graph nodes").push(second);
+            graph["nodes"]
+                .as_array_mut()
+                .expect("graph nodes")
+                .push(second);
         }
         _ => {}
     }
@@ -995,8 +1018,13 @@ pub fn validate_corpus(corpus: &Value) -> Vec<String> {
             errors.push(format!("{id}:MUTATION_MISSING"));
         }
         if case.get("expected").and_then(Value::is_object) != Some(true)
-            || case["expected"].get("accepted").and_then(Value::as_bool).is_none()
-            || !case["expected"].get("reason_codes").is_some_and(Value::is_array)
+            || case["expected"]
+                .get("accepted")
+                .and_then(Value::as_bool)
+                .is_none()
+            || !case["expected"]
+                .get("reason_codes")
+                .is_some_and(Value::is_array)
         {
             errors.push(format!("{id}:EXPECTED_OUTPUT_INVALID"));
         }
@@ -1038,7 +1066,10 @@ mod tests {
     fn v0_1_triplet_is_preserved_without_coercion() {
         let result = evaluate_mutation("legacy_v0_1_triplet");
         assert!(result.accepted);
-        assert_eq!(result.compatibility, "legacy_v0_1_preserved_without_coercion");
+        assert_eq!(
+            result.compatibility,
+            "legacy_v0_1_preserved_without_coercion"
+        );
         assert!(result.reason_codes.is_empty());
     }
 
@@ -1046,8 +1077,14 @@ mod tests {
     fn identical_payloads_do_not_merge_different_native_identities() {
         let (graph, event, report) = build_triplet("same_payload_distinct_native_identities");
         assert_eq!(array(&graph, "nodes").len(), 2);
-        assert_eq!(graph["nodes"][0]["artifact_sha256"], graph["nodes"][1]["artifact_sha256"]);
-        assert_ne!(graph["nodes"][0]["identity_sha256"], graph["nodes"][1]["identity_sha256"]);
+        assert_eq!(
+            graph["nodes"][0]["artifact_sha256"],
+            graph["nodes"][1]["artifact_sha256"]
+        );
+        assert_ne!(
+            graph["nodes"][0]["identity_sha256"],
+            graph["nodes"][1]["identity_sha256"]
+        );
         assert!(evaluate_triplet(&graph, &event, &report).accepted);
     }
 
@@ -1060,6 +1097,10 @@ mod tests {
     fn scitt_receipt_does_not_replace_owner_authority_review() {
         let result = evaluate_mutation("pending_review_with_scitt_receipt");
         assert!(!result.accepted);
-        assert!(result.reason_codes.contains(&"INVALIDATION_AUTHORITY_INSUFFICIENT".to_owned()));
+        assert!(
+            result
+                .reason_codes
+                .contains(&"INVALIDATION_AUTHORITY_INSUFFICIENT".to_owned())
+        );
     }
 }
