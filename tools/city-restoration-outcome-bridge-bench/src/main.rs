@@ -3,9 +3,9 @@ use std::fs;
 use std::process::ExitCode;
 
 use city_restoration_outcome_bridge_reference::{
-    CLAIM_CEILING, CORPUS_ID, evaluate_case, validate_corpus,
+    CLAIM_CEILING, CORPUS_ID, evaluate_case, parse_unique_json_bytes, validate_corpus,
 };
-use serde_json::{Value, json};
+use serde_json::json;
 use sha2::{Digest, Sha256};
 
 fn sha256_hex(bytes: &[u8]) -> String {
@@ -59,11 +59,11 @@ fn main() -> ExitCode {
         Ok(bytes) => bytes,
         Err(error) => return invalid_input(&error),
     };
-    let corpus: Value = match serde_json::from_slice(&corpus_bytes) {
+    let corpus = match parse_unique_json_bytes(&corpus_bytes) {
         Ok(value) => value,
         Err(error) => return invalid_input(&format!("invalid corpus JSON: {error}")),
     };
-    let schema: Value = match serde_json::from_slice(&schema_bytes) {
+    let schema = match parse_unique_json_bytes(&schema_bytes) {
         Ok(value) => value,
         Err(error) => return invalid_input(&format!("invalid schema JSON: {error}")),
     };
