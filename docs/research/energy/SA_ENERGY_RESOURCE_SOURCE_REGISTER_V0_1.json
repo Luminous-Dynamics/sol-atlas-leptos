@@ -1253,6 +1253,58 @@
       ],
       "raw_snapshot_ingested": false,
       "snapshot_digest": null
+    },
+    {
+      "source_id": "parra-et-al-intelligent-pat-prv-experiment-2018",
+      "source_name": "Intelligent pressure management by pumps as turbines in water distribution systems: results of experimentation",
+      "provider": "Parra, Krause, Krönlein, Günthert and Klunke; Water Supply / IWA Publishing",
+      "source_url": "https://iwaponline.com/ws/article-abstract/18/3/778/38286/Intelligent-pressure-management-by-pumps-as",
+      "source_type": "research_publication",
+      "resource_families": [
+        "hydropower"
+      ],
+      "evidence_basis": "laboratory_measurement",
+      "availability_state": "context_only",
+      "source_version": {
+        "label": "Water Supply 2018, 18(3), 778–789; DOI 10.2166/ws.2017.154; accepted 2017-07-10",
+        "release_or_publication_date": "2018",
+        "data_period": "Laboratory / experimental evaluation of a PRV + PAT pressure management arrangement under variable discharges representative of a characteristic demand day",
+        "metadata_updated": null,
+        "notes": "The paper combines hydraulic modelling and extensive experimentation for a German WDN case. During laboratory tests, critical-point pressure was maintained at the selected value under variable discharge; it reports up to 2.3 kW electrical energy recovered at PAT full load, maximum total net system efficiency of 40%, and up to 16% greater water savings than conventional PRVs."
+      },
+      "spatial_scope": "Germany case study and laboratory PAT/PRV test arrangement; not South Africa",
+      "spatial_resolution": "One laboratory/test configuration and associated hydraulic model, not a measured national/network fleet",
+      "temporal_scope": "Published 2018; experimental operating profile representative of a characteristic demand day",
+      "temporal_resolution": "Variable discharge operating points; exact test sample intervals require full article and supplementary data",
+      "variables": [
+        "variable flow",
+        "critical-node pressure",
+        "PAT electrical output",
+        "net system efficiency",
+        "water savings versus PRV baseline",
+        "pressure modulation"
+      ],
+      "license_status": {
+        "status": "identified_requires_review",
+        "details": "IWA Publishing access and article reuse terms must be checked before reuse of full text, figures or datasets. Abstract-level published claims may be cited; raw test data are not presumed redistributable."
+      },
+      "claim_ceiling": "Published experimental PAT/PRV control evidence under a variable-discharge laboratory profile. Not a South African field installation, not long-term operational availability, and not a project-specific energy or water-savings guarantee.",
+      "limitations": [
+        "The reported 2.3 kW is an observed full-load maximum, not a sustained average or annual energy yield.",
+        "The 40% figure is the maximum total net system efficiency reported by this study; its exact measurement boundary must be preserved and must not be compared directly to turbine-only or generator-only efficiency.",
+        "The up-to-16% water savings are relative to the tested conventional PRV arrangement and operating profile, not a universal leakage reduction.",
+        "The study uses a German case and laboratory experiments; it does not validate South African network hydraulics or water-rights conditions.",
+        "Full operational lifetime, fouling, maintenance, seasonal flow variability and long-term grid performance are not established by the abstract."
+      ],
+      "admission_requirements": [
+        "Pin the full paper and supplementary materials, exact test setup, PAT model, electrical/hydraulic measurement points and uncertainty.",
+        "Recover the exact net-system-efficiency denominator and the baseline water-saving definition.",
+        "Reproduce the variable-discharge pressure tracking case with the same pressure target, flow profile and PRV comparator.",
+        "Keep full-load maximum power separate from time-integrated generation and long-term availability.",
+        "Do not transfer the German case-study savings to South African networks without local validation."
+      ],
+      "raw_snapshot_ingested": false,
+      "snapshot_digest": null
     }
   ]
 }
