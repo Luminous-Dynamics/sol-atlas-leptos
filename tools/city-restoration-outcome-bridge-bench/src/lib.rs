@@ -660,6 +660,106 @@ pub fn validate_case(case: &Value) -> Vec<String> {
             &mut errors,
         );
     }
+    check_keys(
+        object(object(input, "service_contract"), "stability_policy"),
+        "input.service_contract.stability_policy",
+        &["minimum_contiguous_adequate_ticks"],
+        &mut errors,
+    );
+    check_keys(
+        object(object(input, "continuity"), "stable_adequacy"),
+        "input.continuity.stable_adequacy",
+        &[
+            "confirmed_tick",
+            "minimum_ticks",
+            "observed_ticks",
+            "qualified",
+            "start_tick",
+        ],
+        &mut errors,
+    );
+    check_keys(
+        object(object(input, "continuity"), "trajectory"),
+        "input.continuity.trajectory",
+        &[
+            "adequate_ticks",
+            "constrained_ticks",
+            "first_adequate_tick",
+            "inaccessible_ticks",
+            "last_degradation_end_tick",
+            "recurrence_count",
+            "unknown_ticks",
+        ],
+        &mut errors,
+    );
+    let measurement = object(input, "measurement");
+    for (index, metric) in list(measurement, "metric_results").iter().enumerate() {
+        check_keys(
+            metric,
+            &format!("input.measurement.metric_results[{index}]"),
+            &[
+                "metric_id",
+                "observation_state",
+                "observed_value",
+                "reason_codes",
+                "threshold_state",
+                "unit",
+            ],
+            &mut errors,
+        );
+    }
+    let observation = object(measurement, "observation");
+    if !observation.is_null() {
+        check_keys(
+            observation,
+            "input.measurement.observation",
+            &[
+                "applicability_state",
+                "calibration_state",
+                "direction",
+                "evidence_kind",
+                "evidence_state",
+                "ingested_tick",
+                "metric_id",
+                "observation_window",
+                "observed_tick",
+                "recorded_tick",
+                "registered_tick",
+                "source_ref",
+                "threshold",
+                "unit",
+                "value",
+            ],
+            &mut errors,
+        );
+        check_keys(
+            object(observation, "observation_window"),
+            "input.measurement.observation.observation_window",
+            &["start_tick", "end_tick"],
+            &mut errors,
+        );
+    }
+    check_keys(
+        object(input, "requested_scope"),
+        "input.requested_scope",
+        &[
+            "subject_id",
+            "subject_digest",
+            "functional_unit",
+            "group_id",
+            "population_frame",
+            "scenario_id",
+            "common_scope_digest",
+        ],
+        &mut errors,
+    );
+    check_keys(
+        object(input, "intervention"),
+        "input.intervention",
+        &["completed_tick", "accepted_output_required"],
+        &mut errors,
+    );
+
     for (index, binding) in list(object(input, "scope_binding"), "source_bindings")
         .iter()
         .enumerate()
@@ -728,6 +828,9 @@ pub fn validate_corpus(corpus: &Value) -> Vec<String> {
         let id = text(case, "case_id");
         if id.is_empty() || !seen.insert(id.to_owned()) {
             errors.push(format!("corpus.cases[{index}]:EMPTY_OR_DUPLICATE_ID"));
+        }
+        if text(object(case, "input"), "case_id") != id {
+            errors.push(format!("corpus.cases[{index}]:CASE_ID_MISMATCH"));
         }
         errors.extend(validate_case(case));
     }
