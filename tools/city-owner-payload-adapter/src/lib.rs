@@ -422,8 +422,7 @@ fn evaluate_artifact(
             && record.get("expected_byte_length").and_then(Value::as_u64) == expected_length
             && text(record, "digest_basis") == digest_basis
     });
-    if result_descriptor_matches {
-        if let Some(record) = result {
+    if result_descriptor_matches && let Some(record) = result {
             let observed_length = record.get("observed_byte_length").and_then(Value::as_u64);
             let bytes_hashed = record.get("bytes_hashed").and_then(Value::as_u64);
             byte_length_comparison_state =
@@ -437,7 +436,6 @@ fn evaluate_artifact(
                     (Some(_), None) => "not_verified",
                     (None, _) => "not_declared",
                 };
-        }
     }
     if !reasons.is_empty() {
         state = if reasons.iter().any(|reason| {
