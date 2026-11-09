@@ -194,19 +194,24 @@ fn owner_receipts_bound(input: &Value, reasons: &mut BTreeSet<String>) {
             if refs.iter().any(|source| !source_binding_exists(binding, source)) {
                 add(reasons, "OWNER_RECEIPT_NOT_BOUND_TO_COMMON_SCOPE");
             }
-
-            let observation_ref = object(observation, "source_ref");
-            if !observation.is_null()
-                && !observation_ref.is_null()
-                && !source_binding_exists(binding, observation_ref)
-            {
-                add(reasons, "MEASUREMENT_OWNER_RECEIPT_BINDING_INVALID");
-            }
         }
         _ => {
             add(reasons, "COMMON_SCOPE_BINDING_UNKNOWN");
             add(reasons, "OWNER_RECEIPT_NOT_BOUND_TO_COMMON_SCOPE");
         }
+    }
+
+    // Check the measurement's underlying observation separately from the
+    // aggregate evaluator receipt. This also applies when common-scope
+    // binding is Unknown, where we must report both failures.
+    let measurement = object(input, "measurement");
+    let observation = object(measurement, "observation");
+    let observation_ref = object(observation, "source_ref");
+    if !observation.is_null()
+        && !observation_ref.is_null()
+        && !source_binding_exists(binding, observation_ref)
+    {
+        add(reasons, "MEASUREMENT_OWNER_RECEIPT_BINDING_INVALID");
     }
 }
 
@@ -312,7 +317,11 @@ fn evaluate_current(input: &Value) -> (String, BTreeSet<String>) {
     {
         add(&mut reasons, "COMMISSIONING_EVIDENCE_INCOMPLETE");
     }
-    if contract.get("physical_output_required").and_then(Value::as_bool) == Some(true)
+    let physical_output_required =
+        contract.get("physical_output_required").and_then(Value::as_bool) == Some(true)
+            || physical.get("required").and_then(Value::as_bool) == Some(true)
+            || intervention.get("accepted_output_required").and_then(Value::as_bool) == Some(true);
+    if physical_output_required
         && (text(physical, "state") != "accepted"
             || !source_authority_valid(object(physical, "source_ref")))
     {
