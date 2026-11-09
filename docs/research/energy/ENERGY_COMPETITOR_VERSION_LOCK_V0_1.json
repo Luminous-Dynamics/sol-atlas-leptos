@@ -597,6 +597,29 @@
         "https://doi.org/10.1016/j.conengprac.2026.106777",
         "https://www.sciencedirect.com/science/article/pii/S0967066126000213"
       ]
+    },
+    {
+      "name": "EPANET-RS native Rust hydraulic solver",
+      "artifact": "epanet-rs hydraulic solver reimplementation",
+      "pinned_release": "Crates.io epanet-rs 0.2.3, published 2026-07-02",
+      "companion_engine": "OWA-EPANET 2.3.5 reference oracle",
+      "release_date": "2026-07-02",
+      "role": [
+        "Experimental Rust hydraulic engine for differential parity",
+        "Possible parallel Monte Carlo scenario solver"
+      ],
+      "important_limits": [
+        "Upstream describes numerical parity as a design goal, not a completed independent qualification.",
+        "Upstream claims up to 5x parallel speedup only for supported extended-period networks without tanks or controls; reproduce on identical inputs.",
+        "The 0.2.3 feature checklist marks leakage, rules, energy and quality as not implemented. Do not substitute for OWA where pipe leakage/FAVAD is required.",
+        "The API is described as partially compatible with OWA. Unsupported cases must fall back to the reference solver."
+      ],
+      "pin_policy": "Pin exact crates.io version and Cargo.lock checksum; separately record the inspected source revision and the OWA reference commit. Retain the same INP inputs and options for differential comparison.",
+      "references": [
+        "https://crates.io/crates/epanet-rs/0.2.3",
+        "https://docs.rs/crate/epanet-rs/0.2.3",
+        "https://github.com/Vitens/epanet-rs/tree/fee0d03b11ed71a6da7366f07290d6e44556add4"
+      ]
     }
   ]
 }
