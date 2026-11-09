@@ -64,7 +64,7 @@ fn main() -> ExitCode {
         || corpus["corpus_id"] != "CITY-TEMPORAL-QUERY-CORPUS-V0.1"
         || corpus["classification"] != "synthetic_fixture_only"
         || corpus["query_schema_version"] != "luminous.citymaker-temporal-query.v0.1"
-        || cases.len() != 24
+        || cases.len() != 28
     {
         eprintln!("unexpected temporal corpus identity, schema, classification or case count");
         return ExitCode::from(2);
