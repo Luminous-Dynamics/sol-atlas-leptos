@@ -1134,8 +1134,8 @@ mod tests {
         let receipt = audit_bytes(SCHEMA_BYTES, REGISTRY_BYTES)
             .expect("checked-in schema and source registry must decode");
         assert_eq!(receipt.disposition, "accepted");
-        assert_eq!(receipt.entry_count, 29);
-        assert_eq!(receipt.source_ids.len(), 29);
+        assert_eq!(receipt.entry_count, 38);
+        assert_eq!(receipt.source_ids.len(), 38);
         assert_eq!(receipt.findings.len(), 0);
     }
 
@@ -1165,7 +1165,7 @@ mod tests {
         let receipt = audit_bytes(SCHEMA_BYTES, REGISTRY_BYTES)
             .expect("updated registry should remain structurally valid");
         assert_eq!(receipt.disposition, "accepted");
-        assert_eq!(receipt.entry_count, 29);
+        assert_eq!(receipt.entry_count, 38);
     }
 
     #[test]
@@ -1215,7 +1215,7 @@ mod tests {
         let receipt =
             audit_bytes(SCHEMA_BYTES, REGISTRY_BYTES).expect("updated registry should conform");
         assert_eq!(receipt.disposition, "accepted");
-        assert_eq!(receipt.entry_count, 29);
+        assert_eq!(receipt.entry_count, 38);
     }
 
     #[test]
@@ -1264,7 +1264,7 @@ mod tests {
         let receipt =
             audit_bytes(SCHEMA_BYTES, REGISTRY_BYTES).expect("updated source register conforms");
         assert_eq!(receipt.disposition, "accepted");
-        assert_eq!(receipt.entry_count, 29);
+        assert_eq!(receipt.entry_count, 38);
     }
 
     #[test]
@@ -1285,7 +1285,7 @@ mod tests {
         );
         let receipt = audit_bytes(SCHEMA_BYTES, REGISTRY_BYTES)
             .expect("updated 26-entry source register conforms");
-        assert_eq!(receipt.entry_count, 29);
+        assert_eq!(receipt.entry_count, 38);
         assert_eq!(receipt.disposition, "accepted");
     }
 
@@ -1377,6 +1377,80 @@ mod tests {
                 .as_str()
                 .is_some_and(|claim| claim.contains("estimated"))
         );
+    }
+
+    #[test]
+    fn south_african_geothermal_and_marine_evidence_keeps_resource_claims_separate() {
+        let value = parse_registry_value();
+        let entries = value["entries"].as_array().expect("entries array");
+
+        let geothermal = entries
+            .iter()
+            .find(|entry| entry["source_id"] == "south-africa-geothermal-hotspots-dhansay-et-al-2017")
+            .expect("South African geothermal prospectivity record");
+        assert_eq!(geothermal["evidence_basis"], "published_field_observation");
+        assert_eq!(geothermal["availability_state"], "context_only");
+        assert!(geothermal["claim_ceiling"]
+            .as_str()
+            .is_some_and(|claim| claim.contains("possible South African low-enthalpy geothermal anomalies")));
+        assert!(geothermal["limitations"]
+            .as_array()
+            .expect("geothermal limitations")
+            .iter()
+            .any(|item| item.as_str().is_some_and(|text| text.contains("not a modern national geothermal atlas"))));
+
+        let marine = entries
+            .iter()
+            .find(|entry| entry["source_id"] == "dffe-south-africa-marine-renewable-spatial-planning-context-2021")
+            .expect("DFFE marine resource context");
+        assert_eq!(marine["evidence_basis"], "sector_policy_report");
+        let notes = marine["source_version"]["notes"].as_str().expect("marine notes");
+        assert!(notes.contains("tidal ranges are too small"));
+        assert!(notes.contains("Agulhas Current"));
+        assert!(notes.contains("wave power"));
+    }
+
+    #[test]
+    fn current_energy_sota_records_do_not_collapse_field_lab_and_cost_evidence() {
+        let value = parse_registry_value();
+        let entries = value["entries"].as_array().expect("entries array");
+        let find = |id: &str| {
+            entries
+                .iter()
+                .find(|entry| entry["source_id"] == id)
+                .unwrap_or_else(|| panic!("missing source record {id}"))
+        };
+
+        let fervo = find("fervo-cape-station-egs-33mw-commercial-operation-2026");
+        assert_eq!(fervo["evidence_basis"], "published_field_observation");
+        assert!(fervo["limitations"]
+            .as_array()
+            .expect("Fervo limitations")
+            .iter()
+            .any(|item| item.as_str().is_some_and(|text| text.contains("reported by the project developer"))));
+
+        let tandem = find("perovskite-silicon-tandem-scalable-ambient-fabrication-2026");
+        assert_eq!(tandem["evidence_basis"], "laboratory_measurement");
+
+        let costs = find("irenarenewable-power-generation-costs-2025-global-benchmark-2026");
+        assert_eq!(costs["evidence_basis"], "sector_policy_report");
+        assert!(costs["claim_ceiling"]
+            .as_str()
+            .is_some_and(|claim| claim.contains("not a South African bid price")));
+
+        for id in [
+            "geothermal-experience-rates-514-plant-global-dataset-2026",
+            "low-head-hydro-full-scale-validation-gaps-review-2026",
+            "shallow-water-hydrokinetic-performance-validation-review-2026",
+            "compressed-air-energy-storage-technology-prospects-review-2026",
+        ] {
+            assert_eq!(find(id)["evidence_basis"], "literature_review");
+        }
+
+        let receipt = audit_bytes(SCHEMA_BYTES, REGISTRY_BYTES)
+            .expect("38-entry multimodal energy source register conforms");
+        assert_eq!(receipt.disposition, "accepted");
+        assert_eq!(receipt.entry_count, 38);
     }
 
     #[test]
