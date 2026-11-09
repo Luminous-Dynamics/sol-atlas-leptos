@@ -410,6 +410,37 @@ fn evaluate_artifact(
         .unwrap_or("not_reported");
     let mut state = "indeterminate";
     let mut byte_length_comparison_state = "not_assessed";
+    let result_descriptor_matches = result.is_some_and(|record| {
+        text(record, "record_key") == declared_record_key
+            && record.get("expected_sha256").and_then(Value::as_str) == expected_sha
+            && record.get("object_ref").and_then(Value::as_str)
+                == if object_ref.is_empty() {
+                    None
+                } else {
+                    Some(object_ref)
+                }
+            && record.get("expected_byte_length").and_then(Value::as_u64) == expected_length
+            && text(record, "digest_basis") == digest_basis
+    });
+    if result_descriptor_matches {
+        if let Some(record) = result {
+            let observed_length = record.get("observed_byte_length").and_then(Value::as_u64);
+            let bytes_hashed = record.get("bytes_hashed").and_then(Value::as_u64);
+            byte_length_comparison_state = match (
+                expected_length,
+                bool_value(record, "byte_length_matches"),
+            ) {
+                (Some(expected), Some(true))
+                    if observed_length == Some(expected) && bytes_hashed == Some(expected) =>
+                {
+                    "matched"
+                }
+                (Some(_), Some(false)) | (Some(_), Some(true)) => "mismatch",
+                (Some(_), None) => "not_verified",
+                (None, _) => "not_declared",
+            };
+        }
+    }
     if !reasons.is_empty() {
         state = if reasons.iter().any(|reason| {
             reason.contains("MISMATCH")
@@ -950,6 +981,7 @@ mod tests {
         assert_eq!(artifact["payload_verification_state"], "mismatch");
         assert_eq!(artifact["payload_bytes_verified"], false);
         assert_eq!(artifact["raw_byte_equality_verified"], true);
+        assert_eq!(artifact["byte_length_comparison_state"], "matched");
         assert!(
             artifact["reason_codes"]
                 .as_array()
