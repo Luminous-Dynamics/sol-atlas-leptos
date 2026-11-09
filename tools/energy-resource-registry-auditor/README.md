@@ -41,7 +41,7 @@ The receipt contains exact SHA-256 values for the schema and registry bytes, val
 
 ## Tests
 
-The unit suite includes the checked-in 17-entry source register plus hostile controls for duplicate keys, trailing bytes, oversize input, unknown fields, duplicate IDs, fabricated snapshot admission, unavailable-source relabelling, HTTP locators, invalid dates, schema enum drift and discovery-status mutation.
+The unit suite includes the checked-in 22-entry source register plus hostile controls for duplicate keys, trailing bytes, oversize input, unknown fields, duplicate IDs, fabricated snapshot admission, unavailable-source relabelling, HTTP locators, invalid dates, schema enum drift and discovery-status mutation.
 
 ## Important boundary
 
