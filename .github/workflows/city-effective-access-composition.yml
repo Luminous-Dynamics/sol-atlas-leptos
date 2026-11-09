@@ -43,7 +43,7 @@ jobs:
             and .schema_version == "0.1.0"
             and .corpus_id == "CITY-EFFECTIVE-ACCESS-COMPOSITION-CORPUS-V0.1"
             and .classification == "synthetic_fixture_only"
-            and (.cases | length == 24)
+            and (.cases | length == 28)
             and ([.cases[].case_id] | unique | length == 24)
           ' docs/research/city-effective-access-composition/CITY_EFFECTIVE_ACCESS_COMPOSITION_CORPUS_V0_1.json
           jq -e '
@@ -70,11 +70,11 @@ jobs:
             .result == "pass"
             and .corpus_id == "CITY-EFFECTIVE-ACCESS-COMPOSITION-CORPUS-V0.1"
             and .corpus_classification == "synthetic_fixture_only"
-            and .scenario_count == 24
+            and .scenario_count == 28
             and .failure_count == 0
             and (.corpus_sha256 | test("^[0-9a-f]{64}$"))
             and (.source_commit | test("^[0-9a-f]{40}$"))
-            and (.scenarios | length == 24)
+            and (.scenarios | length == 28)
             and (.scenarios | all(.status == "pass"))
             and .action_authority == "none"
           ' city-effective-access-composition-receipt.json
