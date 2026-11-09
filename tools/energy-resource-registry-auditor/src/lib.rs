@@ -1232,7 +1232,7 @@ mod tests {
         assert!(
             field["claim_ceiling"]
                 .as_str()
-                .is_some_and(|claim| claim.contains("not South African validation"))
+                .is_some_and(|claim| claim.contains("Not South African validation"))
         );
         assert!(
             field["limitations"]
@@ -1281,7 +1281,7 @@ mod tests {
         assert!(
             entry["claim_ceiling"]
                 .as_str()
-                .is_some_and(|claim| claim.contains("not a South African field installation"))
+                .is_some_and(|claim| claim.contains("Not a South African field installation"))
         );
         let receipt = audit_bytes(SCHEMA_BYTES, REGISTRY_BYTES)
             .expect("updated 26-entry source register conforms");
