@@ -288,3 +288,27 @@ Sources:
 - DWS 2025 Climate Change Response Strategy: https://www.dws.gov.za/documents/Other/Water%20and%20Sanitation%20Sector/2025/NCC_2025_Final_01H_4%20%282%29.pdf
 - 2026 WDN hydropower review: https://doi.org/10.3390/en19020320
 - IEC 2026 pumped-storage trend report: https://webstore.iec.ch/en/publication/115300
+
+
+## 14. Hydraulic-machine standards and South African water-use gate
+
+For a conduit/low-head hydro study, the applicable acceptance/commissioning references must be selected by machine size and contract boundary:
+
+- **IEC 60041:1991** — field acceptance tests for hydraulic turbines, storage pumps and pump-turbines, including contractual guarantee verification, measurement and reporting.
+- **IEC 60193:2019** — hydraulic-machine model acceptance tests; its principal scope is machines above 5 MW unit power or 3 m reference diameter, with use on smaller units by agreement.
+- **IEC 61362:2024** — specification and performance information for turbine governing systems, including speed, power, water level, opening/flow control and emergency shutdown. It is not an acceptance-test standard.
+- **IEC 60545:2021** — commissioning and operation guidelines for hydraulic turbines, pump-turbines and storage pumps.
+- **IEC 62006:2010** — small-hydroelectric installation acceptance tests, including safety, trial operation, reliability and performance classes A/B/C. IEC 62006 Edition 2 is a development project as of 2026-11-09; it is not yet a published replacement.
+
+South African water-use authorization is a separate gate. The National Water Act 36 of 1998 defines water use broadly and generally requires authorization unless an applicable Schedule 1 use, existing lawful use, general authorization or other exemption applies. The Reserve (basic human needs and ecological requirements) is a core constraint. The owner/operator must establish the exact authorization path with DWS or the relevant Catchment Management Agency; this research document is not legal advice and cannot decide a licence class.
+
+Sources:
+- IEC 60041: https://webstore.iec.ch/
+- IEC 60193:2019: https://webstore.iec.ch/en/publication/60951
+- IEC 61362:2024: https://webstore.iec.ch/en/publication/72909
+- IEC 60545:2021: https://webstore.iec.ch/en/publication/64109
+- IEC 62006 second-edition project status: https://iss.rs/en/project/show/iec%3Aproj%3A138148
+- National Water Act: https://www.gov.za/documents/national-water-act
+- DWS Water Use Authorization Process: https://www.dws.gov.za/ewulaas/WUA.aspx
+
+No model result or SAHA candidate substitutes for a project-specific authorization, environmental-flow requirement, owner agreement or field acceptance test.
