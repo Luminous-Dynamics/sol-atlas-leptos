@@ -213,3 +213,33 @@ No resource source should be promoted to `observed_measurement` solely because a
 4. Request CGS access to the exact geothermal datasets (borehole, geochemical and magnetotelluric observations) and record withheld/unavailable separately.
 5. Acquire one Copernicus Marine wave and current/physics subset with the Quality Information Document; pair it with available buoy / ADCP observations and do not treat reanalysis as ground truth.
 6. Only after source admission, run independent parser checks, held-out calibration and spatial/temporal representativeness tests.
+
+
+## 12. WASA product separation and wind-model validation references (checked 2026-11-09)
+The WASA time-series portal outage must not be generalized to all WASA products.
+
+The separate CSIR/DTU WASAData page lists a **High-Resolution Wind Resource Map for South Africa 2020**, published March 2021, as a downloadable raster product. It covers South Africa's land area/nine provinces and describes TIF/ASC files at 0.0025-degree WGS84 grid spacing with mean wind speed, mean power density, air density, Weibull A/k and WAsP RIX at 20, 50, 100 and 150 m AGL. Its wind-climatological input is the 3.3-km VNWA WRF 3.8.1 with ERA5 boundary conditions over 1990–2019; air-density input is ERA5 2010–2019; terrain/land-cover inputs are SRTM+ and ESACCI 2015. The page also lists 285,390 South African WAsP generalized wind climate (LIB) files and an index/coordinate CSV.
+
+These are distinct products from the 30-year point time-series extraction portal described in the 2026-09-01 CSAG outage notice. The portal is unavailable pending regeneration; the WASA3 raster/GWC products are listed separately and must be source-admitted individually.
+
+Important WASA3 limitations:
+- The resource map was designed for GIS-based strategic environmental assessment and planning.
+- The download page states that accuracy depends on VNWA, WAsP microscale modelling and topographic inputs.
+- In complex terrain where RIX > 5%, WAsP IBZ may significantly overestimate resource.
+- Results near/above built-up areas and forests are less reliable.
+- On-site measurements are strongly recommended for actual wind-farm design and detailed site assessment.
+- The page notes VNWA validation against 19 WASA measurement masts. That does not mean every raster cell or proposed turbine location has been measured.
+
+The **GWA4 validation cohort** is also not a South Africa validation campaign. The official validation page lists 52 sites in Bangladesh, Ethiopia, Maldives, Pakistan, Papua New Guinea, Vietnam and Zambia; South Africa is absent from that listed cohort. GWA4 over South Africa therefore remains modelled screening pending local validation.
+
+A further external benchmark is the 2026-01-14 Nature Communications paper *Towards high resolution, validated and open global wind power assessments*, which describes ETHOS.RESKit. The paper uses GWA4 + ERA5; it reports calibration on 213 meteorological mast locations in 25 countries with over 8 million filtered hourly observations and states South African mast observations occur in its wider calibration geography. Its separate turbine/farm validation dataset covers more than 8 million hourly observations from 152 turbine/farm sites, but the raw power data are restricted by third-party agreements. The published hourly capacity-factor comparison reports 5.6% relative mean error, Pearson r=0.844, RMSE 0.196 and Perkins skill score 0.90. The authors also warn that local single-site accuracy remains limited by coarse weather-data representation and terrain/diurnal/seasonal effects. They state that the proprietary wind-farm inventory is not redistributable.
+
+**South African holdout rule:** resolve exact WASA mast IDs, observation periods and heights against the ETHOS.RESKit 213-mast calibration cohort before using any such mast in a blind evaluation. A mast included in calibration cannot serve as an independent holdout. Do not imply ETHOS.RESKit has South African turbine/farm output validation merely because it used South African weather masts.
+
+Sources:
+- WASA3 South Africa resource map and downloads: https://wasadata.csir.co.za/wasa1/WASAData?pemail=nimo%40risoe.dtu.dk&pscreen=resource2021
+- CSAG 30-year time-series portal availability notice: https://www.csag.uct.ac.za/wind-atlas-for-south-africa-time-series-data/
+- GWA4 validation: https://globalwindatlas.info/about/validation
+- ETHOS.RESKit 2026 paper: https://pmc.ncbi.nlm.nih.gov/articles/PMC12804690/
+- ETHOS.RESKit archive: https://doi.org/10.5281/zenodo.17668776
+- Current RESKit tag v0.5.0: https://github.com/FZJ-IEK3-VSA/RESKit/releases/tag/v0.5.0
