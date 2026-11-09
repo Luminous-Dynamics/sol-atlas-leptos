@@ -1,0 +1,272 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/city-impact-owner-lane-registry-v0.1.schema.json",
+  "title": "CityMaker Owner Impact Lane Registry v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "registry_id",
+    "classification",
+    "purpose",
+    "claim_ceiling",
+    "action_authority",
+    "lanes",
+    "routes",
+    "dynamic_rules",
+    "invariants"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "luminous.city-impact-owner-lane-registry.v0.1"
+    },
+    "registry_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "classification": {
+      "const": "research_contract_registry"
+    },
+    "purpose": {
+      "type": "string",
+      "minLength": 1
+    },
+    "claim_ceiling": {
+      "const": "routing_and_contract_binding_only"
+    },
+    "action_authority": {
+      "const": "none"
+    },
+    "lanes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "family",
+          "readiness",
+          "owner_repo",
+          "contract_ref",
+          "contract_revision",
+          "contract_kind",
+          "expected_claim_ceiling",
+          "owner_scope_note"
+        ],
+        "properties": {
+          "family": {
+            "enum": [
+              "artifact_revision",
+              "dependency_coverage",
+              "source_evidence_lifecycle",
+              "source_inventory",
+              "supply_chain_provenance",
+              "engineering_qualification",
+              "policy_applicability",
+              "decision_reliance",
+              "asset_operation"
+            ]
+          },
+          "readiness": {
+            "enum": [
+              "implementation_pinned_open_pr",
+              "schema_and_runtime_pinned_open_pr",
+              "schema_incompatible",
+              "design_only",
+              "benchmark_or_design_only"
+            ]
+          },
+          "owner_repo": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "owner_issue": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "owner_issues": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "uniqueItems": true
+          },
+          "owner_pr": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "schema_pr": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "runtime_pr": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "related_owner": {
+            "type": "string",
+            "minLength": 1
+          },
+          "related_owner_issues": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "uniqueItems": true
+          },
+          "contract_ref": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "contract_revision": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "runtime_revision": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{40}$"
+          },
+          "contract_kind": {
+            "type": "string",
+            "minLength": 1
+          },
+          "report_shape": {
+            "type": "string",
+            "minLength": 1
+          },
+          "schema_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "schema_version": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "event_schema_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "impact_report_schema_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "incompatible_graph_schema_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "incompatible_node_id_pattern": {
+            "type": "string",
+            "minLength": 1
+          },
+          "current_node_id_pattern": {
+            "type": "string",
+            "minLength": 1
+          },
+          "missing_node_types": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "uniqueItems": true
+          },
+          "blocker_issue": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1
+          },
+          "expected_claim_ceiling": {
+            "type": "string",
+            "minLength": 1
+          },
+          "owner_scope_note": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "routes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "change_class",
+          "required_families"
+        ],
+        "properties": {
+          "change_class": {
+            "type": "string",
+            "minLength": 1
+          },
+          "required_families": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        }
+      }
+    },
+    "dynamic_rules": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "rule_id",
+          "when",
+          "additionally_required_families",
+          "reason_code"
+        ],
+        "properties": {
+          "rule_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "when": {
+            "type": "string",
+            "minLength": 1
+          },
+          "additionally_required_families": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "uniqueItems": true
+          },
+          "reason_code": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "invariants": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    }
+  }
+}

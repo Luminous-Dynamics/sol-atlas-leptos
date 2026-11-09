@@ -1,0 +1,114 @@
+name: City Impact Owner Lane Router Synthetic Oracle
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - "tools/city-impact-lane-router/**"
+      - "docs/research/city-impact-router/**"
+      - ".github/workflows/city-impact-lane-router.yml"
+  push:
+    branches: ["main", "research/city-impact-router-v0.1"]
+    paths:
+      - "tools/city-impact-lane-router/**"
+      - "docs/research/city-impact-router/**"
+      - ".github/workflows/city-impact-lane-router.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: city-impact-lane-router-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  owner-lane-router:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: 1.96.0
+          components: rustfmt, clippy
+      - name: Check registry, corpus and schema identities
+        shell: bash
+        run: |
+          set -euo pipefail
+          jq -e '
+            .schema_version == "luminous.city-impact-owner-lane-registry.v0.1"
+            and .registry_id == "citymaker-owner-impact-lanes-2026-11-08"
+            and .classification == "research_contract_registry"
+            and .claim_ceiling == "routing_and_contract_binding_only"
+            and .action_authority == "none"
+            and (.lanes | length == 9)
+            and ([.lanes[].family] | unique | length == 9)
+            and (.routes | length == 29)
+            and ([.routes[].change_class] | unique | length == 29)
+            and ([.lanes[] | select(.family == "source_inventory")] | length == 1)
+            and ([.lanes[] | select(.family == "source_inventory")][0].readiness == "schema_and_runtime_pinned_open_pr")
+            and ([.lanes[] | select(.family == "source_inventory")][0].contract_ref == "luminous.federated-source-inventory-manifest.v0.1")
+          ' docs/research/city-impact-router/CITY_IMPACT_OWNER_LANE_REGISTRY_V0_1.json
+          jq -e '
+            .schema_version == "luminous.city-impact-lane-router-corpus.v0.1"
+            and .corpus_id == "CITY-IMPACT-LANE-ROUTER-CORPUS-V0.1"
+            and .classification == "synthetic_fixture_only"
+            and .registry_id == "citymaker-owner-impact-lanes-2026-11-08"
+            and (.cases | length == 44)
+            and ([.cases[].case_id] | unique | length == 44)
+            and ([.cases[].expected.route_state] | group_by(.) | map({state:.[0],count:length}) | sort_by(.state))
+              == [{"state":"contract_bound_unverified","count":4},{"state":"insufficient_evidence","count":20},{"state":"invalid_input","count":20}]
+          ' docs/research/city-impact-router/CITY_IMPACT_LANE_ROUTER_CORPUS_V0_1.json
+          jq -e '
+            ."$schema" == "https://json-schema.org/draft/2020-12/schema"
+            and .title == "CityMaker Owner Impact Lane Registry v0.1"
+            and .type == "object"
+          ' docs/research/city-impact-router/CITY_IMPACT_OWNER_LANE_REGISTRY_V0_1.schema.json
+          jq -e '
+            ."$schema" == "https://json-schema.org/draft/2020-12/schema"
+            and .title == "CityMaker Impact Lane Router Corpus v0.1"
+            and .type == "object"
+          ' docs/research/city-impact-router/CITY_IMPACT_LANE_ROUTER_CORPUS_V0_1.schema.json
+      - name: Check Rust formatting
+        run: cargo fmt --manifest-path tools/city-impact-lane-router/Cargo.toml --all -- --check
+      - name: Run known-answer and hostile-control tests
+        run: cargo test --locked --manifest-path tools/city-impact-lane-router/Cargo.toml
+      - name: Run strict Clippy
+        run: cargo clippy --locked --manifest-path tools/city-impact-lane-router/Cargo.toml --all-targets -- -D warnings
+      - name: Emit exact-head lane router receipt
+        shell: bash
+        run: |
+          set -euo pipefail
+          source_commit="$(git rev-parse HEAD)"
+          test "$source_commit" = "${{ github.event.pull_request.head.sha || github.sha }}"
+          cargo run --locked --quiet --manifest-path tools/city-impact-lane-router/Cargo.toml -- \
+            docs/research/city-impact-router/CITY_IMPACT_OWNER_LANE_REGISTRY_V0_1.json \
+            docs/research/city-impact-router/CITY_IMPACT_LANE_ROUTER_CORPUS_V0_1.json \
+            --source-commit "$source_commit" > city-impact-lane-router-receipt.json
+          jq -e '
+            .result == "pass"
+            and .registry_id == "citymaker-owner-impact-lanes-2026-11-08"
+            and .corpus_id == "CITY-IMPACT-LANE-ROUTER-CORPUS-V0.1"
+            and .corpus_classification == "synthetic_fixture_only"
+            and .scenario_count == 44
+            and .failure_count == 0
+            and (.registry_sha256 | test("^[0-9a-f]{64}$"))
+            and (.corpus_sha256 | test("^[0-9a-f]{64}$"))
+            and (.source_commit | test("^[0-9a-f]{40}$"))
+            and (.scenarios | length == 44)
+            and (.scenarios | all(.status == "pass"))
+            and .owner_report_content_verified == false
+            and .owner_authentication == "not_performed"
+            and .action_authority == "none"
+          ' city-impact-lane-router-receipt.json
+      - name: Upload exact-head lane router receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: city-impact-lane-router-reference-receipt
+          path: city-impact-lane-router-receipt.json
+          if-no-files-found: error
+          retention-days: 90

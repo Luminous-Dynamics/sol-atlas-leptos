@@ -1,0 +1,566 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/city-impact-lane-router-corpus-v0.1.schema.json",
+  "title": "CityMaker Impact Lane Router Corpus v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "corpus_id",
+    "classification",
+    "purpose",
+    "normative_notice",
+    "registry_id",
+    "cases"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "luminous.city-impact-lane-router-corpus.v0.1"
+    },
+    "corpus_id": {
+      "const": "CITY-IMPACT-LANE-ROUTER-CORPUS-V0.1"
+    },
+    "classification": {
+      "const": "synthetic_fixture_only"
+    },
+    "purpose": {
+      "type": "string",
+      "minLength": 1
+    },
+    "normative_notice": {
+      "type": "string",
+      "minLength": 1
+    },
+    "registry_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "cases": {
+      "type": "array",
+      "minItems": 44,
+      "maxItems": 44,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "case_id",
+          "name",
+          "input",
+          "expected"
+        ],
+        "properties": {
+          "case_id": {
+            "type": "string",
+            "pattern": "^LR-[0-9]{2}$"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "input": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "event",
+              "query",
+              "owner_reports"
+            ],
+            "properties": {
+              "event": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "event_id",
+                  "event_sha256",
+                  "change_class",
+                  "subject_node_id",
+                  "subject_revision",
+                  "source_revision_before",
+                  "source_revision_after",
+                  "time_basis",
+                  "valid_time",
+                  "system_time"
+                ],
+                "properties": {
+                  "event_id": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "event_sha256": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{64}$"
+                  },
+                  "change_class": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "subject_node_id": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "subject_revision": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "source_revision_before": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "source_revision_after": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "time_basis": {
+                    "const": "UTC_RFC3339_SECONDS"
+                  },
+                  "valid_time": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "effective_at",
+                      "effective_until",
+                      "effective_time_confidence"
+                    ],
+                    "properties": {
+                      "effective_at": {
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      "effective_until": {
+                        "type": [
+                          "string",
+                          "null"
+                        ],
+                        "format": "date-time"
+                      },
+                      "effective_time_confidence": {
+                        "enum": [
+                          "verified",
+                          "authority_asserted",
+                          "unknown",
+                          "disputed"
+                        ]
+                      }
+                    }
+                  },
+                  "system_time": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "recorded_at": {
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      "trusted_at": {
+                        "type": [
+                          "string",
+                          "null"
+                        ],
+                        "format": "date-time"
+                      },
+                      "trusted_timestamp_receipt_sha256": {
+                        "type": [
+                          "string",
+                          "null"
+                        ],
+                        "pattern": "^[0-9a-f]{64}$"
+                      }
+                    },
+                    "required": [
+                      "recorded_at",
+                      "trusted_at",
+                      "trusted_timestamp_receipt_sha256"
+                    ]
+                  }
+                }
+              },
+              "query": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "scope_id",
+                  "scope_digest",
+                  "functional_unit",
+                  "evaluation_at",
+                  "requires_no_impact_proof"
+                ],
+                "properties": {
+                  "scope_id": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "scope_digest": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{64}$"
+                  },
+                  "functional_unit": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "evaluation_at": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "requires_no_impact_proof": {
+                    "type": "boolean"
+                  }
+                }
+              },
+              "owner_reports": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "report_id",
+                    "impact_family",
+                    "owner_repo",
+                    "owner_issue",
+                    "contract_ref",
+                    "contract_revision",
+                    "schema_id",
+                    "schema_version",
+                    "runtime_revision",
+                    "report_kind",
+                    "event_id",
+                    "event_sha256",
+                    "subject_node_id",
+                    "subject_revision",
+                    "scope_id",
+                    "scope_digest",
+                    "functional_unit",
+                    "evaluated_at",
+                    "report_sha256",
+                    "report_reference",
+                    "action_authority",
+                    "valid_time",
+                    "system_time"
+                  ],
+                  "properties": {
+                    "report_id": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "impact_family": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "owner_repo": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "owner_issue": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 1
+                    },
+                    "contract_ref": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "contract_revision": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "schema_id": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "schema_version": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "runtime_revision": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "report_kind": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "event_id": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "event_sha256": {
+                      "type": "string",
+                      "pattern": "^[0-9a-f]{64}$"
+                    },
+                    "subject_node_id": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "subject_revision": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "scope_id": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "scope_digest": {
+                      "type": "string",
+                      "pattern": "^[0-9a-f]{64}$"
+                    },
+                    "functional_unit": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "evaluated_at": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "report_sha256": {
+                      "type": "string",
+                      "pattern": "^[0-9a-f]{64}$"
+                    },
+                    "report_reference": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "action_authority": {
+                      "const": "none"
+                    },
+                    "owner_disposition": {
+                      "type": "string"
+                    },
+                    "claim_ceiling": {
+                      "type": "string"
+                    },
+                    "independent_review": {
+                      "type": "string"
+                    },
+                    "unresolved_relationship_count": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "unsupported_relationship_count": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "valid_time": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "effective_at",
+                        "effective_until",
+                        "effective_time_confidence"
+                      ],
+                      "properties": {
+                        "effective_at": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "effective_until": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "format": "date-time"
+                        },
+                        "effective_time_confidence": {
+                          "enum": [
+                            "verified",
+                            "authority_asserted",
+                            "unknown",
+                            "disputed"
+                          ]
+                        }
+                      }
+                    },
+                    "system_time": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "recorded_at": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "trusted_at": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "format": "date-time"
+                        },
+                        "trusted_timestamp_receipt_sha256": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "pattern": "^[0-9a-f]{64}$"
+                        }
+                      },
+                      "required": [
+                        "recorded_at",
+                        "trusted_at",
+                        "trusted_timestamp_receipt_sha256"
+                      ]
+                    },
+                    "disposition": {
+                      "enum": [
+                        "complete_within_declared_owner_set",
+                        "complete_with_declared_exclusions",
+                        "incomplete_or_indeterminate",
+                        "invalid_input",
+                        "not_comparable"
+                      ]
+                    },
+                    "claim_scope": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "expected_owner_count": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "required_owner_count": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "present_required_owner_count": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "complete_inventory_count": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "complete_with_exclusions_count": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "incomplete_inventory_count": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "invalid_inventory_count": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "not_comparable_inventory_count": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "owner_presence": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "disposition",
+                        "expected_owner_count",
+                        "required_owner_count",
+                        "observed_manifest_count",
+                        "missing_required_owner_count",
+                        "claim_scope"
+                      ],
+                      "properties": {
+                        "disposition": {
+                          "enum": [
+                            "expected_owner_manifests_present",
+                            "incomplete_or_indeterminate",
+                            "invalid_input"
+                          ]
+                        },
+                        "missing_required_owner_count": {
+                          "type": "integer",
+                          "minimum": 0
+                        },
+                        "claim_scope": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "expected_owner_count": {
+                          "type": "integer",
+                          "minimum": 0
+                        },
+                        "required_owner_count": {
+                          "type": "integer",
+                          "minimum": 0
+                        },
+                        "observed_manifest_count": {
+                          "type": "integer",
+                          "minimum": 0
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "expected": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "route_state",
+              "required_families",
+              "lane_states",
+              "reason_codes"
+            ],
+            "properties": {
+              "route_state": {
+                "enum": [
+                  "contract_bound_unverified",
+                  "insufficient_evidence",
+                  "invalid_input"
+                ]
+              },
+              "required_families": {
+                "type": "array",
+                "uniqueItems": true,
+                "items": {
+                  "type": "string"
+                }
+              },
+              "lane_states": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "family",
+                    "state"
+                  ],
+                  "properties": {
+                    "family": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "state": {
+                      "enum": [
+                        "contract_bound_unverified",
+                        "insufficient_evidence",
+                        "invalid_input"
+                      ]
+                    }
+                  }
+                }
+              },
+              "reason_codes": {
+                "type": "array",
+                "uniqueItems": true,
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

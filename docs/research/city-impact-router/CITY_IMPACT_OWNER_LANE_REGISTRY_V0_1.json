@@ -1,0 +1,395 @@
+{
+  "schema_version": "luminous.city-impact-owner-lane-registry.v0.1",
+  "registry_id": "citymaker-owner-impact-lanes-2026-11-08",
+  "classification": "research_contract_registry",
+  "purpose": "Route change classes to typed owner impact families without computing impact or authenticating owner reports.",
+  "claim_ceiling": "routing_and_contract_binding_only",
+  "action_authority": "none",
+  "lanes": [
+    {
+      "family": "artifact_revision",
+      "readiness": "implementation_pinned_open_pr",
+      "owner_repo": "Luminous-Dynamics/sol-atlas-leptos",
+      "owner_issue": 484,
+      "owner_pr": 138,
+      "contract_ref": "sol-atlas-core::built_environment_case::compute_revalidation_frontier",
+      "contract_revision": "a440e54fac426368ce68f47ac13e42b3902ab224",
+      "contract_kind": "typed_rust_function",
+      "report_shape": "RevalidationFrontier",
+      "schema_id": null,
+      "schema_version": null,
+      "expected_claim_ceiling": "advisory_revalidation_frontier",
+      "owner_scope_note": "Exact artifact revision descendants, engineering receipts and decisions only. Does not invalidate source evidence."
+    },
+    {
+      "family": "dependency_coverage",
+      "readiness": "schema_and_runtime_pinned_open_pr",
+      "owner_repo": "Luminous-Dynamics/sol-atlas-leptos",
+      "owner_issue": 488,
+      "schema_pr": 489,
+      "runtime_pr": 490,
+      "contract_ref": "luminous.built-environment-dependency-coverage.v0.1",
+      "contract_revision": "c1787998405d89ea8fe394aacf33729893cfb122",
+      "runtime_revision": "454805a7b9fb0a3dd039bb7aaa475769637f68b4",
+      "contract_kind": "json_schema_plus_rust_auditor",
+      "schema_id": "luminous.built-environment-dependency-coverage.v0.1",
+      "schema_version": "luminous.built-environment-dependency-coverage.v0.1",
+      "expected_claim_ceiling": "coverage_only",
+      "owner_scope_note": "Qualifies declared-scope source inventory and relationship coverage, not real-world completeness or impact traversal correctness.",
+      "report_shape": "BuiltEnvironmentDependencyCoverageManifest"
+    },
+    {
+      "family": "source_evidence_lifecycle",
+      "readiness": "schema_incompatible",
+      "owner_repo": "Luminous-Dynamics/sol-atlas-leptos",
+      "owner_issue": 396,
+      "owner_pr": 397,
+      "graph_identity_pr": 487,
+      "contract_ref": "luminous.ieac-assurance-invalidation-event.v0.1+luminous.ieac-assurance-impact-report.v0.1",
+      "contract_revision": "22010c617536dfa6d9d9717b5fb68c0d4b1ab385",
+      "contract_kind": "json_schema_pair",
+      "event_schema_id": "luminous.ieac-assurance-invalidation-event.v0.1",
+      "impact_report_schema_id": "luminous.ieac-assurance-impact-report.v0.1",
+      "schema_version": "0.1",
+      "incompatible_graph_schema_id": "luminous.ieac-assurance-dependency-graph.v0.2",
+      "incompatible_node_id_pattern": "<node_type>:identity-sha256:<identity_sha256>",
+      "current_node_id_pattern": "<node_type>:sha256:<artifact_sha256>",
+      "missing_node_types": [
+        "source_evidence",
+        "engineering_artifact",
+        "engineering_receipt"
+      ],
+      "blocker_issue": 650,
+      "expected_claim_ceiling": "incomplete_or_indeterminate",
+      "owner_scope_note": "Do not rename source_evidence nodes to source_measurement or replace identity digest with content digest."
+    },
+    {
+      "family": "source_inventory",
+      "readiness": "schema_and_runtime_pinned_open_pr",
+      "owner_repo": "Luminous-Dynamics/sol-atlas-leptos",
+      "owner_issue": 497,
+      "contract_ref": "luminous.federated-source-inventory-manifest.v0.1",
+      "contract_revision": "8ef167177abb03fc561ea7d99678ac6ada909f5c",
+      "contract_kind": "json_schema_plus_rust_runtime",
+      "schema_id": "luminous.federated-source-inventory-manifest.v0.1",
+      "schema_version": "luminous.federated-source-inventory-manifest.v0.1",
+      "blocker_issue": null,
+      "expected_claim_ceiling": "inventory_closure_within_caller_supplied_owner_set_only",
+      "owner_scope_note": "PR #507 provides a versioned manifest schema and Rust page-chain/partition/source-owner closure verifier. It proves record-set enumeration only within each declared query/snapshot and expected-owner register supplied by the caller; it does not prove that the caller's source-owner universe is complete, authenticate source signatures, verify response payload bytes, or establish source truth. This is distinct from dependency-coverage #490's inventory snapshot metadata and relationship-family coverage.",
+      "runtime_revision": "8ef167177abb03fc561ea7d99678ac6ada909f5c",
+      "owner_pr": 499,
+      "schema_pr": 499,
+      "runtime_pr": 507,
+      "report_shape": "InventoryClosureValidation"
+    },
+    {
+      "family": "supply_chain_provenance",
+      "readiness": "design_only",
+      "owner_repo": "Luminous-Dynamics/mycelix",
+      "owner_issues": [
+        4814,
+        5149
+      ],
+      "contract_ref": null,
+      "contract_revision": null,
+      "contract_kind": "owner_specific_contract_not_registered_here",
+      "schema_id": null,
+      "schema_version": null,
+      "expected_claim_ceiling": "incomplete_or_indeterminate",
+      "owner_scope_note": "Supplier capacity, product substitutions, exact lot identity, custody, inspection, correction and revocation remain Mycelix-owned."
+    },
+    {
+      "family": "engineering_qualification",
+      "readiness": "benchmark_or_design_only",
+      "owner_repo": "Luminous-Dynamics/symthaea",
+      "owner_issues": [
+        10543,
+        6117
+      ],
+      "contract_ref": null,
+      "contract_revision": null,
+      "contract_kind": "engineering_qualification_contract_not_registered_here",
+      "schema_id": null,
+      "schema_version": null,
+      "expected_claim_ceiling": "incomplete_or_indeterminate",
+      "owner_scope_note": "Engineering change qualification and design delta semantics are not inferred from an artifact frontier."
+    },
+    {
+      "family": "policy_applicability",
+      "readiness": "design_only",
+      "owner_repo": null,
+      "owner_issue": 501,
+      "contract_ref": null,
+      "contract_revision": null,
+      "contract_kind": "policy_source_contract_not_registered",
+      "schema_id": null,
+      "schema_version": null,
+      "expected_claim_ceiling": "incomplete_or_indeterminate",
+      "owner_scope_note": "Decision reliance is downstream; it does not make #501 the policy or standards authority."
+    },
+    {
+      "family": "decision_reliance",
+      "readiness": "design_only",
+      "owner_repo": "Luminous-Dynamics/sol-atlas-leptos",
+      "owner_issue": 501,
+      "contract_ref": null,
+      "contract_revision": null,
+      "contract_kind": "decision_reliance_contract_not_registered_here",
+      "schema_id": null,
+      "schema_version": null,
+      "expected_claim_ceiling": "incomplete_or_indeterminate",
+      "owner_scope_note": "Exact decision reliance at a declared time and scope; not an impact traversal."
+    },
+    {
+      "family": "asset_operation",
+      "readiness": "design_only",
+      "owner_repo": "Luminous-Dynamics/sol-atlas-leptos",
+      "owner_issues": [
+        574,
+        633
+      ],
+      "related_owner": "Luminous-Dynamics/symtropy",
+      "related_owner_issues": [
+        4043
+      ],
+      "contract_ref": null,
+      "contract_revision": null,
+      "contract_kind": "owner_specific_asset_and_service_contracts_not_registered_here",
+      "schema_id": null,
+      "schema_version": null,
+      "expected_claim_ceiling": "incomplete_or_indeterminate",
+      "owner_scope_note": "Inspection, repair, commissioning, service continuity and post-occupancy outcomes remain distinct owner outputs."
+    }
+  ],
+  "routes": [
+    {
+      "change_class": "design_property",
+      "required_families": [
+        "artifact_revision",
+        "dependency_coverage"
+      ]
+    },
+    {
+      "change_class": "design_geometry",
+      "required_families": [
+        "artifact_revision",
+        "dependency_coverage"
+      ]
+    },
+    {
+      "change_class": "product_interface",
+      "required_families": [
+        "artifact_revision",
+        "dependency_coverage"
+      ]
+    },
+    {
+      "change_class": "bom_revision",
+      "required_families": [
+        "artifact_revision",
+        "dependency_coverage"
+      ]
+    },
+    {
+      "change_class": "mixed_sibling_dependencies",
+      "required_families": [
+        "artifact_revision",
+        "dependency_coverage"
+      ]
+    },
+    {
+      "change_class": "source_correction",
+      "required_families": [
+        "source_evidence_lifecycle",
+        "dependency_coverage",
+        "source_inventory"
+      ]
+    },
+    {
+      "change_class": "payload_digest_change",
+      "required_families": [
+        "source_evidence_lifecycle",
+        "dependency_coverage",
+        "source_inventory"
+      ]
+    },
+    {
+      "change_class": "payload_retrieval",
+      "required_families": [
+        "source_evidence_lifecycle",
+        "dependency_coverage",
+        "source_inventory"
+      ]
+    },
+    {
+      "change_class": "rights_revocation",
+      "required_families": [
+        "source_evidence_lifecycle",
+        "dependency_coverage",
+        "source_inventory"
+      ]
+    },
+    {
+      "change_class": "issuer_key_compromise",
+      "required_families": [
+        "source_evidence_lifecycle",
+        "dependency_coverage",
+        "source_inventory"
+      ]
+    },
+    {
+      "change_class": "source_withdrawal",
+      "required_families": [
+        "source_evidence_lifecycle",
+        "dependency_coverage",
+        "source_inventory"
+      ]
+    },
+    {
+      "change_class": "lot_revocation",
+      "required_families": [
+        "supply_chain_provenance",
+        "dependency_coverage"
+      ]
+    },
+    {
+      "change_class": "supplier_capacity",
+      "required_families": [
+        "supply_chain_provenance",
+        "dependency_coverage"
+      ]
+    },
+    {
+      "change_class": "supplier_identity",
+      "required_families": [
+        "supply_chain_provenance",
+        "dependency_coverage"
+      ]
+    },
+    {
+      "change_class": "calibration_expiry",
+      "required_families": [
+        "engineering_qualification",
+        "dependency_coverage"
+      ]
+    },
+    {
+      "change_class": "robot_firmware",
+      "required_families": [
+        "engineering_qualification",
+        "dependency_coverage"
+      ]
+    },
+    {
+      "change_class": "manufacturing_fixture",
+      "required_families": [
+        "engineering_qualification",
+        "dependency_coverage"
+      ]
+    },
+    {
+      "change_class": "policy_update",
+      "required_families": [
+        "policy_applicability",
+        "dependency_coverage"
+      ]
+    },
+    {
+      "change_class": "epd_revision",
+      "required_families": [
+        "source_evidence_lifecycle",
+        "dependency_coverage",
+        "source_inventory"
+      ]
+    },
+    {
+      "change_class": "as_built_measurement",
+      "required_families": [
+        "asset_operation",
+        "artifact_revision",
+        "dependency_coverage"
+      ]
+    },
+    {
+      "change_class": "coordinate_frame",
+      "required_families": [
+        "artifact_revision",
+        "engineering_qualification",
+        "dependency_coverage"
+      ]
+    },
+    {
+      "change_class": "partial_revalidation",
+      "required_families": [
+        "decision_reliance",
+        "dependency_coverage"
+      ]
+    },
+    {
+      "change_class": "stale_revalidation",
+      "required_families": [
+        "decision_reliance",
+        "dependency_coverage"
+      ]
+    },
+    {
+      "change_class": "decision_supersession",
+      "required_families": [
+        "decision_reliance",
+        "dependency_coverage"
+      ]
+    },
+    {
+      "change_class": "dependency_coverage_gap",
+      "required_families": [
+        "dependency_coverage"
+      ]
+    },
+    {
+      "change_class": "graph_integrity_error",
+      "required_families": [
+        "dependency_coverage"
+      ]
+    },
+    {
+      "change_class": "impact_delta",
+      "required_families": [
+        "dependency_coverage"
+      ]
+    },
+    {
+      "change_class": "invalidation_sequence",
+      "required_families": [
+        "source_evidence_lifecycle",
+        "dependency_coverage",
+        "source_inventory"
+      ]
+    },
+    {
+      "change_class": "source_inventory_audit",
+      "required_families": [
+        "source_inventory"
+      ]
+    }
+  ],
+  "dynamic_rules": [
+    {
+      "rule_id": "NO_IMPACT_REQUIRES_INVENTORY_AND_DEPENDENCY_COVERAGE",
+      "when": "query.requires_no_impact_proof == true",
+      "additionally_required_families": [
+        "source_inventory",
+        "dependency_coverage"
+      ],
+      "reason_code": "NO_IMPACT_COVERAGE_LANES_INCOMPLETE"
+    }
+  ],
+  "invariants": [
+    "A report is never accepted merely because its JSON shape matches.",
+    "Readiness is not owner authentication or production qualification.",
+    "A lane with design_only, benchmark_or_design_only or schema_incompatible readiness is never promoted to bound.",
+    "A missing required lane is insufficient_evidence, not an empty impact set.",
+    "Source evidence invalidation requires a graph-version-compatible typed event and impact report; v0.1 IEAC schemas do not target v0.2 native-identity nodes.",
+    "No-impact requires source inventory and dependency coverage in addition to the relevant impact family.",
+    "The router never authenticates report signatures, trusts caller-set authority flags or grants action authority."
+  ]
+}
