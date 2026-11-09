@@ -531,3 +531,40 @@ Sources:
 - WRC KV 238/10: https://www.wrc.org.za/wp-content/uploads/mdocs/KV%20238-10.pdf
 - Tshwane 2014 conduit-hydro installations: https://www.scielo.org.za/scielo.php?pid=S1021-20192014000300001&script=sci_arttext
 - Leliefontein IMESA 2021: https://researchspace.csir.co.za/bitstream/handle/10204/12279/Steyn_2021.pdf
+
+
+## 16. South African field PAT benchmarks — distinguish point pilots, maximum capacity and bidirectional net energy
+
+Three local sources now anchor the South African PAT ladder:
+
+### Queenswood (WRC KV 238/10, 2010)
+- Five time-stamped pilot points, 2.32–4.52 kW measured electrical output, flow 27.55–32.49 L/s and head drop 25.04–30.94 m.
+- Pilot not optimized; manufacturer reverse-mode estimates used for aspects of the PAT curve.
+- No continuous duration, duty profile, annual availability or annual energy.
+- The 2014 Tshwane paper describes the same Queenswood installation. One asset ID, not two benchmark sites.
+
+### Pierre van Ryneveld (Tshwane, 2011)
+- Separate cross-flow turbine/synchronous generator installation launched 29 November 2011; approx. 15 kW maximum capacity depending on head/flow.
+- Three field experiments and local lighting/communications loads are described.
+- Published issues include generator frequency regulation, load rejection, PRV hunting, variable flow/head and manual operation.
+- Maximum capacity is not an average, measured annual energy or current status claim.
+
+### Leliefontein (Drakenstein, operating since 2018; IMESA 2021)
+- Bidirectional pump/PAT station with reverse flow/rotation, active-front-end drives, actuated valves, grid protection, bidirectional meter and SCADA.
+- 320 MWh/year / 9.9 GWh lifetime are reported estimates.
+- A separate statement of 271,236 MWh generated and 53,577 MWh pumping energy conflicts with the annual/lifetime figures. Treat the units as unresolved; exclude these totals from quantitative comparisons until the operator/authors verify the original meter register semantics.
+- Pump-mode consumption and generator auxiliaries must be subtracted from turbine-mode output; do not evaluate as a one-way generator.
+
+### Local blind-benchmark requirements
+
+Request permissioned source data from WRC / University of Pretoria / City of Tshwane for Queenswood and Pierre van Ryneveld, and Drakenstein Municipality / CSIR authors for Leliefontein. Require original sampling intervals, time zone, meter import/export semantics, CT/PT ratios, calibration certificates, flow/head/pressure meter location, bypass and pump/turbine mode state, missingness and maintenance. Preserve original bytes and rights, and do not generate digests before lawful receipt.
+
+Targets:
+1. Reproduce the Queenswood five points within measurement uncertainty without extrapolating to annual yield.
+2. Reconstruct PvR frequency/load-rejection/PRV-hunting observations and quantify whether controller actions respect the water-service envelope.
+3. Reconstruct Leliefontein net energy with pump-mode consumption, turbine export, auxiliaries, downtime and meter register semantics reconciled.
+4. Hold out an independent site or period not used for map fitting, network calibration or controller tuning.
+
+The test set should measure **net useful energy and water service together**: pressure compliance, delivered demand, ecological flow, leakage/water balance, bypass fraction, PAT off-design time, generator power quality, actuator duty/fault recovery, metering uncertainty and lifecycle cost. Do not rank sites by maximum kW or annual theoretical yield alone.
+
+No South African raw telemetry has yet been admitted. Published papers are field-evidence references, not substitutes for operator-authorized raw data.
