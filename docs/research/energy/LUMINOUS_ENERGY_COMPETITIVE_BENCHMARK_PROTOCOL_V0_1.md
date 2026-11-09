@@ -228,3 +228,32 @@ Do not benchmark an optimizer on synthetic-perfect South African resource profil
 - The 2026 GASIPPPP Bid Window 1 announcement reported four bids offering 2,830 MW against the 2,000 MW procurement target and noted that South Africa imports most gas requirements from Mozambique and has no LNG receiving terminal. Any gas-to-power scenario must therefore model actual fuel logistics and delivery risk rather than treating nameplate gas capacity as unconditionally firm.
 
 These are input and policy context constraints, not statements that the cited projects, procurements or regional assets are built or operational.
+
+
+## 11. Global renewable cost anchor — IRENA 2025 cohort
+
+IRENA's *Renewable Power Generation Costs in 2025* (published July 2026) reports the following global weighted-average plant-level LCOE for projects commissioned in 2025. Values are in **2025 USD/MWh**.
+
+| Technology | Global weighted-average LCOE |
+|---|---:|
+| Onshore wind | 33 |
+| Solar PV | 44 |
+| Hydropower | 62 |
+| Offshore wind | 78 |
+| Geothermal | 89 |
+| Concentrating solar power | 115 |
+
+IRENA reports that more than 90% of utility-scale renewable projects commissioned in 2025 delivered power below the cost of the cheapest new fossil-fuel plant built in their market. These are global cohort statistics, not South African project bids or guaranteed future costs.
+
+**Critical comparison limitation:** IRENA explicitly cautions that conventional LCOE assumes generation at maximum load factor, condenses expenditure over time, and reports plant-level cost while excluding expenditures beyond the plant boundary such as transmission and distribution. It does not, by itself, capture the economic value of dispatchability or system services.
+
+Therefore:
+
+- retain LCOE as a plant-level technology cost metric;
+- calculate delivered-service cost separately after storage losses, curtailment, transmission/distribution, reserve, balancing and grid constraints;
+- compare firm capacity, effective load-carrying capability, outage service, location, ramping and flexibility independently;
+- report storage as a separate asset/cost and avoid allocating its energy twice;
+- use South African financing, currency year, taxes, labour, logistics, interconnection and resource evidence for any local estimate;
+- do not claim a novel system beats solar/wind on LCOE unless technology, boundary, commissioning cohort, financing and system service are genuinely matched.
+
+A useful Luminous result may be a portfolio with a higher plant-gate LCOE but lower total cost per unit of essential service delivered, lower outage risk or better industrial heat integration. That conclusion must be demonstrated with paired models and independently checked service receipts—not inferred from the technology labels.
