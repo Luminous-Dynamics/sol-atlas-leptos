@@ -641,7 +641,6 @@ pub fn validate_corpus(corpus: &Value) -> Vec<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use serde_json::Value;
 
     const CORPUS: &str = include_str!(
         "../../../docs/research/city-habitat-service-composition/CITY_HABITAT_SERVICE_COMPOSITION_CORPUS_V0_1.json"
