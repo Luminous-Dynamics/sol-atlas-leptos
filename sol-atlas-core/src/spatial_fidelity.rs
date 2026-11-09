@@ -298,6 +298,18 @@ pub fn evaluate_spatial_fidelity(
     let feature_precision = feature_candidate_hits / candidate_weight_sum;
     let feature_recall = feature_reference_hits / reference_weight_sum;
 
+    let output_values = [
+        reference_to_reconstruction_mean_m,
+        reconstruction_to_reference_mean_m,
+        feature_reference_to_reconstruction_mean_m,
+        feature_reconstruction_to_reference_mean_m,
+        feature_precision,
+        feature_recall,
+    ];
+    if output_values.iter().any(|value| !value.is_finite()) {
+        return Err(SpatialFidelityError::DistanceOverflow);
+    }
+
     Ok(SpatialFidelityMetrics {
         reference_to_reconstruction_mean_m,
         reconstruction_to_reference_mean_m,
@@ -439,6 +451,25 @@ mod tests {
             metrics_a.feature_f1_at_tolerance,
             metrics_b.feature_f1_at_tolerance
         );
+    }
+
+    #[test]
+    fn very_large_finite_importance_weights_do_not_overflow() {
+        let reference = [
+            ReferenceSample::new([0.0, 0.0, 0.0], f64::MAX),
+            ReferenceSample::new([1.0, 0.0, 0.0], f64::MAX / 2.0),
+        ];
+        let reconstruction = [
+            ReconstructedSample::new([0.0, 0.0, 0.0]),
+            ReconstructedSample::new([1.1, 0.0, 0.0]),
+        ];
+
+        let metrics =
+            evaluate_spatial_fidelity(&reference, &reconstruction, 0.05).expect("valid weights");
+
+        assert!(metrics.feature_weighted_symmetric_chamfer_m.is_finite());
+        assert!(metrics.feature_f1_at_tolerance.is_finite());
+        assert!((0.0..=1.0).contains(&metrics.feature_f1_at_tolerance));
     }
 
     #[test]
