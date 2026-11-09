@@ -735,13 +735,15 @@ pub fn evaluate_case(input: &Value, profiles: &Value) -> Value {
             && cut_visible(record, current_cut)
             && !cut_visible(record, historical_cut)
     });
-    let retrospective = if backdated_correction {
+    let (disclosure_state, disclosed_fields) = disclosure_result(input);
+    let retrospective = if disclosure_state == "denied" {
+        "not_authorized".to_owned()
+    } else if backdated_correction {
         "historical_basis_incomplete".to_owned()
     } else {
         historical.disposition.clone()
     };
 
-    let (disclosure_state, disclosed_fields) = disclosure_result(input);
     if disclosure_state == "denied" {
         push_reason(&mut reasons, "DISCLOSURE_POLICY_DENIED");
     }
