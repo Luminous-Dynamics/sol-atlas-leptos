@@ -116,7 +116,8 @@
             "sector_policy_report",
             "discovery_catalogue",
             "availability_notice",
-            "literature_review"
+            "literature_review",
+            "laboratory_measurement"
           ]
         },
         "availability_state": {
