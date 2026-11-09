@@ -57,6 +57,7 @@ pub enum SpatialFidelityError {
     InvalidReferenceCoordinate { point: usize, axis: usize },
     InvalidReconstructionCoordinate { point: usize, axis: usize },
     InvalidImportanceWeight { point: usize },
+    DistanceOverflow,
 }
 
 impl fmt::Display for SpatialFidelityError {
@@ -78,6 +79,7 @@ impl fmt::Display for SpatialFidelityError {
                 f,
                 "reference point {point} has a non-finite or non-positive importance weight"
             ),
+            Self::DistanceOverflow => write!(f, "a nearest-neighbour distance is not finite"),
         }
     }
 }
@@ -111,11 +113,11 @@ pub struct SpatialFidelityMetrics {
     pub reconstruction_point_count: usize,
 }
 
-fn squared_distance(a: [f64; 3], b: [f64; 3]) -> f64 {
+fn euclidean_distance(a: [f64; 3], b: [f64; 3]) -> f64 {
     let dx = a[0] - b[0];
     let dy = a[1] - b[1];
     let dz = a[2] - b[2];
-    dx * dx + dy * dy + dz * dz
+    dx.hypot(dy).hypot(dz)
 }
 
 fn nearest_reconstruction_distance(
@@ -124,27 +126,26 @@ fn nearest_reconstruction_distance(
 ) -> f64 {
     candidates
         .iter()
-        .map(|candidate| squared_distance(query, candidate.position_m))
+        .map(|candidate| euclidean_distance(query, candidate.position_m))
         .fold(f64::INFINITY, f64::min)
-        .sqrt()
 }
 
 fn nearest_reference(
     query: [f64; 3],
     candidates: &[ReferenceSample],
 ) -> (f64, usize) {
-    let mut best_distance_squared = f64::INFINITY;
+    let mut best_distance = f64::INFINITY;
     let mut best_index = 0usize;
 
     for (index, candidate) in candidates.iter().enumerate() {
-        let distance_squared = squared_distance(query, candidate.position_m);
-        if distance_squared < best_distance_squared {
-            best_distance_squared = distance_squared;
+        let distance = euclidean_distance(query, candidate.position_m);
+        if distance < best_distance {
+            best_distance = distance;
             best_index = index;
         }
     }
 
-    (best_distance_squared.sqrt(), best_index)
+    (best_distance, best_index)
 }
 
 fn f1(precision: f64, recall: f64) -> f64 {
@@ -185,6 +186,18 @@ fn validate_inputs(
         }
     }
 
+    // Normalize weights by the maximum so large but finite annotations cannot
+    // overflow an accumulated weighted sum.
+    let max_importance_weight = reference
+        .iter()
+        .map(|point| point.importance_weight)
+        .fold(0.0, f64::max);
+    for (point_index, point) in reference.iter().enumerate() {
+        if point.importance_weight / max_importance_weight == 0.0 {
+            return Err(SpatialFidelityError::InvalidImportanceWeight { point: point_index });
+        }
+    }
+
     for (point_index, point) in reconstruction.iter().enumerate() {
         for (axis, coordinate) in point.position_m.iter().enumerate() {
             if !coordinate.is_finite() {
@@ -219,19 +232,27 @@ pub fn evaluate_spatial_fidelity(
 
     let mut reference_to_reconstruction_sum = 0.0;
     let mut feature_reference_to_reconstruction_sum = 0.0;
+    let max_importance_weight = reference
+        .iter()
+        .map(|point| point.importance_weight)
+        .fold(0.0, f64::max);
     let mut reference_weight_sum = 0.0;
     let mut reference_hits = 0usize;
     let mut feature_reference_hits = 0.0;
 
     for point in reference {
         let distance = nearest_reconstruction_distance(point.position_m, reconstruction);
+        if !distance.is_finite() {
+            return Err(SpatialFidelityError::DistanceOverflow);
+        }
+        let importance_weight = point.importance_weight / max_importance_weight;
         reference_to_reconstruction_sum += distance;
-        feature_reference_to_reconstruction_sum += distance * point.importance_weight;
-        reference_weight_sum += point.importance_weight;
+        feature_reference_to_reconstruction_sum += distance * importance_weight;
+        reference_weight_sum += importance_weight;
 
         if distance <= tolerance_m {
             reference_hits += 1;
-            feature_reference_hits += point.importance_weight;
+            feature_reference_hits += importance_weight;
         }
     }
 
@@ -244,7 +265,11 @@ pub fn evaluate_spatial_fidelity(
     for point in reconstruction {
         let (distance, nearest_reference_index) =
             nearest_reference(point.position_m, reference);
-        let importance_weight = reference[nearest_reference_index].importance_weight;
+        if !distance.is_finite() {
+            return Err(SpatialFidelityError::DistanceOverflow);
+        }
+        let importance_weight =
+            reference[nearest_reference_index].importance_weight / max_importance_weight;
 
         reconstruction_to_reference_sum += distance;
         feature_reconstruction_to_reference_sum += distance * importance_weight;
