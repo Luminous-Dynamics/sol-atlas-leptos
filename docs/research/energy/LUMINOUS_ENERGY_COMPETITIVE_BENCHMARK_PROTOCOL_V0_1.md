@@ -433,3 +433,51 @@ External pins:
 - Upstream source revision reviewed 2026-11-09: https://github.com/Vitens/epanet-rs/tree/fee0d03b11ed71a6da7366f07290d6e44556add4
 
 This is separately tracked in Symtropy [EPANET-RS-DIFF-001 #4398](https://github.com/Luminous-Dynamics/symtropy/issues/4398).
+
+## 14. Stronger PAT benchmark ladder: component truth → full-scale operation → network and controller
+
+A fair current comparator set must separate four evidence levels.
+
+| Evidence level | Comparator | What it actually establishes | What it does not establish |
+|---|---|---|---|
+| Laboratory component map | Pugliese et al. 2016, two PAT test-rig characterizations | Experimental reverse-mode curves for two specific pump models | General pump-to-turbine conversion, WDN field performance |
+| Laboratory control experiment | Parra et al. 2018 PAT/PRV pressure modulation | Variable-discharge critical-pressure tracking; up to 2.3 kW full-load, 40% maximum net system efficiency, up to 16% water savings in a German test case | South African field transfer or long-term reliability |
+| Full-scale WDN operation | Muhammetoglu et al. 2018 Antalya PAT/PRV bypass | Approximately five months online flow/power/pressure monitoring at 130–300 m³/h; 0.7–8.4 kWh reported energy values for ~100 kPa reduction; 60% average efficiency | kW/annual energy from abstract (interval missing), multi-year availability, South African economics |
+| Experimental fleet + modelled WDN | Manservigi et al. 2025, 16 experimental turbomachine curves in a 5,000-user Italian WDN | Matched hydraulic/electrical regulation comparison; 44.1% of available hydraulic energy recovered for selected candidate; case-specific LCOE/cost | 16 field installations or South African performance |
+| South African modelled placement | Cornubia 2022 / UKZN 2021 | Local network topology and candidate-placement research | Measured PAT generation or independent replication |
+| Modern simulated network control | Jowitt 2025; Galuppini et al. 2026 | DDA/PDA sensitivity and multi-node Kalman + MPC control architecture | Field-validated South African OT controller |
+
+### Target metrics by evidence level
+
+**Component map**
+- Head, flow, torque/speed where available, hydraulic efficiency, generator/inverter losses and uncertainty.
+- Curve prediction residual across the observed domain; no extrapolation to unmeasured head/flow.
+- Best-efficiency-point distance and off-design efficiency distribution.
+- Repeatability, calibration uncertainty and model-to-lab residual.
+
+**Full-scale operation**
+- Net AC/DC energy with explicit interval boundaries and auxiliaries.
+- Flow, upstream/downstream pressure and bypass chronology.
+- Service pressure compliance, pressure cycling, trip/fallback behaviour, availability, maintenance and meter uncertainty.
+- Energy and water-balance residuals; reported kWh without interval duration cannot be normalized to kW.
+
+**Network/control**
+- Node-hours below minimum pressure, worst pressure deficit, delivered-demand deficit, leakage volume and water balance.
+- PAT net kWh, hydraulic-energy recovery ratio, bypass fraction and off-design hours.
+- Controller settling/overshoot, actuator travel, starts/stops, chattering, fail-safe latency, and constraint violations.
+- Sensitivity to DDA versus PDA, FAVAD coefficients, demand forecast error, telemetry dropout, PAT map uncertainty and reservoir level.
+- Matched LCOE / lifetime cost with water-service value, replacement, installation, O&M and tariff assumptions.
+
+### Concrete Luminous research target
+
+The target is not to beat the 44.1% energy-recovery figure by maximizing extraction. It is to beat a matched set of baselines on **net useful value while preserving the water service**. A credible result could have lower gross kWh yet outperform by preserving critical pressures, reducing leakage, avoiding bypass, improving metering uncertainty, decreasing controller wear, or delivering a better cost/service frontier.
+
+Do not compare:
+- 2.3 kW full-load output with a daily-energy or installed-capacity value;
+- Antalya 0.7–8.4 kWh with kW without its interval;
+- PAT turbine hydraulic efficiency with net system efficiency;
+- 44.1% of available hydraulic energy with turbine-only efficiency;
+- experimental pump curves with full-scale network energy as if they share a physical boundary;
+- modelled Cornubia estimates with Antalya metered operation.
+
+Sources and exact comparator pins are recorded in `ENERGY_COMPETITOR_VERSION_LOCK_V0_1.json`.
