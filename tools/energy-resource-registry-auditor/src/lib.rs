@@ -1166,7 +1166,7 @@ mod tests {
         let receipt = audit_bytes(SCHEMA_BYTES, REGISTRY_BYTES)
             .expect("updated registry should remain structurally valid");
         assert_eq!(receipt.disposition, "accepted");
-        assert_eq!(receipt.entry_count, 17);
+        assert_eq!(receipt.entry_count, 22);
     }
 
     #[test]
@@ -1216,7 +1216,7 @@ mod tests {
         let receipt =
             audit_bytes(SCHEMA_BYTES, REGISTRY_BYTES).expect("updated registry should conform");
         assert_eq!(receipt.disposition, "accepted");
-        assert_eq!(receipt.entry_count, 17);
+        assert_eq!(receipt.entry_count, 22);
     }
 
     #[test]
