@@ -320,15 +320,14 @@ fn evaluate_lane(
         reasons.insert("OWNER_REPORT_ACTION_AUTHORITY_ESCALATION".to_owned());
     }
 
-    if family == "dependency_coverage" {
-        if text(report, "owner_disposition") != "complete_for_declared_scope"
+    if family == "dependency_coverage"
+        && (text(report, "owner_disposition") != "complete_for_declared_scope"
             || text(report, "claim_ceiling") != "coverage_only"
             || text(report, "independent_review") != "accepted_for_declared_scope"
             || number(report, "unresolved_relationship_count") != Some(0)
-            || number(report, "unsupported_relationship_count") != Some(0)
-        {
-            reasons.insert("DEPENDENCY_COVERAGE_NOT_QUALIFIED_FOR_DECLARED_SCOPE".to_owned());
-        }
+            || number(report, "unsupported_relationship_count") != Some(0))
+    {
+        reasons.insert("DEPENDENCY_COVERAGE_NOT_QUALIFIED_FOR_DECLARED_SCOPE".to_owned());
     }
 
     if family == "source_inventory" {
@@ -357,33 +356,33 @@ fn evaluate_lane(
                 let owner_required = number(owner_presence, "required_owner_count");
                 let observed = number(owner_presence, "observed_manifest_count");
                 let missing_required = number(owner_presence, "missing_required_owner_count");
-                if expected.is_none()
-                    || required.is_none()
-                    || present.is_none()
-                    || complete.is_none()
-                    || complete_with_exclusions.is_none()
-                    || incomplete.is_none()
-                    || invalid.is_none()
-                    || not_comparable.is_none()
-                    || owner_expected.is_none()
-                    || owner_required.is_none()
-                    || observed.is_none()
-                    || missing_required.is_none()
-                {
-                    reasons.insert("SOURCE_INVENTORY_CLOSURE_COUNTS_MISSING".to_owned());
-                } else {
-                    let expected = expected.unwrap();
-                    let required = required.unwrap();
-                    let present = present.unwrap();
-                    let complete = complete.unwrap();
-                    let complete_with_exclusions = complete_with_exclusions.unwrap();
-                    let incomplete = incomplete.unwrap();
-                    let invalid = invalid.unwrap();
-                    let not_comparable = not_comparable.unwrap();
-                    let owner_expected = owner_expected.unwrap();
-                    let owner_required = owner_required.unwrap();
-                    let observed = observed.unwrap();
-                    let missing_required = missing_required.unwrap();
+                if let (
+                    Some(expected),
+                    Some(required),
+                    Some(present),
+                    Some(complete),
+                    Some(complete_with_exclusions),
+                    Some(incomplete),
+                    Some(invalid),
+                    Some(not_comparable),
+                    Some(owner_expected),
+                    Some(owner_required),
+                    Some(observed),
+                    Some(missing_required),
+                ) = (
+                    expected,
+                    required,
+                    present,
+                    complete,
+                    complete_with_exclusions,
+                    incomplete,
+                    invalid,
+                    not_comparable,
+                    owner_expected,
+                    owner_required,
+                    observed,
+                    missing_required,
+                ) {
 
                     if owner_expected != expected
                         || owner_required != required
