@@ -1124,6 +1124,126 @@
       "references": [
         "https://www.geoscience.org.za/project/mine-and-environmental-water-management-project/"
       ]
+    },
+    {
+      "name": "South African abandoned-mineshaft pumped-storage screening (historical)",
+      "artifact": "South African Energy Storage Technology and Market Assessment",
+      "pinned_release": "USTDA / South African energy storage assessment, circa 2015",
+      "companion_engine": null,
+      "release_date": "2015",
+      "role": [
+        "South African precedent for considering high-head PHS in unused/abandoned mine shafts",
+        "Historical energy-storage market-screening baseline"
+      ],
+      "important_limits": [
+        "The assessment says mine-shaft pumped storage would be considered initially; it does not report a completed site-specific engineering or bankability study.",
+        "An abandoned shaft is not a pumped-storage reservoir by itself; upper/lower reservoirs, containment, shaft lining, rock mass, water availability and grid interfaces are necessary.",
+        "The source is a historical national assessment; closure status, mine data, tariffs and regulation must be refreshed."
+      ],
+      "pin_policy": "Pin report bytes and exact sections. Treat mine shafts only as screening leads until mine plans, geotechnical/hydrogeological surveys and water-use rights are confirmed.",
+      "references": [
+        "https://www.eskom.co.za/eia/dx/wp-content/uploads/migrated/HexBESS/Appendix-H-1-South-African-Energy-Storage-Technology-and-Marketing-Assessment-1.pdf"
+      ]
+    },
+    {
+      "name": "South African operating pumped-storage fleet",
+      "artifact": "Eskom Pumped Storage Schemes and Water Transfer fact sheet",
+      "pinned_release": "Eskom HY 0001 Revision 12, June 2024",
+      "companion_engine": null,
+      "release_date": "2024-06",
+      "role": [
+        "South African operating PHS plant-capacity reference",
+        "Water-transfer and electricity-storage multi-service comparator"
+      ],
+      "important_limits": [
+        "Drakensberg 1,000 MW, Palmiet 400 MW and Ingula 1,332 MW are generating capacities, not energy storage MWh or current availability.",
+        "Drakensberg and Palmiet also perform water-transfer duties that must remain separate from electrical storage service.",
+        "The factsheet is not an interval dispatch or round-trip efficiency dataset."
+      ],
+      "pin_policy": "Use as installed-capacity and scheme-configuration context only. Obtain current operator telemetry and storage-MWh/availability/efficiency data for performance comparison.",
+      "references": [
+        "https://www.eskom.co.za/wp-content/uploads/2024/07/HY-0001-Pumped-Storage-Scheme-and-Water-Transfer-Rev-12.pdf"
+      ]
+    },
+    {
+      "name": "Eskom Tubatse 1.5 GW / 21 GWh pumped-storage development",
+      "artifact": "Eskom Green strategic partner RFQ for the Tubatse Pumped Storage Scheme",
+      "pinned_release": "Eskom statement 2026-10-13; RFQ E3611GXR",
+      "companion_engine": null,
+      "release_date": "2026-10-13",
+      "role": [
+        "Current South African long-duration PHS development comparator",
+        "1.5 GW / ~21 GWh design, 14-hour duration and four reversible pump-turbine units"
+      ],
+      "important_limits": [
+        "Tubatse is a conventional upper/lower-reservoir scheme, not an underground mineshaft project.",
+        "It is a development/partner-selection programme, not a commissioned or operating station.",
+        "14-hour output duration and 1.5 GW / 21 GWh are project design values, not measured availability/round-trip or commercial results."
+      ],
+      "pin_policy": "Pin the RFQ, environmental authorization, water availability, technical study revision and subsequent RFP. Compare mine-shaft options to the same service and storage duration, not to nameplate alone.",
+      "references": [
+        "https://www.eskom.co.za/eskom-green-launches-strategic-partner-selection-process-for-up-to-1-5gw-21gwh-of-tubatse-pumped-storage-scheme-set-to-be-south-africas-largest-energy-storage-system-ess-to-integrate-inc/"
+      ]
+    },
+    {
+      "name": "Colas et al. abandoned coal-mine geology and underground storage workflow",
+      "artifact": "Geological and mining factors influencing further use of abandoned coal mines — a multidisciplinary workflow towards sustainable underground storage",
+      "pinned_release": "Journal of Energy Storage 108, article 115101; 2025-02-01; DOI 10.1016/j.est.2024.115101",
+      "companion_engine": null,
+      "release_date": "2025-02-01",
+      "role": [
+        "Geotechnical/hydrogeological site screening for abandoned-mine underground storage",
+        "Prosper-Haniel 3D mine model and rock-mass stability/containment context"
+      ],
+      "important_limits": [
+        "German geology/mine design are not directly transferable to South African gold/coal workings.",
+        "Heterogeneous rock mass and low permeability pose stability and tightness challenges.",
+        "A 3D mine model does not establish a qualified geotechnical safety case or water containment."
+      ],
+      "pin_policy": "Pin article and mine model assumptions. Require local mine plans, shaft surveys, core/geophysics, rock-mass, permeability, groundwater and closure/rehabilitation data.",
+      "references": [
+        "https://doi.org/10.1016/j.est.2024.115101"
+      ]
+    },
+    {
+      "name": "Integrated abandoned-mine pumped-hydro, solar-thermal and heat-pump energy hub",
+      "artifact": "A sustainable energy hub from abandoned mines: integrated pumped hydro, solar-thermal and heat-pump system for carbon-neutral communities",
+      "pinned_release": "Sustainable Energy Technologies and Assessments 85, article 104757; January 2026; DOI 10.1016/j.seta.2025.104757",
+      "companion_engine": null,
+      "release_date": "2026-01",
+      "role": [
+        "Integrated mine energy hub architecture comparator",
+        "Pumped hydro + photovoltaic-thermal + reservoir-coupled heat pump scenario"
+      ],
+      "important_limits": [
+        "2.22 million kWh of storage and average heat-pump COP 5.54 are model outputs, not measured operating results.",
+        "Multiple subsystem models are coupled; this does not independently validate mine stability, reservoir containment or heat-pump/thermal store performance.",
+        "Not a South African site study."
+      ],
+      "pin_policy": "Reproduce the model boundary and parameter assumptions. Keep pumped hydro, thermal store, PVT and heat pump as separately metered/validated modules; do not double-count shared mine water or energy.",
+      "references": [
+        "https://doi.org/10.1016/j.seta.2025.104757"
+      ]
+    },
+    {
+      "name": "Gravity energy storage architectures and techno-economic review (107 studies)",
+      "artifact": "A Systematic Review of Gravity Energy Storage: Technologies, Modeling, Integration, and Future Perspectives",
+      "pinned_release": "Eng 2026, 7(9), 463; published 2026-09-08; DOI 10.3390/eng7090463",
+      "companion_engine": null,
+      "release_date": "2026-09-08",
+      "role": [
+        "Shaft/tower/rail/mountain/piston/modular solid gravity storage architecture comparison",
+        "System boundary and evidence gap benchmark across gravity energy storage"
+      ],
+      "important_limits": [
+        "The review identifies low intrinsic energy density and strong infrastructure dependence; volume/height/mass are first-order constraints.",
+        "It finds inconsistent techno-economic assessment and limited long-term operational data across GES architecture families.",
+        "A shaft solid-mass system and a water-based underground pumped-storage system have different conversion physics and must not share one unqualified efficiency curve."
+      ],
+      "pin_policy": "Pin the full review and 107-study bibliography. Compare each architecture on matched energy, power, duration, response, round-trip, site and maintenance boundaries.",
+      "references": [
+        "https://doi.org/10.3390/eng7090463"
+      ]
     }
   ]
 }
