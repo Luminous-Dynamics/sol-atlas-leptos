@@ -1,0 +1,834 @@
+{
+  "schema_id": "org.luminousdynamics.citymorph.source-register",
+  "schema_version": "0.1.0",
+  "register_id": "JOHANNESBURG-SOURCE-REGISTER-V0.1",
+  "classification": "research_inventory_not_ingested_data",
+  "as_of": "2026-11-09",
+  "claim_ceiling": "The register records discoverable candidate sources and known access/rights facts at the as-of date. It does not indicate that layers have been downloaded, licensed for redistribution or spatially validated.",
+  "access_status_values": [
+    "VerifiedPublic",
+    "PublicWithConditions",
+    "RequestRequired",
+    "Restricted",
+    "Unavailable",
+    "Unknown"
+  ],
+  "rights_status_values": [
+    "VerifiedOpenLicense",
+    "PublicWithConditions",
+    "Unknown",
+    "Restricted",
+    "NotApplicable"
+  ],
+  "sources": [
+    {
+      "source_id": "CLIMATE-ONEBUILDING-TMYX-2026",
+      "name": "Climate.OneBuilding 2026 TMYx building-simulation weather files",
+      "publisher": "Climate.OneBuilding.org; source datasets include NOAA ISD and ERA5-derived solar data",
+      "url": "https://climate.onebuilding.org/",
+      "source_type": "typical_meteorological_year_weather_library",
+      "release_year": 2026,
+      "access_status": "VerifiedPublic",
+      "rights_status": "Unknown",
+      "known_facts": [
+        "The Gauteng listing includes Johannesburg-Tambo International Airport WMO 683680 and Johannesburg Botanical Gardens WMO 683610 TMYx files for 2011-2025.",
+        "Climate.OneBuilding says its 2026 TMYx solar data use ERA5 reanalysis, while the underlying hourly weather TMYx series derive from NOAA ISD.",
+        "TMYx data are for typical-weather building-simulation screening, not observed heatwave or future climate events."
+      ],
+      "unknowns": [
+        "The two specific files have not been downloaded or header-inspected in this register",
+        "Exact coordinates, elevation, station representativeness and per-file missingness",
+        "Specific file redistribution rights",
+        "Suitability for Johannesburg microclimates or compliance calculation"
+      ],
+      "required_checks": [
+        "Locate exact Johannesburg-area file and source metadata",
+        "Record WMO/site ID, coordinates/elevation, period, climate variables, time zone, digest and retrieval date",
+        "Check rights for redistribution",
+        "Use only as TMY screening; never label a TMY sequence an observed heatwave or future projection",
+        "Inspect both candidate EPW/STAT/COMMENT1 headers and compare station coordinates/elevation/period before choosing a reference profile",
+        "Retain both candidates for sensitivity/representativeness comparison; do not choose the airport or botanical garden simply by proximity or name",
+        "Download both exact Gauteng candidate files, inspect EPW/STAT/COMMENT1 headers and compare station metadata before selecting a local reference profile"
+      ],
+      "evidence_urls": [
+        "https://climate.onebuilding.org/"
+      ],
+      "johannesburg_candidates": [
+        {
+          "file": "ZAF_GT_Johannesburg-Tambo.Intl.AP.683680_TMYx.2011-2025.zip",
+          "station_name": "Johannesburg-Tambo International Airport",
+          "wmo_id": "683680",
+          "listed_size_kib": 433,
+          "status": "candidate_listed_not_downloaded_or_validated",
+          "notes": [
+            "Exact filename shown in the Gauteng station list.",
+            "Airport exposure is not assumed to represent dense urban or valley microclimates.",
+            "Inspect EPW/STAT/COMMENT1, coordinates/elevation, period, source variables, time zone, missingness and licence."
+          ]
+        },
+        {
+          "file": "ZAF_GT_Johannesburg.Botanical.Gardens.683610_TMYx.2011-2025.zip",
+          "station_name": "Johannesburg Botanical Gardens",
+          "wmo_id": "683610",
+          "listed_size_kib": 385,
+          "status": "candidate_listed_not_downloaded_or_validated",
+          "notes": [
+            "Exact filename shown in the Gauteng station list.",
+            "Potentially distinct urban/vegetated exposure; representativeness requires evaluation.",
+            "Inspect EPW/STAT/COMMENT1, coordinates/elevation, period, source variables, time zone, missingness and licence."
+          ]
+        }
+      ],
+      "listing_url": "https://climate.onebuilding.org/WMO_Region_1_Africa/ZAF_South_Africa/index.html"
+    },
+    {
+      "source_id": "COJ-AERIAL-ORTHO-LIDAR-2023",
+      "name": "City of Johannesburg 2023 aerial orthophotos, LiDAR and derived contours",
+      "publisher": "City of Johannesburg Corporate Geo-Informatics Directorate",
+      "url": "https://eservices.joburg.org.za/sites/cgismaps/Pages/default.aspx",
+      "source_type": "municipal_aerial_imagery_and_point_cloud",
+      "acquisition_year": 2023,
+      "coverage_km2": 1644,
+      "orthophoto_pixel_resolution_cm": 15,
+      "lidar_minimum_points_per_m2": 4,
+      "derived_contour_interval_cm": 25,
+      "access_status": "PublicWithConditions",
+      "rights_status": "Unknown",
+      "known_facts": [
+        "City states the 2023 aerial products cover its 1,644 km² jurisdiction.",
+        "Products include 15 cm pixel-resolution colour orthophotos, LiDAR with minimum 4 points/m² and 25 cm derived contours.",
+        "City states the imagery became available on Online Map Viewers from 2024-04-09.",
+        "City states orthophotos, derived contours and LiDAR ground/non-ground points are available on request from its CGIS Projects Section."
+      ],
+      "unknowns": [
+        "Exact orthophoto/LiDAR product licence and redistribution rights",
+        "Per-tile capture date, vertical datum, horizontal/vertical accuracy, classification and QA report",
+        "Current endpoint or download package and request approval",
+        "Whether private structures or sensitive sites require aggregation or access constraints"
+      ],
+      "required_checks": [
+        "Request product metadata, accuracy report, tile index and permitted-use terms from cgisprojects@joburg.org.za",
+        "Verify CRS, vertical datum, ground/non-ground classification and per-tile capture date",
+        "Use as-built geometry/massing evidence only within declared positional/temporal accuracy; do not infer roof/wall material, insulation, occupancy, tenure or indoor conditions from imagery",
+        "Retain exact tile/point-cloud digests and transformation lineage; respect any public-release restrictions"
+      ],
+      "evidence_urls": [
+        "https://eservices.joburg.org.za/sites/cgismaps/Pages/default.aspx"
+      ]
+    },
+    {
+      "source_id": "COJ-CGIS-SPATIAL-DATA-INVENTORY-2024",
+      "name": "City of Johannesburg Corporate Geo-Informatics Spatial Data Inventory 2024",
+      "publisher": "City of Johannesburg, Corporate Geo-Informatics Directorate / Development Planning",
+      "url": "https://eservices.joburg.org.za/sites/cgismaps/Pages/default.aspx",
+      "source_type": "municipal_spatial_metadata_inventory",
+      "inventory_document": "Spatial Data Inventory 2024.pdf",
+      "access_status": "VerifiedPublic",
+      "rights_status": "PublicWithConditions",
+      "known_facts": [
+        "City page links a downloadable Spatial Data Inventory 2024.",
+        "The City says the inventory records dataset name/description, data type/distribution format/date created, data owner/contact details and usage limitations.",
+        "The City says the inventory is reviewed annually and is intended to support data sharing and avoid duplicate collection."
+      ],
+      "unknowns": [
+        "Exact per-layer content and whether the PDF was successfully retrieved for this review",
+        "Per-layer source file or service URLs",
+        "Per-layer licence and redistribution terms",
+        "Whether usage limitation permits derivative layers, commercial use or public republication"
+      ],
+      "required_checks": [
+        "Retrieve Spatial Data Inventory 2024 PDF and parse its dataset rows, custodians, dates, formats and usage limitations",
+        "Contact listed data custodian for authoritative current layer and permitted use",
+        "Treat the inventory as metadata, not as proof of access to the underlying layer"
+      ],
+      "evidence_urls": [
+        "https://eservices.joburg.org.za/sites/cgismaps/Pages/default.aspx"
+      ]
+    },
+    {
+      "source_id": "COJ-CLIMATE-ACTION-PLAN-REVIEW-2026",
+      "name": "City of Johannesburg Climate Action Plan review and MetroView mention",
+      "publisher": "City of Johannesburg Environment and Infrastructure Services Department",
+      "url": "https://joburg.org.za/media_/Newsroom/Pages/2026-News-Articles/Joburg-undertakes-comprehensive-review-of-Climate-Action-Plan.aspx",
+      "source_type": "municipal_climate_policy_and_platform_announcement",
+      "announcement_date": "2026-05-26",
+      "access_status": "VerifiedPublic",
+      "rights_status": "Unknown",
+      "known_facts": [
+        "City says it is reviewing its 2021 Climate Action Plan.",
+        "Article states MetroView provides deeper insight into spatial vulnerabilities and hazard exposure across Johannesburg.",
+        "Article identifies rising temperatures, prolonged drought, flash floods and worsening air quality as climate-related pressures."
+      ],
+      "unknowns": [
+        "MetroView live URL and public access method",
+        "Per-layer API/download availability",
+        "Per-layer source, licence, resolution, vintage and refresh cadence",
+        "Whether any layer is suitable for building-level or household-level inference",
+        "Current revised CAP publication date and adopted text"
+      ],
+      "required_checks": [
+        "Locate MetroView endpoint and catalogue",
+        "Verify anonymous/authorized access and layer-specific reuse rights",
+        "Record native grid, time range, uncertainty, methods and content digest for each hazard layer",
+        "Do not infer building/household thermal conditions from municipal exposure surfaces"
+      ],
+      "evidence_urls": [
+        "https://joburg.org.za/media_/Newsroom/Pages/2026-News-Articles/Joburg-undertakes-comprehensive-review-of-Climate-Action-Plan.aspx"
+      ]
+    },
+    {
+      "source_id": "COJ-EXTERNAL-ONLINE-MAPS",
+      "name": "City of Johannesburg external GeoLIS/eServices Online Maps viewer",
+      "publisher": "City of Johannesburg Corporate Geo-Informatics Directorate",
+      "url": "https://eservices.joburg.org.za/sites/cgismaps/Pages/default.aspx",
+      "source_type": "municipal_web_gis_viewer",
+      "access_status": "VerifiedPublic",
+      "rights_status": "PublicWithConditions",
+      "known_facts": [
+        "City says external clients can access its HTML5 Online Maps Viewer through eServices; no eServices client registration is required.",
+        "City guidance says some layers can be extracted as shapefile, KML or DXF; extraction is layer-dependent.",
+        "City page directs users to the relevant data custodians because CGIS does not own all layers shown in map viewers.",
+        "The Online Maps help page states that its help manual was last updated on 2026-06-30."
+      ],
+      "unknowns": [
+        "Per-layer extraction availability, licence, scale restrictions and usage limitations",
+        "Layer service endpoints, metadata, dates, coverage and authoritative owner",
+        "Whether a displayed layer can be redistributed or used in a derivative public dataset"
+      ],
+      "required_checks": [
+        "Inventory candidate layer IDs and exact publisher/custodian before extraction",
+        "Capture per-layer metadata and rights notice; do not infer reuse rights from anonymous viewer access",
+        "Prefer custodian-issued source data and documented permissions over scraping map tiles",
+        "Retain extract timestamp, layer revision, CRS, digest and any transformations",
+        "Inspect the 2026-06-30 help-manual version and record the exact layer IDs, download format, scale limits and per-layer custodian before creating any extract."
+      ],
+      "evidence_urls": [
+        "https://eservices.joburg.org.za/sites/cgismaps/Pages/default.aspx",
+        "https://edit.eservices.joburg.org.za/Pages/OnlineMaps.aspx"
+      ]
+    },
+    {
+      "source_id": "COJ-ISDP-SPMS",
+      "name": "City of Johannesburg Corporate Geo-Informatics Online Maps / Spatial Data Inventory",
+      "publisher": "City of Johannesburg; Development Planning / Corporate Geo-Informatics / Johannesburg Development Agency",
+      "url": "https://eservices.joburg.org.za/sites/cgismaps/Pages/default.aspx",
+      "source_type": "municipal_gis_viewer_with_layer_extraction_and_custodian_inventory",
+      "announcement_date": "2025-08-29",
+      "access_status": "PublicWithConditions",
+      "rights_status": "PublicWithConditions",
+      "known_facts": [
+        "City Online Maps viewer can be accessed without registering as an eServices client.",
+        "City documentation says certain layers can be extracted through an Extract Downloader in shapefile, KML or DXF format; export availability is layer-dependent.",
+        "The City Spatial Data Inventory 2024 is published as a PDF and records dataset name/description, data type/distribution format/date created, data owner/contact and usage limitations; it is reviewed annually.",
+        "The Corporate Geo-Informatics portal states that CGIS is not the custodian/owner of every layer and directs users to the responsible department or municipal entity.",
+        "The Online Maps help page states cadastral/property data are updated weekly, roads data from Johannesburg Roads Agency were last updated August 2019, aerial photography was flown May 2023, and most other data were captured over multiple years."
+      ],
+      "unknowns": [
+        "Exact layer-by-layer export availability and access conditions",
+        "Actual rights/reuse terms for each dataset and its custodian",
+        "Whether the Spatial Data Inventory 2024 remains the latest available version as of retrieval",
+        "Per-layer effective date, schema, CRS, scale/resolution and completeness",
+        "Whether road updates after August 2019 are available from JRA or other custodians",
+        "Whether exported data include stable feature IDs and revision metadata"
+      ],
+      "required_checks": [
+        "Download and archive the Spatial Data Inventory PDF with retrieval date/digest; extract custodian contacts and dataset limitations",
+        "Use the current viewer and Extract Downloader to export a carefully selected pilot-area layer list",
+        "For every selected layer, contact its actual custodian where rights/freshness are unclear",
+        "Record data effective date rather than relying on portal page retrieval date",
+        "Reject or explicitly downgrade JRA roads where the only available layer is the documented August 2019 vintage",
+        "Keep cadastral, road, imagery and other layer freshness policies separate",
+        "Check POPIA and other South African legal restrictions before processing property/individual data"
+      ],
+      "evidence_urls": [
+        "https://eservices.joburg.org.za/pages/OnlineMaps.aspx",
+        "https://eservices.joburg.org.za/sites/cgismaps/Pages/default.aspx",
+        "https://eservices.joburg.org.za/corporate-geo-informatics/overview",
+        "https://joburg.org.za/media_/Newsroom/Pages/2025-News-Articles/Joburg-launches-SA%E2%80%99s-first-integrated-Spatial-Data-and-Planning-system.aspx"
+      ]
+    },
+    {
+      "source_id": "GCRO-DATA-PORTAL",
+      "name": "Gauteng City-Region Observatory Data Portal",
+      "publisher": "Gauteng City-Region Observatory",
+      "url": "https://www.gcro.ac.za/outputs/dataportal/",
+      "source_type": "catalogue",
+      "candidate_layers": [
+        "Quality of Life survey data",
+        "Gauteng administrative boundaries",
+        "public infrastructure",
+        "South Africa land use/land cover and urban footprint",
+        "demographics",
+        "biodiversity"
+      ],
+      "access_status": "VerifiedPublic",
+      "rights_status": "PublicWithConditions",
+      "geography": "Gauteng City-Region; per-layer extent must be confirmed",
+      "temporal_resolution": "Per-layer; not uniform",
+      "known_facts": [
+        "Portal lists the candidate subject areas.",
+        "Portal states that some datasets download directly, while some lead to landing/menu pages and may require registration."
+      ],
+      "unknowns": [
+        "Per-layer direct download/API",
+        "Per-layer licence and redistribution rights",
+        "Version/effective dates and refresh cadence",
+        "CRS, resolution, schema and missingness"
+      ],
+      "required_checks": [
+        "Capture catalogue metadata and direct links per layer",
+        "Record rights notice for each data file",
+        "Hash source snapshot and retain retrieval date",
+        "Confirm exact Johannesburg coverage and boundary vintage"
+      ],
+      "evidence_urls": [
+        "https://www.gcro.ac.za/outputs/dataportal/",
+        "https://www.gcro.ac.za/outputs/dataportal/detail/"
+      ]
+    },
+    {
+      "source_id": "GCRO-QOL7-2023-24",
+      "name": "GCRO Quality of Life Survey 7 (2023/24)",
+      "publisher": "GCRO; distributed by DataFirst, University of Cape Town",
+      "url": "https://datafirst.uct.ac.za/dataportal/index.php/catalog/995",
+      "source_type": "anonymised_household_sample_survey",
+      "access_status": "VerifiedPublic",
+      "rights_status": "VerifiedOpenLicense",
+      "license": "Creative Commons Attribution 4.0 (CC BY 4.0), public-use anonymised dataset as stated by GCRO/DataFirst",
+      "collection_period_start": "2023-09-11",
+      "collection_period_end": "2024-04-19",
+      "sample_size": 13795,
+      "unit_of_analysis": [
+        "adult respondents",
+        "households"
+      ],
+      "geography": "Gauteng; ward-representative survey design as documented by GCRO",
+      "temporal_resolution": "Survey round (not continuous)",
+      "known_facts": [
+        "QoL7 is the latest public GCRO survey round identified in this register; fieldwork ran 2023-09 to 2024-04.",
+        "The Gauteng-wide survey contains 13,795 adult respondents, with documented sample design, weighting and technical reports.",
+        "GCRO states that Quality of Life survey data are freely available under CC BY 4.0; the public dataset is available through DataFirst or by request.",
+        "A separate City of Johannesburg municipal benchmarking report and municipal report analyze QoL7 indicators at municipal level; these are survey-derived results, not street/building-level measurements."
+      ],
+      "unknowns": [
+        "Exact spatial fields and usable geographic precision in public-use release",
+        "Whether any selected variables support Johannesburg-only disaggregation without unacceptable sampling error"
+      ],
+      "required_checks": [
+        "Read questionnaire, sampling, weighting and fieldwork reports before analysis",
+        "Use survey weights and report standard errors/design effects",
+        "Do not geocode or publish respondent coordinates",
+        "Do not interpret adult respondents as a complete census of all residents",
+        "For Johannesburg municipal disaggregation, use the City-specific QoL7 municipal report and sample/weighting/quality documentation; do not infer street- or building-level outcomes.",
+        "Keep survey-weighted estimates and their uncertainty separate from GIS route/service counts and ward small-area population estimates."
+      ],
+      "evidence_urls": [
+        "https://datafirst.uct.ac.za/dataportal/index.php/catalog/995",
+        "https://www.gcro.ac.za/outputs/data-briefs/detail/overview-qol7/",
+        "https://www.gcro.ac.za/outputs/policy-and-other-outputs/detail/qol-7-202324-data-report/",
+        "https://gcro.ac.za/outputs/data-briefs/detail/city-of-johannesburg-municipal-report-findings-from-the-gcros-quality-of-life-survey-7-202324/",
+        "https://gcro.ac.za/outputs/data-briefs/detail/municipal-benchmarking-report-findings-from-the-gcros-quality-of-life-survey-7-202324/",
+        "https://gcro.ac.za/research/project/detail/quality-life-survey-7/"
+      ]
+    },
+    {
+      "source_id": "GREENBOOK-METROVIEW-JOHANNESBURG",
+      "name": "GreenBook MetroView — City of Johannesburg Climate Risk Profile Tool",
+      "publisher": "CSIR GreenBook / MetroView project partners",
+      "url": "https://joburg-riskprofile.greenbook.co.za/",
+      "source_type": "municipal_climate_risk_profile_web_application",
+      "access_status": "VerifiedPublic",
+      "rights_status": "Unknown",
+      "geography": "Johannesburg metropolitan area; published tool description says spatial results up to ward level",
+      "time_horizons": [
+        "current",
+        "2050 projection"
+      ],
+      "known_facts": [
+        "GreenBook MetroView describes its Climate Risk Profile Tool as providing quantified spatial information up to ward level for current and 2050 climate projections.",
+        "Tool description says the risk zones combine hazard likelihood, exposure and vulnerabilities.",
+        "The Johannesburg-specific profile link resolves to a JavaScript web application titled Green Book 2.0."
+      ],
+      "unknowns": [
+        "Download/API/export endpoints and whether raw raster/vector layers are available",
+        "Underlying climate-model ensemble, scenarios, reference periods, downscaling, bias correction and uncertainty",
+        "Ward boundary vintage, layer metadata and precise aggregation methods",
+        "Licence, attribution and redistribution terms for each layer",
+        "Independent validation and update cadence"
+      ],
+      "required_checks": [
+        "Inspect the interactive tool and its public data/export options without assuming an API exists",
+        "Request technical methodology, layer metadata, uncertainty and licence terms from the project/CSIR",
+        "Preserve current versus 2050 projection, hazard likelihood, exposure and vulnerability as separate fields",
+        "Keep all outputs at their declared ward-level support; do not derive building-level temperatures or individual household risk"
+      ],
+      "evidence_urls": [
+        "https://greenbook.co.za/tool-landing-page.html",
+        "https://joburg-riskprofile.greenbook.co.za/"
+      ]
+    },
+    {
+      "source_id": "JOHANNESBURG-CDW-DISPOSAL-QUALITATIVE-2025",
+      "name": "Assessment of disposal methods of construction and demolition waste: a case study of south-eastern industrial and residential areas in Johannesburg, South Africa",
+      "publisher": "South African Geographical Journal",
+      "url": "https://doi.org/10.1080/03736245.2025.2587860",
+      "source_type": "qualitative_local_stakeholder_study",
+      "publication_date": "2025-11-19",
+      "access_status": "VerifiedPublic",
+      "rights_status": "Unknown",
+      "geography": "South-eastern industrial and residential areas of Johannesburg; qualitative participant study",
+      "known_facts": [
+        "The study reports interviews with 20 private-sector stakeholders.",
+        "All 20 participants indicated using landfill; landfill was reported as the most economical route in the participant accounts.",
+        "The paper discusses barriers in implementation, registration and recordkeeping and recommends waste reduction, reuse and recycling before landfill."
+      ],
+      "unknowns": [
+        "Citywide representativeness",
+        "Measured tonnage by material or project",
+        "Complete informal-sector reuse flows",
+        "Current prices or current landfill capacity"
+      ],
+      "required_checks": [
+        "Use as qualitative evidence of incentive and operational barriers, not a citywide disposal percentage.",
+        "Do not treat 20 interview responses as a statistically representative sample of Johannesburg projects.",
+        "Use the findings to design stakeholder interviews and material-recovery fieldwork."
+      ],
+      "evidence_urls": [
+        "https://doi.org/10.1080/03736245.2025.2587860"
+      ]
+    },
+    {
+      "source_id": "JOHANNESBURG-CE-SALVAGE-SCENARIO-2025",
+      "name": "Human Settlements and the Circular Economy — Johannesburg deconstruction and reuse scenario",
+      "publisher": "Circular Economy South Africa / Human Settlements research report",
+      "url": "https://www.circulareconomy.co.za/wp-content/uploads/2025/03/Human-Settlements_Report-CE-Opportunities_final.pdf",
+      "source_type": "modelled_policy_scenario_not_inventory",
+      "publication_year": 2025,
+      "access_status": "VerifiedPublic",
+      "rights_status": "Unknown",
+      "known_facts": [
+        "The report presents a City of Johannesburg model scenario in which 50% adoption of reuse of materials/products from building deconstruction could salvage 225.21 kt and reduce material otherwise landfilled or fly-tipped by about 44%.",
+        "The figure is a modeled adoption scenario and not a measurement of available, qualified or deliverable stock."
+      ],
+      "unknowns": [
+        "Input inventory completeness and local building-condition representativeness",
+        "Grade, testing, contamination and custody by salvaged component",
+        "Actual adoption feasibility, project timing, handling/storage and transport constraints",
+        "Realized recovery yield and receiving-market demand"
+      ],
+      "required_checks": [
+        "Retain the scenario assumptions and source methodology before attempting reproduction.",
+        "Never use the 225.21 kt scenario result as physical inventory or procurement supply.",
+        "Reproduce the modeled case under its original functional unit and boundary before creating new scenario variations."
+      ],
+      "evidence_urls": [
+        "https://www.circulareconomy.co.za/wp-content/uploads/2025/03/Human-Settlements_Report-CE-Opportunities_final.pdf"
+      ]
+    },
+    {
+      "source_id": "JOHANNESBURG-EFFICIENT-BUILDINGS-GUIDE-HISTORIC",
+      "name": "Design Guidelines for Efficient Buildings in Johannesburg",
+      "publisher": "City Energy / historical Johannesburg energy-efficiency guidance",
+      "url": "https://www.cityenergy.org.za/uploads/resource_109.pdf",
+      "source_type": "historical_city_building_design_guidance",
+      "publication_year": 2013,
+      "access_status": "VerifiedPublic",
+      "rights_status": "Unknown",
+      "known_facts": [
+        "Historical guide discusses Johannesburg passive solar heating, shading, natural ventilation and thermal mass, including seasonal summer/winter trade-offs."
+      ],
+      "unknowns": [
+        "Current applicability to modern climate and code",
+        "Underlying weather data and calibration",
+        "Copyright/reuse status"
+      ],
+      "required_checks": [
+        "Use only as contextual historical guidance",
+        "Verify current legal/technical requirements separately",
+        "Do not use as a weather dataset or quantified modern performance baseline"
+      ],
+      "evidence_urls": [
+        "https://www.cityenergy.org.za/uploads/resource_109.pdf"
+      ]
+    },
+    {
+      "source_id": "JOHANNESBURG-QOL7-MUNICIPAL-REPORT-2024",
+      "name": "City of Johannesburg Municipal Report: Findings from GCRO Quality of Life Survey 7 (2023/24)",
+      "publisher": "Gauteng City-Region Observatory",
+      "url": "https://www.gcro.ac.za/outputs/data-briefs/detail/city-of-johannesburg-municipal-report-findings-from-the-gcros-quality-of-life-survey-7-202324/",
+      "source_type": "municipal_level_survey_report",
+      "publication_date": "2024-12-20",
+      "underlying_survey": "GCRO QoL7 2023/24 (13,795 Gauteng adult respondents overall; municipal sub-sample/weighting applies)",
+      "access_status": "VerifiedPublic",
+      "rights_status": "Unknown",
+      "known_facts": [
+        "The report analyses City of Johannesburg survey results on demographic composition, basic-service access and satisfaction, infrastructure conditions and public engagement.",
+        "The report is survey-derived municipal evidence, not a geocoded census, service-facility inventory, or street/building-level observation.",
+        "QoL7 questionnaires, sampling, fieldwork, weighting and data reports are separately published and should accompany any quantitative analysis."
+      ],
+      "unknowns": [
+        "Reuse licence for the rendered report itself",
+        "Precision and reliability of individual Johannesburg sub-area estimates",
+        "Whether every subgroup comparison has adequate effective sample size"
+      ],
+      "required_checks": [
+        "Read the City-specific municipal report together with the QoL7 sample, weighting and data reports",
+        "Use survey weights and uncertainty; avoid small subgroup or neighbourhood inferences without documented design support",
+        "Keep the report's survey date (2023/24) visible; do not treat it as current 2026 service performance",
+        "Use the CC BY 4.0 licence statement for the underlying QoL dataset only where its terms apply; do not assume that it automatically licenses every report graphic or derivative"
+      ],
+      "evidence_urls": [
+        "https://www.gcro.ac.za/outputs/data-briefs/detail/city-of-johannesburg-municipal-report-findings-from-the-gcros-quality-of-life-survey-7-202324/",
+        "https://www.gcro.ac.za/outputs/data-briefs/detail/municipal-benchmarking-report-findings-from-the-gcros-quality-of-life-survey-7-202324/",
+        "https://www.gcro.ac.za/research/project/detail/quality-life-survey-7/",
+        "https://www.datafirst.uct.ac.za/dataportal/index.php/catalog/995"
+      ]
+    },
+    {
+      "source_id": "JOHANNESBURG-TRANSIT-GTFS",
+      "name": "Johannesburg-area public transport schedule feeds (candidate GTFS sources)",
+      "publisher": "Potentially Rea Vaya, Gautrain, Metrobus and other operators; not yet established",
+      "url": null,
+      "source_type": "scheduled_public_transport",
+      "access_status": "Unknown",
+      "rights_status": "Unknown",
+      "candidate_operators": [
+        "Rea Vaya",
+        "Gautrain",
+        "Metrobus",
+        "other municipal and contracted operators"
+      ],
+      "required_standard": "GTFS Schedule; GTFS Realtime only where actually published",
+      "known_facts": [
+        "No specific current operator-published feed has been verified in this inventory."
+      ],
+      "unknowns": [
+        "Whether each operator publishes GTFS",
+        "Feed URL and authentication",
+        "Agency/route/stop coverage",
+        "Calendar and exception completeness",
+        "Effective dates, last-modified and update cadence",
+        "Licence and redistribution rights",
+        "Observed service reliability and accessibility information"
+      ],
+      "required_checks": [
+        "Locate official operator source, not an unofficial scrape",
+        "Validate feed with canonical GTFS validator",
+        "Check service dates cover the analysis period",
+        "Check stop/route coverage against known services",
+        "Capture calendars, exceptions and feed digest",
+        "Treat absence of a feed as a data gap; do not synthesize headways from stop locations"
+      ],
+      "evidence_urls": [
+        "https://gtfs.org/documentation/schedule/schedule-best-practices/"
+      ]
+    },
+    {
+      "source_id": "OPENSTREETMAP-SOUTH-AFRICA",
+      "name": "OpenStreetMap road, path, crossing and point-of-interest data",
+      "publisher": "OpenStreetMap contributors; OpenStreetMap Foundation",
+      "url": "https://www.openstreetmap.org/copyright",
+      "source_type": "volunteer_contributed_geospatial_database",
+      "access_status": "PublicWithConditions",
+      "rights_status": "VerifiedOpenLicense",
+      "license": "Open Database License (ODbL) 1.0; attribution required and share-alike obligations apply to distributed derivative databases",
+      "known_facts": [
+        "OSM data include roads, trails, railway stations and mapped points of interest.",
+        "The OSM Foundation requires attribution and clear indication that the data are available under ODbL."
+      ],
+      "unknowns": [
+        "Local completeness and positional accuracy by neighborhood and feature class",
+        "Missing sidewalks, crossings, informal paths, gates and service locations",
+        "Temporal freshness and edit-history quality"
+      ],
+      "required_checks": [
+        "Use a dated regional extract or replication snapshot; store timestamp and checksum",
+        "Retain ODbL attribution and assess database share-alike obligations before distribution",
+        "Run topology, connectivity and coverage audits",
+        "Ground-truth critical barriers and step-free crossings with safe, consent-based field checks",
+        "Do not treat mapped presence or absence as proof that a facility exists or is absent"
+      ],
+      "evidence_urls": [
+        "https://www.openstreetmap.org/copyright",
+        "https://osmfoundation.org/wiki/Attribution_Guidelines"
+      ]
+    },
+    {
+      "source_id": "SA-CDW-STATE-OF-THE-ART-REVIEW-2025",
+      "name": "State-of-the-art review on construction and demolition waste: The South African context",
+      "publisher": "Amadi and Mahachi, Cleaner Waste Systems, volume 11, article 100251",
+      "url": "https://doi.org/10.1016/j.clwas.2025.100251",
+      "source_type": "peer_reviewed_state_of_the_art_review",
+      "publication_date": "2025-06-01",
+      "access_status": "VerifiedPublic",
+      "rights_status": "Unknown",
+      "known_facts": [
+        "The 2025 review describes landfill as the most common C&D waste route in South Africa and reports that 48% of C&D waste is deposited in scarce landfills.",
+        "The review highlights under-reporting and outdated CDW data, partly because informal recovery/reuse flows are omitted from official statistics.",
+        "The review reports severe landfill-airspace pressure for Johannesburg and Cape Town, including less than five years of airspace in the underlying cited context."
+      ],
+      "unknowns": [
+        "Current 2026 landfill airspace and facility-specific remaining capacity",
+        "Johannesburg project-level C&D tonnage and material composition",
+        "Quantified informal recovery/reuse flows and the extent of double counting",
+        "Current recoverable, tested, qualified and deliverable secondary material quantities",
+        "Reuse/redistribution rights for the full-text article and any underlying datasets"
+      ],
+      "required_checks": [
+        "Read the full review and primary studies behind the landfill-capacity/airspace statements before citing numerical detail in a local assessment",
+        "Do not treat the reported less-than-five-years figure as a current 2026 landfill capacity measurement",
+        "Do not apply the 48% national figure as a Johannesburg-specific rate",
+        "Design a local material-flow audit that separately measures formal disposal, informal recovery/reuse, recycling, stockpiling, export and unreported flows",
+        "Use batch identity, grade, contamination, custody, availability date and receiving capacity before counting any recovered material as qualified supply"
+      ],
+      "evidence_urls": [
+        "https://doi.org/10.1016/j.clwas.2025.100251",
+        "https://ujcontent.uj.ac.za/esploro/outputs/journalArticle/State-of-the-art-review-on-construction-and-demolition/9955306107691"
+      ]
+    },
+    {
+      "source_id": "SA-CDW-UNDERREPORTING-ESTIMATE-2022",
+      "name": "An estimate of construction and demolition waste quantities and composition expected in South Africa",
+      "publisher": "South African Journal of Science",
+      "url": "https://journals.co.za/doi/10.17159/sajs.2022/12485",
+      "source_type": "research_estimate_not_current_inventory",
+      "publication_year": 2022,
+      "access_status": "VerifiedPublic",
+      "rights_status": "Unknown",
+      "known_facts": [
+        "The paper estimated 20.2 Mt of potential C&D waste generated in South Africa in 2017 using a lifetime method and 10.8 Mt reaching disposal sites using a per-capita method, compared with 4.48 Mt in official statistics for 2017.",
+        "The paper identifies likely underreporting and notes informal sector reuse of discarded construction materials as a plausible contributor to differences."
+      ],
+      "unknowns": [
+        "Current Johannesburg building/material stocks",
+        "Current recoverable or qualified quantities",
+        "Project-specific grade, condition, contamination, custody and availability",
+        "Reuse flows not captured by the study's underlying data"
+      ],
+      "required_checks": [
+        "Treat the estimates as research evidence of data-coverage risk, not a current supply total.",
+        "Do not compare different estimation methods as if they shared the same system boundary.",
+        "Do not convert national generated/disposed quantities into local usable supply.",
+        "Record uncertainty and study year whenever citing these estimates."
+      ],
+      "evidence_urls": [
+        "https://journals.co.za/doi/10.17159/sajs.2022/12485"
+      ]
+    },
+    {
+      "source_id": "SOUTH-AFRICA-SANS-10400-XA-STATUS",
+      "name": "South African building energy regulation / SANS 10400-XA edition status",
+      "publisher": "IEA policy database references South African regulation; SABS is the standards publisher",
+      "url": "https://www.iea.org/policies/8412-sans-10400-xa2021-national-building-regulations-energy-usage-in-buildings",
+      "source_type": "regulatory_standard_status_reference",
+      "access_status": "PublicWithConditions",
+      "rights_status": "Unknown",
+      "known_facts": [
+        "IEA policy entry records SANS 10400-XA:2021 as in force and was last updated 2024-04-30.",
+        "Some 2026 trade/industry references mention a SANS 10400-XA:2026 publication; this inventory has not verified the official SABS edition/catalogue or its incorporation into regulations."
+      ],
+      "unknowns": [
+        "Official current SABS edition and publication date",
+        "Whether a 2026 edition has been published and what legal status it has",
+        "Exact applicable clauses and referenced standards for each occupancy and compliance path",
+        "Rights to reproduce standard text"
+      ],
+      "required_checks": [
+        "Verify directly against SABS official catalogue and Government Gazette/regulatory adoption",
+        "Ask a competent South African building-energy professional to confirm the edition applicable on the project's submission date",
+        "Do not encode secondary website snippets as compliance law",
+        "Do not reproduce copyrighted standard text without permission"
+      ],
+      "evidence_urls": [
+        "https://www.iea.org/policies/8412-sans-10400-xa2021-national-building-regulations-energy-usage-in-buildings",
+        "https://www.sabs.co.za/"
+      ]
+    },
+    {
+      "source_id": "STATSSA-WARD-SAPE-2022",
+      "name": "Stats SA Ward-level Small Area Population Estimates, 2022",
+      "publisher": "Statistics South Africa",
+      "url": "https://www.statssa.gov.za/?p=18967",
+      "source_type": "official_small_area_population_estimates",
+      "access_status": "VerifiedPublic",
+      "rights_status": "Unknown",
+      "reference_year": 2022,
+      "boundary_vintage": "2020 electoral ward boundaries",
+      "method": "Raking / iterative proportional fitting using Census 2011 and Census 2022",
+      "spatial_resolution": "electoral ward",
+      "known_facts": [
+        "Stats SA states that spreadsheets, a technical note, ward shapefiles and provincial/district maps are available.",
+        "Stats SA warns that very small-area census values can be unstable due to variability, bias and undercount; the release is described as the last lowest-level ward estimate product."
+      ],
+      "unknowns": [
+        "Explicit reuse/redistribution licence for each downloadable file",
+        "CRS and exact schema for each file",
+        "Methodological uncertainty measures and reliability by ward"
+      ],
+      "required_checks": [
+        "Download technical note, spreadsheets and ward boundaries",
+        "Record the 2020 boundary crosswalk and population totals",
+        "Preserve age/sex and population-group definitions exactly as published",
+        "Do not downscale ward totals to buildings without a separately validated model"
+      ],
+      "evidence_urls": [
+        "https://www.statssa.gov.za/?p=18967",
+        "https://isibaloweb.statssa.gov.za/pages/surveys/pss/censuses/censusp.php"
+      ]
+    },
+    {
+      "source_id": "COJ-GREEN-BUS-TRIAL-2026",
+      "name": "City of Johannesburg / Metrobus / Rea Vaya electric bus field trial operational data",
+      "publisher": "City of Johannesburg Transport Department with Metrobus and Rea Vaya",
+      "url": "https://joburg.org.za/media_/Newsroom/Pages/2026-News-Articles/City-puts-electric-buses-to-the-test-in-drive-towards-greener-public-transport.aspx",
+      "source_type": "time_bounded_fleet_operations_and_AVL_pilot",
+      "access_status": "RequestRequired",
+      "rights_status": "Unknown",
+      "announced_start_date": "2026-09-03",
+      "announced_duration_days_min": 30,
+      "announced_duration_days_max": 60,
+      "known_facts": [
+        "The City announced a 30-to-60-day electric bus trial under Metrobus and Rea Vaya Phase 1C(a) routes.",
+        "The City's announcement states trial vehicles were integrated with the Metrobus Fleet Management System, Control Centre and Automatic Vehicle Location system for monitoring.",
+        "The trial description includes energy consumption, fleet reliability, maintenance, ITS, lifecycle cost, accessibility, passenger comfort and safety."
+      ],
+      "unknowns": [
+        "Whether the pilot has completed and whether evaluation results have been published",
+        "Whether historical AVL or operational data can be shared externally",
+        "Sampling frequency, precision, route/vehicle coverage and service-day completeness",
+        "Privacy, security, commercial confidentiality and rights to process/redistribute records",
+        "Whether data can be anonymized and released as a non-personal route/service reliability dataset"
+      ],
+      "required_checks": [
+        "Search for published post-trial results after the announced 30-60 day window",
+        "Request aggregate route/vehicle operating records if not public",
+        "Do not request or ingest passenger-level tracking, driver biometrics or personal travel traces",
+        "If sharing is approved, require data dictionary, system clocks, vehicle/route IDs, missingness and quality reports",
+        "Use AVL as observed operational evidence only; do not reinterpret it as scheduled GTFS"
+      ],
+      "evidence_urls": [
+        "https://joburg.org.za/media_/Newsroom/Pages/2026-News-Articles/City-puts-electric-buses-to-the-test-in-drive-towards-greener-public-transport.aspx"
+      ]
+    },
+    {
+      "source_id": "METROBUS-QUARTERLY-PERFORMANCE-REPORTS",
+      "name": "Metrobus quarterly performance assessments",
+      "publisher": "Metrobus / City of Johannesburg",
+      "url": "https://mbus.joburg.org.za/about_strat_reports.aspx",
+      "source_type": "published_operating_performance_reports",
+      "access_status": "PublicWithConditions",
+      "rights_status": "Unknown",
+      "known_facts": [
+        "The Metrobus reports page lists quarterly performance assessment reports including 2025-26 reporting periods.",
+        "Published assessments may provide context for route/service performance, but are not a substitute for machine-readable timetables or AVL traces."
+      ],
+      "unknowns": [
+        "Per-report detail, machine-readable data availability and extraction rights",
+        "Whether reports contain route-level service-day counts and disaggregated performance measures"
+      ],
+      "required_checks": [
+        "Retrieve the latest quarterly report and record reporting period/publication date",
+        "Check whether route-level or aggregate service measures can support a benchmark",
+        "Do not infer stop times, headways or route geometry from narrative performance reports"
+      ],
+      "evidence_urls": [
+        "https://mbus.joburg.org.za/about_strat_reports.aspx"
+      ]
+    },
+    {
+      "source_id": "JDA-JOHANNESBURG-UDAP-2026",
+      "name": "Johannesburg Universal Design Access Plan — official completion announcement and implementation roadmap (2026)",
+      "publisher": "Johannesburg Development Agency on behalf of the City of Johannesburg Transport Department",
+      "url": "https://www.jda.org.za/jda-completes-landmark-universal-design-access-plan-to-advance-inclusive-public-transport-in-johannesburg/",
+      "source_type": "municipal_universal_access_plan_completion_announcement",
+      "publication_date": "2026-06-09",
+      "project_period_start": "2025-01",
+      "project_period_end": "2026-06",
+      "access_status": "VerifiedPublic",
+      "rights_status": "Unknown",
+      "known_facts": [
+        "JDA announced on 2026-06-09 that it had completed and finalised the Universal Design Access Plan for the City's Integrated Public Transport Network.",
+        "The plan was developed on behalf of the City Transport Department over a project period from January 2025 to June 2026.",
+        "The official announcement says the work included research, stakeholder engagement, facility audits, customer-satisfaction surveys and capacity-building programmes.",
+        "The plan's stated coverage includes Rea Vaya BRT, Metrobus and other transport operators.",
+        "The announced assessment follows the passenger travel chain: trip planning and information, reaching a station or stop, boarding, travelling, transfers and reaching the destination.",
+        "The announced intervention areas include infrastructure, operations, passenger information, customer care, fare systems, vehicles and communications.",
+        "The City report dated 2026-08-19 says the completed plan was to be considered by the Section 79 Committee before submission to Council; the latest Council adoption status has not been verified in this inventory."
+      ],
+      "unknowns": [
+        "The full approved UDAP document, appendices, audit schedules, facility-level findings and risk register have not been located as downloadable public files.",
+        "The underlying station/stop/vehicle accessibility audit records, sampling protocols, survey instruments, score definitions and data dictionary are not available in the reviewed public announcement.",
+        "Per-facility and per-operator geographic identifiers, audit dates, route/service revisions, severity scales and implementation status are not verified.",
+        "Council consideration/adoption status as of 2026-11-09, implementation ownership, funded work packages and monitoring indicators remain unverified.",
+        "Reuse and redistribution rights for the plan, survey results, facility audits and any supporting GIS layers are not stated in the reviewed announcement."
+      ],
+      "required_checks": [
+        "Request the final UDAP and all technical appendices, including its accessibility risk register, travel-chain audit method, findings and recommended intervention register.",
+        "Request the facility/stop/vehicle inventory with stable identifiers, coordinates, audit dates, operator/owner, audit instrument revision, observed barrier states and uncertainty.",
+        "Request the customer-satisfaction survey instrument, sample design, response coverage, weighting, disaggregation, privacy controls and aggregated results.",
+        "Verify Council consideration/adoption status and map every recommendation to its responsible owner, budget, implementation milestone and verification evidence.",
+        "Confirm rights, permitted reuse, confidentiality constraints, date validity and whether underlying records may be supplied in machine-readable form.",
+        "Do not turn a plan recommendation or city-wide summary into a pass/fail fact about a particular station, route, vehicle, person or neighbourhood."
+      ],
+      "evidence_urls": [
+        "https://www.jda.org.za/jda-completes-landmark-universal-design-access-plan-to-advance-inclusive-public-transport-in-johannesburg/",
+        "https://joburg.org.za/media_/Newsroom/Pages/2026-News-Articles/JDAs-plan-puts-people-at-the-heart-of-Joburgs-public-transport.aspx",
+        "https://joburg.org.za/media_/Newsroom/Pages/2026-News-Articles/JDA-completes-universal-design-plan-for-public-transport.aspx",
+        "https://joburg.org.za/media_/Newsroom/Pages/2025-News-Articles/JDA-launches-Universal-Design-Access-Plan-to-improve-public-transport-accessibility-in-Johannesburg.aspx"
+      ]
+    }
+  ],
+  "minimum_ingestion_contract": {
+    "each_layer_requires": [
+      "source_id",
+      "publisher",
+      "source_url",
+      "retrieved_at",
+      "source_version_or_effective_date",
+      "license_id",
+      "rights_status",
+      "geographic_extent",
+      "boundary_vintage",
+      "crs",
+      "spatial_resolution",
+      "temporal_resolution",
+      "schema_digest",
+      "content_digest",
+      "transformation_digest",
+      "coverage_report",
+      "uncertainty_or_quality_note"
+    ],
+    "unresolved_values": "Unknown",
+    "privacy_default": "No individual survey coordinates, household addresses or person-level mobility traces in the public benchmark",
+    "raw_normalized_separation": true,
+    "deterministic_rebuild": true,
+    "coverage_completeness": [
+      "declared_official_reporting_frame",
+      "known_reporting_omissions",
+      "informal_reuse_and_recovery_channels",
+      "stakeholder/field_validation_method",
+      "material_grade_and_condition_coverage",
+      "geographic_and_temporal_coverage",
+      "uncertainty_and_sampling_limits"
+    ],
+    "absence_semantics": "An unrecorded facility, material flow or informal recovery channel is Unknown unless the source's coverage and observation process establish that absence. Missing records must never be interpreted as zero stock or zero recovery.",
+    "weather_profile_requirement": [
+      "weather_class must be one of observed_station, observed_reanalysis, typical_meteorological_year, design_extreme, observed_event, future_projection, synthetic_fixture",
+      "TMY cannot be relabelled heatwave, observed event, forecast or future projection",
+      "exact station/grid, period, variables, units, timezone, quality and spatial representativeness must be recorded"
+    ],
+    "spatial_claim_policy": "No join may increase native spatial precision or turn ward/sample context into building/household attributes.",
+    "thermal_claim_policy": "Modelled, calibrated-modelled, measured and independently accepted remain distinct; require owner-native model/sensor receipts.",
+    "climate_source_classes": [
+      "observed_station",
+      "observed_reanalysis",
+      "typical_meteorological_year",
+      "design_extreme",
+      "observed_event",
+      "future_projection",
+      "synthetic_fixture"
+    ],
+    "metroview_policy": "MetroView is a public web application with a description of ward-level current/2050 risk. Until underlying layers, methods, endpoints, rights and uncertainties are verified, consume only as attributed ward-level context; do not repackage or upscale.",
+    "municipal_gis_policy": "CoJ Online Maps viewer access and layer-specific data extraction do not imply layer redistribution rights. Use the 2024 Spatial Data Inventory and custodian contacts to verify per-layer use restrictions."
+  }
+}
