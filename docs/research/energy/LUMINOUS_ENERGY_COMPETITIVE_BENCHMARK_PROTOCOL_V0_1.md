@@ -481,3 +481,53 @@ Do not compare:
 - modelled Cornubia estimates with Antalya metered operation.
 
 Sources and exact comparator pins are recorded in `ENERGY_COMPETITOR_VERSION_LOCK_V0_1.json`.
+
+
+## 15. South African PAT field benchmark: measured pilots and bidirectional municipal operation
+
+The South African comparator set now includes three local site records, but their evidence boundaries differ.
+
+### Queenswood PAT pilot (WRC KV 238/10, 2010)
+
+The WRC report includes five time-stamped pilot readings. The reported measured output spans approximately 2.32–4.52 kW for flows 27.55–32.49 L/s and head drops 25.04–30.94 m. This is **point-observation evidence**, not a continuous time series. The test was described as not optimized; the PAT reverse-mode characteristics were partly based on manufacturer estimates rather than a complete independently mapped curve.
+
+Target reproduction:
+- reproduce the exact five points, units and meter boundaries;
+- recover original test durations and calibration, or leave energy/yield unknown;
+- compare measured power against the analytic component ledger;
+- quantify uncertainty only when meter calibration and input uncertainties are available;
+- do not infer annual energy, availability or efficiency distribution from five points.
+
+### Pierre van Ryneveld conduit-hydro plant (Tshwane, launched 2011)
+
+The 2014 journal paper documents a separate cross-flow turbine/synchronous generator installation with approximately 15 kW maximum capacity dependent on flow/head. It describes three field experiments, local site loads, and operational problems: generator frequency regulation, load rejection, PRV hunting, variable supply and manual controls.
+
+Target reproduction:
+- locate the three experiment records and exact flow/head/power points;
+- test load-rejection and frequency stability against the reported limitations;
+- reconstruct the local lighting/communications service boundary;
+- verify present status and any modifications before using as a current operational comparator.
+
+### Leliefontein bidirectional PAT station (Drakenstein, reported operating since June 2018)
+
+The 2021 IMESA paper describes a bidirectional pump/PAT station with reversible flow/rotation, active-front-end drives, actuated valves, grid protection, bidirectional metering and SCADA. It estimates 320 MWh/year generation and 9.9 GWh total over 2018–2041. A separate cumulative-register passage gives 271,236 MWh generation and 53,577 MWh pumping consumption; these figures conflict with the annual/lifetime estimates and must remain **unresolved** until the original meter exports or author/municipal clarification establish the units. No calculation may silently choose the more favourable interpretation.
+
+Target reproduction:
+- acquire original bidirectional meter import/export registers, SCADA chronology, meter calibration and pump/turbine mode flags;
+- reconstruct net export after pumping energy, auxiliaries and downtime;
+- resolve the cumulative-unit anomaly with the operator or authors;
+- quantify the duty cycle of pump vs turbine mode, seasonal water-service constraints, bypass and grid export limits.
+
+### South African holdout strategy
+
+These published sites are valuable local evidence, but we must not pretend they are a representative fleet or automatically comparable datasets. The next step is operator-authorized data retrieval:
+- WRC / University of Pretoria / Tshwane for Queenswood original logs;
+- City of Tshwane / University of Pretoria for Pierre van Ryneveld field tests and present asset status;
+- Drakenstein Municipality / CSIR authors for Leliefontein meter exports, SCADA, mode histories and the contradictory cumulative totals.
+
+A public benchmark must use only permissioned data. Preserve site IDs, privacy/security restrictions, raw file checksums, source time zone, calibration metadata, meter register semantics, actual sampling interval and all missing/gap flags. A site used to fit PAT maps or controller parameters cannot also be the blind holdout. Reserve a separate South African zone/time period, or a genuinely independent installation, for final validation.
+
+Sources:
+- WRC KV 238/10: https://www.wrc.org.za/wp-content/uploads/mdocs/KV%20238-10.pdf
+- Tshwane 2014 conduit-hydro installations: https://www.scielo.org.za/scielo.php?pid=S1021-20192014000300001&script=sci_arttext
+- Leliefontein IMESA 2021: https://researchspace.csir.co.za/bitstream/handle/10204/12279/Steyn_2021.pdf
