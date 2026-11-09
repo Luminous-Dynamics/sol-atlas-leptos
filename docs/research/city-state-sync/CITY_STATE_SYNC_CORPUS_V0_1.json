@@ -1,0 +1,3838 @@
+{
+  "corpus_id": "CITY-STATE-SYNC-CORPUS-V0.1",
+  "schema_version": "0.1.0",
+  "classification": "synthetic_fixture_only",
+  "temporal_semantics": {
+    "time_basis": "UTC_UNIX_SECONDS",
+    "as_of_dimensions": [
+      "valid_at",
+      "recorded_at",
+      "ingested_at"
+    ],
+    "ordering_authority": "owner_sequence_within_owner_and_subject",
+    "validity_interval": "half_open_[valid_from,valid_until)",
+    "freshness_authority": "owner_declared_policy_only"
+  },
+  "cases": [
+    {
+      "case_id": "CS-001",
+      "description": "Current receipt within owner validity and freshness policy",
+      "input": {
+        "as_of": {
+          "valid_at": 1000,
+          "recorded_at": 1100,
+          "ingested_at": 1200
+        },
+        "freshness_policies": [
+          {
+            "policy_id": "P-1",
+            "owner_repo": "owner/a",
+            "contract_id": "asset-state",
+            "contract_version": "1.0",
+            "expected_refresh_seconds": 60,
+            "max_observation_age_seconds": 300,
+            "max_record_delay_seconds": 120,
+            "max_ingest_lag_seconds": 120,
+            "max_clock_uncertainty_ms": 100
+          }
+        ],
+        "owner_health": [
+          {
+            "owner_repo": "owner/a",
+            "state": "available"
+          }
+        ],
+        "required_subjects": [
+          {
+            "owner_repo": "owner/a",
+            "subject_id": "asset-1",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "contract_id": "asset-state",
+            "contract_version": "1.0"
+          }
+        ],
+        "events": [
+          {
+            "event_id": "E-1",
+            "receipt_id": "R-E-1",
+            "owner_repo": "owner/a",
+            "contract_id": "asset-state",
+            "contract_version": "1.0",
+            "source_revision": "0123456789012345678901234567890123456789",
+            "schema_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "content_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "subject_id": "asset-1",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "owner_sequence": 1,
+            "event_kind": "assertion",
+            "target_event_id": null,
+            "target_subject_id": null,
+            "owner_state": "Available",
+            "evidence_state": "admitted",
+            "valid_from": 0,
+            "valid_until": null,
+            "observed_at": 950,
+            "recorded_at": 960,
+            "ingested_at": 970,
+            "time_basis": "UTC_UNIX_SECONDS",
+            "timezone": "UTC",
+            "clock_id": "clock-1",
+            "clock_uncertainty_ms": 5,
+            "freshness_policy_id": "P-1"
+          }
+        ],
+        "intervention_stages": [],
+        "identity_links": []
+      },
+      "expected": {
+        "case_id": "CS-001",
+        "entities": [
+          {
+            "owner_repo": "owner/a",
+            "subject_id": "asset-1",
+            "state": "Current",
+            "selected_event_id": "E-1",
+            "owner_state": "Available",
+            "reason_codes": [],
+            "historical_event_ids": [
+              "E-1"
+            ]
+          }
+        ],
+        "interventions": [],
+        "identity_links": [],
+        "claim_ceiling": "synthetic_temporal_state_and_feedback_semantics_only"
+      }
+    },
+    {
+      "case_id": "CS-002",
+      "description": "Late-published older assertion remains historical after a successor became valid",
+      "input": {
+        "as_of": {
+          "valid_at": 1000,
+          "recorded_at": 1100,
+          "ingested_at": 1200
+        },
+        "freshness_policies": [
+          {
+            "policy_id": "P-1",
+            "owner_repo": "owner/a",
+            "contract_id": "asset-state",
+            "contract_version": "1.0",
+            "expected_refresh_seconds": 60,
+            "max_observation_age_seconds": 300,
+            "max_record_delay_seconds": 120,
+            "max_ingest_lag_seconds": 120,
+            "max_clock_uncertainty_ms": 100
+          }
+        ],
+        "owner_health": [
+          {
+            "owner_repo": "owner/a",
+            "state": "available"
+          }
+        ],
+        "required_subjects": [
+          {
+            "owner_repo": "owner/a",
+            "subject_id": "asset-1",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "contract_id": "asset-state",
+            "contract_version": "1.0"
+          }
+        ],
+        "events": [
+          {
+            "event_id": "E-1",
+            "receipt_id": "R-E-1",
+            "owner_repo": "owner/a",
+            "contract_id": "asset-state",
+            "contract_version": "1.0",
+            "source_revision": "0123456789012345678901234567890123456789",
+            "schema_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "content_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "subject_id": "asset-1",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "owner_sequence": 1,
+            "event_kind": "assertion",
+            "target_event_id": null,
+            "target_subject_id": null,
+            "owner_state": "Old",
+            "evidence_state": "admitted",
+            "valid_from": 0,
+            "valid_until": 900,
+            "observed_at": 800,
+            "recorded_at": 1080,
+            "ingested_at": 1090,
+            "time_basis": "UTC_UNIX_SECONDS",
+            "timezone": "UTC",
+            "clock_id": "clock-1",
+            "clock_uncertainty_ms": 5,
+            "freshness_policy_id": "P-1"
+          },
+          {
+            "event_id": "E-2",
+            "receipt_id": "R-E-2",
+            "owner_repo": "owner/a",
+            "contract_id": "asset-state",
+            "contract_version": "1.0",
+            "source_revision": "0123456789012345678901234567890123456789",
+            "schema_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "content_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "subject_id": "asset-1",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "owner_sequence": 2,
+            "event_kind": "assertion",
+            "target_event_id": null,
+            "target_subject_id": null,
+            "owner_state": "New",
+            "evidence_state": "admitted",
+            "valid_from": 900,
+            "valid_until": null,
+            "observed_at": 950,
+            "recorded_at": 960,
+            "ingested_at": 970,
+            "time_basis": "UTC_UNIX_SECONDS",
+            "timezone": "UTC",
+            "clock_id": "clock-1",
+            "clock_uncertainty_ms": 5,
+            "freshness_policy_id": "P-1"
+          }
+        ],
+        "intervention_stages": [],
+        "identity_links": []
+      },
+      "expected": {
+        "case_id": "CS-002",
+        "entities": [
+          {
+            "owner_repo": "owner/a",
+            "subject_id": "asset-1",
+            "state": "Current",
+            "selected_event_id": "E-2",
+            "owner_state": "New",
+            "reason_codes": [],
+            "historical_event_ids": [
+              "E-1",
+              "E-2"
+            ]
+          }
+        ],
+        "interventions": [],
+        "identity_links": [],
+        "claim_ceiling": "synthetic_temporal_state_and_feedback_semantics_only"
+      }
+    },
+    {
+      "case_id": "CS-003",
+      "description": "Monotonic owner sequence resolves reversed publication timestamps",
+      "input": {
+        "as_of": {
+          "valid_at": 1000,
+          "recorded_at": 1100,
+          "ingested_at": 1200
+        },
+        "freshness_policies": [
+          {
+            "policy_id": "P-1",
+            "owner_repo": "owner/a",
+            "contract_id": "asset-state",
+            "contract_version": "1.0",
+            "expected_refresh_seconds": 60,
+            "max_observation_age_seconds": 300,
+            "max_record_delay_seconds": 120,
+            "max_ingest_lag_seconds": 120,
+            "max_clock_uncertainty_ms": 100
+          }
+        ],
+        "owner_health": [
+          {
+            "owner_repo": "owner/a",
+            "state": "available"
+          }
+        ],
+        "required_subjects": [
+          {
+            "owner_repo": "owner/a",
+            "subject_id": "asset-1",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "contract_id": "asset-state",
+            "contract_version": "1.0"
+          }
+        ],
+        "events": [
+          {
+            "event_id": "E-1",
+            "receipt_id": "R-E-1",
+            "owner_repo": "owner/a",
+            "contract_id": "asset-state",
+            "contract_version": "1.0",
+            "source_revision": "0123456789012345678901234567890123456789",
+            "schema_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "content_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "subject_id": "asset-1",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "owner_sequence": 1,
+            "event_kind": "assertion",
+            "target_event_id": null,
+            "target_subject_id": null,
+            "owner_state": "Seq1",
+            "evidence_state": "admitted",
+            "valid_from": 0,
+            "valid_until": null,
+            "observed_at": 950,
+            "recorded_at": 1050,
+            "ingested_at": 1060,
+            "time_basis": "UTC_UNIX_SECONDS",
+            "timezone": "UTC",
+            "clock_id": "clock-1",
+            "clock_uncertainty_ms": 5,
+            "freshness_policy_id": "P-1"
+          },
+          {
+            "event_id": "E-2",
+            "receipt_id": "R-E-2",
+            "owner_repo": "owner/a",
+            "contract_id": "asset-state",
+            "contract_version": "1.0",
+            "source_revision": "0123456789012345678901234567890123456789",
+            "schema_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "content_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "subject_id": "asset-1",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "owner_sequence": 2,
+            "event_kind": "assertion",
+            "target_event_id": null,
+            "target_subject_id": null,
+            "owner_state": "Seq2",
+            "evidence_state": "admitted",
+            "valid_from": 0,
+            "valid_until": null,
+            "observed_at": 940,
+            "recorded_at": 960,
+            "ingested_at": 970,
+            "time_basis": "UTC_UNIX_SECONDS",
+            "timezone": "UTC",
+            "clock_id": "clock-1",
+            "clock_uncertainty_ms": 5,
+            "freshness_policy_id": "P-1"
+          }
+        ],
+        "intervention_stages": [],
+        "identity_links": []
+      },
+      "expected": {
+        "case_id": "CS-003",
+        "entities": [
+          {
+            "owner_repo": "owner/a",
+            "subject_id": "asset-1",
+            "state": "Current",
+            "selected_event_id": "E-2",
+            "owner_state": "Seq2",
+            "reason_codes": [],
+            "historical_event_ids": [
+              "E-1",
+              "E-2"
+            ]
+          }
+        ],
+        "interventions": [],
+        "identity_links": [],
+        "claim_ceiling": "synthetic_temporal_state_and_feedback_semantics_only"
+      }
+    },
+    {
+      "case_id": "CS-004",
+      "description": "Expired half-open validity interval is Stale",
+      "input": {
+        "as_of": {
+          "valid_at": 1000,
+          "recorded_at": 1100,
+          "ingested_at": 1200
+        },
+        "freshness_policies": [
+          {
+            "policy_id": "P-1",
+            "owner_repo": "owner/a",
+            "contract_id": "asset-state",
+            "contract_version": "1.0",
+            "expected_refresh_seconds": 60,
+            "max_observation_age_seconds": 300,
+            "max_record_delay_seconds": 120,
+            "max_ingest_lag_seconds": 120,
+            "max_clock_uncertainty_ms": 100
+          }
+        ],
+        "owner_health": [
+          {
+            "owner_repo": "owner/a",
+            "state": "available"
+          }
+        ],
+        "required_subjects": [
+          {
+            "owner_repo": "owner/a",
+            "subject_id": "asset-1",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "contract_id": "asset-state",
+            "contract_version": "1.0"
+          }
+        ],
+        "events": [
+          {
+            "event_id": "E-1",
+            "receipt_id": "R-E-1",
+            "owner_repo": "owner/a",
+            "contract_id": "asset-state",
+            "contract_version": "1.0",
+            "source_revision": "0123456789012345678901234567890123456789",
+            "schema_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "content_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "subject_id": "asset-1",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "owner_sequence": 1,
+            "event_kind": "assertion",
+            "target_event_id": null,
+            "target_subject_id": null,
+            "owner_state": "Available",
+            "evidence_state": "admitted",
+            "valid_from": 0,
+            "valid_until": 900,
+            "observed_at": 950,
+            "recorded_at": 960,
+            "ingested_at": 970,
+            "time_basis": "UTC_UNIX_SECONDS",
+            "timezone": "UTC",
+            "clock_id": "clock-1",
+            "clock_uncertainty_ms": 5,
+            "freshness_policy_id": "P-1"
+          }
+        ],
+        "intervention_stages": [],
+        "identity_links": []
+      },
+      "expected": {
+        "case_id": "CS-004",
+        "entities": [
+          {
+            "owner_repo": "owner/a",
+            "subject_id": "asset-1",
+            "state": "Stale",
+            "selected_event_id": "E-1",
+            "owner_state": "Available",
+            "reason_codes": [
+              "VALID_INTERVAL_EXPIRED"
+            ],
+            "historical_event_ids": [
+              "E-1"
+            ]
+          }
+        ],
+        "interventions": [],
+        "identity_links": [],
+        "claim_ceiling": "synthetic_temporal_state_and_feedback_semantics_only"
+      }
+    },
+    {
+      "case_id": "CS-005",
+      "description": "Explicit owner successor supersedes while retaining the prior event",
+      "input": {
+        "as_of": {
+          "valid_at": 1000,
+          "recorded_at": 1100,
+          "ingested_at": 1200
+        },
+        "freshness_policies": [
+          {
+            "policy_id": "P-1",
+            "owner_repo": "owner/a",
+            "contract_id": "asset-state",
+            "contract_version": "1.0",
+            "expected_refresh_seconds": 60,
+            "max_observation_age_seconds": 300,
+            "max_record_delay_seconds": 120,
+            "max_ingest_lag_seconds": 120,
+            "max_clock_uncertainty_ms": 100
+          }
+        ],
+        "owner_health": [
+          {
+            "owner_repo": "owner/a",
+            "state": "available"
+          }
+        ],
+        "required_subjects": [
+          {
+            "owner_repo": "owner/a",
+            "subject_id": "asset-1",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "contract_id": "asset-state",
+            "contract_version": "1.0"
+          }
+        ],
+        "events": [
+          {
+            "event_id": "E-1",
+            "receipt_id": "R-E-1",
+            "owner_repo": "owner/a",
+            "contract_id": "asset-state",
+            "contract_version": "1.0",
+            "source_revision": "0123456789012345678901234567890123456789",
+            "schema_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "content_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "subject_id": "asset-1",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "owner_sequence": 1,
+            "event_kind": "assertion",
+            "target_event_id": null,
+            "target_subject_id": null,
+            "owner_state": "Previous",
+            "evidence_state": "admitted",
+            "valid_from": 0,
+            "valid_until": null,
+            "observed_at": 950,
+            "recorded_at": 960,
+            "ingested_at": 970,
+            "time_basis": "UTC_UNIX_SECONDS",
+            "timezone": "UTC",
+            "clock_id": "clock-1",
+            "clock_uncertainty_ms": 5,
+            "freshness_policy_id": "P-1"
+          },
+          {
+            "event_id": "E-2",
+            "receipt_id": "R-E-2",
+            "owner_repo": "owner/a",
+            "contract_id": "asset-state",
+            "contract_version": "1.0",
+            "source_revision": "0123456789012345678901234567890123456789",
+            "schema_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "content_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "subject_id": "asset-1",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "owner_sequence": 2,
+            "event_kind": "supersede",
+            "target_event_id": "E-1",
+            "target_subject_id": null,
+            "owner_state": "Replacement",
+            "evidence_state": "admitted",
+            "valid_from": 0,
+            "valid_until": null,
+            "observed_at": 980,
+            "recorded_at": 990,
+            "ingested_at": 1000,
+            "time_basis": "UTC_UNIX_SECONDS",
+            "timezone": "UTC",
+            "clock_id": "clock-1",
+            "clock_uncertainty_ms": 5,
+            "freshness_policy_id": "P-1"
+          }
+        ],
+        "intervention_stages": [],
+        "identity_links": []
+      },
+      "expected": {
+        "case_id": "CS-005",
+        "entities": [
+          {
+            "owner_repo": "owner/a",
+            "subject_id": "asset-1",
+            "state": "Current",
+            "selected_event_id": "E-2",
+            "owner_state": "Replacement",
+            "reason_codes": [],
+            "historical_event_ids": [
+              "E-1",
+              "E-2"
+            ]
+          }
+        ],
+        "interventions": [],
+        "identity_links": [],
+        "claim_ceiling": "synthetic_temporal_state_and_feedback_semantics_only"
+      }
+    },
+    {
+      "case_id": "CS-006",
+      "description": "Correction links to exact prior event and remains replayable",
+      "input": {
+        "as_of": {
+          "valid_at": 1000,
+          "recorded_at": 1100,
+          "ingested_at": 1200
+        },
+        "freshness_policies": [
+          {
+            "policy_id": "P-1",
+            "owner_repo": "owner/a",
+            "contract_id": "asset-state",
+            "contract_version": "1.0",
+            "expected_refresh_seconds": 60,
+            "max_observation_age_seconds": 300,
+            "max_record_delay_seconds": 120,
+            "max_ingest_lag_seconds": 120,
+            "max_clock_uncertainty_ms": 100
+          }
+        ],
+        "owner_health": [
+          {
+            "owner_repo": "owner/a",
+            "state": "available"
+          }
+        ],
+        "required_subjects": [
+          {
+            "owner_repo": "owner/a",
+            "subject_id": "asset-1",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "contract_id": "asset-state",
+            "contract_version": "1.0"
+          }
+        ],
+        "events": [
+          {
+            "event_id": "E-1",
+            "receipt_id": "R-E-1",
+            "owner_repo": "owner/a",
+            "contract_id": "asset-state",
+            "contract_version": "1.0",
+            "source_revision": "0123456789012345678901234567890123456789",
+            "schema_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "content_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "subject_id": "asset-1",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "owner_sequence": 1,
+            "event_kind": "assertion",
+            "target_event_id": null,
+            "target_subject_id": null,
+            "owner_state": "Incorrect",
+            "evidence_state": "admitted",
+            "valid_from": 0,
+            "valid_until": null,
+            "observed_at": 950,
+            "recorded_at": 960,
+            "ingested_at": 970,
+            "time_basis": "UTC_UNIX_SECONDS",
+            "timezone": "UTC",
+            "clock_id": "clock-1",
+            "clock_uncertainty_ms": 5,
+            "freshness_policy_id": "P-1"
+          },
+          {
+            "event_id": "E-2",
+            "receipt_id": "R-E-2",
+            "owner_repo": "owner/a",
+            "contract_id": "asset-state",
+            "contract_version": "1.0",
+            "source_revision": "0123456789012345678901234567890123456789",
+            "schema_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "content_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "subject_id": "asset-1",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "owner_sequence": 2,
+            "event_kind": "correction",
+            "target_event_id": "E-1",
+            "target_subject_id": null,
+            "owner_state": "Corrected",
+            "evidence_state": "admitted",
+            "valid_from": 0,
+            "valid_until": null,
+            "observed_at": 980,
+            "recorded_at": 990,
+            "ingested_at": 1000,
+            "time_basis": "UTC_UNIX_SECONDS",
+            "timezone": "UTC",
+            "clock_id": "clock-1",
+            "clock_uncertainty_ms": 5,
+            "freshness_policy_id": "P-1"
+          }
+        ],
+        "intervention_stages": [],
+        "identity_links": []
+      },
+      "expected": {
+        "case_id": "CS-006",
+        "entities": [
+          {
+            "owner_repo": "owner/a",
+            "subject_id": "asset-1",
+            "state": "Current",
+            "selected_event_id": "E-2",
+            "owner_state": "Corrected",
+            "reason_codes": [],
+            "historical_event_ids": [
+              "E-1",
+              "E-2"
+            ]
+          }
+        ],
+        "interventions": [],
+        "identity_links": [],
+        "claim_ceiling": "synthetic_temporal_state_and_feedback_semantics_only"
+      }
+    },
+    {
+      "case_id": "CS-007",
+      "description": "Revocation cannot be undone by consumer re-ingestion of the old assertion",
+      "input": {
+        "as_of": {
+          "valid_at": 1000,
+          "recorded_at": 1100,
+          "ingested_at": 1200
+        },
+        "freshness_policies": [
+          {
+            "policy_id": "P-1",
+            "owner_repo": "owner/a",
+            "contract_id": "asset-state",
+            "contract_version": "1.0",
+            "expected_refresh_seconds": 60,
+            "max_observation_age_seconds": 300,
+            "max_record_delay_seconds": 120,
+            "max_ingest_lag_seconds": 120,
+            "max_clock_uncertainty_ms": 100
+          }
+        ],
+        "owner_health": [
+          {
+            "owner_repo": "owner/a",
+            "state": "available"
+          }
+        ],
+        "required_subjects": [
+          {
+            "owner_repo": "owner/a",
+            "subject_id": "asset-1",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "contract_id": "asset-state",
+            "contract_version": "1.0"
+          }
+        ],
+        "events": [
+          {
+            "event_id": "E-1",
+            "receipt_id": "R-E-1",
+            "owner_repo": "owner/a",
+            "contract_id": "asset-state",
+            "contract_version": "1.0",
+            "source_revision": "0123456789012345678901234567890123456789",
+            "schema_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "content_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "subject_id": "asset-1",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "owner_sequence": 1,
+            "event_kind": "assertion",
+            "target_event_id": null,
+            "target_subject_id": null,
+            "owner_state": "Available",
+            "evidence_state": "admitted",
+            "valid_from": 0,
+            "valid_until": null,
+            "observed_at": 950,
+            "recorded_at": 960,
+            "ingested_at": 970,
+            "time_basis": "UTC_UNIX_SECONDS",
+            "timezone": "UTC",
+            "clock_id": "clock-1",
+            "clock_uncertainty_ms": 5,
+            "freshness_policy_id": "P-1"
+          },
+          {
+            "event_id": "E-2",
+            "receipt_id": "R-E-2",
+            "owner_repo": "owner/a",
+            "contract_id": "asset-state",
+            "contract_version": "1.0",
+            "source_revision": "0123456789012345678901234567890123456789",
+            "schema_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "content_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "subject_id": "asset-1",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "owner_sequence": 2,
+            "event_kind": "revoke",
+            "target_event_id": "E-1",
+            "target_subject_id": null,
+            "owner_state": "Available",
+            "evidence_state": "admitted",
+            "valid_from": 0,
+            "valid_until": null,
+            "observed_at": 980,
+            "recorded_at": 990,
+            "ingested_at": 1000,
+            "time_basis": "UTC_UNIX_SECONDS",
+            "timezone": "UTC",
+            "clock_id": "clock-1",
+            "clock_uncertainty_ms": 5,
+            "freshness_policy_id": "P-1"
+          }
+        ],
+        "intervention_stages": [],
+        "identity_links": []
+      },
+      "expected": {
+        "case_id": "CS-007",
+        "entities": [
+          {
+            "owner_repo": "owner/a",
+            "subject_id": "asset-1",
+            "state": "Revoked",
+            "selected_event_id": "E-1",
+            "owner_state": "Available",
+            "reason_codes": [
+              "OWNER_REVOKED"
+            ],
+            "historical_event_ids": [
+              "E-1",
+              "E-2"
+            ]
+          }
+        ],
+        "interventions": [],
+        "identity_links": [],
+        "claim_ceiling": "synthetic_temporal_state_and_feedback_semantics_only"
+      }
+    },
+    {
+      "case_id": "CS-008",
+      "description": "Open owner dispute remains visible and blocks favorable composition",
+      "input": {
+        "as_of": {
+          "valid_at": 1000,
+          "recorded_at": 1100,
+          "ingested_at": 1200
+        },
+        "freshness_policies": [
+          {
+            "policy_id": "P-1",
+            "owner_repo": "owner/a",
+            "contract_id": "asset-state",
+            "contract_version": "1.0",
+            "expected_refresh_seconds": 60,
+            "max_observation_age_seconds": 300,
+            "max_record_delay_seconds": 120,
+            "max_ingest_lag_seconds": 120,
+            "max_clock_uncertainty_ms": 100
+          }
+        ],
+        "owner_health": [
+          {
+            "owner_repo": "owner/a",
+            "state": "available"
+          }
+        ],
+        "required_subjects": [
+          {
+            "owner_repo": "owner/a",
+            "subject_id": "asset-1",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "contract_id": "asset-state",
+            "contract_version": "1.0"
+          }
+        ],
+        "events": [
+          {
+            "event_id": "E-1",
+            "receipt_id": "R-E-1",
+            "owner_repo": "owner/a",
+            "contract_id": "asset-state",
+            "contract_version": "1.0",
+            "source_revision": "0123456789012345678901234567890123456789",
+            "schema_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "content_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "subject_id": "asset-1",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "owner_sequence": 1,
+            "event_kind": "assertion",
+            "target_event_id": null,
+            "target_subject_id": null,
+            "owner_state": "Available",
+            "evidence_state": "admitted",
+            "valid_from": 0,
+            "valid_until": null,
+            "observed_at": 950,
+            "recorded_at": 960,
+            "ingested_at": 970,
+            "time_basis": "UTC_UNIX_SECONDS",
+            "timezone": "UTC",
+            "clock_id": "clock-1",
+            "clock_uncertainty_ms": 5,
+            "freshness_policy_id": "P-1"
+          },
+          {
+            "event_id": "E-2",
+            "receipt_id": "R-E-2",
+            "owner_repo": "owner/a",
+            "contract_id": "asset-state",
+            "contract_version": "1.0",
+            "source_revision": "0123456789012345678901234567890123456789",
+            "schema_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "content_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "subject_id": "asset-1",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "owner_sequence": 2,
+            "event_kind": "dispute",
+            "target_event_id": "E-1",
+            "target_subject_id": null,
+            "owner_state": "Available",
+            "evidence_state": "admitted",
+            "valid_from": 0,
+            "valid_until": null,
+            "observed_at": 980,
+            "recorded_at": 990,
+            "ingested_at": 1000,
+            "time_basis": "UTC_UNIX_SECONDS",
+            "timezone": "UTC",
+            "clock_id": "clock-1",
+            "clock_uncertainty_ms": 5,
+            "freshness_policy_id": "P-1"
+          }
+        ],
+        "intervention_stages": [],
+        "identity_links": []
+      },
+      "expected": {
+        "case_id": "CS-008",
+        "entities": [
+          {
+            "owner_repo": "owner/a",
+            "subject_id": "asset-1",
+            "state": "Disputed",
+            "selected_event_id": "E-1",
+            "owner_state": "Available",
+            "reason_codes": [
+              "OWNER_DISPUTE_OPEN"
+            ],
+            "historical_event_ids": [
+              "E-1",
+              "E-2"
+            ]
+          }
+        ],
+        "interventions": [],
+        "identity_links": [],
+        "claim_ceiling": "synthetic_temporal_state_and_feedback_semantics_only"
+      }
+    },
+    {
+      "case_id": "CS-009",
+      "description": "Duplicate event and receipt identities are unsupported",
+      "input": {
+        "as_of": {
+          "valid_at": 1000,
+          "recorded_at": 1100,
+          "ingested_at": 1200
+        },
+        "freshness_policies": [
+          {
+            "policy_id": "P-1",
+            "owner_repo": "owner/a",
+            "contract_id": "asset-state",
+            "contract_version": "1.0",
+            "expected_refresh_seconds": 60,
+            "max_observation_age_seconds": 300,
+            "max_record_delay_seconds": 120,
+            "max_ingest_lag_seconds": 120,
+            "max_clock_uncertainty_ms": 100
+          }
+        ],
+        "owner_health": [
+          {
+            "owner_repo": "owner/a",
+            "state": "available"
+          }
+        ],
+        "required_subjects": [
+          {
+            "owner_repo": "owner/a",
+            "subject_id": "asset-1",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "contract_id": "asset-state",
+            "contract_version": "1.0"
+          }
+        ],
+        "events": [
+          {
+            "event_id": "E-1",
+            "receipt_id": "R-E-1",
+            "owner_repo": "owner/a",
+            "contract_id": "asset-state",
+            "contract_version": "1.0",
+            "source_revision": "0123456789012345678901234567890123456789",
+            "schema_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "content_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "subject_id": "asset-1",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "owner_sequence": 1,
+            "event_kind": "assertion",
+            "target_event_id": null,
+            "target_subject_id": null,
+            "owner_state": "Available",
+            "evidence_state": "admitted",
+            "valid_from": 0,
+            "valid_until": null,
+            "observed_at": 950,
+            "recorded_at": 960,
+            "ingested_at": 970,
+            "time_basis": "UTC_UNIX_SECONDS",
+            "timezone": "UTC",
+            "clock_id": "clock-1",
+            "clock_uncertainty_ms": 5,
+            "freshness_policy_id": "P-1"
+          },
+          {
+            "event_id": "E-1",
+            "receipt_id": "R-E-1",
+            "owner_repo": "owner/a",
+            "contract_id": "asset-state",
+            "contract_version": "1.0",
+            "source_revision": "0123456789012345678901234567890123456789",
+            "schema_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "content_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "subject_id": "asset-1",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "owner_sequence": 2,
+            "event_kind": "assertion",
+            "target_event_id": null,
+            "target_subject_id": null,
+            "owner_state": "Available",
+            "evidence_state": "admitted",
+            "valid_from": 0,
+            "valid_until": null,
+            "observed_at": 950,
+            "recorded_at": 960,
+            "ingested_at": 970,
+            "time_basis": "UTC_UNIX_SECONDS",
+            "timezone": "UTC",
+            "clock_id": "clock-1",
+            "clock_uncertainty_ms": 5,
+            "freshness_policy_id": "P-1"
+          }
+        ],
+        "intervention_stages": [],
+        "identity_links": []
+      },
+      "expected": {
+        "case_id": "CS-009",
+        "entities": [
+          {
+            "owner_repo": "owner/a",
+            "subject_id": "asset-1",
+            "state": "Unsupported",
+            "selected_event_id": null,
+            "owner_state": null,
+            "reason_codes": [
+              "DUPLICATE_EVENT_ID",
+              "DUPLICATE_OR_MISSING_RECEIPT_ID"
+            ],
+            "historical_event_ids": [
+              "E-1",
+              "E-1"
+            ]
+          }
+        ],
+        "interventions": [],
+        "identity_links": [],
+        "claim_ceiling": "synthetic_temporal_state_and_feedback_semantics_only"
+      }
+    },
+    {
+      "case_id": "CS-010",
+      "description": "Same event ID with different content digest is a conflict",
+      "input": {
+        "as_of": {
+          "valid_at": 1000,
+          "recorded_at": 1100,
+          "ingested_at": 1200
+        },
+        "freshness_policies": [
+          {
+            "policy_id": "P-1",
+            "owner_repo": "owner/a",
+            "contract_id": "asset-state",
+            "contract_version": "1.0",
+            "expected_refresh_seconds": 60,
+            "max_observation_age_seconds": 300,
+            "max_record_delay_seconds": 120,
+            "max_ingest_lag_seconds": 120,
+            "max_clock_uncertainty_ms": 100
+          }
+        ],
+        "owner_health": [
+          {
+            "owner_repo": "owner/a",
+            "state": "available"
+          }
+        ],
+        "required_subjects": [
+          {
+            "owner_repo": "owner/a",
+            "subject_id": "asset-1",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "contract_id": "asset-state",
+            "contract_version": "1.0"
+          }
+        ],
+        "events": [
+          {
+            "event_id": "E-1",
+            "receipt_id": "R-E-1",
+            "owner_repo": "owner/a",
+            "contract_id": "asset-state",
+            "contract_version": "1.0",
+            "source_revision": "0123456789012345678901234567890123456789",
+            "schema_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "content_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "subject_id": "asset-1",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "owner_sequence": 1,
+            "event_kind": "assertion",
+            "target_event_id": null,
+            "target_subject_id": null,
+            "owner_state": "Available",
+            "evidence_state": "admitted",
+            "valid_from": 0,
+            "valid_until": null,
+            "observed_at": 950,
+            "recorded_at": 960,
+            "ingested_at": 970,
+            "time_basis": "UTC_UNIX_SECONDS",
+            "timezone": "UTC",
+            "clock_id": "clock-1",
+            "clock_uncertainty_ms": 5,
+            "freshness_policy_id": "P-1"
+          },
+          {
+            "event_id": "E-1",
+            "receipt_id": "R-E-1",
+            "owner_repo": "owner/a",
+            "contract_id": "asset-state",
+            "contract_version": "1.0",
+            "source_revision": "0123456789012345678901234567890123456789",
+            "schema_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "content_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+            "subject_id": "asset-1",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "owner_sequence": 2,
+            "event_kind": "assertion",
+            "target_event_id": null,
+            "target_subject_id": null,
+            "owner_state": "Available",
+            "evidence_state": "admitted",
+            "valid_from": 0,
+            "valid_until": null,
+            "observed_at": 950,
+            "recorded_at": 960,
+            "ingested_at": 970,
+            "time_basis": "UTC_UNIX_SECONDS",
+            "timezone": "UTC",
+            "clock_id": "clock-1",
+            "clock_uncertainty_ms": 5,
+            "freshness_policy_id": "P-1"
+          }
+        ],
+        "intervention_stages": [],
+        "identity_links": []
+      },
+      "expected": {
+        "case_id": "CS-010",
+        "entities": [
+          {
+            "owner_repo": "owner/a",
+            "subject_id": "asset-1",
+            "state": "Unsupported",
+            "selected_event_id": null,
+            "owner_state": null,
+            "reason_codes": [
+              "DUPLICATE_OR_MISSING_RECEIPT_ID",
+              "EVENT_ID_CONTENT_CONFLICT"
+            ],
+            "historical_event_ids": [
+              "E-1",
+              "E-1"
+            ]
+          }
+        ],
+        "interventions": [],
+        "identity_links": [],
+        "claim_ceiling": "synthetic_temporal_state_and_feedback_semantics_only"
+      }
+    },
+    {
+      "case_id": "CS-011",
+      "description": "Missing time basis does not permit Current",
+      "input": {
+        "as_of": {
+          "valid_at": 1000,
+          "recorded_at": 1100,
+          "ingested_at": 1200
+        },
+        "freshness_policies": [
+          {
+            "policy_id": "P-1",
+            "owner_repo": "owner/a",
+            "contract_id": "asset-state",
+            "contract_version": "1.0",
+            "expected_refresh_seconds": 60,
+            "max_observation_age_seconds": 300,
+            "max_record_delay_seconds": 120,
+            "max_ingest_lag_seconds": 120,
+            "max_clock_uncertainty_ms": 100
+          }
+        ],
+        "owner_health": [
+          {
+            "owner_repo": "owner/a",
+            "state": "available"
+          }
+        ],
+        "required_subjects": [
+          {
+            "owner_repo": "owner/a",
+            "subject_id": "asset-1",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "contract_id": "asset-state",
+            "contract_version": "1.0"
+          }
+        ],
+        "events": [
+          {
+            "event_id": "E-1",
+            "receipt_id": "R-E-1",
+            "owner_repo": "owner/a",
+            "contract_id": "asset-state",
+            "contract_version": "1.0",
+            "source_revision": "0123456789012345678901234567890123456789",
+            "schema_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "content_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "subject_id": "asset-1",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "owner_sequence": 1,
+            "event_kind": "assertion",
+            "target_event_id": null,
+            "target_subject_id": null,
+            "owner_state": "Available",
+            "evidence_state": "admitted",
+            "valid_from": 0,
+            "valid_until": null,
+            "observed_at": 950,
+            "recorded_at": 960,
+            "ingested_at": 970,
+            "time_basis": null,
+            "timezone": null,
+            "clock_id": "clock-1",
+            "clock_uncertainty_ms": 5,
+            "freshness_policy_id": "P-1"
+          }
+        ],
+        "intervention_stages": [],
+        "identity_links": []
+      },
+      "expected": {
+        "case_id": "CS-011",
+        "entities": [
+          {
+            "owner_repo": "owner/a",
+            "subject_id": "asset-1",
+            "state": "Unknown",
+            "selected_event_id": null,
+            "owner_state": null,
+            "reason_codes": [
+              "TIME_BASIS_MISSING"
+            ],
+            "historical_event_ids": [
+              "E-1"
+            ]
+          }
+        ],
+        "interventions": [],
+        "identity_links": [],
+        "claim_ceiling": "synthetic_temporal_state_and_feedback_semantics_only"
+      }
+    },
+    {
+      "case_id": "CS-012",
+      "description": "Unsupported time basis or timezone blocks ordering",
+      "input": {
+        "as_of": {
+          "valid_at": 1000,
+          "recorded_at": 1100,
+          "ingested_at": 1200
+        },
+        "freshness_policies": [
+          {
+            "policy_id": "P-1",
+            "owner_repo": "owner/a",
+            "contract_id": "asset-state",
+            "contract_version": "1.0",
+            "expected_refresh_seconds": 60,
+            "max_observation_age_seconds": 300,
+            "max_record_delay_seconds": 120,
+            "max_ingest_lag_seconds": 120,
+            "max_clock_uncertainty_ms": 100
+          }
+        ],
+        "owner_health": [
+          {
+            "owner_repo": "owner/a",
+            "state": "available"
+          }
+        ],
+        "required_subjects": [
+          {
+            "owner_repo": "owner/a",
+            "subject_id": "asset-1",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "contract_id": "asset-state",
+            "contract_version": "1.0"
+          }
+        ],
+        "events": [
+          {
+            "event_id": "E-1",
+            "receipt_id": "R-E-1",
+            "owner_repo": "owner/a",
+            "contract_id": "asset-state",
+            "contract_version": "1.0",
+            "source_revision": "0123456789012345678901234567890123456789",
+            "schema_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "content_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "subject_id": "asset-1",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "owner_sequence": 1,
+            "event_kind": "assertion",
+            "target_event_id": null,
+            "target_subject_id": null,
+            "owner_state": "Available",
+            "evidence_state": "admitted",
+            "valid_from": 0,
+            "valid_until": null,
+            "observed_at": 950,
+            "recorded_at": 960,
+            "ingested_at": 970,
+            "time_basis": "LOCAL_WALL_CLOCK_UNRESOLVED",
+            "timezone": "Africa/Johannesburg",
+            "clock_id": "clock-1",
+            "clock_uncertainty_ms": 5,
+            "freshness_policy_id": "P-1"
+          }
+        ],
+        "intervention_stages": [],
+        "identity_links": []
+      },
+      "expected": {
+        "case_id": "CS-012",
+        "entities": [
+          {
+            "owner_repo": "owner/a",
+            "subject_id": "asset-1",
+            "state": "Unsupported",
+            "selected_event_id": null,
+            "owner_state": null,
+            "reason_codes": [
+              "TIME_BASIS_UNSUPPORTED"
+            ],
+            "historical_event_ids": [
+              "E-1"
+            ]
+          }
+        ],
+        "interventions": [],
+        "identity_links": [],
+        "claim_ceiling": "synthetic_temporal_state_and_feedback_semantics_only"
+      }
+    },
+    {
+      "case_id": "CS-013",
+      "description": "Missing owner-declared refresh cadence/freshness policy remains Unknown",
+      "input": {
+        "as_of": {
+          "valid_at": 1000,
+          "recorded_at": 1100,
+          "ingested_at": 1200
+        },
+        "freshness_policies": [
+          {
+            "policy_id": "P-1",
+            "owner_repo": "owner/a",
+            "contract_id": "asset-state",
+            "contract_version": "1.0",
+            "expected_refresh_seconds": null,
+            "max_observation_age_seconds": 300,
+            "max_record_delay_seconds": 120,
+            "max_ingest_lag_seconds": 120,
+            "max_clock_uncertainty_ms": 100
+          }
+        ],
+        "owner_health": [
+          {
+            "owner_repo": "owner/a",
+            "state": "available"
+          }
+        ],
+        "required_subjects": [
+          {
+            "owner_repo": "owner/a",
+            "subject_id": "asset-1",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "contract_id": "asset-state",
+            "contract_version": "1.0"
+          }
+        ],
+        "events": [
+          {
+            "event_id": "E-1",
+            "receipt_id": "R-E-1",
+            "owner_repo": "owner/a",
+            "contract_id": "asset-state",
+            "contract_version": "1.0",
+            "source_revision": "0123456789012345678901234567890123456789",
+            "schema_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "content_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "subject_id": "asset-1",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "owner_sequence": 1,
+            "event_kind": "assertion",
+            "target_event_id": null,
+            "target_subject_id": null,
+            "owner_state": "Available",
+            "evidence_state": "admitted",
+            "valid_from": 0,
+            "valid_until": null,
+            "observed_at": 950,
+            "recorded_at": 960,
+            "ingested_at": 970,
+            "time_basis": "UTC_UNIX_SECONDS",
+            "timezone": "UTC",
+            "clock_id": "clock-1",
+            "clock_uncertainty_ms": 5,
+            "freshness_policy_id": "P-1"
+          }
+        ],
+        "intervention_stages": [],
+        "identity_links": []
+      },
+      "expected": {
+        "case_id": "CS-013",
+        "entities": [
+          {
+            "owner_repo": "owner/a",
+            "subject_id": "asset-1",
+            "state": "Unknown",
+            "selected_event_id": "E-1",
+            "owner_state": "Available",
+            "reason_codes": [
+              "FRESHNESS_POLICY_INCOMPLETE"
+            ],
+            "historical_event_ids": [
+              "E-1"
+            ]
+          }
+        ],
+        "interventions": [],
+        "identity_links": [],
+        "claim_ceiling": "synthetic_temporal_state_and_feedback_semantics_only"
+      }
+    },
+    {
+      "case_id": "CS-014",
+      "description": "Old schedule feed exceeds its owner policy for the current evaluation window",
+      "input": {
+        "as_of": {
+          "valid_at": 1000,
+          "recorded_at": 1100,
+          "ingested_at": 1200
+        },
+        "freshness_policies": [
+          {
+            "policy_id": "P-1",
+            "owner_repo": "owner/a",
+            "contract_id": "asset-state",
+            "contract_version": "1.0",
+            "expected_refresh_seconds": 60,
+            "max_observation_age_seconds": 300,
+            "max_record_delay_seconds": 120,
+            "max_ingest_lag_seconds": 120,
+            "max_clock_uncertainty_ms": 100
+          }
+        ],
+        "owner_health": [
+          {
+            "owner_repo": "owner/a",
+            "state": "available"
+          }
+        ],
+        "required_subjects": [
+          {
+            "owner_repo": "owner/a",
+            "subject_id": "asset-1",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "contract_id": "asset-state",
+            "contract_version": "1.0"
+          }
+        ],
+        "events": [
+          {
+            "event_id": "E-1",
+            "receipt_id": "R-E-1",
+            "owner_repo": "owner/a",
+            "contract_id": "asset-state",
+            "contract_version": "1.0",
+            "source_revision": "0123456789012345678901234567890123456789",
+            "schema_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "content_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "subject_id": "asset-1",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "owner_sequence": 1,
+            "event_kind": "assertion",
+            "target_event_id": null,
+            "target_subject_id": null,
+            "owner_state": "Available",
+            "evidence_state": "admitted",
+            "valid_from": 0,
+            "valid_until": null,
+            "observed_at": 500,
+            "recorded_at": 510,
+            "ingested_at": 520,
+            "time_basis": "UTC_UNIX_SECONDS",
+            "timezone": "UTC",
+            "clock_id": "clock-1",
+            "clock_uncertainty_ms": 5,
+            "freshness_policy_id": "P-1"
+          }
+        ],
+        "intervention_stages": [],
+        "identity_links": []
+      },
+      "expected": {
+        "case_id": "CS-014",
+        "entities": [
+          {
+            "owner_repo": "owner/a",
+            "subject_id": "asset-1",
+            "state": "Stale",
+            "selected_event_id": "E-1",
+            "owner_state": "Available",
+            "reason_codes": [
+              "OBSERVATION_AGE_EXCEEDED"
+            ],
+            "historical_event_ids": [
+              "E-1"
+            ]
+          }
+        ],
+        "interventions": [],
+        "identity_links": [],
+        "claim_ceiling": "synthetic_temporal_state_and_feedback_semantics_only"
+      }
+    },
+    {
+      "case_id": "CS-015",
+      "description": "Historical design/BOM snapshot selects the revision valid at the requested time",
+      "input": {
+        "as_of": {
+          "valid_at": 50,
+          "recorded_at": 1100,
+          "ingested_at": 1200
+        },
+        "freshness_policies": [
+          {
+            "policy_id": "P-1",
+            "owner_repo": "owner/a",
+            "contract_id": "asset-state",
+            "contract_version": "1.0",
+            "expected_refresh_seconds": 60,
+            "max_observation_age_seconds": 300,
+            "max_record_delay_seconds": 120,
+            "max_ingest_lag_seconds": 120,
+            "max_clock_uncertainty_ms": 100
+          }
+        ],
+        "owner_health": [
+          {
+            "owner_repo": "owner/a",
+            "state": "available"
+          }
+        ],
+        "required_subjects": [
+          {
+            "owner_repo": "owner/a",
+            "subject_id": "asset-1",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "contract_id": "asset-state",
+            "contract_version": "1.0"
+          }
+        ],
+        "events": [
+          {
+            "event_id": "E-1",
+            "receipt_id": "R-E-1",
+            "owner_repo": "owner/a",
+            "contract_id": "asset-state",
+            "contract_version": "1.0",
+            "source_revision": "0123456789012345678901234567890123456789",
+            "schema_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "content_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "subject_id": "asset-1",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "owner_sequence": 1,
+            "event_kind": "assertion",
+            "target_event_id": null,
+            "target_subject_id": null,
+            "owner_state": "DesignRev1",
+            "evidence_state": "admitted",
+            "valid_from": 0,
+            "valid_until": 100,
+            "observed_at": 40,
+            "recorded_at": 45,
+            "ingested_at": 50,
+            "time_basis": "UTC_UNIX_SECONDS",
+            "timezone": "UTC",
+            "clock_id": "clock-1",
+            "clock_uncertainty_ms": 5,
+            "freshness_policy_id": "P-1"
+          },
+          {
+            "event_id": "E-2",
+            "receipt_id": "R-E-2",
+            "owner_repo": "owner/a",
+            "contract_id": "asset-state",
+            "contract_version": "1.0",
+            "source_revision": "0123456789012345678901234567890123456789",
+            "schema_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "content_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "subject_id": "asset-1",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "owner_sequence": 2,
+            "event_kind": "assertion",
+            "target_event_id": null,
+            "target_subject_id": null,
+            "owner_state": "DesignRev2",
+            "evidence_state": "admitted",
+            "valid_from": 100,
+            "valid_until": null,
+            "observed_at": 150,
+            "recorded_at": 160,
+            "ingested_at": 170,
+            "time_basis": "UTC_UNIX_SECONDS",
+            "timezone": "UTC",
+            "clock_id": "clock-1",
+            "clock_uncertainty_ms": 5,
+            "freshness_policy_id": "P-1"
+          }
+        ],
+        "intervention_stages": [],
+        "identity_links": []
+      },
+      "expected": {
+        "case_id": "CS-015",
+        "entities": [
+          {
+            "owner_repo": "owner/a",
+            "subject_id": "asset-1",
+            "state": "Current",
+            "selected_event_id": "E-1",
+            "owner_state": "DesignRev1",
+            "reason_codes": [],
+            "historical_event_ids": [
+              "E-1",
+              "E-2"
+            ]
+          }
+        ],
+        "interventions": [],
+        "identity_links": [],
+        "claim_ceiling": "synthetic_temporal_state_and_feedback_semantics_only"
+      }
+    },
+    {
+      "case_id": "CS-016",
+      "description": "Same subject ID with a different scope digest is NotComparable",
+      "input": {
+        "as_of": {
+          "valid_at": 1000,
+          "recorded_at": 1100,
+          "ingested_at": 1200
+        },
+        "freshness_policies": [
+          {
+            "policy_id": "P-1",
+            "owner_repo": "owner/a",
+            "contract_id": "asset-state",
+            "contract_version": "1.0",
+            "expected_refresh_seconds": 60,
+            "max_observation_age_seconds": 300,
+            "max_record_delay_seconds": 120,
+            "max_ingest_lag_seconds": 120,
+            "max_clock_uncertainty_ms": 100
+          }
+        ],
+        "owner_health": [
+          {
+            "owner_repo": "owner/a",
+            "state": "available"
+          }
+        ],
+        "required_subjects": [
+          {
+            "owner_repo": "owner/a",
+            "subject_id": "asset-1",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "contract_id": "asset-state",
+            "contract_version": "1.0"
+          }
+        ],
+        "events": [
+          {
+            "event_id": "E-1",
+            "receipt_id": "R-E-1",
+            "owner_repo": "owner/a",
+            "contract_id": "asset-state",
+            "contract_version": "1.0",
+            "source_revision": "0123456789012345678901234567890123456789",
+            "schema_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "content_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "subject_id": "asset-1",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "scope_digest": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "owner_sequence": 1,
+            "event_kind": "assertion",
+            "target_event_id": null,
+            "target_subject_id": null,
+            "owner_state": "Available",
+            "evidence_state": "admitted",
+            "valid_from": 0,
+            "valid_until": null,
+            "observed_at": 950,
+            "recorded_at": 960,
+            "ingested_at": 970,
+            "time_basis": "UTC_UNIX_SECONDS",
+            "timezone": "UTC",
+            "clock_id": "clock-1",
+            "clock_uncertainty_ms": 5,
+            "freshness_policy_id": "P-1"
+          }
+        ],
+        "intervention_stages": [],
+        "identity_links": []
+      },
+      "expected": {
+        "case_id": "CS-016",
+        "entities": [
+          {
+            "owner_repo": "owner/a",
+            "subject_id": "asset-1",
+            "state": "NotComparable",
+            "selected_event_id": null,
+            "owner_state": null,
+            "reason_codes": [
+              "SCOPE_DIGEST_MISMATCH"
+            ],
+            "historical_event_ids": [
+              "E-1"
+            ]
+          }
+        ],
+        "interventions": [],
+        "identity_links": [],
+        "claim_ceiling": "synthetic_temporal_state_and_feedback_semantics_only"
+      }
+    },
+    {
+      "case_id": "CS-017",
+      "description": "Entity identity changes only through an explicit owner-declared successor link",
+      "input": {
+        "as_of": {
+          "valid_at": 1000,
+          "recorded_at": 1100,
+          "ingested_at": 1200
+        },
+        "freshness_policies": [
+          {
+            "policy_id": "P-1",
+            "owner_repo": "owner/a",
+            "contract_id": "asset-state",
+            "contract_version": "1.0",
+            "expected_refresh_seconds": 60,
+            "max_observation_age_seconds": 300,
+            "max_record_delay_seconds": 120,
+            "max_ingest_lag_seconds": 120,
+            "max_clock_uncertainty_ms": 100
+          }
+        ],
+        "owner_health": [
+          {
+            "owner_repo": "owner/a",
+            "state": "available"
+          }
+        ],
+        "required_subjects": [
+          {
+            "owner_repo": "owner/a",
+            "subject_id": "asset-old",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "contract_id": "asset-state",
+            "contract_version": "1.0"
+          },
+          {
+            "owner_repo": "owner/a",
+            "subject_id": "asset-new",
+            "subject_digest": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "contract_id": "asset-state",
+            "contract_version": "1.0"
+          }
+        ],
+        "events": [
+          {
+            "event_id": "E-1",
+            "receipt_id": "R-E-1",
+            "owner_repo": "owner/a",
+            "contract_id": "asset-state",
+            "contract_version": "1.0",
+            "source_revision": "0123456789012345678901234567890123456789",
+            "schema_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "content_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "subject_id": "asset-old",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "owner_sequence": 1,
+            "event_kind": "assertion",
+            "target_event_id": null,
+            "target_subject_id": null,
+            "owner_state": "OldAsset",
+            "evidence_state": "admitted",
+            "valid_from": 0,
+            "valid_until": null,
+            "observed_at": 950,
+            "recorded_at": 960,
+            "ingested_at": 970,
+            "time_basis": "UTC_UNIX_SECONDS",
+            "timezone": "UTC",
+            "clock_id": "clock-1",
+            "clock_uncertainty_ms": 5,
+            "freshness_policy_id": "P-1"
+          },
+          {
+            "event_id": "LINK-1",
+            "receipt_id": "R-LINK-1",
+            "owner_repo": "owner/a",
+            "contract_id": "asset-state",
+            "contract_version": "1.0",
+            "source_revision": "0123456789012345678901234567890123456789",
+            "schema_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "content_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "subject_id": "asset-old",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "owner_sequence": 2,
+            "event_kind": "identity_successor",
+            "target_event_id": null,
+            "target_subject_id": "asset-new",
+            "owner_state": "IdentityLink",
+            "evidence_state": "admitted",
+            "valid_from": 0,
+            "valid_until": null,
+            "observed_at": 950,
+            "recorded_at": 960,
+            "ingested_at": 970,
+            "time_basis": "UTC_UNIX_SECONDS",
+            "timezone": "UTC",
+            "clock_id": "clock-1",
+            "clock_uncertainty_ms": 5,
+            "freshness_policy_id": "P-1",
+            "target_subject_digest": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+          },
+          {
+            "event_id": "E-2",
+            "receipt_id": "R-E-2",
+            "owner_repo": "owner/a",
+            "contract_id": "asset-state",
+            "contract_version": "1.0",
+            "source_revision": "0123456789012345678901234567890123456789",
+            "schema_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "content_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "subject_id": "asset-new",
+            "subject_digest": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "owner_sequence": 1,
+            "event_kind": "assertion",
+            "target_event_id": null,
+            "target_subject_id": null,
+            "owner_state": "NewAsset",
+            "evidence_state": "admitted",
+            "valid_from": 0,
+            "valid_until": null,
+            "observed_at": 950,
+            "recorded_at": 960,
+            "ingested_at": 970,
+            "time_basis": "UTC_UNIX_SECONDS",
+            "timezone": "UTC",
+            "clock_id": "clock-1",
+            "clock_uncertainty_ms": 5,
+            "freshness_policy_id": "P-1"
+          }
+        ],
+        "intervention_stages": [],
+        "identity_links": []
+      },
+      "expected": {
+        "case_id": "CS-017",
+        "entities": [
+          {
+            "owner_repo": "owner/a",
+            "subject_id": "asset-new",
+            "state": "Current",
+            "selected_event_id": "E-2",
+            "owner_state": "NewAsset",
+            "reason_codes": [],
+            "historical_event_ids": [
+              "E-2"
+            ]
+          },
+          {
+            "owner_repo": "owner/a",
+            "subject_id": "asset-old",
+            "state": "Current",
+            "selected_event_id": "E-1",
+            "owner_state": "OldAsset",
+            "reason_codes": [],
+            "historical_event_ids": [
+              "E-1",
+              "LINK-1"
+            ]
+          }
+        ],
+        "interventions": [],
+        "identity_links": [
+          {
+            "owner_repo": "owner/a",
+            "from_subject_id": "asset-old",
+            "to_subject_id": "asset-new",
+            "status": "OwnerDeclared",
+            "automatic_merge": false,
+            "reason_codes": []
+          }
+        ],
+        "claim_ceiling": "synthetic_temporal_state_and_feedback_semantics_only"
+      }
+    },
+    {
+      "case_id": "CS-018",
+      "description": "Similar geometry does not merge two distinct subject IDs without an identity link",
+      "input": {
+        "as_of": {
+          "valid_at": 1000,
+          "recorded_at": 1100,
+          "ingested_at": 1200
+        },
+        "freshness_policies": [
+          {
+            "policy_id": "P-1",
+            "owner_repo": "owner/a",
+            "contract_id": "asset-state",
+            "contract_version": "1.0",
+            "expected_refresh_seconds": 60,
+            "max_observation_age_seconds": 300,
+            "max_record_delay_seconds": 120,
+            "max_ingest_lag_seconds": 120,
+            "max_clock_uncertainty_ms": 100
+          }
+        ],
+        "owner_health": [
+          {
+            "owner_repo": "owner/a",
+            "state": "available"
+          }
+        ],
+        "required_subjects": [
+          {
+            "owner_repo": "owner/a",
+            "subject_id": "asset-1",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "contract_id": "asset-state",
+            "contract_version": "1.0"
+          },
+          {
+            "owner_repo": "owner/a",
+            "subject_id": "asset-2",
+            "subject_digest": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "contract_id": "asset-state",
+            "contract_version": "1.0"
+          }
+        ],
+        "events": [
+          {
+            "event_id": "E-1",
+            "receipt_id": "R-E-1",
+            "owner_repo": "owner/a",
+            "contract_id": "asset-state",
+            "contract_version": "1.0",
+            "source_revision": "0123456789012345678901234567890123456789",
+            "schema_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "content_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "subject_id": "asset-1",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "owner_sequence": 1,
+            "event_kind": "assertion",
+            "target_event_id": null,
+            "target_subject_id": null,
+            "owner_state": "Available",
+            "evidence_state": "admitted",
+            "valid_from": 0,
+            "valid_until": null,
+            "observed_at": 950,
+            "recorded_at": 960,
+            "ingested_at": 970,
+            "time_basis": "UTC_UNIX_SECONDS",
+            "timezone": "UTC",
+            "clock_id": "clock-1",
+            "clock_uncertainty_ms": 5,
+            "freshness_policy_id": "P-1",
+            "geometry_digest": "9999999999999999999999999999999999999999999999999999999999999999"
+          },
+          {
+            "event_id": "E-2",
+            "receipt_id": "R-E-2",
+            "owner_repo": "owner/a",
+            "contract_id": "asset-state",
+            "contract_version": "1.0",
+            "source_revision": "0123456789012345678901234567890123456789",
+            "schema_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "content_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "subject_id": "asset-2",
+            "subject_digest": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "owner_sequence": 1,
+            "event_kind": "assertion",
+            "target_event_id": null,
+            "target_subject_id": null,
+            "owner_state": "Available",
+            "evidence_state": "admitted",
+            "valid_from": 0,
+            "valid_until": null,
+            "observed_at": 950,
+            "recorded_at": 960,
+            "ingested_at": 970,
+            "time_basis": "UTC_UNIX_SECONDS",
+            "timezone": "UTC",
+            "clock_id": "clock-1",
+            "clock_uncertainty_ms": 5,
+            "freshness_policy_id": "P-1",
+            "geometry_digest": "9999999999999999999999999999999999999999999999999999999999999999"
+          }
+        ],
+        "intervention_stages": [],
+        "identity_links": []
+      },
+      "expected": {
+        "case_id": "CS-018",
+        "entities": [
+          {
+            "owner_repo": "owner/a",
+            "subject_id": "asset-1",
+            "state": "Current",
+            "selected_event_id": "E-1",
+            "owner_state": "Available",
+            "reason_codes": [],
+            "historical_event_ids": [
+              "E-1"
+            ]
+          },
+          {
+            "owner_repo": "owner/a",
+            "subject_id": "asset-2",
+            "state": "Current",
+            "selected_event_id": "E-2",
+            "owner_state": "Available",
+            "reason_codes": [],
+            "historical_event_ids": [
+              "E-2"
+            ]
+          }
+        ],
+        "interventions": [],
+        "identity_links": [],
+        "claim_ceiling": "synthetic_temporal_state_and_feedback_semantics_only"
+      }
+    },
+    {
+      "case_id": "CS-019",
+      "description": "Partial source outage retains last-known state as Stale",
+      "input": {
+        "as_of": {
+          "valid_at": 1000,
+          "recorded_at": 1100,
+          "ingested_at": 1200
+        },
+        "freshness_policies": [
+          {
+            "policy_id": "P-1",
+            "owner_repo": "owner/a",
+            "contract_id": "asset-state",
+            "contract_version": "1.0",
+            "expected_refresh_seconds": 60,
+            "max_observation_age_seconds": 300,
+            "max_record_delay_seconds": 120,
+            "max_ingest_lag_seconds": 120,
+            "max_clock_uncertainty_ms": 100
+          }
+        ],
+        "owner_health": [
+          {
+            "owner_repo": "owner/a",
+            "state": "partial_outage"
+          }
+        ],
+        "required_subjects": [
+          {
+            "owner_repo": "owner/a",
+            "subject_id": "asset-1",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "contract_id": "asset-state",
+            "contract_version": "1.0"
+          }
+        ],
+        "events": [
+          {
+            "event_id": "E-1",
+            "receipt_id": "R-E-1",
+            "owner_repo": "owner/a",
+            "contract_id": "asset-state",
+            "contract_version": "1.0",
+            "source_revision": "0123456789012345678901234567890123456789",
+            "schema_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "content_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "subject_id": "asset-1",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "owner_sequence": 1,
+            "event_kind": "assertion",
+            "target_event_id": null,
+            "target_subject_id": null,
+            "owner_state": "Available",
+            "evidence_state": "admitted",
+            "valid_from": 0,
+            "valid_until": null,
+            "observed_at": 950,
+            "recorded_at": 960,
+            "ingested_at": 970,
+            "time_basis": "UTC_UNIX_SECONDS",
+            "timezone": "UTC",
+            "clock_id": "clock-1",
+            "clock_uncertainty_ms": 5,
+            "freshness_policy_id": "P-1"
+          }
+        ],
+        "intervention_stages": [],
+        "identity_links": []
+      },
+      "expected": {
+        "case_id": "CS-019",
+        "entities": [
+          {
+            "owner_repo": "owner/a",
+            "subject_id": "asset-1",
+            "state": "Stale",
+            "selected_event_id": "E-1",
+            "owner_state": "Available",
+            "reason_codes": [
+              "SOURCE_PARTIAL_OUTAGE"
+            ],
+            "historical_event_ids": [
+              "E-1"
+            ]
+          }
+        ],
+        "interventions": [],
+        "identity_links": [],
+        "claim_ceiling": "synthetic_temporal_state_and_feedback_semantics_only"
+      }
+    },
+    {
+      "case_id": "CS-020",
+      "description": "Pending newer measurement cannot become Current before owner validation",
+      "input": {
+        "as_of": {
+          "valid_at": 1000,
+          "recorded_at": 1100,
+          "ingested_at": 1200
+        },
+        "freshness_policies": [
+          {
+            "policy_id": "P-1",
+            "owner_repo": "owner/a",
+            "contract_id": "asset-state",
+            "contract_version": "1.0",
+            "expected_refresh_seconds": 60,
+            "max_observation_age_seconds": 300,
+            "max_record_delay_seconds": 120,
+            "max_ingest_lag_seconds": 120,
+            "max_clock_uncertainty_ms": 100
+          }
+        ],
+        "owner_health": [
+          {
+            "owner_repo": "owner/a",
+            "state": "available"
+          }
+        ],
+        "required_subjects": [
+          {
+            "owner_repo": "owner/a",
+            "subject_id": "asset-1",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "contract_id": "asset-state",
+            "contract_version": "1.0"
+          }
+        ],
+        "events": [
+          {
+            "event_id": "E-1",
+            "receipt_id": "R-E-1",
+            "owner_repo": "owner/a",
+            "contract_id": "asset-state",
+            "contract_version": "1.0",
+            "source_revision": "0123456789012345678901234567890123456789",
+            "schema_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "content_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "subject_id": "asset-1",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "owner_sequence": 1,
+            "event_kind": "assertion",
+            "target_event_id": null,
+            "target_subject_id": null,
+            "owner_state": "Available",
+            "evidence_state": "pending",
+            "valid_from": 0,
+            "valid_until": null,
+            "observed_at": 950,
+            "recorded_at": 960,
+            "ingested_at": 970,
+            "time_basis": "UTC_UNIX_SECONDS",
+            "timezone": "UTC",
+            "clock_id": "clock-1",
+            "clock_uncertainty_ms": 5,
+            "freshness_policy_id": "P-1"
+          }
+        ],
+        "intervention_stages": [],
+        "identity_links": []
+      },
+      "expected": {
+        "case_id": "CS-020",
+        "entities": [
+          {
+            "owner_repo": "owner/a",
+            "subject_id": "asset-1",
+            "state": "Unknown",
+            "selected_event_id": "E-1",
+            "owner_state": "Available",
+            "reason_codes": [
+              "OWNER_EVIDENCE_NOT_ADMITTED"
+            ],
+            "historical_event_ids": [
+              "E-1"
+            ]
+          }
+        ],
+        "interventions": [],
+        "identity_links": [],
+        "claim_ceiling": "synthetic_temporal_state_and_feedback_semantics_only"
+      }
+    },
+    {
+      "case_id": "CS-021",
+      "description": "Approved intervention without execution is not complete",
+      "input": {
+        "as_of": {
+          "valid_at": 1000,
+          "recorded_at": 1100,
+          "ingested_at": 1200
+        },
+        "freshness_policies": [
+          {
+            "policy_id": "P-1",
+            "owner_repo": "owner/a",
+            "contract_id": "asset-state",
+            "contract_version": "1.0",
+            "expected_refresh_seconds": 60,
+            "max_observation_age_seconds": 300,
+            "max_record_delay_seconds": 120,
+            "max_ingest_lag_seconds": 120,
+            "max_clock_uncertainty_ms": 100
+          }
+        ],
+        "owner_health": [
+          {
+            "owner_repo": "owner/a",
+            "state": "available"
+          }
+        ],
+        "required_subjects": [],
+        "events": [],
+        "intervention_stages": [
+          {
+            "event_id": "P",
+            "intervention_id": "I-1",
+            "stage": "proposal",
+            "predecessor_event_id": null,
+            "owner_repo": "owner/a",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "horizon_id": "H-1",
+            "recorded_at": 900,
+            "ingested_at": 910,
+            "disposition": "recorded",
+            "occurred_at": 890
+          },
+          {
+            "event_id": "A",
+            "intervention_id": "I-1",
+            "stage": "approval",
+            "predecessor_event_id": "P",
+            "owner_repo": "owner/a",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "horizon_id": "H-1",
+            "recorded_at": 900,
+            "ingested_at": 910,
+            "disposition": "recorded",
+            "occurred_at": 890
+          }
+        ],
+        "identity_links": []
+      },
+      "expected": {
+        "case_id": "CS-021",
+        "entities": [],
+        "interventions": [
+          {
+            "intervention_id": "I-1",
+            "state": "ApprovedNotExecuted",
+            "workflow_complete": false,
+            "causal_effect_established": false,
+            "reason_codes": []
+          }
+        ],
+        "identity_links": [],
+        "claim_ceiling": "synthetic_temporal_state_and_feedback_semantics_only"
+      }
+    },
+    {
+      "case_id": "CS-022",
+      "description": "Execution without independent inspection remains incomplete",
+      "input": {
+        "as_of": {
+          "valid_at": 1000,
+          "recorded_at": 1100,
+          "ingested_at": 1200
+        },
+        "freshness_policies": [
+          {
+            "policy_id": "P-1",
+            "owner_repo": "owner/a",
+            "contract_id": "asset-state",
+            "contract_version": "1.0",
+            "expected_refresh_seconds": 60,
+            "max_observation_age_seconds": 300,
+            "max_record_delay_seconds": 120,
+            "max_ingest_lag_seconds": 120,
+            "max_clock_uncertainty_ms": 100
+          }
+        ],
+        "owner_health": [
+          {
+            "owner_repo": "owner/a",
+            "state": "available"
+          }
+        ],
+        "required_subjects": [],
+        "events": [],
+        "intervention_stages": [
+          {
+            "event_id": "P",
+            "intervention_id": "I-1",
+            "stage": "proposal",
+            "predecessor_event_id": null,
+            "owner_repo": "owner/a",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "horizon_id": "H-1",
+            "recorded_at": 900,
+            "ingested_at": 910,
+            "disposition": "recorded",
+            "occurred_at": 890
+          },
+          {
+            "event_id": "A",
+            "intervention_id": "I-1",
+            "stage": "approval",
+            "predecessor_event_id": "P",
+            "owner_repo": "owner/a",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "horizon_id": "H-1",
+            "recorded_at": 900,
+            "ingested_at": 910,
+            "disposition": "recorded",
+            "occurred_at": 890
+          },
+          {
+            "event_id": "X",
+            "intervention_id": "I-1",
+            "stage": "execution",
+            "predecessor_event_id": "A",
+            "owner_repo": "owner/a",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "horizon_id": "H-1",
+            "recorded_at": 900,
+            "ingested_at": 910,
+            "disposition": "recorded",
+            "occurred_at": 890
+          }
+        ],
+        "identity_links": []
+      },
+      "expected": {
+        "case_id": "CS-022",
+        "entities": [],
+        "interventions": [
+          {
+            "intervention_id": "I-1",
+            "state": "ExecutedNotInspected",
+            "workflow_complete": false,
+            "causal_effect_established": false,
+            "reason_codes": []
+          }
+        ],
+        "identity_links": [],
+        "claim_ceiling": "synthetic_temporal_state_and_feedback_semantics_only"
+      }
+    },
+    {
+      "case_id": "CS-023",
+      "description": "Passed commissioning without post-intervention outcome remains unobserved",
+      "input": {
+        "as_of": {
+          "valid_at": 1000,
+          "recorded_at": 1100,
+          "ingested_at": 1200
+        },
+        "freshness_policies": [
+          {
+            "policy_id": "P-1",
+            "owner_repo": "owner/a",
+            "contract_id": "asset-state",
+            "contract_version": "1.0",
+            "expected_refresh_seconds": 60,
+            "max_observation_age_seconds": 300,
+            "max_record_delay_seconds": 120,
+            "max_ingest_lag_seconds": 120,
+            "max_clock_uncertainty_ms": 100
+          }
+        ],
+        "owner_health": [
+          {
+            "owner_repo": "owner/a",
+            "state": "available"
+          }
+        ],
+        "required_subjects": [],
+        "events": [],
+        "intervention_stages": [
+          {
+            "event_id": "P",
+            "intervention_id": "I-1",
+            "stage": "proposal",
+            "predecessor_event_id": null,
+            "owner_repo": "owner/a",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "horizon_id": "H-1",
+            "recorded_at": 900,
+            "ingested_at": 910,
+            "disposition": "recorded",
+            "occurred_at": 890
+          },
+          {
+            "event_id": "A",
+            "intervention_id": "I-1",
+            "stage": "approval",
+            "predecessor_event_id": "P",
+            "owner_repo": "owner/a",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "horizon_id": "H-1",
+            "recorded_at": 900,
+            "ingested_at": 910,
+            "disposition": "recorded",
+            "occurred_at": 890
+          },
+          {
+            "event_id": "X",
+            "intervention_id": "I-1",
+            "stage": "execution",
+            "predecessor_event_id": "A",
+            "owner_repo": "owner/a",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "horizon_id": "H-1",
+            "recorded_at": 900,
+            "ingested_at": 910,
+            "disposition": "recorded",
+            "occurred_at": 890
+          },
+          {
+            "event_id": "C",
+            "intervention_id": "I-1",
+            "stage": "inspection",
+            "predecessor_event_id": "X",
+            "owner_repo": "owner/a",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "horizon_id": "H-1",
+            "recorded_at": 900,
+            "ingested_at": 910,
+            "disposition": "passed",
+            "occurred_at": 890
+          }
+        ],
+        "identity_links": []
+      },
+      "expected": {
+        "case_id": "CS-023",
+        "entities": [],
+        "interventions": [
+          {
+            "intervention_id": "I-1",
+            "state": "CommissionedOutcomeUnobserved",
+            "workflow_complete": false,
+            "causal_effect_established": false,
+            "reason_codes": []
+          }
+        ],
+        "identity_links": [],
+        "claim_ceiling": "synthetic_temporal_state_and_feedback_semantics_only"
+      }
+    },
+    {
+      "case_id": "CS-024",
+      "description": "Feedback chain with a different post-outcome scope is NotComparable",
+      "input": {
+        "as_of": {
+          "valid_at": 1000,
+          "recorded_at": 1100,
+          "ingested_at": 1200
+        },
+        "freshness_policies": [
+          {
+            "policy_id": "P-1",
+            "owner_repo": "owner/a",
+            "contract_id": "asset-state",
+            "contract_version": "1.0",
+            "expected_refresh_seconds": 60,
+            "max_observation_age_seconds": 300,
+            "max_record_delay_seconds": 120,
+            "max_ingest_lag_seconds": 120,
+            "max_clock_uncertainty_ms": 100
+          }
+        ],
+        "owner_health": [
+          {
+            "owner_repo": "owner/a",
+            "state": "available"
+          }
+        ],
+        "required_subjects": [],
+        "events": [],
+        "intervention_stages": [
+          {
+            "event_id": "P",
+            "intervention_id": "I-1",
+            "stage": "proposal",
+            "predecessor_event_id": null,
+            "owner_repo": "owner/a",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "horizon_id": "H-1",
+            "recorded_at": 900,
+            "ingested_at": 910,
+            "disposition": "recorded",
+            "occurred_at": 890
+          },
+          {
+            "event_id": "A",
+            "intervention_id": "I-1",
+            "stage": "approval",
+            "predecessor_event_id": "P",
+            "owner_repo": "owner/a",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "horizon_id": "H-1",
+            "recorded_at": 900,
+            "ingested_at": 910,
+            "disposition": "recorded",
+            "occurred_at": 890
+          },
+          {
+            "event_id": "X",
+            "intervention_id": "I-1",
+            "stage": "execution",
+            "predecessor_event_id": "A",
+            "owner_repo": "owner/a",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "horizon_id": "H-1",
+            "recorded_at": 900,
+            "ingested_at": 910,
+            "disposition": "recorded",
+            "occurred_at": 890
+          },
+          {
+            "event_id": "C",
+            "intervention_id": "I-1",
+            "stage": "inspection",
+            "predecessor_event_id": "X",
+            "owner_repo": "owner/a",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "horizon_id": "H-1",
+            "recorded_at": 900,
+            "ingested_at": 910,
+            "disposition": "passed",
+            "occurred_at": 890
+          },
+          {
+            "event_id": "O",
+            "intervention_id": "I-1",
+            "stage": "outcome",
+            "predecessor_event_id": "C",
+            "owner_repo": "owner/a",
+            "scope_digest": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "horizon_id": "H-1",
+            "recorded_at": 900,
+            "ingested_at": 910,
+            "disposition": "recorded",
+            "occurred_at": 890
+          }
+        ],
+        "identity_links": []
+      },
+      "expected": {
+        "case_id": "CS-024",
+        "entities": [],
+        "interventions": [
+          {
+            "intervention_id": "I-1",
+            "state": "NotComparable",
+            "workflow_complete": false,
+            "causal_effect_established": false,
+            "reason_codes": [
+              "INTERVENTION_SCOPE_OR_HORIZON_MISMATCH"
+            ]
+          }
+        ],
+        "identity_links": [],
+        "claim_ceiling": "synthetic_temporal_state_and_feedback_semantics_only"
+      }
+    },
+    {
+      "case_id": "CS-025",
+      "description": "Source record delay beyond owner policy is Delayed",
+      "input": {
+        "as_of": {
+          "valid_at": 1000,
+          "recorded_at": 1100,
+          "ingested_at": 1200
+        },
+        "freshness_policies": [
+          {
+            "policy_id": "P-1",
+            "owner_repo": "owner/a",
+            "contract_id": "asset-state",
+            "contract_version": "1.0",
+            "expected_refresh_seconds": 60,
+            "max_observation_age_seconds": 300,
+            "max_record_delay_seconds": 120,
+            "max_ingest_lag_seconds": 120,
+            "max_clock_uncertainty_ms": 100
+          }
+        ],
+        "owner_health": [
+          {
+            "owner_repo": "owner/a",
+            "state": "available"
+          }
+        ],
+        "required_subjects": [
+          {
+            "owner_repo": "owner/a",
+            "subject_id": "asset-1",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "contract_id": "asset-state",
+            "contract_version": "1.0"
+          }
+        ],
+        "events": [
+          {
+            "event_id": "E-1",
+            "receipt_id": "R-E-1",
+            "owner_repo": "owner/a",
+            "contract_id": "asset-state",
+            "contract_version": "1.0",
+            "source_revision": "0123456789012345678901234567890123456789",
+            "schema_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "content_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "subject_id": "asset-1",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "owner_sequence": 1,
+            "event_kind": "assertion",
+            "target_event_id": null,
+            "target_subject_id": null,
+            "owner_state": "Available",
+            "evidence_state": "admitted",
+            "valid_from": 0,
+            "valid_until": null,
+            "observed_at": 800,
+            "recorded_at": 980,
+            "ingested_at": 990,
+            "time_basis": "UTC_UNIX_SECONDS",
+            "timezone": "UTC",
+            "clock_id": "clock-1",
+            "clock_uncertainty_ms": 5,
+            "freshness_policy_id": "P-1"
+          }
+        ],
+        "intervention_stages": [],
+        "identity_links": []
+      },
+      "expected": {
+        "case_id": "CS-025",
+        "entities": [
+          {
+            "owner_repo": "owner/a",
+            "subject_id": "asset-1",
+            "state": "Delayed",
+            "selected_event_id": "E-1",
+            "owner_state": "Available",
+            "reason_codes": [
+              "SOURCE_RECORD_DELAY_EXCEEDED"
+            ],
+            "historical_event_ids": [
+              "E-1"
+            ]
+          }
+        ],
+        "interventions": [],
+        "identity_links": [],
+        "claim_ceiling": "synthetic_temporal_state_and_feedback_semantics_only"
+      }
+    },
+    {
+      "case_id": "CS-026",
+      "description": "Consumer ingestion lag beyond owner policy is Delayed",
+      "input": {
+        "as_of": {
+          "valid_at": 1000,
+          "recorded_at": 1100,
+          "ingested_at": 1200
+        },
+        "freshness_policies": [
+          {
+            "policy_id": "P-1",
+            "owner_repo": "owner/a",
+            "contract_id": "asset-state",
+            "contract_version": "1.0",
+            "expected_refresh_seconds": 60,
+            "max_observation_age_seconds": 300,
+            "max_record_delay_seconds": 120,
+            "max_ingest_lag_seconds": 120,
+            "max_clock_uncertainty_ms": 100
+          }
+        ],
+        "owner_health": [
+          {
+            "owner_repo": "owner/a",
+            "state": "available"
+          }
+        ],
+        "required_subjects": [
+          {
+            "owner_repo": "owner/a",
+            "subject_id": "asset-1",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "contract_id": "asset-state",
+            "contract_version": "1.0"
+          }
+        ],
+        "events": [
+          {
+            "event_id": "E-1",
+            "receipt_id": "R-E-1",
+            "owner_repo": "owner/a",
+            "contract_id": "asset-state",
+            "contract_version": "1.0",
+            "source_revision": "0123456789012345678901234567890123456789",
+            "schema_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "content_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "subject_id": "asset-1",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "owner_sequence": 1,
+            "event_kind": "assertion",
+            "target_event_id": null,
+            "target_subject_id": null,
+            "owner_state": "Available",
+            "evidence_state": "admitted",
+            "valid_from": 0,
+            "valid_until": null,
+            "observed_at": 940,
+            "recorded_at": 950,
+            "ingested_at": 1100,
+            "time_basis": "UTC_UNIX_SECONDS",
+            "timezone": "UTC",
+            "clock_id": "clock-1",
+            "clock_uncertainty_ms": 5,
+            "freshness_policy_id": "P-1"
+          }
+        ],
+        "intervention_stages": [],
+        "identity_links": []
+      },
+      "expected": {
+        "case_id": "CS-026",
+        "entities": [
+          {
+            "owner_repo": "owner/a",
+            "subject_id": "asset-1",
+            "state": "Delayed",
+            "selected_event_id": "E-1",
+            "owner_state": "Available",
+            "reason_codes": [
+              "INGESTION_DELAY_EXCEEDED"
+            ],
+            "historical_event_ids": [
+              "E-1"
+            ]
+          }
+        ],
+        "interventions": [],
+        "identity_links": [],
+        "claim_ceiling": "synthetic_temporal_state_and_feedback_semantics_only"
+      }
+    },
+    {
+      "case_id": "CS-027",
+      "description": "Clock uncertainty exceeding owner policy remains Unknown",
+      "input": {
+        "as_of": {
+          "valid_at": 1000,
+          "recorded_at": 1100,
+          "ingested_at": 1200
+        },
+        "freshness_policies": [
+          {
+            "policy_id": "P-1",
+            "owner_repo": "owner/a",
+            "contract_id": "asset-state",
+            "contract_version": "1.0",
+            "expected_refresh_seconds": 60,
+            "max_observation_age_seconds": 300,
+            "max_record_delay_seconds": 120,
+            "max_ingest_lag_seconds": 120,
+            "max_clock_uncertainty_ms": 100
+          }
+        ],
+        "owner_health": [
+          {
+            "owner_repo": "owner/a",
+            "state": "available"
+          }
+        ],
+        "required_subjects": [
+          {
+            "owner_repo": "owner/a",
+            "subject_id": "asset-1",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "contract_id": "asset-state",
+            "contract_version": "1.0"
+          }
+        ],
+        "events": [
+          {
+            "event_id": "E-1",
+            "receipt_id": "R-E-1",
+            "owner_repo": "owner/a",
+            "contract_id": "asset-state",
+            "contract_version": "1.0",
+            "source_revision": "0123456789012345678901234567890123456789",
+            "schema_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "content_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "subject_id": "asset-1",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "owner_sequence": 1,
+            "event_kind": "assertion",
+            "target_event_id": null,
+            "target_subject_id": null,
+            "owner_state": "Available",
+            "evidence_state": "admitted",
+            "valid_from": 0,
+            "valid_until": null,
+            "observed_at": 950,
+            "recorded_at": 960,
+            "ingested_at": 970,
+            "time_basis": "UTC_UNIX_SECONDS",
+            "timezone": "UTC",
+            "clock_id": "clock-1",
+            "clock_uncertainty_ms": 200,
+            "freshness_policy_id": "P-1"
+          }
+        ],
+        "intervention_stages": [],
+        "identity_links": []
+      },
+      "expected": {
+        "case_id": "CS-027",
+        "entities": [
+          {
+            "owner_repo": "owner/a",
+            "subject_id": "asset-1",
+            "state": "Unknown",
+            "selected_event_id": "E-1",
+            "owner_state": "Available",
+            "reason_codes": [
+              "CLOCK_UNCERTAINTY_EXCEEDS_POLICY"
+            ],
+            "historical_event_ids": [
+              "E-1"
+            ]
+          }
+        ],
+        "interventions": [],
+        "identity_links": [],
+        "claim_ceiling": "synthetic_temporal_state_and_feedback_semantics_only"
+      }
+    },
+    {
+      "case_id": "CS-028",
+      "description": "Historical replay excludes a correction not yet recorded or ingested",
+      "input": {
+        "as_of": {
+          "valid_at": 1000,
+          "recorded_at": 1000,
+          "ingested_at": 1000
+        },
+        "freshness_policies": [
+          {
+            "policy_id": "P-1",
+            "owner_repo": "owner/a",
+            "contract_id": "asset-state",
+            "contract_version": "1.0",
+            "expected_refresh_seconds": 60,
+            "max_observation_age_seconds": 300,
+            "max_record_delay_seconds": 120,
+            "max_ingest_lag_seconds": 120,
+            "max_clock_uncertainty_ms": 100
+          }
+        ],
+        "owner_health": [
+          {
+            "owner_repo": "owner/a",
+            "state": "available"
+          }
+        ],
+        "required_subjects": [
+          {
+            "owner_repo": "owner/a",
+            "subject_id": "asset-1",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "contract_id": "asset-state",
+            "contract_version": "1.0"
+          }
+        ],
+        "events": [
+          {
+            "event_id": "E-1",
+            "receipt_id": "R-E-1",
+            "owner_repo": "owner/a",
+            "contract_id": "asset-state",
+            "contract_version": "1.0",
+            "source_revision": "0123456789012345678901234567890123456789",
+            "schema_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "content_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "subject_id": "asset-1",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "owner_sequence": 1,
+            "event_kind": "assertion",
+            "target_event_id": null,
+            "target_subject_id": null,
+            "owner_state": "BeforeCorrection",
+            "evidence_state": "admitted",
+            "valid_from": 0,
+            "valid_until": null,
+            "observed_at": 950,
+            "recorded_at": 960,
+            "ingested_at": 970,
+            "time_basis": "UTC_UNIX_SECONDS",
+            "timezone": "UTC",
+            "clock_id": "clock-1",
+            "clock_uncertainty_ms": 5,
+            "freshness_policy_id": "P-1"
+          },
+          {
+            "event_id": "E-2",
+            "receipt_id": "R-E-2",
+            "owner_repo": "owner/a",
+            "contract_id": "asset-state",
+            "contract_version": "1.0",
+            "source_revision": "0123456789012345678901234567890123456789",
+            "schema_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "content_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "subject_id": "asset-1",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "owner_sequence": 2,
+            "event_kind": "correction",
+            "target_event_id": "E-1",
+            "target_subject_id": null,
+            "owner_state": "LaterCorrection",
+            "evidence_state": "admitted",
+            "valid_from": 0,
+            "valid_until": null,
+            "observed_at": 980,
+            "recorded_at": 1050,
+            "ingested_at": 1060,
+            "time_basis": "UTC_UNIX_SECONDS",
+            "timezone": "UTC",
+            "clock_id": "clock-1",
+            "clock_uncertainty_ms": 5,
+            "freshness_policy_id": "P-1"
+          }
+        ],
+        "intervention_stages": [],
+        "identity_links": []
+      },
+      "expected": {
+        "case_id": "CS-028",
+        "entities": [
+          {
+            "owner_repo": "owner/a",
+            "subject_id": "asset-1",
+            "state": "Current",
+            "selected_event_id": "E-1",
+            "owner_state": "BeforeCorrection",
+            "reason_codes": [],
+            "historical_event_ids": [
+              "E-1"
+            ]
+          }
+        ],
+        "interventions": [],
+        "identity_links": [],
+        "claim_ceiling": "synthetic_temporal_state_and_feedback_semantics_only"
+      }
+    },
+    {
+      "case_id": "CS-029",
+      "description": "Conflicting owner sequence values for one subject are Unsupported",
+      "input": {
+        "as_of": {
+          "valid_at": 1000,
+          "recorded_at": 1100,
+          "ingested_at": 1200
+        },
+        "freshness_policies": [
+          {
+            "policy_id": "P-1",
+            "owner_repo": "owner/a",
+            "contract_id": "asset-state",
+            "contract_version": "1.0",
+            "expected_refresh_seconds": 60,
+            "max_observation_age_seconds": 300,
+            "max_record_delay_seconds": 120,
+            "max_ingest_lag_seconds": 120,
+            "max_clock_uncertainty_ms": 100
+          }
+        ],
+        "owner_health": [
+          {
+            "owner_repo": "owner/a",
+            "state": "available"
+          }
+        ],
+        "required_subjects": [
+          {
+            "owner_repo": "owner/a",
+            "subject_id": "asset-1",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "contract_id": "asset-state",
+            "contract_version": "1.0"
+          }
+        ],
+        "events": [
+          {
+            "event_id": "E-1",
+            "receipt_id": "R-E-1",
+            "owner_repo": "owner/a",
+            "contract_id": "asset-state",
+            "contract_version": "1.0",
+            "source_revision": "0123456789012345678901234567890123456789",
+            "schema_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "content_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "subject_id": "asset-1",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "owner_sequence": 1,
+            "event_kind": "assertion",
+            "target_event_id": null,
+            "target_subject_id": null,
+            "owner_state": "Available",
+            "evidence_state": "admitted",
+            "valid_from": 0,
+            "valid_until": null,
+            "observed_at": 950,
+            "recorded_at": 960,
+            "ingested_at": 970,
+            "time_basis": "UTC_UNIX_SECONDS",
+            "timezone": "UTC",
+            "clock_id": "clock-1",
+            "clock_uncertainty_ms": 5,
+            "freshness_policy_id": "P-1"
+          },
+          {
+            "event_id": "E-2",
+            "receipt_id": "R-E-2",
+            "owner_repo": "owner/a",
+            "contract_id": "asset-state",
+            "contract_version": "1.0",
+            "source_revision": "0123456789012345678901234567890123456789",
+            "schema_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "content_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "subject_id": "asset-1",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "owner_sequence": 1,
+            "event_kind": "assertion",
+            "target_event_id": null,
+            "target_subject_id": null,
+            "owner_state": "Available",
+            "evidence_state": "admitted",
+            "valid_from": 0,
+            "valid_until": null,
+            "observed_at": 951,
+            "recorded_at": 961,
+            "ingested_at": 971,
+            "time_basis": "UTC_UNIX_SECONDS",
+            "timezone": "UTC",
+            "clock_id": "clock-1",
+            "clock_uncertainty_ms": 5,
+            "freshness_policy_id": "P-1"
+          }
+        ],
+        "intervention_stages": [],
+        "identity_links": []
+      },
+      "expected": {
+        "case_id": "CS-029",
+        "entities": [
+          {
+            "owner_repo": "owner/a",
+            "subject_id": "asset-1",
+            "state": "Unsupported",
+            "selected_event_id": null,
+            "owner_state": null,
+            "reason_codes": [
+              "OWNER_SEQUENCE_CONFLICT"
+            ],
+            "historical_event_ids": [
+              "E-1",
+              "E-2"
+            ]
+          }
+        ],
+        "interventions": [],
+        "identity_links": [],
+        "claim_ceiling": "synthetic_temporal_state_and_feedback_semantics_only"
+      }
+    },
+    {
+      "case_id": "CS-030",
+      "description": "Future-valid event cannot overwrite the state at an earlier as-of valid time",
+      "input": {
+        "as_of": {
+          "valid_at": 1000,
+          "recorded_at": 1100,
+          "ingested_at": 1200
+        },
+        "freshness_policies": [
+          {
+            "policy_id": "P-1",
+            "owner_repo": "owner/a",
+            "contract_id": "asset-state",
+            "contract_version": "1.0",
+            "expected_refresh_seconds": 60,
+            "max_observation_age_seconds": 300,
+            "max_record_delay_seconds": 120,
+            "max_ingest_lag_seconds": 120,
+            "max_clock_uncertainty_ms": 100
+          }
+        ],
+        "owner_health": [
+          {
+            "owner_repo": "owner/a",
+            "state": "available"
+          }
+        ],
+        "required_subjects": [
+          {
+            "owner_repo": "owner/a",
+            "subject_id": "asset-1",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "contract_id": "asset-state",
+            "contract_version": "1.0"
+          }
+        ],
+        "events": [
+          {
+            "event_id": "E-1",
+            "receipt_id": "R-E-1",
+            "owner_repo": "owner/a",
+            "contract_id": "asset-state",
+            "contract_version": "1.0",
+            "source_revision": "0123456789012345678901234567890123456789",
+            "schema_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "content_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "subject_id": "asset-1",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "owner_sequence": 1,
+            "event_kind": "assertion",
+            "target_event_id": null,
+            "target_subject_id": null,
+            "owner_state": "CurrentAtCut",
+            "evidence_state": "admitted",
+            "valid_from": 0,
+            "valid_until": 1100,
+            "observed_at": 950,
+            "recorded_at": 960,
+            "ingested_at": 970,
+            "time_basis": "UTC_UNIX_SECONDS",
+            "timezone": "UTC",
+            "clock_id": "clock-1",
+            "clock_uncertainty_ms": 5,
+            "freshness_policy_id": "P-1"
+          },
+          {
+            "event_id": "E-2",
+            "receipt_id": "R-E-2",
+            "owner_repo": "owner/a",
+            "contract_id": "asset-state",
+            "contract_version": "1.0",
+            "source_revision": "0123456789012345678901234567890123456789",
+            "schema_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "content_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "subject_id": "asset-1",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "owner_sequence": 2,
+            "event_kind": "assertion",
+            "target_event_id": null,
+            "target_subject_id": null,
+            "owner_state": "Future",
+            "evidence_state": "admitted",
+            "valid_from": 1100,
+            "valid_until": null,
+            "observed_at": 1100,
+            "recorded_at": 1100,
+            "ingested_at": 1100,
+            "time_basis": "UTC_UNIX_SECONDS",
+            "timezone": "UTC",
+            "clock_id": "clock-1",
+            "clock_uncertainty_ms": 5,
+            "freshness_policy_id": "P-1"
+          }
+        ],
+        "intervention_stages": [],
+        "identity_links": []
+      },
+      "expected": {
+        "case_id": "CS-030",
+        "entities": [
+          {
+            "owner_repo": "owner/a",
+            "subject_id": "asset-1",
+            "state": "Current",
+            "selected_event_id": "E-1",
+            "owner_state": "CurrentAtCut",
+            "reason_codes": [],
+            "historical_event_ids": [
+              "E-1",
+              "E-2"
+            ]
+          }
+        ],
+        "interventions": [],
+        "identity_links": [],
+        "claim_ceiling": "synthetic_temporal_state_and_feedback_semantics_only"
+      }
+    },
+    {
+      "case_id": "CS-031",
+      "description": "Missing ingestion-time cutoff cannot admit an event as visible",
+      "input": {
+        "as_of": {
+          "valid_at": 1000,
+          "recorded_at": 1100
+        },
+        "freshness_policies": [
+          {
+            "policy_id": "P-1",
+            "owner_repo": "owner/a",
+            "contract_id": "asset-state",
+            "contract_version": "1.0",
+            "expected_refresh_seconds": 60,
+            "max_observation_age_seconds": 300,
+            "max_record_delay_seconds": 120,
+            "max_ingest_lag_seconds": 120,
+            "max_clock_uncertainty_ms": 100
+          }
+        ],
+        "owner_health": [
+          {
+            "owner_repo": "owner/a",
+            "state": "available"
+          }
+        ],
+        "required_subjects": [
+          {
+            "owner_repo": "owner/a",
+            "subject_id": "asset-1",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "contract_id": "asset-state",
+            "contract_version": "1.0"
+          }
+        ],
+        "events": [
+          {
+            "event_id": "E-1",
+            "receipt_id": "R-E-1",
+            "owner_repo": "owner/a",
+            "contract_id": "asset-state",
+            "contract_version": "1.0",
+            "source_revision": "0123456789012345678901234567890123456789",
+            "schema_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "content_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "subject_id": "asset-1",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "owner_sequence": 1,
+            "event_kind": "assertion",
+            "target_event_id": null,
+            "target_subject_id": null,
+            "owner_state": "Available",
+            "evidence_state": "admitted",
+            "valid_from": 0,
+            "valid_until": null,
+            "observed_at": 950,
+            "recorded_at": 960,
+            "ingested_at": 970,
+            "time_basis": "UTC_UNIX_SECONDS",
+            "timezone": "UTC",
+            "clock_id": "clock-1",
+            "clock_uncertainty_ms": 5,
+            "freshness_policy_id": "P-1"
+          }
+        ],
+        "intervention_stages": [],
+        "identity_links": []
+      },
+      "expected": {
+        "case_id": "CS-031",
+        "entities": [
+          {
+            "owner_repo": "owner/a",
+            "subject_id": "asset-1",
+            "state": "Unknown",
+            "selected_event_id": null,
+            "owner_state": null,
+            "reason_codes": [
+              "NO_VISIBLE_OWNER_EVENT"
+            ],
+            "historical_event_ids": []
+          }
+        ],
+        "interventions": [],
+        "identity_links": [],
+        "claim_ceiling": "synthetic_temporal_state_and_feedback_semantics_only"
+      }
+    },
+    {
+      "case_id": "CS-032",
+      "description": "Duplicate event identity across intervention stages is unsupported",
+      "input": {
+        "as_of": {
+          "valid_at": 1000,
+          "recorded_at": 1100,
+          "ingested_at": 1200
+        },
+        "freshness_policies": [
+          {
+            "policy_id": "P-1",
+            "owner_repo": "owner/a",
+            "contract_id": "asset-state",
+            "contract_version": "1.0",
+            "expected_refresh_seconds": 60,
+            "max_observation_age_seconds": 300,
+            "max_record_delay_seconds": 120,
+            "max_ingest_lag_seconds": 120,
+            "max_clock_uncertainty_ms": 100
+          }
+        ],
+        "owner_health": [
+          {
+            "owner_repo": "owner/a",
+            "state": "available"
+          }
+        ],
+        "required_subjects": [],
+        "events": [],
+        "intervention_stages": [
+          {
+            "event_id": "S-1",
+            "intervention_id": "I-1",
+            "stage": "proposal",
+            "predecessor_event_id": null,
+            "owner_repo": "owner/a",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "horizon_id": "H-1",
+            "occurred_at": 890,
+            "recorded_at": 900,
+            "ingested_at": 910,
+            "disposition": "recorded"
+          },
+          {
+            "event_id": "S-1",
+            "intervention_id": "I-1",
+            "stage": "approval",
+            "predecessor_event_id": "S-1",
+            "owner_repo": "owner/a",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "horizon_id": "H-1",
+            "occurred_at": 891,
+            "recorded_at": 901,
+            "ingested_at": 911,
+            "disposition": "recorded"
+          }
+        ],
+        "identity_links": []
+      },
+      "expected": {
+        "case_id": "CS-032",
+        "entities": [],
+        "interventions": [
+          {
+            "intervention_id": "I-1",
+            "state": "Unsupported",
+            "workflow_complete": false,
+            "causal_effect_established": false,
+            "reason_codes": [
+              "INTERVENTION_EVENT_ID_MISSING_OR_DUPLICATE"
+            ]
+          }
+        ],
+        "identity_links": [],
+        "claim_ceiling": "synthetic_temporal_state_and_feedback_semantics_only"
+      }
+    },
+    {
+      "case_id": "CS-033",
+      "description": "Future-valid intervention event is excluded from an earlier valid-time projection",
+      "input": {
+        "as_of": {
+          "valid_at": 1000,
+          "recorded_at": 1100,
+          "ingested_at": 1200
+        },
+        "freshness_policies": [
+          {
+            "policy_id": "P-1",
+            "owner_repo": "owner/a",
+            "contract_id": "asset-state",
+            "contract_version": "1.0",
+            "expected_refresh_seconds": 60,
+            "max_observation_age_seconds": 300,
+            "max_record_delay_seconds": 120,
+            "max_ingest_lag_seconds": 120,
+            "max_clock_uncertainty_ms": 100
+          }
+        ],
+        "owner_health": [
+          {
+            "owner_repo": "owner/a",
+            "state": "available"
+          }
+        ],
+        "required_subjects": [],
+        "events": [],
+        "intervention_stages": [
+          {
+            "event_id": "FUTURE",
+            "intervention_id": "I-1",
+            "stage": "proposal",
+            "predecessor_event_id": null,
+            "owner_repo": "owner/a",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "horizon_id": "H-1",
+            "occurred_at": 1100,
+            "recorded_at": 900,
+            "ingested_at": 910,
+            "disposition": "recorded"
+          }
+        ],
+        "identity_links": []
+      },
+      "expected": {
+        "case_id": "CS-033",
+        "entities": [],
+        "interventions": [
+          {
+            "intervention_id": "I-1",
+            "state": "Unknown",
+            "workflow_complete": false,
+            "causal_effect_established": false,
+            "reason_codes": [
+              "NO_VISIBLE_INTERVENTION_STAGE"
+            ]
+          }
+        ],
+        "identity_links": [],
+        "claim_ceiling": "synthetic_temporal_state_and_feedback_semantics_only"
+      }
+    },
+    {
+      "case_id": "CS-034",
+      "description": "Owner-declared successor to an unregistered target remains Unknown",
+      "input": {
+        "as_of": {
+          "valid_at": 1000,
+          "recorded_at": 1100,
+          "ingested_at": 1200
+        },
+        "freshness_policies": [
+          {
+            "policy_id": "P-1",
+            "owner_repo": "owner/a",
+            "contract_id": "asset-state",
+            "contract_version": "1.0",
+            "expected_refresh_seconds": 60,
+            "max_observation_age_seconds": 300,
+            "max_record_delay_seconds": 120,
+            "max_ingest_lag_seconds": 120,
+            "max_clock_uncertainty_ms": 100
+          }
+        ],
+        "owner_health": [
+          {
+            "owner_repo": "owner/a",
+            "state": "available"
+          }
+        ],
+        "required_subjects": [],
+        "events": [
+          {
+            "event_id": "LINK-asset-unregistered",
+            "receipt_id": "R-LINK-asset-unregistered",
+            "owner_repo": "owner/a",
+            "contract_id": "asset-state",
+            "contract_version": "1.0",
+            "source_revision": "0123456789012345678901234567890123456789",
+            "schema_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "content_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "subject_id": "asset-1",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "owner_sequence": 2,
+            "event_kind": "identity_successor",
+            "target_event_id": null,
+            "target_subject_id": "asset-unregistered",
+            "owner_state": "Available",
+            "evidence_state": "admitted",
+            "valid_from": 0,
+            "valid_until": null,
+            "observed_at": 950,
+            "recorded_at": 960,
+            "ingested_at": 970,
+            "time_basis": "UTC_UNIX_SECONDS",
+            "timezone": "UTC",
+            "clock_id": "clock-1",
+            "clock_uncertainty_ms": 5,
+            "freshness_policy_id": "P-1",
+            "target_subject_digest": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+          }
+        ],
+        "intervention_stages": [],
+        "identity_links": []
+      },
+      "expected": {
+        "case_id": "CS-034",
+        "entities": [],
+        "interventions": [],
+        "identity_links": [
+          {
+            "owner_repo": "owner/a",
+            "from_subject_id": "asset-1",
+            "to_subject_id": "asset-unregistered",
+            "status": "Unknown",
+            "automatic_merge": false,
+            "reason_codes": [
+              "IDENTITY_TARGET_NOT_REGISTERED"
+            ]
+          }
+        ],
+        "claim_ceiling": "synthetic_temporal_state_and_feedback_semantics_only"
+      }
+    },
+    {
+      "case_id": "CS-035",
+      "description": "Owner-declared successor with mismatched target subject digest is Unsupported",
+      "input": {
+        "as_of": {
+          "valid_at": 1000,
+          "recorded_at": 1100,
+          "ingested_at": 1200
+        },
+        "freshness_policies": [
+          {
+            "policy_id": "P-1",
+            "owner_repo": "owner/a",
+            "contract_id": "asset-state",
+            "contract_version": "1.0",
+            "expected_refresh_seconds": 60,
+            "max_observation_age_seconds": 300,
+            "max_record_delay_seconds": 120,
+            "max_ingest_lag_seconds": 120,
+            "max_clock_uncertainty_ms": 100
+          }
+        ],
+        "owner_health": [
+          {
+            "owner_repo": "owner/a",
+            "state": "available"
+          }
+        ],
+        "required_subjects": [
+          {
+            "owner_repo": "owner/a",
+            "subject_id": "asset-target",
+            "subject_digest": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "contract_id": "asset-state",
+            "contract_version": "1.0"
+          }
+        ],
+        "events": [
+          {
+            "event_id": "LINK-asset-target",
+            "receipt_id": "R-LINK-asset-target",
+            "owner_repo": "owner/a",
+            "contract_id": "asset-state",
+            "contract_version": "1.0",
+            "source_revision": "0123456789012345678901234567890123456789",
+            "schema_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "content_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "subject_id": "asset-1",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "owner_sequence": 2,
+            "event_kind": "identity_successor",
+            "target_event_id": null,
+            "target_subject_id": "asset-target",
+            "owner_state": "Available",
+            "evidence_state": "admitted",
+            "valid_from": 0,
+            "valid_until": null,
+            "observed_at": 950,
+            "recorded_at": 960,
+            "ingested_at": 970,
+            "time_basis": "UTC_UNIX_SECONDS",
+            "timezone": "UTC",
+            "clock_id": "clock-1",
+            "clock_uncertainty_ms": 5,
+            "freshness_policy_id": "P-1",
+            "target_subject_digest": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+          }
+        ],
+        "intervention_stages": [],
+        "identity_links": []
+      },
+      "expected": {
+        "case_id": "CS-035",
+        "entities": [
+          {
+            "owner_repo": "owner/a",
+            "subject_id": "asset-target",
+            "state": "Unknown",
+            "selected_event_id": null,
+            "owner_state": null,
+            "reason_codes": [
+              "NO_VISIBLE_OWNER_EVENT"
+            ],
+            "historical_event_ids": []
+          }
+        ],
+        "interventions": [],
+        "identity_links": [
+          {
+            "owner_repo": "owner/a",
+            "from_subject_id": "asset-1",
+            "to_subject_id": "asset-target",
+            "status": "Unsupported",
+            "automatic_merge": false,
+            "reason_codes": [
+              "IDENTITY_TARGET_DIGEST_MISMATCH"
+            ]
+          }
+        ],
+        "claim_ceiling": "synthetic_temporal_state_and_feedback_semantics_only"
+      }
+    },
+    {
+      "case_id": "CS-036",
+      "description": "Canonical UTC instants retain Africa/Johannesburg as source timezone metadata",
+      "input": {
+        "as_of": {
+          "valid_at": 1000,
+          "recorded_at": 1100,
+          "ingested_at": 1200
+        },
+        "freshness_policies": [
+          {
+            "policy_id": "P-1",
+            "owner_repo": "owner/a",
+            "contract_id": "asset-state",
+            "contract_version": "1.0",
+            "expected_refresh_seconds": 60,
+            "max_observation_age_seconds": 300,
+            "max_record_delay_seconds": 120,
+            "max_ingest_lag_seconds": 120,
+            "max_clock_uncertainty_ms": 100
+          }
+        ],
+        "owner_health": [
+          {
+            "owner_repo": "owner/a",
+            "state": "available"
+          }
+        ],
+        "required_subjects": [
+          {
+            "owner_repo": "owner/a",
+            "subject_id": "asset-1",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "contract_id": "asset-state",
+            "contract_version": "1.0"
+          }
+        ],
+        "events": [
+          {
+            "event_id": "E-1",
+            "receipt_id": "R-E-1",
+            "owner_repo": "owner/a",
+            "contract_id": "asset-state",
+            "contract_version": "1.0",
+            "source_revision": "0123456789012345678901234567890123456789",
+            "schema_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "content_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "subject_id": "asset-1",
+            "subject_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "owner_sequence": 1,
+            "event_kind": "assertion",
+            "target_event_id": null,
+            "target_subject_id": null,
+            "owner_state": "Available",
+            "evidence_state": "admitted",
+            "valid_from": 0,
+            "valid_until": null,
+            "observed_at": 950,
+            "recorded_at": 960,
+            "ingested_at": 970,
+            "time_basis": "UTC_UNIX_SECONDS",
+            "timezone": "Africa/Johannesburg",
+            "clock_id": "clock-1",
+            "clock_uncertainty_ms": 5,
+            "freshness_policy_id": "P-1"
+          }
+        ],
+        "intervention_stages": [],
+        "identity_links": []
+      },
+      "expected": {
+        "case_id": "CS-036",
+        "entities": [
+          {
+            "owner_repo": "owner/a",
+            "subject_id": "asset-1",
+            "state": "Current",
+            "selected_event_id": "E-1",
+            "owner_state": "Available",
+            "reason_codes": [],
+            "historical_event_ids": [
+              "E-1"
+            ]
+          }
+        ],
+        "interventions": [],
+        "identity_links": [],
+        "claim_ceiling": "synthetic_temporal_state_and_feedback_semantics_only"
+      }
+    }
+  ]
+}
