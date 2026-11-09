@@ -242,6 +242,31 @@ fn profile_for<'a>(profiles: &'a Value, record: &Value) -> Option<&'a Value> {
     })
 }
 
+fn expected_owner_fields(owner: &str) -> Option<&'static [&'static str]> {
+    match owner {
+        "design" => Some(&["display_name", "design_revision"]),
+        "geometry" => Some(&[
+            "display_name", "geometry_digest", "geometry_verification",
+            "coordinate_frame", "units", "ifc_schema", "ids_status", "adapter_state",
+        ]),
+        "solver" => Some(&[
+            "solver_id", "solver_version", "solver_input_geometry_digest",
+            "convergence_state", "validation_scope", "claim_ceiling",
+            "input_bom_revision",
+        ]),
+        "product" => Some(&["product_id", "bom_revision", "approval_scope"]),
+        "provenance" => Some(&[
+            "lot_id", "lot_state", "custody_state", "inspection_state",
+            "event_kind", "target_record_id",
+        ]),
+        "workcell" => Some(&[
+            "work_package_id", "cell_id", "accepted_output_state",
+            "metrology_state", "as_built_geometry_digest",
+        ]),
+        _ => None,
+    }
+}
+
 pub fn validate_profiles(profiles: &Value) -> Vec<String> {
     let mut errors = Vec::new();
     check_keys(
@@ -261,7 +286,7 @@ pub fn validate_profiles(profiles: &Value) -> Vec<String> {
         .iter()
         .filter_map(Value::as_str)
         .collect::<Vec<_>>();
-    if declared_common != COMMON_RECORD_FIELDS {
+    if declared_common.as_slice() != COMMON_RECORD_FIELDS {
         push_error(
             &mut errors,
             "owner_profiles",
@@ -282,6 +307,19 @@ pub fn validate_profiles(profiles: &Value) -> Vec<String> {
                 push_error(&mut errors, &path, &format!("EMPTY_PROFILE_FIELD:{key}"));
             }
         }
+        if string(profile, "schema_version") != "1.0.0"
+            || !matches!(
+                (string(profile, "owner"), string(profile, "schema_id")),
+                ("design", "design.contract")
+                    | ("geometry", "geometry.contract")
+                    | ("solver", "solver.contract")
+                    | ("product", "product.contract")
+                    | ("provenance", "provenance.contract")
+                    | ("workcell", "workcell.contract")
+            )
+        {
+            push_error(&mut errors, &path, "OWNER_SCHEMA_PROFILE_UNSUPPORTED");
+        }
         if !identities.insert((
             string(profile, "owner").to_owned(),
             string(profile, "schema_id").to_owned(),
@@ -290,6 +328,15 @@ pub fn validate_profiles(profiles: &Value) -> Vec<String> {
             push_error(&mut errors, &path, "DUPLICATE_OWNER_SCHEMA_PROFILE");
         }
         check_string_array(profile, "additional_allowed", &path, &mut errors);
+        let actual_fields = array(profile, "additional_allowed")
+            .iter()
+            .filter_map(Value::as_str)
+            .collect::<Vec<_>>();
+        if expected_owner_fields(string(profile, "owner"))
+            != Some(actual_fields.as_slice())
+        {
+            push_error(&mut errors, &path, "OWNER_FIELD_ALLOWLIST_DIFFERS_FROM_PINNED_PROFILE");
+        }
         for field in array(profile, "additional_allowed").iter().filter_map(Value::as_str) {
             if COMMON_RECORD_FIELDS.contains(&field) {
                 push_error(&mut errors, &path, &format!("OWNER_FIELD_REPEATS_COMMON_FIELD:{field}"));
@@ -462,7 +509,20 @@ pub fn validate_case(case: &Value, profiles: &Value) -> Vec<String> {
         if relation.get("automatic_merge").and_then(Value::as_bool).is_none() {
             push_error(&mut errors, &format!("input.identity_relations[{index}]"), "AUTOMATIC_MERGE_BOOLEAN_REQUIRED");
         }
+        for key in [
+            "owner", "relation", "from_native_id", "to_native_id",
+            "authority_state", "evidence_state",
+        ] {
+            if string(relation, key).is_empty() {
+                push_error(
+                    &mut errors,
+                    &format!("input.identity_relations[{index}]"),
+                    &format!("IDENTITY_RELATION_FIELD_EMPTY:{key}"),
+                );
+            }
+        }
     }
+    let mut edge_set = HashSet::new();
     for (index, edge) in array(input, "dependency_edges").iter().enumerate() {
         check_keys(
             edge,
@@ -471,6 +531,38 @@ pub fn validate_case(case: &Value, profiles: &Value) -> Vec<String> {
             &["from", "to", "relation"],
             &mut errors,
         );
+        let edge_key = (
+            string(edge, "from").to_owned(),
+            string(edge, "to").to_owned(),
+            string(edge, "relation").to_owned(),
+        );
+        if !edge_set.insert(edge_key) {
+            push_error(
+                &mut errors,
+                &format!("input.dependency_edges[{index}]"),
+                "DUPLICATE_DEPENDENCY_EDGE",
+            );
+        }
+        if string(edge, "from").is_empty()
+            || string(edge, "to").is_empty()
+            || string(edge, "relation").is_empty()
+        {
+            push_error(
+                &mut errors,
+                &format!("input.dependency_edges[{index}]"),
+                "DEPENDENCY_EDGE_FIELD_EMPTY",
+            );
+        }
+        let records = array(input, "records");
+        let from_exists = records.iter().any(|record| string(record, "record_id") == string(edge, "from"));
+        let to_exists = records.iter().any(|record| string(record, "record_id") == string(edge, "to"));
+        if !from_exists || !to_exists {
+            push_error(
+                &mut errors,
+                &format!("input.dependency_edges[{index}]"),
+                "DEPENDENCY_EDGE_DANGLING_REFERENCE",
+            );
+        }
     }
 
     for key in ["required_owner_refs"] {
