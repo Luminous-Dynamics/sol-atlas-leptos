@@ -1,0 +1,2796 @@
+{
+  "schema_id": "org.luminousdynamics.city-morph-continuity.synthetic-corpus",
+  "schema_version": "0.1.0",
+  "corpus_id": "CITY-MORPH-CONTINUITY-CORPUS-V0.1",
+  "classification": "synthetic_fixture_only",
+  "policy_note": "This benchmark consumes synthetic owner-native access state receipts. It does not recalculate routes, service capacity or productive capability. No event probabilities are assumed.",
+  "semantics": {
+    "phase_intervals": "Half-open [start_tick,end_tick), sorted by start tick, contiguous, non-overlapping and beginning at tick zero.",
+    "adequate_state": "Only a current, exact-subject CityMorph receipt with outcome Adequate contributes to adequate_ticks.",
+    "degraded_states": "Constrained and Inaccessible are known continuity breaches. Their adjacent durations form a contiguous degradation streak.",
+    "unknown_state": "Missing, stale, revoked, wrong-subject, wrong-contract or otherwise insufficient evidence is counted as unknown and never as adequate.",
+    "recovery": "Stable recovery requires recovery_confirmation_ticks of contiguous known Adequate state after the first known degradation.",
+    "events": "Event IDs are labels for scenario association only; probabilities and correlations are not inferred.",
+    "claim_ceiling": "Synthetic timeline aggregation only."
+  },
+  "cases": [
+    {
+      "case_id": "CR-001",
+      "description": "All phases preserve adequate essential-service access.",
+      "input": {
+        "scope_digest": "city-morph-scope:synthetic-v0.1",
+        "evidence_state": "synthetic_current",
+        "recovery_confirmation_ticks": 2,
+        "requirements": [
+          {
+            "requirement_id": "clinic",
+            "group_id": "district-residents",
+            "service_category": "health"
+          }
+        ],
+        "phases": [
+          {
+            "phase_id": "p0",
+            "start_tick": 0,
+            "end_tick": 5,
+            "event_ids": [],
+            "access_receipts": [
+              {
+                "requirement_id": "clinic",
+                "outcome": "Adequate",
+                "evidence_state": "synthetic_current",
+                "source_owner": "sol-atlas",
+                "source_contract": "CITY-MORPH-ACCESS-001",
+                "source_revision": "fixture-v0.1",
+                "source_receipt_id": "synthetic:p0:clinic",
+                "scenario_id": "CR-001",
+                "source_subject_digest": "synthetic-subject:CR-001:p0:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
+              }
+            ]
+          }
+        ],
+        "expected_source_revision": "fixture-v0.1"
+      },
+      "expected": {
+        "case_id": "CR-001",
+        "disposition": "Evaluated",
+        "reason_codes": [],
+        "requirements": [
+          {
+            "requirement_id": "clinic",
+            "group_id": "district-residents",
+            "service_category": "health",
+            "horizon_start_tick": 0,
+            "horizon_end_tick": 5,
+            "total_ticks": 5,
+            "adequate_ticks": 5,
+            "constrained_ticks": 0,
+            "inaccessible_ticks": 0,
+            "unknown_ticks": 0,
+            "max_contiguous_degraded_ticks": 0,
+            "first_degradation_tick": null,
+            "recovery_state": "NoKnownInterruption",
+            "recovered_start_tick": null,
+            "recovery_confirmed_at_tick": null,
+            "recovery_time_ticks": null,
+            "unknown_after_first_degradation_ticks": 0,
+            "last_known_degradation_end_tick": null,
+            "recovery_start_lower_exclusive_tick": null,
+            "recovery_start_upper_inclusive_tick": null,
+            "recovery_timing_precision": "not_applicable",
+            "recovery_time_lower_exclusive_ticks": null,
+            "recovery_time_upper_inclusive_ticks": null
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "CR-002",
+      "description": "A two-tick outage is followed by a confirmed two-tick recovery.",
+      "input": {
+        "scope_digest": "city-morph-scope:synthetic-v0.1",
+        "evidence_state": "synthetic_current",
+        "recovery_confirmation_ticks": 2,
+        "requirements": [
+          {
+            "requirement_id": "clinic",
+            "group_id": "district-residents",
+            "service_category": "health"
+          }
+        ],
+        "phases": [
+          {
+            "phase_id": "p0",
+            "start_tick": 0,
+            "end_tick": 3,
+            "event_ids": [],
+            "access_receipts": [
+              {
+                "requirement_id": "clinic",
+                "outcome": "Adequate",
+                "evidence_state": "synthetic_current",
+                "source_owner": "sol-atlas",
+                "source_contract": "CITY-MORPH-ACCESS-001",
+                "source_revision": "fixture-v0.1",
+                "source_receipt_id": "synthetic:p0:clinic",
+                "scenario_id": "CR-002",
+                "source_subject_digest": "synthetic-subject:CR-002:p0:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
+              }
+            ]
+          },
+          {
+            "phase_id": "p1",
+            "start_tick": 3,
+            "end_tick": 5,
+            "event_ids": [
+              "bridge-closure"
+            ],
+            "access_receipts": [
+              {
+                "requirement_id": "clinic",
+                "outcome": "Inaccessible",
+                "evidence_state": "synthetic_current",
+                "source_owner": "sol-atlas",
+                "source_contract": "CITY-MORPH-ACCESS-001",
+                "source_revision": "fixture-v0.1",
+                "source_receipt_id": "synthetic:p1:clinic",
+                "scenario_id": "CR-002",
+                "source_subject_digest": "synthetic-subject:CR-002:p1:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
+              }
+            ]
+          },
+          {
+            "phase_id": "p2",
+            "start_tick": 5,
+            "end_tick": 8,
+            "event_ids": [],
+            "access_receipts": [
+              {
+                "requirement_id": "clinic",
+                "outcome": "Adequate",
+                "evidence_state": "synthetic_current",
+                "source_owner": "sol-atlas",
+                "source_contract": "CITY-MORPH-ACCESS-001",
+                "source_revision": "fixture-v0.1",
+                "source_receipt_id": "synthetic:p2:clinic",
+                "scenario_id": "CR-002",
+                "source_subject_digest": "synthetic-subject:CR-002:p2:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
+              }
+            ]
+          }
+        ],
+        "expected_source_revision": "fixture-v0.1"
+      },
+      "expected": {
+        "case_id": "CR-002",
+        "disposition": "Evaluated",
+        "reason_codes": [],
+        "requirements": [
+          {
+            "requirement_id": "clinic",
+            "group_id": "district-residents",
+            "service_category": "health",
+            "horizon_start_tick": 0,
+            "horizon_end_tick": 8,
+            "total_ticks": 8,
+            "adequate_ticks": 6,
+            "constrained_ticks": 0,
+            "inaccessible_ticks": 2,
+            "unknown_ticks": 0,
+            "max_contiguous_degraded_ticks": 2,
+            "first_degradation_tick": 3,
+            "recovery_state": "Recovered",
+            "recovered_start_tick": 5,
+            "recovery_confirmed_at_tick": 7,
+            "recovery_time_ticks": 2,
+            "unknown_after_first_degradation_ticks": 0,
+            "last_known_degradation_end_tick": 5,
+            "recovery_start_lower_exclusive_tick": 5,
+            "recovery_start_upper_inclusive_tick": 5,
+            "recovery_timing_precision": "exact",
+            "recovery_time_lower_exclusive_ticks": 2,
+            "recovery_time_upper_inclusive_ticks": 2
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "CR-003",
+      "description": "One adequate tick after outage is insufficient for stable recovery confirmation.",
+      "input": {
+        "scope_digest": "city-morph-scope:synthetic-v0.1",
+        "evidence_state": "synthetic_current",
+        "recovery_confirmation_ticks": 2,
+        "requirements": [
+          {
+            "requirement_id": "clinic",
+            "group_id": "district-residents",
+            "service_category": "health"
+          }
+        ],
+        "phases": [
+          {
+            "phase_id": "p0",
+            "start_tick": 0,
+            "end_tick": 2,
+            "event_ids": [],
+            "access_receipts": [
+              {
+                "requirement_id": "clinic",
+                "outcome": "Adequate",
+                "evidence_state": "synthetic_current",
+                "source_owner": "sol-atlas",
+                "source_contract": "CITY-MORPH-ACCESS-001",
+                "source_revision": "fixture-v0.1",
+                "source_receipt_id": "synthetic:p0:clinic",
+                "scenario_id": "CR-003",
+                "source_subject_digest": "synthetic-subject:CR-003:p0:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
+              }
+            ]
+          },
+          {
+            "phase_id": "p1",
+            "start_tick": 2,
+            "end_tick": 5,
+            "event_ids": [],
+            "access_receipts": [
+              {
+                "requirement_id": "clinic",
+                "outcome": "Constrained",
+                "evidence_state": "synthetic_current",
+                "source_owner": "sol-atlas",
+                "source_contract": "CITY-MORPH-ACCESS-001",
+                "source_revision": "fixture-v0.1",
+                "source_receipt_id": "synthetic:p1:clinic",
+                "scenario_id": "CR-003",
+                "source_subject_digest": "synthetic-subject:CR-003:p1:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
+              }
+            ]
+          },
+          {
+            "phase_id": "p2",
+            "start_tick": 5,
+            "end_tick": 6,
+            "event_ids": [],
+            "access_receipts": [
+              {
+                "requirement_id": "clinic",
+                "outcome": "Adequate",
+                "evidence_state": "synthetic_current",
+                "source_owner": "sol-atlas",
+                "source_contract": "CITY-MORPH-ACCESS-001",
+                "source_revision": "fixture-v0.1",
+                "source_receipt_id": "synthetic:p2:clinic",
+                "scenario_id": "CR-003",
+                "source_subject_digest": "synthetic-subject:CR-003:p2:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
+              }
+            ]
+          }
+        ],
+        "expected_source_revision": "fixture-v0.1"
+      },
+      "expected": {
+        "case_id": "CR-003",
+        "disposition": "Evaluated",
+        "reason_codes": [],
+        "requirements": [
+          {
+            "requirement_id": "clinic",
+            "group_id": "district-residents",
+            "service_category": "health",
+            "horizon_start_tick": 0,
+            "horizon_end_tick": 6,
+            "total_ticks": 6,
+            "adequate_ticks": 3,
+            "constrained_ticks": 3,
+            "inaccessible_ticks": 0,
+            "unknown_ticks": 0,
+            "max_contiguous_degraded_ticks": 3,
+            "first_degradation_tick": 2,
+            "recovery_state": "NotRecovered",
+            "recovered_start_tick": null,
+            "recovery_confirmed_at_tick": null,
+            "recovery_time_ticks": null,
+            "unknown_after_first_degradation_ticks": 0,
+            "last_known_degradation_end_tick": 5,
+            "recovery_start_lower_exclusive_tick": null,
+            "recovery_start_upper_inclusive_tick": null,
+            "recovery_timing_precision": "unresolved",
+            "recovery_time_lower_exclusive_ticks": null,
+            "recovery_time_upper_inclusive_ticks": null
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "CR-004",
+      "description": "An unknown service period is kept separate from known adequate time.",
+      "input": {
+        "scope_digest": "city-morph-scope:synthetic-v0.1",
+        "evidence_state": "synthetic_current",
+        "recovery_confirmation_ticks": 2,
+        "requirements": [
+          {
+            "requirement_id": "clinic",
+            "group_id": "district-residents",
+            "service_category": "health"
+          }
+        ],
+        "phases": [
+          {
+            "phase_id": "p0",
+            "start_tick": 0,
+            "end_tick": 2,
+            "event_ids": [],
+            "access_receipts": [
+              {
+                "requirement_id": "clinic",
+                "outcome": "Adequate",
+                "evidence_state": "synthetic_current",
+                "source_owner": "sol-atlas",
+                "source_contract": "CITY-MORPH-ACCESS-001",
+                "source_revision": "fixture-v0.1",
+                "source_receipt_id": "synthetic:p0:clinic",
+                "scenario_id": "CR-004",
+                "source_subject_digest": "synthetic-subject:CR-004:p0:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
+              }
+            ]
+          },
+          {
+            "phase_id": "p1",
+            "start_tick": 2,
+            "end_tick": 4,
+            "event_ids": [],
+            "access_receipts": [
+              {
+                "requirement_id": "clinic",
+                "outcome": "Unknown",
+                "evidence_state": "synthetic_current",
+                "source_owner": "sol-atlas",
+                "source_contract": "CITY-MORPH-ACCESS-001",
+                "source_revision": "fixture-v0.1",
+                "source_receipt_id": "synthetic:p1:clinic",
+                "scenario_id": "CR-004",
+                "source_subject_digest": "synthetic-subject:CR-004:p1:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
+              }
+            ]
+          },
+          {
+            "phase_id": "p2",
+            "start_tick": 4,
+            "end_tick": 7,
+            "event_ids": [],
+            "access_receipts": [
+              {
+                "requirement_id": "clinic",
+                "outcome": "Adequate",
+                "evidence_state": "synthetic_current",
+                "source_owner": "sol-atlas",
+                "source_contract": "CITY-MORPH-ACCESS-001",
+                "source_revision": "fixture-v0.1",
+                "source_receipt_id": "synthetic:p2:clinic",
+                "scenario_id": "CR-004",
+                "source_subject_digest": "synthetic-subject:CR-004:p2:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
+              }
+            ]
+          }
+        ],
+        "expected_source_revision": "fixture-v0.1"
+      },
+      "expected": {
+        "case_id": "CR-004",
+        "disposition": "Evaluated",
+        "reason_codes": [],
+        "requirements": [
+          {
+            "requirement_id": "clinic",
+            "group_id": "district-residents",
+            "service_category": "health",
+            "horizon_start_tick": 0,
+            "horizon_end_tick": 7,
+            "total_ticks": 7,
+            "adequate_ticks": 5,
+            "constrained_ticks": 0,
+            "inaccessible_ticks": 0,
+            "unknown_ticks": 2,
+            "max_contiguous_degraded_ticks": 0,
+            "first_degradation_tick": null,
+            "recovery_state": "NoKnownInterruption",
+            "recovered_start_tick": null,
+            "recovery_confirmed_at_tick": null,
+            "recovery_time_ticks": null,
+            "unknown_after_first_degradation_ticks": 0,
+            "last_known_degradation_end_tick": null,
+            "recovery_start_lower_exclusive_tick": null,
+            "recovery_start_upper_inclusive_tick": null,
+            "recovery_timing_precision": "not_applicable",
+            "recovery_time_lower_exclusive_ticks": null,
+            "recovery_time_upper_inclusive_ticks": null
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "CR-005",
+      "description": "A known degraded interval spans constrained and inaccessible states.",
+      "input": {
+        "scope_digest": "city-morph-scope:synthetic-v0.1",
+        "evidence_state": "synthetic_current",
+        "recovery_confirmation_ticks": 2,
+        "requirements": [
+          {
+            "requirement_id": "clinic",
+            "group_id": "district-residents",
+            "service_category": "health"
+          }
+        ],
+        "phases": [
+          {
+            "phase_id": "p0",
+            "start_tick": 0,
+            "end_tick": 2,
+            "event_ids": [],
+            "access_receipts": [
+              {
+                "requirement_id": "clinic",
+                "outcome": "Adequate",
+                "evidence_state": "synthetic_current",
+                "source_owner": "sol-atlas",
+                "source_contract": "CITY-MORPH-ACCESS-001",
+                "source_revision": "fixture-v0.1",
+                "source_receipt_id": "synthetic:p0:clinic",
+                "scenario_id": "CR-005",
+                "source_subject_digest": "synthetic-subject:CR-005:p0:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
+              }
+            ]
+          },
+          {
+            "phase_id": "p1",
+            "start_tick": 2,
+            "end_tick": 4,
+            "event_ids": [],
+            "access_receipts": [
+              {
+                "requirement_id": "clinic",
+                "outcome": "Constrained",
+                "evidence_state": "synthetic_current",
+                "source_owner": "sol-atlas",
+                "source_contract": "CITY-MORPH-ACCESS-001",
+                "source_revision": "fixture-v0.1",
+                "source_receipt_id": "synthetic:p1:clinic",
+                "scenario_id": "CR-005",
+                "source_subject_digest": "synthetic-subject:CR-005:p1:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
+              }
+            ]
+          },
+          {
+            "phase_id": "p2",
+            "start_tick": 4,
+            "end_tick": 7,
+            "event_ids": [],
+            "access_receipts": [
+              {
+                "requirement_id": "clinic",
+                "outcome": "Inaccessible",
+                "evidence_state": "synthetic_current",
+                "source_owner": "sol-atlas",
+                "source_contract": "CITY-MORPH-ACCESS-001",
+                "source_revision": "fixture-v0.1",
+                "source_receipt_id": "synthetic:p2:clinic",
+                "scenario_id": "CR-005",
+                "source_subject_digest": "synthetic-subject:CR-005:p2:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
+              }
+            ]
+          },
+          {
+            "phase_id": "p3",
+            "start_tick": 7,
+            "end_tick": 10,
+            "event_ids": [],
+            "access_receipts": [
+              {
+                "requirement_id": "clinic",
+                "outcome": "Adequate",
+                "evidence_state": "synthetic_current",
+                "source_owner": "sol-atlas",
+                "source_contract": "CITY-MORPH-ACCESS-001",
+                "source_revision": "fixture-v0.1",
+                "source_receipt_id": "synthetic:p3:clinic",
+                "scenario_id": "CR-005",
+                "source_subject_digest": "synthetic-subject:CR-005:p3:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
+              }
+            ]
+          }
+        ],
+        "expected_source_revision": "fixture-v0.1"
+      },
+      "expected": {
+        "case_id": "CR-005",
+        "disposition": "Evaluated",
+        "reason_codes": [],
+        "requirements": [
+          {
+            "requirement_id": "clinic",
+            "group_id": "district-residents",
+            "service_category": "health",
+            "horizon_start_tick": 0,
+            "horizon_end_tick": 10,
+            "total_ticks": 10,
+            "adequate_ticks": 5,
+            "constrained_ticks": 2,
+            "inaccessible_ticks": 3,
+            "unknown_ticks": 0,
+            "max_contiguous_degraded_ticks": 5,
+            "first_degradation_tick": 2,
+            "recovery_state": "Recovered",
+            "recovered_start_tick": 7,
+            "recovery_confirmed_at_tick": 9,
+            "recovery_time_ticks": 5,
+            "unknown_after_first_degradation_ticks": 0,
+            "last_known_degradation_end_tick": 7,
+            "recovery_start_lower_exclusive_tick": 7,
+            "recovery_start_upper_inclusive_tick": 7,
+            "recovery_timing_precision": "exact",
+            "recovery_time_lower_exclusive_ticks": 5,
+            "recovery_time_upper_inclusive_ticks": 5
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "CR-006",
+      "description": "The worst contiguous degraded interval is measured across adjacent phases.",
+      "input": {
+        "scope_digest": "city-morph-scope:synthetic-v0.1",
+        "evidence_state": "synthetic_current",
+        "recovery_confirmation_ticks": 2,
+        "requirements": [
+          {
+            "requirement_id": "clinic",
+            "group_id": "district-residents",
+            "service_category": "health"
+          }
+        ],
+        "phases": [
+          {
+            "phase_id": "p0",
+            "start_tick": 0,
+            "end_tick": 1,
+            "event_ids": [],
+            "access_receipts": [
+              {
+                "requirement_id": "clinic",
+                "outcome": "Adequate",
+                "evidence_state": "synthetic_current",
+                "source_owner": "sol-atlas",
+                "source_contract": "CITY-MORPH-ACCESS-001",
+                "source_revision": "fixture-v0.1",
+                "source_receipt_id": "synthetic:p0:clinic",
+                "scenario_id": "CR-006",
+                "source_subject_digest": "synthetic-subject:CR-006:p0:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
+              }
+            ]
+          },
+          {
+            "phase_id": "p1",
+            "start_tick": 1,
+            "end_tick": 3,
+            "event_ids": [],
+            "access_receipts": [
+              {
+                "requirement_id": "clinic",
+                "outcome": "Inaccessible",
+                "evidence_state": "synthetic_current",
+                "source_owner": "sol-atlas",
+                "source_contract": "CITY-MORPH-ACCESS-001",
+                "source_revision": "fixture-v0.1",
+                "source_receipt_id": "synthetic:p1:clinic",
+                "scenario_id": "CR-006",
+                "source_subject_digest": "synthetic-subject:CR-006:p1:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
+              }
+            ]
+          },
+          {
+            "phase_id": "p2",
+            "start_tick": 3,
+            "end_tick": 5,
+            "event_ids": [],
+            "access_receipts": [
+              {
+                "requirement_id": "clinic",
+                "outcome": "Constrained",
+                "evidence_state": "synthetic_current",
+                "source_owner": "sol-atlas",
+                "source_contract": "CITY-MORPH-ACCESS-001",
+                "source_revision": "fixture-v0.1",
+                "source_receipt_id": "synthetic:p2:clinic",
+                "scenario_id": "CR-006",
+                "source_subject_digest": "synthetic-subject:CR-006:p2:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
+              }
+            ]
+          },
+          {
+            "phase_id": "p3",
+            "start_tick": 5,
+            "end_tick": 6,
+            "event_ids": [],
+            "access_receipts": [
+              {
+                "requirement_id": "clinic",
+                "outcome": "Adequate",
+                "evidence_state": "synthetic_current",
+                "source_owner": "sol-atlas",
+                "source_contract": "CITY-MORPH-ACCESS-001",
+                "source_revision": "fixture-v0.1",
+                "source_receipt_id": "synthetic:p3:clinic",
+                "scenario_id": "CR-006",
+                "source_subject_digest": "synthetic-subject:CR-006:p3:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
+              }
+            ]
+          }
+        ],
+        "expected_source_revision": "fixture-v0.1"
+      },
+      "expected": {
+        "case_id": "CR-006",
+        "disposition": "Evaluated",
+        "reason_codes": [],
+        "requirements": [
+          {
+            "requirement_id": "clinic",
+            "group_id": "district-residents",
+            "service_category": "health",
+            "horizon_start_tick": 0,
+            "horizon_end_tick": 6,
+            "total_ticks": 6,
+            "adequate_ticks": 2,
+            "constrained_ticks": 2,
+            "inaccessible_ticks": 2,
+            "unknown_ticks": 0,
+            "max_contiguous_degraded_ticks": 4,
+            "first_degradation_tick": 1,
+            "recovery_state": "NotRecovered",
+            "recovered_start_tick": null,
+            "recovery_confirmed_at_tick": null,
+            "recovery_time_ticks": null,
+            "unknown_after_first_degradation_ticks": 0,
+            "last_known_degradation_end_tick": 5,
+            "recovery_start_lower_exclusive_tick": null,
+            "recovery_start_upper_inclusive_tick": null,
+            "recovery_timing_precision": "unresolved",
+            "recovery_time_lower_exclusive_ticks": null,
+            "recovery_time_upper_inclusive_ticks": null
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "CR-007",
+      "description": "Separate groups experience different continuity under the same event.",
+      "input": {
+        "scope_digest": "city-morph-scope:synthetic-v0.1",
+        "evidence_state": "synthetic_current",
+        "recovery_confirmation_ticks": 2,
+        "requirements": [
+          {
+            "requirement_id": "clinic-a",
+            "group_id": "group-a",
+            "service_category": "health"
+          },
+          {
+            "requirement_id": "clinic-b",
+            "group_id": "group-b",
+            "service_category": "health"
+          }
+        ],
+        "phases": [
+          {
+            "phase_id": "p0",
+            "start_tick": 0,
+            "end_tick": 2,
+            "event_ids": [],
+            "access_receipts": [
+              {
+                "requirement_id": "clinic-a",
+                "outcome": "Adequate",
+                "evidence_state": "synthetic_current",
+                "source_owner": "sol-atlas",
+                "source_contract": "CITY-MORPH-ACCESS-001",
+                "source_revision": "fixture-v0.1",
+                "source_receipt_id": "synthetic:p0:clinic-a",
+                "scenario_id": "CR-007",
+                "source_subject_digest": "synthetic-subject:CR-007:p0:clinic-a",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
+              },
+              {
+                "requirement_id": "clinic-b",
+                "outcome": "Adequate",
+                "evidence_state": "synthetic_current",
+                "source_owner": "sol-atlas",
+                "source_contract": "CITY-MORPH-ACCESS-001",
+                "source_revision": "fixture-v0.1",
+                "source_receipt_id": "synthetic:p0:clinic-b",
+                "scenario_id": "CR-007",
+                "source_subject_digest": "synthetic-subject:CR-007:p0:clinic-b",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
+              }
+            ]
+          },
+          {
+            "phase_id": "p1",
+            "start_tick": 2,
+            "end_tick": 5,
+            "event_ids": [
+              "power-outage"
+            ],
+            "access_receipts": [
+              {
+                "requirement_id": "clinic-a",
+                "outcome": "Inaccessible",
+                "evidence_state": "synthetic_current",
+                "source_owner": "sol-atlas",
+                "source_contract": "CITY-MORPH-ACCESS-001",
+                "source_revision": "fixture-v0.1",
+                "source_receipt_id": "synthetic:p1:clinic-a",
+                "scenario_id": "CR-007",
+                "source_subject_digest": "synthetic-subject:CR-007:p1:clinic-a",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
+              },
+              {
+                "requirement_id": "clinic-b",
+                "outcome": "Adequate",
+                "evidence_state": "synthetic_current",
+                "source_owner": "sol-atlas",
+                "source_contract": "CITY-MORPH-ACCESS-001",
+                "source_revision": "fixture-v0.1",
+                "source_receipt_id": "synthetic:p1:clinic-b",
+                "scenario_id": "CR-007",
+                "source_subject_digest": "synthetic-subject:CR-007:p1:clinic-b",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
+              }
+            ]
+          },
+          {
+            "phase_id": "p2",
+            "start_tick": 5,
+            "end_tick": 8,
+            "event_ids": [],
+            "access_receipts": [
+              {
+                "requirement_id": "clinic-a",
+                "outcome": "Adequate",
+                "evidence_state": "synthetic_current",
+                "source_owner": "sol-atlas",
+                "source_contract": "CITY-MORPH-ACCESS-001",
+                "source_revision": "fixture-v0.1",
+                "source_receipt_id": "synthetic:p2:clinic-a",
+                "scenario_id": "CR-007",
+                "source_subject_digest": "synthetic-subject:CR-007:p2:clinic-a",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
+              },
+              {
+                "requirement_id": "clinic-b",
+                "outcome": "Adequate",
+                "evidence_state": "synthetic_current",
+                "source_owner": "sol-atlas",
+                "source_contract": "CITY-MORPH-ACCESS-001",
+                "source_revision": "fixture-v0.1",
+                "source_receipt_id": "synthetic:p2:clinic-b",
+                "scenario_id": "CR-007",
+                "source_subject_digest": "synthetic-subject:CR-007:p2:clinic-b",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
+              }
+            ]
+          }
+        ],
+        "expected_source_revision": "fixture-v0.1"
+      },
+      "expected": {
+        "case_id": "CR-007",
+        "disposition": "Evaluated",
+        "reason_codes": [],
+        "requirements": [
+          {
+            "requirement_id": "clinic-a",
+            "group_id": "group-a",
+            "service_category": "health",
+            "horizon_start_tick": 0,
+            "horizon_end_tick": 8,
+            "total_ticks": 8,
+            "adequate_ticks": 5,
+            "constrained_ticks": 0,
+            "inaccessible_ticks": 3,
+            "unknown_ticks": 0,
+            "max_contiguous_degraded_ticks": 3,
+            "first_degradation_tick": 2,
+            "recovery_state": "Recovered",
+            "recovered_start_tick": 5,
+            "recovery_confirmed_at_tick": 7,
+            "recovery_time_ticks": 3,
+            "unknown_after_first_degradation_ticks": 0,
+            "last_known_degradation_end_tick": 5,
+            "recovery_start_lower_exclusive_tick": 5,
+            "recovery_start_upper_inclusive_tick": 5,
+            "recovery_timing_precision": "exact",
+            "recovery_time_lower_exclusive_ticks": 3,
+            "recovery_time_upper_inclusive_ticks": 3
+          },
+          {
+            "requirement_id": "clinic-b",
+            "group_id": "group-b",
+            "service_category": "health",
+            "horizon_start_tick": 0,
+            "horizon_end_tick": 8,
+            "total_ticks": 8,
+            "adequate_ticks": 8,
+            "constrained_ticks": 0,
+            "inaccessible_ticks": 0,
+            "unknown_ticks": 0,
+            "max_contiguous_degraded_ticks": 0,
+            "first_degradation_tick": null,
+            "recovery_state": "NoKnownInterruption",
+            "recovered_start_tick": null,
+            "recovery_confirmed_at_tick": null,
+            "recovery_time_ticks": null,
+            "unknown_after_first_degradation_ticks": 0,
+            "last_known_degradation_end_tick": null,
+            "recovery_start_lower_exclusive_tick": null,
+            "recovery_start_upper_inclusive_tick": null,
+            "recovery_timing_precision": "not_applicable",
+            "recovery_time_lower_exclusive_ticks": null,
+            "recovery_time_upper_inclusive_ticks": null
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "CR-008",
+      "description": "A stale owner access receipt cannot be counted as adequate.",
+      "input": {
+        "scope_digest": "city-morph-scope:synthetic-v0.1",
+        "evidence_state": "synthetic_current",
+        "recovery_confirmation_ticks": 2,
+        "requirements": [
+          {
+            "requirement_id": "clinic",
+            "group_id": "district-residents",
+            "service_category": "health"
+          }
+        ],
+        "phases": [
+          {
+            "phase_id": "p0",
+            "start_tick": 0,
+            "end_tick": 4,
+            "event_ids": [],
+            "access_receipts": [
+              {
+                "requirement_id": "clinic",
+                "outcome": "Adequate",
+                "evidence_state": "stale",
+                "source_owner": "sol-atlas",
+                "source_contract": "CITY-MORPH-ACCESS-001",
+                "source_revision": "fixture-v0.1",
+                "source_receipt_id": "synthetic:p0:clinic",
+                "scenario_id": "CR-008",
+                "source_subject_digest": "synthetic-subject:CR-008:p0:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
+              }
+            ]
+          }
+        ],
+        "expected_source_revision": "fixture-v0.1"
+      },
+      "expected": {
+        "case_id": "CR-008",
+        "disposition": "Evaluated",
+        "reason_codes": [],
+        "requirements": [
+          {
+            "requirement_id": "clinic",
+            "group_id": "district-residents",
+            "service_category": "health",
+            "horizon_start_tick": 0,
+            "horizon_end_tick": 4,
+            "total_ticks": 4,
+            "adequate_ticks": 0,
+            "constrained_ticks": 0,
+            "inaccessible_ticks": 0,
+            "unknown_ticks": 4,
+            "max_contiguous_degraded_ticks": 0,
+            "first_degradation_tick": null,
+            "recovery_state": "NoKnownInterruption",
+            "recovered_start_tick": null,
+            "recovery_confirmed_at_tick": null,
+            "recovery_time_ticks": null,
+            "unknown_after_first_degradation_ticks": 0,
+            "last_known_degradation_end_tick": null,
+            "recovery_start_lower_exclusive_tick": null,
+            "recovery_start_upper_inclusive_tick": null,
+            "recovery_timing_precision": "not_applicable",
+            "recovery_time_lower_exclusive_ticks": null,
+            "recovery_time_upper_inclusive_ticks": null
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "CR-009",
+      "description": "A receipt with a mismatched subject digest becomes unknown.",
+      "input": {
+        "scope_digest": "city-morph-scope:synthetic-v0.1",
+        "evidence_state": "synthetic_current",
+        "recovery_confirmation_ticks": 2,
+        "requirements": [
+          {
+            "requirement_id": "clinic",
+            "group_id": "district-residents",
+            "service_category": "health"
+          }
+        ],
+        "phases": [
+          {
+            "phase_id": "p0",
+            "start_tick": 0,
+            "end_tick": 4,
+            "event_ids": [],
+            "access_receipts": [
+              {
+                "requirement_id": "clinic",
+                "outcome": "Adequate",
+                "evidence_state": "synthetic_current",
+                "source_owner": "sol-atlas",
+                "source_contract": "CITY-MORPH-ACCESS-001",
+                "source_revision": "fixture-v0.1",
+                "source_receipt_id": "synthetic:p0:clinic",
+                "scenario_id": "CR-009",
+                "source_subject_digest": "synthetic-subject:wrong-case",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
+              }
+            ]
+          }
+        ],
+        "expected_source_revision": "fixture-v0.1"
+      },
+      "expected": {
+        "case_id": "CR-009",
+        "disposition": "Evaluated",
+        "reason_codes": [],
+        "requirements": [
+          {
+            "requirement_id": "clinic",
+            "group_id": "district-residents",
+            "service_category": "health",
+            "horizon_start_tick": 0,
+            "horizon_end_tick": 4,
+            "total_ticks": 4,
+            "adequate_ticks": 0,
+            "constrained_ticks": 0,
+            "inaccessible_ticks": 0,
+            "unknown_ticks": 4,
+            "max_contiguous_degraded_ticks": 0,
+            "first_degradation_tick": null,
+            "recovery_state": "NoKnownInterruption",
+            "recovered_start_tick": null,
+            "recovery_confirmed_at_tick": null,
+            "recovery_time_ticks": null,
+            "unknown_after_first_degradation_ticks": 0,
+            "last_known_degradation_end_tick": null,
+            "recovery_start_lower_exclusive_tick": null,
+            "recovery_start_upper_inclusive_tick": null,
+            "recovery_timing_precision": "not_applicable",
+            "recovery_time_lower_exclusive_ticks": null,
+            "recovery_time_upper_inclusive_ticks": null
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "CR-010",
+      "description": "Duplicate requirement identities are unsupported.",
+      "input": {
+        "scope_digest": "city-morph-scope:synthetic-v0.1",
+        "evidence_state": "synthetic_current",
+        "recovery_confirmation_ticks": 2,
+        "requirements": [
+          {
+            "requirement_id": "clinic",
+            "group_id": "district-residents",
+            "service_category": "health"
+          },
+          {
+            "requirement_id": "clinic",
+            "group_id": "district-residents",
+            "service_category": "health"
+          }
+        ],
+        "phases": [
+          {
+            "phase_id": "p0",
+            "start_tick": 0,
+            "end_tick": 3,
+            "event_ids": [],
+            "access_receipts": [
+              {
+                "requirement_id": "clinic",
+                "outcome": "Adequate",
+                "evidence_state": "synthetic_current",
+                "source_owner": "sol-atlas",
+                "source_contract": "CITY-MORPH-ACCESS-001",
+                "source_revision": "fixture-v0.1",
+                "source_receipt_id": "synthetic:p0:clinic",
+                "scenario_id": "CR-010",
+                "source_subject_digest": "synthetic-subject:CR-010:p0:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
+              }
+            ]
+          }
+        ],
+        "expected_source_revision": "fixture-v0.1"
+      },
+      "expected": {
+        "case_id": "CR-010",
+        "disposition": "Unsupported",
+        "reason_codes": [
+          "DUPLICATE_OR_MISSING_REQUIREMENT_ID"
+        ],
+        "requirements": []
+      }
+    },
+    {
+      "case_id": "CR-011",
+      "description": "Duplicate phase identities are unsupported.",
+      "input": {
+        "scope_digest": "city-morph-scope:synthetic-v0.1",
+        "evidence_state": "synthetic_current",
+        "recovery_confirmation_ticks": 2,
+        "requirements": [
+          {
+            "requirement_id": "clinic",
+            "group_id": "district-residents",
+            "service_category": "health"
+          }
+        ],
+        "phases": [
+          {
+            "phase_id": "p0",
+            "start_tick": 0,
+            "end_tick": 1,
+            "event_ids": [],
+            "access_receipts": [
+              {
+                "requirement_id": "clinic",
+                "outcome": "Adequate",
+                "evidence_state": "synthetic_current",
+                "source_owner": "sol-atlas",
+                "source_contract": "CITY-MORPH-ACCESS-001",
+                "source_revision": "fixture-v0.1",
+                "source_receipt_id": "synthetic:p0:clinic",
+                "scenario_id": "CR-011",
+                "source_subject_digest": "synthetic-subject:CR-011:p0:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
+              }
+            ]
+          },
+          {
+            "phase_id": "p0",
+            "start_tick": 1,
+            "end_tick": 3,
+            "event_ids": [],
+            "access_receipts": [
+              {
+                "requirement_id": "clinic",
+                "outcome": "Adequate",
+                "evidence_state": "synthetic_current",
+                "source_owner": "sol-atlas",
+                "source_contract": "CITY-MORPH-ACCESS-001",
+                "source_revision": "fixture-v0.1",
+                "source_receipt_id": "synthetic:CR-011:p0:clinic:second-observation",
+                "scenario_id": "CR-011",
+                "source_subject_digest": "synthetic-subject:CR-011:p0:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
+              }
+            ]
+          }
+        ],
+        "expected_source_revision": "fixture-v0.1"
+      },
+      "expected": {
+        "case_id": "CR-011",
+        "disposition": "Unsupported",
+        "reason_codes": [
+          "DUPLICATE_OR_MISSING_PHASE_ID"
+        ],
+        "requirements": []
+      }
+    },
+    {
+      "case_id": "CR-012",
+      "description": "Overlapping phase intervals are unsupported.",
+      "input": {
+        "scope_digest": "city-morph-scope:synthetic-v0.1",
+        "evidence_state": "synthetic_current",
+        "recovery_confirmation_ticks": 2,
+        "requirements": [
+          {
+            "requirement_id": "clinic",
+            "group_id": "district-residents",
+            "service_category": "health"
+          }
+        ],
+        "phases": [
+          {
+            "phase_id": "p0",
+            "start_tick": 0,
+            "end_tick": 3,
+            "event_ids": [],
+            "access_receipts": [
+              {
+                "requirement_id": "clinic",
+                "outcome": "Adequate",
+                "evidence_state": "synthetic_current",
+                "source_owner": "sol-atlas",
+                "source_contract": "CITY-MORPH-ACCESS-001",
+                "source_revision": "fixture-v0.1",
+                "source_receipt_id": "synthetic:p0:clinic",
+                "scenario_id": "CR-012",
+                "source_subject_digest": "synthetic-subject:CR-012:p0:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
+              }
+            ]
+          },
+          {
+            "phase_id": "p1",
+            "start_tick": 2,
+            "end_tick": 4,
+            "event_ids": [],
+            "access_receipts": [
+              {
+                "requirement_id": "clinic",
+                "outcome": "Inaccessible",
+                "evidence_state": "synthetic_current",
+                "source_owner": "sol-atlas",
+                "source_contract": "CITY-MORPH-ACCESS-001",
+                "source_revision": "fixture-v0.1",
+                "source_receipt_id": "synthetic:p1:clinic",
+                "scenario_id": "CR-012",
+                "source_subject_digest": "synthetic-subject:CR-012:p1:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
+              }
+            ]
+          }
+        ],
+        "expected_source_revision": "fixture-v0.1"
+      },
+      "expected": {
+        "case_id": "CR-012",
+        "disposition": "Unsupported",
+        "reason_codes": [
+          "PHASE_INTERVAL_OVERLAP"
+        ],
+        "requirements": []
+      }
+    },
+    {
+      "case_id": "CR-013",
+      "description": "A missing tick between phases is unsupported.",
+      "input": {
+        "scope_digest": "city-morph-scope:synthetic-v0.1",
+        "evidence_state": "synthetic_current",
+        "recovery_confirmation_ticks": 2,
+        "requirements": [
+          {
+            "requirement_id": "clinic",
+            "group_id": "district-residents",
+            "service_category": "health"
+          }
+        ],
+        "phases": [
+          {
+            "phase_id": "p0",
+            "start_tick": 0,
+            "end_tick": 2,
+            "event_ids": [],
+            "access_receipts": [
+              {
+                "requirement_id": "clinic",
+                "outcome": "Adequate",
+                "evidence_state": "synthetic_current",
+                "source_owner": "sol-atlas",
+                "source_contract": "CITY-MORPH-ACCESS-001",
+                "source_revision": "fixture-v0.1",
+                "source_receipt_id": "synthetic:p0:clinic",
+                "scenario_id": "CR-013",
+                "source_subject_digest": "synthetic-subject:CR-013:p0:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
+              }
+            ]
+          },
+          {
+            "phase_id": "p1",
+            "start_tick": 3,
+            "end_tick": 4,
+            "event_ids": [],
+            "access_receipts": [
+              {
+                "requirement_id": "clinic",
+                "outcome": "Adequate",
+                "evidence_state": "synthetic_current",
+                "source_owner": "sol-atlas",
+                "source_contract": "CITY-MORPH-ACCESS-001",
+                "source_revision": "fixture-v0.1",
+                "source_receipt_id": "synthetic:p1:clinic",
+                "scenario_id": "CR-013",
+                "source_subject_digest": "synthetic-subject:CR-013:p1:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
+              }
+            ]
+          }
+        ],
+        "expected_source_revision": "fixture-v0.1"
+      },
+      "expected": {
+        "case_id": "CR-013",
+        "disposition": "Unsupported",
+        "reason_codes": [
+          "PHASE_TIMELINE_GAP"
+        ],
+        "requirements": []
+      }
+    },
+    {
+      "case_id": "CR-014",
+      "description": "Zero-duration phases are unsupported.",
+      "input": {
+        "scope_digest": "city-morph-scope:synthetic-v0.1",
+        "evidence_state": "synthetic_current",
+        "recovery_confirmation_ticks": 2,
+        "requirements": [
+          {
+            "requirement_id": "clinic",
+            "group_id": "district-residents",
+            "service_category": "health"
+          }
+        ],
+        "phases": [
+          {
+            "phase_id": "p0",
+            "start_tick": 0,
+            "end_tick": 0,
+            "event_ids": [],
+            "access_receipts": [
+              {
+                "requirement_id": "clinic",
+                "outcome": "Adequate",
+                "evidence_state": "synthetic_current",
+                "source_owner": "sol-atlas",
+                "source_contract": "CITY-MORPH-ACCESS-001",
+                "source_revision": "fixture-v0.1",
+                "source_receipt_id": "synthetic:p0:clinic",
+                "scenario_id": "CR-014",
+                "source_subject_digest": "synthetic-subject:CR-014:p0:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
+              }
+            ]
+          }
+        ],
+        "expected_source_revision": "fixture-v0.1"
+      },
+      "expected": {
+        "case_id": "CR-014",
+        "disposition": "Unsupported",
+        "reason_codes": [
+          "PHASE_INTERVAL_INVALID"
+        ],
+        "requirements": []
+      }
+    },
+    {
+      "case_id": "CR-015",
+      "description": "Every requirement must have exactly one owner access receipt in every phase.",
+      "input": {
+        "scope_digest": "city-morph-scope:synthetic-v0.1",
+        "evidence_state": "synthetic_current",
+        "recovery_confirmation_ticks": 2,
+        "requirements": [
+          {
+            "requirement_id": "clinic",
+            "group_id": "district-residents",
+            "service_category": "health"
+          },
+          {
+            "requirement_id": "school",
+            "group_id": "school-age-households",
+            "service_category": "education"
+          }
+        ],
+        "phases": [
+          {
+            "phase_id": "p0",
+            "start_tick": 0,
+            "end_tick": 3,
+            "event_ids": [],
+            "access_receipts": [
+              {
+                "requirement_id": "clinic",
+                "outcome": "Adequate",
+                "evidence_state": "synthetic_current",
+                "source_owner": "sol-atlas",
+                "source_contract": "CITY-MORPH-ACCESS-001",
+                "source_revision": "fixture-v0.1",
+                "source_receipt_id": "synthetic:p0:clinic",
+                "scenario_id": "CR-015",
+                "source_subject_digest": "synthetic-subject:CR-015:p0:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
+              }
+            ]
+          }
+        ],
+        "expected_source_revision": "fixture-v0.1"
+      },
+      "expected": {
+        "case_id": "CR-015",
+        "disposition": "Unsupported",
+        "reason_codes": [
+          "PHASE_REQUIREMENT_RECEIPT_MISSING"
+        ],
+        "requirements": []
+      }
+    },
+    {
+      "case_id": "CR-016",
+      "description": "Duplicate requirement observations in one phase are unsupported.",
+      "input": {
+        "scope_digest": "city-morph-scope:synthetic-v0.1",
+        "evidence_state": "synthetic_current",
+        "recovery_confirmation_ticks": 2,
+        "requirements": [
+          {
+            "requirement_id": "clinic",
+            "group_id": "district-residents",
+            "service_category": "health"
+          }
+        ],
+        "phases": [
+          {
+            "phase_id": "p0",
+            "start_tick": 0,
+            "end_tick": 3,
+            "event_ids": [],
+            "access_receipts": [
+              {
+                "requirement_id": "clinic",
+                "outcome": "Adequate",
+                "evidence_state": "synthetic_current",
+                "source_owner": "sol-atlas",
+                "source_contract": "CITY-MORPH-ACCESS-001",
+                "source_revision": "fixture-v0.1",
+                "source_receipt_id": "synthetic:p0:clinic",
+                "scenario_id": "CR-016",
+                "source_subject_digest": "synthetic-subject:CR-016:p0:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
+              },
+              {
+                "requirement_id": "clinic",
+                "outcome": "Adequate",
+                "evidence_state": "synthetic_current",
+                "source_owner": "sol-atlas",
+                "source_contract": "CITY-MORPH-ACCESS-001",
+                "source_revision": "fixture-v0.1",
+                "source_receipt_id": "synthetic:p0:clinic",
+                "scenario_id": "CR-016",
+                "source_subject_digest": "synthetic-subject:CR-016:p0:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
+              }
+            ]
+          }
+        ],
+        "expected_source_revision": "fixture-v0.1"
+      },
+      "expected": {
+        "case_id": "CR-016",
+        "disposition": "Unsupported",
+        "reason_codes": [
+          "DUPLICATE_PHASE_REQUIREMENT_RECEIPT",
+          "DUPLICATE_SOURCE_RECEIPT_ID"
+        ],
+        "requirements": []
+      }
+    },
+    {
+      "case_id": "CR-017",
+      "description": "Phase input ordering does not change time-normalized continuity results.",
+      "input": {
+        "scope_digest": "city-morph-scope:synthetic-v0.1",
+        "evidence_state": "synthetic_current",
+        "recovery_confirmation_ticks": 2,
+        "requirements": [
+          {
+            "requirement_id": "clinic",
+            "group_id": "district-residents",
+            "service_category": "health"
+          }
+        ],
+        "phases": [
+          {
+            "phase_id": "p2",
+            "start_tick": 5,
+            "end_tick": 8,
+            "event_ids": [],
+            "access_receipts": [
+              {
+                "requirement_id": "clinic",
+                "outcome": "Adequate",
+                "evidence_state": "synthetic_current",
+                "source_owner": "sol-atlas",
+                "source_contract": "CITY-MORPH-ACCESS-001",
+                "source_revision": "fixture-v0.1",
+                "source_receipt_id": "synthetic:p2:clinic",
+                "scenario_id": "CR-017",
+                "source_subject_digest": "synthetic-subject:CR-017:p2:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
+              }
+            ]
+          },
+          {
+            "phase_id": "p0",
+            "start_tick": 0,
+            "end_tick": 2,
+            "event_ids": [],
+            "access_receipts": [
+              {
+                "requirement_id": "clinic",
+                "outcome": "Adequate",
+                "evidence_state": "synthetic_current",
+                "source_owner": "sol-atlas",
+                "source_contract": "CITY-MORPH-ACCESS-001",
+                "source_revision": "fixture-v0.1",
+                "source_receipt_id": "synthetic:p0:clinic",
+                "scenario_id": "CR-017",
+                "source_subject_digest": "synthetic-subject:CR-017:p0:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
+              }
+            ]
+          },
+          {
+            "phase_id": "p1",
+            "start_tick": 2,
+            "end_tick": 5,
+            "event_ids": [],
+            "access_receipts": [
+              {
+                "requirement_id": "clinic",
+                "outcome": "Inaccessible",
+                "evidence_state": "synthetic_current",
+                "source_owner": "sol-atlas",
+                "source_contract": "CITY-MORPH-ACCESS-001",
+                "source_revision": "fixture-v0.1",
+                "source_receipt_id": "synthetic:p1:clinic",
+                "scenario_id": "CR-017",
+                "source_subject_digest": "synthetic-subject:CR-017:p1:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
+              }
+            ]
+          }
+        ],
+        "expected_source_revision": "fixture-v0.1"
+      },
+      "expected": {
+        "case_id": "CR-017",
+        "disposition": "Evaluated",
+        "reason_codes": [],
+        "requirements": [
+          {
+            "requirement_id": "clinic",
+            "group_id": "district-residents",
+            "service_category": "health",
+            "horizon_start_tick": 0,
+            "horizon_end_tick": 8,
+            "total_ticks": 8,
+            "adequate_ticks": 5,
+            "constrained_ticks": 0,
+            "inaccessible_ticks": 3,
+            "unknown_ticks": 0,
+            "max_contiguous_degraded_ticks": 3,
+            "first_degradation_tick": 2,
+            "recovery_state": "Recovered",
+            "recovered_start_tick": 5,
+            "recovery_confirmed_at_tick": 7,
+            "recovery_time_ticks": 3,
+            "unknown_after_first_degradation_ticks": 0,
+            "last_known_degradation_end_tick": 5,
+            "recovery_start_lower_exclusive_tick": 5,
+            "recovery_start_upper_inclusive_tick": 5,
+            "recovery_timing_precision": "exact",
+            "recovery_time_lower_exclusive_ticks": 3,
+            "recovery_time_upper_inclusive_ticks": 3
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "CR-018",
+      "description": "A common-cause event is recorded without inventing event probability.",
+      "input": {
+        "scope_digest": "city-morph-scope:synthetic-v0.1",
+        "evidence_state": "synthetic_current",
+        "recovery_confirmation_ticks": 2,
+        "requirements": [
+          {
+            "requirement_id": "clinic",
+            "group_id": "group-a",
+            "service_category": "health"
+          },
+          {
+            "requirement_id": "water",
+            "group_id": "group-b",
+            "service_category": "water"
+          }
+        ],
+        "phases": [
+          {
+            "phase_id": "p0",
+            "start_tick": 0,
+            "end_tick": 2,
+            "event_ids": [],
+            "access_receipts": [
+              {
+                "requirement_id": "clinic",
+                "outcome": "Adequate",
+                "evidence_state": "synthetic_current",
+                "source_owner": "sol-atlas",
+                "source_contract": "CITY-MORPH-ACCESS-001",
+                "source_revision": "fixture-v0.1",
+                "source_receipt_id": "synthetic:p0:clinic",
+                "scenario_id": "CR-018",
+                "source_subject_digest": "synthetic-subject:CR-018:p0:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
+              },
+              {
+                "requirement_id": "water",
+                "outcome": "Adequate",
+                "evidence_state": "synthetic_current",
+                "source_owner": "sol-atlas",
+                "source_contract": "CITY-MORPH-ACCESS-001",
+                "source_revision": "fixture-v0.1",
+                "source_receipt_id": "synthetic:p0:water",
+                "scenario_id": "CR-018",
+                "source_subject_digest": "synthetic-subject:CR-018:p0:water",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
+              }
+            ]
+          },
+          {
+            "phase_id": "p1",
+            "start_tick": 2,
+            "end_tick": 6,
+            "event_ids": [
+              "shared-power-event"
+            ],
+            "access_receipts": [
+              {
+                "requirement_id": "clinic",
+                "outcome": "Inaccessible",
+                "evidence_state": "synthetic_current",
+                "source_owner": "sol-atlas",
+                "source_contract": "CITY-MORPH-ACCESS-001",
+                "source_revision": "fixture-v0.1",
+                "source_receipt_id": "synthetic:p1:clinic",
+                "scenario_id": "CR-018",
+                "source_subject_digest": "synthetic-subject:CR-018:p1:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
+              },
+              {
+                "requirement_id": "water",
+                "outcome": "Inaccessible",
+                "evidence_state": "synthetic_current",
+                "source_owner": "sol-atlas",
+                "source_contract": "CITY-MORPH-ACCESS-001",
+                "source_revision": "fixture-v0.1",
+                "source_receipt_id": "synthetic:p1:water",
+                "scenario_id": "CR-018",
+                "source_subject_digest": "synthetic-subject:CR-018:p1:water",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
+              }
+            ]
+          },
+          {
+            "phase_id": "p2",
+            "start_tick": 6,
+            "end_tick": 9,
+            "event_ids": [],
+            "access_receipts": [
+              {
+                "requirement_id": "clinic",
+                "outcome": "Adequate",
+                "evidence_state": "synthetic_current",
+                "source_owner": "sol-atlas",
+                "source_contract": "CITY-MORPH-ACCESS-001",
+                "source_revision": "fixture-v0.1",
+                "source_receipt_id": "synthetic:p2:clinic",
+                "scenario_id": "CR-018",
+                "source_subject_digest": "synthetic-subject:CR-018:p2:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
+              },
+              {
+                "requirement_id": "water",
+                "outcome": "Adequate",
+                "evidence_state": "synthetic_current",
+                "source_owner": "sol-atlas",
+                "source_contract": "CITY-MORPH-ACCESS-001",
+                "source_revision": "fixture-v0.1",
+                "source_receipt_id": "synthetic:p2:water",
+                "scenario_id": "CR-018",
+                "source_subject_digest": "synthetic-subject:CR-018:p2:water",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
+              }
+            ]
+          }
+        ],
+        "expected_source_revision": "fixture-v0.1"
+      },
+      "expected": {
+        "case_id": "CR-018",
+        "disposition": "Evaluated",
+        "reason_codes": [],
+        "requirements": [
+          {
+            "requirement_id": "clinic",
+            "group_id": "group-a",
+            "service_category": "health",
+            "horizon_start_tick": 0,
+            "horizon_end_tick": 9,
+            "total_ticks": 9,
+            "adequate_ticks": 5,
+            "constrained_ticks": 0,
+            "inaccessible_ticks": 4,
+            "unknown_ticks": 0,
+            "max_contiguous_degraded_ticks": 4,
+            "first_degradation_tick": 2,
+            "recovery_state": "Recovered",
+            "recovered_start_tick": 6,
+            "recovery_confirmed_at_tick": 8,
+            "recovery_time_ticks": 4,
+            "unknown_after_first_degradation_ticks": 0,
+            "last_known_degradation_end_tick": 6,
+            "recovery_start_lower_exclusive_tick": 6,
+            "recovery_start_upper_inclusive_tick": 6,
+            "recovery_timing_precision": "exact",
+            "recovery_time_lower_exclusive_ticks": 4,
+            "recovery_time_upper_inclusive_ticks": 4
+          },
+          {
+            "requirement_id": "water",
+            "group_id": "group-b",
+            "service_category": "water",
+            "horizon_start_tick": 0,
+            "horizon_end_tick": 9,
+            "total_ticks": 9,
+            "adequate_ticks": 5,
+            "constrained_ticks": 0,
+            "inaccessible_ticks": 4,
+            "unknown_ticks": 0,
+            "max_contiguous_degraded_ticks": 4,
+            "first_degradation_tick": 2,
+            "recovery_state": "Recovered",
+            "recovered_start_tick": 6,
+            "recovery_confirmed_at_tick": 8,
+            "recovery_time_ticks": 4,
+            "unknown_after_first_degradation_ticks": 0,
+            "last_known_degradation_end_tick": 6,
+            "recovery_start_lower_exclusive_tick": 6,
+            "recovery_start_upper_inclusive_tick": 6,
+            "recovery_timing_precision": "exact",
+            "recovery_time_lower_exclusive_ticks": 4,
+            "recovery_time_upper_inclusive_ticks": 4
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "CR-019",
+      "description": "Degradation that persists to the horizon is not reported as recovered.",
+      "input": {
+        "scope_digest": "city-morph-scope:synthetic-v0.1",
+        "evidence_state": "synthetic_current",
+        "recovery_confirmation_ticks": 2,
+        "requirements": [
+          {
+            "requirement_id": "clinic",
+            "group_id": "district-residents",
+            "service_category": "health"
+          }
+        ],
+        "phases": [
+          {
+            "phase_id": "p0",
+            "start_tick": 0,
+            "end_tick": 2,
+            "event_ids": [],
+            "access_receipts": [
+              {
+                "requirement_id": "clinic",
+                "outcome": "Adequate",
+                "evidence_state": "synthetic_current",
+                "source_owner": "sol-atlas",
+                "source_contract": "CITY-MORPH-ACCESS-001",
+                "source_revision": "fixture-v0.1",
+                "source_receipt_id": "synthetic:p0:clinic",
+                "scenario_id": "CR-019",
+                "source_subject_digest": "synthetic-subject:CR-019:p0:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
+              }
+            ]
+          },
+          {
+            "phase_id": "p1",
+            "start_tick": 2,
+            "end_tick": 8,
+            "event_ids": [],
+            "access_receipts": [
+              {
+                "requirement_id": "clinic",
+                "outcome": "Inaccessible",
+                "evidence_state": "synthetic_current",
+                "source_owner": "sol-atlas",
+                "source_contract": "CITY-MORPH-ACCESS-001",
+                "source_revision": "fixture-v0.1",
+                "source_receipt_id": "synthetic:p1:clinic",
+                "scenario_id": "CR-019",
+                "source_subject_digest": "synthetic-subject:CR-019:p1:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
+              }
+            ]
+          }
+        ],
+        "expected_source_revision": "fixture-v0.1"
+      },
+      "expected": {
+        "case_id": "CR-019",
+        "disposition": "Evaluated",
+        "reason_codes": [],
+        "requirements": [
+          {
+            "requirement_id": "clinic",
+            "group_id": "district-residents",
+            "service_category": "health",
+            "horizon_start_tick": 0,
+            "horizon_end_tick": 8,
+            "total_ticks": 8,
+            "adequate_ticks": 2,
+            "constrained_ticks": 0,
+            "inaccessible_ticks": 6,
+            "unknown_ticks": 0,
+            "max_contiguous_degraded_ticks": 6,
+            "first_degradation_tick": 2,
+            "recovery_state": "NotRecovered",
+            "recovered_start_tick": null,
+            "recovery_confirmed_at_tick": null,
+            "recovery_time_ticks": null,
+            "unknown_after_first_degradation_ticks": 0,
+            "last_known_degradation_end_tick": 8,
+            "recovery_start_lower_exclusive_tick": null,
+            "recovery_start_upper_inclusive_tick": null,
+            "recovery_timing_precision": "unresolved",
+            "recovery_time_lower_exclusive_ticks": null,
+            "recovery_time_upper_inclusive_ticks": null
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "CR-020",
+      "description": "Unknown evidence after a known outage leaves recovery unresolved.",
+      "input": {
+        "scope_digest": "city-morph-scope:synthetic-v0.1",
+        "evidence_state": "synthetic_current",
+        "recovery_confirmation_ticks": 2,
+        "requirements": [
+          {
+            "requirement_id": "clinic",
+            "group_id": "district-residents",
+            "service_category": "health"
+          }
+        ],
+        "phases": [
+          {
+            "phase_id": "p0",
+            "start_tick": 0,
+            "end_tick": 2,
+            "event_ids": [],
+            "access_receipts": [
+              {
+                "requirement_id": "clinic",
+                "outcome": "Adequate",
+                "evidence_state": "synthetic_current",
+                "source_owner": "sol-atlas",
+                "source_contract": "CITY-MORPH-ACCESS-001",
+                "source_revision": "fixture-v0.1",
+                "source_receipt_id": "synthetic:p0:clinic",
+                "scenario_id": "CR-020",
+                "source_subject_digest": "synthetic-subject:CR-020:p0:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
+              }
+            ]
+          },
+          {
+            "phase_id": "p1",
+            "start_tick": 2,
+            "end_tick": 4,
+            "event_ids": [],
+            "access_receipts": [
+              {
+                "requirement_id": "clinic",
+                "outcome": "Inaccessible",
+                "evidence_state": "synthetic_current",
+                "source_owner": "sol-atlas",
+                "source_contract": "CITY-MORPH-ACCESS-001",
+                "source_revision": "fixture-v0.1",
+                "source_receipt_id": "synthetic:p1:clinic",
+                "scenario_id": "CR-020",
+                "source_subject_digest": "synthetic-subject:CR-020:p1:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
+              }
+            ]
+          },
+          {
+            "phase_id": "p2",
+            "start_tick": 4,
+            "end_tick": 7,
+            "event_ids": [],
+            "access_receipts": [
+              {
+                "requirement_id": "clinic",
+                "outcome": "Unknown",
+                "evidence_state": "synthetic_current",
+                "source_owner": "sol-atlas",
+                "source_contract": "CITY-MORPH-ACCESS-001",
+                "source_revision": "fixture-v0.1",
+                "source_receipt_id": "synthetic:p2:clinic",
+                "scenario_id": "CR-020",
+                "source_subject_digest": "synthetic-subject:CR-020:p2:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
+              }
+            ]
+          }
+        ],
+        "expected_source_revision": "fixture-v0.1"
+      },
+      "expected": {
+        "case_id": "CR-020",
+        "disposition": "Evaluated",
+        "reason_codes": [],
+        "requirements": [
+          {
+            "requirement_id": "clinic",
+            "group_id": "district-residents",
+            "service_category": "health",
+            "horizon_start_tick": 0,
+            "horizon_end_tick": 7,
+            "total_ticks": 7,
+            "adequate_ticks": 2,
+            "constrained_ticks": 0,
+            "inaccessible_ticks": 2,
+            "unknown_ticks": 3,
+            "max_contiguous_degraded_ticks": 2,
+            "first_degradation_tick": 2,
+            "recovery_state": "RecoveryUnknown",
+            "recovered_start_tick": null,
+            "recovery_confirmed_at_tick": null,
+            "recovery_time_ticks": null,
+            "unknown_after_first_degradation_ticks": 3,
+            "last_known_degradation_end_tick": 4,
+            "recovery_start_lower_exclusive_tick": 4,
+            "recovery_start_upper_inclusive_tick": null,
+            "recovery_timing_precision": "unknown",
+            "recovery_time_lower_exclusive_ticks": 2,
+            "recovery_time_upper_inclusive_ticks": null
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "CR-021",
+      "description": "An adequate run that meets confirmation duration proves recovery.",
+      "input": {
+        "scope_digest": "city-morph-scope:synthetic-v0.1",
+        "evidence_state": "synthetic_current",
+        "recovery_confirmation_ticks": 2,
+        "requirements": [
+          {
+            "requirement_id": "clinic",
+            "group_id": "district-residents",
+            "service_category": "health"
+          }
+        ],
+        "phases": [
+          {
+            "phase_id": "p0",
+            "start_tick": 0,
+            "end_tick": 3,
+            "event_ids": [],
+            "access_receipts": [
+              {
+                "requirement_id": "clinic",
+                "outcome": "Constrained",
+                "evidence_state": "synthetic_current",
+                "source_owner": "sol-atlas",
+                "source_contract": "CITY-MORPH-ACCESS-001",
+                "source_revision": "fixture-v0.1",
+                "source_receipt_id": "synthetic:p0:clinic",
+                "scenario_id": "CR-021",
+                "source_subject_digest": "synthetic-subject:CR-021:p0:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
+              }
+            ]
+          },
+          {
+            "phase_id": "p1",
+            "start_tick": 3,
+            "end_tick": 5,
+            "event_ids": [],
+            "access_receipts": [
+              {
+                "requirement_id": "clinic",
+                "outcome": "Adequate",
+                "evidence_state": "synthetic_current",
+                "source_owner": "sol-atlas",
+                "source_contract": "CITY-MORPH-ACCESS-001",
+                "source_revision": "fixture-v0.1",
+                "source_receipt_id": "synthetic:p1:clinic",
+                "scenario_id": "CR-021",
+                "source_subject_digest": "synthetic-subject:CR-021:p1:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
+              }
+            ]
+          },
+          {
+            "phase_id": "p2",
+            "start_tick": 5,
+            "end_tick": 7,
+            "event_ids": [],
+            "access_receipts": [
+              {
+                "requirement_id": "clinic",
+                "outcome": "Adequate",
+                "evidence_state": "synthetic_current",
+                "source_owner": "sol-atlas",
+                "source_contract": "CITY-MORPH-ACCESS-001",
+                "source_revision": "fixture-v0.1",
+                "source_receipt_id": "synthetic:p2:clinic",
+                "scenario_id": "CR-021",
+                "source_subject_digest": "synthetic-subject:CR-021:p2:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
+              }
+            ]
+          }
+        ],
+        "expected_source_revision": "fixture-v0.1"
+      },
+      "expected": {
+        "case_id": "CR-021",
+        "disposition": "Evaluated",
+        "reason_codes": [],
+        "requirements": [
+          {
+            "requirement_id": "clinic",
+            "group_id": "district-residents",
+            "service_category": "health",
+            "horizon_start_tick": 0,
+            "horizon_end_tick": 7,
+            "total_ticks": 7,
+            "adequate_ticks": 4,
+            "constrained_ticks": 3,
+            "inaccessible_ticks": 0,
+            "unknown_ticks": 0,
+            "max_contiguous_degraded_ticks": 3,
+            "first_degradation_tick": 0,
+            "recovery_state": "Recovered",
+            "recovered_start_tick": 3,
+            "recovery_confirmed_at_tick": 5,
+            "recovery_time_ticks": 3,
+            "unknown_after_first_degradation_ticks": 0,
+            "last_known_degradation_end_tick": 3,
+            "recovery_start_lower_exclusive_tick": 3,
+            "recovery_start_upper_inclusive_tick": 3,
+            "recovery_timing_precision": "exact",
+            "recovery_time_lower_exclusive_ticks": 3,
+            "recovery_time_upper_inclusive_ticks": 3
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "CR-022",
+      "description": "An unknown interruption before a known degraded phase does not erase later recovery measurement.",
+      "input": {
+        "scope_digest": "city-morph-scope:synthetic-v0.1",
+        "evidence_state": "synthetic_current",
+        "recovery_confirmation_ticks": 2,
+        "requirements": [
+          {
+            "requirement_id": "clinic",
+            "group_id": "district-residents",
+            "service_category": "health"
+          }
+        ],
+        "phases": [
+          {
+            "phase_id": "p0",
+            "start_tick": 0,
+            "end_tick": 2,
+            "event_ids": [],
+            "access_receipts": [
+              {
+                "requirement_id": "clinic",
+                "outcome": "Unknown",
+                "evidence_state": "synthetic_current",
+                "source_owner": "sol-atlas",
+                "source_contract": "CITY-MORPH-ACCESS-001",
+                "source_revision": "fixture-v0.1",
+                "source_receipt_id": "synthetic:p0:clinic",
+                "scenario_id": "CR-022",
+                "source_subject_digest": "synthetic-subject:CR-022:p0:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
+              }
+            ]
+          },
+          {
+            "phase_id": "p1",
+            "start_tick": 2,
+            "end_tick": 4,
+            "event_ids": [],
+            "access_receipts": [
+              {
+                "requirement_id": "clinic",
+                "outcome": "Inaccessible",
+                "evidence_state": "synthetic_current",
+                "source_owner": "sol-atlas",
+                "source_contract": "CITY-MORPH-ACCESS-001",
+                "source_revision": "fixture-v0.1",
+                "source_receipt_id": "synthetic:p1:clinic",
+                "scenario_id": "CR-022",
+                "source_subject_digest": "synthetic-subject:CR-022:p1:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
+              }
+            ]
+          },
+          {
+            "phase_id": "p2",
+            "start_tick": 4,
+            "end_tick": 7,
+            "event_ids": [],
+            "access_receipts": [
+              {
+                "requirement_id": "clinic",
+                "outcome": "Adequate",
+                "evidence_state": "synthetic_current",
+                "source_owner": "sol-atlas",
+                "source_contract": "CITY-MORPH-ACCESS-001",
+                "source_revision": "fixture-v0.1",
+                "source_receipt_id": "synthetic:p2:clinic",
+                "scenario_id": "CR-022",
+                "source_subject_digest": "synthetic-subject:CR-022:p2:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
+              }
+            ]
+          }
+        ],
+        "expected_source_revision": "fixture-v0.1"
+      },
+      "expected": {
+        "case_id": "CR-022",
+        "disposition": "Evaluated",
+        "reason_codes": [],
+        "requirements": [
+          {
+            "requirement_id": "clinic",
+            "group_id": "district-residents",
+            "service_category": "health",
+            "horizon_start_tick": 0,
+            "horizon_end_tick": 7,
+            "total_ticks": 7,
+            "adequate_ticks": 3,
+            "constrained_ticks": 0,
+            "inaccessible_ticks": 2,
+            "unknown_ticks": 2,
+            "max_contiguous_degraded_ticks": 2,
+            "first_degradation_tick": 2,
+            "recovery_state": "Recovered",
+            "recovered_start_tick": 4,
+            "recovery_confirmed_at_tick": 6,
+            "recovery_time_ticks": 2,
+            "unknown_after_first_degradation_ticks": 0,
+            "last_known_degradation_end_tick": 4,
+            "recovery_start_lower_exclusive_tick": 4,
+            "recovery_start_upper_inclusive_tick": 4,
+            "recovery_timing_precision": "exact",
+            "recovery_time_lower_exclusive_ticks": 2,
+            "recovery_time_upper_inclusive_ticks": 2
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "CR-023",
+      "description": "An owner receipt from a different contract cannot establish continuity.",
+      "input": {
+        "scope_digest": "city-morph-scope:synthetic-v0.1",
+        "evidence_state": "synthetic_current",
+        "recovery_confirmation_ticks": 2,
+        "requirements": [
+          {
+            "requirement_id": "clinic",
+            "group_id": "district-residents",
+            "service_category": "health"
+          }
+        ],
+        "phases": [
+          {
+            "phase_id": "p0",
+            "start_tick": 0,
+            "end_tick": 4,
+            "event_ids": [],
+            "access_receipts": [
+              {
+                "requirement_id": "clinic",
+                "outcome": "Adequate",
+                "evidence_state": "synthetic_current",
+                "source_owner": "sol-atlas",
+                "source_contract": "OTHER-CONTRACT",
+                "source_revision": "fixture-v0.1",
+                "source_receipt_id": "synthetic:p0:clinic",
+                "scenario_id": "CR-023",
+                "source_subject_digest": "synthetic-subject:CR-023:p0:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
+              }
+            ]
+          }
+        ],
+        "expected_source_revision": "fixture-v0.1"
+      },
+      "expected": {
+        "case_id": "CR-023",
+        "disposition": "Evaluated",
+        "reason_codes": [],
+        "requirements": [
+          {
+            "requirement_id": "clinic",
+            "group_id": "district-residents",
+            "service_category": "health",
+            "horizon_start_tick": 0,
+            "horizon_end_tick": 4,
+            "total_ticks": 4,
+            "adequate_ticks": 0,
+            "constrained_ticks": 0,
+            "inaccessible_ticks": 0,
+            "unknown_ticks": 4,
+            "max_contiguous_degraded_ticks": 0,
+            "first_degradation_tick": null,
+            "recovery_state": "NoKnownInterruption",
+            "recovered_start_tick": null,
+            "recovery_confirmed_at_tick": null,
+            "recovery_time_ticks": null,
+            "unknown_after_first_degradation_ticks": 0,
+            "last_known_degradation_end_tick": null,
+            "recovery_start_lower_exclusive_tick": null,
+            "recovery_start_upper_inclusive_tick": null,
+            "recovery_timing_precision": "not_applicable",
+            "recovery_time_lower_exclusive_ticks": null,
+            "recovery_time_upper_inclusive_ticks": null
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "CR-024",
+      "description": "An owner receipt from a different scenario scope cannot establish continuity.",
+      "input": {
+        "scope_digest": "city-morph-scope:synthetic-v0.1",
+        "evidence_state": "synthetic_current",
+        "recovery_confirmation_ticks": 2,
+        "requirements": [
+          {
+            "requirement_id": "clinic",
+            "group_id": "district-residents",
+            "service_category": "health"
+          }
+        ],
+        "phases": [
+          {
+            "phase_id": "p0",
+            "start_tick": 0,
+            "end_tick": 4,
+            "event_ids": [],
+            "access_receipts": [
+              {
+                "requirement_id": "clinic",
+                "outcome": "Adequate",
+                "evidence_state": "synthetic_current",
+                "source_owner": "sol-atlas",
+                "source_contract": "CITY-MORPH-ACCESS-001",
+                "source_revision": "fixture-v0.1",
+                "source_receipt_id": "synthetic:p0:clinic",
+                "scenario_id": "OTHER-SCENARIO",
+                "source_subject_digest": "synthetic-subject:CR-024:p0:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
+              }
+            ]
+          }
+        ],
+        "expected_source_revision": "fixture-v0.1"
+      },
+      "expected": {
+        "case_id": "CR-024",
+        "disposition": "Evaluated",
+        "reason_codes": [],
+        "requirements": [
+          {
+            "requirement_id": "clinic",
+            "group_id": "district-residents",
+            "service_category": "health",
+            "horizon_start_tick": 0,
+            "horizon_end_tick": 4,
+            "total_ticks": 4,
+            "adequate_ticks": 0,
+            "constrained_ticks": 0,
+            "inaccessible_ticks": 0,
+            "unknown_ticks": 4,
+            "max_contiguous_degraded_ticks": 0,
+            "first_degradation_tick": null,
+            "recovery_state": "NoKnownInterruption",
+            "recovered_start_tick": null,
+            "recovery_confirmed_at_tick": null,
+            "recovery_time_ticks": null,
+            "unknown_after_first_degradation_ticks": 0,
+            "last_known_degradation_end_tick": null,
+            "recovery_start_lower_exclusive_tick": null,
+            "recovery_start_upper_inclusive_tick": null,
+            "recovery_timing_precision": "not_applicable",
+            "recovery_time_lower_exclusive_ticks": null,
+            "recovery_time_upper_inclusive_ticks": null
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "CR-025",
+      "description": "An owner receipt from an unexpected source revision cannot establish known service continuity.",
+      "input": {
+        "scope_digest": "city-morph-scope:synthetic-v0.1",
+        "evidence_state": "synthetic_current",
+        "recovery_confirmation_ticks": 2,
+        "requirements": [
+          {
+            "requirement_id": "clinic",
+            "group_id": "district-residents",
+            "service_category": "health"
+          }
+        ],
+        "phases": [
+          {
+            "phase_id": "p0",
+            "start_tick": 0,
+            "end_tick": 5,
+            "event_ids": [],
+            "access_receipts": [
+              {
+                "requirement_id": "clinic",
+                "outcome": "Adequate",
+                "evidence_state": "synthetic_current",
+                "source_owner": "sol-atlas",
+                "source_contract": "CITY-MORPH-ACCESS-001",
+                "source_revision": "fixture-v0.0",
+                "source_receipt_id": "synthetic:p0:clinic",
+                "scenario_id": "CR-025",
+                "source_subject_digest": "synthetic-subject:CR-025:p0:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
+              }
+            ]
+          }
+        ],
+        "expected_source_revision": "fixture-v0.1"
+      },
+      "expected": {
+        "case_id": "CR-025",
+        "disposition": "Evaluated",
+        "reason_codes": [],
+        "requirements": [
+          {
+            "requirement_id": "clinic",
+            "group_id": "district-residents",
+            "service_category": "health",
+            "horizon_start_tick": 0,
+            "horizon_end_tick": 5,
+            "total_ticks": 5,
+            "adequate_ticks": 0,
+            "constrained_ticks": 0,
+            "inaccessible_ticks": 0,
+            "unknown_ticks": 5,
+            "max_contiguous_degraded_ticks": 0,
+            "first_degradation_tick": null,
+            "recovery_state": "NoKnownInterruption",
+            "recovered_start_tick": null,
+            "recovery_confirmed_at_tick": null,
+            "recovery_time_ticks": null,
+            "unknown_after_first_degradation_ticks": 0,
+            "last_known_degradation_end_tick": null,
+            "recovery_start_lower_exclusive_tick": null,
+            "recovery_start_upper_inclusive_tick": null,
+            "recovery_timing_precision": "not_applicable",
+            "recovery_time_lower_exclusive_ticks": null,
+            "recovery_time_upper_inclusive_ticks": null
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "CR-026",
+      "description": "An owner receipt bound to a different evaluation scope cannot establish known service continuity.",
+      "input": {
+        "scope_digest": "city-morph-scope:synthetic-v0.1",
+        "evidence_state": "synthetic_current",
+        "recovery_confirmation_ticks": 2,
+        "requirements": [
+          {
+            "requirement_id": "clinic",
+            "group_id": "district-residents",
+            "service_category": "health"
+          }
+        ],
+        "phases": [
+          {
+            "phase_id": "p0",
+            "start_tick": 0,
+            "end_tick": 5,
+            "event_ids": [],
+            "access_receipts": [
+              {
+                "requirement_id": "clinic",
+                "outcome": "Adequate",
+                "evidence_state": "synthetic_current",
+                "source_owner": "sol-atlas",
+                "source_contract": "CITY-MORPH-ACCESS-001",
+                "source_revision": "fixture-v0.1",
+                "source_receipt_id": "synthetic:p0:clinic",
+                "scenario_id": "CR-026",
+                "source_subject_digest": "synthetic-subject:CR-026:p0:clinic",
+                "source_scope_digest": "other-scope"
+              }
+            ]
+          }
+        ],
+        "expected_source_revision": "fixture-v0.1"
+      },
+      "expected": {
+        "case_id": "CR-026",
+        "disposition": "Evaluated",
+        "reason_codes": [],
+        "requirements": [
+          {
+            "requirement_id": "clinic",
+            "group_id": "district-residents",
+            "service_category": "health",
+            "horizon_start_tick": 0,
+            "horizon_end_tick": 5,
+            "total_ticks": 5,
+            "adequate_ticks": 0,
+            "constrained_ticks": 0,
+            "inaccessible_ticks": 0,
+            "unknown_ticks": 5,
+            "max_contiguous_degraded_ticks": 0,
+            "first_degradation_tick": null,
+            "recovery_state": "NoKnownInterruption",
+            "recovered_start_tick": null,
+            "recovery_confirmed_at_tick": null,
+            "recovery_time_ticks": null,
+            "unknown_after_first_degradation_ticks": 0,
+            "last_known_degradation_end_tick": null,
+            "recovery_start_lower_exclusive_tick": null,
+            "recovery_start_upper_inclusive_tick": null,
+            "recovery_timing_precision": "not_applicable",
+            "recovery_time_lower_exclusive_ticks": null,
+            "recovery_time_upper_inclusive_ticks": null
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "CR-027",
+      "description": "Unknown evidence before a later known outage does not make that later recovery status unknown.",
+      "input": {
+        "scope_digest": "city-morph-scope:synthetic-v0.1",
+        "evidence_state": "synthetic_current",
+        "recovery_confirmation_ticks": 2,
+        "requirements": [
+          {
+            "requirement_id": "clinic",
+            "group_id": "district-residents",
+            "service_category": "health"
+          }
+        ],
+        "phases": [
+          {
+            "phase_id": "p0",
+            "start_tick": 0,
+            "end_tick": 2,
+            "event_ids": [],
+            "access_receipts": [
+              {
+                "requirement_id": "clinic",
+                "outcome": "Unknown",
+                "evidence_state": "synthetic_current",
+                "source_owner": "sol-atlas",
+                "source_contract": "CITY-MORPH-ACCESS-001",
+                "source_revision": "fixture-v0.1",
+                "source_receipt_id": "synthetic:p0:clinic",
+                "scenario_id": "CR-027",
+                "source_subject_digest": "synthetic-subject:CR-027:p0:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
+              }
+            ]
+          },
+          {
+            "phase_id": "p1",
+            "start_tick": 2,
+            "end_tick": 4,
+            "event_ids": [],
+            "access_receipts": [
+              {
+                "requirement_id": "clinic",
+                "outcome": "Inaccessible",
+                "evidence_state": "synthetic_current",
+                "source_owner": "sol-atlas",
+                "source_contract": "CITY-MORPH-ACCESS-001",
+                "source_revision": "fixture-v0.1",
+                "source_receipt_id": "synthetic:p1:clinic",
+                "scenario_id": "CR-027",
+                "source_subject_digest": "synthetic-subject:CR-027:p1:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
+              }
+            ]
+          },
+          {
+            "phase_id": "p2",
+            "start_tick": 4,
+            "end_tick": 7,
+            "event_ids": [],
+            "access_receipts": [
+              {
+                "requirement_id": "clinic",
+                "outcome": "Constrained",
+                "evidence_state": "synthetic_current",
+                "source_owner": "sol-atlas",
+                "source_contract": "CITY-MORPH-ACCESS-001",
+                "source_revision": "fixture-v0.1",
+                "source_receipt_id": "synthetic:p2:clinic",
+                "scenario_id": "CR-027",
+                "source_subject_digest": "synthetic-subject:CR-027:p2:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
+              }
+            ]
+          }
+        ],
+        "expected_source_revision": "fixture-v0.1"
+      },
+      "expected": {
+        "case_id": "CR-027",
+        "disposition": "Evaluated",
+        "reason_codes": [],
+        "requirements": [
+          {
+            "requirement_id": "clinic",
+            "group_id": "district-residents",
+            "service_category": "health",
+            "horizon_start_tick": 0,
+            "horizon_end_tick": 7,
+            "total_ticks": 7,
+            "adequate_ticks": 0,
+            "constrained_ticks": 3,
+            "inaccessible_ticks": 2,
+            "unknown_ticks": 2,
+            "max_contiguous_degraded_ticks": 5,
+            "first_degradation_tick": 2,
+            "recovery_state": "NotRecovered",
+            "recovered_start_tick": null,
+            "recovery_confirmed_at_tick": null,
+            "recovery_time_ticks": null,
+            "unknown_after_first_degradation_ticks": 0,
+            "last_known_degradation_end_tick": 7,
+            "recovery_start_lower_exclusive_tick": null,
+            "recovery_start_upper_inclusive_tick": null,
+            "recovery_timing_precision": "unresolved",
+            "recovery_time_lower_exclusive_ticks": null,
+            "recovery_time_upper_inclusive_ticks": null
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "CR-028",
+      "description": "A source receipt ID reused across phases is unsupported, not independent phase evidence.",
+      "input": {
+        "scope_digest": "city-morph-scope:synthetic-v0.1",
+        "evidence_state": "synthetic_current",
+        "recovery_confirmation_ticks": 2,
+        "requirements": [
+          {
+            "requirement_id": "clinic",
+            "group_id": "district-residents",
+            "service_category": "health"
+          }
+        ],
+        "phases": [
+          {
+            "phase_id": "p0",
+            "start_tick": 0,
+            "end_tick": 3,
+            "event_ids": [],
+            "access_receipts": [
+              {
+                "requirement_id": "clinic",
+                "outcome": "Adequate",
+                "evidence_state": "synthetic_current",
+                "source_owner": "sol-atlas",
+                "source_contract": "CITY-MORPH-ACCESS-001",
+                "source_revision": "fixture-v0.1",
+                "source_receipt_id": "synthetic:p0:clinic",
+                "scenario_id": "CR-028",
+                "source_subject_digest": "synthetic-subject:CR-028:p0:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
+              }
+            ]
+          },
+          {
+            "phase_id": "p1",
+            "start_tick": 3,
+            "end_tick": 5,
+            "event_ids": [
+              "bridge-closure"
+            ],
+            "access_receipts": [
+              {
+                "requirement_id": "clinic",
+                "outcome": "Inaccessible",
+                "evidence_state": "synthetic_current",
+                "source_owner": "sol-atlas",
+                "source_contract": "CITY-MORPH-ACCESS-001",
+                "source_revision": "fixture-v0.1",
+                "source_receipt_id": "synthetic:p1:clinic",
+                "scenario_id": "CR-028",
+                "source_subject_digest": "synthetic-subject:CR-028:p1:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
+              }
+            ]
+          },
+          {
+            "phase_id": "p2",
+            "start_tick": 5,
+            "end_tick": 8,
+            "event_ids": [],
+            "access_receipts": [
+              {
+                "requirement_id": "clinic",
+                "outcome": "Adequate",
+                "evidence_state": "synthetic_current",
+                "source_owner": "sol-atlas",
+                "source_contract": "CITY-MORPH-ACCESS-001",
+                "source_revision": "fixture-v0.1",
+                "source_receipt_id": "synthetic:p0:clinic",
+                "scenario_id": "CR-028",
+                "source_subject_digest": "synthetic-subject:CR-028:p2:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
+              }
+            ]
+          }
+        ],
+        "expected_source_revision": "fixture-v0.1"
+      },
+      "expected": {
+        "case_id": "CR-028",
+        "disposition": "Unsupported",
+        "reason_codes": [
+          "DUPLICATE_SOURCE_RECEIPT_ID"
+        ],
+        "requirements": []
+      }
+    },
+    {
+      "case_id": "CR-029",
+      "description": "Missing expected owner revision is an unsupported evaluation request.",
+      "input": {
+        "scope_digest": "city-morph-scope:synthetic-v0.1",
+        "evidence_state": "synthetic_current",
+        "recovery_confirmation_ticks": 2,
+        "requirements": [
+          {
+            "requirement_id": "clinic",
+            "group_id": "district-residents",
+            "service_category": "health"
+          }
+        ],
+        "phases": [
+          {
+            "phase_id": "p0",
+            "start_tick": 0,
+            "end_tick": 5,
+            "event_ids": [],
+            "access_receipts": [
+              {
+                "requirement_id": "clinic",
+                "outcome": "Adequate",
+                "evidence_state": "synthetic_current",
+                "source_owner": "sol-atlas",
+                "source_contract": "CITY-MORPH-ACCESS-001",
+                "source_revision": "fixture-v0.1",
+                "source_receipt_id": "synthetic:p0:clinic",
+                "scenario_id": "CR-029",
+                "source_subject_digest": "synthetic-subject:CR-029:p0:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
+              }
+            ]
+          }
+        ]
+      },
+      "expected": {
+        "case_id": "CR-029",
+        "disposition": "Unsupported",
+        "reason_codes": [
+          "EXPECTED_OWNER_SOURCE_REVISION_MISSING"
+        ],
+        "requirements": []
+      }
+    },
+    {
+      "case_id": "CR-030",
+      "description": "A known outage is followed by an unknown interval and then confirmed adequate service; recovery time must be bounded, not reported as an exact point.",
+      "input": {
+        "scope_digest": "city-morph-scope:synthetic-v0.1",
+        "evidence_state": "synthetic_current",
+        "recovery_confirmation_ticks": 2,
+        "requirements": [
+          {
+            "requirement_id": "clinic",
+            "group_id": "district-residents",
+            "service_category": "health"
+          }
+        ],
+        "phases": [
+          {
+            "phase_id": "p0",
+            "start_tick": 0,
+            "end_tick": 3,
+            "event_ids": [],
+            "access_receipts": [
+              {
+                "requirement_id": "clinic",
+                "outcome": "Adequate",
+                "evidence_state": "synthetic_current",
+                "source_owner": "sol-atlas",
+                "source_contract": "CITY-MORPH-ACCESS-001",
+                "source_revision": "fixture-v0.1",
+                "source_receipt_id": "synthetic:CR-030:p0:clinic",
+                "scenario_id": "CR-030",
+                "source_subject_digest": "synthetic-subject:CR-030:p0:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
+              }
+            ]
+          },
+          {
+            "phase_id": "p1",
+            "start_tick": 3,
+            "end_tick": 5,
+            "event_ids": [
+              "bridge-closure"
+            ],
+            "access_receipts": [
+              {
+                "requirement_id": "clinic",
+                "outcome": "Inaccessible",
+                "evidence_state": "synthetic_current",
+                "source_owner": "sol-atlas",
+                "source_contract": "CITY-MORPH-ACCESS-001",
+                "source_revision": "fixture-v0.1",
+                "source_receipt_id": "synthetic:CR-030:p1:clinic",
+                "scenario_id": "CR-030",
+                "source_subject_digest": "synthetic-subject:CR-030:p1:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
+              }
+            ]
+          },
+          {
+            "phase_id": "p2",
+            "start_tick": 5,
+            "end_tick": 7,
+            "event_ids": [],
+            "access_receipts": [
+              {
+                "requirement_id": "clinic",
+                "outcome": "Unknown",
+                "evidence_state": "synthetic_current",
+                "source_owner": "sol-atlas",
+                "source_contract": "CITY-MORPH-ACCESS-001",
+                "source_revision": "fixture-v0.1",
+                "source_receipt_id": "synthetic:CR-030:p2:clinic",
+                "scenario_id": "CR-030",
+                "source_subject_digest": "synthetic-subject:CR-030:p2:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
+              }
+            ]
+          },
+          {
+            "phase_id": "p3",
+            "start_tick": 7,
+            "end_tick": 10,
+            "event_ids": [],
+            "access_receipts": [
+              {
+                "requirement_id": "clinic",
+                "outcome": "Adequate",
+                "evidence_state": "synthetic_current",
+                "source_owner": "sol-atlas",
+                "source_contract": "CITY-MORPH-ACCESS-001",
+                "source_revision": "fixture-v0.1",
+                "source_receipt_id": "synthetic:CR-030:p3:clinic",
+                "scenario_id": "CR-030",
+                "source_subject_digest": "synthetic-subject:CR-030:p3:clinic",
+                "source_scope_digest": "city-morph-scope:synthetic-v0.1"
+              }
+            ]
+          }
+        ],
+        "expected_source_revision": "fixture-v0.1"
+      },
+      "expected": {
+        "case_id": "CR-030",
+        "disposition": "Evaluated",
+        "reason_codes": [],
+        "requirements": [
+          {
+            "requirement_id": "clinic",
+            "group_id": "district-residents",
+            "service_category": "health",
+            "horizon_start_tick": 0,
+            "horizon_end_tick": 10,
+            "total_ticks": 10,
+            "adequate_ticks": 6,
+            "constrained_ticks": 0,
+            "inaccessible_ticks": 2,
+            "unknown_ticks": 2,
+            "unknown_after_first_degradation_ticks": 2,
+            "max_contiguous_degraded_ticks": 2,
+            "first_degradation_tick": 3,
+            "last_known_degradation_end_tick": 5,
+            "recovery_state": "Recovered",
+            "recovered_start_tick": 7,
+            "recovery_start_lower_exclusive_tick": 5,
+            "recovery_start_upper_inclusive_tick": 7,
+            "recovery_timing_precision": "bounded",
+            "recovery_confirmed_at_tick": 9,
+            "recovery_time_ticks": null,
+            "recovery_time_lower_exclusive_ticks": 2,
+            "recovery_time_upper_inclusive_ticks": 4
+          }
+        ]
+      }
+    }
+  ]
+}
