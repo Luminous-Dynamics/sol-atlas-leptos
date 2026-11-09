@@ -367,7 +367,6 @@ fn owner_receipts_bound(input: &Value, reasons: &mut BTreeSet<String>) {
     }
 }
 
-
 fn source_authority_valid(source: &Value) -> bool {
     !source.is_null()
         && text(source, "evidence_state") == "current"
@@ -1210,8 +1209,16 @@ mod tests {
         let reasons = result["reason_codes"]
             .as_array()
             .expect("reason codes are an array");
-        assert!(reasons.iter().any(|reason| reason == "COMMON_SCOPE_NOT_COMPARABLE"));
-        assert!(!reasons.iter().any(|reason| reason == "OWNER_RECEIPT_NOT_BOUND_TO_COMMON_SCOPE"));
+        assert!(
+            reasons
+                .iter()
+                .any(|reason| reason == "COMMON_SCOPE_NOT_COMPARABLE")
+        );
+        assert!(
+            !reasons
+                .iter()
+                .any(|reason| reason == "OWNER_RECEIPT_NOT_BOUND_TO_COMMON_SCOPE")
+        );
     }
 
     #[test]
