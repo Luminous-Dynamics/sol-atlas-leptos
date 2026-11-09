@@ -1134,8 +1134,8 @@ mod tests {
         let receipt = audit_bytes(SCHEMA_BYTES, REGISTRY_BYTES)
             .expect("checked-in schema and source registry must decode");
         assert_eq!(receipt.disposition, "accepted");
-        assert_eq!(receipt.entry_count, 38);
-        assert_eq!(receipt.source_ids.len(), 38);
+        assert_eq!(receipt.entry_count, 45);
+        assert_eq!(receipt.source_ids.len(), 45);
         assert_eq!(receipt.findings.len(), 0);
     }
 
@@ -1165,7 +1165,7 @@ mod tests {
         let receipt = audit_bytes(SCHEMA_BYTES, REGISTRY_BYTES)
             .expect("updated registry should remain structurally valid");
         assert_eq!(receipt.disposition, "accepted");
-        assert_eq!(receipt.entry_count, 38);
+        assert_eq!(receipt.entry_count, 45);
     }
 
     #[test]
@@ -1215,7 +1215,7 @@ mod tests {
         let receipt =
             audit_bytes(SCHEMA_BYTES, REGISTRY_BYTES).expect("updated registry should conform");
         assert_eq!(receipt.disposition, "accepted");
-        assert_eq!(receipt.entry_count, 38);
+        assert_eq!(receipt.entry_count, 45);
     }
 
     #[test]
@@ -1264,7 +1264,7 @@ mod tests {
         let receipt =
             audit_bytes(SCHEMA_BYTES, REGISTRY_BYTES).expect("updated source register conforms");
         assert_eq!(receipt.disposition, "accepted");
-        assert_eq!(receipt.entry_count, 38);
+        assert_eq!(receipt.entry_count, 45);
     }
 
     #[test]
@@ -1285,7 +1285,7 @@ mod tests {
         );
         let receipt = audit_bytes(SCHEMA_BYTES, REGISTRY_BYTES)
             .expect("updated 26-entry source register conforms");
-        assert_eq!(receipt.entry_count, 38);
+        assert_eq!(receipt.entry_count, 45);
         assert_eq!(receipt.disposition, "accepted");
     }
 
@@ -1450,7 +1450,79 @@ mod tests {
         let receipt = audit_bytes(SCHEMA_BYTES, REGISTRY_BYTES)
             .expect("38-entry multimodal energy source register conforms");
         assert_eq!(receipt.disposition, "accepted");
-        assert_eq!(receipt.entry_count, 38);
+        assert_eq!(receipt.entry_count, 45);
+    }
+
+    #[test]
+    fn south_african_mine_water_thermal_sources_preserve_primary_water_service() {
+        let value = parse_registry_value();
+        let entries = value["entries"].as_array().expect("entries array");
+        let find = |id: &str| {
+            entries
+                .iter()
+                .find(|entry| entry["source_id"] == id)
+                .unwrap_or_else(|| panic!("missing source record {id}"))
+        };
+
+        let cgs = find("council-for-geoscience-south-africa-mine-water-management-research");
+        assert_eq!(cgs["evidence_basis"], "government_research_context");
+        assert!(cgs["claim_ceiling"]
+            .as_str()
+            .is_some_and(|claim| claim.contains("does not establish thermal output")));
+
+        let south_africa_brief = find("greencape-south-africa-industrial-heating-decarbonisation-brief-2026");
+        assert_eq!(south_africa_brief["evidence_basis"], "sector_policy_report");
+        assert_eq!(south_africa_brief["availability_state"], "context_only");
+
+        let review = find("mine-water-energy-technical-basics-and-monitoring-review-2025");
+        assert_eq!(review["evidence_basis"], "literature_review");
+        assert!(review["limitations"]
+            .as_array()
+            .expect("mine water limitations")
+            .iter()
+            .any(|item| item.as_str().is_some_and(|text| text.contains("pumping head"))));
+
+        let field_case = find("mine-water-heating-system-operational-lessons-economic-scenarios-2026");
+        assert_eq!(field_case["evidence_basis"], "published_field_observation");
+        assert!(field_case["claim_ceiling"]
+            .as_str()
+            .is_some_and(|claim| claim.contains("not a South African payback estimate")));
+    }
+
+    #[test]
+    fn mine_water_heat_pump_and_storage_pilots_are_not_misrepresented_as_sa_power_plants() {
+        let value = parse_registry_value();
+        let entries = value["entries"].as_array().expect("entries array");
+        let find = |id: &str| {
+            entries
+                .iter()
+                .find(|entry| entry["source_id"] == id)
+                .unwrap_or_else(|| panic!("missing source record {id}"))
+        };
+
+        let pilot = find("freiberg-mine-water-seasonal-thermal-storage-pilot-2026");
+        assert_eq!(pilot["evidence_basis"], "published_field_observation");
+        assert!(pilot["limitations"]
+            .as_array()
+            .expect("pilot limitations")
+            .iter()
+            .any(|item| item.as_str().is_some_and(|text| text.contains("German district"))));
+
+        let csir = find("csir-sanedi-south-africa-industrial-thermal-systems-support");
+        assert_eq!(csir["evidence_basis"], "government_research_context");
+        assert!(csir["limitations"]
+            .as_array()
+            .expect("CSIR limitations")
+            .iter()
+            .any(|item| item.as_str().is_some_and(|text| text.contains("planned"))));
+
+        let hthp = find("high-temperature-heat-pumps-industrial-process-heating-review-2025");
+        assert_eq!(hthp["evidence_basis"], "literature_review");
+
+        let receipt = audit_bytes(SCHEMA_BYTES, REGISTRY_BYTES)
+            .expect("45-entry energy registry conforms");
+        assert_eq!(receipt.disposition, "accepted");
+        assert_eq!(receipt.entry_count, 45);
     }
 
     #[test]
