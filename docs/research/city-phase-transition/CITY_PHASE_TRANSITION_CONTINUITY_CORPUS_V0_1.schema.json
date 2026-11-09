@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/city-phase-transition-continuity-corpus-v0.1.schema.json",
+  "title": "City Phase Transition Continuity Synthetic Corpus v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "corpus_id",
+    "schema_version",
+    "classification",
+    "claim_ceiling",
+    "policy",
+    "source_refs",
+    "cases"
+  ],
+  "properties": {
+    "corpus_id": {
+      "const": "CITY-PHASE-TRANSITION-CONTINUITY-CORPUS-V0.1"
+    },
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "classification": {
+      "const": "synthetic_fixture_only"
+    },
+    "claim_ceiling": {
+      "const": "synthetic_phase_transition_continuity_mechanics_only"
+    },
+    "policy": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source_refs": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "cases": {
+      "type": "array",
+      "minItems": 24,
+      "maxItems": 24,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "case_id",
+          "mutation",
+          "input",
+          "expected"
+        ],
+        "properties": {
+          "case_id": {
+            "type": "string",
+            "pattern": "^PTC-[0-9]{3}$"
+          },
+          "mutation": {
+            "type": "string"
+          },
+          "input": {
+            "type": "object"
+          },
+          "expected": {
+            "type": "object"
+          }
+        }
+      }
+    }
+  }
+}
