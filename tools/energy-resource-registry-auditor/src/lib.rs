@@ -1262,7 +1262,27 @@ mod tests {
         let receipt = audit_bytes(SCHEMA_BYTES, REGISTRY_BYTES)
             .expect("updated source register conforms");
         assert_eq!(receipt.disposition, "accepted");
-        assert_eq!(receipt.entry_count, 25);
+        assert_eq!(receipt.entry_count, 26);
+    }
+
+    #[test]
+    fn parra_pat_prv_experiment_is_not_a_full_scale_field_claim() {
+        let value = parse_registry_value();
+        let entry = value["entries"]
+            .as_array()
+            .expect("entries array")
+            .iter()
+            .find(|entry| entry["source_id"] == "parra-et-al-intelligent-pat-prv-experiment-2018")
+            .expect("Parra PAT/PRV experimental record");
+        assert_eq!(entry["evidence_basis"], "laboratory_measurement");
+        assert_eq!(entry["availability_state"], "context_only");
+        assert!(entry["claim_ceiling"]
+            .as_str()
+            .is_some_and(|claim| claim.contains("not a South African field installation")));
+        let receipt = audit_bytes(SCHEMA_BYTES, REGISTRY_BYTES)
+            .expect("updated 26-entry source register conforms");
+        assert_eq!(receipt.entry_count, 26);
+        assert_eq!(receipt.disposition, "accepted");
     }
 
     #[test]
