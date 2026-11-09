@@ -267,7 +267,7 @@
             "group_id": "district-residents",
             "provider_kind": "predecessor",
             "start_tick": 0,
-            "end_tick": 7,
+            "end_tick": 3,
             "state": "adequate",
             "source_ref": {
               "owner": "sol-atlas",
@@ -300,7 +300,7 @@
             "group_id": "district-residents",
             "provider_kind": "predecessor",
             "start_tick": 0,
-            "end_tick": 7,
+            "end_tick": 3,
             "state": "adequate",
             "source_ref": {
               "owner": "sol-atlas",
@@ -366,33 +366,36 @@
         "case_id": "PTC-002",
         "transition_id": "TR-001",
         "phase_id": "PH-02",
-        "disposition": "transition_ready",
+        "disposition": "insufficient_evidence",
         "service_group_results": [
           {
             "service_id": "potable-water",
             "group_id": "district-residents",
             "cutover_ticks": 4,
-            "adequate_ticks": 4,
+            "adequate_ticks": 0,
             "constrained_ticks": 0,
             "inaccessible_ticks": 0,
-            "unknown_ticks": 0,
-            "gap_ticks": 0
+            "unknown_ticks": 4,
+            "gap_ticks": 4
           },
           {
             "service_id": "sanitation",
             "group_id": "district-residents",
             "cutover_ticks": 4,
-            "adequate_ticks": 4,
+            "adequate_ticks": 0,
             "constrained_ticks": 0,
             "inaccessible_ticks": 0,
-            "unknown_ticks": 0,
-            "gap_ticks": 0
+            "unknown_ticks": 4,
+            "gap_ticks": 4
           }
         ],
         "required_service_group_count": 2,
         "hard_floors_passed": 1,
         "hard_floors_required": 1,
-        "reason_codes": [],
+        "reason_codes": [
+          "SERVICE_COVERAGE_GAP_OR_UNKNOWN:potable-water:district-residents",
+          "SERVICE_COVERAGE_GAP_OR_UNKNOWN:sanitation:district-residents"
+        ],
         "action_authority": "none",
         "claim_ceiling": "synthetic phase-transition continuity mechanics only; not actual service continuity, lawful decanting, professional approval, construction safety or resident wellbeing"
       }
@@ -829,9 +832,9 @@
             "group_id": "district-residents",
             "cutover_ticks": 4,
             "adequate_ticks": 0,
-            "constrained_ticks": 0,
+            "constrained_ticks": 4,
             "inaccessible_ticks": 0,
-            "unknown_ticks": 4,
+            "unknown_ticks": 0,
             "gap_ticks": 4
           },
           {
@@ -849,7 +852,6 @@
         "hard_floors_passed": 1,
         "hard_floors_required": 1,
         "reason_codes": [
-          "SERVICE_COVERAGE_GAP_OR_UNKNOWN:potable-water:district-residents",
           "SUBSTITUTE_CAPACITY_FAILED:potable-water:district-residents"
         ],
         "action_authority": "none",
@@ -1290,9 +1292,9 @@
             "group_id": "district-residents",
             "cutover_ticks": 4,
             "adequate_ticks": 0,
-            "constrained_ticks": 0,
+            "constrained_ticks": 4,
             "inaccessible_ticks": 0,
-            "unknown_ticks": 4,
+            "unknown_ticks": 0,
             "gap_ticks": 4
           },
           {
@@ -1310,7 +1312,6 @@
         "hard_floors_passed": 1,
         "hard_floors_required": 1,
         "reason_codes": [
-          "SERVICE_COVERAGE_GAP_OR_UNKNOWN:potable-water:district-residents",
           "SUBSTITUTE_ACCESSIBILITY_FAILED:potable-water:district-residents"
         ],
         "action_authority": "none",
@@ -1521,9 +1522,9 @@
             "group_id": "district-residents",
             "cutover_ticks": 4,
             "adequate_ticks": 0,
-            "constrained_ticks": 0,
+            "constrained_ticks": 4,
             "inaccessible_ticks": 0,
-            "unknown_ticks": 4,
+            "unknown_ticks": 0,
             "gap_ticks": 4
           },
           {
@@ -1541,7 +1542,6 @@
         "hard_floors_passed": 1,
         "hard_floors_required": 1,
         "reason_codes": [
-          "SERVICE_COVERAGE_GAP_OR_UNKNOWN:potable-water:district-residents",
           "SUBSTITUTE_AFFORDABILITY_FAILED:potable-water:district-residents"
         ],
         "action_authority": "none",
@@ -2159,7 +2159,7 @@
         "hard_floors_passed": 1,
         "hard_floors_required": 1,
         "reason_codes": [
-          "OWNER_RECEIPT_REVOKED_OR_DISPUTED:old-water",
+          "OWNER_RECEIPT_REVOKED_OR_DISPUTED:potable-water:district-residents",
           "SERVICE_COVERAGE_GAP_OR_UNKNOWN:potable-water:district-residents"
         ],
         "action_authority": "none",
@@ -2787,7 +2787,7 @@
             "population_count": 120,
             "relocation_state": "relocated",
             "relocation_mapping_state": "unknown",
-            "relocation_rights_state": "not_applicable"
+            "relocation_rights_state": "authorized"
           }
         ],
         "requirements": [
@@ -2907,7 +2907,7 @@
         "case_id": "PTC-014",
         "transition_id": "TR-001",
         "phase_id": "PH-02",
-        "disposition": "not_authorized",
+        "disposition": "insufficient_evidence",
         "service_group_results": [
           {
             "service_id": "potable-water",
@@ -2934,8 +2934,7 @@
         "hard_floors_passed": 1,
         "hard_floors_required": 1,
         "reason_codes": [
-          "RELOCATION_MAPPING_MISSING:district-residents",
-          "RELOCATION_RIGHTS_NOT_AUTHORIZED:district-residents"
+          "RELOCATION_MAPPING_MISSING:district-residents"
         ],
         "action_authority": "none",
         "claim_ceiling": "synthetic phase-transition continuity mechanics only; not actual service continuity, lawful decanting, professional approval, construction safety or resident wellbeing"
@@ -4525,7 +4524,7 @@
         "case_id": "PTC-022",
         "transition_id": "TR-001",
         "phase_id": "PH-02",
-        "disposition": "transition_ready",
+        "disposition": "invalid",
         "service_group_results": [
           {
             "service_id": "potable-water",
@@ -4551,7 +4550,9 @@
         "required_service_group_count": 2,
         "hard_floors_passed": 1,
         "hard_floors_required": 1,
-        "reason_codes": [],
+        "reason_codes": [
+          "DUPLICATE_INTERVAL_ID"
+        ],
         "action_authority": "none",
         "claim_ceiling": "synthetic phase-transition continuity mechanics only; not actual service continuity, lawful decanting, professional approval, construction safety or resident wellbeing"
       }
