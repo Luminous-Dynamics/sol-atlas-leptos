@@ -215,7 +215,6 @@ fn profile_for<'a>(profiles: &'a Value, record: &Value) -> Option<&'a Value> {
     })
 }
 
-
 fn text<'a>(value: &'a Value, key: &str) -> &'a str {
     value.get(key).and_then(Value::as_str).unwrap_or("")
 }
@@ -225,7 +224,11 @@ fn object<'a>(value: &'a Value, key: &str) -> &'a Value {
 }
 
 fn list<'a>(value: &'a Value, key: &str) -> &'a [Value] {
-    value.get(key).and_then(Value::as_array).map(Vec::as_slice).unwrap_or(&[])
+    value
+        .get(key)
+        .and_then(Value::as_array)
+        .map(Vec::as_slice)
+        .unwrap_or(&[])
 }
 
 fn tick(value: &Value, key: &str) -> Option<u64> {
@@ -327,7 +330,10 @@ fn owner_receipts_bound(input: &Value, reasons: &mut BTreeSet<String>) {
             if physical.get("required").and_then(Value::as_bool) == Some(true) {
                 refs.push(object(physical, "source_ref"));
             }
-            if refs.iter().any(|source| !source_binding_exists(binding, source)) {
+            if refs
+                .iter()
+                .any(|source| !source_binding_exists(binding, source))
+            {
                 add(reasons, "OWNER_RECEIPT_NOT_BOUND_TO_COMMON_SCOPE");
             }
         }
@@ -360,7 +366,11 @@ fn source_authority_valid(source: &Value) -> bool {
 
 fn measured_outcome(input: &Value) -> String {
     let contract = object(input, "service_contract");
-    if contract.get("measurement_required").and_then(Value::as_bool) != Some(true) {
+    if contract
+        .get("measurement_required")
+        .and_then(Value::as_bool)
+        != Some(true)
+    {
         return "NotRequired".to_owned();
     }
     let measurement = object(input, "measurement");
@@ -368,8 +378,7 @@ fn measured_outcome(input: &Value) -> String {
         return "Unknown".to_owned();
     }
     if list(measurement, "metric_results").iter().any(|metric| {
-        text(metric, "threshold_state") != "Pass"
-            || text(metric, "observation_state") != "Current"
+        text(metric, "threshold_state") != "Pass" || text(metric, "observation_state") != "Current"
     }) {
         return "Unknown".to_owned();
     }
@@ -385,7 +394,8 @@ fn recovery_trajectory(input: &Value) -> Value {
     let stable_start = tick(stability, "start_tick");
     let stable_confirmed = tick(stability, "confirmed_tick");
     let delta = |end: Option<u64>, start: Option<u64>| {
-        end.zip(start).and_then(|(end, start)| end.checked_sub(start))
+        end.zip(start)
+            .and_then(|(end, start)| end.checked_sub(start))
     };
     json!({
         "interruption_start_tick": interruption_start,
@@ -466,8 +476,10 @@ fn evaluate_current(input: &Value) -> (String, BTreeSet<String>) {
         add(&mut reasons, "OWNER_EVIDENCE_NOT_CURRENT_AUTHORIZED");
     }
 
-    if !matches!(text(continuity, "evidence_state"), "current" | "revoked" | "disputed")
-        || text(continuity, "evidence_state") == "stale"
+    if !matches!(
+        text(continuity, "evidence_state"),
+        "current" | "revoked" | "disputed"
+    ) || text(continuity, "evidence_state") == "stale"
     {
         add(&mut reasons, "CONTINUITY_EVIDENCE_NOT_CURRENT");
         add(&mut reasons, "OWNER_EVIDENCE_NOT_CURRENT_AUTHORIZED");
@@ -490,10 +502,15 @@ fn evaluate_current(input: &Value) -> (String, BTreeSet<String>) {
     {
         add(&mut reasons, "COMMISSIONING_EVIDENCE_INCOMPLETE");
     }
-    let physical_output_required =
-        contract.get("physical_output_required").and_then(Value::as_bool) == Some(true)
-            || physical.get("required").and_then(Value::as_bool) == Some(true)
-            || intervention.get("accepted_output_required").and_then(Value::as_bool) == Some(true);
+    let physical_output_required = contract
+        .get("physical_output_required")
+        .and_then(Value::as_bool)
+        == Some(true)
+        || physical.get("required").and_then(Value::as_bool) == Some(true)
+        || intervention
+            .get("accepted_output_required")
+            .and_then(Value::as_bool)
+            == Some(true);
     if physical_output_required
         && (text(physical, "state") != "accepted"
             || !source_authority_valid(object(physical, "source_ref")))
@@ -533,7 +550,11 @@ fn evaluate_current(input: &Value) -> (String, BTreeSet<String>) {
         add(&mut reasons, "MANDATORY_SERVICE_FLOOR_FAILED");
     }
 
-    if contract.get("measurement_required").and_then(Value::as_bool) == Some(true) {
+    if contract
+        .get("measurement_required")
+        .and_then(Value::as_bool)
+        == Some(true)
+    {
         let observation = object(measurement, "observation");
         let observation_ref = object(observation, "source_ref");
         let current_cut = object(object(input, "temporal_cuts"), "current");
@@ -567,8 +588,7 @@ fn evaluate_current(input: &Value) -> (String, BTreeSet<String>) {
     let invalid = reasons.iter().any(|reason| {
         matches!(
             reason.as_str(),
-            "CONTINUITY_EVIDENCE_REVOKED_OR_DISPUTED"
-                | "OWNER_EVIDENCE_REVOKED_OR_DISPUTED"
+            "CONTINUITY_EVIDENCE_REVOKED_OR_DISPUTED" | "OWNER_EVIDENCE_REVOKED_OR_DISPUTED"
         )
     });
     let not_restored = reasons.iter().any(|reason| {
@@ -581,8 +601,8 @@ fn evaluate_current(input: &Value) -> (String, BTreeSet<String>) {
                 | "MANDATORY_SERVICE_FLOOR_FAILED"
         )
     });
-    let stable_only = reasons.len() == 1
-        && reasons.contains("STABLE_ADEQUACY_INTERVAL_NOT_ESTABLISHED");
+    let stable_only =
+        reasons.len() == 1 && reasons.contains("STABLE_ADEQUACY_INTERVAL_NOT_ESTABLISHED");
 
     let disposition = if invalid {
         "Invalid"
@@ -672,19 +692,113 @@ pub fn validate_case(case: &Value) -> Vec<String> {
     let input = object(case, "input");
     check_keys(input, "input", INPUT_KEYS, &mut errors);
     for (key, allowed) in [
-        ("service_contract", &["service_id", "service_category", "owner", "contract_id", "revision", "state", "functional_unit", "beneficiary_group", "beneficiary_denominator", "minimum_service_floor", "measurement_required", "stability_policy", "physical_output_required", "source_ref"][..]),
-        ("requested_scope", &["subject_id", "subject_digest", "functional_unit", "group_id", "population_frame", "scenario_id", "common_scope_digest"][..]),
-        ("scope_binding", &["binding_state", "common_scope_digest", "binder_contract_id", "binder_schema_version", "crosswalk_id", "binder_source_commit", "source_bindings"][..]),
-        ("interruption", &["event_id", "state", "start_tick", "end_tick", "source_ref"][..]),
-        ("intervention", &["completed_tick", "accepted_output_required"][..]),
-        ("restoration", &["plan_readiness", "work_execution", "execution_evidence_state", "inspection_state", "inspection_evidence_state", "commissioning_state", "commissioning_evidence_state", "accepted_output_state", "source_ref"][..]),
-        ("continuity", &["state", "recovery_state", "evidence_state", "rights_state", "source_ref", "stable_adequacy", "trajectory"][..]),
-        ("measurement", &["required", "evaluation_state", "source_ref", "metric_results", "observation"][..]),
+        (
+            "service_contract",
+            &[
+                "service_id",
+                "service_category",
+                "owner",
+                "contract_id",
+                "revision",
+                "state",
+                "functional_unit",
+                "beneficiary_group",
+                "beneficiary_denominator",
+                "minimum_service_floor",
+                "measurement_required",
+                "stability_policy",
+                "physical_output_required",
+                "source_ref",
+            ][..],
+        ),
+        (
+            "requested_scope",
+            &[
+                "subject_id",
+                "subject_digest",
+                "functional_unit",
+                "group_id",
+                "population_frame",
+                "scenario_id",
+                "common_scope_digest",
+            ][..],
+        ),
+        (
+            "scope_binding",
+            &[
+                "binding_state",
+                "common_scope_digest",
+                "binder_contract_id",
+                "binder_schema_version",
+                "crosswalk_id",
+                "binder_source_commit",
+                "source_bindings",
+            ][..],
+        ),
+        (
+            "interruption",
+            &["event_id", "state", "start_tick", "end_tick", "source_ref"][..],
+        ),
+        (
+            "intervention",
+            &["completed_tick", "accepted_output_required"][..],
+        ),
+        (
+            "restoration",
+            &[
+                "plan_readiness",
+                "work_execution",
+                "execution_evidence_state",
+                "inspection_state",
+                "inspection_evidence_state",
+                "commissioning_state",
+                "commissioning_evidence_state",
+                "accepted_output_state",
+                "source_ref",
+            ][..],
+        ),
+        (
+            "continuity",
+            &[
+                "state",
+                "recovery_state",
+                "evidence_state",
+                "rights_state",
+                "source_ref",
+                "stable_adequacy",
+                "trajectory",
+            ][..],
+        ),
+        (
+            "measurement",
+            &[
+                "required",
+                "evaluation_state",
+                "source_ref",
+                "metric_results",
+                "observation",
+            ][..],
+        ),
         ("physical_output", &["required", "state", "source_ref"][..]),
-        ("resident_experience", &["requested", "present", "consent_state", "purpose", "authorized_purpose", "disclosure_state"][..]),
+        (
+            "resident_experience",
+            &[
+                "requested",
+                "present",
+                "consent_state",
+                "purpose",
+                "authorized_purpose",
+                "disclosure_state",
+            ][..],
+        ),
         ("temporal_cuts", &["historical", "current"][..]),
     ] {
-        check_keys(object(input, key), &format!("input.{key}"), allowed, &mut errors);
+        check_keys(
+            object(input, key),
+            &format!("input.{key}"),
+            allowed,
+            &mut errors,
+        );
     }
 
     for source in [
@@ -693,7 +807,10 @@ pub fn validate_case(case: &Value) -> Vec<String> {
         object(object(input, "interruption"), "source_ref"),
         object(object(input, "continuity"), "source_ref"),
         object(object(input, "measurement"), "source_ref"),
-        object(object(object(input, "measurement"), "observation"), "source_ref"),
+        object(
+            object(object(input, "measurement"), "observation"),
+            "source_ref",
+        ),
         object(object(input, "physical_output"), "source_ref"),
     ] {
         if !source.is_null() {
@@ -705,7 +822,12 @@ pub fn validate_case(case: &Value) -> Vec<String> {
         check_keys(
             object(object(input, "temporal_cuts"), cut_name),
             &format!("input.temporal_cuts.{cut_name}"),
-            &["valid_tick", "recorded_tick", "registered_tick", "ingested_tick"],
+            &[
+                "valid_tick",
+                "recorded_tick",
+                "registered_tick",
+                "ingested_tick",
+            ],
             &mut errors,
         );
     }
@@ -959,7 +1081,10 @@ mod tests {
         let case = corpus()["cases"][15].clone();
         let result = evaluate_case(&case);
         assert_eq!(result["bridge_disposition"], "NotRestored");
-        assert_eq!(result["reason_codes"], json!(["MANDATORY_SERVICE_FLOOR_FAILED"]));
+        assert_eq!(
+            result["reason_codes"],
+            json!(["MANDATORY_SERVICE_FLOOR_FAILED"])
+        );
     }
 
     #[test]
@@ -1001,9 +1126,18 @@ mod tests {
     fn recovery_trajectory_uses_owner_ticks_without_synthesizing_unmet_demand() {
         let case = corpus()["cases"][0].clone();
         let result = evaluate_case(&case);
-        assert_eq!(result["recovery_trajectory"]["time_to_first_adequate_ticks"], 2);
-        assert_eq!(result["recovery_trajectory"]["time_to_sustained_adequate_ticks"], 4);
+        assert_eq!(
+            result["recovery_trajectory"]["time_to_first_adequate_ticks"],
+            2
+        );
+        assert_eq!(
+            result["recovery_trajectory"]["time_to_sustained_adequate_ticks"],
+            4
+        );
         assert!(result["recovery_trajectory"]["demand_units_unmet"].is_null());
-        assert_eq!(result["recovery_trajectory"]["denominator_state"], "not_established");
+        assert_eq!(
+            result["recovery_trajectory"]["denominator_state"],
+            "not_established"
+        );
     }
 }
