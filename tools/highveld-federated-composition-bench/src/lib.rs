@@ -4,7 +4,7 @@
 //! It does not authenticate source payload bytes or issuers, qualify engineering,
 //! validate a physical article, or establish building/service performance.
 
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 use std::collections::{BTreeSet, HashSet};
 
 pub const CORPUS_ID: &str = "HIGHVELD-FEDERATED-TWIN-COMPOSITION-CORPUS-V0.1";
@@ -14,26 +14,65 @@ pub const PROFILE_ID: &str = "HIGHVELD-FEDERATED-OWNER-PROFILES-V0.1";
 pub const CLAIM_CEILING: &str = "synthetic_federated_composition_mechanics_only";
 
 const ROOT_KEYS: &[&str] = &[
-    "corpus_id", "schema_version", "classification", "purpose", "temporal_model",
-    "composition_default", "claim_ceiling", "cases",
+    "corpus_id",
+    "schema_version",
+    "classification",
+    "purpose",
+    "temporal_model",
+    "composition_default",
+    "claim_ceiling",
+    "cases",
 ];
 const CASE_KEYS: &[&str] = &["case_id", "name", "input", "expected"];
 const INPUT_KEYS: &[&str] = &[
-    "classification", "as_of", "decision", "required_owner_refs", "owner_inventory",
-    "records", "identity_relations", "dependency_edges", "disclosure_request",
-    "building_service_claim", "query_cuts",
+    "classification",
+    "as_of",
+    "decision",
+    "required_owner_refs",
+    "owner_inventory",
+    "records",
+    "identity_relations",
+    "dependency_edges",
+    "disclosure_request",
+    "building_service_claim",
+    "query_cuts",
 ];
 const COMMON_RECORD_FIELDS: &[&str] = &[
-    "record_id", "owner", "owner_native_id", "native_revision", "schema_id",
-    "schema_version", "payload_ref", "payload_sha256", "payload_bytes_state",
-    "issuer_state", "rights_state", "evidence_state", "scope_digest",
-    "functional_unit", "valid_from", "valid_until", "observed_at", "recorded_at",
-    "registered_at", "ingested_at", "source_timezone", "clock_id",
-    "clock_uncertainty_ms", "verifier_id", "verifier_build", "claim_refs",
+    "record_id",
+    "owner",
+    "owner_native_id",
+    "native_revision",
+    "schema_id",
+    "schema_version",
+    "payload_ref",
+    "payload_sha256",
+    "payload_bytes_state",
+    "issuer_state",
+    "rights_state",
+    "evidence_state",
+    "scope_digest",
+    "functional_unit",
+    "valid_from",
+    "valid_until",
+    "observed_at",
+    "recorded_at",
+    "registered_at",
+    "ingested_at",
+    "source_timezone",
+    "clock_id",
+    "clock_uncertainty_ms",
+    "verifier_id",
+    "verifier_build",
+    "claim_refs",
 ];
 const EXPECTED_KEYS: &[&str] = &[
-    "historical_reliance", "current_reliance", "automatic_identity_merges",
-    "disclosure_state", "disclosed_fields", "reason_codes", "claim_ceiling",
+    "historical_reliance",
+    "current_reliance",
+    "automatic_identity_merges",
+    "disclosure_state",
+    "disclosed_fields",
+    "reason_codes",
+    "claim_ceiling",
     "retrospective_historical_assessment",
 ];
 
@@ -42,7 +81,11 @@ fn string<'a>(value: &'a Value, key: &str) -> &'a str {
 }
 
 fn array<'a>(value: &'a Value, key: &str) -> &'a [Value] {
-    value.get(key).and_then(Value::as_array).map(Vec::as_slice).unwrap_or(&[])
+    value
+        .get(key)
+        .and_then(Value::as_array)
+        .map(Vec::as_slice)
+        .unwrap_or(&[])
 }
 
 fn number(value: &Value, key: &str) -> Option<u64> {
@@ -102,7 +145,11 @@ fn check_string_array(value: &Value, key: &str, path: &str, errors: &mut Vec<Str
             continue;
         };
         if item.is_empty() || !seen.insert(item) {
-            push_error(errors, path, &format!("EMPTY_OR_DUPLICATE_ARRAY_ITEM:{key}"));
+            push_error(
+                errors,
+                path,
+                &format!("EMPTY_OR_DUPLICATE_ARRAY_ITEM:{key}"),
+            );
         }
     }
 }
@@ -246,22 +293,39 @@ fn expected_owner_fields(owner: &str) -> Option<&'static [&'static str]> {
     match owner {
         "design" => Some(&["display_name", "design_revision"]),
         "geometry" => Some(&[
-            "display_name", "geometry_digest", "geometry_verification",
-            "coordinate_frame", "units", "ifc_schema", "ids_status", "adapter_state",
+            "display_name",
+            "geometry_digest",
+            "geometry_verification",
+            "coordinate_frame",
+            "units",
+            "ifc_schema",
+            "ids_status",
+            "adapter_state",
         ]),
         "solver" => Some(&[
-            "solver_id", "solver_version", "solver_input_geometry_digest",
-            "convergence_state", "validation_scope", "claim_ceiling",
+            "solver_id",
+            "solver_version",
+            "solver_input_geometry_digest",
+            "convergence_state",
+            "validation_scope",
+            "claim_ceiling",
             "input_bom_revision",
         ]),
         "product" => Some(&["product_id", "bom_revision", "approval_scope"]),
         "provenance" => Some(&[
-            "lot_id", "lot_state", "custody_state", "inspection_state",
-            "event_kind", "target_record_id",
+            "lot_id",
+            "lot_state",
+            "custody_state",
+            "inspection_state",
+            "event_kind",
+            "target_record_id",
         ]),
         "workcell" => Some(&[
-            "work_package_id", "cell_id", "accepted_output_state",
-            "metrology_state", "as_built_geometry_digest",
+            "work_package_id",
+            "cell_id",
+            "accepted_output_state",
+            "metrology_state",
+            "as_built_geometry_digest",
         ]),
         _ => None,
     }
@@ -272,14 +336,28 @@ pub fn validate_profiles(profiles: &Value) -> Vec<String> {
     check_keys(
         profiles,
         "owner_profiles",
-        &["profile_id", "schema_version", "common_required", "profiles"],
-        &["profile_id", "schema_version", "common_required", "profiles"],
+        &[
+            "profile_id",
+            "schema_version",
+            "common_required",
+            "profiles",
+        ],
+        &[
+            "profile_id",
+            "schema_version",
+            "common_required",
+            "profiles",
+        ],
         &mut errors,
     );
     if string(profiles, "profile_id") != PROFILE_ID
         || string(profiles, "schema_version") != "0.1.0"
     {
-        push_error(&mut errors, "owner_profiles", "PROFILE_ID_OR_VERSION_UNSUPPORTED");
+        push_error(
+            &mut errors,
+            "owner_profiles",
+            "PROFILE_ID_OR_VERSION_UNSUPPORTED",
+        );
     }
     check_string_array(profiles, "common_required", "owner_profiles", &mut errors);
     let declared_common = array(profiles, "common_required")
@@ -332,14 +410,23 @@ pub fn validate_profiles(profiles: &Value) -> Vec<String> {
             .iter()
             .filter_map(Value::as_str)
             .collect::<Vec<_>>();
-        if expected_owner_fields(string(profile, "owner"))
-            != Some(actual_fields.as_slice())
-        {
-            push_error(&mut errors, &path, "OWNER_FIELD_ALLOWLIST_DIFFERS_FROM_PINNED_PROFILE");
+        if expected_owner_fields(string(profile, "owner")) != Some(actual_fields.as_slice()) {
+            push_error(
+                &mut errors,
+                &path,
+                "OWNER_FIELD_ALLOWLIST_DIFFERS_FROM_PINNED_PROFILE",
+            );
         }
-        for field in array(profile, "additional_allowed").iter().filter_map(Value::as_str) {
+        for field in array(profile, "additional_allowed")
+            .iter()
+            .filter_map(Value::as_str)
+        {
             if COMMON_RECORD_FIELDS.contains(&field) {
-                push_error(&mut errors, &path, &format!("OWNER_FIELD_REPEATS_COMMON_FIELD:{field}"));
+                push_error(
+                    &mut errors,
+                    &path,
+                    &format!("OWNER_FIELD_REPEATS_COMMON_FIELD:{field}"),
+                );
             }
         }
     }
@@ -360,16 +447,30 @@ fn validate_record(record: &Value, index: usize, profiles: &Value, errors: &mut 
         .iter()
         .map(|value| (*value).to_owned())
         .collect::<Vec<_>>();
-    for field in array(profile, "additional_allowed").iter().filter_map(Value::as_str) {
+    for field in array(profile, "additional_allowed")
+        .iter()
+        .filter_map(Value::as_str)
+    {
         allowed.push(field.to_owned());
     }
     let allowed_refs = allowed.iter().map(String::as_str).collect::<Vec<_>>();
     check_keys(record, &path, &allowed_refs, COMMON_RECORD_FIELDS, errors);
     for field in [
-        "record_id", "owner", "owner_native_id", "native_revision", "schema_id",
-        "schema_version", "payload_ref", "payload_bytes_state", "issuer_state",
-        "rights_state", "evidence_state", "functional_unit", "source_timezone",
-        "clock_id", "verifier_id",
+        "record_id",
+        "owner",
+        "owner_native_id",
+        "native_revision",
+        "schema_id",
+        "schema_version",
+        "payload_ref",
+        "payload_bytes_state",
+        "issuer_state",
+        "rights_state",
+        "evidence_state",
+        "functional_unit",
+        "source_timezone",
+        "clock_id",
+        "verifier_id",
     ] {
         if string(record, field).is_empty() {
             push_error(errors, &path, &format!("EMPTY_RECORD_FIELD:{field}"));
@@ -378,18 +479,38 @@ fn validate_record(record: &Value, index: usize, profiles: &Value, errors: &mut 
     check_sha(record, "payload_sha256", &path, errors);
     check_sha(record, "scope_digest", &path, errors);
     let verifier_build = string(record, "verifier_build");
-    if !verifier_build.strip_prefix("sha256:").is_some_and(|value| is_lower_hex(value, 64)) {
+    if !verifier_build
+        .strip_prefix("sha256:")
+        .is_some_and(|value| is_lower_hex(value, 64))
+    {
         push_error(errors, &path, "INVALID_SHA256:verifier_build");
     }
-    for field in ["valid_from", "observed_at", "recorded_at", "registered_at", "ingested_at"] {
+    for field in [
+        "valid_from",
+        "observed_at",
+        "recorded_at",
+        "registered_at",
+        "ingested_at",
+    ] {
         if number(record, field).is_none() {
-            push_error(errors, &path, &format!("UNSIGNED_TIMESTAMP_REQUIRED:{field}"));
+            push_error(
+                errors,
+                &path,
+                &format!("UNSIGNED_TIMESTAMP_REQUIRED:{field}"),
+            );
         }
     }
-    if !record.get("valid_until").is_some_and(|value| value.is_null() || value.as_u64().is_some()) {
+    if !record
+        .get("valid_until")
+        .is_some_and(|value| value.is_null() || value.as_u64().is_some())
+    {
         push_error(errors, &path, "INVALID_VALID_UNTIL");
     }
-    if record.get("clock_uncertainty_ms").and_then(Value::as_u64).is_none() {
+    if record
+        .get("clock_uncertainty_ms")
+        .and_then(Value::as_u64)
+        .is_none()
+    {
         push_error(errors, &path, "INVALID_CLOCK_UNCERTAINTY");
     }
     check_string_array(record, "claim_refs", &path, errors);
@@ -398,7 +519,11 @@ fn validate_record(record: &Value, index: usize, profiles: &Value, errors: &mut 
 fn validate_time_cut(value: &Value, path: &str, errors: &mut Vec<String>) {
     for key in ["valid_at", "recorded_at", "registered_at", "ingested_at"] {
         if number(value, key).is_none() {
-            push_error(errors, path, &format!("UNSIGNED_TIME_CUTOFF_REQUIRED:{key}"));
+            push_error(
+                errors,
+                path,
+                &format!("UNSIGNED_TIME_CUTOFF_REQUIRED:{key}"),
+            );
         }
     }
     if string(value, "time_basis") != "UTC_UNIX_SECONDS" {
@@ -412,19 +537,48 @@ pub fn validate_case(case: &Value, profiles: &Value) -> Vec<String> {
 
     let input = case.get("input").unwrap_or(&Value::Null);
     check_keys(input, "input", INPUT_KEYS, INPUT_KEYS, &mut errors);
-    for key in ["owner_inventory", "records", "identity_relations", "dependency_edges"] {
+    for key in [
+        "owner_inventory",
+        "records",
+        "identity_relations",
+        "dependency_edges",
+    ] {
         if !input.get(key).is_some_and(Value::is_array) {
             push_error(&mut errors, "input", &format!("ARRAY_REQUIRED:{key}"));
         }
     }
 
-    let as_of_keys = ["valid_at", "recorded_at", "registered_at", "ingested_at", "time_basis"];
-    let decision_keys = [
-        "decision_id", "decided_at", "purpose", "subject_id", "scope_digest",
-        "functional_unit", "claim_id", "claim_type",
+    let as_of_keys = [
+        "valid_at",
+        "recorded_at",
+        "registered_at",
+        "ingested_at",
+        "time_basis",
     ];
-    check_keys(input.get("as_of").unwrap_or(&Value::Null), "input.as_of", &as_of_keys, &as_of_keys, &mut errors);
-    check_keys(input.get("decision").unwrap_or(&Value::Null), "input.decision", &decision_keys, &decision_keys, &mut errors);
+    let decision_keys = [
+        "decision_id",
+        "decided_at",
+        "purpose",
+        "subject_id",
+        "scope_digest",
+        "functional_unit",
+        "claim_id",
+        "claim_type",
+    ];
+    check_keys(
+        input.get("as_of").unwrap_or(&Value::Null),
+        "input.as_of",
+        &as_of_keys,
+        &as_of_keys,
+        &mut errors,
+    );
+    check_keys(
+        input.get("decision").unwrap_or(&Value::Null),
+        "input.decision",
+        &decision_keys,
+        &decision_keys,
+        &mut errors,
+    );
 
     for cut_name in ["as_known_at_decision", "as_known_now"] {
         let cut = input
@@ -456,14 +610,32 @@ pub fn validate_case(case: &Value, profiles: &Value) -> Vec<String> {
     check_keys(
         input.get("disclosure_request").unwrap_or(&Value::Null),
         "input.disclosure_request",
-        &["actor_role", "purpose", "requested_fields", "authorized_fields", "policy_state"],
-        &["actor_role", "purpose", "requested_fields", "authorized_fields", "policy_state"],
+        &[
+            "actor_role",
+            "purpose",
+            "requested_fields",
+            "authorized_fields",
+            "policy_state",
+        ],
+        &[
+            "actor_role",
+            "purpose",
+            "requested_fields",
+            "authorized_fields",
+            "policy_state",
+        ],
         &mut errors,
     );
     check_keys(
         input.get("building_service_claim").unwrap_or(&Value::Null),
         "input.building_service_claim",
-        &["requested", "required_owner_refs", "received_owner_refs", "commissioning_state", "service_state"],
+        &[
+            "requested",
+            "required_owner_refs",
+            "received_owner_refs",
+            "commissioning_state",
+            "service_state",
+        ],
         &["requested", "required_owner_refs"],
         &mut errors,
     );
@@ -495,23 +667,55 @@ pub fn validate_case(case: &Value, profiles: &Value) -> Vec<String> {
             string(record, "native_revision").to_owned(),
         );
         if !record_versions.insert(key) {
-            push_error(&mut errors, &format!("input.records[{index}]"), "DUPLICATE_NATIVE_RECORD_REVISION");
+            push_error(
+                &mut errors,
+                &format!("input.records[{index}]"),
+                "DUPLICATE_NATIVE_RECORD_REVISION",
+            );
         }
     }
     for (index, relation) in array(input, "identity_relations").iter().enumerate() {
         check_keys(
             relation,
             &format!("input.identity_relations[{index}]"),
-            &["owner", "relation", "from_native_id", "to_native_id", "authority_state", "evidence_state", "automatic_merge"],
-            &["owner", "relation", "from_native_id", "to_native_id", "authority_state", "evidence_state", "automatic_merge"],
+            &[
+                "owner",
+                "relation",
+                "from_native_id",
+                "to_native_id",
+                "authority_state",
+                "evidence_state",
+                "automatic_merge",
+            ],
+            &[
+                "owner",
+                "relation",
+                "from_native_id",
+                "to_native_id",
+                "authority_state",
+                "evidence_state",
+                "automatic_merge",
+            ],
             &mut errors,
         );
-        if relation.get("automatic_merge").and_then(Value::as_bool).is_none() {
-            push_error(&mut errors, &format!("input.identity_relations[{index}]"), "AUTOMATIC_MERGE_BOOLEAN_REQUIRED");
+        if relation
+            .get("automatic_merge")
+            .and_then(Value::as_bool)
+            .is_none()
+        {
+            push_error(
+                &mut errors,
+                &format!("input.identity_relations[{index}]"),
+                "AUTOMATIC_MERGE_BOOLEAN_REQUIRED",
+            );
         }
         for key in [
-            "owner", "relation", "from_native_id", "to_native_id",
-            "authority_state", "evidence_state",
+            "owner",
+            "relation",
+            "from_native_id",
+            "to_native_id",
+            "authority_state",
+            "evidence_state",
         ] {
             if string(relation, key).is_empty() {
                 push_error(
@@ -619,7 +823,11 @@ pub fn validate_corpus(corpus: &Value, profiles: &Value) -> Vec<String> {
         || corpus.get("temporal_model")
             != Some(&json!(["valid_at", "recorded_at", "registered_at", "ingested_at"]))
     {
-        push_error(&mut errors, "corpus", "IDENTITY_VERSION_CLASSIFICATION_OR_CLAIM_CEILING_INVALID");
+        push_error(
+            &mut errors,
+            "corpus",
+            "IDENTITY_VERSION_CLASSIFICATION_OR_CLAIM_CEILING_INVALID",
+        );
     }
     if array(corpus, "cases").len() != 18 {
         push_error(&mut errors, "corpus", "UNEXPECTED_CASE_COUNT");
@@ -628,7 +836,11 @@ pub fn validate_corpus(corpus: &Value, profiles: &Value) -> Vec<String> {
     for (index, case) in array(corpus, "cases").iter().enumerate() {
         let case_id = string(case, "case_id");
         if case_id.is_empty() || !case_ids.insert(case_id.to_owned()) {
-            push_error(&mut errors, &format!("cases[{index}]"), "EMPTY_OR_DUPLICATE_CASE_ID");
+            push_error(
+                &mut errors,
+                &format!("cases[{index}]"),
+                "EMPTY_OR_DUPLICATE_CASE_ID",
+            );
         }
         errors.extend(validate_case(case, profiles));
     }
@@ -643,8 +855,16 @@ struct Assessment {
 }
 
 fn cut_visible(record: &Value, cut: &Value) -> bool {
-    let (Some(valid_cut), Some(recorded_cut), Some(registered_cut), Some(ingested_cut),
-         Some(valid_from), Some(recorded_at), Some(registered_at), Some(ingested_at)) = (
+    let (
+        Some(valid_cut),
+        Some(recorded_cut),
+        Some(registered_cut),
+        Some(ingested_cut),
+        Some(valid_from),
+        Some(recorded_at),
+        Some(registered_at),
+        Some(ingested_at),
+    ) = (
         number(cut, "valid_at"),
         number(cut, "recorded_at"),
         number(cut, "registered_at"),
@@ -653,7 +873,8 @@ fn cut_visible(record: &Value, cut: &Value) -> bool {
         number(record, "recorded_at"),
         number(record, "registered_at"),
         number(record, "ingested_at"),
-    ) else {
+    )
+    else {
         return false;
     };
     let valid_until = record.get("valid_until").and_then(Value::as_u64);
@@ -697,7 +918,10 @@ fn assess_at(input: &Value, cut: &Value, profiles: &Value, current: bool) -> Ass
     let required = array(input, "required_owner_refs");
     let inventory = array(input, "owner_inventory");
     let records = array(input, "records");
-    let current_cut = input.get("query_cuts").and_then(|v| v.get("as_known_now")).unwrap_or(cut);
+    let current_cut = input
+        .get("query_cuts")
+        .and_then(|v| v.get("as_known_now"))
+        .unwrap_or(cut);
 
     for owner_value in required {
         let owner = owner_value.as_str().unwrap_or("");
@@ -718,16 +942,20 @@ fn assess_at(input: &Value, cut: &Value, profiles: &Value, current: bool) -> Ass
                     && cut_visible(record, current_cut)
             });
             if !current && visible_later {
-                push_reason(&mut assessment.reasons, "EVIDENCE_NOT_VISIBLE_AT_HISTORICAL_INGESTION_CUT");
+                push_reason(
+                    &mut assessment.reasons,
+                    "EVIDENCE_NOT_VISIBLE_AT_HISTORICAL_INGESTION_CUT",
+                );
             } else {
                 push_reason(&mut assessment.reasons, "MANDATORY_OWNER_EVIDENCE_MISSING");
             }
         }
     }
 
-    for record in records.iter().filter(|record| {
-        string(record, "event_kind").is_empty() && cut_visible(record, cut)
-    }) {
+    for record in records
+        .iter()
+        .filter(|record| string(record, "event_kind").is_empty() && cut_visible(record, cut))
+    {
         if string(record, "scope_digest") != string(decision, "scope_digest") {
             push_reason(&mut assessment.reasons, "SCOPE_MISMATCH");
         }
@@ -760,9 +988,10 @@ fn assess_at(input: &Value, cut: &Value, profiles: &Value, current: bool) -> Ass
         }
     }
 
-    for event in records.iter().filter(|record| {
-        !string(record, "event_kind").is_empty() && cut_visible(record, cut)
-    }) {
+    for event in records
+        .iter()
+        .filter(|record| !string(record, "event_kind").is_empty() && cut_visible(record, cut))
+    {
         match string(event, "event_kind") {
             "revocation" => {
                 let target = string(event, "target_record_id");
@@ -788,25 +1017,33 @@ fn assess_at(input: &Value, cut: &Value, profiles: &Value, current: bool) -> Ass
     }
 
     if current {
-        let geometry_digest = records.iter()
-            .find(|record| string(record, "owner") == "geometry"
-                && string(record, "event_kind").is_empty()
-                && cut_visible(record, cut))
+        let geometry_digest = records
+            .iter()
+            .find(|record| {
+                string(record, "owner") == "geometry"
+                    && string(record, "event_kind").is_empty()
+                    && cut_visible(record, cut)
+            })
             .map(|record| string(record, "geometry_digest"))
             .unwrap_or("");
-        let product_bom = records.iter()
-            .find(|record| string(record, "owner") == "product"
-                && string(record, "event_kind").is_empty()
-                && cut_visible(record, cut))
+        let product_bom = records
+            .iter()
+            .find(|record| {
+                string(record, "owner") == "product"
+                    && string(record, "event_kind").is_empty()
+                    && cut_visible(record, cut)
+            })
             .map(|record| string(record, "bom_revision"))
             .unwrap_or("");
-        let solver = records.iter()
-            .find(|record| string(record, "owner") == "solver"
+        let solver = records.iter().find(|record| {
+            string(record, "owner") == "solver"
                 && string(record, "event_kind").is_empty()
-                && cut_visible(record, cut));
+                && cut_visible(record, cut)
+        });
         if let Some(solver) = solver {
             let solver_geometry = string(solver, "solver_input_geometry_digest");
-            if !geometry_digest.is_empty() && !solver_geometry.is_empty()
+            if !geometry_digest.is_empty()
+                && !solver_geometry.is_empty()
                 && solver_geometry != geometry_digest
             {
                 push_reason(&mut assessment.reasons, "SOLVER_INPUT_DIGEST_MISMATCH");
@@ -820,7 +1057,10 @@ fn assess_at(input: &Value, cut: &Value, profiles: &Value, current: bool) -> Ass
 
     for relation in array(input, "identity_relations") {
         if relation.get("automatic_merge").and_then(Value::as_bool) == Some(true) {
-            push_reason(&mut assessment.reasons, "AUTOMATIC_IDENTITY_MERGE_PROHIBITED");
+            push_reason(
+                &mut assessment.reasons,
+                "AUTOMATIC_IDENTITY_MERGE_PROHIBITED",
+            );
         }
         if string(relation, "authority_state") != "authorized"
             || string(relation, "evidence_state") != "admitted"
@@ -832,13 +1072,23 @@ fn assess_at(input: &Value, cut: &Value, profiles: &Value, current: bool) -> Ass
     let service = input.get("building_service_claim").unwrap_or(&Value::Null);
     if service.get("requested").and_then(Value::as_bool) == Some(true) {
         let received = array(service, "received_owner_refs");
-        let commissioning_received = received.iter().any(|v| v.as_str() == Some("building-commissioning"));
-        let continuity_received = received.iter().any(|v| v.as_str() == Some("continuity-owner"));
+        let commissioning_received = received
+            .iter()
+            .any(|v| v.as_str() == Some("building-commissioning"));
+        let continuity_received = received
+            .iter()
+            .any(|v| v.as_str() == Some("continuity-owner"));
         if string(service, "commissioning_state") != "passed" || !commissioning_received {
-            push_reason(&mut assessment.reasons, "BUILDING_COMMISSIONING_EVIDENCE_MISSING");
+            push_reason(
+                &mut assessment.reasons,
+                "BUILDING_COMMISSIONING_EVIDENCE_MISSING",
+            );
         }
         if string(service, "service_state") != "adequate" || !continuity_received {
-            push_reason(&mut assessment.reasons, "CONTINUITY_SERVICE_EVIDENCE_MISSING");
+            push_reason(
+                &mut assessment.reasons,
+                "CONTINUITY_SERVICE_EVIDENCE_MISSING",
+            );
         }
     }
 
@@ -853,15 +1103,24 @@ fn disclosure_result(input: &Value) -> (String, Vec<String>) {
         .iter()
         .filter_map(Value::as_str)
         .collect::<BTreeSet<_>>();
-    let mut disclosed = requested.iter()
+    let mut disclosed = requested
+        .iter()
         .filter_map(Value::as_str)
         .filter(|field| authorized.contains(field))
         .map(str::to_owned)
         .collect::<Vec<_>>();
     disclosed.sort();
-    let fully_permitted = string(request, "policy_state") == "permitted"
-        && disclosed.len() == requested.len();
-    (if fully_permitted { "permitted" } else { "denied" }.to_owned(), disclosed)
+    let fully_permitted =
+        string(request, "policy_state") == "permitted" && disclosed.len() == requested.len();
+    (
+        if fully_permitted {
+            "permitted"
+        } else {
+            "denied"
+        }
+        .to_owned(),
+        disclosed,
+    )
 }
 
 /// Evaluate owner-native evidence independently at historical and current query cuts.
@@ -876,7 +1135,8 @@ pub fn evaluate_case(input: &Value, profiles: &Value) -> Value {
     let mut reasons = historical.reasons.clone();
     reasons.extend(current.reasons.iter().cloned());
 
-    let decision_at = number(input.get("decision").unwrap_or(&Value::Null), "decided_at").unwrap_or(0);
+    let decision_at =
+        number(input.get("decision").unwrap_or(&Value::Null), "decided_at").unwrap_or(0);
     let backdated_correction = array(input, "records").iter().any(|record| {
         string(record, "event_kind") == "correction"
             && number(record, "valid_from").is_some_and(|valid_from| valid_from <= decision_at)
@@ -906,7 +1166,8 @@ pub fn evaluate_case(input: &Value, profiles: &Value) -> Value {
         current.disposition
     };
 
-    let automatic_merges = array(input, "identity_relations").iter()
+    let automatic_merges = array(input, "identity_relations")
+        .iter()
         .filter(|relation| relation.get("automatic_merge").and_then(Value::as_bool) == Some(true))
         .count();
 
@@ -949,7 +1210,10 @@ mod tests {
     }
 
     fn case(id: &str) -> Value {
-        corpus()["cases"].as_array().unwrap().iter()
+        corpus()["cases"]
+            .as_array()
+            .unwrap()
+            .iter()
             .find(|item| string(item, "case_id") == id)
             .expect("case exists")
             .clone()
@@ -1001,7 +1265,8 @@ mod tests {
     fn hfc_016_keeps_both_native_revisions_and_revocation_history() {
         let profile = profiles();
         let item = case("HFC-016");
-        let versions = array(&item["input"], "records").iter()
+        let versions = array(&item["input"], "records")
+            .iter()
             .filter(|record| string(record, "record_id") == "R-LOT-REVOCATION")
             .count();
         assert_eq!(versions, 2);
@@ -1016,7 +1281,10 @@ mod tests {
         let actual = evaluate_case(&case("HFC-012")["input"], &profile);
         assert_eq!(actual["historical_reliance"], "insufficient_evidence");
         assert_eq!(actual["current_reliance"], "reliable_for_declared_scope");
-        assert_eq!(actual["reason_codes"][0], "EVIDENCE_NOT_VISIBLE_AT_HISTORICAL_INGESTION_CUT");
+        assert_eq!(
+            actual["reason_codes"][0],
+            "EVIDENCE_NOT_VISIBLE_AT_HISTORICAL_INGESTION_CUT"
+        );
     }
 
     #[test]
@@ -1025,7 +1293,10 @@ mod tests {
         let actual = evaluate_case(&case("HFC-010")["input"], &profile);
         assert_eq!(actual["historical_reliance"], "reliable_for_declared_scope");
         assert_eq!(actual["current_reliance"], "revalidation_required");
-        assert_eq!(actual["retrospective_historical_assessment"], "historical_basis_incomplete");
+        assert_eq!(
+            actual["retrospective_historical_assessment"],
+            "historical_basis_incomplete"
+        );
     }
 
     #[test]
@@ -1057,7 +1328,10 @@ mod tests {
         let profile = profiles();
         let actual = evaluate_case(&case("HFC-014")["input"], &profile);
         assert_eq!(actual["current_reliance"], "insufficient_evidence");
-        assert_eq!(actual["reason_codes"], json!(["SOURCE_INVENTORY_INCOMPLETE"]));
+        assert_eq!(
+            actual["reason_codes"],
+            json!(["SOURCE_INVENTORY_INCOMPLETE"])
+        );
     }
 
     #[test]
@@ -1065,10 +1339,13 @@ mod tests {
         let profile = profiles();
         let actual = evaluate_case(&case("HFC-018")["input"], &profile);
         assert_eq!(actual["current_reliance"], "insufficient_evidence");
-        assert_eq!(actual["reason_codes"], json!([
-            "BUILDING_COMMISSIONING_EVIDENCE_MISSING",
-            "CONTINUITY_SERVICE_EVIDENCE_MISSING"
-        ]));
+        assert_eq!(
+            actual["reason_codes"],
+            json!([
+                "BUILDING_COMMISSIONING_EVIDENCE_MISSING",
+                "CONTINUITY_SERVICE_EVIDENCE_MISSING"
+            ])
+        );
     }
 
     #[test]
