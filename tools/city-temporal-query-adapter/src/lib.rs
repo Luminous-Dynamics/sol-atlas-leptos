@@ -149,13 +149,15 @@ fn event_dimensions(
     } else if confidence != "verified" {
         reasons.insert("EVENT_EFFECTIVE_TIME_UNQUALIFIED".to_owned());
         world_state = "unqualified";
+    } else if !valid_utc_timestamp(world_as_of) {
+        world_state = "unknown";
     } else if effective_at > world_as_of {
         reasons.insert("EVENT_NOT_YET_EFFECTIVE".to_owned());
         world_state = "not_yet_effective";
     } else if effective_until.is_some_and(|until| until <= world_as_of) {
         reasons.insert("EVENT_VALID_INTERVAL_EXPIRED".to_owned());
         world_state = "expired";
-    } else if valid_utc_timestamp(world_as_of) {
+    } else {
         world_state = "valid_at_world_time";
     }
 
@@ -187,7 +189,9 @@ fn event_dimensions(
         trust_state = "invalid";
     } else {
         late_arrival = valid_utc_timestamp(effective_at) && recorded_at > effective_at;
-        if recorded_at > knowledge_as_of {
+        if !valid_utc_timestamp(knowledge_as_of) {
+            knowledge_state = "unknown";
+        } else if recorded_at > knowledge_as_of {
             reasons.insert("EVENT_RECORDED_AFTER_KNOWLEDGE_CUTOFF".to_owned());
             knowledge_state = "recorded_after_cutoff";
         } else {
@@ -200,6 +204,8 @@ fn event_dimensions(
         } else if trusted_at < recorded_at {
             reasons.insert("EVENT_TRUST_TIME_ORDER_INVALID".to_owned());
             trust_state = "invalid";
+        } else if !valid_utc_timestamp(trust_as_of) {
+            trust_state = "unknown";
         } else if trusted_at > trust_as_of {
             reasons.insert("EVENT_TRUSTED_AFTER_TRUST_CUTOFF".to_owned());
             trust_state = "trusted_after_cutoff";
