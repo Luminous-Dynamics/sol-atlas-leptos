@@ -1,0 +1,124 @@
+name: City Temporal Query Adapter Synthetic Oracle
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - "tools/city-temporal-query-adapter/**"
+      - "docs/research/city-temporal-replay/**"
+      - ".github/workflows/city-temporal-query-adapter.yml"
+  push:
+    branches:
+      - main
+      - research/city-impact-router-v0.1
+      - research/city-temporal-query-adapter-v0.1
+    paths:
+      - "tools/city-temporal-query-adapter/**"
+      - "docs/research/city-temporal-replay/**"
+      - ".github/workflows/city-temporal-query-adapter.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: city-temporal-query-adapter-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  temporal-query:
+    name: Exact-head bitemporal query and anti-hindsight oracle
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - name: Assert exact checked-out revision
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: 1.96.0
+          components: rustfmt, clippy
+      - name: Check query corpus and schema identities
+        shell: bash
+        run: |
+          set -euo pipefail
+          corpus=docs/research/city-temporal-replay/CITY_TEMPORAL_QUERY_CORPUS_V0_1.json
+          schema=docs/research/city-temporal-replay/CITY_TEMPORAL_QUERY_CORPUS_V0_1.schema.json
+          jq -e '
+            .schema == "luminous.citymaker-temporal-query-corpus.v0.1"
+            and .schema_version == "0.1.0"
+            and .corpus_id == "CITY-TEMPORAL-QUERY-CORPUS-V0.1"
+            and .classification == "synthetic_fixture_only"
+            and .query_schema_version == "luminous.citymaker-temporal-query.v0.1"
+            and (.cases | length == 28)
+            and ([.cases[].case_id] | unique | length == 28)
+            and ([.cases[].expected.disposition] | group_by(.) | map({state:.[0],count:length}) | sort_by(.state))
+              == [
+                {"state":"eligible_for_declared_temporal_projection","count":2},
+                {"state":"excluded_from_temporal_projection","count":7},
+                {"state":"insufficient_evidence","count":5},
+                {"state":"invalid_input","count":14}
+              ]
+          ' "$corpus"
+          jq -e '
+            ."$schema" == "https://json-schema.org/draft/2020-12/schema"
+            and .title == "CityMaker Temporal Query Adapter Corpus v0.1"
+            and .type == "object"
+            and .properties.cases.minItems == 28
+            and .properties.cases.maxItems == 28
+          ' "$schema"
+          jq -e '
+            all(.cases[];
+              (.input.query.time_basis == "UTC_RFC3339_SECONDS")
+              and (.input.query.temporal_perspective == "historically_known_then"
+                or .input.query.temporal_perspective == "currently_reconstructed_history")
+              and (.input.owner_report.action_authority == "none")
+            )
+          ' "$corpus"
+      - name: Check formatting
+        run: cargo fmt --manifest-path tools/city-temporal-query-adapter/Cargo.toml --all -- --check
+      - name: Run independent temporal gold cases and hostile controls
+        run: cargo test --locked --manifest-path tools/city-temporal-query-adapter/Cargo.toml
+      - name: Run strict Clippy
+        run: cargo clippy --locked --manifest-path tools/city-temporal-query-adapter/Cargo.toml --all-targets -- -D warnings
+      - name: Check WASM target
+        shell: bash
+        run: |
+          set -euo pipefail
+          rustup target add wasm32-unknown-unknown
+          cargo check --locked --manifest-path tools/city-temporal-query-adapter/Cargo.toml --target wasm32-unknown-unknown
+      - name: Emit exact-head temporal receipt
+        shell: bash
+        run: |
+          set -euo pipefail
+          source_commit="$(git rev-parse HEAD)"
+          test "$source_commit" = "${{ github.event.pull_request.head.sha || github.sha }}"
+          cargo run --locked --quiet --manifest-path tools/city-temporal-query-adapter/Cargo.toml -- \
+            docs/research/city-temporal-replay/CITY_TEMPORAL_QUERY_CORPUS_V0_1.json \
+            --source-commit "$source_commit" > city-temporal-query-receipt.json
+          jq -e '
+            .result == "pass"
+            and .corpus_id == "CITY-TEMPORAL-QUERY-CORPUS-V0.1"
+            and .corpus_classification == "synthetic_fixture_only"
+            and .scenario_count == 28
+            and .failure_count == 0
+            and (.corpus_sha256 | test("^[0-9a-f]{64}$"))
+            and (.source_commit | test("^[0-9a-f]{40}$"))
+            and (.scenarios | length == 28)
+            and (.scenarios | all(.status == "pass"))
+            and .owner_report_content_verified == false
+            and .timestamp_authentication == "not_performed"
+            and .action_authority == "none"
+          ' city-temporal-query-receipt.json
+      - name: Upload exact-head temporal receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: city-temporal-query-reference-receipt
+          path: city-temporal-query-receipt.json
+          if-no-files-found: error
+          retention-days: 90
