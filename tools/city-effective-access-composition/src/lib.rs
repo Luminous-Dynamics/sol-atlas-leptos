@@ -312,7 +312,7 @@ fn evaluate_access(input: &Value, scope: &Value, reasons: &mut BTreeSet<String>)
     }
 
     let capacity = number(opportunity, "reachable_capacity_potential");
-    if let Some(owner_codes) = access.get("owner_reason_codes").and_then(Value::as_array) {
+    if let Some(owner_codes) = opportunity.get("reason_codes").and_then(Value::as_array) {
         for owner_code in owner_codes.iter().filter_map(Value::as_str) {
             if matches!(
                 owner_code,
@@ -701,7 +701,7 @@ pub fn validate_corpus(corpus: &Value) -> Vec<String> {
         let access = object(input, "access");
         check_keys(
             access,
-            &["source_ref", "group", "opportunity", "owner_reason_codes"],
+            &["source_ref", "group", "opportunity"],
             &format!("{case_path}.access"),
             &mut errors,
         );
@@ -720,7 +720,7 @@ pub fn validate_corpus(corpus: &Value) -> Vec<String> {
         );
         check_keys(
             object(access, "opportunity"),
-            &["service_id", "status", "reachable_capacity_potential", "capacity_unit", "operating_window_id"],
+            &["service_id", "status", "reachable_capacity_potential", "capacity_unit", "operating_window_id", "reason_codes"],
             &format!("{case_path}.access.opportunity"),
             &mut errors,
         );
@@ -866,7 +866,7 @@ mod tests {
             .unwrap();
         let original = evaluate_case(case);
         let mut permuted = case.clone();
-        permuted["input"]["access"]["owner_reason_codes"]
+        permuted["input"]["access"]["opportunity"]["reason_codes"]
             .as_array_mut()
             .unwrap()
             .reverse();
