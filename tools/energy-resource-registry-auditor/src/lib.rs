@@ -1370,7 +1370,7 @@ mod tests {
                 .iter()
                 .any(|item| item
                     .as_str()
-                    .is_some_and(|text| text.contains("internally inconsistent")))
+                    .is_some_and(|text| text.contains("internal unit inconsistency")))
         );
         assert!(
             entry["claim_ceiling"]
