@@ -383,7 +383,6 @@ fn evaluate_lane(
                     observed,
                     missing_required,
                 ) {
-
                     if owner_expected != expected
                         || owner_required != required
                         || expected == 0
