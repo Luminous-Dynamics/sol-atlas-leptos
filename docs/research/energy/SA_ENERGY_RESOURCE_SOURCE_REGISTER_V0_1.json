@@ -10,7 +10,9 @@
       "provider": "Solargis for the World Bank",
       "source_url": "https://globalsolaratlas.info/download/south-africa",
       "source_type": "dataset",
-      "resource_families": ["solar"],
+      "resource_families": [
+        "solar"
+      ],
       "evidence_basis": "modeled_resource_atlas",
       "availability_state": "available_pending_snapshot_pin",
       "source_version": {
@@ -24,7 +26,14 @@
       "spatial_resolution": "Not stated on the discovery page; capture exact raster cell size and CRS from each downloaded artifact",
       "temporal_scope": "Historical resource assessment with data period through 2018",
       "temporal_resolution": "Long-term climatological layers; exact variable-specific temporal basis must be confirmed from metadata",
-      "variables": ["GHI", "DNI", "diffuse irradiation", "GTI", "optimum tilt", "PVOUT"],
+      "variables": [
+        "GHI",
+        "DNI",
+        "diffuse irradiation",
+        "GTI",
+        "optimum tilt",
+        "PVOUT"
+      ],
       "license_status": {
         "status": "identified_requires_review",
         "details": "Download page states CC BY 4.0 with a mandatory and binding additional condition. Review the complete terms and attribution requirements before reuse or redistribution."
@@ -50,7 +59,9 @@
       "provider": "Solargis for the World Bank",
       "source_url": "https://dev.globalsolaratlas.info/support/data-outputs",
       "source_type": "dataset",
-      "resource_families": ["solar"],
+      "resource_families": [
+        "solar"
+      ],
       "evidence_basis": "modeled_resource_atlas",
       "availability_state": "available_pending_snapshot_pin",
       "source_version": {
@@ -64,7 +75,13 @@
       "spatial_resolution": "Capture exact cell size and CRS per layer from artifact metadata",
       "temporal_scope": "Data period through 2025 according to the current data-outputs page",
       "temporal_resolution": "Variable-dependent long-term climatological layers; exact basis needs metadata admission",
-      "variables": ["GHI", "DNI", "diffuse irradiation", "GTI", "PVOUT"],
+      "variables": [
+        "GHI",
+        "DNI",
+        "diffuse irradiation",
+        "GTI",
+        "PVOUT"
+      ],
       "license_status": {
         "status": "identified_requires_review",
         "details": "Global Solar Atlas download terms identify CC BY 4.0 with an additional binding condition. Check the exact data product terms and attribution before redistribution."
@@ -90,7 +107,10 @@
       "provider": "DTU Wind and Energy Systems with World Bank ESMAP partnership",
       "source_url": "https://globalwindatlas.info/about/introduction",
       "source_type": "dataset",
-      "resource_families": ["onshore_wind", "offshore_wind"],
+      "resource_families": [
+        "onshore_wind",
+        "offshore_wind"
+      ],
       "evidence_basis": "modeled_resource_atlas",
       "availability_state": "available_pending_snapshot_pin",
       "source_version": {
@@ -98,13 +118,22 @@
         "release_or_publication_date": "2025-06-18",
         "data_period": "Predicted wind climate derived from model inputs; not a 30-year observed time series",
         "metadata_updated": null,
-        "notes": "The GWA 4.0 release describes new microscale modelling at 250 m across country boundaries, including offshore exclusive economic zones."
+        "notes": "The GWA 4.0 release describes new microscale modelling at 250 m across country boundaries, including offshore exclusive economic zones. The official validation page checked 2026-11-09 lists 52 validation sites in Bangladesh, Ethiopia, Maldives, Pakistan, Papua New Guinea, Vietnam and Zambia; South Africa is not among the listed GWA4 validation countries."
       },
       "spatial_scope": "Global country boundaries and offshore exclusive economic zones",
       "spatial_resolution": "250 m microscale predicted wind-climate grid described by the GWA 4.0 methodology",
       "temporal_scope": "Climatological/model-derived resource; exact meteorological reference period and product-specific metadata must be recorded at ingest",
       "temporal_resolution": "Long-term predicted wind climate; not an hourly operational forecast",
-      "variables": ["mean wind speed", "mean wind power density", "capacity factor layers by IEC class", "fatigue-load class", "extreme-load class", "roughness", "orography", "bathymetry"],
+      "variables": [
+        "mean wind speed",
+        "mean wind power density",
+        "capacity factor layers by IEC class",
+        "fatigue-load class",
+        "extreme-load class",
+        "roughness",
+        "orography",
+        "bathymetry"
+      ],
       "license_status": {
         "status": "not_assessed",
         "details": "The atlas is freely accessible; exact dataset download terms, attribution and redistribution requirements must be captured from the current terms before republishing source artifacts."
@@ -113,13 +142,15 @@
       "limitations": [
         "250 m is the microscale model grid, not evidence that a parcel or turbine location has been measured at 250 m accuracy.",
         "GWA's own validation coverage is country- and campaign-specific; record whether South Africa's relevant region is in its validated set.",
-        "Generic energy yield estimates are conditional on turbine power curves, hub height, losses, wakes and availability."
+        "Generic energy yield estimates are conditional on turbine power curves, hub height, losses, wakes and availability.",
+        "The published GWA4 validation-country list checked 2026-11-09 does not include South Africa; do not label South African GWA4 output as locally validated."
       ],
       "admission_requirements": [
         "Pin the exact GWA 4.0 downloadable raster or WAsP GWC object and raw SHA-256.",
         "Capture model chain, reference period, hub heights, variables, units, CRS and cell size.",
         "Determine validation coverage and independent South African mast/lidar data availability.",
-        "Keep offshore wind screening separate from sea-state, seabed, port, cable and grid evidence."
+        "Keep offshore wind screening separate from sea-state, seabed, port, cable and grid evidence.",
+        "Preserve the GWA4 validation-country list and version date in the manifest; obtain independent South African mast/lidar evidence before making local accuracy claims."
       ],
       "raw_snapshot_ingested": false,
       "snapshot_digest": null
@@ -130,7 +161,9 @@
       "provider": "Climate System Analysis Group, University of Cape Town",
       "source_url": "https://www.csag.uct.ac.za/wind-atlas-for-south-africa-time-series-data/",
       "source_type": "portal_status",
-      "resource_families": ["onshore_wind"],
+      "resource_families": [
+        "onshore_wind"
+      ],
       "evidence_basis": "availability_notice",
       "availability_state": "temporarily_unavailable",
       "source_version": {
@@ -138,13 +171,15 @@
         "release_or_publication_date": "2026-09-01",
         "data_period": "Portal was intended to serve the full 30-year mesoscale WRF time series; no usable portal dataset was available at the notice date",
         "metadata_updated": "2026-09-01",
-        "notes": "The notice says several hard-drive failures corrupted the time-series portal data and that regeneration from original WRF data was underway. WASA3 reports are stated to remain available."
+        "notes": "The notice says several hard-drive failures corrupted the time-series portal data and that regeneration from original WRF data was underway. WASA3 reports are stated to remain available. This availability notice applies specifically to the 30-year point time-series extraction portal. It does not mean all WASA3 resource-map, generalized-wind-climate (LIB) or mast metadata products are unavailable."
       },
-      "spatial_scope": "South African WASA mesoscale grid",
+      "spatial_scope": "South African WASA mesoscale time-series point-extraction portal (631 x 454 domain; 286,474 grid cells), not the separate WASA3 raster/GWC download products",
       "spatial_resolution": "Grid-level data; exact grid and resolution should be taken from WASA3 reports and metadata, not inferred from the portal notice",
       "temporal_scope": "Intended 30-year modeled time series; current download availability is not established",
       "temporal_resolution": "Time-series data; exact interval must be confirmed from metadata when restored",
-      "variables": ["WRF-derived wind time series; exact channel list requires WASA metadata"],
+      "variables": [
+        "WRF-derived wind time series; exact channel list requires WASA metadata"
+      ],
       "license_status": {
         "status": "not_assessed",
         "details": "Confirm rights and citation terms for the reports and any regenerated time-series data before ingestion or redistribution."
@@ -153,13 +188,15 @@
       "limitations": [
         "As of the 2026-09-01 notice, the 30-year time-series portal data could not be served.",
         "The portal's regeneration work is not evidence that a replacement dataset is available or validated.",
-        "WASA3 reports may support methodology review but are not substitutes for the missing time-series files."
+        "WASA3 reports may support methodology review but are not substitutes for the missing time-series files.",
+        "The outage applies to the separate full-period point time-series portal. The WASAData download page separately lists the High-Resolution Wind Resource Map for South Africa 2020, WASA3 LIB/GWC archives and mast location metadata; those products have their own availability, rights and provenance."
       ],
       "admission_requirements": [
         "Recheck portal availability on the actual ingestion date.",
         "If restored, obtain the original WRF run metadata, grid, time step, file hashes and data licence.",
         "Independently verify chronology, units and representative stations before calibration use.",
-        "If unavailable, use an explicitly named alternative dataset and preserve the substitution rationale."
+        "If unavailable, use an explicitly named alternative dataset and preserve the substitution rationale.",
+        "Do not propagate this portal outage to the separate WASA3 2020 raster, LIB/GWC archives or mast records; create and qualify separate source records for each."
       ],
       "raw_snapshot_ingested": false,
       "snapshot_digest": null
@@ -170,7 +207,9 @@
       "provider": "Department of Electricity and Energy, Republic of South Africa",
       "source_url": "https://www.dee.gov.za/hydro-power/",
       "source_type": "government_page",
-      "resource_families": ["hydropower"],
+      "resource_families": [
+        "hydropower"
+      ],
       "evidence_basis": "government_historical_assessment",
       "availability_state": "context_only",
       "source_version": {
@@ -184,7 +223,10 @@
       "spatial_resolution": "Regional context only; no site-scale hydrology or head resolution is admitted",
       "temporal_scope": "Underlying study baseline from 2002; current hydrology not established",
       "temporal_resolution": "Not established on the discovery page",
-      "variables": ["historical small-hydro potential", "regional screening context"],
+      "variables": [
+        "historical small-hydro potential",
+        "regional screening context"
+      ],
       "license_status": {
         "status": "not_assessed",
         "details": "The source page and underlying report reuse terms must be checked separately."
@@ -209,7 +251,9 @@
       "provider": "Council for Geoscience, Republic of South Africa",
       "source_url": "https://www.geoscience.org.za/project/geothermal-energy-potential-of-south-africa-project/",
       "source_type": "government_page",
-      "resource_families": ["geothermal"],
+      "resource_families": [
+        "geothermal"
+      ],
       "evidence_basis": "government_research_context",
       "availability_state": "needs_access_or_measurement",
       "source_version": {
@@ -223,7 +267,11 @@
       "spatial_resolution": "Not stated on the project page",
       "temporal_scope": "Undated project-context page; no admitted time series",
       "temporal_resolution": "Not applicable until site-specific data are obtained",
-      "variables": ["low-enthalpy geothermal context", "magnetotelluric exploration", "hot-spring locations"],
+      "variables": [
+        "low-enthalpy geothermal context",
+        "magnetotelluric exploration",
+        "hot-spring locations"
+      ],
       "license_status": {
         "status": "not_assessed",
         "details": "Request the underlying survey/data rights and publication terms from the source custodian."
@@ -248,7 +296,10 @@
       "provider": "Meyer, Braby, Krug and Backeberg; CSIR ResearchSpace record / Springer chapter preprint",
       "source_url": "https://researchspace.csir.co.za/items/03da0c93-9c5e-486e-910e-15bef2fbc09c/full",
       "source_type": "research_publication",
-      "resource_families": ["ocean_current", "marine_physics"],
+      "resource_families": [
+        "ocean_current",
+        "marine_physics"
+      ],
       "evidence_basis": "published_field_observation",
       "availability_state": "context_only",
       "source_version": {
@@ -262,7 +313,11 @@
       "spatial_resolution": "Point/mooring observations; not a gridded coast-wide product",
       "temporal_scope": "Historical 2017 publication; measurement campaign dates and duration must be extracted from full methods before use",
       "temporal_resolution": "ADCP profile observations; exact cadence and record duration must be extracted from full dataset/methods",
-      "variables": ["ocean-current velocity profile", "ADCP observations", "satellite/predictive current estimates"],
+      "variables": [
+        "ocean-current velocity profile",
+        "ADCP observations",
+        "satellite/predictive current estimates"
+      ],
       "license_status": {
         "status": "identified_requires_review",
         "details": "ResearchSpace states the attached PDF is a pre-print due to Springer copyright restrictions. The published version is subject to publisher terms; do not redistribute beyond permitted preprint conditions."
@@ -287,7 +342,9 @@
       "provider": "Copernicus Marine Service / Mercator Ocean International",
       "source_url": "https://data.marine.copernicus.eu/product/GLOBAL_MULTIYEAR_WAV_001_032/description",
       "source_type": "dataset",
-      "resource_families": ["wave"],
+      "resource_families": [
+        "wave"
+      ],
       "evidence_basis": "modeled_reanalysis",
       "availability_state": "available_pending_snapshot_pin",
       "source_version": {
@@ -301,7 +358,14 @@
       "spatial_resolution": "0.2 degrees x 0.2 degrees (irregular grid)",
       "temporal_scope": "1980-01-01 through 2026-08-31",
       "temporal_resolution": "Hourly and monthly",
-      "variables": ["significant wave height", "wave direction", "mean wave period", "primary and secondary swell height/direction/period", "wind-wave height/direction/period", "Stokes drift"],
+      "variables": [
+        "significant wave height",
+        "wave direction",
+        "mean wave period",
+        "primary and secondary swell height/direction/period",
+        "wind-wave height/direction/period",
+        "Stokes drift"
+      ],
       "license_status": {
         "status": "identified_requires_review",
         "details": "Read the current Copernicus Marine licence and attribution terms for the exact product and any derived redistribution."
@@ -327,7 +391,9 @@
       "provider": "Copernicus Marine Service / Mercator Ocean International",
       "source_url": "https://data.marine.copernicus.eu/product/GLOBAL_ANALYSISFORECAST_WAV_001_027/description",
       "source_type": "dataset",
-      "resource_families": ["wave"],
+      "resource_families": [
+        "wave"
+      ],
       "evidence_basis": "modeled_analysis_forecast",
       "availability_state": "available_pending_snapshot_pin",
       "source_version": {
@@ -341,7 +407,13 @@
       "spatial_resolution": "0.083 degrees x 0.083 degrees",
       "temporal_scope": "Analysis starts 2022-11-01; the product page showed forecast horizon through 2026-11-18 at registry check time",
       "temporal_resolution": "Hourly; operational analysis/forecast updates",
-      "variables": ["significant wave height", "wave direction", "mean wave period", "swell and wind-wave parameters", "Stokes drift"],
+      "variables": [
+        "significant wave height",
+        "wave direction",
+        "mean wave period",
+        "swell and wind-wave parameters",
+        "Stokes drift"
+      ],
       "license_status": {
         "status": "identified_requires_review",
         "details": "Read current Copernicus Marine licence and attribution terms; pin product version and forecast initialization time."
@@ -366,7 +438,10 @@
       "provider": "Copernicus Marine Service / Mercator Ocean International",
       "source_url": "https://data.marine.copernicus.eu/product/GLOBAL_ANALYSISFORECAST_PHY_001_024/description",
       "source_type": "dataset",
-      "resource_families": ["ocean_current", "marine_physics"],
+      "resource_families": [
+        "ocean_current",
+        "marine_physics"
+      ],
       "evidence_basis": "modeled_analysis_forecast",
       "availability_state": "available_pending_snapshot_pin",
       "source_version": {
@@ -380,7 +455,13 @@
       "spatial_resolution": "0.083 degrees x 0.083 degrees; 50 vertical levels",
       "temporal_scope": "Analysis begins 2020-11-01; catalogue includes a forecast tail beyond registry check time",
       "temporal_resolution": "Hourly, daily and monthly",
-      "variables": ["ocean velocity", "temperature", "salinity", "sea-surface height", "mixed-layer thickness"],
+      "variables": [
+        "ocean velocity",
+        "temperature",
+        "salinity",
+        "sea-surface height",
+        "mixed-layer thickness"
+      ],
       "license_status": {
         "status": "identified_requires_review",
         "details": "Read the current Copernicus Marine licence and attribution terms for this exact product."
@@ -405,7 +486,10 @@
       "provider": "World Bank Group",
       "source_url": "https://documents.worldbank.org/en/publication/documents-reports/documentdetail/099091026151019349",
       "source_type": "sector_report",
-      "resource_families": ["offshore_wind", "cross_resource"],
+      "resource_families": [
+        "offshore_wind",
+        "cross_resource"
+      ],
       "evidence_basis": "sector_policy_report",
       "availability_state": "context_only",
       "source_version": {
@@ -419,7 +503,11 @@
       "spatial_resolution": "National / strategic context; not site resource grid",
       "temporal_scope": "Strategic policy and infrastructure context as of report preparation",
       "temporal_resolution": "Not a time-series resource product",
-      "variables": ["sector development scenarios", "institutional constraints", "port and transmission context"],
+      "variables": [
+        "sector development scenarios",
+        "institutional constraints",
+        "port and transmission context"
+      ],
       "license_status": {
         "status": "not_assessed",
         "details": "Review report copyright and reuse terms before copying or redistributing full report content."
@@ -433,6 +521,115 @@
         "Pin report version, official PDF digest and citation metadata.",
         "Extract only claims with exact page references and classify policy/scenario statements separately.",
         "Link every candidate site to project-specific resource and POC evidence."
+      ],
+      "raw_snapshot_ingested": false,
+      "snapshot_digest": null
+    },
+    {
+      "source_id": "wasa3-high-resolution-wind-resource-map-2020",
+      "source_name": "High-Resolution Wind Resource Map for South Africa 2020 (WASA3)",
+      "provider": "DTU Wind Energy and Council for Scientific and Industrial Research (CSIR)",
+      "source_url": "https://wasadata.csir.co.za/wasa1/WASAData?pemail=nimo%40risoe.dtu.dk&pscreen=resource2021",
+      "source_type": "dataset",
+      "resource_families": [
+        "onshore_wind"
+      ],
+      "evidence_basis": "modeled_resource_atlas",
+      "availability_state": "available_pending_snapshot_pin",
+      "source_version": {
+        "label": "High-Resolution Wind Resource Map for South Africa 2020; compiled and published March 2021",
+        "release_or_publication_date": "2021-03",
+        "data_period": "Wind-climatological input: 3.3-km VNWA WRF 3.8.1 with ERA5 boundary conditions for 1990-2019; air-density input ERA5 2010-2019; annual mean resource rasters",
+        "metadata_updated": null,
+        "notes": "The WASAData page lists separate TIF and Arc/Info ASCII grid products for the South African land area, with 0.0025-degree grid spacing in WGS84 and no interpolation. It also lists generalized wind-climate LIB archives at 10, 25, 50, 100 and 250 m and a coordinate CSV for 285,390 grid points."
+      },
+      "spatial_scope": "Land area of South Africa, covering nine provinces and approximately 1,221,000 km2",
+      "spatial_resolution": "0.0025-degree geographic grid in WGS84; do not restate as a uniform metric resolution without local geodetic conversion",
+      "temporal_scope": "Annual mean resource layers derived from VNWA wind-climatological input (WRF 1990-2019) and ERA5 air-density input (2010-2019)",
+      "temporal_resolution": "Annual mean/climatological rasters; not an hourly operational time series",
+      "variables": [
+        "mean wind speed at 20/50/100/150 m AGL",
+        "mean power density at 20/50/100/150 m AGL",
+        "mean air density at 20/50/100/150 m AGL",
+        "Weibull scale A at 20/50/100/150 m AGL",
+        "Weibull shape k at 20/50/100/150 m AGL",
+        "WAsP ruggedness index RIX",
+        "terrain elevation"
+      ],
+      "license_status": {
+        "status": "not_assessed",
+        "details": "The WASAData page points to the general WASA download-site disclaimer. Exact data access, permitted reuse and redistribution terms have not been independently assessed; do not redistribute raw raster/LIB files until DTU/CSIR terms are confirmed."
+      },
+      "claim_ceiling": "Modelled, planning-level South African wind-resource screening. Not measured parcel wind, local turbine power curve, hourly generation profile, bankable AEP, grid export or structural design basis.",
+      "limitations": [
+        "The product was developed for GIS-based strategic environmental assessment and planning, not detailed site-specific wind-farm design.",
+        "The page states that accuracy depends on VNWA, WAsP microscale modelling and topographic input data.",
+        "In complex terrain with RIX > 5%, the WAsP IBZ microscale model may significantly overestimate wind resource.",
+        "Results near or above built-up areas and forested areas are less reliable.",
+        "The page recommends local on-site measurement for detailed assessment of actual wind farms.",
+        "VNWA validation against 19 WASA measurement masts is not evidence that every 0.0025-degree cell or prospective turbine site has been independently measured or validated."
+      ],
+      "admission_requirements": [
+        "Pin each exact TIF/ASC/LIB file name, product/version identifier, raw byte digest, CRS, cell size, units, nodata values and download timestamp.",
+        "Record the 3.3-km WRF / ERA5 input period, WRF model version, topography and land-cover input versions, and any WAsP settings.",
+        "Confirm data access and redistribution rights with DTU/CSIR before copying raw raster or LIB files into public fixtures.",
+        "Compare selected values to mast observations only after the 19-mast VNWA calibration/validation crosswalk and any overlap with external benchmark training sets are known.",
+        "Retain RIX, urban/forest masks and explicit local-measurement needs as separate limitations; never collapse them into a single site score."
+      ],
+      "raw_snapshot_ingested": false,
+      "snapshot_digest": null
+    },
+    {
+      "source_id": "ethos-reskit-2026-global-wind-validation-study",
+      "source_name": "Towards high resolution, validated and open global wind power assessments",
+      "provider": "Peña-Sánchez et al.; Forschungszentrum Jülich / ETHOS.RESKit contributors",
+      "source_url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12804690/",
+      "source_type": "research_publication",
+      "resource_families": [
+        "onshore_wind",
+        "offshore_wind"
+      ],
+      "evidence_basis": "published_field_observation",
+      "availability_state": "context_only",
+      "source_version": {
+        "label": "Nature Communications 17, 539; published 2026-01-14",
+        "release_or_publication_date": "2026-01-14",
+        "data_period": "Meteorological mast and turbine validation data span 2002-2021; country-level official wind generation/capacity comparisons use 2017-2021",
+        "metadata_updated": null,
+        "notes": "The paper describes ETHOS.RESKit as a GWA4 plus ERA5 time-resolved wind-power workflow. It reports calibration with 213 weather-mast locations in 25 countries and more than 8 million filtered hourly mast observations; the paper states that its mast-measurement geography includes South Africa. It validates simulated power against more than 8 million hours from 152 turbines/wind-farm sites, and discusses national statistics for up to 71 countries. The paper-specific code archive is distinct from the current RESKit v0.5.0 release."
+      },
+      "spatial_scope": "Global model and validation study: meteorological masts in 25 countries including South Africa; turbine/farm power observations at a separate set of 152 sites; country-level statistics with data gaps concentrated in Africa and other regions",
+      "spatial_resolution": "Model input combines GWA4 high-resolution resource grids and ERA5 chronology; calibration and validation observations are point/site based, with no single homogeneous resolution",
+      "temporal_scope": "Historical calibration/validation observations from 2002-2021 and annual country-level statistics from 2017-2021",
+      "temporal_resolution": "Filtered hourly mast and turbine/farm observations; annual country-level generation/capacity comparisons",
+      "variables": [
+        "wind speed",
+        "hub-height wind-speed bias correction",
+        "turbine capacity factor",
+        "hourly wind-turbine/farm power",
+        "wind-speed correction factors",
+        "country capacity-factor correction factors"
+      ],
+      "license_status": {
+        "status": "identified_requires_review",
+        "details": "The article is CC BY 4.0. The paper states that turbine power measurement data are restricted by third-party agreements and not publicly available; the wind-farm database is obtained under a commercial licence. The open paper and code do not grant rights to restricted input data."
+      },
+      "claim_ceiling": "Published external methodology and reported validation results for a global wind-power workflow. Not an independently reproduced Luminous benchmark, not evidence of South African turbine-generation holdout validation, and not a local site AEP guarantee.",
+      "limitations": [
+        "The paper reports South African meteorological mast measurements within the wider calibration geography, but does not provide a public site-by-site crosswalk sufficient here to establish whether a proposed WASA mast is in calibration or cross-validation.",
+        "No South African turbine/farm power-output holdout is established by the information currently admitted to this registry.",
+        "The raw turbine power data are restricted; the commercial wind-farm inventory is not openly redistributable.",
+        "The study itself notes that global correction cannot remove all regional/seasonal/terrain biases and that local single-site accuracy is limited by the underlying ERA5/GWA4 spatial representation.",
+        "The abstract and detailed paper sections present aggregate statistics with different cohorts and definitions; do not compress all reported error figures into one universal accuracy number.",
+        "A model's globally calibrated performance does not prove its local transfer to South African sites."
+      ],
+      "admission_requirements": [
+        "Pin the paper DOI, full article version and supplementary source-data files, then map all reported metrics to exact cohort, sample count and definition.",
+        "Obtain the paper-specific ETHOS.RESKit archived code artifact and exact version; keep it distinct from current RESKit v0.5.0.",
+        "Resolve which South African mast IDs occur in the 213-mast calibration set before constructing independent holdout tests.",
+        "Use site/time-blocked holdouts not used in model calibration and compare against available WASA mast or other independent observations.",
+        "Preserve rights restrictions for turbine power data and wind-farm inventory; do not redistribute raw source data.",
+        "Reproduce the published 5.6% relative mean capacity-factor error and Pearson r=0.844 only on a matched, lawfully accessible validation cohort and identical metric definitions."
       ],
       "raw_snapshot_ingested": false,
       "snapshot_digest": null
