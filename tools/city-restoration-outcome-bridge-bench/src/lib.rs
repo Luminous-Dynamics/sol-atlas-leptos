@@ -12,12 +12,13 @@ pub const CORPUS_ID: &str = "CITY-RESTORATION-OUTCOME-BRIDGE-CORPUS-V0.1";
 pub const CLAIM_CEILING: &str = "synthetic_service_restoration_composition_only";
 
 const ROOT_KEYS: &[&str] = &[
-    "corpus_id",
+    "schema_id",
     "schema_version",
+    "corpus_id",
     "classification",
-    "policy",
-    "claim_ceiling",
+    "policy_note",
     "source_refs",
+    "claim_ceiling",
     "cases",
 ];
 const CASE_KEYS: &[&str] = &["case_id", "input", "expected"];
@@ -206,13 +207,6 @@ pub fn parse_unique_json_bytes(bytes: &[u8]) -> Result<Value, String> {
         return Err("JSON_TRAILING_CONTENT".to_owned());
     }
     serde_json::from_str(input).map_err(|error| format!("JSON_PARSE_FAILED:{error}"))
-}
-
-fn profile_for<'a>(profiles: &'a Value, record: &Value) -> Option<&'a Value> {
-    list(profiles, "profiles").iter().find(|profile| {
-        text(profile, "owner") == text(record, "owner")
-            && text(profile, "schema_id") == text(record, "schema_id")
-    })
 }
 
 fn text<'a>(value: &'a Value, key: &str) -> &'a str {
@@ -1009,9 +1003,12 @@ pub fn validate_case(case: &Value) -> Vec<String> {
 pub fn validate_corpus(corpus: &Value) -> Vec<String> {
     let mut errors = Vec::new();
     check_keys(corpus, "corpus", ROOT_KEYS, &mut errors);
-    if text(corpus, "corpus_id") != CORPUS_ID
+    if text(corpus, "schema_id")
+        != "org.luminousdynamics.city-restoration-outcome-bridge.synthetic-corpus"
+        || text(corpus, "corpus_id") != CORPUS_ID
         || text(corpus, "schema_version") != "0.1.0"
         || text(corpus, "classification") != "synthetic_fixture_only"
+        || text(corpus, "policy_note").is_empty()
         || text(corpus, "claim_ceiling") != CLAIM_CEILING
     {
         errors.push("corpus:IDENTITY_OR_CLAIM_CEILING_UNSUPPORTED".to_owned());
