@@ -1017,7 +1017,7 @@ pub fn validate_corpus(corpus: &Value) -> Vec<String> {
         if text(case, "mutation").is_empty() {
             errors.push(format!("{id}:MUTATION_MISSING"));
         }
-        if case.get("expected").and_then(Value::is_object) != Some(true)
+        if !case.get("expected").is_some_and(Value::is_object)
             || case["expected"]
                 .get("accepted")
                 .and_then(Value::as_bool)
