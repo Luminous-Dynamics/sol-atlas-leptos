@@ -375,6 +375,7 @@ pub fn validate_profiles(profiles: &Value) -> Vec<String> {
         let path = format!("owner_profiles.profiles[{index}]");
         check_keys(
             profile,
+            &path,
             &["owner", "schema_id", "schema_version", "additional_allowed"],
             &["owner", "schema_id", "schema_version", "additional_allowed"],
             &mut errors,
