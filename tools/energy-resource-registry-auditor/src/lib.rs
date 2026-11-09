@@ -1134,8 +1134,8 @@ mod tests {
         let receipt = audit_bytes(SCHEMA_BYTES, REGISTRY_BYTES)
             .expect("checked-in schema and source registry must decode");
         assert_eq!(receipt.disposition, "accepted");
-        assert_eq!(receipt.entry_count, 45);
-        assert_eq!(receipt.source_ids.len(), 45);
+        assert_eq!(receipt.entry_count, 51);
+        assert_eq!(receipt.source_ids.len(), 51);
         assert_eq!(receipt.findings.len(), 0);
     }
 
@@ -1165,7 +1165,7 @@ mod tests {
         let receipt = audit_bytes(SCHEMA_BYTES, REGISTRY_BYTES)
             .expect("updated registry should remain structurally valid");
         assert_eq!(receipt.disposition, "accepted");
-        assert_eq!(receipt.entry_count, 45);
+        assert_eq!(receipt.entry_count, 51);
     }
 
     #[test]
@@ -1215,7 +1215,7 @@ mod tests {
         let receipt =
             audit_bytes(SCHEMA_BYTES, REGISTRY_BYTES).expect("updated registry should conform");
         assert_eq!(receipt.disposition, "accepted");
-        assert_eq!(receipt.entry_count, 45);
+        assert_eq!(receipt.entry_count, 51);
     }
 
     #[test]
@@ -1264,7 +1264,7 @@ mod tests {
         let receipt =
             audit_bytes(SCHEMA_BYTES, REGISTRY_BYTES).expect("updated source register conforms");
         assert_eq!(receipt.disposition, "accepted");
-        assert_eq!(receipt.entry_count, 45);
+        assert_eq!(receipt.entry_count, 51);
     }
 
     #[test]
@@ -1285,7 +1285,7 @@ mod tests {
         );
         let receipt = audit_bytes(SCHEMA_BYTES, REGISTRY_BYTES)
             .expect("updated 26-entry source register conforms");
-        assert_eq!(receipt.entry_count, 45);
+        assert_eq!(receipt.entry_count, 51);
         assert_eq!(receipt.disposition, "accepted");
     }
 
@@ -1450,7 +1450,7 @@ mod tests {
         let receipt = audit_bytes(SCHEMA_BYTES, REGISTRY_BYTES)
             .expect("38-entry multimodal energy source register conforms");
         assert_eq!(receipt.disposition, "accepted");
-        assert_eq!(receipt.entry_count, 45);
+        assert_eq!(receipt.entry_count, 51);
     }
 
     #[test]
@@ -1522,7 +1522,76 @@ mod tests {
         let receipt = audit_bytes(SCHEMA_BYTES, REGISTRY_BYTES)
             .expect("45-entry energy registry conforms");
         assert_eq!(receipt.disposition, "accepted");
-        assert_eq!(receipt.entry_count, 45);
+        assert_eq!(receipt.entry_count, 51);
+    }
+
+    #[test]
+    fn south_african_mine_shaft_pumped_hydro_remains_historical_screening_context() {
+        let value = parse_registry_value();
+        let entries = value["entries"].as_array().expect("entries array");
+        let historical = entries
+            .iter()
+            .find(|entry| {
+                entry["source_id"]
+                    == "south-africa-energy-storage-assessment-abandoned-mineshafts-2015"
+            })
+            .expect("South African 2015 mine-shaft storage assessment");
+        assert_eq!(historical["evidence_basis"], "government_historical_assessment");
+        assert_eq!(historical["availability_state"], "context_only");
+        assert!(historical["source_version"]["notes"]
+            .as_str()
+            .is_some_and(|notes| notes.contains("initial screening stage")));
+        assert!(historical["claim_ceiling"]
+            .as_str()
+            .is_some_and(|claim| claim.contains("does not establish a suitable shaft")));
+    }
+
+    #[test]
+    fn conventional_tubatse_pumped_hydro_is_not_a_mine_shaft_project() {
+        let value = parse_registry_value();
+        let entries = value["entries"].as_array().expect("entries array");
+        let tubatse = entries
+            .iter()
+            .find(|entry| {
+                entry["source_id"] == "eskom-tubatse-pumped-storage-scheme-1500mw-21gwh-2026"
+            })
+            .expect("Tubatse project record");
+        assert_eq!(tubatse["evidence_basis"], "sector_policy_report");
+        assert_eq!(tubatse["availability_state"], "context_only");
+        assert!(tubatse["limitations"]
+            .as_array()
+            .expect("Tubatse limitations")
+            .iter()
+            .any(|item| item.as_str().is_some_and(|text| text.contains("not an underground mine-shaft project"))));
+
+        let colas = entries
+            .iter()
+            .find(|entry| {
+                entry["source_id"]
+                    == "abandoned-coal-mine-geological-mining-underground-storage-workflow-2025"
+            })
+            .expect("abandoned coal mine geology review");
+        assert_eq!(colas["evidence_basis"], "literature_review");
+
+        let integrated = entries
+            .iter()
+            .find(|entry| {
+                entry["source_id"]
+                    == "abandoned-mine-integrated-pumped-hydro-solar-thermal-heat-pump-hub-2026"
+            })
+            .expect("integrated mine energy hub model");
+        assert_eq!(integrated["evidence_basis"], "modeled_analysis_forecast");
+
+        let gravity = entries
+            .iter()
+            .find(|entry| entry["source_id"] == "gravity-energy-storage-systematic-review-2026")
+            .expect("gravity storage review");
+        assert_eq!(gravity["evidence_basis"], "literature_review");
+
+        let receipt = audit_bytes(SCHEMA_BYTES, REGISTRY_BYTES)
+            .expect("51-entry energy registry conforms");
+        assert_eq!(receipt.disposition, "accepted");
+        assert_eq!(receipt.entry_count, 51);
     }
 
     #[test]
