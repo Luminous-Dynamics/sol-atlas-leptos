@@ -326,7 +326,10 @@ fn schema_has_exact_fields(
     }
     match string_set(Some(required)) {
         Some(actual) if actual == expected => {
-            if required.as_array().is_none_or(|values| values.len() != expected.len()) {
+            if required
+                .as_array()
+                .is_none_or(|values| values.len() != expected.len())
+            {
                 findings.push(AuditFinding::fail(
                     predicate,
                     "required array contains duplicate or non-string values",
@@ -365,7 +368,10 @@ fn check_enum(
     let expected = expected_set(expected_values);
     match string_set(Some(value)) {
         Some(actual) if actual == expected => {
-            if value.as_array().is_none_or(|values| values.len() != expected.len()) {
+            if value
+                .as_array()
+                .is_none_or(|values| values.len() != expected.len())
+            {
                 findings.push(AuditFinding::fail(
                     predicate,
                     "enum contains duplicate or non-string values",
@@ -376,7 +382,10 @@ fn check_enum(
             predicate,
             format!("enum differs; expected {expected:?}, found {actual:?}"),
         )),
-        None => findings.push(AuditFinding::fail(predicate, "enum must be an array of strings")),
+        None => findings.push(AuditFinding::fail(
+            predicate,
+            "enum must be an array of strings",
+        )),
     }
 }
 
@@ -476,7 +485,13 @@ fn check_schema_contract(schema: &Value, findings: &mut Vec<AuditFinding>) {
     );
     schema_has_exact_fields(
         schema,
-        &["$defs", "source_entry", "properties", "source_version", "properties"],
+        &[
+            "$defs",
+            "source_entry",
+            "properties",
+            "source_version",
+            "properties",
+        ],
         SOURCE_VERSION_FIELDS,
         &[
             "$defs",
@@ -490,7 +505,13 @@ fn check_schema_contract(schema: &Value, findings: &mut Vec<AuditFinding>) {
     );
     schema_has_exact_fields(
         schema,
-        &["$defs", "source_entry", "properties", "license_status", "properties"],
+        &[
+            "$defs",
+            "source_entry",
+            "properties",
+            "license_status",
+            "properties",
+        ],
         LICENSE_STATUS_FIELDS,
         &[
             "$defs",
@@ -763,9 +784,8 @@ fn is_safe_source_id(value: &str) -> bool {
 
 fn valid_date_precision(value: &str, allow_year_or_month: bool) -> bool {
     let parts: Vec<&str> = value.split('-').collect();
-    let digits_only = |part: &str| {
-        !part.is_empty() && part.bytes().all(|byte| byte.is_ascii_digit())
-    };
+    let digits_only =
+        |part: &str| !part.is_empty() && part.bytes().all(|byte| byte.is_ascii_digit());
     match parts.as_slice() {
         [year] if allow_year_or_month => {
             year.len() == 4 && digits_only(year) && year.parse::<u16>().is_ok()
@@ -775,7 +795,9 @@ fn valid_date_precision(value: &str, allow_year_or_month: bool) -> bool {
                 && digits_only(year)
                 && digits_only(month)
                 && year.parse::<u16>().is_ok()
-                && month.parse::<u8>().is_ok_and(|month| (1..=12).contains(&month))
+                && month
+                    .parse::<u8>()
+                    .is_ok_and(|month| (1..=12).contains(&month))
         }
         [year, month, day] => {
             if year.len() != 4
@@ -889,9 +911,15 @@ fn validate_entry(entry: &SourceEntry, findings: &mut Vec<AuditFinding>) {
         ("temporal_resolution", entry.temporal_resolution.as_str()),
         ("claim_ceiling", entry.claim_ceiling.as_str()),
         ("source_version.label", entry.source_version.label.as_str()),
-        ("source_version.data_period", entry.source_version.data_period.as_str()),
+        (
+            "source_version.data_period",
+            entry.source_version.data_period.as_str(),
+        ),
         ("source_version.notes", entry.source_version.notes.as_str()),
-        ("license_status.details", entry.license_status.details.as_str()),
+        (
+            "license_status.details",
+            entry.license_status.details.as_str(),
+        ),
     ] {
         if !is_nonempty(value) {
             findings.push(AuditFinding::fail(
@@ -930,9 +958,7 @@ fn validate_entry(entry: &SourceEntry, findings: &mut Vec<AuditFinding>) {
         ));
     }
 
-    if entry.limitations.is_empty()
-        || entry.limitations.iter().any(|value| !is_nonempty(value))
-    {
+    if entry.limitations.is_empty() || entry.limitations.iter().any(|value| !is_nonempty(value)) {
         findings.push(AuditFinding::fail(
             "limitations_nonempty",
             format!("{id}: limitations must contain non-empty values"),
@@ -1026,10 +1052,10 @@ fn validate_entry(entry: &SourceEntry, findings: &mut Vec<AuditFinding>) {
 /// fields except its own digest, so byte-identical inputs produce the same
 /// receipt subject and digest on every run of this auditor version.
 pub fn audit_bytes(schema_bytes: &[u8], registry_bytes: &[u8]) -> Result<AuditReceipt, AuditError> {
-    let schema_value = parse_unique_json(schema_bytes)
-        .map_err(|cause| error(format!("schema: {cause}")))?;
-    let registry_value = parse_unique_json(registry_bytes)
-        .map_err(|cause| error(format!("registry: {cause}")))?;
+    let schema_value =
+        parse_unique_json(schema_bytes).map_err(|cause| error(format!("schema: {cause}")))?;
+    let registry_value =
+        parse_unique_json(registry_bytes).map_err(|cause| error(format!("registry: {cause}")))?;
 
     let mut findings = Vec::new();
     check_schema_contract(&schema_value, &mut findings);
@@ -1091,8 +1117,9 @@ mod tests {
 
     const SCHEMA_BYTES: &[u8] =
         include_bytes!("../../../schemas/energy-resource-source-registry-v0.1.schema.json");
-    const REGISTRY_BYTES: &[u8] =
-        include_bytes!("../../../docs/research/energy/SA_ENERGY_RESOURCE_SOURCE_REGISTER_V0_1.json");
+    const REGISTRY_BYTES: &[u8] = include_bytes!(
+        "../../../docs/research/energy/SA_ENERGY_RESOURCE_SOURCE_REGISTER_V0_1.json"
+    );
 
     fn parse_registry_value() -> Value {
         serde_json::from_slice(REGISTRY_BYTES).expect("checked-in registry JSON must parse")
@@ -1119,20 +1146,19 @@ mod tests {
         let entries = value["entries"].as_array().expect("entries array");
         let raster = entries
             .iter()
-            .find(|entry| {
-                entry["source_id"] == "wasa3-high-resolution-wind-resource-map-2020"
-            })
+            .find(|entry| entry["source_id"] == "wasa3-high-resolution-wind-resource-map-2020")
             .expect("WASA3 raster source record");
         let portal = entries
             .iter()
-            .find(|entry| {
-                entry["source_id"] == "wasa-south-africa-time-series-portal-availability"
-            })
+            .find(|entry| entry["source_id"] == "wasa-south-africa-time-series-portal-availability")
             .expect("WASA time-series portal source record");
 
         assert_eq!(raster["source_type"], "dataset");
         assert_eq!(raster["evidence_basis"], "modeled_resource_atlas");
-        assert_eq!(raster["availability_state"], "available_pending_snapshot_pin");
+        assert_eq!(
+            raster["availability_state"],
+            "available_pending_snapshot_pin"
+        );
         assert_eq!(portal["source_type"], "portal_status");
         assert_eq!(portal["evidence_basis"], "availability_notice");
         assert_eq!(portal["availability_state"], "temporarily_unavailable");
@@ -1152,9 +1178,7 @@ mod tests {
             .iter()
             .find(|entry| entry["source_id"] == "global-wind-atlas-4-0")
             .expect("GWA4 source record");
-        let limitations = gwa["limitations"]
-            .as_array()
-            .expect("limitations array");
+        let limitations = gwa["limitations"].as_array().expect("limitations array");
         assert!(limitations.iter().any(|item| {
             item.as_str()
                 .is_some_and(|text| text.contains("does not include South Africa"))
@@ -1167,16 +1191,16 @@ mod tests {
         let entries = value["entries"].as_array().expect("entries array");
         let atlas = entries
             .iter()
-            .find(|entry| {
-                entry["source_id"] == "south-african-hydropower-atlas-report-tt916-23"
-            })
+            .find(|entry| entry["source_id"] == "south-african-hydropower-atlas-report-tt916-23")
             .expect("SA Hydropower Atlas report record");
         assert_eq!(atlas["evidence_basis"], "modeled_resource_atlas");
         assert_eq!(atlas["availability_state"], "context_only");
         assert_eq!(atlas["raw_snapshot_ingested"], false);
-        assert!(atlas["claim_ceiling"]
-            .as_str()
-            .is_some_and(|claim| claim.contains("not measured site flow/head")));
+        assert!(
+            atlas["claim_ceiling"]
+                .as_str()
+                .is_some_and(|claim| claim.contains("not measured site flow/head"))
+        );
     }
 
     #[test]
@@ -1189,8 +1213,8 @@ mod tests {
             .expect("2026 WDN hydropower review record");
         assert_eq!(review["evidence_basis"], "literature_review");
         assert_ne!(review["evidence_basis"], "published_field_observation");
-        let receipt = audit_bytes(SCHEMA_BYTES, REGISTRY_BYTES)
-            .expect("updated registry should conform");
+        let receipt =
+            audit_bytes(SCHEMA_BYTES, REGISTRY_BYTES).expect("updated registry should conform");
         assert_eq!(receipt.disposition, "accepted");
         assert_eq!(receipt.entry_count, 17);
     }
@@ -1251,10 +1275,12 @@ mod tests {
         value["entries"][1]["source_id"] = Value::String(first_id);
         let receipt = audit_mutated_registry(value);
         assert_eq!(receipt.disposition, "rejected");
-        assert!(receipt
-            .findings
-            .iter()
-            .any(|finding| finding.code == "source_id_unique"));
+        assert!(
+            receipt
+                .findings
+                .iter()
+                .any(|finding| finding.code == "source_id_unique")
+        );
     }
 
     #[test]
@@ -1265,14 +1291,18 @@ mod tests {
             Value::String(format!("sha256:{}", "a".repeat(64)));
         let receipt = audit_mutated_registry(value);
         assert_eq!(receipt.disposition, "rejected");
-        assert!(receipt
-            .findings
-            .iter()
-            .any(|finding| finding.code == "discovery_only_snapshot_required"));
-        assert!(receipt
-            .findings
-            .iter()
-            .any(|finding| finding.code == "discovery_only_digest_must_be_null"));
+        assert!(
+            receipt
+                .findings
+                .iter()
+                .any(|finding| finding.code == "discovery_only_snapshot_required")
+        );
+        assert!(
+            receipt
+                .findings
+                .iter()
+                .any(|finding| finding.code == "discovery_only_digest_must_be_null")
+        );
     }
 
     #[test]
@@ -1282,18 +1312,17 @@ mod tests {
             .as_array_mut()
             .expect("entries array")
             .iter_mut()
-            .find(|entry| {
-                entry["source_id"]
-                    == "wasa-south-africa-time-series-portal-availability"
-            })
+            .find(|entry| entry["source_id"] == "wasa-south-africa-time-series-portal-availability")
             .expect("WASA portal status entry");
         entry["source_type"] = Value::String("dataset".to_owned());
         let receipt = audit_mutated_registry(value);
         assert_eq!(receipt.disposition, "rejected");
-        assert!(receipt
-            .findings
-            .iter()
-            .any(|finding| finding.code == "unavailable_source_state_consistency"));
+        assert!(
+            receipt
+                .findings
+                .iter()
+                .any(|finding| finding.code == "unavailable_source_state_consistency")
+        );
     }
 
     #[test]
@@ -1302,10 +1331,12 @@ mod tests {
         value["entries"][0]["source_url"] = Value::String("http://example.org/data".to_owned());
         let receipt = audit_mutated_registry(value);
         assert_eq!(receipt.disposition, "rejected");
-        assert!(receipt
-            .findings
-            .iter()
-            .any(|finding| finding.code == "source_url_https"));
+        assert!(
+            receipt
+                .findings
+                .iter()
+                .any(|finding| finding.code == "source_url_https")
+        );
     }
 
     #[test]
@@ -1315,10 +1346,12 @@ mod tests {
             Value::String("2026-13-45".to_owned());
         let receipt = audit_mutated_registry(value);
         assert_eq!(receipt.disposition, "rejected");
-        assert!(receipt
-            .findings
-            .iter()
-            .any(|finding| finding.code == "source_version_date"));
+        assert!(
+            receipt
+                .findings
+                .iter()
+                .any(|finding| finding.code == "source_version_date")
+        );
     }
 
     #[test]
@@ -1332,10 +1365,12 @@ mod tests {
         let bytes = serde_json::to_vec(&schema).expect("serialize schema");
         let receipt = audit_bytes(&bytes, REGISTRY_BYTES).expect("schema JSON is parseable");
         assert_eq!(receipt.disposition, "rejected");
-        assert!(receipt
-            .findings
-            .iter()
-            .any(|finding| finding.code == "schema_enum_values"));
+        assert!(
+            receipt
+                .findings
+                .iter()
+                .any(|finding| finding.code == "schema_enum_values")
+        );
     }
 
     #[test]
@@ -1344,10 +1379,12 @@ mod tests {
         value["registry_status"] = Value::String("admitted".to_owned());
         let receipt = audit_mutated_registry(value);
         assert_eq!(receipt.disposition, "rejected");
-        assert!(receipt
-            .findings
-            .iter()
-            .any(|finding| finding.code == "registry_discovery_only_status"));
+        assert!(
+            receipt
+                .findings
+                .iter()
+                .any(|finding| finding.code == "registry_discovery_only_status")
+        );
     }
 
     #[test]
@@ -1356,9 +1393,11 @@ mod tests {
         value["as_of"] = Value::String("2026-02-30".to_owned());
         let receipt = audit_mutated_registry(value);
         assert_eq!(receipt.disposition, "rejected");
-        assert!(receipt
-            .findings
-            .iter()
-            .any(|finding| finding.code == "registry_as_of_date"));
+        assert!(
+            receipt
+                .findings
+                .iter()
+                .any(|finding| finding.code == "registry_as_of_date")
+        );
     }
 }
