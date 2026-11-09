@@ -436,6 +436,7 @@ fn evaluate_v02(graph: &Value, event: &Value, report: &Value) -> Evaluation {
     }
 
     let mut targets = BTreeSet::new();
+    let mut resolved_targets = BTreeSet::new();
     for target in array(event, "targets") {
         check_exact_keys(
             target,
@@ -457,6 +458,8 @@ fn evaluate_v02(graph: &Value, event: &Value, report: &Value) -> Evaluation {
             || text(target, "artifact_sha256") != text(node, "artifact_sha256")
         {
             add(&mut reasons, "INVALIDATION_TARGET_NODE_MISMATCH");
+        } else {
+            resolved_targets.insert(id.to_owned());
         }
     }
 
@@ -494,7 +497,7 @@ fn evaluate_v02(graph: &Value, event: &Value, report: &Value) -> Evaluation {
             add(&mut reasons, "IMPACT_RESULT_NODE_MISMATCH");
         }
     }
-    if targets.iter().any(|id| !results.contains(id)) {
+    if resolved_targets.iter().any(|id| !results.contains(id)) {
         add(&mut reasons, "IMPACT_RESULT_MISSING_INVALIDATION_TARGET");
     }
     if report["summary"]["node_count"].as_u64() != Some(array(report, "results").len() as u64) {
@@ -931,6 +934,11 @@ pub fn build_triplet(mutation: &str) -> (Value, Value, Value) {
                 .push(extra);
             report["summary"]["node_count"] = json!(2);
             report["summary"]["reverify_required_count"] = json!(2);
+        }
+        "missing_impact_result_for_existing_target" => {
+            report["results"] = json!([]);
+            report["summary"]["node_count"] = json!(0);
+            report["summary"]["reverify_required_count"] = json!(0);
         }
         "legacy_v01_report_in_v02_triplet" => {
             report["schema_version"] = json!(REPORT_V01);
