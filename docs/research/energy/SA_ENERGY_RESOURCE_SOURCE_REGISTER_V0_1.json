@@ -1926,6 +1926,366 @@
       ],
       "raw_snapshot_ingested": false,
       "snapshot_digest": null
+    },
+    {
+      "source_id": "mine-water-energy-technical-basics-and-monitoring-review-2025",
+      "source_name": "Mine Water as an Energy Source: Overview of Technical Basics, Existing Plants, and Monitoring Results",
+      "provider": "Oppelt, Grab, Ebel, Wunderlich, Fieback and Storch; Mine Water and the Environment",
+      "source_url": "https://doi.org/10.1007/s10230-025-01057-w",
+      "source_type": "research_publication",
+      "resource_families": [
+        "geothermal",
+        "cross_resource"
+      ],
+      "evidence_basis": "literature_review",
+      "availability_state": "context_only",
+      "source_version": {
+        "label": "Mine Water and the Environment 44, 519–543; published 2025-05-15",
+        "release_or_publication_date": "2025-05-15",
+        "data_period": "Review of mine-water heat systems, existing installations and monitoring results",
+        "metadata_updated": null,
+        "notes": "The review explains mine-water heating/cooling pathways and existing plants. Useful capacity depends on stable flow, mine-water renewal, temperature, pumping head, reinjection temperature, chemistry and nearby consumers. It notes that mine-water temperature can be too low for direct heating and heat pumps may be needed."
+      },
+      "spatial_scope": "International mine-water installations and technical examples; not a South African resource map",
+      "spatial_resolution": "Review of mine systems and case studies; site boundaries and raw data vary by source",
+      "temporal_scope": "Published 2025; reviews earlier operating installations and monitoring evidence",
+      "temporal_resolution": "Cross-study operational and monitoring examples; not a single harmonized time series",
+      "variables": [
+        "mine-water flow and renewal",
+        "mine-water temperature",
+        "pumping head",
+        "heat-pump COP",
+        "reinjection temperature",
+        "chemistry and fouling",
+        "consumer distance",
+        "thermal energy delivered"
+      ],
+      "license_status": {
+        "status": "identified_requires_review",
+        "details": "Publisher's article access and reuse conditions must be checked, including third-party figures and underlying monitoring data."
+      },
+      "claim_ceiling": "Technical review and cross-case evidence for mine-water heat and cooling. Does not prove a specific South African mine has sustainable thermal flow, water rights, suitable chemistry or economic connection to consumers.",
+      "limitations": [
+        "Usable energy depends on stable inflow/replenishment and temperature, not the geometric volume of a flooded mine alone.",
+        "Pumping head and distance between the mine-water source and consumers can dominate system losses and economics.",
+        "Reinjection temperature, chemistry, scaling, mineral precipitation and corrosion must be assessed for each site.",
+        "International mine-water case studies and heat-pump COP values are not transferable to South African sites without measured source/sink conditions."
+      ],
+      "admission_requirements": [
+        "Recover original case-site flow/temperature histories and meter boundaries for any quantitative use.",
+        "For South African candidates obtain operator-approved mine-water temperatures, flow, pump/treatment energy, chemistry, reinjection/discharge limits and consumer profiles.",
+        "Model source renewal and thermal recovery; do not assume a mine void is a lossless storage tank.",
+        "Separate source heat, compressor work, auxiliaries, distribution losses and useful consumer heat/cooling."
+      ],
+      "raw_snapshot_ingested": false,
+      "snapshot_digest": null
+    },
+    {
+      "source_id": "mine-water-heating-system-operational-lessons-economic-scenarios-2026",
+      "source_name": "Technical lessons learned from the usage of geothermal mine water for heat supply and economic scenarios to predict feasibility",
+      "provider": "Energy Conversion and Management",
+      "source_url": "https://doi.org/10.1016/j.enconman.2025.120809",
+      "source_type": "research_publication",
+      "resource_families": [
+        "geothermal",
+        "cross_resource"
+      ],
+      "evidence_basis": "published_field_observation",
+      "availability_state": "context_only",
+      "source_version": {
+        "label": "Energy Conversion and Management 349, article 120809; published 2026-02-01",
+        "release_or_publication_date": "2026-02-01",
+        "data_period": "Technical analysis of an operating mine-water heating system plus alternative economic scenarios",
+        "metadata_updated": null,
+        "notes": "The paper evaluates an operating geothermal mine-water heat-supply system. Its highlights identify heat-network losses and mineralization at heat exchangers as critical optimization issues. The abstract reports case-specific amortization periods of 14–22 years depending on energy and carbon prices, and notes the need for subsidies under the study's investment scenario."
+      },
+      "spatial_scope": "One international mine-water heating case study; not South Africa",
+      "spatial_resolution": "Operating mine-water heating system and its heat-network/exchanger boundary; exact site data require the full paper",
+      "temporal_scope": "Published February 2026; operating system and scenario-based economics",
+      "temporal_resolution": "Operational observations and modelled economic scenarios; full monitoring cadence must be recovered from article",
+      "variables": [
+        "mine-water heat supply",
+        "heat-network losses",
+        "heat-exchanger mineralization",
+        "heating demand",
+        "energy cost",
+        "carbon price",
+        "amortization period"
+      ],
+      "license_status": {
+        "status": "identified_requires_review",
+        "details": "Open-access article is identified; verify the exact Creative Commons licence and third-party figure/data rights before reuse."
+      },
+      "claim_ceiling": "Published operating-system case study and techno-economic scenarios for geothermal mine-water heating. Its 14–22-year amortization is a case-specific result, not a South African payback estimate.",
+      "limitations": [
+        "The project is not a South African mine-water installation; geology, pumping, chemistry, consumer density, energy prices and regulation differ.",
+        "The economics are sensitive to heat-network loss, exchanger mineralization and energy/carbon-price assumptions.",
+        "The abstract does not provide a raw meter export or an independently audited South African performance series."
+      ],
+      "admission_requirements": [
+        "Recover the full article's operating heat/flow/temperature and meter boundaries before numerical reproduction.",
+        "Crosswalk the heat exchanger mineralization and maintenance data to South African mine-water chemistry only where comparable.",
+        "Recompute economics under a South African tariff, grid emissions, water treatment, labour, financing and consumer load profile.",
+        "Preserve observed performance separately from scenario-modelled amortization."
+      ],
+      "raw_snapshot_ingested": false,
+      "snapshot_digest": null
+    },
+    {
+      "source_id": "csir-sanedi-south-africa-industrial-thermal-systems-support",
+      "source_name": "Supporting Industry with Thermal Systems",
+      "provider": "Council for Scientific and Industrial Research (CSIR), with South African National Energy Development Institute (SANEDI)",
+      "source_url": "https://www.csir.co.za/supporting-industry-thermal-systems",
+      "source_type": "government_page",
+      "resource_families": [
+        "cross_resource",
+        "solar",
+        "geothermal"
+      ],
+      "evidence_basis": "government_research_context",
+      "availability_state": "context_only",
+      "source_version": {
+        "label": "CSIR Energy Research Centre thermal-systems support programme page",
+        "release_or_publication_date": null,
+        "data_period": "Existing and planned thermal laboratory/test capabilities described on the project page",
+        "metadata_updated": null,
+        "notes": "The CSIR page describes local thermal-system support work and capabilities including materials characterization, low-pressure steam supply/distribution, lab-scale thermal storage and performance testing of evacuated-tube collectors for 70–150°C water heating and concentrating/tracking solar collectors for 100–400°C industrial heat. It describes planned heat-pump, pilot thermal-storage, flue-gas and thermal-oil testing capability."
+      },
+      "spatial_scope": "South Africa; CSIR thermal testing and industrial energy-support capability",
+      "spatial_resolution": "Laboratory/test-facility capability; not a commercial plant or site heat-resource layer",
+      "temporal_scope": "Programme page; includes existing and planned equipment capability",
+      "temporal_resolution": "Facility and test capability description; no continuous plant-output data",
+      "variables": [
+        "industrial process heat",
+        "solar thermal collector testing",
+        "low-pressure steam",
+        "heat-pump test capability",
+        "thermal energy storage",
+        "materials characterization",
+        "waste-heat recovery"
+      ],
+      "license_status": {
+        "status": "identified_requires_review",
+        "details": "Government research programme web page is publicly accessible; confirm terms for reuse of figures, programme descriptions and test datasets."
+      },
+      "claim_ceiling": "Evidence that South African thermal-system R&D/testing capability and an industry support programme exist. Does not establish that planned equipment is already commissioned, that a specific project has been tested, or that a particular supplier/device meets performance requirements.",
+      "limitations": [
+        "The page describes both existing and planned testing capability; planned facilities must not be presented as already commissioned.",
+        "No public test reports or full measurement-uncertainty datasets are admitted by this source record.",
+        "A laboratory capability does not establish industrial customer suitability, process uptime or bankable LCOH."
+      ],
+      "admission_requirements": [
+        "Confirm which facilities are currently operational and their test envelopes with CSIR/SANEDI.",
+        "Obtain independent calibration, uncertainty, safety and measurement-boundary documentation for each test rig.",
+        "Use the lab for matched heat-pump, collector, recuperator and storage testing only within its declared envelope.",
+        "Keep supplier/product trials distinct from commercial operating evidence."
+      ],
+      "raw_snapshot_ingested": false,
+      "snapshot_digest": null
+    },
+    {
+      "source_id": "greencape-south-africa-industrial-heating-decarbonisation-brief-2026",
+      "source_name": "Decarbonising Industrial Heating: Evaluating Low-Carbon Alternatives for Industrial Thermal Systems",
+      "provider": "GreenCape, supported by Agora Energiewende",
+      "source_url": "https://greencape.co.za/library/decarbonising-industrial-heating/",
+      "source_type": "sector_report",
+      "resource_families": [
+        "cross_resource",
+        "solar",
+        "geothermal"
+      ],
+      "evidence_basis": "sector_policy_report",
+      "availability_state": "context_only",
+      "source_version": {
+        "label": "GreenCape industrial heating brief; published 2026-08-28",
+        "release_or_publication_date": "2026-08-28",
+        "data_period": "South African industrial thermal-system alternatives and market/policy context",
+        "metadata_updated": null,
+        "notes": "The brief targets South African industrial businesses relying on boilers for process heat and steam. It discusses technical, financial and regulatory pathways and evaluates low-carbon alternatives, LCOH, carbon liability and operational suitability for industrial heating."
+      },
+      "spatial_scope": "South African industrial sector; national technology and market context",
+      "spatial_resolution": "Sector/industry brief; not individual plant hourly heat-demand measurements",
+      "temporal_scope": "Published 2026-08-28",
+      "temporal_resolution": "Technology, policy and market assessment; no continuous industrial process time series",
+      "variables": [
+        "industrial process heat and steam",
+        "boiler fuel use",
+        "low-carbon heat alternatives",
+        "levelized cost of heat",
+        "carbon tax/liability",
+        "operational suitability"
+      ],
+      "license_status": {
+        "status": "identified_requires_review",
+        "details": "Free publication is accessible from GreenCape; confirm report reuse, underlying dataset and third-party chart terms before redistribution."
+      },
+      "claim_ceiling": "South African market and technology-pathway context for decarbonizing industrial heat. Does not prove any plant-specific LCOH, heat-pump duty, resource availability or project return.",
+      "limitations": [
+        "The brief is a technology/market guide, not an independently audited industrial-site load/resource dataset.",
+        "Site-level steam pressure, temperature, return condensate, operating hours, boiler efficiency and production constraints are required for design.",
+        "Carbon price, tariffs, finance and process continuity assumptions may change the result materially."
+      ],
+      "admission_requirements": [
+        "Recover site-specific heat/steam demand by interval and temperature/pressure grade.",
+        "Measure boiler efficiency, fuel/auxiliary consumption, condensate return, waste-heat source/sink and process uptime.",
+        "Compare heat pumps, solar thermal, waste-heat recovery, thermal storage and hybrid alternatives at the useful heat boundary.",
+        "Recalculate LCOH and abatement cost under each site's tariff, finance, carbon and maintenance assumptions."
+      ],
+      "raw_snapshot_ingested": false,
+      "snapshot_digest": null
+    },
+    {
+      "source_id": "high-temperature-heat-pumps-industrial-process-heating-review-2025",
+      "source_name": "High-temperature heat pumps: key technologies and industrial applications toward carbon-neutral process heating",
+      "provider": "Wu, Yang and Zhang; Carbon Neutral Systems",
+      "source_url": "https://doi.org/10.1007/s44438-025-00021-z",
+      "source_type": "research_publication",
+      "resource_families": [
+        "cross_resource",
+        "geothermal"
+      ],
+      "evidence_basis": "literature_review",
+      "availability_state": "context_only",
+      "source_version": {
+        "label": "Carbon Neutral Systems 1, article 21; published 2025-12-29",
+        "release_or_publication_date": "2025-12-29",
+        "data_period": "Review of high-temperature heat-pump cycles, working fluids and industrial applications",
+        "metadata_updated": null,
+        "notes": "The review discusses medium-temperature heat pumps around 80–100°C and high-temperature systems in approximately 100–160°C industrial heat applications, including upgrading low-grade waste heat to process heat. It identifies cycle selection, temperature lift, working-fluid compatibility and integration with industrial duty as key design variables."
+      },
+      "spatial_scope": "International industrial-process-heat review",
+      "spatial_resolution": "Technology and application classes; not a South African industrial load database",
+      "temporal_scope": "Published 2025-12-29",
+      "temporal_resolution": "Review of experimental, modelling and application studies; no single harmonized operating time series",
+      "variables": [
+        "heat-pump delivery temperature",
+        "source temperature",
+        "temperature lift",
+        "compressor electricity",
+        "cycle topology",
+        "working-fluid selection",
+        "industrial process heat",
+        "COP"
+      ],
+      "license_status": {
+        "status": "identified_requires_review",
+        "details": "The article is identified as open access; confirm exact licence and any third-party figure restrictions before reuse."
+      },
+      "claim_ceiling": "Review of high-temperature heat-pump technology and industrial use cases. The temperature ranges are review context, not guaranteed performance for a commercial unit at every temperature lift.",
+      "limitations": [
+        "COP depends on source/sink temperature, cycle, working fluid, compressor, part-load and auxiliaries; the abstract does not give one universal COP.",
+        "Process heat at 100–160°C may require different cycle architectures and materials than low-temperature space heating.",
+        "Real industrial integration depends on process continuity, heat-exchanger fouling, available source heat and backup requirements."
+      ],
+      "admission_requirements": [
+        "Use measured source/sink temperature and duty profiles, not nominal temperatures alone.",
+        "Obtain manufacturer and independent maps at the exact lift and part-load range.",
+        "Include all compressor, circulation, treatment and distribution electricity in system COP.",
+        "Compare with direct electric heat, boiler, solar thermal and waste-heat recovery using matched service quality and temperature grade."
+      ],
+      "raw_snapshot_ingested": false,
+      "snapshot_digest": null
+    },
+    {
+      "source_id": "freiberg-mine-water-seasonal-thermal-storage-pilot-2026",
+      "source_name": "Mine water heat storage with heat pump as a solution for decarbonisation in urban areas",
+      "provider": "Heat Pumping Technologies / International Energy Agency Heat Pumping Technologies TCP conference paper",
+      "source_url": "https://heatpumpingtechnologies.org/publications/mine-water-heat-storage-with-heat-pump-as-a-solution-fordecarbonisation-in-urban-areas/",
+      "source_type": "research_publication",
+      "resource_families": [
+        "geothermal",
+        "cross_resource"
+      ],
+      "evidence_basis": "published_field_observation",
+      "availability_state": "context_only",
+      "source_version": {
+        "label": "HPT conference proceedings paper; published 2026-05-26",
+        "release_or_publication_date": "2026-05-26",
+        "data_period": "Freiberg former silver mine pilot reported continuously in test mode for over two years",
+        "metadata_updated": null,
+        "notes": "The paper reports a pilot-scale mine-water thermal storage system in Freiberg, Germany, operated in test mode for over two years. It reports storage efficiencies of 45–65%, mine-water temperatures ranging from 2°C to 40°C, and modelled district self-sufficiency up to 80% with storage duration over three months for three German district scenarios. The self-sufficiency and economic projections are modelled; the pilot storage-efficiency and temperature observations are separate evidence."
+      },
+      "spatial_scope": "Freiberg, Germany; one former silver-mine thermal-storage pilot and three modelled district scenarios",
+      "spatial_resolution": "Pilot mine-water store and heat-pump loop; consumer districts are modelled cases",
+      "temporal_scope": "Pilot test operation over more than two years, paper published May 2026",
+      "temporal_resolution": "Long-running pilot operation; exact sensor cadence and uncertainty must be recovered from proceedings",
+      "variables": [
+        "mine-water temperature",
+        "thermal storage charge/discharge",
+        "storage efficiency",
+        "heat-pump operation",
+        "seasonal storage duration",
+        "district heat demand",
+        "self-sufficiency"
+      ],
+      "license_status": {
+        "status": "identified_requires_review",
+        "details": "Review conference-paper licence, source data ownership and reuse terms before copying charts or detailed data."
+      },
+      "claim_ceiling": "Published field/pilot evidence for one German mine-water thermal-storage system with modelled district applications. It is not South African field validation or a universal 45–65% mine-thermal-storage efficiency.",
+      "limitations": [
+        "Pilot results depend on the specific flooded mine, flow renewal, geology, temperature, heat-pump configuration and monitoring boundary.",
+        "The reported up-to-80% self-sufficiency and greater-than-three-month duration are modelled district results, not measured service in an operating South African district.",
+        "A mine thermal store can cool or warm over time; sustainable use depends on water renewal and thermal recovery."
+      ],
+      "admission_requirements": [
+        "Recover raw pilot temperature/flow/heat meter data, storage-boundary definitions, efficiency formula and uncertainty.",
+        "Compare the German pilot with South African mine geometry, water renewal, chemistry and surface network distances.",
+        "Keep pilot storage observations distinct from modelled district self-sufficiency and economic projections.",
+        "Use site-specific thermal-hydraulic modelling and environmental approval before proposing a South African installation."
+      ],
+      "raw_snapshot_ingested": false,
+      "snapshot_digest": null
+    },
+    {
+      "source_id": "council-for-geoscience-south-africa-mine-water-management-research",
+      "source_name": "Mine and Environmental Water Management Project",
+      "provider": "Council for Geoscience, South Africa",
+      "source_url": "https://www.geoscience.org.za/project/mine-and-environmental-water-management-project/",
+      "source_type": "government_page",
+      "resource_families": [
+        "geothermal",
+        "cross_resource"
+      ],
+      "evidence_basis": "government_research_context",
+      "availability_state": "context_only",
+      "source_version": {
+        "label": "Council for Geoscience project page",
+        "release_or_publication_date": null,
+        "data_period": "Long-running research and mine-water management activities in Witwatersrand gold and coal mining areas",
+        "metadata_updated": null,
+        "notes": "The Council for Geoscience describes research into mine-water ingress, pump-and-treat infrastructure, acid-mine-drainage risks, water management and passive-treatment pilot tests. This is a lead for mine-water operators/data and environmental constraints, not a record of measured thermal potential."
+      },
+      "spatial_scope": "South Africa, particularly Witwatersrand goldfields and coalfield mine-water management",
+      "spatial_resolution": "Research project areas and mine-water management regions; not individual heat-resource wells or thermal network zones",
+      "temporal_scope": "Long-running project context; page has no single data observation period",
+      "temporal_resolution": "Project description; no continuous flow/temperature record provided by the page",
+      "variables": [
+        "mine-water ingress",
+        "pumping and treatment",
+        "acid mine drainage",
+        "water quality",
+        "mine-water management",
+        "passive treatment"
+      ],
+      "license_status": {
+        "status": "identified_requires_review",
+        "details": "Government project page is publicly accessible; verify reuse of maps, project outputs and underlying water data with the Council for Geoscience."
+      },
+      "claim_ceiling": "Official evidence that mine-water management, pumping, treatment and water-quality research is underway in South Africa. It does not establish thermal output, stable mine-water flow, ownership or a heat-use right.",
+      "limitations": [
+        "Mine-water management is primarily a water/environmental obligation; energy recovery must not undermine containment, treatment or clean-water protection.",
+        "No temperatures, flow rates, pumping head or thermal-yield series are supplied by this project page.",
+        "Acid mine drainage, metals, salinity and water quality may make heat-exchanger design and reinjection difficult."
+      ],
+      "admission_requirements": [
+        "Request mine-specific flow, pump, treatment, temperature and chemistry data from the responsible operator and public agencies.",
+        "Keep environmental remediation and water-security requirements as hard constraints; thermal energy is a secondary use.",
+        "Confirm ownership, water-use permits, discharge/reinjection rights and liability before site screening.",
+        "Do not assume a mine-water source can be safely abstracted or reinjected because it appears on a map."
+      ],
+      "raw_snapshot_ingested": false,
+      "snapshot_digest": null
     }
   ]
 }
