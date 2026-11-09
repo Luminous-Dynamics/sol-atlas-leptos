@@ -41,7 +41,7 @@ The receipt contains exact SHA-256 values for the schema and registry bytes, val
 
 ## Tests
 
-The unit suite includes the checked-in 26-entry source register plus hostile controls for duplicate keys, trailing bytes, oversize input, unknown fields, duplicate IDs, fabricated snapshot admission, unavailable-source relabelling, HTTP locators, invalid dates, schema enum drift and discovery-status mutation.
+The unit suite includes the checked-in 29-entry source register plus hostile controls for duplicate keys, trailing bytes, oversize input, unknown fields, duplicate IDs, fabricated snapshot admission, unavailable-source relabelling, HTTP locators, invalid dates, schema enum drift and discovery-status mutation.
 
 ## Important boundary
 
@@ -70,3 +70,11 @@ The evidence basis now includes `laboratory_measurement` in addition to `publish
 - technology literature reviews.
 
 A regression suite checks that Antalya stays a published field observation while the 2016/2025 PAT curves and Parra 2018 PAT/PRV tests stay laboratory measurement evidence. The sources are external comparators, not South African validation.
+
+
+The South African field-observation lane now also includes:
+- WRC KV 238/10 (2010): five measured Queenswood PAT point observations. Preserve watts, not kWh, and do not extrapolate five samples into annual yield.
+- Tshwane 2014: a separate Pierre van Ryneveld cross-flow conduit-hydro installation (about 15 kW maximum capacity, not annual average); the article's Queenswood discussion is cross-linked to the WRC pilot and is not a second installation.
+- Drakenstein/Leliefontein 2021: bidirectional PAT/pump station with SCADA and grid metering described. Its 320 MWh/year and 9.9 GWh values are estimates; a second pair of cumulative meter totals is internally inconsistent and must remain unresolved until operator data confirm the units.
+
+Regression tests protect these distinctions. All records remain discovery/context evidence; no raw local telemetry has been ingested.
