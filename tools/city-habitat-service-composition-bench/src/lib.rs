@@ -696,6 +696,13 @@ mod tests {
         let case = corpus()["cases"].as_array().unwrap()
             .iter().find(|item| text(item, "case_id") == "HSC-004").unwrap();
         let result = evaluate_case(case);
+        let access = array(case, "owners").iter()
+            .find(|owner| text(owner, "role") == "access")
+            .expect("access owner");
+        assert_eq!(
+            access["result"]["category_totals"][0]["status"],
+            "KnownAggregateCapacityAdequate"
+        );
         assert_eq!(result["access_state"], "Inaccessible");
         assert_eq!(result["disposition"], "AccessConstrained");
         assert_eq!(result["realized_use_state"], "NotMeasured");
