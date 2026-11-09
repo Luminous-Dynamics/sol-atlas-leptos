@@ -187,3 +187,29 @@ Target zero false acceptance on a finite, frozen hostile test panel. This is a c
 This v0.1 is a research specification. It does not establish that any named site is suitable, permitted, interconnected, bankable, safe or ready to construct. It does not forecast plant output without validated time-series and technology-specific conversion models. No spatial score substitutes for water rights, environmental authorisation, community consent, grid connection, geotechnical investigation, metocean measurement or licensed engineering approval.
 
 All source-derived claims remain at the evidence level of their underlying source. No synthetic or modelled value may be presented as an observation.
+
+
+## 10. Source-register corrections and admission cautions (checked 2026-11-09)
+
+The machine-readable discovery register is `SA_ENERGY_RESOURCE_SOURCE_REGISTER_V0_1.json`, validated against `schemas/energy-resource-source-registry-v0.1.schema.json`. Its entries are deliberately not admitted datasets: all have `raw_snapshot_ingested=false` and `snapshot_digest=null`.
+
+Important source-status corrections:
+
+- **Global Wind Atlas:** use GWA 4.0 as the current global screening candidate. DTU's 2025-06-18 announcement describes a new microscale modelling step at 250 m across country boundaries and offshore EEZs. That is a model-grid description, not a claim of 250 m measurement accuracy. Pin the exact downloaded object, model metadata, release and validation coverage. The older IEA Africa GIS catalogue entry may still carry older release metadata; do not let the catalogue listing overwrite the direct GWA 4.0 version record.
+- **WASA:** the CSAG/UCT time-series portal notice dated 2026-09-01 says several hard-drive failures corrupted the portal's 30-year WRF time series and regeneration was underway. The notice says WASA3 reports remain available. Until the portal is rechecked and the restored files are downloaded and hashed, the time-series product is `temporarily_unavailable`. A portal status notice is not a substitute dataset.
+- **Agulhas Current:** Meyer, Braby, Krug and Backeberg's ResearchSpace record dates the publication to 2017-04. Its two-site ADCP/model comparison is a historical reference case, not a 2026 campaign or coast-wide current atlas. Preserve the two sampled locations, depths and acquisition windows separately if the full record is admitted.
+- **Copernicus waves:** `GLOBAL_MULTIYEAR_WAV_001_032` (WAVERYS) is the historical wave reanalysis candidate at 0.2 degrees with hourly/monthly products and the product page reporting coverage through 2026-08-31. `GLOBAL_ANALYSISFORECAST_WAV_001_027` is a separate 0.083-degree hourly analysis/forecast product. Forecast lead times must never be mixed into historical climate statistics.
+- **Copernicus ocean physics:** `GLOBAL_ANALYSISFORECAST_PHY_001_024` can provide coarse global velocity profiles, but its grid and 50-level representation require matched ADCP validation and do not establish turbine-depth currents at a particular site.
+- **Solar Atlas:** the South Africa country/region package last updated 2019 (data through 2018) is not the same data release as the global GIS layers last updated 2026 (data through 2025). Keep separate source IDs, file manifests, periods, licences and hashes.
+- **Hydro / geothermal:** the government small-hydro lead cites a 2002 baseline; the CGS page describes exploration context. Neither currently supplies an admitted modern site-level flow-duration, head, borehole temperature-depth or sustainable reservoir-flow dataset.
+
+No resource source should be promoted to `observed_measurement` solely because a report contains a number. The epistemic class belongs to the underlying evidence object: a peer-reviewed paper may report field observations, but the raw measurement series, methods, location, timebase and uncertainty still need to be recovered before those observations become a reusable site-level dataset.
+
+## 11. Immediate source-ingress work order
+
+1. Recheck WASA portal status on the day of any attempted acquisition; record the response and time.
+2. Download one small, licensed Global Wind Atlas 4.0 South African tile and one matching GSA global GIS tile. Preserve original bytes and metadata without reprojecting or resampling.
+3. Obtain a DWS gauge time series with station metadata, flow measurement quality and data-use terms for a candidate hydro catchment; do not select a site solely from the old 2002 regional lead.
+4. Request CGS access to the exact geothermal datasets (borehole, geochemical and magnetotelluric observations) and record withheld/unavailable separately.
+5. Acquire one Copernicus Marine wave and current/physics subset with the Quality Information Document; pair it with available buoy / ADCP observations and do not treat reanalysis as ground truth.
+6. Only after source admission, run independent parser checks, held-out calibration and spatial/temporal representativeness tests.
