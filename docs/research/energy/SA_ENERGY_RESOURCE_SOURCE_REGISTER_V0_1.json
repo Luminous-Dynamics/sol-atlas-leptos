@@ -706,7 +706,7 @@
         "release_or_publication_date": "2022",
         "data_period": "Atlas layer-specific; exact source dates must be obtained from the ArcGIS item metadata",
         "metadata_updated": null,
-        "notes": "WRC describes the SA Hydropower Atlas as an ArcGIS Online tool bringing together existing hydropower and hydropower potential in South Africa. The 2023 report links to the ArcGIS web application. A listing is not proof that every layer endpoint, data export or service remains available."
+        "notes": "WRC describes the SA Hydropower Atlas as an ArcGIS Online tool bringing together existing hydropower and hydropower potential in South Africa. The 2023 report links to the ArcGIS web application. A listing is not proof that every layer endpoint, data export or service remains available. The report's atlas web-app URL is https://uparcgis.maps.arcgis.com/apps/webappviewer/index.html?id=9618bcec00ad4f5398f4cc0cd1a447b8; the WRC E-Tools page links to https://www.wrc.org.za/e-tool/sa-hydropower-atlas/. A separate ArcGIS item titled SAHA – South African Hydropower Atlas is item 4ee5b39dc5ed4b25af6b0af856d746b8. The web-map viewer and item catalogue do not by themselves prove each underlying layer's availability, accuracy or rights."
       },
       "spatial_scope": "South Africa",
       "spatial_resolution": "Mixed GIS layers; item-level spatial resolution and CRS are not established by the WRC catalogue summary",
@@ -737,7 +737,8 @@
         "Resolve the exact ArcGIS application/item and each feature service or raster endpoint.",
         "Capture item IDs, owner, service URLs, layer IDs, metadata, spatial references, feature counts, edit timestamps and original source citations.",
         "Review item-level copyright, licensing and redistribution conditions before export.",
-        "Snapshot exact layer data only after the WRC/ArcGIS custodian confirms permitted access and preserve original feature attributes without silently normalising values."
+        "Snapshot exact layer data only after the WRC/ArcGIS custodian confirms permitted access and preserve original feature attributes without silently normalising values.",
+        "Pin web application ID 9618bcec00ad4f5398f4cc0cd1a447b8 and item ID 4ee5b39dc5ed4b25af6b0af856d746b8 separately; obtain the live web-map JSON and enumerate all feature services before source admission."
       ],
       "raw_snapshot_ingested": false,
       "snapshot_digest": null
@@ -835,6 +836,261 @@
         "Trace each quantitative performance claim to its original primary study, turbine/PAT configuration, head/flow range and test boundary.",
         "Use matched head-flow duty profiles to compare PAT and purpose-built turbines; do not apply one peak efficiency to all timesteps.",
         "Keep grid-export and off-grid telemetry use cases distinct, with separate power thresholds, controls and cost boundaries."
+      ],
+      "raw_snapshot_ingested": false,
+      "snapshot_digest": null
+    },
+    {
+      "source_id": "saha-wastewater-treatment-works-infrastructure-layer",
+      "source_name": "SAHA Wastewater Treatment Works infrastructure layer",
+      "provider": "Department of Water and Sanitation; South African Hydropower Atlas / University of Pretoria",
+      "source_url": "https://www.arcgis.com/home/item.html?id=15265200a008406a951e40b7fb6d976f",
+      "source_type": "dataset",
+      "resource_families": [
+        "hydropower"
+      ],
+      "evidence_basis": "discovery_catalogue",
+      "availability_state": "available_pending_snapshot_pin",
+      "source_version": {
+        "label": "ArcGIS item 15265200a008406a951e40b7fb6d976f; last updated 2025-02-27",
+        "release_or_publication_date": "2025-02-27",
+        "data_period": "Infrastructure-location layer; underlying facility observation/update dates are not established by item summary",
+        "metadata_updated": "2025-02-27",
+        "notes": "ArcGIS item is titled SAHA Wastewater Treatment Works, describes wastewater treatment works in South Africa, indicates WFS source, and states data are available for download with DWS attribution required. The item links to the DWS GIS data portal. It is a facility-location layer, not measured flow/head, outlet levels, operating time series or hydropower potential."
+      },
+      "spatial_scope": "South Africa; wastewater-treatment-work locations",
+      "spatial_resolution": "Feature points / geometries; item-level CRS and positional accuracy require metadata capture",
+      "temporal_scope": "Layer item last updated 2025-02-27; facility validity periods unknown until source attributes are inspected",
+      "temporal_resolution": "Static infrastructure inventory snapshot, not a time series",
+      "variables": [
+        "wastewater-treatment-works location",
+        "facility attributes as supplied by the DWS layer"
+      ],
+      "license_status": {
+        "status": "identified_requires_review",
+        "details": "ArcGIS item states data are available for download and that the Department of Water and Sanitation must be acknowledged. Underlying source terms and redistribution permissions must be checked against DWS GIS data portal terms."
+      },
+      "claim_ceiling": "Discovery of wastewater-treatment-work locations for site-owner and hydraulic-data enquiries only. Does not establish current operating status, actual outflow, available head, effluent compliance or energy potential.",
+      "limitations": [
+        "The item has no in-depth description of attribute fields; its own page contains a 2025 request for accompanying field metadata.",
+        "A mapped WWTW location does not imply a suitable hydraulic drop, constant flow, access permission or turbine installation feasibility.",
+        "The layer is an infrastructure locator, not a hydropower-resource estimate."
+      ],
+      "admission_requirements": [
+        "Resolve the exact WFS/service URL, feature-layer ID, CRS, geometry type, feature count, field schema and edit timestamp.",
+        "Record source provider, DWS GIS catalogue metadata and exact download-byte digest.",
+        "Require DWS attribution and confirm rights before copying or redistributing the feature data.",
+        "For any candidate facility, obtain owner confirmation, hydraulic grade, measured inlet/outlet flow and head, effluent quality and time-dependent operating records."
+      ],
+      "raw_snapshot_ingested": false,
+      "snapshot_digest": null
+    },
+    {
+      "source_id": "cornubia-wdn-pat-feasibility-study-2022",
+      "source_name": "Feasibility Analysis of Energy Recovery Using PATs in Water Distribution Networks",
+      "provider": "Pillay et al.; University of KwaZulu-Natal; Water",
+      "source_url": "https://doi.org/10.3390/w14071150",
+      "source_type": "research_publication",
+      "resource_families": [
+        "hydropower",
+        "cross_resource"
+      ],
+      "evidence_basis": "modeled_analysis_forecast",
+      "availability_state": "context_only",
+      "source_version": {
+        "label": "Water 2022, 14(7), 1150; published 2022-04-02",
+        "release_or_publication_date": "2022-04-02",
+        "data_period": "Cornubia Integrated Human Settlement Development Phase 2A Zone 1; step-wise steady-state EPANET 2.2 simulations with time-varying demand multipliers and 12-hour/day PAT operating assumption",
+        "metadata_updated": null,
+        "notes": "The study uses EPANET 2.2 for the Cornubia WDN and reports a five-PAT configuration with 166.31 kW total candidate power and calculated leakage reduction of 45.59 kL/month (18.16%). It models PAT sites as PRVs in EPANET because the engine could not accurately represent PATs, calculates PAT output from recorded pressure drop/flow and an empirical BEP relationship, assumes 12 hours/day and 335 operating days/year, and treats network hydraulics as step-wise steady state."
+      },
+      "spatial_scope": "Cornubia Integrated Human Settlement Development Phase 2A, Zone 1, Durban, KwaZulu-Natal, South Africa",
+      "spatial_resolution": "Specific urban water-distribution network model with nodal and pipe-level hydraulic states; exact network model files require source permission/access",
+      "temporal_scope": "Model study published 2022-04-02; daily demand-pattern simulation and 12-hour/day assumed PAT operation",
+      "temporal_resolution": "Step-wise steady-state extended-period simulation; not transient field monitoring",
+      "variables": [
+        "nodal pressure head",
+        "pipe flow",
+        "PAT head drop",
+        "PAT power output",
+        "estimated night-time background leakage",
+        "water savings",
+        "equipment capital-payback estimate"
+      ],
+      "license_status": {
+        "status": "identified_requires_review",
+        "details": "The article is open access under CC BY 4.0. Its data availability statement is not applicable; underlying municipal network data and third-party input datasets must not be presumed redistributable."
+      },
+      "claim_ceiling": "Published, modelled South African Cornubia WDN case-study results and method comparator. Not measured PAT generation, a commissioned asset, independently validated leakage savings, or bankable energy yield.",
+      "limitations": [
+        "EPANET 2.2 was not used to solve a native PAT component; PRVs served as hydraulic proxies and PAT power was derived afterward from head/flow and an empirical BEP method.",
+        "The paper assumes operation for 12 hours/day and 335 days/year; it does not demonstrate measured annual PAT availability or net AC generation.",
+        "PATs are represented at best-efficiency points using selected pump characteristic curves rather than full field-validated off-design efficiency maps.",
+        "Leakage savings are model-derived using pressure/leakage relationships, not reported as post-installation metered water-balance measurements.",
+        "Do not count this paper and the 2021 UKZN dissertation as independent Cornubia network replications until their input network geometry, demand data and study-zone overlap are resolved."
+      ],
+      "admission_requirements": [
+        "Pin the article PDF, DOI, exact tables/figures and article checksum.",
+        "Recover the Cornubia input network, demand pattern, pressure/flow measurement provenance, PAT pump curves, empirical conversion formula and all assumed operating periods.",
+        "Reproduce the five-PAT 166.31 kW and 45.59 kL/month leakage-reduction results on the exact study boundary before reporting a matched comparison.",
+        "Separate installed/actual equipment from proposed/modelled PATs; no field-output claims without operator telemetry and meter evidence.",
+        "Resolve overlap with the 2021 UKZN dissertation before treating either as an independent validation cohort."
+      ],
+      "raw_snapshot_ingested": false,
+      "snapshot_digest": null
+    },
+    {
+      "source_id": "cornubia-pat-prv-optimization-dissertation-2021",
+      "source_name": "Development of an automation model for leakage reduction and energy harnessing through optimised placement and setting of PRVs and PATs in water distribution networks",
+      "provider": "Ethan Pillay; University of KwaZulu-Natal",
+      "source_url": "https://researchspace.ukzn.ac.za/items/56056829-50d7-4258-b11e-e93233126edf",
+      "source_type": "research_publication",
+      "resource_families": [
+        "hydropower",
+        "cross_resource"
+      ],
+      "evidence_basis": "modeled_analysis_forecast",
+      "availability_state": "context_only",
+      "source_version": {
+        "label": "Master's dissertation; completed 2021",
+        "release_or_publication_date": "2021",
+        "data_period": "Cornubia Integrated Human Settlement Development Phase 2A Zone 1 and Pat Marshal Housing Project; MATLAB/EPANET model study",
+        "metadata_updated": null,
+        "notes": "The abstract reports a modelled optimisation with five new PRVs and 12.8011% leakage reduction in Cornubia; two new PRVs and 27.907% leakage reduction in Pat Marshal; nine of 36 Cornubia PRVs replaced by candidate PATs with estimated 135.48 kW and 948.67 MWh/year; one Pat Marshal PAT with estimated 24.55 kW and 131.6 MWh/year. All power and leakage figures are optimisation outputs, not verified operating-plant measurements."
+      },
+      "spatial_scope": "Cornubia Phase 2A / Zone 1 and Pat Marshal Housing Project, KwaZulu-Natal, South Africa",
+      "spatial_resolution": "Two named water-distribution network models with pipe/node-level constraints; original model data and exact boundaries require recovery",
+      "temporal_scope": "Dissertation published 2021; modelled network duty periods and annualized outputs",
+      "temporal_resolution": "Model-based operating and annualized values; not a measured time series",
+      "variables": [
+        "network node pressures",
+        "pipe flow",
+        "pressure-reducing valve placement and settings",
+        "PAT placement and estimated power",
+        "estimated leakage reduction",
+        "annualized energy output",
+        "gross margin"
+      ],
+      "license_status": {
+        "status": "identified_requires_review",
+        "details": "UKZN ResearchSpace identifies the full dissertation PDF; the repository states items are copyright-protected and all rights reserved unless otherwise indicated. Cite the abstract and obtain permission for any redistribution or fixture use."
+      },
+      "claim_ceiling": "South African modelled multiobjective PRV/leakage/PAT placement study. Not measured energy generation, independently validated leakage savings, commissioned equipment or bankable output.",
+      "limitations": [
+        "The model was automated using MATLAB and EPANET; the abstract does not establish field commissioning or post-installation measurement.",
+        "The 135.48 kW / 948.67 MWh/year Cornubia values and 24.55 kW / 131.6 MWh/year Pat Marshal values are model-derived estimates.",
+        "The Cornubia Phase 2A network overlaps the subject geography of the 2022 peer-reviewed Cornubia PAT paper; do not treat the studies as independent test replications without comparing model inputs and study boundaries.",
+        "PAT equipment, full off-design maps, transient surge, generator losses, parasitic loads and metered output are not established by the public abstract."
+      ],
+      "admission_requirements": [
+        "Retrieve the exact dissertation and checksum; preserve rights restrictions.",
+        "Extract and pin full network topology, demand patterns, constraints, objective formulation, PAT/pump selection, pressure boundaries and annualization assumptions.",
+        "Reproduce 2021 abstract results using exact model inputs before comparing against the 2022 article.",
+        "Resolve whether the 2021 and 2022 Cornubia studies use the same network model, demand inputs and candidate sites.",
+        "Seek operator-provided pressure, flow, leakage and meter records for any independent real-world validation."
+      ],
+      "raw_snapshot_ingested": false,
+      "snapshot_digest": null
+    },
+    {
+      "source_id": "wdn-pat-pressure-management-jowitt-2025",
+      "source_name": "Pressure management and energy production approaches in urban water distribution networks using pumps as turbines",
+      "provider": "Energy Reports authors; Elsevier",
+      "source_url": "https://doi.org/10.1016/j.egyr.2025.09.034",
+      "source_type": "research_publication",
+      "resource_families": [
+        "hydropower",
+        "cross_resource"
+      ],
+      "evidence_basis": "modeled_analysis_forecast",
+      "availability_state": "context_only",
+      "source_version": {
+        "label": "Energy Reports 14, December 2025, pp. 2593-2606",
+        "release_or_publication_date": "2025-12",
+        "data_period": "Jowitt benchmark water-distribution network; 24-hour extended-period simulations using demand-driven and pressure-driven analysis",
+        "metadata_updated": null,
+        "notes": "The paper compares PAT placement and selection based on maximum, average and minimum 24-hour discharge. As PAT count increases from one to five, reported energy increases from 33.39 to 107.42 kWh under DDA and from 44.88 to 114.9 kWh under PDA. It reports that PRVs achieve greater leakage reduction and lower pressure heads, and that PDA is more realistic under pressure-sensitive conditions. These are simulation results for the Jowitt network, not South African field performance."
+      },
+      "spatial_scope": "Jowitt benchmark water distribution network; non-South-African methodological comparator",
+      "spatial_resolution": "Network node/link-level hydraulic model",
+      "temporal_scope": "Published December 2025; 24-hour daily operating profile",
+      "temporal_resolution": "Extended-period 24-hour simulation",
+      "variables": [
+        "PAT placement",
+        "PDA/DDA demand model",
+        "pressure",
+        "flow",
+        "leakage",
+        "energy recovery",
+        "PAT count and discharge-selection strategy"
+      ],
+      "license_status": {
+        "status": "identified_requires_review",
+        "details": "The paper is identified as open access under a Creative Commons licence; confirm the exact licence and third-party data conditions before reproducing figures or data. The paper states data are available on request."
+      },
+      "claim_ceiling": "Published non-South-African model-comparison methodology and simulation reference. Not a South African performance result or measured operating record.",
+      "limitations": [
+        "The Jowitt network and its demand/pipe parameters are not a South African water utility dataset.",
+        "The headline energy ranges depend on the number of PATs and whether DDA or PDA is used; preserve the exact metric and scenario count.",
+        "The paper reports greater leakage reduction and lower pressure heads for PRVs than PATs in its tested configurations; energy and leakage outcomes must not be collapsed into one score.",
+        "Source data are available on request rather than provided as an openly downloadable matched validation corpus."
+      ],
+      "admission_requirements": [
+        "Pin the paper PDF/DOI, exact tables, DDA/PDA demand settings and data availability condition.",
+        "Recreate all one-to-five PAT configurations under identical 24-hour duty and demand assumptions.",
+        "Report pressure, service delivery, leakage and energy separately for each strategy.",
+        "Keep the Jowitt case as an external algorithmic comparator; do not use its numerical output as a South African site benchmark."
+      ],
+      "raw_snapshot_ingested": false,
+      "snapshot_digest": null
+    },
+    {
+      "source_id": "wdn-multinode-pat-rtc-mpc-2026",
+      "source_name": "Multi-Node real time control for pressure regulation and energy recovery in water distribution networks using Pump-as-Turbines",
+      "provider": "Control Engineering Practice authors; Elsevier",
+      "source_url": "https://doi.org/10.1016/j.conengprac.2026.106777",
+      "source_type": "research_publication",
+      "resource_families": [
+        "hydropower",
+        "cross_resource"
+      ],
+      "evidence_basis": "modeled_analysis_forecast",
+      "availability_state": "context_only",
+      "source_version": {
+        "label": "Control Engineering Practice 169, April 2026, Article 106777",
+        "release_or_publication_date": "2026-04",
+        "data_period": "Closed-loop simulated WDN scenarios using a detailed pressure-driven unsteady-flow model",
+        "metadata_updated": null,
+        "notes": "The paper proposes a multi-node real-time control structure combining a Kalman filter for joint state/disturbance estimation, tracking model-predictive control for multi-output pressure regulation, and an actuator-settings optimizer for PAT operation. The abstract reports closed-loop simulations and claims modularity/scalability; it does not establish a field deployment or provide a public numerical performance table in the abstract."
+      },
+      "spatial_scope": "International water-distribution network modelling; no South African field deployment established",
+      "spatial_resolution": "Multi-node network and actuator model; exact node count and model details require article/supplementary-data extraction",
+      "temporal_scope": "Published April 2026; closed-loop simulated control episodes",
+      "temporal_resolution": "Real-time-control simulation using pressure-driven unsteady-flow model",
+      "variables": [
+        "multi-node service pressure",
+        "state/disturbance estimates",
+        "PAT operating settings",
+        "closed-loop control response",
+        "energy recovery",
+        "pressure-regulation constraints"
+      ],
+      "license_status": {
+        "status": "identified_requires_review",
+        "details": "The publication is reported as open access under a Creative Commons licence. Confirm article and supplementary-data licence, and any third-party model or dataset restrictions before redistribution."
+      },
+      "claim_ceiling": "Published 2026 modelled real-time-control method comparator. Not a field-validated controller, South African site result, or proof of safe/authorized OT operation.",
+      "limitations": [
+        "The reported results are closed-loop simulations using a detailed pressure-driven unsteady-flow model, not a field trial.",
+        "The abstract does not establish a publicly downloadable matched network/measurement corpus or numeric superiority threshold.",
+        "The paper's controller operates over a multi-node system; a single-conduit steady-state energy ledger does not reproduce its control problem.",
+        "The method does not transfer operational authority to an external controller or prove local cyber/OT safety."
+      ],
+      "admission_requirements": [
+        "Pin the paper PDF, DOI, exact version, supplementary files, algorithm definitions and all reported metrics.",
+        "Reproduce the paper's baseline controller, Kalman state/disturbance estimator, tracking MPC and actuator-settings optimizer on its declared network/scenarios if data are available.",
+        "Compare on matched pressure tracking, minimum service, leakage, recovered energy, constraint violations, control switching, robustness to sensor/model error and computation budget.",
+        "Use its method as a controller SOTA reference, not as a claim of South African field validation."
       ],
       "raw_snapshot_ingested": false,
       "snapshot_digest": null
