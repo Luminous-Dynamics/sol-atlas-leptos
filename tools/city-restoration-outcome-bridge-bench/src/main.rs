@@ -3,7 +3,7 @@ use std::fs;
 use std::process::ExitCode;
 
 use city_restoration_outcome_bridge_reference::{
-    CLAIM_CEILING, CORPUS_ID, evaluate_case, parse_unique_json_bytes, validate_corpus,
+    CLAIM_CEILING, evaluate_case, parse_unique_json_bytes, validate_corpus,
 };
 use serde_json::json;
 use sha2::{Digest, Sha256};
