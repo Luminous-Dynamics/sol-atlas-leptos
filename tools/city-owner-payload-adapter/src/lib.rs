@@ -476,11 +476,11 @@ fn evaluate_artifact(
             } else {
                 byte_length_comparison_state =
                     match (expected_length, bool_value(record, "byte_length_matches")) {
-                    (Some(_), Some(true)) => "matched",
-                    (Some(_), Some(false)) => "mismatch",
-                    (Some(_), None) => "not_verified",
-                    (None, _) => "not_declared",
-                };
+                        (Some(_), Some(true)) => "matched",
+                        (Some(_), Some(false)) => "mismatch",
+                        (Some(_), None) => "not_verified",
+                        (None, _) => "not_declared",
+                    };
             }
         }
     }
@@ -713,7 +713,7 @@ pub fn evaluate_case(case: &Value) -> Value {
                     "digest_and_byte_length_mismatch",
                     "invalid_descriptor",
                 ]),
-            )
+            ),
         ] {
             if report.get(field).and_then(Value::as_u64) != Some(expected_count) {
                 report_reasons.insert("VERIFIER_REPORT_RESULT_COUNTS_INCONSISTENT".to_owned());
