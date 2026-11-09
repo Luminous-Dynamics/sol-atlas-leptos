@@ -446,6 +446,16 @@ fn check_schema_contract(schema: &Value, findings: &mut Vec<AuditFinding>) {
             "entries must require at least one source record",
         ));
     }
+    if schema
+        .pointer("/$defs/source_entry/properties/resource_families/uniqueItems")
+        .and_then(Value::as_bool)
+        != Some(true)
+    {
+        findings.push(AuditFinding::fail(
+            "schema_resource_families_unique",
+            "resource_families must declare uniqueItems=true",
+        ));
+    }
 
     schema_has_exact_fields(
         schema,
@@ -751,15 +761,28 @@ fn is_safe_source_id(value: &str) -> bool {
 
 fn valid_date_precision(value: &str, allow_year_or_month: bool) -> bool {
     let parts: Vec<&str> = value.split('-').collect();
+    let digits_only = |part: &str| {
+        !part.is_empty() && part.bytes().all(|byte| byte.is_ascii_digit())
+    };
     match parts.as_slice() {
-        [year] if allow_year_or_month => year.len() == 4 && year.parse::<u16>().is_ok(),
+        [year] if allow_year_or_month => {
+            year.len() == 4 && digits_only(year) && year.parse::<u16>().is_ok()
+        }
         [year, month] if allow_year_or_month => {
             year.len() == 4
+                && digits_only(year)
+                && digits_only(month)
                 && year.parse::<u16>().is_ok()
                 && month.parse::<u8>().is_ok_and(|month| (1..=12).contains(&month))
         }
         [year, month, day] => {
-            if year.len() != 4 || month.len() != 2 || day.len() != 2 {
+            if year.len() != 4
+                || month.len() != 2
+                || day.len() != 2
+                || !digits_only(year)
+                || !digits_only(month)
+                || !digits_only(day)
+            {
                 return false;
             }
             let Ok(year) = year.parse::<u16>() else {
