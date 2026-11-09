@@ -1,0 +1,363 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/city-temporal-query-corpus-v0.1.schema.json",
+  "title": "CityMaker Temporal Query Adapter Corpus v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "schema_version",
+    "corpus_id",
+    "classification",
+    "query_schema_version",
+    "cases"
+  ],
+  "properties": {
+    "schema": {
+      "const": "luminous.citymaker-temporal-query-corpus.v0.1"
+    },
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "corpus_id": {
+      "const": "CITY-TEMPORAL-QUERY-CORPUS-V0.1"
+    },
+    "classification": {
+      "const": "synthetic_fixture_only"
+    },
+    "query_schema_version": {
+      "const": "luminous.citymaker-temporal-query.v0.1"
+    },
+    "cases": {
+      "type": "array",
+      "minItems": 24,
+      "maxItems": 24,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "case_id",
+          "name",
+          "input",
+          "expected"
+        ],
+        "properties": {
+          "case_id": {
+            "type": "string",
+            "pattern": "^TR-[0-9]{2}$"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "input": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "query",
+              "event",
+              "owner_report"
+            ],
+            "properties": {
+              "query": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "schema_version",
+                  "time_basis",
+                  "world_time_as_of",
+                  "knowledge_time_as_of",
+                  "trust_time_as_of",
+                  "evaluated_at",
+                  "temporal_perspective"
+                ],
+                "properties": {
+                  "schema_version": {
+                    "const": "luminous.citymaker-temporal-query.v0.1"
+                  },
+                  "time_basis": {
+                    "const": "UTC_RFC3339_SECONDS"
+                  },
+                  "world_time_as_of": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "knowledge_time_as_of": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "trust_time_as_of": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "evaluated_at": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "temporal_perspective": {
+                    "enum": [
+                      "historically_known_then",
+                      "currently_reconstructed_history"
+                    ]
+                  }
+                }
+              },
+              "event": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "time_basis",
+                  "event_id",
+                  "event_sha256",
+                  "subject_node_id",
+                  "subject_revision",
+                  "valid_time",
+                  "system_time"
+                ],
+                "properties": {
+                  "time_basis": {
+                    "const": "UTC_RFC3339_SECONDS"
+                  },
+                  "event_id": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "event_sha256": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{64}$"
+                  },
+                  "change_class": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "subject_node_id": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "subject_revision": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "valid_time": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "effective_at",
+                      "effective_until",
+                      "effective_time_confidence"
+                    ],
+                    "properties": {
+                      "effective_at": {
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      "effective_until": {
+                        "type": [
+                          "string",
+                          "null"
+                        ],
+                        "format": "date-time"
+                      },
+                      "effective_time_confidence": {
+                        "enum": [
+                          "verified",
+                          "authority_asserted",
+                          "unknown",
+                          "disputed"
+                        ]
+                      }
+                    }
+                  },
+                  "system_time": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "recorded_at",
+                      "trusted_at",
+                      "trusted_timestamp_receipt_sha256"
+                    ],
+                    "properties": {
+                      "recorded_at": {
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      "trusted_at": {
+                        "type": [
+                          "string",
+                          "null"
+                        ],
+                        "format": "date-time"
+                      },
+                      "trusted_timestamp_receipt_sha256": {
+                        "type": [
+                          "string",
+                          "null"
+                        ],
+                        "pattern": "^[0-9a-f]{64}$"
+                      }
+                    }
+                  }
+                }
+              },
+              "owner_report": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "report_id",
+                  "event_id",
+                  "event_sha256",
+                  "subject_node_id",
+                  "subject_revision",
+                  "query_binding",
+                  "valid_time",
+                  "system_time",
+                  "report_evaluated_at",
+                  "report_sha256",
+                  "report_reference",
+                  "action_authority"
+                ],
+                "properties": {
+                  "report_id": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "event_id": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "event_sha256": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{64}$"
+                  },
+                  "subject_node_id": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "subject_revision": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "query_binding": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "time_basis",
+                      "world_time_as_of",
+                      "knowledge_time_as_of",
+                      "trust_time_as_of",
+                      "evaluated_at",
+                      "temporal_perspective"
+                    ],
+                    "properties": {
+                      "time_basis": {
+                        "const": "UTC_RFC3339_SECONDS"
+                      },
+                      "world_time_as_of": {
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      "knowledge_time_as_of": {
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      "trust_time_as_of": {
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      "evaluated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      "temporal_perspective": {
+                        "enum": [
+                          "historically_known_then",
+                          "currently_reconstructed_history"
+                        ]
+                      }
+                    }
+                  },
+                  "valid_time": {
+                    "type": "object"
+                  },
+                  "system_time": {
+                    "type": "object"
+                  },
+                  "report_evaluated_at": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "report_sha256": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{64}$"
+                  },
+                  "report_reference": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "action_authority": {
+                    "const": "none"
+                  }
+                }
+              }
+            }
+          },
+          "expected": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "disposition",
+              "temporal_perspective",
+              "world_time_state",
+              "knowledge_time_state",
+              "trust_time_state",
+              "report_binding_state",
+              "late_arrival",
+              "reason_codes"
+            ],
+            "properties": {
+              "disposition": {
+                "enum": [
+                  "eligible_for_declared_temporal_projection",
+                  "excluded_from_temporal_projection",
+                  "insufficient_evidence",
+                  "invalid_input"
+                ]
+              },
+              "temporal_perspective": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "world_time_state": {
+                "type": "string"
+              },
+              "knowledge_time_state": {
+                "type": "string"
+              },
+              "trust_time_state": {
+                "type": "string"
+              },
+              "report_binding_state": {
+                "enum": [
+                  "bound",
+                  "incomplete",
+                  "mismatch"
+                ]
+              },
+              "late_arrival": {
+                "type": "boolean"
+              },
+              "reason_codes": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
