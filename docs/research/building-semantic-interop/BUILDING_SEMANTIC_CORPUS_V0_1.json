@@ -1,0 +1,1865 @@
+{
+  "schema_version": "sol-atlas.building-semantic-corpus/0.1",
+  "corpus_id": "CITY-BUILDING-SEMANTIC-CORPUS-V0.1",
+  "classification": "synthetic_semantic_mapping_fixtures_only",
+  "profile_id": "CITY-BUILDING-SEMANTIC-PROFILE-V0.1",
+  "claim_ceiling": "synthetic_mapping_admission_and_semantic_loss_checks_only",
+  "cases": [
+    {
+      "case_id": "SM-001",
+      "description": "Exact same-subject, same-quantity, same-unit mapping under pinned stable releases.",
+      "mapping": {
+        "source": {
+          "standard_key": "ifc-4.3",
+          "release_id": "IFC4.3-ISO16739-1:2024",
+          "term_id": "urn:fixture:ifc:SpaceA",
+          "subject_id": "asset-001",
+          "revision": "model-v1",
+          "revision_state": "current"
+        },
+        "target": {
+          "standard_key": "brick-1.4.4",
+          "release_id": "1.4.4",
+          "term_id": "urn:fixture:brick:RoomA",
+          "subject_id": "asset-001",
+          "revision": "semantic-v1",
+          "revision_state": "current"
+        },
+        "assertion": {
+          "relation": "exact",
+          "exact_equivalence_claim": true,
+          "subject_relationship": "same_subject",
+          "declared_losses": []
+        },
+        "semantics": {
+          "quantity_kind": "temperature",
+          "source_unit": "Cel",
+          "target_unit": "Cel",
+          "conversion_rule_id": "",
+          "conversion_state": "none",
+          "time_basis_preserved": true,
+          "evidence_class_preserved": true
+        },
+        "evidence": {
+          "rule_id": "map-rule-001",
+          "rule_revision": "1",
+          "rule_digest": "sha256:synthetic-rule-001",
+          "evidence_ref": "fixture-evidence-001",
+          "source_rights_state": "permitted",
+          "target_rights_state": "permitted"
+        }
+      },
+      "expected_disposition": "ExactEquivalent"
+    },
+    {
+      "case_id": "SM-002",
+      "description": "IFC spatial entity and Brick room are related but are not asserted as the same semantic class.",
+      "mapping": {
+        "source": {
+          "standard_key": "ifc-4.3",
+          "release_id": "IFC4.3-ISO16739-1:2024",
+          "term_id": "urn:fixture:ifc:SpaceA",
+          "subject_id": "asset-001",
+          "revision": "model-v1",
+          "revision_state": "current"
+        },
+        "target": {
+          "standard_key": "brick-1.4.4",
+          "release_id": "1.4.4",
+          "term_id": "urn:fixture:brick:RoomA",
+          "subject_id": "asset-001",
+          "revision": "semantic-v1",
+          "revision_state": "current"
+        },
+        "assertion": {
+          "relation": "related",
+          "exact_equivalence_claim": false,
+          "subject_relationship": "related_subject",
+          "declared_losses": [
+            "IFC spatial decomposition and Brick room semantics are not identical"
+          ]
+        },
+        "semantics": {
+          "quantity_kind": "temperature",
+          "source_unit": "Cel",
+          "target_unit": "Cel",
+          "conversion_rule_id": "",
+          "conversion_state": "none",
+          "time_basis_preserved": true,
+          "evidence_class_preserved": true
+        },
+        "evidence": {
+          "rule_id": "map-rule-001",
+          "rule_revision": "1",
+          "rule_digest": "sha256:synthetic-rule-001",
+          "evidence_ref": "fixture-evidence-001",
+          "source_rights_state": "permitted",
+          "target_rights_state": "permitted"
+        }
+      },
+      "expected_disposition": "AcceptedWithDeclaredLoss"
+    },
+    {
+      "case_id": "SM-003",
+      "description": "An exact mapping points to a different physical subject identity.",
+      "mapping": {
+        "source": {
+          "standard_key": "ifc-4.3",
+          "release_id": "IFC4.3-ISO16739-1:2024",
+          "term_id": "urn:fixture:ifc:SpaceA",
+          "subject_id": "asset-001",
+          "revision": "model-v1",
+          "revision_state": "current"
+        },
+        "target": {
+          "standard_key": "brick-1.4.4",
+          "release_id": "1.4.4",
+          "term_id": "urn:fixture:brick:RoomA",
+          "subject_id": "asset-002",
+          "revision": "semantic-v1",
+          "revision_state": "current"
+        },
+        "assertion": {
+          "relation": "exact",
+          "exact_equivalence_claim": true,
+          "subject_relationship": "same_subject",
+          "declared_losses": []
+        },
+        "semantics": {
+          "quantity_kind": "temperature",
+          "source_unit": "Cel",
+          "target_unit": "Cel",
+          "conversion_rule_id": "",
+          "conversion_state": "none",
+          "time_basis_preserved": true,
+          "evidence_class_preserved": true
+        },
+        "evidence": {
+          "rule_id": "map-rule-001",
+          "rule_revision": "1",
+          "rule_digest": "sha256:synthetic-rule-001",
+          "evidence_ref": "fixture-evidence-001",
+          "source_rights_state": "permitted",
+          "target_rights_state": "permitted"
+        }
+      },
+      "expected_disposition": "NotComparable"
+    },
+    {
+      "case_id": "SM-004",
+      "description": "The same point label is mapped across different physical quantity kinds.",
+      "mapping": {
+        "source": {
+          "standard_key": "ifc-4.3",
+          "release_id": "IFC4.3-ISO16739-1:2024",
+          "term_id": "urn:fixture:ifc:SpaceA",
+          "subject_id": "asset-001",
+          "revision": "model-v1",
+          "revision_state": "current"
+        },
+        "target": {
+          "standard_key": "brick-1.4.4",
+          "release_id": "1.4.4",
+          "term_id": "urn:fixture:brick:RoomA",
+          "subject_id": "asset-001",
+          "revision": "semantic-v1",
+          "revision_state": "current"
+        },
+        "assertion": {
+          "relation": "exact",
+          "exact_equivalence_claim": true,
+          "subject_relationship": "same_subject",
+          "declared_losses": []
+        },
+        "semantics": {
+          "quantity_kind": "mass_concentration",
+          "source_unit": "Cel",
+          "target_unit": "Cel",
+          "conversion_rule_id": "",
+          "conversion_state": "none",
+          "time_basis_preserved": true,
+          "evidence_class_preserved": true
+        },
+        "evidence": {
+          "rule_id": "map-rule-001",
+          "rule_revision": "1",
+          "rule_digest": "sha256:synthetic-rule-001",
+          "evidence_ref": "fixture-evidence-001",
+          "source_rights_state": "permitted",
+          "target_rights_state": "permitted"
+        }
+      },
+      "expected_disposition": "NotComparable"
+    },
+    {
+      "case_id": "SM-005",
+      "description": "An exact mapping changes from Celsius to Fahrenheit without an explicit mapping conversion.",
+      "mapping": {
+        "source": {
+          "standard_key": "ifc-4.3",
+          "release_id": "IFC4.3-ISO16739-1:2024",
+          "term_id": "urn:fixture:ifc:SpaceA",
+          "subject_id": "asset-001",
+          "revision": "model-v1",
+          "revision_state": "current"
+        },
+        "target": {
+          "standard_key": "brick-1.4.4",
+          "release_id": "1.4.4",
+          "term_id": "urn:fixture:brick:RoomTempF",
+          "subject_id": "asset-001",
+          "revision": "semantic-v1",
+          "revision_state": "current"
+        },
+        "assertion": {
+          "relation": "exact",
+          "exact_equivalence_claim": true,
+          "subject_relationship": "same_subject",
+          "declared_losses": []
+        },
+        "semantics": {
+          "quantity_kind": "temperature",
+          "source_unit": "Cel",
+          "target_unit": "[degF]",
+          "conversion_rule_id": "",
+          "conversion_state": "none",
+          "time_basis_preserved": true,
+          "evidence_class_preserved": true
+        },
+        "evidence": {
+          "rule_id": "map-rule-001",
+          "rule_revision": "1",
+          "rule_digest": "sha256:synthetic-rule-001",
+          "evidence_ref": "fixture-evidence-001",
+          "source_rights_state": "permitted",
+          "target_rights_state": "permitted"
+        }
+      },
+      "expected_disposition": "NotComparable"
+    },
+    {
+      "case_id": "SM-006",
+      "description": "A related mapping is falsely promoted as exact equivalence.",
+      "mapping": {
+        "source": {
+          "standard_key": "ifc-4.3",
+          "release_id": "IFC4.3-ISO16739-1:2024",
+          "term_id": "urn:fixture:ifc:SpaceA",
+          "subject_id": "asset-001",
+          "revision": "model-v1",
+          "revision_state": "current"
+        },
+        "target": {
+          "standard_key": "brick-1.4.4",
+          "release_id": "1.4.4",
+          "term_id": "urn:fixture:brick:RoomA",
+          "subject_id": "asset-001",
+          "revision": "semantic-v1",
+          "revision_state": "current"
+        },
+        "assertion": {
+          "relation": "related",
+          "exact_equivalence_claim": true,
+          "subject_relationship": "related_subject",
+          "declared_losses": []
+        },
+        "semantics": {
+          "quantity_kind": "temperature",
+          "source_unit": "Cel",
+          "target_unit": "Cel",
+          "conversion_rule_id": "",
+          "conversion_state": "none",
+          "time_basis_preserved": true,
+          "evidence_class_preserved": true
+        },
+        "evidence": {
+          "rule_id": "map-rule-001",
+          "rule_revision": "1",
+          "rule_digest": "sha256:synthetic-rule-001",
+          "evidence_ref": "fixture-evidence-001",
+          "source_rights_state": "permitted",
+          "target_rights_state": "permitted"
+        }
+      },
+      "expected_disposition": "Rejected"
+    },
+    {
+      "case_id": "SM-007",
+      "description": "An exact equivalence claim hides a declared semantic loss.",
+      "mapping": {
+        "source": {
+          "standard_key": "ifc-4.3",
+          "release_id": "IFC4.3-ISO16739-1:2024",
+          "term_id": "urn:fixture:ifc:SpaceA",
+          "subject_id": "asset-001",
+          "revision": "model-v1",
+          "revision_state": "current"
+        },
+        "target": {
+          "standard_key": "brick-1.4.4",
+          "release_id": "1.4.4",
+          "term_id": "urn:fixture:brick:RoomA",
+          "subject_id": "asset-001",
+          "revision": "semantic-v1",
+          "revision_state": "current"
+        },
+        "assertion": {
+          "relation": "exact",
+          "exact_equivalence_claim": true,
+          "subject_relationship": "same_subject",
+          "declared_losses": [
+            "Loss of containment semantics"
+          ]
+        },
+        "semantics": {
+          "quantity_kind": "temperature",
+          "source_unit": "Cel",
+          "target_unit": "Cel",
+          "conversion_rule_id": "",
+          "conversion_state": "none",
+          "time_basis_preserved": true,
+          "evidence_class_preserved": true
+        },
+        "evidence": {
+          "rule_id": "map-rule-001",
+          "rule_revision": "1",
+          "rule_digest": "sha256:synthetic-rule-001",
+          "evidence_ref": "fixture-evidence-001",
+          "source_rights_state": "permitted",
+          "target_rights_state": "permitted"
+        }
+      },
+      "expected_disposition": "Rejected"
+    },
+    {
+      "case_id": "SM-008",
+      "description": "ASHRAE 223 release is not pinned to an exact versioned artifact.",
+      "mapping": {
+        "source": {
+          "standard_key": "ifc-4.3",
+          "release_id": "IFC4.3-ISO16739-1:2024",
+          "term_id": "urn:fixture:ifc:SpaceA",
+          "subject_id": "asset-001",
+          "revision": "model-v1",
+          "revision_state": "current"
+        },
+        "target": {
+          "standard_key": "ashrae-223",
+          "release_id": "VERSION_NOT_PINNED",
+          "term_id": "urn:fixture:brick:RoomA",
+          "subject_id": "asset-001",
+          "revision": "semantic-v1",
+          "revision_state": "current"
+        },
+        "assertion": {
+          "relation": "exact",
+          "exact_equivalence_claim": true,
+          "subject_relationship": "same_subject",
+          "declared_losses": []
+        },
+        "semantics": {
+          "quantity_kind": "temperature",
+          "source_unit": "Cel",
+          "target_unit": "Cel",
+          "conversion_rule_id": "",
+          "conversion_state": "none",
+          "time_basis_preserved": true,
+          "evidence_class_preserved": true
+        },
+        "evidence": {
+          "rule_id": "map-rule-001",
+          "rule_revision": "1",
+          "rule_digest": "sha256:synthetic-rule-001",
+          "evidence_ref": "fixture-evidence-001",
+          "source_rights_state": "permitted",
+          "target_rights_state": "permitted"
+        }
+      },
+      "expected_disposition": "MoreEvidenceRequired"
+    },
+    {
+      "case_id": "SM-009",
+      "description": "Haystack/XETO release is not pinned to an exact versioned artifact.",
+      "mapping": {
+        "source": {
+          "standard_key": "ifc-4.3",
+          "release_id": "IFC4.3-ISO16739-1:2024",
+          "term_id": "urn:fixture:ifc:SpaceA",
+          "subject_id": "asset-001",
+          "revision": "model-v1",
+          "revision_state": "current"
+        },
+        "target": {
+          "standard_key": "haystack-xeto",
+          "release_id": "VERSION_NOT_PINNED",
+          "term_id": "urn:fixture:brick:RoomA",
+          "subject_id": "asset-001",
+          "revision": "semantic-v1",
+          "revision_state": "current"
+        },
+        "assertion": {
+          "relation": "exact",
+          "exact_equivalence_claim": true,
+          "subject_relationship": "same_subject",
+          "declared_losses": []
+        },
+        "semantics": {
+          "quantity_kind": "temperature",
+          "source_unit": "Cel",
+          "target_unit": "Cel",
+          "conversion_rule_id": "",
+          "conversion_state": "none",
+          "time_basis_preserved": true,
+          "evidence_class_preserved": true
+        },
+        "evidence": {
+          "rule_id": "map-rule-001",
+          "rule_revision": "1",
+          "rule_digest": "sha256:synthetic-rule-001",
+          "evidence_ref": "fixture-evidence-001",
+          "source_rights_state": "permitted",
+          "target_rights_state": "permitted"
+        }
+      },
+      "expected_disposition": "MoreEvidenceRequired"
+    },
+    {
+      "case_id": "SM-010",
+      "description": "Brick 1.5.0 release candidate is incorrectly promoted as a stable target.",
+      "mapping": {
+        "source": {
+          "standard_key": "ifc-4.3",
+          "release_id": "IFC4.3-ISO16739-1:2024",
+          "term_id": "urn:fixture:ifc:SpaceA",
+          "subject_id": "asset-001",
+          "revision": "model-v1",
+          "revision_state": "current"
+        },
+        "target": {
+          "standard_key": "brick-1.5.0-rc1",
+          "release_id": "1.5.0-rc1",
+          "term_id": "urn:fixture:brick:RoomA",
+          "subject_id": "asset-001",
+          "revision": "semantic-v1",
+          "revision_state": "current"
+        },
+        "assertion": {
+          "relation": "exact",
+          "exact_equivalence_claim": true,
+          "subject_relationship": "same_subject",
+          "declared_losses": []
+        },
+        "semantics": {
+          "quantity_kind": "temperature",
+          "source_unit": "Cel",
+          "target_unit": "Cel",
+          "conversion_rule_id": "",
+          "conversion_state": "none",
+          "time_basis_preserved": true,
+          "evidence_class_preserved": true
+        },
+        "evidence": {
+          "rule_id": "map-rule-001",
+          "rule_revision": "1",
+          "rule_digest": "sha256:synthetic-rule-001",
+          "evidence_ref": "fixture-evidence-001",
+          "source_rights_state": "permitted",
+          "target_rights_state": "permitted"
+        }
+      },
+      "expected_disposition": "MoreEvidenceRequired"
+    },
+    {
+      "case_id": "SM-011",
+      "description": "Source mapping rights are unknown.",
+      "mapping": {
+        "source": {
+          "standard_key": "ifc-4.3",
+          "release_id": "IFC4.3-ISO16739-1:2024",
+          "term_id": "urn:fixture:ifc:SpaceA",
+          "subject_id": "asset-001",
+          "revision": "model-v1",
+          "revision_state": "current"
+        },
+        "target": {
+          "standard_key": "brick-1.4.4",
+          "release_id": "1.4.4",
+          "term_id": "urn:fixture:brick:RoomA",
+          "subject_id": "asset-001",
+          "revision": "semantic-v1",
+          "revision_state": "current"
+        },
+        "assertion": {
+          "relation": "exact",
+          "exact_equivalence_claim": true,
+          "subject_relationship": "same_subject",
+          "declared_losses": []
+        },
+        "semantics": {
+          "quantity_kind": "temperature",
+          "source_unit": "Cel",
+          "target_unit": "Cel",
+          "conversion_rule_id": "",
+          "conversion_state": "none",
+          "time_basis_preserved": true,
+          "evidence_class_preserved": true
+        },
+        "evidence": {
+          "rule_id": "map-rule-001",
+          "rule_revision": "1",
+          "rule_digest": "sha256:synthetic-rule-001",
+          "evidence_ref": "fixture-evidence-001",
+          "source_rights_state": "unknown",
+          "target_rights_state": "permitted"
+        }
+      },
+      "expected_disposition": "MoreEvidenceRequired"
+    },
+    {
+      "case_id": "SM-012",
+      "description": "Target mapping rights are revoked.",
+      "mapping": {
+        "source": {
+          "standard_key": "ifc-4.3",
+          "release_id": "IFC4.3-ISO16739-1:2024",
+          "term_id": "urn:fixture:ifc:SpaceA",
+          "subject_id": "asset-001",
+          "revision": "model-v1",
+          "revision_state": "current"
+        },
+        "target": {
+          "standard_key": "brick-1.4.4",
+          "release_id": "1.4.4",
+          "term_id": "urn:fixture:brick:RoomA",
+          "subject_id": "asset-001",
+          "revision": "semantic-v1",
+          "revision_state": "current"
+        },
+        "assertion": {
+          "relation": "exact",
+          "exact_equivalence_claim": true,
+          "subject_relationship": "same_subject",
+          "declared_losses": []
+        },
+        "semantics": {
+          "quantity_kind": "temperature",
+          "source_unit": "Cel",
+          "target_unit": "Cel",
+          "conversion_rule_id": "",
+          "conversion_state": "none",
+          "time_basis_preserved": true,
+          "evidence_class_preserved": true
+        },
+        "evidence": {
+          "rule_id": "map-rule-001",
+          "rule_revision": "1",
+          "rule_digest": "sha256:synthetic-rule-001",
+          "evidence_ref": "fixture-evidence-001",
+          "source_rights_state": "permitted",
+          "target_rights_state": "revoked"
+        }
+      },
+      "expected_disposition": "Rejected"
+    },
+    {
+      "case_id": "SM-013",
+      "description": "Source term identity is missing.",
+      "mapping": {
+        "source": {
+          "standard_key": "ifc-4.3",
+          "release_id": "IFC4.3-ISO16739-1:2024",
+          "term_id": "",
+          "subject_id": "asset-001",
+          "revision": "model-v1",
+          "revision_state": "current"
+        },
+        "target": {
+          "standard_key": "brick-1.4.4",
+          "release_id": "1.4.4",
+          "term_id": "urn:fixture:brick:RoomA",
+          "subject_id": "asset-001",
+          "revision": "semantic-v1",
+          "revision_state": "current"
+        },
+        "assertion": {
+          "relation": "exact",
+          "exact_equivalence_claim": true,
+          "subject_relationship": "same_subject",
+          "declared_losses": []
+        },
+        "semantics": {
+          "quantity_kind": "temperature",
+          "source_unit": "Cel",
+          "target_unit": "Cel",
+          "conversion_rule_id": "",
+          "conversion_state": "none",
+          "time_basis_preserved": true,
+          "evidence_class_preserved": true
+        },
+        "evidence": {
+          "rule_id": "map-rule-001",
+          "rule_revision": "1",
+          "rule_digest": "sha256:synthetic-rule-001",
+          "evidence_ref": "fixture-evidence-001",
+          "source_rights_state": "permitted",
+          "target_rights_state": "permitted"
+        }
+      },
+      "expected_disposition": "MoreEvidenceRequired"
+    },
+    {
+      "case_id": "SM-014",
+      "description": "Target subject identity is missing.",
+      "mapping": {
+        "source": {
+          "standard_key": "ifc-4.3",
+          "release_id": "IFC4.3-ISO16739-1:2024",
+          "term_id": "urn:fixture:ifc:SpaceA",
+          "subject_id": "asset-001",
+          "revision": "model-v1",
+          "revision_state": "current"
+        },
+        "target": {
+          "standard_key": "brick-1.4.4",
+          "release_id": "1.4.4",
+          "term_id": "urn:fixture:brick:RoomA",
+          "subject_id": "",
+          "revision": "semantic-v1",
+          "revision_state": "current"
+        },
+        "assertion": {
+          "relation": "exact",
+          "exact_equivalence_claim": true,
+          "subject_relationship": "same_subject",
+          "declared_losses": []
+        },
+        "semantics": {
+          "quantity_kind": "temperature",
+          "source_unit": "Cel",
+          "target_unit": "Cel",
+          "conversion_rule_id": "",
+          "conversion_state": "none",
+          "time_basis_preserved": true,
+          "evidence_class_preserved": true
+        },
+        "evidence": {
+          "rule_id": "map-rule-001",
+          "rule_revision": "1",
+          "rule_digest": "sha256:synthetic-rule-001",
+          "evidence_ref": "fixture-evidence-001",
+          "source_rights_state": "permitted",
+          "target_rights_state": "permitted"
+        }
+      },
+      "expected_disposition": "MoreEvidenceRequired"
+    },
+    {
+      "case_id": "SM-015",
+      "description": "Mapping rule identifier is missing.",
+      "mapping": {
+        "source": {
+          "standard_key": "ifc-4.3",
+          "release_id": "IFC4.3-ISO16739-1:2024",
+          "term_id": "urn:fixture:ifc:SpaceA",
+          "subject_id": "asset-001",
+          "revision": "model-v1",
+          "revision_state": "current"
+        },
+        "target": {
+          "standard_key": "brick-1.4.4",
+          "release_id": "1.4.4",
+          "term_id": "urn:fixture:brick:RoomA",
+          "subject_id": "asset-001",
+          "revision": "semantic-v1",
+          "revision_state": "current"
+        },
+        "assertion": {
+          "relation": "exact",
+          "exact_equivalence_claim": true,
+          "subject_relationship": "same_subject",
+          "declared_losses": []
+        },
+        "semantics": {
+          "quantity_kind": "temperature",
+          "source_unit": "Cel",
+          "target_unit": "Cel",
+          "conversion_rule_id": "",
+          "conversion_state": "none",
+          "time_basis_preserved": true,
+          "evidence_class_preserved": true
+        },
+        "evidence": {
+          "rule_id": "",
+          "rule_revision": "1",
+          "rule_digest": "sha256:synthetic-rule-001",
+          "evidence_ref": "fixture-evidence-001",
+          "source_rights_state": "permitted",
+          "target_rights_state": "permitted"
+        }
+      },
+      "expected_disposition": "MoreEvidenceRequired"
+    },
+    {
+      "case_id": "SM-016",
+      "description": "Mapping rule digest is missing.",
+      "mapping": {
+        "source": {
+          "standard_key": "ifc-4.3",
+          "release_id": "IFC4.3-ISO16739-1:2024",
+          "term_id": "urn:fixture:ifc:SpaceA",
+          "subject_id": "asset-001",
+          "revision": "model-v1",
+          "revision_state": "current"
+        },
+        "target": {
+          "standard_key": "brick-1.4.4",
+          "release_id": "1.4.4",
+          "term_id": "urn:fixture:brick:RoomA",
+          "subject_id": "asset-001",
+          "revision": "semantic-v1",
+          "revision_state": "current"
+        },
+        "assertion": {
+          "relation": "exact",
+          "exact_equivalence_claim": true,
+          "subject_relationship": "same_subject",
+          "declared_losses": []
+        },
+        "semantics": {
+          "quantity_kind": "temperature",
+          "source_unit": "Cel",
+          "target_unit": "Cel",
+          "conversion_rule_id": "",
+          "conversion_state": "none",
+          "time_basis_preserved": true,
+          "evidence_class_preserved": true
+        },
+        "evidence": {
+          "rule_id": "map-rule-001",
+          "rule_revision": "1",
+          "rule_digest": "",
+          "evidence_ref": "fixture-evidence-001",
+          "source_rights_state": "permitted",
+          "target_rights_state": "permitted"
+        }
+      },
+      "expected_disposition": "MoreEvidenceRequired"
+    },
+    {
+      "case_id": "SM-017",
+      "description": "An exact mapping loses its source valid-time basis.",
+      "mapping": {
+        "source": {
+          "standard_key": "ifc-4.3",
+          "release_id": "IFC4.3-ISO16739-1:2024",
+          "term_id": "urn:fixture:ifc:SpaceA",
+          "subject_id": "asset-001",
+          "revision": "model-v1",
+          "revision_state": "current"
+        },
+        "target": {
+          "standard_key": "brick-1.4.4",
+          "release_id": "1.4.4",
+          "term_id": "urn:fixture:brick:RoomA",
+          "subject_id": "asset-001",
+          "revision": "semantic-v1",
+          "revision_state": "current"
+        },
+        "assertion": {
+          "relation": "exact",
+          "exact_equivalence_claim": true,
+          "subject_relationship": "same_subject",
+          "declared_losses": []
+        },
+        "semantics": {
+          "quantity_kind": "temperature",
+          "source_unit": "Cel",
+          "target_unit": "Cel",
+          "conversion_rule_id": "",
+          "conversion_state": "none",
+          "time_basis_preserved": false,
+          "evidence_class_preserved": true
+        },
+        "evidence": {
+          "rule_id": "map-rule-001",
+          "rule_revision": "1",
+          "rule_digest": "sha256:synthetic-rule-001",
+          "evidence_ref": "fixture-evidence-001",
+          "source_rights_state": "permitted",
+          "target_rights_state": "permitted"
+        }
+      },
+      "expected_disposition": "NotComparable"
+    },
+    {
+      "case_id": "SM-018",
+      "description": "An exact mapping loses the source evidence class.",
+      "mapping": {
+        "source": {
+          "standard_key": "ifc-4.3",
+          "release_id": "IFC4.3-ISO16739-1:2024",
+          "term_id": "urn:fixture:ifc:SpaceA",
+          "subject_id": "asset-001",
+          "revision": "model-v1",
+          "revision_state": "current"
+        },
+        "target": {
+          "standard_key": "brick-1.4.4",
+          "release_id": "1.4.4",
+          "term_id": "urn:fixture:brick:RoomA",
+          "subject_id": "asset-001",
+          "revision": "semantic-v1",
+          "revision_state": "current"
+        },
+        "assertion": {
+          "relation": "exact",
+          "exact_equivalence_claim": true,
+          "subject_relationship": "same_subject",
+          "declared_losses": []
+        },
+        "semantics": {
+          "quantity_kind": "temperature",
+          "source_unit": "Cel",
+          "target_unit": "Cel",
+          "conversion_rule_id": "",
+          "conversion_state": "none",
+          "time_basis_preserved": true,
+          "evidence_class_preserved": false
+        },
+        "evidence": {
+          "rule_id": "map-rule-001",
+          "rule_revision": "1",
+          "rule_digest": "sha256:synthetic-rule-001",
+          "evidence_ref": "fixture-evidence-001",
+          "source_rights_state": "permitted",
+          "target_rights_state": "permitted"
+        }
+      },
+      "expected_disposition": "NotComparable"
+    },
+    {
+      "case_id": "SM-019",
+      "description": "Mapping relation remains explicitly unresolved.",
+      "mapping": {
+        "source": {
+          "standard_key": "ifc-4.3",
+          "release_id": "IFC4.3-ISO16739-1:2024",
+          "term_id": "urn:fixture:ifc:SpaceA",
+          "subject_id": "asset-001",
+          "revision": "model-v1",
+          "revision_state": "current"
+        },
+        "target": {
+          "standard_key": "brick-1.4.4",
+          "release_id": "1.4.4",
+          "term_id": "urn:fixture:brick:RoomA",
+          "subject_id": "asset-001",
+          "revision": "semantic-v1",
+          "revision_state": "current"
+        },
+        "assertion": {
+          "relation": "unresolved",
+          "exact_equivalence_claim": false,
+          "subject_relationship": "unknown",
+          "declared_losses": []
+        },
+        "semantics": {
+          "quantity_kind": "temperature",
+          "source_unit": "Cel",
+          "target_unit": "Cel",
+          "conversion_rule_id": "",
+          "conversion_state": "none",
+          "time_basis_preserved": true,
+          "evidence_class_preserved": true
+        },
+        "evidence": {
+          "rule_id": "map-rule-001",
+          "rule_revision": "1",
+          "rule_digest": "sha256:synthetic-rule-001",
+          "evidence_ref": "fixture-evidence-001",
+          "source_rights_state": "permitted",
+          "target_rights_state": "permitted"
+        }
+      },
+      "expected_disposition": "MoreEvidenceRequired"
+    },
+    {
+      "case_id": "SM-020",
+      "description": "A narrower mapping is accepted only with an explicit semantic-loss statement.",
+      "mapping": {
+        "source": {
+          "standard_key": "ifc-4.3",
+          "release_id": "IFC4.3-ISO16739-1:2024",
+          "term_id": "urn:fixture:ifc:SpaceA",
+          "subject_id": "asset-001",
+          "revision": "model-v1",
+          "revision_state": "current"
+        },
+        "target": {
+          "standard_key": "brick-1.4.4",
+          "release_id": "1.4.4",
+          "term_id": "urn:fixture:brick:RoomA",
+          "subject_id": "asset-001",
+          "revision": "semantic-v1",
+          "revision_state": "current"
+        },
+        "assertion": {
+          "relation": "narrower",
+          "exact_equivalence_claim": false,
+          "subject_relationship": "related_subject",
+          "declared_losses": [
+            "Target captures a narrower subset of source meaning"
+          ]
+        },
+        "semantics": {
+          "quantity_kind": "temperature",
+          "source_unit": "Cel",
+          "target_unit": "Cel",
+          "conversion_rule_id": "",
+          "conversion_state": "none",
+          "time_basis_preserved": true,
+          "evidence_class_preserved": true
+        },
+        "evidence": {
+          "rule_id": "map-rule-001",
+          "rule_revision": "1",
+          "rule_digest": "sha256:synthetic-rule-001",
+          "evidence_ref": "fixture-evidence-001",
+          "source_rights_state": "permitted",
+          "target_rights_state": "permitted"
+        }
+      },
+      "expected_disposition": "AcceptedWithDeclaredLoss"
+    },
+    {
+      "case_id": "SM-021",
+      "description": "A broader mapping is accepted only with an explicit semantic-loss statement.",
+      "mapping": {
+        "source": {
+          "standard_key": "ifc-4.3",
+          "release_id": "IFC4.3-ISO16739-1:2024",
+          "term_id": "urn:fixture:ifc:SpaceA",
+          "subject_id": "asset-001",
+          "revision": "model-v1",
+          "revision_state": "current"
+        },
+        "target": {
+          "standard_key": "brick-1.4.4",
+          "release_id": "1.4.4",
+          "term_id": "urn:fixture:brick:RoomA",
+          "subject_id": "asset-001",
+          "revision": "semantic-v1",
+          "revision_state": "current"
+        },
+        "assertion": {
+          "relation": "broader",
+          "exact_equivalence_claim": false,
+          "subject_relationship": "related_subject",
+          "declared_losses": [
+            "Target includes broader meaning than source"
+          ]
+        },
+        "semantics": {
+          "quantity_kind": "temperature",
+          "source_unit": "Cel",
+          "target_unit": "Cel",
+          "conversion_rule_id": "",
+          "conversion_state": "none",
+          "time_basis_preserved": true,
+          "evidence_class_preserved": true
+        },
+        "evidence": {
+          "rule_id": "map-rule-001",
+          "rule_revision": "1",
+          "rule_digest": "sha256:synthetic-rule-001",
+          "evidence_ref": "fixture-evidence-001",
+          "source_rights_state": "permitted",
+          "target_rights_state": "permitted"
+        }
+      },
+      "expected_disposition": "AcceptedWithDeclaredLoss"
+    },
+    {
+      "case_id": "SM-022",
+      "description": "A composed mapping records its multi-source semantic composition.",
+      "mapping": {
+        "source": {
+          "standard_key": "ifc-4.3",
+          "release_id": "IFC4.3-ISO16739-1:2024",
+          "term_id": "urn:fixture:ifc:SpaceA",
+          "subject_id": "asset-001",
+          "revision": "model-v1",
+          "revision_state": "current"
+        },
+        "target": {
+          "standard_key": "brick-1.4.4",
+          "release_id": "1.4.4",
+          "term_id": "urn:fixture:brick:RoomA",
+          "subject_id": "asset-001",
+          "revision": "semantic-v1",
+          "revision_state": "current"
+        },
+        "assertion": {
+          "relation": "composed",
+          "exact_equivalence_claim": false,
+          "subject_relationship": "related_subject",
+          "declared_losses": [
+            "Several source concepts compose into one target concept"
+          ]
+        },
+        "semantics": {
+          "quantity_kind": "temperature",
+          "source_unit": "Cel",
+          "target_unit": "Cel",
+          "conversion_rule_id": "",
+          "conversion_state": "none",
+          "time_basis_preserved": true,
+          "evidence_class_preserved": true
+        },
+        "evidence": {
+          "rule_id": "map-rule-001",
+          "rule_revision": "1",
+          "rule_digest": "sha256:synthetic-rule-001",
+          "evidence_ref": "fixture-evidence-001",
+          "source_rights_state": "permitted",
+          "target_rights_state": "permitted"
+        }
+      },
+      "expected_disposition": "AcceptedWithDeclaredLoss"
+    },
+    {
+      "case_id": "SM-023",
+      "description": "A derived mapping records its transformation method and loss boundary.",
+      "mapping": {
+        "source": {
+          "standard_key": "ifc-4.3",
+          "release_id": "IFC4.3-ISO16739-1:2024",
+          "term_id": "urn:fixture:ifc:SpaceA",
+          "subject_id": "asset-001",
+          "revision": "model-v1",
+          "revision_state": "current"
+        },
+        "target": {
+          "standard_key": "brick-1.4.4",
+          "release_id": "1.4.4",
+          "term_id": "urn:fixture:brick:RoomA",
+          "subject_id": "asset-001",
+          "revision": "semantic-v1",
+          "revision_state": "current"
+        },
+        "assertion": {
+          "relation": "derived",
+          "exact_equivalence_claim": false,
+          "subject_relationship": "related_subject",
+          "declared_losses": [
+            "Target is derived, not a direct physical observation"
+          ]
+        },
+        "semantics": {
+          "quantity_kind": "temperature",
+          "source_unit": "Cel",
+          "target_unit": "Cel",
+          "conversion_rule_id": "",
+          "conversion_state": "none",
+          "time_basis_preserved": true,
+          "evidence_class_preserved": true
+        },
+        "evidence": {
+          "rule_id": "map-rule-001",
+          "rule_revision": "1",
+          "rule_digest": "sha256:synthetic-rule-001",
+          "evidence_ref": "fixture-evidence-001",
+          "source_rights_state": "permitted",
+          "target_rights_state": "permitted"
+        }
+      },
+      "expected_disposition": "AcceptedWithDeclaredLoss"
+    },
+    {
+      "case_id": "SM-024",
+      "description": "A related mapping omits its required semantic-loss description.",
+      "mapping": {
+        "source": {
+          "standard_key": "ifc-4.3",
+          "release_id": "IFC4.3-ISO16739-1:2024",
+          "term_id": "urn:fixture:ifc:SpaceA",
+          "subject_id": "asset-001",
+          "revision": "model-v1",
+          "revision_state": "current"
+        },
+        "target": {
+          "standard_key": "brick-1.4.4",
+          "release_id": "1.4.4",
+          "term_id": "urn:fixture:brick:RoomA",
+          "subject_id": "asset-001",
+          "revision": "semantic-v1",
+          "revision_state": "current"
+        },
+        "assertion": {
+          "relation": "related",
+          "exact_equivalence_claim": false,
+          "subject_relationship": "related_subject",
+          "declared_losses": []
+        },
+        "semantics": {
+          "quantity_kind": "temperature",
+          "source_unit": "Cel",
+          "target_unit": "Cel",
+          "conversion_rule_id": "",
+          "conversion_state": "none",
+          "time_basis_preserved": true,
+          "evidence_class_preserved": true
+        },
+        "evidence": {
+          "rule_id": "map-rule-001",
+          "rule_revision": "1",
+          "rule_digest": "sha256:synthetic-rule-001",
+          "evidence_ref": "fixture-evidence-001",
+          "source_rights_state": "permitted",
+          "target_rights_state": "permitted"
+        }
+      },
+      "expected_disposition": "MoreEvidenceRequired"
+    },
+    {
+      "case_id": "SM-025",
+      "description": "A mapping does not know whether the two subjects are the same or merely related.",
+      "mapping": {
+        "source": {
+          "standard_key": "ifc-4.3",
+          "release_id": "IFC4.3-ISO16739-1:2024",
+          "term_id": "urn:fixture:ifc:SpaceA",
+          "subject_id": "asset-001",
+          "revision": "model-v1",
+          "revision_state": "current"
+        },
+        "target": {
+          "standard_key": "brick-1.4.4",
+          "release_id": "1.4.4",
+          "term_id": "urn:fixture:brick:RoomA",
+          "subject_id": "asset-001",
+          "revision": "semantic-v1",
+          "revision_state": "current"
+        },
+        "assertion": {
+          "relation": "exact",
+          "exact_equivalence_claim": true,
+          "subject_relationship": "unknown",
+          "declared_losses": []
+        },
+        "semantics": {
+          "quantity_kind": "temperature",
+          "source_unit": "Cel",
+          "target_unit": "Cel",
+          "conversion_rule_id": "",
+          "conversion_state": "none",
+          "time_basis_preserved": true,
+          "evidence_class_preserved": true
+        },
+        "evidence": {
+          "rule_id": "map-rule-001",
+          "rule_revision": "1",
+          "rule_digest": "sha256:synthetic-rule-001",
+          "evidence_ref": "fixture-evidence-001",
+          "source_rights_state": "permitted",
+          "target_rights_state": "permitted"
+        }
+      },
+      "expected_disposition": "NotComparable"
+    },
+    {
+      "case_id": "SM-026",
+      "description": "A same-subject mapping within one pinned Brick release preserves exact semantics.",
+      "mapping": {
+        "source": {
+          "standard_key": "brick-1.4.4",
+          "release_id": "1.4.4",
+          "term_id": "urn:fixture:brick:ZoneTemperature",
+          "subject_id": "asset-001",
+          "revision": "model-v1",
+          "revision_state": "current"
+        },
+        "target": {
+          "standard_key": "brick-1.4.4",
+          "release_id": "1.4.4",
+          "term_id": "urn:fixture:brick:ZoneTemperatureCanonical",
+          "subject_id": "asset-001",
+          "revision": "semantic-v1",
+          "revision_state": "current"
+        },
+        "assertion": {
+          "relation": "exact",
+          "exact_equivalence_claim": true,
+          "subject_relationship": "same_subject",
+          "declared_losses": []
+        },
+        "semantics": {
+          "quantity_kind": "temperature",
+          "source_unit": "Cel",
+          "target_unit": "Cel",
+          "conversion_rule_id": "",
+          "conversion_state": "none",
+          "time_basis_preserved": true,
+          "evidence_class_preserved": true
+        },
+        "evidence": {
+          "rule_id": "map-rule-001",
+          "rule_revision": "1",
+          "rule_digest": "sha256:synthetic-rule-001",
+          "evidence_ref": "fixture-evidence-001",
+          "source_rights_state": "permitted",
+          "target_rights_state": "permitted"
+        }
+      },
+      "expected_disposition": "ExactEquivalent"
+    },
+    {
+      "case_id": "SM-027",
+      "description": "A prerelease Brick source cannot support stable-equivalence admission.",
+      "mapping": {
+        "source": {
+          "standard_key": "brick-1.5.0-rc1",
+          "release_id": "1.5.0-rc1",
+          "term_id": "urn:fixture:ifc:SpaceA",
+          "subject_id": "asset-001",
+          "revision": "model-v1",
+          "revision_state": "current"
+        },
+        "target": {
+          "standard_key": "brick-1.4.4",
+          "release_id": "1.4.4",
+          "term_id": "urn:fixture:brick:RoomA",
+          "subject_id": "asset-001",
+          "revision": "semantic-v1",
+          "revision_state": "current"
+        },
+        "assertion": {
+          "relation": "exact",
+          "exact_equivalence_claim": true,
+          "subject_relationship": "same_subject",
+          "declared_losses": []
+        },
+        "semantics": {
+          "quantity_kind": "temperature",
+          "source_unit": "Cel",
+          "target_unit": "Cel",
+          "conversion_rule_id": "",
+          "conversion_state": "none",
+          "time_basis_preserved": true,
+          "evidence_class_preserved": true
+        },
+        "evidence": {
+          "rule_id": "map-rule-001",
+          "rule_revision": "1",
+          "rule_digest": "sha256:synthetic-rule-001",
+          "evidence_ref": "fixture-evidence-001",
+          "source_rights_state": "permitted",
+          "target_rights_state": "permitted"
+        }
+      },
+      "expected_disposition": "MoreEvidenceRequired"
+    },
+    {
+      "case_id": "SM-028",
+      "description": "A source key claims a release that disagrees with the pinned standard registry.",
+      "mapping": {
+        "source": {
+          "standard_key": "ifc-4.3",
+          "release_id": "IFC4.3-ISO16739-1:2024",
+          "term_id": "urn:fixture:ifc:SpaceA",
+          "subject_id": "asset-001",
+          "revision": "model-v1",
+          "revision_state": "current"
+        },
+        "target": {
+          "standard_key": "brick-1.4.4",
+          "release_id": "1.4.3",
+          "term_id": "urn:fixture:brick:RoomA",
+          "subject_id": "asset-001",
+          "revision": "semantic-v1",
+          "revision_state": "current"
+        },
+        "assertion": {
+          "relation": "exact",
+          "exact_equivalence_claim": true,
+          "subject_relationship": "same_subject",
+          "declared_losses": []
+        },
+        "semantics": {
+          "quantity_kind": "temperature",
+          "source_unit": "Cel",
+          "target_unit": "Cel",
+          "conversion_rule_id": "",
+          "conversion_state": "none",
+          "time_basis_preserved": true,
+          "evidence_class_preserved": true
+        },
+        "evidence": {
+          "rule_id": "map-rule-001",
+          "rule_revision": "1",
+          "rule_digest": "sha256:synthetic-rule-001",
+          "evidence_ref": "fixture-evidence-001",
+          "source_rights_state": "permitted",
+          "target_rights_state": "permitted"
+        }
+      },
+      "expected_disposition": "MoreEvidenceRequired"
+    },
+    {
+      "case_id": "SM-029",
+      "description": "Source model revision is absent.",
+      "mapping": {
+        "source": {
+          "standard_key": "ifc-4.3",
+          "release_id": "IFC4.3-ISO16739-1:2024",
+          "term_id": "urn:fixture:ifc:SpaceA",
+          "subject_id": "asset-001",
+          "revision": "",
+          "revision_state": "current"
+        },
+        "target": {
+          "standard_key": "brick-1.4.4",
+          "release_id": "1.4.4",
+          "term_id": "urn:fixture:brick:RoomA",
+          "subject_id": "asset-001",
+          "revision": "semantic-v1",
+          "revision_state": "current"
+        },
+        "assertion": {
+          "relation": "exact",
+          "exact_equivalence_claim": true,
+          "subject_relationship": "same_subject",
+          "declared_losses": []
+        },
+        "semantics": {
+          "quantity_kind": "temperature",
+          "source_unit": "Cel",
+          "target_unit": "Cel",
+          "conversion_rule_id": "",
+          "conversion_state": "none",
+          "time_basis_preserved": true,
+          "evidence_class_preserved": true
+        },
+        "evidence": {
+          "rule_id": "map-rule-001",
+          "rule_revision": "1",
+          "rule_digest": "sha256:synthetic-rule-001",
+          "evidence_ref": "fixture-evidence-001",
+          "source_rights_state": "permitted",
+          "target_rights_state": "permitted"
+        }
+      },
+      "expected_disposition": "MoreEvidenceRequired"
+    },
+    {
+      "case_id": "SM-030",
+      "description": "An unrecognized mapping relation is rejected.",
+      "mapping": {
+        "source": {
+          "standard_key": "ifc-4.3",
+          "release_id": "IFC4.3-ISO16739-1:2024",
+          "term_id": "urn:fixture:ifc:SpaceA",
+          "subject_id": "asset-001",
+          "revision": "model-v1",
+          "revision_state": "current"
+        },
+        "target": {
+          "standard_key": "brick-1.4.4",
+          "release_id": "1.4.4",
+          "term_id": "urn:fixture:brick:RoomA",
+          "subject_id": "asset-001",
+          "revision": "semantic-v1",
+          "revision_state": "current"
+        },
+        "assertion": {
+          "relation": "approximatelySame",
+          "exact_equivalence_claim": false,
+          "subject_relationship": "same_subject",
+          "declared_losses": []
+        },
+        "semantics": {
+          "quantity_kind": "temperature",
+          "source_unit": "Cel",
+          "target_unit": "Cel",
+          "conversion_rule_id": "",
+          "conversion_state": "none",
+          "time_basis_preserved": true,
+          "evidence_class_preserved": true
+        },
+        "evidence": {
+          "rule_id": "map-rule-001",
+          "rule_revision": "1",
+          "rule_digest": "sha256:synthetic-rule-001",
+          "evidence_ref": "fixture-evidence-001",
+          "source_rights_state": "permitted",
+          "target_rights_state": "permitted"
+        }
+      },
+      "expected_disposition": "Rejected"
+    },
+    {
+      "case_id": "SM-031",
+      "description": "Different units without a verified conversion remain not comparable.",
+      "mapping": {
+        "source": {
+          "standard_key": "ifc-4.3",
+          "release_id": "IFC4.3-ISO16739-1:2024",
+          "term_id": "urn:fixture:ifc:SpaceA",
+          "subject_id": "asset-001",
+          "revision": "model-v1",
+          "revision_state": "current"
+        },
+        "target": {
+          "standard_key": "brick-1.4.4",
+          "release_id": "1.4.4",
+          "term_id": "urn:fixture:brick:ZoneTemperatureF",
+          "subject_id": "asset-001",
+          "revision": "semantic-v1",
+          "revision_state": "current"
+        },
+        "assertion": {
+          "relation": "related",
+          "exact_equivalence_claim": false,
+          "subject_relationship": "related_subject",
+          "declared_losses": [
+            "Unit conversion not verified"
+          ]
+        },
+        "semantics": {
+          "quantity_kind": "temperature",
+          "source_unit": "Cel",
+          "target_unit": "[degF]",
+          "conversion_rule_id": "",
+          "conversion_state": "unknown",
+          "time_basis_preserved": true,
+          "evidence_class_preserved": true
+        },
+        "evidence": {
+          "rule_id": "map-rule-001",
+          "rule_revision": "1",
+          "rule_digest": "sha256:synthetic-rule-001",
+          "evidence_ref": "fixture-evidence-001",
+          "source_rights_state": "permitted",
+          "target_rights_state": "permitted"
+        }
+      },
+      "expected_disposition": "NotComparable"
+    },
+    {
+      "case_id": "SM-032",
+      "description": "Different units with an explicitly verified conversion are accepted only as a declared transformation.",
+      "mapping": {
+        "source": {
+          "standard_key": "ifc-4.3",
+          "release_id": "IFC4.3-ISO16739-1:2024",
+          "term_id": "urn:fixture:ifc:SpaceA",
+          "subject_id": "asset-001",
+          "revision": "model-v1",
+          "revision_state": "current"
+        },
+        "target": {
+          "standard_key": "brick-1.4.4",
+          "release_id": "1.4.4",
+          "term_id": "urn:fixture:brick:ZoneTemperatureF",
+          "subject_id": "asset-001",
+          "revision": "semantic-v1",
+          "revision_state": "current"
+        },
+        "assertion": {
+          "relation": "derived",
+          "exact_equivalence_claim": false,
+          "subject_relationship": "related_subject",
+          "declared_losses": [
+            "Validated Celsius-to-Fahrenheit conversion applied"
+          ]
+        },
+        "semantics": {
+          "quantity_kind": "temperature",
+          "source_unit": "Cel",
+          "target_unit": "[degF]",
+          "conversion_rule_id": "unit-conversion-c-to-f-v1",
+          "conversion_state": "verified",
+          "time_basis_preserved": true,
+          "evidence_class_preserved": true
+        },
+        "evidence": {
+          "rule_id": "map-rule-001",
+          "rule_revision": "1",
+          "rule_digest": "sha256:synthetic-rule-001",
+          "evidence_ref": "fixture-evidence-001",
+          "source_rights_state": "permitted",
+          "target_rights_state": "permitted"
+        }
+      },
+      "expected_disposition": "AcceptedWithDeclaredLoss"
+    },
+    {
+      "case_id": "SM-033",
+      "description": "A verified numeric conversion is not promoted as raw exact equivalence.",
+      "mapping": {
+        "source": {
+          "standard_key": "ifc-4.3",
+          "release_id": "IFC4.3-ISO16739-1:2024",
+          "term_id": "urn:fixture:ifc:SpaceA",
+          "subject_id": "asset-001",
+          "revision": "model-v1",
+          "revision_state": "current"
+        },
+        "target": {
+          "standard_key": "brick-1.4.4",
+          "release_id": "1.4.4",
+          "term_id": "urn:fixture:brick:ZoneTemperatureF",
+          "subject_id": "asset-001",
+          "revision": "semantic-v1",
+          "revision_state": "current"
+        },
+        "assertion": {
+          "relation": "exact",
+          "exact_equivalence_claim": true,
+          "subject_relationship": "same_subject",
+          "declared_losses": []
+        },
+        "semantics": {
+          "quantity_kind": "temperature",
+          "source_unit": "Cel",
+          "target_unit": "[degF]",
+          "conversion_rule_id": "unit-conversion-c-to-f-v1",
+          "conversion_state": "verified",
+          "time_basis_preserved": true,
+          "evidence_class_preserved": true
+        },
+        "evidence": {
+          "rule_id": "map-rule-001",
+          "rule_revision": "1",
+          "rule_digest": "sha256:synthetic-rule-001",
+          "evidence_ref": "fixture-evidence-001",
+          "source_rights_state": "permitted",
+          "target_rights_state": "permitted"
+        }
+      },
+      "expected_disposition": "NotComparable"
+    },
+    {
+      "case_id": "SM-034",
+      "description": "Source mapping rights are explicitly revoked.",
+      "mapping": {
+        "source": {
+          "standard_key": "ifc-4.3",
+          "release_id": "IFC4.3-ISO16739-1:2024",
+          "term_id": "urn:fixture:ifc:SpaceA",
+          "subject_id": "asset-001",
+          "revision": "model-v1",
+          "revision_state": "current"
+        },
+        "target": {
+          "standard_key": "brick-1.4.4",
+          "release_id": "1.4.4",
+          "term_id": "urn:fixture:brick:RoomA",
+          "subject_id": "asset-001",
+          "revision": "semantic-v1",
+          "revision_state": "current"
+        },
+        "assertion": {
+          "relation": "exact",
+          "exact_equivalence_claim": true,
+          "subject_relationship": "same_subject",
+          "declared_losses": []
+        },
+        "semantics": {
+          "quantity_kind": "temperature",
+          "source_unit": "Cel",
+          "target_unit": "Cel",
+          "conversion_rule_id": "",
+          "conversion_state": "none",
+          "time_basis_preserved": true,
+          "evidence_class_preserved": true
+        },
+        "evidence": {
+          "rule_id": "map-rule-001",
+          "rule_revision": "1",
+          "rule_digest": "sha256:synthetic-rule-001",
+          "evidence_ref": "fixture-evidence-001",
+          "source_rights_state": "revoked",
+          "target_rights_state": "permitted"
+        }
+      },
+      "expected_disposition": "Rejected"
+    },
+    {
+      "case_id": "SM-035",
+      "description": "Target mapping rights are not known.",
+      "mapping": {
+        "source": {
+          "standard_key": "ifc-4.3",
+          "release_id": "IFC4.3-ISO16739-1:2024",
+          "term_id": "urn:fixture:ifc:SpaceA",
+          "subject_id": "asset-001",
+          "revision": "model-v1",
+          "revision_state": "current"
+        },
+        "target": {
+          "standard_key": "brick-1.4.4",
+          "release_id": "1.4.4",
+          "term_id": "urn:fixture:brick:RoomA",
+          "subject_id": "asset-001",
+          "revision": "semantic-v1",
+          "revision_state": "current"
+        },
+        "assertion": {
+          "relation": "exact",
+          "exact_equivalence_claim": true,
+          "subject_relationship": "same_subject",
+          "declared_losses": []
+        },
+        "semantics": {
+          "quantity_kind": "temperature",
+          "source_unit": "Cel",
+          "target_unit": "Cel",
+          "conversion_rule_id": "",
+          "conversion_state": "none",
+          "time_basis_preserved": true,
+          "evidence_class_preserved": true
+        },
+        "evidence": {
+          "rule_id": "map-rule-001",
+          "rule_revision": "1",
+          "rule_digest": "sha256:synthetic-rule-001",
+          "evidence_ref": "fixture-evidence-001",
+          "source_rights_state": "permitted",
+          "target_rights_state": "unknown"
+        }
+      },
+      "expected_disposition": "MoreEvidenceRequired"
+    },
+    {
+      "case_id": "SM-036",
+      "description": "Target semantic model revision is stale.",
+      "mapping": {
+        "source": {
+          "standard_key": "ifc-4.3",
+          "release_id": "IFC4.3-ISO16739-1:2024",
+          "term_id": "urn:fixture:ifc:SpaceA",
+          "subject_id": "asset-001",
+          "revision": "model-v1",
+          "revision_state": "current"
+        },
+        "target": {
+          "standard_key": "brick-1.4.4",
+          "release_id": "1.4.4",
+          "term_id": "urn:fixture:brick:RoomA",
+          "subject_id": "asset-001",
+          "revision": "semantic-v1",
+          "revision_state": "stale"
+        },
+        "assertion": {
+          "relation": "exact",
+          "exact_equivalence_claim": true,
+          "subject_relationship": "same_subject",
+          "declared_losses": []
+        },
+        "semantics": {
+          "quantity_kind": "temperature",
+          "source_unit": "Cel",
+          "target_unit": "Cel",
+          "conversion_rule_id": "",
+          "conversion_state": "none",
+          "time_basis_preserved": true,
+          "evidence_class_preserved": true
+        },
+        "evidence": {
+          "rule_id": "map-rule-001",
+          "rule_revision": "1",
+          "rule_digest": "sha256:synthetic-rule-001",
+          "evidence_ref": "fixture-evidence-001",
+          "source_rights_state": "permitted",
+          "target_rights_state": "permitted"
+        }
+      },
+      "expected_disposition": "MoreEvidenceRequired"
+    },
+    {
+      "case_id": "SM-037",
+      "description": "Exact mapping relates distinct physical subjects.",
+      "mapping": {
+        "source": {
+          "standard_key": "ifc-4.3",
+          "release_id": "IFC4.3-ISO16739-1:2024",
+          "term_id": "urn:fixture:ifc:SpaceA",
+          "subject_id": "asset-001",
+          "revision": "model-v1",
+          "revision_state": "current"
+        },
+        "target": {
+          "standard_key": "brick-1.4.4",
+          "release_id": "1.4.4",
+          "term_id": "urn:fixture:brick:RoomA",
+          "subject_id": "asset-001",
+          "revision": "semantic-v1",
+          "revision_state": "current"
+        },
+        "assertion": {
+          "relation": "exact",
+          "exact_equivalence_claim": true,
+          "subject_relationship": "related_subject",
+          "declared_losses": []
+        },
+        "semantics": {
+          "quantity_kind": "temperature",
+          "source_unit": "Cel",
+          "target_unit": "Cel",
+          "conversion_rule_id": "",
+          "conversion_state": "none",
+          "time_basis_preserved": true,
+          "evidence_class_preserved": true
+        },
+        "evidence": {
+          "rule_id": "map-rule-001",
+          "rule_revision": "1",
+          "rule_digest": "sha256:synthetic-rule-001",
+          "evidence_ref": "fixture-evidence-001",
+          "source_rights_state": "permitted",
+          "target_rights_state": "permitted"
+        }
+      },
+      "expected_disposition": "Rejected"
+    },
+    {
+      "case_id": "SM-038",
+      "description": "Mapping evidence reference is absent.",
+      "mapping": {
+        "source": {
+          "standard_key": "ifc-4.3",
+          "release_id": "IFC4.3-ISO16739-1:2024",
+          "term_id": "urn:fixture:ifc:SpaceA",
+          "subject_id": "asset-001",
+          "revision": "model-v1",
+          "revision_state": "current"
+        },
+        "target": {
+          "standard_key": "brick-1.4.4",
+          "release_id": "1.4.4",
+          "term_id": "urn:fixture:brick:RoomA",
+          "subject_id": "asset-001",
+          "revision": "semantic-v1",
+          "revision_state": "current"
+        },
+        "assertion": {
+          "relation": "exact",
+          "exact_equivalence_claim": true,
+          "subject_relationship": "same_subject",
+          "declared_losses": []
+        },
+        "semantics": {
+          "quantity_kind": "temperature",
+          "source_unit": "Cel",
+          "target_unit": "Cel",
+          "conversion_rule_id": "",
+          "conversion_state": "none",
+          "time_basis_preserved": true,
+          "evidence_class_preserved": true
+        },
+        "evidence": {
+          "rule_id": "map-rule-001",
+          "rule_revision": "1",
+          "rule_digest": "sha256:synthetic-rule-001",
+          "evidence_ref": "",
+          "source_rights_state": "permitted",
+          "target_rights_state": "permitted"
+        }
+      },
+      "expected_disposition": "MoreEvidenceRequired"
+    },
+    {
+      "case_id": "SM-039",
+      "description": "Mapping rule revision is absent.",
+      "mapping": {
+        "source": {
+          "standard_key": "ifc-4.3",
+          "release_id": "IFC4.3-ISO16739-1:2024",
+          "term_id": "urn:fixture:ifc:SpaceA",
+          "subject_id": "asset-001",
+          "revision": "model-v1",
+          "revision_state": "current"
+        },
+        "target": {
+          "standard_key": "brick-1.4.4",
+          "release_id": "1.4.4",
+          "term_id": "urn:fixture:brick:RoomA",
+          "subject_id": "asset-001",
+          "revision": "semantic-v1",
+          "revision_state": "current"
+        },
+        "assertion": {
+          "relation": "exact",
+          "exact_equivalence_claim": true,
+          "subject_relationship": "same_subject",
+          "declared_losses": []
+        },
+        "semantics": {
+          "quantity_kind": "temperature",
+          "source_unit": "Cel",
+          "target_unit": "Cel",
+          "conversion_rule_id": "",
+          "conversion_state": "none",
+          "time_basis_preserved": true,
+          "evidence_class_preserved": true
+        },
+        "evidence": {
+          "rule_id": "map-rule-001",
+          "rule_revision": "",
+          "rule_digest": "sha256:synthetic-rule-001",
+          "evidence_ref": "fixture-evidence-001",
+          "source_rights_state": "permitted",
+          "target_rights_state": "permitted"
+        }
+      },
+      "expected_disposition": "MoreEvidenceRequired"
+    },
+    {
+      "case_id": "SM-040",
+      "description": "Source standard identity is not in the pinned standards registry.",
+      "mapping": {
+        "source": {
+          "standard_key": "unknown-standard",
+          "release_id": "latest",
+          "term_id": "urn:fixture:ifc:SpaceA",
+          "subject_id": "asset-001",
+          "revision": "model-v1",
+          "revision_state": "current"
+        },
+        "target": {
+          "standard_key": "brick-1.4.4",
+          "release_id": "1.4.4",
+          "term_id": "urn:fixture:brick:RoomA",
+          "subject_id": "asset-001",
+          "revision": "semantic-v1",
+          "revision_state": "current"
+        },
+        "assertion": {
+          "relation": "exact",
+          "exact_equivalence_claim": true,
+          "subject_relationship": "same_subject",
+          "declared_losses": []
+        },
+        "semantics": {
+          "quantity_kind": "temperature",
+          "source_unit": "Cel",
+          "target_unit": "Cel",
+          "conversion_rule_id": "",
+          "conversion_state": "none",
+          "time_basis_preserved": true,
+          "evidence_class_preserved": true
+        },
+        "evidence": {
+          "rule_id": "map-rule-001",
+          "rule_revision": "1",
+          "rule_digest": "sha256:synthetic-rule-001",
+          "evidence_ref": "fixture-evidence-001",
+          "source_rights_state": "permitted",
+          "target_rights_state": "permitted"
+        }
+      },
+      "expected_disposition": "MoreEvidenceRequired"
+    }
+  ]
+}
