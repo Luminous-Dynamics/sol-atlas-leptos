@@ -201,7 +201,8 @@
         "tetrad_id",
         "screen_basis",
         "inclination_rad",
-        "screen_coordinate_convention"
+        "screen_coordinate_convention",
+        "coordinate_chart"
       ],
       "properties": {
         "observer_id": {
@@ -240,6 +241,148 @@
             "left_handed",
             "other_declared"
           ]
+        },
+        "coordinate_chart": {
+          "enum": [
+            "asymptotic_screen",
+            "boyer_lindquist",
+            "ingoing_kerr",
+            "other_declared"
+          ]
+        },
+        "observer_model": {
+          "enum": [
+            "asymptotic_static",
+            "zero_angular_momentum_observer",
+            "finite_radius_static",
+            "comoving",
+            "other_declared"
+          ]
+        },
+        "observer_radius_over_m": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "exclusiveMinimum": 0
+        },
+        "observer_theta_rad": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 3.141592653589793
+        },
+        "finite_radius_tetrad": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": false,
+          "required": [
+            "tetrad_id",
+            "observer_model",
+            "lapse",
+            "frame_dragging_angular_velocity",
+            "sqrt_g_phi_phi",
+            "basis_digest"
+          ],
+          "properties": {
+            "tetrad_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "observer_model": {
+              "const": "zero_angular_momentum_observer"
+            },
+            "lapse": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "frame_dragging_angular_velocity": {
+              "type": "number"
+            },
+            "sqrt_g_phi_phi": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "basis_digest": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "tetrad_vectors_contravariant": {
+              "type": "array",
+              "minItems": 4,
+              "maxItems": 4,
+              "items": {
+                "type": "array",
+                "minItems": 4,
+                "maxItems": 4,
+                "items": {
+                  "type": "number"
+                }
+              }
+            },
+            "orthonormality_residual": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "minimum": 0
+            }
+          }
+        },
+        "local_sky_direction": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": false,
+          "required": [
+            "radial",
+            "polar",
+            "azimuthal",
+            "norm_squared",
+            "direction_convention"
+          ],
+          "properties": {
+            "radial": {
+              "type": "number",
+              "minimum": -1,
+              "maximum": 1
+            },
+            "polar": {
+              "type": "number",
+              "minimum": -1,
+              "maximum": 1
+            },
+            "azimuthal": {
+              "type": "number",
+              "minimum": -1,
+              "maximum": 1
+            },
+            "norm_squared": {
+              "type": "number",
+              "minimum": 0
+            },
+            "direction_convention": {
+              "const": "future_directed_photon_in_zamo_orthonormal_frame"
+            },
+            "local_energy_scale": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "exclusiveMinimum": 0
+            },
+            "killing_energy_at_infinity_per_local_energy": {
+              "type": [
+                "number",
+                "null"
+              ]
+            }
+          }
         }
       }
     },
@@ -294,7 +437,8 @@
           "caustic",
           "travel_time",
           "redshift",
-          "magnification"
+          "magnification",
+          "trajectory_coordinate_chart"
         ],
         "properties": {
           "branch_id": {
@@ -319,7 +463,8 @@
               "captured_by_horizon",
               "escaped_to_infinity",
               "missed_source",
-              "terminated_unresolved"
+              "terminated_unresolved",
+              "terminated_at_chart_boundary"
             ]
           },
           "screen_coordinates": {
@@ -566,6 +711,96 @@
                   "number",
                   "null"
                 ]
+              }
+            }
+          },
+          "trajectory_coordinate_chart": {
+            "enum": [
+              "boyer_lindquist",
+              "ingoing_kerr",
+              "not_applicable",
+              "other_declared"
+            ]
+          },
+          "trajectory_qualification": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "additionalProperties": false,
+            "required": [
+              "endpoint_classification",
+              "accepted_steps",
+              "rejected_steps",
+              "radial_constraint_residual_max",
+              "polar_constraint_residual_max"
+            ],
+            "properties": {
+              "endpoint_classification": {
+                "enum": [
+                  "source_hit",
+                  "captured_by_horizon",
+                  "escaped_to_infinity",
+                  "turned_back",
+                  "terminated_at_chart_boundary",
+                  "terminated_unresolved"
+                ]
+              },
+              "accepted_steps": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "rejected_steps": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "radial_constraint_residual_max": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0
+              },
+              "polar_constraint_residual_max": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0
+              },
+              "terminal_radius_over_m": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0
+              },
+              "outer_horizon_radius_over_m": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0
+              },
+              "crossed_outer_horizon": {
+                "type": [
+                  "boolean",
+                  "null"
+                ]
+              },
+              "coordinate_chart": {
+                "enum": [
+                  "boyer_lindquist",
+                  "ingoing_kerr",
+                  "other_declared"
+                ]
+              },
+              "result_digest": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "pattern": "^([0-9a-f]{64})?$"
               }
             }
           }
