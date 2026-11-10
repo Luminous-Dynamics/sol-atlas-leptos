@@ -301,7 +301,23 @@ pub fn validate_corpus(p:&Value,c:&Value)->Result<usize,String>{
 pub fn validate_tracked()->Result<usize,String>{
     let ps=parse_unique(PROFILE_SCHEMA_JSON)?;validate_profile_schema(&ps)?;
     let cs=parse_unique(CORPUS_SCHEMA_JSON)?;
-    if cs["type"]!="object"||cs["additionalProperties"]!=false||cs["properties"]["cases"]["minItems"]!=36||cs["properties"]["cases"]["maxItems"]!=36{return Err("CORPUS_SCHEMA_CONTRACT_INVALID".into());}
+    if cs["type"]!="object"||cs["additionalProperties"]!=false
+        ||!arr_eq(&cs["required"],&["schema_version","corpus_id","classification","claim_ceiling","profile_id","cases"])
+        ||cs["properties"]["cases"]["type"]!="array"
+        ||cs["properties"]["cases"]["minItems"]!=EXPECTED_CASES.len()
+        ||cs["properties"]["cases"]["maxItems"]!=EXPECTED_CASES.len()
+        ||cs["properties"]["cases"]["items"]["$ref"]!="#/$defs/case"
+    {return Err("CORPUS_SCHEMA_CONTRACT_INVALID".into());}
+    let case_schema=&cs["$defs"]["case"];
+    if case_schema["type"]!="object"||case_schema["additionalProperties"]!=false
+        ||!arr_eq(&case_schema["required"],&["case_id","description","signals","expected_disposition"])
+        ||!exact_keys(&case_schema["properties"],&["case_id","description","signals","expected_disposition"])
+    {return Err("CORPUS_CASE_SCHEMA_INVALID".into());}
+    let signals_schema=&case_schema["properties"]["signals"];
+    if signals_schema["type"]!="object"||signals_schema["additionalProperties"]!=false
+        ||!arr_eq(&signals_schema["required"],SIGNAL_FIELDS)
+        ||!exact_keys(&signals_schema["properties"],SIGNAL_FIELDS)
+    {return Err("CORPUS_SIGNAL_SCHEMA_INVALID".into());}
     let p=parse_unique(PROFILE_JSON)?;validate_profile(&p)?;
     let c=parse_unique(CORPUS_JSON)?;validate_corpus(&p,&c)
 }
