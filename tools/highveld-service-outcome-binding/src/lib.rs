@@ -245,14 +245,32 @@ fn validate_profile(p:&Value)->Result<(),String>{
     {return Err("TIMELINE_OWNER_CONTRACT_DRIFT".into());}
     let metrics=p["outcome_metrics"].as_array().ok_or("METRICS_MISSING")?;
     if metrics.len()!=EXPECTED_METRICS.len(){return Err("METRIC_COUNT_INVALID".into());}
-    for (m,(id,service,unit)) in metrics.iter().zip(EXPECTED_METRICS){
-        if text(m,"metric_id")!=*id||text(m,"service_id")!=*service||text(m,"unit")!=*unit
-            ||text(m,"target_owner")!="sol-atlas"||text(m,"target_contract")!="CITY-IN-USE-OUTCOMES-001"
+    for (m,(id,service,unit,package_path)) in metrics.iter().zip(EXPECTED_METRICS){
+        if !exact_keys(m,METRIC_FIELDS)||text(m,"metric_id")!=*id||text(m,"service_id")!=*service||text(m,"unit")!=*unit
+            ||text(m,"package_path")!=*package_path
+            ||text(m,"target_owner")!="sol-atlas"||text(m,"target_contract")!="CITY-IN-USE-OUTCOMES-001"||text(m,"target_contract_version")!="0.1.0"
+            ||text(m,"target_path")!="input.requirements[] + input.observations[]"
+            ||text(m,"requirement_evidence_class")!="meter"||text(m,"required_observation_evidence_kind")!="meter_measurement"
             ||text(m,"source_owner_state")!="UNBOUND_NOT_SELECTED"||text(m,"source_contract_state")!="UNBOUND_NOT_SELECTED"
             ||text(m,"source_revision_state")!="UNBOUND_NOT_SELECTED"||text(m,"source_receipt_state")!="NOT_PRESENT"
             ||text(m,"instrument_profile_state")!="NOT_ADMITTED_OR_UNBOUND"||text(m,"service_floor_state")!="UNKNOWN"
             ||text(m,"admission_state")!="UNBOUND"
         {return Err(format!("METRIC_MAPPING_DRIFT:{id}"));}
+    }
+    let unbound=p["unbound_metrics"].as_array().ok_or("UNBOUND_METRICS_MISSING")?;
+    let expected_unbound=[
+        ("aircare.clean_air_delivery","AIRCARE","resource_flows.clean_air_delivery.quantity"),
+        ("aircare.condensate_or_captured_residual","AIRCARE","resource_flows.condensate_or_captured_residual.quantity"),
+    ];
+    if unbound.len()!=expected_unbound.len(){return Err("UNBOUND_METRIC_COUNT_INVALID".into());}
+    for (item,(id,service,path)) in unbound.iter().zip(expected_unbound) {
+        if !exact_keys(item,UNBOUND_FIELDS)||text(item,"id")!=id||text(item,"service_id")!=service
+            ||text(item,"package_path")!=path||text(item,"reason").len()<20
+        {return Err(format!("UNBOUND_METRIC_DRIFT:{id}"));}
+    }
+    let policy=p.get("binding_policy").ok_or("BINDING_POLICY_MISSING")?;
+    if !exact_keys(policy,BINDING_POLICY_FIELDS)||policy.as_object().is_none_or(|o|o.values().any(|v|v.as_bool()!=Some(true))){
+        return Err("BINDING_POLICY_WEAKENED".into());
     }
     if p["binding_policy"].as_object().is_none_or(|o|o.values().any(|v|v.as_bool()!=Some(true))){
         return Err("BINDING_POLICY_WEAKENED".into());
