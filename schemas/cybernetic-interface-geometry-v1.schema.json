@@ -211,6 +211,8 @@
         "role",
         "parent_frame_id",
         "transform_parent_from_child",
+        "handedness",
+        "axis_labels",
         "axis_convention",
         "linear_unit",
         "angular_unit",
@@ -328,6 +330,19 @@
         },
         "uncertainty": {
           "$ref": "#/$defs/frame_uncertainty"
+        },
+        "handedness": {
+          "const": "right_handed"
+        },
+        "axis_labels": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "Axis labels are ordered X,Y,Z and interpreted under the declared right-handed basis."
         }
       },
       "allOf": [
