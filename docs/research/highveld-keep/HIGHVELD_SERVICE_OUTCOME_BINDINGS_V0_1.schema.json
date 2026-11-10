@@ -1,0 +1,376 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/research/highveld-household-service-outcome-binding-v0.1/docs/research/highveld-keep/HIGHVELD_SERVICE_OUTCOME_BINDINGS_V0_1.schema.json",
+  "title": "Highveld Household Service Outcome Binding Profile v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "profile_id",
+    "classification",
+    "claim_ceiling",
+    "parent_issue",
+    "base_package_id",
+    "owner_contracts",
+    "service_ids",
+    "outcome_metrics",
+    "unbound_metrics",
+    "binding_policy"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "luminous.highveld.service-outcome-binding/0.1"
+    },
+    "profile_id": {
+      "const": "HIGHVELD-SERVICE-OUTCOME-BINDINGS-V0.1"
+    },
+    "classification": {
+      "const": "synthetic_owner_contract_crosswalk_only"
+    },
+    "claim_ceiling": {
+      "const": "owner_contract_field_mapping_and_unbound_state_conformance_only"
+    },
+    "parent_issue": {
+      "const": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/700"
+    },
+    "base_package_id": {
+      "const": "HIGHVELD-HOUSEHOLD-SERVICE-SYNTHETIC-001"
+    },
+    "owner_contracts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "in_use_outcomes",
+        "service_timeline"
+      ],
+      "properties": {
+        "in_use_outcomes": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "owner",
+            "contract_id",
+            "schema_id",
+            "schema_version",
+            "corpus_id",
+            "requirement_fields",
+            "observation_fields",
+            "evidence_classes",
+            "evidence_kinds",
+            "non_authority"
+          ],
+          "properties": {
+            "owner": {
+              "const": "sol-atlas"
+            },
+            "contract_id": {
+              "const": "CITY-IN-USE-OUTCOMES-001"
+            },
+            "schema_id": {
+              "const": "org.luminousdynamics.city-in-use-outcomes.synthetic-corpus"
+            },
+            "schema_version": {
+              "const": "0.1.0"
+            },
+            "corpus_id": {
+              "const": "CITY-IN-USE-OUTCOMES-CORPUS-V0.1"
+            },
+            "requirement_fields": {
+              "const": [
+                "metric_id",
+                "unit",
+                "direction",
+                "threshold",
+                "evidence_class",
+                "definition_revision",
+                "expected_source_owner",
+                "expected_source_contract",
+                "expected_source_revision"
+              ]
+            },
+            "observation_fields": {
+              "const": [
+                "metric_id",
+                "value",
+                "unit",
+                "evidence_state",
+                "evidence_kind",
+                "source_owner",
+                "source_contract",
+                "source_revision",
+                "source_receipt_id",
+                "source_subject_digest",
+                "scope_digest",
+                "design_revision",
+                "bom_revision",
+                "observation_window",
+                "context",
+                "instrument_id",
+                "calibration_state",
+                "coverage_fraction"
+              ]
+            },
+            "evidence_classes": {
+              "const": [
+                "meter",
+                "experience",
+                "service"
+              ]
+            },
+            "evidence_kinds": {
+              "const": [
+                "meter_measurement",
+                "consented_survey",
+                "service_receipt"
+              ]
+            },
+            "non_authority": {
+              "const": "read_only_comparability_classifier_not_meter_owner_or_service_executor"
+            }
+          }
+        },
+        "service_timeline": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "owner",
+            "contract_id",
+            "schema_version",
+            "benchmark_id",
+            "event_fields",
+            "event_kinds",
+            "grouping_rule",
+            "non_authority"
+          ],
+          "properties": {
+            "owner": {
+              "const": "symtropy"
+            },
+            "contract_id": {
+              "const": "SPATIAL-RESILIENCE-TIMELINE-ORACLE"
+            },
+            "schema_version": {
+              "const": "0.1.0"
+            },
+            "benchmark_id": {
+              "const": "SPATIAL-RESILIENCE-TIMELINE-ORACLE"
+            },
+            "event_fields": {
+              "const": [
+                "id",
+                "generation",
+                "tick",
+                "sequence",
+                "kind"
+              ]
+            },
+            "event_kinds": {
+              "const": [
+                "restored",
+                "lost"
+              ]
+            },
+            "grouping_rule": {
+              "type": "string",
+              "minLength": 40
+            },
+            "non_authority": {
+              "const": "availability_and_stable_recovery_only_not_physical_measurement_or_quality"
+            }
+          }
+        }
+      }
+    },
+    "service_ids": {
+      "const": [
+        "WATERLOOP",
+        "HEATBANK",
+        "AIRCARE"
+      ]
+    },
+    "outcome_metrics": {
+      "type": "array",
+      "minItems": 10,
+      "maxItems": 10,
+      "items": {
+        "$ref": "#/$defs/metric"
+      }
+    },
+    "unbound_metrics": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": {
+        "$ref": "#/$defs/unbound"
+      }
+    },
+    "binding_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_owner_must_be_exact",
+        "source_contract_revision_must_be_exact",
+        "source_receipt_and_subject_digest_required",
+        "hard_service_floor_must_be_defined",
+        "instrument_profile_must_be_admitted_for_declared_metric",
+        "calibration_and_coverage_must_be_current",
+        "scope_design_bom_window_and_context_must_match",
+        "timeline_events_never_count_as_physical_measurements",
+        "post_occupancy_result_never_proves_instrument_calibration",
+        "device_commands_not_authorized",
+        "eligible_state_is_review_only_not_pass"
+      ],
+      "properties": {
+        "source_owner_must_be_exact": {
+          "const": true
+        },
+        "source_contract_revision_must_be_exact": {
+          "const": true
+        },
+        "source_receipt_and_subject_digest_required": {
+          "const": true
+        },
+        "hard_service_floor_must_be_defined": {
+          "const": true
+        },
+        "instrument_profile_must_be_admitted_for_declared_metric": {
+          "const": true
+        },
+        "calibration_and_coverage_must_be_current": {
+          "const": true
+        },
+        "scope_design_bom_window_and_context_must_match": {
+          "const": true
+        },
+        "timeline_events_never_count_as_physical_measurements": {
+          "const": true
+        },
+        "post_occupancy_result_never_proves_instrument_calibration": {
+          "const": true
+        },
+        "device_commands_not_authorized": {
+          "const": true
+        },
+        "eligible_state_is_review_only_not_pass": {
+          "const": true
+        }
+      }
+    }
+  },
+  "$defs": {
+    "metric": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "metric_id",
+        "service_id",
+        "package_path",
+        "unit",
+        "target_owner",
+        "target_contract",
+        "target_contract_version",
+        "target_path",
+        "requirement_evidence_class",
+        "required_observation_evidence_kind",
+        "source_owner_state",
+        "source_contract_state",
+        "source_revision_state",
+        "source_receipt_state",
+        "instrument_profile_state",
+        "service_floor_state",
+        "admission_state"
+      ],
+      "properties": {
+        "metric_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "service_id": {
+          "enum": [
+            "WATERLOOP",
+            "HEATBANK",
+            "AIRCARE"
+          ]
+        },
+        "package_path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "unit": {
+          "type": "string",
+          "minLength": 1
+        },
+        "target_owner": {
+          "const": "sol-atlas"
+        },
+        "target_contract": {
+          "const": "CITY-IN-USE-OUTCOMES-001"
+        },
+        "target_contract_version": {
+          "const": "0.1.0"
+        },
+        "target_path": {
+          "const": "input.requirements[] + input.observations[]"
+        },
+        "requirement_evidence_class": {
+          "const": "meter"
+        },
+        "required_observation_evidence_kind": {
+          "const": "meter_measurement"
+        },
+        "source_owner_state": {
+          "const": "UNBOUND_NOT_SELECTED"
+        },
+        "source_contract_state": {
+          "const": "UNBOUND_NOT_SELECTED"
+        },
+        "source_revision_state": {
+          "const": "UNBOUND_NOT_SELECTED"
+        },
+        "source_receipt_state": {
+          "const": "NOT_PRESENT"
+        },
+        "instrument_profile_state": {
+          "const": "NOT_ADMITTED_OR_UNBOUND"
+        },
+        "service_floor_state": {
+          "const": "UNKNOWN"
+        },
+        "admission_state": {
+          "const": "UNBOUND"
+        }
+      }
+    },
+    "unbound": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "service_id",
+        "package_path",
+        "reason"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "service_id": {
+          "enum": [
+            "WATERLOOP",
+            "HEATBANK",
+            "AIRCARE"
+          ]
+        },
+        "package_path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 20
+        }
+      }
+    }
+  }
+}
