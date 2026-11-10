@@ -289,3 +289,65 @@ No tier by itself establishes regulatory compliance, resilience against all Carr
 ---
 
 **Versioning rule:** this file defines a research protocol. Changes to test splits, datasets, metric definitions, targets or expected outcomes after seeing holdout results must be a new versioned amendment with an explicit rationale. Never tune the test set to make a model pass.
+
+
+---
+
+## 14. State-of-the-art and regional evidence update — 2026-11-10
+
+This update corrects and extends the original v0.1 research survey. It does not change the claim ceiling or imply a new Luminous physical model has been validated.
+
+### 14.1 Operational industry is more mature than a single-model comparison suggests
+
+The UK Space Weather Innovation, Measurement, Modeling and Risk (SWIMMR) programme has operationalised nine models into robust codes for GIC estimation across the Great Britain high-voltage transmission network, high-pressure gas pipelines and railways. It added three variometer sites and undertook a three-year MT campaign at 53 sites, combining ground observations, L1 solar-wind inputs, empirical ML and numerical MHD. This is a strong research-to-operations comparator, not merely an academic paper: https://doi.org/10.1029/2025SW004364.
+
+The September 2026 Fujian MM-CNN-MHA study is a more recent single-substation forecast comparator. It reports 60-minute-ahead GIC forecasts at one 220-kV substation. Direct GIC prediction reports 0.27 A RMSE in its model comparison; predicted-E-field followed by a physical GIC calculation gives 0.26 A; persistence is 0.28 A rounded. The study also reports the observed 3.28 A peak was predicted at 1.03 A by the field-mediated forecast and 0.6 A by direct GIC prediction, due in part to very sparse high-amplitude samples. It explicitly compares event-threshold detection, not just point error: https://doi.org/10.1029/2025SW004900.
+
+**Implication:** Luminous should not aim to out-CNN a one-site model. The credible differentiator is independently reproducible, multi-event and cross-site qualification; uncertainty and tail calibration; physical model transfer limits; common-cause dependency analysis; and the translation to critical-service continuity.
+
+### 14.2 Add a sustained-current hazard class
+
+A July 2026 Space Weather case study documents GIC up to approximately 20 A for roughly 90 minutes during an otherwise moderate New Zealand geomagnetic storm. It argues that sustained moderate currents can saturate transformer cores and create harmonic distortion, separate from short-duration peak/thermal risk: https://doi.org/10.1029/2026SW005032.
+
+The benchmark must therefore contain two orthogonal stress families:
+- impulse/peak exposure: peak, rise rate, timing, short-duration saturation and peak-related response;
+- sustained/cumulative exposure: duration above asset-specific thresholds, integrated current exposure, cumulative thermal state, harmonic duty and recovery/cool-down.
+
+Do not invent universal transformer damage thresholds. The transformer owner/OEM defines qualified curves and limits.
+
+### 14.3 Model complete conductor topology
+
+A 2025 study of a Portuguese network found that including shield wires changed simulated substation grounding-resistor GIC by about -24%, transformer-winding GIC by about +11%, and line current by about +2.5% for that particular system: https://doi.org/10.1016/j.epsr.2025.111540.
+
+These values are not general correction factors. They demonstrate that shield wires and grounded return paths can materially alter the circuit model. The Symtropy contract must represent their connectivity, grounding and impedance explicitly, or mark the component unsupported rather than silently omit it.
+
+### 14.4 South African evidence: correct the regional baseline
+
+South Africa has a documented history of GIC observations and modelling:
+- Ngwira et al. (2008) used Grassridge GIC data with Hermanus geomagnetic observations to derive a multilayer conductivity model and improve modelling for that particular site pair: https://doi.org/10.1029/2008SW000408.
+- Ngwira et al. (2009) found model performance degraded with increasing magnetometer-to-GIC-site distance and the calibrated model was specific to a station/site pair: https://doi.org/10.1029/2009SW000478.
+- GIC monitoring in southern Africa was reported to have started in 1998 through the EPRI Sunburst system. The 2008 work used 2-second Grassridge GIC averaged to one minute for the October 2003 event. The 2009 work cautioned that limited monitoring and station separation reduce transferability.
+- SANSA's 2015/16 Annual Report documents magnetometers installed under/near a 400-kV line near Botrivier, recording GIC during the 17 March 2015 storm: https://www.sansa.org.za/wp-content/uploads/2018/05/SANSA-AR-2015-16.pdf.
+- Nahayo et al. (2019) used the SANSA geomagnetic network, local MT impedance and measured GIC to study the Saint Patrick's Day 2015 event. It describes spatial variation in southern African E-fields and local/global index differences: https://doi.org/10.17159/sajs.2019/5204.
+- Nahayo et al. (2022) used Grassridge and Matimba GIC observations with Hermanus and Hartebeesthoek magnetometers for the 2003 and 2015 storm periods; it notes the two utility sites did not provide good-quality GIC records over the same periods: https://doi.org/10.1029/2022SW003092.
+- A 2026 African geomagnetic-proxy study includes Hermanus alongside four other African observatories, showing station- and event-dependent local GIC-proxy behaviour: https://doi.org/10.1016/j.asr.2026.04.031.
+
+Therefore the South African gap is **not** an absence of prior measurements or science. The unresolved issue is access to continuous, current, permissioned and independently replayable records with exact sensor metadata, GIC site definitions, MT uncertainty, transformer/topology revisions, and owner-approved redistribution/analysis terms. The next data-source work is [GMD-SA-HISTORICAL-DATA-001 #697](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/697).
+
+### 14.5 New experimental result: causal adaptive calibration is a hypothesis, not a win claim
+
+The May 2024 TVA four-site replay now reproduces the publisher's four TVA and four GMU reference-model rows from a pinned dataset. The separate [adaptive calibration pilot](GMD_ADAPTIVE_CALIBRATION_V0.1.md) explores past-only rolling bias/gain correction. It reduces error at the four TVA sites in a single-event prequential test but slightly worsens the GMU reference results at two sites. This is model- and site-dependent. The follow-up work is [GMD-ONLINE-CALIBRATION-001 #11370](https://github.com/Luminous-Dynamics/symthaea/issues/11370).
+
+This experiment is deliberately not called SOTA: its hyperparameters are post-hoc, all observations are from one storm, and within-event temporal blocks are not independent events. It motivates a preregistered multi-event and cross-site benchmark.
+
+### 14.6 Updated benchmark requirements
+
+In addition to Section 6's original metrics, benchmark reports must include:
+- event-based POD, POFD, HSS, threshold precision/recall, false-alarm rate and lead time for predeclared GIC/E-field thresholds;
+- peak magnitude/time error and quantile/tail calibration, not only overall RMSE;
+- duration above asset-specific, owner/OEM-qualified thresholds and time-integrated exposure proxies;
+- model performance stratified by sensor site, local geology, conductor orientation, shield-wire/ground-return topology, transformer type and event morphology;
+- leave-one-event-out, leave-one-site-out and geographic transfer evaluations;
+- calibration/abstention under sensor polarity, clock, topology, grounding, model revision and observability changes.
+
+A result that improves average pointwise RMSE while missing rare high-current peaks or sustained moderate episodes is not an operational improvement.
