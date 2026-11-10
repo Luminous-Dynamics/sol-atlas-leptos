@@ -1,0 +1,666 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/cybernetic-interface-geometry-v1.schema.json",
+  "title": "Cybernetic Interface Geometry V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "schema_version",
+    "artifact_id",
+    "evidence_class",
+    "source",
+    "frame_graph",
+    "interface_envelopes",
+    "interface_observations",
+    "privacy",
+    "claim_ceiling"
+  ],
+  "properties": {
+    "schema": {
+      "const": "luminous.cybernetic-interface-geometry"
+    },
+    "schema_version": {
+      "const": 1
+    },
+    "artifact_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "evidence_class": {
+      "enum": [
+        "synthetic",
+        "simulation",
+        "bench",
+        "hil",
+        "human_study"
+      ]
+    },
+    "source": {
+      "$ref": "#/$defs/source"
+    },
+    "subject_ref": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Pseudonymous subject reference only; never a direct identity or raw scan identifier."
+    },
+    "frame_graph": {
+      "$ref": "#/$defs/frame_graph"
+    },
+    "interface_envelopes": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/interface_envelope"
+      }
+    },
+    "interface_observations": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/interface_observation"
+      }
+    },
+    "privacy": {
+      "$ref": "#/$defs/privacy"
+    },
+    "claim_ceiling": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "$defs": {
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_kind",
+        "source_ref",
+        "source_revision",
+        "artifact_digest",
+        "digest_status"
+      ],
+      "properties": {
+        "source_kind": {
+          "enum": [
+            "synthetic_fixture",
+            "body_scan_capture",
+            "device_cad",
+            "manufactured_article_measurement",
+            "instrumented_fixture_measurement"
+          ]
+        },
+        "source_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_revision": {
+          "type": "string",
+          "minLength": 1
+        },
+        "artifact_digest": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "digest_status": {
+          "enum": [
+            "verified",
+            "not_provided",
+            "not_applicable_synthetic_parameters"
+          ]
+        },
+        "capture_device_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "capture_software_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "capture_time_utc": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "digest_status": {
+                "const": "verified"
+              }
+            },
+            "required": [
+              "digest_status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "artifact_digest": {
+                "type": "string",
+                "pattern": "^sha256:[0-9a-f]{64}$"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "digest_status": {
+                "const": "not_applicable_synthetic_parameters"
+              }
+            },
+            "required": [
+              "digest_status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "source_kind": {
+                "const": "synthetic_fixture"
+              },
+              "artifact_digest": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "frame_graph": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "root_frame_id",
+        "transform_direction",
+        "frames"
+      ],
+      "properties": {
+        "root_frame_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "transform_direction": {
+          "const": "transform_parent_from_child"
+        },
+        "frames": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/frame"
+          }
+        }
+      },
+      "description": "Semantic validation must enforce unique frame IDs, exactly one root, parent existence, connectivity, acyclicity, consistent units, and transform/quaternion validity. JSON Schema alone cannot establish graph topology."
+    },
+    "frame": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "frame_id",
+        "role",
+        "parent_frame_id",
+        "transform_parent_from_child",
+        "axis_convention",
+        "linear_unit",
+        "angular_unit",
+        "calibration_ref",
+        "uncertainty"
+      ],
+      "properties": {
+        "frame_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "role": {
+          "enum": [
+            "environment",
+            "scanner",
+            "body_segment",
+            "body_landmark_set",
+            "device_cad",
+            "manufactured_article",
+            "fixture",
+            "sensor",
+            "interface_region",
+            "task_environment"
+          ]
+        },
+        "parent_frame_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "transform_parent_from_child": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "translation_m",
+                "quaternion_xyzw"
+              ],
+              "properties": {
+                "translation_m": {
+                  "type": "array",
+                  "minItems": 3,
+                  "maxItems": 3,
+                  "items": {
+                    "type": "number"
+                  }
+                },
+                "quaternion_xyzw": {
+                  "type": "array",
+                  "minItems": 4,
+                  "maxItems": 4,
+                  "items": {
+                    "type": "number"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "axis_convention": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Explicit local axis meanings and handedness; do not infer axis order from a rendering engine."
+        },
+        "linear_unit": {
+          "const": "m"
+        },
+        "angular_unit": {
+          "const": "rad"
+        },
+        "calibration_ref": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "instrument_ref",
+                "calibration_ref",
+                "calibration_revision",
+                "valid_from_utc",
+                "valid_until_utc"
+              ],
+              "properties": {
+                "instrument_ref": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "calibration_ref": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "calibration_revision": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "valid_from_utc": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "valid_until_utc": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              }
+            }
+          ]
+        },
+        "uncertainty": {
+          "$ref": "#/$defs/frame_uncertainty"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "parent_frame_id": {
+                "type": "null"
+              }
+            },
+            "required": [
+              "parent_frame_id"
+            ]
+          },
+          "then": {
+            "properties": {
+              "transform_parent_from_child": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "parent_frame_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "parent_frame_id"
+            ]
+          },
+          "then": {
+            "properties": {
+              "transform_parent_from_child": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "frame_uncertainty": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "reason"
+          ],
+          "properties": {
+            "kind": {
+              "const": "not_quantified"
+            },
+            "reason": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "covariance_upper_triangle",
+            "parameter_order"
+          ],
+          "properties": {
+            "kind": {
+              "const": "covariance_6d"
+            },
+            "covariance_upper_triangle": {
+              "type": "array",
+              "minItems": 21,
+              "maxItems": 21,
+              "items": {
+                "type": "number"
+              }
+            },
+            "parameter_order": {
+              "const": [
+                "tx_m",
+                "ty_m",
+                "tz_m",
+                "rx_rad",
+                "ry_rad",
+                "rz_rad"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "interface_envelope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "interface_id",
+        "region_code",
+        "body_frame_ref",
+        "device_frame_ref",
+        "geometry_artifact_ref",
+        "geometry_artifact_digest",
+        "geometry_revision",
+        "nominal_clearance_mm",
+        "tolerance_mm",
+        "applicability_profiles"
+      ],
+      "properties": {
+        "interface_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "region_code": {
+          "type": "string",
+          "minLength": 1
+        },
+        "body_frame_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "device_frame_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "geometry_artifact_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "geometry_artifact_digest": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "geometry_revision": {
+          "type": "string",
+          "minLength": 1
+        },
+        "nominal_clearance_mm": {
+          "type": "number",
+          "minimum": 0
+        },
+        "tolerance_mm": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "plus",
+            "minus"
+          ],
+          "properties": {
+            "plus": {
+              "type": "number",
+              "minimum": 0
+            },
+            "minus": {
+              "type": "number",
+              "minimum": 0
+            }
+          }
+        },
+        "applicability_profiles": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "interface_observation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "observation_id",
+        "interface_id",
+        "measurement_kind",
+        "evidence_class",
+        "time_basis",
+        "calibration_refs",
+        "payload_artifact_ref",
+        "payload_artifact_digest",
+        "uncertainty_ref"
+      ],
+      "properties": {
+        "observation_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "interface_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "measurement_kind": {
+          "enum": [
+            "pressure_distribution",
+            "shear_distribution",
+            "relative_migration",
+            "joint_axis_misalignment",
+            "contact_state"
+          ]
+        },
+        "evidence_class": {
+          "enum": [
+            "simulation",
+            "bench",
+            "hil",
+            "human_study"
+          ]
+        },
+        "time_basis": {
+          "type": "string",
+          "minLength": 1
+        },
+        "calibration_refs": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "payload_artifact_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "payload_artifact_digest": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "uncertainty_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "privacy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "raw_geometry_state",
+        "raw_geometry_exported",
+        "subject_data_present",
+        "pseudonymous_subject_ref",
+        "consent_scope_ref",
+        "disclosure_profile"
+      ],
+      "properties": {
+        "raw_geometry_state": {
+          "enum": [
+            "not_present",
+            "local_restricted",
+            "controlled_store",
+            "derived_only"
+          ]
+        },
+        "raw_geometry_exported": {
+          "const": false
+        },
+        "subject_data_present": {
+          "type": "boolean"
+        },
+        "pseudonymous_subject_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "consent_scope_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "disclosure_profile": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "subject_data_present": {
+                "const": true
+              }
+            },
+            "required": [
+              "subject_data_present"
+            ]
+          },
+          "then": {
+            "properties": {
+              "pseudonymous_subject_ref": {
+                "type": "string",
+                "minLength": 1
+              },
+              "consent_scope_ref": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "raw_geometry_state": {
+                "const": "not_present"
+              }
+            },
+            "required": [
+              "raw_geometry_state"
+            ]
+          },
+          "then": {
+            "properties": {
+              "raw_geometry_exported": {
+                "const": false
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
