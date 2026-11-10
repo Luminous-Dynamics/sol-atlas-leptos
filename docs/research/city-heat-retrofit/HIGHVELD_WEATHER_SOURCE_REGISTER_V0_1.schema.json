@@ -1,0 +1,203 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/research/city-heat-retrofit-atlas-v0.1/docs/research/city-heat-retrofit/HIGHVELD_WEATHER_SOURCE_REGISTER_V0_1.schema.json",
+  "title": "Highveld weather source candidate register v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "register_id",
+    "research_cut",
+    "owner",
+    "owner_issue",
+    "parent_issue",
+    "classification",
+    "claim_ceiling",
+    "source_count",
+    "station_identity_rule",
+    "tmy_rule",
+    "rights_rule",
+    "admission_rule",
+    "sources"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "sol-atlas.highveld-weather-source-register/0.1"
+    },
+    "register_id": {
+      "const": "HIGHVELD-WEATHER-SOURCE-REGISTER-V0.1"
+    },
+    "research_cut": {
+      "const": "2026-11-10"
+    },
+    "owner": {
+      "const": "Sol-Atlas"
+    },
+    "owner_issue": {
+      "const": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/611"
+    },
+    "parent_issue": {
+      "const": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/593"
+    },
+    "classification": {
+      "const": "source_inventory_candidates_not_admitted"
+    },
+    "claim_ceiling": {
+      "const": "no_weather_source_is_locally_qualified"
+    },
+    "source_count": {
+      "const": 9
+    },
+    "station_identity_rule": {
+      "type": "string",
+      "minLength": 20
+    },
+    "tmy_rule": {
+      "type": "string",
+      "minLength": 20
+    },
+    "rights_rule": {
+      "type": "string",
+      "minLength": 20
+    },
+    "admission_rule": {
+      "type": "string",
+      "minLength": 20
+    },
+    "sources": {
+      "type": "array",
+      "minItems": 9,
+      "maxItems": 9,
+      "items": {
+        "$ref": "#/$defs/source"
+      }
+    }
+  },
+  "$defs": {
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_id",
+        "provider",
+        "dataset_family",
+        "source_class",
+        "station_id",
+        "station_name",
+        "filename",
+        "period",
+        "timestep",
+        "variables",
+        "solar_provenance",
+        "station_identity_state",
+        "location_history_state",
+        "spatial_representativeness",
+        "archive_state",
+        "sha256",
+        "rights_state",
+        "allowed_use",
+        "prohibited_uses",
+        "admission_state",
+        "pending_actions"
+      ],
+      "properties": {
+        "source_id": {
+          "type": "string",
+          "minLength": 5
+        },
+        "provider": {
+          "type": "string",
+          "minLength": 3
+        },
+        "dataset_family": {
+          "type": "string",
+          "minLength": 3
+        },
+        "source_class": {
+          "type": "string",
+          "minLength": 3
+        },
+        "station_id": {
+          "type": "string",
+          "minLength": 3
+        },
+        "station_name": {
+          "type": "string",
+          "minLength": 3
+        },
+        "filename": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "period": {
+          "type": "string",
+          "minLength": 5
+        },
+        "timestep": {
+          "type": "string",
+          "minLength": 3
+        },
+        "variables": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "solar_provenance": {
+          "type": "string",
+          "minLength": 3
+        },
+        "station_identity_state": {
+          "type": "string",
+          "minLength": 3
+        },
+        "location_history_state": {
+          "type": "string",
+          "minLength": 3
+        },
+        "spatial_representativeness": {
+          "type": "string",
+          "minLength": 3
+        },
+        "archive_state": {
+          "type": "string",
+          "minLength": 3
+        },
+        "sha256": {
+          "type": "null"
+        },
+        "rights_state": {
+          "type": "string",
+          "minLength": 3
+        },
+        "allowed_use": {
+          "type": "string",
+          "minLength": 3
+        },
+        "prohibited_uses": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "admission_state": {
+          "const": "CANDIDATE_NOT_ADMITTED"
+        },
+        "pending_actions": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 3
+          }
+        }
+      }
+    }
+  }
+}

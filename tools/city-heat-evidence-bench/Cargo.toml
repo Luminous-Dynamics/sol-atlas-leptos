@@ -1,0 +1,13 @@
+[package]
+name = "city-heat-evidence-reference"
+version = "0.1.0"
+edition = "2024"
+license = "AGPL-3.0-or-later"
+publish = false
+description = "Synthetic evidence-admission oracle for spatial heat and retrofit claims"
+
+[dependencies]
+serde_json = "=1.0.149"
+sha2 = "=0.10.9"
+
+[workspace]
