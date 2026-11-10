@@ -1,0 +1,143 @@
+{
+  "schema_version": "0.1.0",
+  "benchmark_id": "GMD-TINY-NETWORK-ANALYTIC-V0_1",
+  "claim_ceiling": "E1_SYNTHETIC_ANALYTICAL",
+  "frozen_at_utc": "2026-11-10T00:00:00Z",
+  "purpose": "Illustrative synthetic known-answer test for induced voltage and quasi-DC current in a tiny declared network. This example is not measured event data or an operational assessment.",
+  "scenarios": [
+    {
+      "scenario_id": "UNIFORM-E-FIELD-STRAIGHT-LINE-001",
+      "scenario_class": "synthetic",
+      "event_or_fixture": "Uniform constant E-field over one straight oriented conductor",
+      "time_start_utc": "2026-11-10T00:00:00Z",
+      "time_end_utc": "2026-11-10T00:01:00Z",
+      "provenance_class": "synthetic",
+      "truth_status": "synthetic_known_truth",
+      "description": "Known-answer sign and magnitude test; line reversal must reverse induced-voltage sign."
+    }
+  ],
+  "datasets": [
+    {
+      "dataset_id": "SYNTHETIC-E-FIELD-001",
+      "organization": "Luminous Dynamics research",
+      "title": "Synthetic uniform geoelectric field fixture",
+      "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos",
+      "version_or_vintage": "fixture-v0.1",
+      "access_status": "synthetic",
+      "redistribution_status": "permitted",
+      "role": [
+        "synthetic_truth",
+        "geoelectric_field"
+      ],
+      "time_basis": "UTC fixture timestamps; constant field over declared interval",
+      "unit_statement": "Electric field in V/m; conductor path in m; induced voltage in V",
+      "limitations": [
+        "No geophysical Earth-response model",
+        "No transformer or power-system dynamics"
+      ]
+    }
+  ],
+  "models": [
+    {
+      "model_id": "LINE-INTEGRAL-ORACLE-001",
+      "component": "gic_network",
+      "name": "Analytic straight-line induced-voltage oracle",
+      "version": "0.1",
+      "model_class": "analytic_oracle",
+      "reference_uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos",
+      "validity_domain": "Uniform E field and straight line segment only",
+      "uncertainty_method": "Exact synthetic parameters; floating-point tolerance predeclared by test harness",
+      "outputs": [
+        {
+          "name": "induced_voltage",
+          "unit": "V"
+        },
+        {
+          "name": "branch_current",
+          "unit": "A"
+        }
+      ],
+      "known_limitations": [
+        "Not a geomagnetic-field or conductivity solver",
+        "Not transformer stress validation"
+      ]
+    }
+  ],
+  "spatial_scope": {
+    "name": "Synthetic local Cartesian fixture",
+    "crs": "Declared local Cartesian XYZ; no geographic CRS",
+    "geomagnetic_frame_policy": "No geomagnetic frame is used in this analytic example",
+    "coverage_statement": "Single synthetic straight segment only",
+    "asset_coverage_status": "synthetic_only",
+    "known_gaps": [
+      "No real geography",
+      "No real asset inventory"
+    ]
+  },
+  "grid_case": {
+    "case_id": "TINY-1-BRANCH",
+    "network_representation": "analytic_toy",
+    "topology_source_class": "synthetic",
+    "line_path_convention": "Path is oriented from node i to node j; V_ij is integral E dot dl from i to j",
+    "transformer_data_status": "synthetic",
+    "grounding_data_status": "synthetic",
+    "asset_inventory_status": "synthetic_only",
+    "excluded_component_count": 0
+  },
+  "splits": {
+    "primary_design": "analytical_known_answer",
+    "event_holdout": false,
+    "geographic_holdout": false,
+    "chronological_cutoff": "2026-11-10T00:00:00Z",
+    "split_ids": [
+      "tiny-analytic-known-answer"
+    ],
+    "leakage_controls": [
+      "Synthetic truth is fixed before implementation comparison",
+      "No event/field observation is used"
+    ]
+  },
+  "metric_families": [
+    "induced_voltage",
+    "network_gic",
+    "runtime_reproducibility"
+  ],
+  "negative_controls": [
+    {
+      "control_id": "REVERSE-LINE-001",
+      "mutation": "Reverse conductor path orientation without changing E field.",
+      "expected_disposition": "reject",
+      "failure_mode": "The signed voltage should reverse; unchanged sign reveals orientation error."
+    },
+    {
+      "control_id": "WRONG-UNIT-001",
+      "mutation": "Provide E in mV/km while declaring V/m.",
+      "expected_disposition": "reject",
+      "failure_mode": "Unit mismatch must not be silently accepted."
+    },
+    {
+      "control_id": "MISSING-PATH-001",
+      "mutation": "Remove required line endpoint/path geometry.",
+      "expected_disposition": "abstain",
+      "failure_mode": "No path integral can be computed."
+    }
+  ],
+  "authority_boundary": {
+    "mode": "offline_research",
+    "human_authority_required": true,
+    "actuation_permitted": false,
+    "notes": "Synthetic offline reference fixture only. It cannot issue grid commands or establish physical safety."
+  },
+  "expected_targets": [
+    {
+      "metric": "analytic-known-answer",
+      "target": "100% of frozen tiny-network fixtures agree within predeclared tolerance",
+      "status": "proposed_not_achieved",
+      "qualification": "Project gate only; requires independent test oracle and exact-head receipt."
+    }
+  ],
+  "notes": [
+    "Example is a manifest-shape illustration, not a result.",
+    "All dataset and model URIs must be pinned to specific immutable releases or commit references before a real benchmark run."
+  ]
+}
