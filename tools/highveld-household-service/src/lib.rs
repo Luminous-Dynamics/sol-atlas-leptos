@@ -20,6 +20,14 @@ const ARCHITECTURE_IDS: [&str; 3] = [
     "HYBRID_LOCAL_AUTONOMY",
 ];
 
+fn deserialize_required_nullable<'de, D, T>(deserializer: D) -> Result<Option<T>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+    T: Deserialize<'de>,
+{
+    Option::<T>::deserialize(deserializer)
+}
+
 #[derive(Clone, Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Package {
@@ -57,9 +65,11 @@ struct HouseholdProfile {
 #[derive(Clone, Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
 struct Quantity {
+    #[serde(deserialize_with = "deserialize_required_nullable")]
     value: Option<f64>,
     unit: String,
     state: String,
+    #[serde(deserialize_with = "deserialize_required_nullable")]
     source_ref: Option<String>,
 }
 
@@ -161,6 +171,7 @@ struct StressCase {
 struct ComparisonProtocol {
     paired_trace_policy: String,
     trace_bundle_status: String,
+    #[serde(deserialize_with = "deserialize_required_nullable")]
     common_trace_digest: Option<String>,
     information_budget_state: String,
     human_time_budget_state: String,
@@ -248,23 +259,23 @@ pub fn validate_package(package: &Package) -> ValidationReport {
             _ => "",
         };
         let (expected_functional_unit, expected_inputs, expected_flows, expected_spaces):
-            (&str, &[&str], &[&str], &[&str]) = match service.id.as_str() {
+            (&str, &[(&str, &str)], &[(&str, &str, &str)], &[&str]) = match service.id.as_str() {
                 "WATERLOOP" => (
                     "usable non-potable water delivered (litres) to one named permitted end use over a declared observation or outage window",
-                    &["source_water", "electrical_supply"],
-                    &["source_withdrawal", "usable_non_potable_delivery", "rejected_or_residual_water", "electrical_energy"],
+                    &[("source_water", "L per declared observation window"), ("electrical_supply", "kWh per declared observation window")],
+                    &[("source_withdrawal", "INPUT", "L"), ("usable_non_potable_delivery", "OUTPUT", "L"), ("rejected_or_residual_water", "OUTPUT", "L"), ("electrical_energy", "INPUT", "kWh")],
                     &["service_plant", "outdoor_living"],
                 ),
                 "HEATBANK" => (
                     "accepted hot-water delivery (litres meeting a declared temperature and timing profile) under a matched draw sequence",
-                    &["electrical_supply", "water_supply", "thermal_source"],
-                    &["electrical_energy", "useful_thermal_service", "water_draw", "storage_loss"],
+                    &[("electrical_supply", "kWh per declared observation window"), ("water_supply", "L per declared observation window"), ("thermal_source", "kWh_th per declared observation window")],
+                    &[("electrical_energy", "INPUT", "kWh"), ("useful_thermal_service", "OUTPUT", "kWh_th"), ("water_draw", "INPUT", "L"), ("storage_loss", "OUTPUT", "kWh_th")],
                     &["service_plant", "accessible_washroom", "kitchen_dining"],
                 ),
                 "AIRCARE" => (
                     "pollutant-specific clean-air delivery and outdoor-air delivery at defined occupied-room positions over a declared room-use window",
-                    &["electrical_supply", "outdoor_air", "filter_media"],
-                    &["electrical_energy", "outdoor_air_delivery", "clean_air_delivery", "condensate_or_captured_residual"],
+                    &[("electrical_supply", "kWh per declared observation window"), ("outdoor_air", "m3 per declared observation window"), ("filter_media", "UNKNOWN_NOT_SELECTED")],
+                    &[("electrical_energy", "INPUT", "kWh"), ("outdoor_air_delivery", "INPUT", "m3"), ("clean_air_delivery", "OUTPUT", "m3"), ("condensate_or_captured_residual", "OUTPUT", "UNKNOWN_NOT_SELECTED")],
                     &["sleeping_rooms", "great_hall", "service_plant"],
                 ),
                 _ => ("", &[], &[], &[]),
@@ -276,8 +287,14 @@ pub fn validate_package(package: &Package) -> ValidationReport {
             || service.status != "RESEARCH_PROFILE_ONLY"
             || service.service_definition.trim().is_empty()
             || service.functional_unit != expected_functional_unit
-            || !unique_ids(service.input_streams.iter().map(|item| item.id.clone()), expected_inputs)
-            || !unique_ids(service.resource_flows.iter().map(|item| item.id.clone()), expected_flows)
+            || service.input_streams.len() != expected_inputs.len()
+            || service.input_streams.iter().zip(expected_inputs.iter()).any(|(item, (id, unit))| {
+                item.id != *id || item.quantity.unit != *unit
+            })
+            || service.resource_flows.len() != expected_flows.len()
+            || service.resource_flows.iter().zip(expected_flows.iter()).any(|(item, (id, direction, unit))| {
+                item.id != *id || item.direction != *direction || item.quantity.unit != *unit
+            })
             || !unique_ids(service.spatial_interfaces.iter().map(|item| item.space_ref.clone()), expected_spaces)
             || service.hard_service_floor_state
                 != "UNKNOWN_PENDING_RESIDENT_AND_APPLICABLE_REQUIREMENTS"
@@ -442,6 +459,12 @@ mod tests {
         changed
     }
 
+    fn remove_once(needle: &str) -> String {
+        let changed = PACKAGE_JSON.replacen(needle, "", 1);
+        assert_ne!(changed, PACKAGE_JSON, "removal fixture did not match the tracked package");
+        changed
+    }
+
     #[test]
     fn schema_is_parseable_and_every_schema_object_is_closed() {
         let schema: serde_json::Value =
@@ -517,6 +540,34 @@ mod tests {
         let changed = mutate_once(
             "pollutant-specific clean-air delivery and outdoor-air delivery at defined occupied-room positions over a declared room-use window",
             "one generic household service over a window",
+        );
+        let report = validate_json(&changed).expect("typed JSON remains parseable");
+        assert!(report.violations.contains(&"SERVICE_PROFILE_PROMOTED_OR_INCOMPLETE"));
+    }
+
+    #[test]
+    fn nullable_quantity_value_must_be_present_even_when_null() {
+        let changed = remove_once("\"value\": null,\n");
+        assert!(validate_json(&changed).is_err());
+    }
+
+    #[test]
+    fn nullable_quantity_source_ref_must_be_present_even_when_null() {
+        let changed = remove_once("\"source_ref\": null,\n");
+        assert!(validate_json(&changed).is_err());
+    }
+
+    #[test]
+    fn nullable_trace_digest_must_be_present_even_when_null() {
+        let changed = remove_once("\"common_trace_digest\": null,\n");
+        assert!(validate_json(&changed).is_err());
+    }
+
+    #[test]
+    fn resource_flow_unit_drift_is_rejected() {
+        let changed = mutate_once(
+            "\"unit\": \"kWh\"",
+            "\"unit\": \"MJ\"",
         );
         let report = validate_json(&changed).expect("typed JSON remains parseable");
         assert!(report.violations.contains(&"SERVICE_PROFILE_PROMOTED_OR_INCOMPLETE"));
