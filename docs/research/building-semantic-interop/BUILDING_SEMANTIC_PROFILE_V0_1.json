@@ -1,0 +1,64 @@
+{
+  "schema_version": "sol-atlas.building-semantic-profile/0.1",
+  "profile_id": "CITY-BUILDING-SEMANTIC-PROFILE-V0.1",
+  "classification": "synthetic_mapping_contract_only",
+  "claim_ceiling": "synthetic_mapping_admission_and_semantic_loss_checks_only",
+  "mapping_relations": [
+    "exact",
+    "narrower",
+    "broader",
+    "related",
+    "composed",
+    "derived",
+    "unresolved"
+  ],
+  "standards": [
+    {
+      "key": "ifc-4.3",
+      "family": "IFC",
+      "release_id": "IFC4.3-ISO16739-1:2024",
+      "maturity": "stable",
+      "status": "PINNED_FOR_FIXTURE"
+    },
+    {
+      "key": "brick-1.4.4",
+      "family": "Brick",
+      "release_id": "1.4.4",
+      "maturity": "stable",
+      "status": "PINNED_FOR_FIXTURE"
+    },
+    {
+      "key": "brick-1.5.0-rc1",
+      "family": "Brick",
+      "release_id": "1.5.0-rc1",
+      "maturity": "prerelease",
+      "status": "SEPARATE_PRERELEASE_LANE"
+    },
+    {
+      "key": "ashrae-223",
+      "family": "ASHRAE Standard 223",
+      "release_id": "VERSION_NOT_PINNED",
+      "maturity": "unresolved",
+      "status": "BLOCKED_UNTIL_EXACT_ARTIFACT_PINNED"
+    },
+    {
+      "key": "haystack-xeto",
+      "family": "Project Haystack/XETO",
+      "release_id": "VERSION_NOT_PINNED",
+      "maturity": "unresolved",
+      "status": "BLOCKED_UNTIL_EXACT_ARTIFACT_PINNED"
+    }
+  ],
+  "policy": {
+    "exact_equivalence_requires_same_subject": true,
+    "exact_equivalence_requires_same_quantity_kind": true,
+    "exact_equivalence_requires_same_unit": true,
+    "exact_equivalence_requires_preserved_time_basis": true,
+    "exact_equivalence_requires_preserved_evidence_class": true,
+    "prerelease_mappings_admitted_as_stable": false,
+    "unknown_standard_release_admitted": false,
+    "unknown_rights_admitted": false,
+    "automatic_label_based_equivalence_allowed": false,
+    "new_core_ontology_allowed": false
+  }
+}
