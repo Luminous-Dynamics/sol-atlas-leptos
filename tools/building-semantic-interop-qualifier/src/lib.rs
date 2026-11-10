@@ -33,8 +33,9 @@ const ASSERTION_FIELDS: &[&str] = &[
     "relation", "exact_equivalence_claim", "subject_relationship", "declared_losses",
 ];
 const SEMANTIC_FIELDS: &[&str] = &[
-    "quantity_kind", "source_unit", "target_unit", "conversion_rule_id",
-    "conversion_state", "time_basis_preserved", "evidence_class_preserved",
+    "source_quantity_kind", "target_quantity_kind", "source_unit", "target_unit",
+    "conversion_rule_id", "conversion_state", "time_basis_preserved",
+    "evidence_class_preserved",
 ];
 const EVIDENCE_FIELDS: &[&str] = &[
     "rule_id", "rule_revision", "rule_digest", "evidence_ref",
@@ -440,7 +441,8 @@ pub fn classify_mapping(profile: &Value, mapping: &Value) -> Disposition {
     let exact_claim = boolean(assertion, "exact_equivalence_claim") == Some(true);
     let relationship = text(assertion, "subject_relationship");
     let losses = string_array(assertion, "declared_losses").unwrap_or(&[]);
-    let quantity_kind = text(semantics, "quantity_kind");
+    let source_quantity_kind = text(semantics, "source_quantity_kind");
+    let target_quantity_kind = text(semantics, "target_quantity_kind");
     let source_unit = text(semantics, "source_unit");
     let target_unit = text(semantics, "target_unit");
     let time_preserved = boolean(semantics, "time_basis_preserved") == Some(true);
@@ -452,20 +454,34 @@ pub fn classify_mapping(profile: &Value, mapping: &Value) -> Disposition {
     if !["exact", "narrower", "broader", "related", "composed", "derived"].contains(&relation) {
         return Disposition::Rejected;
     }
-    if quantity_kind.is_empty() || source_unit.is_empty() || target_unit.is_empty() {
+    if source_quantity_kind.is_empty()
+        || target_quantity_kind.is_empty()
+        || source_unit.is_empty()
+        || target_unit.is_empty()
+    {
         return Disposition::MoreEvidenceRequired;
     }
 
     if exact_claim {
+        if relationship == "unknown" || relationship.is_empty() {
+            return Disposition::NotComparable;
+        }
         if relation != "exact" || relationship != "same_subject" || !losses.is_empty() {
             return Disposition::Rejected;
+        }
+        if text(source, "subject_id") != text(target, "subject_id") {
+            return Disposition::NotComparable;
+        }
+        if source_quantity_kind != target_quantity_kind
+            || source_unit != target_unit
+            || !time_preserved
+            || !evidence_preserved
+        {
+            return Disposition::NotComparable;
         }
         if text(semantics, "conversion_state") != "none"
             || !text(semantics, "conversion_rule_id").is_empty()
         {
-            return Disposition::NotComparable;
-        }
-        if source_unit != target_unit || !time_preserved || !evidence_preserved {
             return Disposition::NotComparable;
         }
         return Disposition::ExactEquivalent;
@@ -598,6 +614,18 @@ mod tests {
         let profile = parse_unique_json(PROFILE_JSON).unwrap();
         let mut mapping = parse_unique_json(CORPUS_JSON).unwrap()["cases"][0]["mapping"].clone();
         mapping["semantics"]["target_unit"] = Value::String("[degF]".to_owned());
+        assert_eq!(
+            classify_mapping(&profile, &mapping),
+            Disposition::NotComparable
+        );
+    }
+
+    #[test]
+    fn exact_equivalence_cannot_cross_quantity_kinds() {
+        let profile = parse_unique_json(PROFILE_JSON).unwrap();
+        let mut mapping = parse_unique_json(CORPUS_JSON).unwrap()["cases"][0]["mapping"].clone();
+        mapping["semantics"]["target_quantity_kind"] =
+            Value::String("mass_concentration".to_owned());
         assert_eq!(
             classify_mapping(&profile, &mapping),
             Disposition::NotComparable
