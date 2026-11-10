@@ -1,0 +1,336 @@
+{
+  "benchmark_id": "GMD-MAY2024-FOUR-SITE-REPLAY-V0_1",
+  "status": "provisional_authoring_session_recomputation_not_yet_independently_rerun",
+  "evidence_tier": "E1_DATA_PIPELINE_KNOWN_ANSWER",
+  "canonical_publication": {
+    "title": "GIC-Related Observations During the May 2024 Geomagnetic Storm in the United States",
+    "journal": "Space Weather",
+    "volume": 24,
+    "issue": 5,
+    "article": "e2025SW004758",
+    "first_published": "2026-05-19",
+    "doi": "10.1029/2025SW004758",
+    "canonical_values": "final_publisher_article_2026_not_2025_preprint"
+  },
+  "source_repository": {
+    "url": "https://github.com/lucywilkerson/SWERVE-2024-05-10",
+    "commit": "089617756920bcc9df621f7f2299ba0644320cc3",
+    "dataset_doi": "10.5281/zenodo.20090223",
+    "repository_license_declared": "MIT",
+    "third_party_data_terms": "Check each upstream provider's terms; no raw dataset is redistributed by this benchmark record."
+  },
+  "evaluation": {
+    "start_utc": "2024-05-10T15:00:00Z",
+    "end_utc_inclusive": "2024-05-12T06:00:00Z",
+    "measured_aggregation": "arithmetic_mean_of_60_one_second_samples_per_non_overlapping_utc_minute",
+    "missing_or_partial_bins": "reject",
+    "interpolation": "none",
+    "extrapolation": "none",
+    "time_shift": "none",
+    "expected_pairs_per_site_model": 2341,
+    "observed_pairs_per_site_model": 2341,
+    "exact_60_sample_bins_per_site": 2341,
+    "metrics": [
+      "pearson_r",
+      "r_squared",
+      "prediction_efficiency",
+      "rmse_A",
+      "mae_A"
+    ],
+    "prediction_efficiency": "1 - sum((observed - predicted)^2) / sum((observed - mean(observed))^2)",
+    "polarity_rule": "preserve_raw_r; where r<0 compute residual metrics after orientation inversion, matching the paper's sensor-polarity convention"
+  },
+  "sources": [
+    {
+      "role": "measured_1s",
+      "site": "Bull Run",
+      "path": "data_original/tva/gic/GIC-measured/gic-bullrun_20240510.csv",
+      "blob_sha": "edfcc1e6614a3b7477661f00e9e0f08cac98ae1a",
+      "size": 6599421
+    },
+    {
+      "role": "measured_1s",
+      "site": "Montgomery",
+      "path": "data_original/tva/gic/GIC-measured/gic-montgomery_20240510.csv",
+      "blob_sha": "d88cff5d1c3a9fc75bca17a0c1dbd6c1e35b5a1e",
+      "size": 6615823
+    },
+    {
+      "role": "measured_1s",
+      "site": "Union",
+      "path": "data_original/tva/gic/GIC-measured/gic-union_20240510.csv",
+      "blob_sha": "2dfd89020012c3d834b2da9f89a772f2cb08387a",
+      "size": 6614809
+    },
+    {
+      "role": "measured_1s",
+      "site": "Widows Creek",
+      "path": "data_original/tva/gic/GIC-measured/gic-widowscreek2_20240510.csv",
+      "blob_sha": "da7f8c0ac7fe99421d1e82acee0afccfee6001dc",
+      "size": 6604529
+    },
+    {
+      "role": "reference_model",
+      "site": "Bull Run",
+      "path": "data_original/gmu/tva/site_108137138.csv",
+      "blob_sha": "c08d4d359838eb197276b61f414e5b28124665da",
+      "size": 516458,
+      "substation_id": "108137138",
+      "nearest_device": "Bull Run",
+      "distance_km": 0.06302226544544114
+    },
+    {
+      "role": "reference_model",
+      "site": "Montgomery",
+      "path": "data_original/gmu/tva/site_708931360.csv",
+      "blob_sha": "ad8b0d090ae6dddcad7b05326501cb3a81cb3d86",
+      "size": 522237,
+      "substation_id": "708931360",
+      "nearest_device": "Montgomery",
+      "distance_km": 0.036804079901321056
+    },
+    {
+      "role": "reference_model",
+      "site": "Union",
+      "path": "data_original/gmu/tva/site_98699542.csv",
+      "blob_sha": "17fd6bcd6dda7bf0aef4239c69f0d0fc2d9a447e",
+      "size": 497404,
+      "substation_id": "98699542",
+      "nearest_device": "Union",
+      "distance_km": 0.10873535775104072
+    },
+    {
+      "role": "reference_model",
+      "site": "Widows Creek",
+      "path": "data_original/gmu/tva/site_14133615.csv",
+      "blob_sha": "e28d2125031a7eaeb2467e102e4554c658bb6ff5",
+      "size": 530310,
+      "substation_id": "14133615",
+      "nearest_device": "Widows Creek 2",
+      "distance_km": 0.05374441379182212
+    }
+  ],
+  "tva_prediction_files": [
+    {
+      "date": "20240510",
+      "site": "Bull Run",
+      "path": "data_original/tva/gic/GIC-calculated/20240510_BullRunXfrmGIC.dat",
+      "blob_sha": "562f690f3e2849fa24e85b2bcf733c3e69832e30",
+      "size": 21743
+    },
+    {
+      "date": "20240510",
+      "site": "Montgomery",
+      "path": "data_original/tva/gic/GIC-calculated/20240510_MontgomeryGIC.dat",
+      "blob_sha": "84690f81b28978d61d6afd8b5b97060c3869aaa3",
+      "size": 21798
+    },
+    {
+      "date": "20240510",
+      "site": "Union",
+      "path": "data_original/tva/gic/GIC-calculated/20240510_UnionGIC.dat",
+      "blob_sha": "01bcc3035eb9805749922f6fd9120af54b79e409",
+      "size": 22286
+    },
+    {
+      "date": "20240510",
+      "site": "Widows Creek",
+      "path": "data_original/tva/gic/GIC-calculated/20240510_WidowsCreek2GIC.dat",
+      "blob_sha": "6e2ef9e1d0d6aaf56f866e8fbfb778cd578b3902",
+      "size": 21747
+    },
+    {
+      "date": "20240511",
+      "site": "Bull Run",
+      "path": "data_original/tva/gic/GIC-calculated/20240511_BullRunXfrmGIC.dat",
+      "blob_sha": "74d88e8e0ae4827c2664e853441a4ee342934c0c",
+      "size": 22008
+    },
+    {
+      "date": "20240511",
+      "site": "Montgomery",
+      "path": "data_original/tva/gic/GIC-calculated/20240511_MontgomeryGIC.dat",
+      "blob_sha": "75db46ce3635afe5916a2bdd3a1302b09c996190",
+      "size": 21959
+    },
+    {
+      "date": "20240511",
+      "site": "Union",
+      "path": "data_original/tva/gic/GIC-calculated/20240511_UnionGIC.dat",
+      "blob_sha": "4e129587c1d677182804e6a4c6a54eb838f1460d",
+      "size": 21967
+    },
+    {
+      "date": "20240511",
+      "site": "Widows Creek",
+      "path": "data_original/tva/gic/GIC-calculated/20240511_WidowsCreek2GIC.dat",
+      "blob_sha": "05a671a0923ad9ee75d8e6eb98de16938ee15bca",
+      "size": 22000
+    },
+    {
+      "date": "20240512",
+      "site": "Bull Run",
+      "path": "data_original/tva/gic/GIC-calculated/20240512_BullRunXfrmGIC.dat",
+      "blob_sha": "73a8cca21d844d42c944c3e366eb920c79457d92",
+      "size": 22093
+    },
+    {
+      "date": "20240512",
+      "site": "Montgomery",
+      "path": "data_original/tva/gic/GIC-calculated/20240512_MontgomeryGIC.dat",
+      "blob_sha": "3d20085f7945eafbc428b3495329de6ffc0596d4",
+      "size": 22075
+    },
+    {
+      "date": "20240512",
+      "site": "Union",
+      "path": "data_original/tva/gic/GIC-calculated/20240512_UnionGIC.dat",
+      "blob_sha": "6650d1cb6987da7526045fb9acfc57936dc0d2bd",
+      "size": 21898
+    },
+    {
+      "date": "20240512",
+      "site": "Widows Creek",
+      "path": "data_original/tva/gic/GIC-calculated/20240512_WidowsCreek2GIC.dat",
+      "blob_sha": "c861343ae8cf02d5a534dea7aabfe5fac1cff597",
+      "size": 22152
+    }
+  ],
+  "sites": [
+    {
+      "site": "Bull Run",
+      "tva": {
+        "raw_r": -0.894068944953391,
+        "r2": 0.7993592783300696,
+        "pe_orientation_adjusted": 0.49794711058427144,
+        "rmse_orientation_adjusted_A": 1.0660753416934978,
+        "mae_orientation_adjusted_A": 0.7632388886515746,
+        "measured_sigma_A": 1.5045726493771436,
+        "predicted_sigma_A": 2.167207774853272,
+        "polarity_correction": true
+      },
+      "reference": {
+        "raw_r": 0.6929901395082781,
+        "r2": 0.4802353334557028,
+        "pe_orientation_adjusted": 0.47525322259760483,
+        "rmse_A": 1.089903514181182,
+        "mae_A": 0.7106315531359884,
+        "measured_sigma_A": 1.5045726493771436,
+        "predicted_sigma_A": 1.146007313125707,
+        "polarity_correction": false
+      },
+      "published_rounding": {
+        "tva_r2": 0.8,
+        "tva_pe": 0.5,
+        "reference_r2": 0.48,
+        "reference_pe": 0.48
+      }
+    },
+    {
+      "site": "Montgomery",
+      "tva": {
+        "raw_r": -0.9293646002941064,
+        "r2": 0.8637185602798242,
+        "pe_orientation_adjusted": 0.42977033697187983,
+        "rmse_orientation_adjusted_A": 2.7973475477354657,
+        "mae_orientation_adjusted_A": 1.4752018160330382,
+        "measured_sigma_A": 3.704431125853713,
+        "predicted_sigma_A": 1.0025036773178444,
+        "polarity_correction": true
+      },
+      "reference": {
+        "raw_r": -0.39207857932071255,
+        "r2": 0.1537256123621483,
+        "pe_orientation_adjusted": 0.15202585354717357,
+        "rmse_orientation_adjusted_A": 3.4112443577113516,
+        "mae_orientation_adjusted_A": 1.8474179756005096,
+        "measured_sigma_A": 3.704431125853713,
+        "predicted_sigma_A": 1.2997818729197896,
+        "polarity_correction": true
+      },
+      "published_rounding": {
+        "tva_r2": 0.86,
+        "tva_pe": 0.43,
+        "reference_r2": 0.15,
+        "reference_pe": 0.15
+      }
+    },
+    {
+      "site": "Union",
+      "tva": {
+        "raw_r": -0.8178119618603413,
+        "r2": 0.6688164049618603,
+        "pe_orientation_adjusted": 0.651510319908838,
+        "rmse_orientation_adjusted_A": 2.215105604552724,
+        "mae_orientation_adjusted_A": 1.5465417196354845,
+        "measured_sigma_A": 3.752316603393536,
+        "predicted_sigma_A": 3.5475723219018405,
+        "polarity_correction": true
+      },
+      "reference": {
+        "raw_r": -0.7543972354247903,
+        "r2": 0.5691151888165665,
+        "pe_orientation_adjusted": 0.4980835146131537,
+        "rmse_orientation_adjusted_A": 2.658368640748322,
+        "mae_orientation_adjusted_A": 1.807770867492109,
+        "measured_sigma_A": 3.752316603393536,
+        "predicted_sigma_A": 1.8308149774335811,
+        "polarity_correction": true
+      },
+      "published_rounding": {
+        "tva_r2": 0.67,
+        "tva_pe": 0.65,
+        "reference_r2": 0.57,
+        "reference_pe": 0.5
+      }
+    },
+    {
+      "site": "Widows Creek",
+      "tva": {
+        "raw_r": -0.819046309018997,
+        "r2": 0.6708368563169974,
+        "pe_orientation_adjusted": 0.6314735353459772,
+        "rmse_orientation_adjusted_A": 1.1791114206450062,
+        "mae_orientation_adjusted_A": 0.8248144211155521,
+        "measured_sigma_A": 1.9423187623052125,
+        "predicted_sigma_A": 1.2117521551762471,
+        "polarity_correction": true
+      },
+      "reference": {
+        "raw_r": -0.5282093468830414,
+        "r2": 0.2790051141346092,
+        "pe_orientation_adjusted": 0.22716776534074634,
+        "rmse_orientation_adjusted_A": 1.70750946378757,
+        "mae_orientation_adjusted_A": 1.1346970676388606,
+        "measured_sigma_A": 1.9423187623052125,
+        "predicted_sigma_A": 0.5838290269526838,
+        "polarity_correction": true
+      },
+      "published_rounding": {
+        "tva_r2": 0.67,
+        "tva_pe": 0.63,
+        "reference_r2": 0.28,
+        "reference_pe": 0.23
+      }
+    }
+  ],
+  "negative_controls": [
+    "one_sample_per_minute_instead_of_60_sample_mean",
+    "plus_or_minus_one_minute_shift",
+    "non_utc_timezone_parse",
+    "partial_minute_sample_count",
+    "duplicate_measurement_or_model_timestamp",
+    "unrecorded_sensor_polarity_reversal",
+    "wrong_substation_to_monitor_mapping",
+    "omit_second_or_third_tva_day_file",
+    "wrong_seconds_from_midnight_offset",
+    "source_blob_digest_mismatch"
+  ],
+  "limitations": [
+    "No committed deterministic replay implementation yet.",
+    "Results have not yet been independently rerun by a second implementation.",
+    "One event and four sites; no geographic or event generalisation claim.",
+    "No new physical model was evaluated.",
+    "No transformer thermal/damage, grid security, operational resilience or regulatory qualification."
+  ]
+}
