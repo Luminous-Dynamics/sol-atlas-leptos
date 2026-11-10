@@ -142,17 +142,17 @@ impl fmt::Display for ServiceError {
             Self::EmptyUnit => "service quantity unit must be non-empty and trimmed",
             Self::EmptySourceReference => "source reference must be non-empty and trimmed",
             Self::EmptyAssetRevision => "asset revision must be non-empty and trimmed",
-            Self::InvalidSourceDigest => "source digest must be 64 lowercase hexadecimal SHA-256 characters",
+            Self::InvalidSourceDigest => "SHA-256 digest must be 64 lowercase hex characters",
             Self::InvalidServiceFloor => "minimum service fraction must be finite and in (0, 1]",
-            Self::InvalidQuantityTolerance => "quantity tolerance must be finite, non-negative, and smaller than every positive-demand service floor",
+            Self::InvalidQuantityTolerance => "tolerance must be finite, non-negative, and below each positive-demand floor",
             Self::InvalidRecoveryHold => "recovery hold duration must be positive",
             Self::EmptyIntervals => "service trajectory must contain at least one interval",
-            Self::InvalidInterval => "each interval must have positive duration and stay within the horizon",
-            Self::IncompleteOrNonContiguousCoverage => "intervals must exactly and contiguously cover [0, horizon)",
+            Self::InvalidInterval => "interval duration must be positive and within horizon",
+            Self::IncompleteOrNonContiguousCoverage => "intervals must cover [0, horizon) contiguously",
             Self::NonFiniteQuantity => "required and delivered quantities must be finite",
             Self::NegativeQuantity => "required and delivered quantities must be non-negative",
             Self::NoPositiveDemand => "a service trajectory must contain positive total demand",
-            Self::NumericalOverflow => "service metric accumulation produced a non-finite or overflowing result",
+            Self::NumericalOverflow => "metric accumulation overflowed or became non-finite",
         };
         formatter.write_str(message)
     }
@@ -552,6 +552,7 @@ mod tests {
         assert_eq!(result.floor_time_availability_fraction, 2.0 / 3.0);
         assert_eq!(result.total_floor_violation_seconds, 30);
         assert_eq!(result.longest_floor_violation_seconds, 30);
+        assert_eq!(result.maximum_interval_deficit_fraction, 1.0);
         assert_eq!(result.floor_violation_episode_count, 1);
         assert_eq!(result.first_floor_violation_after_seconds, Some(30));
         assert!(result.initially_above_service_floor);
