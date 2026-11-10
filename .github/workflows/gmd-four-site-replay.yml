@@ -1,0 +1,35 @@
+name: GMD four-site replay verifier
+
+on:
+  pull_request:
+    paths:
+      - "tools/gmd-four-site-replay/**"
+      - "docs/research/results/gmd_may2024_four_site_replay_v0_1.json"
+      - ".github/workflows/gmd-four-site-replay.yml"
+  push:
+    paths:
+      - "tools/gmd-four-site-replay/**"
+      - "docs/research/results/gmd_may2024_four_site_replay_v0_1.json"
+      - ".github/workflows/gmd-four-site-replay.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verifier:
+    name: offline verifier unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact commit
+        uses: actions/checkout@v4
+      - name: Install stable Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - name: Check formatting
+        run: cargo fmt --manifest-path tools/gmd-four-site-replay/Cargo.toml -- --check
+      - name: Run unit tests without network
+        run: cargo test --manifest-path tools/gmd-four-site-replay/Cargo.toml --locked --offline
+      - name: Run Clippy
+        run: cargo clippy --manifest-path tools/gmd-four-site-replay/Cargo.toml --locked --offline --all-targets -- -D warnings
