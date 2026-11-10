@@ -1,0 +1,43 @@
+name: Highveld Service Outcome Binding Synthetic Oracle
+
+on:
+  push:
+    paths:
+      - "docs/research/highveld-keep/HIGHVELD_SERVICE_OUTCOME_BINDINGS_V0_1.*"
+      - "docs/research/highveld-keep/HIGHVELD_SERVICE_OUTCOME_BINDING_CORPUS_V0_1.*"
+      - "tools/highveld-service-outcome-binding/**"
+      - ".github/workflows/highveld-service-outcome-binding.yml"
+  pull_request:
+    paths:
+      - "docs/research/highveld-keep/HIGHVELD_SERVICE_OUTCOME_BINDINGS_V0_1.*"
+      - "docs/research/highveld-keep/HIGHVELD_SERVICE_OUTCOME_BINDING_CORPUS_V0_1.*"
+      - "tools/highveld-service-outcome-binding/**"
+      - ".github/workflows/highveld-service-outcome-binding.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: highveld-service-outcome-binding-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  synthetic-binding:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install stable Rust and rustfmt
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - name: Fetch locked dependencies
+        run: cargo fetch --locked --manifest-path tools/highveld-service-outcome-binding/Cargo.toml
+      - name: Check formatting
+        run: cargo fmt --manifest-path tools/highveld-service-outcome-binding/Cargo.toml --all -- --check
+      - name: Run locked offline mutation tests
+        run: cargo test --locked --offline --manifest-path tools/highveld-service-outcome-binding/Cargo.toml
+      - name: Run strict Clippy
+        run: cargo clippy --locked --offline --manifest-path tools/highveld-service-outcome-binding/Cargo.toml --all-targets -- -D warnings
+      - name: Validate tracked crosswalk
+        run: cargo run --locked --offline --manifest-path tools/highveld-service-outcome-binding/Cargo.toml
