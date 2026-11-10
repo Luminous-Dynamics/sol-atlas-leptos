@@ -1,0 +1,37 @@
+name: GMD observability portfolio oracle
+
+on:
+  pull_request:
+    paths:
+      - "tools/gmd-observability-portfolio-oracle/**"
+      - ".github/workflows/gmd-observability-portfolio-oracle.yml"
+  push:
+    paths:
+      - "tools/gmd-observability-portfolio-oracle/**"
+      - ".github/workflows/gmd-observability-portfolio-oracle.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: gmd-observability-portfolio-oracle-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  oracle:
+    name: analytic observability portfolio oracle
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact commit
+        uses: actions/checkout@v4
+      - name: Install stable Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - name: Check formatting
+        run: cargo fmt --manifest-path tools/gmd-observability-portfolio-oracle/Cargo.toml -- --check
+      - name: Run offline tests
+        run: cargo test --manifest-path tools/gmd-observability-portfolio-oracle/Cargo.toml --locked --offline
+      - name: Run Clippy
+        run: cargo clippy --manifest-path tools/gmd-observability-portfolio-oracle/Cargo.toml --locked --offline --all-targets -- -D warnings
