@@ -13,6 +13,39 @@ The verifier checks whether the exact public source snapshot, source files, UTC 
 - A local checkout of the public SWERVE-2024-05-10 companion repository at commit 089617756920bcc9df621f7f2299ba0644320cc3.
 - The 20 pinned source files must be present in that checkout. No dataset files are copied into this repository.
 
+## Prepare a minimal pinned dataset checkout
+
+The companion repository is large. Use a blob-filtered sparse checkout so Git only materializes the 20 required source files:
+
+```sh
+git clone --filter=blob:none --no-checkout https://github.com/lucywilkerson/SWERVE-2024-05-10.git /tmp/SWERVE-2024-05-10
+git -C /tmp/SWERVE-2024-05-10 sparse-checkout init --no-cone
+git -C /tmp/SWERVE-2024-05-10 sparse-checkout set --no-cone \
+  data_original/tva/gic/GIC-measured/gic-bullrun_20240510.csv \
+  data_original/tva/gic/GIC-measured/gic-montgomery_20240510.csv \
+  data_original/tva/gic/GIC-measured/gic-union_20240510.csv \
+  data_original/tva/gic/GIC-measured/gic-widowscreek2_20240510.csv \
+  data_original/gmu/tva/site_108137138.csv \
+  data_original/gmu/tva/site_708931360.csv \
+  data_original/gmu/tva/site_98699542.csv \
+  data_original/gmu/tva/site_14133615.csv \
+  data_original/tva/gic/GIC-calculated/20240510_BullRunXfrmGIC.dat \
+  data_original/tva/gic/GIC-calculated/20240510_MontgomeryGIC.dat \
+  data_original/tva/gic/GIC-calculated/20240510_UnionGIC.dat \
+  data_original/tva/gic/GIC-calculated/20240510_WidowsCreek2GIC.dat \
+  data_original/tva/gic/GIC-calculated/20240511_BullRunXfrmGIC.dat \
+  data_original/tva/gic/GIC-calculated/20240511_MontgomeryGIC.dat \
+  data_original/tva/gic/GIC-calculated/20240511_UnionGIC.dat \
+  data_original/tva/gic/GIC-calculated/20240511_WidowsCreek2GIC.dat \
+  data_original/tva/gic/GIC-calculated/20240512_BullRunXfrmGIC.dat \
+  data_original/tva/gic/GIC-calculated/20240512_MontgomeryGIC.dat \
+  data_original/tva/gic/GIC-calculated/20240512_UnionGIC.dat \
+  data_original/tva/gic/GIC-calculated/20240512_WidowsCreek2GIC.dat
+git -C /tmp/SWERVE-2024-05-10 checkout 089617756920bcc9df621f7f2299ba0644320cc3
+```
+
+The replay treats timezone-free source timestamps as UTC in accordance with the publisher's UT evaluation window. It rejects explicit non-UTC offsets rather than guessing an offset from the machine's local timezone.
+
 ## Run
 
 From the Sol-Atlas repository root:
