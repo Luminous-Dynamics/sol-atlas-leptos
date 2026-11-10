@@ -219,9 +219,9 @@ The pilot should begin with a **data-owner and rights matrix**, not an invented 
 - Universities / geophysical institutions: local MT surveys, conductivity models, transfer functions, geophysical uncertainty and data-use rights.
 - Water boards, municipalities, hospitals, telecoms and fuel/food operators: dependency edges, critical service thresholds, backup autonomy and restoration constraints.
 
-This research pass has not established a sufficiently dense, open South African transmission GIC/transformer measurement corpus or national 3-D MT transfer-function coverage. That is an evidence gap, not a low-risk result. Do not infer low risk from geographic latitude alone.
+SANSA's current research portal lists a new project titled “Inversion of South African magneto-telluric data to determine conductivity profiles.” This is a concrete institutional collaboration lead for a South African conductivity/MT workstream, not evidence that the underlying survey data, transfer functions, geographic coverage or derived profiles are publicly released or ready for grid modelling. Request data extent, frequency coverage, processing/quality records, uncertainty, permissions and a path to joint validation from SANSA and relevant academic partners. This research pass has still not established an openly accessible, sufficiently dense national transmission GIC/transformer measurement corpus or a nationally complete 3-D MT transfer-function product. That remains an evidence gap, not a low-risk result. Do not infer low risk from geographic latitude alone.
 
-Start with synthetic/abstracted network cases and public scientific data. Bring in owner data only after explicit permission, classification and privacy review. The first real pilot should be read-only and co-designed with the relevant utility and engineering professionals.
+Start with synthetic/abstracted network cases and public scientific data. Bring in owner data only after explicit permission, classification and privacy review. The first real pilot should be read-only and co-designed with the relevant utility and engineering professionals. The SANSA MT-inversion project is a specific initial contact for the conductivity-data pathway.
 
 ## 9. Data and reference-source register
 
@@ -232,11 +232,12 @@ All dataset ingestion must independently check version, licence, data rights, fi
 | NOAA SWPC Geoelectric Field Models | 1-D US/Canada and geographically limited 3-D EMTF E-field products; archived E-field and geomagnetic products | NOAA documents coverage and validation limitations; not a globally complete model. https://www.spaceweather.gov/products/geoelectric-field-models-1-minute |
 | NOAA SWPC 3-D empirical EMTF method | Local Earth-response/MT transfer-function model | Preserve MT site coverage and transfer-function validity. https://www.spaceweather.gov/products/geoelectric-field-1-minute-empirical-emtf-3d-model |
 | USGS, *Mapping a Carrington Storm* (2025) | Methodological benchmark for spatially varying extreme-event E-field reconstruction | CONUS study; historical event is reconstructed, not directly measured. https://www.usgs.gov/publications/mapping-a-carrington-storm |
+| May 2024 GIC public data / SWERVE repository | Measured 1-second TVA series, TVA operator 1-minute model, GMU reference-model outputs, magnetometer and geospace-model data; the four-site replay is recorded in [GMD_MAY2024_TVA_REPLAY_V0.1.md](GMD_MAY2024_TVA_REPLAY_V0.1.md) | Pin repository commit and per-file blobs; the Zenodo record declares MIT, but check embedded source-provider terms individually. https://doi.org/10.5281/zenodo.20090223 · https://github.com/lucywilkerson/SWERVE-2024-05-10 |
 | May 2024 US GIC measurements (Space Weather, 2026) | 47 GIC sites and 17 magnetometer sites; measured vs operator/reference models | Pin paper, data supplement and allowed reuse; preserve site/time holdouts. https://doi.org/10.1029/2025SW004758 |
 | May 2024 New Zealand transformer study | GIC, harmonics and reactive-power observations | Site and asset scope only; not universal transformer thresholds. https://doi.org/10.1029/2024SW004235 |
 | BPA GIC monitoring | Public measured GIC series at 11 transformer substations | Verify terms, station/site coverage and data vintage before use. https://www.bpa.gov/energy-and-services/power/operation/geomagnetically-induced-currents |
 | EarthScope MT / EMTF repositories | Geophysical transfer-function and conductivity evidence | Site-specific; requires quality, frequency and coverage review. https://www.earthscope.org/data/ |
-| SANSA Space Weather | African regional monitoring, forecasts and advisories | Product use and archival access should be confirmed with SANSA. https://spaceweather.sansa.org.za/ |
+| SANSA Space Weather / Geomagnetism research portal | African space-weather monitoring and a listed South African MT-conductivity inversion research project | A collaboration lead only; confirm observation availability, MT survey coverage, transfer functions, uncertainty, access and reuse terms. https://spaceweather.sansa.org.za/ · https://atlas.sansa.org.za/projects/theme/geomagnetism |
 | NERC TPL-007-4 | North American reference benchmark and planning standard | Regulatory comparator; not a global operational rule. https://www.nerc.com/globalassets/standards/reliability-standards/tpl/tpl-007-4.pdf |
 | PGLib-OPF / PowerModels.jl / PyPSA / SimBench | Downstream network optimisation and power-flow comparator families | Match formulations; none alone establishes GIC or transformer physics. https://github.com/power-grid-lib/pglib-opf · https://docs.pypsa.org/ · https://simbench.de/en/ |
 
@@ -265,6 +266,7 @@ No tier by itself establishes regulatory compliance, resilience against all Carr
 ## 12. Cross-stack work items
 
 - [Sol-Atlas GMD-RESILIENCE-001 #692](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/692)
+- [Sol-Atlas GMD-MAY2024-REPLAY-001 #695](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/695) — four-site measured/operator/reference baseline reproduction.
 - [Symtropy GMD-PHYSICS-001 #4461](https://github.com/Luminous-Dynamics/symtropy/issues/4461), under [NATURAL-HAZARDS-000 #2232](https://github.com/Luminous-Dynamics/symtropy/issues/2232)
 - [Symthaea GMD-INTELLIGENCE-001 #11358](https://github.com/Luminous-Dynamics/symthaea/issues/11358), separate from [GEO-INFER-001 #7688](https://github.com/Luminous-Dynamics/symthaea/issues/7688)
 - [Mycelix GMD-OFFLINE-COORD-001 #6018], extending [SOV-DPI-005 #1030](https://github.com/Luminous-Dynamics/mycelix/issues/1030)
