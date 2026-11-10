@@ -239,3 +239,29 @@ Each projection binds:
 - Stale source, missing tetrad, wrong chart, branch collision, under-resolved caustic and simulation-as-observation controls fail closed.
 
 The initial manifest PR #4522 is a planned protocol only. No ray-bundle result, caustic measurement, magnification or EHT inference is claimed here.
+
+
+## 13. Finite-frequency wave-optics caustic projection
+
+Compose the ray-bundle contract with the separate finite-frequency Symtropy work:
+- Geometric-optics producer: Symtropy [#4519](https://github.com/Luminous-Dynamics/symtropy/issues/4519), planned manifest [PR #4522](https://github.com/Luminous-Dynamics/symtropy/pull/4522).
+- Wave-optics producer: Symtropy [#4526](https://github.com/Luminous-Dynamics/symtropy/issues/4526), planned canonical/strong-field benchmark [PR #4527](https://github.com/Luminous-Dynamics/symtropy/pull/4527).
+
+The optional `wave_optics` object in the companion schema records:
+- method: geometric stationary phase, Airy fold uniform, Pearcey cusp uniform, ray-derived arrival-time diffraction, MST/scattering-factor reference or full-wave numerical output;
+- caustic class and regime/approximation validity;
+- source angular structure, finite-source size, coherence state and source-history identity;
+- frequency grid, dimensionless (M\omega), Fourier/phase convention and incident/observed normalization;
+- complex amplification, phase and intensity, with numerical/reference error;
+- code, configuration, input/output digest and external-reference identity.
+
+### Regime display
+
+Render distinct panels/layers for:
+1. geometric image branches and stationary-phase sum;
+2. uniform fold/cusp finite-frequency response;
+3. finite-source / partially coherent response;
+4. full strong-field wave-scattering reference;
+5. measured detector/telescope data and reconstructed observations, when available.
+
+Never display a divergent geometric-optics magnification as a finite wave intensity. A wave-optics result is still a model prediction or numerical simulation unless it has been compared with an actual measurement under a declared inference procedure. Preserve phase and polarization, not only intensity. A result outside its approximation domain or lacking a converged oscillatory integral must display an unresolved/out-of-domain status.
