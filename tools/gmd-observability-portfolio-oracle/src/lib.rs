@@ -396,6 +396,7 @@ fn weighted_variance(
     }
 }
 
+// Matrix row/column indices must stay aligned across independent buffers.
 #[allow(clippy::needless_range_loop)]
 fn cholesky(matrix: &[Vec<f64>]) -> Result<Vec<Vec<f64>>, DesignError> {
     let dimension = matrix.len();
@@ -442,6 +443,7 @@ fn cholesky(matrix: &[Vec<f64>]) -> Result<Vec<Vec<f64>>, DesignError> {
     Ok(lower)
 }
 
+// Triangular solves use explicit indices to preserve row/column semantics.
 #[allow(clippy::needless_range_loop)]
 fn inverse_spd(matrix: &[Vec<f64>]) -> Result<Vec<Vec<f64>>, DesignError> {
     let lower = cholesky(matrix)?;
@@ -490,6 +492,7 @@ fn inverse_spd(matrix: &[Vec<f64>]) -> Result<Vec<Vec<f64>>, DesignError> {
     Ok(inverse)
 }
 
+// Indexing is explicit because this is a small fixed-dimension matrix kernel.
 #[allow(clippy::needless_range_loop)]
 fn transpose(matrix: &[Vec<f64>]) -> Vec<Vec<f64>> {
     let rows = matrix.len();
@@ -504,6 +507,7 @@ fn transpose(matrix: &[Vec<f64>]) -> Vec<Vec<f64>> {
     result
 }
 
+// Indexing is explicit because this is a small fixed-dimension matrix kernel.
 #[allow(clippy::needless_range_loop)]
 fn multiply(
     left: &[Vec<f64>],
@@ -538,6 +542,7 @@ fn multiply(
     Ok(result)
 }
 
+// Indexing is explicit because this is a small fixed-dimension matrix kernel.
 #[allow(clippy::needless_range_loop)]
 fn add_matrices(
     left: &[Vec<f64>],
@@ -702,6 +707,12 @@ mod tests {
             select_portfolio(&problem),
             Err(DesignError::MatrixNotSymmetric)
         );
+
+        problem.noise_covariance = vec![vec![1.0e-12, 2.0e-13], vec![1.0e-13, 1.0e-12]];
+        assert_eq!(
+            select_portfolio(&problem),
+            Err(DesignError::MatrixNotSymmetric)
+        );
     }
 
     #[test]
@@ -749,8 +760,8 @@ mod tests {
             .collect();
         let dimension = problem.state_ids.len();
         problem.prior_covariance = vec![vec![0.0; dimension]; dimension];
-        for index in 0..dimension {
-            problem.prior_covariance[index][index] = 1.0;
+        for (index, row) in problem.prior_covariance.iter_mut().enumerate() {
+            row[index] = 1.0;
         }
         problem.observation_matrix = vec![vec![1.0; dimension]];
         assert_eq!(select_portfolio(&problem), Err(DesignError::TooManyStateDimensions));
@@ -767,8 +778,8 @@ mod tests {
             vec![0.0; problem.sensor_ids.len()];
             problem.sensor_ids.len()
         ];
-        for index in 0..problem.sensor_ids.len() {
-            problem.noise_covariance[index][index] = 1.0;
+        for (index, row) in problem.noise_covariance.iter_mut().enumerate() {
+            row[index] = 1.0;
         }
         problem.sensor_costs = vec![1; problem.sensor_ids.len()];
         problem.budget = problem.sensor_ids.len() as u64;
