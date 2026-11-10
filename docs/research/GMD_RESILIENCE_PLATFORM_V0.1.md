@@ -477,3 +477,54 @@ NERC TPL-007-4 establishes mandatory GMD planning requirements for applicable en
 - Sol-Atlas [#714](https://github.com/Luminous-Dynamics/sol-atlas-leptos/pull/714): outage-aware observability portfolio oracle; draft, 13 tests authored, independent arithmetic cross-checks performed, Rust qualification pending.
 
 None of these states is a CI PASS, physical-model validation, utility review, regulatory certification or operational resilience demonstration.
+
+
+## 17. Essential-service continuity, restoration and interval semantics — 10 November 2026
+
+The GMD programme now includes a separate **essential-service trajectory evaluator**, so asset survival and electricity restoration are not treated as proxies for healthcare, water, food or communications continuity.
+
+### 17.1 New benchmark and implementation
+
+- [GMD-SERVICE-CONTINUITY-001 #716](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/716) defines per-service minimum floors, unmet native-unit quantity, floor-violation episodes, sustained recovery and full-service recovery.
+- [Draft PR #717](https://github.com/Luminous-Dynamics/sol-atlas-leptos/pull/717) adds a dependency-free Rust evaluator at `tools/gmd-service-continuity-oracle/`.
+- The evaluator uses elapsed seconds from scenario t0 for outage/recovery arithmetic; it does not need GNSS or external wall-clock time.
+- Its output preserves each service's native unit, evidence class, source digest and asset revision. It does not aggregate kWh, m³, communications capacity or healthcare throughput into one scalar.
+- It reports initial service state separately from recovery after a recorded violation. Recovery requires a sustained hold; momentary supply spikes do not establish restoration.
+- Zero-demand intervals are excluded from the positive-demand-time availability denominator and cannot bridge a recovery hold.
+- Missing, overlapping, duplicated or reordered intervals fail closed. Surplus quantity is reported but never credited against another interval's shortfall.
+
+The PR contains 19 authored Rust test functions. Nine scenario fixtures were independently recomputed using a separate Python arithmetic implementation and passed. These cross-checks do not establish that the Rust crate compiles or its tests pass. Local Rust tooling is unavailable in this authoring environment; exact-head GitHub workflows remain queued, not passed.
+
+### 17.2 Interval-resolution boundary
+
+Service floors are measured at the declared interval aggregation level. An hourly kWh total cannot prove uninterrupted hospital power: a short outage could be hidden by later surplus delivery. Every benchmark result must preserve source sampling cadence, aggregation window, time alignment and the service owner's allowed interruption duration.
+
+Intervals must be no coarser than the service-continuity question being tested. Instantaneous voltage/frequency, protection, water pressure, communications link integrity and other quality constraints must be qualified separately by their physical/measurement owners. The service evaluator does not infer transients from coarse aggregates.
+
+### 17.3 Bottom-up and hybrid restoration
+
+Compose with [Symtropy POWER-SYSTEM-RESILIENCE-001 #3418](https://github.com/Luminous-Dynamics/symtropy/issues/3418), which already owns grid-forming, islanding, black-start, microgrid and protection qualification.
+
+Under identical GMD forcing, network revision, service demand, resource inventory and observation cutoff, compare:
+1. Existing utility/operator procedures.
+2. Top-down generation/transmission-led restoration.
+3. Bottom-up islandable grid-forming DER / microgrid restoration.
+4. Hybrid staged restoration and island merger.
+
+A microgrid must prove deliverable inverter current/headroom, low-inertia frequency response, auxiliary black-start energy, cold-load pickup, protection coordination, communications-loss behavior and resynchronization. Installed kW or stored kWh alone is not proof of black-start capability.
+
+Use a transparent lexicographic planning order:
+1. Electrical, protection and operator safety as hard constraints.
+2. Preserve owner-declared floors for the most critical services.
+3. Minimize each service's native-unit unmet quantity and worst continuous floor violation.
+4. Minimize sustained recovery times.
+5. Optimize asset stress, resource use, operational burden and cost only after hard floors are respected.
+
+A good average service score cannot compensate for a hospital or potable-water floor breach.
+
+### 17.4 Current research comparators
+
+- IEEE PES, *Power System Resilience Metrics and Evaluation Methods* (8 June 2026; DOI 10.17023/7e16-km93), proposes a structured power-system resilience-metric framework because conventional steady-state reliability metrics do not adequately describe dynamic response and recovery: https://resourcecenter.ieee-pes.org/publications/technical-reports/pes_tr_143_amps_060826.
+- Shi, Bai and Wang, *Power distribution system blackstart restoration using renewable energy*, Nature Communications 17, 8498 (17 August 2026; DOI 10.1038/s41467-026-76692-0), reviews bottom-up grid-forming DER restoration and the constraints of inverter headroom, low inertia, cold-load pickup, protection and incomplete situational awareness: https://doi.org/10.1038/s41467-026-76692-0.
+
+This Luminous evaluator implements a deliberately small metric subset. It does not claim conformance to the complete IEEE PES report, black-start standards, utility procedures or operational restoration.
