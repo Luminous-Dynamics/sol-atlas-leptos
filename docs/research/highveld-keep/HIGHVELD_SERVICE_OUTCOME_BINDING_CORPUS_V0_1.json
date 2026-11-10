@@ -812,7 +812,7 @@
     },
     {
       "case_id": "HSOB-024",
-      "description": "Timeline events are submitted as a measured WaterLoop volume.",
+      "description": "A Symtropy availability event is submitted as if it were a numeric meter observation.",
       "signals": {
         "service_id": "WATERLOOP",
         "target": "observation",
@@ -838,7 +838,7 @@
         "duplicate_receipt": false,
         "device_command_requested": false,
         "claim_from_model_or_vendor": false,
-        "physical_quality_claim": true,
+        "physical_quality_claim": false,
         "event_wrapper_present": true,
         "event_contract_valid": true,
         "event_used_as_measurement": false
