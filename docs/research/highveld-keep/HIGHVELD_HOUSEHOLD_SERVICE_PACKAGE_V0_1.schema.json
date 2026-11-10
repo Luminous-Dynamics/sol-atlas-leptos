@@ -1,0 +1,526 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/research/highveld-household-service-v0.1/docs/research/highveld-keep/HIGHVELD_HOUSEHOLD_SERVICE_PACKAGE_V0_1.schema.json",
+  "title": "Highveld household-service package v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "package_id",
+    "revision_status",
+    "claim_ceiling",
+    "design_reference",
+    "household_profile",
+    "services",
+    "architectures",
+    "stress_cases",
+    "comparison_protocol",
+    "execution_authority"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "luminous.highveld.household-service-package/0.1"
+    },
+    "package_id": {
+      "const": "HIGHVELD-HOUSEHOLD-SERVICE-SYNTHETIC-001"
+    },
+    "revision_status": {
+      "const": "E0_SYNTHETIC_REFERENCE"
+    },
+    "claim_ceiling": {
+      "const": "service_definition_and_fixture_integrity_only"
+    },
+    "design_reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scenario_id",
+        "design_branch",
+        "evidence_tier",
+        "site_state"
+      ],
+      "properties": {
+        "scenario_id": {
+          "const": "HIGHVELD-KEEP-SYNTHETIC-001"
+        },
+        "design_branch": {
+          "type": "string",
+          "minLength": 1
+        },
+        "evidence_tier": {
+          "const": "E0"
+        },
+        "site_state": {
+          "const": "SYNTHETIC_REFERENCE_ONLY"
+        }
+      }
+    },
+    "household_profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "occupants_min",
+        "occupants_max",
+        "profile_state",
+        "real_resident_requirements"
+      ],
+      "properties": {
+        "occupants_min": {
+          "const": 4
+        },
+        "occupants_max": {
+          "const": 6
+        },
+        "profile_state": {
+          "const": "SYNTHETIC_BENCHMARK_ASSUMPTION"
+        },
+        "real_resident_requirements": {
+          "const": "NOT_COLLECTED"
+        }
+      }
+    },
+    "services": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "items": {
+        "$ref": "#/$defs/service"
+      }
+    },
+    "architectures": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "items": {
+        "$ref": "#/$defs/architecture"
+      }
+    },
+    "stress_cases": {
+      "type": "array",
+      "minItems": 14,
+      "maxItems": 14,
+      "items": {
+        "$ref": "#/$defs/stress_case"
+      }
+    },
+    "comparison_protocol": {
+      "$ref": "#/$defs/comparison_protocol"
+    },
+    "execution_authority": {
+      "$ref": "#/$defs/execution_authority"
+    }
+  },
+  "$defs": {
+    "quantity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "value",
+        "unit",
+        "state",
+        "source_ref"
+      ],
+      "properties": {
+        "value": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "unit": {
+          "type": "string",
+          "minLength": 1
+        },
+        "state": {
+          "enum": [
+            "UNKNOWN",
+            "SYNTHETIC_ASSUMPTION",
+            "MEASURED",
+            "MODELLED",
+            "ASSAYED"
+          ]
+        },
+        "source_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "input_stream": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "quantity",
+        "quality_state"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "quantity": {
+          "$ref": "#/$defs/quantity"
+        },
+        "quality_state": {
+          "const": "UNKNOWN"
+        }
+      }
+    },
+    "resource_flow": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "direction",
+        "quantity"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "direction": {
+          "enum": [
+            "INPUT",
+            "OUTPUT"
+          ]
+        },
+        "quantity": {
+          "$ref": "#/$defs/quantity"
+        }
+      }
+    },
+    "spatial_interface": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "space_ref",
+        "purpose",
+        "geometry_state"
+      ],
+      "properties": {
+        "space_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "purpose": {
+          "type": "string",
+          "minLength": 1
+        },
+        "geometry_state": {
+          "const": "NOT_MODELED"
+        }
+      }
+    },
+    "service": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "product_name",
+        "owner",
+        "owner_issue_url",
+        "product_revision",
+        "status",
+        "service_definition",
+        "functional_unit",
+        "performance_target",
+        "hard_service_floor_state",
+        "input_streams",
+        "resource_flows",
+        "spatial_interfaces",
+        "operating_profile",
+        "fallback",
+        "maintenance",
+        "evidence_state"
+      ],
+      "properties": {
+        "id": {
+          "enum": [
+            "WATERLOOP",
+            "HEATBANK",
+            "AIRCARE"
+          ]
+        },
+        "product_name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "owner": {
+          "const": "Symthaea"
+        },
+        "owner_issue_url": {
+          "type": "string",
+          "format": "uri"
+        },
+        "product_revision": {
+          "const": "UNKNOWN_NOT_SELECTED"
+        },
+        "status": {
+          "const": "RESEARCH_PROFILE_ONLY"
+        },
+        "service_definition": {
+          "type": "string",
+          "minLength": 1
+        },
+        "functional_unit": {
+          "type": "string",
+          "minLength": 1
+        },
+        "performance_target": {
+          "$ref": "#/$defs/quantity"
+        },
+        "hard_service_floor_state": {
+          "const": "UNKNOWN_PENDING_RESIDENT_AND_APPLICABLE_REQUIREMENTS"
+        },
+        "input_streams": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/input_stream"
+          }
+        },
+        "resource_flows": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/resource_flow"
+          }
+        },
+        "spatial_interfaces": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/spatial_interface"
+          }
+        },
+        "operating_profile": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "duty_cycle_state",
+            "concurrency_state",
+            "schedule_state",
+            "calibration_state"
+          ],
+          "properties": {
+            "duty_cycle_state": {
+              "const": "UNKNOWN"
+            },
+            "concurrency_state": {
+              "const": "UNKNOWN"
+            },
+            "schedule_state": {
+              "const": "UNKNOWN"
+            },
+            "calibration_state": {
+              "const": "NOT_ESTABLISHED"
+            }
+          }
+        },
+        "fallback": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "manual_path_state",
+            "local_control_state",
+            "network_required_for_essential_service",
+            "cloud_required_for_essential_service"
+          ],
+          "properties": {
+            "manual_path_state": {
+              "const": "REQUIRED_NOT_QUALIFIED"
+            },
+            "local_control_state": {
+              "const": "REQUIRED_NOT_QUALIFIED"
+            },
+            "network_required_for_essential_service": {
+              "const": false
+            },
+            "cloud_required_for_essential_service": {
+              "const": false
+            }
+          }
+        },
+        "maintenance": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "service_access_state",
+            "inspection_interval_state",
+            "replacement_parts_state"
+          ],
+          "properties": {
+            "service_access_state": {
+              "const": "REQUIREMENT_NOT_GEOMETRY_VERIFIED"
+            },
+            "inspection_interval_state": {
+              "const": "UNKNOWN"
+            },
+            "replacement_parts_state": {
+              "const": "UNKNOWN"
+            }
+          }
+        },
+        "evidence_state": {
+          "const": "RESEARCH_PROFILE_ONLY"
+        }
+      }
+    },
+    "architecture": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "description",
+        "status",
+        "coupling_assumptions",
+        "common_mode_failure_considered"
+      ],
+      "properties": {
+        "id": {
+          "enum": [
+            "INDEPENDENT_SERVICES",
+            "SHARED_UTILITY",
+            "HYBRID_LOCAL_AUTONOMY"
+          ]
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "const": "NOT_EVALUATED"
+        },
+        "coupling_assumptions": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "common_mode_failure_considered": {
+          "const": true
+        }
+      }
+    },
+    "stress_case": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "description",
+        "event_family",
+        "source_class",
+        "timing_state",
+        "trace_status"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^HHS-[0-9]{3}$"
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "event_family": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_class": {
+          "const": "SYNTHETIC_CASE_DEFINITION"
+        },
+        "timing_state": {
+          "const": "UNSPECIFIED"
+        },
+        "trace_status": {
+          "const": "NOT_MATERIALIZED"
+        }
+      }
+    },
+    "comparison_protocol": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "paired_trace_policy",
+        "trace_bundle_status",
+        "common_trace_digest",
+        "information_budget_state",
+        "human_time_budget_state",
+        "comparison_arms",
+        "reported_dimensions",
+        "hard_gate_policy"
+      ],
+      "properties": {
+        "paired_trace_policy": {
+          "const": "SAME_EXACT_TRACE_BYTES_FOR_ALL_COMPARISON_ARMS"
+        },
+        "trace_bundle_status": {
+          "const": "NOT_MATERIALIZED"
+        },
+        "common_trace_digest": {
+          "type": "null"
+        },
+        "information_budget_state": {
+          "const": "UNSPECIFIED"
+        },
+        "human_time_budget_state": {
+          "const": "UNSPECIFIED"
+        },
+        "comparison_arms": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "uniqueItems": true,
+          "items": {
+            "type": "string"
+          }
+        },
+        "reported_dimensions": {
+          "type": "array",
+          "minItems": 5,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "hard_gate_policy": {
+          "const": "NON_COMPENSATORY_NO_AGGREGATE_SCORE"
+        }
+      }
+    },
+    "execution_authority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "authority_state",
+        "model_recommendations_can_dispatch",
+        "device_commands_in_profile",
+        "household_telemetry_policy",
+        "cloud_required_for_essential_service"
+      ],
+      "properties": {
+        "authority_state": {
+          "const": "NONE"
+        },
+        "model_recommendations_can_dispatch": {
+          "const": false
+        },
+        "device_commands_in_profile": {
+          "const": false
+        },
+        "household_telemetry_policy": {
+          "const": "OPT_IN_PURPOSE_SPECIFIC_ONLY"
+        },
+        "cloud_required_for_essential_service": {
+          "const": false
+        }
+      }
+    }
+  }
+}
