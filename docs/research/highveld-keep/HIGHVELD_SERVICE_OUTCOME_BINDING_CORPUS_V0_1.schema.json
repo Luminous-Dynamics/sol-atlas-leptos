@@ -1,0 +1,212 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/research/highveld-household-service-outcome-binding-v0.1/docs/research/highveld-keep/HIGHVELD_SERVICE_OUTCOME_BINDING_CORPUS_V0_1.schema.json",
+  "title": "Highveld Service Outcome Binding Synthetic Corpus v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "corpus_id",
+    "classification",
+    "claim_ceiling",
+    "profile_id",
+    "cases"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "luminous.highveld.service-outcome-binding-corpus/0.1"
+    },
+    "corpus_id": {
+      "const": "HIGHVELD-SERVICE-OUTCOME-BINDING-CORPUS-V0.1"
+    },
+    "classification": {
+      "const": "synthetic_owner_contract_crosswalk_cases"
+    },
+    "claim_ceiling": {
+      "const": "synthetic_mapping_and_unbound_state_checks_only"
+    },
+    "profile_id": {
+      "const": "HIGHVELD-SERVICE-OUTCOME-BINDINGS-V0.1"
+    },
+    "cases": {
+      "type": "array",
+      "minItems": 36,
+      "maxItems": 36,
+      "items": {
+        "$ref": "#/$defs/case"
+      }
+    }
+  },
+  "$defs": {
+    "case": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "case_id",
+        "description",
+        "signals",
+        "expected_disposition"
+      ],
+      "properties": {
+        "case_id": {
+          "type": "string",
+          "pattern": "^HSOB-[0-9]{3}$"
+        },
+        "description": {
+          "type": "string",
+          "minLength": 20
+        },
+        "expected_disposition": {
+          "enum": [
+            "UNBOUND_SOURCE_OWNER",
+            "UNBOUND_SOURCE_RECEIPT",
+            "UNBOUND_SERVICE_FLOOR",
+            "UNBOUND_INSTRUMENT_PROFILE",
+            "UNKNOWN_CALIBRATION",
+            "UNKNOWN_COVERAGE",
+            "UNKNOWN_OBSERVATION",
+            "INVALIDATED_SOURCE",
+            "NOT_COMPARABLE",
+            "REJECTED_EVIDENCE_CLASS",
+            "REJECTED_CLAIM_PROMOTION",
+            "REJECTED_PURPOSE",
+            "REJECTED_CONSENT",
+            "REJECTED_DUPLICATE_RECEIPT",
+            "REJECTED_NO_DEVICE_AUTHORITY",
+            "REJECTED_EVENT_SCOPE",
+            "REJECTED_EVENT_CONTRACT",
+            "EVENT_AVAILABILITY_ONLY",
+            "ELIGIBLE_FOR_INDEPENDENT_OWNER_REVIEW_ONLY"
+          ]
+        },
+        "signals": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "service_id",
+            "target",
+            "metric_id",
+            "unit",
+            "requirement_evidence_class",
+            "evidence_kind",
+            "source_owner_bound",
+            "source_receipt_present",
+            "service_floor_defined",
+            "instrument_profile_admitted",
+            "calibration_current",
+            "scope_matches",
+            "design_revision_matches",
+            "bom_revision_matches",
+            "observation_window_matches",
+            "context_matches",
+            "coverage_meets_declared_scope",
+            "observation_current",
+            "source_revision_current",
+            "consent_valid",
+            "purpose_authorized",
+            "duplicate_receipt",
+            "device_command_requested",
+            "claim_from_model_or_vendor",
+            "physical_quality_claim",
+            "event_wrapper_present",
+            "event_contract_valid",
+            "event_used_as_measurement"
+          ],
+          "properties": {
+            "service_id": {
+              "enum": [
+                "WATERLOOP",
+                "HEATBANK",
+                "AIRCARE"
+              ]
+            },
+            "target": {
+              "enum": [
+                "observation",
+                "timeline_event"
+              ]
+            },
+            "metric_id": {
+              "type": "string"
+            },
+            "unit": {
+              "type": "string"
+            },
+            "requirement_evidence_class": {
+              "type": "string"
+            },
+            "evidence_kind": {
+              "type": "string"
+            },
+            "source_owner_bound": {
+              "type": "boolean"
+            },
+            "source_receipt_present": {
+              "type": "boolean"
+            },
+            "service_floor_defined": {
+              "type": "boolean"
+            },
+            "instrument_profile_admitted": {
+              "type": "boolean"
+            },
+            "calibration_current": {
+              "type": "boolean"
+            },
+            "scope_matches": {
+              "type": "boolean"
+            },
+            "design_revision_matches": {
+              "type": "boolean"
+            },
+            "bom_revision_matches": {
+              "type": "boolean"
+            },
+            "observation_window_matches": {
+              "type": "boolean"
+            },
+            "context_matches": {
+              "type": "boolean"
+            },
+            "coverage_meets_declared_scope": {
+              "type": "boolean"
+            },
+            "observation_current": {
+              "type": "boolean"
+            },
+            "source_revision_current": {
+              "type": "boolean"
+            },
+            "consent_valid": {
+              "type": "boolean"
+            },
+            "purpose_authorized": {
+              "type": "boolean"
+            },
+            "duplicate_receipt": {
+              "type": "boolean"
+            },
+            "device_command_requested": {
+              "type": "boolean"
+            },
+            "claim_from_model_or_vendor": {
+              "type": "boolean"
+            },
+            "physical_quality_claim": {
+              "type": "boolean"
+            },
+            "event_wrapper_present": {
+              "type": "boolean"
+            },
+            "event_contract_valid": {
+              "type": "boolean"
+            },
+            "event_used_as_measurement": {
+              "type": "boolean"
+            }
+          }
+        }
+      }
+    }
+  }
+}
