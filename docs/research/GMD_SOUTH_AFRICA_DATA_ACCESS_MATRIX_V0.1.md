@@ -110,3 +110,19 @@ The system must represent `RightsUnknown`, `AcademicOnly`, `CommercialContractRe
 - [Mycelix #6018 — offline emergency federation](https://github.com/Luminous-Dynamics/mycelix/issues/6018)
 
 **Claim ceiling:** This is a desk-research source inventory. It does not establish current South African grid risk, present sensor health, transformer vulnerability, national spatial coverage or commercial permission to use any data.
+
+## 9. Eskom transformer GIC design / monitoring specification lead
+
+A public eTenders copy of Eskom specification **240-68973110**, Revision 2, *Specification for Power Transformers Rated for 1.25 MVA and Above and with Highest Voltage of 2.2 kV or Above*, includes a conditional GIC clause. Where a transformer has a solidly earthed neutral and GIC compatibility is specified in Schedule AB, it describes a 10 A neutral-terminal withstand criterion for 30 minutes under declared operating conditions, and requires the contractor to propose a neutral-terminal CT for measurement/monitoring during service life.
+
+Source copy: https://www.etenders.gov.za/home/Download/?blobName=88a96272-1959-484f-818d-f2716e313c57.pdf&downloadedFileName=Eskom_Spec_ST_240-68973110_Rev_2%5B1%5D.pdf
+
+**Qualification warning:** this document is marked Controlled Disclosure, warns that downloaded web copies are uncontrolled, and lists a February 2023 next-review date. Obtain the current authorised Eskom revision and confirm the clause's applicability to actual fleet units before treating it as a current requirement. The 10 A / 30-minute design test is not a generic operational damage threshold and must not be extrapolated to every transformer.
+
+Data acquisition questions:
+- Which in-service transformer units were procured under this or successor specifications?
+- Was GIC compatibility specified in the relevant Schedule AB for each unit?
+- Which have neutral CTs suitable for quasi-DC measurement, and what are their bandwidth, accuracy, polarity, sampling interval and saturation limits?
+- Are readings archived, and can they be exported with calibration and maintenance history?
+- What winding configuration, autotransformer common/series ratio, grounding resistance and network revision bind each reading?
+- Which OEM thermal/harmonic response curves and FAT evidence are available for the exact unit?
