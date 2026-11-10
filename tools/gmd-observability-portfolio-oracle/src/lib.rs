@@ -301,7 +301,7 @@ fn validate_problem(problem: &DesignProblem) -> Result<(), DesignError> {
     if problem.state_weights.iter().any(|weight| *weight <= 0.0) {
         return Err(DesignError::InvalidStateWeight);
     }
-    if problem.sensor_costs.iter().any(|cost| *cost == 0) {
+    if problem.sensor_costs.contains(&0) {
         return Err(DesignError::InvalidSensorCost);
     }
     if !problem.outage_risk_weight.is_finite() {
@@ -616,7 +616,11 @@ mod tests {
     fn complementary_sensors_win_under_single_sensor_outage_risk() {
         let problem = DesignProblem {
             state_ids: vec!["state-east".to_owned(), "state-west".to_owned()],
-            sensor_ids: vec!["mag-east".to_owned(), "mag-west".to_owned(), "distant-proxy".to_owned()],
+            sensor_ids: vec![
+                "mag-east".to_owned(),
+                "mag-west".to_owned(),
+                "distant-proxy".to_owned(),
+            ],
             prior_covariance: vec![vec![1.0, 0.0], vec![0.0, 1.0]],
             observation_matrix: vec![
                 vec![1.0, 0.0],
@@ -733,13 +737,31 @@ mod tests {
     }
 
     #[test]
+    fn state_dimension_is_bounded_for_the_reference_kernel() {
+        let mut problem = scalar_problem();
+        problem.state_ids = (0..=MAX_STATE_DIMENSION)
+            .map(|index| format!("state-{index}"))
+            .collect();
+        let dimension = problem.state_ids.len();
+        problem.prior_covariance = vec![vec![0.0; dimension]; dimension];
+        for index in 0..dimension {
+            problem.prior_covariance[index][index] = 1.0;
+        }
+        problem.observation_matrix = vec![vec![1.0; dimension]];
+        assert_eq!(select_portfolio(&problem), Err(DesignError::TooManyStateDimensions));
+    }
+
+    #[test]
     fn candidate_count_is_bounded_for_deterministic_exhaustive_search() {
         let mut problem = scalar_problem();
         problem.sensor_ids = (0..=MAX_CANDIDATE_SENSORS)
             .map(|index| format!("sensor-{index}"))
             .collect();
         problem.observation_matrix = vec![vec![1.0]; problem.sensor_ids.len()];
-        problem.noise_covariance = vec![vec![0.0; problem.sensor_ids.len()]; problem.sensor_ids.len()];
+        problem.noise_covariance = vec![
+            vec![0.0; problem.sensor_ids.len()];
+            problem.sensor_ids.len()
+        ];
         for index in 0..problem.sensor_ids.len() {
             problem.noise_covariance[index][index] = 1.0;
         }
