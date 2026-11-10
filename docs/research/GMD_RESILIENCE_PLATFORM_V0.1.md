@@ -51,6 +51,12 @@ A transformer is important because of the services that depend on it. Map causal
 Measure service delivered, not just assets surviving. A site can be energised while water pressure, quality, coverage or hospital backup autonomy remains inadequate.
 
 ### 2.4 From reactive planning to precomputed robust action envelopes
+A concrete operational benchmark now exists: during the May 2024 Gannon G5 storm, Transpower New Zealand implemented a preplanned targeted line-disconnection strategy. Published retrospective analysis reports that currents at the Dunedin hotspot peaked around 100–113 A under the mitigation procedure, while the no-mitigation counterfactual was estimated near 200 A; supply to consumers was maintained. This is a much stronger benchmark than a synthetic optimizer-only demonstration ([Mac Manus et al. 2025](https://doi.org/10.1029/2025SW004388)).
+
+Hardware mitigation also has network-wide side effects. Neutral capacitive blockers can reduce DC current through a protected transformer but divert current to other transformers; industry research describes a “whack-a-mole” risk and concerns about overvoltage/fault protection. A 2026 study also examines interactions between neutral-blocking devices, inverter-based PV sources and distance-relay behaviour ([Mac Manus et al. 2023](https://doi.org/10.1029/2023SW003533); [Piesciorovsky et al. 2026](https://doi.org/10.1016/j.epsr.2025.112190)).
+
+The mitigation-planning work is tracked in [Sol-Atlas GMD-MITIGATION-PLANNING-001 #703](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/703). It evaluates network-wide redistribution, AC/protection feasibility and service continuity—not merely the reduction at a single transformer. A plan that makes the target asset safer but moves unacceptable stress to another asset is not a successful mitigation.
+
 
 Before an event, evaluate operator-approved options such as topology reconfiguration, load prioritisation, reactive-power reserve, transformer monitoring, islandable microgrids, storage and staged restoration. Produce a set of feasible, authority-bounded alternatives rather than one brittle optimum.
 
