@@ -244,25 +244,40 @@ fn parse_measured_csv(bytes: &[u8], label: &str) -> Result<BTreeMap<i64, f64>, S
             continue;
         }
         let fields = parse_csv_record(line).map_err(|error| format!("{label}: line {}: {error}", line_number + 1))?;
-        let timestamps: Vec<(usize, i64)> = fields
+        let single_field_timestamps: Vec<(usize, i64)> = fields
             .iter()
             .enumerate()
             .filter_map(|(index, field)| parse_timestamp(field).ok().map(|timestamp| (index, timestamp)))
             .collect();
 
-        if timestamps.is_empty() && !skipped_header {
+        if single_field_timestamps.is_empty() && !skipped_header {
             skipped_header = true;
             continue;
         }
-        if timestamps.len() != 1 {
-            return Err(format!("{label}: line {} must contain exactly one UTC timestamp", line_number + 1));
-        }
 
-        let (timestamp_index, timestamp) = timestamps[0];
+        let (timestamp_indices, timestamp) = if single_field_timestamps.len() == 1 {
+            let (index, timestamp) = single_field_timestamps[0];
+            (vec![index], timestamp)
+        } else if single_field_timestamps.is_empty() {
+            let mut split_candidates = Vec::new();
+            for index in 0..fields.len().saturating_sub(1) {
+                let combined = format!("{} {}", fields[index], fields[index + 1]);
+                if let Ok(timestamp) = parse_timestamp(&combined) {
+                    split_candidates.push((vec![index, index + 1], timestamp));
+                }
+            }
+            if split_candidates.len() != 1 {
+                return Err(format!("{label}: line {} must contain exactly one parseable UTC timestamp (single field or adjacent date/time fields)", line_number + 1));
+            }
+            split_candidates.remove(0)
+        } else {
+            return Err(format!("{label}: line {} contains multiple timestamp fields", line_number + 1));
+        };
+
         let numeric: Vec<(usize, f64)> = fields
             .iter()
             .enumerate()
-            .filter(|(index, _)| *index != timestamp_index)
+            .filter(|(index, _)| !timestamp_indices.contains(index))
             .filter_map(|(index, field)| parse_finite(field).ok().map(|value| (index, value)))
             .collect();
         if numeric.len() != 1 {
@@ -468,7 +483,7 @@ fn parse_timestamp(value: &str) -> Result<i64, String> {
 
     if raw.ends_with('Z') || raw.ends_with('z') {
         raw.pop();
-    } else if let Some(position) = raw.rfind(['+', '-']) {
+    } else if let Some(position) = raw.rfind(|ch| ch == '+' || ch == '-') {
         if position > 10 {
             let offset = &raw[position..];
             if !matches!(offset, "+00:00" | "-00:00" | "+0000" | "-0000" | "+00" | "-00") {
@@ -583,7 +598,7 @@ fn parse_compact_date(value: &str) -> Result<i64, String> {
 }
 
 fn days_from_civil(year: i64, month: i64, day: i64) -> i64 {
-    let adjusted_year = year - i64::from(month <= 2);
+    let adjusted_year = if month <= 2 { year - 1 } else { year };
     let era = if adjusted_year >= 0 { adjusted_year } else { adjusted_year - 399 } / 400;
     let year_of_era = adjusted_year - era * 400;
     let adjusted_month = month + if month > 2 { -3 } else { 9 };
@@ -937,6 +952,24 @@ mod tests {
             parse_timestamp("05/10/2024 11:00:00 AM").unwrap(),
             parse_timestamp("2024-05-10T11:00:00+00:00").unwrap()
         );
+    }
+
+    #[test]
+    fn parses_split_date_and_time_columns_in_measurement_rows() {
+        let csv = b"date,time,current\n2024-05-10,15:00:00,1.25\n";
+        let samples = parse_measured_csv(csv, "split.csv").unwrap();
+        let expected = days_from_civil(2024, 5, 10) * 86_400 + 15 * 3_600;
+        assert_eq!(samples.get(&expected), Some(&1.25));
+    }
+
+    #[test]
+    fn rejects_ambiguous_or_extra_numeric_measurement_columns() {
+        let ambiguous = b"timestamp,current\n2024-05-10 15:00:00,1.0\n2024-05-10 15:00:01,2.0\n";
+        assert!(parse_measured_csv(ambiguous, "ambiguous.csv").is_ok());
+
+        let extra = b"timestamp,current,quality_value\n2024-05-10 15:00:00,1.0,2.0\n";
+        let error = parse_measured_csv(extra, "extra.csv").unwrap_err();
+        assert!(error.contains("exactly one current value"));
     }
 
     #[test]
