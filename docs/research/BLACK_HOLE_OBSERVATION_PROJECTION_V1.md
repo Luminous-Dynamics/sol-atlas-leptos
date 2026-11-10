@@ -294,6 +294,9 @@ The added fields are optional in schema v1, so existing asymptotic projections r
 - `captured_by_horizon` requires an ingoing Kerr trajectory with a recorded crossing of the declared outer horizon, finite ingoing coordinates, and residuals within the qualified run limits.
 - A Boyer–Lindquist path that reaches its coordinate-domain boundary is `terminated_at_chart_boundary`, not captured.
 - A ray whose radius turns back outside the horizon is `turned_back` or another declared non-capture endpoint.
+- `no_horizon_crossing_within_integrated_interval` means only that no crossing was recorded during the finite integration interval; it is **not** evidence of escape.
+- `not_qualifiable_in_boyer_lindquist` means the chart cannot qualify a horizon crossing.
+- `constraint_drift_exceeded` and `incomplete_trajectory` are never promoted to a capture or escape.
 - Unknown chart, absent horizon radius, unresolved crossing, or invalid residuals produces an unresolved qualification—not a visually inferred capture.
 
 ### Rendering
