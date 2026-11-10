@@ -122,29 +122,17 @@
       ],
       "properties": {
         "value": {
-          "type": [
-            "number",
-            "null"
-          ]
+          "type": "null"
         },
         "unit": {
           "type": "string",
           "minLength": 1
         },
         "state": {
-          "enum": [
-            "UNKNOWN",
-            "SYNTHETIC_ASSUMPTION",
-            "MEASURED",
-            "MODELLED",
-            "ASSAYED"
-          ]
+          "const": "UNKNOWN"
         },
         "source_ref": {
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": "null"
         }
       }
     },
