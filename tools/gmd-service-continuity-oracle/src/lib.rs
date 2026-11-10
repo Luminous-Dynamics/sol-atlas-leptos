@@ -81,6 +81,8 @@ pub struct ServiceMetrics {
     pub source_sha256: String,
     pub evidence_class: EvidenceClass,
     pub horizon_seconds: u64,
+    pub initially_above_service_floor: bool,
+    pub initially_fully_served: bool,
     pub total_required_quantity: f64,
     pub total_delivered_quantity_capped: f64,
     pub total_surplus_quantity_excluded: f64,
@@ -309,6 +311,8 @@ pub fn evaluate_service(
         source_sha256: service.source_sha256.clone(),
         evidence_class: service.evidence_class,
         horizon_seconds,
+        initially_above_service_floor: floor_status[0],
+        initially_fully_served: full_status[0],
         total_required_quantity: total_required,
         total_delivered_quantity_capped: total_delivered_capped,
         total_surplus_quantity_excluded: total_surplus,
@@ -423,11 +427,19 @@ fn find_sustained_recovery(
     status: &[bool],
     hold_seconds: u64,
 ) -> Option<RecoveryMark> {
+    let mut observed_violation = false;
     let mut run_start = None;
     let mut run_duration = 0_u64;
 
     for (interval, is_satisfied) in intervals.iter().zip(status.iter().copied()) {
-        if is_satisfied {
+        if !is_satisfied {
+            observed_violation = true;
+            run_start = None;
+            run_duration = 0;
+            continue;
+        }
+
+        if observed_violation {
             if run_start.is_none() {
                 run_start = Some(interval.start_offset_seconds);
                 run_duration = 0;
@@ -442,9 +454,6 @@ fn find_sustained_recovery(
                     confirmed_after_seconds: interval.end_offset_seconds,
                 });
             }
-        } else {
-            run_start = None;
-            run_duration = 0;
         }
     }
     None
@@ -503,14 +512,10 @@ mod tests {
         assert_eq!(result.demand_weighted_served_fraction, 1.0);
         assert_eq!(result.floor_time_availability_fraction, 1.0);
         assert_eq!(result.floor_violation_episode_count, 0);
-        assert_eq!(
-            result.floor_recovery,
-            Some(RecoveryMark {
-                began_after_seconds: 0,
-                confirmed_after_seconds: 30,
-            })
-        );
-        assert_eq!(result.full_service_recovery, result.floor_recovery);
+        assert!(result.initially_above_service_floor);
+        assert!(result.initially_fully_served);
+        assert_eq!(result.floor_recovery, None);
+        assert_eq!(result.full_service_recovery, None);
     }
 
     #[test]
@@ -529,6 +534,8 @@ mod tests {
         assert_eq!(result.longest_floor_violation_seconds, 30);
         assert_eq!(result.floor_violation_episode_count, 1);
         assert_eq!(result.first_floor_violation_after_seconds, Some(30));
+        assert!(result.initially_above_service_floor);
+        assert!(!result.initially_fully_served);
         assert_eq!(
             result.floor_recovery,
             Some(RecoveryMark {
@@ -559,6 +566,7 @@ mod tests {
         ]);
         let result = evaluate_service(&input, 90).unwrap();
 
+        assert!(!result.initially_above_service_floor);
         assert_eq!(
             result.floor_recovery,
             Some(RecoveryMark {
@@ -632,6 +640,8 @@ mod tests {
         assert_eq!(result.floor_time_availability_fraction, 1.0);
         assert_eq!(result.demand_weighted_served_fraction, 1.0);
         assert_eq!(result.total_unserved_quantity, 0.0);
+        assert!(result.initially_above_service_floor);
+        assert_eq!(result.floor_recovery, None);
     }
 
     #[test]
@@ -777,6 +787,8 @@ mod tests {
         let result = evaluate_service(&input, 60).unwrap();
 
         assert_eq!(result.floor_violation_episode_count, 0);
+        assert!(result.initially_above_service_floor);
+        assert_eq!(result.floor_recovery, None);
         assert_eq!(result.demand_weighted_served_fraction, 0.795);
         assert_eq!(result.total_unserved_quantity, 20.5);
     }
