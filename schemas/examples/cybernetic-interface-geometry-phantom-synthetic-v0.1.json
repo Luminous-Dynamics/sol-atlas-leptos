@@ -30,7 +30,13 @@
         "uncertainty": {
           "kind": "not_quantified",
           "reason": "Synthetic fixture origin; no physical metrology is represented."
-        }
+        },
+        "handedness": "right_handed",
+        "axis_labels": [
+          "bench_longitudinal",
+          "bench_lateral",
+          "bench_normal"
+        ]
       },
       {
         "frame_id": "phantom_ankle",
@@ -56,7 +62,13 @@
         "uncertainty": {
           "kind": "not_quantified",
           "reason": "Illustrative synthetic transform; no scan or physical registration."
-        }
+        },
+        "handedness": "right_handed",
+        "axis_labels": [
+          "fixture_longitudinal",
+          "fixture_lateral",
+          "fixture_normal"
+        ]
       },
       {
         "frame_id": "cuff_cad",
@@ -82,7 +94,13 @@
         "uncertainty": {
           "kind": "not_quantified",
           "reason": "Illustrative nominal CAD placement only."
-        }
+        },
+        "handedness": "right_handed",
+        "axis_labels": [
+          "fixture_longitudinal",
+          "fixture_lateral",
+          "fixture_normal"
+        ]
       },
       {
         "frame_id": "cuff_interface",
@@ -108,7 +126,13 @@
         "uncertainty": {
           "kind": "not_quantified",
           "reason": "Synthetic nominal interface frame only."
-        }
+        },
+        "handedness": "right_handed",
+        "axis_labels": [
+          "fixture_longitudinal",
+          "fixture_lateral",
+          "fixture_normal"
+        ]
       }
     ]
   },
