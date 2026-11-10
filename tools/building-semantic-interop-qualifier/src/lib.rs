@@ -9,12 +9,15 @@ use serde_json::{Map, Value};
 use std::collections::BTreeSet;
 use std::fmt;
 
-pub const PROFILE_JSON: &str =
-    include_str!("../../../docs/research/building-semantic-interop/BUILDING_SEMANTIC_PROFILE_V0_1.json");
-pub const SCHEMA_JSON: &str =
-    include_str!("../../../docs/research/building-semantic-interop/BUILDING_SEMANTIC_PROFILE_V0_1.schema.json");
-pub const CORPUS_JSON: &str =
-    include_str!("../../../docs/research/building-semantic-interop/BUILDING_SEMANTIC_CORPUS_V0_1.json");
+pub const PROFILE_JSON: &str = include_str!(
+    "../../../docs/research/building-semantic-interop/BUILDING_SEMANTIC_PROFILE_V0_1.json"
+);
+pub const SCHEMA_JSON: &str = include_str!(
+    "../../../docs/research/building-semantic-interop/BUILDING_SEMANTIC_PROFILE_V0_1.schema.json"
+);
+pub const CORPUS_JSON: &str = include_str!(
+    "../../../docs/research/building-semantic-interop/BUILDING_SEMANTIC_CORPUS_V0_1.json"
+);
 
 const PROFILE_ID: &str = "CITY-BUILDING-SEMANTIC-PROFILE-V0.1";
 const CORPUS_ID: &str = "CITY-BUILDING-SEMANTIC-CORPUS-V0.1";
@@ -45,12 +48,12 @@ const CASE_FIELDS: &[&str] = &[
     "case_id", "description", "mapping", "expected_disposition",
 ];
 
-const EXPECTED_STANDARDS: &[(&str, &str, &str)] = &[
-    ("ifc-4.3", "IFC4.3-ISO16739-1:2024", "stable"),
-    ("brick-1.4.4", "1.4.4", "stable"),
-    ("brick-1.5.0-rc1", "1.5.0-rc1", "prerelease"),
-    ("ashrae-223", "VERSION_NOT_PINNED", "unresolved"),
-    ("haystack-xeto", "VERSION_NOT_PINNED", "unresolved"),
+const EXPECTED_STANDARDS: &[(&str, &str, &str, &str, &str)] = &[
+    ("ifc-4.3", "IFC", "IFC4.3-ISO16739-1:2024", "stable", "PINNED_FOR_FIXTURE"),
+    ("brick-1.4.4", "Brick", "1.4.4", "stable", "PINNED_FOR_FIXTURE"),
+    ("brick-1.5.0-rc1", "Brick", "1.5.0-rc1", "prerelease", "SEPARATE_PRERELEASE_LANE"),
+    ("ashrae-223", "ASHRAE Standard 223", "VERSION_NOT_PINNED", "unresolved", "BLOCKED_UNTIL_EXACT_ARTIFACT_PINNED"),
+    ("haystack-xeto", "Project Haystack/XETO", "VERSION_NOT_PINNED", "unresolved", "BLOCKED_UNTIL_EXACT_ARTIFACT_PINNED"),
 ];
 
 const EXPECTED_CASES: &[(&str, &str)] = &[
@@ -267,8 +270,10 @@ fn validate_profile(profile: &Value) -> Result<(), String> {
     for (standard, expected) in standards.iter().zip(EXPECTED_STANDARDS.iter()) {
         if !exact_keys(standard, STANDARD_FIELDS)
             || text(standard, "key") != expected.0
-            || text(standard, "release_id") != expected.1
-            || text(standard, "maturity") != expected.2
+            || text(standard, "family") != expected.1
+            || text(standard, "release_id") != expected.2
+            || text(standard, "maturity") != expected.3
+            || text(standard, "status") != expected.4
         {
             return Err(format!("STANDARD_PIN_DRIFT:{}", expected.0));
         }
@@ -343,6 +348,55 @@ fn validate_schema(schema: &Value) -> Result<(), String> {
     }) {
         return Err("SCHEMA_REQUIRED_FIELDS_INVALID".to_owned());
     }
+    if schema["$schema"] != "https://json-schema.org/draft/2020-12/schema"
+        || schema["title"] != "Sol-Atlas Building Semantic Mapping Profile v0.1"
+        || schema["properties"]["schema_version"]["const"]
+            != "sol-atlas.building-semantic-profile/0.1"
+        || schema["properties"]["profile_id"]["const"] != PROFILE_ID
+        || schema["properties"]["classification"]["const"]
+            != "synthetic_mapping_contract_only"
+        || schema["properties"]["claim_ceiling"]["const"]
+            != "synthetic_mapping_admission_and_semantic_loss_checks_only"
+    {
+        return Err("SCHEMA_IDENTITY_CONSTRAINT_DRIFT".to_owned());
+    }
+
+    let relations = &schema["properties"]["mapping_relations"];
+    let expected_relations = [
+        "exact", "narrower", "broader", "related", "composed", "derived", "unresolved",
+    ];
+    if text(relations, "type") != "array"
+        || relations["minItems"] != expected_relations.len()
+        || relations["maxItems"] != expected_relations.len()
+        || !string_array(&relations["items"], "enum").is_some_and(|items| {
+            items.len() == expected_relations.len()
+                && items.iter().zip(expected_relations).all(|(item, expected)| {
+                    item.as_str() == Some(expected)
+                })
+        })
+    {
+        return Err("SCHEMA_RELATION_VOCABULARY_INVALID".to_owned());
+    }
+
+    let policy = &schema["properties"]["policy"];
+    if text(policy, "type") != "object"
+        || policy["additionalProperties"] != false
+        || !exact_keys(&policy["properties"], &[
+            "exact_equivalence_requires_same_subject",
+            "exact_equivalence_requires_same_quantity_kind",
+            "exact_equivalence_requires_same_unit",
+            "exact_equivalence_requires_preserved_time_basis",
+            "exact_equivalence_requires_preserved_evidence_class",
+            "prerelease_mappings_admitted_as_stable",
+            "unknown_standard_release_admitted",
+            "unknown_rights_admitted",
+            "automatic_label_based_equivalence_allowed",
+            "new_core_ontology_allowed",
+        ])
+    {
+        return Err("SCHEMA_POLICY_CONTRACT_INVALID".to_owned());
+    }
+
     let standard = &schema["$defs"]["standard"];
     if text(standard, "type") != "object"
         || standard["additionalProperties"] != false
