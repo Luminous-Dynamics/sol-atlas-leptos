@@ -228,8 +228,9 @@ fn validate_profile(p:&Value)->Result<(),String>{
         ||text(p,"parent_issue")!="https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/700"
         ||text(p,"base_package_id")!="HIGHVELD-HOUSEHOLD-SERVICE-SYNTHETIC-001"
     {return Err("PROFILE_IDENTITY_OR_CLAIM_CEILING_INVALID".into());}
-    if !arr_eq(&p["service_ids"],&["WATERLOOP","HEATBANK","AIRCARE"]){return Err("SERVICE_IDS_INVALID".into());}
+    if !arr_eq(&p["service_ids"],&["WATERLOOP","HEATBANK","AIRCARE"])||!exact_keys(&p["owner_contracts"],&["in_use_outcomes","service_timeline"]){return Err("SERVICE_OR_OWNER_CONTRACT_SET_INVALID".into());}
     let outcome=&p["owner_contracts"]["in_use_outcomes"];
+    if !exact_keys(outcome,OUTCOME_CONTRACT_FIELDS){return Err("OUTCOME_OWNER_CONTRACT_FIELDS_INVALID".into());}
     if text(outcome,"owner")!="sol-atlas"||text(outcome,"contract_id")!="CITY-IN-USE-OUTCOMES-001"
         ||text(outcome,"schema_id")!="org.luminousdynamics.city-in-use-outcomes.synthetic-corpus"
         ||text(outcome,"schema_version")!="0.1.0"||text(outcome,"corpus_id")!="CITY-IN-USE-OUTCOMES-CORPUS-V0.1"
@@ -237,11 +238,15 @@ fn validate_profile(p:&Value)->Result<(),String>{
         ||!arr_eq(&outcome["observation_fields"],OBSERVATION_FIELDS)
         ||!arr_eq(&outcome["evidence_classes"],&["meter","experience","service"])
         ||!arr_eq(&outcome["evidence_kinds"],&["meter_measurement","consented_survey","service_receipt"])
+        ||text(outcome,"non_authority")!="read_only_comparability_classifier_not_meter_owner_or_service_executor"
     {return Err("OUTCOME_OWNER_CONTRACT_DRIFT".into());}
     let timeline=&p["owner_contracts"]["service_timeline"];
+    if !exact_keys(timeline,TIMELINE_CONTRACT_FIELDS){return Err("TIMELINE_OWNER_CONTRACT_FIELDS_INVALID".into());}
     if text(timeline,"owner")!="symtropy"||text(timeline,"contract_id")!="SPATIAL-RESILIENCE-TIMELINE-ORACLE"
         ||text(timeline,"schema_version")!="0.1.0"||text(timeline,"benchmark_id")!="SPATIAL-RESILIENCE-TIMELINE-ORACLE"
         ||!arr_eq(&timeline["event_fields"],EVENT_FIELDS)||!arr_eq(&timeline["event_kinds"],&["restored","lost"])
+        ||text(timeline,"non_authority")!="availability_and_stable_recovery_only_not_physical_measurement_or_quality"
+        ||text(timeline,"grouping_rule").len()<40
     {return Err("TIMELINE_OWNER_CONTRACT_DRIFT".into());}
     let metrics=p["outcome_metrics"].as_array().ok_or("METRICS_MISSING")?;
     if metrics.len()!=EXPECTED_METRICS.len(){return Err("METRIC_COUNT_INVALID".into());}
@@ -270,9 +275,6 @@ fn validate_profile(p:&Value)->Result<(),String>{
     }
     let policy=p.get("binding_policy").ok_or("BINDING_POLICY_MISSING")?;
     if !exact_keys(policy,BINDING_POLICY_FIELDS)||policy.as_object().is_none_or(|o|o.values().any(|v|v.as_bool()!=Some(true))){
-        return Err("BINDING_POLICY_WEAKENED".into());
-    }
-    if p["binding_policy"].as_object().is_none_or(|o|o.values().any(|v|v.as_bool()!=Some(true))){
         return Err("BINDING_POLICY_WEAKENED".into());
     }
     Ok(())
