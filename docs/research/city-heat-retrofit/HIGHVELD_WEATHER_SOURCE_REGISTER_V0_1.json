@@ -251,7 +251,8 @@
         "obtain instrument/relocation/maintenance/QC history",
         "confirm price and commercial licence",
         "obtain sample metadata/product terms"
-      ]
+      ],
+      "filename": null
     },
     {
       "source_id": "ARC-AGROMETEOROLOGY-ARCHIVE-JOHANNESBURG-STATIONS",
@@ -286,7 +287,8 @@
         "obtain station metadata/maintenance/QC histories",
         "confirm fees and rights",
         "inspect sample data and checksums"
-      ]
+      ],
+      "filename": null
     },
     {
       "source_id": "NOAA-NCEI-GHCND-JOHANNESBURG-INTERNATIONAL",
@@ -319,7 +321,8 @@
         "reconcile WMO/WIGOS/ISD/GHCND identities",
         "review data terms",
         "compare only on compatible daily variables"
-      ]
+      ],
+      "filename": null
     },
     {
       "source_id": "ERA5-GRIDDED-REANALYSIS-SOLAR",
@@ -353,7 +356,8 @@
         "review source provenance and licence",
         "compare against available station radiation records",
         "hash downloaded inputs"
-      ]
+      ],
+      "filename": null
     }
   ]
 }
