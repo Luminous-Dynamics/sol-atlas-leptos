@@ -1088,7 +1088,7 @@
         "event_contract_valid": true,
         "event_used_as_measurement": false
       },
-      "expected_disposition": "NOT_COMPARABLE"
+      "expected_disposition": "REJECTED_CLAIM_PROMOTION"
     },
     {
       "case_id": "HSOB-032",
@@ -1228,7 +1228,7 @@
         "event_contract_valid": true,
         "event_used_as_measurement": false
       },
-      "expected_disposition": "NOT_COMPARABLE"
+      "expected_disposition": "REJECTED_CLAIM_PROMOTION"
     },
     {
       "case_id": "HSOB-036",
