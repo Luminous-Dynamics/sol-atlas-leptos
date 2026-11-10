@@ -1,0 +1,1104 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/docs/research/schemas/kerr_ray_bundle_projection_v1.schema.json",
+  "title": "Kerr Ray-Bundle Projection V1",
+  "description": "Sol-Atlas view-model extension for analytic or numerical geometric-optics Kerr ray bundles. This is not a detector measurement, a physical truth authority, or a wave-optics intensity prediction.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "projection_id",
+    "projection_kind",
+    "qualification_status",
+    "source",
+    "benchmark",
+    "geometry",
+    "observer",
+    "source_surface",
+    "image_branches",
+    "claim_ceiling",
+    "evidence"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "luminous.kerr-ray-bundle-projection.v1"
+    },
+    "projection_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160
+    },
+    "projection_kind": {
+      "enum": [
+        "analytic_prediction",
+        "numerical_simulation"
+      ]
+    },
+    "qualification_status": {
+      "enum": [
+        "planned",
+        "analytic_oracle",
+        "numerically_reproduced",
+        "independently_cross_checked",
+        "converged",
+        "ill_conditioned",
+        "unresolved",
+        "refuted"
+      ]
+    },
+    "claim_ceiling": {
+      "const": "geometric_optics_only_not_observation"
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "repository",
+        "commit_sha",
+        "solver_id",
+        "result_id",
+        "input_digest",
+        "configuration_digest",
+        "output_digest"
+      ],
+      "properties": {
+        "repository": {
+          "type": "string",
+          "minLength": 1
+        },
+        "commit_sha": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "solver_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "result_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "input_digest": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "configuration_digest": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "output_digest": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "reproduction_command": {
+          "type": "string"
+        }
+      }
+    },
+    "benchmark": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "benchmark_id",
+        "manifest_uri",
+        "manifest_digest"
+      ],
+      "properties": {
+        "benchmark_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "manifest_uri": {
+          "type": "string",
+          "format": "uri"
+        },
+        "manifest_digest": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "external_reference_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        }
+      }
+    },
+    "geometry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "metric",
+        "mass_m",
+        "dimensionless_spin",
+        "signature",
+        "coordinate_chart",
+        "coordinate_order",
+        "unit_system"
+      ],
+      "properties": {
+        "metric": {
+          "const": "Kerr"
+        },
+        "mass_m": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "dimensionless_spin": {
+          "type": "number",
+          "minimum": -1,
+          "maximum": 1
+        },
+        "signature": {
+          "const": "-+++"
+        },
+        "coordinate_chart": {
+          "enum": [
+            "boyer_lindquist",
+            "ingoing_kerr",
+            "kerr_schild",
+            "other_declared"
+          ]
+        },
+        "coordinate_order": {
+          "type": "array",
+          "minItems": 4,
+          "maxItems": 4,
+          "prefixItems": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "string"
+            },
+            {
+              "type": "string"
+            },
+            {
+              "type": "string"
+            }
+          ]
+        },
+        "unit_system": {
+          "enum": [
+            "geometrized_G_equals_c_equals_1",
+            "SI",
+            "other_declared"
+          ]
+        },
+        "chart_domain": {
+          "type": "string"
+        }
+      }
+    },
+    "observer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "observer_id",
+        "worldline_kind",
+        "tetrad_id",
+        "screen_basis",
+        "inclination_rad",
+        "screen_coordinate_convention"
+      ],
+      "properties": {
+        "observer_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "worldline_kind": {
+          "enum": [
+            "asymptotic_static",
+            "finite_radius_static",
+            "locally_nonrotating",
+            "comoving",
+            "other_declared"
+          ]
+        },
+        "tetrad_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "screen_basis": {
+          "type": "string",
+          "minLength": 1
+        },
+        "inclination_rad": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 3.141592653589793
+        },
+        "screen_coordinate_convention": {
+          "type": "string",
+          "minLength": 1
+        },
+        "screen_handedness": {
+          "enum": [
+            "right_handed",
+            "left_handed",
+            "other_declared"
+          ]
+        },
+        "coordinate_chart": {
+          "enum": [
+            "asymptotic_screen",
+            "boyer_lindquist",
+            "ingoing_kerr",
+            "other_declared"
+          ]
+        },
+        "observer_model": {
+          "enum": [
+            "asymptotic_static",
+            "zero_angular_momentum_observer",
+            "finite_radius_static",
+            "comoving",
+            "other_declared"
+          ]
+        },
+        "observer_radius_over_m": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "exclusiveMinimum": 0
+        },
+        "observer_theta_rad": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 3.141592653589793
+        },
+        "finite_radius_tetrad": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": false,
+          "required": [
+            "tetrad_id",
+            "observer_model",
+            "lapse",
+            "frame_dragging_angular_velocity",
+            "sqrt_g_phi_phi",
+            "basis_digest"
+          ],
+          "properties": {
+            "tetrad_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "observer_model": {
+              "const": "zero_angular_momentum_observer"
+            },
+            "lapse": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "frame_dragging_angular_velocity": {
+              "type": "number"
+            },
+            "sqrt_g_phi_phi": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "basis_digest": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "tetrad_vectors_contravariant": {
+              "type": "array",
+              "minItems": 4,
+              "maxItems": 4,
+              "items": {
+                "type": "array",
+                "minItems": 4,
+                "maxItems": 4,
+                "items": {
+                  "type": "number"
+                }
+              }
+            },
+            "orthonormality_residual": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "minimum": 0
+            }
+          }
+        },
+        "local_sky_direction": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": false,
+          "required": [
+            "radial",
+            "polar",
+            "azimuthal",
+            "norm_squared",
+            "direction_convention"
+          ],
+          "properties": {
+            "radial": {
+              "type": "number",
+              "minimum": -1,
+              "maximum": 1
+            },
+            "polar": {
+              "type": "number",
+              "minimum": -1,
+              "maximum": 1
+            },
+            "azimuthal": {
+              "type": "number",
+              "minimum": -1,
+              "maximum": 1
+            },
+            "norm_squared": {
+              "type": "number",
+              "minimum": 0
+            },
+            "direction_convention": {
+              "const": "future_directed_photon_in_zamo_orthonormal_frame"
+            },
+            "local_energy_scale": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "exclusiveMinimum": 0
+            },
+            "killing_energy_at_infinity_per_local_energy": {
+              "type": [
+                "number",
+                "null"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "source_surface": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "surface_id",
+        "surface_kind",
+        "emission_time_convention"
+      ],
+      "properties": {
+        "surface_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "surface_kind": {
+          "enum": [
+            "equatorial_thin_disk",
+            "spherical_surface",
+            "point_source_worldline",
+            "numerical_emitting_surface",
+            "other_declared"
+          ]
+        },
+        "emission_time_convention": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_history_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "image_branches": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "branch_id",
+          "image_order",
+          "radial_turning_count",
+          "polar_turning_count",
+          "endpoint_status",
+          "screen_coordinates",
+          "jacobi_map",
+          "caustic",
+          "travel_time",
+          "redshift",
+          "magnification"
+        ],
+        "properties": {
+          "branch_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "image_order": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "radial_turning_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "polar_turning_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "endpoint_status": {
+            "enum": [
+              "source_hit",
+              "captured_by_horizon",
+              "escaped_to_infinity",
+              "missed_source",
+              "terminated_unresolved",
+              "terminated_at_chart_boundary"
+            ]
+          },
+          "screen_coordinates": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "alpha",
+              "beta",
+              "unit"
+            ],
+            "properties": {
+              "alpha": {
+                "type": "number"
+              },
+              "beta": {
+                "type": "number"
+              },
+              "unit": {
+                "type": "string"
+              }
+            }
+          },
+          "jacobi_map": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "method",
+              "matrix_2x2",
+              "determinant",
+              "singular_values",
+              "condition_number",
+              "orientation_parity"
+            ],
+            "properties": {
+              "method": {
+                "enum": [
+                  "geodesic_deviation",
+                  "finite_difference_ray_bundle",
+                  "both_independent_paths"
+                ]
+              },
+              "matrix_2x2": {
+                "type": "array",
+                "minItems": 2,
+                "maxItems": 2,
+                "items": {
+                  "type": "array",
+                  "minItems": 2,
+                  "maxItems": 2,
+                  "items": {
+                    "type": "number"
+                  }
+                }
+              },
+              "determinant": {
+                "type": "number"
+              },
+              "singular_values": {
+                "type": "array",
+                "minItems": 2,
+                "maxItems": 2,
+                "items": {
+                  "type": "number",
+                  "minimum": 0
+                }
+              },
+              "condition_number": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 1
+              },
+              "orientation_parity": {
+                "enum": [
+                  "positive",
+                  "negative",
+                  "undefined_at_caustic",
+                  "unresolved"
+                ]
+              }
+            }
+          },
+          "caustic": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "status",
+              "crossing_count",
+              "distance_estimate",
+              "conditioning_status"
+            ],
+            "properties": {
+              "status": {
+                "enum": [
+                  "none_detected",
+                  "approaching",
+                  "crossed",
+                  "singular",
+                  "unresolved"
+                ]
+              },
+              "crossing_count": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "distance_estimate": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0
+              },
+              "conditioning_status": {
+                "enum": [
+                  "well_conditioned",
+                  "ill_conditioned",
+                  "singular",
+                  "unresolved"
+                ]
+              },
+              "refinement_level": {
+                "type": "integer",
+                "minimum": 0
+              }
+            }
+          },
+          "travel_time": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "value",
+              "unit",
+              "time_coordinate"
+            ],
+            "properties": {
+              "value": {
+                "type": "number",
+                "minimum": 0
+              },
+              "unit": {
+                "type": "string"
+              },
+              "time_coordinate": {
+                "type": "string"
+              },
+              "observer_proper_time": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              }
+            }
+          },
+          "redshift": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "factor",
+              "convention"
+            ],
+            "properties": {
+              "factor": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              },
+              "convention": {
+                "type": "string"
+              }
+            }
+          },
+          "magnification": {
+            "oneOf": [
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "status",
+                  "signed_value",
+                  "area_normalization"
+                ],
+                "properties": {
+                  "status": {
+                    "const": "well_conditioned"
+                  },
+                  "signed_value": {
+                    "type": "number"
+                  },
+                  "area_normalization": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "status",
+                  "signed_value",
+                  "reason"
+                ],
+                "properties": {
+                  "status": {
+                    "enum": [
+                      "ill_conditioned",
+                      "singular",
+                      "unresolved"
+                    ]
+                  },
+                  "signed_value": {
+                    "type": "null"
+                  },
+                  "reason": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              }
+            ]
+          },
+          "polarization": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "status": {
+                "enum": [
+                  "not_computed",
+                  "parallel_transport_computed",
+                  "unresolved"
+                ]
+              },
+              "basis_id": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "walker_penrose_invariant": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              }
+            }
+          },
+          "trajectory_coordinate_chart": {
+            "enum": [
+              "boyer_lindquist",
+              "ingoing_kerr",
+              "not_applicable",
+              "other_declared"
+            ]
+          },
+          "trajectory_qualification": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "additionalProperties": false,
+            "required": [
+              "endpoint_classification",
+              "accepted_steps",
+              "rejected_steps",
+              "radial_constraint_residual_max",
+              "polar_constraint_residual_max"
+            ],
+            "properties": {
+              "endpoint_classification": {
+                "enum": [
+                  "source_hit",
+                  "captured_by_horizon",
+                  "escaped_to_infinity",
+                  "turned_back",
+                  "terminated_at_chart_boundary",
+                  "terminated_unresolved",
+                  "no_horizon_crossing_within_integrated_interval",
+                  "not_qualifiable_in_boyer_lindquist",
+                  "constraint_drift_exceeded",
+                  "incomplete_trajectory"
+                ]
+              },
+              "accepted_steps": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "rejected_steps": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "radial_constraint_residual_max": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0
+              },
+              "polar_constraint_residual_max": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0
+              },
+              "terminal_radius_over_m": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0
+              },
+              "outer_horizon_radius_over_m": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0
+              },
+              "crossed_outer_horizon": {
+                "type": [
+                  "boolean",
+                  "null"
+                ]
+              },
+              "coordinate_chart": {
+                "enum": [
+                  "boyer_lindquist",
+                  "ingoing_kerr",
+                  "other_declared"
+                ]
+              },
+              "result_digest": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "pattern": "^([0-9a-f]{64})?$"
+              }
+            }
+          }
+        }
+      }
+    },
+    "error_budget": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "integration_error": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "screen_interpolation_error": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "jacobi_discrepancy": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "caustic_location_error": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "time_delay_error": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "reference_error": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "unresolved_categories": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mycelix_claim_ids",
+        "mycelix_evidence_ids",
+        "symthaea_identifiability_result_id"
+      ],
+      "properties": {
+        "mycelix_claim_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "mycelix_evidence_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "symthaea_identifiability_result_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "independent_review_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        }
+      }
+    },
+    "wave_optics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "result_kind",
+        "method",
+        "regime_status",
+        "caustic_class",
+        "source_model",
+        "coherence",
+        "phase_convention",
+        "normalization",
+        "frequency_unit",
+        "samples",
+        "approximation_validity"
+      ],
+      "properties": {
+        "result_kind": {
+          "enum": [
+            "analytic_prediction",
+            "numerical_simulation"
+          ]
+        },
+        "method": {
+          "enum": [
+            "geometric_stationary_phase",
+            "airy_fold_uniform",
+            "pearcey_cusp_uniform",
+            "ray_derived_arrival_time_diffraction",
+            "mst_scattering_factor",
+            "full_wave_numerical",
+            "other_declared"
+          ]
+        },
+        "regime_status": {
+          "enum": [
+            "geometric_optics_valid",
+            "fold_uniform_valid",
+            "cusp_uniform_valid",
+            "finite_source_regularized",
+            "full_wave_reference",
+            "unresolved",
+            "approximation_out_of_domain"
+          ]
+        },
+        "caustic_class": {
+          "enum": [
+            "none",
+            "fold",
+            "cusp",
+            "higher_order",
+            "unresolved"
+          ]
+        },
+        "source_model": {
+          "enum": [
+            "point_source",
+            "finite_source",
+            "binary_quadrupolar",
+            "other_declared"
+          ]
+        },
+        "source_history_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "coherence": {
+          "enum": [
+            "fully_coherent",
+            "partially_coherent",
+            "incoherent_intensity_average",
+            "not_applicable",
+            "unresolved"
+          ]
+        },
+        "phase_convention": {
+          "type": "string",
+          "minLength": 1
+        },
+        "normalization": {
+          "type": "string",
+          "minLength": 1
+        },
+        "frequency_unit": {
+          "type": "string",
+          "minLength": 1
+        },
+        "dimensionless_M_omega": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "approximant_reference_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "approximation_validity": {
+          "type": "string",
+          "minLength": 1
+        },
+        "samples": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "frequency",
+              "amplification_real",
+              "amplification_imag",
+              "phase_rad",
+              "intensity",
+              "status"
+            ],
+            "properties": {
+              "frequency": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              },
+              "amplification_real": {
+                "type": "number"
+              },
+              "amplification_imag": {
+                "type": "number"
+              },
+              "phase_rad": {
+                "type": "number"
+              },
+              "intensity": {
+                "type": "number",
+                "minimum": 0
+              },
+              "status": {
+                "enum": [
+                  "converged",
+                  "ill_conditioned",
+                  "unresolved",
+                  "out_of_domain"
+                ]
+              },
+              "error_estimate": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0
+              }
+            }
+          }
+        },
+        "comparison": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "reference_method": {
+              "type": "string"
+            },
+            "complex_amplitude_error": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "minimum": 0
+            },
+            "phase_error_rad": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "minimum": 0
+            },
+            "intensity_error": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "minimum": 0
+            },
+            "reference_digest": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "pattern": "^([0-9a-f]{64})?$"
+            }
+          }
+        }
+      }
+    }
+  }
+}

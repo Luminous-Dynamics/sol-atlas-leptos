@@ -182,3 +182,125 @@ Do not encode confidence solely in color, line thickness, or visual prominence. 
 - no hiding dissenting or failed replications;
 - no Earth-geospatial coordinate assumptions for astronomy;
 - no bespoke waveform inference inside the renderer.
+
+
+## 12. Kerr ray-bundle and caustic projection extension
+
+This section composes the base observation contract with Symtropy's planned Kerr ray-bundle benchmark:
+- Symtropy physics / benchmark owner: [#4519](https://github.com/Luminous-Dynamics/symtropy/issues/4519)
+- Planned input/reference manifest: [Symtropy PR #4522](https://github.com/Luminous-Dynamics/symtropy/pull/4522), `crates/domains/symtropy-relativity/benchmarks/kerr_ray_bundle_v1.json`
+- Sol-Atlas projection owner: [#701](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/701)
+- Symthaea identifiability owner: [#11021](https://github.com/Luminous-Dynamics/symthaea/issues/11021)
+- Mycelix evidence owner: [#5903](https://github.com/Luminous-Dynamics/mycelix/issues/5903)
+
+### Projection record
+
+The companion schema `docs/research/schemas/kerr_ray_bundle_projection_v1.schema.json` validates a geometric-optics projection payload. It deliberately does not redefine the canonical observation record or scientific claim/evidence semantics.
+
+Each projection binds:
+- source result ID, source solver revision, physics benchmark ID and exact configuration/input/output digests;
+- Kerr mass/spin and metric/chart convention;
+- observer worldline, tetrad identity, screen basis and inclination;
+- source surface/event identity and image-branch identity;
+- screen coordinates, image order, radial/polar turning counts and endpoint classification;
+- travel-time delay, redshift convention, and optional polarization-transport record;
+- 2x2 Jacobi map, determinant, singular values, condition number, orientation parity and caustic status;
+- signed magnification only where the map is regular and the area normalization is declared;
+- numerical refinement level, error budget, solver identity and qualification status;
+- canonical Mycelix claim/evidence references and Symthaea identifiability result reference.
+
+### Visual layers
+
+1. **Observer-screen atlas:** critical curves, image branches, image order and caustic intersections.
+2. **Jacobi / caustic inspector:** determinant, singular values, condition number, parity and refinement history.
+3. **Image-delay map:** per-image travel time and source emission event, grouped by image order.
+4. **Source-to-image correspondence:** source event, endpoint, redshift and optional polarization transport.
+5. **Identifiability:** spin, inclination, source position and source-history degeneracies, preserving posterior samples and correlation.
+6. **Evidence drawer:** exact Symtropy output, model/data/configuration digests, Mycelix attestations and Symthaea status.
+
+### Type and interpretation safeguards
+
+- A ray or image projection has kind `AnalyticPrediction` or `NumericalSimulation`, never `DetectorMeasurement` or `TelescopeMeasurement`.
+- A caustic is a singularity of a declared geometric-optics map. It is not by itself a finite intensity prediction; wave-optics diffraction requires a separate wave model.
+- Near a singular Jacobi map, magnification must be null with an explicit `IllConditioned`, `Singular` or `Unresolved` status. The renderer must not clamp it to a visually plausible finite number.
+- Keep image branches separate across topology changes; never connect branch IDs merely because screen pixels are adjacent.
+- Preserve per-image travel times. Fast-light approximations must expose the source correlation time and delay spread; they must not silently collapse distinct emission events.
+- Coordinate radii, image-plane pixels and celestial angles are not interchangeable physical lengths.
+- Riemannian geodesic-tube and Euclidean local-smoothing results are mathematical context only. They do not prove a Lorentzian Kerr estimate.
+
+### Acceptance
+
+- One Schwarzschild and one Kerr analytic/numerical fixture render with complete conventions.
+- Critical-curve and image-branch identity are stable under screen-grid refinement.
+- Jacobi-map variational and finite-difference results remain distinct and their discrepancy is visible.
+- Caustic crossings show parity change and a conditioning warning; no false finite magnification is emitted at a singular map.
+- Per-image delays remain visible for time-variable sources.
+- A blinded reviewer can distinguish analytic prediction, numerical ray trace, telescope measurement, reconstructed image and posterior inference.
+- Stale source, missing tetrad, wrong chart, branch collision, under-resolved caustic and simulation-as-observation controls fail closed.
+
+The initial manifest PR #4522 is a planned protocol only. No ray-bundle result, caustic measurement, magnification or EHT inference is claimed here.
+
+
+## 13. Finite-frequency wave-optics caustic projection
+
+Compose the ray-bundle contract with the separate finite-frequency Symtropy work:
+- Geometric-optics producer: Symtropy [#4519](https://github.com/Luminous-Dynamics/symtropy/issues/4519), planned manifest [PR #4522](https://github.com/Luminous-Dynamics/symtropy/pull/4522).
+- Wave-optics producer: Symtropy [#4526](https://github.com/Luminous-Dynamics/symtropy/issues/4526), planned canonical/strong-field benchmark [PR #4527](https://github.com/Luminous-Dynamics/symtropy/pull/4527).
+
+The optional `wave_optics` object in the companion schema records:
+- method: geometric stationary phase, Airy fold uniform, Pearcey cusp uniform, ray-derived arrival-time diffraction, MST/scattering-factor reference or full-wave numerical output;
+- caustic class and regime/approximation validity;
+- source angular structure, finite-source size, coherence state and source-history identity;
+- frequency grid, dimensionless (M\omega), Fourier/phase convention and incident/observed normalization;
+- complex amplification, phase and intensity, with numerical/reference error;
+- code, configuration, input/output digest and external-reference identity.
+
+### Regime display
+
+Render distinct panels/layers for:
+1. geometric image branches and stationary-phase sum;
+2. uniform fold/cusp finite-frequency response;
+3. finite-source / partially coherent response;
+4. full strong-field wave-scattering reference;
+5. measured detector/telescope data and reconstructed observations, when available.
+
+Never display a divergent geometric-optics magnification as a finite wave intensity. A wave-optics result is still a model prediction or numerical simulation unless it has been compared with an actual measurement under a declared inference procedure. Preserve phase and polarization, not only intensity. A result outside its approximation domain or lacking a converged oscillatory integral must display an unresolved/out-of-domain status.
+
+
+
+## 14. Finite-radius observers and horizon-crossing ray provenance
+
+Symtropy's current producer increment is [draft PR #4543](https://github.com/Luminous-Dynamics/symtropy/pull/4543), which adds:
+- a finite-radius Kerr zero-angular-momentum observer (ZAMO) orthonormal tetrad;
+- unit local photon directions in the ZAMO radial / polar / azimuthal basis;
+- mapping from a local sky direction to normalized (E=1,L_z,Q) and a Mino initial state;
+- adaptive second-order Mino integration in two explicitly tagged coordinate charts:
+  - Boyer–Lindquist ((ct/M,r/M,\theta,\phi)), exterior-only;
+  - ingoing Kerr ((v/M,r/M,\theta,\tilde\phi)), for future-ingoing rays across the outer horizon.
+
+### Projection fields
+
+The companion schema now has optional, backward-compatible fields for:
+- `observer.coordinate_chart`: `asymptotic_screen`, `boyer_lindquist`, `ingoing_kerr` or a declared alternative;
+- finite observer radius and polar angle in (M) units;
+- ZAMO lapse, frame-dragging angular velocity, (sqrt{g_{\phi\phi}}), tetrad digest and optional tetrad vectors;
+- unit local sky direction and its interpretation as a future-directed photon in the ZAMO frame;
+- per-image trajectory chart and a trajectory-qualification object containing endpoint classification, accepted/rejected steps, radial/polar constraint residuals, terminal radius, horizon radius, crossing flag and result digest.
+
+The added fields are optional in schema v1, so existing asymptotic projections remain valid.
+
+### Endpoint classification safeguards
+
+- `captured_by_horizon` requires an ingoing Kerr trajectory with a recorded crossing of the declared outer horizon, finite ingoing coordinates, and residuals within the qualified run limits.
+- A Boyer–Lindquist path that reaches its coordinate-domain boundary is `terminated_at_chart_boundary`, not captured.
+- A ray whose radius turns back outside the horizon is `turned_back` or another declared non-capture endpoint.
+- `no_horizon_crossing_within_integrated_interval` means only that no crossing was recorded during the finite integration interval; it is **not** evidence of escape.
+- `not_qualifiable_in_boyer_lindquist` means the chart cannot qualify a horizon crossing.
+- `constraint_drift_exceeded` and `incomplete_trajectory` are never promoted to a capture or escape.
+- Unknown chart, absent horizon radius, unresolved crossing, or invalid residuals produces an unresolved qualification—not a visually inferred capture.
+
+### Rendering
+
+A finite-radius ray card must show its observer model/tetrad identity, event location, local sky direction, coordinate chart, and (E,L_z,Q) normalization. Keep local screen directions distinct from asymptotic Bardeen ((\alpha,\beta)) coordinates. Use the finite-radius-to-asymptotic limit only as a validation, not as an unrecorded coordinate conversion.
+
+A captured-ray visualization is still a numerical model output, not a telescope measurement. No capture observation or caustic result is available from the current draft producer PR.
