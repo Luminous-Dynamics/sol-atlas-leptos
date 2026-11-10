@@ -32,13 +32,14 @@
           "declared_losses": []
         },
         "semantics": {
-          "quantity_kind": "temperature",
           "source_unit": "Cel",
           "target_unit": "Cel",
           "conversion_rule_id": "",
           "conversion_state": "none",
           "time_basis_preserved": true,
-          "evidence_class_preserved": true
+          "evidence_class_preserved": true,
+          "source_quantity_kind": "temperature",
+          "target_quantity_kind": "temperature"
         },
         "evidence": {
           "rule_id": "map-rule-001",
@@ -80,13 +81,14 @@
           ]
         },
         "semantics": {
-          "quantity_kind": "temperature",
           "source_unit": "Cel",
           "target_unit": "Cel",
           "conversion_rule_id": "",
           "conversion_state": "none",
           "time_basis_preserved": true,
-          "evidence_class_preserved": true
+          "evidence_class_preserved": true,
+          "source_quantity_kind": "temperature",
+          "target_quantity_kind": "temperature"
         },
         "evidence": {
           "rule_id": "map-rule-001",
@@ -126,13 +128,14 @@
           "declared_losses": []
         },
         "semantics": {
-          "quantity_kind": "temperature",
           "source_unit": "Cel",
           "target_unit": "Cel",
           "conversion_rule_id": "",
           "conversion_state": "none",
           "time_basis_preserved": true,
-          "evidence_class_preserved": true
+          "evidence_class_preserved": true,
+          "source_quantity_kind": "temperature",
+          "target_quantity_kind": "temperature"
         },
         "evidence": {
           "rule_id": "map-rule-001",
@@ -172,13 +175,14 @@
           "declared_losses": []
         },
         "semantics": {
-          "quantity_kind": "mass_concentration",
           "source_unit": "Cel",
           "target_unit": "Cel",
           "conversion_rule_id": "",
           "conversion_state": "none",
           "time_basis_preserved": true,
-          "evidence_class_preserved": true
+          "evidence_class_preserved": true,
+          "source_quantity_kind": "mass_concentration",
+          "target_quantity_kind": "mass_concentration"
         },
         "evidence": {
           "rule_id": "map-rule-001",
@@ -218,13 +222,14 @@
           "declared_losses": []
         },
         "semantics": {
-          "quantity_kind": "temperature",
           "source_unit": "Cel",
           "target_unit": "[degF]",
           "conversion_rule_id": "",
           "conversion_state": "none",
           "time_basis_preserved": true,
-          "evidence_class_preserved": true
+          "evidence_class_preserved": true,
+          "source_quantity_kind": "temperature",
+          "target_quantity_kind": "temperature"
         },
         "evidence": {
           "rule_id": "map-rule-001",
@@ -264,13 +269,14 @@
           "declared_losses": []
         },
         "semantics": {
-          "quantity_kind": "temperature",
           "source_unit": "Cel",
           "target_unit": "Cel",
           "conversion_rule_id": "",
           "conversion_state": "none",
           "time_basis_preserved": true,
-          "evidence_class_preserved": true
+          "evidence_class_preserved": true,
+          "source_quantity_kind": "temperature",
+          "target_quantity_kind": "temperature"
         },
         "evidence": {
           "rule_id": "map-rule-001",
@@ -312,13 +318,14 @@
           ]
         },
         "semantics": {
-          "quantity_kind": "temperature",
           "source_unit": "Cel",
           "target_unit": "Cel",
           "conversion_rule_id": "",
           "conversion_state": "none",
           "time_basis_preserved": true,
-          "evidence_class_preserved": true
+          "evidence_class_preserved": true,
+          "source_quantity_kind": "temperature",
+          "target_quantity_kind": "temperature"
         },
         "evidence": {
           "rule_id": "map-rule-001",
@@ -358,13 +365,14 @@
           "declared_losses": []
         },
         "semantics": {
-          "quantity_kind": "temperature",
           "source_unit": "Cel",
           "target_unit": "Cel",
           "conversion_rule_id": "",
           "conversion_state": "none",
           "time_basis_preserved": true,
-          "evidence_class_preserved": true
+          "evidence_class_preserved": true,
+          "source_quantity_kind": "temperature",
+          "target_quantity_kind": "temperature"
         },
         "evidence": {
           "rule_id": "map-rule-001",
@@ -404,13 +412,14 @@
           "declared_losses": []
         },
         "semantics": {
-          "quantity_kind": "temperature",
           "source_unit": "Cel",
           "target_unit": "Cel",
           "conversion_rule_id": "",
           "conversion_state": "none",
           "time_basis_preserved": true,
-          "evidence_class_preserved": true
+          "evidence_class_preserved": true,
+          "source_quantity_kind": "temperature",
+          "target_quantity_kind": "temperature"
         },
         "evidence": {
           "rule_id": "map-rule-001",
@@ -450,13 +459,14 @@
           "declared_losses": []
         },
         "semantics": {
-          "quantity_kind": "temperature",
           "source_unit": "Cel",
           "target_unit": "Cel",
           "conversion_rule_id": "",
           "conversion_state": "none",
           "time_basis_preserved": true,
-          "evidence_class_preserved": true
+          "evidence_class_preserved": true,
+          "source_quantity_kind": "temperature",
+          "target_quantity_kind": "temperature"
         },
         "evidence": {
           "rule_id": "map-rule-001",
@@ -496,13 +506,14 @@
           "declared_losses": []
         },
         "semantics": {
-          "quantity_kind": "temperature",
           "source_unit": "Cel",
           "target_unit": "Cel",
           "conversion_rule_id": "",
           "conversion_state": "none",
           "time_basis_preserved": true,
-          "evidence_class_preserved": true
+          "evidence_class_preserved": true,
+          "source_quantity_kind": "temperature",
+          "target_quantity_kind": "temperature"
         },
         "evidence": {
           "rule_id": "map-rule-001",
@@ -542,13 +553,14 @@
           "declared_losses": []
         },
         "semantics": {
-          "quantity_kind": "temperature",
           "source_unit": "Cel",
           "target_unit": "Cel",
           "conversion_rule_id": "",
           "conversion_state": "none",
           "time_basis_preserved": true,
-          "evidence_class_preserved": true
+          "evidence_class_preserved": true,
+          "source_quantity_kind": "temperature",
+          "target_quantity_kind": "temperature"
         },
         "evidence": {
           "rule_id": "map-rule-001",
@@ -588,13 +600,14 @@
           "declared_losses": []
         },
         "semantics": {
-          "quantity_kind": "temperature",
           "source_unit": "Cel",
           "target_unit": "Cel",
           "conversion_rule_id": "",
           "conversion_state": "none",
           "time_basis_preserved": true,
-          "evidence_class_preserved": true
+          "evidence_class_preserved": true,
+          "source_quantity_kind": "temperature",
+          "target_quantity_kind": "temperature"
         },
         "evidence": {
           "rule_id": "map-rule-001",
@@ -634,13 +647,14 @@
           "declared_losses": []
         },
         "semantics": {
-          "quantity_kind": "temperature",
           "source_unit": "Cel",
           "target_unit": "Cel",
           "conversion_rule_id": "",
           "conversion_state": "none",
           "time_basis_preserved": true,
-          "evidence_class_preserved": true
+          "evidence_class_preserved": true,
+          "source_quantity_kind": "temperature",
+          "target_quantity_kind": "temperature"
         },
         "evidence": {
           "rule_id": "map-rule-001",
@@ -680,13 +694,14 @@
           "declared_losses": []
         },
         "semantics": {
-          "quantity_kind": "temperature",
           "source_unit": "Cel",
           "target_unit": "Cel",
           "conversion_rule_id": "",
           "conversion_state": "none",
           "time_basis_preserved": true,
-          "evidence_class_preserved": true
+          "evidence_class_preserved": true,
+          "source_quantity_kind": "temperature",
+          "target_quantity_kind": "temperature"
         },
         "evidence": {
           "rule_id": "",
@@ -726,13 +741,14 @@
           "declared_losses": []
         },
         "semantics": {
-          "quantity_kind": "temperature",
           "source_unit": "Cel",
           "target_unit": "Cel",
           "conversion_rule_id": "",
           "conversion_state": "none",
           "time_basis_preserved": true,
-          "evidence_class_preserved": true
+          "evidence_class_preserved": true,
+          "source_quantity_kind": "temperature",
+          "target_quantity_kind": "temperature"
         },
         "evidence": {
           "rule_id": "map-rule-001",
@@ -772,13 +788,14 @@
           "declared_losses": []
         },
         "semantics": {
-          "quantity_kind": "temperature",
           "source_unit": "Cel",
           "target_unit": "Cel",
           "conversion_rule_id": "",
           "conversion_state": "none",
           "time_basis_preserved": false,
-          "evidence_class_preserved": true
+          "evidence_class_preserved": true,
+          "source_quantity_kind": "temperature",
+          "target_quantity_kind": "temperature"
         },
         "evidence": {
           "rule_id": "map-rule-001",
@@ -818,13 +835,14 @@
           "declared_losses": []
         },
         "semantics": {
-          "quantity_kind": "temperature",
           "source_unit": "Cel",
           "target_unit": "Cel",
           "conversion_rule_id": "",
           "conversion_state": "none",
           "time_basis_preserved": true,
-          "evidence_class_preserved": false
+          "evidence_class_preserved": false,
+          "source_quantity_kind": "temperature",
+          "target_quantity_kind": "temperature"
         },
         "evidence": {
           "rule_id": "map-rule-001",
@@ -864,13 +882,14 @@
           "declared_losses": []
         },
         "semantics": {
-          "quantity_kind": "temperature",
           "source_unit": "Cel",
           "target_unit": "Cel",
           "conversion_rule_id": "",
           "conversion_state": "none",
           "time_basis_preserved": true,
-          "evidence_class_preserved": true
+          "evidence_class_preserved": true,
+          "source_quantity_kind": "temperature",
+          "target_quantity_kind": "temperature"
         },
         "evidence": {
           "rule_id": "map-rule-001",
@@ -912,13 +931,14 @@
           ]
         },
         "semantics": {
-          "quantity_kind": "temperature",
           "source_unit": "Cel",
           "target_unit": "Cel",
           "conversion_rule_id": "",
           "conversion_state": "none",
           "time_basis_preserved": true,
-          "evidence_class_preserved": true
+          "evidence_class_preserved": true,
+          "source_quantity_kind": "temperature",
+          "target_quantity_kind": "temperature"
         },
         "evidence": {
           "rule_id": "map-rule-001",
@@ -960,13 +980,14 @@
           ]
         },
         "semantics": {
-          "quantity_kind": "temperature",
           "source_unit": "Cel",
           "target_unit": "Cel",
           "conversion_rule_id": "",
           "conversion_state": "none",
           "time_basis_preserved": true,
-          "evidence_class_preserved": true
+          "evidence_class_preserved": true,
+          "source_quantity_kind": "temperature",
+          "target_quantity_kind": "temperature"
         },
         "evidence": {
           "rule_id": "map-rule-001",
@@ -1008,13 +1029,14 @@
           ]
         },
         "semantics": {
-          "quantity_kind": "temperature",
           "source_unit": "Cel",
           "target_unit": "Cel",
           "conversion_rule_id": "",
           "conversion_state": "none",
           "time_basis_preserved": true,
-          "evidence_class_preserved": true
+          "evidence_class_preserved": true,
+          "source_quantity_kind": "temperature",
+          "target_quantity_kind": "temperature"
         },
         "evidence": {
           "rule_id": "map-rule-001",
@@ -1056,13 +1078,14 @@
           ]
         },
         "semantics": {
-          "quantity_kind": "temperature",
           "source_unit": "Cel",
           "target_unit": "Cel",
           "conversion_rule_id": "",
           "conversion_state": "none",
           "time_basis_preserved": true,
-          "evidence_class_preserved": true
+          "evidence_class_preserved": true,
+          "source_quantity_kind": "temperature",
+          "target_quantity_kind": "temperature"
         },
         "evidence": {
           "rule_id": "map-rule-001",
@@ -1102,13 +1125,14 @@
           "declared_losses": []
         },
         "semantics": {
-          "quantity_kind": "temperature",
           "source_unit": "Cel",
           "target_unit": "Cel",
           "conversion_rule_id": "",
           "conversion_state": "none",
           "time_basis_preserved": true,
-          "evidence_class_preserved": true
+          "evidence_class_preserved": true,
+          "source_quantity_kind": "temperature",
+          "target_quantity_kind": "temperature"
         },
         "evidence": {
           "rule_id": "map-rule-001",
@@ -1148,13 +1172,14 @@
           "declared_losses": []
         },
         "semantics": {
-          "quantity_kind": "temperature",
           "source_unit": "Cel",
           "target_unit": "Cel",
           "conversion_rule_id": "",
           "conversion_state": "none",
           "time_basis_preserved": true,
-          "evidence_class_preserved": true
+          "evidence_class_preserved": true,
+          "source_quantity_kind": "temperature",
+          "target_quantity_kind": "temperature"
         },
         "evidence": {
           "rule_id": "map-rule-001",
@@ -1194,13 +1219,14 @@
           "declared_losses": []
         },
         "semantics": {
-          "quantity_kind": "temperature",
           "source_unit": "Cel",
           "target_unit": "Cel",
           "conversion_rule_id": "",
           "conversion_state": "none",
           "time_basis_preserved": true,
-          "evidence_class_preserved": true
+          "evidence_class_preserved": true,
+          "source_quantity_kind": "temperature",
+          "target_quantity_kind": "temperature"
         },
         "evidence": {
           "rule_id": "map-rule-001",
@@ -1240,13 +1266,14 @@
           "declared_losses": []
         },
         "semantics": {
-          "quantity_kind": "temperature",
           "source_unit": "Cel",
           "target_unit": "Cel",
           "conversion_rule_id": "",
           "conversion_state": "none",
           "time_basis_preserved": true,
-          "evidence_class_preserved": true
+          "evidence_class_preserved": true,
+          "source_quantity_kind": "temperature",
+          "target_quantity_kind": "temperature"
         },
         "evidence": {
           "rule_id": "map-rule-001",
@@ -1286,13 +1313,14 @@
           "declared_losses": []
         },
         "semantics": {
-          "quantity_kind": "temperature",
           "source_unit": "Cel",
           "target_unit": "Cel",
           "conversion_rule_id": "",
           "conversion_state": "none",
           "time_basis_preserved": true,
-          "evidence_class_preserved": true
+          "evidence_class_preserved": true,
+          "source_quantity_kind": "temperature",
+          "target_quantity_kind": "temperature"
         },
         "evidence": {
           "rule_id": "map-rule-001",
@@ -1332,13 +1360,14 @@
           "declared_losses": []
         },
         "semantics": {
-          "quantity_kind": "temperature",
           "source_unit": "Cel",
           "target_unit": "Cel",
           "conversion_rule_id": "",
           "conversion_state": "none",
           "time_basis_preserved": true,
-          "evidence_class_preserved": true
+          "evidence_class_preserved": true,
+          "source_quantity_kind": "temperature",
+          "target_quantity_kind": "temperature"
         },
         "evidence": {
           "rule_id": "map-rule-001",
@@ -1378,13 +1407,14 @@
           "declared_losses": []
         },
         "semantics": {
-          "quantity_kind": "temperature",
           "source_unit": "Cel",
           "target_unit": "Cel",
           "conversion_rule_id": "",
           "conversion_state": "none",
           "time_basis_preserved": true,
-          "evidence_class_preserved": true
+          "evidence_class_preserved": true,
+          "source_quantity_kind": "temperature",
+          "target_quantity_kind": "temperature"
         },
         "evidence": {
           "rule_id": "map-rule-001",
@@ -1426,13 +1456,14 @@
           ]
         },
         "semantics": {
-          "quantity_kind": "temperature",
           "source_unit": "Cel",
           "target_unit": "[degF]",
           "conversion_rule_id": "",
           "conversion_state": "unknown",
           "time_basis_preserved": true,
-          "evidence_class_preserved": true
+          "evidence_class_preserved": true,
+          "source_quantity_kind": "temperature",
+          "target_quantity_kind": "temperature"
         },
         "evidence": {
           "rule_id": "map-rule-001",
@@ -1474,13 +1505,14 @@
           ]
         },
         "semantics": {
-          "quantity_kind": "temperature",
           "source_unit": "Cel",
           "target_unit": "[degF]",
           "conversion_rule_id": "unit-conversion-c-to-f-v1",
           "conversion_state": "verified",
           "time_basis_preserved": true,
-          "evidence_class_preserved": true
+          "evidence_class_preserved": true,
+          "source_quantity_kind": "temperature",
+          "target_quantity_kind": "temperature"
         },
         "evidence": {
           "rule_id": "map-rule-001",
@@ -1520,13 +1552,14 @@
           "declared_losses": []
         },
         "semantics": {
-          "quantity_kind": "temperature",
           "source_unit": "Cel",
           "target_unit": "[degF]",
           "conversion_rule_id": "unit-conversion-c-to-f-v1",
           "conversion_state": "verified",
           "time_basis_preserved": true,
-          "evidence_class_preserved": true
+          "evidence_class_preserved": true,
+          "source_quantity_kind": "temperature",
+          "target_quantity_kind": "temperature"
         },
         "evidence": {
           "rule_id": "map-rule-001",
@@ -1566,13 +1599,14 @@
           "declared_losses": []
         },
         "semantics": {
-          "quantity_kind": "temperature",
           "source_unit": "Cel",
           "target_unit": "Cel",
           "conversion_rule_id": "",
           "conversion_state": "none",
           "time_basis_preserved": true,
-          "evidence_class_preserved": true
+          "evidence_class_preserved": true,
+          "source_quantity_kind": "temperature",
+          "target_quantity_kind": "temperature"
         },
         "evidence": {
           "rule_id": "map-rule-001",
@@ -1612,13 +1646,14 @@
           "declared_losses": []
         },
         "semantics": {
-          "quantity_kind": "temperature",
           "source_unit": "Cel",
           "target_unit": "Cel",
           "conversion_rule_id": "",
           "conversion_state": "none",
           "time_basis_preserved": true,
-          "evidence_class_preserved": true
+          "evidence_class_preserved": true,
+          "source_quantity_kind": "temperature",
+          "target_quantity_kind": "temperature"
         },
         "evidence": {
           "rule_id": "map-rule-001",
@@ -1658,13 +1693,14 @@
           "declared_losses": []
         },
         "semantics": {
-          "quantity_kind": "temperature",
           "source_unit": "Cel",
           "target_unit": "Cel",
           "conversion_rule_id": "",
           "conversion_state": "none",
           "time_basis_preserved": true,
-          "evidence_class_preserved": true
+          "evidence_class_preserved": true,
+          "source_quantity_kind": "temperature",
+          "target_quantity_kind": "temperature"
         },
         "evidence": {
           "rule_id": "map-rule-001",
@@ -1704,13 +1740,14 @@
           "declared_losses": []
         },
         "semantics": {
-          "quantity_kind": "temperature",
           "source_unit": "Cel",
           "target_unit": "Cel",
           "conversion_rule_id": "",
           "conversion_state": "none",
           "time_basis_preserved": true,
-          "evidence_class_preserved": true
+          "evidence_class_preserved": true,
+          "source_quantity_kind": "temperature",
+          "target_quantity_kind": "temperature"
         },
         "evidence": {
           "rule_id": "map-rule-001",
@@ -1750,13 +1787,14 @@
           "declared_losses": []
         },
         "semantics": {
-          "quantity_kind": "temperature",
           "source_unit": "Cel",
           "target_unit": "Cel",
           "conversion_rule_id": "",
           "conversion_state": "none",
           "time_basis_preserved": true,
-          "evidence_class_preserved": true
+          "evidence_class_preserved": true,
+          "source_quantity_kind": "temperature",
+          "target_quantity_kind": "temperature"
         },
         "evidence": {
           "rule_id": "map-rule-001",
@@ -1796,13 +1834,14 @@
           "declared_losses": []
         },
         "semantics": {
-          "quantity_kind": "temperature",
           "source_unit": "Cel",
           "target_unit": "Cel",
           "conversion_rule_id": "",
           "conversion_state": "none",
           "time_basis_preserved": true,
-          "evidence_class_preserved": true
+          "evidence_class_preserved": true,
+          "source_quantity_kind": "temperature",
+          "target_quantity_kind": "temperature"
         },
         "evidence": {
           "rule_id": "map-rule-001",
@@ -1842,13 +1881,14 @@
           "declared_losses": []
         },
         "semantics": {
-          "quantity_kind": "temperature",
           "source_unit": "Cel",
           "target_unit": "Cel",
           "conversion_rule_id": "",
           "conversion_state": "none",
           "time_basis_preserved": true,
-          "evidence_class_preserved": true
+          "evidence_class_preserved": true,
+          "source_quantity_kind": "temperature",
+          "target_quantity_kind": "temperature"
         },
         "evidence": {
           "rule_id": "map-rule-001",
