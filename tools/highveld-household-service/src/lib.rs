@@ -247,13 +247,19 @@ pub fn validate_package(package: &Package) -> ValidationReport {
             "AIRCARE" => "https://github.com/Luminous-Dynamics/symthaea/issues/10330",
             _ => "",
         };
+        let functional_unit_is_domain_specific = match service.id.as_str() {
+            "WATERLOOP" => service.functional_unit.contains("usable non-potable water delivered"),
+            "HEATBANK" => service.functional_unit.contains("accepted hot-water delivery"),
+            "AIRCARE" => service.functional_unit.contains("pollutant-specific clean-air delivery"),
+            _ => false,
+        };
         if service.product_name.trim().is_empty()
             || service.owner != "Symthaea"
             || service.owner_issue_url != expected_issue_url
             || service.product_revision != "UNKNOWN_NOT_SELECTED"
             || service.status != "RESEARCH_PROFILE_ONLY"
             || service.service_definition.trim().is_empty()
-            || service.functional_unit.trim().is_empty()
+            || !functional_unit_is_domain_specific
             || service.hard_service_floor_state
                 != "UNKNOWN_PENDING_RESIDENT_AND_APPLICABLE_REQUIREMENTS"
             || service.evidence_state != "RESEARCH_PROFILE_ONLY"
@@ -468,6 +474,17 @@ mod tests {
             1,
         );
         assert!(validate_json(&changed).is_err());
+    }
+
+    #[test]
+    fn generic_functional_unit_is_rejected() {
+        let changed = PACKAGE_JSON.replacen(
+            "pollutant-specific clean-air delivery and outdoor-air delivery at defined occupied-room positions over a declared room-use window",
+            "one generic household service over a window",
+            1,
+        );
+        let report = validate_json(&changed).expect("typed JSON remains parseable");
+        assert!(report.violations.contains(&"SERVICE_PROFILE_PROMOTED_OR_INCOMPLETE"));
     }
 
     #[test]
