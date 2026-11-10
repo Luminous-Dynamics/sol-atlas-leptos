@@ -528,3 +528,37 @@ A good average service score cannot compensate for a hospital or potable-water f
 - Shi, Bai and Wang, *Power distribution system blackstart restoration using renewable energy*, Nature Communications 17, 8498 (17 August 2026; DOI 10.1038/s41467-026-76692-0), reviews bottom-up grid-forming DER restoration and the constraints of inverter headroom, low inertia, cold-load pickup, protection and incomplete situational awareness: https://doi.org/10.1038/s41467-026-76692-0.
 
 This Luminous evaluator implements a deliberately small metric subset. It does not claim conformance to the complete IEEE PES report, black-start standards, utility procedures or operational restoration.
+
+
+## 18. Closed-loop restoration and active sensing — 10 November 2026
+
+The 2026 bottom-up black-start review emphasizes that admissible actions change as islands are energized: renewable availability, deliverable inverter headroom, load recovery, switch status and synchronization margins are progressively revealed. It recommends closed-loop, rolling-horizon decisions that update state estimates and re-solve after observing each restoration step (Shi, Bai & Wang, Nature Communications 17, 8498, DOI https://doi.org/10.1038/s41467-026-76692-0).
+
+The Luminous benchmark now treats restoration as a **proof-carrying proposal process**, not a one-shot AI plan:
+
+1. Observe current state, topology, headroom, demand and communication/time quality.
+2. Estimate uncertainty and list missing/stale evidence.
+3. Generate candidate actions, including defer / request another measurement.
+4. Independently check electrical, protection and synchronization feasibility in Symtropy.
+5. Evaluate service consequences in Sol-Atlas #716.
+6. Emit a versioned read-only proposal with preconditions, state/topology hashes, evidence, uncertainty, margins, service deltas and required human authority.
+7. After an operator-authorised step, collect measured post-step evidence and re-plan.
+
+The observation network should be part of the decision process. Sol-Atlas [GMD-OBSERVABILITY-001 #713](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/713) now includes dynamic value-of-information tests: proceed on existing evidence, defer and request a targeted measurement, or hold when the required local observation is unavailable. Any value-of-information result must bind its observation operator, noise/covariance, latency, communication path and decision-loss model. It must not assume an observation is instantly available or independent of common power/telemetry failures.
+
+Symtropy [POWER-SYSTEM-RESILIENCE-001 #3418](https://github.com/Luminous-Dynamics/symtropy/issues/3418) owns the physical microgrid/black-start feasibility boundary. Symthaea [GMD-INTELLIGENCE-001 #11358](https://github.com/Luminous-Dynamics/symthaea/issues/11358) may rank proposals, identify valuable observations and produce counterfactuals, but learned surrogates must be independently rechecked by qualified physical models. Mycelix carries signed proposals/observations and causal evidence; message delivery or owner acknowledgement is not proof that a physical switch or load pickup succeeded.
+
+### Benchmark
+
+On tractable synthetic networks, compare operator-rule baseline, static plan, fixed rolling horizon, active-sensing/value-of-information policy, robust optimization and learned candidate-ranking plus independent physical verification. Hold event forcing, topology, resources, demand, sensor set, latency and hard constraints identical.
+
+Report:
+- physically infeasible / inadmissible proposal rate (target zero for accepted proposals);
+- hard protection, voltage, frequency and synchronization violations (target zero);
+- regret against exact/exhaustive reference on small networks;
+- critical-service floor outcomes and restoration times;
+- benefit and latency cost of requesting additional observations;
+- worst-case outcome under stale, missing and common-mode-correlated measurements;
+- computation latency and number of re-planning cycles.
+
+A lower objective value cannot compensate for a hard safety or service-floor violation. No model receipt authorizes execution; all high-consequence steps require the responsible operator's approval and independent local protection.
