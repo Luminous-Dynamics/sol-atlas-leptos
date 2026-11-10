@@ -396,6 +396,7 @@ fn weighted_variance(
     }
 }
 
+#[allow(clippy::needless_range_loop)]
 fn cholesky(matrix: &[Vec<f64>]) -> Result<Vec<Vec<f64>>, DesignError> {
     let dimension = matrix.len();
     if dimension == 0 || matrix.iter().any(|row| row.len() != dimension) {
@@ -441,6 +442,7 @@ fn cholesky(matrix: &[Vec<f64>]) -> Result<Vec<Vec<f64>>, DesignError> {
     Ok(lower)
 }
 
+#[allow(clippy::needless_range_loop)]
 fn inverse_spd(matrix: &[Vec<f64>]) -> Result<Vec<Vec<f64>>, DesignError> {
     let lower = cholesky(matrix)?;
     let dimension = lower.len();
@@ -488,6 +490,7 @@ fn inverse_spd(matrix: &[Vec<f64>]) -> Result<Vec<Vec<f64>>, DesignError> {
     Ok(inverse)
 }
 
+#[allow(clippy::needless_range_loop)]
 fn transpose(matrix: &[Vec<f64>]) -> Vec<Vec<f64>> {
     let rows = matrix.len();
     let columns = matrix.first().map_or(0, Vec::len);
@@ -501,6 +504,7 @@ fn transpose(matrix: &[Vec<f64>]) -> Vec<Vec<f64>> {
     result
 }
 
+#[allow(clippy::needless_range_loop)]
 fn multiply(
     left: &[Vec<f64>],
     right: &[Vec<f64>],
@@ -534,6 +538,7 @@ fn multiply(
     Ok(result)
 }
 
+#[allow(clippy::needless_range_loop)]
 fn add_matrices(
     left: &[Vec<f64>],
     right: &[Vec<f64>],
