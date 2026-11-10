@@ -247,19 +247,38 @@ pub fn validate_package(package: &Package) -> ValidationReport {
             "AIRCARE" => "https://github.com/Luminous-Dynamics/symthaea/issues/10330",
             _ => "",
         };
-        let functional_unit_is_domain_specific = match service.id.as_str() {
-            "WATERLOOP" => service.functional_unit.contains("usable non-potable water delivered"),
-            "HEATBANK" => service.functional_unit.contains("accepted hot-water delivery"),
-            "AIRCARE" => service.functional_unit.contains("pollutant-specific clean-air delivery"),
-            _ => false,
-        };
+        let (expected_functional_unit, expected_inputs, expected_flows, expected_spaces):
+            (&str, &[&str], &[&str], &[&str]) = match service.id.as_str() {
+                "WATERLOOP" => (
+                    "usable non-potable water delivered (litres) to one named permitted end use over a declared observation or outage window",
+                    &["source_water", "electrical_supply"],
+                    &["source_withdrawal", "usable_non_potable_delivery", "rejected_or_residual_water", "electrical_energy"],
+                    &["service_plant", "outdoor_living"],
+                ),
+                "HEATBANK" => (
+                    "accepted hot-water delivery (litres meeting a declared temperature and timing profile) under a matched draw sequence",
+                    &["electrical_supply", "water_supply", "thermal_source"],
+                    &["electrical_energy", "useful_thermal_service", "water_draw", "storage_loss"],
+                    &["service_plant", "accessible_washroom", "kitchen_dining"],
+                ),
+                "AIRCARE" => (
+                    "pollutant-specific clean-air delivery and outdoor-air delivery at defined occupied-room positions over a declared room-use window",
+                    &["electrical_supply", "outdoor_air", "filter_media"],
+                    &["electrical_energy", "outdoor_air_delivery", "clean_air_delivery", "condensate_or_captured_residual"],
+                    &["sleeping_rooms", "great_hall", "service_plant"],
+                ),
+                _ => ("", &[], &[], &[]),
+            };
         if service.product_name.trim().is_empty()
             || service.owner != "Symthaea"
             || service.owner_issue_url != expected_issue_url
             || service.product_revision != "UNKNOWN_NOT_SELECTED"
             || service.status != "RESEARCH_PROFILE_ONLY"
             || service.service_definition.trim().is_empty()
-            || !functional_unit_is_domain_specific
+            || service.functional_unit != expected_functional_unit
+            || !unique_ids(service.input_streams.iter().map(|item| item.id.clone()), expected_inputs)
+            || !unique_ids(service.resource_flows.iter().map(|item| item.id.clone()), expected_flows)
+            || !unique_ids(service.spatial_interfaces.iter().map(|item| item.space_ref.clone()), expected_spaces)
             || service.hard_service_floor_state
                 != "UNKNOWN_PENDING_RESIDENT_AND_APPLICABLE_REQUIREMENTS"
             || service.evidence_state != "RESEARCH_PROFILE_ONLY"
@@ -346,13 +365,28 @@ pub fn validate_package(package: &Package) -> ValidationReport {
         violations.push("STRESS_CASE_ID_SET_INVALID");
     }
     for item in &package.stress_cases {
+        let expected_event_family = match item.id.as_str() {
+            "HHS-001" => "CONCURRENCY",
+            "HHS-002" | "HHS-003" => "THERMAL_WEATHER",
+            "HHS-004" | "HHS-005" => "ELECTRICAL_OUTAGE",
+            "HHS-006" => "WATER_OUTAGE",
+            "HHS-007" => "AIR_QUALITY",
+            "HHS-008" => "COMPONENT_FAULT",
+            "HHS-009" => "COMMON_MODE_FAILURE",
+            "HHS-010" => "MAINTENANCE_DELAY",
+            "HHS-011" => "OBSERVATION_FAILURE",
+            "HHS-012" => "HOUSEHOLD_CHANGE",
+            "HHS-013" => "RESOURCE_ALLOCATION",
+            "HHS-014" => "REPEAT_DISTURBANCE",
+            _ => "",
+        };
         if item.description.trim().is_empty()
-            || item.event_family.trim().is_empty()
+            || item.event_family != expected_event_family
             || item.source_class != "SYNTHETIC_CASE_DEFINITION"
             || item.timing_state != "UNSPECIFIED"
             || item.trace_status != "NOT_MATERIALIZED"
         {
-            violations.push("STRESS_CASE_PROMOTED");
+            violations.push("STRESS_CASE_PROMOTED_OR_MISBOUND");
         }
     }
 
@@ -540,6 +574,28 @@ mod tests {
         );
         let report = validate_json(&changed).expect("typed JSON remains parseable");
         assert!(report.violations.contains(&"SERVICE_ID_SET_INVALID"));
+    }
+
+    #[test]
+    fn service_stream_identity_drift_is_rejected() {
+        let changed = PACKAGE_JSON.replacen(
+            "\"id\":\"source_water\"",
+            "\"id\":\"generic_input\"",
+            1,
+        );
+        let report = validate_json(&changed).expect("typed JSON remains parseable");
+        assert!(report.violations.contains(&"SERVICE_PROFILE_PROMOTED_OR_INCOMPLETE"));
+    }
+
+    #[test]
+    fn stress_case_family_drift_is_rejected() {
+        let changed = PACKAGE_JSON.replacen(
+            "\"event_family\":\"CONCURRENCY\"",
+            "\"event_family\":\"GENERIC_EVENT\"",
+            1,
+        );
+        let report = validate_json(&changed).expect("typed JSON remains parseable");
+        assert!(report.violations.contains(&"STRESS_CASE_PROMOTED_OR_MISBOUND"));
     }
 
     #[test]
