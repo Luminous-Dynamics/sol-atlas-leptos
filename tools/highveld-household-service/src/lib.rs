@@ -20,12 +20,17 @@ const ARCHITECTURE_IDS: [&str; 3] = [
     "HYBRID_LOCAL_AUTONOMY",
 ];
 
-fn deserialize_required_nullable<'de, D, T>(deserializer: D) -> Result<Option<T>, D::Error>
-where
-    D: serde::Deserializer<'de>,
-    T: Deserialize<'de>,
-{
-    Option::<T>::deserialize(deserializer)
+#[derive(Clone, Debug, Deserialize)]
+#[serde(untagged)]
+enum ExplicitNullable<T> {
+    Value(T),
+    Null(()),
+}
+
+impl<T> ExplicitNullable<T> {
+    fn is_null(&self) -> bool {
+        matches!(self, Self::Null(()))
+    }
 }
 
 #[derive(Clone, Debug, Deserialize)]
@@ -65,12 +70,10 @@ struct HouseholdProfile {
 #[derive(Clone, Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
 struct Quantity {
-    #[serde(deserialize_with = "deserialize_required_nullable")]
-    value: Option<f64>,
+    value: ExplicitNullable<f64>,
     unit: String,
     state: String,
-    #[serde(deserialize_with = "deserialize_required_nullable")]
-    source_ref: Option<String>,
+    source_ref: ExplicitNullable<String>,
 }
 
 #[derive(Clone, Debug, Deserialize)]
@@ -171,8 +174,7 @@ struct StressCase {
 struct ComparisonProtocol {
     paired_trace_policy: String,
     trace_bundle_status: String,
-    #[serde(deserialize_with = "deserialize_required_nullable")]
-    common_trace_digest: Option<String>,
+    common_trace_digest: ExplicitNullable<String>,
     information_budget_state: String,
     human_time_budget_state: String,
     comparison_arms: Vec<String>,
@@ -206,9 +208,9 @@ impl ValidationReport {
 }
 
 fn quantity_is_unknown(quantity: &Quantity) -> bool {
-    quantity.value.is_none()
+    quantity.value.is_null()
         && quantity.state == "UNKNOWN"
-        && quantity.source_ref.is_none()
+        && quantity.source_ref.is_null()
         && !quantity.unit.trim().is_empty()
 }
 
@@ -410,7 +412,7 @@ pub fn validate_package(package: &Package) -> ValidationReport {
     let comparison = &package.comparison_protocol;
     if comparison.paired_trace_policy != "SAME_EXACT_TRACE_BYTES_FOR_ALL_COMPARISON_ARMS"
         || comparison.trace_bundle_status != "NOT_MATERIALIZED"
-        || comparison.common_trace_digest.is_some()
+        || !comparison.common_trace_digest.is_null()
         || comparison.information_budget_state != "UNSPECIFIED"
         || comparison.human_time_budget_state != "UNSPECIFIED"
         || comparison.hard_gate_policy != "NON_COMPENSATORY_NO_AGGREGATE_SCORE"
