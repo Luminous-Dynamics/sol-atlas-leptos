@@ -372,9 +372,10 @@ fn validate_schema(schema: &Value) -> Result<(), String> {
     }
     if !string_array(schema, "required").is_some_and(|items| {
         items.len() == PROFILE_ROOT_FIELDS.len()
-            && items.iter().zip(PROFILE_ROOT_FIELDS).all(|(item, field)| {
-                item.as_str() == Some(*field)
-            })
+            && items
+                .iter()
+                .zip(PROFILE_ROOT_FIELDS)
+                .all(|(item, field)| item.as_str() == Some(*field))
     }) {
         return Err("SCHEMA_REQUIRED_FIELDS_INVALID".to_owned());
     }
@@ -400,45 +401,96 @@ fn validate_schema(schema: &Value) -> Result<(), String> {
         || relations["maxItems"] != expected_relations.len()
         || !string_array(&relations["items"], "enum").is_some_and(|items| {
             items.len() == expected_relations.len()
-                && items.iter().zip(expected_relations).all(|(item, expected)| {
-                    item.as_str() == Some(expected)
-                })
+                && items
+                    .iter()
+                    .zip(expected_relations)
+                    .all(|(item, expected)| item.as_str() == Some(expected))
         })
     {
         return Err("SCHEMA_RELATION_VOCABULARY_INVALID".to_owned());
     }
 
-    let policy = &schema["properties"]["policy"];
-    if text(policy, "type") != "object"
-        || policy["additionalProperties"] != false
-        || !exact_keys(&policy["properties"], &[
-            "exact_equivalence_requires_same_subject",
-            "exact_equivalence_requires_same_quantity_kind",
-            "exact_equivalence_requires_same_unit",
-            "exact_equivalence_requires_preserved_time_basis",
-            "exact_equivalence_requires_preserved_evidence_class",
-            "prerelease_mappings_admitted_as_stable",
-            "unknown_standard_release_admitted",
-            "unknown_rights_admitted",
-            "automatic_label_based_equivalence_allowed",
-            "new_core_ontology_allowed",
-        ])
+    let policy_schema = &schema["properties"]["policy"];
+    let policy_fields = [
+        "exact_equivalence_requires_same_subject",
+        "exact_equivalence_requires_same_quantity_kind",
+        "exact_equivalence_requires_same_unit",
+        "exact_equivalence_requires_preserved_time_basis",
+        "exact_equivalence_requires_preserved_evidence_class",
+        "prerelease_mappings_admitted_as_stable",
+        "unknown_standard_release_admitted",
+        "unknown_rights_admitted",
+        "automatic_label_based_equivalence_allowed",
+        "new_core_ontology_allowed",
+    ];
+    if text(policy_schema, "type") != "object"
+        || policy_schema["additionalProperties"] != false
+        || !exact_keys(&policy_schema["properties"], &policy_fields)
+        || !string_array(policy_schema, "required").is_some_and(|items| {
+            items.len() == policy_fields.len()
+                && items
+                    .iter()
+                    .zip(policy_fields)
+                    .all(|(item, expected)| item.as_str() == Some(expected))
+        })
     {
         return Err("SCHEMA_POLICY_CONTRACT_INVALID".to_owned());
+    }
+    for key in [
+        "exact_equivalence_requires_same_subject",
+        "exact_equivalence_requires_same_quantity_kind",
+        "exact_equivalence_requires_same_unit",
+        "exact_equivalence_requires_preserved_time_basis",
+        "exact_equivalence_requires_preserved_evidence_class",
+    ] {
+        if policy_schema["properties"][key]["const"] != true {
+            return Err(format!("SCHEMA_POLICY_CONSTRAINT_DRIFT:{key}"));
+        }
+    }
+    for key in [
+        "prerelease_mappings_admitted_as_stable",
+        "unknown_standard_release_admitted",
+        "unknown_rights_admitted",
+        "automatic_label_based_equivalence_allowed",
+        "new_core_ontology_allowed",
+    ] {
+        if policy_schema["properties"][key]["const"] != false {
+            return Err(format!("SCHEMA_POLICY_CONSTRAINT_DRIFT:{key}"));
+        }
     }
 
     let standard = &schema["$defs"]["standard"];
     if text(standard, "type") != "object"
         || standard["additionalProperties"] != false
         || !exact_keys(&standard["properties"], STANDARD_FIELDS)
+        || !string_array(standard, "required").is_some_and(|items| {
+            items.len() == STANDARD_FIELDS.len()
+                && items
+                    .iter()
+                    .zip(STANDARD_FIELDS)
+                    .all(|(item, field)| item.as_str() == Some(*field))
+        })
     {
         return Err("SCHEMA_STANDARD_CONTRACT_INVALID".to_owned());
     }
-    let standards = &schema["properties"]["standards"];
-    if text(standards, "type") != "array"
-        || standards["minItems"] != EXPECTED_STANDARDS.len()
-        || standards["maxItems"] != EXPECTED_STANDARDS.len()
-        || standards["items"]["$ref"] != "#/$defs/standard"
+    for field in ["key", "family", "release_id", "status"] {
+        if text(&standard["properties"][field], "type") != "string"
+            || standard["properties"][field]["minLength"] != 1
+        {
+            return Err(format!("SCHEMA_STANDARD_STRING_INVALID:{field}"));
+        }
+    }
+    if standard["properties"]["maturity"]["enum"]
+        != serde_json::json!(["stable", "prerelease", "unresolved"])
+    {
+        return Err("SCHEMA_STANDARD_MATURITY_ENUM_INVALID".to_owned());
+    }
+
+    let standards_array = &schema["properties"]["standards"];
+    if text(standards_array, "type") != "array"
+        || standards_array["minItems"] != EXPECTED_STANDARDS.len()
+        || standards_array["maxItems"] != EXPECTED_STANDARDS.len()
+        || standards_array["items"]["$ref"] != "#/$defs/standard"
     {
         return Err("SCHEMA_STANDARDS_ARRAY_INVALID".to_owned());
     }
@@ -684,6 +736,24 @@ mod tests {
         );
         let profile = parse_unique_json(&changed).unwrap();
         assert!(validate_profile(&profile).is_err());
+    }
+
+    #[test]
+    fn schema_cannot_relax_policy_constraints() {
+        let mut schema = parse_unique_json(SCHEMA_JSON).unwrap();
+        schema["properties"]["policy"]["properties"]
+            ["automatic_label_based_equivalence_allowed"]["const"] = Value::Bool(true);
+        assert!(validate_schema(&schema).is_err());
+    }
+
+    #[test]
+    fn schema_cannot_remove_required_standard_fields() {
+        let mut schema = parse_unique_json(SCHEMA_JSON).unwrap();
+        schema["$defs"]["standard"]["required"]
+            .as_array_mut()
+            .unwrap()
+            .pop();
+        assert!(validate_schema(&schema).is_err());
     }
 
     #[test]
