@@ -102,6 +102,56 @@ The benchmark should be allowed to conclude that an incumbent is better for a pa
 
 The building-surrogate comparison is tracked in Symtropy [BUILDING-WEATHER-SURROGATE-QUAL-001 #4509](https://github.com/Luminous-Dynamics/symtropy/issues/4509), under the generic multi-fidelity admission/escalation owner [#4487](https://github.com/Luminous-Dynamics/symtropy/issues/4487). Thermal-outage metrology is tracked in [#4507](https://github.com/Luminous-Dynamics/symtropy/issues/4507) with its reference arithmetic draft [PR #4508](https://github.com/Luminous-Dynamics/symtropy/pull/4508). These are new work items, not completed qualification.
 
+## Research-frontier reset — 10 November 2026
+
+### Optimization is established practice, not a novelty claim
+
+A systematic review available online from 1 August 2026, *Multi-Objective Optimization and Decision-Making in Building Retrofits: A Systematic Review of Frameworks, Trends, and Research Gaps* (Building and Environment 2026, 115074; DOI: https://doi.org/10.1016/j.buildenv.2026.115074), reviews retrofit work from 2020–2026. It finds envelope retrofits dominate, followed by HVAC and renewables; it identifies SA/ML/MOO/MCDM integration as emerging but fragmented; and reports NSGA-II as the leading algorithm in this literature. The review highlights remaining issues including dynamic carbon, uncertainty, harmonized lifecycle assessment and resilience.
+
+This changes the benchmark requirement: **NSGA-II is a necessary incumbent baseline**, not something Luminous can beat simply by using a different optimizer. Include:
+- NSGA-II with declared operators, population, generation/evaluation budgets and stopping criteria;
+- at least one strong alternative (e.g. MOEA/D, SMS-EMOA or an appropriately tuned CMA-ES/BO method for the problem structure);
+- exhaustive enumeration as an oracle on small discrete problems;
+- a transparent passive-first heuristic and a conventional expert-assisted workflow.
+
+Report the optimizer's best-known front, exact-oracle regret/gap on small cases, hypervolume with declared reference point, IGD+, epsilon, feasible rate, evaluation count, wall time and high-fidelity confirmation cost. Do not tune the test suite to favor the Luminous candidate.
+
+### Whole-house co-optimization and control are also existing baselines
+
+The following research baselines are mandatory in any SOTA comparison:
+
+- Andersen, Zhou & Dargaville (Energy and Buildings 359, 15 May 2026, 117253; DOI: https://doi.org/10.1016/j.enbuild.2026.117253) jointly optimizes envelope, HVAC, domestic hot water, PV and battery configurations using an AccuRate-based energy model, tariff/lifecycle-cost model and genetic algorithm. Therefore, shell + plant + PV + storage co-optimization is not novel by itself.
+- Karanth, Loonen & Hensen (Energy and Buildings 359, 15 May 2026, 117216; DOI: https://doi.org/10.1016/j.enbuild.2026.117216) studies control integration during early-stage residential energy-system design for PVT, heat-pump and thermal storage. Therefore, control-aware design is not novel by itself.
+- Caieiro da Costa et al. (Energy and Buildings, 15 Feb 2026, DOI: https://doi.org/10.1016/j.enbuild.2025.116886) separates thermal resistance, robustness and recovery under heatwave conditions. A single scalar resilience score is inadequate.
+- Manmatharasan, Bitsuamlak & Grolinger (Energy and Buildings 359, 15 May 2026, 117251; preprint: https://arxiv.org/abs/2603.11121) studies weekly weather-guided surrogate prediction with TCN, Transformer and convolutional-autoencoder families, including cross-location transfer. Therefore, weather-conditioned surrogate modeling is not novel by itself; held-out site/time qualification and high-fidelity re-evaluation are essential.
+- Mitchell, Stephens & Heidarinejad (Energy and Buildings 359, 15 May 2026, 117221; DOI: https://doi.org/10.1016/j.enbuild.2026.117221) combines field measurement, calibrated building modelling and outage resilience metrics across three homes. This is a direct comparator for the Highveld thermal metrology programme.
+
+### Thermal-resilience method: DHR is a specific metric, not generic degree-hours
+
+Al Mitchell's PhiusCon presentation on 8 October 2025 (slide 44) gives the Degree Hour Ratio in the form:
+
+\`DHR = Σ(T_set − T_int) / Σ(T_set − T_out)\`
+
+for the same outage period. Presentation: https://www.phius.org/sites/default/files/2025-10/al-mitchell-PhiusCon_2025-al-mitchell-PhiusCon_2025-Degree%20Hour%20Ratio%20A%20Low-Tech%20Test%20for%20Thermal%20Resilience.pdf
+
+The formula's operational convention (positive-part clipping, above-setpoint samples, exact time weighting, missingness and denominator handling) remains under verification in Symtropy #4507. The generic degree-hour arithmetic in Symtropy PR #4508 is deliberately not labelled DHR. A future Highveld comparison must preserve both the published DHR and a broader metric vector: time-to-breach, breach duration/depth, hot/cold exposure, stable recovery, active-system contribution, energy and measurement coverage. Do not treat the Chicago study's thresholds or measured temperatures as South African criteria.
+
+### South African XA Edition 3 and live regulatory status
+
+SAIAT's current CPD page for SANS 10400-XA Edition 3 says Edition 3 was published in early 2026 and describes a material change in how energy-efficient hot-water requirements are satisfied. The presenter is identified as chair of SABS TC060 and a member of the workgroup responsible for the latest XA review. Source: https://cpd.saiat.org.za/sans-10400-xa-3rd-edition-cc (accessed 10 Nov 2026).
+
+Treat this as credible professional/committee-chair confirmation, but still obtain the exact SABS catalogue record and official standard text, publication metadata, scope and effective date before making a project-specific compliance claim. Do not use the 2025 draft \`SANS 10400-XA:20XX Ed 3\` consultation notice as publication proof. The compliance source register is [Sol-Atlas #604](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/604).
+
+The National Building Regulations and Building Standards Amendment Bill 2026 remains a public-participation proposal at this research cut. The official extension notice sets the comment deadline at **12 November 2026, 12:00**. Sources: https://www.gov.za/news/cabinet-statements/statement-cabinet-meeting-6-may-2026-07-may-2026 and https://www.gov.za/documents/notices/national-building-regulations-and-building-standards-act-extension-submission. Draft Bill provisions must not be applied as operative requirements.
+
+### Resulting research hypothesis
+
+The defensible Luminous hypothesis is not "we invented co-optimization, NSGA-II, AI building simulation, or thermal resilience." It is:
+
+**Can a rights- and authority-aware evidence layer make specialist AEC and physics tools work together across a whole resident-defined service lifecycle—while improving robust decisions and measured service outcomes at an equal or lower total engineering/operating burden?**
+
+The test must be allowed to show that an incumbent or hybrid workflow is better for a service, climate, building type or cost boundary. Publish wins, ties, losses, unsupported strata and exact versions.
+
 ## South African applicability
 
 International standards and products above are technical comparators, not automatic local legal requirements. Every real Highveld project must use the applicable South African editions, municipal requirements, professional determinations and product approvals.
