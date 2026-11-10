@@ -94,6 +94,12 @@ A spatial view is valuable only when each layer says whether it is measured, inf
 **Authority boundary:** Symtropy computes; Sol-Atlas contextualises; Symthaea evaluates and proposes; Mycelix authenticates and coordinates. Infrastructure owners and qualified human operators retain operational authority. No component in this programme may directly actuate grid breakers, alter relay settings, shed load, dispatch generation or issue public emergency commands.
 
 ## 4. State of the art and fair industry comparison
+### Operational R2O and system-level risk comparators
+
+- **UK SWIMMR:** nine research-level models were moved into operational code for the Great Britain high-voltage grid, high-pressure gas pipelines and rail network. The programme added variometer coverage and a three-year magnetotelluric campaign across 53 sites, combining L1 solar-wind inputs, ground observatories, empirical machine learning and numerical MHD forecasting. This is a mature research-to-operations comparator, not just a model paper ([Beggan et al. 2025](https://doi.org/10.1029/2025SW004364)).
+- **USGS coupled physics–engineering–economic risk model (2026):** a US example estimated daily economic losses of about $1.81B for a 250-year GMD scenario from transformer thermal heating alone, with disruption affecting approximately 5.1 million people and 135,000 businesses. The authors label this a conservative lower bound that excludes voltage collapse, cascading failures and restoration costs. The lesson is that service and economic consequences must be explicit benchmark outputs, not an afterthought ([USGS, 4 September 2026](https://www.usgs.gov/publications/major-space-weather-risks-identified-coupled-physics-engineering-economic-modeling)).
+- **New Zealand operational mitigation:** the May 2024 Transpower line-reconfiguration strategy gives us a real counterfactual for evaluating mitigation and service preservation; it is tracked in [Sol-Atlas #703](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/703).
+
 
 The field already has serious operational and engineering capabilities. The programme should extend them and demonstrate matched improvements, not imply that existing tools are simplistic.
 
@@ -238,6 +244,10 @@ Targets below are project proposals, not existing benchmark standards or current
 The 10% MAE target is not a universal superiority threshold. If a matched corpus is too small, measurements are not independent, or baseline model inputs differ, report "insufficient evidence" instead of relaxing the protocol.
 
 ## 8. South Africa and African pilot
+South Africa is not a blank research region. Published work includes Grassridge/Hermanus modelling (2008), finite-element modelling using multiple observatories (2015), data-driven transfer functions/network parameter ensembles (2020), and regional MT surveys such as SAMTEX with over 700 sites. SANSA's research portal also describes MT inversion work using 10 stations. These are distinct data/model families; deep lithospheric conductivity maps do not automatically constitute storm-frequency near-surface Earth-response transfer functions.
+
+The South African model-family comparison is tracked separately in [Sol-Atlas SA-GIC-SOTA-BASELINE-001 #696](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/696); source rights and historical measurement access are tracked in [#697](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/697). Do not assume that a published paper, research project page, or public station metadata grants access to raw GIC or utility network data.
+
 
 South Africa is a strategic starting point because SANSA's Space Weather Warning Centre is based at Hermanus and provides an established regional scientific and warning capability. Use its products as one input family.
 
