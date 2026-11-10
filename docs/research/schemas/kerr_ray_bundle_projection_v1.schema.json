@@ -664,6 +664,204 @@
           "uniqueItems": true
         }
       }
+    },
+    "wave_optics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "result_kind",
+        "method",
+        "regime_status",
+        "caustic_class",
+        "source_model",
+        "coherence",
+        "phase_convention",
+        "normalization",
+        "frequency_unit",
+        "samples",
+        "approximation_validity"
+      ],
+      "properties": {
+        "result_kind": {
+          "enum": [
+            "analytic_prediction",
+            "numerical_simulation"
+          ]
+        },
+        "method": {
+          "enum": [
+            "geometric_stationary_phase",
+            "airy_fold_uniform",
+            "pearcey_cusp_uniform",
+            "ray_derived_arrival_time_diffraction",
+            "mst_scattering_factor",
+            "full_wave_numerical",
+            "other_declared"
+          ]
+        },
+        "regime_status": {
+          "enum": [
+            "geometric_optics_valid",
+            "fold_uniform_valid",
+            "cusp_uniform_valid",
+            "finite_source_regularized",
+            "full_wave_reference",
+            "unresolved",
+            "approximation_out_of_domain"
+          ]
+        },
+        "caustic_class": {
+          "enum": [
+            "none",
+            "fold",
+            "cusp",
+            "higher_order",
+            "unresolved"
+          ]
+        },
+        "source_model": {
+          "enum": [
+            "point_source",
+            "finite_source",
+            "binary_quadrupolar",
+            "other_declared"
+          ]
+        },
+        "source_history_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "coherence": {
+          "enum": [
+            "fully_coherent",
+            "partially_coherent",
+            "incoherent_intensity_average",
+            "not_applicable",
+            "unresolved"
+          ]
+        },
+        "phase_convention": {
+          "type": "string",
+          "minLength": 1
+        },
+        "normalization": {
+          "type": "string",
+          "minLength": 1
+        },
+        "frequency_unit": {
+          "type": "string",
+          "minLength": 1
+        },
+        "dimensionless_M_omega": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "approximant_reference_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "approximation_validity": {
+          "type": "string",
+          "minLength": 1
+        },
+        "samples": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "frequency",
+              "amplification_real",
+              "amplification_imag",
+              "phase_rad",
+              "intensity",
+              "status"
+            ],
+            "properties": {
+              "frequency": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              },
+              "amplification_real": {
+                "type": "number"
+              },
+              "amplification_imag": {
+                "type": "number"
+              },
+              "phase_rad": {
+                "type": "number"
+              },
+              "intensity": {
+                "type": "number",
+                "minimum": 0
+              },
+              "status": {
+                "enum": [
+                  "converged",
+                  "ill_conditioned",
+                  "unresolved",
+                  "out_of_domain"
+                ]
+              },
+              "error_estimate": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0
+              }
+            }
+          }
+        },
+        "comparison": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "reference_method": {
+              "type": "string"
+            },
+            "complex_amplitude_error": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "minimum": 0
+            },
+            "phase_error_rad": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "minimum": 0
+            },
+            "intensity_error": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "minimum": 0
+            },
+            "reference_digest": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "pattern": "^([0-9a-f]{64})?$"
+            }
+          }
+        }
+      }
     }
   }
 }
