@@ -140,6 +140,8 @@ Implement an offline, deterministic, dependency-light Rust replay tool. It shoul
 
 After this replay is independently reproducible, proceed to the tiny-network induced-voltage / quasi-DC GIC analytic oracle in Symtropy. Do not use the 2024 event to fit and score a new predictor on the same observations.
 
+A separate exploratory, past-only prequential residual-calibration diagnostic is documented in [GMD_ADAPTIVE_CALIBRATION_V0.1.md](GMD_ADAPTIVE_CALIBRATION_V0.1.md) and tracked by [Symthaea GMD-ONLINE-CALIBRATION-001 #11370](https://github.com/Luminous-Dynamics/symthaea/issues/11370). It uses earlier within-event observations only to update later predictions, but it remains single-event, post-hoc exploratory evidence; it does not constitute cross-event model validation or justify fitting and scoring a static model on the same rows. The South African historical source audit is tracked by [Sol-Atlas #697](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/697).
+
 ## 9. Claim ceiling
 
 This record demonstrates a data-pipeline reproduction of a peer-reviewed benchmark table from pinned public inputs. It does **not** independently validate the TVA or reference physical models, a new Luminous physical solver, transformer thermal response, grid security, resilience, NERC compliance, South African applicability or operational safety.
