@@ -26,7 +26,7 @@ Time is represented as elapsed seconds from scenario event t0, not as wall-clock
 
 - required, capped-delivered, surplus-excluded and unmet native-unit quantities;
 - demand-weighted served fraction;
-- time availability above the owner-declared floor;
+- time availability above the owner-declared floor during demand time during positive-demand intervals;
 - total floor-violation duration, longest continuous violation and episode count;
 - maximum interval deficit fraction;
 - whether the service initially meets its minimum floor and full demand;
@@ -51,7 +51,7 @@ From the Sol-Atlas repository root:
 - Missing observations are not forward-filled and cannot count as delivered service.
 - Demand/delivery must be finite and non-negative.
 - Surplus is reported but cannot compensate for another interval's deficit.
-- Zero-demand intervals count as no-demand, not as unserved service; the whole horizon must contain positive total demand.
+- Zero-demand intervals count as no-demand, not as unserved service; they are excluded from the floor-availability denominator and cannot bridge a sustained-recovery window. The whole horizon must contain positive total demand.
 - Each service is evaluated in its own declared unit.
 - Every input trajectory identifies its evidence class, source digest and asset revision.
 - Recovery hold duration must be positive; quantity tolerance may not consume the entire minimum service floor in any positive-demand interval.
