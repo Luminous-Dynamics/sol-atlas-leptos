@@ -132,6 +132,18 @@ GIC is an input to transformer response, not a damage verdict. Harmonics, reacti
 
 Translate grid consequences into owner-defined, time-qualified service claims. For example, water service needs pressure, flow, quality, duration, demand and population coverage; hospital power needs critical-load coverage, transfer behaviour, fuel/battery autonomy and tested restoration. The evaluator may compose owner-approved thresholds; it must not invent them.
 
+### Evidence from the May 2024 measured-data study
+
+The 2026 Wilkerson et al. study is now the first pinned real-data baseline for this programme:
+
+- Four-site TVA operator replay: the independent exploratory replay in [GMD_MAY_2024_TVA_REPLAY_V0.1.md](GMD_MAY_2024_TVA_REPLAY_V0.1.md) reproduces the published Table 1 (r^2) and polarity-qualified PE values at Bull Run, Montgomery, Union and Widows Creek.
+- 47 measured GIC sites and 17 magnetometer sites were assembled. The filtered comparison of the generic reference model against measured GIC covered 43 sites; Appendix A1 is the next exact-reproduction target ([Symtropy #4521](https://github.com/Luminous-Dynamics/symtropy/issues/4521)).
+- The paper explicitly describes the generic reference model as a fallback when detailed real-time network configuration (in-service lines, line resistances and substation circuit particulars) is unavailable. TVA's site model uses utility-specific representation; it is therefore a stronger baseline for those four sites.
+- The study finds weak average GIC time-series correlation between sites (~0.3 across 1,081 pairs), and even sites under 10 km apart can have correlations near zero or one. This is a strong warning against nearest-neighbour GIC interpolation or latitude-only risk maps.
+- The study's physical chain reinforces the architecture: derive (mathbf{E}(t)) from measured/modelled (mathbf{B}(t)) and Earth-response data; integrate (mathbf{E}(t)) along transmission-line paths to obtain induced voltages; then use line/transformer resistances, grounding and actual connectivity to solve network GIC.
+
+This changes our prioritisation: qualify *local conductivity + line geometry + actual network topology + transformer grounding* before adding more elaborate learned forecasting. A learned model may fill bounded gaps or quantify discrepancy, but it must not replace missing physical evidence with a confident interpolated field.
+
 ## 6. Benchmark programme
 
 The benchmark is layered. Passing an earlier layer does not imply a later one.
