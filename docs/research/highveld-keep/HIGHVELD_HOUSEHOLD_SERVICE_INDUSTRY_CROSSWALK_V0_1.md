@@ -100,6 +100,8 @@ The harder and more defensible hypothesis is **evidence-constrained, resident-go
 
 The benchmark should be allowed to conclude that an incumbent is better for a particular service, climate or cost boundary. Luminous superiority requires matched evidence, not a feature matrix.
 
+The building-surrogate comparison is tracked in Symtropy [BUILDING-WEATHER-SURROGATE-QUAL-001 #4509](https://github.com/Luminous-Dynamics/symtropy/issues/4509), under the generic multi-fidelity admission/escalation owner [#4487](https://github.com/Luminous-Dynamics/symtropy/issues/4487). Thermal-outage metrology is tracked in [#4507](https://github.com/Luminous-Dynamics/symtropy/issues/4507) with its reference arithmetic draft [PR #4508](https://github.com/Luminous-Dynamics/symtropy/pull/4508). These are new work items, not completed qualification.
+
 ## South African applicability
 
 International standards and products above are technical comparators, not automatic local legal requirements. Every real Highveld project must use the applicable South African editions, municipal requirements, professional determinations and product approvals.
