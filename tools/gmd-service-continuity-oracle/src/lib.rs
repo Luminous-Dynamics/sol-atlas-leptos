@@ -145,8 +145,8 @@ impl fmt::Display for ServiceError {
             Self::EmptyServiceSet => "scenario must contain at least one service",
             Self::EmptyIdentifier => "service ID must be non-empty and trimmed",
             Self::DuplicateServiceId => "service IDs must be unique within a scenario",
-            Self::EmptyOwnerReference => "service owner reference must be non-empty and trimmed",
-            Self::EmptyGeographicScopeReference => "geographic scope reference must be non-empty and trimmed",
+            Self::EmptyOwnerReference => "service owner reference is required",
+            Self::EmptyGeographicScopeReference => "geographic scope reference is required",
             Self::EmptyUnit => "service quantity unit must be non-empty and trimmed",
             Self::EmptySourceReference => "source reference must be non-empty and trimmed",
             Self::EmptyAssetRevision => "asset revision must be non-empty and trimmed",
@@ -768,6 +768,20 @@ mod tests {
 
     #[test]
     fn metadata_digest_floor_and_tolerance_are_validated() {
+        let mut bad_owner = service(vec![interval(0, 60, 1.0, 1.0)]);
+        bad_owner.owner_ref.clear();
+        assert_eq!(
+            evaluate_service(&bad_owner, 60),
+            Err(ServiceError::EmptyOwnerReference)
+        );
+
+        let mut bad_region = service(vec![interval(0, 60, 1.0, 1.0)]);
+        bad_region.geographic_scope_ref.clear();
+        assert_eq!(
+            evaluate_service(&bad_region, 60),
+            Err(ServiceError::EmptyGeographicScopeReference)
+        );
+
         let mut bad_digest = service(vec![interval(0, 60, 1.0, 1.0)]);
         bad_digest.source_sha256 = "not-a-digest".to_owned();
         assert_eq!(
