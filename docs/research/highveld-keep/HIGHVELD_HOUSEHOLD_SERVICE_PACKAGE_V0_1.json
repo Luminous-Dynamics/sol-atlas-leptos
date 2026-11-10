@@ -24,10 +24,10 @@
       "product_revision": "UNKNOWN_NOT_SELECTED",
       "status": "RESEARCH_PROFILE_ONLY",
       "service_definition": "Source characterization, leak detection, storage and explicitly non-potable service; treatment and water-quality claims are excluded from this package.",
-      "functional_unit": "one declared household service over one explicitly defined observation window",
+      "functional_unit": "usable non-potable water delivered (litres) to one named permitted end use over a declared observation or outage window",
       "performance_target": {
         "value": null,
-        "unit": "service-specific unit; not yet selected",
+        "unit": "UNKNOWN_NOT_SELECTED",
         "state": "UNKNOWN",
         "source_ref": null
       },
@@ -135,10 +135,10 @@
       "product_revision": "UNKNOWN_NOT_SELECTED",
       "status": "RESEARCH_PROFILE_ONLY",
       "service_definition": "Hot-water and thermal-service delivery, storage and recovery; pressure-vessel, electrical and plumbing approval are outside this contract.",
-      "functional_unit": "one declared household service over one explicitly defined observation window",
+      "functional_unit": "accepted hot-water delivery (litres meeting a declared temperature and timing profile) under a matched draw sequence",
       "performance_target": {
         "value": null,
-        "unit": "service-specific unit; not yet selected",
+        "unit": "UNKNOWN_NOT_SELECTED",
         "state": "UNKNOWN",
         "source_ref": null
       },
@@ -261,10 +261,10 @@
       "product_revision": "UNKNOWN_NOT_SELECTED",
       "status": "RESEARCH_PROFILE_ONLY",
       "service_definition": "Outdoor-air delivery, particle filtration and humidity management as separately measured services; no health, medical or universal air-quality claim.",
-      "functional_unit": "one declared household service over one explicitly defined observation window",
+      "functional_unit": "pollutant-specific clean-air delivery and outdoor-air delivery at defined occupied-room positions over a declared room-use window",
       "performance_target": {
         "value": null,
-        "unit": "service-specific unit; not yet selected",
+        "unit": "UNKNOWN_NOT_SELECTED",
         "state": "UNKNOWN",
         "source_ref": null
       },
@@ -294,7 +294,7 @@
           "id": "filter_media",
           "quantity": {
             "value": null,
-            "unit": "item / mass per declared service window",
+            "unit": "UNKNOWN_NOT_SELECTED",
             "state": "UNKNOWN",
             "source_ref": null
           },
@@ -337,7 +337,7 @@
           "direction": "OUTPUT",
           "quantity": {
             "value": null,
-            "unit": "L or mass; method not selected",
+            "unit": "UNKNOWN_NOT_SELECTED",
             "state": "UNKNOWN",
             "source_ref": null
           }
