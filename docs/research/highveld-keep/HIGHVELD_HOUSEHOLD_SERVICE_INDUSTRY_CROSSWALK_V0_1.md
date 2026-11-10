@@ -33,6 +33,46 @@ Success in one category does not imply success in another.
 | Greywater reuse | [ISO/CD 25446:2026](https://committee.iso.org/standard/90421.html) | Committee Draft under development for building greywater reuse, including source quality, collection, treatment, reuse, safeguards and monitoring. | Treat this as a draft reference, not a published standard or certification. WaterLoop must begin with source-separated, explicitly non-potable service; require physical segregation, locally qualified plumbing review and independent assays for any treatment claim. |
 | Digital-twin trustworthiness | [NIST IR 8620, 21 Jul 2026](https://www.nist.gov/publications/digital-twins-workshops-summary-report) | NIST identifies interoperability, VVUQ, cybersecurity and workforce readiness as important digital-twin challenges. | Use these as explicit benchmark dimensions. A federation diagram or schema is not a qualified digital twin; test exact identity, scope, time, rights, data lineage, model limits, correction and invalidation. |
 
+## Product-specific incumbent baselines
+
+The underlying Symthaea product owners already identify several of the strongest comparisons. These must be carried into the Highveld composition rather than presenting their concepts as new.
+
+### WaterLoop
+
+Use three sequential baselines already specified in [WATERLOOP-APPL-001 #10323](https://github.com/Luminous-Dynamics/symthaea/issues/10323):
+
+1. Metered storage plus leak monitoring, without treatment.
+2. Source-separated capture/storage and physical diversion for one explicitly permitted non-potable use.
+3. A treatment module only if the first two stages show a measured, decision-relevant benefit and a qualified process is available.
+
+A real vendor comparison requires a dated Southern African market/supplier scan, exact product/system revisions, installation requirements, approvals, consumables and spares. Do not pretend one generic greywater unit is the universal incumbent. Compare the same source stream and end-use; meter every inflow, delivered volume, residual, purge, energy and maintenance event. ISO/CD 25446 remains a committee draft under development, not a final certification basis.
+
+### HeatBank
+
+A useful named market comparator already exists: **Cala's intelligent heat-pump water heater**. Cala publicly describes demand learning and adjustment using hot-water use, solar output, energy pricing, grid-emissions information and preferred operating hours; these are vendor product claims, not independent test results. See [Cala's product description](https://www.calasystems.com/), [how it works](https://www.calasystems.com/how-it-works) and [solar integration](https://www.calasystems.com/solar). Availability, installation, service support and local compliance in South Africa must be separately established before selecting it as a physical comparator.
+
+The matched tournament should include:
+- conventional heat-pump water heater without predictive coordination;
+- a predictive/solar/tariff-aware heat-pump water heater such as Cala, if a comparable unit is accessible;
+- heat-pump water heater with dedicated thermal storage;
+- the proposed shared thermal-service hub, only after its interfaces and hygiene separation are engineered.
+
+Compare the same inlet/ambient conditions and hot-water draw/temperature profile. Report accepted hot-water service, unmet draws, useful thermal energy, electricity (compressor, pumps, controls and backup), standing/distribution losses, peak demand, recovery, noise, maintenance and whole-life cost. Do not treat a vendor claim such as “up to 50% more hot water at peak” as a measured comparator endpoint.
+
+[IEC 60379:2023](https://webstore.iec.ch/en/publication/61520) is a current method for measuring electric storage water-heater performance, but its stated exclusions and scope must be reviewed before applying it to a heat-pump architecture. It does not specify safety requirements. The test method must not be misrepresented as a heat-pump safety standard or assumed to qualify every HeatBank design.
+
+### AirCare
+
+Use the established comparison arms in [AIRCARE-APPL-001 #10330](https://github.com/Luminous-Dynamics/symthaea/issues/10330):
+
+1. Named portable room air cleaner sized and independently verified by pollutant-specific AHAM CADR.
+2. A measured residential ventilation baseline meeting the applicable project requirement.
+3. A best-of-breed combined ventilation + filtration system, where available.
+
+AHAM CADR reports separate smoke, dust and pollen clean-air delivery rates; its certified directory identifies models with third-party-verified results. See [AHAM's CADR method](https://ahamverifide.org/ahams-air-filtration-standards/) and [certified cleaner directory](https://ahamverifide.org/directory-of-air-cleaners/). CADR is not proof of outdoor-air ventilation, room distribution, gaseous-contaminant removal, humidity control or an occupied-room health outcome.
+
+Match room geometry, openings, source/outdoor conditions, filter age, airflow, operating mode, noise and energy. Measure at multiple occupied positions. Keep each pollutant and service outcome separate; an aggregate AQI may hide a pollutant-specific failure.
+
 ### South African applicability
 
 International standards and products above are technical comparators, not automatic local legal requirements. Every real Highveld project must use the applicable South African editions, municipal requirements, professional determinations and product approvals.
