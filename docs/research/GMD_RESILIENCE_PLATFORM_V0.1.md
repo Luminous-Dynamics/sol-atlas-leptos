@@ -418,3 +418,62 @@ The forecast task is now separated from historical event reconstruction. See [GM
 The 2026 MM-CNN-MHA single-substation 60-minute forecast is an important comparator, but it is not directly comparable with the May 2024 four-site event-reconstruction replay. The benchmark must match issue-time inputs, sensor definition, site, horizon, event splits and physical-model boundary. In particular, any event used to fit empirical GIC coefficients cannot also be labelled an independent holdout.
 
 The target is not a larger neural network in isolation. It is held-out, calibrated, multi-event and multi-site prediction whose physical and service consequences are independently checked. The benchmark RFC defines the model tournament, leakage controls, tail metrics, transfer tests and proposed gates; none of those gates are achieved results yet.
+
+
+## 16. Observability, multi-timescale forcing and space-segment resilience addendum — 10 November 2026
+
+This programme now treats **observability as an engineered part of resilience**, not merely an input assumed to exist for the forecasting model.
+
+### 16.1 GMD observing-network co-design
+
+New work is tracked in [GMD-OBSERVABILITY-001 #713](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/713). The benchmark jointly considers:
+- local magnetometers / variometers for the time-varying geomagnetic field;
+- MT impedance and conductivity response across explicitly declared storm-relevant frequency/period bands;
+- transformer neutral CT / GIC monitors and exact winding/grounding conventions;
+- transformer harmonics, reactive-power and thermal telemetry;
+- exact network and ground-return topology revisions.
+
+The 2026 North Island New Zealand paper (DOI https://doi.org/10.1029/2026SW004997) reinforces the need for local field representativeness and Earth-response coverage. For one Gannon interval, the study reports a HEN substation GIC estimate of 265 A using EYR magnetic fields versus 68 A using OAKS fields; its discussion also reports around 30 A at HEN T1 under OAKS-driven simulation with agreement to measured data, while the distant EYR inputs produce substantially larger, inconsistent magnitudes. These are different measurement/model boundaries and event comparisons; do not collapse them into a single current. Local conductivity contrast is also identified as a possible contributor.
+
+NERC's January 2026 May 2024 event review says its selected validation magnetometers were within 200 miles and notes better correlations for closer magnetic observations. Neither 200 km nor 200 miles is a universal physical cutoff. The benchmark must learn/validate spatial representativeness from event- and region-specific data, not convert distance into an invented observation operator.
+
+The first analytic portfolio oracle is [draft PR #714](https://github.com/Luminous-Dynamics/sol-atlas-leptos/pull/714). It computes posterior covariance and searches small sensor portfolios from caller-supplied prior covariance, observation operators and full sensor-noise covariance, including cross-sensor correlation and a declared one-sensor-outage objective. It does **not** derive magnetic-field transfer, MT response, transformer sensitivity, sensor noise, deployment cost or utility siting from geography. It is synthetic linear-Gaussian mathematical/software evidence only. Rust compile, format, tests and Clippy remain pending; queued CI is not a pass.
+
+### 16.2 Multi-timescale geomagnetic forcing
+
+A 2026 analysis of the May 2024 Gannon storm reports multiple distinct GIC-driving intervals, including up to 176 A during a substorm-associated interval with approximately 437 nT/min dH/dt and Ps6 pulsations, alongside separate main- and recovery-phase current enhancements (https://www.sciencedirect.com/science/article/pii/S0273117726008458).
+
+The physical/forecast benchmark must not reduce event forcing to Kp, a G-scale, a daily solar-wind statistic or one peak dB/dt. Preserve high-cadence local magnetic vectors, dB/dt, time-frequency structure, storm phase and spatial propagation. Score peak amplitude/timing, rise rate, duration, substorm response, spectral-band energy and recovery tails separately. A model that predicts broad storm severity but misses short high-amplitude intervals must not pass on aggregate RMSE alone.
+
+### 16.3 Thermosphere forecasting and density observations
+
+The LEO workstream now separates future forecasting from density observation/retrieval:
+
+- [GMD-THERMOSPHERE-DRAG-001 #4602](https://github.com/Luminous-Dynamics/symtropy/issues/4602) owns storm-time density, drag and orbit uncertainty. Its current comparators include AETHER-P3 (probabilistic forecasts up to 6 h with 3 h context; DOI https://doi.org/10.1029/2026SW004968), iTrans-Res (24 h residual forecasts against MSISE-00; DOI https://doi.org/10.1029/2026SW005105), STORM-AI (3-day hidden-test challenge; DOI https://doi.org/10.1029/2026SW004994), and a CCMC evaluation of empirical/physics-based models across 151 storms (DOI https://doi.org/10.1029/2025SW004782). These horizons, inputs, targets and evaluation metrics are not one interchangeable leaderboard.
+- The 24 h iTrans-Res paper reports mean 24 h orbit prediction error reductions of 24.6% for CHAMP and 16.3% for TM02 relative to MSISE-00, but also identifies forcing-cadence limits: 3-hour ap and daily F10.7 cannot resolve rapid intraday forcing simply because values are interpolated to 1-minute timestamps.
+- [GMD-POD-DENSITY-OBSERVABILITY-001 #4622](https://github.com/Luminous-Dynamics/symtropy/issues/4622) qualifies a complementary observation lane: density estimates from routine LEO precise-orbit data. A 2026 49-storm comparison of EDR and POD-A against accelerometer-derived density reports strong orbit-effective agreement but a clear accuracy/temporal-resolution trade-off as retrieval arcs shorten. Every density observation must preserve its arc, temporal kernel, altitude/local-time support, ballistic-coefficient uncertainty and data rights. Orbit-effective averages are not instantaneous storm peaks.
+
+The paradigm is to improve observations/assimilation and future forecasts as separate controlled experiments, then compare their effects on propagated orbit uncertainty. No post-issue-time observation may leak into a forecast input.
+
+### 16.4 Service continuity beyond the power grid
+
+The GMD resilience programme now includes:
+- [Sol-Atlas GMD-SPACE-SERVICE-001 #711](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/711) — GNSS positioning/timing, HF radio, SATCOM, LEO-dependent services and terrestrial fallback dependencies.
+- [Symtropy GMD-IONOSPHERE-PROPAGATION-001 #4603](https://github.com/Luminous-Dynamics/symtropy/issues/4603) — TEC/ROTI, scintillation, HF absorption and path-specific propagation.
+- [Symtropy GMD-THERMOSPHERE-DRAG-001 #4602](https://github.com/Luminous-Dynamics/symtropy/issues/4602) and [#4622](https://github.com/Luminous-Dynamics/symtropy/issues/4622) — orbital drag and opportunistic density observations.
+
+These are distinct physical domains. Preserve native quantities, units, issue times, validity domains and uncertainty rather than collapsing them into a single storm-severity score.
+
+### 16.5 Industry baseline and claim ceiling
+
+NERC's January 2026 May 2024 event review reports the North American bulk power system remained stable during the Gannon storm while conditions ranged from G3 to G5 over three days, with isolated transformer, voltage-support, breaker and harmonic-filter impacts. That is an important operational comparator.
+
+NERC TPL-007-4 establishes mandatory GMD planning requirements for applicable entities/assets, and EOP-010-1 addresses GMD operating plans and procedures. FERC's August 2026 concurrence in denying a complaint about the approved GMD standards notes NERC is on its fourth iteration of responsive GMD standards and emphasizes continued improvement in monitoring, modelling and mitigation. Luminous should add evidence continuity, observing-network design and cross-sector service reasoning—not claim to replace these standards, utility procedures or operator authority.
+
+### 16.6 Current implementation status
+
+- Sol-Atlas [#709](https://github.com/Luminous-Dynamics/sol-atlas-leptos/pull/709): offline four-site May 2024 replay verifier; draft, 14 tests authored, exact-head CI queued, full pinned-data replay not yet completed.
+- Symtropy [#4605](https://github.com/Luminous-Dynamics/symtropy/pull/4605): analytic LEO drag-law oracle; draft, synthetic tests authored, Rust qualification pending.
+- Sol-Atlas [#714](https://github.com/Luminous-Dynamics/sol-atlas-leptos/pull/714): outage-aware observability portfolio oracle; draft, 13 tests authored, independent arithmetic cross-checks performed, Rust qualification pending.
+
+None of these states is a CI PASS, physical-model validation, utility review, regulatory certification or operational resilience demonstration.
