@@ -14,6 +14,7 @@ use std::error::Error;
 use std::fmt;
 
 pub const MAX_CANDIDATE_SENSORS: usize = 12;
+pub const MAX_STATE_DIMENSION: usize = 16;
 const SYMMETRY_TOLERANCE: f64 = 1.0e-10;
 const TIE_TOLERANCE: f64 = 1.0e-12;
 
@@ -57,6 +58,7 @@ pub struct PortfolioResult {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum DesignError {
     EmptyStateSet,
+    TooManyStateDimensions,
     EmptySensorSet,
     TooManyCandidateSensors,
     InvalidIdentifier,
@@ -76,6 +78,7 @@ impl fmt::Display for DesignError {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         let message = match self {
             Self::EmptyStateSet => "state set must not be empty",
+            Self::TooManyStateDimensions => "state dimension exceeds the small-oracle limit",
             Self::EmptySensorSet => "candidate sensor set must not be empty",
             Self::TooManyCandidateSensors => "candidate sensor count exceeds the exhaustive-search limit",
             Self::InvalidIdentifier => "identifiers must not be empty or whitespace-only",
@@ -254,14 +257,17 @@ fn validate_problem(problem: &DesignProblem) -> Result<(), DesignError> {
     if state_count == 0 {
         return Err(DesignError::EmptyStateSet);
     }
+    if state_count > MAX_STATE_DIMENSION {
+        return Err(DesignError::TooManyStateDimensions);
+    }
     if sensor_count == 0 {
         return Err(DesignError::EmptySensorSet);
     }
     if sensor_count > MAX_CANDIDATE_SENSORS {
         return Err(DesignError::TooManyCandidateSensors);
     }
-    if problem.state_ids.iter().any(|id| id.trim().is_empty())
-        || problem.sensor_ids.iter().any(|id| id.trim().is_empty())
+    if problem.state_ids.iter().any(|id| id.trim().is_empty() || id.trim() != id)
+        || problem.sensor_ids.iter().any(|id| id.trim().is_empty() || id.trim() != id)
     {
         return Err(DesignError::InvalidIdentifier);
     }
@@ -401,7 +407,7 @@ fn cholesky(matrix: &[Vec<f64>]) -> Result<Vec<Vec<f64>>, DesignError> {
         for column in 0..row {
             let left = matrix[row][column];
             let right = matrix[column][row];
-            let scale = 1.0_f64.max(left.abs()).max(right.abs());
+            let scale = f64::MIN_POSITIVE.max(left.abs()).max(right.abs());
             if (left - right).abs() > SYMMETRY_TOLERANCE * scale {
                 return Err(DesignError::MatrixNotSymmetric);
             }
