@@ -555,7 +555,14 @@ mod tests {
 
     #[test]
     fn nullable_quantity_source_ref_must_be_present_even_when_null() {
-        let changed = remove_once("\"source_ref\": null,\n");
+        let without_source_ref = remove_once("\"source_ref\": null");
+        let changed = without_source_ref.replacen(
+            "\"state\": \"UNKNOWN\",",
+            "\"state\": \"UNKNOWN\"",
+            1,
+        );
+        assert_ne!(changed, without_source_ref, "fixture did not remove the dangling comma");
+        assert!(serde_json::from_str::<serde_json::Value>(&changed).is_ok());
         assert!(validate_json(&changed).is_err());
     }
 
