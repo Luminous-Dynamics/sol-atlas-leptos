@@ -152,6 +152,16 @@ The defensible Luminous hypothesis is not "we invented co-optimization, NSGA-II,
 
 The test must be allowed to show that an incumbent or hybrid workflow is better for a service, climate, building type or cost boundary. Publish wins, ties, losses, unsupported strata and exact versions.
 
+## Physical integration bench comparators — 10 November 2026
+
+The proposed unoccupied room-scale bench is tracked in [Symtropy #4531](https://github.com/Luminous-Dynamics/symtropy/issues/4531). Its fair measurement design needs to distinguish product method, lab repeatability, production variation and actual household use.
+
+- **Appliance reproducibility:** IEC TR 63250:2021 covers repeatability, inter-lab reproducibility, uncertainty and round-robin testing, but explicitly excludes production-unit variation and household-use representativeness. Compose Symthaea #10341 to keep those evidence strata separate. [IEC scope](https://webstore.iec.ch/en/publication/65090)
+- **HeatBank:** Australia's 2026 Decision RIS compares ISO 19967-1:2019 and EN 16147:2017+A1:2022, with defined draw profiles and ambient conditions; it reports hot-water delivery, reheat, standby/storage loss, energy and COP. IEC 60379:2023 addresses electric storage water heaters, not all heat-pump water-heater architectures, and does not specify safety. [Energy Rating Australia](https://www.energyrating.gov.au/industry-information/publications/decision-ris-energy-efficiency-heat-pump-water-heaters) · [IEC 60379](https://webstore.iec.ch/en/publication/61520)
+- **AirCare:** ASHRAE 62.2-2025 is a minimum residential ventilation reference; it does not guarantee pollutant-specific IAQ or thermal comfort. Measure actual outdoor-air delivery and pollutant-specific occupied-zone results. [ASHRAE 62.2-2025](https://www.ashrae.net/technical-resources/bookstore/standards-62-1-62-2) · [scope](https://www.ashrae.org/technical-resources/standards-and-guidelines/titles-purposes-and-scopes)
+- **WaterLoop:** ISO/CD 25446 remains under development and is not a final standard or local approval route. [ISO status](https://www.iso.org/standard/90421.html)
+- **Building physics:** use analytical, empirical and comparative test classes; a software qualification result does not replace measured test-cell validation. [DOE test procedure overview](https://www.energy.gov/cmei/buildings/articles/test-procedures-building-energy-simulation-tools)
+
 ## South African applicability
 
 International standards and products above are technical comparators, not automatic local legal requirements. Every real Highveld project must use the applicable South African editions, municipal requirements, professional determinations and product approvals.
