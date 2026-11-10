@@ -1,0 +1,41 @@
+name: Building Semantic Interoperability Synthetic Qualifier
+
+on:
+  push:
+    paths:
+      - "docs/research/building-semantic-interop/**"
+      - "tools/building-semantic-interop-qualifier/**"
+      - ".github/workflows/building-semantic-interop-qualifier.yml"
+  pull_request:
+    paths:
+      - "docs/research/building-semantic-interop/**"
+      - "tools/building-semantic-interop-qualifier/**"
+      - ".github/workflows/building-semantic-interop-qualifier.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: building-semantic-interop-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  synthetic-mapping:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install stable Rust and rustfmt
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - name: Fetch exact locked dependencies
+        run: cargo fetch --locked --manifest-path tools/building-semantic-interop-qualifier/Cargo.toml
+      - name: Check formatting
+        run: cargo fmt --manifest-path tools/building-semantic-interop-qualifier/Cargo.toml --all -- --check
+      - name: Run locked offline tests
+        run: cargo test --locked --offline --manifest-path tools/building-semantic-interop-qualifier/Cargo.toml
+      - name: Run warning-free Clippy
+        run: cargo clippy --locked --offline --manifest-path tools/building-semantic-interop-qualifier/Cargo.toml --all-targets -- -D warnings
+      - name: Validate mapping corpus
+        run: cargo run --locked --offline --manifest-path tools/building-semantic-interop-qualifier/Cargo.toml
