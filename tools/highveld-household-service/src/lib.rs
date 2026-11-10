@@ -436,6 +436,12 @@ pub fn validate_tracked_package() -> Result<ValidationReport, String> {
 mod tests {
     use super::*;
 
+    fn mutate_once(needle: &str, replacement: &str) -> String {
+        let changed = PACKAGE_JSON.replacen(needle, replacement, 1);
+        assert_ne!(changed, PACKAGE_JSON, "mutation fixture did not match the tracked package");
+        changed
+    }
+
     #[test]
     fn schema_is_parseable_and_every_schema_object_is_closed() {
         let schema: serde_json::Value =
@@ -472,50 +478,45 @@ mod tests {
 
     #[test]
     fn unknown_root_field_is_rejected() {
-        let changed = PACKAGE_JSON.replacen(
+        let changed = mutate_once(
             "\"package_id\":",
             "\"unreviewed_root_field\":true,\"package_id\":",
-            1,
         );
         assert!(validate_json(&changed).is_err());
     }
 
     #[test]
     fn unknown_nested_field_is_rejected() {
-        let changed = PACKAGE_JSON.replacen(
+        let changed = mutate_once(
             "\"profile_state\":",
             "\"unreviewed_nested_field\":true,\"profile_state\":",
-            1,
         );
         assert!(validate_json(&changed).is_err());
     }
 
     #[test]
     fn duplicate_root_key_is_rejected() {
-        let changed = PACKAGE_JSON.replacen(
+        let changed = mutate_once(
             "\"package_id\":",
             "\"package_id\":\"HIGHVELD-HOUSEHOLD-SERVICE-SYNTHETIC-001\",\"package_id\":",
-            1,
         );
         assert!(validate_json(&changed).is_err());
     }
 
     #[test]
     fn duplicate_nested_key_is_rejected() {
-        let changed = PACKAGE_JSON.replacen(
-            "\"status\":\"RESEARCH_PROFILE_ONLY\"",
-            "\"status\":\"RESEARCH_PROFILE_ONLY\",\"status\":\"EVALUATED\"",
-            1,
+        let changed = mutate_once(
+            "\"status\": \"RESEARCH_PROFILE_ONLY\"",
+            "\"status\": \"RESEARCH_PROFILE_ONLY\", \"status\": \"EVALUATED\"",
         );
         assert!(validate_json(&changed).is_err());
     }
 
     #[test]
     fn generic_functional_unit_is_rejected() {
-        let changed = PACKAGE_JSON.replacen(
+        let changed = mutate_once(
             "pollutant-specific clean-air delivery and outdoor-air delivery at defined occupied-room positions over a declared room-use window",
             "one generic household service over a window",
-            1,
         );
         let report = validate_json(&changed).expect("typed JSON remains parseable");
         assert!(report.violations.contains(&"SERVICE_PROFILE_PROMOTED_OR_INCOMPLETE"));
@@ -523,10 +524,9 @@ mod tests {
 
     #[test]
     fn unknown_quantity_cannot_carry_a_number() {
-        let changed = PACKAGE_JSON.replacen(
-            "\"value\":null",
-            "\"value\":0.0",
-            1,
+        let changed = mutate_once(
+            "\"value\": null",
+            "\"value\": 0.0",
         );
         let report = validate_json(&changed).expect("typed JSON remains parseable");
         assert!(report.violations.contains(&"SERVICE_PERFORMANCE_VALUE_NOT_QUALIFIED"));
@@ -534,10 +534,9 @@ mod tests {
 
     #[test]
     fn evaluated_architecture_is_rejected() {
-        let changed = PACKAGE_JSON.replacen(
-            "\"status\":\"NOT_EVALUATED\"",
-            "\"status\":\"QUALIFIED\"",
-            1,
+        let changed = mutate_once(
+            "\"status\": \"NOT_EVALUATED\"",
+            "\"status\": \"QUALIFIED\"",
         );
         let report = validate_json(&changed).expect("typed JSON remains parseable");
         assert!(report.violations.contains(&"ARCHITECTURE_EVALUATION_OR_FAILURE_BOUNDARY_INVALID"));
@@ -545,10 +544,9 @@ mod tests {
 
     #[test]
     fn trace_digest_cannot_appear_before_trace_materialization() {
-        let changed = PACKAGE_JSON.replacen(
-            "\"common_trace_digest\":null",
-            "\"common_trace_digest\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"",
-            1,
+        let changed = mutate_once(
+            "\"common_trace_digest\": null",
+            "\"common_trace_digest\": \"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"",
         );
         let report = validate_json(&changed).expect("typed JSON remains parseable");
         assert!(report.violations.contains(&"COMPARISON_PROTOCOL_PROMOTED_OR_INCOMPLETE"));
@@ -556,10 +554,9 @@ mod tests {
 
     #[test]
     fn model_cannot_authorize_execution() {
-        let changed = PACKAGE_JSON.replacen(
-            "\"model_recommendations_can_dispatch\":false",
-            "\"model_recommendations_can_dispatch\":true",
-            1,
+        let changed = mutate_once(
+            "\"model_recommendations_can_dispatch\": false",
+            "\"model_recommendations_can_dispatch\": true",
         );
         let report = validate_json(&changed).expect("typed JSON remains parseable");
         assert!(report.violations.contains(&"EXECUTION_AUTHORITY_NONEMPTY"));
@@ -567,10 +564,9 @@ mod tests {
 
     #[test]
     fn unexpected_service_identity_is_rejected() {
-        let changed = PACKAGE_JSON.replacen(
-            "\"id\":\"WATERLOOP\"",
-            "\"id\":\"EXTRA_SERVICE\"",
-            1,
+        let changed = mutate_once(
+            "\"id\": \"WATERLOOP\"",
+            "\"id\": \"EXTRA_SERVICE\"",
         );
         let report = validate_json(&changed).expect("typed JSON remains parseable");
         assert!(report.violations.contains(&"SERVICE_ID_SET_INVALID"));
@@ -578,10 +574,9 @@ mod tests {
 
     #[test]
     fn service_stream_identity_drift_is_rejected() {
-        let changed = PACKAGE_JSON.replacen(
-            "\"id\":\"source_water\"",
-            "\"id\":\"generic_input\"",
-            1,
+        let changed = mutate_once(
+            "\"id\": \"source_water\"",
+            "\"id\": \"generic_input\"",
         );
         let report = validate_json(&changed).expect("typed JSON remains parseable");
         assert!(report.violations.contains(&"SERVICE_PROFILE_PROMOTED_OR_INCOMPLETE"));
@@ -589,10 +584,9 @@ mod tests {
 
     #[test]
     fn stress_case_family_drift_is_rejected() {
-        let changed = PACKAGE_JSON.replacen(
-            "\"event_family\":\"CONCURRENCY\"",
-            "\"event_family\":\"GENERIC_EVENT\"",
-            1,
+        let changed = mutate_once(
+            "\"event_family\": \"CONCURRENCY\"",
+            "\"event_family\": \"GENERIC_EVENT\"",
         );
         let report = validate_json(&changed).expect("typed JSON remains parseable");
         assert!(report.violations.contains(&"STRESS_CASE_PROMOTED_OR_MISBOUND"));
@@ -600,10 +594,9 @@ mod tests {
 
     #[test]
     fn unknown_spatial_interface_field_is_rejected() {
-        let changed = PACKAGE_JSON.replacen(
+        let changed = mutate_once(
             "\"purpose\":",
             "\"unreviewed_interface_field\":true,\"purpose\":",
-            1,
         );
         assert!(validate_json(&changed).is_err());
     }
