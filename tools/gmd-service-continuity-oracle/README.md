@@ -11,7 +11,7 @@ The evaluator reports a **per-service resilience vector**, not one score that ad
 ## Inputs
 
 Each service trajectory declares:
-- stable service identity and asset/topology revision;
+- stable service identity, owner reference, geographic/jurisdiction reference and asset/topology revision;
 - a native quantity unit;
 - evidence class, source reference and SHA-256 digest of the trajectory artifact;
 - minimum service floor as a fraction of required service;
