@@ -118,6 +118,7 @@ pub enum ServiceError {
     InvalidSourceDigest,
     InvalidServiceFloor,
     InvalidQuantityTolerance,
+    InvalidRecoveryHold,
     EmptyIntervals,
     InvalidInterval,
     IncompleteOrNonContiguousCoverage,
@@ -140,7 +141,8 @@ impl fmt::Display for ServiceError {
             Self::EmptyAssetRevision => "asset revision must be non-empty and trimmed",
             Self::InvalidSourceDigest => "source digest must be 64 lowercase hexadecimal SHA-256 characters",
             Self::InvalidServiceFloor => "minimum service fraction must be finite and in (0, 1]",
-            Self::InvalidQuantityTolerance => "quantity tolerance must be finite and non-negative",
+            Self::InvalidQuantityTolerance => "quantity tolerance must be finite, non-negative, and smaller than every positive-demand service floor",
+            Self::InvalidRecoveryHold => "recovery hold duration must be positive",
             Self::EmptyIntervals => "service trajectory must contain at least one interval",
             Self::InvalidInterval => "each interval must have positive duration and stay within the horizon",
             Self::IncompleteOrNonContiguousCoverage => "intervals must exactly and contiguously cover [0, horizon)",
@@ -243,9 +245,11 @@ pub fn evaluate_service(
             let served = (capped_delivered / required).clamp(0.0, 1.0);
             (served, (1.0 - served).clamp(0.0, 1.0))
         };
-        let floor_met = delivered + service.quantity_tolerance
-            >= required * service.minimum_service_fraction;
-        let full_met = delivered + service.quantity_tolerance >= required;
+        let floor_threshold =
+            required * service.minimum_service_fraction - service.quantity_tolerance;
+        let full_threshold = required - service.quantity_tolerance;
+        let floor_met = delivered >= floor_threshold;
+        let full_met = delivered >= full_threshold;
 
         if !served_fraction.is_finite() || !deficit_fraction.is_finite() {
             return Err(ServiceError::NumericalOverflow);
@@ -367,6 +371,9 @@ fn validate_service_metadata(service: &ServiceSeries) -> Result<(), ServiceError
     if !service.quantity_tolerance.is_finite() || service.quantity_tolerance < 0.0 {
         return Err(ServiceError::InvalidQuantityTolerance);
     }
+    if service.recovery_hold_seconds == 0 {
+        return Err(ServiceError::InvalidRecoveryHold);
+    }
     if service.intervals.is_empty() {
         return Err(ServiceError::EmptyIntervals);
     }
@@ -395,6 +402,12 @@ fn validate_intervals(
         }
         if interval.required_quantity < 0.0 || interval.delivered_quantity < 0.0 {
             return Err(ServiceError::NegativeQuantity);
+        }
+        if interval.required_quantity > 0.0
+            && service.quantity_tolerance
+                >= interval.required_quantity * service.minimum_service_fraction
+        {
+            return Err(ServiceError::InvalidQuantityTolerance);
         }
         expected_start = interval.end_offset_seconds;
     }
@@ -549,8 +562,8 @@ mod tests {
         assert_eq!(
             result.floor_recovery,
             Some(RecoveryMark {
-                began_after_seconds: 0,
-                confirmed_after_seconds: 30,
+                began_after_seconds: 30,
+                confirmed_after_seconds: 60,
             })
         );
         assert_eq!(result.full_service_recovery, None);
@@ -603,7 +616,7 @@ mod tests {
             result.floor_recovery,
             Some(RecoveryMark {
                 began_after_seconds: 7,
-                confirmed_after_seconds: 28,
+                confirmed_after_seconds: 60,
             })
         );
     }
@@ -698,6 +711,26 @@ mod tests {
         bad_tolerance.quantity_tolerance = -0.1;
         assert_eq!(
             evaluate_service(&bad_tolerance, 60),
+            Err(ServiceError::InvalidQuantityTolerance)
+        );
+    }
+
+    #[test]
+    fn zero_recovery_hold_is_rejected() {
+        let mut input = service(vec![interval(0, 60, 100.0, 100.0)]);
+        input.recovery_hold_seconds = 0;
+        assert_eq!(
+            evaluate_service(&input, 60),
+            Err(ServiceError::InvalidRecoveryHold)
+        );
+    }
+
+    #[test]
+    fn tolerance_cannot_consume_the_entire_service_floor() {
+        let mut input = service(vec![interval(0, 60, 100.0, 0.0)]);
+        input.quantity_tolerance = 80.0;
+        assert_eq!(
+            evaluate_service(&input, 60),
             Err(ServiceError::InvalidQuantityTolerance)
         );
     }
