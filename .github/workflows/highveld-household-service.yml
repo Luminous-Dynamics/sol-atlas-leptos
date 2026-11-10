@@ -40,9 +40,16 @@ jobs:
             ~/.cargo/git/db/
             target/
           key: ${{ runner.os }}-cargo-highveld-household-service-${{ hashFiles('tools/highveld-household-service/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-highveld-contract-
+            ${{ runner.os }}-cargo-native-
       - name: Check package formatting
         run: cargo fmt --manifest-path tools/highveld-household-service/Cargo.toml --all -- --check
+      - name: Fetch exact locked dependency set
+        run: cargo fetch --locked --manifest-path tools/highveld-household-service/Cargo.toml
       - name: Run locked offline mutation tests
         run: cargo test --locked --offline --manifest-path tools/highveld-household-service/Cargo.toml
+      - name: Run warning-free Clippy
+        run: cargo clippy --locked --offline --manifest-path tools/highveld-household-service/Cargo.toml --all-targets -- -D warnings
       - name: Validate tracked package
         run: cargo run --locked --offline --manifest-path tools/highveld-household-service/Cargo.toml
