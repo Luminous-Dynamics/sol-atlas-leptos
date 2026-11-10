@@ -36,17 +36,38 @@ const SIGNAL_FIELDS: &[&str] = &[
     "device_command_requested","claim_from_model_or_vendor","physical_quality_claim",
     "event_wrapper_present","event_contract_valid","event_used_as_measurement",
 ];
-const EXPECTED_METRICS: &[(&str,&str,&str)] = &[
-    ("water.source_withdrawal","WATERLOOP","L"),
-    ("water.usable_non_potable_delivery","WATERLOOP","L"),
-    ("water.rejected_or_residual_water","WATERLOOP","L"),
-    ("water.electrical_energy","WATERLOOP","kWh"),
-    ("heatbank.electrical_energy","HEATBANK","kWh"),
-    ("heatbank.useful_thermal_service","HEATBANK","kWh_th"),
-    ("heatbank.water_draw","HEATBANK","L"),
-    ("heatbank.storage_loss","HEATBANK","kWh_th"),
-    ("aircare.electrical_energy","AIRCARE","kWh"),
-    ("aircare.outdoor_air_delivery","AIRCARE","m3"),
+const EXPECTED_METRICS: &[(&str,&str,&str,&str)] = &[
+    ("water.source_withdrawal","WATERLOOP","L","resource_flows.source_withdrawal.quantity"),
+    ("water.usable_non_potable_delivery","WATERLOOP","L","resource_flows.usable_non_potable_delivery.quantity"),
+    ("water.rejected_or_residual_water","WATERLOOP","L","resource_flows.rejected_or_residual_water.quantity"),
+    ("water.electrical_energy","WATERLOOP","kWh","resource_flows.electrical_energy.quantity"),
+    ("heatbank.electrical_energy","HEATBANK","kWh","resource_flows.electrical_energy.quantity"),
+    ("heatbank.useful_thermal_service","HEATBANK","kWh_th","resource_flows.useful_thermal_service.quantity"),
+    ("heatbank.water_draw","HEATBANK","L","resource_flows.water_draw.quantity"),
+    ("heatbank.storage_loss","HEATBANK","kWh_th","resource_flows.storage_loss.quantity"),
+    ("aircare.electrical_energy","AIRCARE","kWh","resource_flows.electrical_energy.quantity"),
+    ("aircare.outdoor_air_delivery","AIRCARE","m3","resource_flows.outdoor_air_delivery.quantity"),
+];
+const METRIC_FIELDS: &[&str] = &[
+    "metric_id","service_id","package_path","unit","target_owner","target_contract","target_contract_version",
+    "target_path","requirement_evidence_class","required_observation_evidence_kind","source_owner_state",
+    "source_contract_state","source_revision_state","source_receipt_state","instrument_profile_state",
+    "service_floor_state","admission_state",
+];
+const UNBOUND_FIELDS: &[&str] = &["id","service_id","package_path","reason"];
+const BINDING_POLICY_FIELDS: &[&str] = &[
+    "source_owner_must_be_exact","source_contract_revision_must_be_exact","source_receipt_and_subject_digest_required",
+    "hard_service_floor_must_be_defined","instrument_profile_must_be_admitted_for_declared_metric",
+    "calibration_and_coverage_must_be_current","scope_design_bom_window_and_context_must_match",
+    "timeline_events_never_count_as_physical_measurements","post_occupancy_result_never_proves_instrument_calibration",
+    "device_commands_not_authorized","eligible_state_is_review_only_not_pass",
+];
+const OUTCOME_CONTRACT_FIELDS: &[&str] = &[
+    "owner","contract_id","schema_id","schema_version","corpus_id","requirement_fields","observation_fields",
+    "evidence_classes","evidence_kinds","non_authority",
+];
+const TIMELINE_CONTRACT_FIELDS: &[&str] = &[
+    "owner","contract_id","schema_version","benchmark_id","event_fields","event_kinds","grouping_rule","non_authority",
 ];
 const EXPECTED_CASES: &[(&str,&str)] = &[
     ("HSOB-001","UNBOUND_SOURCE_OWNER"),
