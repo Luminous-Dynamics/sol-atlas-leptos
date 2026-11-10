@@ -1,0 +1,8 @@
+[package]
+name = "gmd-four-site-replay"
+version = "0.1.0"
+edition = "2024"
+publish = false
+description = "Offline verifier for the pinned May 2024 four-site geomagnetically induced current replay"
+
+[dependencies]
