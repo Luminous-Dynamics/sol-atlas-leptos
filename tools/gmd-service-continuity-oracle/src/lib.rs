@@ -439,7 +439,7 @@ fn validate_intervals(
 
 fn find_sustained_recovery(
     intervals: &[ServiceInterval],
-    status: &[bool],
+    status: &[Option<bool>],
     hold_seconds: u64,
 ) -> Option<RecoveryMark> {
     let mut observed_violation = false;
