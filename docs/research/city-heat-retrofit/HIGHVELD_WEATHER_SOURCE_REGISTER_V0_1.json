@@ -1,0 +1,359 @@
+{
+  "schema_version": "sol-atlas.highveld-weather-source-register/0.1",
+  "register_id": "HIGHVELD-WEATHER-SOURCE-REGISTER-V0.1",
+  "research_cut": "2026-11-10",
+  "owner": "Sol-Atlas",
+  "owner_issue": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/611",
+  "parent_issue": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/593",
+  "classification": "source_inventory_candidates_not_admitted",
+  "claim_ceiling": "no_weather_source_is_locally_qualified",
+  "source_count": 9,
+  "station_identity_rule": "WMO_WIGOS_ISD_GHCND_AND_PROVIDER_IDS_MUST_BE_CROSSWALKED_WITH_EFFECTIVE_DATES; NEVER_ASSUME_STRING_SIMILARITY_IS_IDENTITY",
+  "tmy_rule": "TMY_OR_TMYX_IS_TYPICAL_YEAR_SCREENING_ONLY; NOT_MEASURED_ACTUAL_YEAR_HEATWAVE_FUTURE_SCENARIO_OR_PARCEL_OBSERVATION",
+  "rights_rule": "PUBLIC_DOWNLOAD_OR_CATALOGUE_PRESENCE_DOES_NOT_ESTABLISH_COMMERCIAL_REUSE_OR_REDISTRIBUTION_RIGHTS",
+  "admission_rule": "UNKNOWN_IDENTITY_RIGHTS_QC_VARIABLE_COVERAGE_TIMESTEP_OR_SPATIAL_REPRESENTATIVENESS_BLOCKS_ADMISSION",
+  "sources": [
+    {
+      "source_id": "TMYX-JOHANNESBURG-TAMBO-2011-2025",
+      "provider": "Climate.OneBuilding.org",
+      "dataset_family": "TMYx",
+      "source_class": "TYPICAL_METEOROLOGICAL_YEAR",
+      "station_id": "WMO-683680",
+      "station_name": "Johannesburg-Tambo International Airport",
+      "filename": "ZAF_GT_Johannesburg-Tambo.Intl.AP.683680_TMYx.2011-2025.zip",
+      "period": "2011-2025 input period; composite typical year output",
+      "timestep": "hourly EPW candidate; actual archive not yet downloaded/header inspected",
+      "variables": [
+        "dry_bulb_temperature",
+        "dew_point_temperature",
+        "relative_humidity",
+        "wind_direction",
+        "wind_speed",
+        "global_horizontal_radiation",
+        "direct_normal_radiation",
+        "diffuse_horizontal_radiation",
+        "pressure",
+        "other_epw_fields_pending_header_audit"
+      ],
+      "solar_provenance": "2026 TMYx release uses ERA5 reanalysis solar data; exact file STAT/EPW header pending",
+      "station_identity_state": "NOT_RECONCILED",
+      "location_history_state": "NOT_REVIEWED",
+      "spatial_representativeness": "AIRPORT_STATION_NOT_PARCEL",
+      "archive_state": "NOT_DOWNLOADED",
+      "sha256": null,
+      "rights_state": "FILE_SPECIFIC_REUSE_PERMISSION_NOT_ESTABLISHED",
+      "allowed_use": "TYPICAL_YEAR_SCREENING_ONLY_AFTER_ADMISSION",
+      "prohibited_uses": [
+        "OBSERVED_HEATWAVE",
+        "FUTURE_CLIMATE",
+        "PARCEL_MEASUREMENT",
+        "AMY_CALIBRATION_WITHOUT_SOURCE_YEAR_DATA"
+      ],
+      "admission_state": "CANDIDATE_NOT_ADMITTED",
+      "pending_actions": [
+        "download exact archive",
+        "inspect EPW/STAT/DDY/Rain files",
+        "record SHA-256",
+        "verify coordinates/elevation/timezone",
+        "reconcile WMO/WIGOS/ISD IDs and station relocations",
+        "inspect missingness/QC/solar source",
+        "establish commercial and redistribution rights"
+      ]
+    },
+    {
+      "source_id": "TMYX-JOHANNESBURG-BOTANICAL-GARDENS-2011-2025",
+      "provider": "Climate.OneBuilding.org",
+      "dataset_family": "TMYx",
+      "source_class": "TYPICAL_METEOROLOGICAL_YEAR",
+      "station_id": "WMO-683610",
+      "station_name": "Johannesburg Botanical Gardens",
+      "filename": "ZAF_GT_Johannesburg.Botanical.Gardens.683610_TMYx.2011-2025.zip",
+      "period": "2011-2025 input period; composite typical year output",
+      "timestep": "hourly EPW candidate; actual archive not yet downloaded/header inspected",
+      "variables": [
+        "dry_bulb_temperature",
+        "dew_point_temperature",
+        "relative_humidity",
+        "wind_direction",
+        "wind_speed",
+        "global_horizontal_radiation",
+        "direct_normal_radiation",
+        "diffuse_horizontal_radiation",
+        "pressure",
+        "other_epw_fields_pending_header_audit"
+      ],
+      "solar_provenance": "2026 TMYx release uses ERA5 reanalysis solar data; exact file STAT/EPW header pending",
+      "station_identity_state": "NOT_RECONCILED",
+      "location_history_state": "NOT_REVIEWED",
+      "spatial_representativeness": "GARDENS_STATION_NOT_PARCEL",
+      "archive_state": "NOT_DOWNLOADED",
+      "sha256": null,
+      "rights_state": "FILE_SPECIFIC_REUSE_PERMISSION_NOT_ESTABLISHED",
+      "allowed_use": "TYPICAL_YEAR_SCREENING_ONLY_AFTER_ADMISSION",
+      "prohibited_uses": [
+        "OBSERVED_HEATWAVE",
+        "FUTURE_CLIMATE",
+        "PARCEL_MEASUREMENT",
+        "AMY_CALIBRATION_WITHOUT_SOURCE_YEAR_DATA"
+      ],
+      "admission_state": "CANDIDATE_NOT_ADMITTED",
+      "pending_actions": [
+        "download exact archive",
+        "inspect EPW/STAT/DDY/Rain files",
+        "record SHA-256",
+        "verify coordinates/elevation/timezone",
+        "reconcile WMO/WIGOS/ISD IDs and station relocations",
+        "inspect missingness/QC/solar source",
+        "establish commercial and redistribution rights"
+      ]
+    },
+    {
+      "source_id": "TMYX-JOHANNESBURG-GRAND-CENTRAL-2011-2025",
+      "provider": "Climate.OneBuilding.org",
+      "dataset_family": "TMYx",
+      "source_class": "TYPICAL_METEOROLOGICAL_YEAR",
+      "station_id": "WMO-682650",
+      "station_name": "Grand Central Airport",
+      "filename": "ZAF_GT_Grand.Central.AP.682650_TMYx.2011-2025.zip",
+      "period": "2011-2025 input period; composite typical year output",
+      "timestep": "hourly EPW candidate; actual archive not yet downloaded/header inspected",
+      "variables": [
+        "PENDING_HEADER_AUDIT"
+      ],
+      "solar_provenance": "2026 release methodology indicates ERA5 reanalysis solar; file-specific header pending",
+      "station_identity_state": "IDENTIFIER_ONLY_NOT_RECONCILED",
+      "location_history_state": "NOT_REVIEWED",
+      "spatial_representativeness": "AIRPORT_STATION_NOT_PARCEL",
+      "archive_state": "NOT_DOWNLOADED",
+      "sha256": null,
+      "rights_state": "FILE_SPECIFIC_REUSE_PERMISSION_NOT_ESTABLISHED",
+      "allowed_use": "TYPICAL_YEAR_SCREENING_ONLY_AFTER_ADMISSION",
+      "prohibited_uses": [
+        "OBSERVED_HEATWAVE",
+        "FUTURE_CLIMATE",
+        "PARCEL_MEASUREMENT"
+      ],
+      "admission_state": "CANDIDATE_NOT_ADMITTED",
+      "pending_actions": [
+        "download exact archive",
+        "inspect headers and variable coverage",
+        "record SHA-256",
+        "resolve exact station coordinates/elevation/timezone/history",
+        "rights review"
+      ]
+    },
+    {
+      "source_id": "TMYX-JOHANNESBURG-RAND-2011-2025",
+      "provider": "Climate.OneBuilding.org",
+      "dataset_family": "TMYx",
+      "source_class": "TYPICAL_METEOROLOGICAL_YEAR",
+      "station_id": "WMO-683463",
+      "station_name": "Rand Airport",
+      "filename": "ZAF_GT_Rand.AP.683463_TMYx.2011-2025.zip",
+      "period": "2011-2025 input period; composite typical year output",
+      "timestep": "hourly EPW candidate; actual archive not yet downloaded/header inspected",
+      "variables": [
+        "PENDING_HEADER_AUDIT"
+      ],
+      "solar_provenance": "2026 release methodology indicates ERA5 reanalysis solar; file-specific header pending",
+      "station_identity_state": "IDENTIFIER_ONLY_NOT_RECONCILED",
+      "location_history_state": "NOT_REVIEWED",
+      "spatial_representativeness": "AIRPORT_STATION_NOT_PARCEL",
+      "archive_state": "NOT_DOWNLOADED",
+      "sha256": null,
+      "rights_state": "FILE_SPECIFIC_REUSE_PERMISSION_NOT_ESTABLISHED",
+      "allowed_use": "TYPICAL_YEAR_SCREENING_ONLY_AFTER_ADMISSION",
+      "prohibited_uses": [
+        "OBSERVED_HEATWAVE",
+        "FUTURE_CLIMATE",
+        "PARCEL_MEASUREMENT"
+      ],
+      "admission_state": "CANDIDATE_NOT_ADMITTED",
+      "pending_actions": [
+        "download exact archive",
+        "inspect headers and variable coverage",
+        "record SHA-256",
+        "resolve exact station coordinates/elevation/timezone/history",
+        "rights review"
+      ]
+    },
+    {
+      "source_id": "TMYX-JOHANNESBURG-LANSERIA-2011-2025",
+      "provider": "Climate.OneBuilding.org",
+      "dataset_family": "TMYx",
+      "source_class": "TYPICAL_METEOROLOGICAL_YEAR",
+      "station_id": "WMO-682635",
+      "station_name": "Lanseria International Airport",
+      "filename": "ZAF_GT_Lanseria.Intl.AP.682635_TMYx.2011-2025.zip",
+      "period": "2011-2025 input period; composite typical year output",
+      "timestep": "hourly EPW candidate; actual archive not yet downloaded/header inspected",
+      "variables": [
+        "PENDING_HEADER_AUDIT"
+      ],
+      "solar_provenance": "2026 release methodology indicates ERA5 reanalysis solar; file-specific header pending",
+      "station_identity_state": "IDENTIFIER_ONLY_NOT_RECONCILED",
+      "location_history_state": "NOT_REVIEWED",
+      "spatial_representativeness": "AIRPORT_STATION_NOT_PARCEL",
+      "archive_state": "NOT_DOWNLOADED",
+      "sha256": null,
+      "rights_state": "FILE_SPECIFIC_REUSE_PERMISSION_NOT_ESTABLISHED",
+      "allowed_use": "TYPICAL_YEAR_SCREENING_ONLY_AFTER_ADMISSION",
+      "prohibited_uses": [
+        "OBSERVED_HEATWAVE",
+        "FUTURE_CLIMATE",
+        "PARCEL_MEASUREMENT"
+      ],
+      "admission_state": "CANDIDATE_NOT_ADMITTED",
+      "pending_actions": [
+        "download exact archive",
+        "inspect headers and variable coverage",
+        "record SHA-256",
+        "resolve exact station coordinates/elevation/timezone/history",
+        "rights review"
+      ]
+    },
+    {
+      "source_id": "SAWS-CLIMATE-ARCHIVE-JOHANNESBURG-STATIONS",
+      "provider": "South African Weather Service",
+      "dataset_family": "NATIONAL_CLIMATE_ARCHIVE",
+      "source_class": "OBSERVED_STATION_DATA_CANDIDATE",
+      "station_id": "STATION_ID_PENDING_SAWS_METADATA",
+      "station_name": "Johannesburg-area stations not yet enumerated",
+      "period": "SAWS public description says hourly data from 1950 onward for wind direction, wind speed, temperature, humidity, pressure and sunshine; selected-station coverage must be verified",
+      "timestep": "hourly listed; station/product specific coverage unknown",
+      "variables": [
+        "wind_direction",
+        "wind_speed",
+        "temperature",
+        "humidity",
+        "pressure",
+        "sunshine",
+        "daily_rainfall_and_other_period_products_as_available"
+      ],
+      "solar_provenance": "OBSERVATIONS_OR_SAWS_PRODUCT_METADATA_PENDING",
+      "station_identity_state": "NO_JOHANNESBURG_STATION_ID_ADMITTED",
+      "location_history_state": "NOT_OBTAINED",
+      "spatial_representativeness": "UNKNOWN",
+      "archive_state": "NOT_ORDERED",
+      "sha256": null,
+      "rights_state": "PURCHASE_AND_COMMERCIAL_TERMS_REQUIRED; SAWS_PAGE_STATES_NO_RESALE",
+      "allowed_use": "SOURCE_AND_STATION_RESEARCH_ONLY",
+      "prohibited_uses": [
+        "REDISTRIBUTION_WITHOUT_PERMISSION",
+        "COMMERCIAL_USE_WITHOUT_TERMS",
+        "MODEL_ADMISSION_BEFORE_QC_AND_STATION_AUDIT"
+      ],
+      "admission_state": "CANDIDATE_NOT_ADMITTED",
+      "pending_actions": [
+        "request station list near candidate Gauteng sites",
+        "request hourly variable periods",
+        "obtain station/WIGOS identifiers and coordinates",
+        "obtain instrument/relocation/maintenance/QC history",
+        "confirm price and commercial licence",
+        "obtain sample metadata/product terms"
+      ]
+    },
+    {
+      "source_id": "ARC-AGROMETEOROLOGY-ARCHIVE-JOHANNESBURG-STATIONS",
+      "provider": "Agricultural Research Council Agrometeorology Division",
+      "dataset_family": "NATIONAL_AGROMETEOROLOGY_ARCHIVE",
+      "source_class": "OBSERVED_STATION_DATA_CANDIDATE",
+      "station_id": "STATION_ID_PENDING_ARC_METADATA",
+      "station_name": "Johannesburg-area manual/AWS stations not yet enumerated",
+      "period": "Portal states approximately 1900 archive stations; some rainfall records date to 1900; station-specific periods pending",
+      "timestep": "ad-hoc reports can be hourly, but resolution/variables per station are unknown",
+      "variables": [
+        "PENDING_STATION_CATALOGUE_AND_PRODUCT_REVIEW"
+      ],
+      "solar_provenance": "STATION_PRODUCT_METADATA_PENDING",
+      "station_identity_state": "NO_JOHANNESBURG_STATION_ID_ADMITTED",
+      "location_history_state": "NOT_OBTAINED",
+      "spatial_representativeness": "UNKNOWN",
+      "archive_state": "NOT_ORDERED",
+      "sha256": null,
+      "rights_state": "PAID_AD_HOC_OR_SUBSCRIPTION; TERMS_AND_COMMERCIAL_REUSE_TO_CONFIRM",
+      "allowed_use": "SOURCE_AND_STATION_RESEARCH_ONLY",
+      "prohibited_uses": [
+        "ASSUME_ALL_ARCHIVE_STATIONS_ARE_ACTIVE",
+        "ASSUME_ALL_HAVE_HOURLY_DATA",
+        "COMMERCIAL_REDISTRIBUTION_WITHOUT_PERMISSION"
+      ],
+      "admission_state": "CANDIDATE_NOT_ADMITTED",
+      "pending_actions": [
+        "request Johannesburg-area station inventory",
+        "separate MWS/AWS and active/retired records",
+        "obtain hourly variable coverage",
+        "obtain station metadata/maintenance/QC histories",
+        "confirm fees and rights",
+        "inspect sample data and checksums"
+      ]
+    },
+    {
+      "source_id": "NOAA-NCEI-GHCND-JOHANNESBURG-INTERNATIONAL",
+      "provider": "NOAA National Centers for Environmental Information",
+      "dataset_family": "GHCND_DAILY_SUMMARIES",
+      "source_class": "OBSERVED_DAILY_STATION_COMPARATOR",
+      "station_id": "GHCND:SFM00068368",
+      "station_name": "Johannesburg International",
+      "period": "Rendered NCEI station page lists daily summaries 1973-01-17 through 2020-05-27",
+      "timestep": "daily summary; not hourly",
+      "variables": [
+        "DAILY_CLIMATE_ELEMENTS_AS_AVAILABLE_PENDING_ELEMENT_AUDIT"
+      ],
+      "solar_provenance": "NOT_A_SUBSTITUTE_FOR_HOURLY_SOLAR_DATA",
+      "station_identity_state": "CROSSWALK_TO_WMO_683680_NOT_PROVEN",
+      "location_history_state": "RENDERED_LOCATION_HISTORY_INCOMPLETE",
+      "spatial_representativeness": "AIRPORT_STATION_NOT_PARCEL",
+      "archive_state": "CATALOGUE_ONLY",
+      "sha256": null,
+      "rights_state": "NO_REDISTRIBUTION_DECISION_IN_THIS_REGISTER",
+      "allowed_use": "DAILY_STATION_IDENTITY_AND_LONGER_TERM_COMPARATOR_ONLY_AFTER_AUDIT",
+      "prohibited_uses": [
+        "HOURLY_THERMAL_SIMULATION",
+        "ASSUME_SAME_AS_TMYX_SOURCE_WITHOUT_CROSSWALK"
+      ],
+      "admission_state": "CANDIDATE_NOT_ADMITTED",
+      "pending_actions": [
+        "inspect element coverage and flags",
+        "retrieve station history/equipment metadata",
+        "reconcile WMO/WIGOS/ISD/GHCND identities",
+        "review data terms",
+        "compare only on compatible daily variables"
+      ]
+    },
+    {
+      "source_id": "ERA5-GRIDDED-REANALYSIS-SOLAR",
+      "provider": "ECMWF ERA5; TMYx 2026 files reference Oikolab-provided ERA5 solar",
+      "dataset_family": "ERA5_REANALYSIS",
+      "source_class": "REANALYSIS_GRIDDED",
+      "station_id": "GRID_CELL_AND_PRODUCT_VERSION_PENDING",
+      "station_name": "Grid cell matching each exact TMYx site",
+      "period": "ERA5 hourly time-series extends from 1940 to present; file/product-specific subset pending",
+      "timestep": "hourly product; grid/time aggregation and exact variable needed must be pinned",
+      "variables": [
+        "SOLAR_RADIATION_VARIABLES_PENDING_EXACT_PRODUCT"
+      ],
+      "solar_provenance": "REANALYSIS_NOT_GROUND_STATION_OBSERVATION",
+      "station_identity_state": "GRID_CELL_NOT_STATION",
+      "location_history_state": "GRID_AND_VERSION_PENDING",
+      "spatial_representativeness": "GRID_RESOLUTION_AND_ELEVATION_DIFFERENCE_PENDING",
+      "archive_state": "NOT_DOWNLOADED_IN_THIS_REGISTER",
+      "sha256": null,
+      "rights_state": "EXACT_PRODUCT_TERMS_AND_ATTRIBUTION_TO_REVIEW",
+      "allowed_use": "GRIDDED_SOLAR_OR_REANALYSIS_COMPARATOR_ONLY_AFTER_ADMISSION",
+      "prohibited_uses": [
+        "RELABEL_AS_STATION_MEASURED",
+        "REPLACE_HISTORICAL_EXTREME_WITH_TMY",
+        "PARCEL_MEASUREMENT"
+      ],
+      "admission_state": "CANDIDATE_NOT_ADMITTED",
+      "pending_actions": [
+        "pin exact ERA5 product/variable/grid/period",
+        "record grid coordinates and resolution",
+        "review source provenance and licence",
+        "compare against available station radiation records",
+        "hash downloaded inputs"
+      ]
+    }
+  ]
+}
