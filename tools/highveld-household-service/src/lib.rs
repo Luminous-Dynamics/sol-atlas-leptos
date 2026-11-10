@@ -238,8 +238,15 @@ pub fn validate_package(package: &Package) -> ValidationReport {
         violations.push("SERVICE_ID_SET_INVALID");
     }
     for service in &package.services {
+        let expected_issue_url = match service.id.as_str() {
+            "WATERLOOP" => "https://github.com/Luminous-Dynamics/symthaea/issues/10323",
+            "HEATBANK" => "https://github.com/Luminous-Dynamics/symthaea/issues/10329",
+            "AIRCARE" => "https://github.com/Luminous-Dynamics/symthaea/issues/10330",
+            _ => "",
+        };
         if service.product_name.trim().is_empty()
             || service.owner != "Symthaea"
+            || service.owner_issue_url != expected_issue_url
             || service.product_revision != "UNKNOWN_NOT_SELECTED"
             || service.status != "RESEARCH_PROFILE_ONLY"
             || service.service_definition.trim().is_empty()
@@ -325,7 +332,7 @@ pub fn validate_package(package: &Package) -> ValidationReport {
     stress_ids.sort_unstable();
     let expected_stress_ids: Vec<String> = (1..=14).map(|n| format!("HHS-{n:03}")).collect();
     if stress_ids.len() != expected_stress_ids.len()
-        || stress_ids.iter().zip(expected_stress_ids.iter()).any(|(got, wanted)| *got != wanted)
+        || stress_ids.iter().zip(expected_stress_ids.iter()).any(|(got, wanted)| *got != wanted.as_str())
     {
         violations.push("STRESS_CASE_ID_SET_INVALID");
     }
@@ -480,13 +487,23 @@ mod tests {
     }
 
     #[test]
-    fn extra_service_is_rejected() {
+    fn unexpected_service_identity_is_rejected() {
         let changed = PACKAGE_JSON.replacen(
-            "\"services\":[",
-            "\"services\":[{\"id\":\"EXTRA\"},",
+            "\"id\":\"WATERLOOP\"",
+            "\"id\":\"EXTRA_SERVICE\"",
             1,
         );
         let report = validate_json(&changed).expect("typed JSON remains parseable");
         assert!(report.violations.contains(&"SERVICE_ID_SET_INVALID"));
+    }
+
+    #[test]
+    fn unknown_spatial_interface_field_is_rejected() {
+        let changed = PACKAGE_JSON.replacen(
+            "\"purpose\":",
+            "\"unreviewed_interface_field\":true,\"purpose\":",
+            1,
+        );
+        assert!(validate_json(&changed).is_err());
     }
 }
