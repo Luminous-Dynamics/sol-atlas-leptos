@@ -265,3 +265,39 @@ Render distinct panels/layers for:
 5. measured detector/telescope data and reconstructed observations, when available.
 
 Never display a divergent geometric-optics magnification as a finite wave intensity. A wave-optics result is still a model prediction or numerical simulation unless it has been compared with an actual measurement under a declared inference procedure. Preserve phase and polarization, not only intensity. A result outside its approximation domain or lacking a converged oscillatory integral must display an unresolved/out-of-domain status.
+
+
+
+## 14. Finite-radius observers and horizon-crossing ray provenance
+
+Symtropy's current producer increment is [draft PR #4543](https://github.com/Luminous-Dynamics/symtropy/pull/4543), which adds:
+- a finite-radius Kerr zero-angular-momentum observer (ZAMO) orthonormal tetrad;
+- unit local photon directions in the ZAMO radial / polar / azimuthal basis;
+- mapping from a local sky direction to normalized (E=1,L_z,Q) and a Mino initial state;
+- adaptive second-order Mino integration in two explicitly tagged coordinate charts:
+  - Boyer–Lindquist ((ct/M,r/M,\theta,\phi)), exterior-only;
+  - ingoing Kerr ((v/M,r/M,\theta,\tilde\phi)), for future-ingoing rays across the outer horizon.
+
+### Projection fields
+
+The companion schema now has optional, backward-compatible fields for:
+- `observer.coordinate_chart`: `asymptotic_screen`, `boyer_lindquist`, `ingoing_kerr` or a declared alternative;
+- finite observer radius and polar angle in (M) units;
+- ZAMO lapse, frame-dragging angular velocity, (sqrt{g_{\phi\phi}}), tetrad digest and optional tetrad vectors;
+- unit local sky direction and its interpretation as a future-directed photon in the ZAMO frame;
+- per-image trajectory chart and a trajectory-qualification object containing endpoint classification, accepted/rejected steps, radial/polar constraint residuals, terminal radius, horizon radius, crossing flag and result digest.
+
+The added fields are optional in schema v1, so existing asymptotic projections remain valid.
+
+### Endpoint classification safeguards
+
+- `captured_by_horizon` requires an ingoing Kerr trajectory with a recorded crossing of the declared outer horizon, finite ingoing coordinates, and residuals within the qualified run limits.
+- A Boyer–Lindquist path that reaches its coordinate-domain boundary is `terminated_at_chart_boundary`, not captured.
+- A ray whose radius turns back outside the horizon is `turned_back` or another declared non-capture endpoint.
+- Unknown chart, absent horizon radius, unresolved crossing, or invalid residuals produces an unresolved qualification—not a visually inferred capture.
+
+### Rendering
+
+A finite-radius ray card must show its observer model/tetrad identity, event location, local sky direction, coordinate chart, and (E,L_z,Q) normalization. Keep local screen directions distinct from asymptotic Bardeen ((\alpha,\beta)) coordinates. Use the finite-radius-to-asymptotic limit only as a validation, not as an unrecorded coordinate conversion.
+
+A captured-ray visualization is still a numerical model output, not a telescope measurement. No capture observation or caustic result is available from the current draft producer PR.
