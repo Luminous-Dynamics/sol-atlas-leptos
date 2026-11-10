@@ -6,6 +6,9 @@ use serde::Deserialize;
 pub const PACKAGE_JSON: &str = include_str!(
     "../../../docs/research/highveld-keep/HIGHVELD_HOUSEHOLD_SERVICE_PACKAGE_V0_1.json"
 );
+pub const PACKAGE_SCHEMA_JSON: &str = include_str!(
+    "../../../docs/research/highveld-keep/HIGHVELD_HOUSEHOLD_SERVICE_PACKAGE_V0_1.schema.json"
+);
 
 const PACKAGE_ID: &str = "HIGHVELD-HOUSEHOLD-SERVICE-SYNTHETIC-001";
 const SCENARIO_ID: &str = "HIGHVELD-KEEP-SYNTHETIC-001";
@@ -392,6 +395,31 @@ pub fn validate_tracked_package() -> Result<ValidationReport, String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn schema_is_parseable_and_every_schema_object_is_closed() {
+        let schema: serde_json::Value =
+            serde_json::from_str(PACKAGE_SCHEMA_JSON).expect("schema JSON parses");
+        fn visit(value: &serde_json::Value, path: &str) {
+            if let Some(object) = value.as_object() {
+                if object.get("type").and_then(serde_json::Value::as_str) == Some("object") {
+                    assert_eq!(
+                        object.get("additionalProperties"),
+                        Some(&serde_json::Value::Bool(false)),
+                        "open object schema at {path}"
+                    );
+                }
+                for (key, child) in object {
+                    visit(child, &format!("{path}.{key}"));
+                }
+            } else if let Some(array) = value.as_array() {
+                for (index, child) in array.iter().enumerate() {
+                    visit(child, &format!("{path}[{index}]"));
+                }
+            }
+        }
+        visit(&schema, "$");
+    }
 
     #[test]
     fn tracked_package_is_valid_synthetic_only() {
