@@ -1,0 +1,37 @@
+name: GMD service continuity oracle
+
+on:
+  pull_request:
+    paths:
+      - "tools/gmd-service-continuity-oracle/**"
+      - ".github/workflows/gmd-service-continuity-oracle.yml"
+  push:
+    paths:
+      - "tools/gmd-service-continuity-oracle/**"
+      - ".github/workflows/gmd-service-continuity-oracle.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: gmd-service-continuity-oracle-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  oracle:
+    name: essential-service continuity oracle
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact commit
+        uses: actions/checkout@v4
+      - name: Install stable Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - name: Check formatting
+        run: cargo fmt --manifest-path tools/gmd-service-continuity-oracle/Cargo.toml -- --check
+      - name: Run offline tests
+        run: cargo test --manifest-path tools/gmd-service-continuity-oracle/Cargo.toml --locked --offline
+      - name: Run Clippy
+        run: cargo clippy --manifest-path tools/gmd-service-continuity-oracle/Cargo.toml --locked --offline --all-targets -- -D warnings
