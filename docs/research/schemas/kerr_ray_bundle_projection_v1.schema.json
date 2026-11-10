@@ -201,8 +201,7 @@
         "tetrad_id",
         "screen_basis",
         "inclination_rad",
-        "screen_coordinate_convention",
-        "coordinate_chart"
+        "screen_coordinate_convention"
       ],
       "properties": {
         "observer_id": {
@@ -437,8 +436,7 @@
           "caustic",
           "travel_time",
           "redshift",
-          "magnification",
-          "trajectory_coordinate_chart"
+          "magnification"
         ],
         "properties": {
           "branch_id": {
