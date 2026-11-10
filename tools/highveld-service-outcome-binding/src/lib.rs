@@ -103,16 +103,16 @@ impl<'de> Visitor<'de> for UniqueJsonVisitor {
         f.write_str("a JSON value with no duplicate member names")
     }
     fn visit_bool<E>(self,v:bool)->Result<Self::Value,E> where E:serde::de::Error { Ok(UniqueJson(Value::Bool(v))) }
-    fn visit_i64<E>(self,v:i64)->Result<Self::Value,E> { Ok(UniqueJson(Value::Number(v.into()))) }
-    fn visit_u64<E>(self,v:u64)->Result<Self::Value,E> { Ok(UniqueJson(Value::Number(v.into()))) }
+    fn visit_i64<E>(self,v:i64)->Result<Self::Value,E> where E:serde::de::Error { Ok(UniqueJson(Value::Number(v.into()))) }
+    fn visit_u64<E>(self,v:u64)->Result<Self::Value,E> where E:serde::de::Error { Ok(UniqueJson(Value::Number(v.into()))) }
     fn visit_f64<E>(self,v:f64)->Result<Self::Value,E> where E:serde::de::Error {
         let n=serde_json::Number::from_f64(v).ok_or_else(||E::custom("non-finite JSON number"))?;
         Ok(UniqueJson(Value::Number(n)))
     }
-    fn visit_str<E>(self,v:&str)->Result<Self::Value,E> { Ok(UniqueJson(Value::String(v.to_owned()))) }
-    fn visit_string<E>(self,v:String)->Result<Self::Value,E> { Ok(UniqueJson(Value::String(v))) }
-    fn visit_unit<E>(self)->Result<Self::Value,E> { Ok(UniqueJson(Value::Null)) }
-    fn visit_none<E>(self)->Result<Self::Value,E> { Ok(UniqueJson(Value::Null)) }
+    fn visit_str<E>(self,v:&str)->Result<Self::Value,E> where E:serde::de::Error { Ok(UniqueJson(Value::String(v.to_owned()))) }
+    fn visit_string<E>(self,v:String)->Result<Self::Value,E> where E:serde::de::Error { Ok(UniqueJson(Value::String(v))) }
+    fn visit_unit<E>(self)->Result<Self::Value,E> where E:serde::de::Error { Ok(UniqueJson(Value::Null)) }
+    fn visit_none<E>(self)->Result<Self::Value,E> where E:serde::de::Error { Ok(UniqueJson(Value::Null)) }
     fn visit_some<D>(self,d:D)->Result<Self::Value,D::Error> where D:Deserializer<'de> { UniqueJson::deserialize(d) }
     fn visit_seq<A>(self,mut seq:A)->Result<Self::Value,A::Error> where A:SeqAccess<'de> {
         let mut v=Vec::new();
@@ -160,13 +160,13 @@ pub fn classify_case(case:&Value)->&'static str{
         "observation"=>{}
         _=>return "NOT_COMPARABLE",
     }
+    if flag(s,"claim_from_model_or_vendor")||flag(s,"physical_quality_claim"){return "REJECTED_CLAIM_PROMOTION";}
     let metric=text(s,"metric_id");
     let unit=text(s,"unit");
     let known=EXPECTED_METRICS.iter().find(|(id,svc,_)|*id==metric&&*svc==service);
     let Some((_,_,expected_unit))=known else{return "NOT_COMPARABLE";};
     if unit!=*expected_unit{return "NOT_COMPARABLE";}
     if text(s,"requirement_evidence_class")!="meter"||text(s,"evidence_kind")!="meter_measurement"{return "REJECTED_EVIDENCE_CLASS";}
-    if flag(s,"claim_from_model_or_vendor")||flag(s,"physical_quality_claim"){return "REJECTED_CLAIM_PROMOTION";}
     if !flag(s,"purpose_authorized"){return "REJECTED_PURPOSE";}
     if !flag(s,"consent_valid"){return "REJECTED_CONSENT";}
     if !flag(s,"scope_matches")||!flag(s,"design_revision_matches")||!flag(s,"bom_revision_matches")
