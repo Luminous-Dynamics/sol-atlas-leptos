@@ -125,6 +125,10 @@ For an oriented network segment `i -> j`, the induced voltage is the path integr
 Sign, path geometry, coordinate frame and units must be explicit. The first Symtropy implementation should be a deterministic quasi-DC reference kernel for tiny networks, with an independent analytic oracle. Solve the declared resistive network including transformer winding and grounding paths under a documented convention. Keep per-phase, transformer-effective and neutral-current conventions distinct.
 
 ### 5.3 Transformer and grid response
+Recent measured work reinforces that transformer response cannot be represented by a universal current threshold. Feng et al. (2026, DOI [10.1029/2026SW004966](https://doi.org/10.1029/2026SW004966)) report a roughly 7 A effective-GIC headroom and approximately 0.115 MVAr/A response for one 220 kV single-phase autotransformer, with different behaviour for a nearby three-phase unit. Liu et al. (2026, DOI [10.1016/j.epsr.2026.113139](https://doi.org/10.1016/j.epsr.2026.113139)) report a lagged transient saturation response under GIC pulses. These are reasons to model winding configuration, effective ampere-turns, pulse duration and thermal/magnetic history—not fleet-wide thresholds.
+
+The follow-on transformer-response work is [Symtropy GMD-TRANSFORMER-DYNAMIC-001 #4528](https://github.com/Luminous-Dynamics/symtropy/issues/4528). It composes the GIC reference kernel with the existing transformer thermal qualification work [PWR-TX-HST-001 #2899](https://github.com/Luminous-Dynamics/symtropy/issues/2899), rather than creating a competing thermal engine.
+
 
 GIC is an input to transformer response, not a damage verdict. Harmonics, reactive-power consumption, half-cycle saturation, hot-spot temperature, protection response and voltage stability require appropriate specialist models and/or measured/OEM evidence. Couple these outputs into AC power flow and dynamic security analysis as distinct qualified stages. Do not invent universal damage thresholds.
 
