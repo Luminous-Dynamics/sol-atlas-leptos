@@ -37,6 +37,8 @@ pub struct ServiceInterval {
 #[derive(Debug, Clone, PartialEq)]
 pub struct ServiceSeries {
     pub service_id: String,
+    pub owner_ref: String,
+    pub geographic_scope_ref: String,
     pub quantity_unit: String,
     pub asset_revision: String,
     pub source_ref: String,
@@ -75,6 +77,8 @@ pub struct RecoveryMark {
 #[derive(Debug, Clone, PartialEq)]
 pub struct ServiceMetrics {
     pub service_id: String,
+    pub owner_ref: String,
+    pub geographic_scope_ref: String,
     pub quantity_unit: String,
     pub asset_revision: String,
     pub source_ref: String,
@@ -115,6 +119,8 @@ pub enum ServiceError {
     EmptyServiceSet,
     EmptyIdentifier,
     DuplicateServiceId,
+    EmptyOwnerReference,
+    EmptyGeographicScopeReference,
     EmptyUnit,
     EmptySourceReference,
     EmptyAssetRevision,
@@ -139,6 +145,8 @@ impl fmt::Display for ServiceError {
             Self::EmptyServiceSet => "scenario must contain at least one service",
             Self::EmptyIdentifier => "service ID must be non-empty and trimmed",
             Self::DuplicateServiceId => "service IDs must be unique within a scenario",
+            Self::EmptyOwnerReference => "service owner reference must be non-empty and trimmed",
+            Self::EmptyGeographicScopeReference => "geographic scope reference must be non-empty and trimmed",
             Self::EmptyUnit => "service quantity unit must be non-empty and trimmed",
             Self::EmptySourceReference => "source reference must be non-empty and trimmed",
             Self::EmptyAssetRevision => "asset revision must be non-empty and trimmed",
@@ -315,6 +323,8 @@ pub fn evaluate_service(
 
     Ok(ServiceMetrics {
         service_id: service.service_id.clone(),
+        owner_ref: service.owner_ref.clone(),
+        geographic_scope_ref: service.geographic_scope_ref.clone(),
         quantity_unit: service.quantity_unit.clone(),
         asset_revision: service.asset_revision.clone(),
         source_ref: service.source_ref.clone(),
@@ -357,6 +367,16 @@ fn validate_service_metadata(service: &ServiceSeries) -> Result<(), ServiceError
         || service.service_id.trim() != service.service_id
     {
         return Err(ServiceError::EmptyIdentifier);
+    }
+    if service.owner_ref.trim().is_empty()
+        || service.owner_ref.trim() != service.owner_ref
+    {
+        return Err(ServiceError::EmptyOwnerReference);
+    }
+    if service.geographic_scope_ref.trim().is_empty()
+        || service.geographic_scope_ref.trim() != service.geographic_scope_ref
+    {
+        return Err(ServiceError::EmptyGeographicScopeReference);
     }
     if service.quantity_unit.trim().is_empty()
         || service.quantity_unit.trim() != service.quantity_unit
@@ -492,6 +512,8 @@ mod tests {
     fn service(intervals: Vec<ServiceInterval>) -> ServiceSeries {
         ServiceSeries {
             service_id: "hospital-critical-power".to_owned(),
+            owner_ref: "urn:test:owner:hospital-operator".to_owned(),
+            geographic_scope_ref: "urn:test:region:hospital-district".to_owned(),
             quantity_unit: "kWh".to_owned(),
             asset_revision: "hospital-power-r7".to_owned(),
             source_ref: "urn:test:scenario:power-trajectory".to_owned(),
