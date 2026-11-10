@@ -26,11 +26,11 @@ Time is represented as elapsed seconds from scenario event t0, not as wall-clock
 
 - required, capped-delivered, surplus-excluded and unmet native-unit quantities;
 - demand-weighted served fraction;
-- time availability above the owner-declared floor during demand time during positive-demand intervals;
+- time availability above the owner-declared floor during positive-demand intervals;
 - total floor-violation duration, longest continuous violation and episode count;
 - maximum interval deficit fraction;
 - whether the service initially meets its minimum floor and full demand;
-- time to a sustained minimum-floor recovery after a recorded floor violation;
+- time to a sustained minimum-floor recovery after a recorded floor violation (with initial condition reported separately);
 - time to sustained full-service recovery after a recorded full-service violation.
 
 A recovery mark contains both the beginning of the qualifying interval run and the later time at which its required hold duration is confirmed. Initial service condition is reported separately; an initially healthy service is not falsely reported as having recovered. A momentary supply spike does not establish recovery.
