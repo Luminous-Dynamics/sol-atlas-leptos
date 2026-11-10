@@ -741,7 +741,11 @@
                   "escaped_to_infinity",
                   "turned_back",
                   "terminated_at_chart_boundary",
-                  "terminated_unresolved"
+                  "terminated_unresolved",
+                  "no_horizon_crossing_within_integrated_interval",
+                  "not_qualifiable_in_boyer_lindquist",
+                  "constraint_drift_exceeded",
+                  "incomplete_trajectory"
                 ]
               },
               "accepted_steps": {
