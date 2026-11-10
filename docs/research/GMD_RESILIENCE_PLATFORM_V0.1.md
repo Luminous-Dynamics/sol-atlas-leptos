@@ -266,7 +266,7 @@ No tier by itself establishes regulatory compliance, resilience against all Carr
 
 - [Sol-Atlas GMD-RESILIENCE-001 #692](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/692)
 - [Symtropy GMD-PHYSICS-001 #4461](https://github.com/Luminous-Dynamics/symtropy/issues/4461), under [NATURAL-HAZARDS-000 #2232](https://github.com/Luminous-Dynamics/symtropy/issues/2232)
-- [Symthaea GMD-INTELLIGENCE-001 #11358], separate from [GEO-INFER-001 #7688](https://github.com/Luminous-Dynamics/symthaea/issues/7688)
+- [Symthaea GMD-INTELLIGENCE-001 #11358](https://github.com/Luminous-Dynamics/symthaea/issues/11358), separate from [GEO-INFER-001 #7688](https://github.com/Luminous-Dynamics/symthaea/issues/7688)
 - [Mycelix GMD-OFFLINE-COORD-001 #6018], extending [SOV-DPI-005 #1030](https://github.com/Luminous-Dynamics/mycelix/issues/1030)
 - Existing downstream network benchmark: [Sol-Atlas ENERGY-NETWORK-QUAL-001 #332](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/332)
 
