@@ -337,6 +337,9 @@ mod tests{
  #[test] fn stale_source_invalidates_observation(){let c=parse_unique(CORPUS_JSON).unwrap();assert_eq!(classify_case(&c["cases"][7]),"INVALIDATED_SOURCE");}
  #[test] fn unknown_or_stale_calibration_is_not_admitted(){let c=parse_unique(CORPUS_JSON).unwrap();assert_eq!(classify_case(&c["cases"][4]),"UNKNOWN_CALIBRATION");}
  #[test] fn all_synthetic_gates_yield_review_only_not_pass(){let c=parse_unique(CORPUS_JSON).unwrap();assert_eq!(classify_case(&c["cases"][35]),"ELIGIBLE_FOR_INDEPENDENT_OWNER_REVIEW_ONLY");}
+ #[test] fn unbound_aircare_outputs_cannot_be_removed(){let mut p=parse_unique(PROFILE_JSON).unwrap();p["unbound_metrics"].as_array_mut().unwrap().pop();assert!(validate_profile(&p).is_err());}
+ #[test] fn package_path_cannot_drift_from_owner_metric_identity(){let mut p=parse_unique(PROFILE_JSON).unwrap();p["outcome_metrics"][0]["package_path"]=Value::String("resource_flows.useful_heat.quantity".into());assert!(validate_profile(&p).is_err());}
+ #[test] fn owner_contract_non_authority_is_frozen(){let mut p=parse_unique(PROFILE_JSON).unwrap();p["owner_contracts"]["service_timeline"]["non_authority"]=Value::String("physical_quality_measurement".into());assert!(validate_profile(&p).is_err());}
  #[test] fn changing_timeline_event_kind_contract_is_rejected(){let mut p=parse_unique(PROFILE_JSON).unwrap();p["owner_contracts"]["service_timeline"]["event_kinds"][0]=Value::String("commanded".into());assert!(validate_profile(&p).is_err());}
  #[test] fn changing_meter_mapping_unit_is_rejected(){let mut p=parse_unique(PROFILE_JSON).unwrap();p["outcome_metrics"][0]["unit"]=Value::String("m3".into());assert!(validate_profile(&p).is_err());}
 }
