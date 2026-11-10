@@ -409,3 +409,12 @@ A public eTenders copy of Eskom transformer specification 240-68973110 Rev 2 con
 This gives a concrete South African utility data question: which in-service transformers have neutral CTs intended or suitable for quasi-DC GIC measurement, what are their sampling/bandwidth/polarity/calibration characteristics, and are readings archived with exact winding, grounding, topology, transformer revision and thermal/harmonic context? It does not establish that the fleet has those CTs or that the spec remains current.
 
 Keep neutral-terminal current distinct from common-winding and series-winding effective GIC. An autotransformer's neutral measurement is not automatically equal to every winding's quasi-DC current; use the exact winding topology and ratio under a qualified transformer model.
+
+
+## 15. Forecast benchmark extension
+
+The forecast task is now separated from historical event reconstruction. See [GMD_FORECAST_BENCHMARK_V0.1.md](GMD_FORECAST_BENCHMARK_V0.1.md) and [Symthaea GMD-FORECAST-EVENT-QUAL-001 #11423](https://github.com/Luminous-Dynamics/symthaea/issues/11423).
+
+The 2026 MM-CNN-MHA single-substation 60-minute forecast is an important comparator, but it is not directly comparable with the May 2024 four-site event-reconstruction replay. The benchmark must match issue-time inputs, sensor definition, site, horizon, event splits and physical-model boundary. In particular, any event used to fit empirical GIC coefficients cannot also be labelled an independent holdout.
+
+The target is not a larger neural network in isolation. It is held-out, calibrated, multi-event and multi-site prediction whose physical and service consequences are independently checked. The benchmark RFC defines the model tournament, leakage controls, tail metrics, transfer tests and proposed gates; none of those gates are achieved results yet.
