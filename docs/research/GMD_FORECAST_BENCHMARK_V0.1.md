@@ -53,7 +53,30 @@ Reproducibility leads:
 
 The GitHub package is small and includes an RAR archive; pin the exact commit and archive digest and inspect the actual release package before claiming a full reproduction. The retrieved Zenodo metadata for the additional 2015/2016 measurements did not establish a clear reuse licence. Do not redistribute or train commercial models on those data until their terms are confirmed.
 
-### 2.2 May 2024 US GIC measurements and published baselines
+### 2.2 GeoDGP: global probabilistic magnetic-field forecast
+
+Chen et al., *GeoDGP: One-Hour Ahead Global Probabilistic Geomagnetic Perturbation Forecasting Using Deep Gaussian Process*, Space Weather, first published 7 June 2025. DOI: https://doi.org/10.1029/2024SW004301.
+
+This is a critical upstream comparator, but it predicts ground magnetic perturbations rather than GIC directly:
+- Global probabilistic forecasts of horizontal magnetic perturbation dBH, and north/east components dBN/dBE.
+- One-minute output cadence at arbitrary surface locations.
+- Two lead-time definitions: L1 solar-wind propagation time (TS, typically about 30–60 minutes) and TS + 1 hour (about 1.5–2 hours of practical lead, depending on solar-wind speed).
+- Solar-wind / IMF inputs, Dst and location in solar-magnetic coordinates.
+- Trained on 28 years of magnetometer data and evaluated at more than 200 worldwide stations across 24 storms, including the May 2024 Gannon extreme storm.
+- Compared with the first-principles Michigan Geospace model and data-driven DAGGER; the paper reports GeoDGP outperformed both across multiple magnetic-field metrics.
+- Reported median HSS for dBH thresholds 50 / 200 / 300 / 400 nT of 0.63 / 0.53 / 0.44 / 0.41; reported median MAE of 23 nT for dBH, 21 nT for dBN and 18 nT for dBE in the stated 2015 multi-storm evaluation.
+
+Important limitations:
+- dB is not geoelectric field and is not GIC. Local Earth conductivity / magnetotelluric response and network geometry still have to be modelled to obtain E-field and GIC.
+- The authors note that the learned location representation may neglect local ground-conductivity / geological effects and that effective spatial resolution is constrained by smoothness of the learned functions.
+- Predictive interval coverage is spatially heterogeneous: the paper reports near-100% coverage in lower/mid latitudes but under-coverage in auroral latitudes for nominal 95% intervals. A single global calibration metric hides this spatial failure mode.
+- This model belongs in the **geomagnetic driver forecast lane**, not the direct-GIC model leaderboard. Never compare its dB RMSE in nT to GIC RMSE in A.
+
+Comparators and artefacts:
+- Peer-reviewed article: https://doi.org/10.1029/2024SW004301
+- The paper evaluates against the Michigan Geospace first-principles model and DAGGER. Reproduce the exact published release and event/station selection before making a numerical ranking claim.
+
+### 2.3 May 2024 US GIC measurements and published baselines
 
 Wilkerson et al., *GIC-Related Observations During the May 2024 Geomagnetic Storm in the United States*, Space Weather (2026), DOI https://doi.org/10.1029/2025SW004758.
 
@@ -67,23 +90,31 @@ Sol-Atlas has provisionally reproduced the final publisher table from a pinned c
 
 That replay is **data-pipeline / metric reproduction**, not independent physical-model validation. It provides useful matched baselines and realistic amplitude-bias diagnostics.
 
-### 2.3 UK SWIMMR: operational multi-infrastructure capability
+### 2.4 UK SWIMMR: operational multi-infrastructure capability
 
 Beggan et al. (2025), DOI https://doi.org/10.1029/2025SW004364, describe nine operationalised models for space-weather impacts on the British high-voltage electricity network, high-pressure gas pipelines and railway network. The programme also supported new variometer observations and magnetotelluric measurements at 53 British sites.
 
 This is an operational-system comparator. It is not simply a neural model score. Luminous should aim to connect the same categories of physical and infrastructure evidence while making provenance, uncertainty, rights, model validity and offline coordination explicit.
 
-### 2.4 Transformer response and duration
+### 2.5 Transformer response and duration
 
 - The May 2024 New Zealand Halfway Bush study reports transformer GIC episodes above 50 A and a maximum of 113 A, alongside harmonic and reactive-power observations. DOI https://doi.org/10.1029/2024SW004235.
 - A 2026 New Zealand study reports up to approximately 20 A sustained for roughly 90 minutes during a moderate storm. DOI https://doi.org/10.1029/2026SW005032.
 - These measurements demonstrate that peak-only forecasting is insufficient. The thresholds are specific to the observed transformers and operating conditions; they are not universal damage thresholds.
 
-### 2.5 Operational mitigation as a comparator
+### 2.6 Operational mitigation as a comparator
 
 The New Zealand Transpower Gannon-event paper documents an operator-approved, targeted line-disconnection mitigation strategy used during the May 2024 G5 storm. The retrospective compares observed operation with a modelled no-mitigation counterfactual. See Mac Manus et al. (2025), DOI https://doi.org/10.1029/2025SW004388, and the requirements in [Sol-Atlas GMD-MITIGATION-PLANNING-001 #703](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/703).
 
 This establishes a much more meaningful downstream challenge than merely minimising one asset's current: reduce network-wide asset stress without compromising supply, protection, voltage security or essential services.
+
+### 2.7 NASA ensemble geoelectric-field forecasting programme
+
+NASA TechPort project 102700, *Geoelectric Field Forecasting with Machine Learning: A Data-Driven, Ensemble-Based Capability for Hazard Mitigation*, is listed as a completed technology project, updated 22 January 2026. Its description builds on machine-learning geomagnetic activity forecasts of 30 minutes or more and targets an ensemble of classification, regression, deep-learning and reduced-complexity physics models. It also describes solar-wind spacecraft inputs and uncertainty models for solar-wind parameters to produce forecast ensembles.
+
+This is an important programme-level comparator for forecast uncertainty and multi-model fusion. The retrieved project description does not provide a public, independently reproducible benchmark score or identify a released model artifact; do not treat it as a numerical SOTA result without those artefacts.
+
+Project record: https://techport.nasa.gov/projects/102700
 
 ## 3. Benchmark task separation
 
@@ -109,7 +140,7 @@ Primary benchmark:
 - Separate signed-current forecasts from absolute-magnitude forecasts. Signed current requires explicit sensor orientation and transformer/winding convention.
 - Separate direct-GIC models from field-first hybrid models.
 
-The MM-CNN-MHA comparison is admissible only when its time horizon, site, sensor definition, inputs, feature latency and train/test event design are matched.
+The MM-CNN-MHA comparison is admissible only when its time horizon, site, sensor definition, inputs, feature latency and train/test event design are matched. GeoDGP is admitted in a separate dB forecast lane; its output must not be scored as GIC or treated as direct E-field.
 
 ### 4.2 Leakage-resistant splits
 
@@ -159,6 +190,8 @@ All learned and physical baselines must use the same prediction issue time, fore
 8. E-field forecast followed by the same qualified physical network-GIC solver.
 9. Physics-only calculation driven by contemporaneous measured E-field. This is an information-rich reference, **not** a deployable future forecast if the future E-field was not available at issue time.
 10. Source-native operational/utility forecast or current documented operator procedure, when an owner permits access.
+11. **Upstream magnetic-field forecasting:** GeoDGP, Michigan Geospace and DAGGER under the paper's matched station, issue-time, coordinate and horizon definitions. Compare dBN/dBE/dBH in nT; only then pass matched magnetic forecasts into a separately qualified Earth-response model to obtain E-field and GIC.
+12. NASA's ensemble geoelectric-field forecasting programme as a source/discovery comparator when public model/data/evaluation artefacts can be obtained; no numerical ranking until reproducible outputs are available.
 
 No SOTA claim from an unmatched architecture or incomparable metric. Report training compute/data, model parameter count, input availability, horizon, event count, inference latency and energy/cost if relevant.
 
