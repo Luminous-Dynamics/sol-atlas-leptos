@@ -49,11 +49,41 @@ const CASE_FIELDS: &[&str] = &[
 ];
 
 const EXPECTED_STANDARDS: &[(&str, &str, &str, &str, &str)] = &[
-    ("ifc-4.3", "IFC", "IFC4.3-ISO16739-1:2024", "stable", "PINNED_FOR_FIXTURE"),
-    ("brick-1.4.4", "Brick", "1.4.4", "stable", "PINNED_FOR_FIXTURE"),
-    ("brick-1.5.0-rc1", "Brick", "1.5.0-rc1", "prerelease", "SEPARATE_PRERELEASE_LANE"),
-    ("ashrae-223", "ASHRAE Standard 223", "VERSION_NOT_PINNED", "unresolved", "BLOCKED_UNTIL_EXACT_ARTIFACT_PINNED"),
-    ("haystack-xeto", "Project Haystack/XETO", "VERSION_NOT_PINNED", "unresolved", "BLOCKED_UNTIL_EXACT_ARTIFACT_PINNED"),
+    (
+        "ifc-4.3",
+        "IFC",
+        "IFC4.3-ISO16739-1:2024",
+        "stable",
+        "PINNED_FOR_FIXTURE",
+    ),
+    (
+        "brick-1.4.4",
+        "Brick",
+        "1.4.4",
+        "stable",
+        "PINNED_FOR_FIXTURE",
+    ),
+    (
+        "brick-1.5.0-rc1",
+        "Brick",
+        "1.5.0-rc1",
+        "prerelease",
+        "SEPARATE_PRERELEASE_LANE",
+    ),
+    (
+        "ashrae-223",
+        "ASHRAE Standard 223",
+        "VERSION_NOT_PINNED",
+        "unresolved",
+        "BLOCKED_UNTIL_EXACT_ARTIFACT_PINNED",
+    ),
+    (
+        "haystack-xeto",
+        "Project Haystack/XETO",
+        "VERSION_NOT_PINNED",
+        "unresolved",
+        "BLOCKED_UNTIL_EXACT_ARTIFACT_PINNED",
+    ),
 ];
 
 const EXPECTED_CASES: &[(&str, &str)] = &[
