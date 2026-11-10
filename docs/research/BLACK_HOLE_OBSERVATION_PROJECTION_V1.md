@@ -182,3 +182,60 @@ Do not encode confidence solely in color, line thickness, or visual prominence. 
 - no hiding dissenting or failed replications;
 - no Earth-geospatial coordinate assumptions for astronomy;
 - no bespoke waveform inference inside the renderer.
+
+
+## 12. Kerr ray-bundle and caustic projection extension
+
+This section composes the base observation contract with Symtropy's planned Kerr ray-bundle benchmark:
+- Symtropy physics / benchmark owner: [#4519](https://github.com/Luminous-Dynamics/symtropy/issues/4519)
+- Planned input/reference manifest: [Symtropy PR #4522](https://github.com/Luminous-Dynamics/symtropy/pull/4522), `crates/domains/symtropy-relativity/benchmarks/kerr_ray_bundle_v1.json`
+- Sol-Atlas projection owner: [#701](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/701)
+- Symthaea identifiability owner: [#11021](https://github.com/Luminous-Dynamics/symthaea/issues/11021)
+- Mycelix evidence owner: [#5903](https://github.com/Luminous-Dynamics/mycelix/issues/5903)
+
+### Projection record
+
+The companion schema `docs/research/schemas/kerr_ray_bundle_projection_v1.schema.json` validates a geometric-optics projection payload. It deliberately does not redefine the canonical observation record or scientific claim/evidence semantics.
+
+Each projection binds:
+- source result ID, source solver revision, physics benchmark ID and exact configuration/input/output digests;
+- Kerr mass/spin and metric/chart convention;
+- observer worldline, tetrad identity, screen basis and inclination;
+- source surface/event identity and image-branch identity;
+- screen coordinates, image order, radial/polar turning counts and endpoint classification;
+- travel-time delay, redshift convention, and optional polarization-transport record;
+- 2x2 Jacobi map, determinant, singular values, condition number, orientation parity and caustic status;
+- signed magnification only where the map is regular and the area normalization is declared;
+- numerical refinement level, error budget, solver identity and qualification status;
+- canonical Mycelix claim/evidence references and Symthaea identifiability result reference.
+
+### Visual layers
+
+1. **Observer-screen atlas:** critical curves, image branches, image order and caustic intersections.
+2. **Jacobi / caustic inspector:** determinant, singular values, condition number, parity and refinement history.
+3. **Image-delay map:** per-image travel time and source emission event, grouped by image order.
+4. **Source-to-image correspondence:** source event, endpoint, redshift and optional polarization transport.
+5. **Identifiability:** spin, inclination, source position and source-history degeneracies, preserving posterior samples and correlation.
+6. **Evidence drawer:** exact Symtropy output, model/data/configuration digests, Mycelix attestations and Symthaea status.
+
+### Type and interpretation safeguards
+
+- A ray or image projection has kind `AnalyticPrediction` or `NumericalSimulation`, never `DetectorMeasurement` or `TelescopeMeasurement`.
+- A caustic is a singularity of a declared geometric-optics map. It is not by itself a finite intensity prediction; wave-optics diffraction requires a separate wave model.
+- Near a singular Jacobi map, magnification must be null with an explicit `IllConditioned`, `Singular` or `Unresolved` status. The renderer must not clamp it to a visually plausible finite number.
+- Keep image branches separate across topology changes; never connect branch IDs merely because screen pixels are adjacent.
+- Preserve per-image travel times. Fast-light approximations must expose the source correlation time and delay spread; they must not silently collapse distinct emission events.
+- Coordinate radii, image-plane pixels and celestial angles are not interchangeable physical lengths.
+- Riemannian geodesic-tube and Euclidean local-smoothing results are mathematical context only. They do not prove a Lorentzian Kerr estimate.
+
+### Acceptance
+
+- One Schwarzschild and one Kerr analytic/numerical fixture render with complete conventions.
+- Critical-curve and image-branch identity are stable under screen-grid refinement.
+- Jacobi-map variational and finite-difference results remain distinct and their discrepancy is visible.
+- Caustic crossings show parity change and a conditioning warning; no false finite magnification is emitted at a singular map.
+- Per-image delays remain visible for time-variable sources.
+- A blinded reviewer can distinguish analytic prediction, numerical ray trace, telescope measurement, reconstructed image and posterior inference.
+- Stale source, missing tetrad, wrong chart, branch collision, under-resolved caustic and simulation-as-observation controls fail closed.
+
+The initial manifest PR #4522 is a planned protocol only. No ray-bundle result, caustic measurement, magnification or EHT inference is claimed here.
