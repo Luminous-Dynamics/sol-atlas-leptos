@@ -45,6 +45,10 @@ From the Sol-Atlas repository root:
     cargo test --manifest-path tools/gmd-service-continuity-oracle/Cargo.toml --locked --offline
     cargo clippy --manifest-path tools/gmd-service-continuity-oracle/Cargo.toml --locked --offline --all-targets -- -D warnings
 
+## Temporal resolution boundary
+
+The floor calculation applies at the declared interval resolution. An interval-level energy or volume total cannot prove uninterrupted delivery inside that interval: excess later in the same interval could hide a short outage. Choose intervals at or below the service owner's interruption tolerance, preserve the source sampling/cadence in the surrounding evidence receipt, and separately qualify instantaneous voltage, frequency, pressure, link integrity or other quality limits with the appropriate physical/measurement owner. This crate does not interpolate high-frequency service continuity from coarse aggregates.
+
 ## Fail-closed semantics
 
 - Intervals must cover exactly [0, horizon] with no gap, overlap, duplicate or reordering.
