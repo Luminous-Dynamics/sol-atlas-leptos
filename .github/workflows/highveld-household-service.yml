@@ -1,0 +1,55 @@
+name: Highveld Household Service Package
+
+on:
+  push:
+    paths:
+      - "docs/research/highveld-keep/HIGHVELD_HOUSEHOLD_SERVICE_PACKAGE_V0_1.json"
+      - "docs/research/highveld-keep/HIGHVELD_HOUSEHOLD_SERVICE_PACKAGE_V0_1.schema.json"
+      - "tools/highveld-household-service/**"
+      - ".github/workflows/highveld-household-service.yml"
+  pull_request:
+    paths:
+      - "docs/research/highveld-keep/HIGHVELD_HOUSEHOLD_SERVICE_PACKAGE_V0_1.json"
+      - "docs/research/highveld-keep/HIGHVELD_HOUSEHOLD_SERVICE_PACKAGE_V0_1.schema.json"
+      - "tools/highveld-household-service/**"
+      - ".github/workflows/highveld-household-service.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: highveld-household-service-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  synthetic-service-e1:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install stable Rust and rustfmt
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - name: Cache Cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-highveld-household-service-${{ hashFiles('tools/highveld-household-service/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-highveld-contract-
+            ${{ runner.os }}-cargo-native-
+      - name: Check package formatting
+        run: cargo fmt --manifest-path tools/highveld-household-service/Cargo.toml --all -- --check
+      - name: Fetch exact locked dependency set
+        run: cargo fetch --locked --manifest-path tools/highveld-household-service/Cargo.toml
+      - name: Run locked offline mutation tests
+        run: cargo test --locked --offline --manifest-path tools/highveld-household-service/Cargo.toml
+      - name: Run warning-free Clippy
+        run: cargo clippy --locked --offline --manifest-path tools/highveld-household-service/Cargo.toml --all-targets -- -D warnings
+      - name: Validate tracked package
+        run: cargo run --locked --offline --manifest-path tools/highveld-household-service/Cargo.toml

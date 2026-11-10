@@ -1,0 +1,560 @@
+{
+  "schema_version": "luminous.highveld.household-service-package/0.1",
+  "package_id": "HIGHVELD-HOUSEHOLD-SERVICE-SYNTHETIC-001",
+  "revision_status": "E0_SYNTHETIC_REFERENCE",
+  "claim_ceiling": "service_definition_and_fixture_integrity_only",
+  "design_reference": {
+    "scenario_id": "HIGHVELD-KEEP-SYNTHETIC-001",
+    "design_branch": "research/highveld-keep-v0.1",
+    "evidence_tier": "E0",
+    "site_state": "SYNTHETIC_REFERENCE_ONLY"
+  },
+  "household_profile": {
+    "occupants_min": 4,
+    "occupants_max": 6,
+    "profile_state": "SYNTHETIC_BENCHMARK_ASSUMPTION",
+    "real_resident_requirements": "NOT_COLLECTED"
+  },
+  "services": [
+    {
+      "id": "WATERLOOP",
+      "product_name": "WaterLoop household water resilience",
+      "owner": "Symthaea",
+      "owner_issue_url": "https://github.com/Luminous-Dynamics/symthaea/issues/10323",
+      "product_revision": "UNKNOWN_NOT_SELECTED",
+      "status": "RESEARCH_PROFILE_ONLY",
+      "service_definition": "Source characterization, leak detection, storage and explicitly non-potable service; treatment and water-quality claims are excluded from this package.",
+      "functional_unit": "usable non-potable water delivered (litres) to one named permitted end use over a declared observation or outage window",
+      "performance_target": {
+        "value": null,
+        "unit": "UNKNOWN_NOT_SELECTED",
+        "state": "UNKNOWN",
+        "source_ref": null
+      },
+      "hard_service_floor_state": "UNKNOWN_PENDING_RESIDENT_AND_APPLICABLE_REQUIREMENTS",
+      "input_streams": [
+        {
+          "id": "source_water",
+          "quantity": {
+            "value": null,
+            "unit": "L per declared observation window",
+            "state": "UNKNOWN",
+            "source_ref": null
+          },
+          "quality_state": "UNKNOWN"
+        },
+        {
+          "id": "electrical_supply",
+          "quantity": {
+            "value": null,
+            "unit": "kWh per declared observation window",
+            "state": "UNKNOWN",
+            "source_ref": null
+          },
+          "quality_state": "UNKNOWN"
+        }
+      ],
+      "resource_flows": [
+        {
+          "id": "source_withdrawal",
+          "direction": "INPUT",
+          "quantity": {
+            "value": null,
+            "unit": "L",
+            "state": "UNKNOWN",
+            "source_ref": null
+          }
+        },
+        {
+          "id": "usable_non_potable_delivery",
+          "direction": "OUTPUT",
+          "quantity": {
+            "value": null,
+            "unit": "L",
+            "state": "UNKNOWN",
+            "source_ref": null
+          }
+        },
+        {
+          "id": "rejected_or_residual_water",
+          "direction": "OUTPUT",
+          "quantity": {
+            "value": null,
+            "unit": "L",
+            "state": "UNKNOWN",
+            "source_ref": null
+          }
+        },
+        {
+          "id": "electrical_energy",
+          "direction": "INPUT",
+          "quantity": {
+            "value": null,
+            "unit": "kWh",
+            "state": "UNKNOWN",
+            "source_ref": null
+          }
+        }
+      ],
+      "spatial_interfaces": [
+        {
+          "space_ref": "service_plant",
+          "purpose": "storage, inspection and service access",
+          "geometry_state": "NOT_MODELED"
+        },
+        {
+          "space_ref": "outdoor_living",
+          "purpose": "candidate non-potable end-use interface",
+          "geometry_state": "NOT_MODELED"
+        }
+      ],
+      "operating_profile": {
+        "duty_cycle_state": "UNKNOWN",
+        "concurrency_state": "UNKNOWN",
+        "schedule_state": "UNKNOWN",
+        "calibration_state": "NOT_ESTABLISHED"
+      },
+      "fallback": {
+        "manual_path_state": "REQUIRED_NOT_QUALIFIED",
+        "local_control_state": "REQUIRED_NOT_QUALIFIED",
+        "network_required_for_essential_service": false,
+        "cloud_required_for_essential_service": false
+      },
+      "maintenance": {
+        "service_access_state": "REQUIREMENT_NOT_GEOMETRY_VERIFIED",
+        "inspection_interval_state": "UNKNOWN",
+        "replacement_parts_state": "UNKNOWN"
+      },
+      "evidence_state": "RESEARCH_PROFILE_ONLY"
+    },
+    {
+      "id": "HEATBANK",
+      "product_name": "HeatBank household thermal service",
+      "owner": "Symthaea",
+      "owner_issue_url": "https://github.com/Luminous-Dynamics/symthaea/issues/10329",
+      "product_revision": "UNKNOWN_NOT_SELECTED",
+      "status": "RESEARCH_PROFILE_ONLY",
+      "service_definition": "Hot-water and thermal-service delivery, storage and recovery; pressure-vessel, electrical and plumbing approval are outside this contract.",
+      "functional_unit": "accepted hot-water delivery (litres meeting a declared temperature and timing profile) under a matched draw sequence",
+      "performance_target": {
+        "value": null,
+        "unit": "UNKNOWN_NOT_SELECTED",
+        "state": "UNKNOWN",
+        "source_ref": null
+      },
+      "hard_service_floor_state": "UNKNOWN_PENDING_RESIDENT_AND_APPLICABLE_REQUIREMENTS",
+      "input_streams": [
+        {
+          "id": "electrical_supply",
+          "quantity": {
+            "value": null,
+            "unit": "kWh per declared observation window",
+            "state": "UNKNOWN",
+            "source_ref": null
+          },
+          "quality_state": "UNKNOWN"
+        },
+        {
+          "id": "water_supply",
+          "quantity": {
+            "value": null,
+            "unit": "L per declared observation window",
+            "state": "UNKNOWN",
+            "source_ref": null
+          },
+          "quality_state": "UNKNOWN"
+        },
+        {
+          "id": "thermal_source",
+          "quantity": {
+            "value": null,
+            "unit": "kWh_th per declared observation window",
+            "state": "UNKNOWN",
+            "source_ref": null
+          },
+          "quality_state": "UNKNOWN"
+        }
+      ],
+      "resource_flows": [
+        {
+          "id": "electrical_energy",
+          "direction": "INPUT",
+          "quantity": {
+            "value": null,
+            "unit": "kWh",
+            "state": "UNKNOWN",
+            "source_ref": null
+          }
+        },
+        {
+          "id": "useful_thermal_service",
+          "direction": "OUTPUT",
+          "quantity": {
+            "value": null,
+            "unit": "kWh_th",
+            "state": "UNKNOWN",
+            "source_ref": null
+          }
+        },
+        {
+          "id": "water_draw",
+          "direction": "INPUT",
+          "quantity": {
+            "value": null,
+            "unit": "L",
+            "state": "UNKNOWN",
+            "source_ref": null
+          }
+        },
+        {
+          "id": "storage_loss",
+          "direction": "OUTPUT",
+          "quantity": {
+            "value": null,
+            "unit": "kWh_th",
+            "state": "UNKNOWN",
+            "source_ref": null
+          }
+        }
+      ],
+      "spatial_interfaces": [
+        {
+          "space_ref": "service_plant",
+          "purpose": "thermal plant, inspection and replacement access",
+          "geometry_state": "NOT_MODELED"
+        },
+        {
+          "space_ref": "accessible_washroom",
+          "purpose": "candidate hot-water service endpoint",
+          "geometry_state": "NOT_MODELED"
+        },
+        {
+          "space_ref": "kitchen_dining",
+          "purpose": "candidate hot-water service endpoint",
+          "geometry_state": "NOT_MODELED"
+        }
+      ],
+      "operating_profile": {
+        "duty_cycle_state": "UNKNOWN",
+        "concurrency_state": "UNKNOWN",
+        "schedule_state": "UNKNOWN",
+        "calibration_state": "NOT_ESTABLISHED"
+      },
+      "fallback": {
+        "manual_path_state": "REQUIRED_NOT_QUALIFIED",
+        "local_control_state": "REQUIRED_NOT_QUALIFIED",
+        "network_required_for_essential_service": false,
+        "cloud_required_for_essential_service": false
+      },
+      "maintenance": {
+        "service_access_state": "REQUIREMENT_NOT_GEOMETRY_VERIFIED",
+        "inspection_interval_state": "UNKNOWN",
+        "replacement_parts_state": "UNKNOWN"
+      },
+      "evidence_state": "RESEARCH_PROFILE_ONLY"
+    },
+    {
+      "id": "AIRCARE",
+      "product_name": "AirCare room-level indoor environmental service",
+      "owner": "Symthaea",
+      "owner_issue_url": "https://github.com/Luminous-Dynamics/symthaea/issues/10330",
+      "product_revision": "UNKNOWN_NOT_SELECTED",
+      "status": "RESEARCH_PROFILE_ONLY",
+      "service_definition": "Outdoor-air delivery, particle filtration and humidity management as separately measured services; no health, medical or universal air-quality claim.",
+      "functional_unit": "pollutant-specific clean-air delivery and outdoor-air delivery at defined occupied-room positions over a declared room-use window",
+      "performance_target": {
+        "value": null,
+        "unit": "UNKNOWN_NOT_SELECTED",
+        "state": "UNKNOWN",
+        "source_ref": null
+      },
+      "hard_service_floor_state": "UNKNOWN_PENDING_RESIDENT_AND_APPLICABLE_REQUIREMENTS",
+      "input_streams": [
+        {
+          "id": "electrical_supply",
+          "quantity": {
+            "value": null,
+            "unit": "kWh per declared observation window",
+            "state": "UNKNOWN",
+            "source_ref": null
+          },
+          "quality_state": "UNKNOWN"
+        },
+        {
+          "id": "outdoor_air",
+          "quantity": {
+            "value": null,
+            "unit": "m3 per declared observation window",
+            "state": "UNKNOWN",
+            "source_ref": null
+          },
+          "quality_state": "UNKNOWN"
+        },
+        {
+          "id": "filter_media",
+          "quantity": {
+            "value": null,
+            "unit": "UNKNOWN_NOT_SELECTED",
+            "state": "UNKNOWN",
+            "source_ref": null
+          },
+          "quality_state": "UNKNOWN"
+        }
+      ],
+      "resource_flows": [
+        {
+          "id": "electrical_energy",
+          "direction": "INPUT",
+          "quantity": {
+            "value": null,
+            "unit": "kWh",
+            "state": "UNKNOWN",
+            "source_ref": null
+          }
+        },
+        {
+          "id": "outdoor_air_delivery",
+          "direction": "INPUT",
+          "quantity": {
+            "value": null,
+            "unit": "m3",
+            "state": "UNKNOWN",
+            "source_ref": null
+          }
+        },
+        {
+          "id": "clean_air_delivery",
+          "direction": "OUTPUT",
+          "quantity": {
+            "value": null,
+            "unit": "m3",
+            "state": "UNKNOWN",
+            "source_ref": null
+          }
+        },
+        {
+          "id": "condensate_or_captured_residual",
+          "direction": "OUTPUT",
+          "quantity": {
+            "value": null,
+            "unit": "UNKNOWN_NOT_SELECTED",
+            "state": "UNKNOWN",
+            "source_ref": null
+          }
+        }
+      ],
+      "spatial_interfaces": [
+        {
+          "space_ref": "sleeping_rooms",
+          "purpose": "room-level ventilation and environmental service",
+          "geometry_state": "NOT_MODELED"
+        },
+        {
+          "space_ref": "great_hall",
+          "purpose": "shared-space ventilation and environmental service",
+          "geometry_state": "NOT_MODELED"
+        },
+        {
+          "space_ref": "service_plant",
+          "purpose": "filter and maintenance access",
+          "geometry_state": "NOT_MODELED"
+        }
+      ],
+      "operating_profile": {
+        "duty_cycle_state": "UNKNOWN",
+        "concurrency_state": "UNKNOWN",
+        "schedule_state": "UNKNOWN",
+        "calibration_state": "NOT_ESTABLISHED"
+      },
+      "fallback": {
+        "manual_path_state": "REQUIRED_NOT_QUALIFIED",
+        "local_control_state": "REQUIRED_NOT_QUALIFIED",
+        "network_required_for_essential_service": false,
+        "cloud_required_for_essential_service": false
+      },
+      "maintenance": {
+        "service_access_state": "REQUIREMENT_NOT_GEOMETRY_VERIFIED",
+        "inspection_interval_state": "UNKNOWN",
+        "replacement_parts_state": "UNKNOWN"
+      },
+      "evidence_state": "RESEARCH_PROFILE_ONLY"
+    }
+  ],
+  "architectures": [
+    {
+      "id": "INDEPENDENT_SERVICES",
+      "description": "Conventional discrete household systems with separate service boundaries and no assumed cross-appliance coordination.",
+      "status": "NOT_EVALUATED",
+      "coupling_assumptions": [
+        "No cross-service resource credit unless directly metered and attributable."
+      ],
+      "common_mode_failure_considered": true
+    },
+    {
+      "id": "SHARED_UTILITY",
+      "description": "Selected service systems share a utility or storage interface only where an exact physical interface and responsible engineering owner are identified.",
+      "status": "NOT_EVALUATED",
+      "coupling_assumptions": [
+        "Shared capacity and losses are counted once.",
+        "Cross-contamination and common-mode failure must be modelled."
+      ],
+      "common_mode_failure_considered": true
+    },
+    {
+      "id": "HYBRID_LOCAL_AUTONOMY",
+      "description": "Passive-first spatial and envelope strategy with bounded local storage, local controls and a genuinely usable manual fallback.",
+      "status": "NOT_EVALUATED",
+      "coupling_assumptions": [
+        "Cloud and internet are not prerequisites for essential service.",
+        "Storage autonomy is unknown until sourced, sized and tested."
+      ],
+      "common_mode_failure_considered": true
+    }
+  ],
+  "stress_cases": [
+    {
+      "id": "HHS-001",
+      "description": "Ordinary and peak household service concurrency",
+      "event_family": "CONCURRENCY",
+      "source_class": "SYNTHETIC_CASE_DEFINITION",
+      "timing_state": "UNSPECIFIED",
+      "trace_status": "NOT_MATERIALIZED"
+    },
+    {
+      "id": "HHS-002",
+      "description": "Hot outdoor period including a hot-night trajectory",
+      "event_family": "THERMAL_WEATHER",
+      "source_class": "SYNTHETIC_CASE_DEFINITION",
+      "timing_state": "UNSPECIFIED",
+      "trace_status": "NOT_MATERIALIZED"
+    },
+    {
+      "id": "HHS-003",
+      "description": "Cold episode and morning recovery",
+      "event_family": "THERMAL_WEATHER",
+      "source_class": "SYNTHETIC_CASE_DEFINITION",
+      "timing_state": "UNSPECIFIED",
+      "trace_status": "NOT_MATERIALIZED"
+    },
+    {
+      "id": "HHS-004",
+      "description": "Grid interruption before a service cycle",
+      "event_family": "ELECTRICAL_OUTAGE",
+      "source_class": "SYNTHETIC_CASE_DEFINITION",
+      "timing_state": "UNSPECIFIED",
+      "trace_status": "NOT_MATERIALIZED"
+    },
+    {
+      "id": "HHS-005",
+      "description": "Grid interruption during a service cycle",
+      "event_family": "ELECTRICAL_OUTAGE",
+      "source_class": "SYNTHETIC_CASE_DEFINITION",
+      "timing_state": "UNSPECIFIED",
+      "trace_status": "NOT_MATERIALIZED"
+    },
+    {
+      "id": "HHS-006",
+      "description": "Water supply interruption, reserve drawdown and replenishment",
+      "event_family": "WATER_OUTAGE",
+      "source_class": "SYNTHETIC_CASE_DEFINITION",
+      "timing_state": "UNSPECIFIED",
+      "trace_status": "NOT_MATERIALIZED"
+    },
+    {
+      "id": "HHS-007",
+      "description": "Outdoor-air constraint and ventilation trade-off",
+      "event_family": "AIR_QUALITY",
+      "source_class": "SYNTHETIC_CASE_DEFINITION",
+      "timing_state": "UNSPECIFIED",
+      "trace_status": "NOT_MATERIALIZED"
+    },
+    {
+      "id": "HHS-008",
+      "description": "Single appliance or service-component fault",
+      "event_family": "COMPONENT_FAULT",
+      "source_class": "SYNTHETIC_CASE_DEFINITION",
+      "timing_state": "UNSPECIFIED",
+      "trace_status": "NOT_MATERIALIZED"
+    },
+    {
+      "id": "HHS-009",
+      "description": "Common-mode power, controller, network or shared-plant failure",
+      "event_family": "COMMON_MODE_FAILURE",
+      "source_class": "SYNTHETIC_CASE_DEFINITION",
+      "timing_state": "UNSPECIFIED",
+      "trace_status": "NOT_MATERIALIZED"
+    },
+    {
+      "id": "HHS-010",
+      "description": "Filter or consumable replacement and delayed spare part",
+      "event_family": "MAINTENANCE_DELAY",
+      "source_class": "SYNTHETIC_CASE_DEFINITION",
+      "timing_state": "UNSPECIFIED",
+      "trace_status": "NOT_MATERIALIZED"
+    },
+    {
+      "id": "HHS-011",
+      "description": "Stale, failed or miscalibrated sensor or meter",
+      "event_family": "OBSERVATION_FAILURE",
+      "source_class": "SYNTHETIC_CASE_DEFINITION",
+      "timing_state": "UNSPECIFIED",
+      "trace_status": "NOT_MATERIALIZED"
+    },
+    {
+      "id": "HHS-012",
+      "description": "Household task or occupancy profile changes",
+      "event_family": "HOUSEHOLD_CHANGE",
+      "source_class": "SYNTHETIC_CASE_DEFINITION",
+      "timing_state": "UNSPECIFIED",
+      "trace_status": "NOT_MATERIALIZED"
+    },
+    {
+      "id": "HHS-013",
+      "description": "Shared-resource scarcity or allocation dispute",
+      "event_family": "RESOURCE_ALLOCATION",
+      "source_class": "SYNTHETIC_CASE_DEFINITION",
+      "timing_state": "UNSPECIFIED",
+      "trace_status": "NOT_MATERIALIZED"
+    },
+    {
+      "id": "HHS-014",
+      "description": "Repeat failure after apparent initial service restoration",
+      "event_family": "REPEAT_DISTURBANCE",
+      "source_class": "SYNTHETIC_CASE_DEFINITION",
+      "timing_state": "UNSPECIFIED",
+      "trace_status": "NOT_MATERIALIZED"
+    }
+  ],
+  "comparison_protocol": {
+    "paired_trace_policy": "SAME_EXACT_TRACE_BYTES_FOR_ALL_COMPARISON_ARMS",
+    "trace_bundle_status": "NOT_MATERIALIZED",
+    "common_trace_digest": null,
+    "information_budget_state": "UNSPECIFIED",
+    "human_time_budget_state": "UNSPECIFIED",
+    "comparison_arms": [
+      "INDEPENDENT_SERVICES",
+      "SHARED_UTILITY",
+      "HYBRID_LOCAL_AUTONOMY"
+    ],
+    "reported_dimensions": [
+      "service_delivered_and_unmet_by_service",
+      "energy_by_source_and_end_use",
+      "useful_thermal_service_and_storage_loss",
+      "water_withdrawal_reuse_delivery_and_residual",
+      "indoor_temperature_humidity_ventilation_and_named_pollutants_where_supported",
+      "availability_degradation_and_stable_recovery",
+      "maintenance_repair_replacement_and_operator_labour",
+      "lifecycle_cost_carbon_and_materials_where_supported",
+      "resident_agency_privacy_accessibility_and_manual_fallback",
+      "uncertainty_missingness_calibration_and_evidence_class"
+    ],
+    "hard_gate_policy": "NON_COMPENSATORY_NO_AGGREGATE_SCORE"
+  },
+  "execution_authority": {
+    "authority_state": "NONE",
+    "model_recommendations_can_dispatch": false,
+    "device_commands_in_profile": false,
+    "household_telemetry_policy": "OPT_IN_PURPOSE_SPECIFIC_ONLY",
+    "cloud_required_for_essential_service": false
+  }
+}

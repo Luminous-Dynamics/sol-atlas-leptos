@@ -1,0 +1,20 @@
+[package]
+name = "highveld-household-service"
+version = "0.1.0"
+edition = "2024"
+publish = false
+description = "Strict synthetic-only service-package checker for Highveld Keep"
+
+[workspace]
+resolver = "3"
+
+[dependencies]
+serde = { version = "=1.0.228", features = ["derive"] }
+serde_json = "=1.0.150"
+
+[lib]
+path = "src/lib.rs"
+
+[[bin]]
+name = "highveld-household-service"
+path = "src/main.rs"
