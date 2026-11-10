@@ -638,7 +638,8 @@
             "abstain",
             "widen_uncertainty",
             "mark_incomplete",
-            "preserve_conflict"
+            "preserve_conflict",
+            "match_mutated_known_answer"
           ]
         },
         "failure_mode": {
