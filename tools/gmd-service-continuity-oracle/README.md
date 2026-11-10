@@ -29,10 +29,11 @@ Time is represented as elapsed seconds from scenario event t0, not as wall-clock
 - time availability above the owner-declared floor;
 - total floor-violation duration, longest continuous violation and episode count;
 - maximum interval deficit fraction;
-- time to a sustained minimum-floor recovery;
-- time to sustained full-service recovery.
+- whether the service initially meets its minimum floor and full demand;
+- time to a sustained minimum-floor recovery after a recorded floor violation;
+- time to sustained full-service recovery after a recorded full-service violation.
 
-A recovery mark contains both the beginning of the qualifying interval run and the later time at which its required hold duration is confirmed. A momentary supply spike does not establish recovery.
+A recovery mark contains both the beginning of the qualifying interval run and the later time at which its required hold duration is confirmed. Initial service condition is reported separately; an initially healthy service is not falsely reported as having recovered. A momentary supply spike does not establish recovery.
 
 There is deliberately no cross-service aggregate score. Consumers must inspect every critical service floor and the worst service/region.
 
@@ -53,6 +54,7 @@ From the Sol-Atlas repository root:
 - Zero-demand intervals count as no-demand, not as unserved service; the whole horizon must contain positive total demand.
 - Each service is evaluated in its own declared unit.
 - Every input trajectory identifies its evidence class, source digest and asset revision.
+- Recovery hold duration must be positive; quantity tolerance may not consume the entire minimum service floor in any positive-demand interval.
 
 ## Claim ceiling
 
