@@ -73,7 +73,34 @@ AHAM CADR reports separate smoke, dust and pollen clean-air delivery rates; its 
 
 Match room geometry, openings, source/outdoor conditions, filter age, airflow, operating mode, noise and energy. Measure at multiple occupied positions. Keep each pollutant and service outcome separate; an aggregate AQI may hide a pollutant-specific failure.
 
-### South African applicability
+### Additional 2026 research baselines
+
+The May 2026 *Energy and Buildings* Volume 359 papers materially raise the baseline for our research programme. These are peer-reviewed case studies/methods, not universally transferable performance guarantees.
+
+| Research | Demonstrated scope | How Highveld must compare |
+|---|---|---|
+| Andersen, Zhou & Dargaville, [Multi-variable least-cost optimisation of residential efficiency retrofits](https://doi.org/10.1016/j.enbuild.2026.117253), 15 May 2026 | Couples AccuRate building simulation with tariff/cost model and genetic algorithm; jointly searches envelope, HVAC, domestic hot water, PV and battery configurations over a 15-year annualized cost boundary. Melbourne detached-house case reports roughly 75% bill reduction and ~9-year payback for its selected conditions. | This rules out claiming that Luminous is novel merely because it co-optimizes shell + appliances + PV/storage or uses a genetic algorithm. Reproduce an incumbent-style joint least-cost baseline with equivalent functional service, tariff/capital assumptions and horizon. Add service continuity, resident-specific constraints, uncertainty, supply/repair and metrology, but do not claim the Melbourne savings transfer to Johannesburg. |
+| Karanth, Loonen & Hensen, [Assessing implications of control integration in early-stage residential energy system design](https://doi.org/10.1016/j.enbuild.2026.117216), 15 May 2026 | Parametric TRNSYS study of PVT, heat pump and thermal storage in a Dutch terraced-house renovation. Five PV-self-consumption control strategies changed early design decisions; selected strategies reported up to 35% lower annual operational heating emissions than baseline controls in that case. | Controls cannot be a late afterthought. Compare static design with matched control-aware co-design; freeze forecasts, tariff/carbon data and information budgets. Separate policy benefit from physical envelope/product capability and test forecast error, outage behavior, comfort/service floors and rebound. Do not adopt 35% as a Highveld target. |
+| Caieiro da Costa et al., [Optimized design solutions for multifamily housing: a multi-objective approach to thermal resilience under heatwave conditions](https://doi.org/10.1016/j.enbuild.2025.116886), 15 Feb 2026 | Multi-objective optimization using historical and future heatwaves, separating thermal resistance, robustness and recovery. The article highlights that a single resilience indicator does not capture the full resilience process. | This is a direct resilience baseline. Highveld should compare the same three stages and report time trajectories/uncertainty rather than only annual loads or a resilience badge. Keep its hot-climate scenario and multifamily boundary distinct from our Johannesburg synthetic 4–6-person dwelling. |
+| Manmatharasan, Bitsuamlak & Grolinger, [High-resolution weather-guided surrogate modeling for data-efficient cross-location building energy prediction](https://doi.org/10.1016/j.enbuild.2026.117251), 15 May 2026 | Weekly weather-guided surrogate model with TCN, Transformer and convolutional-autoencoder alternatives; reports promising transfer to unseen sites from one or a few representative locations, with limited degradation across climate zones in its tested corpus. | This is a serious compute-efficiency comparator. Test a frozen surrogate on held-out stations and genuinely unseen climatic contexts, with uncertainty/OOD detection and high-fidelity EnergyPlus re-evaluation of selected candidates. Do not use cross-location transfer to promote an unqualified Johannesburg or parcel weather file. |
+| Mitchell, Stephens & Heidarinejad, [Measurement and modeling of residential thermal resilience during a simulated outage](https://doi.org/10.1016/j.enbuild.2026.117221), 15 May 2026 | Three Chicago-area homes, measured cold-weather simulated heating outage, model calibration, DHR metric and thermal response characterization. | Use as a measurement-method comparator only. Preserve the exact published DHR formula/normalization before claiming replication; do not import the case's thresholds or temperatures as Highveld limits. See Symtropy #4507. |
+
+### What these papers mean for Luminous
+
+The differentiator must not be any one of: genetic search, whole-house energy-cost optimization, PV/battery sizing, model-predictive or predictive control, multi-objective heatwave optimization, or a weather-conditioned surrogate. Recent peer-reviewed work already covers these.
+
+The harder and more defensible hypothesis is **evidence-constrained, resident-governed co-design across the building and delivered service**:
+
+1. Preserve a per-resident and per-task service floor as a hard constraint, not a weighted objective.
+2. Co-design physical envelope, thermal/electrical/water plant, control policy, repair access and supply/maintenance boundary.
+3. Compare independent, shared-utility and hybrid/local-autonomy architectures under identical event traces and information budgets.
+4. Use low-cost screening only where applicability is supported; escalate decision-critical cases to version-pinned specialist solvers and independent measurement.
+5. Carry exact revisions, weather class, geometry, calibration, uncertainty, source rights, consent and outcome receipts through commissioning and post-occupancy.
+6. Show the total lifecycle effect including unserved service, maintenance/repair labor, spares, replacement, noise, privacy, water quality and distribution of benefit.
+
+The benchmark should be allowed to conclude that an incumbent is better for a particular service, climate or cost boundary. Luminous superiority requires matched evidence, not a feature matrix.
+
+## South African applicability
 
 International standards and products above are technical comparators, not automatic local legal requirements. Every real Highveld project must use the applicable South African editions, municipal requirements, professional determinations and product approvals.
 
