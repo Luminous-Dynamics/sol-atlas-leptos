@@ -237,6 +237,7 @@ fn parse_measured_csv(bytes: &[u8], label: &str) -> Result<BTreeMap<i64, f64>, S
     let text = std::str::from_utf8(bytes).map_err(|error| format!("{label}: input is not UTF-8: {error}"))?;
     let mut samples = BTreeMap::new();
     let mut skipped_header = false;
+    let mut previous_timestamp: Option<i64> = None;
 
     for (line_number, line) in text.lines().enumerate() {
         if line.trim().is_empty() {
@@ -268,9 +269,16 @@ fn parse_measured_csv(bytes: &[u8], label: &str) -> Result<BTreeMap<i64, f64>, S
             return Err(format!("{label}: line {} must contain exactly one current value beside its timestamp", line_number + 1));
         }
 
-        if samples.insert(timestamp, numeric[0].1).is_some() {
-            return Err(format!("{label}: duplicate one-second timestamp at line {}", line_number + 1));
+        if let Some(previous) = previous_timestamp {
+            if timestamp == previous {
+                return Err(format!("{label}: duplicate one-second timestamp at line {}", line_number + 1));
+            }
+            if timestamp < previous {
+                return Err(format!("{label}: timestamps are not strictly increasing at line {}", line_number + 1));
+            }
         }
+        previous_timestamp = Some(timestamp);
+        samples.insert(timestamp, numeric[0].1);
     }
 
     if samples.is_empty() {
@@ -289,6 +297,7 @@ fn parse_tva_daily(bytes: &[u8], pin: &Pin) -> Result<BTreeMap<i64, f64>, String
     let amp_index = unique_header_index(&headers, "GICXFNeutralAmps", pin.path)?;
     let time_index = unique_header_index(&headers, "time", pin.path)?;
     let mut values = BTreeMap::new();
+    let mut previous_minute: Option<i64> = None;
 
     for (offset, line) in lines.enumerate() {
         let fields = parse_csv_record(line).map_err(|error| format!("{}: data row {}: {error}", pin.path, offset + 2))?;
@@ -306,9 +315,16 @@ fn parse_tva_daily(bytes: &[u8], pin: &Pin) -> Result<BTreeMap<i64, f64>, String
             return Err(format!("{}: elapsed seconds must be a minute boundary in [0,86400) at row {}", pin.path, offset + 2));
         }
         let minute = midnight + seconds;
-        if values.insert(minute, amps).is_some() {
-            return Err(format!("{}: duplicate minute at row {}", pin.path, offset + 2));
+        if let Some(previous) = previous_minute {
+            if minute == previous {
+                return Err(format!("{}: duplicate minute at row {}", pin.path, offset + 2));
+            }
+            if minute < previous {
+                return Err(format!("{}: minutes are not strictly increasing at row {}", pin.path, offset + 2));
+            }
         }
+        previous_minute = Some(minute);
+        values.insert(minute, amps);
     }
 
     if values.is_empty() {
@@ -327,6 +343,7 @@ fn parse_reference_csv(bytes: &[u8], pin: &Pin) -> Result<BTreeMap<i64, f64>, St
     let gic_index = unique_header_index(&headers, "Sim GIC (Median)", pin.path)?;
     let expected_substation = pin.substation.ok_or_else(|| format!("{}: missing expected substation ID", pin.path))?;
     let mut values = BTreeMap::new();
+    let mut previous_timestamp: Option<i64> = None;
 
     for (offset, line) in lines.enumerate() {
         let fields = parse_csv_record(line).map_err(|error| format!("{}: data row {}: {error}", pin.path, offset + 2))?;
@@ -348,9 +365,16 @@ fn parse_reference_csv(bytes: &[u8], pin: &Pin) -> Result<BTreeMap<i64, f64>, St
             return Err(format!("{}: reference prediction is not aligned to a UTC minute at row {}", pin.path, offset + 2));
         }
         let amps = parse_finite(&fields[gic_index]).map_err(|error| format!("{}: GIC at row {}: {error}", pin.path, offset + 2))?;
-        if values.insert(timestamp, amps).is_some() {
-            return Err(format!("{}: duplicate reference-model minute at row {}", pin.path, offset + 2));
+        if let Some(previous) = previous_timestamp {
+            if timestamp == previous {
+                return Err(format!("{}: duplicate reference-model minute at row {}", pin.path, offset + 2));
+            }
+            if timestamp < previous {
+                return Err(format!("{}: reference-model timestamps are not strictly increasing at row {}", pin.path, offset + 2));
+            }
         }
+        previous_timestamp = Some(timestamp);
+        values.insert(timestamp, amps);
     }
 
     if values.is_empty() {
@@ -444,7 +468,7 @@ fn parse_timestamp(value: &str) -> Result<i64, String> {
 
     if raw.ends_with('Z') || raw.ends_with('z') {
         raw.pop();
-    } else if let Some(position) = raw.rfind(|ch| ch == '+' || ch == '-') {
+    } else if let Some(position) = raw.rfind(['+', '-']) {
         if position > 10 {
             let offset = &raw[position..];
             if !matches!(offset, "+00:00" | "-00:00" | "+0000" | "-0000" | "+00" | "-00") {
@@ -703,6 +727,7 @@ fn render_receipt(
     output.push_str("    \"expected_pairs_per_site_model\": 2341,\n");
     output.push_str("    \"measured_aggregation\": \"exact_mean_of_60_one_second_samples_per_utc_minute\",\n");
     output.push_str("    \"join\": \"exact_utc_minute_only_no_interpolation_no_forward_fill\",\n");
+    output.push_str("    \"timezone_policy\": \"naive source timestamps are interpreted as UTC; explicit non-UTC offsets are rejected\",\n");
     output.push_str("    \"polarity\": \"preserve_raw_pearson_r_and_invert_prediction_only_for_residual_metrics_when_r_is_negative\"\n");
     output.push_str("  },\n");
     output.push_str("  \"verified_source_files\": [\n");
@@ -943,7 +968,7 @@ mod tests {
         for second in 0..60 {
             samples.insert(start + second, 2.0);
         }
-        assert_eq!(average_exact_minute(&samples, start).unwrap(), 2.0);
+        assert!((average_exact_minute(&samples, start).unwrap() - 2.0).abs() < 1e-12);
     }
 
     #[test]
@@ -961,6 +986,13 @@ mod tests {
         let csv = b"timestamp,current\n2024-05-10 15:00:00,1.0\n2024-05-10 15:00:00,1.1\n";
         let error = parse_measured_csv(csv, "fixture.csv").unwrap_err();
         assert!(error.contains("duplicate one-second timestamp"));
+    }
+
+    #[test]
+    fn measured_rows_must_be_chronologically_ordered() {
+        let csv = b"timestamp,current\n2024-05-10 15:00:01,1.0\n2024-05-10 15:00:00,1.1\n";
+        let error = parse_measured_csv(csv, "fixture.csv").unwrap_err();
+        assert!(error.contains("not strictly increasing"));
     }
 
     #[test]
