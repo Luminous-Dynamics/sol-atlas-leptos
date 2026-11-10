@@ -181,7 +181,7 @@
           "conversion_state": "none",
           "time_basis_preserved": true,
           "evidence_class_preserved": true,
-          "source_quantity_kind": "mass_concentration",
+          "source_quantity_kind": "temperature",
           "target_quantity_kind": "mass_concentration"
         },
         "evidence": {
