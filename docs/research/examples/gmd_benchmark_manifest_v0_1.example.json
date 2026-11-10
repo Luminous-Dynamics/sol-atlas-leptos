@@ -106,7 +106,7 @@
     {
       "control_id": "REVERSE-LINE-001",
       "mutation": "Reverse conductor path orientation without changing E field.",
-      "expected_disposition": "reject",
+      "expected_disposition": "match_mutated_known_answer",
       "failure_mode": "The signed voltage should reverse; unchanged sign reveals orientation error."
     },
     {
