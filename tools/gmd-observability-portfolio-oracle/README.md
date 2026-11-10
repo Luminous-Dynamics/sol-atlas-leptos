@@ -13,7 +13,7 @@ Given:
 - Positive decision weights for state dimensions.
 - A deployment budget and explicit single-instrument-outage risk aversion.
 
-The oracle exhaustively evaluates portfolios (up to 12 candidate instruments) and minimizes a weighted posterior-variance objective that balances nominal performance with the worst single-instrument-outage case.
+The oracle exhaustively evaluates portfolios (up to 12 candidate instruments and 16 state variables) and minimizes a weighted posterior-variance objective that balances nominal performance with the worst single-instrument-outage case.
 
 For selected observations S:
 
