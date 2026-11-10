@@ -87,6 +87,7 @@ pub struct ServiceMetrics {
     pub total_delivered_quantity_capped: f64,
     pub total_surplus_quantity_excluded: f64,
     pub total_unserved_quantity: f64,
+    pub demand_observed_seconds: u64,
     pub demand_weighted_served_fraction: f64,
     pub floor_time_availability_fraction: f64,
     pub total_floor_violation_seconds: u64,
@@ -330,6 +331,7 @@ pub fn evaluate_service(
         total_delivered_quantity_capped: total_delivered_capped,
         total_surplus_quantity_excluded: total_surplus,
         total_unserved_quantity: total_unserved,
+        demand_observed_seconds: demand_seconds,
         demand_weighted_served_fraction,
         floor_time_availability_fraction,
         total_floor_violation_seconds,
@@ -660,6 +662,28 @@ mod tests {
         assert_eq!(result.total_unserved_quantity, 0.0);
         assert!(result.initially_above_service_floor);
         assert_eq!(result.floor_recovery, None);
+    }
+
+    #[test]
+    fn no_demand_interval_does_not_bridge_a_recovery_window() {
+        let input = service(vec![
+            interval(0, 10, 100.0, 0.0),
+            interval(10, 40, 0.0, 0.0),
+            interval(40, 60, 100.0, 100.0),
+            interval(60, 90, 100.0, 100.0),
+        ]);
+        let result = evaluate_service(&input, 90).unwrap();
+
+        assert_eq!(result.demand_observed_seconds, 60);
+        assert_eq!(result.floor_time_availability_fraction, 50.0 / 60.0);
+        assert_eq!(result.total_floor_violation_seconds, 10);
+        assert_eq!(
+            result.floor_recovery,
+            Some(RecoveryMark {
+                began_after_seconds: 40,
+                confirmed_after_seconds: 90,
+            })
+        );
     }
 
     #[test]
