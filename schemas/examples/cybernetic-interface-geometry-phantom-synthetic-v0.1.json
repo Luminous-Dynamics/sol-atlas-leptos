@@ -1,0 +1,168 @@
+{
+  "schema": "luminous.cybernetic-interface-geometry",
+  "schema_version": 1,
+  "artifact_id": "synthetic-phantom-ankle-cuff-fixture-v0.1",
+  "evidence_class": "synthetic",
+  "source": {
+    "source_kind": "synthetic_fixture",
+    "source_ref": "urn:luminous:synthetic:phantom-ankle-cuff-fixture",
+    "source_revision": "0.1",
+    "artifact_digest": null,
+    "digest_status": "not_applicable_synthetic_parameters",
+    "capture_device_ref": null,
+    "capture_software_ref": null,
+    "capture_time_utc": null
+  },
+  "subject_ref": null,
+  "frame_graph": {
+    "root_frame_id": "lab_world",
+    "transform_direction": "transform_parent_from_child",
+    "frames": [
+      {
+        "frame_id": "lab_world",
+        "role": "environment",
+        "parent_frame_id": null,
+        "transform_parent_from_child": null,
+        "axis_convention": "right-handed; X=bench longitudinal, Y=bench lateral, Z=bench normal",
+        "linear_unit": "m",
+        "angular_unit": "rad",
+        "calibration_ref": null,
+        "uncertainty": {
+          "kind": "not_quantified",
+          "reason": "Synthetic fixture origin; no physical metrology is represented."
+        },
+        "handedness": "right_handed",
+        "axis_labels": [
+          "bench_longitudinal",
+          "bench_lateral",
+          "bench_normal"
+        ]
+      },
+      {
+        "frame_id": "phantom_ankle",
+        "role": "body_segment",
+        "parent_frame_id": "lab_world",
+        "transform_parent_from_child": {
+          "translation_m": [
+            0.4,
+            0.2,
+            0.1
+          ],
+          "quaternion_xyzw": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "axis_convention": "right-handed; X=fixture longitudinal, Y=fixture lateral, Z=fixture normal",
+        "linear_unit": "m",
+        "angular_unit": "rad",
+        "calibration_ref": null,
+        "uncertainty": {
+          "kind": "not_quantified",
+          "reason": "Illustrative synthetic transform; no scan or physical registration."
+        },
+        "handedness": "right_handed",
+        "axis_labels": [
+          "fixture_longitudinal",
+          "fixture_lateral",
+          "fixture_normal"
+        ]
+      },
+      {
+        "frame_id": "cuff_cad",
+        "role": "device_cad",
+        "parent_frame_id": "lab_world",
+        "transform_parent_from_child": {
+          "translation_m": [
+            0.41,
+            0.2,
+            0.11
+          ],
+          "quaternion_xyzw": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "axis_convention": "right-handed; X=fixture longitudinal, Y=fixture lateral, Z=fixture normal",
+        "linear_unit": "m",
+        "angular_unit": "rad",
+        "calibration_ref": null,
+        "uncertainty": {
+          "kind": "not_quantified",
+          "reason": "Illustrative nominal CAD placement only."
+        },
+        "handedness": "right_handed",
+        "axis_labels": [
+          "fixture_longitudinal",
+          "fixture_lateral",
+          "fixture_normal"
+        ]
+      },
+      {
+        "frame_id": "cuff_interface",
+        "role": "interface_region",
+        "parent_frame_id": "cuff_cad",
+        "transform_parent_from_child": {
+          "translation_m": [
+            0,
+            0,
+            0
+          ],
+          "quaternion_xyzw": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "axis_convention": "right-handed; X=fixture longitudinal, Y=fixture lateral, Z=fixture normal",
+        "linear_unit": "m",
+        "angular_unit": "rad",
+        "calibration_ref": null,
+        "uncertainty": {
+          "kind": "not_quantified",
+          "reason": "Synthetic nominal interface frame only."
+        },
+        "handedness": "right_handed",
+        "axis_labels": [
+          "fixture_longitudinal",
+          "fixture_lateral",
+          "fixture_normal"
+        ]
+      }
+    ]
+  },
+  "interface_envelopes": [
+    {
+      "interface_id": "phantom-ankle-cuff-interface",
+      "region_code": "synthetic_phantom_ankle_region",
+      "body_frame_ref": "phantom_ankle",
+      "device_frame_ref": "cuff_interface",
+      "geometry_artifact_ref": "urn:luminous:synthetic:ankle-phantom-cuff-envelope",
+      "geometry_artifact_digest": null,
+      "geometry_revision": "synthetic-envelope-v0.1",
+      "nominal_clearance_mm": 2,
+      "tolerance_mm": {
+        "plus": 0.5,
+        "minus": 0.5
+      },
+      "applicability_profiles": [
+        "synthetic-fixture-placement-only"
+      ]
+    }
+  ],
+  "interface_observations": [],
+  "privacy": {
+    "raw_geometry_state": "not_present",
+    "raw_geometry_exported": false,
+    "subject_data_present": false,
+    "pseudonymous_subject_ref": null,
+    "consent_scope_ref": null,
+    "disclosure_profile": "synthetic-only"
+  },
+  "claim_ceiling": "Synthetic schema fixture only. No identifiable body scan, human anatomy, fit, pressure, shear, comfort, tissue-safety, clinical, physical manufacturing or device qualification evidence."
+}
