@@ -209,6 +209,7 @@ pub fn evaluate_service(
     let mut total_surplus = 0.0;
     let mut total_unserved = 0.0;
     let mut floor_available_seconds = 0_u64;
+    let mut demand_seconds = 0_u64;
     let mut total_floor_violation_seconds = 0_u64;
     let mut current_floor_violation_seconds = 0_u64;
     let mut longest_floor_violation_seconds = 0_u64;
@@ -241,12 +242,20 @@ pub fn evaluate_service(
             return Err(ServiceError::NumericalOverflow);
         }
 
-        let (served_fraction, deficit_fraction) = if required == 0.0 {
-            (1.0, 0.0)
-        } else {
-            let served = (capped_delivered / required).clamp(0.0, 1.0);
-            (served, (1.0 - served).clamp(0.0, 1.0))
-        };
+        if required == 0.0 {
+            floor_status.push(None);
+            full_status.push(None);
+            longest_floor_violation_seconds =
+                longest_floor_violation_seconds.max(current_floor_violation_seconds);
+            current_floor_violation_seconds = 0;
+            continue;
+        }
+
+        demand_seconds = demand_seconds
+            .checked_add(duration)
+            .ok_or(ServiceError::NumericalOverflow)?;
+        let served_fraction = (capped_delivered / required).clamp(0.0, 1.0);
+        let deficit_fraction = (1.0 - served_fraction).clamp(0.0, 1.0);
         let floor_threshold =
             required * service.minimum_service_fraction - service.quantity_tolerance;
         let full_threshold = required - service.quantity_tolerance;
@@ -259,8 +268,8 @@ pub fn evaluate_service(
         maximum_interval_deficit_fraction =
             maximum_interval_deficit_fraction.max(deficit_fraction);
 
-        floor_status.push(floor_met);
-        full_status.push(full_met);
+        floor_status.push(Some(floor_met));
+        full_status.push(Some(full_met));
 
         if floor_met {
             floor_available_seconds = floor_available_seconds
@@ -294,7 +303,7 @@ pub fn evaluate_service(
 
     let demand_weighted_served_fraction = total_delivered_capped / total_required;
     let floor_time_availability_fraction =
-        floor_available_seconds as f64 / horizon_seconds as f64;
+        floor_available_seconds as f64 / demand_seconds as f64;
     if !all_finite(&[
         demand_weighted_served_fraction,
         floor_time_availability_fraction,
@@ -311,8 +320,12 @@ pub fn evaluate_service(
         source_sha256: service.source_sha256.clone(),
         evidence_class: service.evidence_class,
         horizon_seconds,
-        initially_above_service_floor: floor_status[0],
-        initially_fully_served: full_status[0],
+        initially_above_service_floor: floor_status.iter().find_map(|status| *status).ok_or(
+            ServiceError::NoPositiveDemand,
+        )?,
+        initially_fully_served: full_status.iter().find_map(|status| *status).ok_or(
+            ServiceError::NoPositiveDemand,
+        )?,
         total_required_quantity: total_required,
         total_delivered_quantity_capped: total_delivered_capped,
         total_surplus_quantity_excluded: total_surplus,
@@ -431,29 +444,34 @@ fn find_sustained_recovery(
     let mut run_start = None;
     let mut run_duration = 0_u64;
 
-    for (interval, is_satisfied) in intervals.iter().zip(status.iter().copied()) {
-        if !is_satisfied {
-            observed_violation = true;
-            run_start = None;
-            run_duration = 0;
-            continue;
-        }
-
-        if observed_violation {
-            if run_start.is_none() {
-                run_start = Some(interval.start_offset_seconds);
+    for (interval, state) in intervals.iter().zip(status.iter().copied()) {
+        match state {
+            None => {
+                run_start = None;
                 run_duration = 0;
             }
-            run_duration = run_duration.checked_add(
-                interval.end_offset_seconds - interval.start_offset_seconds,
-            )?;
-
-            if run_duration >= hold_seconds {
-                return Some(RecoveryMark {
-                    began_after_seconds: run_start?,
-                    confirmed_after_seconds: interval.end_offset_seconds,
-                });
+            Some(false) => {
+                observed_violation = true;
+                run_start = None;
+                run_duration = 0;
             }
+            Some(true) if observed_violation => {
+                if run_start.is_none() {
+                    run_start = Some(interval.start_offset_seconds);
+                    run_duration = 0;
+                }
+                run_duration = run_duration.checked_add(
+                    interval.end_offset_seconds - interval.start_offset_seconds,
+                )?;
+
+                if run_duration >= hold_seconds {
+                    return Some(RecoveryMark {
+                        began_after_seconds: run_start?,
+                        confirmed_after_seconds: interval.end_offset_seconds,
+                    });
+                }
+            }
+            Some(true) => {}
         }
     }
     None
