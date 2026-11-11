@@ -43,7 +43,7 @@ There is deliberately no cross-service aggregate score. Consumers must inspect e
 - Input schema: `docs/research/gmd-service-continuity/GMD_SERVICE_CONTINUITY_INPUT_V0.1.schema.json` (JSON Schema Draft 2020-12).
 - Example: `docs/research/gmd-service-continuity/GMD_SERVICE_CONTINUITY_SYNTHETIC_CASE_V0.1.json` (synthetic hospital power and potable-water trajectories; no real facility or service floor is implied).
 
-The schema expresses structure and scalar bounds. Cross-field interval continuity, exact horizon coverage, per-service maximum aggregation duration and numerical metric rules are enforced by the Rust evaluator, not by JSON Schema alone.
+The schema expresses structure and scalar bounds. CI also runs a Python-standard-library structural preflight over the example. Cross-field interval continuity, exact horizon coverage, per-service maximum aggregation duration and numerical metric rules are enforced by the Rust evaluator, not by JSON Schema alone. The preflight is not a complete JSON Schema Draft 2020-12 validator.
 
 ## Run
 
