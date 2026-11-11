@@ -12,6 +12,7 @@ The evaluator reports a **per-service resilience vector**, not one score that ad
 
 Each service trajectory declares:
 - stable service identity, owner reference, geographic/jurisdiction reference and asset/topology revision;
+- optional scenario-level dependency graph reference and SHA-256 digest, supplied together or both null;
 - a native quantity unit;
 - evidence class, source reference and SHA-256 digest of the trajectory artifact;
 - minimum service floor as a fraction of required service;
@@ -21,7 +22,7 @@ Each service trajectory declares:
 - complete contiguous intervals over the scenario horizon;
 - required and delivered quantities over each interval.
 
-Time is represented as elapsed seconds from scenario event t0, not as wall-clock UTC. This preserves scenario ordering even when GNSS or external time is unavailable. Mycelix retains source-clock and receiver-local time-quality evidence separately.
+Time is represented as elapsed seconds from scenario event t0, not as wall-clock UTC. This preserves scenario ordering even when GNSS or external time is unavailable. Mycelix retains source-clock and receiver-local time-quality evidence separately. Each scenario also carries an optional dependency-graph reference and SHA-256 digest as a pair. If absent, both are explicitly null and no cross-service causal explanation is implied; if present, both must validate.
 
 ## Metrics per service
 
