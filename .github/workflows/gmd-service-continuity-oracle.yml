@@ -29,6 +29,65 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt, clippy
+      - name: Validate schema and synthetic scenario structure
+        run: |
+          python3 - <<'PY'
+          import json
+          import pathlib
+          import re
+
+          root = pathlib.Path(".")
+          schema_path = root / "docs/research/gmd-service-continuity/GMD_SERVICE_CONTINUITY_INPUT_V0.1.schema.json"
+          case_path = root / "docs/research/gmd-service-continuity/GMD_SERVICE_CONTINUITY_SYNTHETIC_CASE_V0.1.json"
+          schema = json.loads(schema_path.read_text())
+          case = json.loads(case_path.read_text())
+
+          assert schema["$schema"] == "https://json-schema.org/draft/2020-12/schema"
+          assert isinstance(case["scenario_id"], str) and case["scenario_id"].strip()
+          horizon = case["horizon_seconds"]
+          assert isinstance(horizon, int) and not isinstance(horizon, bool) and horizon > 0
+          services = case["services"]
+          assert isinstance(services, list) and services
+
+          seen = set()
+          for service in services:
+              required = {
+                  "service_id", "owner_ref", "geographic_scope_ref", "quantity_unit",
+                  "asset_revision", "source_ref", "source_sha256", "evidence_class",
+                  "minimum_service_fraction", "quantity_tolerance",
+                  "maximum_interval_seconds", "recovery_hold_seconds", "intervals",
+              }
+              assert required <= service.keys()
+              assert all(isinstance(service[key], str) and service[key].strip()
+                         for key in ("service_id", "owner_ref", "geographic_scope_ref",
+                                     "quantity_unit", "asset_revision", "source_ref"))
+              assert service["service_id"] not in seen
+              seen.add(service["service_id"])
+              assert re.fullmatch(r"[0-9a-f]{64}", service["source_sha256"])
+              assert service["evidence_class"] in {
+                  "Measured", "PublishedDerived", "Modelled", "Inferred", "Simulated"
+              }
+              assert 0 < service["minimum_service_fraction"] <= 1
+              assert service["quantity_tolerance"] >= 0
+              max_interval = service["maximum_interval_seconds"]
+              assert isinstance(max_interval, int) and max_interval > 0
+              assert isinstance(service["recovery_hold_seconds"], int)
+              assert service["recovery_hold_seconds"] > 0
+
+              intervals = service["intervals"]
+              assert intervals
+              expected_start = 0
+              for interval in intervals:
+                  start = interval["start_offset_seconds"]
+                  end = interval["end_offset_seconds"]
+                  assert start == expected_start and end > start and end - start <= max_interval
+                  assert interval["required_quantity"] >= 0
+                  assert interval["delivered_quantity"] >= 0
+                  expected_start = end
+              assert expected_start == horizon
+
+          print(f"validated {len(services)} services across {horizon}s")
+          PY
       - name: Check formatting
         run: cargo fmt --manifest-path tools/gmd-service-continuity-oracle/Cargo.toml -- --check
       - name: Run offline tests
