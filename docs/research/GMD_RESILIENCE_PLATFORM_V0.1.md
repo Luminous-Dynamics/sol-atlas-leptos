@@ -562,3 +562,60 @@ Report:
 - computation latency and number of re-planning cycles.
 
 A lower objective value cannot compensate for a hard safety or service-floor violation. No model receipt authorizes execution; all high-consequence steps require the responsible operator's approval and independent local protection.
+
+
+## 19. Operational adoption, common-cause digital risk and long-horizon resilience — 11 November 2026
+
+### 19.1 Operator decisions are a benchmark target, not an afterthought
+
+LaNeve et al., *Space Weather Mitigation Decisions by Critical Infrastructure Operators During Solar Cycle 25*, first published 26 September 2026 (DOI https://doi.org/10.1029/2026SW005072), contacted 313 critical-infrastructure operators across electricity, satellite and aviation sectors and received 55 unique responses. Interviews with 33 operators identified 91 potential mitigation decisions; 74% were undertaken. The study reports a preparedness gap: larger operators are better able to invest in hardening, while smaller organizations may accept more risk because of cost and rely on modelling/alerts. Operators identified more accurate, localized public warnings as a priority.
+
+This changes the GMD benchmark from a forecast-only leaderboard into an **actionability and adoption benchmark**. For each warning or recommendation, evaluate:
+- time from first evidence to the first actionable recommendation;
+- lead time remaining before the hazard reaches the asset/region;
+- whether the action was available to the specific operator (equipment, staffing, authority, budget, supplier lead time);
+- cost, reversibility, service impact and false-alarm burden;
+- whether a small municipality, hospital or smaller utility can implement it;
+- operator acceptance, modification, deferral or rejection and the reasons;
+- measured post-action outcome where records exist.
+
+Compare localized consequence warnings against existing space-weather products and operator rules under matched event replay. Do not assume the warning produces action or that an action was physically successful. Do not optimize only for large utilities with major capital budgets; measure the cost and operational burden of resilience options for resource-constrained operators.
+
+### 19.2 Digital common-cause failure is part of the GMD event
+
+The ITU/UNDRR/Sciences Po report *When digital systems fail: The hidden risks of our digital world* (5 May 2026) explicitly considers solar storms, submarine-cable cuts, satellite disruptions and extreme weather as interconnected digital-risk scenarios. Its recommendations include cross-sector dependency mapping, chain-reaction modelling, fallback systems, analogue skills, joint multi-sector scenario planning and shared accountability.
+
+Reference: https://www.itu.int/en/mediacentre/Pages/PR-2026-05-05-Critical-Digital-Risks-report.aspx.
+
+This reinforces the service-dependency work:
+- power loss can simultaneously disable mobile towers, telecom exchanges, timing sources, generator auxiliaries and water pumps;
+- fibre or satellite communications are not independent fallbacks when their exchange, power, backhaul, timing or control centre shares the same failure domain;
+- GNSS time/position loss can disrupt multiple services at once;
+- manual/analogue procedures must be maintained and exercised, not only listed as a theoretical fallback.
+
+Compose Sol-Atlas [GMD-SERVICE-CONTINUITY-001 #716](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/716) and [GMD-SPACE-SERVICE-001 #711](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/711) with Mycelix [ASSURE-PORTFOLIO-CUT-002 #5762](https://github.com/Luminous-Dynamics/mycelix/issues/5762) for multi-valued, transitive common-cause dependencies, plus Sol-Atlas power-aware telecom work [#323](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/323) / [#325](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/325). Unknown dependency closure must remain unknown; do not invent independence or complete cut sets.
+
+### 19.3 Move from one extreme event to long-horizon resilience portfolios
+
+A 21 August 2026 Nature Reviews Electrical Engineering review argues that power-system resilience should be treated as a long-horizon, event-independent property across many possible futures rather than a score for one named extreme event (DOI https://doi.org/10.1038/s44287-026-00322-6).
+
+For GMD this suggests a second benchmark axis:
+- repeated storms and recovery intervals over a multi-year planning horizon;
+- changing grid topology, transformer fleet, instrument network and DER penetration;
+- maintenance windows, spare-part availability and replacement lead times;
+- evolving satellite/GNSS/telecom dependencies;
+- repeated asset stress and cumulative exposure, not just single-event peak;
+- lifecycle cost and affordable mitigation portfolio;
+- robustness under model disagreement, observation gaps and multiple event sequences.
+
+Keep event-specific historical replays as the physical calibration anchor, then evaluate resilience investments across declared ensembles of event sequences and infrastructure futures. Do not infer a real-world probability distribution from a convenient synthetic generator. Publish sensitivity to the event ensemble and keep worst-case/robust and expected-case results distinct.
+
+### 19.4 Current implementation and claim status
+
+The service-continuity evaluator in [draft PR #717](https://github.com/Luminous-Dynamics/sol-atlas-leptos/pull/717) now enforces an owner-declared `maximum_interval_seconds`; coarse intervals are rejected rather than being scored as if they proved continuity at finer resolution. It requires owner and geographic scope references, asset revision, evidence class and source digest. Machine-readable contract and synthetic multi-service input are included:
+- `docs/research/gmd-service-continuity/GMD_SERVICE_CONTINUITY_INPUT_V0.1.schema.json`
+- `docs/research/gmd-service-continuity/GMD_SERVICE_CONTINUITY_SYNTHETIC_CASE_V0.1.json`
+
+The evaluator has 20 authored Rust test functions. The PR is draft; exact-head workflow results remain pending/queued. No Rust compile/test or operational service-continuity result is claimed.
+
+The GMD observing-network and replay oracles (#714 and #709), and Symtropy drag-law oracle (#4605), have had rustfmt-only failures identified and formatting edits applied to their branches. Fresh exact-head workflows are pending/queued; no post-format PASS is claimed yet.
