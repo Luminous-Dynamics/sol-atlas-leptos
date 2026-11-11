@@ -640,3 +640,50 @@ The Rust crate now has 21 authored unit-test functions. The GitHub workflow incl
 - Rust formatting, offline tests and Clippy.
 
 These Python steps are test-only reference checks, not production code or a complete JSON Schema Draft 2020-12 validator. As of this document update, the latest PR head is still subject to GitHub Actions execution; no Rust compile/test/Clippy PASS or operational service-continuity result is claimed.
+
+
+## 21. South African observation-source catalogue and rights qualification — 11 November 2026
+
+The regional pilot now has a concrete source-owner discovery path: SANSA's South African National Geophysical Data and Instrumentation Management System (SANDIMS).
+
+SANSA documents SANDIMS as a repository for geomagnetic, ionospheric and magnetospheric observations gathered by its instrumentation network. The repository description identifies instrument/site/type/sampling search, date/file-type/processing-level filtering, and metadata that includes GPS location, manufacturer, principal investigator and sampling interval. Its documented network scope extends beyond mainland South Africa to Namibia, Gough and Marion islands and SANAE IV in Antarctica. Dataset delivery is described as date-filtered bundles via temporary FTP credentials. SANSA describes academic research access as free subject to registration and commercial use as requiring a separate agreement.
+
+Sources:
+- SANDIMS: https://sandims.sansa.org.za/
+- SANSA scientific research and data access: https://www.sansa.org.za/scientific-research-and-global-collaboration/
+- SANSA instrument map: https://spaceweather.sansa.org.za/space-weather-information/resources/instrument-map/
+
+This is a much stronger starting point than manually estimating sensor locations from a map. But the permissions are material: academic registration is not commercial ingestion permission, and neither download access nor commercial ingestion automatically grants model-training or derivative-redistribution rights.
+
+### 21.1 New rights-aware catalogue implementation
+
+- [GMD-SA-OBSERVATION-CATALOG-001 #719](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/719) defines repository/station/dataset scopes and purpose-specific rights.
+- [Draft PR #720](https://github.com/Luminous-Dynamics/sol-atlas-leptos/pull/720) adds `tools/gmd-observation-catalog-oracle/`, a dependency-free Rust qualifier with 18 authored test functions.
+- The first SANSA record is a repository-level catalogue only, with explicit `station: null`, `dataset: null`, no source snapshot digest, and no claim of current site inventory or dataset availability.
+- Rights are separated for metadata discovery, dataset download, academic analysis, commercial ingestion, model training and derivative redistribution. A permitted grant needs purpose-specific evidence and is assessed against explicit validity bounds.
+- A repository/station metadata record cannot grant use of an unspecified dataset. A DatasetProduct record with its own version, source URI, time coverage and digest is required.
+- Station metadata completeness is reported separately from scientific validity. Complete fields mean only ready for expert review; they do not prove calibration, spatial representativeness or suitability as transformer GIC ground truth.
+- The CI preflight parses the JSON schema and fixtures and checks six purpose dispositions. It is not a complete JSON Schema validator. Rust format/compile/tests/Clippy on PR #720 remain pending; no PASS is claimed.
+
+### 21.2 Correct evidence pipeline
+
+Use this exact progression and do not skip stages:
+
+1. Repository catalogue metadata: prove that an archive or network catalogue exists and document its search/access model.
+2. Station/instrument record: retrieve a specific station ID, site geometry, datum, instrument identity, sensor axes, sampling, clock and calibration metadata.
+3. Dataset product: retrieve a specific immutable file/product version, date range, processing level, source digest, quality flags and data-rights grant for the intended purpose.
+4. Measurement qualification: inspect completeness, offsets, drift, calibration, polarity, cadence, timestamp quality, response function and uncertainty.
+5. Spatial/physical qualification: connect magnetometer field to a site-specific Earth-response/MT model and network line-integral/GIC operator under held-out event/site validation.
+6. Portfolio design: only then expose the qualified observation operator and covariance to [GMD-OBSERVABILITY-001 #713](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/713) and the synthetic portfolio oracle [PR #714](https://github.com/Luminous-Dynamics/sol-atlas-leptos/pull/714).
+
+Do not use the public instrument map to fabricate station counts, coordinates or coverage. Do not treat an observatory magnetometer as a transformer-neutral GIC measurement. Do not treat access for academic research as a commercial right. No restricted GIC files, credentials, exact sensitive transformer locations or proprietary network topology belong in the public catalogue fixtures.
+
+### 21.3 South African validation opportunity
+
+The historical evidence already establishes that this is not an unobserved region:
+- 2003 Grassridge/Hermanus observations informed a multilayer conductivity/GIC model (DOI 10.1029/2008SW000408), with a 2009 follow-up showing spatial-transfer degradation and site-pair limitations (DOI 10.1029/2009SW000478).
+- SANSA's geomagnetic network was used to estimate induced electric fields and compare with measured GIC during 17–18 March 2015 (DOI 10.17159/sajs.2019/5204).
+- Botrivier 400 kV line monitoring is documented in SANSA's 2015/16 Annual Report.
+- Historical Grassridge and Matimba data have non-synchronous / data-quality limitations described in the 2022 Southern Hemisphere LDi/LCi validation (DOI 10.1029/2022SW003092).
+
+These remain historical and site-specific evidence, not a current national transformer vulnerability assessment. The next value comes from source-owner permission, modern station metadata and exact event/site-held-out validation—not another map visualisation.
