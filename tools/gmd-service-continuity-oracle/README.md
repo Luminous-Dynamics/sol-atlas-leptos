@@ -45,6 +45,18 @@ There is deliberately no cross-service aggregate score. Consumers must inspect e
 
 The schema expresses structure and scalar bounds. CI also runs a Python-standard-library structural preflight over the example. Cross-field interval continuity, exact horizon coverage, per-service maximum aggregation duration and numerical metric rules are enforced by the Rust evaluator, not by JSON Schema alone. The preflight is not a complete JSON Schema Draft 2020-12 validator.
 
+
+### Independently recomputed synthetic example
+
+For the included five-minute example, using one-minute intervals:
+
+| Service | Required | Capped delivered | Unserved | Served fraction | Floor availability |
+|---|---:|---:|---:|---:|---:|
+| Hospital critical power | 50 kWh | 42 kWh | 8 kWh | 0.84 | 0.80 |
+| Hospital potable water | 9.0 m³ | 6.9 m³ | 2.1 m³ | 0.7667 | 0.80 |
+
+Both services first fall below their declared floor in the third interval. The floor recovery run begins at 180 s and is confirmed at 240 s; full-service recovery begins at 240 s and is confirmed at 300 s. These figures were independently recomputed from the synthetic input arithmetic. They are not Rust execution results, real hospital thresholds or physical resilience evidence.
+
 ## Run
 
 From the Sol-Atlas repository root:
