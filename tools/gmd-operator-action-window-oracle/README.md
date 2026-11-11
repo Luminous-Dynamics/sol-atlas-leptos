@@ -6,6 +6,8 @@ A dependency-free Rust evaluator for a **supplied candidate mitigation action**.
 
 Timing feasibility is not authorization.
 
+The result echoes all four precondition states and includes `execution_authorized: false`. It preserves every blocker even when the summary readiness value uses a priority order.
+
 The result has two independent dimensions:
 - readiness: ready for operator review, awaiting approval, blocked, stale or indeterminate;
 - timing: conservative fit, arrival-dependent/at-risk, or missed window.
@@ -46,6 +48,7 @@ Operational, maintenance and capital action classes are preserved for stratified
 
 - Input schema: `docs/research/gmd-action-window/GMD_ACTION_WINDOW_INPUT_V0.1.schema.json`.
 - Sample input: `docs/research/gmd-action-window/GMD_ACTION_WINDOW_SAMPLE_INPUT_V0.1.json`.
+- Output schema: `docs/research/gmd-action-window/GMD_ACTION_WINDOW_RESULT_V0.1.schema.json`.
 - Expected result: `docs/research/gmd-action-window/GMD_ACTION_WINDOW_SAMPLE_RESULT_V0.1.json`.
 
 The example has 1,800–3,900 seconds of completion time, a conservative deadline of 3,000 seconds and latest safe deadline of 4,800 seconds. It is therefore ArrivalDependentAtRisk and AwaitingHumanApproval. Execution authorization is false.
