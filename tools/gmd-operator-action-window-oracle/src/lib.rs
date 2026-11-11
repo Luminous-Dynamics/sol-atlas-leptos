@@ -159,12 +159,20 @@ pub enum ActionWindowError {
 impl fmt::Display for ActionWindowError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let message = match self {
-            Self::EmptyRequiredField => "action, owner, procedure and forecast references are required",
-            Self::InvalidDigest => "procedure and forecast digests must be 64 lowercase hexadecimal characters",
+            Self::EmptyRequiredField => {
+                "action, owner, procedure and forecast references are required"
+            }
+            Self::InvalidDigest => {
+                "procedure and forecast digests must be 64 lowercase hexadecimal characters"
+            }
             Self::InvalidImpactWindow => "impact arrival window must be positive and ordered",
             Self::InvalidDurationRange => "each duration range minimum must not exceed its maximum",
-            Self::ApprovedActionHasPendingApprovalDuration => "approved action cannot retain a pending approval duration",
-            Self::ZeroCompletionDuration => "candidate action must have a positive total completion duration",
+            Self::ApprovedActionHasPendingApprovalDuration => {
+                "approved action cannot retain a pending approval duration"
+            }
+            Self::ZeroCompletionDuration => {
+                "candidate action must have a positive total completion duration"
+            }
             Self::DurationOverflow => "action stage duration sum overflowed",
         };
         f.write_str(message)
@@ -306,7 +314,8 @@ fn assess_readiness(
 
 fn sum_durations(values: [u64; 4]) -> Result<u64, ActionWindowError> {
     values.into_iter().try_fold(0_u64, |sum, value| {
-        sum.checked_add(value).ok_or(ActionWindowError::DurationOverflow)
+        sum.checked_add(value)
+            .ok_or(ActionWindowError::DurationOverflow)
     })
 }
 
@@ -363,7 +372,10 @@ mod tests {
         assert_eq!(result.conservative_deadline_seconds, 90);
         assert_eq!(result.latest_safe_deadline_seconds, 130);
         assert_eq!(result.timing, TimingDisposition::ConservativeFit);
-        assert_eq!(result.readiness, ReadinessDisposition::ReadyForOperatorReview);
+        assert_eq!(
+            result.readiness,
+            ReadinessDisposition::ReadyForOperatorReview
+        );
     }
 
     #[test]
@@ -412,7 +424,10 @@ mod tests {
         candidate.authority_state = AuthorityState::Pending;
         candidate.approval_duration = range(5, 15);
         let result = evaluate_action_window(&candidate).unwrap();
-        assert_eq!(result.readiness, ReadinessDisposition::AwaitingHumanApproval);
+        assert_eq!(
+            result.readiness,
+            ReadinessDisposition::AwaitingHumanApproval
+        );
         assert_eq!(result.timing, TimingDisposition::ConservativeFit);
     }
 
