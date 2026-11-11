@@ -134,8 +134,14 @@ pub struct ActionWindowResult {
     pub maximum_completion_seconds: u64,
     pub conservative_deadline_seconds: u64,
     pub latest_safe_deadline_seconds: u64,
+    pub evidence_state: EvidenceState,
+    pub authority_state: AuthorityState,
+    pub resource_state: ResourceState,
+    pub scope_state: ScopeState,
     pub readiness: ReadinessDisposition,
     pub timing: TimingDisposition,
+    /// Always false: this evaluator never produces an executable command.
+    pub execution_authorized: bool,
 }
 
 /// Fail-closed validation and arithmetic errors.
@@ -251,8 +257,13 @@ pub fn evaluate_action_window(
         maximum_completion_seconds,
         conservative_deadline_seconds,
         latest_safe_deadline_seconds,
+        evidence_state: input.evidence_state,
+        authority_state: input.authority_state,
+        resource_state: input.resource_state,
+        scope_state: input.scope_state,
         readiness,
         timing,
+        execution_authorized: false,
     })
 }
 
@@ -446,6 +457,23 @@ mod tests {
             evaluate_action_window(&candidate).unwrap().readiness,
             ReadinessDisposition::ScopeConflict
         );
+    }
+
+    #[test]
+    fn result_preserves_all_precondition_states_and_never_authorizes_execution() {
+        let mut candidate = input();
+        candidate.evidence_state = EvidenceState::Stale;
+        candidate.authority_state = AuthorityState::Pending;
+        candidate.resource_state = ResourceState::Unavailable;
+        candidate.scope_state = ScopeState::Verified;
+
+        let result = evaluate_action_window(&candidate).unwrap();
+        assert_eq!(result.readiness, ReadinessDisposition::BlockedByResources);
+        assert_eq!(result.evidence_state, EvidenceState::Stale);
+        assert_eq!(result.authority_state, AuthorityState::Pending);
+        assert_eq!(result.resource_state, ResourceState::Unavailable);
+        assert_eq!(result.scope_state, ScopeState::Verified);
+        assert!(!result.execution_authorized);
     }
 
     #[test]
