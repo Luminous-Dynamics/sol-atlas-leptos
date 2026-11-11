@@ -187,10 +187,14 @@ impl fmt::Display for CatalogError {
             Self::ScopePayloadMismatch => "station/dataset payload does not match record scope",
             Self::InvalidStationIdentifier => "station identifier must be non-empty and trimmed",
             Self::InvalidCoordinate => "coordinates must be finite and within geographic bounds",
-            Self::InvalidCoordinateReference => "coordinate reference must be non-empty and trimmed",
+            Self::InvalidCoordinateReference => {
+                "coordinate reference must be non-empty and trimmed"
+            }
             Self::InvalidSampleInterval => "sampling interval must be finite and positive",
             Self::InvalidDatasetCoverage => "dataset coverage start must precede coverage end",
-            Self::InvalidRightsEvidence => "a permitted right requires a non-empty evidence reference",
+            Self::InvalidRightsEvidence => {
+                "a permitted right requires a non-empty evidence reference"
+            }
             Self::InvalidRightsValidityWindow => "right validity start must precede validity end",
         };
         f.write_str(message)
@@ -212,9 +216,7 @@ pub fn validate_record(record: &CatalogueRecord) -> Result<(), CatalogError> {
             return Err(CatalogError::EmptyRequiredField);
         }
     }
-    if !is_supported_uri(&record.repository_uri)
-        || !is_supported_uri(&record.source_evidence_uri)
-    {
+    if !is_supported_uri(&record.repository_uri) || !is_supported_uri(&record.source_evidence_uri) {
         return Err(CatalogError::InvalidUri);
     }
     if !valid_date(&record.verified_on_utc_date) {
@@ -293,9 +295,10 @@ pub fn validate_record(record: &CatalogueRecord) -> Result<(), CatalogError> {
         }) {
             return Err(CatalogError::InvalidRightsEvidence);
         }
-        if let (Some(start), Some(end)) =
-            (grant.valid_from_epoch_seconds, grant.valid_until_epoch_seconds)
-        {
+        if let (Some(start), Some(end)) = (
+            grant.valid_from_epoch_seconds,
+            grant.valid_until_epoch_seconds,
+        ) {
             if start >= end {
                 return Err(CatalogError::InvalidRightsValidityWindow);
             }
@@ -398,16 +401,20 @@ fn validate_station(station: &StationMetadata) -> Result<(), CatalogError> {
     if station.station_id.trim().is_empty() || station.station_id.trim() != station.station_id {
         return Err(CatalogError::InvalidStationIdentifier);
     }
-    if station.latitude_deg.is_some_and(|latitude| {
-        !latitude.is_finite() || !(-90.0..=90.0).contains(&latitude)
-    }) || station.longitude_deg.is_some_and(|longitude| {
-        !longitude.is_finite() || !(-180.0..=180.0).contains(&longitude)
-    }) {
+    if station
+        .latitude_deg
+        .is_some_and(|latitude| !latitude.is_finite() || !(-90.0..=90.0).contains(&latitude))
+        || station.longitude_deg.is_some_and(|longitude| {
+            !longitude.is_finite() || !(-180.0..=180.0).contains(&longitude)
+        })
+    {
         return Err(CatalogError::InvalidCoordinate);
     }
-    if station.coordinate_reference.as_deref().is_some_and(|value| {
-        value.trim().is_empty() || value.trim() != value
-    }) {
+    if station
+        .coordinate_reference
+        .as_deref()
+        .is_some_and(|value| value.trim().is_empty() || value.trim() != value)
+    {
         return Err(CatalogError::InvalidCoordinateReference);
     }
     for optional_field in [
@@ -467,9 +474,7 @@ fn grant_for_purpose(rights: &AccessRights, purpose: UsePurpose) -> &RightGrant 
 }
 
 fn is_supported_uri(value: &str) -> bool {
-    value.starts_with("https://")
-        || value.starts_with("http://")
-        || value.starts_with("urn:")
+    value.starts_with("https://") || value.starts_with("http://") || value.starts_with("urn:")
 }
 
 fn valid_sha256(value: &str) -> bool {
@@ -711,7 +716,10 @@ mod tests {
     fn a_permitted_right_requires_an_evidence_reference() {
         let mut record = dataset_record();
         record.rights.model_training = grant(RightsStatus::Permitted, None);
-        assert_eq!(validate_record(&record), Err(CatalogError::InvalidRightsEvidence));
+        assert_eq!(
+            validate_record(&record),
+            Err(CatalogError::InvalidRightsEvidence)
+        );
     }
 
     #[test]
@@ -737,7 +745,10 @@ mod tests {
     fn repository_catalogue_cannot_smuggle_station_or_dataset_payloads() {
         let mut record = sansa_repository_record();
         record.station = station_record().station;
-        assert_eq!(validate_record(&record), Err(CatalogError::ScopePayloadMismatch));
+        assert_eq!(
+            validate_record(&record),
+            Err(CatalogError::ScopePayloadMismatch)
+        );
     }
 
     #[test]
@@ -793,7 +804,10 @@ mod tests {
     fn station_coordinates_are_range_checked() {
         let mut record = station_record();
         record.station.as_mut().unwrap().latitude_deg = Some(-95.0);
-        assert_eq!(validate_record(&record), Err(CatalogError::InvalidCoordinate));
+        assert_eq!(
+            validate_record(&record),
+            Err(CatalogError::InvalidCoordinate)
+        );
     }
 
     #[test]
@@ -802,14 +816,20 @@ mod tests {
         let station = record.station.as_mut().unwrap();
         station.latitude_deg = Some(-95.0);
         station.longitude_deg = None;
-        assert_eq!(validate_record(&record), Err(CatalogError::InvalidCoordinate));
+        assert_eq!(
+            validate_record(&record),
+            Err(CatalogError::InvalidCoordinate)
+        );
     }
 
     #[test]
     fn every_declared_non_unknown_right_requires_source_evidence() {
         let mut record = dataset_record();
         record.rights.commercial_ingestion = grant(RightsStatus::AgreementRequired, None);
-        assert_eq!(validate_record(&record), Err(CatalogError::InvalidRightsEvidence));
+        assert_eq!(
+            validate_record(&record),
+            Err(CatalogError::InvalidRightsEvidence)
+        );
 
         record.rights.commercial_ingestion = RightGrant {
             status: RightsStatus::Prohibited,
@@ -817,14 +837,20 @@ mod tests {
             valid_from_epoch_seconds: None,
             valid_until_epoch_seconds: None,
         };
-        assert_eq!(validate_record(&record), Err(CatalogError::InvalidRightsEvidence));
+        assert_eq!(
+            validate_record(&record),
+            Err(CatalogError::InvalidRightsEvidence)
+        );
     }
 
     #[test]
     fn impossible_calendar_dates_are_rejected() {
         let mut record = sansa_repository_record();
         record.verified_on_utc_date = "2026-02-30".to_owned();
-        assert_eq!(validate_record(&record), Err(CatalogError::InvalidEvidenceDate));
+        assert_eq!(
+            validate_record(&record),
+            Err(CatalogError::InvalidEvidenceDate)
+        );
 
         record.verified_on_utc_date = "2024-02-29".to_owned();
         assert!(validate_record(&record).is_ok());
@@ -834,14 +860,22 @@ mod tests {
     fn empty_optional_station_metadata_is_rejected_when_present() {
         let mut record = station_record();
         record.station.as_mut().unwrap().native_unit = Some(" ".to_owned());
-        assert_eq!(validate_record(&record), Err(CatalogError::EmptyRequiredField));
+        assert_eq!(
+            validate_record(&record),
+            Err(CatalogError::EmptyRequiredField)
+        );
     }
 
     #[test]
     fn searchable_fields_must_be_unique() {
         let mut record = sansa_repository_record();
-        record.searchable_metadata_fields.push("sampling_interval".to_owned());
-        assert_eq!(validate_record(&record), Err(CatalogError::DuplicateMetadataField));
+        record
+            .searchable_metadata_fields
+            .push("sampling_interval".to_owned());
+        assert_eq!(
+            validate_record(&record),
+            Err(CatalogError::DuplicateMetadataField)
+        );
     }
 
     #[test]
@@ -855,7 +889,10 @@ mod tests {
     fn station_and_dataset_scope_payloads_are_distinct() {
         let mut record = station_record();
         record.dataset = Some(dataset_record().dataset.unwrap());
-        assert_eq!(validate_record(&record), Err(CatalogError::ScopePayloadMismatch));
+        assert_eq!(
+            validate_record(&record),
+            Err(CatalogError::ScopePayloadMismatch)
+        );
     }
 
     #[test]
@@ -864,6 +901,9 @@ mod tests {
         let product = record.dataset.as_mut().unwrap();
         product.coverage_start_epoch_seconds = 5;
         product.coverage_end_epoch_seconds = 5;
-        assert_eq!(validate_record(&record), Err(CatalogError::InvalidDatasetCoverage));
+        assert_eq!(
+            validate_record(&record),
+            Err(CatalogError::InvalidDatasetCoverage)
+        );
     }
 }
