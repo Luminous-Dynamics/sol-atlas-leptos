@@ -95,6 +95,34 @@ These are scenario definitions, not simulation outputs. No vendor model, owner r
 
 No single scalar may conceal a protection failure, a hard service-floor breach or a worse network-wide stress transfer.
 
+## Protection robustness envelope
+
+A binary relay pass/fail result at one operating point is too weak for a system whose behaviour depends on GIC waveform and duration, transformer/CT parameters, converter controls, grid strength, neutral-blocker state, fault location and relay settings.
+
+Define a bounded parameter vector x over a declared domain X. It should include, where the model and source evidence support it:
+- GIC amplitude, polarity, waveform shape and duration;
+- transformer configuration and DC-bias / harmonic response uncertainty;
+- CT ratio, burden, magnetization curve and remanence;
+- IBR mode (GFL/GFM), converter fidelity, current-control response, current-limit and momentary-cessation behaviour;
+- SCR / source impedance ratio and radial or non-radial network configuration;
+- neutral-blocker state and protection bypass logic;
+- fault type, location, resistance and inception time;
+- relay function, settings revision and backup coordination.
+
+For a declared test oracle, define the misoperation-free envelope as the subset of X where no unwarranted trip occurs, all required in-zone operations meet the owner-supplied timing criterion, and declared coordination / service constraints remain satisfied. Report false trips and failures-to-trip separately; they are different failure modes and must not cancel in an aggregate score.
+
+Report:
+- worst-case and distribution-weighted false-trip / failure-to-trip rates with denominators;
+- owner-defined primary/backup timing and reach margins;
+- minimum normalized distance to the tested misoperation boundary;
+- envelope coverage over the declared uncertainty domain;
+- sensitivity ranking and the parameter interactions that shrink the safe envelope;
+- RMS-to-EMT and EMT-to-HIL disagreement, by output and condition.
+
+Use a declared sampling or design-of-experiments strategy, then refine near observed boundaries. A point inside a sampled envelope is not proof for unsampled points; interpolation is only allowed within a validated model domain. Never label a parameter region safe solely because the coarse-fidelity model did not report a misoperation. CT secondary waveform distortion and saturation need waveform-resolving evidence; physical relay operation needs physical relay evidence.
+
+This can become a stronger competitive metric than a single relay accuracy score: **how large and how well-characterized is the misoperation-free operating envelope under realistic uncertainty, and how much does it contract under GMD + IBR + NBD interactions?**
+
 ## Required baselines and experimental design
 
 - Matched No-GMD / GMD-only / IBR-only / GMD+IBR pairs.
