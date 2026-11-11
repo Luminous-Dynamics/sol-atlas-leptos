@@ -1,0 +1,10 @@
+[package]
+name = "gmd-operator-action-window-oracle"
+version = "0.1.0"
+edition = "2024"
+publish = false
+description = "Conservative, read-only GMD mitigation action-window and operator-precondition evaluator"
+
+[dependencies]
+
+[workspace]

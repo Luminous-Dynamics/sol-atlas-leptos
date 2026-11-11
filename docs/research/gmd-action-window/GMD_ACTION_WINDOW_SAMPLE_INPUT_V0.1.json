@@ -1,0 +1,34 @@
+{
+  "action_id": "inspect-and-prepare-transformer-loading-plan",
+  "owner_ref": "urn:example:owner:regional-grid-operator",
+  "procedure_revision": "gmd-operator-procedure-r4",
+  "procedure_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "forecast_ref": "urn:example:forecast:regional-impact-window-01",
+  "forecast_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "action_class": "Maintenance",
+  "reversibility": "Reversible",
+  "cost_band": "Moderate",
+  "earliest_impact_seconds": 3600,
+  "latest_impact_seconds": 5400,
+  "safety_buffer_seconds": 600,
+  "approval_duration": {
+    "minimum_seconds": 300,
+    "maximum_seconds": 900
+  },
+  "preparation_duration": {
+    "minimum_seconds": 300,
+    "maximum_seconds": 600
+  },
+  "mobilisation_duration": {
+    "minimum_seconds": 600,
+    "maximum_seconds": 1200
+  },
+  "execution_duration": {
+    "minimum_seconds": 600,
+    "maximum_seconds": 1200
+  },
+  "evidence_state": "Fresh",
+  "authority_state": "Pending",
+  "resource_state": "Available",
+  "scope_state": "Verified"
+}
