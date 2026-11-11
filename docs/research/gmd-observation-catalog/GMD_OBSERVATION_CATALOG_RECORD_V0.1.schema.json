@@ -9,6 +9,7 @@
     "record_id", "provider_name", "owner_ref", "record_scope", "repository_uri",
     "source_evidence_uri", "verified_on_utc_date", "source_snapshot_sha256",
     "evidence_class", "instrument_classes", "searchable_metadata_fields",
+    "network_coverage_description", "data_delivery_method", "access_terms_summary",
     "station", "dataset", "rights"
   ],
   "properties": {
@@ -42,6 +43,9 @@
       "uniqueItems": true,
       "items": { "type": "string", "minLength": 1 }
     },
+    "network_coverage_description": { "oneOf": [{ "type": "string", "minLength": 1 }, { "type": "null" }] },
+    "data_delivery_method": { "oneOf": [{ "type": "string", "minLength": 1 }, { "type": "null" }] },
+    "access_terms_summary": { "oneOf": [{ "type": "string", "minLength": 1 }, { "type": "null" }] },
     "station": {
       "oneOf": [
         {
@@ -111,6 +115,27 @@
       }
     }
   },
+  "allOf": [
+    {
+      "if": { "properties": { "record_scope": { "const": "RepositoryCatalog" } } },
+      "then": {
+        "properties": { "station": { "type": "null" }, "dataset": { "type": "null" } }
+      }
+    },
+    {
+      "if": { "properties": { "record_scope": { "const": "StationInstrument" } } },
+      "then": {
+        "properties": {
+          "station": { "type": "object" },
+          "dataset": { "type": "null" }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "record_scope": { "const": "DatasetProduct" } } },
+      "then": { "properties": { "dataset": { "type": "object" } } }
+    }
+  ],
   "$defs": {
     "rightGrant": {
       "type": "object",
