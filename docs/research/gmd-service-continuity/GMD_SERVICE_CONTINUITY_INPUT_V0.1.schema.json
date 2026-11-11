@@ -1,0 +1,101 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/docs/research/gmd-service-continuity/GMD_SERVICE_CONTINUITY_INPUT_V0.1.schema.json",
+  "title": "GMD Essential-Service Continuity Input v0.1",
+  "description": "Per-service demand and delivery trajectories for the read-only GMD service continuity evaluator. All interval offsets are elapsed seconds from scenario t0; every service retains its own native quantity unit.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["scenario_id", "horizon_seconds", "services"],
+  "properties": {
+    "scenario_id": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^[^\\s].*[^\\s]$|^[^\\s]$"
+    },
+    "horizon_seconds": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "services": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/service" }
+    }
+  },
+  "$defs": {
+    "service": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "service_id",
+        "owner_ref",
+        "geographic_scope_ref",
+        "quantity_unit",
+        "asset_revision",
+        "source_ref",
+        "source_sha256",
+        "evidence_class",
+        "minimum_service_fraction",
+        "quantity_tolerance",
+        "maximum_interval_seconds",
+        "recovery_hold_seconds",
+        "intervals"
+      ],
+      "properties": {
+        "service_id": { "type": "string", "minLength": 1 },
+        "owner_ref": { "type": "string", "minLength": 1 },
+        "geographic_scope_ref": { "type": "string", "minLength": 1 },
+        "quantity_unit": { "type": "string", "minLength": 1 },
+        "asset_revision": { "type": "string", "minLength": 1 },
+        "source_ref": { "type": "string", "minLength": 1 },
+        "source_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "evidence_class": {
+          "type": "string",
+          "enum": ["Measured", "PublishedDerived", "Modelled", "Inferred", "Simulated"]
+        },
+        "minimum_service_fraction": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 1
+        },
+        "quantity_tolerance": {
+          "type": "number",
+          "minimum": 0
+        },
+        "maximum_interval_seconds": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Owner-declared maximum aggregation window accepted as evidence for this service use case."
+        },
+        "recovery_hold_seconds": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "intervals": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/interval" }
+        }
+      }
+    },
+    "interval": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "start_offset_seconds",
+        "end_offset_seconds",
+        "required_quantity",
+        "delivered_quantity"
+      ],
+      "properties": {
+        "start_offset_seconds": { "type": "integer", "minimum": 0 },
+        "end_offset_seconds": { "type": "integer", "minimum": 1 },
+        "required_quantity": { "type": "number", "minimum": 0 },
+        "delivered_quantity": { "type": "number", "minimum": 0 }
+      }
+    }
+  }
+}
