@@ -80,13 +80,21 @@ impl fmt::Display for DesignError {
             Self::EmptyStateSet => "state set must not be empty",
             Self::TooManyStateDimensions => "state dimension exceeds the small-oracle limit",
             Self::EmptySensorSet => "candidate sensor set must not be empty",
-            Self::TooManyCandidateSensors => "candidate sensor count exceeds the exhaustive-search limit",
+            Self::TooManyCandidateSensors => {
+                "candidate sensor count exceeds the exhaustive-search limit"
+            }
             Self::InvalidIdentifier => "identifiers must not be empty or whitespace-only",
-            Self::DuplicateIdentifier => "state and sensor identifiers must be unique within their sets",
-            Self::InvalidMatrixShape => "matrix dimensions do not match declared state/sensor dimensions",
+            Self::DuplicateIdentifier => {
+                "state and sensor identifiers must be unique within their sets"
+            }
+            Self::InvalidMatrixShape => {
+                "matrix dimensions do not match declared state/sensor dimensions"
+            }
             Self::NonFiniteValue => "all matrix and scalar values must be finite",
             Self::MatrixNotSymmetric => "covariance matrix is not symmetric within tolerance",
-            Self::MatrixNotPositiveDefinite => "covariance/precision matrix must be positive definite",
+            Self::MatrixNotPositiveDefinite => {
+                "covariance/precision matrix must be positive definite"
+            }
             Self::InvalidStateWeight => "state weights must be finite and strictly positive",
             Self::InvalidSensorCost => "sensor lifecycle costs must be positive",
             Self::InvalidOutageRiskWeight => "outage risk weight must be in [0,1]",
@@ -139,20 +147,16 @@ pub fn select_portfolio(problem: &DesignProblem) -> Result<PortfolioResult, Desi
             continue;
         }
 
-        let nominal_covariance = posterior_covariance_for_indices(
-            problem,
-            &selected,
-            &prior_precision,
-        )?;
+        let nominal_covariance =
+            posterior_covariance_for_indices(problem, &selected, &prior_precision)?;
         let nominal_risk = weighted_variance(&nominal_covariance, &problem.state_weights)?;
 
         let (worst_outage_risk, worst_outage_sensor) = if selected.is_empty() {
             (prior_risk, None)
         } else {
             let mut outage_indices = selected.clone();
-            outage_indices.sort_by(|left, right| {
-                problem.sensor_ids[*left].cmp(&problem.sensor_ids[*right])
-            });
+            outage_indices
+                .sort_by(|left, right| problem.sensor_ids[*left].cmp(&problem.sensor_ids[*right]));
 
             let mut worst_risk = f64::NEG_INFINITY;
             let mut worst_sensor = None;
@@ -165,8 +169,7 @@ pub fn select_portfolio(problem: &DesignProblem) -> Result<PortfolioResult, Desi
                     .collect();
                 let outage_covariance =
                     posterior_covariance_for_indices(problem, &available, &prior_precision)?;
-                let outage_risk =
-                    weighted_variance(&outage_covariance, &problem.state_weights)?;
+                let outage_risk = weighted_variance(&outage_covariance, &problem.state_weights)?;
 
                 if outage_risk > worst_risk + TIE_TOLERANCE {
                     worst_risk = outage_risk;
@@ -266,8 +269,14 @@ fn validate_problem(problem: &DesignProblem) -> Result<(), DesignError> {
     if sensor_count > MAX_CANDIDATE_SENSORS {
         return Err(DesignError::TooManyCandidateSensors);
     }
-    if problem.state_ids.iter().any(|id| id.trim().is_empty() || id.trim() != id)
-        || problem.sensor_ids.iter().any(|id| id.trim().is_empty() || id.trim() != id)
+    if problem
+        .state_ids
+        .iter()
+        .any(|id| id.trim().is_empty() || id.trim() != id)
+        || problem
+            .sensor_ids
+            .iter()
+            .any(|id| id.trim().is_empty() || id.trim() != id)
     {
         return Err(DesignError::InvalidIdentifier);
     }
@@ -295,7 +304,11 @@ fn validate_problem(problem: &DesignProblem) -> Result<(), DesignError> {
         return Err(DesignError::InvalidMatrixShape);
     }
 
-    if problem.state_weights.iter().any(|weight| !weight.is_finite()) {
+    if problem
+        .state_weights
+        .iter()
+        .any(|weight| !weight.is_finite())
+    {
         return Err(DesignError::NonFiniteValue);
     }
     if problem.state_weights.iter().any(|weight| *weight <= 0.0) {
@@ -362,8 +375,7 @@ fn posterior_covariance_for_indices(
     for (row, original_row) in selected.iter().copied().enumerate() {
         selected_observations[row].clone_from(&problem.observation_matrix[original_row]);
         for (column, original_column) in selected.iter().copied().enumerate() {
-            selected_noise[row][column] =
-                problem.noise_covariance[original_row][original_column];
+            selected_noise[row][column] = problem.noise_covariance[original_row][original_column];
         }
     }
 
@@ -376,12 +388,8 @@ fn posterior_covariance_for_indices(
     inverse_spd(&posterior_precision)
 }
 
-fn weighted_variance(
-    covariance: &[Vec<f64>],
-    weights: &[f64],
-) -> Result<f64, DesignError> {
-    if covariance.len() != weights.len()
-        || covariance.iter().any(|row| row.len() != weights.len())
+fn weighted_variance(covariance: &[Vec<f64>], weights: &[f64]) -> Result<f64, DesignError> {
+    if covariance.len() != weights.len() || covariance.iter().any(|row| row.len() != weights.len())
     {
         return Err(DesignError::InvalidMatrixShape);
     }
@@ -509,10 +517,7 @@ fn transpose(matrix: &[Vec<f64>]) -> Vec<Vec<f64>> {
 
 // Indexing is explicit because this is a small fixed-dimension matrix kernel.
 #[allow(clippy::needless_range_loop)]
-fn multiply(
-    left: &[Vec<f64>],
-    right: &[Vec<f64>],
-) -> Result<Vec<Vec<f64>>, DesignError> {
+fn multiply(left: &[Vec<f64>], right: &[Vec<f64>]) -> Result<Vec<Vec<f64>>, DesignError> {
     let left_rows = left.len();
     let shared = left.first().map_or(0, Vec::len);
     let right_rows = right.len();
@@ -544,13 +549,8 @@ fn multiply(
 
 // Indexing is explicit because this is a small fixed-dimension matrix kernel.
 #[allow(clippy::needless_range_loop)]
-fn add_matrices(
-    left: &[Vec<f64>],
-    right: &[Vec<f64>],
-) -> Result<Vec<Vec<f64>>, DesignError> {
-    if left.len() != right.len()
-        || left.iter().zip(right).any(|(a, b)| a.len() != b.len())
-    {
+fn add_matrices(left: &[Vec<f64>], right: &[Vec<f64>]) -> Result<Vec<Vec<f64>>, DesignError> {
+    if left.len() != right.len() || left.iter().zip(right).any(|(a, b)| a.len() != b.len()) {
         return Err(DesignError::InvalidMatrixShape);
     }
 
@@ -632,11 +632,7 @@ mod tests {
                 "distant-proxy".to_owned(),
             ],
             prior_covariance: vec![vec![1.0, 0.0], vec![0.0, 1.0]],
-            observation_matrix: vec![
-                vec![1.0, 0.0],
-                vec![0.0, 1.0],
-                vec![1.0, 1.0],
-            ],
+            observation_matrix: vec![vec![1.0, 0.0], vec![0.0, 1.0], vec![1.0, 1.0]],
             noise_covariance: vec![
                 vec![0.1, 0.0, 0.0],
                 vec![0.0, 0.1, 0.0],
@@ -722,14 +718,20 @@ mod tests {
         problem.observation_matrix.push(vec![1.0]);
         problem.noise_covariance = vec![vec![1.0, 0.0], vec![0.0, 1.0]];
         problem.sensor_costs.push(1);
-        assert_eq!(select_portfolio(&problem), Err(DesignError::DuplicateIdentifier));
+        assert_eq!(
+            select_portfolio(&problem),
+            Err(DesignError::DuplicateIdentifier)
+        );
     }
 
     #[test]
     fn invalid_state_weights_and_outage_weights_are_rejected() {
         let mut problem = scalar_problem();
         problem.state_weights[0] = 0.0;
-        assert_eq!(select_portfolio(&problem), Err(DesignError::InvalidStateWeight));
+        assert_eq!(
+            select_portfolio(&problem),
+            Err(DesignError::InvalidStateWeight)
+        );
 
         let mut problem = scalar_problem();
         problem.outage_risk_weight = 1.5;
@@ -764,7 +766,10 @@ mod tests {
             row[index] = 1.0;
         }
         problem.observation_matrix = vec![vec![1.0; dimension]];
-        assert_eq!(select_portfolio(&problem), Err(DesignError::TooManyStateDimensions));
+        assert_eq!(
+            select_portfolio(&problem),
+            Err(DesignError::TooManyStateDimensions)
+        );
     }
 
     #[test]
@@ -774,15 +779,16 @@ mod tests {
             .map(|index| format!("sensor-{index}"))
             .collect();
         problem.observation_matrix = vec![vec![1.0]; problem.sensor_ids.len()];
-        problem.noise_covariance = vec![
-            vec![0.0; problem.sensor_ids.len()];
-            problem.sensor_ids.len()
-        ];
+        problem.noise_covariance =
+            vec![vec![0.0; problem.sensor_ids.len()]; problem.sensor_ids.len()];
         for (index, row) in problem.noise_covariance.iter_mut().enumerate() {
             row[index] = 1.0;
         }
         problem.sensor_costs = vec![1; problem.sensor_ids.len()];
         problem.budget = problem.sensor_ids.len() as u64;
-        assert_eq!(select_portfolio(&problem), Err(DesignError::TooManyCandidateSensors));
+        assert_eq!(
+            select_portfolio(&problem),
+            Err(DesignError::TooManyCandidateSensors)
+        );
     }
 }
