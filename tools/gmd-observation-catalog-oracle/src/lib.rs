@@ -279,12 +279,18 @@ pub fn validate_record(record: &CatalogueRecord) -> Result<(), CatalogError> {
         &record.rights.model_training,
         &record.rights.derivative_redistribution,
     ] {
-        if grant.status == RightsStatus::Permitted
-            && grant
+        if grant.status != RightsStatus::Unknown {
+            let evidence = grant
                 .evidence_ref
                 .as_deref()
-                .is_none_or(|value| value.trim().is_empty() || value.trim() != value)
-        {
+                .filter(|value| !value.trim().is_empty() && value.trim() == *value)
+                .ok_or(CatalogError::InvalidRightsEvidence)?;
+            if !is_supported_uri(evidence) {
+                return Err(CatalogError::InvalidRightsEvidence);
+            }
+        } else if grant.evidence_ref.as_deref().is_some_and(|value| {
+            value.trim().is_empty() || value.trim() != value || !is_supported_uri(value)
+        }) {
             return Err(CatalogError::InvalidRightsEvidence);
         }
         if let (Some(start), Some(end)) =
@@ -404,6 +410,20 @@ fn validate_station(station: &StationMetadata) -> Result<(), CatalogError> {
     }) {
         return Err(CatalogError::InvalidCoordinateReference);
     }
+    for optional_field in [
+        station.measured_quantity.as_deref(),
+        station.native_unit.as_deref(),
+        station.sensor_axis_orientation.as_deref(),
+        station.clock_basis.as_deref(),
+        station.calibration_reference.as_deref(),
+    ]
+    .into_iter()
+    .flatten()
+    {
+        if optional_field.trim().is_empty() || optional_field.trim() != optional_field {
+            return Err(CatalogError::EmptyRequiredField);
+        }
+    }
     if station
         .sampling_interval_seconds
         .is_some_and(|value| !value.is_finite() || value <= 0.0)
@@ -461,13 +481,32 @@ fn valid_sha256(value: &str) -> bool {
 
 fn valid_date(value: &str) -> bool {
     let bytes = value.as_bytes();
-    bytes.len() == 10
-        && bytes[4] == b'-'
-        && bytes[7] == b'-'
-        && bytes
+    if bytes.len() != 10
+        || bytes[4] != b'-'
+        || bytes[7] != b'-'
+        || !bytes
             .iter()
             .enumerate()
             .all(|(index, byte)| index == 4 || index == 7 || byte.is_ascii_digit())
+    {
+        return false;
+    }
+
+    let year = value[0..4].parse::<u32>().ok();
+    let month = value[5..7].parse::<u32>().ok();
+    let day = value[8..10].parse::<u32>().ok();
+    let (Some(year), Some(month), Some(day)) = (year, month, day) else {
+        return false;
+    };
+    let leap_year = year % 4 == 0 && (year % 100 != 0 || year % 400 == 0);
+    let days_in_month = match month {
+        1 | 3 | 5 | 7 | 8 | 10 | 12 => 31,
+        4 | 6 | 9 | 11 => 30,
+        2 if leap_year => 29,
+        2 => 28,
+        _ => return false,
+    };
+    (1..=days_in_month).contains(&day)
 }
 
 fn validate_unique_strings(values: &[String]) -> Result<(), ()> {
@@ -764,6 +803,38 @@ mod tests {
         station.latitude_deg = Some(-95.0);
         station.longitude_deg = None;
         assert_eq!(validate_record(&record), Err(CatalogError::InvalidCoordinate));
+    }
+
+    #[test]
+    fn every_declared_non_unknown_right_requires_source_evidence() {
+        let mut record = dataset_record();
+        record.rights.commercial_ingestion = grant(RightsStatus::AgreementRequired, None);
+        assert_eq!(validate_record(&record), Err(CatalogError::InvalidRightsEvidence));
+
+        record.rights.commercial_ingestion = RightGrant {
+            status: RightsStatus::Prohibited,
+            evidence_ref: Some("relative/path".to_owned()),
+            valid_from_epoch_seconds: None,
+            valid_until_epoch_seconds: None,
+        };
+        assert_eq!(validate_record(&record), Err(CatalogError::InvalidRightsEvidence));
+    }
+
+    #[test]
+    fn impossible_calendar_dates_are_rejected() {
+        let mut record = sansa_repository_record();
+        record.verified_on_utc_date = "2026-02-30".to_owned();
+        assert_eq!(validate_record(&record), Err(CatalogError::InvalidEvidenceDate));
+
+        record.verified_on_utc_date = "2024-02-29".to_owned();
+        assert!(validate_record(&record).is_ok());
+    }
+
+    #[test]
+    fn empty_optional_station_metadata_is_rejected_when_present() {
+        let mut record = station_record();
+        record.station.as_mut().unwrap().native_unit = Some(" ".to_owned());
+        assert_eq!(validate_record(&record), Err(CatalogError::EmptyRequiredField));
     }
 
     #[test]
