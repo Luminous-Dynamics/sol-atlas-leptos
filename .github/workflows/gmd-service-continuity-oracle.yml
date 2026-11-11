@@ -38,11 +38,19 @@ jobs:
 
           root = pathlib.Path(".")
           schema_path = root / "docs/research/gmd-service-continuity/GMD_SERVICE_CONTINUITY_INPUT_V0.1.schema.json"
+          result_schema_path = root / "docs/research/gmd-service-continuity/GMD_SERVICE_CONTINUITY_RESULT_V0.1.schema.json"
           case_path = root / "docs/research/gmd-service-continuity/GMD_SERVICE_CONTINUITY_SYNTHETIC_CASE_V0.1.json"
+          result_path = root / "docs/research/gmd-service-continuity/GMD_SERVICE_CONTINUITY_SYNTHETIC_RESULT_V0.1.json"
           schema = json.loads(schema_path.read_text())
+          result_schema = json.loads(result_schema_path.read_text())
           case = json.loads(case_path.read_text())
+          result = json.loads(result_path.read_text())
 
           assert schema["$schema"] == "https://json-schema.org/draft/2020-12/schema"
+          assert result_schema["$schema"] == "https://json-schema.org/draft/2020-12/schema"
+          assert "serviceMetrics" in result_schema["$defs"]
+          assert result["scenario_id"] == case["scenario_id"]
+          assert result["horizon_seconds"] == case["horizon_seconds"]
           assert isinstance(case["scenario_id"], str) and case["scenario_id"].strip()
           horizon = case["horizon_seconds"]
           assert isinstance(horizon, int) and not isinstance(horizon, bool) and horizon > 0
