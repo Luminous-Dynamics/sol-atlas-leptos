@@ -78,6 +78,9 @@ jobs:
               "execution_authorized": False
           }
           assert scenario["waveform_manifest_refs"] == [waveform["waveform_set_id"]]
+          metric_ids = {metric["metric_id"] for metric in scenario["required_metrics"]}
+          assert {"protection_robustness_envelope","false_trip_rate","failure_to_trip_rate","coordination_margin"} <= metric_ids
+          assert scenario["claim_ceiling"] == "E0"
 
           assert waveform["schema_version"] == "0.1.0"
           assert waveform["evidence_class"] == "synthetic_fixture"
