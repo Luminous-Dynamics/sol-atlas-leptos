@@ -41,9 +41,11 @@ There is deliberately no cross-service aggregate score. Consumers must inspect e
 ## Machine-readable contract and synthetic case
 
 - Input schema: `docs/research/gmd-service-continuity/GMD_SERVICE_CONTINUITY_INPUT_V0.1.schema.json` (JSON Schema Draft 2020-12).
-- Example: `docs/research/gmd-service-continuity/GMD_SERVICE_CONTINUITY_SYNTHETIC_CASE_V0.1.json` (synthetic hospital power and potable-water trajectories; no real facility or service floor is implied).
+- Example input: `docs/research/gmd-service-continuity/GMD_SERVICE_CONTINUITY_SYNTHETIC_CASE_V0.1.json` (synthetic hospital power and potable-water trajectories; no real facility or service floor is implied).
+- Output schema: `docs/research/gmd-service-continuity/GMD_SERVICE_CONTINUITY_RESULT_V0.1.schema.json`.
+- Expected output: `docs/research/gmd-service-continuity/GMD_SERVICE_CONTINUITY_SYNTHETIC_RESULT_V0.1.json`, independently recomputed from the input and checked in CI.
 
-The schema expresses structure and scalar bounds. CI also runs a Python-standard-library structural preflight over the example. Cross-field interval continuity, exact horizon coverage, per-service maximum aggregation duration and numerical metric rules are enforced by the Rust evaluator, not by JSON Schema alone. The preflight is not a complete JSON Schema Draft 2020-12 validator.
+The schema expresses structure and scalar bounds. CI also runs a Python-standard-library structural preflight over the example. Cross-field interval continuity, exact horizon coverage, per-service maximum aggregation duration and numerical metric rules are enforced by the Rust evaluator, not by JSON Schema alone. The preflight is not a complete JSON Schema Draft 2020-12 validator. A separate standard-library reference calculation recomputes the synthetic result metrics and compares them to the expected-result fixture.
 
 
 ### Independently recomputed synthetic example
