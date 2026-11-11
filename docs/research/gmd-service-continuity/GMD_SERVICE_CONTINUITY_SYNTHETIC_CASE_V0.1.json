@@ -1,6 +1,8 @@
 {
   "scenario_id": "gmd-synthetic-hospital-district-01",
   "horizon_seconds": 300,
+  "dependency_graph_ref": null,
+  "dependency_graph_sha256": null,
   "services": [
     {
       "service_id": "hospital-critical-power",
