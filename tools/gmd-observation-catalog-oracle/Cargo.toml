@@ -1,0 +1,10 @@
+[package]
+name = "gmd-observation-catalog-oracle"
+version = "0.1.0"
+edition = "2024"
+publish = false
+description = "Rights-aware metadata and provenance qualifier for GMD observation catalogue records"
+
+[dependencies]
+
+[workspace]
