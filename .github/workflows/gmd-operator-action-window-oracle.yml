@@ -40,10 +40,13 @@ jobs:
 
           root = pathlib.Path("docs/research/gmd-action-window")
           schema = json.loads((root / "GMD_ACTION_WINDOW_INPUT_V0.1.schema.json").read_text())
+          result_schema = json.loads((root / "GMD_ACTION_WINDOW_RESULT_V0.1.schema.json").read_text())
           data = json.loads((root / "GMD_ACTION_WINDOW_SAMPLE_INPUT_V0.1.json").read_text())
           expected = json.loads((root / "GMD_ACTION_WINDOW_SAMPLE_RESULT_V0.1.json").read_text())
 
           assert schema["$schema"] == "https://json-schema.org/draft/2020-12/schema"
+          assert result_schema["$schema"] == "https://json-schema.org/draft/2020-12/schema"
+          assert result_schema["properties"]["execution_authorized"]["const"] is False
           assert data["action_id"] == expected["action_id"]
           assert re.fullmatch(r"[0-9a-f]{64}", data["procedure_sha256"])
           assert re.fullmatch(r"[0-9a-f]{64}", data["forecast_sha256"])
@@ -92,6 +95,10 @@ jobs:
               "latest_safe_deadline_seconds": latest_deadline,
               "readiness": readiness,
               "timing": timing,
+              "evidence_state": data["evidence_state"],
+              "authority_state": data["authority_state"],
+              "resource_state": data["resource_state"],
+              "scope_state": data["scope_state"],
               "execution_authorized": False,
           }
           for key, value in actual.items():
