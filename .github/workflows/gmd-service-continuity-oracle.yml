@@ -54,6 +54,12 @@ jobs:
           assert isinstance(case["scenario_id"], str) and case["scenario_id"].strip()
           horizon = case["horizon_seconds"]
           assert isinstance(horizon, int) and not isinstance(horizon, bool) and horizon > 0
+          graph_ref = case["dependency_graph_ref"]
+          graph_digest = case["dependency_graph_sha256"]
+          assert (graph_ref is None) == (graph_digest is None)
+          if graph_ref is not None:
+              assert isinstance(graph_ref, str) and graph_ref.strip() == graph_ref and graph_ref
+              assert re.fullmatch(r"[0-9a-f]{64}", graph_digest)
           services = case["services"]
           assert isinstance(services, list) and services
 
@@ -108,6 +114,8 @@ jobs:
           expected = json.loads((root / "GMD_SERVICE_CONTINUITY_SYNTHETIC_RESULT_V0.1.json").read_text())
           assert case["scenario_id"] == expected["scenario_id"]
           assert case["horizon_seconds"] == expected["horizon_seconds"]
+          assert case["dependency_graph_ref"] == expected["dependency_graph_ref"]
+          assert case["dependency_graph_sha256"] == expected["dependency_graph_sha256"]
           assert len(case["services"]) == len(expected["services"])
 
           def sustained_recovery(intervals, states, hold):
