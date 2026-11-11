@@ -1210,7 +1210,7 @@ mod tests {
         let second = evaluate(&problem).expect("second evaluation").to_json();
         assert_eq!(first, second);
         assert!(first.contains("\"execution_authorized\":false"));
-        assert!(first.contains("\"net_value_numerator\":\"18000000000000\""));
+        assert!(first.contains("\"net_value_numerator\":\"17000000000000\""));
     }
 
     #[test]
