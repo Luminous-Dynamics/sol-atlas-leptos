@@ -31,7 +31,7 @@ Every use purpose has a separate `RightGrant`:
 - model training;
 - derivative redistribution.
 
-A `Permitted` right requires its own evidence reference. Validity bounds are assessed against a caller-supplied time, so results are deterministic. Download permission does not imply permission to train a model or redistribute derivatives. An academic research registration does not become a commercial right.
+Every explicit right state other than `Unknown` requires its own source evidence reference. Permission, registration requirement, agreement requirement and prohibition must each be traceable. Validity bounds are assessed against a caller-supplied time, so results are deterministic. Calendar dates are checked for actual month/day validity, not only YYYY-MM-DD formatting. Download permission does not imply permission to train a model or redistribute derivatives. An academic research registration does not become a commercial right.
 
 A repository or station record can support metadata discovery but cannot grant dataset use until a specific `DatasetProduct` record is attached.
 
