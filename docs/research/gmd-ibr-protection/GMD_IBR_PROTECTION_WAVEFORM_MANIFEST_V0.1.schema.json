@@ -121,7 +121,10 @@
         "clock_reference",
         "synchronization_group",
         "start_offset_ns",
-        "maximum_uncertainty_ns"
+        "maximum_uncertainty_ns",
+        "sample_index_column_name",
+        "time_column_name",
+        "time_unit"
       ],
       "properties": {
         "time_origin": {
@@ -160,6 +163,22 @@
           "type": [
             "number",
             "null"
+          ]
+        },
+        "sample_index_column_name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "time_column_name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "time_unit": {
+          "enum": [
+            "ns",
+            "us",
+            "ms",
+            "s"
           ]
         }
       }
@@ -230,7 +249,8 @@
         "sample_count",
         "sample_rate_hz",
         "start_offset_ns",
-        "measurement_path_ref"
+        "measurement_path_ref",
+        "data_column_name"
       ],
       "properties": {
         "channel_id": {
@@ -338,6 +358,10 @@
             "string",
             "null"
           ]
+        },
+        "data_column_name": {
+          "type": "string",
+          "minLength": 1
         }
       },
       "allOf": [
