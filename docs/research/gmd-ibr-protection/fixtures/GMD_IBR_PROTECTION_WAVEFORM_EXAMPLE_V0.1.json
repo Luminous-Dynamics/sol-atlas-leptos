@@ -19,7 +19,10 @@
     "start_offset_ns": 0,
     "maximum_uncertainty_ns": 0,
     "absolute_start_epoch_ns": null,
-    "sampling_clock_drift_ppb": 0
+    "sampling_clock_drift_ppb": 0,
+    "sample_index_column_name": "sample_index",
+    "time_column_name": "time_offset_ns",
+    "time_unit": "ns"
   },
   "provenance": {
     "producer_ref": "urn:luminous:synthetic-fixture:gmd-ibr-protection-v0.1",
@@ -43,7 +46,8 @@
       "measurement_path_ref": "synthetic-fixture:gic-injection",
       "ct_configuration_ref": null,
       "calibration_ref": null,
-      "quality_flag_ref": "synthetic-fixture-only"
+      "quality_flag_ref": "synthetic-fixture-only",
+      "data_column_name": "neutral_gic_a"
     },
     {
       "channel_id": "ct-primary-a",
@@ -60,7 +64,8 @@
       "measurement_path_ref": "synthetic-fixture:transformer-example-1",
       "ct_configuration_ref": "ct-example-1",
       "calibration_ref": null,
-      "quality_flag_ref": "synthetic-fixture-only"
+      "quality_flag_ref": "synthetic-fixture-only",
+      "data_column_name": "ct_primary_current_a"
     },
     {
       "channel_id": "ct-secondary-a",
@@ -77,7 +82,8 @@
       "measurement_path_ref": "synthetic-fixture:relay-example-21",
       "ct_configuration_ref": "ct-example-1",
       "calibration_ref": null,
-      "quality_flag_ref": "synthetic-fixture-only"
+      "quality_flag_ref": "synthetic-fixture-only",
+      "data_column_name": "ct_secondary_current_a"
     },
     {
       "channel_id": "relay-voltage-a",
@@ -94,7 +100,8 @@
       "measurement_path_ref": "synthetic-fixture:bus-voltage",
       "ct_configuration_ref": null,
       "calibration_ref": null,
-      "quality_flag_ref": "synthetic-fixture-only"
+      "quality_flag_ref": "synthetic-fixture-only",
+      "data_column_name": "relay_voltage_input_v"
     },
     {
       "channel_id": "relay-current-a",
@@ -111,7 +118,8 @@
       "measurement_path_ref": "synthetic-fixture:ct-secondary-a",
       "ct_configuration_ref": "ct-example-1",
       "calibration_ref": null,
-      "quality_flag_ref": "synthetic-fixture-only"
+      "quality_flag_ref": "synthetic-fixture-only",
+      "data_column_name": "relay_current_input_a"
     },
     {
       "channel_id": "relay-trip",
@@ -128,7 +136,8 @@
       "measurement_path_ref": "synthetic-fixture:relay-example-21",
       "ct_configuration_ref": null,
       "calibration_ref": null,
-      "quality_flag_ref": "synthetic-fixture-only"
+      "quality_flag_ref": "synthetic-fixture-only",
+      "data_column_name": "relay_trip_output"
     }
   ]
 }
