@@ -264,8 +264,13 @@ pub fn evaluate(problem: &DecisionProblem) -> Result<DecisionResult, DecisionErr
     validate_problem(problem)?;
 
     let baseline_action_index = select_action(problem, None, 0)?;
+    let baseline_service_numerators = service_loss_numerators_for_action(
+        problem,
+        baseline_action_index,
+        None,
+    )?;
     let baseline_service_numerators =
-        service_loss_numerators_for_action(problem, baseline_action_index, None)?;
+        lift_prior_numerators_to_joint_scale(baseline_service_numerators)?;
     let baseline_weighted_loss_numerator =
         weighted_loss_numerator(problem, &baseline_service_numerators)?;
 
@@ -689,6 +694,21 @@ fn weighted_loss_numerator(
     Ok(total)
 }
 
+/// Lift prior-weighted numerators (denominator 1e6) to the common
+/// prior-times-likelihood denominator (1e12) used by every receipt metric.
+fn lift_prior_numerators_to_joint_scale(
+    numerators: Vec<u128>,
+) -> Result<Vec<u128>, DecisionError> {
+    numerators
+        .into_iter()
+        .map(|numerator| {
+            numerator
+                .checked_mul(u128::from(PROBABILITY_SCALE))
+                .ok_or(DecisionError::ArithmeticOverflow)
+        })
+        .collect()
+}
+
 fn service_metrics(
     problem: &DecisionProblem,
     numerators: Vec<u128>,
@@ -911,6 +931,19 @@ mod tests {
             Recommendation::ObserveThenUseOutcomePolicy
         );
         assert_eq!(result.baseline_weighted_loss_numerator, 40_000_000_000_000);
+        assert_eq!(
+            result.baseline_expected_service_losses[0].numerator,
+            40_000_000_000_000
+        );
+        assert_eq!(
+            result.baseline_expected_service_losses[0].denominator,
+            1_000_000_000_000
+        );
+        let observed_service_losses = result
+            .observed_expected_service_losses
+            .as_ref()
+            .expect("qualified observation has service metrics");
+        assert_eq!(observed_service_losses[0].numerator, 20_000_000_000_000);
         assert_eq!(
             result.observed_weighted_loss_numerator,
             Some(20_000_000_000_000)
