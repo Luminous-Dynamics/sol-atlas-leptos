@@ -324,7 +324,7 @@ Do not wait for queued workflow runs to design new cases or implement independen
 - Zhang et al., MM-CNN-MHA GIC forecasting, Space Weather (2026): https://doi.org/10.1029/2025SW004900
 - Beggan et al., UK SWIMMR operational models (2025): https://doi.org/10.1029/2025SW004364
 - Mac Manus et al., New Zealand Gannon mitigation (2025): https://doi.org/10.1029/2025SW004388
-- Ngwira et al., South African Grassridge/Hermanus modelling: https://doi.org/10.1029/2008SW000408
+- Bernhardi, Cilliers & Gaunt (2008), South African Grassridge/Hermanus spatial-interpolation and GIC modelling: https://doi.org/10.1029/2008SW000408
 - South African Botrivier differential-magnetometer measurements: https://doi.org/10.1002/2015SW001289
 - SANSA SANDIMS: https://sandims.sansa.org.za/
 - Texas A&M synthetic electric grid test cases: https://electricgrids.engr.tamu.edu/electric-grid-test-cases/
