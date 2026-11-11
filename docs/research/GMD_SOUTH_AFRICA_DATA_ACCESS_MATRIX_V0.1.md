@@ -32,12 +32,49 @@ SANDIMS is not evidence that transformer-neutral GIC, utility topology, transfor
 
 ## 3. Key South African references
 
-1. **Ngwira et al. (2008), Grassridge/Hermanus:** multilayer conductivity modelling from measured GIC and geomagnetic observations, October 2003 event. DOI: https://doi.org/10.1029/2008SW000408.
+1. **Bernhardi, Cilliers & Gaunt (2008), Grassridge/Hermanus:** multilayer conductivity modelling from measured GIC and geomagnetic observations, October 2003 event. DOI: https://doi.org/10.1029/2008SW000408.
 2. **Ngwira et al. (2009), spatial transfer:** found model skill degrades with magnetometer distance and the model was specific to a station/site pair. DOI: https://doi.org/10.1029/2009SW000478.
 3. **Nahayo et al. (2019), SANSA March 2015:** geomagnetic network and MT-based E-field modelling compared with measured GIC. DOI: https://doi.org/10.17159/sajs.2019/5204.
 4. **Nahayo et al. (2022), Grassridge/Matimba:** southern-hemisphere LDi/LCi GIC-proxy validation using historical site records; quality windows at both sites were not simultaneous. DOI: https://doi.org/10.1029/2022SW003092.
 5. **SANSA Annual Report 2015/16:** Botrivier under-line monitoring context. https://www.sansa.org.za/wp-content/uploads/2018/05/SANSA-AR-2015-16.pdf.
 6. **African GIC proxy study (2026):** Hermanus included among five African observatories; proxies remain a separate evidence class from measured transformer GIC. DOI: https://doi.org/10.1016/j.asr.2026.04.031.
+
+## 3.1 Published South African spatial-observability known-answer
+
+The 2008 paper by **Bernhardi, Cilliers and Gaunt**, *Improvement in the modelling of geomagnetically induced currents in southern Africa* (South African Journal of Science 104, 2008; DOI https://doi.org/10.1029/2008SW000408), provides a valuable historical spatial-interpolation reference:
+
+- Event: 29 October 2003 Halloween storm.
+- Target: Grassridge substation.
+- Published measured peak: 12.55 A at 06:48 UTC.
+- Using the farthest geomagnetic observatory, Tsumeb, alone: 81% error in modelled peak magnitude.
+- Using three observatories (Hermanus, Hartebeesthoek and Tsumeb) with spherical elementary current systems (SECS) interpolation: 12% peak-magnitude error.
+- The paper's storm-duration error measure, expressed as error variance relative to measured GIC RMS, fell from 59% to 25%.
+
+This is a **published retrospective model-comparison result**, not a new Luminous reproduction, independent forecast result or present-day observability assessment. The paper's SECS implementation used a 15 × 15 equivalent-current grid at approximately 115-km spacing and 100-km height, with an SVD solution. The equivalent horizontal ionospheric currents are mathematical constructs that reproduce measured ground magnetic fields; they are not a reconstruction of the true 3-D ionospheric current system.
+
+The 2009 follow-up by **Ngwira et al.**, *Limitations of the modeling of geomagnetically induced currents in the South African power network* (Space Weather, first published 8 October 2009; DOI https://doi.org/10.1029/2009SW000478), adds a useful spatial-transfer comparison:
+
+| Observatory input | Approx. distance to Grassridge | Median error for measured GIC >1 A | RMSD |
+|---|---:|---:|---:|
+| Hermanus | 590 km | 48% | 1.56 A |
+| Hartebeesthoek | 892 km | 64% | 2.21 A |
+| Tsumeb | 1,759 km | 74% | 2.73 A |
+
+The authors used 152 data points with measured |GIC| > 1 A. The first 12 hours of 29 October 2003 Grassridge GIC records were not used in deriving the conductivity model and were used for the comparison. This is an out-of-fit temporal segment within the same historical event, **not an independent event holdout**.
+
+The 2009 paper also reports strong directional asymmetry: the examined field variation changed more rapidly north–south than east–west. It describes approximate consistency out to 600 km east–west in that particular case, while north–south variation fell off more quickly. These observations must not be converted into a universal distance cutoff; local conductivity anomalies, geomagnetic gradients, direction, event phase and exact site/network configuration matter.
+
+### Benchmark use
+
+Use these papers as a frozen literature-reproduction and spatial-observability benchmark:
+
+1. Reproduce the 2008 Tsumeb-only versus three-station SECS peak and storm-duration comparisons from the exact published assumptions and source artefacts.
+2. Reproduce the 2009 HMO/HBK/TSU comparison, including its 152-point selection rule, median errors and RMSD values.
+3. Keep the 2009 first-12-hour segment separate from any model-derivation data and label it same-event temporal validation.
+4. Evaluate station subsets and source-to-site direction/distance ablations; do not silently promote a station map or proximity heuristic to a local measurement.
+5. Treat the published numbers as literature benchmarks until an independent implementation reconstructs them from permitted raw files and exact model assumptions.
+
+This gives the South African observability programme a stronger known-answer baseline than instrument-count or geographic-coverage comparisons alone.
 
 ## 4. Data-rights and governance checklist
 
