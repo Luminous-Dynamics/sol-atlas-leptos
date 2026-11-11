@@ -13,11 +13,10 @@
 use std::collections::BTreeSet;
 use std::error::Error;
 use std::fmt;
-use std::fmt::Write as FmtWrite;
+use std::fmt::Write as _;
 
 pub const PROBABILITY_SCALE: u64 = 1_000_000;
-const EXPECTED_VALUE_DENOMINATOR: u128 =
-    (PROBABILITY_SCALE as u128) * (PROBABILITY_SCALE as u128);
+const EXPECTED_VALUE_DENOMINATOR: u128 = 1_000_000_000_000;
 const MAX_STATES: usize = 64;
 const MAX_SERVICES: usize = 16;
 const MAX_ACTIONS: usize = 64;
@@ -288,8 +287,8 @@ pub fn evaluate(problem: &DecisionProblem) -> Result<DecisionResult, DecisionErr
                 .iter()
                 .zip(problem.states.iter())
                 .try_fold(0_u128, |acc, (likelihood, state)| {
-                    let joint = (state.prior_weight_ppm as u128)
-                        .checked_mul(*likelihood as u128)
+                    let joint = u128::from(state.prior_weight_ppm)
+                        .checked_mul(u128::from(*likelihood))
                         .ok_or(DecisionError::ArithmeticOverflow)?;
                     acc.checked_add(joint).ok_or(DecisionError::ArithmeticOverflow)
                 })?;
@@ -313,13 +312,13 @@ pub fn evaluate(problem: &DecisionProblem) -> Result<DecisionResult, DecisionErr
             });
 
             for (state_index, state) in problem.states.iter().enumerate() {
-                let joint_weight = (state.prior_weight_ppm as u128)
-                    .checked_mul(outcome.likelihood_by_state_ppm[state_index] as u128)
+                let joint_weight = u128::from(state.prior_weight_ppm)
+                    .checked_mul(u128::from(outcome.likelihood_by_state_ppm[state_index]))
                     .ok_or(DecisionError::ArithmeticOverflow)?;
                 for (service_index, total) in observed_service_numerators.iter_mut().enumerate() {
                     let term = joint_weight
                         .checked_mul(
-                            action.service_loss_by_state[state_index][service_index] as u128,
+                            u128::from(action.service_loss_by_state[state_index][service_index]),
                         )
                         .ok_or(DecisionError::ArithmeticOverflow)?;
                     *total = total
@@ -334,7 +333,7 @@ pub fn evaluate(problem: &DecisionProblem) -> Result<DecisionResult, DecisionErr
         }
 
         let observed_weighted = weighted_loss_numerator(problem, &observed_service_numerators)?;
-        let cost_numerator = (problem.observation.cost_score_units as u128)
+        let cost_numerator = u128::from(problem.observation.cost_score_units)
             .checked_mul(EXPECTED_VALUE_DENOMINATOR)
             .ok_or(DecisionError::ArithmeticOverflow)?;
         let net_numerator = signed_difference(
@@ -409,11 +408,11 @@ fn validate_problem(problem: &DecisionProblem) -> Result<(), DecisionError> {
         if !state_ids.insert(state.state_id.as_str()) {
             return Err(DecisionError::DuplicateIdentifier);
         }
-        if state.prior_weight_ppm == 0 || state.prior_weight_ppm as u64 > PROBABILITY_SCALE {
+        if state.prior_weight_ppm == 0 || u64::from(state.prior_weight_ppm) > PROBABILITY_SCALE {
             return Err(DecisionError::InvalidPriorProbabilities);
         }
         prior_sum = prior_sum
-            .checked_add(state.prior_weight_ppm as u64)
+            .checked_add(u64::from(state.prior_weight_ppm))
             .ok_or(DecisionError::ArithmeticOverflow)?;
     }
     if prior_sum != PROBABILITY_SCALE {
@@ -512,11 +511,11 @@ fn validate_problem(problem: &DecisionProblem) -> Result<(), DecisionError> {
             return Err(DecisionError::InvalidMatrixShape);
         }
         for (index, likelihood) in outcome.likelihood_by_state_ppm.iter().enumerate() {
-            if *likelihood as u64 > PROBABILITY_SCALE {
+            if u64::from(*likelihood) > PROBABILITY_SCALE {
                 return Err(DecisionError::InvalidObservationLikelihoods);
             }
             state_likelihood_sums[index] = state_likelihood_sums[index]
-                .checked_add(*likelihood as u64)
+                .checked_add(u64::from(*likelihood))
                 .ok_or(DecisionError::ArithmeticOverflow)?;
         }
     }
@@ -591,10 +590,10 @@ fn select_action(
         let mut score = 0_u128;
 
         for (state_index, state) in problem.states.iter().enumerate() {
-            let likelihood = likelihoods.map_or(PROBABILITY_SCALE as u128, |values| {
-                values[state_index] as u128
+            let likelihood = likelihoods.map_or(u128::from(PROBABILITY_SCALE), |values| {
+                u128::from(values[state_index])
             });
-            let joint_weight = (state.prior_weight_ppm as u128)
+            let joint_weight = u128::from(state.prior_weight_ppm)
                 .checked_mul(likelihood)
                 .ok_or(DecisionError::ArithmeticOverflow)?;
             if joint_weight == 0 {
@@ -619,9 +618,10 @@ fn select_action(
                 break;
             }
             for (service_index, service) in problem.services.iter().enumerate() {
-                let weighted_loss = (action.service_loss_by_state[state_index][service_index]
-                    as u128)
-                    .checked_mul(service.decision_weight as u128)
+                let loss_units =
+                    u128::from(action.service_loss_by_state[state_index][service_index]);
+                let weighted_loss = loss_units
+                    .checked_mul(u128::from(service.decision_weight))
                     .ok_or(DecisionError::ArithmeticOverflow)?;
                 let term = joint_weight
                     .checked_mul(weighted_loss)
@@ -657,15 +657,15 @@ fn service_loss_numerators_for_action(
     let action = &problem.actions[action_index];
     let mut totals = vec![0_u128; problem.services.len()];
     for (state_index, state) in problem.states.iter().enumerate() {
-        let likelihood = likelihoods.map_or(PROBABILITY_SCALE as u128, |values| {
-            values[state_index] as u128
+        let likelihood = likelihoods.map_or(u128::from(PROBABILITY_SCALE), |values| {
+            u128::from(values[state_index])
         });
-        let joint_weight = (state.prior_weight_ppm as u128)
+        let joint_weight = u128::from(state.prior_weight_ppm)
             .checked_mul(likelihood)
             .ok_or(DecisionError::ArithmeticOverflow)?;
         for (service_index, total) in totals.iter_mut().enumerate() {
             let term = joint_weight
-                .checked_mul(action.service_loss_by_state[state_index][service_index] as u128)
+                .checked_mul(u128::from(action.service_loss_by_state[state_index][service_index]))
                 .ok_or(DecisionError::ArithmeticOverflow)?;
             *total = total
                 .checked_add(term)
@@ -684,7 +684,7 @@ fn weighted_loss_numerator(
         total = total
             .checked_add(
                 numerator
-                    .checked_mul(service.decision_weight as u128)
+                    .checked_mul(u128::from(service.decision_weight))
                     .ok_or(DecisionError::ArithmeticOverflow)?,
             )
             .ok_or(DecisionError::ArithmeticOverflow)?;
@@ -729,7 +729,7 @@ fn json_escape(value: &str) -> String {
             '\r' => escaped.push_str("\\r"),
             '\t' => escaped.push_str("\\t"),
             value if value.is_control() => {
-                let _ = write!(escaped, "\\u{:04x}", value as u32);
+                let _ = write!(escaped, "\\u{:04x}", u32::from(value));
             }
             value => escaped.push(value),
         }
