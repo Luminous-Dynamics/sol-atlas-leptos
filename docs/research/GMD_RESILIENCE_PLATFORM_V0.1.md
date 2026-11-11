@@ -658,9 +658,9 @@ This is a much stronger starting point than manually estimating sensor locations
 ### 21.1 New rights-aware catalogue implementation
 
 - [GMD-SA-OBSERVATION-CATALOG-001 #719](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/719) defines repository/station/dataset scopes and purpose-specific rights.
-- [Draft PR #720](https://github.com/Luminous-Dynamics/sol-atlas-leptos/pull/720) adds `tools/gmd-observation-catalog-oracle/`, a dependency-free Rust qualifier with 18 authored test functions.
+- [Draft PR #720](https://github.com/Luminous-Dynamics/sol-atlas-leptos/pull/720) adds `tools/gmd-observation-catalog-oracle/`, a dependency-free Rust qualifier with 21 authored test functions.
 - The first SANSA record is a repository-level catalogue only, with explicit `station: null`, `dataset: null`, no source snapshot digest, and no claim of current site inventory or dataset availability.
-- Rights are separated for metadata discovery, dataset download, academic analysis, commercial ingestion, model training and derivative redistribution. A permitted grant needs purpose-specific evidence and is assessed against explicit validity bounds.
+- Rights are separated for metadata discovery, dataset download, academic analysis, commercial ingestion, model training and derivative redistribution. Every explicit non-Unknown right state needs purpose-specific source evidence and is assessed against explicit validity bounds. The catalogue validator also rejects impossible calendar dates and empty station metadata.
 - A repository/station metadata record cannot grant use of an unspecified dataset. A DatasetProduct record with its own version, source URI, time coverage and digest is required.
 - Station metadata completeness is reported separately from scientific validity. Complete fields mean only ready for expert review; they do not prove calibration, spatial representativeness or suitability as transformer GIC ground truth.
 - The CI preflight parses the JSON schema and fixtures and checks six purpose dispositions. It is not a complete JSON Schema validator. Rust format/compile/tests/Clippy on PR #720 remain pending; no PASS is claimed.
