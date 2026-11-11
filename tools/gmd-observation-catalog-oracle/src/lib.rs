@@ -111,6 +111,9 @@ pub struct CatalogueRecord {
     pub evidence_class: EvidenceClass,
     pub instrument_classes: Vec<String>,
     pub searchable_metadata_fields: Vec<String>,
+    pub network_coverage_description: Option<String>,
+    pub data_delivery_method: Option<String>,
+    pub access_terms_summary: Option<String>,
     pub station: Option<StationMetadata>,
     pub dataset: Option<DatasetMetadata>,
     pub rights: AccessRights,
@@ -227,6 +230,20 @@ pub fn validate_record(record: &CatalogueRecord) -> Result<(), CatalogError> {
         .map_err(|()| CatalogError::DuplicateInstrumentClass)?;
     validate_unique_strings(&record.searchable_metadata_fields)
         .map_err(|()| CatalogError::DuplicateMetadataField)?;
+    for optional_description in [
+        record.network_coverage_description.as_deref(),
+        record.data_delivery_method.as_deref(),
+        record.access_terms_summary.as_deref(),
+    ]
+    .into_iter()
+    .flatten()
+    {
+        if optional_description.trim().is_empty()
+            || optional_description.trim() != optional_description
+        {
+            return Err(CatalogError::EmptyRequiredField);
+        }
+    }
 
     match record.record_scope {
         RecordScope::RepositoryCatalog => {
@@ -375,14 +392,12 @@ fn validate_station(station: &StationMetadata) -> Result<(), CatalogError> {
     if station.station_id.trim().is_empty() || station.station_id.trim() != station.station_id {
         return Err(CatalogError::InvalidStationIdentifier);
     }
-    match (station.latitude_deg, station.longitude_deg) {
-        (Some(latitude), Some(longitude))
-            if latitude.is_finite()
-                && longitude.is_finite()
-                && (-90.0..=90.0).contains(&latitude)
-                && (-180.0..=180.0).contains(&longitude) => {}
-        (None, None) | (Some(_), None) | (None, Some(_)) => {}
-        _ => return Err(CatalogError::InvalidCoordinate),
+    if station.latitude_deg.is_some_and(|latitude| {
+        !latitude.is_finite() || !(-90.0..=90.0).contains(&latitude)
+    }) || station.longitude_deg.is_some_and(|longitude| {
+        !longitude.is_finite() || !(-180.0..=180.0).contains(&longitude)
+    }) {
+        return Err(CatalogError::InvalidCoordinate);
     }
     if station.coordinate_reference.as_deref().is_some_and(|value| {
         value.trim().is_empty() || value.trim() != value
@@ -519,6 +534,18 @@ mod tests {
                 "file_type".to_owned(),
                 "processing_level".to_owned(),
             ],
+            network_coverage_description: Some(
+                "Documented network coverage includes South Africa and Namibia, Gough and Marion islands, and SANAE IV in Antarctica; individual active station inventory is not asserted by this repository-level record."
+                    .to_owned(),
+            ),
+            data_delivery_method: Some(
+                "Date-filtered data bundles are described as downloadable through temporary FTP credentials."
+                    .to_owned(),
+            ),
+            access_terms_summary: Some(
+                "Academic research access is free subject to registration; commercial use requires a separate SANSA agreement. Training and derivative redistribution terms remain unknown."
+                    .to_owned(),
+            ),
             station: None,
             dataset: None,
             rights: rights(),
@@ -727,6 +754,15 @@ mod tests {
     fn station_coordinates_are_range_checked() {
         let mut record = station_record();
         record.station.as_mut().unwrap().latitude_deg = Some(-95.0);
+        assert_eq!(validate_record(&record), Err(CatalogError::InvalidCoordinate));
+    }
+
+    #[test]
+    fn invalid_partial_coordinate_is_rejected() {
+        let mut record = station_record();
+        let station = record.station.as_mut().unwrap();
+        station.latitude_deg = Some(-95.0);
+        station.longitude_deg = None;
         assert_eq!(validate_record(&record), Err(CatalogError::InvalidCoordinate));
     }
 
