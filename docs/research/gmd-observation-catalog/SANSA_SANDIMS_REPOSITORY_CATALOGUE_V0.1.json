@@ -1,0 +1,68 @@
+{
+  "record_id": "sansa-sandims-repository-catalogue",
+  "provider_name": "South African National Space Agency",
+  "owner_ref": "SANSA Space Science",
+  "record_scope": "RepositoryCatalog",
+  "repository_uri": "https://sandims.sansa.org.za/",
+  "source_evidence_uri": "https://www.sansa.org.za/scientific-research-and-global-collaboration/",
+  "verified_on_utc_date": "2026-11-11",
+  "source_snapshot_sha256": null,
+  "evidence_class": "CatalogueMetadata",
+  "instrument_classes": [
+    "Geomagnetic",
+    "Ionospheric",
+    "Magnetospheric"
+  ],
+  "searchable_metadata_fields": [
+    "instrument_site",
+    "instrument_type",
+    "sampling_interval",
+    "GPS_location",
+    "manufacturer",
+    "principal_investigator",
+    "technical_sampling_metadata",
+    "date_range",
+    "file_type",
+    "processing_level"
+  ],
+  "station": null,
+  "dataset": null,
+  "rights": {
+    "metadata_discovery": {
+      "status": "Permitted",
+      "evidence_ref": "https://sandims.sansa.org.za/",
+      "valid_from_epoch_seconds": null,
+      "valid_until_epoch_seconds": null
+    },
+    "dataset_download": {
+      "status": "RegistrationRequired",
+      "evidence_ref": "https://sandims.sansa.org.za/",
+      "valid_from_epoch_seconds": null,
+      "valid_until_epoch_seconds": null
+    },
+    "academic_analysis": {
+      "status": "RegistrationRequired",
+      "evidence_ref": "https://www.sansa.org.za/scientific-research-and-global-collaboration/",
+      "valid_from_epoch_seconds": null,
+      "valid_until_epoch_seconds": null
+    },
+    "commercial_ingestion": {
+      "status": "AgreementRequired",
+      "evidence_ref": "https://www.sansa.org.za/scientific-research-and-global-collaboration/",
+      "valid_from_epoch_seconds": null,
+      "valid_until_epoch_seconds": null
+    },
+    "model_training": {
+      "status": "Unknown",
+      "evidence_ref": null,
+      "valid_from_epoch_seconds": null,
+      "valid_until_epoch_seconds": null
+    },
+    "derivative_redistribution": {
+      "status": "Unknown",
+      "evidence_ref": null,
+      "valid_from_epoch_seconds": null,
+      "valid_until_epoch_seconds": null
+    }
+  }
+}
