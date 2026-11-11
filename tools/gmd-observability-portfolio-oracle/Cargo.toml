@@ -1,0 +1,10 @@
+[package]
+name = "gmd-observability-portfolio-oracle"
+version = "0.1.0"
+edition = "2024"
+publish = false
+description = "Linear-Gaussian sensor portfolio oracle for GMD observability research"
+
+[dependencies]
+
+[workspace]
