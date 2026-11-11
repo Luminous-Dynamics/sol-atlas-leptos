@@ -16,6 +16,7 @@ Each service trajectory declares:
 - evidence class, source reference and SHA-256 digest of the trajectory artifact;
 - minimum service floor as a fraction of required service;
 - native-unit quantity tolerance;
+- maximum allowed aggregation interval, set to the resolution needed by the service use case;
 - minimum sustained duration required to confirm recovery;
 - complete contiguous intervals over the scenario horizon;
 - required and delivered quantities over each interval.
@@ -47,11 +48,12 @@ From the Sol-Atlas repository root:
 
 ## Temporal resolution boundary
 
-The floor calculation applies at the declared interval resolution. An interval-level energy or volume total cannot prove uninterrupted delivery inside that interval: excess later in the same interval could hide a short outage. Choose intervals at or below the service owner's interruption tolerance, preserve the source sampling/cadence in the surrounding evidence receipt, and separately qualify instantaneous voltage, frequency, pressure, link integrity or other quality limits with the appropriate physical/measurement owner. This crate does not interpolate high-frequency service continuity from coarse aggregates.
+The floor calculation applies at the declared interval resolution. An interval-level energy or volume total cannot prove uninterrupted delivery inside that interval: excess later in the same interval could hide a short outage. Choose intervals at or below the owner-declared maximum aggregation duration, preserve the source sampling/cadence in the surrounding evidence receipt, and separately qualify instantaneous voltage, frequency, pressure, link integrity or other quality limits with the appropriate physical/measurement owner. This crate does not interpolate high-frequency service continuity from coarse aggregates.
 
 ## Fail-closed semantics
 
 - Intervals must cover exactly [0, horizon] with no gap, overlap, duplicate or reordering.
+- No interval may exceed the owner-declared maximum aggregation duration; coarse data cannot be promoted into finer-grained continuity evidence.
 - Missing observations are not forward-filled and cannot count as delivered service.
 - Demand/delivery must be finite and non-negative.
 - Surplus is reported but cannot compensate for another interval's deficit.
