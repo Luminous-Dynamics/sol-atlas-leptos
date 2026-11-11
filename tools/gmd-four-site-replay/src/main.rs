@@ -799,17 +799,15 @@ fn parse_timestamp(value: &str) -> Result<i64, String> {
 
     if raw.ends_with('Z') || raw.ends_with('z') {
         raw.pop();
-    } else if let Some(position) = raw.rfind(|ch| ch == '+' || ch == '-') {
-        if position > 10 {
-            let offset = &raw[position..];
-            if !matches!(
-                offset,
-                "+00:00" | "-00:00" | "+0000" | "-0000" | "+00" | "-00"
-            ) {
-                return Err(format!("non-UTC timezone offset is not allowed: {offset}"));
-            }
-            raw.truncate(position);
+    } else if let Some(position) = raw.rfind(['+', '-']).filter(|position| *position > 10) {
+        let offset = &raw[position..];
+        if !matches!(
+            offset,
+            "+00:00" | "-00:00" | "+0000" | "-0000" | "+00" | "-00"
+        ) {
+            return Err(format!("non-UTC timezone offset is not allowed: {offset}"));
         }
+        raw.truncate(position);
     }
 
     let (date_part, time_part) = if let Some((date, time)) = raw.split_once('T') {
@@ -1225,7 +1223,9 @@ fn sha1(input: &[u8]) -> [u8; 20] {
     let mut h3 = 0x1032_5476_u32;
     let mut h4 = 0xC3D2_E1F0_u32;
 
-    for chunk in message.chunks_exact(64) {
+    let (chunks, remainder) = message.as_chunks::<64>();
+    debug_assert!(remainder.is_empty(), "SHA-1 padding must produce complete blocks");
+    for chunk in chunks {
         let mut words = [0_u32; 80];
         for (index, word) in words.iter_mut().take(16).enumerate() {
             let start = index * 4;
@@ -1280,18 +1280,6 @@ fn sha1(input: &[u8]) -> [u8; 20] {
         digest[index * 4..index * 4 + 4].copy_from_slice(&word.to_be_bytes());
     }
     digest
-}
-
-fn average_exact_minute(samples: &BTreeMap<i64, f64>, minute: i64) -> Result<f64, String> {
-    let mut sum = 0.0;
-    for offset in 0..60 {
-        let timestamp = minute + offset;
-        let value = samples
-            .get(&timestamp)
-            .ok_or_else(|| format!("missing second {timestamp} in UTC minute {minute}"))?;
-        sum += value;
-    }
-    Ok(sum / 60.0)
 }
 
 #[cfg(test)]
