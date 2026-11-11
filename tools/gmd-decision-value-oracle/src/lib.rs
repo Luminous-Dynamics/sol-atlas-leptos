@@ -264,13 +264,8 @@ pub fn evaluate(problem: &DecisionProblem) -> Result<DecisionResult, DecisionErr
     validate_problem(problem)?;
 
     let baseline_action_index = select_action(problem, None, 0)?;
-    let baseline_service_numerators = service_loss_numerators_for_action(
-        problem,
-        baseline_action_index,
-        None,
-    )?;
     let baseline_service_numerators =
-        lift_prior_numerators_to_joint_scale(baseline_service_numerators)?;
+        service_loss_numerators_for_action(problem, baseline_action_index, None)?;
     let baseline_weighted_loss_numerator =
         weighted_loss_numerator(problem, &baseline_service_numerators)?;
 
@@ -692,21 +687,6 @@ fn weighted_loss_numerator(
             .ok_or(DecisionError::ArithmeticOverflow)?;
     }
     Ok(total)
-}
-
-/// Lift prior-weighted numerators (denominator 1e6) to the common
-/// prior-times-likelihood denominator (1e12) used by every receipt metric.
-fn lift_prior_numerators_to_joint_scale(
-    numerators: Vec<u128>,
-) -> Result<Vec<u128>, DecisionError> {
-    numerators
-        .into_iter()
-        .map(|numerator| {
-            numerator
-                .checked_mul(u128::from(PROBABILITY_SCALE))
-                .ok_or(DecisionError::ArithmeticOverflow)
-        })
-        .collect()
 }
 
 fn service_metrics(
