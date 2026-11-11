@@ -25,6 +25,9 @@
     "file_type",
     "processing_level"
   ],
+  "network_coverage_description": "Documented network coverage includes South Africa and Namibia, Gough and Marion islands, and SANAE IV in Antarctica; individual active station inventory is not asserted by this repository-level record.",
+  "data_delivery_method": "Date-filtered data bundles are described as downloadable through temporary FTP credentials.",
+  "access_terms_summary": "Academic research access is free subject to registration; commercial use requires a separate SANSA agreement. Training and derivative redistribution terms remain unknown.",
   "station": null,
   "dataset": null,
   "rights": {
