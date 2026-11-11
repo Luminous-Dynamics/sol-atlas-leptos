@@ -88,6 +88,121 @@ jobs:
 
           print(f"validated {len(services)} services across {horizon}s")
           PY
+      - name: Recompute expected service-result fixture
+        run: |
+          python3 - <<'PY'
+          import json
+          import math
+          import pathlib
+
+          root = pathlib.Path("docs/research/gmd-service-continuity")
+          case = json.loads((root / "GMD_SERVICE_CONTINUITY_SYNTHETIC_CASE_V0.1.json").read_text())
+          expected = json.loads((root / "GMD_SERVICE_CONTINUITY_SYNTHETIC_RESULT_V0.1.json").read_text())
+          assert case["scenario_id"] == expected["scenario_id"]
+          assert case["horizon_seconds"] == expected["horizon_seconds"]
+          assert len(case["services"]) == len(expected["services"])
+
+          def sustained_recovery(intervals, states, hold):
+              observed_violation = False
+              run_start = None
+              run_seconds = 0
+              for item, state in zip(intervals, states):
+                  if state is None:
+                      run_start = None
+                      run_seconds = 0
+                  elif state is False:
+                      observed_violation = True
+                      run_start = None
+                      run_seconds = 0
+                  elif observed_violation:
+                      if run_start is None:
+                          run_start = item["start_offset_seconds"]
+                          run_seconds = 0
+                      run_seconds += item["end_offset_seconds"] - item["start_offset_seconds"]
+                      if run_seconds >= hold:
+                          return {
+                              "began_after_seconds": run_start,
+                              "confirmed_after_seconds": item["end_offset_seconds"],
+                          }
+              return None
+
+          for source, recorded in zip(case["services"], expected["services"]):
+              assert source["service_id"] == recorded["service_id"]
+              assert source["owner_ref"] == recorded["owner_ref"]
+              assert source["geographic_scope_ref"] == recorded["geographic_scope_ref"]
+              assert source["quantity_unit"] == recorded["quantity_unit"]
+              intervals = source["intervals"]
+              required_total = sum(x["required_quantity"] for x in intervals)
+              delivered_capped = sum(min(x["required_quantity"], x["delivered_quantity"]) for x in intervals)
+              surplus = sum(max(x["delivered_quantity"] - x["required_quantity"], 0.0) for x in intervals)
+              unserved = sum(max(x["required_quantity"] - x["delivered_quantity"], 0.0) for x in intervals)
+              demand_seconds = sum(x["end_offset_seconds"] - x["start_offset_seconds"]
+                                   for x in intervals if x["required_quantity"] > 0)
+              floor_states = []
+              full_states = []
+              floor_seconds = violation_seconds = longest_violation = current_violation = episodes = 0
+              max_deficit = 0.0
+              first_violation = None
+              initial_floor = initial_full = None
+
+              for item in intervals:
+                  duration = item["end_offset_seconds"] - item["start_offset_seconds"]
+                  req, got = item["required_quantity"], item["delivered_quantity"]
+                  if req == 0:
+                      floor_states.append(None)
+                      full_states.append(None)
+                      longest_violation = max(longest_violation, current_violation)
+                      current_violation = 0
+                      continue
+                  floor_ok = got >= req * source["minimum_service_fraction"] - source["quantity_tolerance"]
+                  full_ok = got >= req - source["quantity_tolerance"]
+                  if initial_floor is None:
+                      initial_floor, initial_full = floor_ok, full_ok
+                  floor_states.append(floor_ok)
+                  full_states.append(full_ok)
+                  max_deficit = max(max_deficit, 1.0 - min(got, req) / req)
+                  if floor_ok:
+                      floor_seconds += duration
+                      longest_violation = max(longest_violation, current_violation)
+                      current_violation = 0
+                  else:
+                      if current_violation == 0:
+                          episodes += 1
+                          if first_violation is None:
+                              first_violation = item["start_offset_seconds"]
+                      current_violation += duration
+                      violation_seconds += duration
+                      longest_violation = max(longest_violation, current_violation)
+
+              computed = {
+                  "horizon_seconds": case["horizon_seconds"],
+                  "maximum_interval_seconds": source["maximum_interval_seconds"],
+                  "initially_above_service_floor": initial_floor,
+                  "initially_fully_served": initial_full,
+                  "total_required_quantity": required_total,
+                  "total_delivered_quantity_capped": delivered_capped,
+                  "total_surplus_quantity_excluded": surplus,
+                  "total_unserved_quantity": unserved,
+                  "demand_observed_seconds": demand_seconds,
+                  "demand_weighted_served_fraction": delivered_capped / required_total,
+                  "floor_time_availability_fraction": floor_seconds / demand_seconds,
+                  "total_floor_violation_seconds": violation_seconds,
+                  "longest_floor_violation_seconds": longest_violation,
+                  "floor_violation_episode_count": episodes,
+                  "maximum_interval_deficit_fraction": max_deficit,
+                  "first_floor_violation_after_seconds": first_violation,
+                  "floor_recovery": sustained_recovery(intervals, floor_states, source["recovery_hold_seconds"]),
+                  "full_service_recovery": sustained_recovery(intervals, full_states, source["recovery_hold_seconds"]),
+              }
+              for key, value in computed.items():
+                  actual = recorded[key]
+                  if isinstance(value, float):
+                      assert math.isclose(actual, value, rel_tol=1e-12, abs_tol=1e-12), (source["service_id"], key, actual, value)
+                  else:
+                      assert actual == value, (source["service_id"], key, actual, value)
+
+          print(f"recomputed expected results for {len(case['services'])} services")
+          PY
       - name: Check formatting
         run: cargo fmt --manifest-path tools/gmd-service-continuity-oracle/Cargo.toml -- --check
       - name: Run offline tests
