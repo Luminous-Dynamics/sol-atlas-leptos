@@ -69,8 +69,10 @@ jobs:
               assert decision["declared_right"] == declared
               disposition = "Permitted" if purpose == "MetadataDiscovery" else "RequiresDatasetProduct"
               assert decision["disposition"] == disposition
-              if declared == "Permitted":
-                  assert rights[key]["evidence_ref"]
+              if declared != "Unknown":
+                  evidence = rights[key]["evidence_ref"]
+                  assert isinstance(evidence, str) and evidence.strip()
+                  assert evidence.startswith(("https://", "http://", "urn:"))
 
           assert expected["station_inventory_claim"] == "none"
           assert expected["dataset_availability_claim"] == "none"
