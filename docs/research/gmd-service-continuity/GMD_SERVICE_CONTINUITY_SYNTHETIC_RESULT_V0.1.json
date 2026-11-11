@@ -1,0 +1,74 @@
+{
+  "scenario_id": "gmd-synthetic-hospital-district-01",
+  "horizon_seconds": 300,
+  "services": [
+    {
+      "service_id": "hospital-critical-power",
+      "owner_ref": "urn:example:service-owner:hospital-authority",
+      "geographic_scope_ref": "urn:example:region:hospital-district",
+      "quantity_unit": "kWh",
+      "asset_revision": "hospital-power-topology-r7",
+      "source_ref": "urn:example:scenario:gmd-hospital-power-v1",
+      "source_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "evidence_class": "Simulated",
+      "horizon_seconds": 300,
+      "maximum_interval_seconds": 60,
+      "initially_above_service_floor": true,
+      "initially_fully_served": true,
+      "total_required_quantity": 50.0,
+      "total_delivered_quantity_capped": 42.0,
+      "total_surplus_quantity_excluded": 0.0,
+      "total_unserved_quantity": 8.0,
+      "demand_observed_seconds": 300,
+      "demand_weighted_served_fraction": 0.84,
+      "floor_time_availability_fraction": 0.8,
+      "total_floor_violation_seconds": 60,
+      "longest_floor_violation_seconds": 60,
+      "floor_violation_episode_count": 1,
+      "maximum_interval_deficit_fraction": 0.6,
+      "first_floor_violation_after_seconds": 120,
+      "floor_recovery": {
+        "began_after_seconds": 180,
+        "confirmed_after_seconds": 240
+      },
+      "full_service_recovery": {
+        "began_after_seconds": 240,
+        "confirmed_after_seconds": 300
+      }
+    },
+    {
+      "service_id": "hospital-potable-water",
+      "owner_ref": "urn:example:service-owner:municipal-water-operator",
+      "geographic_scope_ref": "urn:example:region:hospital-district",
+      "quantity_unit": "m3",
+      "asset_revision": "hospital-water-network-r3",
+      "source_ref": "urn:example:scenario:gmd-hospital-water-v1",
+      "source_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "evidence_class": "Simulated",
+      "horizon_seconds": 300,
+      "maximum_interval_seconds": 60,
+      "initially_above_service_floor": true,
+      "initially_fully_served": true,
+      "total_required_quantity": 9.0,
+      "total_delivered_quantity_capped": 6.9,
+      "total_surplus_quantity_excluded": 0.0,
+      "total_unserved_quantity": 2.1,
+      "demand_observed_seconds": 300,
+      "demand_weighted_served_fraction": 0.7666666666666667,
+      "floor_time_availability_fraction": 0.8,
+      "total_floor_violation_seconds": 60,
+      "longest_floor_violation_seconds": 60,
+      "floor_violation_episode_count": 1,
+      "maximum_interval_deficit_fraction": 0.6666666666666667,
+      "first_floor_violation_after_seconds": 120,
+      "floor_recovery": {
+        "began_after_seconds": 180,
+        "confirmed_after_seconds": 240
+      },
+      "full_service_recovery": {
+        "began_after_seconds": 240,
+        "confirmed_after_seconds": 300
+      }
+    }
+  ]
+}
