@@ -28,8 +28,10 @@ jobs:
       - name: Validate JSON structure, digests and scenario invariants
         run: |
           python3 - <<'PY'
+          import csv
           import hashlib
           import json
+          import math
           import pathlib
           import re
 
@@ -92,5 +94,30 @@ jobs:
           assert {"transformer_neutral_gic","ct_primary_current","ct_secondary_current","relay_voltage_input","relay_current_input","relay_trip_output"} <= roles
           assert all(channel["polarity_convention"] != "unknown" for channel in waveform["channels"])
           assert waveform["artifact"]["sha256"] == scenario["disturbance"]["gic_source_sha256"]
+          with (root / "fixtures/gmd_ibr_waveform_example_v0_1.csv").open(newline="") as handle:
+              reader = csv.DictReader(handle)
+              rows = list(reader)
+              headers = set(reader.fieldnames or [])
+          clock = waveform["recording_clock"]
+          assert clock["sample_index_column_name"] in headers
+          assert clock["time_column_name"] in headers
+          assert clock["time_unit"] == "ns"
+          assert len(rows) == 20
+          times = [int(row[clock["time_column_name"]]) for row in rows]
+          assert times[0] == 0 and all(right > left for left, right in zip(times, times[1:]))
+          assert all(right - left == 1_000_000 for left, right in zip(times, times[1:]))
+          for channel in waveform["channels"]:
+              column = channel["data_column_name"]
+              assert column in headers
+              assert channel["sample_count"] == len(rows)
+              if channel["sampling_mode"] == "uniform":
+                  expected_step = 1_000_000_000 / channel["sample_rate_hz"]
+                  assert all(right - left == expected_step for left, right in zip(times, times[1:]))
+              values = [row[column] for row in rows]
+              if channel["data_type"] in ("analog", "integer"):
+                  assert all(math.isfinite(float(value)) for value in values)
+              elif channel["data_type"] == "boolean":
+                  assert set(values) <= {"0", "1", "true", "false"}
+          assert waveform["recording_clock"]["maximum_uncertainty_ns"] == scenario["timebase"]["maximum_clock_uncertainty_ns"]
           print("GMD IBR scenario and waveform fixtures validated (synthetic format fixture only)")
           PY
