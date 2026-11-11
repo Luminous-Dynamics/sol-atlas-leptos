@@ -64,6 +64,7 @@ jobs:
               "stale-action-evidence",
               "scope-conflict",
               "hold-available-without-intervention-gates",
+              "hold-available-without-physical-admissibility",
           }
           actual_ids = {case["case_id"] for case in fixtures["cases"]}
           assert fixtures["schema_version"] == "0.1.0"

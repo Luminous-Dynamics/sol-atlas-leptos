@@ -44,7 +44,7 @@ The receipt always sets `execution_authorized=false`. It is evidence about a dec
 
 - Unknown, stale or rights-ineligible evidence cannot make an action more admissible.
 - A likelihood model that does not qualify known common-mode/correlated errors is rejected.
-- A hard-floor service blocks an intervention if the floor is not preserved in any supported state. HOLD does not require intervention approval, deployment resources or intervention-specific freshness/scope gates, but still requires the current physical state to be represented. HOLD remains reportable even if the current service trajectory is already below a floor; the loss remains visible.
+- A hard-floor service blocks an intervention if the floor is not preserved in any supported state. HOLD is a non-mutation abstention option: it does not require intervention approval, deployment resources, intervention-specific freshness/scope gates or an intervention physical-admissibility flag. Its service loss remains visible and it is not described as safe recovery. HOLD remains reportable even if the current service trajectory is already below a floor; the loss remains visible.
 - An intervention needs physical admissibility, fresh evidence, available resources, verified scope and human approval.
 - An intervention must complete using its maximum declared duration plus safety buffer before the decision deadline.
 - An observation arriving at or after the decision deadline is not used.
@@ -69,7 +69,7 @@ The Rust unit tests cover:
 10. unresolved action scope;
 11. observations arriving after the decision deadline;
 12. deterministic receipts;
-13. HOLD remains available when intervention-specific gates are closed;
+13. HOLD remains available when intervention-specific gates and physical-admissibility flags are closed;
 14. malformed prior probabilities.
 
 The machine-readable scenario index is in `fixtures/GMD_DECISION_VALUE_FIXTURES_V0.1.json`.

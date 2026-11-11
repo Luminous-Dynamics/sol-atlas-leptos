@@ -467,10 +467,7 @@ fn validate_problem(problem: &DecisionProblem) -> Result<(), DecisionError> {
         match action.kind {
             ActionKind::Hold => {
                 has_hold = true;
-                if action.maximum_completion_seconds != 0
-                    || action.safety_buffer_seconds != 0
-                    || action.physically_admissible_by_state.iter().any(|v| !*v)
-                {
+                if action.maximum_completion_seconds != 0 || action.safety_buffer_seconds != 0 {
                     return Err(DecisionError::InvalidHoldAction);
                 }
             }
@@ -600,11 +597,11 @@ fn select_action(
                 continue;
             }
             has_support = true;
-            if !action.physically_admissible_by_state[state_index] {
-                admissible = false;
-                break;
-            }
             if action.kind == ActionKind::Intervention {
+                if !action.physically_admissible_by_state[state_index] {
+                    admissible = false;
+                    break;
+                }
                 for (service_index, service) in problem.services.iter().enumerate() {
                     if service.hard_floor
                         && !action.service_floor_preserved_by_state[state_index][service_index]
@@ -1023,6 +1020,27 @@ mod tests {
         problem.actions[1].gates = closed_gates;
 
         let result = evaluate(&problem).expect("non-intervention HOLD remains available");
+        assert_eq!(result.baseline_action_id, "hold");
+        assert!(result
+            .outcome_decisions
+            .iter()
+            .all(|decision| decision.action_id == "hold"));
+        assert!(!result.execution_authorized);
+    }
+
+    #[test]
+    fn hold_fallback_does_not_depend_on_physical_admissibility_flags() {
+        let mut problem = positive_voi_fixture();
+        let closed_gates = ActionGates {
+            human_approved: false,
+            resources_available: false,
+            evidence_fresh: false,
+            scope_verified: false,
+        };
+        problem.actions[0].gates = closed_gates;
+        problem.actions[0].physically_admissible_by_state = vec![false, false];
+        problem.actions[1].gates = closed_gates;
+        let result = evaluate(&problem).expect("HOLD is a non-mutation abstention option");
         assert_eq!(result.baseline_action_id, "hold");
         assert!(result
             .outcome_decisions

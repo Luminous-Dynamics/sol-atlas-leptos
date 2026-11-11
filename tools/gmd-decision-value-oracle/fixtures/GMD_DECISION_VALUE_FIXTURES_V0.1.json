@@ -70,6 +70,11 @@
       "case_id": "hold-available-without-intervention-gates",
       "expected": "hold",
       "purpose": "A non-intervention HOLD fallback must remain representable when approval, resource, freshness and scope gates for interventions are closed."
+    },
+    {
+      "case_id": "hold-available-without-physical-admissibility",
+      "expected": "hold",
+      "purpose": "A non-mutation abstention fallback remains representable when intervention physical-admissibility evidence is absent or false; its unserved-service loss is still scored."
     }
   ]
 }
