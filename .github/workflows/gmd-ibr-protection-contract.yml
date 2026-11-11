@@ -1,0 +1,79 @@
+name: GMD IBR protection contract
+
+on:
+  pull_request:
+    paths:
+      - "docs/research/gmd-ibr-protection/**"
+      - ".github/workflows/gmd-ibr-protection-contract.yml"
+  push:
+    paths:
+      - "docs/research/gmd-ibr-protection/**"
+      - ".github/workflows/gmd-ibr-protection-contract.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: gmd-ibr-protection-contract-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  contract:
+    name: scenario and waveform contract fixtures
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact commit
+        uses: actions/checkout@v4
+      - name: Validate JSON structure and scenario invariants
+        run: |
+          python3 - <<'PY'
+          import json
+          import pathlib
+          import re
+
+          root = pathlib.Path("docs/research/gmd-ibr-protection")
+          scenario_schema = json.loads((root / "GMD_IBR_PROTECTION_SCENARIO_MANIFEST_V0.1.schema.json").read_text())
+          waveform_schema = json.loads((root / "GMD_IBR_PROTECTION_WAVEFORM_MANIFEST_V0.1.schema.json").read_text())
+          matrix = json.loads((root / "GMD_IBR_PROTECTION_SCENARIO_MATRIX_V0.1.json").read_text())
+
+          for schema in (scenario_schema, waveform_schema):
+              assert schema["$schema"] == "https://json-schema.org/draft/2020-12/schema"
+              assert schema["type"] == "object"
+              assert schema["additionalProperties"] is False
+              assert schema["properties"]["schema_version"]["const"] == "0.1.0"
+
+          assert "fidelity_studies" in scenario_schema["required"]
+          assert "required_metrics" in scenario_schema["required"]
+          assert "waveform_manifest_refs" in scenario_schema["required"]
+          assert "recording_clock" in waveform_schema["required"]
+          assert "provenance" in waveform_schema["required"]
+          assert "channels" in waveform_schema["required"]
+          assert waveform_schema["$defs"]["artifact"]["properties"]["format_edition"]["type"] == "string"
+
+          assert matrix["schema_version"] == "0.1.0"
+          assert matrix["claim_ceiling"] == "E0"
+          assert matrix["case_status"] == "scenario_design_only"
+          cases = matrix["cases"]
+          ids = [case["case_id"] for case in cases]
+          assert len(ids) == len(set(ids)) == 12
+          assert all(re.fullmatch(r"gmd-ibr-[0-9]{3}-[a-z0-9-]+", case_id) for case_id in ids)
+          assert {case["case_id"] for case in cases} >= {
+              "gmd-ibr-001-no-gmd-conventional-control",
+              "gmd-ibr-002-gmd-conventional",
+              "gmd-ibr-003-ibr-only-gfl-weak-grid",
+              "gmd-ibr-005-gmd-gfl-nbd-radial",
+              "gmd-ibr-006-gmd-gfl-nbd-nonradial",
+              "gmd-ibr-007-gmd-gfm-low-scr",
+              "gmd-ibr-008-gmd-ibr-fault-during-ct-bias",
+              "gmd-ibr-010-stale-gic-telemetry",
+              "gmd-ibr-011-common-mode-sensor-error",
+              "gmd-ibr-012-ibr-current-limit-and-cessation"
+          }
+          assert all(case["required_lanes"] for case in cases)
+          assert all(case["purpose"].strip() for case in cases)
+          assert all(item["synthetic"] is True for item in matrix["common_networks"])
+          assert all(item["artifact_status"] == "catalogued_not_downloaded" for item in matrix["common_networks"])
+          assert "No Texas2k data file" in matrix["note"]
+          print("GMD IBR scenario and waveform contract fixtures validated")
+          PY
