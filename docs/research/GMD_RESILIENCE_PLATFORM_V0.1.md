@@ -806,3 +806,56 @@ The defensible way to outperform SOTA is not to claim a universal “better mode
 - long-horizon portfolio performance versus single-event planning.
 
 For each task, hold input information, event split, topology revision, resource budget, measurement cutoff and hard constraints equal. Report calibration, worst-case strata, abstention, false-ready rate, model runtime, operator burden and service outcomes. A composite platform advantage may be claimed only after the component task results and cross-system field exercises support it.
+
+
+## 24. Resource-constrained restoration-sequence qualification — 11 November 2026
+
+The GMD programme now has a deterministic schedule verifier that bridges physical capability envelopes to downstream service and operator evaluation, without duplicating either a grid solver or the service-cascade model.
+
+- [Symtropy GMD-RESTORATION-SEQUENCE-001 #4710](https://github.com/Luminous-Dynamics/symtropy/issues/4710).
+- [Draft PR #4711](https://github.com/Luminous-Dynamics/symtropy/pull/4711) adds `tools/gmd-restoration-sequence-oracle/`, a dependency-free Rust crate with 25 authored test functions.
+
+### 24.1 P0 contract
+
+For a supplied top-down, bottom-up or hybrid schedule, the oracle checks:
+- task prerequisite completion and dependency-cycle rejection;
+- exclusive crew/tool/switching-resource overlap;
+- baseline + transient load during step execution + steady incremental load after completion;
+- active power (kW), conservative reactive magnitude (kVAr) and apparent power (kVA) against a separately qualified single-service-bus envelope;
+- integrated net AC energy at that same bus and preservation of an explicit energy reserve;
+- exact violation windows and contributing step IDs;
+- first **planned** pickup milestone for each service ID;
+- separate capability evidence and step-level human authority states.
+
+The synthetic two-step hospital-critical-power then hospital-water fixture has a 3,600-second horizon, 70 kW maximum active load, 35 kVAr maximum reactive magnitude, 78.262379 kVA maximum apparent load, 61.666667 kWh integrated consumption and 38.333333 kWh minimum remaining from a 100 kWh budget with a 20 kWh reserve floor. It is a deterministic arithmetic fixture, not a physical microgrid result.
+
+### 24.2 Explicit physical-model boundary
+
+The capability envelope must come from qualified specialist models and owner data. The oracle does not derive inverter/generator P/Q capability, cold-load/inrush transients, GFM stability, inertia, protection, fault current, synchronization, load flow, EMT/RMS dynamics, fuel conversion, battery SOC dynamics, generator start/ramp or service dependency propagation.
+
+Reactive load is represented as a non-negative magnitude and conservatively summed; no phase/sign cancellation is assumed. The energy input is a finite net AC budget at the declared service bus, not a time-resolved dispatch/storage model.
+
+### 24.3 Cross-system decision thread
+
+- Symtropy physical solvers (#4461, #4528, #3418) qualify electrical capability and transient validity.
+- Symtropy #4710/#4711 checks the supplied restoration schedule against declared static power/energy/resource envelopes.
+- Mycelix #6018 carries owner identity, authority and offline evidence; a message or approval receipt is not proof of physical operation.
+- Sol-Atlas #721 checks operator action-window timing and preconditions; schedule feasibility cannot substitute for approval or time remaining.
+- Sol-Atlas #716 evaluates actual measured/modelled delivered-service trajectories; a planned pickup milestone is not credited as delivered service.
+- Symtropy #3894 propagates qualified service dependencies and degraded service consequences.
+
+No component of this chain authorizes switching, dispatch, load-shedding, breaker commands or protection writes.
+
+### 24.4 Benchmark comparison
+
+On identical frozen capability envelopes and service priorities, compare:
+1. top-down bulk-grid-first schedule;
+2. bottom-up local-island-first schedule;
+3. hybrid independent-island then merge schedule;
+4. critical-service greedy schedule;
+5. operator/planner-proposed resource-aware schedule;
+6. bounded exhaustive oracle on tiny cases.
+
+The P0 verifier does not optimize or rank strategies. Its success criterion is zero false-feasible schedules under the declared constraints, with 100% agreement on hand-calculated fixtures and bounded exact cases. Actual grid stability, protection, black-start hardware and service restoration require their separate physical and field qualification tiers.
+
+Rust formatting, compilation, tests and Clippy for PR #4711 remain pending on the exact PR head; no Rust PASS is claimed.
