@@ -62,6 +62,11 @@ pub struct ServiceSeries {
 pub struct ServiceScenario {
     pub scenario_id: String,
     pub horizon_seconds: u64,
+    /// Optional, versioned dependency graph used upstream to construct the
+    /// scenario. None means no qualified cross-service dependency graph is
+    /// attached; the evaluator must not infer shared causes.
+    pub dependency_graph_ref: Option<String>,
+    pub dependency_graph_sha256: Option<String>,
     pub services: Vec<ServiceSeries>,
 }
 
@@ -112,6 +117,8 @@ pub struct ServiceMetrics {
 pub struct ScenarioEvaluation {
     pub scenario_id: String,
     pub horizon_seconds: u64,
+    pub dependency_graph_ref: Option<String>,
+    pub dependency_graph_sha256: Option<String>,
     pub services: Vec<ServiceMetrics>,
 }
 
@@ -120,6 +127,9 @@ pub struct ScenarioEvaluation {
 pub enum ServiceError {
     EmptyScenarioId,
     InvalidHorizon,
+    DependencyGraphMetadataMismatch,
+    InvalidDependencyGraphReference,
+    InvalidDependencyGraphDigest,
     EmptyServiceSet,
     EmptyIdentifier,
     DuplicateServiceId,
@@ -148,6 +158,9 @@ impl fmt::Display for ServiceError {
         let message = match self {
             Self::EmptyScenarioId => "scenario ID must not be empty",
             Self::InvalidHorizon => "scenario horizon must be positive",
+            Self::DependencyGraphMetadataMismatch => "dependency graph reference and digest must be supplied together",
+            Self::InvalidDependencyGraphReference => "dependency graph reference must be non-empty and trimmed",
+            Self::InvalidDependencyGraphDigest => "dependency graph digest must be 64 lowercase hexadecimal SHA-256 characters",
             Self::EmptyServiceSet => "scenario must contain at least one service",
             Self::EmptyIdentifier => "service ID must be non-empty and trimmed",
             Self::DuplicateServiceId => "service IDs must be unique within a scenario",
@@ -188,6 +201,25 @@ pub fn evaluate_scenario(
     if scenario.horizon_seconds == 0 {
         return Err(ServiceError::InvalidHorizon);
     }
+    match (
+        scenario.dependency_graph_ref.as_deref(),
+        scenario.dependency_graph_sha256.as_deref(),
+    ) {
+        (None, None) => {}
+        (Some(reference), Some(digest)) => {
+            if reference.trim().is_empty() || reference.trim() != reference {
+                return Err(ServiceError::InvalidDependencyGraphReference);
+            }
+            if digest.len() != 64
+                || !digest
+                    .bytes()
+                    .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
+            {
+                return Err(ServiceError::InvalidDependencyGraphDigest);
+            }
+        }
+        _ => return Err(ServiceError::DependencyGraphMetadataMismatch),
+    }
     if scenario.services.is_empty() {
         return Err(ServiceError::EmptyServiceSet);
     }
@@ -205,6 +237,8 @@ pub fn evaluate_scenario(
     Ok(ScenarioEvaluation {
         scenario_id: scenario.scenario_id.clone(),
         horizon_seconds: scenario.horizon_seconds,
+        dependency_graph_ref: scenario.dependency_graph_ref.clone(),
+        dependency_graph_sha256: scenario.dependency_graph_sha256.clone(),
         services: results,
     })
 }
@@ -557,6 +591,8 @@ mod tests {
         ServiceScenario {
             scenario_id: "gmd-synthetic-case-01".to_owned(),
             horizon_seconds,
+            dependency_graph_ref: None,
+            dependency_graph_sha256: None,
             services,
         }
     }
@@ -862,6 +898,37 @@ mod tests {
         assert_eq!(
             evaluate_scenario(&scenario(vec![first, second], 60)),
             Err(ServiceError::DuplicateServiceId)
+        );
+    }
+
+    #[test]
+    fn dependency_graph_reference_and_digest_are_bound_together() {
+        let service = service(vec![interval(0, 60, 100.0, 100.0)]);
+        let mut input = scenario(vec![service], 60);
+        input.dependency_graph_ref = Some("urn:test:dependency-graph:r7".to_owned());
+        input.dependency_graph_sha256 = Some(DIGEST.to_owned());
+
+        let result = evaluate_scenario(&input).unwrap();
+        assert_eq!(result.dependency_graph_ref, input.dependency_graph_ref);
+        assert_eq!(result.dependency_graph_sha256, input.dependency_graph_sha256);
+
+        input.dependency_graph_sha256 = None;
+        assert_eq!(
+            evaluate_scenario(&input),
+            Err(ServiceError::DependencyGraphMetadataMismatch)
+        );
+
+        input.dependency_graph_sha256 = Some("not-a-digest".to_owned());
+        assert_eq!(
+            evaluate_scenario(&input),
+            Err(ServiceError::InvalidDependencyGraphDigest)
+        );
+
+        input.dependency_graph_ref = Some("  ".to_owned());
+        input.dependency_graph_sha256 = Some(DIGEST.to_owned());
+        assert_eq!(
+            evaluate_scenario(&input),
+            Err(ServiceError::InvalidDependencyGraphReference)
         );
     }
 
