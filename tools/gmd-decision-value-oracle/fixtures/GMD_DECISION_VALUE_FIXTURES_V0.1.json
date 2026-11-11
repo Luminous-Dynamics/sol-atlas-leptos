@@ -55,6 +55,16 @@
       "case_id": "malformed-probabilities-fail-closed",
       "expected": "input_rejected",
       "purpose": "Prior probability mass must sum exactly to one million parts per million."
+    },
+    {
+      "case_id": "stale-action-evidence",
+      "expected": "hold",
+      "purpose": "An intervention with stale input evidence remains unavailable even when its physical model flag is otherwise admissible."
+    },
+    {
+      "case_id": "scope-conflict",
+      "expected": "hold",
+      "purpose": "An intervention with unresolved owner or asset scope cannot be recommended."
     }
   ]
 }

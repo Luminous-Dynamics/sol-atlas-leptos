@@ -58,15 +58,18 @@ The output preserves per-service expected loss. The owner-supplied scalarization
 
 The Rust unit tests cover:
 1. positive value of a state-discriminating observation;
-2. zero value of an uninformative, free observation;
+2. zero value for an uninformative, free observation;
 3. negative value when waiting causes a feasible action to miss its completion window;
 4. rights-ineligible observations;
 5. unqualified common-mode likelihood models;
 6. pending human approval;
 7. unavailable resources;
 8. hard service-floor violations;
-9. observations arriving after the decision deadline;
-10. deterministic receipts and malformed prior probabilities.
+9. stale action evidence;
+10. unresolved action scope;
+11. observations arriving after the decision deadline;
+12. deterministic receipts;
+13. malformed prior probabilities.
 
 The machine-readable scenario index is in `fixtures/GMD_DECISION_VALUE_FIXTURES_V0.1.json`.
 

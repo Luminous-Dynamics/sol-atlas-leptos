@@ -1038,7 +1038,29 @@ mod tests {
     fn hard_service_floor_blocks_intervention_even_when_physics_is_admissible() {
         let mut problem = positive_voi_fixture();
         problem.actions[1].physically_admissible_by_state = vec![true, true];
-        problem.actions[1].service_floor_preserved_by_state = vec![vec![true], vec![false]];
+        problem.actions[1].service_floor_preserved_by_state = vec![vec![false], vec![false]];
+        let result = evaluate(&problem).expect("HOLD remains available");
+        assert!(result.outcome_decisions.iter().all(|decision| {
+            decision.action_id == "hold"
+        }));
+        assert_eq!(result.recommendation, Recommendation::UseCurrentEvidence);
+    }
+ 
+    #[test]
+    fn stale_action_evidence_blocks_intervention() {
+        let mut problem = positive_voi_fixture();
+        problem.actions[1].gates.evidence_fresh = false;
+        let result = evaluate(&problem).expect("HOLD remains available");
+        assert!(result.outcome_decisions.iter().all(|decision| {
+            decision.action_id == "hold"
+        }));
+        assert_eq!(result.recommendation, Recommendation::UseCurrentEvidence);
+    }
+
+    #[test]
+    fn scope_conflict_blocks_intervention() {
+        let mut problem = positive_voi_fixture();
+        problem.actions[1].gates.scope_verified = false;
         let result = evaluate(&problem).expect("HOLD remains available");
         assert!(result.outcome_decisions.iter().all(|decision| {
             decision.action_id == "hold"

@@ -61,6 +61,8 @@ jobs:
               "hard-floor-breach-blocks-action",
               "observation-arrives-after-deadline",
               "malformed-probabilities-fail-closed",
+              "stale-action-evidence",
+              "scope-conflict",
           }
           actual_ids = {case["case_id"] for case in fixtures["cases"]}
           assert fixtures["schema_version"] == "0.1.0"
