@@ -63,7 +63,7 @@ Claims must declare their minimum fidelity. CT saturation waveform claims requir
 - Relay settings and relay firmware/model revisions are pinned independently of network revisions.
 - Missing waveform channels or a configuration mismatch must lower the evidence class or reject the case.
 
-The waveform manifest intentionally requires the provider-declared COMTRADE edition/exporter rather than assuming a fixed edition. IEEE's current C37.111 revision project and the inactive-reserved status of C37.111-2013 make version pinning important.
+The waveform manifest intentionally requires the provider-declared COMTRADE edition/exporter rather than assuming a fixed edition. IEEE's current C37.111 revision project and the inactive-reserved status of C37.111-2013 make version pinning important. The checked-in CSV example is a digest-pinned 60-Hz synthetic format fixture only; its ideal CT ratio and short trace are not a validated electrical/EMT response.
 
 ## Initial scenario set
 
