@@ -377,9 +377,7 @@ pub fn evaluate(problem: &DecisionProblem) -> Result<DecisionResult, DecisionErr
 }
 
 fn validate_problem(problem: &DecisionProblem) -> Result<(), DecisionError> {
-    for value in [&problem.scenario_id] {
-        validate_required(value)?;
-    }
+    validate_required(&problem.scenario_id)?;
     if !valid_sha256(&problem.manifest_sha256) {
         return Err(DecisionError::InvalidDigest);
     }
