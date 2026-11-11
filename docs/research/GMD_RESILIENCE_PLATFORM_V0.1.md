@@ -619,3 +619,24 @@ The service-continuity evaluator in [draft PR #717](https://github.com/Luminous-
 The evaluator has 20 authored Rust test functions. The PR is draft; exact-head workflow results remain pending/queued. No Rust compile/test or operational service-continuity result is claimed.
 
 The GMD observing-network and replay oracles (#714 and #709), and Symtropy drag-law oracle (#4605), have had rustfmt-only failures identified and formatting edits applied to their branches. Fresh exact-head workflows are pending/queued; no post-format PASS is claimed yet.
+
+
+## 20. Service-continuity evidence contract and dependency graph binding — 11 November 2026
+
+The service-continuity oracle now carries a portable input/output contract and an independently recomputed expected fixture:
+
+- Input JSON Schema: `docs/research/gmd-service-continuity/GMD_SERVICE_CONTINUITY_INPUT_V0.1.schema.json`.
+- Output JSON Schema: `docs/research/gmd-service-continuity/GMD_SERVICE_CONTINUITY_RESULT_V0.1.schema.json`.
+- Synthetic input: `docs/research/gmd-service-continuity/GMD_SERVICE_CONTINUITY_SYNTHETIC_CASE_V0.1.json`.
+- Expected result: `docs/research/gmd-service-continuity/GMD_SERVICE_CONTINUITY_SYNTHETIC_RESULT_V0.1.json`.
+
+The service evaluator enforces owner-declared `maximum_interval_seconds`, rejecting coarser time aggregation rather than claiming continuity at a finer resolution. It requires service owner, geographic scope, asset revision, evidence class and source digest. It distinguishes initial condition, minimum-floor recovery and full-service recovery, and excludes no-demand intervals from the availability denominator and recovery hold.
+
+Scenario inputs and outputs also carry an optional dependency-graph reference and SHA-256 digest. The pair must be present and valid together or explicitly null together. This allows a GMD scenario to bind the exact Mycelix [ASSURE-PORTFOLIO-CUT-002 #5762](https://github.com/Luminous-Dynamics/mycelix/issues/5762) graph receipt used upstream to derive cross-service consequences. When both fields are null, the evaluator makes no shared-cause or causal-dependency claim.
+
+The Rust crate now has 21 authored unit-test functions. The GitHub workflow includes:
+- a Python-standard-library structural preflight for input/output schema JSON and the synthetic service scenario;
+- an independent reference calculation of the expected service-result fixture, including sustained recovery confirmation;
+- Rust formatting, offline tests and Clippy.
+
+These Python steps are test-only reference checks, not production code or a complete JSON Schema Draft 2020-12 validator. As of this document update, the latest PR head is still subject to GitHub Actions execution; no Rust compile/test/Clippy PASS or operational service-continuity result is claimed.
