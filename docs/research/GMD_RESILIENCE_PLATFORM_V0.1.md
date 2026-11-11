@@ -687,3 +687,53 @@ The historical evidence already establishes that this is not an unobserved regio
 - Historical Grassridge and Matimba data have non-synchronous / data-quality limitations described in the 2022 Southern Hemisphere LDi/LCi validation (DOI 10.1029/2022SW003092).
 
 These remain historical and site-specific evidence, not a current national transformer vulnerability assessment. The next value comes from source-owner permission, modern station metadata and exact event/site-held-out validation—not another map visualisation.
+
+
+## 22. Operator action windows and impact-based mitigation — 11 November 2026
+
+The programme now benchmarks whether a candidate mitigation is actually feasible for the responsible operator before the local impact window closes. Forecast skill alone is insufficient.
+
+LaNeve et al., *Space Weather Mitigation Decisions by Critical Infrastructure Operators During Solar Cycle 25* (first published 26 September 2026; DOI https://doi.org/10.1029/2026SW005072), contacted 313 operators across power, satellite and aviation, received 55 responses (18%), conducted 33 interviews and identified 91 potential mitigation decisions; 74% were undertaken. The paper reports frequent use of comparatively low-cost situational awareness, modelling, staff readiness and existing procedures, alongside lower uptake of capital-intensive physical measures. Operators also expressed demand for more localized, impact-based warnings.
+
+The response sample is limited and is not a census of the sector. It nevertheless motivates a shift from forecast-only metrics to operator-specific actionability, cost and execution evidence.
+
+### 22.1 New implementation
+
+- [GMD-OPERATOR-ACTIONABILITY-001 #721](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/721) defines the operator action-window benchmark.
+- [Draft PR #722](https://github.com/Luminous-Dynamics/sol-atlas-leptos/pull/722) adds a dependency-free Rust oracle for conservative timing and precondition classification, with 18 authored test functions.
+- Input binds action/procedure revision, forecast source digest, impact-arrival interval, safety buffer, approval/preparation/mobilisation/execution duration ranges, evidence freshness, human authority, resources and owner/scope status.
+- Output preserves two independent dimensions: readiness and timing. The candidate may be conservative-fit yet still await approval, be blocked by resources, have stale evidence, or remain indeterminate.
+- All four precondition states are echoed; the result explicitly carries `execution_authorized: false`.
+- The sample is 1,800–3,900 s completion, 3,000 s conservative deadline and 4,800 s latest safe deadline; its classification is ArrivalDependentAtRisk and AwaitingHumanApproval.
+- An independent arithmetic preflight reproduces the sample. Rust formatting, compilation, tests and Clippy remain pending/queued; no PASS is claimed.
+
+### 22.2 Benchmark comparators
+
+Compare under identical event forecast, arrival interval, action catalogue, owner resources and authority requirements:
+1. Existing NOAA/SANSA warning + current operator rules.
+2. Warning-only baseline.
+3. Asset-impact warning without operator/resource state.
+4. Operator-specific action-window planner.
+5. Active-sensing planner that may defer for a fresh measurement.
+
+Measure conservative-actionable fraction, arrival-dependent fraction, missed windows, false-ready rate, lead time at recommendation/approval, evidence abstention, operator accept/modify/defer/reject, action cost/burden and post-action physical/service outcome. Stratify by operator size and resource constraints; an action that is possible for a major utility may be unaffordable or operationally unavailable to a municipality, hospital or small utility.
+
+Do not compress authority, physical safety, timing and service outcome into a single score. A recommendation that is not authorized is not executable; an approved instruction is not proof the equipment changed state; a changed asset state is not proof an essential service improved.
+
+### 22.3 Closed-loop evidence lifecycle
+
+The decision thread is now:
+1. source/forecast evidence with local arrival bounds;
+2. asset/service consequence and uncertainty;
+3. candidate action and owner-approved procedure revision;
+4. action-window and precondition assessment;
+5. human approval or rejection;
+6. physically observed post-action state;
+7. measured/modelled service trajectory evaluated through [#716](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/716);
+8. operator feedback and model/plan revision.
+
+Mycelix records provenance, authority and causal ordering. It must not equate signed proposal delivery with physical execution. Symtropy owns physical feasibility and post-action electrical response; Sol-Atlas owns the spatial/service outcome; Symthaea may generate and compare candidate hypotheses but cannot override operator authority.
+
+### 22.4 Claim ceiling
+
+The action-window oracle proves only deterministic arithmetic and supplied precondition disposition. It does not validate forecast accuracy, real task duration, crew/resource availability, legal authority, physical mitigation effectiveness, operator adoption or service continuity. Those require owner-approved procedure data, qualified physical models, permissioned exercises and independently observed outcomes.
