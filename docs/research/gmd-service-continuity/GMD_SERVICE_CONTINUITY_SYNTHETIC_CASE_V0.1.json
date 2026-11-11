@@ -1,0 +1,48 @@
+{
+  "scenario_id": "gmd-synthetic-hospital-district-01",
+  "horizon_seconds": 300,
+  "services": [
+    {
+      "service_id": "hospital-critical-power",
+      "owner_ref": "urn:example:service-owner:hospital-authority",
+      "geographic_scope_ref": "urn:example:region:hospital-district",
+      "quantity_unit": "kWh",
+      "asset_revision": "hospital-power-topology-r7",
+      "source_ref": "urn:example:scenario:gmd-hospital-power-v1",
+      "source_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "evidence_class": "Simulated",
+      "minimum_service_fraction": 0.8,
+      "quantity_tolerance": 0.0,
+      "maximum_interval_seconds": 60,
+      "recovery_hold_seconds": 60,
+      "intervals": [
+        { "start_offset_seconds": 0, "end_offset_seconds": 60, "required_quantity": 10.0, "delivered_quantity": 10.0 },
+        { "start_offset_seconds": 60, "end_offset_seconds": 120, "required_quantity": 10.0, "delivered_quantity": 10.0 },
+        { "start_offset_seconds": 120, "end_offset_seconds": 180, "required_quantity": 10.0, "delivered_quantity": 4.0 },
+        { "start_offset_seconds": 180, "end_offset_seconds": 240, "required_quantity": 10.0, "delivered_quantity": 8.0 },
+        { "start_offset_seconds": 240, "end_offset_seconds": 300, "required_quantity": 10.0, "delivered_quantity": 10.0 }
+      ]
+    },
+    {
+      "service_id": "hospital-potable-water",
+      "owner_ref": "urn:example:service-owner:municipal-water-operator",
+      "geographic_scope_ref": "urn:example:region:hospital-district",
+      "quantity_unit": "m3",
+      "asset_revision": "hospital-water-network-r3",
+      "source_ref": "urn:example:scenario:gmd-hospital-water-v1",
+      "source_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "evidence_class": "Simulated",
+      "minimum_service_fraction": 0.5,
+      "quantity_tolerance": 0.0,
+      "maximum_interval_seconds": 60,
+      "recovery_hold_seconds": 60,
+      "intervals": [
+        { "start_offset_seconds": 0, "end_offset_seconds": 60, "required_quantity": 1.8, "delivered_quantity": 1.8 },
+        { "start_offset_seconds": 60, "end_offset_seconds": 120, "required_quantity": 1.8, "delivered_quantity": 1.8 },
+        { "start_offset_seconds": 120, "end_offset_seconds": 180, "required_quantity": 1.8, "delivered_quantity": 0.6 },
+        { "start_offset_seconds": 180, "end_offset_seconds": 240, "required_quantity": 1.8, "delivered_quantity": 0.9 },
+        { "start_offset_seconds": 240, "end_offset_seconds": 300, "required_quantity": 1.8, "delivered_quantity": 1.8 }
+      ]
+    }
+  ]
+}
