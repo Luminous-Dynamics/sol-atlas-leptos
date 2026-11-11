@@ -1,9 +1,16 @@
 {
   "action_id": "inspect-and-prepare-transformer-loading-plan",
+  "action_class": "Maintenance",
+  "reversibility": "Reversible",
+  "cost_band": "Moderate",
   "minimum_completion_seconds": 1800,
   "maximum_completion_seconds": 3900,
   "conservative_deadline_seconds": 3000,
   "latest_safe_deadline_seconds": 4800,
+  "evidence_state": "Fresh",
+  "authority_state": "Pending",
+  "resource_state": "Available",
+  "scope_state": "Verified",
   "readiness": "AwaitingHumanApproval",
   "timing": "ArrivalDependentAtRisk",
   "execution_authorized": false
