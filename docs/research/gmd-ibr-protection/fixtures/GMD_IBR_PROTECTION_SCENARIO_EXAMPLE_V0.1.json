@@ -152,6 +152,26 @@
       "metric_id": "service_continuity",
       "minimum_fidelity": "phasor_rms",
       "scope": "system-level service trajectory"
+    },
+    {
+      "metric_id": "protection_robustness_envelope",
+      "minimum_fidelity": "emt",
+      "scope": "bounded relay misoperation-free domain with declared GIC/CT/IBR/network ranges"
+    },
+    {
+      "metric_id": "false_trip_rate",
+      "minimum_fidelity": "emt",
+      "scope": "trip output when no trip is warranted by the declared fault/zone truth"
+    },
+    {
+      "metric_id": "failure_to_trip_rate",
+      "minimum_fidelity": "emt",
+      "scope": "failure or late operation for an in-zone fault under declared response limits"
+    },
+    {
+      "metric_id": "coordination_margin",
+      "minimum_fidelity": "emt",
+      "scope": "owner-supplied primary/backup timing or reach margin"
     }
   ],
   "waveform_manifest_refs": [
