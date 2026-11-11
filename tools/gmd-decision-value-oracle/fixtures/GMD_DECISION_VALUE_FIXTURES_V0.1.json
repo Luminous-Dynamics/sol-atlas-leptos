@@ -6,8 +6,10 @@
     {
       "case_id": "positive-voi",
       "expected": "observe_then_use_outcome_policy",
-      "expected_net_value_numerator": "18000000000000",
-      "purpose": "A qualified, timely state-discriminating observation improves the owner-weighted loss after its declared cost."
+      "expected_net_value_numerator": "17000000000000",
+      "purpose": "A qualified, timely state-discriminating observation improves the owner-weighted loss after its declared cost.",
+      "expected_observed_action_cost_numerator": "1000000000000",
+      "expected_baseline_action_cost_numerator": "0"
     },
     {
       "case_id": "zero-voi",

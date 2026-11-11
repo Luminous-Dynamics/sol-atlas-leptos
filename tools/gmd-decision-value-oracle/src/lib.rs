@@ -72,6 +72,9 @@ pub struct CandidateAction {
     pub procedure_sha256: String,
     pub physical_evidence_ref: String,
     pub physical_evidence_sha256: String,
+    /// Owner-supplied action cost score in the same declared decision-loss
+    /// units as weighted service loss; not currency unless the manifest says so.
+    pub action_cost_score_units: u64,
     /// Conservative maximum completion duration after the decision can start.
     pub maximum_completion_seconds: u64,
     pub safety_buffer_seconds: u64,
@@ -190,7 +193,9 @@ pub struct DecisionResult {
     pub observed_expected_service_losses: Option<Vec<ServiceLossMetric>>,
     pub outcome_decisions: Vec<OutcomeDecision>,
     pub baseline_weighted_loss_numerator: u128,
+    pub baseline_action_cost_numerator: u128,
     pub observed_weighted_loss_numerator: Option<u128>,
+    pub observed_action_cost_numerator: Option<u128>,
     pub observation_cost_numerator: Option<u128>,
     /// Positive means observation improves the owner-weighted expected loss
     /// after measurement cost. Negative means waiting for it is harmful.
@@ -268,10 +273,15 @@ pub fn evaluate(problem: &DecisionProblem) -> Result<DecisionResult, DecisionErr
         service_loss_numerators_for_action(problem, baseline_action_index, None)?;
     let baseline_weighted_loss_numerator =
         weighted_loss_numerator(problem, &baseline_service_numerators)?;
+    let baseline_action_cost_numerator =
+        u128::from(problem.actions[baseline_action_index].action_cost_score_units)
+            .checked_mul(EXPECTED_VALUE_DENOMINATOR)
+            .ok_or(DecisionError::ArithmeticOverflow)?;
 
     let observation_disposition = observation_disposition(problem);
     let mut observed_expected_service_losses = None;
     let mut observed_weighted_loss_numerator = None;
+    let mut observed_action_cost_numerator = None;
     let mut observation_cost_numerator = None;
     let mut net_value_numerator = None;
     let mut outcome_decisions = Vec::new();
@@ -280,6 +290,7 @@ pub fn evaluate(problem: &DecisionProblem) -> Result<DecisionResult, DecisionErr
 
     if observation_disposition == ObservationDisposition::Eligible {
         let mut observed_service_numerators = vec![0_u128; problem.services.len()];
+        let mut observed_action_cost_total = 0_u128;
 
         for outcome in &problem.observation.outcomes {
             let marginal_mass = outcome
@@ -310,6 +321,12 @@ pub fn evaluate(problem: &DecisionProblem) -> Result<DecisionResult, DecisionErr
                 outcome_id: outcome.outcome_id.clone(),
                 action_id: action.action_id.clone(),
             });
+            let action_cost_term = marginal_mass
+                .checked_mul(u128::from(action.action_cost_score_units))
+                .ok_or(DecisionError::ArithmeticOverflow)?;
+            observed_action_cost_total = observed_action_cost_total
+                .checked_add(action_cost_term)
+                .ok_or(DecisionError::ArithmeticOverflow)?;
 
             for (state_index, state) in problem.states.iter().enumerate() {
                 let joint_weight = u128::from(state.prior_weight_ppm)
@@ -336,12 +353,14 @@ pub fn evaluate(problem: &DecisionProblem) -> Result<DecisionResult, DecisionErr
         let cost_numerator = u128::from(problem.observation.cost_score_units)
             .checked_mul(EXPECTED_VALUE_DENOMINATOR)
             .ok_or(DecisionError::ArithmeticOverflow)?;
-        let net_numerator = signed_difference(
-            baseline_weighted_loss_numerator,
-            observed_weighted
-                .checked_add(cost_numerator)
-                .ok_or(DecisionError::ArithmeticOverflow)?,
-        )?;
+        let observed_total_cost = observed_weighted
+            .checked_add(observed_action_cost_total)
+            .and_then(|value| value.checked_add(cost_numerator))
+            .ok_or(DecisionError::ArithmeticOverflow)?;
+        let baseline_total_cost = baseline_weighted_loss_numerator
+            .checked_add(baseline_action_cost_numerator)
+            .ok_or(DecisionError::ArithmeticOverflow)?;
+        let net_numerator = signed_difference(baseline_total_cost, observed_total_cost)?;
 
         if net_numerator > 0 {
             recommendation = Recommendation::ObserveThenUseOutcomePolicy;
@@ -349,6 +368,7 @@ pub fn evaluate(problem: &DecisionProblem) -> Result<DecisionResult, DecisionErr
 
         observed_expected_service_losses = Some(service_metrics(problem, observed_service_numerators));
         observed_weighted_loss_numerator = Some(observed_weighted);
+        observed_action_cost_numerator = Some(observed_action_cost_total);
         observation_cost_numerator = Some(cost_numerator);
         net_value_numerator = Some(net_numerator);
     }
@@ -365,7 +385,9 @@ pub fn evaluate(problem: &DecisionProblem) -> Result<DecisionResult, DecisionErr
         observed_expected_service_losses,
         outcome_decisions,
         baseline_weighted_loss_numerator,
+        baseline_action_cost_numerator,
         observed_weighted_loss_numerator,
+        observed_action_cost_numerator,
         observation_cost_numerator,
         net_value_numerator,
         expected_value_denominator: EXPECTED_VALUE_DENOMINATOR,
@@ -467,7 +489,10 @@ fn validate_problem(problem: &DecisionProblem) -> Result<(), DecisionError> {
         match action.kind {
             ActionKind::Hold => {
                 has_hold = true;
-                if action.maximum_completion_seconds != 0 || action.safety_buffer_seconds != 0 {
+                if action.maximum_completion_seconds != 0
+                    || action.safety_buffer_seconds != 0
+                    || action.action_cost_score_units != 0
+                {
                     return Err(DecisionError::InvalidHoldAction);
                 }
             }
@@ -614,6 +639,12 @@ fn select_action(
             if !admissible {
                 break;
             }
+            let action_cost_term = joint_weight
+                .checked_mul(u128::from(action.action_cost_score_units))
+                .ok_or(DecisionError::ArithmeticOverflow)?;
+            score = score
+                .checked_add(action_cost_term)
+                .ok_or(DecisionError::ArithmeticOverflow)?;
             for (service_index, service) in problem.services.iter().enumerate() {
                 let loss_units =
                     u128::from(action.service_loss_by_state[state_index][service_index]);
@@ -774,6 +805,10 @@ impl DecisionResult {
             .observed_weighted_loss_numerator
             .map(|value| format!("\"{}\"", value))
             .unwrap_or_else(|| "null".to_owned());
+        let observed_action_cost = self
+            .observed_action_cost_numerator
+            .map(|value| format!("\"{}\"", value))
+            .unwrap_or_else(|| "null".to_owned());
         let cost = self
             .observation_cost_numerator
             .map(|value| format!("\"{}\"", value))
@@ -784,7 +819,7 @@ impl DecisionResult {
             .unwrap_or_else(|| "null".to_owned());
 
         format!(
-            "{{\"schema_version\":\"0.1.0\",\"scenario_id\":\"{}\",\"manifest_sha256\":\"{}\",\"decision_deadline_seconds\":{},\"observation_id\":\"{}\",\"observation_arrival_seconds\":{},\"observation_disposition\":\"{}\",\"baseline_action_id\":\"{}\",\"baseline_expected_service_losses\":{},\"observed_expected_service_losses\":{},\"outcome_decisions\":{},\"baseline_weighted_loss_numerator\":\"{}\",\"observed_weighted_loss_numerator\":{},\"observation_cost_numerator\":{},\"net_value_numerator\":{},\"expected_value_denominator\":\"{}\",\"post_observation_has_intervention\":{},\"execution_authorized\":{},\"recommendation\":\"{}\"}}",
+            "{{\"schema_version\":\"0.1.0\",\"scenario_id\":\"{}\",\"manifest_sha256\":\"{}\",\"decision_deadline_seconds\":{},\"observation_id\":\"{}\",\"observation_arrival_seconds\":{},\"observation_disposition\":\"{}\",\"baseline_action_id\":\"{}\",\"baseline_expected_service_losses\":{},\"observed_expected_service_losses\":{},\"outcome_decisions\":{},\"baseline_weighted_loss_numerator\":\"{}\",\"baseline_action_cost_numerator\":\"{}\",\"observed_weighted_loss_numerator\":{},\"observed_action_cost_numerator\":{},\"observation_cost_numerator\":{},\"net_value_numerator\":{},\"expected_value_denominator\":\"{}\",\"post_observation_has_intervention\":{},\"execution_authorized\":{},\"recommendation\":\"{}\"}}",
             json_escape(&self.scenario_id),
             self.manifest_sha256,
             self.decision_deadline_seconds,
@@ -796,7 +831,9 @@ impl DecisionResult {
             observed_services,
             outcomes_json,
             self.baseline_weighted_loss_numerator,
+            self.baseline_action_cost_numerator,
             observed_weighted,
+            observed_action_cost,
             cost,
             net,
             self.expected_value_denominator,
@@ -845,6 +882,7 @@ pub fn positive_voi_fixture() -> DecisionProblem {
                 procedure_sha256: "b".repeat(64),
                 physical_evidence_ref: "evidence:fixture-current-state".to_owned(),
                 physical_evidence_sha256: "c".repeat(64),
+                action_cost_score_units: 0,
                 maximum_completion_seconds: 0,
                 safety_buffer_seconds: 0,
                 gates: all_gates,
@@ -860,6 +898,7 @@ pub fn positive_voi_fixture() -> DecisionProblem {
                 procedure_sha256: "d".repeat(64),
                 physical_evidence_ref: "evidence:qualified-synthetic-physics".to_owned(),
                 physical_evidence_sha256: "e".repeat(64),
+                action_cost_score_units: 2,
                 maximum_completion_seconds: 10,
                 safety_buffer_seconds: 5,
                 gates: all_gates,
@@ -911,6 +950,7 @@ mod tests {
             Recommendation::ObserveThenUseOutcomePolicy
         );
         assert_eq!(result.baseline_weighted_loss_numerator, 40_000_000_000_000);
+        assert_eq!(result.baseline_action_cost_numerator, 0);
         assert_eq!(
             result.baseline_expected_service_losses[0].numerator,
             40_000_000_000_000
@@ -929,10 +969,14 @@ mod tests {
             Some(20_000_000_000_000)
         );
         assert_eq!(
+            result.observed_action_cost_numerator,
+            Some(1_000_000_000_000)
+        );
+        assert_eq!(
             result.observation_cost_numerator,
             Some(2_000_000_000_000)
         );
-        assert_eq!(result.net_value_numerator, Some(18_000_000_000_000));
+        assert_eq!(result.net_value_numerator, Some(17_000_000_000_000));
         assert_eq!(result.outcome_decisions.len(), 2);
         assert_eq!(result.outcome_decisions[0].action_id, "mitigate-low-state");
         assert_eq!(result.outcome_decisions[1].action_id, "hold");
@@ -975,6 +1019,7 @@ mod tests {
             procedure_sha256: "2".repeat(64),
             physical_evidence_ref: "evidence:current-physical-envelope".to_owned(),
             physical_evidence_sha256: "3".repeat(64),
+            action_cost_score_units: 0,
             maximum_completion_seconds: 70,
             safety_buffer_seconds: 10,
             gates: all_gates,

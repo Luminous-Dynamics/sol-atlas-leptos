@@ -14,15 +14,15 @@ It accepts already-qualified upstream inputs:
 - a frozen scenario manifest and digest;
 - a finite state set with prior probabilities;
 - service-specific loss units and explicit owner-supplied decision weights;
-- candidate actions with state-specific physical admissibility and service-floor preservation;
+- candidate actions with state-specific physical admissibility, hard service-floor preservation and an explicit owner-supplied action-cost score;
 - independent human-approval, resource, evidence-freshness and scope gates;
 - a single observation option with source, rights and likelihood-model evidence;
 - a joint observation-outcome likelihood model, which must include known common-mode/correlated error;
 - acquisition latency, conservative completion duration, safety buffer and decision deadline.
 
-The oracle chooses the lowest expected weighted-loss action among actions that are feasible in **every state still supported by the evidence**. This robust support rule is intentionally conservative. A low-probability state is not discarded simply because it is inconvenient.
+The oracle chooses the lowest expected weighted-service-loss plus action-cost option among actions that are feasible in **every state still supported by the evidence**. Action cost is a separate owner-supplied score in the same declared decision-loss units; it is not assumed to be currency. This robust support rule is intentionally conservative. A low-probability state is not discarded simply because it is inconvenient.
 
-For each observation result, the evaluator recalculates the supported state set and selects an outcome-conditioned action. It then compares expected service-loss vectors and the owner-weighted decision score with the ACT_NOW baseline. Observation cost is supplied in the same explicitly owner-defined utility units. No default cross-service weights are invented.
+For each observation result, the evaluator recalculates the supported state set and selects an outcome-conditioned action. It then compares expected service-loss vectors and owner-weighted decision score with the ACT_NOW baseline. Action cost and observation-acquisition cost are reported separately; both use explicitly owner-defined decision-loss units. No default cross-service weights are invented.
 
 ## Exact arithmetic and receipt
 
@@ -36,9 +36,9 @@ The CLI runs a small positive-VOI known-answer fixture:
 cargo run --manifest-path tools/gmd-decision-value-oracle/Cargo.toml --locked --offline
 ```
 
-The fixture should select HOLD before observation. Once a qualified observation arrives, it selects a state-specific mitigation in the moderate-impact state and HOLD in the severe-impact state. The expected weighted loss numerator is 40,000,000,000,000 before observation and 20,000,000,000,000 afterwards. Acquisition cost is 2,000,000,000,000, leaving a positive net value numerator of 18,000,000,000,000. The denominator is 1,000,000,000,000.
+The fixture selects HOLD before observation. Once a qualified observation arrives, it selects a state-specific mitigation in the moderate-impact state and HOLD in the severe-impact state. Baseline expected weighted service loss is 40,000,000,000,000. Post-observation expected weighted service loss is 20,000,000,000,000. The mitigation has a score cost of 2, yielding expected action cost 1,000,000,000,000 because it is selected in half of the prior mass. Observation acquisition cost is 2,000,000,000,000. Net value is therefore +17,000,000,000,000 over the denominator 1,000,000,000,000.
 
-The receipt always sets `execution_authorized=false`. It is evidence about a decision calculation, not a command.
+The receipt exposes baseline action cost, expected post-observation action cost, observation acquisition cost and per-service loss separately. It always sets `execution_authorized=false`. It is evidence about a decision calculation, not a command.
 
 ## Safety and evidence boundaries
 
