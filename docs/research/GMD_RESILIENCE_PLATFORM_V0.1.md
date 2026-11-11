@@ -737,3 +737,72 @@ Mycelix records provenance, authority and causal ordering. It must not equate si
 ### 22.4 Claim ceiling
 
 The action-window oracle proves only deterministic arithmetic and supplied precondition disposition. It does not validate forecast accuracy, real task duration, crew/resource availability, legal authority, physical mitigation effectiveness, operator adoption or service continuity. Those require owner-approved procedure data, qualified physical models, permissioned exercises and independently observed outcomes.
+
+
+## 23. Industry standards alignment and long-horizon benchmark boundary — 11 November 2026
+
+IEEE PES's 1 October 2026 technical report *Reliability and Resilience for New Grid Needs* (TR148; DOI 10.17023/srdf-0n62) broadens the planning context beyond one hazard. It covers rapid load growth, inverter-based resources and loads, climate and cyber/physical threats, infrastructure hardening, protection misoperations, redundancy, supply-chain risk, coordination, forecasting/preparedness, storage, microgrids and distributed energy resources.
+
+Source: https://resourcecenter.ieee-pes.org/publications/technical-reports/pes_tr_tr148_itslc_102026
+
+Use TR148 with IEEE PES TR143 (Power System Resilience Metrics and Evaluation Methods, 8 June 2026; DOI 10.17023/7e16-km93) as complementary industry baselines:
+- TR143 informs dynamic resilience metric design and event response/recovery measurement.
+- TR148 informs planning portfolios, interacting emerging grid needs, resource constraints and resilience investment across multiple future conditions.
+
+The GMD architecture must not claim conformance to these reports. Its metrics are a declared subset, and all deviations / omitted dimensions should be documented. NERC TPL-007-4 and EOP-010-1 remain applicable planning/operations standards for their specified North American entities; they are neither global standards nor a substitute for local grid codes and owner procedures. IEEE 2030.7 / 2030.8 and their active revisions remain the relevant microgrid controller functional/testing standards lane; IEEE 2030.12-2025 is the protection-design guide. The 2026 grid-forming testing review (Energies 19(20), 4966, DOI 10.3390/en19204966) provides a multi-fidelity validation ladder across analytical simulation, EMT, real-time simulation, CHIL/PHIL, lab and field evidence.
+
+### 23.1 Required claim/evidence matrix
+
+For every public capability claim, report the highest evidence tier actually completed and the exact claim supported:
+
+| Evidence tier | What it can support | What it cannot support |
+|---|---|---|
+| E0 — documented protocol/schema | Data shape, provenance and declared assumptions | Correct implementation or physical validity |
+| E1 — analytic/software oracle | Arithmetic, invariants and bounded deterministic logic | Real instrument accuracy, grid feasibility or field service |
+| E2 — historical replay | Reproduction on pinned historical inputs | Generalization to new sites, grids or storms |
+| E3 — qualified physical model | Performance within its validated physical domain | Hardware / operator performance beyond that domain |
+| E4 — real-time simulation / CHIL | Controller behaviour under the tested interface/model | Full power-stage or field performance |
+| E5 — PHIL / lab hardware | Tested physical interaction under the lab envelope | Fleet-wide or regional operational resilience |
+| E6 — owner-authorised field exercise | Measured outcome under the exercised site/procedure | Unexercised hazard, geography or operating mode |
+| E7 — operational adoption / multi-event evidence | Repeated measured service and operator outcomes across declared contexts | Universal immunity or guaranteed survival |
+
+No lower tier may be described as a higher tier. Synthetic fixtures remain synthetic. A standards mapping is not certification; a model check is not an operator approval; a signed command is not proof of actuation; and a restoration event is not a service-continuity result unless service delivery is separately observed.
+
+### 23.2 Long-horizon resilience portfolio benchmark
+
+For investment and planning decisions, evaluate repeated event sequences and changing infrastructure futures in addition to historical single-event replay:
+- repeated storms and recovery intervals;
+- transformer fleet ageing, replacement lead time and spare stock;
+- topology / generation mix / load growth and inverter-based resource evolution;
+- maintenance windows and instrument-network lifecycle;
+- fuel, component, crew and supplier availability;
+- GNSS / satellite / telecom dependencies and common-cause failures;
+- climate and cyber/physical events that compete for the same resilience resources.
+
+Report event-specific results and long-horizon results separately. For synthetic event ensembles, disclose the generator, dependence assumptions, weights and sensitivity. Do not call a synthetic ensemble a real-world probability distribution. Compare worst-case/robust performance, expected performance under a declared ensemble, tail outcomes and lifecycle cost as distinct outputs.
+
+### 23.3 Multi-objective decision rule
+
+Use lexicographic hard constraints:
+1. electrical, protection, legal and operator-authority feasibility;
+2. no false-ready or unauthorized action;
+3. preserve owner-declared essential-service floors;
+4. reduce worst-service / worst-region deficits and sustained recovery time;
+5. only then optimize cost, asset stress, resource use and lifecycle burden.
+
+Keep service quantities in their native units. If an optional normalized portfolio view is offered, publish its weights and ensure it cannot mask a critical service-floor or hard safety violation.
+
+### 23.4 Industry comparison strategy
+
+The defensible way to outperform SOTA is not to claim a universal “better model.” It is to publish matched incremental-value results across distinct tasks:
+- space-weather arrival / physical hazard prediction versus NOAA/SANSA products;
+- geoelectric/GIC estimation versus qualified site-specific physical models;
+- sensor portfolio design versus nearest-station, uniform-spacing and expert-placement baselines;
+- transformer stress versus asset-specific thermal / saturation evidence;
+- grid restoration versus operator rules, top-down, bottom-up GFM and hybrid strategies;
+- operator actionability versus warning-only and existing procedure baselines;
+- essential-service continuity versus utility outage/restoration KPIs;
+- offline coordination versus central online communication assumptions;
+- long-horizon portfolio performance versus single-event planning.
+
+For each task, hold input information, event split, topology revision, resource budget, measurement cutoff and hard constraints equal. Report calibration, worst-case strata, abstention, false-ready rate, model runtime, operator burden and service outcomes. A composite platform advantage may be claimed only after the component task results and cross-system field exercises support it.
