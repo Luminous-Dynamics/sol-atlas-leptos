@@ -470,7 +470,6 @@ fn validate_problem(problem: &DecisionProblem) -> Result<(), DecisionError> {
                 has_hold = true;
                 if action.maximum_completion_seconds != 0
                     || action.safety_buffer_seconds != 0
-                    || !gates_pass(action.gates)
                     || action.physically_admissible_by_state.iter().any(|v| !*v)
                 {
                     return Err(DecisionError::InvalidHoldAction);
@@ -576,7 +575,7 @@ fn select_action(
     let mut best: Option<(usize, u128)> = None;
 
     for (action_index, action) in problem.actions.iter().enumerate() {
-        if !gates_pass(action.gates) {
+        if action.kind == ActionKind::Intervention && !gates_pass(action.gates) {
             continue;
         }
         let completes_by_deadline = arrival_seconds
@@ -1009,6 +1008,27 @@ mod tests {
         );
         assert!(result.observed_weighted_loss_numerator.is_none());
         assert_eq!(result.baseline_action_id, "hold");
+    }
+
+    #[test]
+    fn hold_fallback_remains_available_without_intervention_gates() {
+        let mut problem = positive_voi_fixture();
+        let closed_gates = ActionGates {
+            human_approved: false,
+            resources_available: false,
+            evidence_fresh: false,
+            scope_verified: false,
+        };
+        problem.actions[0].gates = closed_gates;
+        problem.actions[1].gates = closed_gates;
+
+        let result = evaluate(&problem).expect("non-intervention HOLD remains available");
+        assert_eq!(result.baseline_action_id, "hold");
+        assert!(result
+            .outcome_decisions
+            .iter()
+            .all(|decision| decision.action_id == "hold"));
+        assert!(!result.execution_authorized);
     }
 
     #[test]

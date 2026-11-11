@@ -65,6 +65,11 @@
       "case_id": "scope-conflict",
       "expected": "hold",
       "purpose": "An intervention with unresolved owner or asset scope cannot be recommended."
+    },
+    {
+      "case_id": "hold-available-without-intervention-gates",
+      "expected": "hold",
+      "purpose": "A non-intervention HOLD fallback must remain representable when approval, resource, freshness and scope gates for interventions are closed."
     }
   ]
 }

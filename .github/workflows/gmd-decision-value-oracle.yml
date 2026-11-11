@@ -63,6 +63,7 @@ jobs:
               "malformed-probabilities-fail-closed",
               "stale-action-evidence",
               "scope-conflict",
+              "hold-available-without-intervention-gates",
           }
           actual_ids = {case["case_id"] for case in fixtures["cases"]}
           assert fixtures["schema_version"] == "0.1.0"
