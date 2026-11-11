@@ -152,6 +152,7 @@ pub enum ActionWindowError {
     InvalidImpactWindow,
     InvalidDurationRange,
     ApprovedActionHasPendingApprovalDuration,
+    ZeroCompletionDuration,
     DurationOverflow,
 }
 
@@ -163,6 +164,7 @@ impl fmt::Display for ActionWindowError {
             Self::InvalidImpactWindow => "impact arrival window must be positive and ordered",
             Self::InvalidDurationRange => "each duration range minimum must not exceed its maximum",
             Self::ApprovedActionHasPendingApprovalDuration => "approved action cannot retain a pending approval duration",
+            Self::ZeroCompletionDuration => "candidate action must have a positive total completion duration",
             Self::DurationOverflow => "action stage duration sum overflowed",
         };
         f.write_str(message)
@@ -225,6 +227,9 @@ pub fn evaluate_action_window(
         input.mobilisation_duration.maximum_seconds,
         input.execution_duration.maximum_seconds,
     ])?;
+    if maximum_completion_seconds == 0 {
+        return Err(ActionWindowError::ZeroCompletionDuration);
+    }
 
     let conservative_deadline_seconds = input
         .earliest_impact_seconds
@@ -550,6 +555,19 @@ mod tests {
         assert_eq!(
             evaluate_action_window(&candidate),
             Err(ActionWindowError::DurationOverflow)
+        );
+    }
+
+    #[test]
+    fn zero_total_completion_duration_is_rejected() {
+        let mut candidate = input();
+        candidate.approval_duration = range(0, 0);
+        candidate.preparation_duration = range(0, 0);
+        candidate.mobilisation_duration = range(0, 0);
+        candidate.execution_duration = range(0, 0);
+        assert_eq!(
+            evaluate_action_window(&candidate),
+            Err(ActionWindowError::ZeroCompletionDuration)
         );
     }
 
