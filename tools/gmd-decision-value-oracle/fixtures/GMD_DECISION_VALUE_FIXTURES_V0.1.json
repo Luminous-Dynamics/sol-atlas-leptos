@@ -1,0 +1,60 @@
+{
+  "schema_version": "0.1.0",
+  "fixture_class": "synthetic_known_answer_and_negative_controls",
+  "claim_ceiling": "E2_software_logic_only",
+  "cases": [
+    {
+      "case_id": "positive-voi",
+      "expected": "observe_then_use_outcome_policy",
+      "expected_net_value_numerator": "18000000000000",
+      "purpose": "A qualified, timely state-discriminating observation improves the owner-weighted loss after its declared cost."
+    },
+    {
+      "case_id": "zero-voi",
+      "expected": "use_current_evidence",
+      "expected_net_value_numerator": "0",
+      "purpose": "An uninformative observation with zero acquisition cost must not be assigned positive decision value."
+    },
+    {
+      "case_id": "late-measurement-increases-regret",
+      "expected": "use_current_evidence",
+      "expected_net_value_numerator": "-20000000000000",
+      "purpose": "Waiting for an observation can make an otherwise feasible action miss its conservative completion window."
+    },
+    {
+      "case_id": "rights-ineligible-observation",
+      "expected": "observation_not_used",
+      "purpose": "A source without rights for the requested use cannot enter the decision policy."
+    },
+    {
+      "case_id": "common-mode-model-unqualified",
+      "expected": "observation_not_used",
+      "purpose": "An observation with unqualified common-mode error treatment cannot improve action admissibility."
+    },
+    {
+      "case_id": "pending-human-approval",
+      "expected": "hold",
+      "purpose": "A candidate intervention without human approval remains unavailable."
+    },
+    {
+      "case_id": "resources-unavailable",
+      "expected": "hold",
+      "purpose": "A candidate intervention without its required resources remains unavailable."
+    },
+    {
+      "case_id": "hard-floor-breach-blocks-action",
+      "expected": "hold",
+      "purpose": "A candidate intervention that breaches any declared hard service floor is not admissible."
+    },
+    {
+      "case_id": "observation-arrives-after-deadline",
+      "expected": "observation_not_used",
+      "purpose": "An observation arriving at or after the decision deadline is not used for that decision."
+    },
+    {
+      "case_id": "malformed-probabilities-fail-closed",
+      "expected": "input_rejected",
+      "purpose": "Prior probability mass must sum exactly to one million parts per million."
+    }
+  ]
+}

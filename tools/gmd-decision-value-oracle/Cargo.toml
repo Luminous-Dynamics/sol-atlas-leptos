@@ -1,0 +1,16 @@
+[package]
+name = "gmd-decision-value-oracle"
+version = "0.1.0"
+edition = "2024"
+publish = false
+description = "Deterministic decision-value oracle for GMD resilience research"
+
+[lib]
+name = "gmd_decision_value_oracle"
+path = "src/lib.rs"
+
+[[bin]]
+name = "gmd-decision-value-oracle"
+path = "src/main.rs"
+
+[workspace]

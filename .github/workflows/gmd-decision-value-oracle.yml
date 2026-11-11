@@ -1,0 +1,84 @@
+name: GMD decision-value oracle
+
+on:
+  pull_request:
+    paths:
+      - "tools/gmd-decision-value-oracle/**"
+      - "docs/research/GMD_DECISION_VALUE_BENCHMARK_V0.1.md"
+      - ".github/workflows/gmd-decision-value-oracle.yml"
+  push:
+    paths:
+      - "tools/gmd-decision-value-oracle/**"
+      - "docs/research/GMD_DECISION_VALUE_BENCHMARK_V0.1.md"
+      - ".github/workflows/gmd-decision-value-oracle.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: gmd-decision-value-oracle-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  oracle:
+    name: deterministic decision-value oracle
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact commit
+        uses: actions/checkout@v4
+      - name: Install stable Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - name: Check formatting
+        run: cargo fmt --manifest-path tools/gmd-decision-value-oracle/Cargo.toml -- --check
+      - name: Run locked offline unit tests
+        run: cargo test --manifest-path tools/gmd-decision-value-oracle/Cargo.toml --locked --offline
+      - name: Run Clippy
+        run: cargo clippy --manifest-path tools/gmd-decision-value-oracle/Cargo.toml --locked --offline --all-targets -- -D warnings
+      - name: Emit deterministic known-answer receipt
+        run: cargo run --manifest-path tools/gmd-decision-value-oracle/Cargo.toml --locked --offline > /tmp/gmd-decision-value-receipt.json
+      - name: Validate fixture catalogue and known-answer receipt
+        run: |
+          python3 - <<'PY'
+          import json
+          import pathlib
+
+          root = pathlib.Path("tools/gmd-decision-value-oracle")
+          fixtures = json.loads((root / "fixtures/GMD_DECISION_VALUE_FIXTURES_V0.1.json").read_text())
+          schema = json.loads((root / "fixtures/GMD_DECISION_VALUE_RECEIPT_V0.1.schema.json").read_text())
+          receipt = json.loads(pathlib.Path("/tmp/gmd-decision-value-receipt.json").read_text())
+
+          expected_ids = {
+              "positive-voi",
+              "zero-voi",
+              "late-measurement-increases-regret",
+              "rights-ineligible-observation",
+              "common-mode-model-unqualified",
+              "pending-human-approval",
+              "resources-unavailable",
+              "hard-floor-breach-blocks-action",
+              "observation-arrives-after-deadline",
+              "malformed-probabilities-fail-closed",
+          }
+          actual_ids = {case["case_id"] for case in fixtures["cases"]}
+          assert fixtures["schema_version"] == "0.1.0"
+          assert fixtures["claim_ceiling"] == "E2_software_logic_only"
+          assert actual_ids == expected_ids
+          assert schema["$schema"] == "https://json-schema.org/draft/2020-12/schema"
+          assert schema["properties"]["execution_authorized"]["const"] is False
+
+          assert receipt["schema_version"] == "0.1.0"
+          assert receipt["baseline_action_id"] == "hold"
+          assert receipt["observation_disposition"] == "ELIGIBLE"
+          assert receipt["baseline_weighted_loss_numerator"] == "40000000000000"
+          assert receipt["observed_weighted_loss_numerator"] == "20000000000000"
+          assert receipt["observation_cost_numerator"] == "2000000000000"
+          assert receipt["net_value_numerator"] == "18000000000000"
+          assert receipt["expected_value_denominator"] == "1000000000000"
+          assert receipt["recommendation"] == "OBSERVE_THEN_USE_OUTCOME_POLICY"
+          assert receipt["execution_authorized"] is False
+          assert {entry["action_id"] for entry in receipt["outcome_decisions"]} == {"hold", "mitigate-low-state"}
+          print("GMD decision-value known-answer receipt validated")
+          PY
