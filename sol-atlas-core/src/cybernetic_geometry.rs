@@ -71,9 +71,16 @@ impl RigidTransform3 {
     /// Compose A-from-B with B-from-C to obtain A-from-C.
     pub fn compose(self, b_from_c: Self) -> Self {
         let translated = rotate(self.quaternion_xyzw, b_from_c.translation_m);
+        let mut quaternion = qmul(self.quaternion_xyzw, b_from_c.quaternion_xyzw);
+        let quaternion_norm = dot4(quaternion, quaternion).sqrt();
+        if quaternion_norm.is_finite() && quaternion_norm > 1.0e-15 {
+            for component in &mut quaternion {
+                *component /= quaternion_norm;
+            }
+        }
         Self {
             translation_m: add3(self.translation_m, translated),
-            quaternion_xyzw: qmul(self.quaternion_xyzw, b_from_c.quaternion_xyzw),
+            quaternion_xyzw: quaternion,
         }
     }
 
@@ -322,7 +329,9 @@ pub fn validate_cybernetic_interface_geometry(
             pairs += 1;
             max_translation = max_translation.max(translation_error);
             max_rotation = max_rotation.max(rotation_error);
-            if translation_error > TRANSLATION_CLOSURE_TOLERANCE_M
+            if !translation_error.is_finite()
+                || !rotation_error.is_finite()
+                || translation_error > TRANSLATION_CLOSURE_TOLERANCE_M
                 || rotation_error > ROTATION_CLOSURE_TOLERANCE
             {
                 errors.push(err("frame_graph", GeometryErrorCode::TransformClosureFailure));
@@ -421,7 +430,20 @@ fn resolve(
         (Some(parent), Some(parent_from_child)) => {
             let parent_index = *indices.get(parent)?;
             resolve(parent_index, frames, indices, states, transforms, errors)
-                .map(|root_from_parent| root_from_parent.compose(parent_from_child))
+                .and_then(|root_from_parent| {
+                    let composed = root_from_parent.compose(parent_from_child);
+                    let finite_translation = composed.translation_m.iter().all(|value| value.is_finite());
+                    let finite_quaternion = composed.quaternion_xyzw.iter().all(|value| value.is_finite());
+                    if !finite_translation || !finite_quaternion {
+                        errors.push(err(
+                            &format!("frame_graph.frames[{index}].transform_parent_from_child"),
+                            GeometryErrorCode::NonFiniteTransform,
+                        ));
+                        None
+                    } else {
+                        Some(composed)
+                    }
+                })
         }
         (Some(_), None) => None,
     };
@@ -631,6 +653,17 @@ mod tests {
         doc["frame_graph"]["frames"][1]["linear_unit"] = json!("mm");
         let errors = validate_cybernetic_interface_geometry(&doc).unwrap_err();
         assert!(contains(&errors, GeometryErrorCode::CoordinateConventionMismatch));
+    }
+
+    #[test]
+    fn rejects_finite_inputs_that_overflow_during_transform_composition() {
+        let mut doc = fixture();
+        doc["frame_graph"]["frames"][1]["transform_parent_from_child"]["translation_m"] =
+            json!([1.0e308, 0.0, 0.0]);
+        doc["frame_graph"]["frames"][2]["transform_parent_from_child"]["translation_m"] =
+            json!([1.0e308, 0.0, 0.0]);
+        let errors = validate_cybernetic_interface_geometry(&doc).unwrap_err();
+        assert!(contains(&errors, GeometryErrorCode::NonFiniteTransform));
     }
 
     #[test]
