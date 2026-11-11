@@ -1,0 +1,906 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/gmd-ibr-protection-scenario-v0.1.schema.json",
+  "title": "GMD IBR / CT / protection scenario manifest v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "scenario_id",
+    "status",
+    "claim_ceiling",
+    "evidence_class",
+    "network",
+    "timebase",
+    "disturbance",
+    "inverter_resources",
+    "neutral_blocking_devices",
+    "transformers",
+    "current_transformers",
+    "protection_relays",
+    "faults",
+    "fidelity_studies",
+    "required_metrics",
+    "waveform_manifest_refs",
+    "operational_boundary"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "scenario_id": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^[a-z0-9][a-z0-9._-]+$"
+    },
+    "status": {
+      "enum": [
+        "planned",
+        "synthetic_input_pinned",
+        "simulated",
+        "published_case_reproduced",
+        "hardware_tested",
+        "field_exercised"
+      ]
+    },
+    "claim_ceiling": {
+      "enum": [
+        "E0",
+        "E1",
+        "E2",
+        "E3",
+        "E4",
+        "E5",
+        "E6",
+        "E7"
+      ]
+    },
+    "evidence_class": {
+      "enum": [
+        "design",
+        "analytical",
+        "simulated",
+        "published_derived",
+        "measured",
+        "hardware_test",
+        "field_exercise"
+      ]
+    },
+    "network": {
+      "$ref": "#/$defs/network"
+    },
+    "timebase": {
+      "$ref": "#/$defs/timebase"
+    },
+    "disturbance": {
+      "$ref": "#/$defs/disturbance"
+    },
+    "inverter_resources": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/inverterResource"
+      }
+    },
+    "neutral_blocking_devices": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/neutralBlockingDevice"
+      }
+    },
+    "transformers": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/transformer"
+      }
+    },
+    "current_transformers": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/currentTransformer"
+      }
+    },
+    "protection_relays": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/protectionRelay"
+      }
+    },
+    "faults": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/fault"
+      }
+    },
+    "fidelity_studies": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/fidelityStudy"
+      }
+    },
+    "required_metrics": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/metricRequirement"
+      }
+    },
+    "waveform_manifest_refs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "operational_boundary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "operational_control_enabled",
+        "execution_authorized"
+      ],
+      "properties": {
+        "operational_control_enabled": {
+          "const": false
+        },
+        "execution_authorized": {
+          "const": false
+        }
+      }
+    }
+  },
+  "$defs": {
+    "sha256": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "nonEmpty": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_ref",
+        "publisher",
+        "source_class",
+        "access_status",
+        "artifact_sha256"
+      ],
+      "properties": {
+        "source_ref": {
+          "type": "string",
+          "format": "uri"
+        },
+        "publisher": {
+          "$ref": "#/$defs/nonEmpty"
+        },
+        "source_class": {
+          "enum": [
+            "synthetic_network",
+            "published_paper",
+            "public_project_record",
+            "owner_supplied",
+            "measured_dataset",
+            "model_artifact"
+          ]
+        },
+        "access_status": {
+          "enum": [
+            "catalogued_not_downloaded",
+            "public_metadata_only",
+            "downloaded_rights_unverified",
+            "research_use_authorized",
+            "commercial_use_authorized",
+            "owner_supplied_authorized",
+            "unknown"
+          ]
+        },
+        "artifact_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "revision": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "network": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "family",
+        "synthetic",
+        "source",
+        "topology_revision",
+        "topology_sha256"
+      ],
+      "properties": {
+        "family": {
+          "enum": [
+            "Texas2kSeries24",
+            "Texas2kSeries25",
+            "ACTIVSg2000",
+            "Memphis2026Synthetic",
+            "owner_supplied",
+            "other_synthetic"
+          ]
+        },
+        "synthetic": {
+          "const": true
+        },
+        "source": {
+          "$ref": "#/$defs/source"
+        },
+        "topology_revision": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "topology_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "base_frequency_hz": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "nominal_voltage_kv": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "network_strength_description": {
+          "enum": [
+            "strong",
+            "weak",
+            "mixed",
+            "not_classified"
+          ]
+        },
+        "short_circuit_ratio": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "exclusiveMinimum": 0
+        }
+      }
+    },
+    "timebase": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "origin",
+        "clock_reference",
+        "synchronization_group",
+        "maximum_clock_uncertainty_ns"
+      ],
+      "properties": {
+        "origin": {
+          "enum": [
+            "relative_to_simulation_start",
+            "UTC",
+            "GPS",
+            "IRIG_B",
+            "PTP_IEEE_1588",
+            "local_clock",
+            "unknown"
+          ]
+        },
+        "clock_reference": {
+          "$ref": "#/$defs/nonEmpty"
+        },
+        "synchronization_group": {
+          "$ref": "#/$defs/nonEmpty"
+        },
+        "maximum_clock_uncertainty_ns": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "sample_alignment_tolerance_ns": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "absolute_start_epoch_ns": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        }
+      }
+    },
+    "disturbance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "gmd_enabled",
+        "gic_input_class",
+        "gic_waveform_ref",
+        "gic_source_sha256",
+        "polarity_convention"
+      ],
+      "properties": {
+        "gmd_enabled": {
+          "type": "boolean"
+        },
+        "gic_input_class": {
+          "enum": [
+            "none",
+            "synthetic_injection",
+            "published_waveform",
+            "owner_measured",
+            "qualified_physical_model",
+            "unknown"
+          ]
+        },
+        "gic_waveform_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "gic_source_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "polarity_convention": {
+          "enum": [
+            "positive_into_neutral",
+            "positive_out_of_neutral",
+            "declared_per_channel",
+            "not_applicable",
+            "unknown"
+          ]
+        },
+        "earth_response_model_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "earth_response_model_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "line_voltage_model_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "line_voltage_model_sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "inverterResource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "resource_id",
+        "resource_type",
+        "operating_mode",
+        "converter_model_fidelity",
+        "control_mode",
+        "current_control_model",
+        "current_limit_model",
+        "momentary_cessation_model",
+        "model_ref",
+        "model_sha256"
+      ],
+      "properties": {
+        "resource_id": {
+          "$ref": "#/$defs/nonEmpty"
+        },
+        "resource_type": {
+          "enum": [
+            "PV",
+            "wind_type_3",
+            "wind_type_4",
+            "BESS",
+            "HVDC",
+            "STATCOM",
+            "FACTS",
+            "other_power_electronic_device"
+          ]
+        },
+        "operating_mode": {
+          "enum": [
+            "grid_following",
+            "grid_forming",
+            "not_applicable"
+          ]
+        },
+        "converter_model_fidelity": {
+          "enum": [
+            "average_value",
+            "switching",
+            "vendor_emt",
+            "hardware",
+            "unknown"
+          ]
+        },
+        "control_mode": {
+          "enum": [
+            "PQ",
+            "Vdc_Vac",
+            "droop",
+            "virtual_synchronous_machine",
+            "voltage_source",
+            "vendor_defined",
+            "not_applicable",
+            "unknown"
+          ]
+        },
+        "current_control_model": {
+          "enum": [
+            "explicit_fast_loop",
+            "explicit_slow_loop",
+            "vendor_modelled",
+            "omitted",
+            "unknown"
+          ]
+        },
+        "current_limit_model": {
+          "enum": [
+            "explicit",
+            "vendor_modelled",
+            "disabled",
+            "omitted",
+            "unknown"
+          ]
+        },
+        "momentary_cessation_model": {
+          "enum": [
+            "explicit",
+            "vendor_modelled",
+            "disabled",
+            "omitted",
+            "unknown"
+          ]
+        },
+        "phase_locked_loop_model": {
+          "enum": [
+            "explicit",
+            "vendor_modelled",
+            "not_applicable",
+            "omitted",
+            "unknown"
+          ]
+        },
+        "dispatch_pu": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "current_limit_pu": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "exclusiveMinimum": 0
+        },
+        "scr_at_poi": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "exclusiveMinimum": 0
+        },
+        "model_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "model_sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "neutralBlockingDevice": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "device_id",
+        "installed",
+        "device_model_class",
+        "state",
+        "model_ref",
+        "model_sha256"
+      ],
+      "properties": {
+        "device_id": {
+          "$ref": "#/$defs/nonEmpty"
+        },
+        "installed": {
+          "type": "boolean"
+        },
+        "device_model_class": {
+          "enum": [
+            "capacitive_neutral_blocker",
+            "resistive_neutral_blocker",
+            "hybrid",
+            "other",
+            "not_applicable",
+            "unknown"
+          ]
+        },
+        "state": {
+          "enum": [
+            "in_service",
+            "bypassed",
+            "blocked",
+            "failed",
+            "not_installed",
+            "unknown"
+          ]
+        },
+        "model_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "model_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "protection_bypass_logic_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "transformer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "transformer_id",
+        "configuration_revision",
+        "configuration_sha256",
+        "winding_grounding_ref",
+        "gic_model_ref",
+        "response_model_class"
+      ],
+      "properties": {
+        "transformer_id": {
+          "$ref": "#/$defs/nonEmpty"
+        },
+        "configuration_revision": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "configuration_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "winding_grounding_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "gic_model_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "response_model_class": {
+          "enum": [
+            "steady_state_dc",
+            "dynamic_harmonic",
+            "emt_saturation",
+            "measured_response",
+            "unknown"
+          ]
+        },
+        "validity_domain_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "currentTransformer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ct_id",
+        "ratio_primary_secondary",
+        "burden_ohm",
+        "remanence_state",
+        "magnetization_curve_ref",
+        "configuration_sha256"
+      ],
+      "properties": {
+        "ct_id": {
+          "$ref": "#/$defs/nonEmpty"
+        },
+        "ratio_primary_secondary": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "burden_ohm": {
+          "type": "number",
+          "minimum": 0
+        },
+        "remanence_state": {
+          "enum": [
+            "zero_assumed",
+            "measured",
+            "bounded",
+            "unknown"
+          ]
+        },
+        "remanence_bound_pu": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "magnetization_curve_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "configuration_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "secondary_grounding_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "protectionRelay": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "relay_id",
+        "function",
+        "model_fidelity",
+        "settings_revision",
+        "settings_sha256",
+        "ct_ids",
+        "model_ref"
+      ],
+      "properties": {
+        "relay_id": {
+          "$ref": "#/$defs/nonEmpty"
+        },
+        "function": {
+          "enum": [
+            "21",
+            "21G",
+            "50",
+            "51",
+            "50N",
+            "51N",
+            "67",
+            "67N",
+            "87L",
+            "87T",
+            "27",
+            "59",
+            "81",
+            "other"
+          ]
+        },
+        "model_fidelity": {
+          "enum": [
+            "phasor_rms",
+            "emt_software",
+            "vendor_controller_hil",
+            "physical_relay_hil",
+            "unknown"
+          ]
+        },
+        "settings_revision": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "settings_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "ct_ids": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "model_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "trip_output_observed": {
+          "type": "boolean"
+        },
+        "measurement_input_source": {
+          "enum": [
+            "ct_secondary_waveform",
+            "phasor_estimate",
+            "simulator_internal",
+            "unknown"
+          ]
+        }
+      }
+    },
+    "fault": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "fault_id",
+        "fault_type",
+        "location_ref",
+        "inception_offset_ns",
+        "duration_ns"
+      ],
+      "properties": {
+        "fault_id": {
+          "$ref": "#/$defs/nonEmpty"
+        },
+        "fault_type": {
+          "enum": [
+            "none",
+            "single_line_ground",
+            "line_line",
+            "double_line_ground",
+            "three_phase",
+            "high_impedance_ground",
+            "other"
+          ]
+        },
+        "location_ref": {
+          "$ref": "#/$defs/nonEmpty"
+        },
+        "inception_offset_ns": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "duration_ns": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "fault_resistance_ohm": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        }
+      }
+    },
+    "fidelityStudy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "study_id",
+        "lane",
+        "tool_name",
+        "tool_version",
+        "model_set_sha256",
+        "time_step_ns",
+        "claim_ceiling"
+      ],
+      "properties": {
+        "study_id": {
+          "$ref": "#/$defs/nonEmpty"
+        },
+        "lane": {
+          "enum": [
+            "phasor_rms",
+            "emt",
+            "rtds",
+            "controller_hil",
+            "power_hil",
+            "field_exercise"
+          ]
+        },
+        "tool_name": {
+          "$ref": "#/$defs/nonEmpty"
+        },
+        "tool_version": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "model_set_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "time_step_ns": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1
+        },
+        "physical_hardware_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "claim_ceiling": {
+          "enum": [
+            "E0",
+            "E1",
+            "E2",
+            "E3",
+            "E4",
+            "E5",
+            "E6",
+            "E7"
+          ]
+        }
+      }
+    },
+    "metricRequirement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "metric_id",
+        "minimum_fidelity",
+        "scope"
+      ],
+      "properties": {
+        "metric_id": {
+          "enum": [
+            "gic_waveform",
+            "transformer_dc_bias",
+            "transformer_harmonics",
+            "ct_secondary_waveform",
+            "ct_saturation_indicator",
+            "relay_element_pickup",
+            "relay_trip_time",
+            "physical_relay_operation",
+            "voltage_frequency_stability",
+            "service_continuity"
+          ]
+        },
+        "minimum_fidelity": {
+          "enum": [
+            "phasor_rms",
+            "emt",
+            "rtds",
+            "controller_hil",
+            "power_hil",
+            "field_exercise"
+          ]
+        },
+        "scope": {
+          "$ref": "#/$defs/nonEmpty"
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}
