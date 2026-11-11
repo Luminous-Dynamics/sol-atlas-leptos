@@ -35,7 +35,7 @@
     "gmd_enabled": true,
     "gic_input_class": "synthetic_injection",
     "gic_waveform_ref": "gmd-ibr-waveform-example-001",
-    "gic_source_sha256": "f9d67c6eff72c867abbf4b1629ea514271ae77a583f8a1b22b4adafb6ec8b21f",
+    "gic_source_sha256": "28bec27ca2c84f24fad1aae46a22403a82f397e2cbdfd89f4006c6e4046c7c3e",
     "polarity_convention": "declared_per_channel",
     "earth_response_model_ref": null,
     "earth_response_model_sha256": null,
