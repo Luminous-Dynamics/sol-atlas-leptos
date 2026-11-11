@@ -808,6 +808,24 @@ The defensible way to outperform SOTA is not to claim a universal “better mode
 For each task, hold input information, event split, topology revision, resource budget, measurement cutoff and hard constraints equal. Report calibration, worst-case strata, abstention, false-ready rate, model runtime, operator burden and service outcomes. A composite platform advantage may be claimed only after the component task results and cross-system field exercises support it.
 
 
+### 23.5 Keep planning, equipment capability and protection modelling standards separate
+
+The following references occupy different assurance layers and must not be collapsed into one “GMD compliance” label:
+
+- **NERC TPL-007-4 — Transmission System Planned Performance for Geomagnetic Disturbance Events.** This is a system-level transmission planning / benchmark GMD vulnerability-assessment standard for the North American entities within its jurisdiction. The current NERC reliability-standards portal and current Ontario enforcement list continue to list TPL-007-4; the 2026 NERC standards portal was modified 10 November 2026. It is not a generic global standard or a transformer-specific damage limit. Sources: https://www.nerc.com/standards/reliability-standards and https://www.nerc.com/globalassets/standards/reliability-standards/tpl/tpl-007-4.pdf.
+- **IEEE C57.163-2023 — Guide for Establishing Power Transformer Capability while under Geomagnetic Disturbances.** IEEE Standards Association lists this as an active standard, published 12 February 2024, superseding C57.163-2015. It concerns transformer design capability and evaluation under GIC. It is equipment-level guidance, not a network-wide vulnerability assessment or a universal GIC damage threshold. Source: https://standards.ieee.org/ieee/C57.163/10203/.
+- **IEEE PES TR144 — Integrating Relay Models with Fundamental-Frequency Phasor-Domain Dynamic Simulation (8 July 2026; DOI 10.17023/yrcs-nf09).** This is a protection-dynamics model-integration report for phasor-domain/RMS simulation. It complements, but does not replace, EMT waveform modelling of CT saturation, harmonics and relay response under GIC DC bias. Source: https://resourcecenter.ieee-pes.org/publications/technical-reports/pes_tr_144_psdp_070826.
+- **Eskom ST_240-68973110 Rev. 2 — transformer procurement/design specification.** A public eTenders download states that clause 3.3.4 applies when GIC compatibility is specified in Schedule AB, describes a 10 A neutral-terminal / 30-minute design withstand condition under named operating conditions, and calls for an external neutral-terminal CT proposal for service-life monitoring. The downloaded copy states that web copies are uncontrolled and the authorised version must be confirmed. Treat this as a procurement/source-owner qualification lead only: not a generic South African fleet requirement, not proof that an existing transformer has the capability or CT, and not a universal GIC damage threshold. Source copy: https://www.etenders.gov.za/home/Download/?blobName=7007c9dc-2085-4b87-b958-4ab05c46d945.pdf&downloadedFileName=Eskom+Spec+ST_240-68973110+Rev+2.pdf.
+
+For every benchmark output, state whether it is:
+1. transmission system planning / vulnerability assessment;
+2. transformer design capability / equipment qualification;
+3. RMS relay and dynamic protection modelling;
+4. EMT waveform / CT saturation / relay hardware evidence;
+5. owner-authorised operational procedure and field evidence.
+
+A mapping to a report or standard is not certification or compliance. The exact edition, jurisdiction, entity applicability, model assumptions, current owner procedures and approved equipment documents must be verified independently. In particular, the 10 A / 30-minute Eskom design clause must not be reused as a generic transformer thermal damage threshold.
+
 ## 24. Resource-constrained restoration-sequence qualification — 11 November 2026
 
 The GMD programme now has a deterministic schedule verifier that bridges physical capability envelopes to downstream service and operator evaluation, without duplicating either a grid solver or the service-cascade model.
