@@ -362,7 +362,7 @@ mod tests {
     }
 
     #[test]
-    fn duration_and_arrival_uncertainty_produce_at_risk_classification() {
+    fn maximum_completion_at_conservative_deadline_is_a_conservative_fit() {
         let mut candidate = input();
         candidate.preparation_duration = range(10, 40);
         let result = evaluate_action_window(&candidate).unwrap();
@@ -392,7 +392,7 @@ mod tests {
     }
 
     #[test]
-    fn exact_earliest_deadline_boundary_is_conservative_fit() {
+    fn minimum_completion_at_earliest_deadline_remains_arrival_dependent() {
         let mut candidate = input();
         candidate.preparation_duration = range(40, 60);
         let result = evaluate_action_window(&candidate).unwrap();
@@ -442,6 +442,23 @@ mod tests {
         candidate.resource_state = ResourceState::Unknown;
         let result = evaluate_action_window(&candidate).unwrap();
         assert_eq!(result.readiness, ReadinessDisposition::Indeterminate);
+    }
+
+    #[test]
+    fn unknown_authority_or_evidence_is_indeterminate() {
+        let mut candidate = input();
+        candidate.authority_state = AuthorityState::Unknown;
+        assert_eq!(
+            evaluate_action_window(&candidate).unwrap().readiness,
+            ReadinessDisposition::Indeterminate
+        );
+
+        candidate = input();
+        candidate.evidence_state = EvidenceState::Unknown;
+        assert_eq!(
+            evaluate_action_window(&candidate).unwrap().readiness,
+            ReadinessDisposition::Indeterminate
+        );
     }
 
     #[test]
