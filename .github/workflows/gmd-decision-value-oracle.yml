@@ -61,6 +61,7 @@ jobs:
               "hard-floor-breach-blocks-action",
               "observation-arrives-after-deadline",
               "malformed-probabilities-fail-closed",
+              "intervention-cost-exceeds-service-benefit",
               "stale-action-evidence",
               "scope-conflict",
               "hold-available-without-intervention-gates",

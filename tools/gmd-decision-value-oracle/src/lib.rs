@@ -984,6 +984,31 @@ mod tests {
     }
 
     #[test]
+    fn intervention_cost_can_make_hold_the_better_policy() {
+        let mut problem = positive_voi_fixture();
+        problem.actions[1].action_cost_score_units = 50;
+        let result = evaluate(&problem).expect("valid high-cost intervention fixture");
+        assert_eq!(result.baseline_action_id, "hold");
+        assert!(result
+            .outcome_decisions
+            .iter()
+            .all(|decision| decision.action_id == "hold"));
+        assert_eq!(
+            result.observed_action_cost_numerator,
+            Some(0)
+        );
+        assert_eq!(
+            result.observation_cost_numerator,
+            Some(2_000_000_000_000)
+        );
+        assert_eq!(
+            result.net_value_numerator,
+            Some(-2_000_000_000_000)
+        );
+        assert_eq!(result.recommendation, Recommendation::UseCurrentEvidence);
+    }
+
+    #[test]
     fn uninformative_observation_has_zero_value_when_free() {
         let mut problem = positive_voi_fixture();
         problem.observation.cost_score_units = 0;

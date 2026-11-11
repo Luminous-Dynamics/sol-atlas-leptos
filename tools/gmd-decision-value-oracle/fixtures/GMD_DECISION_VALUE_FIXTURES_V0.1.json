@@ -77,6 +77,12 @@
       "case_id": "hold-available-without-physical-admissibility",
       "expected": "hold",
       "purpose": "A non-mutation abstention fallback remains representable when intervention physical-admissibility evidence is absent or false; its unserved-service loss is still scored."
+    },
+    {
+      "case_id": "intervention-cost-exceeds-service-benefit",
+      "expected": "hold",
+      "expected_net_value_numerator": "-2000000000000",
+      "purpose": "A state-specific intervention that is physically admissible but has action cost greater than its service-loss benefit must lose to HOLD."
     }
   ]
 }

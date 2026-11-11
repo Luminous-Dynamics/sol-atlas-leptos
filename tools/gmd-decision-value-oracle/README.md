@@ -59,7 +59,8 @@ The output preserves per-service expected loss. The owner-supplied scalarization
 The Rust unit tests cover:
 1. positive value of a state-discriminating observation;
 2. zero value for an uninformative, free observation;
-3. negative value when waiting causes a feasible action to miss its completion window;
+3. an intervention is rejected when its owner-supplied action cost exceeds its service-loss benefit;
+4. negative value when waiting causes a feasible action to miss its completion window;
 4. rights-ineligible observations;
 5. unqualified common-mode likelihood models;
 6. pending human approval;
