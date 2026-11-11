@@ -38,6 +38,13 @@ A recovery mark contains both the beginning of the qualifying interval run and t
 
 There is deliberately no cross-service aggregate score. Consumers must inspect every critical service floor and the worst service/region.
 
+## Machine-readable contract and synthetic case
+
+- Input schema: `docs/research/gmd-service-continuity/GMD_SERVICE_CONTINUITY_INPUT_V0.1.schema.json` (JSON Schema Draft 2020-12).
+- Example: `docs/research/gmd-service-continuity/GMD_SERVICE_CONTINUITY_SYNTHETIC_CASE_V0.1.json` (synthetic hospital power and potable-water trajectories; no real facility or service floor is implied).
+
+The schema expresses structure and scalar bounds. Cross-field interval continuity, exact horizon coverage, per-service maximum aggregation duration and numerical metric rules are enforced by the Rust evaluator, not by JSON Schema alone.
+
 ## Run
 
 From the Sol-Atlas repository root:
@@ -54,6 +61,7 @@ The floor calculation applies at the declared interval resolution. An interval-l
 
 - Intervals must cover exactly [0, horizon] with no gap, overlap, duplicate or reordering.
 - No interval may exceed the owner-declared maximum aggregation duration; coarse data cannot be promoted into finer-grained continuity evidence.
+- Every service must declare a non-zero maximum interval duration and a non-zero sustained-recovery hold.
 - Missing observations are not forward-filled and cannot count as delivered service.
 - Demand/delivery must be finite and non-negative.
 - Surplus is reported but cannot compensate for another interval's deficit.
