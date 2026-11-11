@@ -564,6 +564,28 @@ mod tests {
     }
 
     #[test]
+    fn composes_child_translation_through_rotated_parent() {
+        let mut doc = fixture();
+        let half = std::f64::consts::FRAC_1_SQRT_2;
+        doc["frame_graph"]["frames"][1]["transform_parent_from_child"]["quaternion_xyzw"] =
+            json!([0.0, 0.0, half, half]);
+
+        let graph = validate_cybernetic_interface_geometry(&doc).unwrap();
+        let root_from_device = graph.root_from_frame("device").unwrap();
+        // Body is translated +1m in root X and rotated +90° about Z.
+        // The device's +2m local Y translation therefore becomes -2m root X.
+        assert!((root_from_device.translation_m[0] - (-1.0)).abs() < 1e-12);
+        assert!(root_from_device.translation_m[1].abs() < 1e-12);
+
+        let world_from_device = graph.frame_from_frame("world", "device").unwrap();
+        let round_trip = world_from_device.inverse().compose(world_from_device);
+        let (translation_error, rotation_error) =
+            round_trip.residual(RigidTransform3::identity());
+        assert!(translation_error < 1e-12);
+        assert!(rotation_error < 1e-12);
+    }
+
+    #[test]
     fn rejects_duplicate_ids_and_multiple_roots() {
         let mut doc = fixture();
         let duplicate = doc["frame_graph"]["frames"][1].clone();
