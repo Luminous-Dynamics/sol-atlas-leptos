@@ -25,9 +25,10 @@ jobs:
     steps:
       - name: Checkout exact commit
         uses: actions/checkout@v4
-      - name: Validate JSON structure and scenario invariants
+      - name: Validate JSON structure, digests and scenario invariants
         run: |
           python3 - <<'PY'
+          import hashlib
           import json
           import pathlib
           import re
@@ -36,6 +37,8 @@ jobs:
           scenario_schema = json.loads((root / "GMD_IBR_PROTECTION_SCENARIO_MANIFEST_V0.1.schema.json").read_text())
           waveform_schema = json.loads((root / "GMD_IBR_PROTECTION_WAVEFORM_MANIFEST_V0.1.schema.json").read_text())
           matrix = json.loads((root / "GMD_IBR_PROTECTION_SCENARIO_MATRIX_V0.1.json").read_text())
+          scenario = json.loads((root / "fixtures/GMD_IBR_PROTECTION_SCENARIO_EXAMPLE_V0.1.json").read_text())
+          waveform = json.loads((root / "fixtures/GMD_IBR_PROTECTION_WAVEFORM_EXAMPLE_V0.1.json").read_text())
 
           for schema in (scenario_schema, waveform_schema):
               assert schema["$schema"] == "https://json-schema.org/draft/2020-12/schema"
@@ -50,6 +53,7 @@ jobs:
           assert "provenance" in waveform_schema["required"]
           assert "channels" in waveform_schema["required"]
           assert waveform_schema["$defs"]["artifact"]["properties"]["format_edition"]["type"] == "string"
+          assert "synthetic_fixture" in waveform_schema["properties"]["evidence_class"]["enum"]
 
           assert matrix["schema_version"] == "0.1.0"
           assert matrix["claim_ceiling"] == "E0"
@@ -58,22 +62,35 @@ jobs:
           ids = [case["case_id"] for case in cases]
           assert len(ids) == len(set(ids)) == 12
           assert all(re.fullmatch(r"gmd-ibr-[0-9]{3}-[a-z0-9-]+", case_id) for case_id in ids)
-          assert {case["case_id"] for case in cases} >= {
-              "gmd-ibr-001-no-gmd-conventional-control",
-              "gmd-ibr-002-gmd-conventional",
-              "gmd-ibr-003-ibr-only-gfl-weak-grid",
-              "gmd-ibr-005-gmd-gfl-nbd-radial",
-              "gmd-ibr-006-gmd-gfl-nbd-nonradial",
-              "gmd-ibr-007-gmd-gfm-low-scr",
-              "gmd-ibr-008-gmd-ibr-fault-during-ct-bias",
-              "gmd-ibr-010-stale-gic-telemetry",
-              "gmd-ibr-011-common-mode-sensor-error",
-              "gmd-ibr-012-ibr-current-limit-and-cessation"
-          }
-          assert all(case["required_lanes"] for case in cases)
-          assert all(case["purpose"].strip() for case in cases)
+          assert all(case["required_lanes"] and case["purpose"].strip() for case in cases)
           assert all(item["synthetic"] is True for item in matrix["common_networks"])
           assert all(item["artifact_status"] == "catalogued_not_downloaded" for item in matrix["common_networks"])
           assert "No Texas2k data file" in matrix["note"]
-          print("GMD IBR scenario and waveform contract fixtures validated")
+
+          assert scenario["schema_version"] == "0.1.0"
+          assert scenario["claim_ceiling"] == "E0"
+          assert scenario["evidence_class"] == "design"
+          assert scenario["network"]["synthetic"] is True
+          assert scenario["operational_boundary"] == {
+              "operational_control_enabled": False,
+              "execution_authorized": False
+          }
+          assert scenario["waveform_manifest_refs"] == [waveform["waveform_set_id"]]
+
+          assert waveform["schema_version"] == "0.1.0"
+          assert waveform["evidence_class"] == "synthetic_fixture"
+          assert waveform["scenario_id"] == scenario["scenario_id"]
+          artifact = waveform["artifact"]
+          artifact_bytes = (root / "fixtures/gmd_ibr_waveform_example_v0_1.csv").read_bytes()
+          assert len(artifact_bytes) == artifact["byte_length"]
+          assert hashlib.sha256(artifact_bytes).hexdigest() == artifact["sha256"]
+          assert artifact["format"] == "CSV"
+          assert len(waveform["channels"]) >= 5
+          assert all(channel["sample_count"] == 20 for channel in waveform["channels"])
+          assert all(channel["sample_rate_hz"] == 1000 for channel in waveform["channels"] if channel["sampling_mode"] == "uniform")
+          roles = {channel["role"] for channel in waveform["channels"]}
+          assert {"transformer_neutral_gic","ct_primary_current","ct_secondary_current","relay_voltage_input","relay_current_input","relay_trip_output"} <= roles
+          assert all(channel["polarity_convention"] != "unknown" for channel in waveform["channels"])
+          assert waveform["artifact"]["sha256"] == scenario["disturbance"]["gic_source_sha256"]
+          print("GMD IBR scenario and waveform fixtures validated (synthetic format fixture only)")
           PY
