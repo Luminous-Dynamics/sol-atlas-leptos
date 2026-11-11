@@ -700,11 +700,11 @@ The response sample is limited and is not a census of the sector. It nevertheles
 ### 22.1 New implementation
 
 - [GMD-OPERATOR-ACTIONABILITY-001 #721](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/721) defines the operator action-window benchmark.
-- [Draft PR #722](https://github.com/Luminous-Dynamics/sol-atlas-leptos/pull/722) adds a dependency-free Rust oracle for conservative timing and precondition classification, with 20 authored test functions.
+- [Draft PR #722](https://github.com/Luminous-Dynamics/sol-atlas-leptos/pull/722) adds a dependency-free Rust oracle for conservative timing and precondition classification, with 21 authored test functions.
 - Input binds action/procedure revision, forecast source digest, impact-arrival interval, safety buffer, approval/preparation/mobilisation/execution duration ranges, evidence freshness, human authority, resources and owner/scope status.
 - Output preserves two independent dimensions: readiness and timing. The candidate may be conservative-fit yet still await approval, be blocked by resources, have stale evidence, or remain indeterminate.
 - All four precondition states are echoed; the result explicitly carries `execution_authorized: false`.
-- The sample is 1,800–3,900 s completion, 3,000 s conservative deadline and 4,800 s latest safe deadline; its classification is ArrivalDependentAtRisk and AwaitingHumanApproval. Boundary tests distinguish conservative fit from arrival-dependent timing, unknown authority/evidence yields Indeterminate, and unknown/stale preconditions take precedence over a pending-approval summary.
+- The sample is 1,800–3,900 s completion, 3,000 s conservative deadline and 4,800 s latest safe deadline; its classification is ArrivalDependentAtRisk and AwaitingHumanApproval. Boundary tests distinguish conservative fit from arrival-dependent timing, unknown authority/evidence yields Indeterminate, unknown/stale preconditions take precedence over a pending-approval summary, and zero-total-duration candidates are rejected.
 - An independent arithmetic preflight reproduces the sample. Rust formatting, compilation, tests and Clippy remain pending/queued; no PASS is claimed.
 
 ### 22.2 Benchmark comparators
