@@ -28,6 +28,7 @@
     },
     "evidence_class": {
       "enum": [
+        "synthetic_fixture",
         "measured",
         "simulated",
         "published_derived",
