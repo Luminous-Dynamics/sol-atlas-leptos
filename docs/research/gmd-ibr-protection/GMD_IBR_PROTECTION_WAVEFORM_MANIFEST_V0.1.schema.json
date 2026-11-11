@@ -290,6 +290,8 @@
             "positive_out_of_primary",
             "positive_into_neutral",
             "positive_out_of_neutral",
+            "positive_from_ct_s1_to_s2",
+            "positive_from_ct_s2_to_s1",
             "as_recorded_mapping_declared",
             "not_applicable",
             "unknown"
