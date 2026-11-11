@@ -49,6 +49,9 @@ pub struct ServiceSeries {
     pub minimum_service_fraction: f64,
     /// Absolute tolerance in the service's native quantity unit.
     pub quantity_tolerance: f64,
+    /// Maximum accepted aggregation interval, fixed by the service use case.
+    /// Coarser totals cannot establish continuity at the required resolution.
+    pub maximum_interval_seconds: u64,
     /// A recovery must remain above threshold for this many consecutive seconds.
     pub recovery_hold_seconds: u64,
     pub intervals: Vec<ServiceInterval>,
@@ -85,6 +88,7 @@ pub struct ServiceMetrics {
     pub source_sha256: String,
     pub evidence_class: EvidenceClass,
     pub horizon_seconds: u64,
+    pub maximum_interval_seconds: u64,
     pub initially_above_service_floor: bool,
     pub initially_fully_served: bool,
     pub total_required_quantity: f64,
@@ -128,8 +132,10 @@ pub enum ServiceError {
     InvalidServiceFloor,
     InvalidQuantityTolerance,
     InvalidRecoveryHold,
+    InvalidMaximumInterval,
     EmptyIntervals,
     InvalidInterval,
+    IntervalResolutionTooCoarse,
     IncompleteOrNonContiguousCoverage,
     NonFiniteQuantity,
     NegativeQuantity,
@@ -154,8 +160,10 @@ impl fmt::Display for ServiceError {
             Self::InvalidServiceFloor => "minimum service fraction must be finite and in (0, 1]",
             Self::InvalidQuantityTolerance => "tolerance is invalid or too large for a service floor",
             Self::InvalidRecoveryHold => "recovery hold duration must be positive",
+            Self::InvalidMaximumInterval => "maximum interval duration must be positive",
             Self::EmptyIntervals => "service trajectory must contain at least one interval",
             Self::InvalidInterval => "interval duration must be positive and within horizon",
+            Self::IntervalResolutionTooCoarse => "interval aggregation is coarser than the service limit",
             Self::IncompleteOrNonContiguousCoverage => "interval coverage must be ordered and contiguous",
             Self::NonFiniteQuantity => "required and delivered quantities must be finite",
             Self::NegativeQuantity => "required and delivered quantities must be non-negative",
@@ -331,6 +339,7 @@ pub fn evaluate_service(
         source_sha256: service.source_sha256.clone(),
         evidence_class: service.evidence_class,
         horizon_seconds,
+        maximum_interval_seconds: service.maximum_interval_seconds,
         initially_above_service_floor: floor_status.iter().find_map(|status| *status).ok_or(
             ServiceError::NoPositiveDemand,
         )?,
@@ -413,6 +422,9 @@ fn validate_service_metadata(service: &ServiceSeries) -> Result<(), ServiceError
     if service.recovery_hold_seconds == 0 {
         return Err(ServiceError::InvalidRecoveryHold);
     }
+    if service.maximum_interval_seconds == 0 {
+        return Err(ServiceError::InvalidMaximumInterval);
+    }
     if service.intervals.is_empty() {
         return Err(ServiceError::EmptyIntervals);
     }
@@ -430,6 +442,11 @@ fn validate_intervals(
             || interval.end_offset_seconds > horizon_seconds
         {
             return Err(ServiceError::InvalidInterval);
+        }
+        if interval.end_offset_seconds - interval.start_offset_seconds
+            > service.maximum_interval_seconds
+        {
+            return Err(ServiceError::IntervalResolutionTooCoarse);
         }
         if interval.start_offset_seconds != expected_start {
             return Err(ServiceError::IncompleteOrNonContiguousCoverage);
@@ -521,6 +538,7 @@ mod tests {
             evidence_class: EvidenceClass::Simulated,
             minimum_service_fraction: 0.8,
             quantity_tolerance: 0.0,
+            maximum_interval_seconds: 60,
             recovery_hold_seconds: 30,
             intervals,
         }
@@ -728,6 +746,19 @@ mod tests {
             evaluate_service(&overlapping, 60),
             Err(ServiceError::IncompleteOrNonContiguousCoverage)
         );
+    }
+
+    #[test]
+    fn interval_aggregation_cannot_exceed_owner_declared_resolution() {
+        let mut input = service(vec![interval(0, 120, 100.0, 100.0)]);
+        input.maximum_interval_seconds = 60;
+        assert_eq!(
+            evaluate_service(&input, 120),
+            Err(ServiceError::IntervalResolutionTooCoarse)
+        );
+
+        input.maximum_interval_seconds = 120;
+        assert!(evaluate_service(&input, 120).is_ok());
     }
 
     #[test]
