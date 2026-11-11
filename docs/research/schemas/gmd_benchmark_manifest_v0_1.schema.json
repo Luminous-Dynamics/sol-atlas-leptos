@@ -1,0 +1,652 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/docs/research/schemas/gmd_benchmark_manifest_v0_1.schema.json",
+  "title": "Luminous GMD Resilience Benchmark Manifest v0.1",
+  "description": "Strict manifest for a versioned geomagnetic-disturbance resilience benchmark. A valid manifest is not a validation result or operational authorisation.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "benchmark_id",
+    "claim_ceiling",
+    "frozen_at_utc",
+    "purpose",
+    "scenarios",
+    "datasets",
+    "models",
+    "spatial_scope",
+    "grid_case",
+    "splits",
+    "metric_families",
+    "negative_controls",
+    "authority_boundary"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "benchmark_id": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 128,
+      "pattern": "^[A-Z0-9][A-Z0-9._-]+$"
+    },
+    "claim_ceiling": {
+      "enum": [
+        "E0_DESIGN",
+        "E1_SYNTHETIC_ANALYTICAL",
+        "E2_REFERENCE_DIFFERENTIAL",
+        "E3_MEASURED_VALIDATION",
+        "E4_OPERATIONAL_SHADOW"
+      ]
+    },
+    "frozen_at_utc": {
+      "$ref": "#/$defs/utc_timestamp"
+    },
+    "purpose": {
+      "type": "string",
+      "minLength": 20,
+      "maxLength": 2000
+    },
+    "scenarios": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/scenario"
+      }
+    },
+    "datasets": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/dataset"
+      }
+    },
+    "models": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/model"
+      }
+    },
+    "spatial_scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "crs",
+        "geomagnetic_frame_policy",
+        "coverage_statement"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "crs": {
+          "type": "string",
+          "minLength": 1
+        },
+        "geomagnetic_frame_policy": {
+          "type": "string",
+          "minLength": 10
+        },
+        "coverage_statement": {
+          "type": "string",
+          "minLength": 10
+        },
+        "region_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "known_gaps": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "asset_coverage_status": {
+          "enum": [
+            "complete_for_declared_scope",
+            "partial",
+            "synthetic_only",
+            "unknown"
+          ]
+        }
+      }
+    },
+    "grid_case": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "case_id",
+        "network_representation",
+        "topology_source_class",
+        "line_path_convention",
+        "transformer_data_status",
+        "grounding_data_status",
+        "asset_inventory_status"
+      ],
+      "properties": {
+        "case_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "network_representation": {
+          "enum": [
+            "analytic_toy",
+            "synthetic_network",
+            "public_benchmark",
+            "owner_provided_redacted",
+            "owner_provided_restricted",
+            "none"
+          ]
+        },
+        "topology_source_class": {
+          "enum": [
+            "synthetic",
+            "public",
+            "owner_authenticated",
+            "unknown"
+          ]
+        },
+        "topology_digest": {
+          "$ref": "#/$defs/sha256"
+        },
+        "line_path_convention": {
+          "type": "string",
+          "minLength": 10
+        },
+        "transformer_data_status": {
+          "enum": [
+            "measured_or_owner_verified",
+            "published_reference",
+            "synthetic",
+            "partial",
+            "unknown"
+          ]
+        },
+        "grounding_data_status": {
+          "enum": [
+            "measured_or_owner_verified",
+            "published_reference",
+            "synthetic",
+            "partial",
+            "unknown"
+          ]
+        },
+        "asset_inventory_status": {
+          "enum": [
+            "complete_for_declared_scope",
+            "partial",
+            "synthetic_only",
+            "unknown"
+          ]
+        },
+        "excluded_component_count": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "splits": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "primary_design",
+        "event_holdout",
+        "geographic_holdout",
+        "chronological_cutoff",
+        "leakage_controls"
+      ],
+      "properties": {
+        "primary_design": {
+          "enum": [
+            "analytical_known_answer",
+            "event_holdout",
+            "geographic_holdout",
+            "rolling_origin",
+            "reference_differential",
+            "synthetic_factorial",
+            "operational_shadow"
+          ]
+        },
+        "event_holdout": {
+          "type": "boolean"
+        },
+        "geographic_holdout": {
+          "type": "boolean"
+        },
+        "chronological_cutoff": {
+          "$ref": "#/$defs/utc_timestamp"
+        },
+        "split_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "leakage_controls": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 5
+          }
+        }
+      }
+    },
+    "metric_families": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "geoelectric_field",
+          "induced_voltage",
+          "network_gic",
+          "transformer_response",
+          "power_flow_feasibility",
+          "spatial_coverage",
+          "dependency_integrity",
+          "uncertainty_calibration",
+          "service_continuity",
+          "recovery",
+          "offline_coordination",
+          "resource_cost",
+          "equity",
+          "runtime_reproducibility"
+        ]
+      }
+    },
+    "negative_controls": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/negative_control"
+      }
+    },
+    "authority_boundary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mode",
+        "human_authority_required",
+        "actuation_permitted",
+        "notes"
+      ],
+      "properties": {
+        "mode": {
+          "enum": [
+            "offline_research",
+            "shadow_only",
+            "tabletop_exercise"
+          ]
+        },
+        "human_authority_required": {
+          "const": true
+        },
+        "actuation_permitted": {
+          "const": false
+        },
+        "notes": {
+          "type": "string",
+          "minLength": 10
+        }
+      }
+    },
+    "expected_targets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "metric",
+          "target",
+          "status",
+          "qualification"
+        ],
+        "properties": {
+          "metric": {
+            "type": "string",
+            "minLength": 1
+          },
+          "target": {
+            "type": "string",
+            "minLength": 1
+          },
+          "status": {
+            "enum": [
+              "proposed_not_achieved",
+              "pre_registered",
+              "measured",
+              "retired"
+            ]
+          },
+          "qualification": {
+            "type": "string",
+            "minLength": 10
+          }
+        }
+      }
+    },
+    "notes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "$defs": {
+    "utc_timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "scenario": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scenario_id",
+        "scenario_class",
+        "event_or_fixture",
+        "time_start_utc",
+        "time_end_utc",
+        "provenance_class",
+        "truth_status"
+      ],
+      "properties": {
+        "scenario_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "scenario_class": {
+          "enum": [
+            "observed_event",
+            "historical_reconstruction",
+            "synthetic",
+            "reference_waveform",
+            "operational_shadow"
+          ]
+        },
+        "event_or_fixture": {
+          "type": "string",
+          "minLength": 1
+        },
+        "time_start_utc": {
+          "$ref": "#/$defs/utc_timestamp"
+        },
+        "time_end_utc": {
+          "$ref": "#/$defs/utc_timestamp"
+        },
+        "provenance_class": {
+          "enum": [
+            "observed",
+            "published_derived",
+            "reconstructed",
+            "synthetic",
+            "owner_provided"
+          ]
+        },
+        "truth_status": {
+          "enum": [
+            "measured_with_uncertainty",
+            "reference_model",
+            "synthetic_known_truth",
+            "historically_uncertain",
+            "unknown"
+          ]
+        },
+        "event_digest": {
+          "$ref": "#/$defs/sha256"
+        },
+        "description": {
+          "type": "string"
+        }
+      }
+    },
+    "dataset": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "dataset_id",
+        "organization",
+        "title",
+        "uri",
+        "version_or_vintage",
+        "access_status",
+        "redistribution_status",
+        "role",
+        "time_basis",
+        "unit_statement"
+      ],
+      "properties": {
+        "dataset_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "organization": {
+          "type": "string",
+          "minLength": 1
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "uri": {
+          "type": "string",
+          "format": "uri"
+        },
+        "version_or_vintage": {
+          "type": "string",
+          "minLength": 1
+        },
+        "access_status": {
+          "enum": [
+            "public",
+            "public_request",
+            "partner_restricted",
+            "synthetic",
+            "unavailable"
+          ]
+        },
+        "redistribution_status": {
+          "enum": [
+            "permitted",
+            "restricted",
+            "not_checked",
+            "not_permitted"
+          ]
+        },
+        "role": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "enum": [
+              "geomagnetic_observation",
+              "solar_wind_or_cme",
+              "geoelectric_field",
+              "earth_conductivity_or_magnetotelluric",
+              "network_topology",
+              "transformer_parameters",
+              "gic_measurement",
+              "transformer_measurement",
+              "service_dependency",
+              "reference_standard",
+              "synthetic_truth"
+            ]
+          }
+        },
+        "time_basis": {
+          "type": "string",
+          "minLength": 1
+        },
+        "unit_statement": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "licence": {
+          "type": "string"
+        },
+        "coverage": {
+          "type": "string"
+        },
+        "limitations": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "derived_from": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "model": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "model_id",
+        "component",
+        "name",
+        "version",
+        "model_class",
+        "reference_uri",
+        "validity_domain",
+        "uncertainty_method",
+        "outputs"
+      ],
+      "properties": {
+        "model_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "component": {
+          "enum": [
+            "solar_event",
+            "geomagnetic_field",
+            "earth_response",
+            "geoelectric_field",
+            "gic_network",
+            "transformer_response",
+            "power_system",
+            "service_consequence",
+            "decision_support",
+            "coordination"
+          ]
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "model_class": {
+          "enum": [
+            "official_product",
+            "published_model",
+            "operator_model",
+            "open_source_solver",
+            "luminous_model",
+            "analytic_oracle",
+            "synthetic_generator"
+          ]
+        },
+        "reference_uri": {
+          "type": "string",
+          "format": "uri"
+        },
+        "validity_domain": {
+          "type": "string",
+          "minLength": 10
+        },
+        "uncertainty_method": {
+          "type": "string",
+          "minLength": 5
+        },
+        "outputs": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "name",
+              "unit"
+            ],
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "unit": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "configuration_digest": {
+          "$ref": "#/$defs/sha256"
+        },
+        "known_limitations": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "negative_control": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "control_id",
+        "mutation",
+        "expected_disposition",
+        "failure_mode"
+      ],
+      "properties": {
+        "control_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "mutation": {
+          "type": "string",
+          "minLength": 5
+        },
+        "expected_disposition": {
+          "enum": [
+            "reject",
+            "abstain",
+            "widen_uncertainty",
+            "mark_incomplete",
+            "preserve_conflict",
+            "match_mutated_known_answer"
+          ]
+        },
+        "failure_mode": {
+          "type": "string",
+          "minLength": 5
+        }
+      }
+    }
+  }
+}
