@@ -152,8 +152,18 @@
       },
       "allOf": [
         {
-          "if": { "properties": { "status": { "const": "Permitted" } } },
-          "then": { "properties": { "evidence_ref": { "type": "string", "minLength": 1 } } }
+          "if": {
+            "properties": {
+              "status": {
+                "enum": ["Permitted", "RegistrationRequired", "AgreementRequired", "Prohibited"]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "evidence_ref": { "type": "string", "pattern": "^(https?://|urn:)", "minLength": 1 }
+            }
+          }
         }
       ]
     }
