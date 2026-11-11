@@ -65,3 +65,19 @@ jobs:
       # (renderer::hex, sol-atlas-core). Must target the bin explicitly:
       # `cargo test --lib` fails with "no library targets found".
       - run: cargo test --bin sol-atlas-leptos
+
+  test-gmd-replay:
+    name: GMD offline replay verifier
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Rust with formatting and lint tools
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - name: Check isolated verifier formatting
+        run: cargo fmt --manifest-path tools/gmd-four-site-replay/Cargo.toml -- --check
+      - name: Run dependency-free verifier tests offline
+        run: cargo test --manifest-path tools/gmd-four-site-replay/Cargo.toml --locked --offline
+      - name: Lint isolated verifier
+        run: cargo clippy --manifest-path tools/gmd-four-site-replay/Cargo.toml --locked --offline --all-targets -- -D warnings
