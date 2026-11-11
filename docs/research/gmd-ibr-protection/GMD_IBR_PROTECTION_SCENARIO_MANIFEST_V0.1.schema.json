@@ -881,7 +881,11 @@
             "relay_trip_time",
             "physical_relay_operation",
             "voltage_frequency_stability",
-            "service_continuity"
+            "service_continuity",
+            "protection_robustness_envelope",
+            "false_trip_rate",
+            "failure_to_trip_rate",
+            "coordination_margin"
           ]
         },
         "minimum_fidelity": {
