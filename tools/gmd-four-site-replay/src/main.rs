@@ -5,7 +5,8 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 
 const DATASET_COMMIT: &str = "089617756920bcc9df621f7f2299ba0644320cc3";
-const MANIFEST: &str = include_str!("../../../docs/research/results/gmd_may2024_four_site_replay_v0_1.json");
+const MANIFEST: &str =
+    include_str!("../../../docs/research/results/gmd_may2024_four_site_replay_v0_1.json");
 const EXPECTED_PAIRS: usize = 2_341;
 
 #[derive(Clone, Copy)]
@@ -20,30 +21,186 @@ struct Pin {
 }
 
 const PINS: [Pin; 20] = [
-    Pin { path: "data_original/tva/gic/GIC-measured/gic-bullrun_20240510.csv", blob_sha1: "edfcc1e6614a3b7477661f00e9e0f08cac98ae1a", size: 6_599_421, role: "measured_1s", site: "Bull Run", date: None, substation: None },
-    Pin { path: "data_original/tva/gic/GIC-measured/gic-montgomery_20240510.csv", blob_sha1: "d88cff5d1c3a9fc75bca17a0c1dbd6c1e35b5a1e", size: 6_615_823, role: "measured_1s", site: "Montgomery", date: None, substation: None },
-    Pin { path: "data_original/tva/gic/GIC-measured/gic-union_20240510.csv", blob_sha1: "2dfd89020012c3d834b2da9f89a772f2cb08387a", size: 6_614_809, role: "measured_1s", site: "Union", date: None, substation: None },
-    Pin { path: "data_original/tva/gic/GIC-measured/gic-widowscreek2_20240510.csv", blob_sha1: "da7f8c0ac7fe99421d1e82acee0afccfee6001dc", size: 6_604_529, role: "measured_1s", site: "Widows Creek", date: None, substation: None },
-
-    Pin { path: "data_original/gmu/tva/site_108137138.csv", blob_sha1: "c08d4d359838eb197276b61f414e5b28124665da", size: 516_458, role: "reference_model", site: "Bull Run", date: None, substation: Some("108137138") },
-    Pin { path: "data_original/gmu/tva/site_708931360.csv", blob_sha1: "ad8b0d090ae6dddcad7b05326501cb3a81cb3d86", size: 522_237, role: "reference_model", site: "Montgomery", date: None, substation: Some("708931360") },
-    Pin { path: "data_original/gmu/tva/site_98699542.csv", blob_sha1: "17fd6bcd6dda7bf0aef4239c69f0d0fc2d9a447e", size: 497_404, role: "reference_model", site: "Union", date: None, substation: Some("98699542") },
-    Pin { path: "data_original/gmu/tva/site_14133615.csv", blob_sha1: "e28d2125031a7eaeb2467e102e4554c658bb6ff5", size: 530_310, role: "reference_model", site: "Widows Creek", date: None, substation: Some("14133615") },
-
-    Pin { path: "data_original/tva/gic/GIC-calculated/20240510_BullRunXfrmGIC.dat", blob_sha1: "562f690f3e2849fa24e85b2bcf733c3e69832e30", size: 21_743, role: "tva_operator", site: "Bull Run", date: Some("20240510"), substation: None },
-    Pin { path: "data_original/tva/gic/GIC-calculated/20240510_MontgomeryGIC.dat", blob_sha1: "84690f81b28978d61d6afd8b5b97060c3869aaa3", size: 21_798, role: "tva_operator", site: "Montgomery", date: Some("20240510"), substation: None },
-    Pin { path: "data_original/tva/gic/GIC-calculated/20240510_UnionGIC.dat", blob_sha1: "01bcc3035eb9805749922f6fd9120af54b79e409", size: 22_286, role: "tva_operator", site: "Union", date: Some("20240510"), substation: None },
-    Pin { path: "data_original/tva/gic/GIC-calculated/20240510_WidowsCreek2GIC.dat", blob_sha1: "6e2ef9e1d0d6aaf56f866e8fbfb778cd578b3902", size: 21_747, role: "tva_operator", site: "Widows Creek", date: Some("20240510"), substation: None },
-
-    Pin { path: "data_original/tva/gic/GIC-calculated/20240511_BullRunXfrmGIC.dat", blob_sha1: "74d88e8e0ae4827c2664e853441a4ee342934c0c", size: 22_008, role: "tva_operator", site: "Bull Run", date: Some("20240511"), substation: None },
-    Pin { path: "data_original/tva/gic/GIC-calculated/20240511_MontgomeryGIC.dat", blob_sha1: "75db46ce3635afe5916a2bdd3a1302b09c996190", size: 21_959, role: "tva_operator", site: "Montgomery", date: Some("20240511"), substation: None },
-    Pin { path: "data_original/tva/gic/GIC-calculated/20240511_UnionGIC.dat", blob_sha1: "4e129587c1d677182804e6a4c6a54eb838f1460d", size: 21_967, role: "tva_operator", site: "Union", date: Some("20240511"), substation: None },
-    Pin { path: "data_original/tva/gic/GIC-calculated/20240511_WidowsCreek2GIC.dat", blob_sha1: "05a671a0923ad9ee75d8e6eb98de16938ee15bca", size: 22_000, role: "tva_operator", site: "Widows Creek", date: Some("20240511"), substation: None },
-
-    Pin { path: "data_original/tva/gic/GIC-calculated/20240512_BullRunXfrmGIC.dat", blob_sha1: "73a8cca21d844d42c944c3e366eb920c79457d92", size: 22_093, role: "tva_operator", site: "Bull Run", date: Some("20240512"), substation: None },
-    Pin { path: "data_original/tva/gic/GIC-calculated/20240512_MontgomeryGIC.dat", blob_sha1: "3d20085f7945eafbc428b3495329de6ffc0596d4", size: 22_075, role: "tva_operator", site: "Montgomery", date: Some("20240512"), substation: None },
-    Pin { path: "data_original/tva/gic/GIC-calculated/20240512_UnionGIC.dat", blob_sha1: "6650d1cb6987da7526045fb9acfc57936dc0d2bd", size: 21_898, role: "tva_operator", site: "Union", date: Some("20240512"), substation: None },
-    Pin { path: "data_original/tva/gic/GIC-calculated/20240512_WidowsCreek2GIC.dat", blob_sha1: "c861343ae8cf02d5a534dea7aabfe5fac1cff597", size: 22_152, role: "tva_operator", site: "Widows Creek", date: Some("20240512"), substation: None },
+    Pin {
+        path: "data_original/tva/gic/GIC-measured/gic-bullrun_20240510.csv",
+        blob_sha1: "edfcc1e6614a3b7477661f00e9e0f08cac98ae1a",
+        size: 6_599_421,
+        role: "measured_1s",
+        site: "Bull Run",
+        date: None,
+        substation: None,
+    },
+    Pin {
+        path: "data_original/tva/gic/GIC-measured/gic-montgomery_20240510.csv",
+        blob_sha1: "d88cff5d1c3a9fc75bca17a0c1dbd6c1e35b5a1e",
+        size: 6_615_823,
+        role: "measured_1s",
+        site: "Montgomery",
+        date: None,
+        substation: None,
+    },
+    Pin {
+        path: "data_original/tva/gic/GIC-measured/gic-union_20240510.csv",
+        blob_sha1: "2dfd89020012c3d834b2da9f89a772f2cb08387a",
+        size: 6_614_809,
+        role: "measured_1s",
+        site: "Union",
+        date: None,
+        substation: None,
+    },
+    Pin {
+        path: "data_original/tva/gic/GIC-measured/gic-widowscreek2_20240510.csv",
+        blob_sha1: "da7f8c0ac7fe99421d1e82acee0afccfee6001dc",
+        size: 6_604_529,
+        role: "measured_1s",
+        site: "Widows Creek",
+        date: None,
+        substation: None,
+    },
+    Pin {
+        path: "data_original/gmu/tva/site_108137138.csv",
+        blob_sha1: "c08d4d359838eb197276b61f414e5b28124665da",
+        size: 516_458,
+        role: "reference_model",
+        site: "Bull Run",
+        date: None,
+        substation: Some("108137138"),
+    },
+    Pin {
+        path: "data_original/gmu/tva/site_708931360.csv",
+        blob_sha1: "ad8b0d090ae6dddcad7b05326501cb3a81cb3d86",
+        size: 522_237,
+        role: "reference_model",
+        site: "Montgomery",
+        date: None,
+        substation: Some("708931360"),
+    },
+    Pin {
+        path: "data_original/gmu/tva/site_98699542.csv",
+        blob_sha1: "17fd6bcd6dda7bf0aef4239c69f0d0fc2d9a447e",
+        size: 497_404,
+        role: "reference_model",
+        site: "Union",
+        date: None,
+        substation: Some("98699542"),
+    },
+    Pin {
+        path: "data_original/gmu/tva/site_14133615.csv",
+        blob_sha1: "e28d2125031a7eaeb2467e102e4554c658bb6ff5",
+        size: 530_310,
+        role: "reference_model",
+        site: "Widows Creek",
+        date: None,
+        substation: Some("14133615"),
+    },
+    Pin {
+        path: "data_original/tva/gic/GIC-calculated/20240510_BullRunXfrmGIC.dat",
+        blob_sha1: "562f690f3e2849fa24e85b2bcf733c3e69832e30",
+        size: 21_743,
+        role: "tva_operator",
+        site: "Bull Run",
+        date: Some("20240510"),
+        substation: None,
+    },
+    Pin {
+        path: "data_original/tva/gic/GIC-calculated/20240510_MontgomeryGIC.dat",
+        blob_sha1: "84690f81b28978d61d6afd8b5b97060c3869aaa3",
+        size: 21_798,
+        role: "tva_operator",
+        site: "Montgomery",
+        date: Some("20240510"),
+        substation: None,
+    },
+    Pin {
+        path: "data_original/tva/gic/GIC-calculated/20240510_UnionGIC.dat",
+        blob_sha1: "01bcc3035eb9805749922f6fd9120af54b79e409",
+        size: 22_286,
+        role: "tva_operator",
+        site: "Union",
+        date: Some("20240510"),
+        substation: None,
+    },
+    Pin {
+        path: "data_original/tva/gic/GIC-calculated/20240510_WidowsCreek2GIC.dat",
+        blob_sha1: "6e2ef9e1d0d6aaf56f866e8fbfb778cd578b3902",
+        size: 21_747,
+        role: "tva_operator",
+        site: "Widows Creek",
+        date: Some("20240510"),
+        substation: None,
+    },
+    Pin {
+        path: "data_original/tva/gic/GIC-calculated/20240511_BullRunXfrmGIC.dat",
+        blob_sha1: "74d88e8e0ae4827c2664e853441a4ee342934c0c",
+        size: 22_008,
+        role: "tva_operator",
+        site: "Bull Run",
+        date: Some("20240511"),
+        substation: None,
+    },
+    Pin {
+        path: "data_original/tva/gic/GIC-calculated/20240511_MontgomeryGIC.dat",
+        blob_sha1: "75db46ce3635afe5916a2bdd3a1302b09c996190",
+        size: 21_959,
+        role: "tva_operator",
+        site: "Montgomery",
+        date: Some("20240511"),
+        substation: None,
+    },
+    Pin {
+        path: "data_original/tva/gic/GIC-calculated/20240511_UnionGIC.dat",
+        blob_sha1: "4e129587c1d677182804e6a4c6a54eb838f1460d",
+        size: 21_967,
+        role: "tva_operator",
+        site: "Union",
+        date: Some("20240511"),
+        substation: None,
+    },
+    Pin {
+        path: "data_original/tva/gic/GIC-calculated/20240511_WidowsCreek2GIC.dat",
+        blob_sha1: "05a671a0923ad9ee75d8e6eb98de16938ee15bca",
+        size: 22_000,
+        role: "tva_operator",
+        site: "Widows Creek",
+        date: Some("20240511"),
+        substation: None,
+    },
+    Pin {
+        path: "data_original/tva/gic/GIC-calculated/20240512_BullRunXfrmGIC.dat",
+        blob_sha1: "73a8cca21d844d42c944c3e366eb920c79457d92",
+        size: 22_093,
+        role: "tva_operator",
+        site: "Bull Run",
+        date: Some("20240512"),
+        substation: None,
+    },
+    Pin {
+        path: "data_original/tva/gic/GIC-calculated/20240512_MontgomeryGIC.dat",
+        blob_sha1: "3d20085f7945eafbc428b3495329de6ffc0596d4",
+        size: 22_075,
+        role: "tva_operator",
+        site: "Montgomery",
+        date: Some("20240512"),
+        substation: None,
+    },
+    Pin {
+        path: "data_original/tva/gic/GIC-calculated/20240512_UnionGIC.dat",
+        blob_sha1: "6650d1cb6987da7526045fb9acfc57936dc0d2bd",
+        size: 21_898,
+        role: "tva_operator",
+        site: "Union",
+        date: Some("20240512"),
+        substation: None,
+    },
+    Pin {
+        path: "data_original/tva/gic/GIC-calculated/20240512_WidowsCreek2GIC.dat",
+        blob_sha1: "c861343ae8cf02d5a534dea7aabfe5fac1cff597",
+        size: 22_152,
+        role: "tva_operator",
+        site: "Widows Creek",
+        date: Some("20240512"),
+        substation: None,
+    },
 ];
 
 const SITES: [&str; 4] = ["Bull Run", "Montgomery", "Union", "Widows Creek"];
@@ -57,14 +214,54 @@ struct KnownAnswer {
 }
 
 const KNOWN_ANSWERS: [KnownAnswer; 8] = [
-    KnownAnswer { site: "Bull Run", model: "TVA", r2: 0.7993592783300696, pe: 0.49794711058427144 },
-    KnownAnswer { site: "Montgomery", model: "TVA", r2: 0.8637185602798242, pe: 0.42977033697187983 },
-    KnownAnswer { site: "Union", model: "TVA", r2: 0.6688164049618603, pe: 0.651510319908838 },
-    KnownAnswer { site: "Widows Creek", model: "TVA", r2: 0.6708368563169974, pe: 0.6314735353459772 },
-    KnownAnswer { site: "Bull Run", model: "GMU", r2: 0.4802353334557028, pe: 0.47525322259760483 },
-    KnownAnswer { site: "Montgomery", model: "GMU", r2: 0.1537256123621483, pe: 0.15202585354717357 },
-    KnownAnswer { site: "Union", model: "GMU", r2: 0.5691151888165665, pe: 0.4980835146131537 },
-    KnownAnswer { site: "Widows Creek", model: "GMU", r2: 0.2790051141346092, pe: 0.22716776534074634 },
+    KnownAnswer {
+        site: "Bull Run",
+        model: "TVA",
+        r2: 0.7993592783300696,
+        pe: 0.49794711058427144,
+    },
+    KnownAnswer {
+        site: "Montgomery",
+        model: "TVA",
+        r2: 0.8637185602798242,
+        pe: 0.42977033697187983,
+    },
+    KnownAnswer {
+        site: "Union",
+        model: "TVA",
+        r2: 0.6688164049618603,
+        pe: 0.651510319908838,
+    },
+    KnownAnswer {
+        site: "Widows Creek",
+        model: "TVA",
+        r2: 0.6708368563169974,
+        pe: 0.6314735353459772,
+    },
+    KnownAnswer {
+        site: "Bull Run",
+        model: "GMU",
+        r2: 0.4802353334557028,
+        pe: 0.47525322259760483,
+    },
+    KnownAnswer {
+        site: "Montgomery",
+        model: "GMU",
+        r2: 0.1537256123621483,
+        pe: 0.15202585354717357,
+    },
+    KnownAnswer {
+        site: "Union",
+        model: "GMU",
+        r2: 0.5691151888165665,
+        pe: 0.4980835146131537,
+    },
+    KnownAnswer {
+        site: "Widows Creek",
+        model: "GMU",
+        r2: 0.2790051141346092,
+        pe: 0.22716776534074634,
+    },
 ];
 
 #[derive(Debug)]
@@ -107,7 +304,10 @@ fn run() -> Result<(), String> {
     }
     let source_root = PathBuf::from(root_arg);
     if !source_root.is_dir() {
-        return Err(format!("dataset root is not a directory: {}", source_root.display()));
+        return Err(format!(
+            "dataset root is not a directory: {}",
+            source_root.display()
+        ));
     }
 
     verify_manifest_constants()?;
@@ -121,12 +321,20 @@ fn run() -> Result<(), String> {
     let tool_root = Path::new(env!("CARGO_MANIFEST_DIR"))
         .parent()
         .and_then(Path::parent)
-        .ok_or_else(|| "could not locate Sol-Atlas repository root from Cargo manifest".to_owned())?;
+        .ok_or_else(|| {
+            "could not locate Sol-Atlas repository root from Cargo manifest".to_owned()
+        })?;
     let tool_commit = git_output(tool_root, &["rev-parse", "HEAD"])?;
     let clean = Command::new("git")
         .arg("-C")
         .arg(tool_root)
-        .args(["diff", "--quiet", "HEAD", "--", "tools/gmd-four-site-replay"])
+        .args([
+            "diff",
+            "--quiet",
+            "HEAD",
+            "--",
+            "tools/gmd-four-site-replay",
+        ])
         .status()
         .map_err(|error| format!("cannot inspect tool source identity with git: {error}"))?;
     if !clean.success() {
@@ -145,22 +353,30 @@ fn run() -> Result<(), String> {
         let observed = aggregate_measured(&measured_seconds)?;
 
         let mut tva_minutes = BTreeMap::new();
-        for pin in PINS.iter().filter(|pin| pin.role == "tva_operator" && pin.site == site) {
+        for pin in PINS
+            .iter()
+            .filter(|pin| pin.role == "tva_operator" && pin.site == site)
+        {
             let bytes = source_files
                 .get(pin.path)
                 .ok_or_else(|| format!("verified source missing from memory: {}", pin.path))?;
             let daily = parse_tva_daily(bytes, pin)?;
             for (minute, value) in daily {
                 if tva_minutes.insert(minute, value).is_some() {
-                    return Err(format!("duplicate TVA prediction minute for {site}: {minute}"));
+                    return Err(format!(
+                        "duplicate TVA prediction minute for {site}: {minute}"
+                    ));
                 }
             }
         }
 
         let reference_pin = find_pin("reference_model", site, None)?;
-        let reference_bytes = source_files
-            .get(reference_pin.path)
-            .ok_or_else(|| format!("verified source missing from memory: {}", reference_pin.path))?;
+        let reference_bytes = source_files.get(reference_pin.path).ok_or_else(|| {
+            format!(
+                "verified source missing from memory: {}",
+                reference_pin.path
+            )
+        })?;
         let reference_minutes = parse_reference_csv(reference_bytes, reference_pin)?;
 
         comparisons.push(compare(site, "TVA", &observed, &tva_minutes)?);
@@ -168,7 +384,13 @@ fn run() -> Result<(), String> {
     }
 
     let all_pass = comparisons.iter().all(|item| item.pass_r2 && item.pass_pe);
-    let receipt = render_receipt(&source_head, &tool_commit, &source_files, &comparisons, all_pass);
+    let receipt = render_receipt(
+        &source_head,
+        &tool_commit,
+        &source_files,
+        &comparisons,
+        all_pass,
+    );
     print!("{receipt}");
     if !all_pass {
         return Err("one or more publisher-known-answer checks failed; receipt was emitted for diagnosis but is not a PASS".to_owned());
@@ -184,7 +406,9 @@ fn find_pin(role: &str, site: &str, date: Option<&str>) -> Result<&'static Pin, 
 
 fn verify_manifest_constants() -> Result<(), String> {
     if !MANIFEST.contains(DATASET_COMMIT) {
-        return Err("embedded benchmark manifest does not contain the pinned dataset commit".to_owned());
+        return Err(
+            "embedded benchmark manifest does not contain the pinned dataset commit".to_owned(),
+        );
     }
     for pin in &PINS {
         let needle = format!("\"path\": \"{}\"", pin.path);
@@ -197,7 +421,10 @@ fn verify_manifest_constants() -> Result<(), String> {
             .ok_or_else(|| format!("unterminated source object for {}", pin.path))?;
         let object = &MANIFEST[start..=end];
         if !object.contains(pin.blob_sha1) || !object.contains(&pin.size.to_string()) {
-            return Err(format!("embedded source pin disagrees with benchmark manifest: {}", pin.path));
+            return Err(format!(
+                "embedded source pin disagrees with benchmark manifest: {}",
+                pin.path
+            ));
         }
     }
     Ok(())
@@ -210,9 +437,13 @@ fn verify_source_files(root: &Path) -> Result<BTreeMap<&'static str, Vec<u8>>, S
         let metadata = fs::symlink_metadata(&path)
             .map_err(|error| format!("cannot stat pinned input {}: {error}", pin.path))?;
         if !metadata.file_type().is_file() {
-            return Err(format!("pinned input is not a regular file (symlink/directory rejected): {}", pin.path));
+            return Err(format!(
+                "pinned input is not a regular file (symlink/directory rejected): {}",
+                pin.path
+            ));
         }
-        let bytes = fs::read(&path).map_err(|error| format!("cannot read pinned input {}: {error}", pin.path))?;
+        let bytes = fs::read(&path)
+            .map_err(|error| format!("cannot read pinned input {}: {error}", pin.path))?;
         if bytes.len() != pin.size {
             return Err(format!(
                 "size mismatch for {}: expected {} bytes, found {}",
@@ -234,7 +465,8 @@ fn verify_source_files(root: &Path) -> Result<BTreeMap<&'static str, Vec<u8>>, S
 }
 
 fn parse_measured_csv(bytes: &[u8], label: &str) -> Result<BTreeMap<i64, f64>, String> {
-    let text = std::str::from_utf8(bytes).map_err(|error| format!("{label}: input is not UTF-8: {error}"))?;
+    let text = std::str::from_utf8(bytes)
+        .map_err(|error| format!("{label}: input is not UTF-8: {error}"))?;
     let mut samples = BTreeMap::new();
     let mut skipped_header = false;
     let mut previous_timestamp: Option<i64> = None;
@@ -243,11 +475,16 @@ fn parse_measured_csv(bytes: &[u8], label: &str) -> Result<BTreeMap<i64, f64>, S
         if line.trim().is_empty() {
             continue;
         }
-        let fields = parse_csv_record(line).map_err(|error| format!("{label}: line {}: {error}", line_number + 1))?;
+        let fields = parse_csv_record(line)
+            .map_err(|error| format!("{label}: line {}: {error}", line_number + 1))?;
         let single_field_timestamps: Vec<(usize, i64)> = fields
             .iter()
             .enumerate()
-            .filter_map(|(index, field)| parse_timestamp(field).ok().map(|timestamp| (index, timestamp)))
+            .filter_map(|(index, field)| {
+                parse_timestamp(field)
+                    .ok()
+                    .map(|timestamp| (index, timestamp))
+            })
             .collect();
 
         if single_field_timestamps.is_empty() && !skipped_header {
@@ -267,11 +504,17 @@ fn parse_measured_csv(bytes: &[u8], label: &str) -> Result<BTreeMap<i64, f64>, S
                 }
             }
             if split_candidates.len() != 1 {
-                return Err(format!("{label}: line {} must contain exactly one parseable UTC timestamp (single field or adjacent date/time fields)", line_number + 1));
+                return Err(format!(
+                    "{label}: line {} must contain exactly one parseable UTC timestamp (single field or adjacent date/time fields)",
+                    line_number + 1
+                ));
             }
             split_candidates.remove(0)
         } else {
-            return Err(format!("{label}: line {} contains multiple timestamp fields", line_number + 1));
+            return Err(format!(
+                "{label}: line {} contains multiple timestamp fields",
+                line_number + 1
+            ));
         };
 
         let numeric: Vec<(usize, f64)> = fields
@@ -281,15 +524,24 @@ fn parse_measured_csv(bytes: &[u8], label: &str) -> Result<BTreeMap<i64, f64>, S
             .filter_map(|(index, field)| parse_finite(field).ok().map(|value| (index, value)))
             .collect();
         if numeric.len() != 1 {
-            return Err(format!("{label}: line {} must contain exactly one current value beside its timestamp", line_number + 1));
+            return Err(format!(
+                "{label}: line {} must contain exactly one current value beside its timestamp",
+                line_number + 1
+            ));
         }
 
         if let Some(previous) = previous_timestamp {
             if timestamp == previous {
-                return Err(format!("{label}: duplicate one-second timestamp at line {}", line_number + 1));
+                return Err(format!(
+                    "{label}: duplicate one-second timestamp at line {}",
+                    line_number + 1
+                ));
             }
             if timestamp < previous {
-                return Err(format!("{label}: timestamps are not strictly increasing at line {}", line_number + 1));
+                return Err(format!(
+                    "{label}: timestamps are not strictly increasing at line {}",
+                    line_number + 1
+                ));
             }
         }
         previous_timestamp = Some(timestamp);
@@ -303,11 +555,16 @@ fn parse_measured_csv(bytes: &[u8], label: &str) -> Result<BTreeMap<i64, f64>, S
 }
 
 fn parse_tva_daily(bytes: &[u8], pin: &Pin) -> Result<BTreeMap<i64, f64>, String> {
-    let date = pin.date.ok_or_else(|| format!("TVA pin missing date: {}", pin.path))?;
+    let date = pin
+        .date
+        .ok_or_else(|| format!("TVA pin missing date: {}", pin.path))?;
     let midnight = parse_compact_date(date)?;
-    let text = std::str::from_utf8(bytes).map_err(|error| format!("{}: not UTF-8: {error}", pin.path))?;
+    let text =
+        std::str::from_utf8(bytes).map_err(|error| format!("{}: not UTF-8: {error}", pin.path))?;
     let mut lines = text.lines().filter(|line| !line.trim().is_empty());
-    let header_line = lines.next().ok_or_else(|| format!("{}: empty TVA daily file", pin.path))?;
+    let header_line = lines
+        .next()
+        .ok_or_else(|| format!("{}: empty TVA daily file", pin.path))?;
     let headers = parse_csv_record(header_line)?;
     let amp_index = unique_header_index(&headers, "GICXFNeutralAmps", pin.path)?;
     let time_index = unique_header_index(&headers, "time", pin.path)?;
@@ -315,27 +572,52 @@ fn parse_tva_daily(bytes: &[u8], pin: &Pin) -> Result<BTreeMap<i64, f64>, String
     let mut previous_minute: Option<i64> = None;
 
     for (offset, line) in lines.enumerate() {
-        let fields = parse_csv_record(line).map_err(|error| format!("{}: data row {}: {error}", pin.path, offset + 2))?;
+        let fields = parse_csv_record(line)
+            .map_err(|error| format!("{}: data row {}: {error}", pin.path, offset + 2))?;
         if fields.len() != headers.len() {
-            return Err(format!("{}: data row {} has {} fields, expected {}", pin.path, offset + 2, fields.len(), headers.len()));
+            return Err(format!(
+                "{}: data row {} has {} fields, expected {}",
+                pin.path,
+                offset + 2,
+                fields.len(),
+                headers.len()
+            ));
         }
-        let amps = parse_finite(&fields[amp_index]).map_err(|error| format!("{}: data row {}: {error}", pin.path, offset + 2))?;
-        let seconds_float = parse_finite(&fields[time_index]).map_err(|error| format!("{}: data row {}: {error}", pin.path, offset + 2))?;
+        let amps = parse_finite(&fields[amp_index])
+            .map_err(|error| format!("{}: data row {}: {error}", pin.path, offset + 2))?;
+        let seconds_float = parse_finite(&fields[time_index])
+            .map_err(|error| format!("{}: data row {}: {error}", pin.path, offset + 2))?;
         let seconds_rounded = seconds_float.round();
         if (seconds_float - seconds_rounded).abs() > 1e-9 {
-            return Err(format!("{}: elapsed seconds must be an integer at row {}", pin.path, offset + 2));
+            return Err(format!(
+                "{}: elapsed seconds must be an integer at row {}",
+                pin.path,
+                offset + 2
+            ));
         }
         let seconds = seconds_rounded as i64;
         if !(0..86_400).contains(&seconds) || seconds % 60 != 0 {
-            return Err(format!("{}: elapsed seconds must be a minute boundary in [0,86400) at row {}", pin.path, offset + 2));
+            return Err(format!(
+                "{}: elapsed seconds must be a minute boundary in [0,86400) at row {}",
+                pin.path,
+                offset + 2
+            ));
         }
         let minute = midnight + seconds;
         if let Some(previous) = previous_minute {
             if minute == previous {
-                return Err(format!("{}: duplicate minute at row {}", pin.path, offset + 2));
+                return Err(format!(
+                    "{}: duplicate minute at row {}",
+                    pin.path,
+                    offset + 2
+                ));
             }
             if minute < previous {
-                return Err(format!("{}: minutes are not strictly increasing at row {}", pin.path, offset + 2));
+                return Err(format!(
+                    "{}: minutes are not strictly increasing at row {}",
+                    pin.path,
+                    offset + 2
+                ));
             }
         }
         previous_minute = Some(minute);
@@ -349,21 +631,33 @@ fn parse_tva_daily(bytes: &[u8], pin: &Pin) -> Result<BTreeMap<i64, f64>, String
 }
 
 fn parse_reference_csv(bytes: &[u8], pin: &Pin) -> Result<BTreeMap<i64, f64>, String> {
-    let text = std::str::from_utf8(bytes).map_err(|error| format!("{}: not UTF-8: {error}", pin.path))?;
+    let text =
+        std::str::from_utf8(bytes).map_err(|error| format!("{}: not UTF-8: {error}", pin.path))?;
     let mut lines = text.lines().filter(|line| !line.trim().is_empty());
-    let header_line = lines.next().ok_or_else(|| format!("{}: empty reference-model file", pin.path))?;
+    let header_line = lines
+        .next()
+        .ok_or_else(|| format!("{}: empty reference-model file", pin.path))?;
     let headers = parse_csv_record(header_line)?;
     let timestamp_index = unique_header_index(&headers, "timestamp", pin.path)?;
     let substation_index = unique_header_index(&headers, "substation", pin.path)?;
     let gic_index = unique_header_index(&headers, "Sim GIC (Median)", pin.path)?;
-    let expected_substation = pin.substation.ok_or_else(|| format!("{}: missing expected substation ID", pin.path))?;
+    let expected_substation = pin
+        .substation
+        .ok_or_else(|| format!("{}: missing expected substation ID", pin.path))?;
     let mut values = BTreeMap::new();
     let mut previous_timestamp: Option<i64> = None;
 
     for (offset, line) in lines.enumerate() {
-        let fields = parse_csv_record(line).map_err(|error| format!("{}: data row {}: {error}", pin.path, offset + 2))?;
+        let fields = parse_csv_record(line)
+            .map_err(|error| format!("{}: data row {}: {error}", pin.path, offset + 2))?;
         if fields.len() != headers.len() {
-            return Err(format!("{}: data row {} has {} fields, expected {}", pin.path, offset + 2, fields.len(), headers.len()));
+            return Err(format!(
+                "{}: data row {} has {} fields, expected {}",
+                pin.path,
+                offset + 2,
+                fields.len(),
+                headers.len()
+            ));
         }
         if fields[substation_index].trim() != expected_substation {
             return Err(format!(
@@ -377,15 +671,28 @@ fn parse_reference_csv(bytes: &[u8], pin: &Pin) -> Result<BTreeMap<i64, f64>, St
         let timestamp = parse_timestamp(&fields[timestamp_index])
             .map_err(|error| format!("{}: timestamp at row {}: {error}", pin.path, offset + 2))?;
         if timestamp.rem_euclid(60) != 0 {
-            return Err(format!("{}: reference prediction is not aligned to a UTC minute at row {}", pin.path, offset + 2));
+            return Err(format!(
+                "{}: reference prediction is not aligned to a UTC minute at row {}",
+                pin.path,
+                offset + 2
+            ));
         }
-        let amps = parse_finite(&fields[gic_index]).map_err(|error| format!("{}: GIC at row {}: {error}", pin.path, offset + 2))?;
+        let amps = parse_finite(&fields[gic_index])
+            .map_err(|error| format!("{}: GIC at row {}: {error}", pin.path, offset + 2))?;
         if let Some(previous) = previous_timestamp {
             if timestamp == previous {
-                return Err(format!("{}: duplicate reference-model minute at row {}", pin.path, offset + 2));
+                return Err(format!(
+                    "{}: duplicate reference-model minute at row {}",
+                    pin.path,
+                    offset + 2
+                ));
             }
             if timestamp < previous {
-                return Err(format!("{}: reference-model timestamps are not strictly increasing at row {}", pin.path, offset + 2));
+                return Err(format!(
+                    "{}: reference-model timestamps are not strictly increasing at row {}",
+                    pin.path,
+                    offset + 2
+                ));
             }
         }
         previous_timestamp = Some(timestamp);
@@ -393,7 +700,10 @@ fn parse_reference_csv(bytes: &[u8], pin: &Pin) -> Result<BTreeMap<i64, f64>, St
     }
 
     if values.is_empty() {
-        return Err(format!("{}: no reference predictions were parsed", pin.path));
+        return Err(format!(
+            "{}: no reference predictions were parsed",
+            pin.path
+        ));
     }
     Ok(values)
 }
@@ -406,7 +716,10 @@ fn unique_header_index(headers: &[String], expected: &str, label: &str) -> Resul
         .map(|(index, _)| index)
         .collect();
     if matches.len() != 1 {
-        return Err(format!("{label}: expected exactly one header named {expected:?}, found {}", matches.len()));
+        return Err(format!(
+            "{label}: expected exactly one header named {expected:?}, found {}",
+            matches.len()
+        ));
     }
     Ok(matches[0])
 }
@@ -467,7 +780,10 @@ fn parse_csv_record(line: &str) -> Result<Vec<String>, String> {
 }
 
 fn parse_finite(value: &str) -> Result<f64, String> {
-    let parsed = value.trim().parse::<f64>().map_err(|error| format!("invalid numeric value {value:?}: {error}"))?;
+    let parsed = value
+        .trim()
+        .parse::<f64>()
+        .map_err(|error| format!("invalid numeric value {value:?}: {error}"))?;
     if !parsed.is_finite() {
         return Err(format!("non-finite numeric value is prohibited: {value:?}"));
     }
@@ -486,7 +802,10 @@ fn parse_timestamp(value: &str) -> Result<i64, String> {
     } else if let Some(position) = raw.rfind(|ch| ch == '+' || ch == '-') {
         if position > 10 {
             let offset = &raw[position..];
-            if !matches!(offset, "+00:00" | "-00:00" | "+0000" | "-0000" | "+00" | "-00") {
+            if !matches!(
+                offset,
+                "+00:00" | "-00:00" | "+0000" | "-0000" | "+00" | "-00"
+            ) {
                 return Err(format!("non-UTC timezone offset is not allowed: {offset}"));
             }
             raw.truncate(position);
@@ -519,9 +838,17 @@ fn parse_date(value: &str) -> Result<(i64, i64, i64), String> {
     }
 
     let (year, month, day) = if parts[0].len() == 4 {
-        (parse_i64(parts[0])?, parse_i64(parts[1])?, parse_i64(parts[2])?)
+        (
+            parse_i64(parts[0])?,
+            parse_i64(parts[1])?,
+            parse_i64(parts[2])?,
+        )
     } else if value.contains('/') && parts[2].len() == 4 {
-        (parse_i64(parts[2])?, parse_i64(parts[0])?, parse_i64(parts[1])?)
+        (
+            parse_i64(parts[2])?,
+            parse_i64(parts[0])?,
+            parse_i64(parts[1])?,
+        )
     } else {
         return Err(format!("date must be YYYY-MM-DD or MM/DD/YYYY: {value:?}"));
     };
@@ -561,8 +888,11 @@ fn parse_clock(value: &str) -> Result<(i64, i64, i64), String> {
     let seconds_text = if parts.len() == 3 { parts[2] } else { "0" };
     let whole_seconds = seconds_text.split('.').next().unwrap_or(seconds_text);
     let fraction = seconds_text.split_once('.').map(|(_, fraction)| fraction);
-    if fraction.is_some_and(|digits| digits.is_empty() || digits.chars().any(|digit| digit != '0')) {
-        return Err(format!("sub-second timestamps are not supported: {value:?}"));
+    if fraction.is_some_and(|digits| digits.is_empty() || digits.chars().any(|digit| digit != '0'))
+    {
+        return Err(format!(
+            "sub-second timestamps are not supported: {value:?}"
+        ));
     }
     let second = parse_i64(whole_seconds)?;
 
@@ -582,7 +912,10 @@ fn parse_clock(value: &str) -> Result<(i64, i64, i64), String> {
 }
 
 fn parse_i64(value: &str) -> Result<i64, String> {
-    value.trim().parse::<i64>().map_err(|error| format!("invalid integer {value:?}: {error}"))
+    value
+        .trim()
+        .parse::<i64>()
+        .map_err(|error| format!("invalid integer {value:?}: {error}"))
 }
 
 fn parse_compact_date(value: &str) -> Result<i64, String> {
@@ -599,7 +932,11 @@ fn parse_compact_date(value: &str) -> Result<i64, String> {
 
 fn days_from_civil(year: i64, month: i64, day: i64) -> i64 {
     let adjusted_year = if month <= 2 { year - 1 } else { year };
-    let era = if adjusted_year >= 0 { adjusted_year } else { adjusted_year - 399 } / 400;
+    let era = if adjusted_year >= 0 {
+        adjusted_year
+    } else {
+        adjusted_year - 399
+    } / 400;
     let year_of_era = adjusted_year - era * 400;
     let adjusted_month = month + if month > 2 { -3 } else { 9 };
     let day_of_year = (153 * adjusted_month + 2) / 5 + day - 1;
@@ -622,16 +959,24 @@ fn aggregate_measured(samples: &BTreeMap<i64, f64>) -> Result<Vec<(i64, f64)>, S
     let mut result = Vec::with_capacity(EXPECTED_PAIRS);
     let mut minute = start;
     while minute <= end {
-        let values = bins.get(&minute).ok_or_else(|| format!("missing measured minute bin at UTC epoch {minute}"))?;
+        let values = bins
+            .get(&minute)
+            .ok_or_else(|| format!("missing measured minute bin at UTC epoch {minute}"))?;
         if values.len() != 60 {
-            return Err(format!("minute {minute} contains {} measured samples; exactly 60 are required", values.len()));
+            return Err(format!(
+                "minute {minute} contains {} measured samples; exactly 60 are required",
+                values.len()
+            ));
         }
         result.push((minute, values.iter().sum::<f64>() / 60.0));
         minute += 60;
     }
 
     if result.len() != EXPECTED_PAIRS {
-        return Err(format!("internal evaluation-window error: expected {EXPECTED_PAIRS} bins, built {}", result.len()));
+        return Err(format!(
+            "internal evaluation-window error: expected {EXPECTED_PAIRS} bins, built {}",
+            result.len()
+        ));
     }
     Ok(result)
 }
@@ -645,14 +990,17 @@ fn compare(
     let mut obs = Vec::with_capacity(EXPECTED_PAIRS);
     let mut pred = Vec::with_capacity(EXPECTED_PAIRS);
     for &(minute, measured) in observed {
-        let value = predicted
-            .get(&minute)
-            .ok_or_else(|| format!("{model} prediction missing exact UTC minute {minute} at {site}"))?;
+        let value = predicted.get(&minute).ok_or_else(|| {
+            format!("{model} prediction missing exact UTC minute {minute} at {site}")
+        })?;
         obs.push(measured);
         pred.push(*value);
     }
     if obs.len() != EXPECTED_PAIRS {
-        return Err(format!("{site}/{model}: expected {EXPECTED_PAIRS} exact pairs, found {}", obs.len()));
+        return Err(format!(
+            "{site}/{model}: expected {EXPECTED_PAIRS} exact pairs, found {}",
+            obs.len()
+        ));
     }
 
     let metrics = calculate_metrics(&obs, &pred)?;
@@ -733,14 +1081,22 @@ fn render_receipt(
     output.push_str("  \"schema\": \"gmd-four-site-replay-receipt-v0.1\",\n");
     output.push_str("  \"benchmark_id\": \"GMD-MAY2024-FOUR-SITE-REPLAY-V0_1\",\n");
     output.push_str("  \"evidence_tier\": \"E1_DATA_PIPELINE_KNOWN_ANSWER\",\n");
-    output.push_str(&format!("  \"dataset_commit\": {},\n", json_string(source_head)));
-    output.push_str(&format!("  \"tool_source_commit\": {},\n", json_string(tool_commit)));
+    output.push_str(&format!(
+        "  \"dataset_commit\": {},\n",
+        json_string(source_head)
+    ));
+    output.push_str(&format!(
+        "  \"tool_source_commit\": {},\n",
+        json_string(tool_commit)
+    ));
     output.push_str("  \"runtime_network_access\": false,\n");
     output.push_str("  \"evaluation\": {\n");
     output.push_str("    \"start_utc\": \"2024-05-10T15:00:00Z\",\n");
     output.push_str("    \"end_utc_inclusive\": \"2024-05-12T06:00:00Z\",\n");
     output.push_str("    \"expected_pairs_per_site_model\": 2341,\n");
-    output.push_str("    \"measured_aggregation\": \"exact_mean_of_60_one_second_samples_per_utc_minute\",\n");
+    output.push_str(
+        "    \"measured_aggregation\": \"exact_mean_of_60_one_second_samples_per_utc_minute\",\n",
+    );
     output.push_str("    \"join\": \"exact_utc_minute_only_no_interpolation_no_forward_fill\",\n");
     output.push_str("    \"timezone_policy\": \"naive source timestamps are interpreted as UTC; explicit non-UTC offsets are rejected\",\n");
     output.push_str("    \"polarity\": \"preserve_raw_pearson_r_and_invert_prediction_only_for_residual_metrics_when_r_is_negative\"\n");
@@ -760,7 +1116,11 @@ fn render_receipt(
     output.push_str("  ],\n");
     output.push_str("  \"comparisons\": [\n");
     for (index, item) in comparisons.iter().enumerate() {
-        let comma = if index + 1 == comparisons.len() { "" } else { "," };
+        let comma = if index + 1 == comparisons.len() {
+            ""
+        } else {
+            ","
+        };
         let m = &item.metrics;
         output.push_str(&format!(
             concat!(
@@ -877,7 +1237,9 @@ fn sha1(input: &[u8]) -> [u8; 20] {
             ]);
         }
         for index in 16..80 {
-            words[index] = (words[index - 3] ^ words[index - 8] ^ words[index - 14] ^ words[index - 16]).rotate_left(1);
+            words[index] =
+                (words[index - 3] ^ words[index - 8] ^ words[index - 14] ^ words[index - 16])
+                    .rotate_left(1);
         }
 
         let mut a = h0;
@@ -938,8 +1300,14 @@ mod tests {
 
     #[test]
     fn git_blob_sha1_matches_known_git_objects() {
-        assert_eq!(git_blob_sha1(b""), "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391");
-        assert_eq!(git_blob_sha1(b"hello\n"), "ce013625030ba8dba906f756967f9e9ca394464a");
+        assert_eq!(
+            git_blob_sha1(b""),
+            "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+        );
+        assert_eq!(
+            git_blob_sha1(b"hello\n"),
+            "ce013625030ba8dba906f756967f9e9ca394464a"
+        );
     }
 
     #[test]
