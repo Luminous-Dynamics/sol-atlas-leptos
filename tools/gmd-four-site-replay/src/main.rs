@@ -1224,7 +1224,10 @@ fn sha1(input: &[u8]) -> [u8; 20] {
     let mut h4 = 0xC3D2_E1F0_u32;
 
     let (chunks, remainder) = message.as_chunks::<64>();
-    debug_assert!(remainder.is_empty(), "SHA-1 padding must produce complete blocks");
+    debug_assert!(
+        remainder.is_empty(),
+        "SHA-1 padding must produce complete blocks"
+    );
     for chunk in chunks {
         let mut words = [0_u32; 80];
         for (index, word) in words.iter_mut().take(16).enumerate() {
