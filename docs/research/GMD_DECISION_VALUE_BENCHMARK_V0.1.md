@@ -194,6 +194,23 @@ Report:
 
 Zero false-ready on a frozen known-answer corpus is a software gate, not proof of zero operational risk.
 
+### D.1 Operator decision practice and adoption
+
+Physical optimality is not the same as operational adoption. Include a human-in-the-loop replay lane that records the decision actually available to an operator at the time:
+
+- disposition: ACCEPT, MODIFY, DEFER, REJECT or NO_ACTION;
+- selected action and any modified scope/procedure;
+- operator role/authority and approval evidence;
+- rationale: forecast confidence/locality, remaining lead time, service/revenue exposure, cost, reversibility, staffing, equipment, existing playbook and competing risks;
+- evidence and model revisions available at decision time;
+- post-event asset and service outcomes, where owner-authorised evidence exists.
+
+Compare the operator's choice with physically feasible, owner-rule, service-floor-constrained and cost-aware counterfactuals. Operator practice is an empirical reference for what was done, not ground truth for optimality or safety. The benchmark must not reward higher adoption by relaxing safety or service constraints.
+
+An important 2026 comparator is *Space Weather Mitigation Decisions by Critical Infrastructure Operators During Solar Cycle 25* (first published 26 September 2026; DOI https://doi.org/10.1029/2026SW005072). The study contacted 313 operators across power, satellite and aviation, received 55 unique responses (18% response rate), interviewed 33 operators and identified 91 mitigation decisions, 74% of which were undertaken. Reported grid actions skewed toward lower-cost situational awareness, staff readiness, simulation and modelling; GIC-blocking activation and protection-setting changes were rare or absent in the surveyed responses. The authors emphasize demand for precise, localized, impact-based forecasts and stronger cost-benefit evidence.
+
+This is a useful design comparator, not a representative census or a universal adoption target. Report sample counts, response rate and sector denominators. Do not train or evaluate an adoption predictor on interviews and then describe those same interviews as independent validation.
+
 ### E. Network mitigation and service continuity
 
 Compare no mitigation, documented operator rules, deterministic optimisation, robust/chance-constrained optimisation and receding-horizon policies with targeted observations.
@@ -245,6 +262,7 @@ A fair benchmark must respect the scope of competing systems:
 - **UK SWIMMR** demonstrates operationalised models for electricity, high-pressure gas and rail impacts. It is a serious operational integration comparator.
 - **New Zealand Transpower** provides a real operational mitigation case with published measured and no-mitigation counterfactual results. This should shape the network-wide intervention benchmark.
 - **NERC TPL-007-4** supplies a documented planning/reference framework. Compliance is necessary context, not evidence of superior operational resilience.
+- **Operator mitigation decisions (2026)** provide an empirical, limited-sample adoption baseline. Use accept/modify/defer/reject/no-action and rationale/outcomes; do not treat the 18% response sample as population prevalence. DOI: https://doi.org/10.1029/2026SW005072.
 
 Do not claim SOTA from one-site RMSE, a synthetic fixture, a single-event replay, a dashboard or a benchmark with easier observation coverage. Report matched baselines, source versions, holdout design, confidence intervals and failed cases.
 
@@ -312,6 +330,8 @@ Do not wait for queued workflow runs to design new cases or implement independen
 - Texas A&M synthetic electric grid test cases: https://electricgrids.engr.tamu.edu/electric-grid-test-cases/
 - Texas A&M ACTIVSg200 restoration scenarios: https://electricgrids.engr.tamu.edu/restoration-data-and-scenarios-for-activsg200/
 - IEEE PES, Reliability and Resilience for New Grid Needs (TR148, 1 October 2026): https://resourcecenter.ieee-pes.org/publications/technical-reports/pes_tr_tr148_itslc_102026
+- IEEE PES, *Power System Resilience Metrics and Evaluation Methods* (TR143, 8 June 2026): https://doi.org/10.17023/7e16-km93
+- Grochowicz, Bloomfield & Victoria, *Resilience metrics to guide back-up investments in the power system during extreme weather* (Nature Sustainability, 14 July 2026): https://doi.org/10.1038/s41893-026-01897-6
 
 ## 12. Explicit non-claims
 
