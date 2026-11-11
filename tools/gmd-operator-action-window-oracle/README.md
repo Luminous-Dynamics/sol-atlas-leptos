@@ -38,7 +38,7 @@ No midpoint substitution is permitted. A wide event-arrival interval remains vis
 - Scope conflict -> ScopeConflict.
 - Any unknown evidence/authority/resource/scope -> Indeterminate.
 
-An Approved action must have zero remaining approval duration. A successful readiness state is only ReadyForOperatorReview, not authorization to execute.
+An Approved action must have zero remaining approval duration. A successful readiness state is only ReadyForOperatorReview, not authorization to execute. A candidate with zero total maximum completion duration is rejected rather than treated as an instantaneous fit.
 
 ## Cost and action class
 
