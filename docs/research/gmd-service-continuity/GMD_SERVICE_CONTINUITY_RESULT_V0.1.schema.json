@@ -5,10 +5,12 @@
   "description": "Per-service continuity and sustained-recovery result. Native units remain separate; no cross-service aggregate score is represented.",
   "type": "object",
   "additionalProperties": false,
-  "required": ["scenario_id", "horizon_seconds", "services"],
+  "required": ["scenario_id", "horizon_seconds", "dependency_graph_ref", "dependency_graph_sha256", "services"],
   "properties": {
     "scenario_id": { "type": "string", "minLength": 1 },
     "horizon_seconds": { "type": "integer", "minimum": 1 },
+    "dependency_graph_ref": { "oneOf": [{ "type": "string", "minLength": 1 }, { "type": "null" }] },
+    "dependency_graph_sha256": { "oneOf": [{ "type": "string", "pattern": "^[0-9a-f]{64}$" }, { "type": "null" }] },
     "services": {
       "type": "array",
       "minItems": 1,
