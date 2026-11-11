@@ -286,15 +286,15 @@ fn assess_readiness(
     if evidence == EvidenceState::Stale {
         return ReadinessDisposition::StaleEvidence;
     }
-    if authority == AuthorityState::Pending {
-        return ReadinessDisposition::AwaitingHumanApproval;
-    }
     if evidence == EvidenceState::Unknown
         || authority == AuthorityState::Unknown
         || resources == ResourceState::Unknown
         || scope == ScopeState::Unknown
     {
         return ReadinessDisposition::Indeterminate;
+    }
+    if authority == AuthorityState::Pending {
+        return ReadinessDisposition::AwaitingHumanApproval;
     }
     ReadinessDisposition::ReadyForOperatorReview
 }
@@ -491,6 +491,25 @@ mod tests {
         assert_eq!(result.resource_state, ResourceState::Unavailable);
         assert_eq!(result.scope_state, ScopeState::Verified);
         assert!(!result.execution_authorized);
+    }
+
+    #[test]
+    fn pending_approval_does_not_hide_unknown_resources_or_stale_evidence() {
+        let mut candidate = input();
+        candidate.authority_state = AuthorityState::Pending;
+        candidate.approval_duration = range(10, 20);
+        candidate.resource_state = ResourceState::Unknown;
+        assert_eq!(
+            evaluate_action_window(&candidate).unwrap().readiness,
+            ReadinessDisposition::Indeterminate
+        );
+
+        candidate.resource_state = ResourceState::Available;
+        candidate.evidence_state = EvidenceState::Stale;
+        assert_eq!(
+            evaluate_action_window(&candidate).unwrap().readiness,
+            ReadinessDisposition::StaleEvidence
+        );
     }
 
     #[test]
