@@ -158,9 +158,15 @@ impl fmt::Display for ServiceError {
         let message = match self {
             Self::EmptyScenarioId => "scenario ID must not be empty",
             Self::InvalidHorizon => "scenario horizon must be positive",
-            Self::DependencyGraphMetadataMismatch => "dependency graph reference and digest must be supplied together",
-            Self::InvalidDependencyGraphReference => "dependency graph reference must be non-empty and trimmed",
-            Self::InvalidDependencyGraphDigest => "dependency graph digest must be 64 lowercase hexadecimal SHA-256 characters",
+            Self::DependencyGraphMetadataMismatch => {
+                "dependency graph reference and digest must be supplied together"
+            }
+            Self::InvalidDependencyGraphReference => {
+                "dependency graph reference must be non-empty and trimmed"
+            }
+            Self::InvalidDependencyGraphDigest => {
+                "dependency graph digest must be 64 lowercase hexadecimal SHA-256 characters"
+            }
             Self::EmptyServiceSet => "scenario must contain at least one service",
             Self::EmptyIdentifier => "service ID must be non-empty and trimmed",
             Self::DuplicateServiceId => "service IDs must be unique within a scenario",
@@ -171,13 +177,19 @@ impl fmt::Display for ServiceError {
             Self::EmptyAssetRevision => "asset revision must be non-empty and trimmed",
             Self::InvalidSourceDigest => "SHA-256 digest must be 64 lowercase hex characters",
             Self::InvalidServiceFloor => "minimum service fraction must be finite and in (0, 1]",
-            Self::InvalidQuantityTolerance => "tolerance is invalid or too large for a service floor",
+            Self::InvalidQuantityTolerance => {
+                "tolerance is invalid or too large for a service floor"
+            }
             Self::InvalidRecoveryHold => "recovery hold duration must be positive",
             Self::InvalidMaximumInterval => "maximum interval duration must be positive",
             Self::EmptyIntervals => "service trajectory must contain at least one interval",
             Self::InvalidInterval => "interval duration must be positive and within horizon",
-            Self::IntervalResolutionTooCoarse => "interval aggregation is coarser than the service limit",
-            Self::IncompleteOrNonContiguousCoverage => "interval coverage must be ordered and contiguous",
+            Self::IntervalResolutionTooCoarse => {
+                "interval aggregation is coarser than the service limit"
+            }
+            Self::IncompleteOrNonContiguousCoverage => {
+                "interval coverage must be ordered and contiguous"
+            }
             Self::NonFiniteQuantity => "required and delivered quantities must be finite",
             Self::NegativeQuantity => "required and delivered quantities must be non-negative",
             Self::NoPositiveDemand => "a service trajectory must contain positive total demand",
@@ -190,11 +202,8 @@ impl fmt::Display for ServiceError {
 impl Error for ServiceError {}
 
 /// Evaluate all services independently, rejecting incomplete event coverage.
-pub fn evaluate_scenario(
-    scenario: &ServiceScenario,
-) -> Result<ScenarioEvaluation, ServiceError> {
-    if scenario.scenario_id.trim().is_empty()
-        || scenario.scenario_id.trim() != scenario.scenario_id
+pub fn evaluate_scenario(scenario: &ServiceScenario) -> Result<ScenarioEvaluation, ServiceError> {
+    if scenario.scenario_id.trim().is_empty() || scenario.scenario_id.trim() != scenario.scenario_id
     {
         return Err(ServiceError::EmptyScenarioId);
     }
@@ -316,8 +325,7 @@ pub fn evaluate_service(
         if !served_fraction.is_finite() || !deficit_fraction.is_finite() {
             return Err(ServiceError::NumericalOverflow);
         }
-        maximum_interval_deficit_fraction =
-            maximum_interval_deficit_fraction.max(deficit_fraction);
+        maximum_interval_deficit_fraction = maximum_interval_deficit_fraction.max(deficit_fraction);
 
         floor_status.push(Some(floor_met));
         full_status.push(Some(full_met));
@@ -334,8 +342,7 @@ pub fn evaluate_service(
                 floor_violation_episode_count = floor_violation_episode_count
                     .checked_add(1)
                     .ok_or(ServiceError::NumericalOverflow)?;
-                first_floor_violation_after_seconds
-                    .get_or_insert(interval.start_offset_seconds);
+                first_floor_violation_after_seconds.get_or_insert(interval.start_offset_seconds);
             }
             current_floor_violation_seconds = current_floor_violation_seconds
                 .checked_add(duration)
@@ -343,8 +350,8 @@ pub fn evaluate_service(
             total_floor_violation_seconds = total_floor_violation_seconds
                 .checked_add(duration)
                 .ok_or(ServiceError::NumericalOverflow)?;
-            longest_floor_violation_seconds = longest_floor_violation_seconds
-                .max(current_floor_violation_seconds);
+            longest_floor_violation_seconds =
+                longest_floor_violation_seconds.max(current_floor_violation_seconds);
         }
     }
 
@@ -353,8 +360,7 @@ pub fn evaluate_service(
     }
 
     let demand_weighted_served_fraction = total_delivered_capped / total_required;
-    let floor_time_availability_fraction =
-        floor_available_seconds as f64 / demand_seconds as f64;
+    let floor_time_availability_fraction = floor_available_seconds as f64 / demand_seconds as f64;
     if !all_finite(&[
         demand_weighted_served_fraction,
         floor_time_availability_fraction,
@@ -374,12 +380,14 @@ pub fn evaluate_service(
         evidence_class: service.evidence_class,
         horizon_seconds,
         maximum_interval_seconds: service.maximum_interval_seconds,
-        initially_above_service_floor: floor_status.iter().find_map(|status| *status).ok_or(
-            ServiceError::NoPositiveDemand,
-        )?,
-        initially_fully_served: full_status.iter().find_map(|status| *status).ok_or(
-            ServiceError::NoPositiveDemand,
-        )?,
+        initially_above_service_floor: floor_status
+            .iter()
+            .find_map(|status| *status)
+            .ok_or(ServiceError::NoPositiveDemand)?,
+        initially_fully_served: full_status
+            .iter()
+            .find_map(|status| *status)
+            .ok_or(ServiceError::NoPositiveDemand)?,
         total_required_quantity: total_required,
         total_delivered_quantity_capped: total_delivered_capped,
         total_surplus_quantity_excluded: total_surplus,
@@ -406,14 +414,10 @@ pub fn evaluate_service(
 }
 
 fn validate_service_metadata(service: &ServiceSeries) -> Result<(), ServiceError> {
-    if service.service_id.trim().is_empty()
-        || service.service_id.trim() != service.service_id
-    {
+    if service.service_id.trim().is_empty() || service.service_id.trim() != service.service_id {
         return Err(ServiceError::EmptyIdentifier);
     }
-    if service.owner_ref.trim().is_empty()
-        || service.owner_ref.trim() != service.owner_ref
-    {
+    if service.owner_ref.trim().is_empty() || service.owner_ref.trim() != service.owner_ref {
         return Err(ServiceError::EmptyOwnerReference);
     }
     if service.geographic_scope_ref.trim().is_empty()
@@ -431,9 +435,7 @@ fn validate_service_metadata(service: &ServiceSeries) -> Result<(), ServiceError
     {
         return Err(ServiceError::EmptyAssetRevision);
     }
-    if service.source_ref.trim().is_empty()
-        || service.source_ref.trim() != service.source_ref
-    {
+    if service.source_ref.trim().is_empty() || service.source_ref.trim() != service.source_ref {
         return Err(ServiceError::EmptySourceReference);
     }
     if service.source_sha256.len() != 64
@@ -465,10 +467,7 @@ fn validate_service_metadata(service: &ServiceSeries) -> Result<(), ServiceError
     Ok(())
 }
 
-fn validate_intervals(
-    service: &ServiceSeries,
-    horizon_seconds: u64,
-) -> Result<(), ServiceError> {
+fn validate_intervals(service: &ServiceSeries, horizon_seconds: u64) -> Result<(), ServiceError> {
     let mut expected_start = 0_u64;
 
     for interval in &service.intervals {
@@ -485,9 +484,7 @@ fn validate_intervals(
         if interval.start_offset_seconds != expected_start {
             return Err(ServiceError::IncompleteOrNonContiguousCoverage);
         }
-        if !interval.required_quantity.is_finite()
-            || !interval.delivered_quantity.is_finite()
-        {
+        if !interval.required_quantity.is_finite() || !interval.delivered_quantity.is_finite() {
             return Err(ServiceError::NonFiniteQuantity);
         }
         if interval.required_quantity < 0.0 || interval.delivered_quantity < 0.0 {
@@ -533,9 +530,8 @@ fn find_sustained_recovery(
                     run_start = Some(interval.start_offset_seconds);
                     run_duration = 0;
                 }
-                run_duration = run_duration.checked_add(
-                    interval.end_offset_seconds - interval.start_offset_seconds,
-                )?;
+                run_duration = run_duration
+                    .checked_add(interval.end_offset_seconds - interval.start_offset_seconds)?;
 
                 if run_duration >= hold_seconds {
                     return Some(RecoveryMark {
@@ -599,7 +595,10 @@ mod tests {
 
     #[test]
     fn full_service_reports_complete_floor_and_full_recovery() {
-        let input = service(vec![interval(0, 30, 100.0, 100.0), interval(30, 60, 100.0, 100.0)]);
+        let input = service(vec![
+            interval(0, 30, 100.0, 100.0),
+            interval(30, 60, 100.0, 100.0),
+        ]);
         let result = evaluate_service(&input, 60).unwrap();
 
         assert_eq!(result.total_required_quantity, 200.0);
@@ -910,7 +909,10 @@ mod tests {
 
         let result = evaluate_scenario(&input).unwrap();
         assert_eq!(result.dependency_graph_ref, input.dependency_graph_ref);
-        assert_eq!(result.dependency_graph_sha256, input.dependency_graph_sha256);
+        assert_eq!(
+            result.dependency_graph_sha256,
+            input.dependency_graph_sha256
+        );
 
         input.dependency_graph_sha256 = None;
         assert_eq!(
