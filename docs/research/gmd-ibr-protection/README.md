@@ -56,7 +56,7 @@ Claims must declare their minimum fidelity. CT saturation waveform claims requir
 ## Time-scale and signal integrity
 
 - GIC / transformer DC-bias inputs and relay/fault waveforms may use different time scales and sample rates.
-- Preserve original sample clocks, synchronization group, clock uncertainty and per-channel start offsets.
+- Preserve original sample clocks, synchronization group, clock uncertainty, sample-index/time-column names, time units and per-channel data-column mappings and start offsets.
 - Do not resample or align channels without a declared transformation record and input/output digest.
 - Polarity is explicit for every current channel. Never silently reverse signs to improve correlation.
 - CT ratio, core/magnetization curve, burden and remanence state are explicit configuration inputs.
