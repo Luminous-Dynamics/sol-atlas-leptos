@@ -198,7 +198,10 @@ fn sha256(bytes: &[u8]) -> String {
 }
 
 fn is_sha256(value: &str) -> bool {
-    value.len() == 64 && value.bytes().all(|byte| byte.is_ascii_hexdigit() && !byte.is_ascii_uppercase())
+    value.len() == 64
+        && value
+            .bytes()
+            .all(|byte| byte.is_ascii_hexdigit() && !byte.is_ascii_uppercase())
 }
 
 fn validate_count_pair(
@@ -210,8 +213,12 @@ fn validate_count_pair(
         (None, None) => Ok(()),
         (Some(n), Some(d)) if d > 0 && n <= d => Ok(()),
         (Some(_), Some(0)) => Err(format!("{label}: denominator must be greater than zero")),
-        (Some(n), Some(d)) if n > d => Err(format!("{label}: numerator {n} exceeds denominator {d}")),
-        _ => Err(format!("{label}: numerator and denominator must be supplied together")),
+        (Some(n), Some(d)) if n > d => {
+            Err(format!("{label}: numerator {n} exceeds denominator {d}"))
+        }
+        _ => Err(format!(
+            "{label}: numerator and denominator must be supplied together"
+        )),
     }
 }
 
@@ -225,7 +232,11 @@ fn validate_corpus(corpus: &Corpus) -> Result<(), String> {
     if !corpus.synthetic_only {
         return Err("v0.1 verifier accepts synthetic contract fixtures only".to_string());
     }
-    if !corpus.fixture_notice.to_ascii_uppercase().contains("ALL VALUES ARE SYNTHETIC") {
+    if !corpus
+        .fixture_notice
+        .to_ascii_uppercase()
+        .contains("ALL VALUES ARE SYNTHETIC")
+    {
         return Err("fixture_notice must explicitly say ALL VALUES ARE SYNTHETIC".to_string());
     }
     if corpus.claim_ceiling != "E2" {
@@ -275,9 +286,15 @@ fn validate_corpus(corpus: &Corpus) -> Result<(), String> {
         let mut bound_ids = BTreeSet::new();
         for bound in &cell.bounds {
             if !bound_ids.insert(bound.axis_id.as_str()) {
-                return Err(format!("{}: duplicate cell bound for {}", cell.cell_id, bound.axis_id));
+                return Err(format!(
+                    "{}: duplicate cell bound for {}",
+                    cell.cell_id, bound.axis_id
+                ));
             }
-            let axis = corpus.parameter_domain.iter().find(|axis| axis.axis_id == bound.axis_id)
+            let axis = corpus
+                .parameter_domain
+                .iter()
+                .find(|axis| axis.axis_id == bound.axis_id)
                 .ok_or_else(|| format!("{}: unknown axis {}", cell.cell_id, bound.axis_id))?;
             if bound.unit != axis.unit {
                 return Err(format!(
@@ -291,11 +308,19 @@ fn validate_corpus(corpus: &Corpus) -> Result<(), String> {
                 || bound.lower < axis.lower
                 || bound.upper > axis.upper
             {
-                return Err(format!("{}: out-of-domain or invalid bound for {}", cell.cell_id, bound.axis_id));
+                return Err(format!(
+                    "{}: out-of-domain or invalid bound for {}",
+                    cell.cell_id, bound.axis_id
+                ));
             }
         }
-        if cell.coverage.coverage_kind == CoverageKind::PointSamplesOnly && cell.coverage.covers_entire_cell {
-            return Err(format!("{}: point_samples_only cannot cover an entire cell", cell.cell_id));
+        if cell.coverage.coverage_kind == CoverageKind::PointSamplesOnly
+            && cell.coverage.covers_entire_cell
+        {
+            return Err(format!(
+                "{}: point_samples_only cannot cover an entire cell",
+                cell.cell_id
+            ));
         }
         if let Some(outcomes) = &cell.outcomes {
             validate_count_pair(
@@ -311,19 +336,26 @@ fn validate_corpus(corpus: &Corpus) -> Result<(), String> {
             for value in [
                 outcomes.minimum_coordination_margin_pu,
                 outcomes.required_coordination_margin_pu,
-            ].into_iter().flatten() {
+            ]
+            .into_iter()
+            .flatten()
+            {
                 if !value.is_finite() {
                     return Err(format!("{}: non-finite coordination margin", cell.cell_id));
                 }
             }
             let mut local_services = BTreeSet::new();
             for margin in &outcomes.service_floor_margins {
-                let required_service = corpus.required_services.iter()
+                let required_service = corpus
+                    .required_services
+                    .iter()
                     .find(|service| service.service_id == margin.service_id)
-                    .ok_or_else(|| format!(
-                        "{}: unexpected service-floor margin {}",
-                        cell.cell_id, margin.service_id
-                    ))?;
+                    .ok_or_else(|| {
+                        format!(
+                            "{}: unexpected service-floor margin {}",
+                            cell.cell_id, margin.service_id
+                        )
+                    })?;
                 if margin.service_id.trim().is_empty()
                     || margin.unit.trim().is_empty()
                     || margin.unit != required_service.unit
@@ -341,15 +373,26 @@ fn validate_corpus(corpus: &Corpus) -> Result<(), String> {
             cell.coverage.source_artifact.as_ref(),
             cell.coverage.model_artifact.as_ref(),
             cell.coverage.proof_artifact.as_ref(),
-        ].into_iter().flatten() {
+        ]
+        .into_iter()
+        .flatten()
+        {
             if !is_sha256(&artifact.sha256) {
-                return Err(format!("{}: malformed SHA-256 for {}", cell.cell_id, artifact.path));
+                return Err(format!(
+                    "{}: malformed SHA-256 for {}",
+                    cell.cell_id, artifact.path
+                ));
             }
             let relative = Path::new(&artifact.path);
             if relative.as_os_str().is_empty()
-                || relative.components().any(|part| !matches!(part, Component::Normal(_)))
+                || relative
+                    .components()
+                    .any(|part| !matches!(part, Component::Normal(_)))
             {
-                return Err(format!("{}: artifact path must be a safe relative path", cell.cell_id));
+                return Err(format!(
+                    "{}: artifact path must be a safe relative path",
+                    cell.cell_id
+                ));
             }
         }
     }
@@ -373,7 +416,11 @@ fn verify_artifact(reference: Option<&ArtifactRef>, root: &Path) -> Result<bool,
     Ok(true)
 }
 
-fn verify_corpus(corpus: &Corpus, input_bytes: &[u8], artifact_root: &Path) -> Result<Report, String> {
+fn verify_corpus(
+    corpus: &Corpus,
+    input_bytes: &[u8],
+    artifact_root: &Path,
+) -> Result<Report, String> {
     validate_corpus(corpus)?;
 
     let mut results = Vec::with_capacity(corpus.cells.len());
@@ -390,9 +437,18 @@ fn verify_corpus(corpus: &Corpus, input_bytes: &[u8], artifact_root: &Path) -> R
         ));
     }
 
-    let certified = results.iter().filter(|item| item.classification == Classification::Certified).count();
-    let excluded = results.iter().filter(|item| item.classification == Classification::Excluded).count();
-    let unknown = results.iter().filter(|item| item.classification == Classification::Unknown).count();
+    let certified = results
+        .iter()
+        .filter(|item| item.classification == Classification::Certified)
+        .count();
+    let excluded = results
+        .iter()
+        .filter(|item| item.classification == Classification::Excluded)
+        .count();
+    let unknown = results
+        .iter()
+        .filter(|item| item.classification == Classification::Unknown)
+        .count();
 
     Ok(Report {
         status: "valid_synthetic_contract",
@@ -433,15 +489,23 @@ fn assess_cell(
         return unknown(cell, vec!["outcome evidence is absent".to_string()]);
     };
 
-    if let (Some(numerator), Some(denominator)) =
-        (outcomes.false_trip_count_upper_bound, outcomes.false_trip_denominator)
-    {
-        false_rate = Some(RateBound { numerator, denominator });
+    if let (Some(numerator), Some(denominator)) = (
+        outcomes.false_trip_count_upper_bound,
+        outcomes.false_trip_denominator,
+    ) {
+        false_rate = Some(RateBound {
+            numerator,
+            denominator,
+        });
     }
-    if let (Some(numerator), Some(denominator)) =
-        (outcomes.failure_to_trip_count_upper_bound, outcomes.failure_to_trip_denominator)
-    {
-        failure_rate = Some(RateBound { numerator, denominator });
+    if let (Some(numerator), Some(denominator)) = (
+        outcomes.failure_to_trip_count_upper_bound,
+        outcomes.failure_to_trip_denominator,
+    ) {
+        failure_rate = Some(RateBound {
+            numerator,
+            denominator,
+        });
     }
     if let (Some(minimum), Some(required)) = (
         outcomes.minimum_coordination_margin_pu,
@@ -457,7 +521,9 @@ fn assess_cell(
         });
     }
 
-    let missing_capabilities = cell.required_capabilities.missing_from(&cell.available_capabilities);
+    let missing_capabilities = cell
+        .required_capabilities
+        .missing_from(&cell.available_capabilities);
     if !missing_capabilities.is_empty() {
         reasons.push(format!(
             "required evidence capabilities unavailable: {}",
@@ -474,8 +540,12 @@ fn assess_cell(
         };
     }
     if !source_ok || !model_ok {
-        if !source_ok { reasons.push("source artifact is absent or not digest-verified".to_string()); }
-        if !model_ok { reasons.push("model artifact is absent or not digest-verified".to_string()); }
+        if !source_ok {
+            reasons.push("source artifact is absent or not digest-verified".to_string());
+        }
+        if !model_ok {
+            reasons.push("model artifact is absent or not digest-verified".to_string());
+        }
         return CellResult {
             cell_id: cell.cell_id.clone(),
             classification: Classification::Unknown,
@@ -526,11 +596,22 @@ fn assess_cell(
         && cell.coverage.coverage_kind == CoverageKind::IntervalEnclosure
         && outcomes.scope == OutcomeScope::WholeCellBound
         && proof_ok
-        && cell.coverage.proof_method.as_deref().is_some_and(|value| !value.trim().is_empty())
-        && cell.coverage.model_revision.as_deref().is_some_and(|value| !value.trim().is_empty());
+        && cell
+            .coverage
+            .proof_method
+            .as_deref()
+            .is_some_and(|value| !value.trim().is_empty())
+        && cell
+            .coverage
+            .model_revision
+            .as_deref()
+            .is_some_and(|value| !value.trim().is_empty());
 
     if !whole_cell_evidence {
-        reasons.push("no complete digest-bound evidence covering the entire cell and uncertainty set".to_string());
+        reasons.push(
+            "no complete digest-bound evidence covering the entire cell and uncertainty set"
+                .to_string(),
+        );
         return CellResult {
             cell_id: cell.cell_id.clone(),
             classification: Classification::Unknown,
@@ -549,15 +630,24 @@ fn assess_cell(
     let coordination_complete = outcomes.minimum_coordination_margin_pu.is_some()
         && outcomes.required_coordination_margin_pu.is_some();
     let services_complete = required_services.iter().all(|required| {
-        outcomes.service_floor_margins.iter().any(|margin| {
-            margin.service_id == required.service_id && margin.unit == required.unit
-        })
+        outcomes
+            .service_floor_margins
+            .iter()
+            .any(|margin| margin.service_id == required.service_id && margin.unit == required.unit)
     });
 
     if !counts_complete || !coordination_complete || !services_complete {
-        if !counts_complete { reasons.push("false-trip or failure-to-trip bounds/denominators are incomplete".to_string()); }
-        if !coordination_complete { reasons.push("coordination-margin bounds or owner requirement are missing".to_string()); }
-        if !services_complete { reasons.push("one or more required service-floor margins are missing".to_string()); }
+        if !counts_complete {
+            reasons.push(
+                "false-trip or failure-to-trip bounds/denominators are incomplete".to_string(),
+            );
+        }
+        if !coordination_complete {
+            reasons.push("coordination-margin bounds or owner requirement are missing".to_string());
+        }
+        if !services_complete {
+            reasons.push("one or more required service-floor margins are missing".to_string());
+        }
         return CellResult {
             cell_id: cell.cell_id.clone(),
             classification: Classification::Unknown,
@@ -594,9 +684,11 @@ fn unknown(cell: &Cell, reasons: Vec<String>) -> CellResult {
 }
 
 fn run(path: &Path) -> Result<Report, String> {
-    let bytes = fs::read(path).map_err(|error| format!("cannot read corpus {}: {error}", path.display()))?;
-    let corpus: Corpus = serde_json::from_slice(&bytes)
-        .map_err(|error| format!("corpus JSON does not match the strict typed contract: {error}"))?;
+    let bytes = fs::read(path)
+        .map_err(|error| format!("cannot read corpus {}: {error}", path.display()))?;
+    let corpus: Corpus = serde_json::from_slice(&bytes).map_err(|error| {
+        format!("corpus JSON does not match the strict typed contract: {error}")
+    })?;
     let root = path.parent().unwrap_or_else(|| Path::new("."));
     verify_corpus(&corpus, &bytes, root)
 }
@@ -605,7 +697,10 @@ fn main() -> ExitCode {
     let mut args = env::args_os();
     let program = args.next().unwrap_or_default();
     let Some(path) = args.next() else {
-        eprintln!("usage: {} <synthetic-corpus.json>", PathBuf::from(program).display());
+        eprintln!(
+            "usage: {} <synthetic-corpus.json>",
+            PathBuf::from(program).display()
+        );
         return ExitCode::from(2);
     };
     if args.next().is_some() {
@@ -613,7 +708,8 @@ fn main() -> ExitCode {
         return ExitCode::from(2);
     }
     match run(Path::new(&path)).and_then(|report| {
-        serde_json::to_string_pretty(&report).map_err(|error| format!("cannot encode report: {error}"))
+        serde_json::to_string_pretty(&report)
+            .map_err(|error| format!("cannot encode report: {error}"))
     }) {
         Ok(report) => {
             println!("{report}");
@@ -657,7 +753,11 @@ mod tests {
     fn passing_point_samples_never_certify_a_cell() {
         let (corpus, bytes, root) = fixture();
         let report = verify_corpus(&corpus, &bytes, &root).expect("valid synthetic corpus");
-        let cell = report.cells.iter().find(|cell| cell.cell_id == "cell-003-passing-points-only").unwrap();
+        let cell = report
+            .cells
+            .iter()
+            .find(|cell| cell.cell_id == "cell-003-passing-points-only")
+            .unwrap();
         assert_eq!(cell.classification, Classification::Unknown);
     }
 
@@ -665,7 +765,11 @@ mod tests {
     fn physical_relay_requirement_is_not_satisfied_by_software_waveforms() {
         let (corpus, bytes, root) = fixture();
         let report = verify_corpus(&corpus, &bytes, &root).expect("valid synthetic corpus");
-        let cell = report.cells.iter().find(|cell| cell.cell_id == "cell-004-relay-capability-missing").unwrap();
+        let cell = report
+            .cells
+            .iter()
+            .find(|cell| cell.cell_id == "cell-004-relay-capability-missing")
+            .unwrap();
         assert_eq!(cell.classification, Classification::Unknown);
     }
 
@@ -673,15 +777,28 @@ mod tests {
     fn service_floor_violation_excludes_even_when_protection_metrics_pass() {
         let (corpus, bytes, root) = fixture();
         let report = verify_corpus(&corpus, &bytes, &root).expect("valid synthetic corpus");
-        let cell = report.cells.iter().find(|cell| cell.cell_id == "cell-005-service-floor-violation").unwrap();
+        let cell = report
+            .cells
+            .iter()
+            .find(|cell| cell.cell_id == "cell-005-service-floor-violation")
+            .unwrap();
         assert_eq!(cell.classification, Classification::Excluded);
-        assert!(cell.reasons.iter().any(|reason| reason.contains("service-floor")));
+        assert!(
+            cell.reasons
+                .iter()
+                .any(|reason| reason.contains("service-floor"))
+        );
     }
 
     #[test]
     fn digest_mismatch_fails_the_entire_verification() {
         let (mut corpus, bytes, root) = fixture();
-        corpus.cells[0].coverage.proof_artifact.as_mut().unwrap().sha256 = "0".repeat(64);
+        corpus.cells[0]
+            .coverage
+            .proof_artifact
+            .as_mut()
+            .unwrap()
+            .sha256 = "0".repeat(64);
         let error = verify_corpus(&corpus, &bytes, &root).unwrap_err();
         assert!(error.contains("artifact digest mismatch"));
     }
@@ -714,8 +831,12 @@ mod tests {
     #[test]
     fn service_floor_unit_mismatch_is_rejected() {
         let (mut corpus, _bytes, _root) = fixture();
-        corpus.cells[0].outcomes.as_mut().unwrap().service_floor_margins[0].unit =
-            "litres_per_second".to_string();
+        corpus.cells[0]
+            .outcomes
+            .as_mut()
+            .unwrap()
+            .service_floor_margins[0]
+            .unit = "litres_per_second".to_string();
         let error = validate_corpus(&corpus).unwrap_err();
         assert!(error.contains("unit-mismatched"));
     }
@@ -732,7 +853,9 @@ mod tests {
     fn failure_to_trip_counterexample_excludes_the_cell() {
         let (corpus, bytes, root) = fixture();
         let report = verify_corpus(&corpus, &bytes, &root).expect("valid synthetic corpus");
-        let cell = report.cells.iter()
+        let cell = report
+            .cells
+            .iter()
             .find(|cell| cell.cell_id == "cell-006-failure-to-trip-counterexample")
             .unwrap();
         assert_eq!(cell.classification, Classification::Excluded);
