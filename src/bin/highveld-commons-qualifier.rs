@@ -1711,7 +1711,10 @@ mod tests {
         }]);
         let report = audit_manifest(&manifest);
         assert!(has_code(&report, "MODEL_APPLICABILITY_UNQUALIFIED"));
-        assert_eq!(report["model_qualification_records"][0]["qualified_for_declared_use"], json!(false));
+        assert_eq!(
+            report["model_qualification_records"][0]["qualified_for_declared_use"],
+            json!(false)
+        );
     }
 
     #[test]
@@ -1731,7 +1734,10 @@ mod tests {
         }]);
         let report = audit_manifest(&manifest);
         assert_eq!(report["status"].as_str(), Some("PASS"));
-        assert_eq!(report["model_qualification_records"][0]["qualified_for_declared_use"], json!(true));
+        assert_eq!(
+            report["model_qualification_records"][0]["qualified_for_declared_use"],
+            json!(true)
+        );
     }
 
     #[test]
@@ -1752,17 +1758,17 @@ mod tests {
         }]);
         let report = audit_manifest(&manifest);
         assert_eq!(report["status"].as_str(), Some("PASS"));
-        assert_eq!(report["model_qualification_records"][0]["qualified_for_declared_use"], json!(true));
+        assert_eq!(
+            report["model_qualification_records"][0]["qualified_for_declared_use"],
+            json!(true)
+        );
     }
 
     #[test]
     fn schema_documents_are_valid_json_and_draft_2020_12() {
-        for schema_source in [
-            MANIFEST_SCHEMA,
-            STRESS_MATRIX_SCHEMA,
-            CONTROL_SCHEMA,
-        ] {
-            let schema: Value = serde_json::from_str(schema_source).expect("schema JSON must parse");
+        for schema_source in [MANIFEST_SCHEMA, STRESS_MATRIX_SCHEMA, CONTROL_SCHEMA] {
+            let schema: Value =
+                serde_json::from_str(schema_source).expect("schema JSON must parse");
             assert_eq!(
                 schema["$schema"].as_str(),
                 Some("https://json-schema.org/draft/2020-12/schema")
@@ -1774,7 +1780,10 @@ mod tests {
     fn negative_control_registry_is_unique_and_uses_registered_dispositions() {
         let registry: Value =
             serde_json::from_str(CONTROL_REGISTRY).expect("negative control registry JSON");
-        assert_eq!(registry["maturity"].as_str(), Some("PROPOSED_NOT_EVALUATED"));
+        assert_eq!(
+            registry["maturity"].as_str(),
+            Some("PROPOSED_NOT_EVALUATED")
+        );
         let controls = registry["controls"].as_array().expect("control array");
         assert!(controls.len() >= 25);
         let mut ids = BTreeSet::new();
