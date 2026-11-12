@@ -273,5 +273,6 @@
     }
   ],
   "consent_records": [],
-  "household_data_access_requests": []
+  "household_data_access_requests": [],
+  "model_qualification_records": []
 }
