@@ -205,7 +205,8 @@
             "engine_input_sha256",
             "engine_output_sha256",
             "source_rights_revision",
-            "receipt_sha256"
+            "receipt_sha256",
+            "engine_configuration_sha256"
           ],
           "properties": {
             "receipt_format": {
@@ -237,6 +238,9 @@
               "minLength": 1
             },
             "receipt_sha256": {
+              "$ref": "#/$defs/sha256"
+            },
+            "engine_configuration_sha256": {
               "$ref": "#/$defs/sha256"
             }
           }
