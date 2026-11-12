@@ -1,0 +1,291 @@
+{
+  "schema_version": "0.1.0",
+  "matrix_id": "highveld-b1-b2-preregistered-case-matrix-v0.1",
+  "benchmark_contract_id": "highveld-cross-tool-household-resilience-benchmark-v0.1",
+  "status": "PREREGISTERED_PLAN_NOT_EXECUTED",
+  "claim_ceiling": "This matrix declares planned matched B1/B2 comparisons only. It contains no tool outputs, physical measurements, architecture ranking, service outcome or empirical event probability.",
+  "source_corpus": "SYNTHETIC_CORPUS_V0.1.json",
+  "source_corpus_scenario_count": 7,
+  "candidate_count": 3,
+  "planned_pair_count": 21,
+  "execution_seed": null,
+  "execution_seed_status": "MUST_BE_FROZEN_BEFORE_BLINDING",
+  "scenario_evidence_class": "SyntheticControlledEvent",
+  "candidates": [
+    {
+      "candidate_id": "INDEPENDENT_SERVICES",
+      "status": "NOT_EVALUATED"
+    },
+    {
+      "candidate_id": "SHARED_UTILITY",
+      "status": "NOT_EVALUATED"
+    },
+    {
+      "candidate_id": "HYBRID_LOCAL_AUTONOMY",
+      "status": "NOT_EVALUATED"
+    }
+  ],
+  "scenario_ids": [
+    "hot_grid_water_parts",
+    "cold_grid_heatbank_repair",
+    "air_quality_ventilation_network",
+    "restoration_repeat_fault",
+    "system_notice_no_tap_report",
+    "rain_grid_drainage_repair",
+    "peak_shared_plant_household_change"
+  ],
+  "pairs": [
+    {
+      "pair_id": "INDEPENDENT_SERVICES__hot_grid_water_parts",
+      "candidate_id": "INDEPENDENT_SERVICES",
+      "scenario_id": "hot_grid_water_parts",
+      "architecture_status": "NOT_EVALUATED",
+      "execution_status": "NOT_RUN",
+      "b1_output_status": "NOT_RUN",
+      "b2_output_status": "NOT_RUN",
+      "independent_oracle_status": "NOT_AUTHORED",
+      "result": null,
+      "exclusion_reason": null
+    },
+    {
+      "pair_id": "INDEPENDENT_SERVICES__cold_grid_heatbank_repair",
+      "candidate_id": "INDEPENDENT_SERVICES",
+      "scenario_id": "cold_grid_heatbank_repair",
+      "architecture_status": "NOT_EVALUATED",
+      "execution_status": "NOT_RUN",
+      "b1_output_status": "NOT_RUN",
+      "b2_output_status": "NOT_RUN",
+      "independent_oracle_status": "NOT_AUTHORED",
+      "result": null,
+      "exclusion_reason": null
+    },
+    {
+      "pair_id": "INDEPENDENT_SERVICES__air_quality_ventilation_network",
+      "candidate_id": "INDEPENDENT_SERVICES",
+      "scenario_id": "air_quality_ventilation_network",
+      "architecture_status": "NOT_EVALUATED",
+      "execution_status": "NOT_RUN",
+      "b1_output_status": "NOT_RUN",
+      "b2_output_status": "NOT_RUN",
+      "independent_oracle_status": "NOT_AUTHORED",
+      "result": null,
+      "exclusion_reason": null
+    },
+    {
+      "pair_id": "INDEPENDENT_SERVICES__restoration_repeat_fault",
+      "candidate_id": "INDEPENDENT_SERVICES",
+      "scenario_id": "restoration_repeat_fault",
+      "architecture_status": "NOT_EVALUATED",
+      "execution_status": "NOT_RUN",
+      "b1_output_status": "NOT_RUN",
+      "b2_output_status": "NOT_RUN",
+      "independent_oracle_status": "NOT_AUTHORED",
+      "result": null,
+      "exclusion_reason": null
+    },
+    {
+      "pair_id": "INDEPENDENT_SERVICES__system_notice_no_tap_report",
+      "candidate_id": "INDEPENDENT_SERVICES",
+      "scenario_id": "system_notice_no_tap_report",
+      "architecture_status": "NOT_EVALUATED",
+      "execution_status": "NOT_RUN",
+      "b1_output_status": "NOT_RUN",
+      "b2_output_status": "NOT_RUN",
+      "independent_oracle_status": "NOT_AUTHORED",
+      "result": null,
+      "exclusion_reason": null
+    },
+    {
+      "pair_id": "INDEPENDENT_SERVICES__rain_grid_drainage_repair",
+      "candidate_id": "INDEPENDENT_SERVICES",
+      "scenario_id": "rain_grid_drainage_repair",
+      "architecture_status": "NOT_EVALUATED",
+      "execution_status": "NOT_RUN",
+      "b1_output_status": "NOT_RUN",
+      "b2_output_status": "NOT_RUN",
+      "independent_oracle_status": "NOT_AUTHORED",
+      "result": null,
+      "exclusion_reason": null
+    },
+    {
+      "pair_id": "INDEPENDENT_SERVICES__peak_shared_plant_household_change",
+      "candidate_id": "INDEPENDENT_SERVICES",
+      "scenario_id": "peak_shared_plant_household_change",
+      "architecture_status": "NOT_EVALUATED",
+      "execution_status": "NOT_RUN",
+      "b1_output_status": "NOT_RUN",
+      "b2_output_status": "NOT_RUN",
+      "independent_oracle_status": "NOT_AUTHORED",
+      "result": null,
+      "exclusion_reason": null
+    },
+    {
+      "pair_id": "SHARED_UTILITY__hot_grid_water_parts",
+      "candidate_id": "SHARED_UTILITY",
+      "scenario_id": "hot_grid_water_parts",
+      "architecture_status": "NOT_EVALUATED",
+      "execution_status": "NOT_RUN",
+      "b1_output_status": "NOT_RUN",
+      "b2_output_status": "NOT_RUN",
+      "independent_oracle_status": "NOT_AUTHORED",
+      "result": null,
+      "exclusion_reason": null
+    },
+    {
+      "pair_id": "SHARED_UTILITY__cold_grid_heatbank_repair",
+      "candidate_id": "SHARED_UTILITY",
+      "scenario_id": "cold_grid_heatbank_repair",
+      "architecture_status": "NOT_EVALUATED",
+      "execution_status": "NOT_RUN",
+      "b1_output_status": "NOT_RUN",
+      "b2_output_status": "NOT_RUN",
+      "independent_oracle_status": "NOT_AUTHORED",
+      "result": null,
+      "exclusion_reason": null
+    },
+    {
+      "pair_id": "SHARED_UTILITY__air_quality_ventilation_network",
+      "candidate_id": "SHARED_UTILITY",
+      "scenario_id": "air_quality_ventilation_network",
+      "architecture_status": "NOT_EVALUATED",
+      "execution_status": "NOT_RUN",
+      "b1_output_status": "NOT_RUN",
+      "b2_output_status": "NOT_RUN",
+      "independent_oracle_status": "NOT_AUTHORED",
+      "result": null,
+      "exclusion_reason": null
+    },
+    {
+      "pair_id": "SHARED_UTILITY__restoration_repeat_fault",
+      "candidate_id": "SHARED_UTILITY",
+      "scenario_id": "restoration_repeat_fault",
+      "architecture_status": "NOT_EVALUATED",
+      "execution_status": "NOT_RUN",
+      "b1_output_status": "NOT_RUN",
+      "b2_output_status": "NOT_RUN",
+      "independent_oracle_status": "NOT_AUTHORED",
+      "result": null,
+      "exclusion_reason": null
+    },
+    {
+      "pair_id": "SHARED_UTILITY__system_notice_no_tap_report",
+      "candidate_id": "SHARED_UTILITY",
+      "scenario_id": "system_notice_no_tap_report",
+      "architecture_status": "NOT_EVALUATED",
+      "execution_status": "NOT_RUN",
+      "b1_output_status": "NOT_RUN",
+      "b2_output_status": "NOT_RUN",
+      "independent_oracle_status": "NOT_AUTHORED",
+      "result": null,
+      "exclusion_reason": null
+    },
+    {
+      "pair_id": "SHARED_UTILITY__rain_grid_drainage_repair",
+      "candidate_id": "SHARED_UTILITY",
+      "scenario_id": "rain_grid_drainage_repair",
+      "architecture_status": "NOT_EVALUATED",
+      "execution_status": "NOT_RUN",
+      "b1_output_status": "NOT_RUN",
+      "b2_output_status": "NOT_RUN",
+      "independent_oracle_status": "NOT_AUTHORED",
+      "result": null,
+      "exclusion_reason": null
+    },
+    {
+      "pair_id": "SHARED_UTILITY__peak_shared_plant_household_change",
+      "candidate_id": "SHARED_UTILITY",
+      "scenario_id": "peak_shared_plant_household_change",
+      "architecture_status": "NOT_EVALUATED",
+      "execution_status": "NOT_RUN",
+      "b1_output_status": "NOT_RUN",
+      "b2_output_status": "NOT_RUN",
+      "independent_oracle_status": "NOT_AUTHORED",
+      "result": null,
+      "exclusion_reason": null
+    },
+    {
+      "pair_id": "HYBRID_LOCAL_AUTONOMY__hot_grid_water_parts",
+      "candidate_id": "HYBRID_LOCAL_AUTONOMY",
+      "scenario_id": "hot_grid_water_parts",
+      "architecture_status": "NOT_EVALUATED",
+      "execution_status": "NOT_RUN",
+      "b1_output_status": "NOT_RUN",
+      "b2_output_status": "NOT_RUN",
+      "independent_oracle_status": "NOT_AUTHORED",
+      "result": null,
+      "exclusion_reason": null
+    },
+    {
+      "pair_id": "HYBRID_LOCAL_AUTONOMY__cold_grid_heatbank_repair",
+      "candidate_id": "HYBRID_LOCAL_AUTONOMY",
+      "scenario_id": "cold_grid_heatbank_repair",
+      "architecture_status": "NOT_EVALUATED",
+      "execution_status": "NOT_RUN",
+      "b1_output_status": "NOT_RUN",
+      "b2_output_status": "NOT_RUN",
+      "independent_oracle_status": "NOT_AUTHORED",
+      "result": null,
+      "exclusion_reason": null
+    },
+    {
+      "pair_id": "HYBRID_LOCAL_AUTONOMY__air_quality_ventilation_network",
+      "candidate_id": "HYBRID_LOCAL_AUTONOMY",
+      "scenario_id": "air_quality_ventilation_network",
+      "architecture_status": "NOT_EVALUATED",
+      "execution_status": "NOT_RUN",
+      "b1_output_status": "NOT_RUN",
+      "b2_output_status": "NOT_RUN",
+      "independent_oracle_status": "NOT_AUTHORED",
+      "result": null,
+      "exclusion_reason": null
+    },
+    {
+      "pair_id": "HYBRID_LOCAL_AUTONOMY__restoration_repeat_fault",
+      "candidate_id": "HYBRID_LOCAL_AUTONOMY",
+      "scenario_id": "restoration_repeat_fault",
+      "architecture_status": "NOT_EVALUATED",
+      "execution_status": "NOT_RUN",
+      "b1_output_status": "NOT_RUN",
+      "b2_output_status": "NOT_RUN",
+      "independent_oracle_status": "NOT_AUTHORED",
+      "result": null,
+      "exclusion_reason": null
+    },
+    {
+      "pair_id": "HYBRID_LOCAL_AUTONOMY__system_notice_no_tap_report",
+      "candidate_id": "HYBRID_LOCAL_AUTONOMY",
+      "scenario_id": "system_notice_no_tap_report",
+      "architecture_status": "NOT_EVALUATED",
+      "execution_status": "NOT_RUN",
+      "b1_output_status": "NOT_RUN",
+      "b2_output_status": "NOT_RUN",
+      "independent_oracle_status": "NOT_AUTHORED",
+      "result": null,
+      "exclusion_reason": null
+    },
+    {
+      "pair_id": "HYBRID_LOCAL_AUTONOMY__rain_grid_drainage_repair",
+      "candidate_id": "HYBRID_LOCAL_AUTONOMY",
+      "scenario_id": "rain_grid_drainage_repair",
+      "architecture_status": "NOT_EVALUATED",
+      "execution_status": "NOT_RUN",
+      "b1_output_status": "NOT_RUN",
+      "b2_output_status": "NOT_RUN",
+      "independent_oracle_status": "NOT_AUTHORED",
+      "result": null,
+      "exclusion_reason": null
+    },
+    {
+      "pair_id": "HYBRID_LOCAL_AUTONOMY__peak_shared_plant_household_change",
+      "candidate_id": "HYBRID_LOCAL_AUTONOMY",
+      "scenario_id": "peak_shared_plant_household_change",
+      "architecture_status": "NOT_EVALUATED",
+      "execution_status": "NOT_RUN",
+      "b1_output_status": "NOT_RUN",
+      "b2_output_status": "NOT_RUN",
+      "independent_oracle_status": "NOT_AUTHORED",
+      "result": null,
+      "exclusion_reason": null
+    }
+  ]
+}
