@@ -193,7 +193,10 @@ fn resolve_path(reference: &ArtifactRef, root: &Path) -> Result<PathBuf, String>
         .canonicalize()
         .map_err(|error| format!("cannot resolve artifact {}: {error}", reference.path))?;
     if !canonical.starts_with(&canonical_root) || !canonical.is_file() {
-        return Err(format!("artifact {} escapes evidence root or is not a file", reference.path));
+        return Err(format!(
+            "artifact {} escapes evidence root or is not a file",
+            reference.path
+        ));
     }
     Ok(canonical)
 }
@@ -242,7 +245,10 @@ fn validate(corpus: &Corpus, trust: &TrustStore) -> Result<(), String> {
     }
     if !corpus.synthetic_only
         || corpus.claim_ceiling != "E2"
-        || !corpus.fixture_notice.to_ascii_uppercase().contains("ALL VALUES ARE SYNTHETIC")
+        || !corpus
+            .fixture_notice
+            .to_ascii_uppercase()
+            .contains("ALL VALUES ARE SYNTHETIC")
     {
         return Err("v0.1 accepts synthetic E2 fixtures only".to_string());
     }
@@ -272,7 +278,10 @@ fn validate(corpus: &Corpus, trust: &TrustStore) -> Result<(), String> {
             || !valid_sha256(&issuer.public_key_artifact.sha256)
             || !safe_relative_path(&issuer.public_key_artifact.path)
         {
-            return Err(format!("invalid or duplicate trusted issuer {}", issuer.issuer_id));
+            return Err(format!(
+                "invalid or duplicate trusted issuer {}",
+                issuer.issuer_id
+            ));
         }
     }
     Ok(())
@@ -285,19 +294,31 @@ fn assess(
     issuer: &TrustedIssuer,
 ) -> (CapabilityStatus, String) {
     if !signature_verified {
-        return (CapabilityStatus::Rejected, "Ed25519 signature verification failed".to_string());
+        return (
+            CapabilityStatus::Rejected,
+            "Ed25519 signature verification failed".to_string(),
+        );
     }
     if issuer.trust_status == TrustStatus::Revoked {
         return (CapabilityStatus::Rejected, "issuer is revoked".to_string());
     }
     if !issuer.allowed_roles.contains(&payload.issuer_role) {
-        return (CapabilityStatus::Rejected, "issuer role is not trusted".to_string());
+        return (
+            CapabilityStatus::Rejected,
+            "issuer role is not trusted".to_string(),
+        );
     }
     if payload.issued_at_unix_seconds > corpus.evaluation_time_unix_seconds {
-        return (CapabilityStatus::Rejected, "attestation is not yet valid".to_string());
+        return (
+            CapabilityStatus::Rejected,
+            "attestation is not yet valid".to_string(),
+        );
     }
     if corpus.evaluation_time_unix_seconds >= payload.expires_at_unix_seconds {
-        return (CapabilityStatus::Rejected, "attestation is expired".to_string());
+        return (
+            CapabilityStatus::Rejected,
+            "attestation is expired".to_string(),
+        );
     }
     if payload.claim_type != corpus.claim.claim_type
         || payload.subject.subject_kind != corpus.claim.subject_kind
@@ -305,19 +326,39 @@ fn assess(
         || payload.subject.configuration_sha256 != corpus.claim.configuration_sha256
         || payload.scope_sha256 != corpus.claim.scope_sha256
     {
-        return (CapabilityStatus::Unknown, "claim subject, configuration or scope mismatch".to_string());
-    }
-    if !corpus.claim.accepted_qualification_classes.contains(&payload.qualification_class) {
         return (
             CapabilityStatus::Unknown,
-            format!("qualification class {:?} is insufficient", payload.qualification_class),
+            "claim subject, configuration or scope mismatch".to_string(),
         );
     }
-    if !corpus.claim.required_issuer_roles.contains(&payload.issuer_role) {
-        return (CapabilityStatus::Unknown, "issuer role does not meet claim requirement".to_string());
+    if !corpus
+        .claim
+        .accepted_qualification_classes
+        .contains(&payload.qualification_class)
+    {
+        return (
+            CapabilityStatus::Unknown,
+            format!(
+                "qualification class {:?} is insufficient",
+                payload.qualification_class
+            ),
+        );
+    }
+    if !corpus
+        .claim
+        .required_issuer_roles
+        .contains(&payload.issuer_role)
+    {
+        return (
+            CapabilityStatus::Unknown,
+            "issuer role does not meet claim requirement".to_string(),
+        );
     }
     if corpus.claim.require_independent && (!payload.independent || !issuer.independence_assessed) {
-        return (CapabilityStatus::Unknown, "independent evidence is required but not established".to_string());
+        return (
+            CapabilityStatus::Unknown,
+            "independent evidence is required but not established".to_string(),
+        );
     }
     (
         CapabilityStatus::Satisfied,
@@ -355,7 +396,9 @@ fn verify(
         return Err("signed payload metadata is incomplete or mismatched".to_string());
     }
     verify_artifact(&payload.evidence_artifact, root)?;
-    let issuer = trust.issuers.iter()
+    let issuer = trust
+        .issuers
+        .iter()
         .find(|issuer| issuer.issuer_id == payload.issuer_id)
         .ok_or_else(|| "issuer is not present in trust store".to_string())?;
     verify_artifact(&issuer.public_key_artifact, root)?;
@@ -365,12 +408,7 @@ fn verify(
         &corpus.attestation.signature_artifact,
         root,
     )?;
-    let (capability_status, reason) = assess(
-        corpus,
-        &payload,
-        signature_verified,
-        issuer,
-    );
+    let (capability_status, reason) = assess(corpus, &payload, signature_verified, issuer);
     Ok(Report {
         status: "valid_synthetic_attestation_contract",
         benchmark_id: corpus.benchmark_id.clone(),
@@ -403,8 +441,8 @@ fn verify(
 fn run(path: &Path) -> Result<Report, String> {
     let input = fs::read(path)
         .map_err(|error| format!("cannot read corpus {}: {error}", path.display()))?;
-    let corpus: Corpus = serde_json::from_slice(&input)
-        .map_err(|error| format!("invalid corpus JSON: {error}"))?;
+    let corpus: Corpus =
+        serde_json::from_slice(&input).map_err(|error| format!("invalid corpus JSON: {error}"))?;
     let root = path.parent().unwrap_or_else(|| Path::new("."));
     let trust_bytes = verify_artifact(&corpus.trust_store_artifact, root)?;
     let trust: TrustStore = serde_json::from_slice(&trust_bytes)
@@ -416,7 +454,10 @@ fn main() -> ExitCode {
     let mut args = env::args_os();
     let program = args.next().unwrap_or_default();
     let Some(path) = args.next() else {
-        eprintln!("usage: {} <synthetic-attestation-corpus.json>", PathBuf::from(program).display());
+        eprintln!(
+            "usage: {} <synthetic-attestation-corpus.json>",
+            PathBuf::from(program).display()
+        );
         return ExitCode::from(2);
     };
     if args.next().is_some() {
@@ -424,10 +465,17 @@ fn main() -> ExitCode {
         return ExitCode::from(2);
     }
     match run(Path::new(&path)).and_then(|report| {
-        serde_json::to_string_pretty(&report).map_err(|error| format!("cannot encode report: {error}"))
+        serde_json::to_string_pretty(&report)
+            .map_err(|error| format!("cannot encode report: {error}"))
     }) {
-        Ok(report) => { println!("{report}"); ExitCode::SUCCESS }
-        Err(error) => { eprintln!("GMD evidence attestation verification failed: {error}"); ExitCode::from(1) }
+        Ok(report) => {
+            println!("{report}");
+            ExitCode::SUCCESS
+        }
+        Err(error) => {
+            eprintln!("GMD evidence attestation verification failed: {error}");
+            ExitCode::from(1)
+        }
     }
 }
 
@@ -442,7 +490,8 @@ mod tests {
         let input = fs::read(&path).expect("fixture corpus");
         let corpus: Corpus = serde_json::from_slice(&input).expect("typed corpus");
         let root = path.parent().unwrap().to_path_buf();
-        let trust_bytes = verify_artifact(&corpus.trust_store_artifact, &root).expect("trust store bytes");
+        let trust_bytes =
+            verify_artifact(&corpus.trust_store_artifact, &root).expect("trust store bytes");
         let trust: TrustStore = serde_json::from_slice(&trust_bytes).expect("typed trust store");
         (corpus, trust, input, trust_bytes, root)
     }
@@ -459,7 +508,8 @@ mod tests {
     #[test]
     fn synthetic_contract_class_cannot_satisfy_physical_test_requirement() {
         let (mut corpus, trust, input, trust_bytes, root) = fixture();
-        corpus.claim.accepted_qualification_classes = vec![QualificationClass::PhysicalHardwareTest];
+        corpus.claim.accepted_qualification_classes =
+            vec![QualificationClass::PhysicalHardwareTest];
         let report = verify(&corpus, &trust, &input, &trust_bytes, &root).expect("valid contract");
         assert_eq!(report.capability_status, CapabilityStatus::Unknown);
         assert!(report.reason.contains("qualification class"));
@@ -480,7 +530,8 @@ mod tests {
         corpus.attestation.signature_artifact.path = "signature_invalid.bin".to_string();
         corpus.attestation.signature_artifact.sha256 =
             "42dd41bb26ffb6d1e3191d2055ea9ded5c7e2bd0d2d1edf64163eaaaceca5ef8".to_string();
-        let report = verify(&corpus, &trust, &input, &trust_bytes, &root).expect("bad signature is reportable");
+        let report = verify(&corpus, &trust, &input, &trust_bytes, &root)
+            .expect("bad signature is reportable");
         assert!(!report.signature_verified);
         assert_eq!(report.capability_status, CapabilityStatus::Rejected);
     }
@@ -489,7 +540,8 @@ mod tests {
     fn revoked_issuer_is_rejected() {
         let (corpus, mut trust, input, trust_bytes, root) = fixture();
         trust.issuers[0].trust_status = TrustStatus::Revoked;
-        let report = verify(&corpus, &trust, &input, &trust_bytes, &root).expect("revocation decision");
+        let report =
+            verify(&corpus, &trust, &input, &trust_bytes, &root).expect("revocation decision");
         assert_eq!(report.capability_status, CapabilityStatus::Rejected);
         assert!(report.reason.contains("revoked"));
     }
