@@ -56,7 +56,7 @@ struct Clock {
     observed_drift_ppb: i64,
 }
 
-#[derive(Debug, Deserialize, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Deserialize, Serialize, Clone, Copy, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 enum SignalKind {
     Gic,
@@ -112,7 +112,7 @@ struct Transformation {
     parameters_sha256: String,
 }
 
-#[derive(Debug, Deserialize, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Deserialize, Serialize, Clone, Copy, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 enum EventKind {
     GicOnset,
@@ -298,7 +298,7 @@ fn verify_transformation_chain(
     transformations: &BTreeMap<&str, &Transformation>,
     root: &Path,
 ) -> Result<(), String> {
-    let source_bytes = verify_artifact(&channel.source_artifact, root)?;
+    verify_artifact(&channel.source_artifact, root)?;
     let effective_bytes = verify_artifact(&channel.effective_artifact, root)?;
     let mut current_digest = channel.source_artifact.sha256.as_str();
     let mut seen = BTreeSet::new();
@@ -321,6 +321,19 @@ fn verify_transformation_chain(
                 "{}: transformation {} input digest does not continue the artifact chain",
                 channel.channel_id, transformation_id
             ));
+        }
+        if transformation.input_artifact.sha256 == transformation.output_artifact.sha256 {
+            return Err(format!(
+                "{}: transformation {} must produce a distinct artifact digest",
+                channel.channel_id, transformation_id
+            ));
+        }
+        match transformation.operation {
+            TransformationKind::Resample
+            | TransformationKind::Filter
+            | TransformationKind::PolarityInversion
+            | TransformationKind::UnitConversion
+            | TransformationKind::ClockCorrection => {}
         }
         if transformation.method.trim().is_empty()
             || transformation.implementation_revision.trim().is_empty()
@@ -351,7 +364,6 @@ fn verify_transformation_chain(
         ));
     }
     verify_time_column(channel, &effective_bytes)?;
-    let _ = source_bytes;
     Ok(())
 }
 
@@ -461,6 +473,14 @@ fn validate_experiment(experiment: &Experiment) -> Result<(), String> {
         if channel.sample_timestamps_ns.len() < 2 {
             return Err(format!("{}: at least two samples are required", channel.channel_id));
         }
+        let channel_clock = experiment
+            .clocks
+            .iter()
+            .find(|clock| clock.clock_id == channel.clock_id)
+            .expect("channel clock ID was checked");
+        if channel.sample_timestamps_ns[0] < channel_clock.anchor_local_ns {
+            return Err(format!("{}: sample sequence precedes the clock mapping anchor", channel.channel_id));
+        }
         for pair in channel.sample_timestamps_ns.windows(2) {
             if pair[1] == pair[0] {
                 return Err(format!("{}: duplicate sample timestamp", channel.channel_id));
@@ -542,8 +562,14 @@ fn map_interval(
                     .checked_add(delta)
                     .and_then(|value| value.checked_add(i128::from(offset)))
                     .ok_or_else(|| format!("{}: timestamp arithmetic overflow", event.event_id))?;
-                lower = lower.min(base + correction_low);
-                upper = upper.max(base + correction_high);
+                let candidate_lower = base
+                    .checked_add(correction_low)
+                    .ok_or_else(|| format!("{}: timestamp lower-bound overflow", event.event_id))?;
+                let candidate_upper = base
+                    .checked_add(correction_high)
+                    .ok_or_else(|| format!("{}: timestamp upper-bound overflow", event.event_id))?;
+                lower = lower.min(candidate_lower);
+                upper = upper.max(candidate_upper);
             }
         }
     }
@@ -752,7 +778,7 @@ mod tests {
     }
 
     #[test]
-    fn 60hz_generic_profile_is_valid_when_all_ac_channels_match() {
+    fn generic_60hz_profile_is_valid_when_all_ac_channels_match() {
         let (mut experiment, bytes, root) = fixture();
         experiment.region_profile.region_id = "generic_60hz".to_string();
         experiment.region_profile.nominal_frequency_millihz = 60_000;
@@ -857,32 +883,46 @@ mod tests {
 
     #[test]
     fn untransformed_different_artifact_is_rejected() {
-        let (mut experiment, _bytes, _root) = fixture();
+        let (mut experiment, _bytes, root) = fixture();
         experiment.channels[2].transformation_ids.clear();
-        let error = verify_experiment(&experiment, b"mutated", Path::new("/tmp")).unwrap_err();
+        let error = verify_experiment(&experiment, b"mutated", &root).unwrap_err();
         assert!(error.contains("source/effective artifact differ"));
     }
 
     #[test]
     fn declared_resampling_requires_complete_provenance_chain() {
-        let (mut experiment, _bytes, _root) = fixture();
+        let (mut experiment, _bytes, root) = fixture();
         experiment.transformations[0].method.clear();
         let transformation_map: BTreeMap<&str, &Transformation> = experiment.transformations
             .iter().map(|item| (item.transformation_id.as_str(), item)).collect();
         let error = verify_transformation_chain(
-            &experiment.channels[2], &transformation_map, Path::new("/nonexistent")
+            &experiment.channels[2], &transformation_map, &root
         ).unwrap_err();
         assert!(error.contains("method"));
     }
 
     #[test]
-    fn 50hz_fault_phase_is_reported_as_an_uncertainty_interval() {
+    fn south_african_50hz_fault_phase_is_reported_as_an_uncertainty_interval() {
         let (experiment, bytes, root) = fixture();
         let report = verify_experiment(&experiment, &bytes, &root).expect("valid fixture");
         let fault = report.events.iter().find(|e| e.kind == EventKind::FaultInception).unwrap();
         let phase = fault.phase.as_ref().unwrap();
         assert!(phase.uncertainty_width_millideg > 0);
         assert!(!phase.full_cycle_uncertainty);
+    }
+
+    #[test]
+    fn fault_phase_is_marked_fully_ambiguous_when_clock_interval_spans_a_cycle() {
+        let (mut experiment, bytes, root) = fixture();
+        let fault = experiment.events.iter_mut()
+            .find(|event| event.kind == EventKind::FaultInception)
+            .unwrap();
+        fault.local_upper_ns = fault.local_lower_ns + 20_000_000;
+        let report = verify_experiment(&experiment, &bytes, &root).expect("valid wide phase interval");
+        let receipt = report.events.iter()
+            .find(|event| event.kind == EventKind::FaultInception)
+            .unwrap();
+        assert!(receipt.phase.as_ref().unwrap().full_cycle_uncertainty);
     }
 
     #[test]
