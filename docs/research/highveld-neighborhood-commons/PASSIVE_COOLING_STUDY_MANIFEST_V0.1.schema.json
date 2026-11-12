@@ -156,7 +156,7 @@
       "const": "SPECIALIST_BUILDING_AIRFLOW_HYDRAULIC_SOLVERS"
     },
     "event_and_trajectory_owner": {
-      "const": "SYMTROPHAEA"
+      "const": "SYMTROPY"
     },
     "geometry_and_configuration_owner": {
       "const": "SOL_ATLAS"
