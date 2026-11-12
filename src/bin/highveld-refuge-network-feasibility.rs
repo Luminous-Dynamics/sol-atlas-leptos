@@ -605,10 +605,15 @@ fn evaluate_time_series(case: &Value) -> Result<Value, Vec<String>> {
     for (key, expected) in [
         ("study_id", "HIGHVELD-REFUGE-SUPPLY-DEMAND-DEGRADATION-001"),
         ("maturity", "SYNTHETIC_KNOWN_ANSWER"),
-        ("execution_status", "NO_NATIVE_EVENT_TIME_OR_SITE_VALIDATION"),
+        (
+            "execution_status",
+            "NO_NATIVE_EVENT_TIME_OR_SITE_VALIDATION",
+        ),
     ] {
         if text_at(case, key) != Some(expected) {
-            errors.push(format!("{key} must preserve the temporal benchmark claim ceiling"));
+            errors.push(format!(
+                "{key} must preserve the temporal benchmark claim ceiling"
+            ));
         }
     }
     let time_order_source = text_at(case, "time_order_source")
@@ -635,14 +640,20 @@ fn evaluate_time_series(case: &Value) -> Result<Value, Vec<String>> {
     let mut minimum_ratio = 1.0_f64;
 
     for (sequence_index, time_slice) in slices.iter().enumerate() {
-        let timepoint_id = text_at(time_slice, "timepoint_id")
-            .ok_or_else(|| vec![format!("time_slices[{sequence_index}].timepoint_id is missing")])?;
+        let timepoint_id = text_at(time_slice, "timepoint_id").ok_or_else(|| {
+            vec![format!(
+                "time_slices[{sequence_index}].timepoint_id is missing"
+            )]
+        })?;
         if !seen_timepoints.insert(timepoint_id.to_owned()) {
             errors.push(format!("duplicate timepoint identity {timepoint_id}"));
             continue;
         }
-        let duration = number_at(time_slice, "duration_h")
-            .ok_or_else(|| vec![format!("{timepoint_id}: duration_h is missing or non-finite")])?;
+        let duration = number_at(time_slice, "duration_h").ok_or_else(|| {
+            vec![format!(
+                "{timepoint_id}: duration_h is missing or non-finite"
+            )]
+        })?;
         if duration <= 0.0 {
             errors.push(format!("{timepoint_id}: duration_h must be positive"));
             continue;
@@ -677,8 +688,8 @@ fn evaluate_time_series(case: &Value) -> Result<Value, Vec<String>> {
         let total_feasible = report["total_places_feasible"].as_u64().unwrap_or(0);
         let total_unmet = report["total_places_unmet"].as_u64().unwrap_or(0);
         let accessible_unmet = report["accessible_places_unmet"].as_u64().unwrap_or(0);
-        let minimum_cohort_ratio = number_at(&report, "minimum_cohort_service_ratio")
-            .unwrap_or(0.0);
+        let minimum_cohort_ratio =
+            number_at(&report, "minimum_cohort_service_ratio").unwrap_or(0.0);
 
         total_unmet_place_hours += total_unmet as f64 * duration;
         accessible_unmet_place_hours += accessible_unmet as f64 * duration;
@@ -810,8 +821,7 @@ mod tests {
 
     #[test]
     fn temporal_service_sequence_reports_unmet_place_hours() {
-        let case: Value =
-            serde_json::from_str(TIME_SERIES_CASE).expect("temporal case JSON");
+        let case: Value = serde_json::from_str(TIME_SERIES_CASE).expect("temporal case JSON");
         let report = evaluate_time_series(&case).expect("temporal case must evaluate");
         assert_eq!(report["timepoint_count"], 3);
         assert_eq!(report["total_unmet_place_hours"], 56.0);
@@ -826,8 +836,7 @@ mod tests {
 
     #[test]
     fn temporal_sequence_rejects_duplicate_timepoint_ids() {
-        let mut case: Value =
-            serde_json::from_str(TIME_SERIES_CASE).expect("temporal case JSON");
+        let mut case: Value = serde_json::from_str(TIME_SERIES_CASE).expect("temporal case JSON");
         let duplicate = case["time_slices"][0].clone();
         case["time_slices"].as_array_mut().unwrap().push(duplicate);
         assert!(evaluate_time_series(&case).is_err());
@@ -835,8 +844,7 @@ mod tests {
 
     #[test]
     fn temporal_sequence_rejects_nonpositive_duration() {
-        let mut case: Value =
-            serde_json::from_str(TIME_SERIES_CASE).expect("temporal case JSON");
+        let mut case: Value = serde_json::from_str(TIME_SERIES_CASE).expect("temporal case JSON");
         case["time_slices"][1]["duration_h"] = json!(0.0);
         assert!(evaluate_time_series(&case).is_err());
     }
