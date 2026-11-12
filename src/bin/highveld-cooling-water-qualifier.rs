@@ -270,9 +270,15 @@ mod tests {
             "RADIATIVE_PANEL_LOOP_FLOW",
             "RADIATIVE_PANEL_PUMP_POWER",
             "DIFFUSE_HORIZONTAL_SOLAR_IRRADIANCE",
+            "BAROMETRIC_PRESSURE",
             "PANEL_PLANE_WIND_SPEED",
+            "PANEL_PLANE_WIND_DIRECTION",
         ] {
-            assert!(channels.iter().any(|channel| channel["channel_id"] == required));
+            assert!(
+                channels
+                    .iter()
+                    .any(|channel| channel["channel_id"] == required)
+            );
         }
         assert!(channels.iter().all(|channel| {
             channel["instrument_assignment"].is_null()
