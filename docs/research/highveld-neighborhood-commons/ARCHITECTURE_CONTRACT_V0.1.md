@@ -195,3 +195,8 @@ Any out-of-domain or unknown applicability state blocks the declared use. A mode
 
 This is a decision-authority boundary, not a claim that the current synthetic reference contains a qualified physics model. The reference manifest has no model records by default.
 
+
+
+## 13. Topology variants (study plan)
+
+The same commons candidate may be instantiated as a central hub, distributed local nodes, a federated peer mesh, mobile support or a layered hybrid. Their comparison uses matched household/service requirements, common exogenous traces, capacity- and budget-matched arms, and per-household hard floors. The variants remain proposed only; their failure modes and staged qualification sequence are defined in [TOPOLOGY_VARIANTS_AND_MATCHED_EXPERIMENT_V0.1.md](TOPOLOGY_VARIANTS_AND_MATCHED_EXPERIMENT_V0.1.md). No topology is preferred or evaluated by this addition.
