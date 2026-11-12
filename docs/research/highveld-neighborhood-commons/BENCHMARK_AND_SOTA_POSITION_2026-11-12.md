@@ -258,3 +258,60 @@ Do not compete on an isolated pool-temperature result or make a generic claim th
 A credible result that beats an incumbent on this benchmark would be a Pareto improvement at matched constraints (for example: equal or better comfort with less water and no greater auxiliary energy), or materially better robustness under the same disturbance envelope, with independent field validation. A faster run, a lower residual on an unmatched case or a prettier digital twin is not enough.
 
 The multi-engine case matrix is registered separately in `MULTI_ENGINE_THERMAL_WATER_BENCHMARK_V0.1.md` and its JSON manifest. It remains `NOT_EXECUTED`.
+
+
+## 12. Thermal storage: compare useful trajectory, not material or nameplate claims
+
+A January 2026 review of building thermal energy storage identifies charge/discharge power and heat-exchanger capability as critical deployment constraints, alongside storage media such as PCM; it also notes that longer-duration thermochemical storage still has deployment challenges. A September 2026 PCM review summarizes case-specific reports of roughly 8–36.5% peak-load/heat-flux reduction and 10–30% annual energy savings in selected building comparisons. One separate 81%-of-peak-cooling-demand result came from a combined rooftop PCM + solar chimney + earth-to-air heat-exchanger CFD system, and must not be attributed to PCM alone. These are literature examples, not universal product guarantees or Johannesburg results.
+
+EnergyPlus 26.2 includes ThermalStorage:PCM: the object is connected to plant and use loops, charges/melts and discharges/freezes PCM through a specified internal heat-exchanger effectiveness, and uses a PCM material with phase-change hysteresis. It is a useful specialist baseline. The Highveld store ledger should audit the resulting state trajectory and cycle closure, not recreate that phase physics.
+
+Sources:
+- [Nature Reviews: Increasing the sustainability of buildings by using thermal energy storage, 2 January 2026](https://www.nature.com/articles/s44359-025-00123-4)
+- [Phase Change Materials in Energy Systems: Performance, Reliability, Life Cycle Evidence, and Design Guidelines, 12 September 2026](https://onlinelibrary.wiley.com/doi/10.1155/er/2036127)
+- [EnergyPlus 26.2 Water Heaters and Thermal Storage reference: ThermalStorage:PCM](https://energyplus.readthedocs.io/en/v26.2.0/guides/input-output-reference/1.24-group-water-heaters.html)
+
+Benchmark implication: compare usable kWh inside the operating temperature band, charge/discharge kW, heat rejected by each qualified path, parasitic electricity, water by source, degraded capacity, state-of-charge headroom and annual/seasonal cycle drift. A high latent-heat value or nominal tank capacity does not establish service continuity.
+
+## 13. Thermal comfort and neighborhood service are different claims
+
+ANSI/ASHRAE Standard 55-2023 uses standard and adaptive comfort methods and includes local discomfort from vertical air-temperature gradients. Its environmental factors include air temperature, thermal radiation, humidity and air speed, combined with activity and clothing; its stated population scope is healthy adults in indoor occupied spaces. The official ASHRAE addenda index currently lists addenda a and b to Standard 55-2023 dated 31 August 2026. Pin the exact edition/addenda and use the correct method at execution. Do not interpret comfort compliance as a heat-health safety guarantee.
+
+A 2026 systematic review of urban heat vulnerability/mitigation found that many studies discuss mitigation without empirical testing and documented gaps in cooling access, energy burden, housing conditions, spatial scale and distributional outcomes. The Highveld service/refuge benchmark is designed to measure those gaps rather than assume that a mapped cooling feature benefits every household.
+
+Sources:
+- [ASHRAE Standard 55 – Thermal Environmental Conditions for Human Occupancy](https://www.ashrae.org/technical-resources/bookstore/standard-55-thermal-environmental-conditions-for-human-occupancy)
+- [ASHRAE Standards Addenda](https://www.ashrae.org/technical-resources/standards-and-guidelines/standards-addenda)
+- [Urban heat, vulnerability, and mitigation in U.S. cities: A systematic review, 2026](https://doi.org/10.1016/j.scsadv.2026.100077)
+- [Passive radiative cooling in the built environment: A multi-scale review, November 2026](https://www.sciencedirect.com/science/article/pii/S2213138826006764)
+
+## 14. New executable/research increments registered on 12 November 2026
+
+The following work has been added to PR #741 without changing PR #736's frozen three-candidate architecture matrix:
+
+| Increment | Registered scope | Current evidence ceiling |
+|---|---|---|
+| Thermal sink cascade | 8 architecture arms × 9 stress scenarios = 72 cases | Manifest and Rust structural qualifier; no thermal simulation |
+| Sink dispatch governor | Fail-closed eligibility filter for radiative/dry/ground/evaporative paths | Synthetic eligibility tests; no actuation or equipment certification |
+| Johannesburg weather package | SAWS/ARC/DWS/WRO/NOAA/reanalysis/EPW source-rights and representativeness register | No site selected, no paid/licensed data acquired, no weather observations admitted |
+| Radiative sky-sink benchmark | 7 component/system arms × 7 weather regimes = 49 cases | Registered matrix; no panel or field test |
+| Finite thermal-store ledger | Interval heat balance, state bounds, per-sink rejection and cycle closure | Synthetic known-answer ledger; no physical store validation |
+| Thermal service and refuge benchmark | 7 building interventions × 8 operating scenarios + 4 refuge topologies × 6 failures = 80 cases | Registered matrix; no site, route, refuge or resident data admitted |
+| Courtyard instrument package | 35 template channels, including long-wave/radiative panel/loop sensors | Instrument identities/calibration remain unassigned; template only |
+
+The thermal-store ledger reports peak input/rejection rate as well as energy, and marks each interval FAIL when its own balance, capacity or continuity checks fail. The thermal service/refuge qualifier requires the 80-case registration and preserves the distinction between ASHRAE comfort and local heat-health safety. Its refuge claim rules reject unknown dependencies, inaccessible routes and exhausted capacity.
+
+## 15. What a defensible SOTA win would look like now
+
+A credible Highveld result should demonstrate all of the following on the same frozen, held-out traces:
+
+1. A specialist physics baseline (EnergyPlus/Modelica/validated external airflow model) with a documented configuration and applicable reference cases.
+2. A competent passive no-water building baseline and a properly sized mechanical-cooling reference.
+3. A finite thermal store whose charge/discharge power and seasonal state trajectory close within uncertainty.
+4. A water/rights governor that never spends protected essential reserves and blocks unknown or prohibited source states.
+5. Occupied-zone comfort evaluated with the correct standard/adaptive method, plus a separate authority-approved safety envelope where required.
+6. Refuge availability based on live operating dependencies, capacity and accessible network routes—not proximity circles or straight-line distance.
+7. Uncertainty-calibrated held-out results, per-household distributions, worst-case service gap, maintenance and lifecycle cost.
+8. Exact replay by an independent operator.
+
+The advancement is the coupled, evidence-carrying service layer around the best specialist engines. It is not a claim that a new Luminous model outperforms EnergyPlus at heat balance, Modelica at plant dynamics or CFD at outdoor flow. All new matrices remain NOT_EXECUTED until the required model, data-rights, instrument and independent-review gates are met.
