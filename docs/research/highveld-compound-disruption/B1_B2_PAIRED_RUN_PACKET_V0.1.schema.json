@@ -79,11 +79,12 @@
           "type": "object",
           "additionalProperties": false,
           "required": [
-            "event_trace_sha256", "geometry_sha256", "resident_requirements_sha256",
+            "receipt_format", "event_trace_sha256", "geometry_sha256", "resident_requirements_sha256",
             "initial_state_sha256", "source_snapshot_sha256", "engine_input_sha256",
             "engine_output_sha256", "source_rights_revision", "receipt_sha256"
           ],
           "properties": {
+            "receipt_format": { "const": "highveld-b2-composition-receipt-v0.1" },
             "event_trace_sha256": { "$ref": "#/$defs/sha256" },
             "geometry_sha256": { "$ref": "#/$defs/sha256" },
             "resident_requirements_sha256": { "$ref": "#/$defs/sha256" },
