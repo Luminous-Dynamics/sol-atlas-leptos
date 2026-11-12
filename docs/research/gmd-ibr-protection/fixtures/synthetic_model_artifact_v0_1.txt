@@ -1,0 +1,3 @@
+SYNTHETIC MODEL ARTIFACT
+This is an illustrative model identity only; it is not an executable or validated physical model.
+model_revision=synthetic-gmd-ct-relay-v0.1
