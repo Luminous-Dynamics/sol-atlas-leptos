@@ -7,6 +7,9 @@ const MANIFEST: &str = include_str!(
 const SCHEMA: &str = include_str!(
     "../../docs/research/highveld-neighborhood-commons/PASSIVE_COOLING_STUDY_MANIFEST_V0.1.schema.json"
 );
+const MULTI_ENGINE_BENCHMARK: &str = include_str!(
+    "../../docs/research/highveld-neighborhood-commons/MULTI_ENGINE_THERMAL_WATER_BENCHMARK_MANIFEST_V0.1.json"
+);
 
 fn string_at<'a>(value: &'a Value, key: &str) -> Option<&'a str> {
     value
@@ -239,6 +242,36 @@ fn main() {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn multi_engine_benchmark_pins_distinct_specialist_roles() {
+        let manifest: Value =
+            serde_json::from_str(MULTI_ENGINE_BENCHMARK).expect("multi-engine manifest JSON");
+        assert_eq!(
+            manifest["study_id"].as_str(),
+            Some("HIGHVELD-MULTI-ENGINE-THERMAL-WATER-001")
+        );
+        assert_eq!(manifest["maturity"].as_str(), Some("BENCHMARK_PREREGISTERED_NOT_EXECUTED"));
+        assert_eq!(manifest["baseline"].as_str(), Some("S2_NO_WATER_PASSIVE_BASELINE"));
+        assert_eq!(manifest["execution_status"].as_str(), Some("NOT_EXECUTED"));
+        let engines = manifest["engines"].as_array().expect("engine registry");
+        assert_eq!(engines.len(), 6);
+        for required in [
+            "ENERGYPLUS_26_2_0",
+            "MODELICA_BUILDINGS_14_0_0",
+            "OPENSTUDIO_3_11_0",
+            "BOPTEST_0_9_0",
+            "OPENFOAM_FOUNDATION_14",
+            "OPENFOAM_OPENCFD_2606",
+        ] {
+            assert!(engines.iter().any(|engine| engine["id"] == required));
+        }
+        let scenarios = manifest["scenarios"].as_array().expect("scenario matrix");
+        assert_eq!(scenarios.len(), 10);
+        assert!(scenarios.iter().any(|item| item == "S9_PAIRED_FIELD_TEST_CELL"));
+        let claim = manifest["claim_ceiling"].as_str().expect("claim ceiling");
+        assert!(claim.contains("superiority claim"));
+    }
 
     #[test]
     fn water_study_has_no_water_control_and_all_primary_archetypes() {
