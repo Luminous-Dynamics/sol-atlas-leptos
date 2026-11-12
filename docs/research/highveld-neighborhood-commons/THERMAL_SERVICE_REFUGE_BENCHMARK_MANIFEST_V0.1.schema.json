@@ -1,0 +1,341 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/highveld-thermal-service-refuge-v0.1.schema.json",
+  "title": "Highveld thermal service continuity and neighborhood refuge benchmark v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format_version",
+    "study_id",
+    "parent_studies",
+    "maturity",
+    "execution_status",
+    "climate_context",
+    "building_intervention_arms",
+    "building_scenarios",
+    "refuge_network_topologies",
+    "refuge_scenarios",
+    "case_expansion",
+    "comfort_method",
+    "authority_inputs_required",
+    "required_metrics",
+    "hard_gates",
+    "governance",
+    "owners",
+    "claim_ceiling"
+  ],
+  "properties": {
+    "format_version": {
+      "const": "0.1"
+    },
+    "study_id": {
+      "const": "HIGHVELD-THERMAL-SERVICE-REFUGE-001"
+    },
+    "parent_studies": {
+      "type": "array",
+      "minItems": 2,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "maturity": {
+      "const": "BENCHMARK_PROTOCOL_NOT_EXECUTED"
+    },
+    "execution_status": {
+      "const": "NOT_EXECUTED"
+    },
+    "climate_context": {
+      "const": "JOHANNESBURG_HIGHVELD"
+    },
+    "building_intervention_arms": {
+      "type": "array",
+      "minItems": 7,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "role"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "role": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "building_scenarios": {
+      "type": "array",
+      "minItems": 8,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "refuge_network_topologies": {
+      "type": "array",
+      "minItems": 4,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "role"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "role": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "refuge_scenarios": {
+      "type": "array",
+      "minItems": 6,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "case_expansion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "building_service",
+        "refuge_network",
+        "total_cases",
+        "state"
+      ],
+      "properties": {
+        "building_service": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "arms",
+            "scenarios",
+            "cases",
+            "state"
+          ],
+          "properties": {
+            "arms": {
+              "const": 7
+            },
+            "scenarios": {
+              "const": 8
+            },
+            "cases": {
+              "const": 56
+            },
+            "state": {
+              "const": "REGISTERED_NOT_EXECUTED"
+            }
+          }
+        },
+        "refuge_network": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "topologies",
+            "scenarios",
+            "cases",
+            "state"
+          ],
+          "properties": {
+            "topologies": {
+              "const": 4
+            },
+            "scenarios": {
+              "const": 6
+            },
+            "cases": {
+              "const": 24
+            },
+            "state": {
+              "const": "REGISTERED_NOT_EXECUTED"
+            }
+          }
+        },
+        "total_cases": {
+          "const": 80
+        },
+        "state": {
+          "const": "REGISTERED_NOT_EXECUTED"
+        }
+      }
+    },
+    "comfort_method": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "reference",
+        "method_selection",
+        "public_addenda_observed",
+        "application_ceiling"
+      ],
+      "properties": {
+        "reference": {
+          "const": "ANSI/ASHRAE_STANDARD_55_2023"
+        },
+        "method_selection": {
+          "const": "STANDARD_OR_ADAPTIVE_BASED_ON_SCOPE_AND_OCCUPANCY"
+        },
+        "public_addenda_observed": {
+          "type": "array",
+          "minItems": 2,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "application_ceiling": {
+          "const": "COMFORT_EVALUATION_WHERE_APPLICABLE_NOT_HEAT_HEALTH_SAFETY"
+        }
+      }
+    },
+    "authority_inputs_required": {
+      "type": "array",
+      "minItems": 10,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "required_metrics": {
+      "type": "array",
+      "minItems": 10,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "hard_gates": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "false_available_refuge_claims",
+        "over_capacity_refuge_assignments",
+        "essential_water_floor_violations",
+        "comfort_claim_without_correct_method_and_measurements",
+        "comfort_standard_treated_as_health_safety_limit",
+        "sensitive_identity_or_health_fields_required",
+        "untraceable_case_results",
+        "missed_seeded_negative_controls",
+        "false_blocks_of_valid_positive_controls"
+      ],
+      "properties": {
+        "false_available_refuge_claims": {
+          "const": 0
+        },
+        "over_capacity_refuge_assignments": {
+          "const": 0
+        },
+        "essential_water_floor_violations": {
+          "const": 0
+        },
+        "comfort_claim_without_correct_method_and_measurements": {
+          "const": 0
+        },
+        "comfort_standard_treated_as_health_safety_limit": {
+          "const": 0
+        },
+        "sensitive_identity_or_health_fields_required": {
+          "const": 0
+        },
+        "untraceable_case_results": {
+          "const": 0
+        },
+        "missed_seeded_negative_controls": {
+          "const": 0
+        },
+        "false_blocks_of_valid_positive_controls": {
+          "const": 0
+        }
+      }
+    },
+    "governance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "individual_health_data_required",
+        "identifiable_movement_history_required",
+        "straight_line_distance_as_access_proof",
+        "unknown_refuge_dependency_means_unavailable",
+        "capacity_is_time_and_event_specific",
+        "human_authority_for_discretionary_water_and_participation"
+      ],
+      "properties": {
+        "individual_health_data_required": {
+          "const": false
+        },
+        "identifiable_movement_history_required": {
+          "const": false
+        },
+        "straight_line_distance_as_access_proof": {
+          "const": false
+        },
+        "unknown_refuge_dependency_means_unavailable": {
+          "const": true
+        },
+        "capacity_is_time_and_event_specific": {
+          "const": true
+        },
+        "human_authority_for_discretionary_water_and_participation": {
+          "const": true
+        }
+      }
+    },
+    "owners": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "geometry_routes_and_refuge_configuration",
+        "event_time_and_service_trajectories",
+        "water_rights_consent_capacity_commitments",
+        "specialist_building_plant_physics",
+        "safety_envelope",
+        "participant_authority"
+      ],
+      "properties": {
+        "geometry_routes_and_refuge_configuration": {
+          "const": "SOL_ATLAS"
+        },
+        "event_time_and_service_trajectories": {
+          "const": "SYMTROPY"
+        },
+        "water_rights_consent_capacity_commitments": {
+          "const": "MYCELIX"
+        },
+        "specialist_building_plant_physics": {
+          "const": "ENERGYPLUS_MODELICA_BOPTEST_AND_QUALIFIED_SOLVERS"
+        },
+        "safety_envelope": {
+          "const": "COMPETENT_LOCAL_AUTHORITY_AND_QUALIFIED_PROFESSIONALS"
+        },
+        "participant_authority": {
+          "const": "RESIDENT_AND_ASSET_OWNER"
+        }
+      }
+    },
+    "claim_ceiling": {
+      "type": "string",
+      "minLength": 40
+    }
+  }
+}
