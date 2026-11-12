@@ -567,10 +567,9 @@ fn assess_cell(
     if let (Some(minimum), Some(required)) = (
         outcomes.minimum_coordination_margin_pu,
         outcomes.required_coordination_margin_pu,
-    ) {
-        if minimum < required {
-            violations.push("minimum coordination margin is below the owner requirement");
-        }
+    ) && minimum < required
+    {
+        violations.push("minimum coordination margin is below the owner requirement");
     }
     for margin in &outcomes.service_floor_margins {
         if margin.minimum_margin < 0.0 {
