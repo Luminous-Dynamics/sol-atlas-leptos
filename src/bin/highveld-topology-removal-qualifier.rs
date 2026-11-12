@@ -135,9 +135,7 @@ fn build_plan() -> Result<Value, Vec<String>> {
     }
     for removal in &removals {
         let removal_id = string_at(removal, "id").unwrap_or("<missing>");
-        let applies_to = array_at(removal, "applies_to")
-            .cloned()
-            .unwrap_or_default();
+        let applies_to = array_at(removal, "applies_to").cloned().unwrap_or_default();
         if applies_to.is_empty() || !strings_are_unique(&applies_to) {
             errors.push(format!(
                 "{removal_id}: applies_to must be a non-empty unique list"
