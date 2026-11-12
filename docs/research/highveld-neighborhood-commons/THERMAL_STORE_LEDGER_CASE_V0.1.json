@@ -1,0 +1,70 @@
+{
+  "schema_version": "0.1",
+  "study_id": "HIGHVELD-THERMAL-STORE-LEDGER-001",
+  "case_id": "SYNTHETIC_BALANCED_THERMAL_CYCLE_001",
+  "maturity": "SYNTHETIC_KNOWN_ANSWER",
+  "execution_status": "NO_PHYSICAL_SIMULATION",
+  "store_energy_basis": "USABLE_THERMAL_ENERGY_ABOVE_DECLARED_REFERENCE_STATE",
+  "store_capacity_kwh": 10,
+  "minimum_usable_energy_kwh": 0,
+  "initial_store_energy_kwh": 2,
+  "cycle_closure_required": true,
+  "cycle_closure_tolerance_u95_kwh": 0.1,
+  "intervals": [
+    {
+      "interval_id": "I001",
+      "duration_h": 1,
+      "store_energy_start_kwh": 2,
+      "building_heat_input_kwh": 3,
+      "other_heat_input_kwh": 0,
+      "rejection_by_sink": [
+        {
+          "sink_path": "RADIATIVE_SKY_PANEL",
+          "energy_rejected_kwh": 2
+        }
+      ],
+      "store_energy_end_kwh": 3,
+      "interval_balance_u95_kwh": 0.05,
+      "parasitic_electricity_kwh": 0.02,
+      "water_makeup_l": 0
+    },
+    {
+      "interval_id": "I002",
+      "duration_h": 1,
+      "store_energy_start_kwh": 3,
+      "building_heat_input_kwh": 4,
+      "other_heat_input_kwh": 0,
+      "rejection_by_sink": [
+        {
+          "sink_path": "RADIATIVE_SKY_PANEL",
+          "energy_rejected_kwh": 2
+        },
+        {
+          "sink_path": "DRY_AIR_COOLER",
+          "energy_rejected_kwh": 2
+        }
+      ],
+      "store_energy_end_kwh": 3,
+      "interval_balance_u95_kwh": 0.05,
+      "parasitic_electricity_kwh": 0.08,
+      "water_makeup_l": 0
+    },
+    {
+      "interval_id": "I003",
+      "duration_h": 1,
+      "store_energy_start_kwh": 3,
+      "building_heat_input_kwh": 2,
+      "other_heat_input_kwh": 0,
+      "rejection_by_sink": [
+        {
+          "sink_path": "GROUND_HEAT_EXCHANGER",
+          "energy_rejected_kwh": 3
+        }
+      ],
+      "store_energy_end_kwh": 2,
+      "interval_balance_u95_kwh": 0.05,
+      "parasitic_electricity_kwh": 0.04,
+      "water_makeup_l": 0
+    }
+  ]
+}
