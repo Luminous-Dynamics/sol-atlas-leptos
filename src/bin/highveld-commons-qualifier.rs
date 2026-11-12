@@ -905,7 +905,6 @@ fn audit_manifest(root: &Value) -> Value {
         }
     }
 
-
     // Household data is never shared merely because a household uses a shared
     // neighborhood service. Each explicit access request must match one consent
     // record for the same household, data category, purpose and service.
@@ -967,9 +966,7 @@ fn audit_manifest(root: &Value) -> Value {
 
         let consent = matching[0];
         let granted_at = number(consent, "granted_at_offset_s");
-        let revoked_at = consent
-            .get("revoked_at_offset_s")
-            .and_then(Value::as_u64);
+        let revoked_at = consent.get("revoked_at_offset_s").and_then(Value::as_u64);
         let consent_state = text(consent, "consent_state");
 
         if granted_at.is_none_or(|granted| decision_time < granted) {
@@ -1028,9 +1025,7 @@ fn audit_manifest(root: &Value) -> Value {
         let household_id = text(consent, "household_id");
         let service_id = text(consent, "service_id");
         let granted_at = number(consent, "granted_at_offset_s");
-        let revoked_at = consent
-            .get("revoked_at_offset_s")
-            .and_then(Value::as_u64);
+        let revoked_at = consent.get("revoked_at_offset_s").and_then(Value::as_u64);
         if household_id.is_none_or(|id| !household_ids.contains(id)) {
             audit.fail(
                 "CONSENT_HOUSEHOLD_UNKNOWN",
@@ -1162,7 +1157,10 @@ mod tests {
             "decision_as_of_offset_s":100,
             "evidence_id":"synthetic-data-request-1"
         }]);
-        assert!(has_code(&audit_manifest(&manifest), "HOUSEHOLD_DATA_CONSENT_MISSING_OR_AMBIGUOUS"));
+        assert!(has_code(
+            &audit_manifest(&manifest),
+            "HOUSEHOLD_DATA_CONSENT_MISSING_OR_AMBIGUOUS"
+        ));
     }
 
     #[test]
@@ -1189,7 +1187,10 @@ mod tests {
             "decision_as_of_offset_s":100,
             "evidence_id":"synthetic-data-request-2"
         }]);
-        assert!(has_code(&audit_manifest(&manifest), "HOUSEHOLD_DATA_ACCESS_AFTER_REVOCATION"));
+        assert!(has_code(
+            &audit_manifest(&manifest),
+            "HOUSEHOLD_DATA_ACCESS_AFTER_REVOCATION"
+        ));
     }
 
     #[test]
@@ -1216,7 +1217,10 @@ mod tests {
             "decision_as_of_offset_s":100,
             "evidence_id":"synthetic-data-request-3"
         }]);
-        assert!(has_code(&audit_manifest(&manifest), "HOUSEHOLD_DATA_ACCESS_BEFORE_GRANT"));
+        assert!(has_code(
+            &audit_manifest(&manifest),
+            "HOUSEHOLD_DATA_ACCESS_BEFORE_GRANT"
+        ));
     }
 
     #[test]
@@ -1243,7 +1247,10 @@ mod tests {
             "decision_as_of_offset_s":100,
             "evidence_id":"synthetic-data-request-4"
         }]);
-        assert!(has_code(&audit_manifest(&manifest), "HOUSEHOLD_DATA_CONSENT_MISSING_OR_AMBIGUOUS"));
+        assert!(has_code(
+            &audit_manifest(&manifest),
+            "HOUSEHOLD_DATA_CONSENT_MISSING_OR_AMBIGUOUS"
+        ));
     }
 
     #[test]
@@ -1270,7 +1277,10 @@ mod tests {
             "decision_as_of_offset_s":100,
             "evidence_id":"synthetic-data-request-6"
         }]);
-        assert!(has_code(&audit_manifest(&manifest), "HOUSEHOLD_DATA_CONSENT_MISSING_OR_AMBIGUOUS"));
+        assert!(has_code(
+            &audit_manifest(&manifest),
+            "HOUSEHOLD_DATA_CONSENT_MISSING_OR_AMBIGUOUS"
+        ));
     }
 
     #[test]
@@ -1288,16 +1298,30 @@ mod tests {
             "revoked_at_offset_s":100,
             "consent_record_evidence_id":"synthetic-consent-evidence"
         }]);
-        assert!(has_code(&audit_manifest(&manifest), "HOUSEHOLD_DATA_CONSENT_STATE_INVALID"));
+        assert!(has_code(
+            &audit_manifest(&manifest),
+            "HOUSEHOLD_DATA_CONSENT_STATE_INVALID"
+        ));
     }
 
     #[test]
     fn no_household_data_is_shared_by_default() {
         let manifest = base();
-        assert!(manifest["consent_records"].as_array().is_some_and(Vec::is_empty));
-        assert!(manifest["household_data_access_requests"].as_array().is_some_and(Vec::is_empty));
+        assert!(
+            manifest["consent_records"]
+                .as_array()
+                .is_some_and(Vec::is_empty)
+        );
+        assert!(
+            manifest["household_data_access_requests"]
+                .as_array()
+                .is_some_and(Vec::is_empty)
+        );
         let report = audit_manifest(&manifest);
-        assert_eq!(report["data_sharing_default"].as_str(), Some("DENY_UNLESS_MATCHING_ACTIVE_CONSENT"));
+        assert_eq!(
+            report["data_sharing_default"].as_str(),
+            Some("DENY_UNLESS_MATCHING_ACTIVE_CONSENT")
+        );
     }
 
     #[test]
@@ -1326,7 +1350,10 @@ mod tests {
         }]);
         let report = audit_manifest(&manifest);
         assert_eq!(report["status"].as_str(), Some("PASS"));
-        assert_eq!(report["authorized_household_data_access_requests"].as_u64(), Some(1));
+        assert_eq!(
+            report["authorized_household_data_access_requests"].as_u64(),
+            Some(1)
+        );
     }
 
     #[test]
