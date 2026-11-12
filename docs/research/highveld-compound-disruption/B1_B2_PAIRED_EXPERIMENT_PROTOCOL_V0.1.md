@@ -156,6 +156,8 @@ Compose specialist tools; do not claim to replace them:
 - EnergyPlus: whole-building energy and thermal simulation.
 - BOPTEST: standardized emulator and control/FDD cases.
 - ASHRAE Standard 140: established software capability/applicability testing.
+- NREL REopt / HOMER Grid: DER and microgrid sizing, dispatch and techno-economic evaluation when shared energy resources are in scope.
+- EPRI OpenDSS / GridLAB-D: distribution-network power-flow, fault and device-interaction analyses when a feeder/network boundary is explicitly modeled.
 
 Reuse standards and test suites in their proper scope. Add an evidence-chain benchmark on top; do not reimplement or mislabel incumbent capability tests. Pin product versions and public feature claims on execution date. ASHRAE 223P must be described as proposed/in development until finalized.
 
