@@ -137,7 +137,8 @@
           "position_uncertainty_m",
           "valid_time",
           "evidence_refs",
-          "links"
+          "links",
+          "currentness_state"
         ],
         "properties": {
           "record_id": {
@@ -195,14 +196,10 @@
           },
           "availability_state": {
             "enum": [
-              "observed",
-              "unknown",
-              "unobserved",
+              "available",
               "unavailable",
               "withheld",
-              "stale",
-              "conflicting",
-              "unsupported"
+              "not_recorded"
             ]
           },
           "disclosure_class": {
@@ -290,6 +287,15 @@
                 }
               }
             }
+          },
+          "currentness_state": {
+            "enum": [
+              "current_candidate",
+              "historical",
+              "stale",
+              "conflicting",
+              "unknown"
+            ]
           }
         }
       }
@@ -315,7 +321,8 @@
           "raw_artifact_ref",
           "source_digest",
           "rights_state",
-          "quality_state"
+          "quality_state",
+          "availability_state"
         ],
         "properties": {
           "observation_id": {
@@ -396,6 +403,14 @@
           },
           "quality_state": {
             "type": "string"
+          },
+          "availability_state": {
+            "enum": [
+              "available",
+              "unavailable",
+              "withheld",
+              "not_recorded"
+            ]
           }
         }
       }
