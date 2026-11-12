@@ -30,7 +30,7 @@
     },
     "controls": {
       "type": "array",
-      "minItems": 10,
+      "minItems": 21,
       "items": {
         "type": "object",
         "additionalProperties": false,
