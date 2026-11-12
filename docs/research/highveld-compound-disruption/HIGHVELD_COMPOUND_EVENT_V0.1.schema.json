@@ -582,7 +582,235 @@
           "type": "string",
           "minLength": 1
         }
-      }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "family": {
+                "const": "timezone_ambiguity"
+              }
+            },
+            "required": [
+              "family"
+            ]
+          },
+          "then": {
+            "properties": {
+              "records": {
+                "contains": {
+                  "properties": {
+                    "timezone_state": {
+                      "enum": [
+                        "missing",
+                        "ambiguous"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "timezone_state"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "family": {
+                "const": "censored_window"
+              }
+            },
+            "required": [
+              "family"
+            ]
+          },
+          "then": {
+            "properties": {
+              "records": {
+                "contains": {
+                  "properties": {
+                    "coverage_state": {
+                      "enum": [
+                        "left_censored",
+                        "right_censored",
+                        "both_censored"
+                      ]
+                    },
+                    "window_role": {
+                      "const": "observation_coverage"
+                    }
+                  },
+                  "required": [
+                    "coverage_state",
+                    "window_role"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "family": {
+                "const": "rights_revocation"
+              }
+            },
+            "required": [
+              "family"
+            ]
+          },
+          "then": {
+            "properties": {
+              "records": {
+                "contains": {
+                  "properties": {
+                    "rights_state": {
+                      "const": "revoked"
+                    }
+                  },
+                  "required": [
+                    "rights_state"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "family": {
+                "const": "future_information_leakage"
+              }
+            },
+            "required": [
+              "family"
+            ]
+          },
+          "then": {
+            "required": [
+              "decision_as_of_offset_s",
+              "oracle_upper_bound"
+            ],
+            "properties": {
+              "records": {
+                "contains": {
+                  "properties": {
+                    "policy_visible": {
+                      "const": true
+                    },
+                    "available_at_offset_s": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "policy_visible",
+                    "available_at_offset_s"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "family": {
+                "const": "source_revision_change"
+              }
+            },
+            "required": [
+              "family"
+            ]
+          },
+          "then": {
+            "required": [
+              "current_source_revision",
+              "derived_result_source_revision"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "family": {
+                "const": "unmatched_candidate_trace"
+              }
+            },
+            "required": [
+              "family"
+            ]
+          },
+          "then": {
+            "required": [
+              "candidate_arms"
+            ],
+            "properties": {
+              "candidate_arms": {
+                "minItems": 2
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "family": {
+                "const": "unsupported_common_cause"
+              }
+            },
+            "required": [
+              "family"
+            ]
+          },
+          "then": {
+            "required": [
+              "declared_link"
+            ],
+            "properties": {
+              "declared_link": {
+                "properties": {
+                  "relation": {
+                    "const": "common_cause"
+                  },
+                  "basis": {
+                    "const": "unresolved"
+                  }
+                },
+                "required": [
+                  "relation",
+                  "basis"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "family": {
+                "enum": [
+                  "coarse_fine_resolution",
+                  "conflicting_observations"
+                ]
+              }
+            },
+            "required": [
+              "family"
+            ]
+          },
+          "then": {
+            "properties": {
+              "records": {
+                "minItems": 2
+              }
+            }
+          }
+        }
+      ]
     }
   }
 }
