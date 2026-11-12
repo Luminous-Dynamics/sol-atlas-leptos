@@ -63,6 +63,11 @@ The matched Highveld experiment compares:
 - heat recovery with the pool at its setpoint or upper operating limit, where no additional heat may be accepted.
 
 Measure recovered heat, displaced pool-heater energy, cooling compressor electricity, condenser temperature/approach, pool temperature trajectory, auxiliary sink rejection, pump electricity and any change in water/air humidity loads. The pool is a useful heat demand only when heat is actually required and the upper water-temperature limit permits transfer. When the pool is warm or demand is absent, the system must revert to a qualified external rejection path. A pool cannot be counted as an infinite sink or continuously accept condenser heat.
+ 
+**Heat-recovery control gates:** recovery may run only when there is a real pool-heating demand and a qualified isolated heat exchanger. The pool's maximum operating temperature must be set by the owner and applicable authority. When the pool has no thermal headroom, excess condenser heat must be rejected through a qualified external sink or the recovery path must be disabled. Required accounting includes recovered condenser heat, displaced pool-heater energy and fallback-sink rejection. A heat-recovery claim also requires measured displaced heater energy; recovered heat alone is not a savings claim.
+
+**Evidence-class note:** the UC Davis WCEC hotel trial (San Diego, four weeks) reported average 5% electricity savings, peak reductions up to 12%, and 29% lower natural-gas pool-heating use. The 2013 California analysis estimated 25–30% cooling-electricity and 30–35% peak-demand reductions under selected modelled conditions. Those numbers remain external reference points, not Highveld targets or predictions. The field-trial and modelled estimates must not be combined as if they were one validation set.
+
 
 References:
 - [UC Davis Western Cooling Efficiency Center: hotel pool heat-recovery field demonstration](https://wcec.ucdavis.edu/swimming-pools-as-heatsinks-for-air-conditioners/)
