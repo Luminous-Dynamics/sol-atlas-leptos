@@ -41,5 +41,5 @@ jobs:
             docs/research/gmd-ibr-protection/fixtures/gmd_protection_envelope_corpus_v0_1.json \
             > /tmp/gmd-protection-envelope-report.json
           grep -q '"certified_cell_count": 1' /tmp/gmd-protection-envelope-report.json
-          grep -q '"excluded_cell_count": 2' /tmp/gmd-protection-envelope-report.json
+          grep -q '"excluded_cell_count": 3' /tmp/gmd-protection-envelope-report.json
           grep -q '"unknown_cell_count": 2' /tmp/gmd-protection-envelope-report.json
