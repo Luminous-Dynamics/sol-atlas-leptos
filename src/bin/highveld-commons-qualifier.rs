@@ -942,6 +942,9 @@ fn audit_manifest(root: &Value) -> Value {
             );
             continue;
         }
+        let Some(decision_time) = decision_time else {
+            continue;
+        };
 
         let matching: Vec<&Value> = consent_records
             .iter()
