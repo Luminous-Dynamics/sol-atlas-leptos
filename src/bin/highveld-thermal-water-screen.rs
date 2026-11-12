@@ -9,17 +9,23 @@ const SCHEMA: &str = include_str!(
 );
 
 fn number(value: &Value, key: &str) -> Option<f64> {
-    value.get(key).and_then(Value::as_f64).filter(|n| n.is_finite())
+    value
+        .get(key)
+        .and_then(Value::as_f64)
+        .filter(|n| n.is_finite())
 }
 
 fn text<'a>(value: &'a Value, key: &str) -> Option<&'a str> {
-    value.get(key).and_then(Value::as_str).filter(|s| !s.trim().is_empty())
+    value
+        .get(key)
+        .and_then(Value::as_str)
+        .filter(|s| !s.trim().is_empty())
 }
 
 fn calculate(input: &Value) -> Result<Value, Vec<String>> {
     let mut errors = Vec::new();
-    let schema: Value = serde_json::from_str(SCHEMA)
-        .map_err(|e| vec![format!("schema JSON parse failed: {e}")])?;
+    let schema: Value =
+        serde_json::from_str(SCHEMA).map_err(|e| vec![format!("schema JSON parse failed: {e}")])?;
     if text(&schema, "$schema") != Some("https://json-schema.org/draft/2020-12/schema") {
         errors.push("schema declaration is not Draft 2020-12".to_owned());
     }
@@ -51,7 +57,9 @@ fn calculate(input: &Value) -> Result<Value, Vec<String>> {
     let mut v = std::collections::BTreeMap::new();
     for key in keys {
         match number(input, key) {
-            Some(n) => { v.insert(key, n); }
+            Some(n) => {
+                v.insert(key, n);
+            }
             None => errors.push(format!("{key} must be a finite numeric value")),
         }
     }
@@ -94,10 +102,11 @@ fn calculate(input: &Value) -> Result<Value, Vec<String>> {
     let volume_m3 = v["water_volume_m3"];
     let delta_k = v["water_temperature_swing_k"];
     let evaporation_l = v["evaporation_rate_l_per_hour"] * v["exposure_duration_hours"];
-    let storage_kwh = volume_m3 * 1000.0 * v["water_density_kg_per_l"]
-        * v["specific_heat_kj_per_kg_k"] * delta_k / 3600.0;
-    let latent_interface_kwh = evaporation_l * v["water_density_kg_per_l"]
-        * v["latent_heat_kj_per_kg"] / 3600.0;
+    let storage_kwh =
+        volume_m3 * 1000.0 * v["water_density_kg_per_l"] * v["specific_heat_kj_per_kg_k"] * delta_k
+            / 3600.0;
+    let latent_interface_kwh =
+        evaporation_l * v["water_density_kg_per_l"] * v["latent_heat_kj_per_kg"] / 3600.0;
     let pump_runtime_h = v["exposure_duration_hours"] * v["pump_duty_fraction"];
     let pump_electricity_kwh = v["pump_input_power_kw"] * pump_runtime_h;
     let budget_l = v["discretionary_water_budget_l"];
@@ -153,9 +162,16 @@ fn main() {
         "--self-test" | "--screen-default" => {
             let input: Value = serde_json::from_str(CASE).expect("committed screening case JSON");
             match calculate(&input) {
-                Ok(report) => println!("{}", serde_json::to_string_pretty(&report).unwrap_or_default()),
+                Ok(report) => println!(
+                    "{}",
+                    serde_json::to_string_pretty(&report).unwrap_or_default()
+                ),
                 Err(errors) => {
-                    eprintln!("{}", serde_json::to_string_pretty(&json!({"errors": errors})).unwrap_or_default());
+                    eprintln!(
+                        "{}",
+                        serde_json::to_string_pretty(&json!({"errors": errors}))
+                            .unwrap_or_default()
+                    );
                     process::exit(1);
                 }
             }
@@ -208,7 +224,9 @@ mod tests {
     #[test]
     fn latent_heat_is_not_reported_as_useful_zone_cooling() {
         let result = calculate(&sample()).expect("valid synthetic case");
-        let latent = result["latent_heat_absorbed_at_water_interface_kwh"].as_f64().unwrap();
+        let latent = result["latent_heat_absorbed_at_water_interface_kwh"]
+            .as_f64()
+            .unwrap();
         assert!((latent - 2.722_222_222_2).abs() < 1.0e-8);
         assert!(result["useful_occupied_zone_cooling_kwh"].is_null());
         assert!(result["net_useful_cooling_kwh"].is_null());
@@ -225,7 +243,10 @@ mod tests {
     #[test]
     fn unqualified_source_weather_and_instruments_block_operation() {
         let result = calculate(&sample()).expect("analytical calculation still allowed");
-        assert_eq!(result["operational_eligibility"].as_str(), Some("BLOCKED_OR_UNKNOWN"));
+        assert_eq!(
+            result["operational_eligibility"].as_str(),
+            Some("BLOCKED_OR_UNKNOWN")
+        );
         assert!(result["failed_operational_gates"].as_array().unwrap().len() >= 4);
     }
 
