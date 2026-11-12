@@ -1241,6 +1241,60 @@ mod tests {
     }
 
     #[test]
+    fn household_data_access_must_match_service_scope() {
+        let mut manifest = base();
+        manifest["consent_records"] = json!([{
+            "consent_id":"consent-a1",
+            "household_id":"synthetic-household-a",
+            "data_category":"occupancy_schedule",
+            "purpose":"water-service-planning",
+            "service_id":"energy-essential",
+            "consent_state":"GRANTED",
+            "consent_revision":"consent-r1",
+            "granted_at_offset_s":0,
+            "revoked_at_offset_s":null,
+            "consent_record_evidence_id":"synthetic-consent-evidence"
+        }]);
+        manifest["household_data_access_requests"] = json!([{
+            "request_id":"request-wrong-service",
+            "household_id":"synthetic-household-a",
+            "data_category":"occupancy_schedule",
+            "purpose":"water-service-planning",
+            "service_id":"water-access",
+            "decision_as_of_offset_s":100,
+            "evidence_id":"synthetic-data-request-6"
+        }]);
+        assert!(has_code(&audit_manifest(&manifest), "HOUSEHOLD_DATA_CONSENT_MISSING_OR_AMBIGUOUS"));
+    }
+
+    #[test]
+    fn consent_revocation_must_follow_the_grant_time() {
+        let mut manifest = base();
+        manifest["consent_records"] = json!([{
+            "consent_id":"consent-a1",
+            "household_id":"synthetic-household-a",
+            "data_category":"occupancy_schedule",
+            "purpose":"water-service-planning",
+            "service_id":"water-access",
+            "consent_state":"REVOKED",
+            "consent_revision":"consent-r2",
+            "granted_at_offset_s":200,
+            "revoked_at_offset_s":100,
+            "consent_record_evidence_id":"synthetic-consent-evidence"
+        }]);
+        assert!(has_code(&audit_manifest(&manifest), "HOUSEHOLD_DATA_CONSENT_STATE_INVALID"));
+    }
+
+    #[test]
+    fn no_household_data_is_shared_by_default() {
+        let manifest = base();
+        assert!(manifest["consent_records"].as_array().is_some_and(Vec::is_empty));
+        assert!(manifest["household_data_access_requests"].as_array().is_some_and(Vec::is_empty));
+        let report = audit_manifest(&manifest);
+        assert_eq!(report["data_sharing_default"].as_str(), Some("DENY_UNLESS_MATCHING_ACTIVE_CONSENT"));
+    }
+
+    #[test]
     fn household_data_access_before_revocation_remains_time_scoped() {
         let mut manifest = base();
         manifest["consent_records"] = json!([{
