@@ -65,3 +65,7 @@ jobs:
       # (renderer::hex, sol-atlas-core). Must target the bin explicitly:
       # `cargo test --lib` fails with "no library targets found".
       - run: cargo test --bin sol-atlas-leptos
+      - name: Test neighborhood commons qualifier
+        run: cargo test --bin highveld-commons-qualifier
+      - name: Execute neighborhood commons reference audit
+        run: cargo run --bin highveld-commons-qualifier -- --self-test
