@@ -200,3 +200,10 @@ This is a decision-authority boundary, not a claim that the current synthetic re
 ## 13. Topology variants (study plan)
 
 The same commons candidate may be instantiated as a central hub, distributed local nodes, a federated peer mesh, mobile support or a layered hybrid. Their comparison uses matched household/service requirements, common exogenous traces, capacity- and budget-matched arms, and per-household hard floors. The variants remain proposed only; their failure modes and staged qualification sequence are defined in [TOPOLOGY_VARIANTS_AND_MATCHED_EXPERIMENT_V0.1.md](TOPOLOGY_VARIANTS_AND_MATCHED_EXPERIMENT_V0.1.md). No topology is preferred or evaluated by this addition.
+
+
+## 14. Long-horizon resilience
+
+The current synthetic corpus tests compound events and recovery semantics. It does not predict lifecycle resilience. A future, separately versioned benchmark should examine non-stationary climate, component aging, repair/spares, maintenance burden and household requirement changes across an explicit scenario ensemble. If credible event/future probabilities are not available, report robust feasibility, worst-case/tail service-floor deficits and adaptation regret—not synthetic expected-value probabilities. Keep every household essential floor non-compensatory through the lifecycle.
+
+A relevant conceptual reference is the August 2026 review *Long-horizon resilience of power systems under climate change*, which argues that event-based resilience alone is inadequate under changing climate futures. It motivates the research question but does not validate Highveld or a building topology: https://www.nature.com/articles/s44287-026-00322-6.
