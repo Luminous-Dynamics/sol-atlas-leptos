@@ -248,7 +248,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn all_nine_archetypes_and_72_cases_are_registered() {
+    fn all_ten_archetypes_and_80_cases_are_registered() {
         let report = audit().expect("pool/water programme contract");
         assert_eq!(report["archetype_count"], 10);
         assert_eq!(report["scenario_count"], 8);
