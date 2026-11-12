@@ -24,7 +24,9 @@ The first preregistered synthetic round uses the three existing Sol-Atlas #694 c
 
 Use the seven SYNTHETIC_CORPUS_V0.1.json scenarios for compound traces and the 12 SERVICE_EVENT_HANDOFF_CONTROLS_V0.1.json cases for owner-boundary/adversarial controls. Candidate/scenario/control combinations must be declared before execution. Do not treat the number of synthetic fixtures as a probability distribution.
 
-A fourth, neighborhood-scale candidate is proposed separately in #694 follow-up work. It is not silently included in this v0.1 run or treated as evaluated.
+The 21 planned candidate × scenario pairs are listed in `B1_B2_CASE_MATRIX_V0.1.json`. This is a completeness/preregistration plan, not a result set: every pair remains `NOT_RUN` until B1/B2 outputs and independent oracle dispositions are populated.
+
+A fourth, neighborhood-scale candidate is proposed separately in #737. It is not silently included in this v0.1 matrix or treated as an evaluated architecture.
 
 ## 3. Blinding and preregistration
 
