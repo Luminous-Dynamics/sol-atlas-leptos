@@ -438,9 +438,14 @@
       "paired engine-configuration digest and frozen source-rights revision binding",
       "valid-case coverage and false-rejection/overblocking measurement",
       "candidate and scenario allowlists pinned to v0.1 registered cases",
-      "unique and enum-valid independent-oracle service expectations"
+      "unique and enum-valid independent-oracle service expectations",
+      "both B1 and B2 independently bind the same frozen engine-configuration digest",
+      "3 candidate by 7 scenario case-matrix completeness as a preregistered plan"
     ],
     "claim_ceiling": "The auditor checks submitted experiment packets and synthetic self-tests only. It does not execute specialist tools or establish physical building performance. A B2 PASS requires both zero critical false passes and full preservation of oracle-admissible clean cases; an always-block strategy cannot pass.",
-    "receipt_digest_recomputation": "SHA-256 over versioned fixed-field, length-prefixed UTF-8 receipt encoding; binds event, design, requirements, initial state, source snapshot, engine input/output, engine configuration and source-rights revision."
+    "receipt_digest_recomputation": "SHA-256 over versioned fixed-field, length-prefixed UTF-8 receipt encoding; binds event, design, requirements, initial state, source snapshot, engine input/output, engine configuration and source-rights revision.",
+    "case_matrix_file": "B1_B2_CASE_MATRIX_V0.1.json",
+    "planned_pairs": 21,
+    "matrix_status": "PREREGISTERED_PLAN_NOT_EXECUTED"
   }
 }
