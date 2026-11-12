@@ -21,9 +21,11 @@ fn array_at<'a>(value: &'a Value, key: &str) -> Option<&'a Vec<Value>> {
 
 fn strings_are_unique(values: &[Value]) -> bool {
     let mut seen = std::collections::BTreeSet::new();
-    values
-        .iter()
-        .all(|value| value.as_str().is_some_and(|text| !text.trim().is_empty() && seen.insert(text)))
+    values.iter().all(|value| {
+        value
+            .as_str()
+            .is_some_and(|text| !text.trim().is_empty() && seen.insert(text))
+    })
 }
 
 fn build_plan() -> Result<Value, Vec<String>> {
@@ -53,15 +55,18 @@ fn build_plan() -> Result<Value, Vec<String>> {
         errors.push("maturity escalation: protocol must remain not executed".to_owned());
     }
     if string_at(&matrix, "execution_status") != Some("NOT_EXECUTED") {
-        errors.push("execution_status escalation: this tool does not execute the experiment".to_owned());
+        errors.push(
+            "execution_status escalation: this tool does not execute the experiment".to_owned(),
+        );
     }
     if matrix.get("pr_736_matrix_change").and_then(Value::as_bool) != Some(false) {
         errors.push("the frozen PR #736 matrix must remain unchanged".to_owned());
     }
-    if string_at(&matrix, "event_time_and_ids")
-        != Some("MUST_NOT_BE_SYNTHESIZED_BY_THIS_MANIFEST")
+    if string_at(&matrix, "event_time_and_ids") != Some("MUST_NOT_BE_SYNTHESIZED_BY_THIS_MANIFEST")
     {
-        errors.push("event time and IDs must remain owned by the native Symtropy interface".to_owned());
+        errors.push(
+            "event time and IDs must remain owned by the native Symtropy interface".to_owned(),
+        );
     }
 
     let expected_arms = [
@@ -71,7 +76,9 @@ fn build_plan() -> Result<Value, Vec<String>> {
         "MOBILE_SUPPORT",
         "LAYERED_HYBRID",
     ];
-    let arms = array_at(&matrix, "topology_arms").cloned().unwrap_or_default();
+    let arms = array_at(&matrix, "topology_arms")
+        .cloned()
+        .unwrap_or_default();
     if arms.len() != expected_arms.len() || !strings_are_unique(&arms) {
         errors.push("topology_arms must contain five unique, non-empty IDs".to_owned());
     }
@@ -85,7 +92,9 @@ fn build_plan() -> Result<Value, Vec<String>> {
         .cloned()
         .unwrap_or_default();
     if frozen.len() < 8 || !strings_are_unique(&frozen) {
-        errors.push("frozen_inputs_required must contain at least eight unique input bindings".to_owned());
+        errors.push(
+            "frozen_inputs_required must contain at least eight unique input bindings".to_owned(),
+        );
     }
     for required in [
         "requirement_set_digest",
@@ -100,7 +109,9 @@ fn build_plan() -> Result<Value, Vec<String>> {
         }
     }
 
-    let comparisons = array_at(&matrix, "comparison_modes").cloned().unwrap_or_default();
+    let comparisons = array_at(&matrix, "comparison_modes")
+        .cloned()
+        .unwrap_or_default();
     for required in ["CAPACITY_MATCHED", "BUDGET_MATCHED"] {
         let found = comparisons.iter().any(|item| {
             string_at(item, "id") == Some(required)
@@ -124,9 +135,13 @@ fn build_plan() -> Result<Value, Vec<String>> {
     }
     for removal in &removals {
         let removal_id = string_at(removal, "id").unwrap_or("<missing>");
-        let applies_to = array_at(removal, "applies_to").cloned().unwrap_or_default();
+        let applies_to = array_at(removal, "applies_to")
+            .cloned()
+            .unwrap_or_default();
         if applies_to.is_empty() || !strings_are_unique(&applies_to) {
-            errors.push(format!("{removal_id}: applies_to must be a non-empty unique list"));
+            errors.push(format!(
+                "{removal_id}: applies_to must be a non-empty unique list"
+            ));
         }
         for arm in &applies_to {
             if !arms.iter().any(|known| known == arm) {
@@ -141,8 +156,7 @@ fn build_plan() -> Result<Value, Vec<String>> {
         }
     }
 
-    if string_at(&matrix, "not_applicable_semantics")
-        != Some("EXPLICIT_NOT_APPLICABLE_WITH_REASON")
+    if string_at(&matrix, "not_applicable_semantics") != Some("EXPLICIT_NOT_APPLICABLE_WITH_REASON")
     {
         errors.push("not-applicable cases must remain explicit and carry a reason".to_owned());
     }
@@ -239,7 +253,10 @@ fn main() {
     match mode {
         "--self-test" | "--plan" => match build_plan() {
             Ok(report) => {
-                println!("{}", serde_json::to_string_pretty(&report).unwrap_or_default());
+                println!(
+                    "{}",
+                    serde_json::to_string_pretty(&report).unwrap_or_default()
+                );
             }
             Err(errors) => {
                 eprintln!(
@@ -256,8 +273,12 @@ fn main() {
         },
         "--help" | "-h" => {
             println!("highveld-topology-removal-qualifier");
-            println!("  --self-test  validate the preregistered removal manifest and emit case inventory");
-            println!("  --plan       emit the same deterministic inventory without implying execution");
+            println!(
+                "  --self-test  validate the preregistered removal manifest and emit case inventory"
+            );
+            println!(
+                "  --plan       emit the same deterministic inventory without implying execution"
+            );
         }
         _ => {
             eprintln!("unknown argument; use --help");
@@ -276,14 +297,20 @@ mod tests {
         assert_eq!(report["topology_arm_count"].as_u64(), Some(5));
         assert_eq!(report["removal_family_count"].as_u64(), Some(9));
         assert_eq!(report["case_pair_count"].as_u64(), Some(45));
-        assert_eq!(report["eligible_for_target_binding_count"].as_u64(), Some(33));
+        assert_eq!(
+            report["eligible_for_target_binding_count"].as_u64(),
+            Some(33)
+        );
         assert_eq!(report["not_applicable_count"].as_u64(), Some(12));
     }
 
     #[test]
     fn inventory_never_claims_experiment_execution() {
         let report = build_plan().expect("the protocol manifest must qualify");
-        assert_eq!(report["maturity"].as_str(), Some("PROTOCOL_ONLY_NOT_EXECUTED"));
+        assert_eq!(
+            report["maturity"].as_str(),
+            Some("PROTOCOL_ONLY_NOT_EXECUTED")
+        );
         assert_eq!(report["execution_status"].as_str(), Some("NOT_EXECUTED"));
         assert!(
             report["cases"]
@@ -299,11 +326,12 @@ mod tests {
         let report = build_plan().expect("the protocol manifest must qualify");
         let cases = report["cases"].as_array().expect("cases array");
         assert!(
-            cases.iter().filter(|case| case["case_state"] == "NOT_APPLICABLE").all(
-                |case| case["reason"]
+            cases
+                .iter()
+                .filter(|case| case["case_state"] == "NOT_APPLICABLE")
+                .all(|case| case["reason"]
                     .as_str()
-                    .is_some_and(|reason| !reason.trim().is_empty())
-            )
+                    .is_some_and(|reason| !reason.trim().is_empty()))
         );
     }
 
