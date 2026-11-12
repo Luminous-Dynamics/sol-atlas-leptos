@@ -112,6 +112,7 @@ fn audit_manifest(root: &Value) -> Value {
     let maintenance_contracts = list(root, "maintenance_contracts");
     let accounts = list(root, "resource_accounts");
     let transfers = list(root, "resource_transfers");
+    let service_outcomes = list(root, "household_service_outcomes");
 
     let household_ids = unique_ids(households, "household_id", "$.households", &mut audit);
     let asset_ids = unique_ids(assets, "asset_id", "$.assets", &mut audit);
@@ -125,6 +126,7 @@ fn audit_manifest(root: &Value) -> Value {
     );
     let account_ids = unique_ids(accounts, "account_id", "$.resource_accounts", &mut audit);
     let transfer_ids = unique_ids(transfers, "transfer_id", "$.resource_transfers", &mut audit);
+    let outcome_ids = unique_ids(service_outcomes, "outcome_id", "$.household_service_outcomes", &mut audit);
     let mut source_event_ids = BTreeSet::new();
 
     if households.is_empty() {
@@ -650,9 +652,9 @@ fn audit_manifest(root: &Value) -> Value {
         }
     }
 
-    // Resource accounts and transfer provenance are deliberately separate from
-    // service-delivery outcomes; the validator does not infer tap flow or resident
-    // service state from reservoir, grid or hub telemetry.
+    // Resource accounts and transfer provenance remain separate from delivered
+    // service observations. A reservoir/grid/hub signal is never substituted for
+    // a household service outcome.
     for (index, account) in accounts.iter().enumerate() {
         if text(account, "resource_id").is_none() {
             audit.fail(
@@ -660,6 +662,193 @@ fn audit_manifest(root: &Value) -> Value {
                 &format!("$.resource_accounts[{index}].resource_id"),
                 "resource_id is required",
             );
+        }
+    }
+
+    let mut contract_by_service: BTreeMap<String, &Value> = BTreeMap::new();
+    for contract in contracts {
+        if let Some(service_id) = text(contract, "service_id") {
+            contract_by_service.insert(service_id.to_owned(), contract);
+        }
+    }
+
+    let mut outcome_keys: BTreeSet<(String, String, String)> = BTreeSet::new();
+    let mut outcome_rows: Vec<Value> = Vec::new();
+    let mut household_floor_breach_count = 0_usize;
+    for (index, outcome) in service_outcomes.iter().enumerate() {
+        let path = format!("$.household_service_outcomes[{index}]");
+        let household_id = text(outcome, "household_id");
+        let service_id = text(outcome, "service_id");
+        let window_id = text(outcome, "window_id");
+        let delivery_state = text(outcome, "delivery_state");
+        let floor_state = text(outcome, "hard_floor_state");
+        let unit = text(outcome, "unit");
+        let outcome_id = text(outcome, "outcome_id").unwrap_or("<missing>");
+
+        if household_id.is_none_or(|id| !household_ids.contains(id)) {
+            audit.fail(
+                "OUTCOME_HOUSEHOLD_UNKNOWN",
+                &format!("{path}.household_id"),
+                "service outcome must reference a registered household",
+            );
+        }
+        let floor = household_id
+            .and_then(|hid| households.iter().find(|h| text(h, "household_id") == Some(hid)))
+            .and_then(|h| list(h, "essential_service_floors").iter().find(|f| text(f, "service_id") == service_id));
+        if floor.is_none() {
+            audit.fail(
+                "OUTCOME_NOT_A_DECLARED_ESSENTIAL_FLOOR",
+                &path,
+                "outcome must correspond to one declared household essential-service floor",
+            );
+        }
+        let Some(service_id) = service_id else {
+            audit.fail(
+                "OUTCOME_SERVICE_ID_MISSING",
+                &format!("{path}.service_id"),
+                "service_id is required",
+            );
+            continue;
+        };
+        let Some(household_id) = household_id else {
+            continue;
+        };
+        let Some(window_id) = window_id else {
+            audit.fail(
+                "OUTCOME_WINDOW_ID_MISSING",
+                &format!("{path}.window_id"),
+                "window_id is required",
+            );
+            continue;
+        };
+        let key = (household_id.to_owned(), service_id.to_owned(), window_id.to_owned());
+        if !outcome_keys.insert(key) {
+            audit.fail(
+                "DUPLICATE_HOUSEHOLD_SERVICE_OUTCOME",
+                &path,
+                "there must be exactly one outcome per household, service and window",
+            );
+        }
+
+        let contract = contract_by_service.get(service_id).copied();
+        if contract.is_none() {
+            audit.fail(
+                "OUTCOME_SERVICE_NOT_CONTRACTED",
+                &format!("{path}.service_id"),
+                "outcome service must be present in a commons service contract",
+            );
+        } else if unit != contract.and_then(|c| text(c, "capacity_unit")) {
+            audit.fail(
+                "OUTCOME_UNIT_MISMATCH",
+                &format!("{path}.unit"),
+                "outcome unit must exactly match the service contract unit; no implicit conversion is allowed",
+            );
+        }
+
+        if text(outcome, "evidence_class") != Some("SyntheticKnownAnswer") {
+            audit.fail(
+                "OUTCOME_EVIDENCE_CLASS_MISMATCH",
+                &format!("{path}.evidence_class"),
+                "v0.1 outcome fixtures must remain SyntheticKnownAnswer; empirical delivery requires a new admission path",
+            );
+        }
+        if text(outcome, "evidence_id").is_none() {
+            audit.fail(
+                "OUTCOME_EVIDENCE_ID_MISSING",
+                &format!("{path}.evidence_id"),
+                "every known-answer outcome must identify its synthetic evidence row",
+            );
+        }
+
+        let requested = number(outcome, "requested_quantity");
+        let delivered = number(outcome, "delivered_quantity");
+        let quantity_state_valid = match delivery_state {
+            Some("DELIVERED") => requested.is_some() && delivered == requested,
+            Some("PARTIAL") => requested.is_some_and(|r| r > 0)
+                && delivered.is_some_and(|d| d > 0 && Some(d) < requested),
+            Some("UNMET") => requested.is_some_and(|r| r > 0) && delivered == Some(0),
+            Some("UNKNOWN") => requested.is_some_and(|r| r > 0) && delivered.is_none(),
+            _ => false,
+        };
+        if !quantity_state_valid {
+            audit.fail(
+                "OUTCOME_QUANTITY_STATE_MISMATCH",
+                &format!("{path}.delivery_state"),
+                "delivery_state must agree with requested_quantity and delivered_quantity (UNKNOWN requires null delivered_quantity)",
+            );
+        }
+
+        let mut valid_floor_satisfied = false;
+        if let Some(floor) = floor {
+            let unserved = number(outcome, "unserved_s");
+            let access = number(outcome, "access_time_s");
+            let queue = number(outcome, "queue_wait_s");
+            let within_limits = unserved.zip(number(floor, "maximum_unserved_s")).is_some_and(|(a, b)| a <= b)
+                && access.zip(number(floor, "maximum_access_time_s")).is_some_and(|(a, b)| a <= b)
+                && queue.zip(number(floor, "maximum_wait_s")).is_some_and(|(a, b)| a <= b);
+            valid_floor_satisfied = delivery_state == Some("DELIVERED") && within_limits;
+            match floor_state {
+                Some("SATISFIED") if !valid_floor_satisfied => audit.fail(
+                    "HOUSEHOLD_FLOOR_FALSE_SATISFIED",
+                    &format!("{path}.hard_floor_state"),
+                    "SATISFIED requires full delivery and unserved/access/queue times within the household's declared limits",
+                ),
+                Some("BREACHED") => {
+                    household_floor_breach_count += 1;
+                    if valid_floor_satisfied {
+                        audit.fail(
+                            "HOUSEHOLD_FLOOR_FALSE_BREACH",
+                            &format!("{path}.hard_floor_state"),
+                            "BREACHED conflicts with fully delivered service inside declared limits",
+                        );
+                    }
+                }
+                Some("UNKNOWN") => {
+                    if delivery_state != Some("UNKNOWN") {
+                        audit.fail(
+                            "HOUSEHOLD_FLOOR_UNKNOWN_MISMATCH",
+                            &format!("{path}.hard_floor_state"),
+                            "UNKNOWN hard floor requires UNKNOWN service delivery",
+                        );
+                    }
+                }
+                _ => audit.fail(
+                    "HOUSEHOLD_FLOOR_STATE_INVALID",
+                    &format!("{path}.hard_floor_state"),
+                    "hard_floor_state must be SATISFIED, BREACHED or UNKNOWN",
+                ),
+            }
+        }
+
+        outcome_rows.push(json!({
+            "outcome_id": outcome_id,
+            "household_id": household_id,
+            "service_id": service_id,
+            "window_id": window_id,
+            "delivery_state": delivery_state,
+            "hard_floor_state": floor_state,
+            "requested_quantity": requested,
+            "delivered_quantity": outcome.get("delivered_quantity").cloned().unwrap_or(Value::Null),
+            "unit": unit,
+            "valid_floor_satisfied": valid_floor_satisfied
+        }));
+    }
+
+    // Every declared household-essential service must retain its own outcome row.
+    // The qualifier preserves per-household results and does not compute a
+    // neighbourhood-average score that could compensate for an individual breach.
+    for household in households {
+        let Some(household_id) = text(household, "household_id") else { continue; };
+        for floor in list(household, "essential_service_floors") {
+            let Some(service_id) = text(floor, "service_id") else { continue; };
+            let covered = outcome_keys.iter().any(|(hid, sid, _)| hid == household_id && sid == service_id);
+            if !covered {
+                audit.fail(
+                    "ESSENTIAL_FLOOR_OUTCOME_MISSING",
+                    "$.household_service_outcomes",
+                    &format!("missing per-household outcome for {household_id}/{service_id}"),
+                );
+            }
         }
     }
 
@@ -673,6 +862,10 @@ fn audit_manifest(root: &Value) -> Value {
         "service_contracts_checked": contract_ids.len(),
         "allocation_policies_checked": policy_ids.len(),
         "maintenance_contracts_checked": maintenance_ids.len(),
+        "household_service_outcomes_checked": outcome_ids.len(),
+        "household_floor_breach_count": household_floor_breach_count,
+        "household_service_outcomes": outcome_rows,
+        "neighborhood_aggregate_compensation": "NOT_COMPUTED",
         "resource_accounts_checked": account_ids.len(),
         "resource_transfers_checked": transfer_ids.len(),
         "error_count": audit.errors.len(),
@@ -746,6 +939,49 @@ mod tests {
                 .iter()
                 .any(|item| item.get("code").and_then(Value::as_str) == Some(code))
         })
+    }
+
+    #[test]
+    fn synthetic_household_outcomes_are_reported_without_aggregate_compensation() {
+        let report = audit_manifest(&base());
+        assert_eq!(report["status"].as_str(), Some("PASS"));
+        assert_eq!(report["household_service_outcomes_checked"].as_u64(), Some(3));
+        assert_eq!(report["household_floor_breach_count"].as_u64(), Some(1));
+        assert_eq!(
+            report["neighborhood_aggregate_compensation"].as_str(),
+            Some("NOT_COMPUTED")
+        );
+    }
+
+    #[test]
+    fn essential_household_outcome_cannot_be_omitted() {
+        let mut manifest = base();
+        manifest["household_service_outcomes"].as_array_mut().unwrap().remove(2);
+        assert!(has_code(
+            &audit_manifest(&manifest),
+            "ESSENTIAL_FLOOR_OUTCOME_MISSING"
+        ));
+    }
+
+    #[test]
+    fn partial_delivery_cannot_be_marked_floor_satisfied() {
+        let mut manifest = base();
+        manifest["household_service_outcomes"][0]["delivery_state"] = json!("PARTIAL");
+        manifest["household_service_outcomes"][0]["delivered_quantity"] = json!(800);
+        assert!(has_code(
+            &audit_manifest(&manifest),
+            "HOUSEHOLD_FLOOR_FALSE_SATISFIED"
+        ));
+    }
+
+    #[test]
+    fn per_household_outcome_units_must_match_service_contract() {
+        let mut manifest = base();
+        manifest["household_service_outcomes"][0]["unit"] = json!("m3/day");
+        assert!(has_code(
+            &audit_manifest(&manifest),
+            "OUTCOME_UNIT_MISMATCH"
+        ));
     }
 
     #[test]
