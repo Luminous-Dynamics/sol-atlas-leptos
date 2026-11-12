@@ -142,27 +142,33 @@ fn evaluate(case: &Value) -> Result<Value, Vec<String>> {
             reasons.push("INSUFFICIENT_FREE_ACCESSIBLE_CAPACITY".to_owned());
         }
 
-        let (free_water, water_state_valid) = match (
+        let free_water = match (
             number_at(site, "safe_water_available_l"),
             number_at(site, "safe_water_committed_l"),
             number_at(site, "safe_water_protected_reserve_l"),
         ) {
-            (Some(available), Some(committed), Some(reserve)) if available >= 0.0 && committed >= 0.0 && reserve >= 0.0 && available >= committed + reserve => {
-                (available - committed - reserve, true)
+            (Some(available), Some(committed), Some(reserve))
+                if available >= 0.0
+                    && committed >= 0.0
+                    && reserve >= 0.0
+                    && available >= committed + reserve =>
+            {
+                available - committed - reserve
             }
-            (Some(available), Some(committed), Some(reserve)) if available >= 0.0 && committed >= 0.0 && reserve >= 0.0 => {
+            (Some(available), Some(committed), Some(reserve))
+                if available >= 0.0 && committed >= 0.0 && reserve >= 0.0 =>
+            {
                 reasons.push("SAFE_WATER_BELOW_COMMITMENTS_OR_PROTECTED_RESERVE".to_owned());
-                ((available - committed - reserve).max(0.0), true)
+                (available - committed - reserve).max(0.0)
             }
             _ => {
                 reasons.push("SAFE_WATER_ACCOUNT_UNKNOWN_OR_INVALID".to_owned());
-                (0.0, false)
+                0.0
             }
         };
         if free_water < water_demand {
             reasons.push("INSUFFICIENT_FREE_SAFE_WATER".to_owned());
         }
-        let _ = water_state_valid;
 
         if reasons.is_empty() {
             eligible.push(json!({
@@ -184,6 +190,7 @@ fn evaluate(case: &Value) -> Result<Value, Vec<String>> {
         }
     }
 
+    let eligible_site_count = eligible.len();
     Ok(json!({
         "audit_state":"REFUGE_AVAILABILITY_FILTER_COMPLETE",
         "case_id":text_at(case,"case_id").unwrap_or_default(),
@@ -192,7 +199,7 @@ fn evaluate(case: &Value) -> Result<Value, Vec<String>> {
         "eligible_sites":eligible,
         "unavailable_sites":unavailable,
         "total_sites":sites.len(),
-        "eligible_site_count":eligible.len(),
+        "eligible_site_count":eligible_site_count,
         "human_authority":"REQUIRED",
         "occupant_assignment":"NONE",
         "route_computation":"NOT_PERFORMED; route evidence is accepted from Sol-Atlas",
