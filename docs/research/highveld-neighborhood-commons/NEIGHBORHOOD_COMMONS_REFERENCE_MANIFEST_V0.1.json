@@ -20,7 +20,8 @@
             "qualification_state": "QUALIFIED",
             "evidence_id": "synthetic-fallback-evidence-a",
             "depends_on_commons": false
-          }
+          },
+          "maximum_access_time_s": 300
         },
         {
           "service_id": "energy-essential",
@@ -34,7 +35,8 @@
             "qualification_state": "QUALIFIED",
             "evidence_id": "synthetic-fallback-evidence-b",
             "depends_on_commons": false
-          }
+          },
+          "maximum_access_time_s": 0
         }
       ]
     },
@@ -53,7 +55,8 @@
             "qualification_state": "QUALIFIED",
             "evidence_id": "synthetic-fallback-evidence-c",
             "depends_on_commons": false
-          }
+          },
+          "maximum_access_time_s": 600
         }
       ]
     }
