@@ -21,7 +21,9 @@
     "hard_gates",
     "solver_roles",
     "references",
-    "claim_ceiling"
+    "claim_ceiling",
+    "heat_recovery_contract",
+    "industry_reference_evidence"
   ],
   "properties": {
     "format_version": {
@@ -153,7 +155,11 @@
         "untreated_greywater_in_aerosol_path",
         "indoor_cooling_claim_from_outdoor_or_pool_temp_only",
         "energy_water_balance_outside_uncertainty",
-        "untraceable_inputs_or_controls"
+        "untraceable_inputs_or_controls",
+        "pool_heat_recovery_above_temperature_limit",
+        "pool_heat_recovery_without_isolated_heat_exchanger",
+        "unqualified_fallback_sink_for_excess_heat",
+        "heat_recovery_claim_without_measured_displaced_heater_energy"
       ],
       "properties": {
         "sustained_cooling_from_store_without_regeneration": {
@@ -175,6 +181,18 @@
           "const": 0
         },
         "untraceable_inputs_or_controls": {
+          "const": 0
+        },
+        "pool_heat_recovery_above_temperature_limit": {
+          "const": 0
+        },
+        "pool_heat_recovery_without_isolated_heat_exchanger": {
+          "const": 0
+        },
+        "unqualified_fallback_sink_for_excess_heat": {
+          "const": 0
+        },
+        "heat_recovery_claim_without_measured_displaced_heater_energy": {
           "const": 0
         }
       }
@@ -223,6 +241,76 @@
     "claim_ceiling": {
       "type": "string",
       "minLength": 60
+    },
+    "heat_recovery_contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "enabled_only_when_pool_heating_demand_exists",
+        "requires_isolated_heat_exchanger",
+        "maximum_pool_temperature_is_owner_and_authority_defined",
+        "fallback_sink_required_when_pool_has_no_headroom",
+        "excess_condenser_heat_must_be_routed_or_recovery_disabled",
+        "no_pool_as_infinite_sink"
+      ],
+      "properties": {
+        "enabled_only_when_pool_heating_demand_exists": {
+          "const": true
+        },
+        "requires_isolated_heat_exchanger": {
+          "const": true
+        },
+        "maximum_pool_temperature_is_owner_and_authority_defined": {
+          "const": true
+        },
+        "fallback_sink_required_when_pool_has_no_headroom": {
+          "const": true
+        },
+        "excess_condenser_heat_must_be_routed_or_recovery_disabled": {
+          "const": true
+        },
+        "no_pool_as_infinite_sink": {
+          "const": true
+        }
+      }
+    },
+    "industry_reference_evidence": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "evidence_class",
+          "transferability"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "evidence_class": {
+            "enum": [
+              "FIELD_DEMONSTRATION",
+              "MODELED_FEASIBILITY_ANALYSIS"
+            ]
+          },
+          "climate_scope": {
+            "type": "string"
+          },
+          "reported_metrics": {
+            "type": "object"
+          },
+          "modeled_ranges": {
+            "type": "object"
+          },
+          "transferability": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
     }
   }
 }
