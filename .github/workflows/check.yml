@@ -67,3 +67,5 @@ jobs:
       - run: cargo test --bin sol-atlas-leptos
       - name: Test Highveld paired-run audit
         run: cargo test --bin highveld-paired-audit
+      - name: Execute Highveld auditor self-test
+        run: cargo run --bin highveld-paired-audit -- --self-test
