@@ -222,3 +222,39 @@ The 30 Oct 2026 Draft NEES 2025–35 is a proposed strategy and explicitly not a
 8. Build a paired courtyard test cell and preregister a field validation plan before claiming cooling savings.
 
 **Status:** research and software contracts only. No actual EnergyPlus run, BOPTEST run, CFD result, field observation, cost result or SOTA superiority result has been produced by this packet.
+
+
+## 10. Expanded industry/toolchain comparison (12 November 2026)
+
+The engine boundary matters. These systems are complementary rather than interchangeable:
+
+| System | Current public baseline observed | Best-fit responsibility in this programme | What it does not replace |
+|---|---|---|---|
+| EnergyPlus | 26.2.0 | Building/zone heat and moisture balance, supported indoor pool model, HVAC, water-use objects and thermal storage | Outdoor courtyard CFD, resident water rights, instrument qualification or household service truth |
+| Modelica Buildings Library | 14.0.0, released 5 Oct 2026 | Dynamic hydronic plant, thermal storage, plant controls, district/building energy systems; recent release adds liquid-cooled data-centre components, EnergyPlus sizing coupling and TOUGH ground-response coupling | It is not automatically a measured Highveld courtyard-water model; exact library and Modelica solver versions must be pinned |
+| OpenStudio | 3.11.0 SDK release, 30 Apr 2026 | Model authoring, workflow, measures and orchestration around EnergyPlus | It is not a separate physical solver or a second independent validation result when it invokes the same EnergyPlus engine |
+| BOPTEST | v0.9.0, 18 Nov 2025; nine published ready test cases | Reproducible control benchmarking with REST interface, test scenarios and building emulators | It is not the current source of courtyard-water physics or community water-entitlement semantics |
+| OpenFOAM Foundation | v14, 14 Jul 2026 | Outdoor airflow, buoyancy, surface exchange and CFD where a validated model is built | Not building-energy orchestration or resident-service assurance |
+| OpenCFD OpenFOAM | v2606, 26 Jun 2026 | Alternative OpenFOAM distribution / CFD environment | Must not be treated as byte-for-byte or release-compatible with the Foundation distribution |
+| Sol-Atlas / Symtropy / Mycelix | Luminous evidence/control integration under development | Geometry/configuration provenance; native time/event and service trajectories; water rights, consent, resource accounts and instrument admission | Does not replace any of the specialist physical solvers above |
+
+Modelica Buildings Library 14.0.0 specifically adds liquid-cooled data-centre systems and TOUGH-based geothermal coupling, and extends EnergyPlus-linked thermal-zone sizing. This makes it an especially relevant plant/ground coupling comparator for thermal-water work. Its EnergyPlus-linked package documented on the release page uses `EnergyPlus_24_2_0`; do not imply the package is already a turnkey EnergyPlus 26.2 co-simulation. [LBNL Modelica Buildings release 14.0.0](https://simulationresearch.lbl.gov/modelica/library-release/2026/10/05/releases-11.1.2-12.1.2-13.0.1-14.0.0.html).
+
+OpenStudio 3.11.0 is a current workflow/SDK layer and should be assessed as an authoring and orchestration option around EnergyPlus, not counted as an independent thermal solver result. [OpenStudio release page](https://openstudio.net/).
+
+The two current OpenFOAM release families must be separately identified in every experiment: OpenFOAM Foundation v14 and OpenCFD v2606 have distinct release streams. [Foundation v14](https://openfoam.org/release/14/); [OpenCFD v2606](https://www.openfoam.com/download/release-history).
+
+## 11. The defensible route to beating the state of the art
+
+Do not compete on an isolated pool-temperature result or make a generic claim that Luminous can replace a specialist solver. Compete on a harder system-level benchmark:
+
+1. **Matched physics:** same geometry, weather, occupancy, schedules and boundary conditions. Reuse each specialist engine in its intended domain.
+2. **Independent cross-engine agreement:** compare EnergyPlus/Modelica/CFD outputs only at explicitly shared physical interfaces; report residuals, uncertainty and solver-boundary differences.
+3. **Water-constrained control:** at the same declared water budget and comfort requirement, test whether the system reduces discretionary water and auxiliary electricity without increasing occupied-zone discomfort or humidity risk.
+4. **Climate robustness:** evaluate multiple historical years, hot-tail conditions, future climate sequences, drought curtailment, humid-hot days, cold nights and equipment faults.
+5. **Decision-grade uncertainty:** report held-out bias, calibrated interval coverage, false-feasible decisions at comfort/water thresholds and out-of-domain detection—not just R².
+6. **Evidence replay:** another operator must be able to reconstruct the input package, run identities, transformations, water/energy balances and claim ceiling from digests and receipts.
+
+A credible result that beats an incumbent on this benchmark would be a Pareto improvement at matched constraints (for example: equal or better comfort with less water and no greater auxiliary energy), or materially better robustness under the same disturbance envelope, with independent field validation. A faster run, a lower residual on an unmatched case or a prettier digital twin is not enough.
+
+The multi-engine case matrix is registered separately in `MULTI_ENGINE_THERMAL_WATER_BENCHMARK_V0.1.md` and its JSON manifest. It remains `NOT_EXECUTED`.
