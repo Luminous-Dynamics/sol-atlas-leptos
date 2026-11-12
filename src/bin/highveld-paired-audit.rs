@@ -12,6 +12,7 @@ const RECEIPT_FIELDS: &[&str] = &[
     "source_snapshot_sha256",
     "engine_input_sha256",
     "engine_output_sha256",
+    "engine_configuration_sha256",
     "source_rights_revision",
 ];
 const MATCHED_TEXT_FIELDS: &[&str] = &[
@@ -529,6 +530,7 @@ fn audit_manifest(root: &Value) -> Value {
         };
 
         for (receipt_field, matched_field) in [
+            ("engine_configuration_sha256", "engine_configuration_sha256"),
             ("event_trace_sha256", "event_trace_sha256"),
             ("geometry_sha256", "geometry_sha256"),
             (
@@ -738,6 +740,7 @@ fn synthetic_pair(
         "source_snapshot_sha256": source,
         "engine_input_sha256": engine_input,
         "engine_output_sha256": engine_output,
+        "engine_configuration_sha256": repeated_digest('2'),
         "source_rights_revision": "synthetic-rights-r1",
         "receipt_sha256": ""
     });
