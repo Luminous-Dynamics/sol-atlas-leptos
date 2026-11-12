@@ -1,7 +1,19 @@
 use serde_json::{json, Value};
+use sha2::{Digest, Sha256};
 use std::{env, fs, process};
 
 const CONTRACT_ID: &str = "highveld-cross-tool-household-resilience-benchmark-v0.1";
+const RECEIPT_FORMAT: &str = "highveld-b2-composition-receipt-v0.1";
+const RECEIPT_FIELDS: &[&str] = &[
+    "event_trace_sha256",
+    "geometry_sha256",
+    "resident_requirements_sha256",
+    "initial_state_sha256",
+    "source_snapshot_sha256",
+    "engine_input_sha256",
+    "engine_output_sha256",
+    "source_rights_revision",
+];
 const MATCHED_TEXT_FIELDS: &[&str] = &[
     "design_revision_id",
     "resource_budget_id",
@@ -34,6 +46,27 @@ fn valid_sha256(value: Option<&Value>) -> bool {
                     .all(|b| b.is_ascii_hexdigit() && !b.is_ascii_uppercase())
         })
         .unwrap_or(false)
+}
+
+fn calculate_receipt_sha256(receipt: &Value) -> Option<String> {
+    if text_field(receipt, "receipt_format") != Some(RECEIPT_FORMAT) {
+        return None;
+    }
+
+    // Versioned, length-prefixed field encoding avoids JSON key-order and
+    // whitespace ambiguity. Length is measured in UTF-8 bytes.
+    let mut canonical = Vec::new();
+    canonical.extend_from_slice(b"HIGHVELD_B2_COMPOSITION_RECEIPT_V0.1\n");
+    for field in RECEIPT_FIELDS {
+        let value = text_field(receipt, field)?;
+        canonical.extend_from_slice(field.as_bytes());
+        canonical.push(0);
+        canonical.extend_from_slice(value.len().to_string().as_bytes());
+        canonical.push(b':');
+        canonical.extend_from_slice(value.as_bytes());
+        canonical.push(b'\n');
+    }
+    Some(format!("{:x}", Sha256::digest(&canonical)))
 }
 
 fn check_sha256(value: Option<&Value>, pair_id: &str, field: &str, errors: &mut Vec<Value>) {
@@ -304,6 +337,13 @@ fn audit_manifest(root: &Value) -> Value {
         if text_field(receipt, "source_rights_revision").is_none() {
             push_error(&mut errors, pair_id, "RIGHTS_REVISION_MISSING", "B2 receipt must pin the source-rights revision");
         }
+        if text_field(receipt, "receipt_format") != Some(RECEIPT_FORMAT) {
+            push_error(&mut errors, pair_id, "RECEIPT_FORMAT_MISMATCH", "B2 receipt must identify the supported versioned canonical encoding");
+        } else if calculate_receipt_sha256(receipt).as_deref()
+            != text_field(receipt, "receipt_sha256")
+        {
+            push_error(&mut errors, pair_id, "RECEIPT_DIGEST_MISMATCH", "B2 receipt SHA-256 does not match its canonical payload");
+        }
 
         let Some(expectations) = pair.get("oracle_expectations").and_then(Value::as_array) else {
             push_error(&mut errors, pair_id, "ORACLE_EXPECTATIONS_MISSING", "oracle_expectations array is required");
@@ -381,6 +421,20 @@ fn synthetic_pair(
         { "tool": "EnergyPlus", "version": "26.2.0" },
         { "tool": "BOPTEST", "version": "0.9.0" }
     ]);
+    let mut composition_receipt = json!({
+        "receipt_format": RECEIPT_FORMAT,
+        "event_trace_sha256": trace,
+        "geometry_sha256": geometry,
+        "resident_requirements_sha256": requirements,
+        "initial_state_sha256": initial,
+        "source_snapshot_sha256": source,
+        "engine_input_sha256": engine_input,
+        "engine_output_sha256": engine_output,
+        "source_rights_revision": "synthetic-rights-r1",
+        "receipt_sha256": ""
+    });
+    composition_receipt["receipt_sha256"] =
+        json!(calculate_receipt_sha256(&composition_receipt).unwrap_or_default());
 
     json!({
         "pair_id": pair_id,
@@ -412,17 +466,7 @@ fn synthetic_pair(
             "engine_output_sha256": engine_output,
             "operator_minutes": 22,
             "composition_layer": { "name": "Luminous evidence composition", "version": "0.1.0" },
-            "composition_receipt": {
-                "event_trace_sha256": trace,
-                "geometry_sha256": geometry,
-                "resident_requirements_sha256": requirements,
-                "initial_state_sha256": initial,
-                "source_snapshot_sha256": source,
-                "engine_input_sha256": engine_input,
-                "engine_output_sha256": engine_output,
-                "source_rights_revision": "synthetic-rights-r1",
-                "receipt_sha256": repeated_digest('9')
-            },
+            "composition_receipt": composition_receipt,
             "decisions": [synthetic_decision(b2_status, b2_floor, Some(rights), rights == "VALID")]
         },
         "oracle_expectations": [{
@@ -554,6 +598,15 @@ mod tests {
         manifest["pairs"][0]["b2"]["composition_receipt"]["geometry_sha256"] = json!(repeated_digest('8'));
         let report = audit_manifest(&manifest);
         assert!(has_error(&report, "RECEIPT_INPUT_BINDING_MISMATCH"));
+    }
+
+    #[test]
+    fn rejects_tampered_receipt_payload_even_when_digest_shape_is_valid() {
+        let mut manifest = synthetic_self_test_manifest();
+        manifest["pairs"][0]["b2"]["composition_receipt"]["source_rights_revision"] =
+            json!("tampered-rights-revision");
+        let report = audit_manifest(&manifest);
+        assert!(has_error(&report, "RECEIPT_DIGEST_MISMATCH"));
     }
 
     #[test]
