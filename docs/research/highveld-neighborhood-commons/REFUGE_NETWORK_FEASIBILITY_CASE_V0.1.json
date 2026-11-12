@@ -1,0 +1,181 @@
+{
+  "schema_version": "0.1",
+  "study_id": "HIGHVELD-REFUGE-NETWORK-FEASIBILITY-001",
+  "case_id": "SYNTHETIC_MULTI_ZONE_PARTITIONED_REFUGE_NETWORK_001",
+  "maturity": "SYNTHETIC_KNOWN_ANSWER",
+  "execution_status": "NO_SITE_OR_ROUTE_VALIDATION",
+  "network_state": "PARTITIONED",
+  "local_refuge_directory_state": "QUALIFIED",
+  "safe_water_l_per_place": 2,
+  "cohorts": [
+    {
+      "cohort_id": "ANON_ZONE_A",
+      "total_places_requested": 8,
+      "accessible_places_requested": 3,
+      "maximum_route_travel_time_s": 1200
+    },
+    {
+      "cohort_id": "ANON_ZONE_B",
+      "total_places_requested": 7,
+      "accessible_places_requested": 2,
+      "maximum_route_travel_time_s": 900
+    },
+    {
+      "cohort_id": "ANON_ZONE_C",
+      "total_places_requested": 5,
+      "accessible_places_requested": 1,
+      "maximum_route_travel_time_s": 1500
+    }
+  ],
+  "sites": [
+    {
+      "site_id": "SYNTHETIC_POD_1",
+      "operating_window_state": "OPEN_FOR_REQUIRED_WINDOW",
+      "thermal_service_state": "QUALIFIED",
+      "ventilation_state": "QUALIFIED",
+      "safe_water_service_state": "QUALIFIED",
+      "safe_water_rights_state": "QUALIFIED",
+      "safe_water_quality_state": "QUALIFIED",
+      "staffing_maintenance_state": "QUALIFIED",
+      "total_capacity": 12,
+      "current_occupancy": 3,
+      "committed_reserve": 1,
+      "accessible_capacity": 4,
+      "accessible_occupancy": 1,
+      "accessible_committed_reserve": 0,
+      "safe_water_available_l": 80,
+      "safe_water_committed_l": 20,
+      "safe_water_protected_reserve_l": 10,
+      "capacity_evidence_ref": "SYNTHETIC_CAPACITY_POD_1",
+      "service_evidence_ref": "SYNTHETIC_SERVICE_POD_1",
+      "water_evidence_ref": "SYNTHETIC_WATER_POD_1"
+    },
+    {
+      "site_id": "SYNTHETIC_POD_2",
+      "operating_window_state": "OPEN_FOR_REQUIRED_WINDOW",
+      "thermal_service_state": "QUALIFIED",
+      "ventilation_state": "QUALIFIED",
+      "safe_water_service_state": "QUALIFIED",
+      "safe_water_rights_state": "QUALIFIED",
+      "safe_water_quality_state": "QUALIFIED",
+      "staffing_maintenance_state": "QUALIFIED",
+      "total_capacity": 14,
+      "current_occupancy": 2,
+      "committed_reserve": 1,
+      "accessible_capacity": 5,
+      "accessible_occupancy": 0,
+      "accessible_committed_reserve": 1,
+      "safe_water_available_l": 14,
+      "safe_water_committed_l": 2,
+      "safe_water_protected_reserve_l": 4,
+      "capacity_evidence_ref": "SYNTHETIC_CAPACITY_POD_2",
+      "service_evidence_ref": "SYNTHETIC_SERVICE_POD_2",
+      "water_evidence_ref": "SYNTHETIC_WATER_POD_2"
+    },
+    {
+      "site_id": "SYNTHETIC_THERMAL_UNKNOWN_POD_3",
+      "operating_window_state": "OPEN_FOR_REQUIRED_WINDOW",
+      "thermal_service_state": "UNKNOWN",
+      "ventilation_state": "QUALIFIED",
+      "safe_water_service_state": "QUALIFIED",
+      "safe_water_rights_state": "QUALIFIED",
+      "safe_water_quality_state": "QUALIFIED",
+      "staffing_maintenance_state": "QUALIFIED",
+      "total_capacity": 20,
+      "current_occupancy": 0,
+      "committed_reserve": 0,
+      "accessible_capacity": 5,
+      "accessible_occupancy": 0,
+      "accessible_committed_reserve": 0,
+      "safe_water_available_l": 100,
+      "safe_water_committed_l": 0,
+      "safe_water_protected_reserve_l": 0,
+      "capacity_evidence_ref": "SYNTHETIC_CAPACITY_POD_3",
+      "service_evidence_ref": "SYNTHETIC_SERVICE_POD_3",
+      "water_evidence_ref": "SYNTHETIC_WATER_POD_3"
+    }
+  ],
+  "routes": [
+    {
+      "cohort_id": "ANON_ZONE_A",
+      "site_id": "SYNTHETIC_POD_1",
+      "route_state": "REACHABLE",
+      "accessibility_state": "QUALIFIED",
+      "travel_time_s": 600,
+      "route_evidence_ref": "SYNTHETIC_ROUTE_A_P1",
+      "accessibility_evidence_ref": "SYNTHETIC_ACCESS_A_P1"
+    },
+    {
+      "cohort_id": "ANON_ZONE_A",
+      "site_id": "SYNTHETIC_POD_2",
+      "route_state": "REACHABLE",
+      "accessibility_state": "NOT_ACCESSIBLE",
+      "travel_time_s": 700,
+      "route_evidence_ref": "SYNTHETIC_ROUTE_A_P2",
+      "accessibility_evidence_ref": "SYNTHETIC_ACCESS_A_P2"
+    },
+    {
+      "cohort_id": "ANON_ZONE_B",
+      "site_id": "SYNTHETIC_POD_1",
+      "route_state": "REACHABLE",
+      "accessibility_state": "QUALIFIED",
+      "travel_time_s": 800,
+      "route_evidence_ref": "SYNTHETIC_ROUTE_B_P1",
+      "accessibility_evidence_ref": "SYNTHETIC_ACCESS_B_P1"
+    },
+    {
+      "cohort_id": "ANON_ZONE_B",
+      "site_id": "SYNTHETIC_POD_2",
+      "route_state": "REACHABLE",
+      "accessibility_state": "QUALIFIED",
+      "travel_time_s": 800,
+      "route_evidence_ref": "SYNTHETIC_ROUTE_B_P2",
+      "accessibility_evidence_ref": "SYNTHETIC_ACCESS_B_P2"
+    },
+    {
+      "cohort_id": "ANON_ZONE_C",
+      "site_id": "SYNTHETIC_POD_1",
+      "route_state": "BLOCKED",
+      "accessibility_state": "UNKNOWN",
+      "travel_time_s": 700,
+      "route_evidence_ref": "SYNTHETIC_ROUTE_C_P1",
+      "accessibility_evidence_ref": "SYNTHETIC_ACCESS_C_P1"
+    },
+    {
+      "cohort_id": "ANON_ZONE_C",
+      "site_id": "SYNTHETIC_POD_2",
+      "route_state": "REACHABLE",
+      "accessibility_state": "QUALIFIED",
+      "travel_time_s": 1200,
+      "route_evidence_ref": "SYNTHETIC_ROUTE_C_P2",
+      "accessibility_evidence_ref": "SYNTHETIC_ACCESS_C_P2"
+    },
+    {
+      "cohort_id": "ANON_ZONE_A",
+      "site_id": "SYNTHETIC_THERMAL_UNKNOWN_POD_3",
+      "route_state": "REACHABLE",
+      "accessibility_state": "QUALIFIED",
+      "travel_time_s": 500,
+      "route_evidence_ref": "SYNTHETIC_ROUTE_A_P3",
+      "accessibility_evidence_ref": "SYNTHETIC_ACCESS_A_P3"
+    },
+    {
+      "cohort_id": "ANON_ZONE_B",
+      "site_id": "SYNTHETIC_THERMAL_UNKNOWN_POD_3",
+      "route_state": "REACHABLE",
+      "accessibility_state": "QUALIFIED",
+      "travel_time_s": 500,
+      "route_evidence_ref": "SYNTHETIC_ROUTE_B_P3",
+      "accessibility_evidence_ref": "SYNTHETIC_ACCESS_B_P3"
+    },
+    {
+      "cohort_id": "ANON_ZONE_C",
+      "site_id": "SYNTHETIC_THERMAL_UNKNOWN_POD_3",
+      "route_state": "REACHABLE",
+      "accessibility_state": "QUALIFIED",
+      "travel_time_s": 500,
+      "route_evidence_ref": "SYNTHETIC_ROUTE_C_P3",
+      "accessibility_evidence_ref": "SYNTHETIC_ACCESS_C_P3"
+    }
+  ]
+}
