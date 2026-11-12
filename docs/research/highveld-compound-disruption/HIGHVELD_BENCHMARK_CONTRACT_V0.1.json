@@ -409,6 +409,7 @@
       "independent-oracle decision and hard-floor agreement",
       "future-information leakage detection"
     ],
-    "claim_ceiling": "The auditor checks submitted experiment packets and synthetic self-tests only. It does not execute specialist tools or establish physical building performance."
+    "claim_ceiling": "The auditor checks submitted experiment packets and synthetic self-tests only. It does not execute specialist tools or establish physical building performance.",
+    "receipt_digest_recomputation": "SHA-256 over the versioned fixed-field, length-prefixed UTF-8 receipt encoding; tamper detection is part of the Rust audit."
   }
 }
