@@ -371,3 +371,10 @@ The existing highveld-refuge-network-feasibility binary is the network-level max
 The added highveld-refuge-shared-capacity-audit is intentionally narrower and independent: it validates a proposed anonymized group-to-site plan by re-summing every site's total, accessible and water use. It catches double-spending in submitted plans, per-group over-allocation, duplicate group/site rows, unknown sites and route-evidence failures. It reports separate service ratios/gaps; it is not a second allocation algorithm.
 
 The benchmark target is zero false-feasible total/accessibility/water capacity, zero accepted unreachable routes and preservation of positive controls. A plan may be physically feasible but still have unmet demand; the audit must report that gap rather than hide it in an aggregate score.
+
+
+### Pool heat recovery as a matched heat-use arm
+
+The Highveld pool/water benchmark contains 10 archetypes × 8 scenarios = 80 registered cases. The tenth arm, POOL_HEAT_RECOVERY_FROM_COOLING_LOAD, follows an established industry pattern: a UC Davis WCEC hotel field trial reported average 5% electricity savings, peak reductions up to 12% and 29% lower pool-heating natural-gas use over four weeks in San Diego. The California feasibility study's 25–30% cooling-electricity / 30–35% peak reductions are modelled selected-condition estimates, not field performance.
+
+The local benchmark must gate recovery by actual pool heating demand, an isolated exchanger and an owner/authority-defined pool temperature ceiling. When the pool is at its ceiling or there is no heating demand, excess condenser heat must move to a separately qualified fallback sink or recovery must stop. Count recovered heat, displaced pool-heater energy and fallback rejection separately. This is not an assumed Highveld saving.
