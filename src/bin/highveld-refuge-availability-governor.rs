@@ -95,7 +95,11 @@ fn evaluate(case: &Value) -> Result<Value, Vec<String>> {
                 "QUALIFIED",
                 "THERMAL_SERVICE_NOT_QUALIFIED",
             ),
-            ("ventilation_state", "QUALIFIED", "VENTILATION_NOT_QUALIFIED"),
+            (
+                "ventilation_state",
+                "QUALIFIED",
+                "VENTILATION_NOT_QUALIFIED",
+            ),
             (
                 "safe_water_service_state",
                 "QUALIFIED",
