@@ -341,6 +341,32 @@
           "gate": "DIAGNOSTIC"
         }
       ]
+    },
+    {
+      "scorecard_id": "decision_selectivity",
+      "metrics": [
+        {
+          "metric_id": "b2_valid_case_coverage",
+          "definition": "Oracle-admissible synthetic service decisions preserved by B2 as PASS with SATISFIED hard floor, divided by all oracle-admissible PASS/SATISFIED service decisions.",
+          "unit": "fraction",
+          "target": 1,
+          "gate": "HARD_ON_SYNTHETIC_KNOWN_ANSWER_CASES"
+        },
+        {
+          "metric_id": "b2_valid_case_false_reject_count",
+          "definition": "Oracle-admissible PASS/SATISFIED service cases rejected, blocked or marked unknown by B2.",
+          "unit": "count",
+          "target": 0,
+          "gate": "HARD_ON_SYNTHETIC_KNOWN_ANSWER_CASES"
+        },
+        {
+          "metric_id": "b2_adversarial_critical_false_pass_count",
+          "definition": "Seeded adversarial cases where B2 returns PASS despite invalid rights, unapproved scope, future information or a violated/unknown resident service floor.",
+          "unit": "count",
+          "target": 0,
+          "gate": "HARD_ON_SYNTHETIC_KNOWN_ANSWER_CASES"
+        }
+      ]
     }
   ],
   "benchmark_stages": [
@@ -407,9 +433,10 @@
       "B2 composition receipt binding to matched inputs and engine I/O",
       "B2 per-service rights and scope validation",
       "independent-oracle decision and hard-floor agreement",
-      "future-information leakage detection"
+      "future-information leakage detection",
+      "B2 valid-case coverage and false-rejection gate to prevent an always-BLOCKED degenerate strategy"
     ],
-    "claim_ceiling": "The auditor checks submitted experiment packets and synthetic self-tests only. It does not execute specialist tools or establish physical building performance.",
+    "claim_ceiling": "The auditor checks submitted experiment packets and synthetic self-tests only. It does not execute specialist tools or establish physical building performance. A B2 PASS requires both zero critical false passes and full preservation of oracle-admissible clean cases; an always-block strategy cannot pass.",
     "receipt_digest_recomputation": "SHA-256 over the versioned fixed-field, length-prefixed UTF-8 receipt encoding; tamper detection is part of the Rust audit."
   }
 }
