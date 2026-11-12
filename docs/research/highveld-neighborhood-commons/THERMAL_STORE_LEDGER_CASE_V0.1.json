@@ -26,7 +26,11 @@
       "store_energy_end_kwh": 3,
       "interval_balance_u95_kwh": 0.05,
       "parasitic_electricity_kwh": 0.02,
-      "water_makeup_l": 0
+      "water_makeup_l": 0,
+      "store_state_evidence_ref": "SYNTHETIC_STORE_STATE_I001",
+      "heat_input_evidence_ref": "SYNTHETIC_HEAT_INPUT_I001",
+      "sink_rejection_evidence_ref": "SYNTHETIC_SINK_REJECTION_I001",
+      "uncertainty_evidence_ref": "SYNTHETIC_UNCERTAINTY_I001"
     },
     {
       "interval_id": "I002",
@@ -47,7 +51,11 @@
       "store_energy_end_kwh": 3,
       "interval_balance_u95_kwh": 0.05,
       "parasitic_electricity_kwh": 0.08,
-      "water_makeup_l": 0
+      "water_makeup_l": 0,
+      "store_state_evidence_ref": "SYNTHETIC_STORE_STATE_I002",
+      "heat_input_evidence_ref": "SYNTHETIC_HEAT_INPUT_I002",
+      "sink_rejection_evidence_ref": "SYNTHETIC_SINK_REJECTION_I002",
+      "uncertainty_evidence_ref": "SYNTHETIC_UNCERTAINTY_I002"
     },
     {
       "interval_id": "I003",
@@ -64,7 +72,14 @@
       "store_energy_end_kwh": 2,
       "interval_balance_u95_kwh": 0.05,
       "parasitic_electricity_kwh": 0.04,
-      "water_makeup_l": 0
+      "water_makeup_l": 0,
+      "store_state_evidence_ref": "SYNTHETIC_STORE_STATE_I003",
+      "heat_input_evidence_ref": "SYNTHETIC_HEAT_INPUT_I003",
+      "sink_rejection_evidence_ref": "SYNTHETIC_SINK_REJECTION_I003",
+      "uncertainty_evidence_ref": "SYNTHETIC_UNCERTAINTY_I003"
     }
-  ]
+  ],
+  "source_bundle_ref": "SYNTHETIC_SOURCE_BUNDLE_001",
+  "uncertainty_method_ref": "SYNTHETIC_U95_PROPAGATION_METHOD_001",
+  "independent_oracle_ref": "SYNTHETIC_KNOWN_ANSWER_ORACLE_001"
 }
