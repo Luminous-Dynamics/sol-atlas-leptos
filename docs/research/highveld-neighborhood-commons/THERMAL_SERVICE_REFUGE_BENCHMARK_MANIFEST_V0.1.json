@@ -1,0 +1,156 @@
+{
+  "format_version": "0.1",
+  "study_id": "HIGHVELD-THERMAL-SERVICE-REFUGE-001",
+  "parent_studies": [
+    "HIGHVELD-PASSIVE-COOLING-WATER-001",
+    "HIGHVELD-THERMAL-SINK-CASCADE-001"
+  ],
+  "maturity": "BENCHMARK_PROTOCOL_NOT_EXECUTED",
+  "execution_status": "NOT_EXECUTED",
+  "climate_context": "JOHANNESBURG_HIGHVELD",
+  "building_intervention_arms": [
+    {
+      "id": "PASSIVE_ENVELOPE_SHADE_BASELINE",
+      "role": "PRIMARY_CONTROL"
+    },
+    {
+      "id": "PASSIVE_ENVELOPE_NIGHT_PURGE",
+      "role": "TEST_ARM"
+    },
+    {
+      "id": "MECHANICAL_COOLING_REFERENCE",
+      "role": "INDUSTRY_REFERENCE"
+    },
+    {
+      "id": "PCM_STORE_NIGHT_REGENERATION",
+      "role": "TEST_ARM"
+    },
+    {
+      "id": "RADIATIVE_DRY_SINK_STORE",
+      "role": "TEST_ARM"
+    },
+    {
+      "id": "CONDITIONAL_EVAPORATIVE_ASSIST",
+      "role": "CONDITIONAL_TEST_ARM"
+    },
+    {
+      "id": "LAYERED_MULTI_SINK_PORTFOLIO",
+      "role": "PORTFOLIO_TEST_ARM"
+    }
+  ],
+  "building_scenarios": [
+    "HOT_TYPICAL_DAY",
+    "MULTIDAY_HEAT_WAVE_HOT_NIGHTS",
+    "GRID_OUTAGE_24H",
+    "GRID_OUTAGE_72H_DURING_HEAT",
+    "WATER_SUPPLY_INTERRUPTION_OR_CURTAILMENT",
+    "COMPOUND_GRID_WATER_OUTAGE",
+    "HUMID_HOT_WEAK_EVAPORATIVE_POTENTIAL",
+    "COLD_CLEAR_NIGHT_OVERCOOLING_AND_RECOVERY"
+  ],
+  "refuge_network_topologies": [
+    {
+      "id": "HOME_ONLY",
+      "role": "NO_SHARED_REFUGE_DEPENDENCY"
+    },
+    {
+      "id": "CENTRAL_REFUGE_HUB",
+      "role": "SINGLE_SHARED_REFUGE"
+    },
+    {
+      "id": "DISTRIBUTED_REFUGE_PODS",
+      "role": "MULTIPLE_LOCAL_REFUGES"
+    },
+    {
+      "id": "FEDERATED_REFUGE_MESH",
+      "role": "PARTITION_TOLERANT_INDEPENDENT_REFUGES"
+    }
+  ],
+  "refuge_scenarios": [
+    "REFUGE_SITE_UNAVAILABLE",
+    "GRID_AND_NETWORK_PARTITION",
+    "CAPACITY_SURGE_AND_QUEUE",
+    "ACCESSIBLE_ROUTE_DISRUPTION",
+    "WATER_RIGHTS_OR_QUALITY_WITHDRAWAL",
+    "STAFFING_OR_MAINTENANCE_OUTAGE"
+  ],
+  "case_expansion": {
+    "building_service": {
+      "arms": 7,
+      "scenarios": 8,
+      "cases": 56,
+      "state": "REGISTERED_NOT_EXECUTED"
+    },
+    "refuge_network": {
+      "topologies": 4,
+      "scenarios": 6,
+      "cases": 24,
+      "state": "REGISTERED_NOT_EXECUTED"
+    },
+    "total_cases": 80,
+    "state": "REGISTERED_NOT_EXECUTED"
+  },
+  "comfort_method": {
+    "reference": "ANSI/ASHRAE_STANDARD_55_2023",
+    "method_selection": "STANDARD_OR_ADAPTIVE_BASED_ON_SCOPE_AND_OCCUPANCY",
+    "public_addenda_observed": [
+      "ADDENDUM_A_2026_08_31",
+      "ADDENDUM_B_2026_08_31"
+    ],
+    "application_ceiling": "COMFORT_EVALUATION_WHERE_APPLICABLE_NOT_HEAT_HEALTH_SAFETY"
+  },
+  "authority_inputs_required": [
+    "selected_comfort_standard_edition_and_method",
+    "site_specific_public_health_or_emergency_safety_envelope_when_required",
+    "occupied_zone_and_occupancy_schedule_digest",
+    "weather_and_grid_water_outage_trace_digest",
+    "building_geometry_envelope_and_control_digest",
+    "refuge_operating_hours_and_capacity_digest",
+    "route_network_accessibility_and_travel_impedance_digest",
+    "water_rights_quality_and_reserve_digest",
+    "consent_and_privacy_policy_digest",
+    "independent_case_oracle_id"
+  ],
+  "required_metrics": [
+    "occupied_hours_within_selected_comfort_method",
+    "discomfort_degree_hours",
+    "maximum_continuous_comfort_exceedance",
+    "night_recovery_time",
+    "operative_temperature_and_mean_radiant_temperature",
+    "relative_humidity_dew_point_and_air_speed",
+    "vertical_head_to_ankle_temperature_gradient",
+    "service_hours_during_grid_and_water_outage",
+    "reachable_refuge_capacity_and_accessible_route",
+    "travel_time_and_queue_under_declared_mode",
+    "dwellings_without_reachable_qualified_refuge",
+    "water_electricity_peak_and_lifecycle_cost_by_case"
+  ],
+  "hard_gates": {
+    "false_available_refuge_claims": 0,
+    "over_capacity_refuge_assignments": 0,
+    "essential_water_floor_violations": 0,
+    "comfort_claim_without_correct_method_and_measurements": 0,
+    "comfort_standard_treated_as_health_safety_limit": 0,
+    "sensitive_identity_or_health_fields_required": 0,
+    "untraceable_case_results": 0,
+    "missed_seeded_negative_controls": 0,
+    "false_blocks_of_valid_positive_controls": 0
+  },
+  "governance": {
+    "individual_health_data_required": false,
+    "identifiable_movement_history_required": false,
+    "straight_line_distance_as_access_proof": false,
+    "unknown_refuge_dependency_means_unavailable": true,
+    "capacity_is_time_and_event_specific": true,
+    "human_authority_for_discretionary_water_and_participation": true
+  },
+  "owners": {
+    "geometry_routes_and_refuge_configuration": "SOL_ATLAS",
+    "event_time_and_service_trajectories": "SYMTROPY",
+    "water_rights_consent_capacity_commitments": "MYCELIX",
+    "specialist_building_plant_physics": "ENERGYPLUS_MODELICA_BOPTEST_AND_QUALIFIED_SOLVERS",
+    "safety_envelope": "COMPETENT_LOCAL_AUTHORITY_AND_QUALIFIED_PROFESSIONALS",
+    "participant_authority": "RESIDENT_AND_ASSET_OWNER"
+  },
+  "claim_ceiling": "Registered 80-case benchmark only; no resident/site/refuge/route data, comfort or safety result, simulation or superiority result has been admitted."
+}
