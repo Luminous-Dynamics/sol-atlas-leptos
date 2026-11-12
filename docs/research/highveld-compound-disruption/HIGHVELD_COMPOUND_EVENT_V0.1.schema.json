@@ -354,7 +354,8 @@
         "temporal_resolution_s",
         "timezone_state",
         "coverage_state",
-        "rights_state"
+        "rights_state",
+        "window_role"
       ],
       "properties": {
         "record_id": {
@@ -435,6 +436,12 @@
         "available_at_offset_s": {
           "type": "integer",
           "minimum": 0
+        },
+        "window_role": {
+          "enum": [
+            "event_interval",
+            "observation_coverage"
+          ]
         }
       }
     },
