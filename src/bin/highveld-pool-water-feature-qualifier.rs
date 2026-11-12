@@ -128,6 +128,9 @@ fn audit() -> Result<Value, Vec<String>> {
         "evaporation_latent_heat",
         "makeup_water_enthalpy",
         "zone_moisture_balance",
+        "recovered_condenser_heat",
+        "displaced_pool_heater_energy",
+        "excess_heat_rejected_by_fallback_sink",
     ] {
         if !balances.iter().any(|item| item == required) {
             errors.push(format!("thermal balance term {required} is missing"));
@@ -141,9 +144,26 @@ fn audit() -> Result<Value, Vec<String>> {
         "indoor_cooling_claim_from_outdoor_or_pool_temp_only",
         "energy_water_balance_outside_uncertainty",
         "untraceable_inputs_or_controls",
+        "pool_heat_recovery_above_temperature_limit",
+        "pool_heat_recovery_without_isolated_heat_exchanger",
+        "unqualified_fallback_sink_for_excess_heat",
+        "heat_recovery_claim_without_measured_displaced_heater_energy",
     ] {
         if manifest["hard_gates"].get(key).and_then(Value::as_u64) != Some(0) {
             errors.push(format!("pool/water hard gate {key} must equal zero"));
+        }
+    }
+    let heat_recovery = &manifest["heat_recovery_contract"];
+    for key in [
+        "enabled_only_when_pool_heating_demand_exists",
+        "requires_isolated_heat_exchanger",
+        "maximum_pool_temperature_is_owner_and_authority_defined",
+        "fallback_sink_required_when_pool_has_no_headroom",
+        "excess_condenser_heat_must_be_routed_or_recovery_disabled",
+        "no_pool_as_infinite_sink",
+    ] {
+        if heat_recovery.get(key).and_then(Value::as_bool) != Some(true) {
+            errors.push(format!("pool heat-recovery contract {key} must be true"));
         }
     }
     if text_at(&manifest["solver_roles"], "indoor_pool_heat_balance")
@@ -235,6 +255,18 @@ mod tests {
             report_aerosol_kind(&manifest, "AEROSOL_GENERATING_FOUNTAIN"),
             Some("YES")
         );
+    }
+
+    #[test]
+    fn pool_heat_recovery_requires_headroom_hx_and_overflow_sink() {
+        let manifest: Value = serde_json::from_str(MANIFEST).unwrap();
+        let contract = &manifest["heat_recovery_contract"];
+        assert_eq!(contract["enabled_only_when_pool_heating_demand_exists"], true);
+        assert_eq!(contract["requires_isolated_heat_exchanger"], true);
+        assert_eq!(contract["fallback_sink_required_when_pool_has_no_headroom"], true);
+        assert_eq!(contract["excess_condenser_heat_must_be_routed_or_recovery_disabled"], true);
+        assert_eq!(manifest["hard_gates"]["pool_heat_recovery_above_temperature_limit"], 0);
+        assert_eq!(manifest["hard_gates"]["unqualified_fallback_sink_for_excess_heat"], 0);
     }
 
     #[test]
