@@ -93,3 +93,7 @@ jobs:
         run: cargo test --bin highveld-weather-source-qualifier
       - name: Execute Johannesburg weather source register audit
         run: cargo run --bin highveld-weather-source-qualifier -- --self-test
+      - name: Test finite thermal store trajectory ledger
+        run: cargo test --bin highveld-thermal-store-ledger
+      - name: Execute finite thermal store trajectory ledger
+        run: cargo run --bin highveld-thermal-store-ledger -- --self-test
