@@ -1,0 +1,534 @@
+{
+  "schema_version": "0.1.0",
+  "benchmark_id": "GMD-PROTECTION-ENVELOPE-001",
+  "fixture_notice": "ALL VALUES ARE SYNTHETIC. This corpus tests verifier logic only and contains no physical model or utility data.",
+  "synthetic_only": true,
+  "claim_ceiling": "E2",
+  "parameter_domain": [
+    {
+      "axis_id": "gic_peak_a",
+      "unit": "A",
+      "lower": 0,
+      "upper": 30
+    },
+    {
+      "axis_id": "ct_remanence_pu",
+      "unit": "pu",
+      "lower": 0,
+      "upper": 1
+    },
+    {
+      "axis_id": "short_circuit_ratio",
+      "unit": "ratio",
+      "lower": 1,
+      "upper": 5
+    },
+    {
+      "axis_id": "ibr_current_limit_pu",
+      "unit": "pu",
+      "lower": 1,
+      "upper": 2
+    }
+  ],
+  "cells": [
+    {
+      "cell_id": "cell-001-synthetic-whole-cell-pass",
+      "bounds": [
+        {
+          "axis_id": "gic_peak_a",
+          "lower": 0,
+          "upper": 10,
+          "unit": "A"
+        },
+        {
+          "axis_id": "ct_remanence_pu",
+          "lower": 0,
+          "upper": 0.2,
+          "unit": "pu"
+        },
+        {
+          "axis_id": "short_circuit_ratio",
+          "lower": 3,
+          "upper": 5,
+          "unit": "ratio"
+        },
+        {
+          "axis_id": "ibr_current_limit_pu",
+          "lower": 1.4,
+          "upper": 2,
+          "unit": "pu"
+        }
+      ],
+      "coverage": {
+        "coverage_kind": "interval_enclosure",
+        "covers_entire_cell": true,
+        "uncertainty_set_covered": true,
+        "proof_method": "mock_interval_enclosure",
+        "model_revision": "synthetic-gmd-ct-relay-v0.1",
+        "source_artifact": {
+          "path": "synthetic_source_artifact_v0_1.txt",
+          "sha256": "0cc468655fe3ea21ddc45953c5d2aa6fc426051b409dcdfd4e07680303e95395"
+        },
+        "model_artifact": {
+          "path": "synthetic_model_artifact_v0_1.txt",
+          "sha256": "f0cdc4795e038a05e096c54cd28bd3163032d5f384ea2604ca99b962aa7738b1"
+        },
+        "proof_artifact": {
+          "path": "synthetic_interval_certificate_v0_1.txt",
+          "sha256": "553f259471f12cb2bbce6a982c18c2b9396dffdc501d6033a815a325212d47cc"
+        }
+      },
+      "required_capabilities": {
+        "waveform_resolved": true,
+        "independent_validation": true,
+        "physical_relay_observed": false,
+        "physical_power_interface_observed": false,
+        "field_exercise_observed": false
+      },
+      "available_capabilities": {
+        "waveform_resolved": true,
+        "independent_validation": true,
+        "physical_relay_observed": false,
+        "physical_power_interface_observed": false,
+        "field_exercise_observed": false
+      },
+      "outcomes": {
+        "scope": "whole_cell_bound",
+        "false_trip_count_upper_bound": 0,
+        "false_trip_denominator": 20,
+        "failure_to_trip_count_upper_bound": 0,
+        "failure_to_trip_denominator": 15,
+        "minimum_coordination_margin_pu": 0.22,
+        "required_coordination_margin_pu": 0.15,
+        "service_floor_margins": [
+          {
+            "service_id": "potable_water",
+            "unit": "m3_per_hour",
+            "minimum_margin": 0.04
+          },
+          {
+            "service_id": "telecommunications",
+            "unit": "availability_fraction",
+            "minimum_margin": 0.02
+          }
+        ]
+      }
+    },
+    {
+      "cell_id": "cell-002-observed-false-trip-counterexample",
+      "bounds": [
+        {
+          "axis_id": "gic_peak_a",
+          "lower": 10,
+          "upper": 20,
+          "unit": "A"
+        },
+        {
+          "axis_id": "ct_remanence_pu",
+          "lower": 0.2,
+          "upper": 0.6,
+          "unit": "pu"
+        },
+        {
+          "axis_id": "short_circuit_ratio",
+          "lower": 2,
+          "upper": 4,
+          "unit": "ratio"
+        },
+        {
+          "axis_id": "ibr_current_limit_pu",
+          "lower": 1.2,
+          "upper": 1.6,
+          "unit": "pu"
+        }
+      ],
+      "coverage": {
+        "coverage_kind": "point_samples_only",
+        "covers_entire_cell": false,
+        "uncertainty_set_covered": false,
+        "proof_method": null,
+        "model_revision": "synthetic-gmd-ct-relay-v0.1",
+        "source_artifact": {
+          "path": "synthetic_source_artifact_v0_1.txt",
+          "sha256": "0cc468655fe3ea21ddc45953c5d2aa6fc426051b409dcdfd4e07680303e95395"
+        },
+        "model_artifact": {
+          "path": "synthetic_model_artifact_v0_1.txt",
+          "sha256": "f0cdc4795e038a05e096c54cd28bd3163032d5f384ea2604ca99b962aa7738b1"
+        },
+        "proof_artifact": null
+      },
+      "required_capabilities": {
+        "waveform_resolved": true,
+        "independent_validation": true,
+        "physical_relay_observed": false,
+        "physical_power_interface_observed": false,
+        "field_exercise_observed": false
+      },
+      "available_capabilities": {
+        "waveform_resolved": true,
+        "independent_validation": true,
+        "physical_relay_observed": false,
+        "physical_power_interface_observed": false,
+        "field_exercise_observed": false
+      },
+      "outcomes": {
+        "scope": "point_observed",
+        "false_trip_count_upper_bound": 1,
+        "false_trip_denominator": 20,
+        "failure_to_trip_count_upper_bound": 0,
+        "failure_to_trip_denominator": 15,
+        "minimum_coordination_margin_pu": 0.22,
+        "required_coordination_margin_pu": 0.15,
+        "service_floor_margins": [
+          {
+            "service_id": "potable_water",
+            "unit": "m3_per_hour",
+            "minimum_margin": 0.04
+          },
+          {
+            "service_id": "telecommunications",
+            "unit": "availability_fraction",
+            "minimum_margin": 0.02
+          }
+        ]
+      }
+    },
+    {
+      "cell_id": "cell-003-passing-points-only",
+      "bounds": [
+        {
+          "axis_id": "gic_peak_a",
+          "lower": 20,
+          "upper": 30,
+          "unit": "A"
+        },
+        {
+          "axis_id": "ct_remanence_pu",
+          "lower": 0.1,
+          "upper": 0.4,
+          "unit": "pu"
+        },
+        {
+          "axis_id": "short_circuit_ratio",
+          "lower": 2,
+          "upper": 3,
+          "unit": "ratio"
+        },
+        {
+          "axis_id": "ibr_current_limit_pu",
+          "lower": 1.1,
+          "upper": 1.5,
+          "unit": "pu"
+        }
+      ],
+      "coverage": {
+        "coverage_kind": "point_samples_only",
+        "covers_entire_cell": false,
+        "uncertainty_set_covered": false,
+        "proof_method": null,
+        "model_revision": "synthetic-gmd-ct-relay-v0.1",
+        "source_artifact": {
+          "path": "synthetic_source_artifact_v0_1.txt",
+          "sha256": "0cc468655fe3ea21ddc45953c5d2aa6fc426051b409dcdfd4e07680303e95395"
+        },
+        "model_artifact": {
+          "path": "synthetic_model_artifact_v0_1.txt",
+          "sha256": "f0cdc4795e038a05e096c54cd28bd3163032d5f384ea2604ca99b962aa7738b1"
+        },
+        "proof_artifact": null
+      },
+      "required_capabilities": {
+        "waveform_resolved": true,
+        "independent_validation": true,
+        "physical_relay_observed": false,
+        "physical_power_interface_observed": false,
+        "field_exercise_observed": false
+      },
+      "available_capabilities": {
+        "waveform_resolved": true,
+        "independent_validation": true,
+        "physical_relay_observed": false,
+        "physical_power_interface_observed": false,
+        "field_exercise_observed": false
+      },
+      "outcomes": {
+        "scope": "point_observed",
+        "false_trip_count_upper_bound": 0,
+        "false_trip_denominator": 20,
+        "failure_to_trip_count_upper_bound": 0,
+        "failure_to_trip_denominator": 15,
+        "minimum_coordination_margin_pu": 0.22,
+        "required_coordination_margin_pu": 0.15,
+        "service_floor_margins": [
+          {
+            "service_id": "potable_water",
+            "unit": "m3_per_hour",
+            "minimum_margin": 0.04
+          },
+          {
+            "service_id": "telecommunications",
+            "unit": "availability_fraction",
+            "minimum_margin": 0.02
+          }
+        ]
+      }
+    },
+    {
+      "cell_id": "cell-004-relay-capability-missing",
+      "bounds": [
+        {
+          "axis_id": "gic_peak_a",
+          "lower": 0,
+          "upper": 10,
+          "unit": "A"
+        },
+        {
+          "axis_id": "ct_remanence_pu",
+          "lower": 0.6,
+          "upper": 0.9,
+          "unit": "pu"
+        },
+        {
+          "axis_id": "short_circuit_ratio",
+          "lower": 1,
+          "upper": 2,
+          "unit": "ratio"
+        },
+        {
+          "axis_id": "ibr_current_limit_pu",
+          "lower": 1,
+          "upper": 1.2,
+          "unit": "pu"
+        }
+      ],
+      "coverage": {
+        "coverage_kind": "interval_enclosure",
+        "covers_entire_cell": true,
+        "uncertainty_set_covered": true,
+        "proof_method": "mock_interval_enclosure",
+        "model_revision": "synthetic-gmd-ct-relay-v0.1",
+        "source_artifact": {
+          "path": "synthetic_source_artifact_v0_1.txt",
+          "sha256": "0cc468655fe3ea21ddc45953c5d2aa6fc426051b409dcdfd4e07680303e95395"
+        },
+        "model_artifact": {
+          "path": "synthetic_model_artifact_v0_1.txt",
+          "sha256": "f0cdc4795e038a05e096c54cd28bd3163032d5f384ea2604ca99b962aa7738b1"
+        },
+        "proof_artifact": {
+          "path": "synthetic_interval_certificate_v0_1.txt",
+          "sha256": "553f259471f12cb2bbce6a982c18c2b9396dffdc501d6033a815a325212d47cc"
+        }
+      },
+      "required_capabilities": {
+        "waveform_resolved": true,
+        "independent_validation": true,
+        "physical_relay_observed": true,
+        "physical_power_interface_observed": false,
+        "field_exercise_observed": false
+      },
+      "available_capabilities": {
+        "waveform_resolved": true,
+        "independent_validation": true,
+        "physical_relay_observed": false,
+        "physical_power_interface_observed": false,
+        "field_exercise_observed": false
+      },
+      "outcomes": {
+        "scope": "whole_cell_bound",
+        "false_trip_count_upper_bound": 0,
+        "false_trip_denominator": 20,
+        "failure_to_trip_count_upper_bound": 0,
+        "failure_to_trip_denominator": 15,
+        "minimum_coordination_margin_pu": 0.22,
+        "required_coordination_margin_pu": 0.15,
+        "service_floor_margins": [
+          {
+            "service_id": "potable_water",
+            "unit": "m3_per_hour",
+            "minimum_margin": 0.04
+          },
+          {
+            "service_id": "telecommunications",
+            "unit": "availability_fraction",
+            "minimum_margin": 0.02
+          }
+        ]
+      }
+    },
+    {
+      "cell_id": "cell-005-service-floor-violation",
+      "bounds": [
+        {
+          "axis_id": "gic_peak_a",
+          "lower": 10,
+          "upper": 20,
+          "unit": "A"
+        },
+        {
+          "axis_id": "ct_remanence_pu",
+          "lower": 0.6,
+          "upper": 1,
+          "unit": "pu"
+        },
+        {
+          "axis_id": "short_circuit_ratio",
+          "lower": 1,
+          "upper": 2,
+          "unit": "ratio"
+        },
+        {
+          "axis_id": "ibr_current_limit_pu",
+          "lower": 1,
+          "upper": 1.2,
+          "unit": "pu"
+        }
+      ],
+      "coverage": {
+        "coverage_kind": "interval_enclosure",
+        "covers_entire_cell": true,
+        "uncertainty_set_covered": true,
+        "proof_method": "mock_interval_enclosure",
+        "model_revision": "synthetic-gmd-ct-relay-v0.1",
+        "source_artifact": {
+          "path": "synthetic_source_artifact_v0_1.txt",
+          "sha256": "0cc468655fe3ea21ddc45953c5d2aa6fc426051b409dcdfd4e07680303e95395"
+        },
+        "model_artifact": {
+          "path": "synthetic_model_artifact_v0_1.txt",
+          "sha256": "f0cdc4795e038a05e096c54cd28bd3163032d5f384ea2604ca99b962aa7738b1"
+        },
+        "proof_artifact": {
+          "path": "synthetic_interval_certificate_v0_1.txt",
+          "sha256": "553f259471f12cb2bbce6a982c18c2b9396dffdc501d6033a815a325212d47cc"
+        }
+      },
+      "required_capabilities": {
+        "waveform_resolved": true,
+        "independent_validation": true,
+        "physical_relay_observed": false,
+        "physical_power_interface_observed": false,
+        "field_exercise_observed": false
+      },
+      "available_capabilities": {
+        "waveform_resolved": true,
+        "independent_validation": true,
+        "physical_relay_observed": false,
+        "physical_power_interface_observed": false,
+        "field_exercise_observed": false
+      },
+      "outcomes": {
+        "scope": "whole_cell_bound",
+        "false_trip_count_upper_bound": 0,
+        "false_trip_denominator": 20,
+        "failure_to_trip_count_upper_bound": 0,
+        "failure_to_trip_denominator": 15,
+        "minimum_coordination_margin_pu": 0.22,
+        "required_coordination_margin_pu": 0.15,
+        "service_floor_margins": [
+          {
+            "service_id": "potable_water",
+            "unit": "m3_per_hour",
+            "minimum_margin": -0.01
+          },
+          {
+            "service_id": "telecommunications",
+            "unit": "availability_fraction",
+            "minimum_margin": 0.02
+          }
+        ]
+      }
+    },
+    {
+      "cell_id": "cell-006-failure-to-trip-counterexample",
+      "bounds": [
+        {
+          "axis_id": "gic_peak_a",
+          "unit": "A",
+          "lower": 20,
+          "upper": 30
+        },
+        {
+          "axis_id": "ct_remanence_pu",
+          "unit": "pu",
+          "lower": 0.4,
+          "upper": 0.7
+        },
+        {
+          "axis_id": "short_circuit_ratio",
+          "unit": "ratio",
+          "lower": 3,
+          "upper": 4
+        },
+        {
+          "axis_id": "ibr_current_limit_pu",
+          "unit": "pu",
+          "lower": 1.5,
+          "upper": 1.8
+        }
+      ],
+      "coverage": {
+        "coverage_kind": "point_samples_only",
+        "covers_entire_cell": false,
+        "uncertainty_set_covered": false,
+        "proof_method": null,
+        "model_revision": "synthetic-gmd-ct-relay-v0.1",
+        "source_artifact": {
+          "path": "synthetic_source_artifact_v0_1.txt",
+          "sha256": "0cc468655fe3ea21ddc45953c5d2aa6fc426051b409dcdfd4e07680303e95395"
+        },
+        "model_artifact": {
+          "path": "synthetic_model_artifact_v0_1.txt",
+          "sha256": "f0cdc4795e038a05e096c54cd28bd3163032d5f384ea2604ca99b962aa7738b1"
+        },
+        "proof_artifact": null
+      },
+      "required_capabilities": {
+        "waveform_resolved": true,
+        "independent_validation": true,
+        "physical_relay_observed": false,
+        "physical_power_interface_observed": false,
+        "field_exercise_observed": false
+      },
+      "available_capabilities": {
+        "waveform_resolved": true,
+        "independent_validation": true,
+        "physical_relay_observed": false,
+        "physical_power_interface_observed": false,
+        "field_exercise_observed": false
+      },
+      "outcomes": {
+        "scope": "point_observed",
+        "false_trip_count_upper_bound": 0,
+        "false_trip_denominator": 20,
+        "failure_to_trip_count_upper_bound": 1,
+        "failure_to_trip_denominator": 15,
+        "minimum_coordination_margin_pu": 0.22,
+        "required_coordination_margin_pu": 0.15,
+        "service_floor_margins": [
+          {
+            "service_id": "potable_water",
+            "unit": "m3_per_hour",
+            "minimum_margin": 0.04
+          },
+          {
+            "service_id": "telecommunications",
+            "unit": "availability_fraction",
+            "minimum_margin": 0.02
+          }
+        ]
+      }
+    }
+  ],
+  "required_services": [
+    {
+      "service_id": "potable_water",
+      "unit": "m3_per_hour"
+    },
+    {
+      "service_id": "telecommunications",
+      "unit": "availability_fraction"
+    }
+  ]
+}

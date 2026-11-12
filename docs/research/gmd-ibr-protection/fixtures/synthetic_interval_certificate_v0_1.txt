@@ -1,0 +1,5 @@
+SYNTHETIC TEST-ONLY INTERVAL CERTIFICATE PAYLOAD
+This artifact exercises digest binding only; it is not a validated interval proof.
+benchmark_id=GMD-PROTECTION-ENVELOPE-001
+claim_ceiling=E2
+proof_method=mock_interval_enclosure

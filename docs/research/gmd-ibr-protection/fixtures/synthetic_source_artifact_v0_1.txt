@@ -1,0 +1,4 @@
+SYNTHETIC SOURCE ARTIFACT
+No physical measurement or utility record is represented by this fixture.
+fixture_id=GMD-PROTECTION-ENVELOPE-001
+evidence_class=synthetic
