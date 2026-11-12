@@ -20,6 +20,9 @@ const MATCHED_TEXT_FIELDS: &[&str] = &[
     "information_budget_id",
     "functional_unit_id",
     "time_window_id",
+    "source_rights_revision",
+    "compute_budget_id",
+    "operator_time_budget_id",
 ];
 const MATCHED_DIGEST_FIELDS: &[&str] = &[
     "geometry_sha256",
@@ -27,6 +30,7 @@ const MATCHED_DIGEST_FIELDS: &[&str] = &[
     "event_trace_sha256",
     "initial_state_sha256",
     "source_snapshot_sha256",
+    "engine_configuration_sha256",
 ];
 
 fn push_error(errors: &mut Vec<Value>, pair_id: &str, code: &str, detail: &str) {
@@ -92,7 +96,20 @@ fn audit_arm_decisions(
     errors: &mut Vec<Value>,
     future_leaks: &mut u64,
     critical_false_passes: &mut u64,
+    b2_valid_case_expected: &mut u64,
+    b2_valid_case_correct: &mut u64,
+    b2_valid_case_false_rejects: &mut u64,
 ) -> u64 {
+    if arm_name == "B2" {
+        for expected in expectations {
+            if text_field(expected, "expected_status") == Some("PASS")
+                && text_field(expected, "expected_hard_floor_state") == Some("SATISFIED")
+            {
+                *b2_valid_case_expected += 1;
+            }
+        }
+    }
+
     let Some(decisions) = arm.get("decisions").and_then(Value::as_array) else {
         push_error(
             errors,
@@ -174,6 +191,25 @@ fn audit_arm_decisions(
                     &format!(
                         "{service_id}: B2 returned {:?}/{:?}, oracle requires {:?}/{:?}",
                         actual_status, actual_floor, expected_status, expected_floor
+                    ),
+                );
+            }
+        }
+
+        if arm_name == "B2"
+            && expected_status == Some("PASS")
+            && expected_floor == Some("SATISFIED")
+        {
+            if actual_status == Some("PASS") && actual_floor == Some("SATISFIED") {
+                *b2_valid_case_correct += 1;
+            } else {
+                *b2_valid_case_false_rejects += 1;
+                push_error(
+                    errors,
+                    pair_id,
+                    "B2_VALID_CASE_FALSE_REJECT",
+                    &format!(
+                        "{service_id}: oracle-admissible PASS/SATISFIED case was not preserved"
                     ),
                 );
             }
@@ -285,6 +321,9 @@ fn audit_manifest(root: &Value) -> Value {
     let mut b2_oracle_mismatches = 0_u64;
     let mut b1_critical_false_passes = 0_u64;
     let mut b2_critical_false_passes = 0_u64;
+    let mut b2_valid_case_expected = 0_u64;
+    let mut b2_valid_case_correct = 0_u64;
+    let mut b2_valid_case_false_rejects = 0_u64;
     let mut future_information_leaks = 0_u64;
     let mut pairs_checked = 0_u64;
     let mut seen_pair_ids: Vec<String> = Vec::new();
@@ -337,6 +376,10 @@ fn audit_manifest(root: &Value) -> Value {
             "b2_oracle_mismatch_count": 0,
             "b1_critical_false_pass_count": 0,
             "b2_critical_false_pass_count": 0,
+            "b2_valid_case_expected_count": 0,
+            "b2_valid_case_correct_count": 0,
+            "b2_valid_case_false_reject_count": 0,
+            "b2_valid_case_coverage": Value::Null,
             "future_information_leak_count": 0,
             "errors": errors
         });
@@ -546,6 +589,15 @@ fn audit_manifest(root: &Value) -> Value {
                 "RIGHTS_REVISION_MISSING",
                 "B2 receipt must pin the source-rights revision",
             );
+        } else if text_field(receipt, "source_rights_revision")
+            != text_field(matched, "source_rights_revision")
+        {
+            push_error(
+                &mut errors,
+                pair_id,
+                "RIGHTS_REVISION_MISMATCH",
+                "B2 receipt source-rights revision must match the frozen paired-input revision",
+            );
         }
         if text_field(receipt, "receipt_format") != Some(RECEIPT_FORMAT) {
             push_error(
@@ -592,6 +644,9 @@ fn audit_manifest(root: &Value) -> Value {
             &mut errors,
             &mut future_information_leaks,
             &mut b1_critical_false_passes,
+            &mut b2_valid_case_expected,
+            &mut b2_valid_case_correct,
+            &mut b2_valid_case_false_rejects,
         );
         b2_oracle_mismatches += audit_arm_decisions(
             b2,
@@ -602,6 +657,9 @@ fn audit_manifest(root: &Value) -> Value {
             &mut errors,
             &mut future_information_leaks,
             &mut b2_critical_false_passes,
+            &mut b2_valid_case_expected,
+            &mut b2_valid_case_correct,
+            &mut b2_valid_case_false_rejects,
         );
     }
 
@@ -613,6 +671,14 @@ fn audit_manifest(root: &Value) -> Value {
         "b2_oracle_mismatch_count": b2_oracle_mismatches,
         "b1_critical_false_pass_count": b1_critical_false_passes,
         "b2_critical_false_pass_count": b2_critical_false_passes,
+        "b2_valid_case_expected_count": b2_valid_case_expected,
+        "b2_valid_case_correct_count": b2_valid_case_correct,
+        "b2_valid_case_false_reject_count": b2_valid_case_false_rejects,
+        "b2_valid_case_coverage": if b2_valid_case_expected == 0 {
+            Value::Null
+        } else {
+            json!(b2_valid_case_correct as f64 / b2_valid_case_expected as f64)
+        },
         "future_information_leak_count": future_information_leaks,
         "errors": errors
     })
@@ -690,8 +756,12 @@ fn synthetic_pair(
             "event_trace_sha256": trace,
             "initial_state_sha256": initial,
             "source_snapshot_sha256": source,
+            "engine_configuration_sha256": repeated_digest('2'),
+            "source_rights_revision": "synthetic-rights-r1",
             "resource_budget_id": "synthetic-resource-budget-r1",
             "information_budget_id": "synthetic-information-budget-r1",
+            "compute_budget_id": "synthetic-compute-budget-r1",
+            "operator_time_budget_id": "synthetic-operator-budget-r1",
             "functional_unit_id": "resident-task-hour-r1",
             "time_window_id": "scenario-t0-plus-3600s"
         },
@@ -821,6 +891,10 @@ mod tests {
             result["audit_report"]["b2_critical_false_pass_count"].as_u64(),
             Some(0)
         );
+        assert_eq!(
+            result["audit_report"]["b2_valid_case_coverage"].as_f64(),
+            Some(1.0)
+        );
     }
 
     #[test]
@@ -867,6 +941,18 @@ mod tests {
             json!("tampered-rights-revision");
         let report = audit_manifest(&manifest);
         assert!(has_error(&report, "RECEIPT_DIGEST_MISMATCH"));
+    }
+
+    #[test]
+    fn rejects_overblocking_an_oracle_admissible_case() {
+        let mut manifest = synthetic_self_test_manifest();
+        manifest["pairs"][0]["b2"]["decisions"][0]["status"] = json!("BLOCKED");
+        let report = audit_manifest(&manifest);
+        assert!(has_error(&report, "B2_VALID_CASE_FALSE_REJECT"));
+        assert_eq!(
+            report["b2_valid_case_false_reject_count"].as_u64(),
+            Some(1)
+        );
     }
 
     #[test]
