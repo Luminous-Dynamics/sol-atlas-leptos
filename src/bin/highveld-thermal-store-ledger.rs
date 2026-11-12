@@ -43,6 +43,15 @@ fn evaluate(case: &Value) -> Result<Value, Vec<String>> {
         violations
             .push("case maturity and execution status must retain synthetic ceiling".to_owned());
     }
+    for key in [
+        "source_bundle_ref",
+        "uncertainty_method_ref",
+        "independent_oracle_ref",
+    ] {
+        if text_at(case, key).is_none() {
+            violations.push(format!("top-level evidence reference {key} is missing"));
+        }
+    }
 
     let capacity = number_at(case, "store_capacity_kwh")
         .ok_or_else(|| vec!["store_capacity_kwh is missing or non-finite".to_owned()])?;
@@ -98,6 +107,16 @@ fn evaluate(case: &Value) -> Result<Value, Vec<String>> {
 
         if !seen_interval_ids.insert(id.to_owned()) {
             interval_violations.push("duplicate interval identity".to_owned());
+        }
+        for key in [
+            "store_state_evidence_ref",
+            "heat_input_evidence_ref",
+            "sink_rejection_evidence_ref",
+            "uncertainty_evidence_ref",
+        ] {
+            if text_at(interval, key).is_none() {
+                interval_violations.push(format!("interval evidence reference {key} is missing"));
+            }
         }
 
         let duration = number_at(interval, "duration_h");
@@ -262,6 +281,9 @@ fn evaluate(case: &Value) -> Result<Value, Vec<String>> {
         "audit_state": audit_state,
         "study_id": "HIGHVELD-THERMAL-STORE-LEDGER-001",
         "case_id": text_at(case, "case_id").unwrap_or_default(),
+        "source_bundle_ref": text_at(case, "source_bundle_ref").unwrap_or_default(),
+        "uncertainty_method_ref": text_at(case, "uncertainty_method_ref").unwrap_or_default(),
+        "independent_oracle_ref": text_at(case, "independent_oracle_ref").unwrap_or_default(),
         "interval_count": interval_reports.len(),
         "total_duration_h": total_duration,
         "total_heat_input_kwh": total_input,
@@ -402,6 +424,22 @@ mod tests {
                 .unwrap()
                 .iter()
                 .any(|value| { value.as_str().unwrap_or("").contains("cycle closure error") })
+        );
+    }
+
+    #[test]
+    fn missing_uncertainty_evidence_reference_is_rejected() {
+        let mut case = sample();
+        case["intervals"][1]["uncertainty_evidence_ref"] = Value::Null;
+        let report = evaluate(&case).unwrap();
+        assert_eq!(report["audit_state"], "STORE_LEDGER_FAIL");
+        assert_eq!(report["intervals"][1]["interval_state"], "FAIL");
+        assert!(
+            report["intervals"][1]["violations"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|value| value == "interval evidence reference uncertainty_evidence_ref is missing")
         );
     }
 
