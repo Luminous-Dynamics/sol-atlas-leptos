@@ -399,7 +399,7 @@ fn evaluate(case: &Value) -> Result<Value, Vec<String>> {
         };
         let effective_accessible = match (free_accessible, effective_total) {
             (Some(access), Some(total)) => Some(access.min(total)),
-            _ => None
+            _ => None,
         };
 
         let eligible =
