@@ -85,3 +85,7 @@ jobs:
         run: cargo test --bin highveld-thermal-sink-cascade-qualifier
       - name: Execute thermal sink cascade manifest audit
         run: cargo run --bin highveld-thermal-sink-cascade-qualifier -- --self-test
+      - name: Test thermal sink dispatch governor
+        run: cargo test --bin highveld-thermal-sink-dispatch-governor
+      - name: Execute thermal sink dispatch governor synthetic case
+        run: cargo run --bin highveld-thermal-sink-dispatch-governor -- --self-test
