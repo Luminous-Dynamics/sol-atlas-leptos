@@ -207,6 +207,34 @@
       "expected_code": "HOUSEHOLD_DATA_CONSENT_MISSING_OR_AMBIGUOUS",
       "expected_disposition": "BLOCK",
       "evidence_class": "SyntheticNegativeControl"
+    },
+    {
+      "control_id": "screening_model_authorizes_service_claim",
+      "description": "A fast screening surrogate is used to support an essential household-service claim.",
+      "expected_code": "MODEL_TIER_EXCEEDED",
+      "expected_disposition": "BLOCK",
+      "evidence_class": "SyntheticNegativeControl"
+    },
+    {
+      "control_id": "decision_support_missing_vvuq",
+      "description": "A reversible design decision is made without model validation, uncertainty evidence or independent review.",
+      "expected_code": "MODEL_VVUQ_EVIDENCE_INCOMPLETE",
+      "expected_disposition": "BLOCK",
+      "evidence_class": "SyntheticNegativeControl"
+    },
+    {
+      "control_id": "service_critical_without_measurement_reference",
+      "description": "A service-critical claim is made without a held-out measurement reference.",
+      "expected_code": "MODEL_SERVICE_CRITICAL_EVIDENCE_INCOMPLETE",
+      "expected_disposition": "BLOCK",
+      "evidence_class": "SyntheticNegativeControl"
+    },
+    {
+      "control_id": "model_out_of_domain",
+      "description": "A model result is used outside its declared applicability domain.",
+      "expected_code": "MODEL_APPLICABILITY_UNQUALIFIED",
+      "expected_disposition": "BLOCK",
+      "evidence_class": "SyntheticNegativeControl"
     }
   ]
 }
