@@ -171,3 +171,13 @@ A data-access request is authorized only if it matches exactly one consent recor
 Consent is purpose- and service-bound. A grant for water planning cannot be reused for energy pricing, insurance profiling, household ranking or another service. Any revocation also invokes the separately governed retention/deletion policy; historical decision receipts remain auditable without granting new access.
 
 The reference manifest has empty consent and data-request arrays. This is the intentional default-deny state, not missing setup.
+
+
+## 11. Owner-routed compound stress matrix
+
+The companion \`NEIGHBORHOOD_COMMONS_STRESS_MATRIX_V0.1.json\` defines 18 synthetic stress families. It intentionally contains stimuli, owner routing and required observations rather than a second event clock. The cases are to be instantiated using Symtropy's native event identity, sequencing, paired-trace and stable-recovery implementation.
+
+The matrix covers shared and local failure, common-cause dependencies, inaccessible routes, capacity contention, network partition, maintenance/spares, repair access, recurrence before stable recovery, reserve floors, duplicate source events, unit mismatch, consent revocation, allocation appeals, simultaneous hub/household stress, upstream restoration without service recovery and household requirement revision.
+
+No time offsets, ticks, event IDs, delivered quantities or physical response are fabricated in this register. The owner that controls each state machine must instantiate and evaluate its own semantics. Highveld qualifies the cross-domain handoff and preserves per-household outcomes.
+
