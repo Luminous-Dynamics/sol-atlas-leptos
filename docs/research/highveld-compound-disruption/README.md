@@ -72,13 +72,13 @@ Audit an externally generated packet:
 cargo run --bin highveld-paired-audit -- --input paired-run.json
 ```
 
-The audit requires identical specialist engine versions and raw engine input/output digests across B1/B2, recomputes the versioned B2 receipt SHA-256 after checking input bindings, checks per-service rights/scope states, compares B2 decisions with the independent oracle, and rejects future information or hard-floor false passes. B1 oracle mismatches are reported as baseline outcomes rather than treated as packet-integrity failures. A PASS means only that this submitted synthetic/experiment packet satisfies the audit contract; it does not mean the industry experiment has been run or that the physical model is qualified.
+The audit requires identical specialist engine versions, configuration, and raw engine input/output digests across B1/B2; freezes the paired source-rights, compute and operator-time budgets; recomputes the versioned B2 receipt SHA-256 after checking input bindings; checks per-service rights/scope states; compares B2 decisions with the independent oracle; rejects future information and hard-floor false passes; and reports valid-case coverage and false rejection. B2 cannot pass by blocking every case: oracle-admissible clean cases must remain PASS with SATISFIED hard floors. B1 oracle mismatches are reported as baseline outcomes rather than treated as packet-integrity failures. A PASS means only that this submitted synthetic/experiment packet satisfies the audit contract; it does not mean the industry experiment has been run or that the physical model is qualified.
 
 ## Validation status
 
 The event corpus at original implementation head `6205f9ad96303a97a03a1ecb99261b040f092664` passed exact-head hosted Check run [#7105](https://github.com/Luminous-Dynamics/sol-atlas-leptos/actions/runs/43183337599): `cargo fmt --all --check`, `cargo check --target wasm32-unknown-unknown`, and `cargo test --bin sol-atlas-leptos`.
 
-The benchmark, industry/source-readiness and service-handoff documentation commits are separate additions after that green corpus head. Their final exact-head workflow status must be checked before treating the expanded PR as green. This package itself still adds no Rust validator or physics code. Structural checks on the corpus do not qualify empirical sources or physical models.
+The benchmark, industry/source-readiness and service-handoff documentation commits are separate additions after that green corpus head. Their final exact-head workflow status must be checked before treating the expanded PR as green. This package adds a narrow Rust paired-run packet auditor, not a native service evaluator, thermal solver, building simulator or physics adapter. Structural checks on the corpus do not qualify empirical sources or physical models.
 
 ## Promotion gates
 
