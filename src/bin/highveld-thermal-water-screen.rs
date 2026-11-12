@@ -7,6 +7,9 @@ const CASE: &str = include_str!(
 const SCHEMA: &str = include_str!(
     "../../docs/research/highveld-neighborhood-commons/THERMAL_WATER_SCREEN_CASE_V0.1.schema.json"
 );
+const ENERGYPLUS_INTERFACE_MAP: &str = include_str!(
+    "../../docs/research/highveld-neighborhood-commons/ENERGYPLUS_THERMAL_WATER_INTERFACE_MAP_V0.1.json"
+);
 
 fn number(value: &Value, key: &str) -> Option<f64> {
     value
@@ -219,6 +222,41 @@ mod tests {
 
     fn sample() -> Value {
         serde_json::from_str(CASE).expect("sample case JSON")
+    }
+
+    #[test]
+    fn energyplus_pool_and_water_storage_scopes_remain_distinct() {
+        let map: Value =
+            serde_json::from_str(ENERGYPLUS_INTERFACE_MAP).expect("EnergyPlus interface map JSON");
+        assert_eq!(map["model_engine"].as_str(), Some("EnergyPlus"));
+        assert_eq!(map["model_engine_version"].as_str(), Some("26.2.0"));
+        assert_eq!(map["execution_status"].as_str(), Some("NOT_EXECUTED"));
+        let bindings = map["object_bindings"].as_array().expect("object bindings");
+        let indoor_pool = bindings
+            .iter()
+            .find(|item| item["object"] == "SwimmingPool:Indoor")
+            .expect("indoor swimming pool model binding");
+        assert_eq!(
+            indoor_pool["role"].as_str(),
+            Some("INDOOR_POOL_ZONE_HEAT_AND_MOISTURE_BALANCE")
+        );
+        let water_storage = bindings
+            .iter()
+            .find(|item| item["object"] == "WaterUse:Storage")
+            .expect("water-use storage binding");
+        assert!(
+            water_storage["do_not_infer"]
+                .as_array()
+                .expect("water storage limits")
+                .iter()
+                .any(|item| item == "dynamic_pool_thermal_model")
+        );
+        assert_eq!(
+            map["outdoor_feature_boundary"]
+                ["dedicated_swimmingpool_outdoor_object_found_in_inspected_v26_2_index"]
+                .as_bool(),
+            Some(false)
+        );
     }
 
     #[test]
