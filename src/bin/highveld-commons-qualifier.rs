@@ -818,6 +818,7 @@ fn audit_manifest(root: &Value) -> Value {
                     &format!("{path}.hard_floor_state"),
                     "SATISFIED requires full delivery and unserved/access/queue times within the household's declared limits",
                 ),
+                Some("SATISFIED") => {}
                 Some("BREACHED") => {
                     household_floor_breach_count += 1;
                     if valid_floor_satisfied {
