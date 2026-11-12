@@ -260,7 +260,20 @@ mod tests {
             Some("SYMTROPY")
         );
         let channels = package["channels"].as_array().expect("instrument channels");
-        assert_eq!(channels.len(), 24);
+        assert_eq!(channels.len(), 35);
+        for required in [
+            "DOWNWELLING_LONGWAVE_RADIATION",
+            "UPWELLING_LONGWAVE_RADIATION",
+            "RADIATIVE_PANEL_SURFACE_TEMPERATURE",
+            "RADIATIVE_PANEL_LOOP_SUPPLY_TEMPERATURE",
+            "RADIATIVE_PANEL_LOOP_RETURN_TEMPERATURE",
+            "RADIATIVE_PANEL_LOOP_FLOW",
+            "RADIATIVE_PANEL_PUMP_POWER",
+            "DIFFUSE_HORIZONTAL_SOLAR_IRRADIANCE",
+            "PANEL_PLANE_WIND_SPEED",
+        ] {
+            assert!(channels.iter().any(|channel| channel["channel_id"] == required));
+        }
         assert!(channels.iter().all(|channel| {
             channel["instrument_assignment"].is_null()
                 && channel["calibration_state"] == "NOT_ADMITTED"
