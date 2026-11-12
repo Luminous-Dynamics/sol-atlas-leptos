@@ -15,7 +15,7 @@ It is an input/known-answer corpus, not a new event clock, weather archive, resi
 - Event intervals are half-open: `[start_offset_s, end_offset_s)`. Equal end/start boundaries mean `meets`, not `overlaps`.
 - Time is integer seconds from a scenario-local `t0`; there is no implicit local timezone, wall clock, daylight-saving conversion or external epoch.
 - A temporal relation is not a causal relation. `semantic_links` are explicit declarations; they are never inferred from interval overlap.
-- Scope is part of identity. A system-level record is not a feeder, dwelling, room or tap observation.
+- Scope is part of identity. A system-level record is not a feeder, dwelling, room or tap observation. Temporal interval relations and scope-join dispositions are separate: two records can overlap in time while remaining NOT_COMPARABLE.
 - `no_report`, `unknown`, `censored` and `observed_normal` are distinct record states. In particular, `no_report` must never be promoted to `observed_normal` or “no outage”.
 - A candidate architecture must receive the same exact exogenous scenario event bytes and declared information budget. Future events are hidden unless an explicitly labelled oracle arm is being evaluated.
 - All quantities, event times and severities in this corpus are synthetic fixtures; do not reuse them as Highveld weather, outage durations, service thresholds or forecast probabilities.
