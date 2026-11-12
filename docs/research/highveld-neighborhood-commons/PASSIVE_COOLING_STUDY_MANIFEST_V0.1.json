@@ -137,7 +137,7 @@
     "resident_authority_and_appeal_preserved"
   ],
   "physics_owner": "SPECIALIST_BUILDING_AIRFLOW_HYDRAULIC_SOLVERS",
-  "event_and_trajectory_owner": "SYMTROPHAEA",
+  "event_and_trajectory_owner": "SYMTROPY",
   "geometry_and_configuration_owner": "SOL_ATLAS",
   "rights_and_water_account_owner": "MYCELIX",
   "execution_status": "NOT_EXECUTED"
