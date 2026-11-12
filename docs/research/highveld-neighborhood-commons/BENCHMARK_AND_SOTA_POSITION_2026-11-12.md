@@ -297,6 +297,7 @@ The following work has been added to PR #741 without changing PR #736's frozen t
 | Radiative sky-sink benchmark | 7 component/system arms × 7 weather regimes = 49 cases | Registered matrix; no panel or field test |
 | Finite thermal-store ledger | Interval heat balance, state bounds, per-sink rejection and cycle closure | Synthetic known-answer ledger; no physical store validation |
 | Thermal service and refuge benchmark | 7 building interventions × 8 operating scenarios + 4 refuge topologies × 6 failures = 80 cases | Registered matrix; no site, route, refuge or resident data admitted |
+| Refuge availability governor | Site opening, thermal/ventilation/safe-water service, route accessibility, total/accessibility capacity and water reserves | Synthetic eligibility controls only; no real route/site/booking or occupant assignment |
 | Courtyard instrument package | 35 template channels, including long-wave/radiative panel/loop sensors | Instrument identities/calibration remain unassigned; template only |
 
 The thermal-store ledger reports peak input/rejection rate as well as energy, and marks each interval FAIL when its own balance, capacity or continuity checks fail. The thermal service/refuge qualifier requires the 80-case registration and preserves the distinction between ASHRAE comfort and local heat-health safety. Its refuge claim rules reject unknown dependencies, inaccessible routes and exhausted capacity.
