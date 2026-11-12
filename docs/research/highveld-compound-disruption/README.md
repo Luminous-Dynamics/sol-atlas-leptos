@@ -11,6 +11,7 @@ It is an evidence/benchmark package, not a new event clock, weather archive, res
 - `HIGHVELD_BENCHMARK_CONTRACT_V0.1.json` — machine-readable benchmark arms, matched-comparison requirements, owner crosswalk, scorecards, metrics and stage gates.
 - `INDUSTRY_COMPARISON_V0.1.md` — current public capability comparison for Forma, TestFit, EnergyPlus, ASHRAE 140, BOPTEST and building semantics; proposed differentiation and fair head-to-head design.
 - `SOUTH_AFRICA_SOURCE_READINESS_V0.1.md` — South African climate, electricity, water and household-survey source readiness, evidence classes and acquisition gates.
+- `SERVICE_EVENT_HANDOFF_V0.1.md` — proposed evidence-to-service-event projection boundary; prevents upstream utility/hazard/component events from being mistaken for household service loss/restoration.
 
 ## Synthetic corpus semantics
 
@@ -31,6 +32,10 @@ The intended competitive hypothesis is **not** that Luminous replaces Forma, Tes
 
 No universal resilience scalar may hide per-resident hard-floor failures. Physical outputs remain unknown until the relevant model, instrument and reference-method owners qualify them.
 
+## Evidence-to-service event boundary
+
+An infrastructure outage is not automatically a household-service outage. Symtropy #1848/#1849 remains the only owner of native service transitions and trajectories. The handoff document records the currently inspected native event shape (`id`, `generation`, `tick`, `sequence`, `kind`; `kind` is `lost` or `restored`) but deliberately does not guess the identity, tick or sequencing rules. A service transition requires a qualified named-service outcome and owner-approved clock mapping; upstream events stay in the evidence crosswalk.
+
 ## Existing owner boundaries
 
 - Sol-Atlas #607/#630/#611/#593: reference dwelling, Highveld stress binding and climate-source admission.
@@ -48,7 +53,7 @@ Do not implement a second timeline, service evaluator, thermal solver, weather d
 
 The event corpus at original implementation head `6205f9ad96303a97a03a1ecb99261b040f092664` passed exact-head hosted Check run [#7105](https://github.com/Luminous-Dynamics/sol-atlas-leptos/actions/runs/43183337599): `cargo fmt --all --check`, `cargo check --target wasm32-unknown-unknown`, and `cargo test --bin sol-atlas-leptos`.
 
-The later benchmark/source-readiness documentation commits are separate changes. Their exact final-head workflow status must be checked before treating the expanded PR as green. This package itself still adds no Rust validator or physics code. Structural checks on the corpus do not qualify empirical sources or physical models.
+The benchmark, industry/source-readiness and service-handoff documentation commits are separate additions after that green corpus head. Their final exact-head workflow status must be checked before treating the expanded PR as green. This package itself still adds no Rust validator or physics code. Structural checks on the corpus do not qualify empirical sources or physical models.
 
 ## Promotion gates
 
