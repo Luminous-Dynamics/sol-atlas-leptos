@@ -18,18 +18,30 @@ The system must not translate an upstream condition to a service loss unless an 
 
 Symtropy #1848/#1849 remains the sole owner of its deterministic event clock, paired-policy trajectories, service floors and stable-recovery evaluation.
 
-The currently inspected native timeline event shape is:
+The inspected owner schema and implementation define the native timeline event as:
 
-- fields: `id`, `generation`, `tick`, `sequence`, `kind`;
-- `kind` values: `lost`, `restored`.
+- `id`: string;
+- `generation`: unsigned 64-bit integer (`u64`);
+- `tick`: unsigned 32-bit integer (`u32`);
+- `sequence`: unsigned 32-bit integer (`u32`), unique within a tick;
+- `kind`: exactly `restored` or `lost`.
 
-This handoff deliberately does not assign meanings or derive values for `id`, `generation`, `tick` or `sequence`. The owner must assign/validate these according to its own exact implementation contract. In particular:
+Implementation references: [owner schema](https://github.com/Luminous-Dynamics/symtropy/blob/research/spatial-resilience-trajectory-benchmark-2026-10/docs/research/spatial-design/SPATIAL_RESILIENCE_TIMELINE_ORACLE_V0_1.schema.json) and [owner Rust implementation](https://github.com/Luminous-Dynamics/symtropy/blob/research/spatial-resilience-trajectory-benchmark-2026-10/tools/spatial-resilience-qualifier/src/lib.rs).
+
+The owner implementation also establishes these semantics:
+
+- Exact duplicate events with identical `id`, `generation` and payload are ignored; a conflicting payload for the same `(id, generation)` is rejected.
+- A reused `(tick, sequence)` ordering slot is rejected as ambiguous; simultaneous transitions need a declared, unique sequence.
+- A loss at the candidate stable-recovery tick invalidates that recovery candidate. The stability window must be positive, and events beyond the declared horizon are rejected.
+- The implementation's timeline is a synthetic finite-state availability oracle, not a physics/service-quality measurement model.
+
+This handoff does not derive those owner-native values from source intervals. In particular:
 
 - never assume one external second equals one owner tick;
-- never map source event IDs directly into native event identity without the owner's identity rule;
+- never map source event IDs directly into native event identity without an explicit adapter identity rule;
 - never synthesize `generation` or `sequence` from source ordering;
 - never add new `kind` values for grid, water, heat, parts or component faults;
-- preserve the raw source/evidence event and digest in the separate evidence crosswalk; the native event is not a replacement for source provenance.
+- preserve raw source/evidence events and digests in the separate evidence crosswalk; the native event is not a replacement for source provenance.
 
 Any concrete executable translation requires an exact owner-approved adapter contract and exact-head test receipt. Until that exists, the state is OWNER_MAPPING_NOT_IMPLEMENTED.
 
