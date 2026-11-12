@@ -776,7 +776,7 @@ mod tests {
     #[test]
     fn resource_reserve_cannot_be_spent_by_the_commons() {
         let mut manifest = base();
-        manifest["resource_accounts"][0]["committed_outflow_quantity"] = json!(9900);
+        manifest["resource_accounts"][0]["committed_outflow_quantity"] = json!(14000);
         assert!(has_code(
             &audit_manifest(&manifest),
             "RESOURCE_RESERVE_BREACH"
