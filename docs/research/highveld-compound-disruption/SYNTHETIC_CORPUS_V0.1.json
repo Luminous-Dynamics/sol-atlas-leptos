@@ -466,6 +466,209 @@
           "rationale": "A system-level status record cannot be promoted to tap-level delivery or outage evidence."
         }
       ]
+    },
+    {
+      "scenario_id": "rain_grid_drainage_repair",
+      "title": "Heavy-rain stress with grid loss, drainage-pump fault and repair delay",
+      "evidence_class": "SyntheticControlledEvent",
+      "timeline_basis": "integer_seconds_from_scenario_t0",
+      "interval_convention": "half_open",
+      "events": [
+        {
+          "event_id": "heavy_rainfall",
+          "kind": "heavy_rainfall",
+          "start_offset_s": 0,
+          "end_offset_s": 86400,
+          "scope": "site",
+          "temporal_resolution_s": 900,
+          "notes": "Synthetic rainfall forcing; not a Johannesburg observed event, flood map or design rainfall."
+        },
+        {
+          "event_id": "grid_loss",
+          "kind": "grid_interruption",
+          "start_offset_s": 28800,
+          "end_offset_s": 72000,
+          "scope": "dwelling",
+          "temporal_resolution_s": 1
+        },
+        {
+          "event_id": "drainage_pump_fault",
+          "kind": "component_fault",
+          "start_offset_s": 32400,
+          "end_offset_s": 100800,
+          "scope": "component",
+          "temporal_resolution_s": 1,
+          "notes": "Synthetic drainage-pump fault; no pump capacity or flood depth is implied."
+        },
+        {
+          "event_id": "network_loss",
+          "kind": "network_interruption",
+          "start_offset_s": 36000,
+          "end_offset_s": 60000,
+          "scope": "network",
+          "temporal_resolution_s": 1
+        },
+        {
+          "event_id": "replacement_delay",
+          "kind": "replacement_part_delay",
+          "start_offset_s": 50000,
+          "end_offset_s": 140000,
+          "scope": "repair_supply",
+          "temporal_resolution_s": 3600
+        }
+      ],
+      "expected_temporal_relations": [
+        {
+          "left_event_id": "heavy_rainfall",
+          "right_event_id": "grid_loss",
+          "expected_relation": "overlaps",
+          "rationale": "Synthetic external forcing overlaps the grid interruption."
+        },
+        {
+          "left_event_id": "heavy_rainfall",
+          "right_event_id": "drainage_pump_fault",
+          "expected_relation": "overlaps",
+          "rationale": "Synthetic rainfall window overlaps the pump fault."
+        },
+        {
+          "left_event_id": "heavy_rainfall",
+          "right_event_id": "network_loss",
+          "expected_relation": "overlaps",
+          "rationale": "Synthetic rainfall window overlaps the network interruption."
+        },
+        {
+          "left_event_id": "grid_loss",
+          "right_event_id": "drainage_pump_fault",
+          "expected_relation": "overlaps",
+          "rationale": "Grid interruption and pump fault overlap."
+        },
+        {
+          "left_event_id": "grid_loss",
+          "right_event_id": "network_loss",
+          "expected_relation": "overlaps",
+          "rationale": "Grid and network interruptions overlap."
+        },
+        {
+          "left_event_id": "drainage_pump_fault",
+          "right_event_id": "network_loss",
+          "expected_relation": "overlaps",
+          "rationale": "Pump fault and network interruption overlap."
+        },
+        {
+          "left_event_id": "drainage_pump_fault",
+          "right_event_id": "replacement_delay",
+          "expected_relation": "overlaps",
+          "rationale": "Repair delay begins before the pump fault window ends."
+        },
+        {
+          "left_event_id": "network_loss",
+          "right_event_id": "replacement_delay",
+          "expected_relation": "overlaps",
+          "rationale": "Repair delay overlaps the network interruption."
+        }
+      ],
+      "semantic_links": [
+        {
+          "from_event_id": "grid_loss",
+          "to_event_id": "drainage_pump_fault",
+          "relation": "co_occurs_only",
+          "basis": "synthetic_declaration",
+          "rationale": "Temporal overlap only; no physical causal direction is asserted."
+        }
+      ],
+      "scope_join_guards": [],
+      "claim_ceiling": "Synthetic event-window overlap only; no flood consequence, drainage capacity or safety result.",
+      "capability_assumptions": [
+        "No rainfall depth, return period, flood depth or local hazard frequency is supplied.",
+        "No building drainage, pump curve, invert level or site drainage design is represented.",
+        "Pump failure does not itself prove water ingress or a dwelling flood event."
+      ]
+    },
+    {
+      "scenario_id": "peak_shared_plant_household_change",
+      "title": "Peak household service concurrency with shared-plant fault and changing task demand",
+      "evidence_class": "SyntheticControlledEvent",
+      "timeline_basis": "integer_seconds_from_scenario_t0",
+      "interval_convention": "half_open",
+      "events": [
+        {
+          "event_id": "peak_service_demand",
+          "kind": "peak_service_demand",
+          "start_offset_s": 0,
+          "end_offset_s": 21600,
+          "scope": "dwelling",
+          "temporal_resolution_s": 60,
+          "notes": "Synthetic concurrent household task window; no resident demand profile is inferred."
+        },
+        {
+          "event_id": "shared_plant_fault",
+          "kind": "component_fault",
+          "start_offset_s": 3600,
+          "end_offset_s": 10800,
+          "scope": "component",
+          "temporal_resolution_s": 1,
+          "notes": "Synthetic shared-utility plant fault."
+        },
+        {
+          "event_id": "replacement_delay",
+          "kind": "replacement_part_delay",
+          "start_offset_s": 10800,
+          "end_offset_s": 43200,
+          "scope": "repair_supply",
+          "temporal_resolution_s": 3600
+        },
+        {
+          "event_id": "household_task_change",
+          "kind": "household_task_change",
+          "start_offset_s": 14400,
+          "end_offset_s": 86400,
+          "scope": "dwelling",
+          "temporal_resolution_s": 3600,
+          "notes": "Synthetic change in task requirements; not a demographic inference."
+        }
+      ],
+      "expected_temporal_relations": [
+        {
+          "left_event_id": "peak_service_demand",
+          "right_event_id": "shared_plant_fault",
+          "expected_relation": "overlaps",
+          "rationale": "Peak household service demand overlaps shared-plant fault."
+        },
+        {
+          "left_event_id": "peak_service_demand",
+          "right_event_id": "replacement_delay",
+          "expected_relation": "overlaps",
+          "rationale": "Peak demand overlaps the replacement delay."
+        },
+        {
+          "left_event_id": "shared_plant_fault",
+          "right_event_id": "replacement_delay",
+          "expected_relation": "overlaps",
+          "rationale": "The repair-part delay starts when the fault window ends."
+        },
+        {
+          "left_event_id": "replacement_delay",
+          "right_event_id": "household_task_change",
+          "expected_relation": "overlaps",
+          "rationale": "The task-change window begins during the parts delay."
+        }
+      ],
+      "semantic_links": [
+        {
+          "from_event_id": "shared_plant_fault",
+          "to_event_id": "peak_service_demand",
+          "relation": "co_occurs_only",
+          "basis": "synthetic_declaration",
+          "rationale": "The fault overlaps peak demand; this fixture does not claim that the demand caused the fault."
+        }
+      ],
+      "scope_join_guards": [],
+      "claim_ceiling": "Synthetic concurrency, shared-plant and task-change timing only; no actual household demand or architecture performance is claimed.",
+      "capability_assumptions": [
+        "Architecture IDs are consumed from the existing #694 package: INDEPENDENT_SERVICES, SHARED_UTILITY and HYBRID_LOCAL_AUTONOMY.",
+        "No architecture receives extra demand or future-event knowledge.",
+        "Any shared resource coupling, capacity, reserve or failure propagation remains UNKNOWN until an exact physical model and owner contract are supplied."
+      ]
     }
   ],
   "adversarial_controls": [
