@@ -183,3 +183,8 @@ The manifest now has an optional model-qualification registry implementing three
 
 This prevents the attractive but dangerous shortcut of treating excellent average surrogate metrics as a guarantee at a hard resident-service threshold. The 2026 adaptive sparse-PCE paper is a strong efficiency baseline; Highveld should test tail/threshold calibration, false-feasible decisions, interval coverage, Pareto/rank reversals and OOD detection against its own qualified model/reference domain—not copy R² targets across unlike models.
 
+
+
+## Topology study extension
+
+A separate matched-comparison plan now defines five topology variants within the same proposed commons family: `CENTRAL_HUB`, `DISTRIBUTED_NODES`, `FEDERATED_PEER_MESH`, `MOBILE_SUPPORT` and `LAYERED_HYBRID`. It specifies capacity-matched and budget-matched experiments, topology-specific adversarial stresses, non-compensatory per-household measures and a staged admission sequence. These remain design hypotheses, not evaluated architecture results. See [TOPOLOGY_VARIANTS_AND_MATCHED_EXPERIMENT_V0.1.md](TOPOLOGY_VARIANTS_AND_MATCHED_EXPERIMENT_V0.1.md).
