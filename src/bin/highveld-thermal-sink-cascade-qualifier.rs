@@ -20,9 +20,9 @@ fn array_at<'a>(value: &'a Value, key: &str) -> Option<&'a Vec<Value>> {
 }
 
 fn contains_id(items: &[Value], expected: &str) -> bool {
-    items.iter().any(|item| {
-        item.as_str() == Some(expected) || text_at(item, "id") == Some(expected)
-    })
+    items
+        .iter()
+        .any(|item| item.as_str() == Some(expected) || text_at(item, "id") == Some(expected))
 }
 
 fn build_inventory() -> Result<Value, Vec<String>> {
@@ -53,7 +53,9 @@ fn build_inventory() -> Result<Value, Vec<String>> {
         }
     }
 
-    let arms = array_at(&manifest, "architecture_arms").cloned().unwrap_or_default();
+    let arms = array_at(&manifest, "architecture_arms")
+        .cloned()
+        .unwrap_or_default();
     let expected_arms = [
         "NO_WATER_PASSIVE_BASELINE",
         "WATER_STORE_NO_REGENERATION_NEGATIVE_CONTROL",
@@ -85,10 +87,14 @@ fn build_inventory() -> Result<Value, Vec<String>> {
             && text_at(arm, "role") == Some("NEGATIVE_CONTROL")
     });
     if !infinite_sink {
-        errors.push("infinite-sink assumption must be registered as a negative control".to_owned());
+        errors.push(
+            "infinite-sink assumption must be registered as a negative control".to_owned(),
+        );
     }
 
-    let sink_paths = array_at(&manifest, "sink_path_registry").cloned().unwrap_or_default();
+    let sink_paths = array_at(&manifest, "sink_path_registry")
+        .cloned()
+        .unwrap_or_default();
     for required in [
         "RADIATIVE_SKY_PANEL",
         "DRY_AIR_COOLER",
@@ -102,11 +108,15 @@ fn build_inventory() -> Result<Value, Vec<String>> {
         }
     }
 
-    let scenarios = array_at(&manifest, "scenarios").cloned().unwrap_or_default();
+    let scenarios = array_at(&manifest, "scenarios")
+        .cloned()
+        .unwrap_or_default();
     if scenarios.len() != 9 {
         errors.push("exactly nine stress scenarios are required".to_owned());
     }
-    let frozen = array_at(&manifest, "frozen_inputs_required").cloned().unwrap_or_default();
+    let frozen = array_at(&manifest, "frozen_inputs_required")
+        .cloned()
+        .unwrap_or_default();
     if frozen.len() < 10 {
         errors.push("at least ten frozen input digests/identifiers are required".to_owned());
     }
@@ -137,20 +147,27 @@ fn build_inventory() -> Result<Value, Vec<String>> {
             errors.push(format!("hard gate {required} must be exactly zero"));
         }
     }
-    if gates.get("energy_and_water_balance_within_propagated_uncertainty")
-        .and_then(Value::as_bool) != Some(true)
+    if gates
+        .get("energy_and_water_balance_within_propagated_uncertainty")
+        .and_then(Value::as_bool)
+        != Some(true)
     {
         errors.push("energy and water balance closure is mandatory".to_owned());
     }
-    if gates.get("seasonal_store_cycle_closure_required")
-        .and_then(Value::as_bool) != Some(true)
+    if gates
+        .get("seasonal_store_cycle_closure_required")
+        .and_then(Value::as_bool)
+        != Some(true)
     {
         errors.push("seasonal store-cycle closure is mandatory".to_owned());
     }
-    if gates.get("exact_input_model_controller_instrument_traceability_percent")
-        .and_then(Value::as_u64) != Some(100)
+    if gates
+        .get("exact_input_model_controller_instrument_traceability_percent")
+        .and_then(Value::as_u64)
+        != Some(100)
     {
-        errors.push("input/model/controller/instrument traceability target must be 100%".to_owned());
+        errors
+            .push("input/model/controller/instrument traceability target must be 100%".to_owned());
     }
 
     let control = &manifest["control_layers"];
@@ -257,11 +274,13 @@ mod tests {
     fn pool_is_treated_as_buffer_and_not_an_infinite_sink() {
         let manifest: Value = serde_json::from_str(MANIFEST).expect("manifest JSON");
         let arms = manifest["architecture_arms"].as_array().expect("arms");
-        let pool = arms.iter()
+        let pool = arms
+            .iter()
             .find(|arm| arm["id"] == "WATER_STORE_NO_REGENERATION_NEGATIVE_CONTROL")
             .expect("no-regeneration negative control");
         assert_eq!(pool["store_role"].as_str(), Some("WATER_BUFFER_ONLY"));
-        let invalid = arms.iter()
+        let invalid = arms
+            .iter()
             .find(|arm| arm["id"] == "INFINITE_SINK_ASSUMPTION_NEGATIVE_CONTROL")
             .expect("infinite sink negative control");
         assert_eq!(invalid["role"].as_str(), Some("NEGATIVE_CONTROL"));
@@ -270,17 +289,28 @@ mod tests {
     #[test]
     fn no_future_information_and_water_rights_governor_are_mandatory() {
         let report = build_inventory().expect("manifest must qualify");
-        assert_eq!(report["maturity"].as_str(), Some("PROTOCOL_ONLY_NOT_EXECUTED"));
+        assert_eq!(
+            report["maturity"].as_str(),
+            Some("PROTOCOL_ONLY_NOT_EXECUTED")
+        );
         assert_eq!(report["execution_status"].as_str(), Some("NOT_EXECUTED"));
-        assert!(report["cases"].as_array().expect("case inventory")
-            .iter().all(|case| case["execution_status"] == "NOT_EXECUTED"));
+        assert!(
+            report["cases"]
+                .as_array()
+                .expect("case inventory")
+                .iter()
+                .all(|case| case["execution_status"] == "NOT_EXECUTED")
+        );
     }
 
     #[test]
     fn radiative_sink_requires_real_boundary_evidence() {
         let manifest: Value = serde_json::from_str(MANIFEST).expect("manifest JSON");
-        let paths = manifest["sink_path_registry"].as_array().expect("sink registry");
-        let path = paths.iter()
+        let paths = manifest["sink_path_registry"]
+            .as_array()
+            .expect("sink registry");
+        let path = paths
+            .iter()
             .find(|item| item["id"] == "RADIATIVE_SKY_PANEL")
             .expect("radiative sink");
         for required in [
@@ -289,8 +319,13 @@ mod tests {
             "CLOUD_STATE",
             "LOOP_INLET_OUTLET_TEMPERATURE",
         ] {
-            assert!(path["evidence_required"].as_array().expect("radiative evidence list")
-                .iter().any(|item| item == required));
+            assert!(
+                path["evidence_required"]
+                    .as_array()
+                    .expect("radiative evidence list")
+                    .iter()
+                    .any(|item| item == required)
+            );
         }
     }
 }
