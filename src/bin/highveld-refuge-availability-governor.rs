@@ -269,6 +269,42 @@ mod tests {
     }
 
     #[test]
+    fn protected_water_reserve_is_never_counted_as_available() {
+        let mut case = sample();
+        case["sites"][0]["safe_water_available_l"] = json!(18.0);
+        let report = evaluate(&case).unwrap();
+        let site = report["unavailable_sites"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|site| site["site_id"] == "SYNTHETIC_LOCAL_POD_A")
+            .unwrap();
+        assert!(site["reasons"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|reason| reason == "SAFE_WATER_BELOW_COMMITMENTS_OR_PROTECTED_RESERVE"));
+    }
+
+    #[test]
+    fn general_seats_cannot_substitute_for_accessible_capacity() {
+        let mut case = sample();
+        case["sites"][0]["accessible_capacity"] = json!(5);
+        let report = evaluate(&case).unwrap();
+        let site = report["unavailable_sites"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|site| site["site_id"] == "SYNTHETIC_LOCAL_POD_A")
+            .unwrap();
+        assert!(site["reasons"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|reason| reason == "INSUFFICIENT_FREE_ACCESSIBLE_CAPACITY"));
+    }
+
+    #[test]
     fn unknown_local_directory_blocks_all_sites_even_if_network_is_partitioned(){
         let mut case=sample();
         case["local_refuge_directory_state"]=json!("UNKNOWN");
