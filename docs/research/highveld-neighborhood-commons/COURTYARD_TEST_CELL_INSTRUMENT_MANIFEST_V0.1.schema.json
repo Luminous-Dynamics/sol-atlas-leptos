@@ -53,7 +53,7 @@
     },
     "channels": {
       "type": "array",
-      "minItems": 20,
+      "minItems": 35,
       "items": {
         "type": "object",
         "additionalProperties": false,
