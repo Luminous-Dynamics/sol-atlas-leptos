@@ -38,9 +38,19 @@
         "TestFit Site Solver",
         "EnergyPlus",
         "BOPTEST",
-        "ANSI/ASHRAE Standard 140 test suite"
+        "ANSI/ASHRAE Standard 140 test suite",
+        "NREL REopt Web Tool/API",
+        "HOMER Grid",
+        "EPRI OpenDSS",
+        "GridLAB-D"
       ],
-      "required_evidence": "Exact product/software version, modules, configuration, licence/access conditions, operator time, compute, source data and outputs. Use a tool only for tasks inside its supported scope."
+      "required_evidence": "Exact product/software version, modules, configuration, licence/access conditions, operator time, compute, source data and outputs. Use a tool only for tasks inside its supported scope.",
+      "conditional_tool_scope": {
+        "NREL REopt Web Tool/API": "DER mix, sizing, dispatch, techno-economic comparison and critical-load resilience analysis for buildings/campuses/microgrids",
+        "HOMER Grid": "microgrid simulation, optimization and sensitivity analysis; battery degradation/augmentation and time-of-use dispatch",
+        "EPRI OpenDSS": "distribution-system power-flow, quasi-static time-series, DER interconnection, harmonics and fault/dynamics analyses",
+        "GridLAB-D": "distribution-system and device interaction simulation across multiple temporal scales"
+      }
     },
     {
       "arm_id": "B2_EVIDENCE_COMPOSITION",
@@ -66,7 +76,10 @@
     "Same output functional units, time horizons, time steps, denominator definitions and uncertainty reporting wherever comparison is claimed.",
     "Record software/tool versions, licences, model options, compute budget, human/operator time, manual edits, retries, failures and exclusions.",
     "Use the same source-data snapshots and rights state; a tool unavailable to one arm must be disclosed rather than silently substituted.",
-    "Design selection, operational-control policy and post-occupancy observation are separate experiments with separate outputs."
+    "Design selection, operational-control policy and post-occupancy observation are separate experiments with separate outputs.",
+    "For shared-utility/network cases, use the same load profile, tariff/price assumptions, technology costs, topology, resource limits and outage/dispatch trace across paired specialist-tool arms.",
+    "Use a distribution simulator only when a feeder/network model and its scope are explicit; do not infer household or tap service from feeder/system power flow.",
+    "Record whether REopt/HOMER/OpenDSS/GridLAB-D were eligible and applicable to each candidate/subtask; an unavailable tool or unsupported subtask must be disclosed, not silently substituted."
   ],
   "owner_crosswalk": [
     {
