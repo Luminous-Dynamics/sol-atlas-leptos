@@ -172,3 +172,14 @@ The new 18-family stress matrix separates scenario stimulus from execution seman
 
 This division is important for scientific validity: one shared exogenous trace must be replayed by the authoritative owner engine, and each system's state transition must be evaluated by an independent oracle. The cross-tool contribution is preservation of evidence identity and household outcome semantics across those owners, not a duplicated simulator.
 
+
+
+## 9. Decision-consequence model qualification
+
+The manifest now has an optional model-qualification registry implementing three evidence tiers:
+- screening models can rank options only;
+- decision-support models need model-specific validation and uncertainty evidence plus independent review;
+- service-critical models additionally require held-out measurement-reference evidence and must be inside their declared applicability domain.
+
+This prevents the attractive but dangerous shortcut of treating excellent average surrogate metrics as a guarantee at a hard resident-service threshold. The 2026 adaptive sparse-PCE paper is a strong efficiency baseline; Highveld should test tail/threshold calibration, false-feasible decisions, interval coverage, Pareto/rank reversals and OOD detection against its own qualified model/reference domain—not copy R² targets across unlike models.
+
