@@ -77,3 +77,7 @@ jobs:
         run: cargo test --bin highveld-cooling-water-qualifier
       - name: Execute cooling water manifest audit
         run: cargo run --bin highveld-cooling-water-qualifier -- --self-test
+      - name: Test thermal water analytical screen
+        run: cargo test --bin highveld-thermal-water-screen
+      - name: Execute thermal water analytical known-answer screen
+        run: cargo run --bin highveld-thermal-water-screen -- --self-test
