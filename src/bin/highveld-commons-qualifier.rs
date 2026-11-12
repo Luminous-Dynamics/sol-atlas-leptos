@@ -109,6 +109,7 @@ fn audit_manifest(root: &Value) -> Value {
     let assets = list(root, "assets");
     let contracts = list(root, "service_contracts");
     let policies = list(root, "allocation_policies");
+    let maintenance_contracts = list(root, "maintenance_contracts");
     let accounts = list(root, "resource_accounts");
     let transfers = list(root, "resource_transfers");
 
@@ -116,6 +117,7 @@ fn audit_manifest(root: &Value) -> Value {
     let asset_ids = unique_ids(assets, "asset_id", "$.assets", &mut audit);
     let contract_ids = unique_ids(contracts, "contract_id", "$.service_contracts", &mut audit);
     let policy_ids = unique_ids(policies, "policy_id", "$.allocation_policies", &mut audit);
+    let maintenance_ids = unique_ids(maintenance_contracts, "maintenance_contract_id", "$.maintenance_contracts", &mut audit);
     let account_ids = unique_ids(accounts, "account_id", "$.resource_accounts", &mut audit);
     let transfer_ids = unique_ids(transfers, "transfer_id", "$.resource_transfers", &mut audit);
     let mut source_event_ids = BTreeSet::new();
@@ -167,6 +169,12 @@ fn audit_manifest(root: &Value) -> Value {
     for policy in policies {
         if let Some(id) = text(policy, "policy_id") {
             policy_by_id.insert(id.to_owned(), policy);
+        }
+    }
+    let mut maintenance_by_id: BTreeMap<String, &Value> = BTreeMap::new();
+    for maintenance in maintenance_contracts {
+        if let Some(id) = text(maintenance, "maintenance_contract_id") {
+            maintenance_by_id.insert(id.to_owned(), maintenance);
         }
     }
 
@@ -256,7 +264,30 @@ fn audit_manifest(root: &Value) -> Value {
         }
 
         let policy_id = text(contract, "allocation_policy_id");
+        let maintenance_id = text(contract, "maintenance_contract_id");
         if allocation_enabled {
+            match maintenance_id.and_then(|id| maintenance_by_id.get(id).copied()) {
+                None => audit.fail(
+                    "MAINTENANCE_CONTRACT_NOT_QUALIFIED",
+                    &format!("{path}.maintenance_contract_id"),
+                    "allocated shared service needs a registered maintenance/spares contract",
+                ),
+                Some(maintenance) => {
+                    if text(maintenance, "asset_id") != provider
+                        || text(maintenance, "spares_state") != Some("AVAILABLE")
+                        || text(maintenance, "repair_access_state") != Some("QUALIFIED")
+                        || text(maintenance, "maintainer_id").is_none()
+                        || text(maintenance, "requalification_evidence_id").is_none()
+                        || number(maintenance, "maximum_repair_time_s").is_none()
+                    {
+                        audit.fail(
+                            "MAINTENANCE_CONTRACT_NOT_QUALIFIED",
+                            &format!("{path}.maintenance_contract_id"),
+                            "maintenance contract must bind the provider asset, qualified access, available spares, maintainer, repair bound and requalification evidence",
+                        );
+                    }
+                }
+            }
             match policy_id.and_then(|id| policy_by_id.get(id).copied()) {
                 None => audit.fail(
                     "ALLOCATION_POLICY_MISSING",
@@ -344,6 +375,28 @@ fn audit_manifest(root: &Value) -> Value {
                     "LOCAL_FALLBACK_DEPENDS_ON_COMMONS",
                     &format!("{floor_path}.local_fallback.depends_on_commons"),
                     "essential household fallback cannot depend on the commons",
+                );
+            }
+            if fallback
+                .and_then(|v| v.get("depends_on_network"))
+                .and_then(Value::as_bool)
+                != Some(false)
+            {
+                audit.fail(
+                    "LOCAL_FALLBACK_DEPENDS_ON_NETWORK",
+                    &format!("{floor_path}.local_fallback.depends_on_network"),
+                    "household-local fallback must remain usable without external network services",
+                );
+            }
+            if fallback
+                .and_then(|v| v.get("manual_mode_available"))
+                .and_then(Value::as_bool)
+                != Some(true)
+            {
+                audit.fail(
+                    "LOCAL_FALLBACK_NO_MANUAL_MODE",
+                    &format!("{floor_path}.local_fallback.manual_mode_available"),
+                    "local degraded operation must have a declared manual mode",
                 );
             }
             if let Some(asset) = fallback_asset {
@@ -728,6 +781,34 @@ mod tests {
             &audit_manifest(&manifest),
             "LOCAL_FALLBACK_COMMON_CAUSE"
         ));
+    }
+
+    #[test]
+    fn local_fallback_must_survive_network_isolation() {
+        let mut manifest = base();
+        manifest["households"][0]["essential_service_floors"][0]["local_fallback"]["depends_on_network"] = json!(true);
+        assert!(has_code(&audit_manifest(&manifest), "LOCAL_FALLBACK_DEPENDS_ON_NETWORK"));
+    }
+
+    #[test]
+    fn local_fallback_must_have_manual_degraded_mode() {
+        let mut manifest = base();
+        manifest["households"][0]["essential_service_floors"][0]["local_fallback"]["manual_mode_available"] = json!(false);
+        assert!(has_code(&audit_manifest(&manifest), "LOCAL_FALLBACK_NO_MANUAL_MODE"));
+    }
+
+    #[test]
+    fn allocated_commons_service_requires_spares_and_repair_contract() {
+        let mut manifest = base();
+        manifest["maintenance_contracts"][0]["spares_state"] = json!("UNKNOWN");
+        assert!(has_code(&audit_manifest(&manifest), "MAINTENANCE_CONTRACT_NOT_QUALIFIED"));
+    }
+
+    #[test]
+    fn maintenance_contract_must_bind_the_actual_provider_asset() {
+        let mut manifest = base();
+        manifest["maintenance_contracts"][0]["asset_id"] = json!("commons-energy-hub");
+        assert!(has_code(&audit_manifest(&manifest), "MAINTENANCE_CONTRACT_NOT_QUALIFIED"));
     }
 
     #[test]
