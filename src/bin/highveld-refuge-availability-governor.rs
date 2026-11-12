@@ -36,9 +36,13 @@ fn evaluate(case: &Value) -> Result<Value, Vec<String>> {
         input_errors.push("study identity or synthetic claim ceiling is invalid".to_owned());
     }
     let demand = &case["demand"];
-    let total_demand = demand.get("total_places").and_then(Value::as_u64)
+    let total_demand = demand
+        .get("total_places")
+        .and_then(Value::as_u64)
         .ok_or_else(|| vec!["demand.total_places must be an unsigned integer".to_owned()])?;
-    let accessible_demand = demand.get("accessible_places").and_then(Value::as_u64)
+    let accessible_demand = demand
+        .get("accessible_places")
+        .and_then(Value::as_u64)
         .ok_or_else(|| vec!["demand.accessible_places must be an unsigned integer".to_owned()])?;
     let water_demand = number_at(demand, "safe_water_l")
         .ok_or_else(|| vec!["demand.safe_water_l must be finite".to_owned()])?;
@@ -46,8 +50,11 @@ fn evaluate(case: &Value) -> Result<Value, Vec<String>> {
         .ok_or_else(|| vec!["demand.required_duration_h must be finite".to_owned()])?;
     let travel_limit = number_at(demand, "maximum_route_travel_time_s")
         .ok_or_else(|| vec!["demand.maximum_route_travel_time_s must be finite".to_owned()])?;
-    if accessible_demand > total_demand || total_demand == 0 || water_demand < 0.0
-        || duration <= 0.0 || travel_limit <= 0.0
+    if accessible_demand > total_demand
+        || total_demand == 0
+        || water_demand < 0.0
+        || duration <= 0.0
+        || travel_limit <= 0.0
     {
         input_errors.push("group demand envelope is invalid".to_owned());
     }
@@ -55,7 +62,9 @@ fn evaluate(case: &Value) -> Result<Value, Vec<String>> {
         return Err(input_errors);
     }
 
-    let sites = case.get("sites").and_then(Value::as_array)
+    let sites = case
+        .get("sites")
+        .and_then(Value::as_array)
         .ok_or_else(|| vec!["sites must be an array".to_owned()])?;
     let mut counts = BTreeMap::<String, usize>::new();
     for site in sites {
@@ -76,15 +85,43 @@ fn evaluate(case: &Value) -> Result<Value, Vec<String>> {
             reasons.push("LOCAL_REFUGE_DIRECTORY_NOT_QUALIFIED".to_owned());
         }
         for (key, expected, reason) in [
-            ("operating_window_state", "OPEN_FOR_REQUIRED_WINDOW", "NOT_OPEN_FOR_REQUIRED_WINDOW"),
-            ("thermal_service_state", "QUALIFIED", "THERMAL_SERVICE_NOT_QUALIFIED"),
+            (
+                "operating_window_state",
+                "OPEN_FOR_REQUIRED_WINDOW",
+                "NOT_OPEN_FOR_REQUIRED_WINDOW",
+            ),
+            (
+                "thermal_service_state",
+                "QUALIFIED",
+                "THERMAL_SERVICE_NOT_QUALIFIED",
+            ),
             ("ventilation_state", "QUALIFIED", "VENTILATION_NOT_QUALIFIED"),
-            ("safe_water_service_state", "QUALIFIED", "SAFE_WATER_SERVICE_NOT_QUALIFIED"),
-            ("safe_water_rights_state", "QUALIFIED", "SAFE_WATER_RIGHTS_NOT_QUALIFIED"),
-            ("safe_water_quality_state", "QUALIFIED", "SAFE_WATER_QUALITY_NOT_QUALIFIED"),
-            ("staffing_maintenance_state", "QUALIFIED", "STAFFING_OR_MAINTENANCE_NOT_QUALIFIED"),
+            (
+                "safe_water_service_state",
+                "QUALIFIED",
+                "SAFE_WATER_SERVICE_NOT_QUALIFIED",
+            ),
+            (
+                "safe_water_rights_state",
+                "QUALIFIED",
+                "SAFE_WATER_RIGHTS_NOT_QUALIFIED",
+            ),
+            (
+                "safe_water_quality_state",
+                "QUALIFIED",
+                "SAFE_WATER_QUALITY_NOT_QUALIFIED",
+            ),
+            (
+                "staffing_maintenance_state",
+                "QUALIFIED",
+                "STAFFING_OR_MAINTENANCE_NOT_QUALIFIED",
+            ),
             ("route_state", "REACHABLE", "ROUTE_NOT_REACHABLE"),
-            ("route_accessibility_state", "QUALIFIED", "ROUTE_ACCESSIBILITY_NOT_QUALIFIED"),
+            (
+                "route_accessibility_state",
+                "QUALIFIED",
+                "ROUTE_ACCESSIBILITY_NOT_QUALIFIED",
+            ),
         ] {
             if text_at(site, key) != Some(expected) {
                 reasons.push(reason.to_owned());
@@ -114,20 +151,40 @@ fn evaluate(case: &Value) -> Result<Value, Vec<String>> {
         let reserve = site.get("committed_reserve").and_then(Value::as_u64);
         let accessible_capacity = site.get("accessible_capacity").and_then(Value::as_u64);
         let accessible_occupancy = site.get("accessible_occupancy").and_then(Value::as_u64);
-        let accessible_reserve = site.get("accessible_committed_reserve").and_then(Value::as_u64);
+        let accessible_reserve = site
+            .get("accessible_committed_reserve")
+            .and_then(Value::as_u64);
         let (free_total, free_accessible) = match (
-            total_capacity, occupancy, reserve,
-            accessible_capacity, accessible_occupancy, accessible_reserve
+            total_capacity,
+            occupancy,
+            reserve,
+            accessible_capacity,
+            accessible_occupancy,
+            accessible_reserve,
         ) {
-            (Some(cap), Some(occupied), Some(committed), Some(access_cap), Some(access_occupied), Some(access_committed)) => {
-                let invalid = occupied > cap || committed > cap - occupied
-                    || access_occupied > access_cap || access_committed > access_cap - access_occupied
-                    || access_cap > cap || access_occupied > occupied || access_committed > committed;
+            (
+                Some(cap),
+                Some(occupied),
+                Some(committed),
+                Some(access_cap),
+                Some(access_occupied),
+                Some(access_committed),
+            ) => {
+                let invalid = occupied > cap
+                    || committed > cap - occupied
+                    || access_occupied > access_cap
+                    || access_committed > access_cap - access_occupied
+                    || access_cap > cap
+                    || access_occupied > occupied
+                    || access_committed > committed;
                 if invalid {
                     reasons.push("CAPACITY_ACCOUNTING_INVALID".to_owned());
                     (0_u64, 0_u64)
                 } else {
-                    (cap - occupied - committed, access_cap - access_occupied - access_committed)
+                    (
+                        cap - occupied - committed,
+                        access_cap - access_occupied - access_committed,
+                    )
                 }
             }
             _ => {
@@ -211,10 +268,13 @@ fn evaluate(case: &Value) -> Result<Value, Vec<String>> {
 fn main() {
     match env::args().nth(1).as_deref().unwrap_or("--help") {
         "--self-test" => {
-            let case:Value=serde_json::from_str(CASE).expect("committed refuge case JSON");
-            let report=evaluate(&case).expect("refuge case structure");
-            println!("{}",serde_json::to_string_pretty(&report).unwrap_or_default());
-            if report["audit_state"]!="REFUGE_AVAILABILITY_FILTER_COMPLETE" {
+            let case: Value = serde_json::from_str(CASE).expect("committed refuge case JSON");
+            let report = evaluate(&case).expect("refuge case structure");
+            println!(
+                "{}",
+                serde_json::to_string_pretty(&report).unwrap_or_default()
+            );
+            if report["audit_state"] != "REFUGE_AVAILABILITY_FILTER_COMPLETE" {
                 process::exit(1);
             }
         }
@@ -222,50 +282,88 @@ fn main() {
             println!("highveld-refuge-availability-governor");
             println!("  --self-test  filter the committed synthetic refuge availability case");
         }
-        _ => {eprintln!("invalid argument; use --help");process::exit(2);}
+        _ => {
+            eprintln!("invalid argument; use --help");
+            process::exit(2);
+        }
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    fn sample()->Value{serde_json::from_str(CASE).expect("case JSON")}
-
-    #[test]
-    fn local_pod_remains_available_during_partition_with_qualified_local_evidence(){
-        let report=evaluate(&sample()).expect("case evaluates");
-        assert_eq!(report["network_state"],"PARTITIONED");
-        assert_eq!(report["eligible_site_count"],1);
-        assert_eq!(report["eligible_sites"][0]["site_id"],"SYNTHETIC_LOCAL_POD_A");
-        assert_eq!(report["eligible_sites"][0]["allocation"],"NONE");
+    fn sample() -> Value {
+        serde_json::from_str(CASE).expect("case JSON")
     }
 
     #[test]
-    fn insufficient_total_capacity_blocks_hub(){
-        let report=evaluate(&sample()).unwrap();
-        let hub=report["unavailable_sites"].as_array().unwrap().iter()
-            .find(|site|site["site_id"]=="SYNTHETIC_CENTRAL_HUB_B").unwrap();
-        assert!(hub["reasons"].as_array().unwrap().iter()
-            .any(|reason|reason=="INSUFFICIENT_FREE_TOTAL_CAPACITY"));
+    fn local_pod_remains_available_during_partition_with_qualified_local_evidence() {
+        let report = evaluate(&sample()).expect("case evaluates");
+        assert_eq!(report["network_state"], "PARTITIONED");
+        assert_eq!(report["eligible_site_count"], 1);
+        assert_eq!(
+            report["eligible_sites"][0]["site_id"],
+            "SYNTHETIC_LOCAL_POD_A"
+        );
+        assert_eq!(report["eligible_sites"][0]["allocation"], "NONE");
     }
 
     #[test]
-    fn blocked_route_never_counts_as_available(){
-        let report=evaluate(&sample()).unwrap();
-        assert!(report["unavailable_sites"].as_array().unwrap().iter()
-            .any(|site|site["site_id"]=="SYNTHETIC_ROUTE_BLOCKED_POD_C"));
+    fn insufficient_total_capacity_blocks_hub() {
+        let report = evaluate(&sample()).unwrap();
+        let hub = report["unavailable_sites"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|site| site["site_id"] == "SYNTHETIC_CENTRAL_HUB_B")
+            .unwrap();
+        assert!(
+            hub["reasons"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|reason| reason == "INSUFFICIENT_FREE_TOTAL_CAPACITY")
+        );
     }
 
     #[test]
-    fn unknown_ventilation_or_water_rights_blocks_refuge(){
-        let report=evaluate(&sample()).unwrap();
-        let sites=report["unavailable_sites"].as_array().unwrap();
-        let ventilation=sites.iter().find(|site|site["site_id"]=="SYNTHETIC_UNKNOWN_VENTILATION_POD_D").unwrap();
-        assert!(ventilation["reasons"].as_array().unwrap().iter()
-            .any(|reason|reason=="VENTILATION_NOT_QUALIFIED"));
-        let rights=sites.iter().find(|site|site["site_id"]=="SYNTHETIC_UNKNOWN_WATER_RIGHTS_POD_E").unwrap();
-        assert!(rights["reasons"].as_array().unwrap().iter()
-            .any(|reason|reason=="SAFE_WATER_RIGHTS_NOT_QUALIFIED"));
+    fn blocked_route_never_counts_as_available() {
+        let report = evaluate(&sample()).unwrap();
+        assert!(
+            report["unavailable_sites"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|site| site["site_id"] == "SYNTHETIC_ROUTE_BLOCKED_POD_C")
+        );
+    }
+
+    #[test]
+    fn unknown_ventilation_or_water_rights_blocks_refuge() {
+        let report = evaluate(&sample()).unwrap();
+        let sites = report["unavailable_sites"].as_array().unwrap();
+        let ventilation = sites
+            .iter()
+            .find(|site| site["site_id"] == "SYNTHETIC_UNKNOWN_VENTILATION_POD_D")
+            .unwrap();
+        assert!(
+            ventilation["reasons"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|reason| reason == "VENTILATION_NOT_QUALIFIED")
+        );
+        let rights = sites
+            .iter()
+            .find(|site| site["site_id"] == "SYNTHETIC_UNKNOWN_WATER_RIGHTS_POD_E")
+            .unwrap();
+        assert!(
+            rights["reasons"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|reason| reason == "SAFE_WATER_RIGHTS_NOT_QUALIFIED")
+        );
     }
 
     #[test]
@@ -279,11 +377,13 @@ mod tests {
             .iter()
             .find(|site| site["site_id"] == "SYNTHETIC_LOCAL_POD_A")
             .unwrap();
-        assert!(site["reasons"]
-            .as_array()
-            .unwrap()
-            .iter()
-            .any(|reason| reason == "SAFE_WATER_BELOW_COMMITMENTS_OR_PROTECTED_RESERVE"));
+        assert!(
+            site["reasons"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|reason| reason == "SAFE_WATER_BELOW_COMMITMENTS_OR_PROTECTED_RESERVE")
+        );
     }
 
     #[test]
@@ -297,32 +397,42 @@ mod tests {
             .iter()
             .find(|site| site["site_id"] == "SYNTHETIC_LOCAL_POD_A")
             .unwrap();
-        assert!(site["reasons"]
-            .as_array()
-            .unwrap()
-            .iter()
-            .any(|reason| reason == "INSUFFICIENT_FREE_ACCESSIBLE_CAPACITY"));
+        assert!(
+            site["reasons"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|reason| reason == "INSUFFICIENT_FREE_ACCESSIBLE_CAPACITY")
+        );
     }
 
     #[test]
-    fn unknown_local_directory_blocks_all_sites_even_if_network_is_partitioned(){
-        let mut case=sample();
-        case["local_refuge_directory_state"]=json!("UNKNOWN");
-        let report=evaluate(&case).unwrap();
-        assert_eq!(report["eligible_site_count"],0);
-        assert_eq!(report["unavailable_sites"].as_array().unwrap().len(),5);
+    fn unknown_local_directory_blocks_all_sites_even_if_network_is_partitioned() {
+        let mut case = sample();
+        case["local_refuge_directory_state"] = json!("UNKNOWN");
+        let report = evaluate(&case).unwrap();
+        assert_eq!(report["eligible_site_count"], 0);
+        assert_eq!(report["unavailable_sites"].as_array().unwrap().len(), 5);
     }
 
     #[test]
-    fn duplicate_site_ids_block_ambiguous_entries(){
-        let mut case=sample();
-        let dup=case["sites"][0].clone();
+    fn duplicate_site_ids_block_ambiguous_entries() {
+        let mut case = sample();
+        let dup = case["sites"][0].clone();
         case["sites"].as_array_mut().unwrap().push(dup);
-        let report=evaluate(&case).unwrap();
-        assert_eq!(report["eligible_site_count"],0);
-        assert!(report["unavailable_sites"].as_array().unwrap().iter()
-            .filter(|site|site["site_id"]=="SYNTHETIC_LOCAL_POD_A")
-            .all(|site|site["reasons"].as_array().unwrap().iter()
-                .any(|reason|reason=="DUPLICATE_SITE_ID")));
+        let report = evaluate(&case).unwrap();
+        assert_eq!(report["eligible_site_count"], 0);
+        assert!(
+            report["unavailable_sites"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .filter(|site| site["site_id"] == "SYNTHETIC_LOCAL_POD_A")
+                .all(|site| site["reasons"]
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .any(|reason| reason == "DUPLICATE_SITE_ID"))
+        );
     }
 }
