@@ -25,11 +25,11 @@ fn has_string(values: &[Value], expected: &str) -> bool {
 
 fn unique_nonempty_ids(items: &[Value]) -> bool {
     let mut seen = std::collections::BTreeSet::new();
-    items
-        .iter()
-        .all(|item| item.get("id").and_then(Value::as_str).is_some_and(|id| {
-            !id.trim().is_empty() && seen.insert(id)
-        }))
+    items.iter().all(|item| {
+        item.get("id")
+            .and_then(Value::as_str)
+            .is_some_and(|id| !id.trim().is_empty() && seen.insert(id))
+    })
 }
 
 fn build_report() -> Result<Value, Vec<String>> {
@@ -53,7 +53,10 @@ fn build_report() -> Result<Value, Vec<String>> {
         ("maturity", "DESIGN_HYPOTHESES_NOT_PHYSICALLY_EVALUATED"),
         ("climate_context", "JOHANNESBURG_HIGHVELD"),
         ("baseline_required", "NO_WATER_PASSIVE_BASELINE"),
-        ("physics_owner", "SPECIALIST_BUILDING_AIRFLOW_HYDRAULIC_SOLVERS"),
+        (
+            "physics_owner",
+            "SPECIALIST_BUILDING_AIRFLOW_HYDRAULIC_SOLVERS",
+        ),
         ("event_and_trajectory_owner", "SYMTROPY"),
         ("geometry_and_configuration_owner", "SOL_ATLAS"),
         ("rights_and_water_account_owner", "MYCELIX"),
@@ -64,7 +67,9 @@ fn build_report() -> Result<Value, Vec<String>> {
         }
     }
 
-    let archetypes = array_at(&manifest, "archetypes").cloned().unwrap_or_default();
+    let archetypes = array_at(&manifest, "archetypes")
+        .cloned()
+        .unwrap_or_default();
     if archetypes.len() < 7 || !unique_nonempty_ids(&archetypes) {
         errors.push("archetypes must contain at least seven unique non-empty IDs".to_owned());
     }
@@ -82,7 +87,10 @@ fn build_report() -> Result<Value, Vec<String>> {
         "CLOSED_LOOP_THERMAL_WATER_STORE",
         "POOL_COURTYARD_HYBRID",
     ] {
-        if !archetypes.iter().any(|item| string_at(item, "id") == Some(required)) {
+        if !archetypes
+            .iter()
+            .any(|item| string_at(item, "id") == Some(required))
+        {
             errors.push(format!("missing cooling archetype {required}"));
         }
     }
@@ -95,7 +103,9 @@ fn build_report() -> Result<Value, Vec<String>> {
         errors.push("unbounded spray must remain an explicit negative control".to_owned());
     }
 
-    let comparisons = array_at(&manifest, "comparison_modes").cloned().unwrap_or_default();
+    let comparisons = array_at(&manifest, "comparison_modes")
+        .cloned()
+        .unwrap_or_default();
     for required in [
         "WATER_LIMITED_PRIMARY",
         "THERMAL_CAPACITY_MATCHED",
@@ -112,7 +122,10 @@ fn build_report() -> Result<Value, Vec<String>> {
     for (field, required) in [
         ("matched_inputs_required", "weather_file_digest"),
         ("matched_inputs_required", "building_geometry_digest"),
-        ("matched_inputs_required", "occupancy_and_internal_gains_digest"),
+        (
+            "matched_inputs_required",
+            "occupancy_and_internal_gains_digest",
+        ),
         ("matched_inputs_required", "water_budget_and_reserve_digest"),
         ("metered_water_terms", "makeup_by_source_class"),
         ("metered_water_terms", "evaporation_estimate_with_method"),
@@ -124,15 +137,39 @@ fn build_report() -> Result<Value, Vec<String>> {
         ("required_outcomes", "occupied_hour_operative_temperature"),
         ("required_outcomes", "water_litres_per_useful_kwh"),
         ("required_outcomes", "pump_filtration_treatment_kwh"),
-        ("negative_controls", "POOL_VOLUME_COUNTED_AS_COOLING_WITHOUT_HEAT_PATH"),
-        ("negative_controls", "LATENT_HEAT_REPORTED_AS_USEFUL_ROOM_COOLING"),
-        ("negative_controls", "MISSING_WATER_METER_INTERPRETED_AS_ZERO_LOSS"),
-        ("negative_controls", "UNTREATED_GREYWATER_USED_IN_POOL_OR_AEROSOL"),
-        ("negative_controls", "WATER_RESERVE_FLOOR_OR_MUNICIPAL_RESTRICTION_IGNORED"),
+        (
+            "negative_controls",
+            "POOL_VOLUME_COUNTED_AS_COOLING_WITHOUT_HEAT_PATH",
+        ),
+        (
+            "negative_controls",
+            "LATENT_HEAT_REPORTED_AS_USEFUL_ROOM_COOLING",
+        ),
+        (
+            "negative_controls",
+            "MISSING_WATER_METER_INTERPRETED_AS_ZERO_LOSS",
+        ),
+        (
+            "negative_controls",
+            "UNTREATED_GREYWATER_USED_IN_POOL_OR_AEROSOL",
+        ),
+        (
+            "negative_controls",
+            "WATER_RESERVE_FLOOR_OR_MUNICIPAL_RESTRICTION_IGNORED",
+        ),
         ("safety_and_governance_gates", "water_quality_qualified"),
-        ("safety_and_governance_gates", "drowning_and_child_safety_qualified"),
-        ("safety_and_governance_gates", "household_essential_water_reserve_protected"),
-        ("safety_and_governance_gates", "resident_authority_and_appeal_preserved"),
+        (
+            "safety_and_governance_gates",
+            "drowning_and_child_safety_qualified",
+        ),
+        (
+            "safety_and_governance_gates",
+            "household_essential_water_reserve_protected",
+        ),
+        (
+            "safety_and_governance_gates",
+            "resident_authority_and_appeal_preserved",
+        ),
     ] {
         let values = array_at(&manifest, field).cloned().unwrap_or_default();
         if !has_string(&values, required) {
@@ -144,10 +181,8 @@ fn build_report() -> Result<Value, Vec<String>> {
         return Err(errors);
     }
 
-    let negative_controls = array_at(&manifest, "negative_controls")
-        .map_or(0, Vec::len);
-    let safety_gates = array_at(&manifest, "safety_and_governance_gates")
-        .map_or(0, Vec::len);
+    let negative_controls = array_at(&manifest, "negative_controls").map_or(0, Vec::len);
+    let safety_gates = array_at(&manifest, "safety_and_governance_gates").map_or(0, Vec::len);
     Ok(json!({
         "audit_state": "STRUCTURAL_CONTRACT_PASS",
         "study_id": "HIGHVELD-PASSIVE-COOLING-WATER-001",
@@ -169,7 +204,10 @@ fn main() {
     match mode {
         "--self-test" | "--audit" => match build_report() {
             Ok(report) => {
-                println!("{}", serde_json::to_string_pretty(&report).unwrap_or_default());
+                println!(
+                    "{}",
+                    serde_json::to_string_pretty(&report).unwrap_or_default()
+                );
             }
             Err(errors) => {
                 eprintln!(
@@ -186,7 +224,9 @@ fn main() {
         },
         "--help" | "-h" => {
             println!("highveld-cooling-water-qualifier");
-            println!("  --self-test  validate the cooling study manifest and emit a structural audit");
+            println!(
+                "  --self-test  validate the cooling study manifest and emit a structural audit"
+            );
             println!("  --audit      emit the same audit");
         }
         _ => {
