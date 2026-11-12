@@ -160,3 +160,14 @@ A missing or ambiguous consent blocks access. Purpose/service mismatch blocks re
 
 The schema allows empty consent and access-request arrays: that is the default no-sharing state. Synthetic fixtures with no personal-data access therefore require no invented consent.
 
+
+
+## 10. Household data sovereignty and consent
+
+No household data is shared by default. A resident's use of a common service does not authorize the commons, hub operator, neighbour, service provider, allocator or analytics system to inspect occupancy schedules, behaviour, appliance telemetry, vulnerability, identity or household routines.
+
+A data-access request is authorized only if it matches exactly one consent record across household, data category, purpose and service. The request's decision-as-of time must be after the recorded grant and strictly before the revocation time. Missing, ambiguous, out-of-scope, pre-grant, post-revocation or malformed consent fails closed.
+
+Consent is purpose- and service-bound. A grant for water planning cannot be reused for energy pricing, insurance profiling, household ranking or another service. Any revocation also invokes the separately governed retention/deletion policy; historical decision receipts remain auditable without granting new access.
+
+The reference manifest has empty consent and data-request arrays. This is the intentional default-deny state, not missing setup.
