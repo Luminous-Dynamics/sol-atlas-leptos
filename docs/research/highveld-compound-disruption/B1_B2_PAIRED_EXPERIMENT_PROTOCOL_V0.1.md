@@ -80,18 +80,21 @@ These are hard software/contract gates for the synthetic round:
 | B2 receipt binding to matched inputs and raw engine I/O | 100% exact |
 | B2 oracle agreement on finite synthetic controls | 100% |
 | B2 critical false passes | 0 |
+| B2 oracle-admissible clean-case coverage | 100% |
+| B2 valid-case false rejections / overblocking | 0 |
 | Future-information leaks in either arm | 0 |
 | Unqualified/revoked/out-of-scope evidence used to support B2 PASS | 0 |
 | Hard-floor violations/unknowns hidden by B2 PASS | 0 |
 | Missing, duplicate or unregistered service decisions | 0 |
 
-These are exact synthetic contract targets, not claims that zero physical risk can be demonstrated. B1 is not required to pass; it is the baseline whose observed errors and human effort are compared with B2.
+These are exact synthetic contract targets, not claims that zero physical risk can be demonstrated. B1 is not required to pass; it is the baseline whose observed errors and human effort are compared with B2. The clean-case coverage gate prevents a degenerate B2 that blocks every case from appearing safe. A valid case is an independent-oracle PASS with SATISFIED hard floor; B2 must preserve it as PASS/SATISFIED.
 
 ## 7. Secondary measures
 
 Report by candidate, scenario family and evidence-control family:
 
 - B1/B2 exact oracle mismatch counts;
+- B2 valid-case coverage and false-rejection/overblocking counts, alongside adversarial false-pass counts;
 - critical false-pass and false-reject counts, separately;
 - false-feasible design decisions after approved higher-fidelity reference;
 - scoped invalidation precision/recall against an independent dependency oracle;
