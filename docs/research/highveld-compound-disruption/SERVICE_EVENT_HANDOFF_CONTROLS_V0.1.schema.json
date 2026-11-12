@@ -1,0 +1,294 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/docs/research/highveld-compound-disruption/SERVICE_EVENT_HANDOFF_CONTROLS_V0.1.schema.json",
+  "title": "Highveld service-event handoff controls v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "control_set_id",
+    "status",
+    "claim_ceiling",
+    "owner_native_contract",
+    "cases"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "control_set_id": {
+      "const": "highveld-service-event-handoff-controls-v0.1"
+    },
+    "status": {
+      "const": "synthetic_reference_controls_not_owner_adapter"
+    },
+    "claim_ceiling": {
+      "type": "string",
+      "minLength": 20
+    },
+    "owner_native_contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "owner",
+        "source_branch",
+        "event_fields",
+        "kind_values",
+        "mapping_rule"
+      ],
+      "properties": {
+        "owner": {
+          "const": "Symtropy #1848/#1849"
+        },
+        "source_branch": {
+          "type": "string",
+          "minLength": 1
+        },
+        "event_fields": {
+          "const": {
+            "id": "string",
+            "generation": "u64",
+            "tick": "u32",
+            "sequence": "u32",
+            "kind": "enum"
+          }
+        },
+        "kind_values": {
+          "const": [
+            "restored",
+            "lost"
+          ]
+        },
+        "mapping_rule": {
+          "const": "owner_approved_service_outcome_and_clock_mapping_required"
+        }
+      }
+    },
+    "cases": {
+      "type": "array",
+      "minItems": 10,
+      "maxItems": 30,
+      "items": {
+        "$ref": "#/$defs/case"
+      }
+    }
+  },
+  "$defs": {
+    "upstream": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "event_id",
+        "kind",
+        "scope",
+        "start_offset_s",
+        "end_offset_s",
+        "evidence_class",
+        "available_at_offset_s"
+      ],
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{2,63}$"
+        },
+        "kind": {
+          "enum": [
+            "grid_interruption",
+            "grid_restoration",
+            "municipal_water_notice",
+            "tap_flow_interruption",
+            "component_fault",
+            "repair_complete",
+            "heat_episode",
+            "network_interruption"
+          ]
+        },
+        "scope": {
+          "enum": [
+            "regional",
+            "system",
+            "feeder",
+            "site",
+            "dwelling",
+            "room",
+            "tap",
+            "service",
+            "component",
+            "network",
+            "repair_supply"
+          ]
+        },
+        "start_offset_s": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "end_offset_s": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "evidence_class": {
+          "const": "SyntheticControlledEvent"
+        },
+        "available_at_offset_s": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "service_observation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "service_id",
+        "subject_scope",
+        "observed_at_offset_s",
+        "outcome_state",
+        "floor_profile_id",
+        "evidence_status"
+      ],
+      "properties": {
+        "service_id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{2,63}$"
+        },
+        "subject_scope": {
+          "enum": [
+            "resident_task",
+            "dwelling_service",
+            "room_service",
+            "tap_end_use"
+          ]
+        },
+        "observed_at_offset_s": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "outcome_state": {
+          "enum": [
+            "above_floor",
+            "below_floor",
+            "unknown",
+            "not_observed"
+          ]
+        },
+        "floor_profile_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "evidence_status": {
+          "const": "synthetic_control_only"
+        }
+      }
+    },
+    "projection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "service_id",
+        "expected_disposition",
+        "candidate_kind",
+        "expected_recovery_claim"
+      ],
+      "properties": {
+        "service_id": {
+          "type": "string"
+        },
+        "expected_disposition": {
+          "enum": [
+            "DO_NOT_EMIT",
+            "OWNER_REVIEW_CANDIDATE_ONLY",
+            "BLOCKED"
+          ]
+        },
+        "candidate_kind": {
+          "enum": [
+            "lost",
+            "restored",
+            "none"
+          ]
+        },
+        "expected_recovery_claim": {
+          "enum": [
+            "NOT_ESTABLISHED",
+            "OWNER_ORACLE_ONLY",
+            "NOT_APPLICABLE"
+          ]
+        },
+        "rationale": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "case": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "case_id",
+        "title",
+        "decision_as_of_offset_s",
+        "upstream_conditions",
+        "service_observations",
+        "time_mapping_state",
+        "evidence_validity",
+        "expected_projections",
+        "claim_ceiling"
+      ],
+      "properties": {
+        "case_id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{2,63}$"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "decision_as_of_offset_s": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "upstream_conditions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/upstream"
+          }
+        },
+        "service_observations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/service_observation"
+          }
+        },
+        "time_mapping_state": {
+          "enum": [
+            "owner_mapping_not_provided",
+            "owner_mapping_approved",
+            "ambiguous",
+            "not_applicable"
+          ]
+        },
+        "evidence_validity": {
+          "enum": [
+            "synthetic_fixture_valid",
+            "stale",
+            "revoked",
+            "conflicting",
+            "out_of_scope",
+            "unknown"
+          ]
+        },
+        "expected_projections": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/projection"
+          }
+        },
+        "claim_ceiling": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  }
+}
