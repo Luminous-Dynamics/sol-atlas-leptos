@@ -271,5 +271,7 @@
       "evidence_class": "SyntheticKnownAnswer",
       "evidence_id": "synthetic-outcome-water-b"
     }
-  ]
+  ],
+  "consent_records": [],
+  "household_data_access_requests": []
 }
