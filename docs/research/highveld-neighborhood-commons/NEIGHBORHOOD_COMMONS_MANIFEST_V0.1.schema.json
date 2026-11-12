@@ -17,7 +17,9 @@
     "resource_accounts",
     "resource_transfers",
     "maintenance_contracts",
-    "household_service_outcomes"
+    "household_service_outcomes",
+    "consent_records",
+    "household_data_access_requests"
   ],
   "properties": {
     "schema_version": {
@@ -89,6 +91,18 @@
       "minItems": 1,
       "items": {
         "$ref": "#/$defs/household_service_outcome"
+      }
+    },
+    "consent_records": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/consent_record"
+      }
+    },
+    "household_data_access_requests": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/data_access_request"
       }
     }
   },
@@ -576,6 +590,100 @@
         },
         "evidence_class": {
           "const": "SyntheticKnownAnswer"
+        },
+        "evidence_id": {
+          "$ref": "#/$defs/nonempty"
+        }
+      }
+    },
+    "consent_record": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "consent_id",
+        "household_id",
+        "data_category",
+        "purpose",
+        "service_id",
+        "consent_state",
+        "consent_revision",
+        "granted_at_offset_s",
+        "revoked_at_offset_s",
+        "consent_record_evidence_id"
+      ],
+      "properties": {
+        "consent_id": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "household_id": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "data_category": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "purpose": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "service_id": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "consent_state": {
+          "enum": [
+            "GRANTED",
+            "REVOKED"
+          ]
+        },
+        "consent_revision": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "granted_at_offset_s": {
+          "$ref": "#/$defs/uint"
+        },
+        "revoked_at_offset_s": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/uint"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "consent_record_evidence_id": {
+          "$ref": "#/$defs/nonempty"
+        }
+      }
+    },
+    "data_access_request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "request_id",
+        "household_id",
+        "data_category",
+        "purpose",
+        "service_id",
+        "decision_as_of_offset_s",
+        "evidence_id"
+      ],
+      "properties": {
+        "request_id": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "household_id": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "data_category": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "purpose": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "service_id": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "decision_as_of_offset_s": {
+          "$ref": "#/$defs/uint"
         },
         "evidence_id": {
           "$ref": "#/$defs/nonempty"
