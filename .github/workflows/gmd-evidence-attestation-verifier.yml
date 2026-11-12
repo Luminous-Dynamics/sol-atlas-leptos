@@ -1,0 +1,45 @@
+name: GMD evidence attestation verifier
+
+on:
+  pull_request:
+    paths:
+      - "tools/gmd-evidence-attestation-verifier/**"
+      - "docs/research/gmd-ibr-protection/**"
+      - ".github/workflows/gmd-evidence-attestation-verifier.yml"
+  push:
+    paths:
+      - "tools/gmd-evidence-attestation-verifier/**"
+      - "docs/research/gmd-ibr-protection/**"
+      - ".github/workflows/gmd-evidence-attestation-verifier.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: gmd-evidence-attestation-verifier-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check OpenSSL
+        run: openssl version
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - name: Format verifier
+        run: cargo fmt --manifest-path tools/gmd-evidence-attestation-verifier/Cargo.toml -- --check
+      - name: Run locked Clippy
+        run: cargo clippy --manifest-path tools/gmd-evidence-attestation-verifier/Cargo.toml --all-targets --locked -- -D warnings
+      - name: Run locked tests
+        run: cargo test --manifest-path tools/gmd-evidence-attestation-verifier/Cargo.toml --locked
+      - name: Verify frozen synthetic corpus
+        run: |
+          cargo run --manifest-path tools/gmd-evidence-attestation-verifier/Cargo.toml --locked -- \
+            docs/research/gmd-ibr-protection/fixtures/gmd_evidence_capability_corpus_v0_1.json \
+            > /tmp/gmd-evidence-attestation-report.json
+          grep -q '"capability_status": "satisfied"' /tmp/gmd-evidence-attestation-report.json
+          grep -q '"signature_verified": true' /tmp/gmd-evidence-attestation-report.json
