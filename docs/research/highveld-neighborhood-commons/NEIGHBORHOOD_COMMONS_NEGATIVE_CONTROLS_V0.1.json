@@ -95,6 +95,34 @@
       "expected_code": "MATURITY_CLAIM_ESCALATION",
       "expected_disposition": "BLOCK",
       "evidence_class": "SyntheticNegativeControl"
+    },
+    {
+      "control_id": "network_isolation_local_fallback",
+      "description": "External network and hub coordination are unavailable; local manual fallback is required.",
+      "expected_code": "LOCAL_FALLBACK_DEPENDS_ON_NETWORK",
+      "expected_disposition": "BLOCK",
+      "evidence_class": "SyntheticNegativeControl"
+    },
+    {
+      "control_id": "no_manual_degraded_mode",
+      "description": "Household fallback requires remote automation and has no declared manual degraded mode.",
+      "expected_code": "LOCAL_FALLBACK_NO_MANUAL_MODE",
+      "expected_disposition": "BLOCK",
+      "evidence_class": "SyntheticNegativeControl"
+    },
+    {
+      "control_id": "spares_unknown",
+      "description": "Commons service is allocated while critical spare-part availability is unknown.",
+      "expected_code": "MAINTENANCE_CONTRACT_NOT_QUALIFIED",
+      "expected_disposition": "BLOCK",
+      "evidence_class": "SyntheticNegativeControl"
+    },
+    {
+      "control_id": "maintenance_access_blocked",
+      "description": "Commons service is allocated while maintainers cannot access the shared plant.",
+      "expected_code": "MAINTENANCE_CONTRACT_NOT_QUALIFIED",
+      "expected_disposition": "BLOCK",
+      "evidence_class": "SyntheticNegativeControl"
     }
   ]
 }
