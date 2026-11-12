@@ -1047,6 +1047,15 @@ fn audit_manifest(root: &Value) -> Value {
             digest.len() == 64 && digest.bytes().all(|b| b.is_ascii_hexdigit() && !b.is_ascii_uppercase())
         });
         let review_state = text(model, "independent_review_state");
+        let applicability_state = text(model, "applicability_state");
+
+        if applicability_state != Some("IN_DOMAIN") {
+            audit.fail(
+                "MODEL_APPLICABILITY_UNQUALIFIED",
+                &path,
+                "a model may only support its declared decision class inside its recorded applicability domain",
+            );
+        }
 
         if has_domain && has_revision && has_config {
             // The identity/scope tuple is complete; decision-tier checks follow.
@@ -1597,7 +1606,8 @@ mod tests {
             "applicability_domain_id":"domain-synthetic-r0",
             "assurance_tier":"SCREENING",
             "permitted_decision_class":"ESSENTIAL_SERVICE_CLAIM",
-            "independent_review_state":"NOT_REQUIRED"
+            "independent_review_state":"NOT_REQUIRED",
+            "applicability_state":"IN_DOMAIN"
         }]);
         assert!(has_code(&audit_manifest(&manifest), "MODEL_TIER_EXCEEDED"));
     }
@@ -1614,7 +1624,8 @@ mod tests {
             "permitted_decision_class":"REVERSIBLE_DESIGN_DECISION",
             "validation_evidence_id":"validation-evidence-r0",
             "uncertainty_evidence_id":"uq-evidence-r0",
-            "independent_review_state":"PENDING"
+            "independent_review_state":"PENDING",
+            "applicability_state":"IN_DOMAIN"
         }]);
         assert!(has_code(&audit_manifest(&manifest), "MODEL_VVUQ_EVIDENCE_INCOMPLETE"));
     }
@@ -1631,7 +1642,8 @@ mod tests {
             "permitted_decision_class":"ESSENTIAL_SERVICE_CLAIM",
             "validation_evidence_id":"validation-evidence-r0",
             "uncertainty_evidence_id":"uq-evidence-r0",
-            "independent_review_state":"PASSED"
+            "independent_review_state":"PASSED",
+            "applicability_state":"IN_DOMAIN"
         }]);
         assert!(has_code(&audit_manifest(&manifest), "MODEL_SERVICE_CRITICAL_EVIDENCE_INCOMPLETE"));
     }
