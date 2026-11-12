@@ -142,3 +142,21 @@ Promotion from proposal to evaluated candidate requires:
 10. reviewed safe physical protocol before occupied or unoccupied test claims.
 
 The supplied reference manifest and Rust qualifier test only structural/semantic invariants over a synthetic design. They do not evaluate a real neighborhood, household, microgrid, water network, building or allocation process.
+
+
+## 9. Household data sovereignty and consent
+
+Household data sharing is denied by default. A shared service does not grant access to occupancy schedules, household behaviour, vulnerability, appliance telemetry or resident identity.
+
+Every data-access attempt must match exactly one consent record across:
+- household;
+- data category;
+- stated purpose;
+- named service;
+- consent revision and evidence;
+- grant time and revocation time.
+
+A missing or ambiguous consent blocks access. Purpose/service mismatch blocks reuse. New access at or after revocation is rejected. A record of earlier consent cannot authorize a later, broader purpose. Revocation does not silently rewrite history; it constrains access at the recorded decision time and triggers the relevant owner's retention/deletion policy.
+
+The schema allows empty consent and access-request arrays: that is the default no-sharing state. Synthetic fixtures with no personal-data access therefore require no invented consent.
+
