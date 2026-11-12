@@ -7,7 +7,7 @@
   "evaluation_time_unix_seconds": 1794460000,
   "trust_store_artifact": {
     "path": "trust_store.json",
-    "sha256": "9fc5f32b685597879d0264a78c70ff2b2ee27cf8ac91f9ef3980b6d3282f98f1"
+    "sha256": "a40c3c4f2fb1fac371d45ed35c8e30467c8883015b6b06feb9a7bbb281f49318"
   },
   "claim": {
     "claim_id": "claim-waveform",
