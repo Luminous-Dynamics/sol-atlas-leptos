@@ -60,7 +60,7 @@ fn audit() -> Result<Value, Vec<String>> {
     let cover_modes = array_at(&manifest, "cover_modes")
         .cloned()
         .unwrap_or_default();
-    if archetypes.len() != 9 || !unique_ids(&archetypes) {
+    if archetypes.len() != 10 || !unique_ids(&archetypes) {
         errors.push("nine unique pool/water archetypes are required".to_owned());
     }
     if scenarios.len() != 8 {
@@ -76,6 +76,7 @@ fn audit() -> Result<Value, Vec<String>> {
         "CLOSED_LOOP_CISTERN_THERMAL_BATTERY",
         "INDIRECT_EVAPORATIVE_HEAT_REJECTION",
         "DIRECT_MISTING_SYSTEM",
+        "POOL_HEAT_RECOVERY_FROM_COOLING_LOAD",
     ] {
         if !contains_id(&archetypes, required) {
             errors.push(format!("required water archetype {required} is missing"));
@@ -110,12 +111,12 @@ fn audit() -> Result<Value, Vec<String>> {
     }
 
     let expansion = &manifest["case_expansion"];
-    if expansion["archetypes"].as_u64() != Some(9)
+    if expansion["archetypes"].as_u64() != Some(10)
         || expansion["scenarios"].as_u64() != Some(8)
-        || expansion["cases"].as_u64() != Some(72)
+        || expansion["cases"].as_u64() != Some(80)
         || text_at(expansion, "state") != Some("REGISTERED_NOT_EXECUTED")
     {
-        errors.push("pool/water matrix must remain nine by eight, 72 registered cases".to_owned());
+        errors.push("pool/water matrix must remain ten by eight, 80 registered cases".to_owned());
     }
 
     let balances = array_at(&manifest, "required_balance_terms")
@@ -165,7 +166,7 @@ fn audit() -> Result<Value, Vec<String>> {
         "archetype_count":archetypes.len(),
         "scenario_count":scenarios.len(),
         "cover_mode_count":cover_modes.len(),
-        "registered_case_count":72,
+        "registered_case_count":80,
         "pool_role":"FINITE_THERMAL_BUFFER_NOT_INFINITE_SINK",
         "aerosol_water_management_gate":"REQUIRED_WHEN_AEROSOL_GENERATING",
         "execution_status":"NOT_EXECUTED",
@@ -207,9 +208,9 @@ mod tests {
     #[test]
     fn all_nine_archetypes_and_72_cases_are_registered() {
         let report = audit().expect("pool/water programme contract");
-        assert_eq!(report["archetype_count"], 9);
+        assert_eq!(report["archetype_count"], 10);
         assert_eq!(report["scenario_count"], 8);
-        assert_eq!(report["registered_case_count"], 72);
+        assert_eq!(report["registered_case_count"], 80);
     }
 
     #[test]
