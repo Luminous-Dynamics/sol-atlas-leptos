@@ -1189,7 +1189,7 @@ mod tests {
         );
         assert_eq!(result.recommendation, Recommendation::UseCurrentEvidence);
     }
- 
+
     #[test]
     fn stale_action_evidence_blocks_intervention() {
         let mut problem = positive_voi_fixture();
