@@ -105,3 +105,5 @@ jobs:
         run: cargo test --bin highveld-refuge-network-feasibility
       - name: Execute multi-zone refuge network feasibility oracle
         run: cargo run --bin highveld-refuge-network-feasibility -- --self-test
+      - name: Execute temporal refuge supply-demand degradation sequence
+        run: cargo run --bin highveld-refuge-network-feasibility -- --time-series-self-test
