@@ -19,7 +19,8 @@
     "maintenance_contracts",
     "household_service_outcomes",
     "consent_records",
-    "household_data_access_requests"
+    "household_data_access_requests",
+    "model_qualification_records"
   ],
   "properties": {
     "schema_version": {
@@ -103,6 +104,12 @@
       "type": "array",
       "items": {
         "$ref": "#/$defs/data_access_request"
+      }
+    },
+    "model_qualification_records": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/model_qualification"
       }
     }
   },
@@ -687,6 +694,74 @@
         },
         "evidence_id": {
           "$ref": "#/$defs/nonempty"
+        }
+      }
+    },
+    "model_qualification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "model_id",
+        "model_revision_id",
+        "configuration_sha256",
+        "applicability_domain_id",
+        "applicability_state",
+        "assurance_tier",
+        "permitted_decision_class",
+        "independent_review_state"
+      ],
+      "properties": {
+        "model_id": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "model_revision_id": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "configuration_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "applicability_domain_id": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "applicability_state": {
+          "enum": [
+            "IN_DOMAIN",
+            "OUT_OF_DOMAIN",
+            "UNKNOWN"
+          ]
+        },
+        "assurance_tier": {
+          "enum": [
+            "SCREENING",
+            "DECISION_SUPPORT",
+            "SERVICE_CRITICAL"
+          ]
+        },
+        "permitted_decision_class": {
+          "enum": [
+            "OPTION_SCREENING",
+            "REVERSIBLE_DESIGN_DECISION",
+            "ESSENTIAL_SERVICE_CLAIM"
+          ]
+        },
+        "validation_evidence_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "uncertainty_evidence_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "measurement_reference_evidence_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "independent_review_state": {
+          "enum": [
+            "PASSED",
+            "PENDING",
+            "NOT_REQUIRED"
+          ]
         }
       }
     }
