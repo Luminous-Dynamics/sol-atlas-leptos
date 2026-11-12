@@ -79,7 +79,8 @@
             "replacement_part_delay",
             "network_interruption",
             "service_restoration",
-            "system_status_notice"
+            "system_status_notice",
+            "observation_window"
           ]
         },
         "start_offset_s": {
