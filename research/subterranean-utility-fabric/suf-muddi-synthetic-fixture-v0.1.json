@@ -41,7 +41,7 @@
       "muddi_class": "MUDDISpace",
       "label": "Abstract underground utility precinct",
       "epistemic_class": "scenario_assumption",
-      "availability_state": "observed",
+      "availability_state": "available",
       "disclosure_class": "restricted_critical",
       "geometry": {
         "type": "Polygon",
@@ -81,7 +81,8 @@
         "end": null
       },
       "evidence_refs": [],
-      "links": []
+      "links": [],
+      "currentness_state": "current_candidate"
     },
     {
       "record_id": "fixture:record:network-power-01",
@@ -94,7 +95,7 @@
       "muddi_class": "Network",
       "label": "Synthetic low-voltage network",
       "epistemic_class": "scenario_assumption",
-      "availability_state": "observed",
+      "availability_state": "available",
       "disclosure_class": "restricted_critical",
       "geometry": null,
       "position_uncertainty_m": null,
@@ -112,7 +113,8 @@
           "relationship": "has_network_conveyance",
           "target_record_id": "fixture:record:conveyance-electricity-01"
         }
-      ]
+      ],
+      "currentness_state": "current_candidate"
     },
     {
       "record_id": "fixture:record:asset-power-duct-01",
@@ -125,7 +127,7 @@
       "muddi_class": "MUDDIAsset",
       "label": "Synthetic protected power duct",
       "epistemic_class": "scenario_assumption",
-      "availability_state": "observed",
+      "availability_state": "available",
       "disclosure_class": "restricted_critical",
       "geometry": {
         "type": "LineString",
@@ -150,7 +152,8 @@
       "evidence_refs": [
         "fixture:observation:power-survey-01"
       ],
-      "links": []
+      "links": [],
+      "currentness_state": "current_candidate"
     },
     {
       "record_id": "fixture:record:asset-fibre-duct-01",
@@ -163,7 +166,7 @@
       "muddi_class": "MUDDIAsset",
       "label": "Synthetic fibre duct",
       "epistemic_class": "scenario_assumption",
-      "availability_state": "observed",
+      "availability_state": "available",
       "disclosure_class": "operational",
       "geometry": {
         "type": "LineString",
@@ -188,7 +191,8 @@
       "evidence_refs": [
         "fixture:observation:fibre-indication-01"
       ],
-      "links": []
+      "links": [],
+      "currentness_state": "current_candidate"
     },
     {
       "record_id": "fixture:record:asset-water-main-01",
@@ -201,7 +205,7 @@
       "muddi_class": "MUDDIAsset",
       "label": "Synthetic potable water main",
       "epistemic_class": "scenario_assumption",
-      "availability_state": "observed",
+      "availability_state": "available",
       "disclosure_class": "restricted_critical",
       "geometry": {
         "type": "LineString",
@@ -224,7 +228,8 @@
         "end": null
       },
       "evidence_refs": [],
-      "links": []
+      "links": [],
+      "currentness_state": "current_candidate"
     },
     {
       "record_id": "fixture:record:asset-stormwater-01",
@@ -237,7 +242,7 @@
       "muddi_class": "MUDDIAsset",
       "label": "Synthetic stormwater conduit interface",
       "epistemic_class": "scenario_assumption",
-      "availability_state": "observed",
+      "availability_state": "available",
       "disclosure_class": "restricted_critical",
       "geometry": {
         "type": "LineString",
@@ -260,7 +265,8 @@
         "end": null
       },
       "evidence_refs": [],
-      "links": []
+      "links": [],
+      "currentness_state": "current_candidate"
     },
     {
       "record_id": "fixture:record:network-asset-power-01",
@@ -273,7 +279,7 @@
       "muddi_class": "NetworkAsset",
       "label": "Power duct membership in synthetic LV network",
       "epistemic_class": "scenario_assumption",
-      "availability_state": "observed",
+      "availability_state": "available",
       "disclosure_class": "restricted_critical",
       "geometry": null,
       "position_uncertainty_m": null,
@@ -291,7 +297,8 @@
           "relationship": "member_network",
           "target_record_id": "fixture:record:network-power-01"
         }
-      ]
+      ],
+      "currentness_state": "current_candidate"
     },
     {
       "record_id": "fixture:record:conveyance-electricity-01",
@@ -304,7 +311,7 @@
       "muddi_class": "NetworkConveyance",
       "label": "Electricity conveyance reference only",
       "epistemic_class": "scenario_assumption",
-      "availability_state": "observed",
+      "availability_state": "available",
       "disclosure_class": "restricted_critical",
       "geometry": null,
       "position_uncertainty_m": null,
@@ -313,7 +320,8 @@
         "end": null
       },
       "evidence_refs": [],
-      "links": []
+      "links": [],
+      "currentness_state": "current_candidate"
     },
     {
       "record_id": "fixture:record:node-a-01",
@@ -326,7 +334,7 @@
       "muddi_class": "NetworkNode",
       "label": "Synthetic network node A",
       "epistemic_class": "scenario_assumption",
-      "availability_state": "observed",
+      "availability_state": "available",
       "disclosure_class": "restricted_critical",
       "geometry": {
         "type": "Point",
@@ -342,7 +350,8 @@
         "end": null
       },
       "evidence_refs": [],
-      "links": []
+      "links": [],
+      "currentness_state": "current_candidate"
     },
     {
       "record_id": "fixture:record:node-b-01",
@@ -355,7 +364,7 @@
       "muddi_class": "NetworkNode",
       "label": "Synthetic network node B",
       "epistemic_class": "scenario_assumption",
-      "availability_state": "observed",
+      "availability_state": "available",
       "disclosure_class": "restricted_critical",
       "geometry": {
         "type": "Point",
@@ -371,7 +380,8 @@
         "end": null
       },
       "evidence_refs": [],
-      "links": []
+      "links": [],
+      "currentness_state": "current_candidate"
     },
     {
       "record_id": "fixture:record:link-power-01",
@@ -384,7 +394,7 @@
       "muddi_class": "NetworkLink",
       "label": "Synthetic link between node A and node B",
       "epistemic_class": "scenario_assumption",
-      "availability_state": "observed",
+      "availability_state": "available",
       "disclosure_class": "restricted_critical",
       "geometry": {
         "type": "LineString",
@@ -422,7 +432,8 @@
           "relationship": "conveys_asset",
           "target_record_id": "fixture:record:asset-power-duct-01"
         }
-      ]
+      ],
+      "currentness_state": "current_candidate"
     },
     {
       "record_id": "fixture:record:access-chamber-01",
@@ -435,7 +446,7 @@
       "muddi_class": "NetworkAccessory",
       "label": "Synthetic access chamber",
       "epistemic_class": "scenario_assumption",
-      "availability_state": "observed",
+      "availability_state": "available",
       "disclosure_class": "restricted_critical",
       "geometry": {
         "type": "Point",
@@ -451,7 +462,8 @@
         "end": null
       },
       "evidence_refs": [],
-      "links": []
+      "links": [],
+      "currentness_state": "current_candidate"
     },
     {
       "record_id": "fixture:record:event-survey-01",
@@ -464,7 +476,7 @@
       "muddi_class": "MUDDIEvent",
       "label": "Synthetic survey event",
       "epistemic_class": "scenario_assumption",
-      "availability_state": "observed",
+      "availability_state": "available",
       "disclosure_class": "restricted_critical",
       "geometry": null,
       "position_uncertainty_m": null,
@@ -476,7 +488,8 @@
         "fixture:observation:power-survey-01",
         "fixture:observation:fibre-indication-01"
       ],
-      "links": []
+      "links": [],
+      "currentness_state": "current_candidate"
     },
     {
       "record_id": "fixture:record:legacy-power-claim-01",
@@ -489,7 +502,7 @@
       "muddi_class": "MUDDIObject",
       "label": "Conflicting legacy representation of the same power duct",
       "epistemic_class": "compiled_secondary",
-      "availability_state": "conflicting",
+      "availability_state": "available",
       "disclosure_class": "restricted_critical",
       "geometry": {
         "type": "LineString",
@@ -523,7 +536,8 @@
           "relationship": "conflicts_with",
           "target_record_id": "fixture:record:asset-power-duct-01"
         }
-      ]
+      ],
+      "currentness_state": "conflicting"
     }
   ],
   "observations": [
@@ -546,7 +560,8 @@
       "raw_artifact_ref": null,
       "source_digest": null,
       "rights_state": "synthetic_fixture_only",
-      "quality_state": "synthetic_reference_observation"
+      "quality_state": "synthetic_reference_observation",
+      "availability_state": "available"
     },
     {
       "observation_id": "fixture:observation:fibre-indication-01",
@@ -567,7 +582,8 @@
       "raw_artifact_ref": null,
       "source_digest": null,
       "rights_state": "synthetic_fixture_only",
-      "quality_state": "synthetic_indication_not_exposed_truth"
+      "quality_state": "synthetic_indication_not_exposed_truth",
+      "availability_state": "available"
     },
     {
       "observation_id": "fixture:observation:legacy-import-01",
@@ -588,7 +604,8 @@
       "raw_artifact_ref": null,
       "source_digest": null,
       "rights_state": "synthetic_fixture_only",
-      "quality_state": "historical_conflicting_representation"
+      "quality_state": "historical_conflicting_representation",
+      "availability_state": "available"
     }
   ],
   "fixture_rules": [
