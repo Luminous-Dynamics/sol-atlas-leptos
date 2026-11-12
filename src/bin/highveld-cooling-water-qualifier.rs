@@ -10,6 +10,9 @@ const SCHEMA: &str = include_str!(
 const MULTI_ENGINE_BENCHMARK: &str = include_str!(
     "../../docs/research/highveld-neighborhood-commons/MULTI_ENGINE_THERMAL_WATER_BENCHMARK_MANIFEST_V0.1.json"
 );
+const COURTYARD_INSTRUMENT_PACKAGE: &str = include_str!(
+    "../../docs/research/highveld-neighborhood-commons/COURTYARD_TEST_CELL_INSTRUMENT_MANIFEST_V0.1.json"
+);
 
 fn string_at<'a>(value: &'a Value, key: &str) -> Option<&'a str> {
     value
@@ -242,6 +245,37 @@ fn main() {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn courtyard_instrument_package_is_a_template_not_field_evidence() {
+        let package: Value = serde_json::from_str(COURTYARD_INSTRUMENT_PACKAGE)
+            .expect("courtyard instrument package JSON");
+        assert_eq!(
+            package["admission_state"].as_str(),
+            Some("TEMPLATE_NOT_FIELD_ADMITTED")
+        );
+        assert_eq!(package["execution_status"].as_str(), Some("NOT_EXECUTED"));
+        assert_eq!(
+            package["native_event_identity_owner"].as_str(),
+            Some("SYMTROPY")
+        );
+        let channels = package["channels"].as_array().expect("instrument channels");
+        assert_eq!(channels.len(), 24);
+        assert!(channels.iter().all(|channel| {
+            channel["instrument_assignment"].is_null()
+                && channel["calibration_state"] == "NOT_ADMITTED"
+                && channel["evidence_state"] == "TEMPLATE_ONLY"
+        }));
+        assert_eq!(
+            package["privacy_controls"]["cameras_permitted"].as_bool(),
+            Some(false)
+        );
+        assert!(
+            package["missingness_rule"]
+                .as_str()
+                .is_some_and(|rule| rule.contains("UNKNOWN_NOT_ZERO"))
+        );
+    }
 
     #[test]
     fn multi_engine_benchmark_pins_distinct_specialist_roles() {
