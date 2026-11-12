@@ -86,6 +86,7 @@ These targets apply first to finite synthetic known-answer cases. They are not p
 
 Report as vectors, never one universal score:
 - per-household essential-service hours preserved;
+- complete household × essential-service outcome coverage with zero missing rows;
 - requested/admitted/delivered/refused/delayed/inaccessible/unknown service quantities;
 - access time, queue time and unserved time separately;
 - hub-loss autonomy by household/service;
