@@ -113,7 +113,7 @@ fn evaluate(case: &Value) -> Result<Value, Vec<String>> {
                 eligible,
                 total,
                 accessible,
-                water_l,
+                water_l: water,
                 evidence_ok,
                 used: Usage::default(),
             },
