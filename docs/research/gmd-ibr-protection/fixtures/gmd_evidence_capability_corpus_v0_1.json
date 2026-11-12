@@ -7,7 +7,7 @@
   "evaluation_time_unix_seconds": 1794460000,
   "trust_store_artifact": {
     "path": "trust_store.json",
-    "sha256": "a40c3c4f2fb1fac371d45ed35c8e30467c8883015b6b06feb9a7bbb281f49318"
+    "sha256": "7287024f22d0e76bc688b2c159db9265ab7b61ab2f4ccba92ab94572e0da0435"
   },
   "claim": {
     "claim_id": "claim-waveform",
@@ -29,11 +29,11 @@
     "claim_id": "claim-waveform",
     "payload_artifact": {
       "path": "attestation_payload.json",
-      "sha256": "c54e5f859647b9993ef8149e761a39c41e84a19d5e67cfb273b821d2ee870f9f"
+      "sha256": "7af8bade259b0cab6160be88f7dbff29f1cf9dc968305dd07c87c80845dd1b3e"
     },
     "signature_artifact": {
       "path": "attestation_signature.bin",
-      "sha256": "45c388ea6ada1a39e17008957b89a483cc528d04fc617aa2d2d89b7507854855"
+      "sha256": "84c31fcdf8b4e57320e8f1c188f0a0765621e571e03b8832b10ee7eb2c2b56cb"
     }
   }
 }

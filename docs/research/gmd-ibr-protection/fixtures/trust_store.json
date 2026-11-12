@@ -9,7 +9,7 @@
       "independence_assessed": true,
       "public_key_artifact": {
         "path": "synthetic_issuer_public.der",
-        "sha256": "db494225c5a1bc52b5541b3aeb89f6df34a76fbf53eb0d6fc381d25704dfdf7a"
+        "sha256": "2d5bff965fb22ea7098523789195a0dd06050bbd4fbba1b7414b61f19b217a1b"
       }
     }
   ]
