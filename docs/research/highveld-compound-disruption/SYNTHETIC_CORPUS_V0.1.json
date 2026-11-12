@@ -109,7 +109,8 @@
       "capability_assumptions": [
         "No future event information is available to candidate policies.",
         "Resource coupling between pumping and other loads is candidate-specific, not implied by this trace."
-      ]
+      ],
+      "scope_join_guards": []
     },
     {
       "scenario_id": "cold_grid_heatbank_repair",
@@ -203,7 +204,8 @@
       "capability_assumptions": [
         "The HeatBank service floor is not supplied by this corpus.",
         "Do not infer useful heat or hot-water delivery from a component fault record."
-      ]
+      ],
+      "scope_join_guards": []
     },
     {
       "scenario_id": "air_quality_ventilation_network",
@@ -297,7 +299,8 @@
       "capability_assumptions": [
         "A manual control path is declared available in this fixture.",
         "Manual control availability is not proof of adequate outdoor-air delivery or pollutant-specific clean-air service."
-      ]
+      ],
+      "scope_join_guards": []
     },
     {
       "scenario_id": "restoration_repeat_fault",
@@ -384,7 +387,8 @@
       "capability_assumptions": [
         "A restoration marker is not sufficient evidence of stable service recovery.",
         "Repair completion and repeat-fault verification remain separate owner-native outcomes."
-      ]
+      ],
+      "scope_join_guards": []
     },
     {
       "scenario_id": "system_notice_no_tap_report",
@@ -416,8 +420,8 @@
         {
           "left_event_id": "system_status_notice",
           "right_event_id": "tap_observation_window",
-          "expected_relation": "not_comparable",
-          "rationale": "Matching clock windows do not make system and tap scopes semantically interchangeable."
+          "expected_relation": "overlaps",
+          "rationale": "The half-open time windows overlap; temporal overlap alone does not establish semantic comparability."
         }
       ],
       "semantic_links": [
@@ -452,6 +456,14 @@
           },
           "temporal_resolution_s": 86400,
           "notes": "No tap-level report exists in this fixture; this is not observed normal service."
+        }
+      ],
+      "scope_join_guards": [
+        {
+          "left_event_id": "system_status_notice",
+          "right_event_id": "tap_observation_window",
+          "expected_disposition": "NOT_COMPARABLE",
+          "rationale": "A system-level status record cannot be promoted to tap-level delivery or outage evidence."
         }
       ]
     }
