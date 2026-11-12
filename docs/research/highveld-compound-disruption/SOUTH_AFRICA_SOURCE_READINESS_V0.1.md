@@ -52,3 +52,18 @@ For the current register:
 ## Claim ceiling
 
 This register supports research prioritization and acquisition planning only. It does not establish observed Highveld joint events, their rate or probability, any dwelling's service state, thermal/air/water safety, health outcomes, climate representativeness or physical resilience.
+
+## Additional primary-source acquisition leads (12 November 2026)
+
+| Source | What it adds | Scope / limitation | Admission treatment |
+|---|---|---|---|
+| DWS, *Monthly Dashboard for a Water Secure Gauteng*, 31 May 2026 (Rev 02) | Monthly municipality-level water-use context, a 2014–April 2026 demand trend, four Rand Water strategic reservoir-system storage series since January 2025, and the 2026 planned-maintenance window. [DWS dashboard](https://www.dws.gov.za/documents/2026-05%20Gauteng%20Dashboard.pdf) | System/reservoir and municipal aggregates. The dashboard states that municipalities communicate localized supply outages separately. It does not establish a property's tap state, a specific feeder outage, or hourly household event intervals. | DISCOVERY_ONLY / SYSTEM_CONTEXT. Preserve PDF revision, as-of date, page, metric definition, aggregation, units and publication digest. Do not convert reservoir level or maintenance dates into a dwelling interruption. |
+| Eskom Data Portal, weekly unplanned outages | Current-financial-year weekly trend and downloadable data file, useful for broad system context and source discovery. [Weekly unplanned outages](https://www.eskom.co.za/dataportal/outage-performance/weekly-unplanned-outages/) | Full-week trend, not local distribution feeder or household connection telemetry; the page describes spread and average weekly trend. | DISCOVERY_ONLY / SYSTEM_CONTEXT. Pin the download, fiscal-year boundary, outage definition, refresh date and geographic/system scope. No local-scope promotion. |
+| Stats SA GHS 2025 publication package | The official release page lists the main report, key findings, presentation, addendum weighted tables and 2002–2025 selected-variable time series. [GHS 2025 release page](https://www.statssa.gov.za/?PPN=P0318&SCH=74563&page_id=1854) | Weighted published tables are still survey summaries; time-series tables are not event logs, feeder data or individual dwelling observations. | CONTEXT_ONLY. Preserve exact workbook/table revision, variable wording, denominator, weights, survey design and uncertainty before reusing. |
+
+### Acquisition order refinement
+
+1. Preserve the GHS 2025 report, addendum weighted tables, selected-variable time series, questionnaire and methodology as one versioned survey package.
+2. Preserve each available monthly DWS Gauteng dashboard revision. Separate the four reservoir-system storage series, municipal demand and maintenance notes; do not join them as though they were tap-flow observations.
+3. Snapshot the Eskom weekly unplanned-outage download with the fiscal-year definition and its data dictionary. Treat it as system context, not a City Power feeder outage series.
+4. For the September 2026 Eikenhof episode, seek issuer-native records from Rand Water, City Power, Johannesburg Water, DWS and Eskom. Only build a joint trace after temporal coverage, locations, scope and clock definitions are independently reconciled.
