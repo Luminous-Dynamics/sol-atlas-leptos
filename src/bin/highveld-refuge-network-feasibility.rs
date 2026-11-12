@@ -136,15 +136,11 @@ fn run_flow(
 
     let demand_handles: Vec<EdgeHandle> = demands
         .iter()
-        .map(|(id, quantity)| {
-            network.add_edge(source, demand_nodes[id], *quantity)
-        })
+        .map(|(id, quantity)| network.add_edge(source, demand_nodes[id], *quantity))
         .collect();
     let site_handles: Vec<EdgeHandle> = sites
         .iter()
-        .map(|(id, capacity)| {
-            network.add_edge(site_nodes[id], sink, *capacity)
-        })
+        .map(|(id, capacity)| network.add_edge(site_nodes[id], sink, *capacity))
         .collect();
 
     for (cohort_id, site_id) in links {
@@ -186,7 +182,10 @@ fn uint_at(value: &Value, key: &str) -> Option<u64> {
 }
 
 fn number_at(value: &Value, key: &str) -> Option<f64> {
-    value.get(key).and_then(Value::as_f64).filter(|number| number.is_finite())
+    value
+        .get(key)
+        .and_then(Value::as_f64)
+        .filter(|number| number.is_finite())
 }
 
 fn evaluate(case: &Value) -> Result<Value, Vec<String>> {
@@ -216,11 +215,17 @@ fn evaluate(case: &Value) -> Result<Value, Vec<String>> {
         errors.push("safe water planning basis must be positive".to_owned());
     }
 
-    let cohorts = case.get("cohorts").and_then(Value::as_array)
+    let cohorts = case
+        .get("cohorts")
+        .and_then(Value::as_array)
         .ok_or_else(|| vec!["cohorts must be an array".to_owned()])?;
-    let sites = case.get("sites").and_then(Value::as_array)
+    let sites = case
+        .get("sites")
+        .and_then(Value::as_array)
         .ok_or_else(|| vec!["sites must be an array".to_owned()])?;
-    let routes = case.get("routes").and_then(Value::as_array)
+    let routes = case
+        .get("routes")
+        .and_then(Value::as_array)
         .ok_or_else(|| vec!["routes must be an array".to_owned()])?;
     if cohorts.is_empty() || sites.is_empty() {
         errors.push("at least one cohort and one site are required".to_owned());
@@ -231,7 +236,9 @@ fn evaluate(case: &Value) -> Result<Value, Vec<String>> {
     let mut accessible_requested = 0_u64;
     let mut cohort_data = Vec::<(String, u64, u64, f64)>::new();
     for (index, cohort) in cohorts.iter().enumerate() {
-        let id = text_at(cohort, "cohort_id").unwrap_or("<missing-cohort-id>").to_owned();
+        let id = text_at(cohort, "cohort_id")
+            .unwrap_or("<missing-cohort-id>")
+            .to_owned();
         if cohort_index.insert(id.clone(), index).is_some() {
             errors.push(format!("duplicate cohort identity {id}"));
         }
@@ -252,7 +259,9 @@ fn evaluate(case: &Value) -> Result<Value, Vec<String>> {
     let mut site_effective_accessible = Vec::new();
     let mut site_reports = Vec::new();
     for (index, site) in sites.iter().enumerate() {
-        let id = text_at(site, "site_id").unwrap_or("<missing-site-id>").to_owned();
+        let id = text_at(site, "site_id")
+            .unwrap_or("<missing-site-id>")
+            .to_owned();
         if site_index.insert(id.clone(), index).is_some() {
             errors.push(format!("duplicate refuge site identity {id}"));
         }
@@ -263,20 +272,52 @@ fn evaluate(case: &Value) -> Result<Value, Vec<String>> {
             reasons.push("LOCAL_REFUGE_DIRECTORY_NOT_QUALIFIED".to_owned());
         }
         for (key, expected, reason) in [
-            ("operating_window_state", "OPEN_FOR_REQUIRED_WINDOW", "NOT_OPEN_FOR_REQUIRED_WINDOW"),
-            ("thermal_service_state", "QUALIFIED", "THERMAL_SERVICE_NOT_QUALIFIED"),
-            ("ventilation_state", "QUALIFIED", "VENTILATION_NOT_QUALIFIED"),
-            ("safe_water_service_state", "QUALIFIED", "SAFE_WATER_SERVICE_NOT_QUALIFIED"),
-            ("safe_water_rights_state", "QUALIFIED", "SAFE_WATER_RIGHTS_NOT_QUALIFIED"),
-            ("safe_water_quality_state", "QUALIFIED", "SAFE_WATER_QUALITY_NOT_QUALIFIED"),
-            ("staffing_maintenance_state", "QUALIFIED", "STAFFING_OR_MAINTENANCE_NOT_QUALIFIED"),
+            (
+                "operating_window_state",
+                "OPEN_FOR_REQUIRED_WINDOW",
+                "NOT_OPEN_FOR_REQUIRED_WINDOW",
+            ),
+            (
+                "thermal_service_state",
+                "QUALIFIED",
+                "THERMAL_SERVICE_NOT_QUALIFIED",
+            ),
+            (
+                "ventilation_state",
+                "QUALIFIED",
+                "VENTILATION_NOT_QUALIFIED",
+            ),
+            (
+                "safe_water_service_state",
+                "QUALIFIED",
+                "SAFE_WATER_SERVICE_NOT_QUALIFIED",
+            ),
+            (
+                "safe_water_rights_state",
+                "QUALIFIED",
+                "SAFE_WATER_RIGHTS_NOT_QUALIFIED",
+            ),
+            (
+                "safe_water_quality_state",
+                "QUALIFIED",
+                "SAFE_WATER_QUALITY_NOT_QUALIFIED",
+            ),
+            (
+                "staffing_maintenance_state",
+                "QUALIFIED",
+                "STAFFING_OR_MAINTENANCE_NOT_QUALIFIED",
+            ),
         ] {
             if text_at(site, key) != Some(expected) {
                 reasons.push(reason.to_owned());
             }
         }
 
-        for key in ["capacity_evidence_ref", "service_evidence_ref", "water_evidence_ref"] {
+        for key in [
+            "capacity_evidence_ref",
+            "service_evidence_ref",
+            "water_evidence_ref",
+        ] {
             if text_at(site, key).is_none() {
                 reasons.push(format!("MISSING_SITE_EVIDENCE_{key}"));
             }
@@ -294,7 +335,9 @@ fn evaluate(case: &Value) -> Result<Value, Vec<String>> {
             number_at(site, "safe_water_protected_reserve_l"),
         ) {
             (Some(available), Some(reserved), Some(protected))
-                if available >= 0.0 && reserved >= 0.0 && protected >= 0.0
+                if available >= 0.0
+                    && reserved >= 0.0
+                    && protected >= 0.0
                     && available >= reserved + protected =>
             {
                 Some(available - reserved - protected)
@@ -310,19 +353,32 @@ fn evaluate(case: &Value) -> Result<Value, Vec<String>> {
         };
 
         let (free_total, free_accessible) = match (
-            total_capacity, occupancy, committed,
-            accessible_capacity, accessible_occupancy, accessible_committed
+            total_capacity,
+            occupancy,
+            committed,
+            accessible_capacity,
+            accessible_occupancy,
+            accessible_committed,
         ) {
-            (Some(total), Some(occupied), Some(reserved), Some(access), Some(access_occupied), Some(access_reserved))
-                if occupied <= total
-                    && reserved <= total - occupied
-                    && access_occupied <= access
-                    && access_reserved <= access - access_occupied
-                    && access <= total
-                    && access_occupied <= occupied
-                    && access_reserved <= reserved =>
+            (
+                Some(total),
+                Some(occupied),
+                Some(reserved),
+                Some(access),
+                Some(access_occupied),
+                Some(access_reserved),
+            ) if occupied <= total
+                && reserved <= total - occupied
+                && access_occupied <= access
+                && access_reserved <= access - access_occupied
+                && access <= total
+                && access_occupied <= occupied
+                && access_reserved <= reserved =>
             {
-                (Some(total - occupied - reserved), Some(access - access_occupied - access_reserved))
+                (
+                    Some(total - occupied - reserved),
+                    Some(access - access_occupied - access_reserved),
+                )
             }
             (Some(_), Some(_), Some(_), Some(_), Some(_), Some(_)) => {
                 reasons.push("CAPACITY_ACCOUNTING_INVALID".to_owned());
@@ -339,16 +395,25 @@ fn evaluate(case: &Value) -> Result<Value, Vec<String>> {
                 let water_slots = (water / water_basis).floor().max(0.0) as u64;
                 Some(free.min(water_slots))
             }
-            _ => None
+            _ => None,
         };
         let effective_accessible = match (free_accessible, effective_total) {
             (Some(access), Some(total)) => Some(access.min(total)),
             _ => None
         };
 
-        let eligible = reasons.is_empty() && effective_total.is_some() && effective_accessible.is_some();
-        site_effective_total.push(if eligible { effective_total.unwrap_or(0) } else { 0 });
-        site_effective_accessible.push(if eligible { effective_accessible.unwrap_or(0) } else { 0 });
+        let eligible =
+            reasons.is_empty() && effective_total.is_some() && effective_accessible.is_some();
+        site_effective_total.push(if eligible {
+            effective_total.unwrap_or(0)
+        } else {
+            0
+        });
+        site_effective_accessible.push(if eligible {
+            effective_accessible.unwrap_or(0)
+        } else {
+            0
+        });
         site_reports.push(json!({
             "site_id":id,
             "site_eligibility":if eligible {"ELIGIBLE"} else {"EXCLUDED"},
@@ -366,8 +431,12 @@ fn evaluate(case: &Value) -> Result<Value, Vec<String>> {
     let mut seen_routes = BTreeSet::<(String, String)>::new();
     let mut route_reports = Vec::new();
     for route in routes {
-        let cohort_id = text_at(route, "cohort_id").unwrap_or("<missing-cohort>").to_owned();
-        let site_id = text_at(route, "site_id").unwrap_or("<missing-site>").to_owned();
+        let cohort_id = text_at(route, "cohort_id")
+            .unwrap_or("<missing-cohort>")
+            .to_owned();
+        let site_id = text_at(route, "site_id")
+            .unwrap_or("<missing-site>")
+            .to_owned();
         let mut reasons = Vec::new();
         if !cohort_index.contains_key(&cohort_id) {
             errors.push(format!("route references unknown cohort {cohort_id}"));
@@ -383,11 +452,13 @@ fn evaluate(case: &Value) -> Result<Value, Vec<String>> {
         {
             reasons.push("ROUTE_OR_ACCESSIBILITY_EVIDENCE_REFERENCE_MISSING".to_owned());
         }
-        let cohort = cohort_index.get(&cohort_id).map(|index| &cohort_data[*index]);
+        let cohort = cohort_index
+            .get(&cohort_id)
+            .map(|index| &cohort_data[*index]);
         let site = site_index.get(&site_id).copied();
         let time = number_at(route, "travel_time_s");
         let time_ok = match (time, cohort) {
-            (Some(seconds), Some((_, _, _, maximum))) => seconds <= *maximum,
+            (Some(seconds), Some((_, _, _, maximum))) => seconds >= 0.0 && seconds <= *maximum,
             _ => false,
         };
         if !time_ok {
@@ -397,7 +468,9 @@ fn evaluate(case: &Value) -> Result<Value, Vec<String>> {
         if !route_reachable {
             reasons.push("ROUTE_NOT_REACHABLE".to_owned());
         }
-        let site_ok = site.map(|i| site_reports[i]["site_eligibility"] == "ELIGIBLE").unwrap_or(false);
+        let site_ok = site
+            .map(|i| site_reports[i]["site_eligibility"] == "ELIGIBLE")
+            .unwrap_or(false);
         if !site_ok {
             reasons.push("REFUGE_SITE_NOT_ELIGIBLE".to_owned());
         }
@@ -409,7 +482,9 @@ fn evaluate(case: &Value) -> Result<Value, Vec<String>> {
             reasons.push("ACCESSIBILITY_STATE_UNKNOWN".to_owned());
         }
 
-        let base_ok = time_ok && route_reachable && site_ok
+        let base_ok = time_ok
+            && route_reachable
+            && site_ok
             && text_at(route, "route_evidence_ref").is_some()
             && text_at(route, "accessibility_evidence_ref").is_some();
         if base_ok && general_access_ok {
@@ -451,7 +526,8 @@ fn evaluate(case: &Value) -> Result<Value, Vec<String>> {
         .iter()
         .enumerate()
         .map(|(index, id)| {
-            let remaining = site_effective_total[index].saturating_sub(accessible_flow.used_by_site[index]);
+            let remaining =
+                site_effective_total[index].saturating_sub(accessible_flow.used_by_site[index]);
             (id.clone(), remaining)
         })
         .collect();
@@ -468,7 +544,11 @@ fn evaluate(case: &Value) -> Result<Value, Vec<String>> {
         let total_served = accessible_served + general_served;
         accessible_unmet += accessible.saturating_sub(accessible_served);
         general_unmet += general_requested.saturating_sub(general_served);
-        let ratio = if *total == 0 { 1.0 } else { total_served as f64 / *total as f64 };
+        let ratio = if *total == 0 {
+            1.0
+        } else {
+            total_served as f64 / *total as f64
+        };
         minimum_ratio = minimum_ratio.min(ratio);
         cohort_reports.push(json!({
             "cohort_id":id,
@@ -522,7 +602,10 @@ fn main() {
         "--self-test" => {
             let case: Value = serde_json::from_str(CASE).expect("committed network case JSON");
             let report = evaluate(&case).expect("network case structure");
-            println!("{}", serde_json::to_string_pretty(&report).unwrap_or_default());
+            println!(
+                "{}",
+                serde_json::to_string_pretty(&report).unwrap_or_default()
+            );
             if report["audit_state"] != "REFUGE_NETWORK_FEASIBILITY_COMPLETE" {
                 process::exit(1);
             }
@@ -605,7 +688,10 @@ mod tests {
         let report = evaluate(&sample()).unwrap();
         assert_eq!(report["assignment"], "NONE");
         assert_eq!(report["reservation"], "NONE");
-        assert_eq!(report["execution_status"], "AGGREGATE_FEASIBILITY_ONLY_NO_ASSIGNMENT");
+        assert_eq!(
+            report["execution_status"],
+            "AGGREGATE_FEASIBILITY_ONLY_NO_ASSIGNMENT"
+        );
     }
 
     #[test]
