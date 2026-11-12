@@ -1067,7 +1067,7 @@ fn audit_manifest(root: &Value) -> Value {
             );
         }
 
-        let qualified = match (tier, decision_class) {
+        let tier_qualified = match (tier, decision_class) {
             (Some("SCREENING"), Some("OPTION_SCREENING")) => true,
             (Some("SCREENING"), _) => {
                 audit.fail(
@@ -1133,6 +1133,12 @@ fn audit_manifest(root: &Value) -> Value {
                 false
             }
         };
+
+        let qualified = tier_qualified
+            && has_domain
+            && has_revision
+            && has_config
+            && applicability_state == Some("IN_DOMAIN");
 
         model_qualification_rows.push(json!({
             "model_id": model_id,
@@ -1658,7 +1664,8 @@ mod tests {
             "applicability_domain_id":"domain-synthetic-r0",
             "assurance_tier":"SCREENING",
             "permitted_decision_class":"OPTION_SCREENING",
-            "independent_review_state":"NOT_REQUIRED"
+            "independent_review_state":"NOT_REQUIRED",
+            "applicability_state":"IN_DOMAIN"
         }]);
         let report = audit_manifest(&manifest);
         assert_eq!(report["status"].as_str(), Some("PASS"));
