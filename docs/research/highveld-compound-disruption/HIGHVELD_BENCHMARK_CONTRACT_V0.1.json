@@ -385,5 +385,14 @@
     "No empirical probability or joint hazard rate from scenario counts or marginal event frequencies.",
     "No universal resilience scalar that permits one resident's mandatory service-floor failure to be compensated by another metric.",
     "No use of BOPTEST, ASHRAE 140, EnergyPlus, Forma or TestFit outside each tool's defined scope."
-  ]
+  ],
+  "service_event_handoff_controls": {
+    "corpus_file": "SERVICE_EVENT_HANDOFF_CONTROLS_V0.1.json",
+    "schema_file": "SERVICE_EVENT_HANDOFF_CONTROLS_V0.1.schema.json",
+    "case_count": 12,
+    "per_service_expected_dispositions": 13,
+    "owner": "Symtropy #1848/#1849",
+    "status": "synthetic_reference_controls_not_owner_adapter",
+    "purpose": "Prevent upstream infrastructure events from being promoted to household service transitions without a qualified named-service outcome and owner-approved clock mapping."
+  }
 }
