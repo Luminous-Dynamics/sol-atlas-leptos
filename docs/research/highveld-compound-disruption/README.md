@@ -1,55 +1,64 @@
-# Highveld compound-disruption synthetic corpus v0.1
+# Highveld compound-disruption evidence and benchmark v0.1
 
-This directory contains a small, deterministic **synthetic-only** fixture set for [HIGHVELD-COMPOUND-DISRUPTION-CORPUS-001](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/735).
+This directory contains a deterministic synthetic event corpus, adversarial controls, a cross-tool household-resilience benchmark contract, an industry comparison and a South African source-readiness register for [HIGHVELD-COMPOUND-DISRUPTION-CORPUS-001 #735](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/735).
 
-It is an input/known-answer corpus, not a new event clock, weather archive, resilience evaluator, building simulator, hazard forecast, probability model, or engineering approval. It is designed to feed the existing owners in Sol-Atlas #630/#694/#700 and Symtropy #1848/#1892/#4507/#4531.
+It is an evidence/benchmark package, not a new event clock, weather archive, resilience evaluator, building simulator, hazard forecast, probability model, physical measurement platform, or engineering approval.
 
 ## Files
 
-- `HIGHVELD_COMPOUND_EVENT_V0.1.schema.json` — closed Draft 2020-12 JSON Schema.
-- `SYNTHETIC_CORPUS_V0.1.json` — seven timeline scenarios plus nine adversarial evidence controls with explicit event windows, scopes, temporal resolutions, expected interval relations and one no-report/scope-mismatch control.
+- `HIGHVELD_COMPOUND_EVENT_V0.1.schema.json` — closed Draft 2020-12 schema for the synthetic event corpus.
+- `SYNTHETIC_CORPUS_V0.1.json` — seven deterministic timeline scenarios and nine adversarial evidence controls.
+- `HIGHVELD_BENCHMARK_CONTRACT_V0.1.json` — machine-readable benchmark arms, matched-comparison requirements, owner crosswalk, scorecards, metrics and stage gates.
+- `INDUSTRY_COMPARISON_V0.1.md` — current public capability comparison for Forma, TestFit, EnergyPlus, ASHRAE 140, BOPTEST and building semantics; proposed differentiation and fair head-to-head design.
+- `SOUTH_AFRICA_SOURCE_READINESS_V0.1.md` — South African climate, electricity, water and household-survey source readiness, evidence classes and acquisition gates.
 
-## Contract semantics
+## Synthetic corpus semantics
 
-- Every case is `SyntheticControlledEvent`. No observation, outage frequency, local hazard occurrence, causal dependency or physical outcome is claimed.
+- Every event scenario is `SyntheticControlledEvent`. No observation, outage frequency, local hazard occurrence, causal dependency or physical outcome is claimed.
 - Event intervals are half-open: `[start_offset_s, end_offset_s)`. Equal end/start boundaries mean `meets`, not `overlaps`.
 - Time is integer seconds from a scenario-local `t0`; there is no implicit local timezone, wall clock, daylight-saving conversion or external epoch.
-- A temporal relation is not a causal relation. `semantic_links` are explicit declarations; they are never inferred from interval overlap.
-- Scope is part of identity. A system-level record is not a feeder, dwelling, room or tap observation. Temporal interval relations and scope-join dispositions are separate: two records can overlap in time while remaining NOT_COMPARABLE.
-- `no_report`, `unknown`, `censored` and `observed_normal` are distinct record states. In particular, `no_report` must never be promoted to `observed_normal` or “no outage”.
-- A candidate architecture must receive the same exact exogenous scenario event bytes and declared information budget. Future events are hidden unless an explicitly labelled oracle arm is being evaluated.
-- All quantities, event times and severities in this corpus are synthetic fixtures; do not reuse them as Highveld weather, outage durations, service thresholds or forecast probabilities.
+- A temporal relation is not a causal relation. Semantic links are explicit declarations; they are never inferred from interval overlap.
+- Scope is part of identity. A system-level record is not a feeder, dwelling, room or tap observation. Temporal interval relations and scope-join dispositions are separate: two records can overlap in time while remaining `NOT_COMPARABLE`.
+- `no_report`, `unknown`, `censored` and `observed_normal` are distinct record states. A missing notice or missing record is not normal service.
+- Every paired candidate must receive the same exact exogenous trace identity/digest, initial state and information budget. Future events are hidden except in a separately labelled oracle upper bound.
+- All times, quantities and severities in the corpus are synthetic; do not reuse them as Highveld weather, outage durations, service thresholds or forecast probabilities.
 
-## Fixture coverage
+## Benchmark paradigm
 
-1. Hot day/night overlapping a grid interruption, water interruption and replacement-part delay.
-2. Cold event overlapping a grid interruption and HeatBank fault, with a later repair delay.
-3. Poor outdoor-air event overlapping ventilation restriction, grid interruption and network loss; manual fallback is declared separately and is not evidence of adequate ventilation.
-4. Initial outage, restoration, repair-part unavailability and a repeated outage; the first outage and restoration `meet` at a half-open boundary.
-5. A coarse system-level water-status record with a dwelling/tap `no_report`; the join is explicitly `NOT_COMPARABLE`.
+The machine-readable contract defines five arms: documented manual workflow (B0), incumbent specialist toolchain (B1), the same incumbent engines plus Luminous evidence composition (B2), the best disclosed hybrid (B3), and a finite exhaustive oracle for tiny synthetic cases only (B4).
 
-## Adversarial controls
+The intended competitive hypothesis is **not** that Luminous replaces Forma, TestFit, EnergyPlus, BOPTEST or ASHRAE 140. It is that evidence composition can improve cross-tool decision integrity: source scope and rights remain visible; revisions invalidate only dependent claims; compound service stresses are matched; resident-defined service floors remain non-compensatory; and decisions can be replayed from exact inputs and receipts.
 
-The companion top-level `adversarial_controls` list contains nine synthetic controls for timezone ambiguity, coarse/fine temporal resolution, right-censoring, conflicting observations, rights revocation, stale source revision, future-information leakage, unmatched candidate traces and unsupported common-cause claims.
+No universal resilience scalar may hide per-resident hard-floor failures. Physical outputs remain unknown until the relevant model, instrument and reference-method owners qualify them.
 
-These controls define conservative expected dispositions; they do not define real-world legal rights, universal temporal-alignment tolerances, empirical hazard probabilities or an authorized policy.
+## Existing owner boundaries
 
-6. Heavy-rain stress overlapping grid interruption, drainage-pump fault and parts delay; entirely synthetic and not a site flood assessment.
-7. Peak household service concurrency overlapping shared-plant fault, parts delay and a declared household-task change.
+- Sol-Atlas #607/#630/#611/#593: reference dwelling, Highveld stress binding and climate-source admission.
+- Sol-Atlas #694: household-service definitions and architecture candidates.
+- Sol-Atlas #735/#736: compound-event evidence and synthetic fixtures.
+- Symtropy #1848/#1849: deterministic event clock, paired policies, service trajectories, recovery and Pareto decisions.
+- Sol-Atlas #700/#633: service outcome binding and read-only post-occupancy outcomes.
+- Mycelix #6025: building instrument-channel admission.
+- Symtropy #1846: evidence validity and scoped invalidation.
+- Symtropy #1892/#1922: finite-state decision impact and adaptive measurement policies.
 
-## Reproduction and qualification boundary
+Do not implement a second timeline, service evaluator, thermal solver, weather database, instrument passport, post-occupancy evaluator or generic value-of-information engine in this package.
 
-The expected interval relations are hand-authored known answers for a finite set. A future Rust consumer should independently recompute all timeline relations and adversarial-control dispositions and reject missing IDs, duplicate IDs, invalid/empty intervals, unknown event kinds, invalid resolutions, scope escalation, mismatched trace bytes and weakened expected dispositions.
+## Validation status
 
-The authoring environment did not contain `rustc` or `cargo`; this commit therefore does not claim Rust compilation, Rust tests, Clippy, hosted CI, event-source admission or any physical qualification. The JSON files are intended for structural parsing and review only until an exact-head executable validator passes.
+The event corpus at original implementation head `6205f9ad96303a97a03a1ecb99261b040f092664` passed exact-head hosted Check run [#7105](https://github.com/Luminous-Dynamics/sol-atlas-leptos/actions/runs/43183337599): `cargo fmt --all --check`, `cargo check --target wasm32-unknown-unknown`, and `cargo test --bin sol-atlas-leptos`.
 
-## Next promotion gates
+The later benchmark/source-readiness documentation commits are separate changes. Their exact final-head workflow status must be checked before treating the expanded PR as green. This package itself still adds no Rust validator or physics code. Structural checks on the corpus do not qualify empirical sources or physical models.
 
-- Extend the corpus with independently authored hostile cases for timezone ambiguity, coarse/fine time resolution, censored endpoints, conflicting records, source revision changes, rights revocation, unsupported common-cause links and candidate information leakage.
-- Bind real climate data only through Sol-Atlas #611/#593, utility evidence only with source/rights/scope qualification, and building measurements only through Mycelix #6025.
-- Keep observed joint events, partial observations, synthetic stresses, future-climate scenarios and context-only records in separate lanes.
-- Connect admitted scenario identities to Symtropy #1848; do not add a parallel timeline or recovery evaluator.
+## Promotion gates
+
+1. Keep observed joint, observed partial, synthetic, future-climate and context-only evidence lanes separate.
+2. Admit real climate inputs only through Sol-Atlas #611/#593; admit utility records only with source/rights/scope/coverage evidence; admit physical measurements only through Mycelix #6025.
+3. Translate service loss/restoration only through the exact owner-native Symtropy #1848 interface. Preserve source evidence separately; never pass raw hazard or utility notices as if they were measured service events.
+4. Run the paired comparison with identical geometry, task requirements, exogenous trace, initial state, resource budget and information budget.
+5. Promote physics claims only after applicable Standard 140 capability tests, model-specific VVUQ, held-out reference observations and risk-proportionate review.
+6. Use the unoccupied Symtropy #4531 test cell only after instrument admission, independent reference methods and a safety-reviewed protocol.
 
 ## Claim ceiling
 
-Synthetic temporal-composition fixtures only. This corpus does not prove local event co-occurrence, causal dependencies, probabilities, building habitability, service continuity, comfort, safety, affordability, climate representativeness, code compliance or industry superiority.
+This package supports synthetic event-composition semantics, benchmark design and source-acquisition planning. It does not prove observed South African joint events, event probabilities, causal dependencies, household service delivery, habitability, comfort, safety, health protection, affordability, climate representativeness, code compliance, physical resilience or industry superiority.
