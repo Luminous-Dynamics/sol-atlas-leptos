@@ -60,7 +60,7 @@ For a `fault_inception` event, the verifier derives a circular phase interval fr
 
 ## Initial synthetic corpus
 
-The six-channel? No: the frozen v0.1 corpus includes three synthetic channels:
+The frozen v0.1 corpus includes three synthetic channels:
 - GIC neutral current at 1 sample/s, with no AC frequency label;
 - CT secondary waveform at 16 ksample/s, with a 50-Hz AC profile;
 - relay input at 16 ksample/s, derived from an 8-ksample/s source through an explicit digest-bound synthetic resampling record.

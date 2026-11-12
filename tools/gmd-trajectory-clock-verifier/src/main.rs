@@ -349,17 +349,17 @@ fn verify_transformation_chain(
         current_digest = transformation.output_artifact.sha256.as_str();
     }
 
-    if current_digest != channel.effective_artifact.sha256 {
-        return Err(format!(
-            "{}: effective artifact digest is not the end of its declared transformation chain",
-            channel.channel_id
-        ));
-    }
     if channel.transformation_ids.is_empty()
         && channel.source_artifact.sha256 != channel.effective_artifact.sha256
     {
         return Err(format!(
             "{}: source/effective artifact differ without declared transformations",
+            channel.channel_id
+        ));
+    }
+    if current_digest != channel.effective_artifact.sha256 {
+        return Err(format!(
+            "{}: effective artifact digest is not the end of its declared transformation chain",
             channel.channel_id
         ));
     }

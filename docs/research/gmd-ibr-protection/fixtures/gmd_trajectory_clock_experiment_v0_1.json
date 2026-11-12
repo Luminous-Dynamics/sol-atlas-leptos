@@ -10,7 +10,7 @@
   },
   "reference_epoch_tai_ns": 1800000000000000000,
   "phase_reference": {
-    "zero_time_tai_ns": 1800000001000000000,
+    "zero_time_tai_ns": 1800000000900000000,
     "zero_phase_millideg": 0,
     "nominal_frequency_millihz": 50000
   },
