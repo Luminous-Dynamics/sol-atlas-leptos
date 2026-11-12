@@ -479,11 +479,12 @@
           "source_revision": "fixture-r1",
           "scope": "regional",
           "temporal_resolution_s": 3600,
-          "timezone_state": "ambiguous",
+          "timezone_state": "missing",
           "coverage_state": "complete",
           "rights_state": "synthetic_control_only",
-          "timestamp_text": "2026-01-15 02:00:00 SAST/UTC+02? (deliberately ambiguous)",
-          "event_id": "heat_event"
+          "timestamp_text": "2026-01-15 02:00:00 (no timezone designator)",
+          "event_id": "heat_event",
+          "window_role": "observation_coverage"
         }
       ],
       "expected_disposition": "REJECT_TIME_JOIN",
@@ -504,7 +505,8 @@
           "rights_state": "synthetic_control_only",
           "start_offset_s": 0,
           "end_offset_s": 86400,
-          "record_status": "observed_normal"
+          "record_status": "observed_normal",
+          "window_role": "observation_coverage"
         },
         {
           "record_id": "hourly_site_record",
@@ -517,7 +519,8 @@
           "rights_state": "synthetic_control_only",
           "start_offset_s": 0,
           "end_offset_s": 86400,
-          "record_status": "reported_event"
+          "record_status": "reported_event",
+          "window_role": "observation_coverage"
         }
       ],
       "expected_disposition": "REQUIRE_ALIGNMENT_REVIEW",
@@ -539,7 +542,8 @@
           "event_id": "outage_1",
           "start_offset_s": 100,
           "end_offset_s": 500,
-          "record_status": "censored"
+          "record_status": "censored",
+          "window_role": "observation_coverage"
         }
       ],
       "expected_disposition": "RETAIN_PARTIAL_ONLY",
@@ -560,7 +564,8 @@
           "rights_state": "synthetic_control_only",
           "start_offset_s": 0,
           "end_offset_s": 3600,
-          "record_status": "observed_normal"
+          "record_status": "observed_normal",
+          "window_role": "observation_coverage"
         },
         {
           "record_id": "status_b",
@@ -573,7 +578,8 @@
           "rights_state": "synthetic_control_only",
           "start_offset_s": 0,
           "end_offset_s": 3600,
-          "record_status": "reported_event"
+          "record_status": "reported_event",
+          "window_role": "observation_coverage"
         }
       ],
       "expected_disposition": "BLOCK_CONFLICTING_EVIDENCE",
@@ -595,7 +601,8 @@
           "event_id": "heat_event",
           "start_offset_s": 0,
           "end_offset_s": 3600,
-          "record_status": "reported_event"
+          "record_status": "reported_event",
+          "window_role": "event_interval"
         }
       ],
       "expected_disposition": "REJECT_AND_INVALIDATE_DEPENDENTS",
@@ -616,7 +623,8 @@
           "rights_state": "synthetic_control_only",
           "event_id": "water_status",
           "start_offset_s": 0,
-          "end_offset_s": 86400
+          "end_offset_s": 86400,
+          "window_role": "event_interval"
         }
       ],
       "current_source_revision": "fixture-r2",
@@ -642,7 +650,8 @@
           "end_offset_s": 200,
           "record_status": "reported_event",
           "policy_visible": true,
-          "available_at_offset_s": 0
+          "available_at_offset_s": 0,
+          "window_role": "event_interval"
         }
       ],
       "decision_as_of_offset_s": 50,
@@ -692,7 +701,8 @@
           "rights_state": "synthetic_control_only",
           "event_id": "grid_loss",
           "start_offset_s": 0,
-          "end_offset_s": 500
+          "end_offset_s": 500,
+          "window_role": "event_interval"
         },
         {
           "record_id": "network_record",
@@ -705,7 +715,8 @@
           "rights_state": "synthetic_control_only",
           "event_id": "network_loss",
           "start_offset_s": 0,
-          "end_offset_s": 500
+          "end_offset_s": 500,
+          "window_role": "event_interval"
         }
       ],
       "declared_link": {
