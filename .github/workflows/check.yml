@@ -69,3 +69,11 @@ jobs:
         run: cargo test --bin highveld-commons-qualifier
       - name: Execute neighborhood commons reference audit
         run: cargo run --bin highveld-commons-qualifier -- --self-test
+      - name: Test topology removal qualifier
+        run: cargo test --bin highveld-topology-removal-qualifier
+      - name: Execute topology removal manifest audit
+        run: cargo run --bin highveld-topology-removal-qualifier -- --self-test
+      - name: Test cooling water qualifier
+        run: cargo test --bin highveld-cooling-water-qualifier
+      - name: Execute cooling water manifest audit
+        run: cargo run --bin highveld-cooling-water-qualifier -- --self-test
