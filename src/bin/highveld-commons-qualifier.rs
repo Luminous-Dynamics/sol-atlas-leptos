@@ -117,7 +117,12 @@ fn audit_manifest(root: &Value) -> Value {
     let asset_ids = unique_ids(assets, "asset_id", "$.assets", &mut audit);
     let contract_ids = unique_ids(contracts, "contract_id", "$.service_contracts", &mut audit);
     let policy_ids = unique_ids(policies, "policy_id", "$.allocation_policies", &mut audit);
-    let maintenance_ids = unique_ids(maintenance_contracts, "maintenance_contract_id", "$.maintenance_contracts", &mut audit);
+    let maintenance_ids = unique_ids(
+        maintenance_contracts,
+        "maintenance_contract_id",
+        "$.maintenance_contracts",
+        &mut audit,
+    );
     let account_ids = unique_ids(accounts, "account_id", "$.resource_accounts", &mut audit);
     let transfer_ids = unique_ids(transfers, "transfer_id", "$.resource_transfers", &mut audit);
     let mut source_event_ids = BTreeSet::new();
@@ -787,36 +792,54 @@ mod tests {
     #[test]
     fn local_fallback_must_survive_network_isolation() {
         let mut manifest = base();
-        manifest["households"][0]["essential_service_floors"][0]["local_fallback"]["depends_on_network"] = json!(true);
-        assert!(has_code(&audit_manifest(&manifest), "LOCAL_FALLBACK_DEPENDS_ON_NETWORK"));
+        manifest["households"][0]["essential_service_floors"][0]["local_fallback"]["depends_on_network"] =
+            json!(true);
+        assert!(has_code(
+            &audit_manifest(&manifest),
+            "LOCAL_FALLBACK_DEPENDS_ON_NETWORK"
+        ));
     }
 
     #[test]
     fn local_fallback_must_have_manual_degraded_mode() {
         let mut manifest = base();
-        manifest["households"][0]["essential_service_floors"][0]["local_fallback"]["manual_mode_available"] = json!(false);
-        assert!(has_code(&audit_manifest(&manifest), "LOCAL_FALLBACK_NO_MANUAL_MODE"));
+        manifest["households"][0]["essential_service_floors"][0]["local_fallback"]["manual_mode_available"] =
+            json!(false);
+        assert!(has_code(
+            &audit_manifest(&manifest),
+            "LOCAL_FALLBACK_NO_MANUAL_MODE"
+        ));
     }
 
     #[test]
     fn allocated_commons_service_requires_maintenance_contract_reference() {
         let mut manifest = base();
-        manifest["service_contracts"][0]["maintenance_contract_id"] = json!("missing-maintenance-contract");
-        assert!(has_code(&audit_manifest(&manifest), "MAINTENANCE_CONTRACT_NOT_QUALIFIED"));
+        manifest["service_contracts"][0]["maintenance_contract_id"] =
+            json!("missing-maintenance-contract");
+        assert!(has_code(
+            &audit_manifest(&manifest),
+            "MAINTENANCE_CONTRACT_NOT_QUALIFIED"
+        ));
     }
 
     #[test]
     fn allocated_commons_service_requires_spares_and_repair_contract() {
         let mut manifest = base();
         manifest["maintenance_contracts"][0]["spares_state"] = json!("UNKNOWN");
-        assert!(has_code(&audit_manifest(&manifest), "MAINTENANCE_CONTRACT_NOT_QUALIFIED"));
+        assert!(has_code(
+            &audit_manifest(&manifest),
+            "MAINTENANCE_CONTRACT_NOT_QUALIFIED"
+        ));
     }
 
     #[test]
     fn maintenance_contract_must_bind_the_actual_provider_asset() {
         let mut manifest = base();
         manifest["maintenance_contracts"][0]["asset_id"] = json!("commons-energy-hub");
-        assert!(has_code(&audit_manifest(&manifest), "MAINTENANCE_CONTRACT_NOT_QUALIFIED"));
+        assert!(has_code(
+            &audit_manifest(&manifest),
+            "MAINTENANCE_CONTRACT_NOT_QUALIFIED"
+        ));
     }
 
     #[test]
