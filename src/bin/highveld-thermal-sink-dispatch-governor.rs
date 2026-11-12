@@ -51,6 +51,16 @@ fn evaluate(input: &Value) -> Result<Value, Vec<String>> {
     for path in paths {
         let id = text_at(path, "id").unwrap_or("<missing-id>");
         let mut reasons = Vec::new();
+        if ![
+            "RADIATIVE_SKY_PANEL",
+            "DRY_AIR_COOLER",
+            "GROUND_HEAT_EXCHANGER",
+            "CONDITIONAL_EVAPORATIVE_REGENERATION",
+        ]
+        .contains(&id)
+        {
+            push_reason(&mut reasons, "UNKNOWN_OR_UNSUPPORTED_SINK_PATH");
+        }
         if !global_ok {
             push_reason(&mut reasons, "GLOBAL_MODEL_INSTRUMENT_OR_LOCAL_CONTROL_GATE_FAILED");
         }
@@ -252,6 +262,19 @@ mod tests {
         let report = evaluate(&input).expect("unknown state should block, not crash");
         assert!(report["eligible_paths"].as_array().unwrap().is_empty());
         assert_eq!(report["blocked_paths"].as_array().unwrap().len(), 3);
+    }
+
+    #[test]
+    fn unknown_sink_path_fails_closed() {
+        let mut input = sample();
+        input["sink_paths"][0]["id"] = json!("UNKNOWN_SINK");
+        let report = evaluate(&input).expect("unknown path should be blocked, not crash");
+        assert!(report["eligible_paths"].as_array().unwrap().iter()
+            .all(|path| path["path_id"] != "UNKNOWN_SINK"));
+        let blocked = report["blocked_paths"].as_array().unwrap();
+        let unknown = blocked.iter().find(|path| path["path_id"] == "UNKNOWN_SINK").unwrap();
+        assert!(unknown["reasons"].as_array().unwrap().iter()
+            .any(|reason| reason == "UNKNOWN_OR_UNSUPPORTED_SINK_PATH"));
     }
 
     #[test]
