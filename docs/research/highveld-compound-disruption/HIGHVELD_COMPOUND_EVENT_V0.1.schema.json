@@ -89,7 +89,10 @@
             "network_interruption",
             "service_restoration",
             "system_status_notice",
-            "observation_window"
+            "observation_window",
+            "heavy_rainfall",
+            "peak_service_demand",
+            "household_task_change"
           ]
         },
         "start_offset_s": {
