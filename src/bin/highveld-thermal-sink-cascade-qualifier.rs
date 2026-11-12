@@ -7,6 +7,12 @@ const MANIFEST: &str = include_str!(
 const SCHEMA: &str = include_str!(
     "../../docs/research/highveld-neighborhood-commons/THERMAL_SINK_CASCADE_MANIFEST_V0.1.schema.json"
 );
+const RADIATIVE_BENCHMARK: &str = include_str!(
+    "../../docs/research/highveld-neighborhood-commons/RADIATIVE_SKY_SINK_BENCHMARK_MANIFEST_V0.1.json"
+);
+const RADIATIVE_SCHEMA: &str = include_str!(
+    "../../docs/research/highveld-neighborhood-commons/RADIATIVE_SKY_SINK_BENCHMARK_MANIFEST_V0.1.schema.json"
+);
 
 fn text_at<'a>(value: &'a Value, key: &str) -> Option<&'a str> {
     value
@@ -35,9 +41,84 @@ fn build_inventory() -> Result<Value, Vec<String>> {
         Ok(value) => value,
         Err(error) => return Err(vec![format!("schema JSON parse failed: {error}")]),
     };
+    let radiative: Value = match serde_json::from_str(RADIATIVE_BENCHMARK) {
+        Ok(value) => value,
+        Err(error) => return Err(vec![format!("radiative benchmark JSON parse failed: {error}")]),
+    };
+    let radiative_schema: Value = match serde_json::from_str(RADIATIVE_SCHEMA) {
+        Ok(value) => value,
+        Err(error) => return Err(vec![format!("radiative schema JSON parse failed: {error}")]),
+    };
 
     if text_at(&schema, "$schema") != Some("https://json-schema.org/draft/2020-12/schema") {
         errors.push("schema must declare JSON Schema Draft 2020-12".to_owned());
+    }
+    if text_at(&radiative_schema, "$schema")
+        != Some("https://json-schema.org/draft/2020-12/schema")
+    {
+        errors.push("radiative benchmark schema must declare JSON Schema Draft 2020-12".to_owned());
+    }
+    for (key, expected) in [
+        ("study_id", "HIGHVELD-RADIATIVE-SKY-SINK-001"),
+        ("parent_study", "HIGHVELD-THERMAL-SINK-CASCADE-001"),
+        ("maturity", "BENCHMARK_PROTOCOL_NOT_EXECUTED"),
+        ("execution_status", "NOT_EXECUTED"),
+    ] {
+        if text_at(&radiative, key) != Some(expected) {
+            errors.push(format!("radiative benchmark {key} must remain {expected}"));
+        }
+    }
+    let radiative_arms = array_at(&radiative, "comparison_arms")
+        .cloned()
+        .unwrap_or_default();
+    let radiative_scenarios = array_at(&radiative, "scenarios")
+        .cloned()
+        .unwrap_or_default();
+    if radiative_arms.len() != 7 || radiative_scenarios.len() != 7 {
+        errors.push("radiative benchmark must preserve its 7-arm by 7-scenario matrix".to_owned());
+    }
+    for required in [
+        "R0_NO_ADDED_RADIATIVE_PANEL",
+        "R1_REFERENCE_PANEL",
+        "R2_CANDIDATE_PANEL",
+        "R3_PANEL_PLUS_THERMAL_STORE",
+        "R4_LAYERED_SINK_CASCADE",
+        "R5_SOLAR_ABSORBING_NEGATIVE_CONTROL",
+        "R6_INFINITE_SKY_NEGATIVE_CONTROL",
+    ] {
+        if !contains_id(&radiative_arms, required) {
+            errors.push(format!("radiative benchmark arm {required} is missing"));
+        }
+    }
+    for required in [
+        "spectral_solar_reflectance",
+        "spectral_longwave_emittance",
+        "downwelling_longwave_or_qualified_sky_boundary",
+        "sky_view_factor_and_horizon",
+        "loop_flow_and_inlet_outlet_temperature",
+        "occupied_zone_comfort_when_claimed",
+    ] {
+        let measurements = array_at(&radiative, "required_measurements")
+            .cloned()
+            .unwrap_or_default();
+        if !contains_id(&measurements, required) {
+            errors.push(format!("radiative measurement {required} is missing"));
+        }
+    }
+    let radiative_gates = &radiative["hard_gates"];
+    for key in [
+        "material_to_building_claim_leakage",
+        "useful_cooling_without_zone_path_evidence",
+        "missing_radiative_boundary_claimed_as_valid",
+        "ignored_soiling_or_wetness_state",
+        "accepted_infinite_sky_assumption",
+        "unclosed_component_balance_outside_uncertainty",
+        "water_floor_violations",
+        "unknown_out_of_domain_as_pass",
+    ] {
+        if radiative_gates.get(key).and_then(Value::as_u64) != Some(0) {
+            errors.push(format!("radiative hard gate {key} must be exactly zero"));
+        }
     }
     for (key, expected) in [
         ("format_version", "0.1"),
@@ -218,6 +299,10 @@ fn build_inventory() -> Result<Value, Vec<String>> {
         "architecture_arm_count": arms.len(),
         "scenario_count": scenarios.len(),
         "case_count": cases.len(),
+        "radiative_sky_benchmark_study_id": "HIGHVELD-RADIATIVE-SKY-SINK-001",
+        "radiative_sky_arm_count": radiative_arms.len(),
+        "radiative_sky_scenario_count": radiative_scenarios.len(),
+        "radiative_sky_case_count": radiative_arms.len() * radiative_scenarios.len(),
         "execution_status": "NOT_EXECUTED",
         "schema_engine": "NOT_RUN; schema declaration and manifest semantics are checked by this Rust qualifier",
         "claim_ceiling": "No physical heat rejection, cooling, water saving, cost or resilience superiority is claimed",
@@ -268,6 +353,19 @@ mod tests {
         assert_eq!(report["architecture_arm_count"].as_u64(), Some(8));
         assert_eq!(report["scenario_count"].as_u64(), Some(9));
         assert_eq!(report["case_count"].as_u64(), Some(72));
+    }
+
+    #[test]
+    fn radiative_sky_benchmark_is_linked_and_not_executed() {
+        let report = build_inventory().expect("radiative benchmark must qualify");
+        assert_eq!(
+            report["radiative_sky_benchmark_study_id"].as_str(),
+            Some("HIGHVELD-RADIATIVE-SKY-SINK-001")
+        );
+        assert_eq!(report["radiative_sky_arm_count"].as_u64(), Some(7));
+        assert_eq!(report["radiative_sky_scenario_count"].as_u64(), Some(7));
+        assert_eq!(report["radiative_sky_case_count"].as_u64(), Some(49));
+        assert_eq!(report["execution_status"].as_str(), Some("NOT_EXECUTED"));
     }
 
     #[test]
