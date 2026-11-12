@@ -16,7 +16,8 @@
     "service_contracts",
     "resource_accounts",
     "resource_transfers",
-    "maintenance_contracts"
+    "maintenance_contracts",
+    "household_service_outcomes"
   ],
   "properties": {
     "schema_version": {
@@ -81,6 +82,13 @@
       "minItems": 1,
       "items": {
         "$ref": "#/$defs/maintenance"
+      }
+    },
+    "household_service_outcomes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/household_service_outcome"
       }
     }
   },
@@ -488,6 +496,88 @@
           "minimum": 1
         },
         "requalification_evidence_id": {
+          "$ref": "#/$defs/nonempty"
+        }
+      }
+    },
+    "household_service_outcome": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "outcome_id",
+        "household_id",
+        "service_id",
+        "window_id",
+        "requested_quantity",
+        "delivered_quantity",
+        "unit",
+        "delivery_state",
+        "hard_floor_state",
+        "unserved_s",
+        "access_time_s",
+        "queue_wait_s",
+        "evidence_class",
+        "evidence_id"
+      ],
+      "properties": {
+        "outcome_id": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "household_id": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "service_id": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "window_id": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "requested_quantity": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "delivered_quantity": {
+          "oneOf": [
+            {
+              "type": "integer",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "unit": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "delivery_state": {
+          "enum": [
+            "DELIVERED",
+            "PARTIAL",
+            "UNMET",
+            "UNKNOWN"
+          ]
+        },
+        "hard_floor_state": {
+          "enum": [
+            "SATISFIED",
+            "BREACHED",
+            "UNKNOWN"
+          ]
+        },
+        "unserved_s": {
+          "$ref": "#/$defs/uint"
+        },
+        "access_time_s": {
+          "$ref": "#/$defs/uint"
+        },
+        "queue_wait_s": {
+          "$ref": "#/$defs/uint"
+        },
+        "evidence_class": {
+          "const": "SyntheticKnownAnswer"
+        },
+        "evidence_id": {
           "$ref": "#/$defs/nonempty"
         }
       }
