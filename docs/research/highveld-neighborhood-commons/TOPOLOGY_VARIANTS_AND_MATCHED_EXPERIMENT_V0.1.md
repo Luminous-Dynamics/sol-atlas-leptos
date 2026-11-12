@@ -128,3 +128,10 @@ The first result may well be "do not build a commons for this service; strengthe
 ## 7. Status / claim ceiling
 
 This is a topology experiment plan, not an evaluated result. No variant currently has measured access, queue, service, repair, cost, equity, safety, climate performance or resilience evidence. The current synthetic Rust qualifier checks only the manifest semantics it implements; it does not simulate these topologies or perform a common-cause graph analysis.
+
+
+## 8. Long-horizon variant check
+
+The topology comparison should eventually be repeated across a non-stationary scenario ensemble, not just one event trace. Compare whether central, distributed, federated, mobile and layered topologies preserve local essential-service floors as climate stress, component aging, maintenance backlog, spare-part availability and household requirements evolve. Where occurrence probabilities are not supportable, report robust feasibility, worst-case/tail deficits and hindsight regret against a clearly marked oracle; do not fabricate probability weights.
+
+This is a future benchmark horizon, not a new claim about current variants. Keep the event-trace benchmark and long-horizon policy benchmark versioned separately.
