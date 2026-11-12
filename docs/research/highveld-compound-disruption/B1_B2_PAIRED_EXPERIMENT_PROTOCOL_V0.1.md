@@ -63,7 +63,7 @@ For each named service, both arms emit:
 - evidence references and their availability times;
 - decision timestamp and information actually available then.
 
-B2 additionally emits the composition-layer name/version, a receipt bound to exact matched inputs and engine I/O, source-rights revision, and per-service evidence validation (rights_state, scope_join_state).
+B2 additionally emits the composition-layer name/version, a receipt bound to exact matched inputs and engine I/O, source-rights revision, and per-service evidence validation (rights_state, scope_join_state). The receipt uses format `highveld-b2-composition-receipt-v0.1`; its SHA-256 is recomputed over the fixed field sequence `event_trace_sha256`, `geometry_sha256`, `resident_requirements_sha256`, `initial_state_sha256`, `source_snapshot_sha256`, `engine_input_sha256`, `engine_output_sha256`, `source_rights_revision`, with each UTF-8 value length-prefixed in bytes under the `HIGHVELD_B2_COMPOSITION_RECEIPT_V0.1` domain tag. A changed value with an unchanged digest is rejected.
 
 The independent oracle defines expected decision and hard-floor state per service. B2 must match the oracle exactly on finite synthetic known-answer cases. B1 is measured against the same oracle; its false passes and mismatches are outcomes, not hidden exclusions.
 
