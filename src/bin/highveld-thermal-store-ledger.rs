@@ -24,8 +24,8 @@ fn text_at<'a>(value: &'a Value, key: &str) -> Option<&'a str> {
 
 fn evaluate(case: &Value) -> Result<Value, Vec<String>> {
     let mut violations = Vec::new();
-    let schema: Value =
-        serde_json::from_str(SCHEMA).map_err(|error| vec![format!("schema JSON parse failed: {error}")])?;
+    let schema: Value = serde_json::from_str(SCHEMA)
+        .map_err(|error| vec![format!("schema JSON parse failed: {error}")])?;
 
     if text_at(&schema, "$schema") != Some("https://json-schema.org/draft/2020-12/schema") {
         violations.push("schema must declare JSON Schema Draft 2020-12".to_owned());
@@ -125,10 +125,7 @@ fn evaluate(case: &Value) -> Result<Value, Vec<String>> {
         .collect::<Vec<_>>();
 
         if !missing.is_empty() {
-            let message = format!(
-                "{id}: missing/non-finite fields: {}",
-                missing.join(", ")
-            );
+            let message = format!("{id}: missing/non-finite fields: {}", missing.join(", "));
             interval_violations.push(message.clone());
             violations.push(message);
             interval_reports.push(json!({
@@ -159,8 +156,7 @@ fn evaluate(case: &Value) -> Result<Value, Vec<String>> {
                 .push("negative energy/resource value or non-positive duration".to_owned());
         }
         if (start - prior_end).abs() > 1e-9 {
-            interval_violations
-                .push("interval start does not equal prior interval end".to_owned());
+            interval_violations.push("interval start does not equal prior interval end".to_owned());
         }
         if start < minimum || start > capacity || end < minimum || end > capacity {
             interval_violations
@@ -188,8 +184,9 @@ fn evaluate(case: &Value) -> Result<Value, Vec<String>> {
                             let old = entry.as_f64().unwrap_or(0.0);
                             *entry = json!(old + value);
                         }
-                        _ => interval_violations
-                            .push(format!("invalid energy rejection for {sink}")),
+                        _ => {
+                            interval_violations.push(format!("invalid energy rejection for {sink}"))
+                        }
                     }
                 }
             }
@@ -344,12 +341,18 @@ mod tests {
         let report = evaluate(&case).unwrap();
         assert_eq!(report["audit_state"], "STORE_LEDGER_FAIL");
         assert_eq!(report["intervals"][0]["interval_state"], "FAIL");
-        assert!(report["violations"].as_array().unwrap().iter().any(|value| {
-            value
-                .as_str()
-                .unwrap_or("")
-                .contains("store state exceeds usable minimum/maximum bounds")
-        }));
+        assert!(
+            report["violations"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|value| {
+                    value
+                        .as_str()
+                        .unwrap_or("")
+                        .contains("store state exceeds usable minimum/maximum bounds")
+                })
+        );
     }
 
     #[test]
@@ -360,12 +363,18 @@ mod tests {
         let report = evaluate(&case).unwrap();
         assert_eq!(report["audit_state"], "STORE_LEDGER_FAIL");
         assert_eq!(report["intervals"][1]["interval_state"], "FAIL");
-        assert!(report["violations"].as_array().unwrap().iter().any(|value| {
-            value
-                .as_str()
-                .unwrap_or("")
-                .contains("energy balance residual")
-        }));
+        assert!(
+            report["violations"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|value| {
+                    value
+                        .as_str()
+                        .unwrap_or("")
+                        .contains("energy balance residual")
+                })
+        );
     }
 
     #[test]
@@ -373,12 +382,13 @@ mod tests {
         let mut case = sample();
         case["intervals"][1]["store_energy_start_kwh"] = json!(3.5);
         let report = evaluate(&case).unwrap();
-        assert!(report["violations"].as_array().unwrap().iter().any(|value| {
-            value
-                .as_str()
-                .unwrap_or("")
-                .contains("prior interval end")
-        }));
+        assert!(
+            report["violations"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|value| { value.as_str().unwrap_or("").contains("prior interval end") })
+        );
     }
 
     #[test]
@@ -386,12 +396,13 @@ mod tests {
         let mut case = sample();
         case["intervals"][2]["store_energy_end_kwh"] = json!(3.0);
         let report = evaluate(&case).unwrap();
-        assert!(report["violations"].as_array().unwrap().iter().any(|value| {
-            value
-                .as_str()
-                .unwrap_or("")
-                .contains("cycle closure error")
-        }));
+        assert!(
+            report["violations"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|value| { value.as_str().unwrap_or("").contains("cycle closure error") })
+        );
     }
 
     #[test]
@@ -402,11 +413,17 @@ mod tests {
             .unwrap()
             .push(json!({"sink_path": "RADIATIVE_SKY_PANEL", "energy_rejected_kwh": 0.0}));
         let report = evaluate(&case).unwrap();
-        assert!(report["violations"].as_array().unwrap().iter().any(|value| {
-            value
-                .as_str()
-                .unwrap_or("")
-                .contains("duplicate sink path row")
-        }));
+        assert!(
+            report["violations"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|value| {
+                    value
+                        .as_str()
+                        .unwrap_or("")
+                        .contains("duplicate sink path row")
+                })
+        );
     }
 }
