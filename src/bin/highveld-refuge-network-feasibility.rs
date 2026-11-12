@@ -205,9 +205,8 @@ fn evaluate(case: &Value) -> Result<Value, Vec<String>> {
             errors.push(format!("{key} must remain {expected}"));
         }
     }
-    if text_at(case, "local_refuge_directory_state") != Some("QUALIFIED") {
-        errors.push("local refuge directory is not qualified".to_owned());
-    }
+    let local_directory_qualified =
+        text_at(case, "local_refuge_directory_state") == Some("QUALIFIED");
     if case.get("network_state").and_then(Value::as_str).is_none() {
         errors.push("network_state is missing".to_owned());
     }
@@ -260,6 +259,9 @@ fn evaluate(case: &Value) -> Result<Value, Vec<String>> {
         site_ids.push(id.clone());
 
         let mut reasons = Vec::new();
+        if !local_directory_qualified {
+            reasons.push("LOCAL_REFUGE_DIRECTORY_NOT_QUALIFIED".to_owned());
+        }
         for (key, expected, reason) in [
             ("operating_window_state", "OPEN_FOR_REQUIRED_WINDOW", "NOT_OPEN_FOR_REQUIRED_WINDOW"),
             ("thermal_service_state", "QUALIFIED", "THERMAL_SERVICE_NOT_QUALIFIED"),
