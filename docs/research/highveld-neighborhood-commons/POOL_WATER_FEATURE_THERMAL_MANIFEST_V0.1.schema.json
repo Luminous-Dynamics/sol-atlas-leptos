@@ -49,7 +49,7 @@
     },
     "archetypes": {
       "type": "array",
-      "minItems": 9,
+      "minItems": 10,
       "items": {
         "type": "object",
         "additionalProperties": false,
@@ -106,13 +106,13 @@
       ],
       "properties": {
         "archetypes": {
-          "const": 9
+          "const": 10
         },
         "scenarios": {
           "const": 8
         },
         "cases": {
-          "const": 72
+          "const": 80
         },
         "state": {
           "const": "REGISTERED_NOT_EXECUTED"
