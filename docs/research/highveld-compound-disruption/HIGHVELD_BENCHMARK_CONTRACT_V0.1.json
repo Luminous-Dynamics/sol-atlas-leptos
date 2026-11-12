@@ -1,5 +1,5 @@
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "contract_format": "json",
   "schema_version": "0.1.0",
   "contract_id": "highveld-cross-tool-household-resilience-benchmark-v0.1",
   "programme": "HIGHVELD-KEEP-001",
