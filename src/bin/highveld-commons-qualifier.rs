@@ -126,7 +126,12 @@ fn audit_manifest(root: &Value) -> Value {
     );
     let account_ids = unique_ids(accounts, "account_id", "$.resource_accounts", &mut audit);
     let transfer_ids = unique_ids(transfers, "transfer_id", "$.resource_transfers", &mut audit);
-    let outcome_ids = unique_ids(service_outcomes, "outcome_id", "$.household_service_outcomes", &mut audit);
+    let outcome_ids = unique_ids(
+        service_outcomes,
+        "outcome_id",
+        "$.household_service_outcomes",
+        &mut audit,
+    );
     let mut source_event_ids = BTreeSet::new();
 
     if households.is_empty() {
@@ -693,8 +698,16 @@ fn audit_manifest(root: &Value) -> Value {
             );
         }
         let floor = household_id
-            .and_then(|hid| households.iter().find(|h| text(h, "household_id") == Some(hid)))
-            .and_then(|h| list(h, "essential_service_floors").iter().find(|f| text(f, "service_id") == service_id));
+            .and_then(|hid| {
+                households
+                    .iter()
+                    .find(|h| text(h, "household_id") == Some(hid))
+            })
+            .and_then(|h| {
+                list(h, "essential_service_floors")
+                    .iter()
+                    .find(|f| text(f, "service_id") == service_id)
+            });
         if floor.is_none() {
             audit.fail(
                 "OUTCOME_NOT_A_DECLARED_ESSENTIAL_FLOOR",
@@ -721,7 +734,11 @@ fn audit_manifest(root: &Value) -> Value {
             );
             continue;
         };
-        let key = (household_id.to_owned(), service_id.to_owned(), window_id.to_owned());
+        let key = (
+            household_id.to_owned(),
+            service_id.to_owned(),
+            window_id.to_owned(),
+        );
         if !outcome_keys.insert(key) {
             audit.fail(
                 "DUPLICATE_HOUSEHOLD_SERVICE_OUTCOME",
@@ -764,8 +781,10 @@ fn audit_manifest(root: &Value) -> Value {
         let delivered = number(outcome, "delivered_quantity");
         let quantity_state_valid = match delivery_state {
             Some("DELIVERED") => requested.is_some() && delivered == requested,
-            Some("PARTIAL") => requested.is_some_and(|r| r > 0)
-                && delivered.is_some_and(|d| d > 0 && Some(d) < requested),
+            Some("PARTIAL") => {
+                requested.is_some_and(|r| r > 0)
+                    && delivered.is_some_and(|d| d > 0 && Some(d) < requested)
+            }
             Some("UNMET") => requested.is_some_and(|r| r > 0) && delivered == Some(0),
             Some("UNKNOWN") => requested.is_some_and(|r| r > 0) && delivered.is_none(),
             _ => false,
@@ -783,9 +802,15 @@ fn audit_manifest(root: &Value) -> Value {
             let unserved = number(outcome, "unserved_s");
             let access = number(outcome, "access_time_s");
             let queue = number(outcome, "queue_wait_s");
-            let within_limits = unserved.zip(number(floor, "maximum_unserved_s")).is_some_and(|(a, b)| a <= b)
-                && access.zip(number(floor, "maximum_access_time_s")).is_some_and(|(a, b)| a <= b)
-                && queue.zip(number(floor, "maximum_wait_s")).is_some_and(|(a, b)| a <= b);
+            let within_limits = unserved
+                .zip(number(floor, "maximum_unserved_s"))
+                .is_some_and(|(a, b)| a <= b)
+                && access
+                    .zip(number(floor, "maximum_access_time_s"))
+                    .is_some_and(|(a, b)| a <= b)
+                && queue
+                    .zip(number(floor, "maximum_wait_s"))
+                    .is_some_and(|(a, b)| a <= b);
             valid_floor_satisfied = delivery_state == Some("DELIVERED") && within_limits;
             match floor_state {
                 Some("SATISFIED") if !valid_floor_satisfied => audit.fail(
@@ -838,10 +863,16 @@ fn audit_manifest(root: &Value) -> Value {
     // The qualifier preserves per-household results and does not compute a
     // neighbourhood-average score that could compensate for an individual breach.
     for household in households {
-        let Some(household_id) = text(household, "household_id") else { continue; };
+        let Some(household_id) = text(household, "household_id") else {
+            continue;
+        };
         for floor in list(household, "essential_service_floors") {
-            let Some(service_id) = text(floor, "service_id") else { continue; };
-            let covered = outcome_keys.iter().any(|(hid, sid, _)| hid == household_id && sid == service_id);
+            let Some(service_id) = text(floor, "service_id") else {
+                continue;
+            };
+            let covered = outcome_keys
+                .iter()
+                .any(|(hid, sid, _)| hid == household_id && sid == service_id);
             if !covered {
                 audit.fail(
                     "ESSENTIAL_FLOOR_OUTCOME_MISSING",
@@ -945,7 +976,10 @@ mod tests {
     fn synthetic_household_outcomes_are_reported_without_aggregate_compensation() {
         let report = audit_manifest(&base());
         assert_eq!(report["status"].as_str(), Some("PASS"));
-        assert_eq!(report["household_service_outcomes_checked"].as_u64(), Some(3));
+        assert_eq!(
+            report["household_service_outcomes_checked"].as_u64(),
+            Some(3)
+        );
         assert_eq!(report["household_floor_breach_count"].as_u64(), Some(1));
         assert_eq!(
             report["neighborhood_aggregate_compensation"].as_str(),
@@ -956,7 +990,10 @@ mod tests {
     #[test]
     fn essential_household_outcome_cannot_be_omitted() {
         let mut manifest = base();
-        manifest["household_service_outcomes"].as_array_mut().unwrap().remove(2);
+        manifest["household_service_outcomes"]
+            .as_array_mut()
+            .unwrap()
+            .remove(2);
         assert!(has_code(
             &audit_manifest(&manifest),
             "ESSENTIAL_FLOOR_OUTCOME_MISSING"
