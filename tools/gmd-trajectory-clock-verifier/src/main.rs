@@ -8,7 +8,6 @@ use std::process::ExitCode;
 
 const SCHEMA_VERSION: &str = "0.1.0";
 const BENCHMARK_ID: &str = "GMD-TRAJECTORY-CLOCK-001";
-const NS_PER_SECOND: i128 = 1_000_000_000;
 const PPB_SCALE: i128 = 1_000_000_000;
 const PHASE_SCALE: i128 = 1_000_000_000_000;
 const MILLIDEGREES_PER_CYCLE: i128 = 360_000;
