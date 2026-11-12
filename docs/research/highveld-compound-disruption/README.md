@@ -34,9 +34,12 @@ The companion top-level `adversarial_controls` list contains nine synthetic cont
 
 These controls define conservative expected dispositions; they do not define real-world legal rights, universal temporal-alignment tolerances, empirical hazard probabilities or an authorized policy.
 
+6. Heavy-rain stress overlapping grid interruption, drainage-pump fault and parts delay; entirely synthetic and not a site flood assessment.
+7. Peak household service concurrency overlapping shared-plant fault, parts delay and a declared household-task change.
+
 ## Reproduction and qualification boundary
 
-The expected interval relations are hand-authored known answers for a finite set. A future Rust consumer should independently recompute them and reject missing IDs, duplicate IDs, invalid/empty intervals, unknown event kinds, invalid resolutions, scope escalation, mismatched trace bytes and weakened expected dispositions.
+The expected interval relations are hand-authored known answers for a finite set. A future Rust consumer should independently recompute all timeline relations and adversarial-control dispositions and reject missing IDs, duplicate IDs, invalid/empty intervals, unknown event kinds, invalid resolutions, scope escalation, mismatched trace bytes and weakened expected dispositions.
 
 The authoring environment did not contain `rustc` or `cargo`; this commit therefore does not claim Rust compilation, Rust tests, Clippy, hosted CI, event-source admission or any physical qualification. The JSON files are intended for structural parsing and review only until an exact-head executable validator passes.
 
