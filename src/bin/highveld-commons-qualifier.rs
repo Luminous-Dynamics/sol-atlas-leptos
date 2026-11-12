@@ -8,6 +8,9 @@ const ARCHITECTURE_ID: &str = "NEIGHBORHOOD_RESILIENCE_COMMONS";
 const SAMPLE: &str = include_str!(
     "../../docs/research/highveld-neighborhood-commons/NEIGHBORHOOD_COMMONS_REFERENCE_MANIFEST_V0.1.json"
 );
+const STRESS_MATRIX: &str = include_str!(
+    "../../docs/research/highveld-neighborhood-commons/NEIGHBORHOOD_COMMONS_STRESS_MATRIX_V0.1.json"
+);
 
 #[derive(Default)]
 struct Audit {
@@ -1371,6 +1374,25 @@ mod tests {
             &audit_manifest(&manifest),
             "OUTCOME_UNIT_MISMATCH"
         ));
+    }
+
+    #[test]
+    fn stress_matrix_is_versioned_unique_and_owner_routed() {
+        let matrix: Value = serde_json::from_str(STRESS_MATRIX).expect("valid stress matrix JSON");
+        assert_eq!(matrix["benchmark_id"].as_str(), Some("HIGHVELD-NEIGHBORHOOD-COMMONS-STRESS-MATRIX"));
+        assert_eq!(matrix["maturity"].as_str(), Some("PROPOSED_NOT_EVALUATED"));
+        let cases = matrix["scenario_families"].as_array().expect("scenario array");
+        assert!(cases.len() >= 15);
+        let mut ids = BTreeSet::new();
+        for case in cases {
+            let id = case["scenario_id"].as_str().expect("scenario id");
+            assert!(ids.insert(id.to_owned()), "duplicate scenario id: {id}");
+            assert!(matches!(
+                case["owner_system"].as_str(),
+                Some("SOL_ATLAS" | "SYMTROPY" | "MYCELIX" | "SPECIALIST_SOLVER")
+            ));
+            assert!(case["required_observations"].as_array().is_some_and(|items| !items.is_empty()));
+        }
     }
 
     #[test]
