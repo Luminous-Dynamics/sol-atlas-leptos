@@ -99,7 +99,8 @@ Compare the commons candidate only after the three household-scale candidates ar
 - per-household, per-service essential-floor violations and hours preserved;
 - fraction of essential demand served without hub access;
 - inaccessible/late/refused service by household;
-- local fallback independence under declared common-cause scenarios;
+- local fallback independence under declared common-cause scenarios, including network isolation and manual degraded mode;
+- qualified repair/spares coverage and requalification evidence for allocated shared assets;
 - reserve balance and resource conservation;
 - allocation disputes, appeals, reversals and unresolved cases.
 
