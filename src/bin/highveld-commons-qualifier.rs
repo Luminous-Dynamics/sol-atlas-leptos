@@ -1067,7 +1067,7 @@ fn audit_manifest(root: &Value) -> Value {
         "consent_records_checked": consent_ids.len(),
         "household_data_access_requests_checked": data_request_ids.len(),
         "authorized_household_data_access_requests": authorized_data_requests,
-        "data_sharing_default": "DENY_UNLESS_MATCHING_ACTIVE_CONSENT",
+        "data_sharing_default": "DENY_UNLESS_MATCHING_CONSENT_VALID_AT_DECISION_TIME",
         "household_service_outcomes": outcome_rows,
         "neighborhood_aggregate_compensation": "NOT_COMPUTED",
         "resource_accounts_checked": account_ids.len(),
@@ -1254,6 +1254,72 @@ mod tests {
     }
 
     #[test]
+    fn ambiguous_overlapping_consent_records_fail_closed() {
+        let mut manifest = base();
+        let consent = json!({
+            "consent_id":"consent-a1",
+            "household_id":"synthetic-household-a",
+            "data_category":"occupancy_schedule",
+            "purpose":"water-service-planning",
+            "service_id":"water-access",
+            "consent_state":"GRANTED",
+            "consent_revision":"consent-r1",
+            "granted_at_offset_s":0,
+            "revoked_at_offset_s":null,
+            "consent_record_evidence_id":"synthetic-consent-evidence"
+        });
+        manifest["consent_records"] = json!([
+            consent,
+            {
+                "consent_id":"consent-a2",
+                "household_id":"synthetic-household-a",
+                "data_category":"occupancy_schedule",
+                "purpose":"water-service-planning",
+                "service_id":"water-access",
+                "consent_state":"GRANTED",
+                "consent_revision":"consent-r2",
+                "granted_at_offset_s":0,
+                "revoked_at_offset_s":null,
+                "consent_record_evidence_id":"synthetic-consent-evidence-2"
+            }
+        ]);
+        manifest["household_data_access_requests"] = json!([{
+            "request_id":"request-ambiguous-consent",
+            "household_id":"synthetic-household-a",
+            "data_category":"occupancy_schedule",
+            "purpose":"water-service-planning",
+            "service_id":"water-access",
+            "decision_as_of_offset_s":100,
+            "evidence_id":"synthetic-data-request-7"
+        }]);
+        assert!(has_code(
+            &audit_manifest(&manifest),
+            "HOUSEHOLD_DATA_CONSENT_MISSING_OR_AMBIGUOUS"
+        ));
+    }
+
+    #[test]
+    fn household_data_consent_must_reference_registered_service() {
+        let mut manifest = base();
+        manifest["consent_records"] = json!([{
+            "consent_id":"consent-a1",
+            "household_id":"synthetic-household-a",
+            "data_category":"occupancy_schedule",
+            "purpose":"water-service-planning",
+            "service_id":"unregistered-service",
+            "consent_state":"GRANTED",
+            "consent_revision":"consent-r1",
+            "granted_at_offset_s":0,
+            "revoked_at_offset_s":null,
+            "consent_record_evidence_id":"synthetic-consent-evidence"
+        }]);
+        assert!(has_code(
+            &audit_manifest(&manifest),
+            "CONSENT_SERVICE_UNKNOWN"
+        ));
+    }
+
+    #[test]
     fn household_data_access_must_match_service_scope() {
         let mut manifest = base();
         manifest["consent_records"] = json!([{
@@ -1320,7 +1386,7 @@ mod tests {
         let report = audit_manifest(&manifest);
         assert_eq!(
             report["data_sharing_default"].as_str(),
-            Some("DENY_UNLESS_MATCHING_ACTIVE_CONSENT")
+            Some("DENY_UNLESS_MATCHING_CONSENT_VALID_AT_DECISION_TIME")
         );
     }
 
