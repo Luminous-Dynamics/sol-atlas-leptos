@@ -285,8 +285,14 @@ mod tests {
             manifest["study_id"].as_str(),
             Some("HIGHVELD-MULTI-ENGINE-THERMAL-WATER-001")
         );
-        assert_eq!(manifest["maturity"].as_str(), Some("BENCHMARK_PREREGISTERED_NOT_EXECUTED"));
-        assert_eq!(manifest["baseline"].as_str(), Some("S2_NO_WATER_PASSIVE_BASELINE"));
+        assert_eq!(
+            manifest["maturity"].as_str(),
+            Some("BENCHMARK_PREREGISTERED_NOT_EXECUTED")
+        );
+        assert_eq!(
+            manifest["baseline"].as_str(),
+            Some("S2_NO_WATER_PASSIVE_BASELINE")
+        );
         assert_eq!(manifest["execution_status"].as_str(), Some("NOT_EXECUTED"));
         let engines = manifest["engines"].as_array().expect("engine registry");
         assert_eq!(engines.len(), 6);
@@ -302,7 +308,11 @@ mod tests {
         }
         let scenarios = manifest["scenarios"].as_array().expect("scenario matrix");
         assert_eq!(scenarios.len(), 10);
-        assert!(scenarios.iter().any(|item| item == "S9_PAIRED_FIELD_TEST_CELL"));
+        assert!(
+            scenarios
+                .iter()
+                .any(|item| item == "S9_PAIRED_FIELD_TEST_CELL")
+        );
         let claim = manifest["claim_ceiling"].as_str().expect("claim ceiling");
         assert!(claim.contains("superiority claim"));
     }
