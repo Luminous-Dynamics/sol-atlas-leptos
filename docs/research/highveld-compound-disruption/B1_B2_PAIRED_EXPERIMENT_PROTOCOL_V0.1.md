@@ -35,6 +35,9 @@ Before generating B1/B2 decisions:
 3. Assign opaque reviewer labels to B1/B2 exports. Keep the arm-to-label key outside reviewer packets until decisions, error classifications and operator-time records are frozen.
 4. Have the independent oracle author derive expected dispositions from the closed synthetic controls before reviewing either arm's output.
 5. Record deviations, missing outputs, retries and exclusions. Do not silently drop difficult cases or change the oracle after unblinding.
+6. Within each candidate × scenario block, counterbalance B1/B2 execution order using a preregistered randomization seed. Preserve the assignment list and seed in the run packet; do not use the randomization seed to alter the deterministic event trace.
+7. For any operator-time study, record operator experience, training, tool familiarity, order, interruptions and rework. Prefer a paired crossover with AB/BA order balance; report operator effects separately rather than pooling them into a single average.
+8. Freeze reviewer classifications before revealing the B1/B2 key. Where reviewers cannot be blinded from visible tooling metadata, disclose the limitation and use an independent second adjudicator for disagreements.
 
 The audit CLI is a custodian-side integrity check, not the blinding mechanism. Human review must retain the separate arm key.
 
@@ -90,7 +93,19 @@ These are hard software/contract gates for the synthetic round:
 
 These are exact synthetic contract targets, not claims that zero physical risk can be demonstrated. B1 is not required to pass; it is the baseline whose observed errors and human effort are compared with B2. The clean-case coverage gate prevents a degenerate B2 that blocks every case from appearing safe. A valid case is an independent-oracle PASS with SATISFIED hard floor; B2 must preserve it as PASS/SATISFIED.
 
-## 7. Secondary measures
+### Component ablations and mechanism attribution
+
+The B1/B2 contrast estimates the incremental effect of the complete evidence-composition layer. It does not identify which individual guard produced the improvement. Run controlled ablations on synthetic packets to test mechanism attribution:
+
+- **ABL-RIGHTS:** disable source-rights and scope-join admission; revoked/out-of-scope controls must fail.
+- **ABL-TIME:** disable observation-availability checks; future-information controls must fail.
+- **ABL-REVISION:** disable revision/dependency invalidation; stale-source or changed-engine-configuration controls must fail.
+- **ABL-SERVICE:** treat upstream infrastructure events as service transitions; reserve-backed continuity and grid-restoration-without-service-recovery controls must fail.
+- **ABL-RECEIPT:** disable exact receipt digest/binding verification; changed source-rights or engine-configuration bytes must fail.
+
+For each ablation, report the exact control families it causes to fail and any unrelated controls it unexpectedly changes. A guard is not credited merely because the full B2 bundle passes; its targeted negative control must discriminate the enabled versus disabled state. Do not treat the ablations as competitive products or as separate field-wide statistical samples.
+
+### Secondary measures
 
 Report by candidate, scenario family and evidence-control family:
 
@@ -106,6 +121,8 @@ Report by candidate, scenario family and evidence-control family:
 - missingness, coverage, applicability and uncertainty for every non-synthetic input.
 
 Do not collapse service availability, repair, equity, cost, carbon, comfort or privacy into one weighted score. Report each resident's declared hard floors first; then report the Pareto set among candidates that satisfy them.
+
+Synthetic fixtures are a designed control suite, not a random sample of South African homes or events. Report exact numerators, denominators and family-level coverage. Do not infer population false-pass rates or attach ordinary sampling confidence intervals to the designed fixture count. Any real operator or field pilot must preregister its sampling frame, clustering, exclusions, target effect, power/precision method and stopping rule from a separate pilot baseline.
 
 ## 8. Multi-fidelity and decision-sufficient measurement
 
