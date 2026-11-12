@@ -339,3 +339,35 @@ Sources:
 - [Urban heat, vulnerability, and mitigation in U.S. cities: A systematic review, 2026](https://doi.org/10.1016/j.scsadv.2026.100077)
 
 **Claim boundary:** no real refuge location, route, resident demand, operational capacity, outage or heatwave chronology is admitted by these new artifacts. No live allocation or emergency dispatch is implemented.
+
+
+## 16. Pool and water-feature integration: role separation and specialist boundaries
+
+EnergyPlus 26.2 already provides a SwimmingPool:Indoor model integrated into the building surface heat balance. It includes water-surface convection, evaporation, short-/long-wave radiation, bottom conduction, solar gain, heater/plant flow, makeup water, water-temperature change and effects of a scheduled cover on multiple transfer modes. Pool evaporation is also added to the zone moisture balance. Use this for indoor pools where its floor/surface assumptions fit; it is not a ready-made outdoor courtyard water-feature or neighborhood CFD model.
+
+A 2025 IBPSA field paper measured an up-to-70% reduction in evaporation in one unoccupied Norwegian indoor pool when a movable floor acted as a cover. This is a site-specific result, not a universal saving factor. It is enough to motivate matched cover studies—not to assume that a pool cover gives the same benefit outdoors or improves thermal regeneration.
+
+CDC's current decorative-fountain guidance says all decorative fountains produce aerosols, and recommends a water-management programme, cleaning/disinfection and monitoring of critical water parameters. ASHRAE's public water-system risk-management suite identifies Standard 188 and Guideline 12; Guideline 12 addresses decorative water features, cooling towers, misters, humidifiers and other devices. CDC also distinguishes typical swimming pools from hot tubs and aerosol devices: typical pools are usually too cool for Legionella growth, while hot/aerosol devices require their own assessment. The architecture should therefore classify the aerosol mechanism, actual water temperature, treatment, maintenance and exposure context rather than label every pool or fountain identically.
+
+Sources:
+- [EnergyPlus 26.2 Indoor Swimming Pool Engineering Reference](https://energyplus.readthedocs.io/en/v26.2.0/guides/engineering-reference/17.3-indoor-swimming-pool.html)
+- [EnergyPlus 26.2 ThermalStorage:PCM reference](https://energyplus.readthedocs.io/en/v26.2.0/guides/input-output-reference/1.24-group-water-heaters.html)
+- [IBPSA Building Simulation 2025: Quantifying the Influence of the Pool Cover on the Water Evaporation Rate](https://publications.ibpsa.org/conference/paper/?id=bs2025_1871)
+- [CDC: Controlling Legionella in Decorative Fountains, 3 January 2025](https://www.cdc.gov/control-legionella/php/toolkit/decorative-fountain-module.html)
+- [ASHRAE: Guidance for Water System Risk Management](https://www.ashrae.org/technical-resources/standards-and-guidelines/guidance-for-water-system-risk-management)
+- [CDC: Evaluating Sources of Exposure](https://www.cdc.gov/investigate-legionella/php/public-health-strategy/evaluating-sources-of-exposure.html)
+
+New pool/water research packet in PR #741:
+- POOL_WATER_FEATURE_THERMAL_ROLES_V0.1.md
+- POOL_WATER_FEATURE_THERMAL_MANIFEST_V0.1.json and schema
+- highveld-pool-water-feature-qualifier structural/negative-control test binary
+- 9 archetypes × 8 scenarios = 72 registered cases; five time-dependent cover/shading modes, including day shading/night exposure and adaptive cover.
+- Contract: a pool is a finite thermal buffer; sustained cooling requires a named regeneration path. Evaporative removal is measured separately from useful occupied-zone cooling; water use, humidity, make-up, purge, rights, quality and aerosol risk remain explicit.
+
+## 17. Multi-area refuge flow and shared-capacity audit
+
+The existing highveld-refuge-network-feasibility binary is the network-level max-flow feasibility oracle, with a separate ordered supply/demand degradation sequence. It performs accessible-demand-first feasibility under shared site capacities and route links, while explicitly returning no person assignment or reservation.
+
+The added highveld-refuge-shared-capacity-audit is intentionally narrower and independent: it validates a proposed anonymized group-to-site plan by re-summing every site's total, accessible and water use. It catches double-spending in submitted plans, per-group over-allocation, duplicate group/site rows, unknown sites and route-evidence failures. It reports separate service ratios/gaps; it is not a second allocation algorithm.
+
+The benchmark target is zero false-feasible total/accessibility/water capacity, zero accepted unreachable routes and preservation of positive controls. A plan may be physically feasible but still have unmet demand; the audit must report that gap rather than hide it in an aggregate score.
