@@ -202,8 +202,7 @@ fn main() {
     let args: Vec<String> = env::args().skip(1).collect();
     match args.first().map(String::as_str).unwrap_or("--help") {
         "--self-test" => {
-            let input: Value =
-                serde_json::from_str(SAMPLE).expect("committed governor case JSON");
+            let input: Value = serde_json::from_str(SAMPLE).expect("committed governor case JSON");
             match evaluate(&input) {
                 Ok(output) => println!(
                     "{}",
@@ -229,7 +228,7 @@ fn main() {
                 process::exit(2);
             });
             match evaluate(&input) {
-                    Ok(output) => println!(
+                Ok(output) => println!(
                     "{}",
                     serde_json::to_string_pretty(&output).unwrap_or_default()
                 ),
