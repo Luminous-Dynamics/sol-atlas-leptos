@@ -72,7 +72,7 @@ Audit an externally generated packet:
 cargo run --bin highveld-paired-audit -- --input paired-run.json
 ```
 
-The audit requires identical specialist engine versions and raw engine input/output digests across B1/B2, checks B2 receipt binding and per-service rights/scope states, compares B2 decisions with the independent oracle, and rejects future information or hard-floor false passes. B1 oracle mismatches are reported as baseline outcomes rather than treated as packet-integrity failures. A PASS means only that this submitted synthetic/experiment packet satisfies the audit contract; it does not mean the industry experiment has been run or that the physical model is qualified.
+The audit requires identical specialist engine versions and raw engine input/output digests across B1/B2, recomputes the versioned B2 receipt SHA-256 after checking input bindings, checks per-service rights/scope states, compares B2 decisions with the independent oracle, and rejects future information or hard-floor false passes. B1 oracle mismatches are reported as baseline outcomes rather than treated as packet-integrity failures. A PASS means only that this submitted synthetic/experiment packet satisfies the audit contract; it does not mean the industry experiment has been run or that the physical model is qualified.
 
 ## Validation status
 
