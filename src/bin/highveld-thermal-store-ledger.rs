@@ -439,7 +439,8 @@ mod tests {
                 .as_array()
                 .unwrap()
                 .iter()
-                .any(|value| value == "interval evidence reference uncertainty_evidence_ref is missing")
+                .any(|value| value
+                    == "interval evidence reference uncertainty_evidence_ref is missing")
         );
     }
 
