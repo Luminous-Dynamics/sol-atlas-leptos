@@ -369,12 +369,22 @@
           "minLength": 1
         },
         "candidate_id": {
-          "type": "string",
-          "minLength": 1
+          "enum": [
+            "INDEPENDENT_SERVICES",
+            "SHARED_UTILITY",
+            "HYBRID_LOCAL_AUTONOMY"
+          ]
         },
         "scenario_id": {
-          "type": "string",
-          "minLength": 1
+          "enum": [
+            "hot_grid_water_parts",
+            "cold_grid_heatbank_repair",
+            "air_quality_ventilation_network",
+            "restoration_repeat_fault",
+            "system_notice_no_tap_report",
+            "rain_grid_drainage_repair",
+            "peak_shared_plant_household_change"
+          ]
         },
         "decision_as_of_offset_s": {
           "type": "integer",
