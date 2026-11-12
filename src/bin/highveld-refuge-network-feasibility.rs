@@ -5,6 +5,9 @@ use std::{env, process};
 const CASE: &str = include_str!(
     "../../docs/research/highveld-neighborhood-commons/REFUGE_NETWORK_FEASIBILITY_CASE_V0.1.json"
 );
+const TIME_SERIES_CASE: &str = include_str!(
+    "../../docs/research/highveld-neighborhood-commons/REFUGE_SUPPLY_DEMAND_DEGRADATION_CASE_V0.1.json"
+);
 const SCHEMA: &str = include_str!(
     "../../docs/research/highveld-neighborhood-commons/REFUGE_NETWORK_FEASIBILITY_CASE_V0.1.schema.json"
 );
@@ -188,7 +191,7 @@ fn number_at(value: &Value, key: &str) -> Option<f64> {
         .filter(|number| number.is_finite())
 }
 
-fn evaluate(case: &Value) -> Result<Value, Vec<String>> {
+fn evaluate_snapshot(case: &Value) -> Result<Value, Vec<String>> {
     let schema: Value = serde_json::from_str(SCHEMA)
         .map_err(|error| vec![format!("schema JSON parse failed: {error}")])?;
     let mut errors = Vec::new();
@@ -597,6 +600,169 @@ fn evaluate(case: &Value) -> Result<Value, Vec<String>> {
     }))
 }
 
+fn evaluate_time_series(case: &Value) -> Result<Value, Vec<String>> {
+    let mut errors = Vec::new();
+    for (key, expected) in [
+        ("study_id", "HIGHVELD-REFUGE-SUPPLY-DEMAND-DEGRADATION-001"),
+        ("maturity", "SYNTHETIC_KNOWN_ANSWER"),
+        ("execution_status", "NO_NATIVE_EVENT_TIME_OR_SITE_VALIDATION"),
+    ] {
+        if text_at(case, key) != Some(expected) {
+            errors.push(format!("{key} must preserve the temporal benchmark claim ceiling"));
+        }
+    }
+    let time_order_source = text_at(case, "time_order_source")
+        .ok_or_else(|| vec!["time_order_source is required".to_owned()])?;
+    let slices = case
+        .get("time_slices")
+        .and_then(Value::as_array)
+        .ok_or_else(|| vec!["time_slices must be an array".to_owned()])?;
+    if slices.len() < 2 {
+        errors.push("at least two timepoints are required for a degradation sequence".to_owned());
+    }
+    if !errors.is_empty() {
+        return Err(errors);
+    }
+
+    let mut seen_timepoints = BTreeSet::new();
+    let mut timepoint_reports = Vec::new();
+    let mut cohort_minimum_ratio = BTreeMap::<String, f64>::new();
+    let mut total_unmet_place_hours = 0.0_f64;
+    let mut accessible_unmet_place_hours = 0.0_f64;
+    let mut unmet_place_snapshot_sum = 0_u64;
+    let mut maximum_unmet = 0_u64;
+    let mut maximum_unmet_timepoint = String::new();
+    let mut minimum_ratio = 1.0_f64;
+
+    for (sequence_index, time_slice) in slices.iter().enumerate() {
+        let timepoint_id = text_at(time_slice, "timepoint_id")
+            .ok_or_else(|| vec![format!("time_slices[{sequence_index}].timepoint_id is missing")])?;
+        if !seen_timepoints.insert(timepoint_id.to_owned()) {
+            errors.push(format!("duplicate timepoint identity {timepoint_id}"));
+            continue;
+        }
+        let duration = number_at(time_slice, "duration_h")
+            .ok_or_else(|| vec![format!("{timepoint_id}: duration_h is missing or non-finite")])?;
+        if duration <= 0.0 {
+            errors.push(format!("{timepoint_id}: duration_h must be positive"));
+            continue;
+        }
+        let scenario_id = text_at(time_slice, "scenario_id").unwrap_or("UNSPECIFIED_SCENARIO");
+        let snapshot_value = time_slice
+            .get("snapshot")
+            .and_then(Value::as_object)
+            .ok_or_else(|| vec![format!("{timepoint_id}: snapshot must be an object")])?;
+        let mut snapshot_object = snapshot_value.clone();
+        snapshot_object.insert(
+            "study_id".to_owned(),
+            json!("HIGHVELD-REFUGE-NETWORK-FEASIBILITY-001"),
+        );
+        snapshot_object.insert(
+            "case_id".to_owned(),
+            json!(format!(
+                "{}__{}",
+                text_at(case, "case_id").unwrap_or("TEMPORAL_CASE"),
+                timepoint_id
+            )),
+        );
+        snapshot_object.insert("maturity".to_owned(), json!("SYNTHETIC_KNOWN_ANSWER"));
+        snapshot_object.insert(
+            "execution_status".to_owned(),
+            json!("NO_SITE_OR_ROUTE_VALIDATION"),
+        );
+        let snapshot = Value::Object(snapshot_object);
+        let report = evaluate_snapshot(&snapshot)?;
+
+        let total_requested = report["total_places_requested"].as_u64().unwrap_or(0);
+        let total_feasible = report["total_places_feasible"].as_u64().unwrap_or(0);
+        let total_unmet = report["total_places_unmet"].as_u64().unwrap_or(0);
+        let accessible_unmet = report["accessible_places_unmet"].as_u64().unwrap_or(0);
+        let minimum_cohort_ratio = number_at(&report, "minimum_cohort_service_ratio")
+            .unwrap_or(0.0);
+
+        total_unmet_place_hours += total_unmet as f64 * duration;
+        accessible_unmet_place_hours += accessible_unmet as f64 * duration;
+        unmet_place_snapshot_sum += total_unmet;
+        minimum_ratio = minimum_ratio.min(minimum_cohort_ratio);
+        if total_unmet > maximum_unmet {
+            maximum_unmet = total_unmet;
+            maximum_unmet_timepoint = timepoint_id.to_owned();
+        }
+
+        if let Some(cohort_rows) = report["cohort_service"].as_array() {
+            for cohort in cohort_rows {
+                if let (Some(cohort_id), Some(ratio)) = (
+                    text_at(cohort, "cohort_id"),
+                    number_at(cohort, "cohort_service_ratio"),
+                ) {
+                    cohort_minimum_ratio
+                        .entry(cohort_id.to_owned())
+                        .and_modify(|current| *current = current.min(ratio))
+                        .or_insert(ratio);
+                }
+            }
+        }
+
+        timepoint_reports.push(json!({
+            "sequence_index": sequence_index,
+            "timepoint_id": timepoint_id,
+            "scenario_id": scenario_id,
+            "duration_h": duration,
+            "total_places_requested": total_requested,
+            "total_places_feasible": total_feasible,
+            "total_places_unmet": total_unmet,
+            "accessible_places_unmet": accessible_unmet,
+            "minimum_cohort_service_ratio": minimum_cohort_ratio,
+            "qualified_site_count": report["qualified_site_count"],
+            "qualified_general_route_count": report["qualified_general_route_count"],
+            "qualified_accessible_route_count": report["qualified_accessible_route_count"]
+        }));
+    }
+
+    if !errors.is_empty() {
+        return Err(errors);
+    }
+    let cohort_minimum_rows: Vec<Value> = cohort_minimum_ratio
+        .iter()
+        .map(|(cohort_id, ratio)| {
+            json!({
+                "cohort_id": cohort_id,
+                "minimum_service_ratio_across_sequence": ratio
+            })
+        })
+        .collect();
+
+    Ok(json!({
+        "audit_state": "REFUGE_SUPPLY_DEMAND_DEGRADATION_COMPLETE",
+        "study_id": "HIGHVELD-REFUGE-SUPPLY-DEMAND-DEGRADATION-001",
+        "case_id": text_at(case, "case_id").unwrap_or_default(),
+        "timepoint_count": timepoint_reports.len(),
+        "time_order_source": time_order_source,
+        "native_event_time_owner": "SYMTROPY",
+        "native_timestamps_or_event_ids_generated": false,
+        "total_unmet_place_hours": total_unmet_place_hours,
+        "accessible_unmet_place_hours": accessible_unmet_place_hours,
+        "unmet_place_snapshot_sum_not_unique_people": unmet_place_snapshot_sum,
+        "maximum_unmet_places_at_any_timepoint": maximum_unmet,
+        "maximum_unmet_timepoint_id": maximum_unmet_timepoint,
+        "minimum_cohort_service_ratio_any_timepoint": minimum_ratio,
+        "cohort_minimum_service_ratios": cohort_minimum_rows,
+        "timepoints": timepoint_reports,
+        "assignment": "NONE",
+        "reservation": "NONE",
+        "execution_status": "TEMPORAL_AGGREGATE_FEASIBILITY_ONLY_NO_ASSIGNMENT",
+        "claim_ceiling": "Synthetic time-sequence replay only; not live event chronology, real refuge service or occupant allocation"
+    }))
+}
+
+fn evaluate(case: &Value) -> Result<Value, Vec<String>> {
+    if case.get("time_slices").is_some() {
+        evaluate_time_series(case)
+    } else {
+        evaluate_snapshot(case)
+    }
+}
+
 fn main() {
     match env::args().nth(1).as_deref().unwrap_or("--help") {
         "--self-test" => {
@@ -610,9 +776,22 @@ fn main() {
                 process::exit(1);
             }
         }
+        "--time-series-self-test" => {
+            let case: Value =
+                serde_json::from_str(TIME_SERIES_CASE).expect("committed time-series case JSON");
+            let report = evaluate_time_series(&case).expect("temporal network case structure");
+            println!(
+                "{}",
+                serde_json::to_string_pretty(&report).unwrap_or_default()
+            );
+            if report["audit_state"] != "REFUGE_SUPPLY_DEMAND_DEGRADATION_COMPLETE" {
+                process::exit(1);
+            }
+        }
         "--help" | "-h" => {
             println!("highveld-refuge-network-feasibility");
             println!("  --self-test  evaluate aggregate refuge capacity feasibility");
+            println!("  --time-series-self-test  evaluate ordered aggregate service degradation");
         }
         _ => {
             eprintln!("invalid argument; use --help");
@@ -627,6 +806,39 @@ mod tests {
 
     fn sample() -> Value {
         serde_json::from_str(CASE).expect("case JSON")
+    }
+
+    #[test]
+    fn temporal_service_sequence_reports_unmet_place_hours() {
+        let case: Value =
+            serde_json::from_str(TIME_SERIES_CASE).expect("temporal case JSON");
+        let report = evaluate_time_series(&case).expect("temporal case must evaluate");
+        assert_eq!(report["timepoint_count"], 3);
+        assert_eq!(report["total_unmet_place_hours"], 56.0);
+        assert_eq!(report["accessible_unmet_place_hours"], 12.0);
+        assert_eq!(report["unmet_place_snapshot_sum_not_unique_people"], 36);
+        assert_eq!(report["maximum_unmet_places_at_any_timepoint"], 20);
+        assert_eq!(report["maximum_unmet_timepoint_id"], "TP-002");
+        assert_eq!(report["minimum_cohort_service_ratio_any_timepoint"], 0.0);
+        assert_eq!(report["native_timestamps_or_event_ids_generated"], false);
+        assert_eq!(report["assignment"], "NONE");
+    }
+
+    #[test]
+    fn temporal_sequence_rejects_duplicate_timepoint_ids() {
+        let mut case: Value =
+            serde_json::from_str(TIME_SERIES_CASE).expect("temporal case JSON");
+        let duplicate = case["time_slices"][0].clone();
+        case["time_slices"].as_array_mut().unwrap().push(duplicate);
+        assert!(evaluate_time_series(&case).is_err());
+    }
+
+    #[test]
+    fn temporal_sequence_rejects_nonpositive_duration() {
+        let mut case: Value =
+            serde_json::from_str(TIME_SERIES_CASE).expect("temporal case JSON");
+        case["time_slices"][1]["duration_h"] = json!(0.0);
+        assert!(evaluate_time_series(&case).is_err());
     }
 
     #[test]
