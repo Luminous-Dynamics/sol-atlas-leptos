@@ -467,5 +467,255 @@
         }
       ]
     }
+  ],
+  "adversarial_controls": [
+    {
+      "control_id": "ambiguous_sast_timestamp",
+      "family": "timezone_ambiguity",
+      "records": [
+        {
+          "record_id": "obs_ambiguous_time",
+          "source_id": "synthetic_source_weather",
+          "source_revision": "fixture-r1",
+          "scope": "regional",
+          "temporal_resolution_s": 3600,
+          "timezone_state": "ambiguous",
+          "coverage_state": "complete",
+          "rights_state": "synthetic_control_only",
+          "timestamp_text": "2026-01-15 02:00:00 SAST/UTC+02? (deliberately ambiguous)",
+          "event_id": "heat_event"
+        }
+      ],
+      "expected_disposition": "REJECT_TIME_JOIN",
+      "rationale": "The local timestamp has no unambiguous timezone interpretation; do not normalize it to UTC by guessing."
+    },
+    {
+      "control_id": "daily_system_vs_hourly_site",
+      "family": "coarse_fine_resolution",
+      "records": [
+        {
+          "record_id": "daily_system_record",
+          "source_id": "synthetic_source_water",
+          "source_revision": "fixture-r1",
+          "scope": "system",
+          "temporal_resolution_s": 86400,
+          "timezone_state": "not_applicable",
+          "coverage_state": "complete",
+          "rights_state": "synthetic_control_only",
+          "start_offset_s": 0,
+          "end_offset_s": 86400,
+          "record_status": "observed_normal"
+        },
+        {
+          "record_id": "hourly_site_record",
+          "source_id": "synthetic_source_water",
+          "source_revision": "fixture-r1",
+          "scope": "site",
+          "temporal_resolution_s": 3600,
+          "timezone_state": "not_applicable",
+          "coverage_state": "complete",
+          "rights_state": "synthetic_control_only",
+          "start_offset_s": 0,
+          "end_offset_s": 86400,
+          "record_status": "reported_event"
+        }
+      ],
+      "expected_disposition": "REQUIRE_ALIGNMENT_REVIEW",
+      "rationale": "The records have different scope and temporal resolution; overlapping coarse windows do not establish event co-occurrence at a finer scope."
+    },
+    {
+      "control_id": "right_censored_interruption",
+      "family": "censored_window",
+      "records": [
+        {
+          "record_id": "censored_outage",
+          "source_id": "synthetic_source_grid",
+          "source_revision": "fixture-r1",
+          "scope": "feeder",
+          "temporal_resolution_s": 60,
+          "timezone_state": "explicit_utc",
+          "coverage_state": "right_censored",
+          "rights_state": "synthetic_control_only",
+          "event_id": "outage_1",
+          "start_offset_s": 100,
+          "end_offset_s": 500,
+          "record_status": "censored"
+        }
+      ],
+      "expected_disposition": "RETAIN_PARTIAL_ONLY",
+      "rationale": "The event end is not observed; do not claim restoration time, complete duration or stable recovery."
+    },
+    {
+      "control_id": "conflicting_same_scope_status",
+      "family": "conflicting_observations",
+      "records": [
+        {
+          "record_id": "status_a",
+          "source_id": "synthetic_source_water",
+          "source_revision": "fixture-r1",
+          "scope": "system",
+          "temporal_resolution_s": 3600,
+          "timezone_state": "explicit_utc",
+          "coverage_state": "conflicting",
+          "rights_state": "synthetic_control_only",
+          "start_offset_s": 0,
+          "end_offset_s": 3600,
+          "record_status": "observed_normal"
+        },
+        {
+          "record_id": "status_b",
+          "source_id": "synthetic_source_water",
+          "source_revision": "fixture-r1",
+          "scope": "system",
+          "temporal_resolution_s": 3600,
+          "timezone_state": "explicit_utc",
+          "coverage_state": "conflicting",
+          "rights_state": "synthetic_control_only",
+          "start_offset_s": 0,
+          "end_offset_s": 3600,
+          "record_status": "reported_event"
+        }
+      ],
+      "expected_disposition": "BLOCK_CONFLICTING_EVIDENCE",
+      "rationale": "Conflicting source observations on the same scope/window cannot be averaged or resolved by arbitrary source order."
+    },
+    {
+      "control_id": "revoked_source_rights",
+      "family": "rights_revocation",
+      "records": [
+        {
+          "record_id": "revoked_record",
+          "source_id": "synthetic_source_weather",
+          "source_revision": "fixture-r1",
+          "scope": "regional",
+          "temporal_resolution_s": 3600,
+          "timezone_state": "explicit_utc",
+          "coverage_state": "complete",
+          "rights_state": "revoked",
+          "event_id": "heat_event",
+          "start_offset_s": 0,
+          "end_offset_s": 3600,
+          "record_status": "reported_event"
+        }
+      ],
+      "expected_disposition": "REJECT_AND_INVALIDATE_DEPENDENTS",
+      "rationale": "A revoked rights state blocks new admission and triggers review/invalidation of dependent uses according to the source agreement and owner policy; the synthetic fixture does not determine legal remedies."
+    },
+    {
+      "control_id": "source_revision_invalidates_result",
+      "family": "source_revision_change",
+      "records": [
+        {
+          "record_id": "current_source_record",
+          "source_id": "synthetic_source_water",
+          "source_revision": "fixture-r2",
+          "scope": "system",
+          "temporal_resolution_s": 86400,
+          "timezone_state": "not_applicable",
+          "coverage_state": "complete",
+          "rights_state": "synthetic_control_only",
+          "event_id": "water_status",
+          "start_offset_s": 0,
+          "end_offset_s": 86400
+        }
+      ],
+      "current_source_revision": "fixture-r2",
+      "derived_result_source_revision": "fixture-r1",
+      "expected_disposition": "INVALIDATE_STALE_DEPENDENTS",
+      "rationale": "The derived result was generated from a previous source revision and must not be reused as current evidence."
+    },
+    {
+      "control_id": "policy_future_event_leak",
+      "family": "future_information_leakage",
+      "records": [
+        {
+          "record_id": "future_event",
+          "source_id": "synthetic_source_grid",
+          "source_revision": "fixture-r1",
+          "scope": "dwelling",
+          "temporal_resolution_s": 1,
+          "timezone_state": "not_applicable",
+          "coverage_state": "complete",
+          "rights_state": "synthetic_control_only",
+          "event_id": "future_grid_loss",
+          "start_offset_s": 100,
+          "end_offset_s": 200,
+          "record_status": "reported_event",
+          "policy_visible": true,
+          "available_at_offset_s": 0
+        }
+      ],
+      "decision_as_of_offset_s": 50,
+      "oracle_upper_bound": false,
+      "expected_disposition": "HIDE_FUTURE_INFORMATION",
+      "rationale": "The candidate policy at t=50 cannot see an event scheduled to start at t=100 merely because the benchmark fixture contains it; only an explicitly labelled oracle arm may receive future-event knowledge."
+    },
+    {
+      "control_id": "mismatched_candidate_trace",
+      "family": "unmatched_candidate_trace",
+      "records": [],
+      "candidate_arms": [
+        {
+          "arm_id": "independent",
+          "exogenous_trace_id": "trace-A",
+          "information_budget_id": "budget-1",
+          "initial_state_id": "initial-1"
+        },
+        {
+          "arm_id": "shared",
+          "exogenous_trace_id": "trace-B",
+          "information_budget_id": "budget-1",
+          "initial_state_id": "initial-1"
+        },
+        {
+          "arm_id": "hybrid",
+          "exogenous_trace_id": "trace-A",
+          "information_budget_id": "budget-1",
+          "initial_state_id": "initial-1"
+        }
+      ],
+      "expected_disposition": "REJECT_UNMATCHED_COMPARISON",
+      "rationale": "Architecture arms must use the same exogenous trace, initial state and declared information budget; otherwise the comparison is confounded."
+    },
+    {
+      "control_id": "unsupported_common_cause_link",
+      "family": "unsupported_common_cause",
+      "records": [
+        {
+          "record_id": "grid_record",
+          "source_id": "synthetic_source_grid",
+          "source_revision": "fixture-r1",
+          "scope": "dwelling",
+          "temporal_resolution_s": 1,
+          "timezone_state": "not_applicable",
+          "coverage_state": "complete",
+          "rights_state": "synthetic_control_only",
+          "event_id": "grid_loss",
+          "start_offset_s": 0,
+          "end_offset_s": 500
+        },
+        {
+          "record_id": "network_record",
+          "source_id": "synthetic_source_network",
+          "source_revision": "fixture-r1",
+          "scope": "network",
+          "temporal_resolution_s": 1,
+          "timezone_state": "not_applicable",
+          "coverage_state": "complete",
+          "rights_state": "synthetic_control_only",
+          "event_id": "network_loss",
+          "start_offset_s": 0,
+          "end_offset_s": 500
+        }
+      ],
+      "declared_link": {
+        "from_event_id": "grid_loss",
+        "to_event_id": "network_loss",
+        "relation": "common_cause",
+        "basis": "unresolved"
+      },
+      "expected_disposition": "REFUSE_CAUSAL_LINK",
+      "rationale": "Temporal overlap and a declared hypothesis do not establish a common cause; the relation remains unresolved without supporting evidence."
+    }
   ]
 }
