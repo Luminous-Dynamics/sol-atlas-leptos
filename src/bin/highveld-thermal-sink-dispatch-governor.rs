@@ -46,11 +46,21 @@ fn evaluate(input: &Value) -> Result<Value, Vec<String>> {
         && text_at(input, "local_control_state") == Some("AVAILABLE")
         && input.get("manual_safe_mode_available").and_then(Value::as_bool) == Some(true);
 
+    let mut id_counts = std::collections::BTreeMap::<String, usize>::new();
+    for path in paths {
+        if let Some(id) = text_at(path, "id") {
+            *id_counts.entry(id.to_owned()).or_default() += 1;
+        }
+    }
+
     let mut eligible = Vec::new();
     let mut blocked = Vec::new();
     for path in paths {
         let id = text_at(path, "id").unwrap_or("<missing-id>");
         let mut reasons = Vec::new();
+        if id_counts.get(id).copied().unwrap_or(0) > 1 {
+            push_reason(&mut reasons, "DUPLICATE_SINK_PATH_ID");
+        }
         if ![
             "RADIATIVE_SKY_PANEL",
             "DRY_AIR_COOLER",
@@ -130,6 +140,20 @@ fn evaluate(input: &Value) -> Result<Value, Vec<String>> {
                     push_reason(&mut reasons, "DISCRETIONARY_WATER_WOULD_BREACH_COMMITMENTS_OR_ESSENTIAL_RESERVE");
                 }
                 _ => push_reason(&mut reasons, "WATER_ACCOUNT_OR_DRAW_UNKNOWN"),
+            }
+        } else {
+            match number_at(path, "water_draw_l") {
+                Some(draw) if draw == 0.0 => {}
+                Some(_) => {
+                    push_reason(
+                        &mut reasons,
+                        "UNDECLARED_WATER_DRAW_ON_NON_EVAPORATIVE_PATH",
+                    );
+                }
+                None => push_reason(
+                    &mut reasons,
+                    "NON_EVAPORATIVE_WATER_DRAW_UNKNOWN",
+                ),
             }
         }
 
@@ -275,6 +299,47 @@ mod tests {
         let unknown = blocked.iter().find(|path| path["path_id"] == "UNKNOWN_SINK").unwrap();
         assert!(unknown["reasons"].as_array().unwrap().iter()
             .any(|reason| reason == "UNKNOWN_OR_UNSUPPORTED_SINK_PATH"));
+    }
+
+    #[test]
+    fn duplicate_sink_path_ids_block_all_ambiguous_entries() {
+        let mut input = sample();
+        input["sink_paths"][1]["id"] = json!("RADIATIVE_SKY_PANEL");
+        let report = evaluate(&input).expect("duplicate path IDs should be blocked");
+        assert!(report["eligible_paths"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .all(|path| path["path_id"] != "RADIATIVE_SKY_PANEL"));
+        let matching = report["blocked_paths"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .filter(|path| path["path_id"] == "RADIATIVE_SKY_PANEL")
+            .collect::<Vec<_>>();
+        assert_eq!(matching.len(), 2);
+        assert!(matching.iter().all(|path| path["reasons"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|reason| reason == "DUPLICATE_SINK_PATH_ID")));
+    }
+
+    #[test]
+    fn non_evaporative_sink_cannot_hide_water_draw() {
+        let mut input = sample();
+        input["sink_paths"][0]["water_draw_l"] = json!(0.1);
+        let report = evaluate(&input).expect("undeclared water draw should be blocked");
+        let blocked = report["blocked_paths"].as_array().unwrap();
+        let radiative = blocked
+            .iter()
+            .find(|path| path["path_id"] == "RADIATIVE_SKY_PANEL")
+            .unwrap();
+        assert!(radiative["reasons"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|reason| reason == "UNDECLARED_WATER_DRAW_ON_NON_EVAPORATIVE_PATH"));
     }
 
     #[test]
