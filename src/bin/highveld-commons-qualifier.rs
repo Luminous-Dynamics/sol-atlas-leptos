@@ -210,6 +210,7 @@ fn audit_manifest(root: &Value) -> Value {
                         || text(policy, "final_authority") != Some("HUMAN")
                         || policy.get("appeal_path").and_then(Value::as_bool) != Some(true)
                         || policy.get("resident_oversight").and_then(Value::as_bool) != Some(true)
+                        || policy.get("algorithmic_priority_authority").and_then(Value::as_bool) != Some(false)
                     {
                         audit.fail(
                             "ALLOCATION_GOVERNANCE_NOT_QUALIFIED",
@@ -297,13 +298,15 @@ fn audit_manifest(root: &Value) -> Value {
                         "declared essential service must map to a commons service contract",
                     );
                 } else if let Some(fallback_domain) = fallback_domain {
-                    for (_, provider_domain) in providers.unwrap_or(&Vec::new()) {
-                        if provider_domain == fallback_domain {
-                            audit.fail(
-                                "LOCAL_FALLBACK_COMMON_CAUSE",
-                                &format!("{floor_path}.local_fallback.failure_domain_id"),
-                                &format!("household {household_id} fallback shares failure domain with the commons provider"),
-                            );
+                    if let Some(providers) = providers {
+                        for (_, provider_domain) in providers {
+                            if provider_domain == fallback_domain {
+                                audit.fail(
+                                    "LOCAL_FALLBACK_COMMON_CAUSE",
+                                    &format!("{floor_path}.local_fallback.failure_domain_id"),
+                                    &format!("household {household_id} fallback shares failure domain with the commons provider"),
+                                );
+                            }
                         }
                     }
                 }
@@ -315,6 +318,15 @@ fn audit_manifest(root: &Value) -> Value {
                             "QUEUE_EXCEEDS_RESIDENT_FLOOR",
                             &floor_path,
                             "shared-service queue wait exceeds this household's declared maximum",
+                        );
+                    }
+                    let access_max = contract.get("access_path").and_then(|a| number(a, "maximum_access_time_s"));
+                    let floor_access_max = number(floor, "maximum_access_time_s");
+                    if access_max.zip(floor_access_max).is_some_and(|(access, floor_access)| access > floor_access) {
+                        audit.fail(
+                            "ACCESS_EXCEEDS_RESIDENT_FLOOR",
+                            &floor_path,
+                            "shared-service access time exceeds this household's declared access boundary",
                         );
                     }
                 }
@@ -613,6 +625,14 @@ mod tests {
         let mut manifest = base();
         manifest["resource_transfers"][0]["unit"] = json!("kWh");
         assert!(has_code(&audit_manifest(&manifest), "RESOURCE_TRANSFER_UNIT_MISMATCH"));
+    }
+
+    #[test]
+    fn access_time_cannot_exceed_resident_declared_limit() {
+        let mut manifest = base();
+        manifest["service_contracts"][0]["access_path"]["maximum_access_time_s"] = json!(900);
+        manifest["households"][0]["essential_service_floors"][0]["maximum_access_time_s"] = json!(120);
+        assert!(has_code(&audit_manifest(&manifest), "ACCESS_EXCEEDS_RESIDENT_FLOOR"));
     }
 
     #[test]
