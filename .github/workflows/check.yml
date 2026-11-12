@@ -107,3 +107,11 @@ jobs:
         run: cargo run --bin highveld-refuge-network-feasibility -- --self-test
       - name: Execute temporal refuge supply-demand degradation sequence
         run: cargo run --bin highveld-refuge-network-feasibility -- --time-series-self-test
+      - name: Test shared refuge capacity audit
+        run: cargo test --bin highveld-refuge-shared-capacity-audit
+      - name: Execute shared refuge capacity audit
+        run: cargo run --bin highveld-refuge-shared-capacity-audit -- --self-test
+      - name: Test pool and water feature thermal qualifier
+        run: cargo test --bin highveld-pool-water-feature-qualifier
+      - name: Execute pool and water feature thermal audit
+        run: cargo run --bin highveld-pool-water-feature-qualifier -- --self-test
