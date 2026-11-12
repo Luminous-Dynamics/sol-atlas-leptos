@@ -361,7 +361,7 @@ New pool/water research packet in PR #741:
 - POOL_WATER_FEATURE_THERMAL_ROLES_V0.1.md
 - POOL_WATER_FEATURE_THERMAL_MANIFEST_V0.1.json and schema
 - highveld-pool-water-feature-qualifier structural/negative-control test binary
-- 9 archetypes × 8 scenarios = 72 registered cases; five time-dependent cover/shading modes, including day shading/night exposure and adaptive cover.
+- 10 archetypes × 8 scenarios = 80 registered cases, including pool heat recovery from building cooling loads; five time-dependent cover/shading modes, including day shading/night exposure and adaptive cover.
 - Contract: a pool is a finite thermal buffer; sustained cooling requires a named regeneration path. Evaporative removal is measured separately from useful occupied-zone cooling; water use, humidity, make-up, purge, rights, quality and aerosol risk remain explicit.
 
 ## 17. Multi-area refuge flow and shared-capacity audit
