@@ -181,3 +181,17 @@ The matrix covers shared and local failure, common-cause dependencies, inaccessi
 
 No time offsets, ticks, event IDs, delivered quantities or physical response are fabricated in this register. The owner that controls each state machine must instantiate and evaluate its own semantics. Highveld qualifies the cross-domain handoff and preserves per-household outcomes.
 
+
+
+## 12. Model assurance tiers and decision consequence
+
+Every specialist model/adapter used in a future empirical or decision packet must declare its revision, configuration digest, applicability domain, current in-domain state and the strongest decision class it is permitted to support.
+
+- \`SCREENING\` may rank exploration options only. It cannot establish resident-service continuity, safety, habitability or intervention claims.
+- \`DECISION_SUPPORT\` may support a reversible design choice only with model-specific validation evidence, uncertainty evidence and passed independent review.
+- \`SERVICE_CRITICAL\` may support a declared essential-service claim only with validation, uncertainty, held-out measurement-reference evidence, an explicit applicability domain and passed independent review.
+
+Any out-of-domain or unknown applicability state blocks the declared use. A model revision/configuration change creates a new identity and must trigger scoped requalification. There is no universal R², MAE or residual cutoff: thresholds, uncertainty coverage, tail checks and held-out references are defined for the model, output, decision and consequence.
+
+This is a decision-authority boundary, not a claim that the current synthetic reference contains a qualified physics model. The reference manifest has no model records by default.
+
