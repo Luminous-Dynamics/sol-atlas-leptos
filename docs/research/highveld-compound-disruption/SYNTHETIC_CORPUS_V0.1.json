@@ -408,7 +408,7 @@
         },
         {
           "event_id": "tap_observation_window",
-          "kind": "system_status_notice",
+          "kind": "observation_window",
           "start_offset_s": 0,
           "end_offset_s": 86400,
           "scope": "tap",
