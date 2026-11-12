@@ -643,8 +643,8 @@
         {
           "left_event_id": "shared_plant_fault",
           "right_event_id": "replacement_delay",
-          "expected_relation": "overlaps",
-          "rationale": "The repair-part delay starts when the fault window ends."
+          "expected_relation": "meets",
+          "rationale": "The shared-plant fault ends exactly when the replacement-part delay begins under half-open interval semantics."
         },
         {
           "left_event_id": "replacement_delay",
