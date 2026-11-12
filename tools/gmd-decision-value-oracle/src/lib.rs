@@ -232,23 +232,39 @@ pub enum DecisionError {
 impl fmt::Display for DecisionError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let message = match self {
-            Self::EmptyRequiredField => "required identifiers and evidence references must be non-empty and trimmed",
+            Self::EmptyRequiredField => {
+                "required identifiers and evidence references must be non-empty and trimmed"
+            }
             Self::InvalidDigest => "SHA-256 values must be 64 lowercase hexadecimal characters",
             Self::InvalidDeadline => "decision deadline must be positive",
             Self::EmptyStateSet => "scenario must contain at least one state, service and action",
             Self::TooManyStates => "state count exceeds the deterministic oracle limit",
             Self::TooManyServices => "service count exceeds the deterministic oracle limit",
             Self::TooManyActions => "action count exceeds the deterministic oracle limit",
-            Self::TooManyObservationOutcomes => "observation outcome count exceeds the deterministic oracle limit",
+            Self::TooManyObservationOutcomes => {
+                "observation outcome count exceeds the deterministic oracle limit"
+            }
             Self::DuplicateIdentifier => "identifiers must be unique within their collection",
-            Self::InvalidPriorProbabilities => "prior probabilities must be positive and sum exactly to one million ppm",
-            Self::InvalidObservationLikelihoods => "each state's observation likelihoods must sum exactly to one million ppm",
-            Self::InvalidMatrixShape => "state/service matrices do not match the declared dimensions",
+            Self::InvalidPriorProbabilities => {
+                "prior probabilities must be positive and sum exactly to one million ppm"
+            }
+            Self::InvalidObservationLikelihoods => {
+                "each state's observation likelihoods must sum exactly to one million ppm"
+            }
+            Self::InvalidMatrixShape => {
+                "state/service matrices do not match the declared dimensions"
+            }
             Self::InvalidDecisionWeight => "service decision weights must be positive",
             Self::MissingHoldAction => "at least one explicit HOLD action is required",
-            Self::InvalidHoldAction => "HOLD must have zero duration, open gates and physical availability in all states",
-            Self::InvalidInterventionDuration => "intervention maximum completion duration must be positive",
-            Self::NoFeasibleAction => "no admissible action is available for the remaining state set and time window",
+            Self::InvalidHoldAction => {
+                "HOLD must have zero duration, open gates and physical availability in all states"
+            }
+            Self::InvalidInterventionDuration => {
+                "intervention maximum completion duration must be positive"
+            }
+            Self::NoFeasibleAction => {
+                "no admissible action is available for the remaining state set and time window"
+            }
             Self::ArithmeticOverflow => "exact integer arithmetic overflowed",
         };
         f.write_str(message)
@@ -301,7 +317,8 @@ pub fn evaluate(problem: &DecisionProblem) -> Result<DecisionResult, DecisionErr
                     let joint = u128::from(state.prior_weight_ppm)
                         .checked_mul(u128::from(*likelihood))
                         .ok_or(DecisionError::ArithmeticOverflow)?;
-                    acc.checked_add(joint).ok_or(DecisionError::ArithmeticOverflow)
+                    acc.checked_add(joint)
+                        .ok_or(DecisionError::ArithmeticOverflow)
                 })?;
 
             if marginal_mass == 0 {
@@ -334,9 +351,9 @@ pub fn evaluate(problem: &DecisionProblem) -> Result<DecisionResult, DecisionErr
                     .ok_or(DecisionError::ArithmeticOverflow)?;
                 for (service_index, total) in observed_service_numerators.iter_mut().enumerate() {
                     let term = joint_weight
-                        .checked_mul(
-                            u128::from(action.service_loss_by_state[state_index][service_index]),
-                        )
+                        .checked_mul(u128::from(
+                            action.service_loss_by_state[state_index][service_index],
+                        ))
                         .ok_or(DecisionError::ArithmeticOverflow)?;
                     *total = total
                         .checked_add(term)
@@ -366,7 +383,8 @@ pub fn evaluate(problem: &DecisionProblem) -> Result<DecisionResult, DecisionErr
             recommendation = Recommendation::ObserveThenUseOutcomePolicy;
         }
 
-        observed_expected_service_losses = Some(service_metrics(problem, observed_service_numerators));
+        observed_expected_service_losses =
+            Some(service_metrics(problem, observed_service_numerators));
         observed_weighted_loss_numerator = Some(observed_weighted);
         observed_action_cost_numerator = Some(observed_action_cost_total);
         observation_cost_numerator = Some(cost_numerator);
@@ -582,7 +600,10 @@ fn valid_sha256(value: &str) -> bool {
 }
 
 fn gates_pass(gates: ActionGates) -> bool {
-    gates.human_approved && gates.resources_available && gates.evidence_fresh && gates.scope_verified
+    gates.human_approved
+        && gates.resources_available
+        && gates.evidence_fresh
+        && gates.scope_verified
 }
 
 /// Choose an action using the supplied (possibly unnormalized) joint weights.
@@ -693,7 +714,9 @@ fn service_loss_numerators_for_action(
             .ok_or(DecisionError::ArithmeticOverflow)?;
         for (service_index, total) in totals.iter_mut().enumerate() {
             let term = joint_weight
-                .checked_mul(u128::from(action.service_loss_by_state[state_index][service_index]))
+                .checked_mul(u128::from(
+                    action.service_loss_by_state[state_index][service_index],
+                ))
                 .ok_or(DecisionError::ArithmeticOverflow)?;
             *total = total
                 .checked_add(term)
@@ -720,10 +743,7 @@ fn weighted_loss_numerator(
     Ok(total)
 }
 
-fn service_metrics(
-    problem: &DecisionProblem,
-    numerators: Vec<u128>,
-) -> Vec<ServiceLossMetric> {
+fn service_metrics(problem: &DecisionProblem, numerators: Vec<u128>) -> Vec<ServiceLossMetric> {
     problem
         .services
         .iter()
@@ -972,10 +992,7 @@ mod tests {
             result.observed_action_cost_numerator,
             Some(1_000_000_000_000)
         );
-        assert_eq!(
-            result.observation_cost_numerator,
-            Some(2_000_000_000_000)
-        );
+        assert_eq!(result.observation_cost_numerator, Some(2_000_000_000_000));
         assert_eq!(result.net_value_numerator, Some(17_000_000_000_000));
         assert_eq!(result.outcome_decisions.len(), 2);
         assert_eq!(result.outcome_decisions[0].action_id, "mitigate-low-state");
@@ -989,22 +1006,15 @@ mod tests {
         problem.actions[1].action_cost_score_units = 50;
         let result = evaluate(&problem).expect("valid high-cost intervention fixture");
         assert_eq!(result.baseline_action_id, "hold");
-        assert!(result
-            .outcome_decisions
-            .iter()
-            .all(|decision| decision.action_id == "hold"));
-        assert_eq!(
-            result.observed_action_cost_numerator,
-            Some(0)
+        assert!(
+            result
+                .outcome_decisions
+                .iter()
+                .all(|decision| decision.action_id == "hold")
         );
-        assert_eq!(
-            result.observation_cost_numerator,
-            Some(2_000_000_000_000)
-        );
-        assert_eq!(
-            result.net_value_numerator,
-            Some(-2_000_000_000_000)
-        );
+        assert_eq!(result.observed_action_cost_numerator, Some(0));
+        assert_eq!(result.observation_cost_numerator, Some(2_000_000_000_000));
+        assert_eq!(result.net_value_numerator, Some(-2_000_000_000_000));
         assert_eq!(result.recommendation, Recommendation::UseCurrentEvidence);
     }
 
@@ -1104,10 +1114,12 @@ mod tests {
 
         let result = evaluate(&problem).expect("non-intervention HOLD remains available");
         assert_eq!(result.baseline_action_id, "hold");
-        assert!(result
-            .outcome_decisions
-            .iter()
-            .all(|decision| decision.action_id == "hold"));
+        assert!(
+            result
+                .outcome_decisions
+                .iter()
+                .all(|decision| decision.action_id == "hold")
+        );
         assert!(!result.execution_authorized);
     }
 
@@ -1125,10 +1137,12 @@ mod tests {
         problem.actions[1].gates = closed_gates;
         let result = evaluate(&problem).expect("HOLD is a non-mutation abstention option");
         assert_eq!(result.baseline_action_id, "hold");
-        assert!(result
-            .outcome_decisions
-            .iter()
-            .all(|decision| decision.action_id == "hold"));
+        assert!(
+            result
+                .outcome_decisions
+                .iter()
+                .all(|decision| decision.action_id == "hold")
+        );
         assert!(!result.execution_authorized);
     }
 
@@ -1138,9 +1152,12 @@ mod tests {
         problem.actions[1].gates.human_approved = false;
         let result = evaluate(&problem).expect("HOLD remains available");
         assert_eq!(result.baseline_action_id, "hold");
-        assert!(result.outcome_decisions.iter().all(|decision| {
-            decision.action_id == "hold"
-        }));
+        assert!(
+            result
+                .outcome_decisions
+                .iter()
+                .all(|decision| { decision.action_id == "hold" })
+        );
         assert_eq!(result.recommendation, Recommendation::UseCurrentEvidence);
     }
 
@@ -1149,9 +1166,12 @@ mod tests {
         let mut problem = positive_voi_fixture();
         problem.actions[1].gates.resources_available = false;
         let result = evaluate(&problem).expect("HOLD remains available");
-        assert!(result.outcome_decisions.iter().all(|decision| {
-            decision.action_id == "hold"
-        }));
+        assert!(
+            result
+                .outcome_decisions
+                .iter()
+                .all(|decision| { decision.action_id == "hold" })
+        );
         assert_eq!(result.recommendation, Recommendation::UseCurrentEvidence);
     }
 
@@ -1161,9 +1181,12 @@ mod tests {
         problem.actions[1].physically_admissible_by_state = vec![true, true];
         problem.actions[1].service_floor_preserved_by_state = vec![vec![false], vec![false]];
         let result = evaluate(&problem).expect("HOLD remains available");
-        assert!(result.outcome_decisions.iter().all(|decision| {
-            decision.action_id == "hold"
-        }));
+        assert!(
+            result
+                .outcome_decisions
+                .iter()
+                .all(|decision| { decision.action_id == "hold" })
+        );
         assert_eq!(result.recommendation, Recommendation::UseCurrentEvidence);
     }
  
@@ -1172,9 +1195,12 @@ mod tests {
         let mut problem = positive_voi_fixture();
         problem.actions[1].gates.evidence_fresh = false;
         let result = evaluate(&problem).expect("HOLD remains available");
-        assert!(result.outcome_decisions.iter().all(|decision| {
-            decision.action_id == "hold"
-        }));
+        assert!(
+            result
+                .outcome_decisions
+                .iter()
+                .all(|decision| { decision.action_id == "hold" })
+        );
         assert_eq!(result.recommendation, Recommendation::UseCurrentEvidence);
     }
 
@@ -1183,9 +1209,12 @@ mod tests {
         let mut problem = positive_voi_fixture();
         problem.actions[1].gates.scope_verified = false;
         let result = evaluate(&problem).expect("HOLD remains available");
-        assert!(result.outcome_decisions.iter().all(|decision| {
-            decision.action_id == "hold"
-        }));
+        assert!(
+            result
+                .outcome_decisions
+                .iter()
+                .all(|decision| { decision.action_id == "hold" })
+        );
         assert_eq!(result.recommendation, Recommendation::UseCurrentEvidence);
     }
 
