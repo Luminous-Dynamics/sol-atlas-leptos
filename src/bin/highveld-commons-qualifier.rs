@@ -118,6 +118,7 @@ fn audit_manifest(root: &Value) -> Value {
     let service_outcomes = list(root, "household_service_outcomes");
     let consent_records = list(root, "consent_records");
     let household_data_requests = list(root, "household_data_access_requests");
+    let model_qualification_records = list(root, "model_qualification_records");
 
     let household_ids = unique_ids(households, "household_id", "$.households", &mut audit);
     let asset_ids = unique_ids(assets, "asset_id", "$.assets", &mut audit);
@@ -151,6 +152,12 @@ fn audit_manifest(root: &Value) -> Value {
         household_data_requests,
         "request_id",
         "$.household_data_access_requests",
+        &mut audit,
+    );
+    let model_qualification_ids = unique_ids(
+        model_qualification_records,
+        "model_id",
+        "$.model_qualification_records",
         &mut audit,
     );
     let mut source_event_ids = BTreeSet::new();
@@ -1020,6 +1027,112 @@ fn audit_manifest(root: &Value) -> Value {
         authorized_data_requests += 1;
     }
 
+    // Model credibility is tiered by decision consequence. Screening surrogates
+    // may rank options; decision-support models need independent validation/UQ;
+    // service-critical models additionally need held-out measurement references.
+    // No universal R-squared/residual threshold is substituted for model-specific
+    // applicability and uncertainty evidence.
+    let mut model_qualification_rows: Vec<Value> = Vec::new();
+    for (index, model) in model_qualification_records.iter().enumerate() {
+        let path = format!("$.model_qualification_records[{index}]");
+        let model_id = text(model, "model_id");
+        let tier = text(model, "assurance_tier");
+        let decision_class = text(model, "permitted_decision_class");
+        let has_validation = text(model, "validation_evidence_id").is_some();
+        let has_uncertainty = text(model, "uncertainty_evidence_id").is_some();
+        let has_reference = text(model, "measurement_reference_evidence_id").is_some();
+        let has_domain = text(model, "applicability_domain_id").is_some();
+        let has_revision = text(model, "model_revision_id").is_some();
+        let has_config = text(model, "configuration_sha256").is_some_and(|digest| {
+            digest.len() == 64 && digest.bytes().all(|b| b.is_ascii_hexdigit() && !b.is_ascii_uppercase())
+        });
+        let review_state = text(model, "independent_review_state");
+
+        if has_domain && has_revision && has_config {
+            // The identity/scope tuple is complete; decision-tier checks follow.
+        } else {
+            audit.fail(
+                "MODEL_IDENTITY_OR_SCOPE_INCOMPLETE",
+                &path,
+                "model revision, configuration SHA-256 and applicability domain are required",
+            );
+        }
+
+        let qualified = match (tier, decision_class) {
+            (Some("SCREENING"), Some("OPTION_SCREENING")) => true,
+            (Some("SCREENING"), _) => {
+                audit.fail(
+                    "MODEL_TIER_EXCEEDED",
+                    &path,
+                    "a screening model may only support option screening, never a resident-service claim or design decision",
+                );
+                false
+            }
+            (Some("DECISION_SUPPORT"), Some("OPTION_SCREENING" | "REVERSIBLE_DESIGN_DECISION")) => {
+                if !has_validation || !has_uncertainty || review_state != Some("PASSED") {
+                    audit.fail(
+                        "MODEL_VVUQ_EVIDENCE_INCOMPLETE",
+                        &path,
+                        "decision-support use requires validation evidence, uncertainty evidence and passed independent review",
+                    );
+                    false
+                } else {
+                    true
+                }
+            }
+            (Some("DECISION_SUPPORT"), Some("ESSENTIAL_SERVICE_CLAIM")) => {
+                audit.fail(
+                    "MODEL_TIER_EXCEEDED",
+                    &path,
+                    "decision-support models cannot support an essential-service claim",
+                );
+                false
+            }
+            (Some("SERVICE_CRITICAL"), Some("ESSENTIAL_SERVICE_CLAIM")) => {
+                if !has_validation
+                    || !has_uncertainty
+                    || !has_reference
+                    || !has_domain
+                    || !has_revision
+                    || !has_config
+                    || review_state != Some("PASSED")
+                {
+                    audit.fail(
+                        "MODEL_SERVICE_CRITICAL_EVIDENCE_INCOMPLETE",
+                        &path,
+                        "service-critical use requires model-specific validation, uncertainty, held-out measurement reference, applicability domain and passed independent review",
+                    );
+                    false
+                } else {
+                    true
+                }
+            }
+            (Some("SERVICE_CRITICAL"), _) => {
+                audit.fail(
+                    "MODEL_TIER_DECISION_MISMATCH",
+                    &path,
+                    "service-critical tier is reserved for essential-service claims; use the lowest sufficient tier for other decisions",
+                );
+                false
+            }
+            _ => {
+                audit.fail(
+                    "MODEL_ASSURANCE_TIER_INVALID",
+                    &format!("{path}.assurance_tier"),
+                    "assurance tier and permitted decision class must use the declared enums",
+                );
+                false
+            }
+        };
+
+        model_qualification_rows.push(json!({
+            "model_id": model_id,
+            "assurance_tier": tier,
+            "permitted_decision_class": decision_class,
+            "qualified_for_declared_use": qualified
+        }));
+    }
+
     for (index, consent) in consent_records.iter().enumerate() {
         let path = format!("$.consent_records[{index}]");
         let household_id = text(consent, "household_id");
@@ -1067,6 +1180,8 @@ fn audit_manifest(root: &Value) -> Value {
         "consent_records_checked": consent_ids.len(),
         "household_data_access_requests_checked": data_request_ids.len(),
         "authorized_household_data_access_requests": authorized_data_requests,
+        "model_qualification_records_checked": model_qualification_ids.len(),
+        "model_qualification_records": model_qualification_rows,
         "data_sharing_default": "DENY_UNLESS_MATCHING_CONSENT_VALID_AT_DECISION_TIME",
         "household_service_outcomes": outcome_rows,
         "neighborhood_aggregate_compensation": "NOT_COMPUTED",
@@ -1470,6 +1585,72 @@ mod tests {
             &audit_manifest(&manifest),
             "OUTCOME_UNIT_MISMATCH"
         ));
+    }
+
+    #[test]
+    fn screening_model_cannot_authorize_a_resident_service_claim() {
+        let mut manifest = base();
+        manifest["model_qualification_records"] = json!([{
+            "model_id":"model-screening-r0",
+            "model_revision_id":"rev-a",
+            "configuration_sha256":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "applicability_domain_id":"domain-synthetic-r0",
+            "assurance_tier":"SCREENING",
+            "permitted_decision_class":"ESSENTIAL_SERVICE_CLAIM",
+            "independent_review_state":"NOT_REQUIRED"
+        }]);
+        assert!(has_code(&audit_manifest(&manifest), "MODEL_TIER_EXCEEDED"));
+    }
+
+    #[test]
+    fn decision_support_requires_validation_uncertainty_and_review() {
+        let mut manifest = base();
+        manifest["model_qualification_records"] = json!([{
+            "model_id":"model-decision-r0",
+            "model_revision_id":"rev-a",
+            "configuration_sha256":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "applicability_domain_id":"domain-synthetic-r0",
+            "assurance_tier":"DECISION_SUPPORT",
+            "permitted_decision_class":"REVERSIBLE_DESIGN_DECISION",
+            "validation_evidence_id":"validation-evidence-r0",
+            "uncertainty_evidence_id":"uq-evidence-r0",
+            "independent_review_state":"PENDING"
+        }]);
+        assert!(has_code(&audit_manifest(&manifest), "MODEL_VVUQ_EVIDENCE_INCOMPLETE"));
+    }
+
+    #[test]
+    fn service_critical_claim_requires_measurement_reference() {
+        let mut manifest = base();
+        manifest["model_qualification_records"] = json!([{
+            "model_id":"model-critical-r0",
+            "model_revision_id":"rev-a",
+            "configuration_sha256":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "applicability_domain_id":"domain-synthetic-r0",
+            "assurance_tier":"SERVICE_CRITICAL",
+            "permitted_decision_class":"ESSENTIAL_SERVICE_CLAIM",
+            "validation_evidence_id":"validation-evidence-r0",
+            "uncertainty_evidence_id":"uq-evidence-r0",
+            "independent_review_state":"PASSED"
+        }]);
+        assert!(has_code(&audit_manifest(&manifest), "MODEL_SERVICE_CRITICAL_EVIDENCE_INCOMPLETE"));
+    }
+
+    #[test]
+    fn screening_model_may_only_rank_option_candidates() {
+        let mut manifest = base();
+        manifest["model_qualification_records"] = json!([{
+            "model_id":"model-screening-r0",
+            "model_revision_id":"rev-a",
+            "configuration_sha256":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "applicability_domain_id":"domain-synthetic-r0",
+            "assurance_tier":"SCREENING",
+            "permitted_decision_class":"OPTION_SCREENING",
+            "independent_review_state":"NOT_REQUIRED"
+        }]);
+        let report = audit_manifest(&manifest);
+        assert_eq!(report["status"].as_str(), Some("PASS"));
+        assert_eq!(report["model_qualification_records"][0]["qualified_for_declared_use"], json!(true));
     }
 
     #[test]
