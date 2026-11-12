@@ -1,0 +1,180 @@
+{
+  "schema_version": "0.1.0",
+  "benchmark_id": "GMD-TRAJECTORY-CLOCK-001",
+  "fixture_notice": "ALL VALUES ARE SYNTHETIC. The experiment contains no physical measurements, utility data or validated grid model.",
+  "synthetic_only": true,
+  "claim_ceiling": "E2",
+  "region_profile": {
+    "region_id": "south_africa",
+    "nominal_frequency_millihz": 50000
+  },
+  "reference_epoch_tai_ns": 1800000000000000000,
+  "phase_reference": {
+    "zero_time_tai_ns": 1800000000900000000,
+    "zero_phase_millideg": 0,
+    "nominal_frequency_millihz": 50000
+  },
+  "clocks": [
+    {
+      "clock_id": "gic-clock",
+      "anchor_local_ns": 0,
+      "offset_bounds_ns": [
+        -1000,
+        1000
+      ],
+      "observed_offset_ns": 100,
+      "drift_bounds_ppb": [
+        -10000,
+        10000
+      ],
+      "observed_drift_ppb": 5000
+    },
+    {
+      "clock_id": "ac-recorder-clock",
+      "anchor_local_ns": 0,
+      "offset_bounds_ns": [
+        500,
+        1500
+      ],
+      "observed_offset_ns": 900,
+      "drift_bounds_ppb": [
+        -100000,
+        100000
+      ],
+      "observed_drift_ppb": -25000
+    }
+  ],
+  "channels": [
+    {
+      "channel_id": "gic-neutral-current",
+      "signal_kind": "gic",
+      "clock_id": "gic-clock",
+      "unit": "A",
+      "polarity": "positive_into_transformer_neutral",
+      "time_column": "time_ns",
+      "sample_period_ns": 1000000000,
+      "sample_rate_numerator_hz": 1,
+      "sample_rate_denominator": 1,
+      "sample_timestamps_ns": [
+        0,
+        1000000000,
+        2000000000,
+        3000000000
+      ],
+      "nominal_frequency_millihz": null,
+      "source_artifact": {
+        "path": "gic_channel_synthetic_v0_1.csv",
+        "sha256": "b7e2e1eba03164d9fdb45384174e1f1ccd1fe70ccdb6bb503e8b8ad4fa53b102"
+      },
+      "effective_artifact": {
+        "path": "gic_channel_synthetic_v0_1.csv",
+        "sha256": "b7e2e1eba03164d9fdb45384174e1f1ccd1fe70ccdb6bb503e8b8ad4fa53b102"
+      },
+      "transformation_ids": []
+    },
+    {
+      "channel_id": "ct-secondary-current",
+      "signal_kind": "ct_secondary",
+      "clock_id": "ac-recorder-clock",
+      "unit": "A",
+      "polarity": "positive_toward_relay",
+      "time_column": "time_ns",
+      "sample_period_ns": 62500,
+      "sample_rate_numerator_hz": 16000,
+      "sample_rate_denominator": 1,
+      "sample_timestamps_ns": [
+        0,
+        62500,
+        125000,
+        187500
+      ],
+      "nominal_frequency_millihz": 50000,
+      "source_artifact": {
+        "path": "ct_secondary_synthetic_v0_1.csv",
+        "sha256": "eee7a6aef92589786aaa2c719830ac9eb240980a53b31454e93b50cb39c4440f"
+      },
+      "effective_artifact": {
+        "path": "ct_secondary_synthetic_v0_1.csv",
+        "sha256": "eee7a6aef92589786aaa2c719830ac9eb240980a53b31454e93b50cb39c4440f"
+      },
+      "transformation_ids": []
+    },
+    {
+      "channel_id": "relay-current-input",
+      "signal_kind": "relay_input",
+      "clock_id": "ac-recorder-clock",
+      "unit": "A",
+      "polarity": "positive_into_relay_phase_a",
+      "time_column": "time_ns",
+      "sample_period_ns": 62500,
+      "sample_rate_numerator_hz": 16000,
+      "sample_rate_denominator": 1,
+      "sample_timestamps_ns": [
+        0,
+        62500,
+        125000,
+        187500,
+        250000
+      ],
+      "nominal_frequency_millihz": 50000,
+      "source_artifact": {
+        "path": "relay_input_synthetic_v0_1.csv",
+        "sha256": "58cc3777fe85ec75c4af46a448544744e84408107094868e4a2d269c58ad140a"
+      },
+      "effective_artifact": {
+        "path": "relay_input_resampled_synthetic_v0_1.csv",
+        "sha256": "72e211208ae8a497add377171f56db2fda9fd73b37bee5e6b13c672896041646"
+      },
+      "transformation_ids": [
+        "relay-resample-001"
+      ]
+    }
+  ],
+  "transformations": [
+    {
+      "transformation_id": "relay-resample-001",
+      "operation": "resample",
+      "input_artifact": {
+        "path": "relay_input_synthetic_v0_1.csv",
+        "sha256": "58cc3777fe85ec75c4af46a448544744e84408107094868e4a2d269c58ad140a"
+      },
+      "output_artifact": {
+        "path": "relay_input_resampled_synthetic_v0_1.csv",
+        "sha256": "72e211208ae8a497add377171f56db2fda9fd73b37bee5e6b13c672896041646"
+      },
+      "method": "synthetic_fixture_linear_interpolation",
+      "implementation_revision": "fixture-generator-v0.1",
+      "parameters_sha256": "9999999999999999999999999999999999999999999999999999999999999999"
+    }
+  ],
+  "events": [
+    {
+      "event_id": "gic-onset",
+      "kind": "gic_onset",
+      "clock_id": "gic-clock",
+      "local_lower_ns": 1000000000,
+      "local_upper_ns": 1000010000
+    },
+    {
+      "event_id": "fault-inception",
+      "kind": "fault_inception",
+      "clock_id": "ac-recorder-clock",
+      "local_lower_ns": 1001000000,
+      "local_upper_ns": 1001005000
+    },
+    {
+      "event_id": "relay-pickup",
+      "kind": "relay_pickup",
+      "clock_id": "ac-recorder-clock",
+      "local_lower_ns": 1003000000,
+      "local_upper_ns": 1003010000
+    },
+    {
+      "event_id": "relay-trip",
+      "kind": "relay_trip",
+      "clock_id": "ac-recorder-clock",
+      "local_lower_ns": 1003500000,
+      "local_upper_ns": 1003510000
+    }
+  ]
+}
