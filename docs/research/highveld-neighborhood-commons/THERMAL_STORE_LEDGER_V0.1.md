@@ -44,6 +44,8 @@ Electrical parasitics (pumps, fans, valves, treatment) are recorded separately. 
 ## 3. Input and output contract
 
 The synthetic input case demonstrates:
+- a top-level source-bundle reference, uncertainty-method reference and independent-oracle reference;
+- per-interval references for store-state evidence, heat-input evidence, sink-rejection evidence and uncertainty evidence;
 - one finite store with a declared minimum/maximum usable energy range;
 - initial energy state and cycle-closure tolerance;
 - contiguous intervals with duration and start/end store energy;
