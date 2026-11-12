@@ -1,0 +1,42 @@
+name: GMD rare-failure discovery benchmark
+
+on:
+  pull_request:
+    paths:
+      - "tools/gmd-rare-failure-benchmark/**"
+      - "docs/research/gmd-ibr-protection/**"
+      - ".github/workflows/gmd-rare-failure-benchmark.yml"
+  push:
+    paths:
+      - "tools/gmd-rare-failure-benchmark/**"
+      - "docs/research/gmd-ibr-protection/**"
+      - ".github/workflows/gmd-rare-failure-benchmark.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: gmd-rare-failure-benchmark-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - name: Format benchmark
+        run: cargo fmt --manifest-path tools/gmd-rare-failure-benchmark/Cargo.toml -- --check
+      - name: Run strict Clippy
+        run: cargo clippy --manifest-path tools/gmd-rare-failure-benchmark/Cargo.toml --all-targets --locked -- -D warnings
+      - name: Run locked tests
+        run: cargo test --manifest-path tools/gmd-rare-failure-benchmark/Cargo.toml --locked
+      - name: Emit matched-budget discovery receipt
+        run: |
+          cargo run --manifest-path tools/gmd-rare-failure-benchmark/Cargo.toml --locked \
+            > /tmp/gmd-rare-failure-results.json
+          grep -q '"matched_budget_per_method": 4096' /tmp/gmd-rare-failure-results.json
+          grep -q '"certification_authorized": false' /tmp/gmd-rare-failure-results.json
