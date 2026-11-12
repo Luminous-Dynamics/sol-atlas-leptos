@@ -493,6 +493,31 @@ fn audit_manifest(root: &Value) -> Value {
 
         let b1_versions = b1.get("engine_tool_versions");
         let b2_versions = b2.get("engine_tool_versions");
+        let b1_configuration = b1.get("engine_configuration_sha256");
+        let b2_configuration = b2.get("engine_configuration_sha256");
+        check_sha256(
+            b1_configuration,
+            pair_id,
+            "b1.engine_configuration_sha256",
+            &mut errors,
+        );
+        check_sha256(
+            b2_configuration,
+            pair_id,
+            "b2.engine_configuration_sha256",
+            &mut errors,
+        );
+        if b1_configuration != matched.get("engine_configuration_sha256")
+            || b2_configuration != matched.get("engine_configuration_sha256")
+            || b1_configuration != b2_configuration
+        {
+            push_error(
+                &mut errors,
+                pair_id,
+                "ENGINE_CONFIGURATION_MISMATCH",
+                "B1 and B2 must both bind the exact frozen engine-configuration digest",
+            );
+        }
         if b1_versions
             .and_then(Value::as_array)
             .map_or(true, |v| v.is_empty())
@@ -839,6 +864,7 @@ fn synthetic_pair(
         },
         "b1": {
             "engine_tool_versions": versions,
+            "engine_configuration_sha256": repeated_digest('2'),
             "engine_input_sha256": engine_input,
             "engine_output_sha256": engine_output,
             "operator_minutes": 20,
@@ -846,6 +872,7 @@ fn synthetic_pair(
         },
         "b2": {
             "engine_tool_versions": versions,
+            "engine_configuration_sha256": repeated_digest('2'),
             "engine_input_sha256": engine_input,
             "engine_output_sha256": engine_output,
             "operator_minutes": 22,
@@ -987,6 +1014,27 @@ mod tests {
             .push(duplicate);
         let report = audit_manifest(&manifest);
         assert!(has_error(&report, "DUPLICATE_ORACLE_SERVICE"));
+    }
+
+    #[test]
+    fn rejects_engine_configuration_mismatch_between_arms() {
+        let mut manifest = synthetic_self_test_manifest();
+        manifest["pairs"][0]["b2"]["engine_configuration_sha256"] =
+            json!(repeated_digest('3'));
+        let report = audit_manifest(&manifest);
+        assert!(has_error(&report, "ENGINE_CONFIGURATION_MISMATCH"));
+    }
+
+    #[test]
+    fn rejects_revoked_rights_even_if_b2_claims_pass() {
+        let mut manifest = synthetic_self_test_manifest();
+        manifest["pairs"][1]["b2"]["decisions"][0]["status"] = json!("PASS");
+        manifest["pairs"][1]["b2"]["decisions"][0]["hard_floor_state"] = json!("SATISFIED");
+        manifest["pairs"][1]["b2"]["decisions"][0]["evidence_validation"]["rights_state"] =
+            json!("REVOKED");
+        let report = audit_manifest(&manifest);
+        assert!(has_error(&report, "B2_UNQUALIFIED_EVIDENCE_PASS"));
+        assert!(has_error(&report, "B2_CRITICAL_FALSE_PASS"));
     }
 
     #[test]
