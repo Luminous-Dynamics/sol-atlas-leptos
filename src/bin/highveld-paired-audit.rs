@@ -956,6 +956,15 @@ mod tests {
     }
 
     #[test]
+    fn rejects_receipt_that_does_not_bind_engine_configuration() {
+        let mut manifest = synthetic_self_test_manifest();
+        manifest["pairs"][0]["b2"]["composition_receipt"]["engine_configuration_sha256"] =
+            json!(repeated_digest('3'));
+        let report = audit_manifest(&manifest);
+        assert!(has_error(&report, "RECEIPT_INPUT_BINDING_MISMATCH"));
+    }
+
+    #[test]
     fn rejects_a_luminous_layer_in_b1() {
         let mut manifest = synthetic_self_test_manifest();
         manifest["pairs"][0]["b1"]["composition_layer"] = json!({
