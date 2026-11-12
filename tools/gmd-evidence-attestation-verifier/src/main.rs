@@ -280,7 +280,6 @@ fn validate(corpus: &Corpus, trust: &TrustStore) -> Result<(), String> {
 
 fn assess(
     corpus: &Corpus,
-    trust: &TrustStore,
     payload: &AttestationPayload,
     signature_verified: bool,
     issuer: &TrustedIssuer,
@@ -320,7 +319,6 @@ fn assess(
     if corpus.claim.require_independent && (!payload.independent || !issuer.independence_assessed) {
         return (CapabilityStatus::Unknown, "independent evidence is required but not established".to_string());
     }
-    let _ = trust;
     (
         CapabilityStatus::Satisfied,
         "signature, trust, validity, evidence and exact claim scope verified".to_string(),
@@ -369,7 +367,6 @@ fn verify(
     )?;
     let (capability_status, reason) = assess(
         corpus,
-        trust,
         &payload,
         signature_verified,
         issuer,
@@ -460,16 +457,12 @@ mod tests {
     }
 
     #[test]
-    fn synthetic_contract_cannot_satisfy_physical_relay_requirement() {
+    fn synthetic_contract_class_cannot_satisfy_physical_test_requirement() {
         let (mut corpus, trust, input, trust_bytes, root) = fixture();
-        corpus.claim.claim_type = CapabilityType::PhysicalRelayObserved;
-        corpus.claim.subject_kind = "protective_relay".to_string();
-        corpus.claim.subject_id = "relay-001".to_string();
-        corpus.claim.configuration_sha256 = "3".repeat(64);
-        corpus.claim.scope_sha256 = "4".repeat(64);
         corpus.claim.accepted_qualification_classes = vec![QualificationClass::PhysicalHardwareTest];
         let report = verify(&corpus, &trust, &input, &trust_bytes, &root).expect("valid contract");
         assert_eq!(report.capability_status, CapabilityStatus::Unknown);
+        assert!(report.reason.contains("qualification class"));
     }
 
     #[test]
@@ -479,6 +472,17 @@ mod tests {
         let report = verify(&corpus, &trust, &input, &trust_bytes, &root).expect("valid contract");
         assert_eq!(report.capability_status, CapabilityStatus::Rejected);
         assert!(report.reason.contains("expired"));
+    }
+
+    #[test]
+    fn corrupted_detached_signature_is_rejected() {
+        let (mut corpus, trust, input, trust_bytes, root) = fixture();
+        corpus.attestation.signature_artifact.path = "signature_invalid.bin".to_string();
+        corpus.attestation.signature_artifact.sha256 =
+            "42dd41bb26ffb6d1e3191d2055ea9ded5c7e2bd0d2d1edf64163eaaaceca5ef8".to_string();
+        let report = verify(&corpus, &trust, &input, &trust_bytes, &root).expect("bad signature is reportable");
+        assert!(!report.signature_verified);
+        assert_eq!(report.capability_status, CapabilityStatus::Rejected);
     }
 
     #[test]
