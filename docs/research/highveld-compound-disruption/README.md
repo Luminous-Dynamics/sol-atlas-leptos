@@ -7,7 +7,7 @@ It is an input/known-answer corpus, not a new event clock, weather archive, resi
 ## Files
 
 - `HIGHVELD_COMPOUND_EVENT_V0.1.schema.json` — closed Draft 2020-12 JSON Schema.
-- `SYNTHETIC_CORPUS_V0.1.json` — five synthetic cases with explicit event windows, scopes, temporal resolutions, expected interval relations and one no-report/scope-mismatch control.
+- `SYNTHETIC_CORPUS_V0.1.json` — five timeline scenarios plus nine adversarial evidence controls with explicit event windows, scopes, temporal resolutions, expected interval relations and one no-report/scope-mismatch control.
 
 ## Contract semantics
 
@@ -27,6 +27,12 @@ It is an input/known-answer corpus, not a new event clock, weather archive, resi
 3. Poor outdoor-air event overlapping ventilation restriction, grid interruption and network loss; manual fallback is declared separately and is not evidence of adequate ventilation.
 4. Initial outage, restoration, repair-part unavailability and a repeated outage; the first outage and restoration `meet` at a half-open boundary.
 5. A coarse system-level water-status record with a dwelling/tap `no_report`; the join is explicitly `NOT_COMPARABLE`.
+
+## Adversarial controls
+
+The companion top-level `adversarial_controls` list contains nine synthetic controls for timezone ambiguity, coarse/fine temporal resolution, right-censoring, conflicting observations, rights revocation, stale source revision, future-information leakage, unmatched candidate traces and unsupported common-cause claims.
+
+These controls define conservative expected dispositions; they do not define real-world legal rights, universal temporal-alignment tolerances, empirical hazard probabilities or an authorized policy.
 
 ## Reproduction and qualification boundary
 
