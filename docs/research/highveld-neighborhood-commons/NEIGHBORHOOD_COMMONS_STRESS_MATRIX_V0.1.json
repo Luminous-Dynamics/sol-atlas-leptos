@@ -1,0 +1,265 @@
+{
+  "schema_version": "0.1.0",
+  "benchmark_id": "HIGHVELD-NEIGHBORHOOD-COMMONS-STRESS-MATRIX",
+  "maturity": "PROPOSED_NOT_EVALUATED",
+  "evidence_class": "SyntheticScenarioDefinitions",
+  "claim_ceiling": "This file defines deterministic scenario stimuli and owner-routed observations. It does not encode an event clock or simulate physical/resource/service trajectories; those remain with Symtropy and specialist owners.",
+  "scenario_families": [
+    {
+      "scenario_id": "hub_power_loss",
+      "failure_family": "COMMONS_UPSTREAM_POWER",
+      "stimulus": "The shared hub loses upstream electrical supply while the household-local fallback remains available.",
+      "owner_system": "SYMTROPY",
+      "required_observations": [
+        "hub power state",
+        "each household service trajectory",
+        "local fallback state",
+        "first service-floor breach or preserved floor"
+      ],
+      "expected_disposition": "REQUIRE_HOUSEHOLD_TRAJECTORY",
+      "claim_ceiling": "No household service is declared lost or preserved from the grid/hub event alone."
+    },
+    {
+      "scenario_id": "household_fallback_failure",
+      "failure_family": "HOUSEHOLD_LOCAL_FAILURE",
+      "stimulus": "One household-local fallback fails while the commons remains available.",
+      "owner_system": "SYMTROPY",
+      "required_observations": [
+        "affected household identity",
+        "native service trajectory",
+        "service-specific fallback state",
+        "household floor outcome"
+      ],
+      "expected_disposition": "REQUIRE_HOUSEHOLD_TRAJECTORY",
+      "claim_ceiling": "A functioning hub does not erase a household-local essential-floor failure."
+    },
+    {
+      "scenario_id": "shared_water_distribution_failure",
+      "failure_family": "SERVICE_NETWORK_FAILURE",
+      "stimulus": "The shared water treatment or distribution path fails while reservoir/system stock remains positive.",
+      "owner_system": "SYMTROPY",
+      "required_observations": [
+        "reservoir/resource account state",
+        "treatment/distribution state",
+        "household-specific delivery state"
+      ],
+      "expected_disposition": "BLOCK_SHARED_SERVICE_CLAIM",
+      "claim_ceiling": "Bulk stock or reservoir level is not proof of household tap delivery."
+    },
+    {
+      "scenario_id": "common_cause_hub_fallback",
+      "failure_family": "COMMON_CAUSE_DEPENDENCY",
+      "stimulus": "The shared provider and a declared household-local fallback depend on the same failure domain.",
+      "owner_system": "MYCELIX",
+      "required_observations": [
+        "provider asset ID",
+        "fallback asset ID",
+        "failure-domain identities",
+        "dependency evidence revision"
+      ],
+      "expected_disposition": "BLOCK_SHARED_SERVICE_CLAIM",
+      "claim_ceiling": "Declared independence must be supported by qualified dependency evidence."
+    },
+    {
+      "scenario_id": "inaccessible_hub_route",
+      "failure_family": "ACCESS_NETWORK_FAILURE",
+      "stimulus": "The hub is online but the resident-declared route/access mode is inaccessible.",
+      "owner_system": "SOL_ATLAS",
+      "required_observations": [
+        "household service requirement",
+        "route/access qualification",
+        "route state",
+        "delivery state"
+      ],
+      "expected_disposition": "BLOCK_SHARED_SERVICE_CLAIM",
+      "claim_ceiling": "Geographic proximity or facility availability is not service access."
+    },
+    {
+      "scenario_id": "queue_over_capacity",
+      "failure_family": "CAPACITY_CONTENTION",
+      "stimulus": "Simultaneous demand exceeds the shared service capacity and a queue or unmet-demand boundary is reached.",
+      "owner_system": "SYMTROPY",
+      "required_observations": [
+        "capacity and demand units/window",
+        "per-household admitted quantity",
+        "queue wait",
+        "unmet demand",
+        "resident floor"
+      ],
+      "expected_disposition": "REQUIRE_HOUSEHOLD_TRAJECTORY",
+      "claim_ceiling": "A neighborhood aggregate cannot compensate for an individual resident queue/floor breach."
+    },
+    {
+      "scenario_id": "communications_partition",
+      "failure_family": "CYBER_PHYSICAL_ISOLATION",
+      "stimulus": "The central controller and external network are unavailable while local manual fallback is required.",
+      "owner_system": "SYMTROPY",
+      "required_observations": [
+        "network/control availability",
+        "manual mode availability",
+        "local fallback operation",
+        "service floor"
+      ],
+      "expected_disposition": "REQUIRE_HOUSEHOLD_TRAJECTORY",
+      "claim_ceiling": "Cloud/controller availability is not assumed for essential local fallback."
+    },
+    {
+      "scenario_id": "repair_spares_unknown",
+      "failure_family": "REPAIRABILITY",
+      "stimulus": "A shared asset is running but critical spare-part availability or qualified maintainer access is unknown.",
+      "owner_system": "SOL_ATLAS",
+      "required_observations": [
+        "asset/maintenance contract identity",
+        "spares state",
+        "maintainer/access qualification",
+        "repair-time bound",
+        "requalification reference"
+      ],
+      "expected_disposition": "BLOCK_SHARED_SERVICE_CLAIM",
+      "claim_ceiling": "Unknown repair capacity is not infinite or qualified repair capacity."
+    },
+    {
+      "scenario_id": "repair_access_blocked",
+      "failure_family": "REPAIR_ACCESS_FAILURE",
+      "stimulus": "The designated maintainer cannot safely or physically access the shared asset.",
+      "owner_system": "SOL_ATLAS",
+      "required_observations": [
+        "maintenance access state",
+        "responsible maintainer",
+        "declared repair route",
+        "fallback/reconfiguration status"
+      ],
+      "expected_disposition": "OWNER_REVIEW",
+      "claim_ceiling": "No restoration time is inferred from nominal spare-part stock."
+    },
+    {
+      "scenario_id": "repeat_fault_before_stable_recovery",
+      "failure_family": "RECURRENCE_BEFORE_STABLE_RECOVERY",
+      "stimulus": "A second fault occurs after apparent restoration but before the native stable-recovery window has elapsed.",
+      "owner_system": "SYMTROPY",
+      "required_observations": [
+        "native event identities and sequence",
+        "restoration state",
+        "stable-recovery window",
+        "recurrence state"
+      ],
+      "expected_disposition": "REQUIRE_HOUSEHOLD_TRAJECTORY",
+      "claim_ceiling": "A transient restoration is not stable service recovery."
+    },
+    {
+      "scenario_id": "resource_reserve_floor",
+      "failure_family": "RESOURCE_EXHAUSTION",
+      "stimulus": "A proposed allocation would consume resource below the declared protected reserve floor.",
+      "owner_system": "MYCELIX",
+      "required_observations": [
+        "resource account/unit",
+        "opening and external inflow",
+        "losses and commitments",
+        "transfers",
+        "reserve floor"
+      ],
+      "expected_disposition": "BLOCK_RESOURCE_COMMITMENT",
+      "claim_ceiling": "A capacity optimizer cannot spend a resident-protected reserve."
+    },
+    {
+      "scenario_id": "duplicate_resource_event",
+      "failure_family": "DUPLICATE_EVIDENCE_INGESTION",
+      "stimulus": "The same source event or meter receipt is submitted twice as a resource transfer.",
+      "owner_system": "MYCELIX",
+      "required_observations": [
+        "source event identity",
+        "ingestion receipt identity",
+        "resource ledger entries",
+        "idempotency result"
+      ],
+      "expected_disposition": "REJECT_DUPLICATE_CREDIT",
+      "claim_ceiling": "Duplicate telemetry cannot create additional community resources."
+    },
+    {
+      "scenario_id": "resource_unit_mismatch",
+      "failure_family": "UNIT_AND_CONVERSION_INTEGRITY",
+      "stimulus": "A transfer uses a unit that differs from its source or destination account without an explicit conversion contract.",
+      "owner_system": "MYCELIX",
+      "required_observations": [
+        "source and destination resource/unit",
+        "conversion contract identity/revision if any",
+        "transfer quantity"
+      ],
+      "expected_disposition": "BLOCK_RESOURCE_COMMITMENT",
+      "claim_ceiling": "No implicit conversion or comparison across incompatible units."
+    },
+    {
+      "scenario_id": "household_consent_revocation",
+      "failure_family": "DATA_RIGHTS_REVOCATION",
+      "stimulus": "A household data-access request occurs at or after the consent revocation time.",
+      "owner_system": "MYCELIX",
+      "required_observations": [
+        "household and data category",
+        "purpose and service scope",
+        "consent revision",
+        "grant and revocation times",
+        "decision-as-of time"
+      ],
+      "expected_disposition": "BLOCK_DATA_ACCESS",
+      "claim_ceiling": "Previously granted consent does not authorize new access after revocation."
+    },
+    {
+      "scenario_id": "allocation_dispute_and_appeal",
+      "failure_family": "GOVERNANCE_DISPUTE",
+      "stimulus": "A resident disputes an allocation decision and invokes the published appeal path.",
+      "owner_system": "MYCELIX",
+      "required_observations": [
+        "allocation policy revision",
+        "approval state",
+        "appeal record",
+        "human decision authority",
+        "interim service disposition"
+      ],
+      "expected_disposition": "REQUIRE_HUMAN_REVIEW",
+      "claim_ceiling": "The optimizer cannot resolve moral priority or close a resident appeal."
+    },
+    {
+      "scenario_id": "simultaneous_hub_household_stress",
+      "failure_family": "COMPOUND_COMMON_AND_LOCAL_STRESS",
+      "stimulus": "The shared hub is degraded while a subset of households simultaneously experiences local equipment failure.",
+      "owner_system": "SYMTROPY",
+      "required_observations": [
+        "same exogenous trace identity",
+        "each household state",
+        "hub and local asset states",
+        "per-household service floors",
+        "recovery trajectory"
+      ],
+      "expected_disposition": "REQUIRE_HOUSEHOLD_TRAJECTORY",
+      "claim_ceiling": "Hub availability and neighborhood average do not substitute for each household outcome."
+    },
+    {
+      "scenario_id": "restoration_without_service_recovery",
+      "failure_family": "UPSTREAM_RESTORATION_NOT_SERVICE_RECOVERY",
+      "stimulus": "Grid or bulk utility supply is restored but a downstream household service remains degraded.",
+      "owner_system": "SYMTROPY",
+      "required_observations": [
+        "upstream restoration event",
+        "downstream service trajectory",
+        "service-specific recovery evidence",
+        "stable-recovery qualification"
+      ],
+      "expected_disposition": "REQUIRE_HOUSEHOLD_TRAJECTORY",
+      "claim_ceiling": "An upstream restored event is not proof of household service recovery."
+    },
+    {
+      "scenario_id": "household_requirement_revision",
+      "failure_family": "RESIDENT_REQUIREMENT_CHANGE",
+      "stimulus": "A resident revises an essential task/service requirement after a design or allocation decision has been recorded.",
+      "owner_system": "SOL_ATLAS",
+      "required_observations": [
+        "requirement revision identity",
+        "affected prior decisions",
+        "scoped invalidation set",
+        "unaffected claims retained"
+      ],
+      "expected_disposition": "REOPEN_AFFECTED_DECISIONS",
+      "claim_ceiling": "Changed requirements invalidate dependent decisions only, not unrelated evidence."
+    }
+  ]
+}
