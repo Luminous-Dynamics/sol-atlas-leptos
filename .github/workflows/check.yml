@@ -97,3 +97,7 @@ jobs:
         run: cargo test --bin highveld-thermal-store-ledger
       - name: Execute finite thermal store trajectory ledger
         run: cargo run --bin highveld-thermal-store-ledger -- --self-test
+      - name: Test thermal refuge availability governor
+        run: cargo test --bin highveld-refuge-availability-governor
+      - name: Execute thermal refuge availability governor
+        run: cargo run --bin highveld-refuge-availability-governor -- --self-test
