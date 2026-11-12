@@ -1673,6 +1673,65 @@ mod tests {
     }
 
     #[test]
+    fn model_outside_applicability_domain_is_blocked() {
+        let mut manifest = base();
+        manifest["model_qualification_records"] = json!([{
+            "model_id":"model-screening-ood-r0",
+            "model_revision_id":"rev-a",
+            "configuration_sha256":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "applicability_domain_id":"domain-synthetic-r0",
+            "applicability_state":"OUT_OF_DOMAIN",
+            "assurance_tier":"SCREENING",
+            "permitted_decision_class":"OPTION_SCREENING",
+            "independent_review_state":"NOT_REQUIRED"
+        }]);
+        let report = audit_manifest(&manifest);
+        assert!(has_code(&report, "MODEL_APPLICABILITY_UNQUALIFIED"));
+        assert_eq!(report["model_qualification_records"][0]["qualified_for_declared_use"], json!(false));
+    }
+
+    #[test]
+    fn decision_support_model_can_support_reversible_decision_when_evidence_is_complete() {
+        let mut manifest = base();
+        manifest["model_qualification_records"] = json!([{
+            "model_id":"model-decision-r1",
+            "model_revision_id":"rev-a",
+            "configuration_sha256":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "applicability_domain_id":"domain-synthetic-r0",
+            "applicability_state":"IN_DOMAIN",
+            "assurance_tier":"DECISION_SUPPORT",
+            "permitted_decision_class":"REVERSIBLE_DESIGN_DECISION",
+            "validation_evidence_id":"validation-evidence-r0",
+            "uncertainty_evidence_id":"uq-evidence-r0",
+            "independent_review_state":"PASSED"
+        }]);
+        let report = audit_manifest(&manifest);
+        assert_eq!(report["status"].as_str(), Some("PASS"));
+        assert_eq!(report["model_qualification_records"][0]["qualified_for_declared_use"], json!(true));
+    }
+
+    #[test]
+    fn service_critical_model_can_support_household_floor_only_with_measurement_reference() {
+        let mut manifest = base();
+        manifest["model_qualification_records"] = json!([{
+            "model_id":"model-critical-r1",
+            "model_revision_id":"rev-a",
+            "configuration_sha256":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "applicability_domain_id":"domain-synthetic-r0",
+            "applicability_state":"IN_DOMAIN",
+            "assurance_tier":"SERVICE_CRITICAL",
+            "permitted_decision_class":"ESSENTIAL_SERVICE_CLAIM",
+            "validation_evidence_id":"validation-evidence-r0",
+            "uncertainty_evidence_id":"uq-evidence-r0",
+            "measurement_reference_evidence_id":"heldout-measurement-r0",
+            "independent_review_state":"PASSED"
+        }]);
+        let report = audit_manifest(&manifest);
+        assert_eq!(report["status"].as_str(), Some("PASS"));
+        assert_eq!(report["model_qualification_records"][0]["qualified_for_declared_use"], json!(true));
+    }
+
+    #[test]
     fn stress_matrix_is_versioned_unique_and_owner_routed() {
         let matrix: Value = serde_json::from_str(STRESS_MATRIX).expect("valid stress matrix JSON");
         assert_eq!(
