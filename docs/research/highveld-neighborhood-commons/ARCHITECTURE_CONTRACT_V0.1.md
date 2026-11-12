@@ -27,7 +27,7 @@ A household-local fallback is a service capability, not automatically a particul
 Each shared service is exposed as a versioned contract with:
 - declared service, unit, capacity and demand window;
 - provider asset and failure domain;
-- access mode, accessible route/delivery mechanism and qualification evidence;
+- access mode, accessible route/delivery mechanism, qualification evidence and a maximum access-time bound for each household floor;
 - queue/wait policy and unmet-demand disposition;
 - source/rights/revision and owner references in the implementation packet.
 
