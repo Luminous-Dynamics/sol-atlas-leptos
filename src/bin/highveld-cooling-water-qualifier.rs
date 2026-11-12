@@ -13,6 +13,12 @@ const MULTI_ENGINE_BENCHMARK: &str = include_str!(
 const COURTYARD_INSTRUMENT_PACKAGE: &str = include_str!(
     "../../docs/research/highveld-neighborhood-commons/COURTYARD_TEST_CELL_INSTRUMENT_MANIFEST_V0.1.json"
 );
+const THERMAL_SERVICE_REFUGE: &str = include_str!(
+    "../../docs/research/highveld-neighborhood-commons/THERMAL_SERVICE_REFUGE_BENCHMARK_MANIFEST_V0.1.json"
+);
+const THERMAL_SERVICE_REFUGE_SCHEMA: &str = include_str!(
+    "../../docs/research/highveld-neighborhood-commons/THERMAL_SERVICE_REFUGE_BENCHMARK_MANIFEST_V0.1.schema.json"
+);
 
 fn string_at<'a>(value: &'a Value, key: &str) -> Option<&'a str> {
     value
@@ -48,9 +54,131 @@ fn build_report() -> Result<Value, Vec<String>> {
         Ok(value) => value,
         Err(error) => return Err(vec![format!("cooling schema JSON parse failed: {error}")]),
     };
+    let refuge: Value = match serde_json::from_str(THERMAL_SERVICE_REFUGE) {
+        Ok(value) => value,
+        Err(error) => return Err(vec![format!("thermal service/refuge JSON parse failed: {error}")]),
+    };
+    let refuge_schema: Value = match serde_json::from_str(THERMAL_SERVICE_REFUGE_SCHEMA) {
+        Ok(value) => value,
+        Err(error) => return Err(vec![format!("thermal service/refuge schema JSON parse failed: {error}")]),
+    };
 
     if string_at(&schema, "$schema") != Some("https://json-schema.org/draft/2020-12/schema") {
         errors.push("cooling schema must declare JSON Schema Draft 2020-12".to_owned());
+    }
+    if string_at(&refuge_schema, "$schema")
+        != Some("https://json-schema.org/draft/2020-12/schema")
+    {
+        errors.push("thermal service/refuge schema must declare JSON Schema Draft 2020-12".to_owned());
+    }
+    for (key, expected) in [
+        ("study_id", "HIGHVELD-THERMAL-SERVICE-REFUGE-001"),
+        ("maturity", "BENCHMARK_PROTOCOL_NOT_EXECUTED"),
+        ("execution_status", "NOT_EXECUTED"),
+        ("climate_context", "JOHANNESBURG_HIGHVELD"),
+    ] {
+        if string_at(&refuge, key) != Some(expected) {
+            errors.push(format!("thermal service/refuge {key} must be {expected}"));
+        }
+    }
+    let building_arms = array_at(&refuge, "building_intervention_arms")
+        .cloned()
+        .unwrap_or_default();
+    let building_scenarios = array_at(&refuge, "building_scenarios")
+        .cloned()
+        .unwrap_or_default();
+    let refuge_topologies = array_at(&refuge, "refuge_network_topologies")
+        .cloned()
+        .unwrap_or_default();
+    let refuge_scenarios = array_at(&refuge, "refuge_scenarios")
+        .cloned()
+        .unwrap_or_default();
+    if building_arms.len() != 7 || !unique_nonempty_ids(&building_arms) {
+        errors.push("thermal service benchmark must preserve seven unique building arms".to_owned());
+    }
+    if building_scenarios.len() != 8 || !unique_nonempty_ids(
+        &building_scenarios
+            .iter()
+            .map(|value| json!({"id": value}))
+            .collect::<Vec<_>>()
+    ) {
+        errors.push("thermal service benchmark must preserve eight unique building scenarios".to_owned());
+    }
+    if refuge_topologies.len() != 4 || !unique_nonempty_ids(&refuge_topologies) {
+        errors.push("refuge benchmark must preserve four unique topologies".to_owned());
+    }
+    if refuge_scenarios.len() != 6 || !unique_nonempty_ids(
+        &refuge_scenarios
+            .iter()
+            .map(|value| json!({"id": value}))
+            .collect::<Vec<_>>()
+    ) {
+        errors.push("refuge benchmark must preserve six unique stress scenarios".to_owned());
+    }
+    let primary_thermal_baseline = building_arms.iter().any(|arm| {
+        string_at(arm, "id") == Some("PASSIVE_ENVELOPE_SHADE_BASELINE")
+            && string_at(arm, "role") == Some("PRIMARY_CONTROL")
+    });
+    if !primary_thermal_baseline {
+        errors.push("a competent passive envelope/shade primary control is required".to_owned());
+    }
+    for required in [
+        "PASSIVE_ENVELOPE_NIGHT_PURGE",
+        "MECHANICAL_COOLING_REFERENCE",
+        "PCM_STORE_NIGHT_REGENERATION",
+        "RADIATIVE_DRY_SINK_STORE",
+        "CONDITIONAL_EVAPORATIVE_ASSIST",
+        "LAYERED_MULTI_SINK_PORTFOLIO",
+    ] {
+        if !building_arms.iter().any(|arm| string_at(arm, "id") == Some(required)) {
+            errors.push(format!("missing thermal service intervention {required}"));
+        }
+    }
+    for required in [
+        "HOME_ONLY",
+        "CENTRAL_REFUGE_HUB",
+        "DISTRIBUTED_REFUGE_PODS",
+        "FEDERATED_REFUGE_MESH",
+    ] {
+        if !refuge_topologies.iter().any(|item| string_at(item, "id") == Some(required)) {
+            errors.push(format!("missing refuge topology {required}"));
+        }
+    }
+    let expansion = &refuge["case_expansion"];
+    if expansion["building_service"]["cases"].as_u64() != Some(56)
+        || expansion["refuge_network"]["cases"].as_u64() != Some(24)
+        || expansion["total_cases"].as_u64() != Some(80)
+        || string_at(expansion, "state") != Some("REGISTERED_NOT_EXECUTED")
+    {
+        errors.push("thermal service/refuge case expansion must remain 56 + 24 = 80 registered cases".to_owned());
+    }
+    let comfort = &refuge["comfort_method"];
+    if string_at(comfort, "reference") != Some("ANSI/ASHRAE_STANDARD_55_2023")
+        || string_at(comfort, "application_ceiling")
+            != Some("COMFORT_EVALUATION_WHERE_APPLICABLE_NOT_HEAT_HEALTH_SAFETY")
+    {
+        errors.push("comfort method must preserve ASHRAE applicability and safety distinction".to_owned());
+    }
+    for key in [
+        "false_available_refuge_claims",
+        "over_capacity_refuge_assignments",
+        "essential_water_floor_violations",
+        "comfort_claim_without_correct_method_and_measurements",
+        "comfort_standard_treated_as_health_safety_limit",
+        "sensitive_identity_or_health_fields_required",
+        "untraceable_case_results",
+        "missed_seeded_negative_controls",
+        "false_blocks_of_valid_positive_controls",
+    ] {
+        if refuge["hard_gates"].get(key).and_then(Value::as_u64) != Some(0) {
+            errors.push(format!("thermal service/refuge hard gate {key} must equal zero"));
+        }
+    }
+    if refuge["governance"]["individual_health_data_required"].as_bool() != Some(false)
+        || refuge["governance"]["identifiable_movement_history_required"].as_bool() != Some(false)
+        || refuge["governance"]["unknown_refuge_dependency_means_unavailable"].as_bool() != Some(true)
+    {
+        errors.push("thermal refuge privacy and fail-closed governance rules are invalid".to_owned());
     }
     for (key, expected) in [
         ("format_version", "0.1"),
@@ -198,6 +326,12 @@ fn build_report() -> Result<Value, Vec<String>> {
         "comparison_mode_count": comparisons.len(),
         "negative_control_count": negative_controls,
         "safety_and_governance_gate_count": safety_gates,
+        "thermal_service_refuge_study_id": "HIGHVELD-THERMAL-SERVICE-REFUGE-001",
+        "thermal_service_building_case_count": 56,
+        "thermal_service_refuge_network_case_count": 24,
+        "thermal_service_refuge_total_case_count": 80,
+        "thermal_service_refuge_execution_status": "NOT_EXECUTED",
+        "comfort_safety_boundary": "ASHRAE_COMFORT_IS_NOT_HEAT_HEALTH_SAFETY",
         "execution_status": "NOT_EXECUTED",
         "schema_engine": "NOT_RUN; schema declaration and manifest semantics are checked by this Rust qualifier",
         "claim_ceiling": "No physical cooling, water saving, payback or resilience outcome is claimed"
@@ -334,6 +468,22 @@ mod tests {
         );
         let claim = manifest["claim_ceiling"].as_str().expect("claim ceiling");
         assert!(claim.contains("superiority claim"));
+    }
+
+    #[test]
+    fn thermal_service_refuge_benchmark_preserves_80_cases_and_safety_boundary() {
+        let report = build_report().expect("thermal service/refuge contract must qualify");
+        assert_eq!(report["thermal_service_building_case_count"].as_u64(), Some(56));
+        assert_eq!(report["thermal_service_refuge_network_case_count"].as_u64(), Some(24));
+        assert_eq!(report["thermal_service_refuge_total_case_count"].as_u64(), Some(80));
+        assert_eq!(
+            report["comfort_safety_boundary"].as_str(),
+            Some("ASHRAE_COMFORT_IS_NOT_HEAT_HEALTH_SAFETY")
+        );
+        assert_eq!(
+            report["thermal_service_refuge_execution_status"].as_str(),
+            Some("NOT_EXECUTED")
+        );
     }
 
     #[test]
