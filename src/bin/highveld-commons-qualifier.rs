@@ -1,5 +1,8 @@
-use serde_json::{json, Value};
-use std::{collections::{BTreeMap, BTreeSet}, env, fs, process};
+use serde_json::{Value, json};
+use std::{
+    collections::{BTreeMap, BTreeSet},
+    env, fs, process,
+};
 
 const ARCHITECTURE_ID: &str = "NEIGHBORHOOD_RESILIENCE_COMMONS";
 const SAMPLE: &str = include_str!(
@@ -14,16 +17,21 @@ struct Audit {
 
 impl Audit {
     fn fail(&mut self, code: &str, path: &str, detail: &str) {
-        self.errors.push(json!({"code": code, "path": path, "detail": detail}));
+        self.errors
+            .push(json!({"code": code, "path": path, "detail": detail}));
     }
 
     fn warn(&mut self, code: &str, path: &str, detail: &str) {
-        self.warnings.push(json!({"code": code, "path": path, "detail": detail}));
+        self.warnings
+            .push(json!({"code": code, "path": path, "detail": detail}));
     }
 }
 
 fn text<'a>(value: &'a Value, key: &str) -> Option<&'a str> {
-    value.get(key).and_then(Value::as_str).filter(|s| !s.trim().is_empty())
+    value
+        .get(key)
+        .and_then(Value::as_str)
+        .filter(|s| !s.trim().is_empty())
 }
 
 fn number(value: &Value, key: &str) -> Option<u64> {
@@ -31,7 +39,11 @@ fn number(value: &Value, key: &str) -> Option<u64> {
 }
 
 fn list<'a>(value: &'a Value, key: &str) -> &'a [Value] {
-    value.get(key).and_then(Value::as_array).map(Vec::as_slice).unwrap_or(&[])
+    value
+        .get(key)
+        .and_then(Value::as_array)
+        .map(Vec::as_slice)
+        .unwrap_or(&[])
 }
 
 fn unique_ids(items: &[Value], key: &str, path: &str, audit: &mut Audit) -> BTreeSet<String> {
@@ -58,10 +70,18 @@ fn audit_manifest(root: &Value) -> Value {
     let mut audit = Audit::default();
 
     if text(root, "schema_version") != Some("0.1.0") {
-        audit.fail("SCHEMA_VERSION_MISMATCH", "$.schema_version", "expected 0.1.0");
+        audit.fail(
+            "SCHEMA_VERSION_MISMATCH",
+            "$.schema_version",
+            "expected 0.1.0",
+        );
     }
     if text(root, "architecture_id") != Some(ARCHITECTURE_ID) {
-        audit.fail("ARCHITECTURE_ID_MISMATCH", "$.architecture_id", "unexpected architecture identifier");
+        audit.fail(
+            "ARCHITECTURE_ID_MISMATCH",
+            "$.architecture_id",
+            "unexpected architecture identifier",
+        );
     }
     if text(root, "maturity") != Some("PROPOSED_NOT_EVALUATED") {
         audit.fail(
@@ -78,7 +98,11 @@ fn audit_manifest(root: &Value) -> Value {
         );
     }
     if text(root, "claim_ceiling").map_or(true, |s| s.len() < 30) {
-        audit.fail("CLAIM_CEILING_MISSING", "$.claim_ceiling", "a meaningful claim ceiling is required");
+        audit.fail(
+            "CLAIM_CEILING_MISSING",
+            "$.claim_ceiling",
+            "a meaningful claim ceiling is required",
+        );
     }
 
     let households = list(root, "households");
@@ -97,13 +121,21 @@ fn audit_manifest(root: &Value) -> Value {
     let mut source_event_ids = BTreeSet::new();
 
     if households.is_empty() {
-        audit.fail("HOUSEHOLDS_EMPTY", "$.households", "at least one synthetic household is required");
+        audit.fail(
+            "HOUSEHOLDS_EMPTY",
+            "$.households",
+            "at least one synthetic household is required",
+        );
     }
     if assets.is_empty() {
         audit.fail("ASSETS_EMPTY", "$.assets", "at least one asset is required");
     }
     if contracts.is_empty() {
-        audit.fail("SERVICE_CONTRACTS_EMPTY", "$.service_contracts", "at least one shared service contract is required");
+        audit.fail(
+            "SERVICE_CONTRACTS_EMPTY",
+            "$.service_contracts",
+            "at least one shared service contract is required",
+        );
     }
 
     let mut asset_domains: BTreeMap<String, String> = BTreeMap::new();
@@ -111,7 +143,9 @@ fn audit_manifest(root: &Value) -> Value {
     for (index, asset) in assets.iter().enumerate() {
         let id = text(asset, "asset_id").unwrap_or("<missing>");
         match text(asset, "failure_domain_id") {
-            Some(domain) => { asset_domains.insert(id.to_owned(), domain.to_owned()); }
+            Some(domain) => {
+                asset_domains.insert(id.to_owned(), domain.to_owned());
+            }
             None => audit.fail(
                 "ASSET_FAILURE_DOMAIN_MISSING",
                 &format!("$.assets[{index}].failure_domain_id"),
@@ -146,14 +180,25 @@ fn audit_manifest(root: &Value) -> Value {
         let demand = number(contract, "peak_demand_per_window");
 
         if service_id.is_none() {
-            audit.fail("SERVICE_ID_MISSING", &format!("{path}.service_id"), "service_id is required");
+            audit.fail(
+                "SERVICE_ID_MISSING",
+                &format!("{path}.service_id"),
+                "service_id is required",
+            );
         }
         if provider.map_or(true, |id| !asset_ids.contains(id)) {
-            audit.fail("UNKNOWN_SERVICE_PROVIDER", &format!("{path}.provider_asset_id"), "provider asset must exist");
+            audit.fail(
+                "UNKNOWN_SERVICE_PROVIDER",
+                &format!("{path}.provider_asset_id"),
+                "provider asset must exist",
+            );
         }
         if let (Some(service), Some(asset)) = (service_id, provider) {
             if let Some(domain) = asset_domains.get(asset) {
-                provider_by_service.entry(service.to_owned()).or_default().push((asset.to_owned(), domain.clone()));
+                provider_by_service
+                    .entry(service.to_owned())
+                    .or_default()
+                    .push((asset.to_owned(), domain.clone()));
             }
         }
         if contract_unit.is_none() || capacity.is_none() || demand.is_none() {
@@ -166,10 +211,19 @@ fn audit_manifest(root: &Value) -> Value {
         if let (Some(capacity), Some(demand)) = (capacity, demand) {
             if demand > capacity {
                 let queue = contract.get("queue_policy");
-                let enabled = queue.and_then(|q| q.get("enabled")).and_then(Value::as_bool) == Some(true);
+                let enabled = queue
+                    .and_then(|q| q.get("enabled"))
+                    .and_then(Value::as_bool)
+                    == Some(true);
                 let max_wait = queue.and_then(|q| number(q, "maximum_wait_s"));
                 let disposition = queue.and_then(|q| text(q, "overflow_disposition"));
-                if !enabled || max_wait.is_none() || !matches!(disposition, Some("BLOCK_AND_ESCALATE" | "RECORD_UNMET_DEMAND")) {
+                if !enabled
+                    || max_wait.is_none()
+                    || !matches!(
+                        disposition,
+                        Some("BLOCK_AND_ESCALATE" | "RECORD_UNMET_DEMAND")
+                    )
+                {
                     audit.fail(
                         "CAPACITY_OVERCOMMIT_UNMODELED",
                         &format!("{path}.queue_policy"),
@@ -181,7 +235,8 @@ fn audit_manifest(root: &Value) -> Value {
         let access = contract.get("access_path");
         let access_state = access.and_then(|v| text(v, "qualification_state"));
         let access_evidence = access.and_then(|v| text(v, "evidence_id"));
-        let allocation_enabled = contract.get("allocation_enabled").and_then(Value::as_bool) == Some(true);
+        let allocation_enabled =
+            contract.get("allocation_enabled").and_then(Value::as_bool) == Some(true);
         if allocation_enabled && (access_state != Some("QUALIFIED") || access_evidence.is_none()) {
             audit.fail(
                 "UNQUALIFIED_ACCESS_ALLOCATED",
@@ -189,7 +244,10 @@ fn audit_manifest(root: &Value) -> Value {
                 "an allocated shared service needs qualified access evidence",
             );
         }
-        if !matches!(access_state, Some("QUALIFIED" | "UNVERIFIED" | "FAILED" | "UNKNOWN")) {
+        if !matches!(
+            access_state,
+            Some("QUALIFIED" | "UNVERIFIED" | "FAILED" | "UNKNOWN")
+        ) {
             audit.fail(
                 "ACCESS_STATE_INVALID",
                 &format!("{path}.access_path.qualification_state"),
@@ -210,7 +268,10 @@ fn audit_manifest(root: &Value) -> Value {
                         || text(policy, "final_authority") != Some("HUMAN")
                         || policy.get("appeal_path").and_then(Value::as_bool) != Some(true)
                         || policy.get("resident_oversight").and_then(Value::as_bool) != Some(true)
-                        || policy.get("algorithmic_priority_authority").and_then(Value::as_bool) != Some(false)
+                        || policy
+                            .get("algorithmic_priority_authority")
+                            .and_then(Value::as_bool)
+                            != Some(false)
                     {
                         audit.fail(
                             "ALLOCATION_GOVERNANCE_NOT_QUALIFIED",
@@ -228,7 +289,11 @@ fn audit_manifest(root: &Value) -> Value {
         let household_id = text(household, "household_id").unwrap_or("<missing>");
         let floors = list(household, "essential_service_floors");
         if floors.is_empty() {
-            audit.fail("ESSENTIAL_FLOORS_EMPTY", &format!("{path}.essential_service_floors"), "each household needs declared essential service floors");
+            audit.fail(
+                "ESSENTIAL_FLOORS_EMPTY",
+                &format!("{path}.essential_service_floors"),
+                "each household needs declared essential service floors",
+            );
         }
         for (floor_index, floor) in floors.iter().enumerate() {
             let floor_path = format!("{path}.essential_service_floors[{floor_index}]");
@@ -242,7 +307,9 @@ fn audit_manifest(root: &Value) -> Value {
                     "every declared essential service must remain protected during hub loss",
                 );
             }
-            if number(floor, "maximum_unserved_s") .is_none() || number(floor, "maximum_wait_s").is_none() {
+            if number(floor, "maximum_unserved_s").is_none()
+                || number(floor, "maximum_wait_s").is_none()
+            {
                 audit.fail(
                     "SERVICE_FLOOR_BOUNDARY_MISSING",
                     &floor_path,
@@ -253,7 +320,11 @@ fn audit_manifest(root: &Value) -> Value {
             let fallback_asset = fallback.and_then(|v| text(v, "asset_id"));
             let fallback_domain = fallback.and_then(|v| text(v, "failure_domain_id"));
             if fallback_asset.map_or(true, |id| !asset_ids.contains(id)) {
-                audit.fail("LOCAL_FALLBACK_MISSING", &format!("{floor_path}.local_fallback.asset_id"), "a household-local fallback asset must exist");
+                audit.fail(
+                    "LOCAL_FALLBACK_MISSING",
+                    &format!("{floor_path}.local_fallback.asset_id"),
+                    "a household-local fallback asset must exist",
+                );
             }
             if fallback.and_then(|v| text(v, "qualification_state")) != Some("QUALIFIED")
                 || fallback.and_then(|v| text(v, "evidence_id")).is_none()
@@ -264,7 +335,11 @@ fn audit_manifest(root: &Value) -> Value {
                     "local fallback requires qualified evidence and an evidence identifier",
                 );
             }
-            if fallback.and_then(|v| v.get("depends_on_commons")).and_then(Value::as_bool) != Some(false) {
+            if fallback
+                .and_then(|v| v.get("depends_on_commons"))
+                .and_then(Value::as_bool)
+                != Some(false)
+            {
                 audit.fail(
                     "LOCAL_FALLBACK_DEPENDS_ON_COMMONS",
                     &format!("{floor_path}.local_fallback.depends_on_commons"),
@@ -310,19 +385,32 @@ fn audit_manifest(root: &Value) -> Value {
                         }
                     }
                 }
-                for contract in contracts.iter().filter(|c| text(c, "service_id") == Some(service)) {
-                    let queue_max = contract.get("queue_policy").and_then(|q| number(q, "maximum_wait_s"));
+                for contract in contracts
+                    .iter()
+                    .filter(|c| text(c, "service_id") == Some(service))
+                {
+                    let queue_max = contract
+                        .get("queue_policy")
+                        .and_then(|q| number(q, "maximum_wait_s"));
                     let floor_max = number(floor, "maximum_wait_s");
-                    if queue_max.zip(floor_max).is_some_and(|(queue, floor_wait)| queue > floor_wait) {
+                    if queue_max
+                        .zip(floor_max)
+                        .is_some_and(|(queue, floor_wait)| queue > floor_wait)
+                    {
                         audit.fail(
                             "QUEUE_EXCEEDS_RESIDENT_FLOOR",
                             &floor_path,
                             "shared-service queue wait exceeds this household's declared maximum",
                         );
                     }
-                    let access_max = contract.get("access_path").and_then(|a| number(a, "maximum_access_time_s"));
+                    let access_max = contract
+                        .get("access_path")
+                        .and_then(|a| number(a, "maximum_access_time_s"));
                     let floor_access_max = number(floor, "maximum_access_time_s");
-                    if access_max.zip(floor_access_max).is_some_and(|(access, floor_access)| access > floor_access) {
+                    if access_max
+                        .zip(floor_access_max)
+                        .is_some_and(|(access, floor_access)| access > floor_access)
+                    {
                         audit.fail(
                             "ACCESS_EXCEEDS_RESIDENT_FLOOR",
                             &floor_path,
@@ -350,7 +438,11 @@ fn audit_manifest(root: &Value) -> Value {
                 );
             }
         } else {
-            audit.fail("RESOURCE_SOURCE_EVENT_MISSING", &format!("{path}.source_event_id"), "source_event_id is required");
+            audit.fail(
+                "RESOURCE_SOURCE_EVENT_MISSING",
+                &format!("{path}.source_event_id"),
+                "source_event_id is required",
+            );
         }
 
         let from = text(transfer, "from_account_id");
@@ -359,36 +451,64 @@ fn audit_manifest(root: &Value) -> Value {
         let unit = text(transfer, "unit");
         let quantity = number(transfer, "quantity");
         if from == to {
-            audit.fail("SELF_TRANSFER", &path, "resource transfer must have distinct source and destination accounts");
+            audit.fail(
+                "SELF_TRANSFER",
+                &path,
+                "resource transfer must have distinct source and destination accounts",
+            );
         }
         if from.map_or(true, |id| !account_ids.contains(id))
             || to.map_or(true, |id| !account_ids.contains(id))
         {
-            audit.fail("UNKNOWN_TRANSFER_ACCOUNT", &path, "both transfer accounts must be registered");
+            audit.fail(
+                "UNKNOWN_TRANSFER_ACCOUNT",
+                &path,
+                "both transfer accounts must be registered",
+            );
         }
         if let Some(quantity) = quantity {
             if quantity == 0 {
-                audit.fail("ZERO_RESOURCE_TRANSFER", &format!("{path}.quantity"), "transfer quantity must be positive");
+                audit.fail(
+                    "ZERO_RESOURCE_TRANSFER",
+                    &format!("{path}.quantity"),
+                    "transfer quantity must be positive",
+                );
             }
             if let Some(account) = from {
                 let sum = transfer_out.entry(account.to_owned()).or_default();
                 match sum.checked_add(quantity) {
                     Some(next) => *sum = next,
-                    None => audit.fail("RESOURCE_LEDGER_OVERFLOW", &path, "outgoing transfer sum overflowed"),
+                    None => audit.fail(
+                        "RESOURCE_LEDGER_OVERFLOW",
+                        &path,
+                        "outgoing transfer sum overflowed",
+                    ),
                 }
             }
             if let Some(account) = to {
                 let sum = transfer_in.entry(account.to_owned()).or_default();
                 match sum.checked_add(quantity) {
                     Some(next) => *sum = next,
-                    None => audit.fail("RESOURCE_LEDGER_OVERFLOW", &path, "incoming transfer sum overflowed"),
+                    None => audit.fail(
+                        "RESOURCE_LEDGER_OVERFLOW",
+                        &path,
+                        "incoming transfer sum overflowed",
+                    ),
                 }
             }
         } else {
-            audit.fail("TRANSFER_QUANTITY_MISSING", &format!("{path}.quantity"), "quantity must be a non-negative integer");
+            audit.fail(
+                "TRANSFER_QUANTITY_MISSING",
+                &format!("{path}.quantity"),
+                "quantity must be a non-negative integer",
+            );
         }
         if resource.is_none() || unit.is_none() {
-            audit.fail("TRANSFER_UNIT_OR_RESOURCE_MISSING", &path, "resource_id and unit must be explicit; no implicit conversion is allowed");
+            audit.fail(
+                "TRANSFER_UNIT_OR_RESOURCE_MISSING",
+                &path,
+                "resource_id and unit must be explicit; no implicit conversion is allowed",
+            );
         }
     }
 
@@ -400,12 +520,20 @@ fn audit_manifest(root: &Value) -> Value {
         let resource = text(account, "resource_id");
         let unit = text(account, "unit");
         if asset.map_or(true, |asset_id| !asset_ids.contains(asset_id)) {
-            audit.fail("RESOURCE_ACCOUNT_ASSET_UNKNOWN", &format!("{path}.asset_id"), "resource account must belong to a registered asset");
+            audit.fail(
+                "RESOURCE_ACCOUNT_ASSET_UNKNOWN",
+                &format!("{path}.asset_id"),
+                "resource account must belong to a registered asset",
+            );
         }
         if let (Some(resource), Some(unit)) = (resource, unit) {
             account_resource_units.insert(id.to_owned(), (resource.to_owned(), unit.to_owned()));
         } else {
-            audit.fail("RESOURCE_ACCOUNT_UNIT_MISSING", &path, "resource and unit must be explicit");
+            audit.fail(
+                "RESOURCE_ACCOUNT_UNIT_MISSING",
+                &path,
+                "resource and unit must be explicit",
+            );
         }
 
         let opening = number(account, "opening_quantity");
@@ -427,7 +555,9 @@ fn audit_manifest(root: &Value) -> Value {
                 Some(remaining) => audit.fail(
                     "RESOURCE_RESERVE_BREACH",
                     &path,
-                    &format!("remaining quantity {remaining} is below required reserve floor {reserve}"),
+                    &format!(
+                        "remaining quantity {remaining} is below required reserve floor {reserve}"
+                    ),
                 ),
                 None => audit.fail(
                     "RESOURCE_BALANCE_NEGATIVE_OR_OVERFLOW",
@@ -467,7 +597,11 @@ fn audit_manifest(root: &Value) -> Value {
     // service state from reservoir, grid or hub telemetry.
     for (index, account) in accounts.iter().enumerate() {
         if text(account, "resource_id").is_none() {
-            audit.fail("RESOURCE_ID_MISSING", &format!("$.resource_accounts[{index}].resource_id"), "resource_id is required");
+            audit.fail(
+                "RESOURCE_ID_MISSING",
+                &format!("$.resource_accounts[{index}].resource_id"),
+                "resource_id is required",
+            );
         }
     }
 
@@ -499,7 +633,10 @@ fn main() {
     let args: Vec<String> = env::args().skip(1).collect();
     if args.as_slice() == ["--self-test"] {
         let report = audit_manifest(&sample_manifest());
-        println!("{}", serde_json::to_string_pretty(&report).unwrap_or_else(|_| "{}".to_owned()));
+        println!(
+            "{}",
+            serde_json::to_string_pretty(&report).unwrap_or_else(|_| "{}".to_owned())
+        );
         if report["status"].as_str() != Some("PASS") {
             process::exit(1);
         }
@@ -521,7 +658,10 @@ fn main() {
             }
         };
         let report = audit_manifest(&manifest);
-        println!("{}", serde_json::to_string_pretty(&report).unwrap_or_else(|_| "{}".to_owned()));
+        println!(
+            "{}",
+            serde_json::to_string_pretty(&report).unwrap_or_else(|_| "{}".to_owned())
+        );
         if report["status"].as_str() != Some("PASS") {
             process::exit(1);
         }
@@ -537,11 +677,15 @@ fn main() {
 mod tests {
     use super::*;
 
-    fn base() -> Value { sample_manifest() }
+    fn base() -> Value {
+        sample_manifest()
+    }
 
     fn has_code(report: &Value, code: &str) -> bool {
         report["errors"].as_array().is_some_and(|items| {
-            items.iter().any(|item| item.get("code").and_then(Value::as_str) == Some(code))
+            items
+                .iter()
+                .any(|item| item.get("code").and_then(Value::as_str) == Some(code))
         })
     }
 
@@ -555,37 +699,55 @@ mod tests {
     #[test]
     fn essential_service_cannot_be_hub_only() {
         let mut manifest = base();
-        manifest["households"][0]["essential_service_floors"][0]["local_fallback"]["depends_on_commons"] = json!(true);
-        assert!(has_code(&audit_manifest(&manifest), "LOCAL_FALLBACK_DEPENDS_ON_COMMONS"));
+        manifest["households"][0]["essential_service_floors"][0]["local_fallback"]["depends_on_commons"] =
+            json!(true);
+        assert!(has_code(
+            &audit_manifest(&manifest),
+            "LOCAL_FALLBACK_DEPENDS_ON_COMMONS"
+        ));
     }
 
     #[test]
     fn commons_asset_cannot_be_declared_as_household_fallback() {
         let mut manifest = base();
-        manifest["households"][0]["essential_service_floors"][0]["local_fallback"]["asset_id"] = json!("commons-water-hub");
-        assert!(has_code(&audit_manifest(&manifest), "FALLBACK_IS_COMMONS_ASSET"));
+        manifest["households"][0]["essential_service_floors"][0]["local_fallback"]["asset_id"] =
+            json!("commons-water-hub");
+        assert!(has_code(
+            &audit_manifest(&manifest),
+            "FALLBACK_IS_COMMONS_ASSET"
+        ));
     }
 
     #[test]
     fn fallback_must_be_in_a_distinct_failure_domain() {
         let mut manifest = base();
-        manifest["households"][0]["essential_service_floors"][0]["local_fallback"]["failure_domain_id"] = json!("fd-commons-water");
+        manifest["households"][0]["essential_service_floors"][0]["local_fallback"]["failure_domain_id"] =
+            json!("fd-commons-water");
         manifest["assets"][1]["failure_domain_id"] = json!("fd-commons-water");
-        assert!(has_code(&audit_manifest(&manifest), "LOCAL_FALLBACK_COMMON_CAUSE"));
+        assert!(has_code(
+            &audit_manifest(&manifest),
+            "LOCAL_FALLBACK_COMMON_CAUSE"
+        ));
     }
 
     #[test]
     fn shared_allocation_requires_approved_human_governance_and_appeal() {
         let mut manifest = base();
         manifest["allocation_policies"][0]["final_authority"] = json!("AUTOMATED");
-        assert!(has_code(&audit_manifest(&manifest), "ALLOCATION_GOVERNANCE_NOT_QUALIFIED"));
+        assert!(has_code(
+            &audit_manifest(&manifest),
+            "ALLOCATION_GOVERNANCE_NOT_QUALIFIED"
+        ));
     }
 
     #[test]
     fn shared_access_must_be_qualified_before_allocation() {
         let mut manifest = base();
         manifest["service_contracts"][0]["access_path"]["qualification_state"] = json!("UNKNOWN");
-        assert!(has_code(&audit_manifest(&manifest), "UNQUALIFIED_ACCESS_ALLOCATED"));
+        assert!(has_code(
+            &audit_manifest(&manifest),
+            "UNQUALIFIED_ACCESS_ALLOCATED"
+        ));
     }
 
     #[test]
@@ -593,7 +755,10 @@ mod tests {
         let mut manifest = base();
         manifest["service_contracts"][0]["queue_policy"]["maximum_wait_s"] = json!(900);
         manifest["households"][0]["essential_service_floors"][0]["maximum_wait_s"] = json!(300);
-        assert!(has_code(&audit_manifest(&manifest), "QUEUE_EXCEEDS_RESIDENT_FLOOR"));
+        assert!(has_code(
+            &audit_manifest(&manifest),
+            "QUEUE_EXCEEDS_RESIDENT_FLOOR"
+        ));
     }
 
     #[test]
@@ -602,50 +767,75 @@ mod tests {
         manifest["service_contracts"][0]["capacity_per_window"] = json!(10);
         manifest["service_contracts"][0]["peak_demand_per_window"] = json!(100);
         manifest["service_contracts"][0]["queue_policy"]["enabled"] = json!(false);
-        assert!(has_code(&audit_manifest(&manifest), "CAPACITY_OVERCOMMIT_UNMODELED"));
+        assert!(has_code(
+            &audit_manifest(&manifest),
+            "CAPACITY_OVERCOMMIT_UNMODELED"
+        ));
     }
 
     #[test]
     fn resource_reserve_cannot_be_spent_by_the_commons() {
         let mut manifest = base();
         manifest["resource_accounts"][0]["committed_outflow_quantity"] = json!(9900);
-        assert!(has_code(&audit_manifest(&manifest), "RESOURCE_RESERVE_BREACH"));
+        assert!(has_code(
+            &audit_manifest(&manifest),
+            "RESOURCE_RESERVE_BREACH"
+        ));
     }
 
     #[test]
     fn duplicate_meter_or_notice_event_cannot_be_counted_twice() {
         let mut manifest = base();
         let transfer = manifest["resource_transfers"][0].clone();
-        manifest["resource_transfers"].as_array_mut().unwrap().push(transfer);
-        assert!(has_code(&audit_manifest(&manifest), "DUPLICATE_RESOURCE_SOURCE_EVENT"));
+        manifest["resource_transfers"]
+            .as_array_mut()
+            .unwrap()
+            .push(transfer);
+        assert!(has_code(
+            &audit_manifest(&manifest),
+            "DUPLICATE_RESOURCE_SOURCE_EVENT"
+        ));
     }
 
     #[test]
     fn unit_mismatch_is_never_silently_converted() {
         let mut manifest = base();
         manifest["resource_transfers"][0]["unit"] = json!("kWh");
-        assert!(has_code(&audit_manifest(&manifest), "RESOURCE_TRANSFER_UNIT_MISMATCH"));
+        assert!(has_code(
+            &audit_manifest(&manifest),
+            "RESOURCE_TRANSFER_UNIT_MISMATCH"
+        ));
     }
 
     #[test]
     fn access_time_cannot_exceed_resident_declared_limit() {
         let mut manifest = base();
         manifest["service_contracts"][0]["access_path"]["maximum_access_time_s"] = json!(900);
-        manifest["households"][0]["essential_service_floors"][0]["maximum_access_time_s"] = json!(120);
-        assert!(has_code(&audit_manifest(&manifest), "ACCESS_EXCEEDS_RESIDENT_FLOOR"));
+        manifest["households"][0]["essential_service_floors"][0]["maximum_access_time_s"] =
+            json!(120);
+        assert!(has_code(
+            &audit_manifest(&manifest),
+            "ACCESS_EXCEEDS_RESIDENT_FLOOR"
+        ));
     }
 
     #[test]
     fn pending_allocation_policy_cannot_authorize_distribution() {
         let mut manifest = base();
         manifest["allocation_policies"][0]["approval_state"] = json!("PENDING");
-        assert!(has_code(&audit_manifest(&manifest), "ALLOCATION_GOVERNANCE_NOT_QUALIFIED"));
+        assert!(has_code(
+            &audit_manifest(&manifest),
+            "ALLOCATION_GOVERNANCE_NOT_QUALIFIED"
+        ));
     }
 
     #[test]
     fn maturity_cannot_be_promoted_by_editing_the_manifest() {
         let mut manifest = base();
         manifest["maturity"] = json!("EVALUATED");
-        assert!(has_code(&audit_manifest(&manifest), "MATURITY_CLAIM_ESCALATION"));
+        assert!(has_code(
+            &audit_manifest(&manifest),
+            "MATURITY_CLAIM_ESCALATION"
+        ));
     }
 }
