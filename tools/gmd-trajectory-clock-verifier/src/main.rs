@@ -258,12 +258,13 @@ fn verify_artifact(reference: &ArtifactRef, root: &Path) -> Result<Vec<u8>, Stri
     Ok(bytes)
 }
 
-fn verify_time_column(
-    channel: &Channel,
-    artifact_bytes: &[u8],
-) -> Result<(), String> {
-    let content = std::str::from_utf8(artifact_bytes)
-        .map_err(|_| format!("{}: effective artifact is not UTF-8 CSV", channel.channel_id))?;
+fn verify_time_column(channel: &Channel, artifact_bytes: &[u8]) -> Result<(), String> {
+    let content = std::str::from_utf8(artifact_bytes).map_err(|_| {
+        format!(
+            "{}: effective artifact is not UTF-8 CSV",
+            channel.channel_id
+        )
+    })?;
     let mut lines = content.lines();
     let header = lines
         .next()
@@ -276,12 +277,20 @@ fn verify_time_column(
     let mut actual_times = Vec::new();
     for (line_number, line) in lines.enumerate() {
         let fields: Vec<&str> = line.split(',').collect();
-        let value = fields
-            .get(time_index)
-            .ok_or_else(|| format!("{}: malformed CSV row {}", channel.channel_id, line_number + 2))?;
-        let timestamp = value
-            .parse::<u64>()
-            .map_err(|_| format!("{}: invalid time value on CSV row {}", channel.channel_id, line_number + 2))?;
+        let value = fields.get(time_index).ok_or_else(|| {
+            format!(
+                "{}: malformed CSV row {}",
+                channel.channel_id,
+                line_number + 2
+            )
+        })?;
+        let timestamp = value.parse::<u64>().map_err(|_| {
+            format!(
+                "{}: invalid time value on CSV row {}",
+                channel.channel_id,
+                line_number + 2
+            )
+        })?;
         actual_times.push(timestamp);
     }
     if actual_times != channel.sample_timestamps_ns {
@@ -312,10 +321,12 @@ fn verify_transformation_chain(
         }
         let transformation = transformations
             .get(transformation_id.as_str())
-            .ok_or_else(|| format!(
-                "{}: undeclared transformation {}",
-                channel.channel_id, transformation_id
-            ))?;
+            .ok_or_else(|| {
+                format!(
+                    "{}: undeclared transformation {}",
+                    channel.channel_id, transformation_id
+                )
+            })?;
         if transformation.input_artifact.sha256 != current_digest {
             return Err(format!(
                 "{}: transformation {} input digest does not continue the artifact chain",
@@ -387,7 +398,9 @@ fn validate_experiment(experiment: &Experiment) -> Result<(), String> {
         experiment.region_profile.nominal_frequency_millihz,
         50_000 | 60_000
     ) {
-        return Err("nominal frequency must be explicitly declared as 50 Hz or 60 Hz in v0.1".to_string());
+        return Err(
+            "nominal frequency must be explicitly declared as 50 Hz or 60 Hz in v0.1".to_string(),
+        );
     }
     if experiment.region_profile.region_id == "south_africa"
         && experiment.region_profile.nominal_frequency_millihz != 50_000
@@ -400,7 +413,10 @@ fn validate_experiment(experiment: &Experiment) -> Result<(), String> {
     {
         return Err("phase reference frequency or zero phase is inconsistent".to_string());
     }
-    if experiment.clocks.is_empty() || experiment.channels.is_empty() || experiment.events.is_empty() {
+    if experiment.clocks.is_empty()
+        || experiment.channels.is_empty()
+        || experiment.events.is_empty()
+    {
         return Err("clocks, channels and events must be non-empty".to_string());
     }
 
@@ -414,15 +430,24 @@ fn validate_experiment(experiment: &Experiment) -> Result<(), String> {
         if clock.observed_offset_ns < clock.offset_bounds_ns[0]
             || clock.observed_offset_ns > clock.offset_bounds_ns[1]
         {
-            return Err(format!("{}: observed clock offset is outside declared bounds", clock.clock_id));
+            return Err(format!(
+                "{}: observed clock offset is outside declared bounds",
+                clock.clock_id
+            ));
         }
         if clock.observed_drift_ppb < clock.drift_bounds_ppb[0]
             || clock.observed_drift_ppb > clock.drift_bounds_ppb[1]
         {
-            return Err(format!("{}: observed clock drift is outside declared bounds", clock.clock_id));
+            return Err(format!(
+                "{}: observed clock drift is outside declared bounds",
+                clock.clock_id
+            ));
         }
         if clock.drift_bounds_ppb[0] <= -1_000_000_000 {
-            return Err(format!("{}: clock drift bound would make the time mapping non-monotonic", clock.clock_id));
+            return Err(format!(
+                "{}: clock drift bound would make the time mapping non-monotonic",
+                clock.clock_id
+            ));
         }
     }
 
@@ -443,23 +468,39 @@ fn validate_experiment(experiment: &Experiment) -> Result<(), String> {
     let mut channel_ids = BTreeSet::new();
     let mut referenced_transformations = BTreeSet::new();
     for channel in &experiment.channels {
-        if channel.channel_id.trim().is_empty() || !channel_ids.insert(channel.channel_id.as_str()) {
-            return Err(format!("empty or duplicate channel ID {}", channel.channel_id));
+        if channel.channel_id.trim().is_empty() || !channel_ids.insert(channel.channel_id.as_str())
+        {
+            return Err(format!(
+                "empty or duplicate channel ID {}",
+                channel.channel_id
+            ));
         }
         if !clock_ids.contains(channel.clock_id.as_str()) {
-            return Err(format!("{}: unknown clock {}", channel.channel_id, channel.clock_id));
+            return Err(format!(
+                "{}: unknown clock {}",
+                channel.channel_id, channel.clock_id
+            ));
         }
         if channel.unit.trim().is_empty() || channel.polarity.trim().is_empty() {
-            return Err(format!("{}: unit and polarity must be explicit", channel.channel_id));
+            return Err(format!(
+                "{}: unit and polarity must be explicit",
+                channel.channel_id
+            ));
         }
         if channel.time_column.trim().is_empty() {
-            return Err(format!("{}: time column must be explicit", channel.channel_id));
+            return Err(format!(
+                "{}: time column must be explicit",
+                channel.channel_id
+            ));
         }
         if channel.sample_period_ns == 0
             || channel.sample_rate_numerator_hz == 0
             || channel.sample_rate_denominator == 0
         {
-            return Err(format!("{}: sample period and rational sample rate must be positive", channel.channel_id));
+            return Err(format!(
+                "{}: sample period and rational sample rate must be positive",
+                channel.channel_id
+            ));
         }
         let left = u128::from(channel.sample_period_ns)
             .checked_mul(u128::from(channel.sample_rate_numerator_hz))
@@ -468,10 +509,16 @@ fn validate_experiment(experiment: &Experiment) -> Result<(), String> {
             .checked_mul(u128::from(channel.sample_rate_denominator))
             .ok_or_else(|| format!("{}: sample-rate arithmetic overflow", channel.channel_id))?;
         if left != right {
-            return Err(format!("{}: sample period and rational sample rate disagree", channel.channel_id));
+            return Err(format!(
+                "{}: sample period and rational sample rate disagree",
+                channel.channel_id
+            ));
         }
         if channel.sample_timestamps_ns.len() < 2 {
-            return Err(format!("{}: at least two samples are required", channel.channel_id));
+            return Err(format!(
+                "{}: at least two samples are required",
+                channel.channel_id
+            ));
         }
         let channel_clock = experiment
             .clocks
@@ -479,36 +526,57 @@ fn validate_experiment(experiment: &Experiment) -> Result<(), String> {
             .find(|clock| clock.clock_id == channel.clock_id)
             .expect("channel clock ID was checked");
         if channel.sample_timestamps_ns[0] < channel_clock.anchor_local_ns {
-            return Err(format!("{}: sample sequence precedes the clock mapping anchor", channel.channel_id));
+            return Err(format!(
+                "{}: sample sequence precedes the clock mapping anchor",
+                channel.channel_id
+            ));
         }
         for pair in channel.sample_timestamps_ns.windows(2) {
             if pair[1] == pair[0] {
-                return Err(format!("{}: duplicate sample timestamp", channel.channel_id));
+                return Err(format!(
+                    "{}: duplicate sample timestamp",
+                    channel.channel_id
+                ));
             }
             if pair[1] < pair[0] {
-                return Err(format!("{}: sample timestamps are not monotonic", channel.channel_id));
+                return Err(format!(
+                    "{}: sample timestamps are not monotonic",
+                    channel.channel_id
+                ));
             }
             if pair[1] - pair[0] != channel.sample_period_ns {
-                return Err(format!("{}: sample gap or unexpected sample interval", channel.channel_id));
+                return Err(format!(
+                    "{}: sample gap or unexpected sample interval",
+                    channel.channel_id
+                ));
             }
         }
         match channel.signal_kind {
             SignalKind::Gic => {
                 if channel.nominal_frequency_millihz.is_some() {
-                    return Err(format!("{}: GIC observation cadence must not be represented as AC frequency", channel.channel_id));
+                    return Err(format!(
+                        "{}: GIC observation cadence must not be represented as AC frequency",
+                        channel.channel_id
+                    ));
                 }
             }
             SignalKind::CtSecondary | SignalKind::RelayInput => {
                 if channel.nominal_frequency_millihz
                     != Some(experiment.region_profile.nominal_frequency_millihz)
                 {
-                    return Err(format!("{}: AC channel frequency does not match regional profile", channel.channel_id));
+                    return Err(format!(
+                        "{}: AC channel frequency does not match regional profile",
+                        channel.channel_id
+                    ));
                 }
             }
         }
         for id in &channel.transformation_ids {
             if !referenced_transformations.insert(id.as_str()) {
-                return Err(format!("transformation {} is referenced more than once", id));
+                return Err(format!(
+                    "transformation {} is referenced more than once",
+                    id
+                ));
             }
         }
     }
@@ -522,10 +590,16 @@ fn validate_experiment(experiment: &Experiment) -> Result<(), String> {
             return Err(format!("empty or duplicate event ID {}", event.event_id));
         }
         if !clock_ids.contains(event.clock_id.as_str()) {
-            return Err(format!("{}: event references unknown clock {}", event.event_id, event.clock_id));
+            return Err(format!(
+                "{}: event references unknown clock {}",
+                event.event_id, event.clock_id
+            ));
         }
         if event.local_lower_ns > event.local_upper_ns {
-            return Err(format!("{}: event-time interval is inverted", event.event_id));
+            return Err(format!(
+                "{}: event-time interval is inverted",
+                event.event_id
+            ));
         }
         let clock = experiment
             .clocks
@@ -533,7 +607,10 @@ fn validate_experiment(experiment: &Experiment) -> Result<(), String> {
             .find(|clock| clock.clock_id == event.clock_id)
             .expect("clock ID was checked");
         if event.local_lower_ns < clock.anchor_local_ns {
-            return Err(format!("{}: event precedes the clock mapping anchor", event.event_id));
+            return Err(format!(
+                "{}: event precedes the clock mapping anchor",
+                event.event_id
+            ));
         }
     }
     Ok(())
@@ -553,9 +630,9 @@ fn map_interval(
         let delta = i128::from(local - clock.anchor_local_ns);
         for offset in offsets {
             for drift in drifts {
-                let product = delta
-                    .checked_mul(i128::from(drift))
-                    .ok_or_else(|| format!("{}: clock drift arithmetic overflow", event.event_id))?;
+                let product = delta.checked_mul(i128::from(drift)).ok_or_else(|| {
+                    format!("{}: clock drift arithmetic overflow", event.event_id)
+                })?;
                 let correction_low = floor_div(product, PPB_SCALE);
                 let correction_high = ceil_div(product, PPB_SCALE);
                 let base = i128::from(reference_epoch_tai_ns)
@@ -602,8 +679,9 @@ fn phase_interval(
     let full = width >= MILLIDEGREES_PER_CYCLE;
     let lower_phase = lower_total.rem_euclid(MILLIDEGREES_PER_CYCLE) as u32;
     let upper_phase = upper_total.rem_euclid(MILLIDEGREES_PER_CYCLE) as u32;
-    let wraps = full || lower_total.div_euclid(MILLIDEGREES_PER_CYCLE)
-        != upper_total.div_euclid(MILLIDEGREES_PER_CYCLE);
+    let wraps = full
+        || lower_total.div_euclid(MILLIDEGREES_PER_CYCLE)
+            != upper_total.div_euclid(MILLIDEGREES_PER_CYCLE);
     Ok(PhaseInterval {
         lower_millideg: lower_phase,
         upper_millideg: upper_phase,
@@ -712,8 +790,9 @@ fn verify_experiment(
 fn run(path: &Path) -> Result<Report, String> {
     let bytes = fs::read(path)
         .map_err(|error| format!("cannot read experiment {}: {error}", path.display()))?;
-    let experiment: Experiment = serde_json::from_slice(&bytes)
-        .map_err(|error| format!("experiment JSON does not match strict typed contract: {error}"))?;
+    let experiment: Experiment = serde_json::from_slice(&bytes).map_err(|error| {
+        format!("experiment JSON does not match strict typed contract: {error}")
+    })?;
     let root = path.parent().unwrap_or_else(|| Path::new("."));
     verify_experiment(&experiment, &bytes, root)
 }
@@ -774,7 +853,10 @@ mod tests {
         assert_eq!(report.channels[0].sample_rate_numerator_hz, 1);
         assert_eq!(report.channels[1].sample_rate_numerator_hz, 16_000);
         assert_eq!(report.channels[2].sample_rate_numerator_hz, 16_000);
-        assert_eq!(report.channels[2].transformations, vec!["relay-resample-001"]);
+        assert_eq!(
+            report.channels[2].transformations,
+            vec!["relay-resample-001"]
+        );
     }
 
     #[test]
@@ -826,7 +908,11 @@ mod tests {
     fn clock_drift_mapping_uses_outward_rounded_bounds() {
         let (experiment, _bytes, _root) = fixture();
         let event = &experiment.events[0];
-        let clock = experiment.clocks.iter().find(|c| c.clock_id == event.clock_id).unwrap();
+        let clock = experiment
+            .clocks
+            .iter()
+            .find(|c| c.clock_id == event.clock_id)
+            .unwrap();
         let mapped = map_interval(event, clock, experiment.reference_epoch_tai_ns).unwrap();
         assert!(mapped[0] <= mapped[1]);
         assert!(mapped[1] - mapped[0] > 0);
@@ -838,11 +924,16 @@ mod tests {
         experiment.events[1].local_lower_ns = experiment.events[0].local_lower_ns;
         experiment.events[1].local_upper_ns = experiment.events[0].local_upper_ns;
         experiment.events[1].clock_id = experiment.events[0].clock_id.clone();
-        let report = verify_experiment(&experiment, &bytes, &root).expect("overlap is valid but unresolved");
-        let relation = report.event_order.iter().find(|r|
-            r.first_event_id == experiment.events[0].event_id
-                && r.second_event_id == experiment.events[1].event_id
-        ).unwrap();
+        let report =
+            verify_experiment(&experiment, &bytes, &root).expect("overlap is valid but unresolved");
+        let relation = report
+            .event_order
+            .iter()
+            .find(|r| {
+                r.first_event_id == experiment.events[0].event_id
+                    && r.second_event_id == experiment.events[1].event_id
+            })
+            .unwrap();
         assert_eq!(relation.relation, OrderKind::Unresolved);
     }
 
@@ -850,10 +941,11 @@ mod tests {
     fn known_event_order_is_derived_from_non_overlapping_intervals() {
         let (experiment, bytes, root) = fixture();
         let report = verify_experiment(&experiment, &bytes, &root).expect("valid fixture");
-        let relation = report.event_order.iter().find(|r|
-            r.first_event_id == "gic-onset"
-                && r.second_event_id == "fault-inception"
-        ).unwrap();
+        let relation = report
+            .event_order
+            .iter()
+            .find(|r| r.first_event_id == "gic-onset" && r.second_event_id == "fault-inception")
+            .unwrap();
         assert_eq!(relation.relation, OrderKind::Before);
     }
 
@@ -868,7 +960,8 @@ mod tests {
     #[test]
     fn duplicate_sample_timestamp_is_rejected() {
         let (mut experiment, _bytes, _root) = fixture();
-        experiment.channels[1].sample_timestamps_ns[2] = experiment.channels[1].sample_timestamps_ns[1];
+        experiment.channels[1].sample_timestamps_ns[2] =
+            experiment.channels[1].sample_timestamps_ns[1];
         let error = validate_experiment(&experiment).unwrap_err();
         assert!(error.contains("duplicate sample timestamp"));
     }
@@ -893,11 +986,14 @@ mod tests {
     fn declared_resampling_requires_complete_provenance_chain() {
         let (mut experiment, _bytes, root) = fixture();
         experiment.transformations[0].method.clear();
-        let transformation_map: BTreeMap<&str, &Transformation> = experiment.transformations
-            .iter().map(|item| (item.transformation_id.as_str(), item)).collect();
-        let error = verify_transformation_chain(
-            &experiment.channels[2], &transformation_map, &root
-        ).unwrap_err();
+        let transformation_map: BTreeMap<&str, &Transformation> = experiment
+            .transformations
+            .iter()
+            .map(|item| (item.transformation_id.as_str(), item))
+            .collect();
+        let error =
+            verify_transformation_chain(&experiment.channels[2], &transformation_map, &root)
+                .unwrap_err();
         assert!(error.contains("method"));
     }
 
@@ -905,7 +1001,11 @@ mod tests {
     fn south_african_50hz_fault_phase_is_reported_as_an_uncertainty_interval() {
         let (experiment, bytes, root) = fixture();
         let report = verify_experiment(&experiment, &bytes, &root).expect("valid fixture");
-        let fault = report.events.iter().find(|e| e.kind == EventKind::FaultInception).unwrap();
+        let fault = report
+            .events
+            .iter()
+            .find(|e| e.kind == EventKind::FaultInception)
+            .unwrap();
         let phase = fault.phase.as_ref().unwrap();
         assert!(phase.uncertainty_width_millideg > 0);
         assert!(!phase.full_cycle_uncertainty);
@@ -914,12 +1014,17 @@ mod tests {
     #[test]
     fn fault_phase_is_marked_fully_ambiguous_when_clock_interval_spans_a_cycle() {
         let (mut experiment, bytes, root) = fixture();
-        let fault = experiment.events.iter_mut()
+        let fault = experiment
+            .events
+            .iter_mut()
             .find(|event| event.kind == EventKind::FaultInception)
             .unwrap();
         fault.local_upper_ns = fault.local_lower_ns + 20_000_000;
-        let report = verify_experiment(&experiment, &bytes, &root).expect("valid wide phase interval");
-        let receipt = report.events.iter()
+        let report =
+            verify_experiment(&experiment, &bytes, &root).expect("valid wide phase interval");
+        let receipt = report
+            .events
+            .iter()
             .find(|event| event.kind == EventKind::FaultInception)
             .unwrap();
         assert!(receipt.phase.as_ref().unwrap().full_cycle_uncertainty);
