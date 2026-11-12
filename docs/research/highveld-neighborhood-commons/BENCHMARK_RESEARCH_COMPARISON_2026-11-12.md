@@ -164,3 +164,11 @@ ASHRAE's public Standard 140 resource page describes Standard 140 as a method fo
 
 For South African event acquisition, DWS' 31 May 2026 Gauteng dashboard makes an important scale distinction: it reports strategic Rand Water reservoir-system storage and says localized supply notices are communicated by municipalities. The 10 September 2026 joint government statement explicitly identifies City Power interruptions affecting Rand Water's Eikenhof supply system and names impacted municipal systems. This is a valuable dependency lead, but still not a household flow/pressure log. The official February 2026 Gauteng water update separately identifies a mix of ageing infrastructure, demand, leaks, pump-power interruptions and maintenance backlogs. These sources strengthen the rationale for cross-service scenarios without supplying the local event trace needed for an empirical benchmark. [DWS dashboard](https://www.dws.gov.za/documents/2026-05%20Gauteng%20Dashboard.pdf) · [10 September 2026 joint statement](https://www.gov.za/news/media-statements/government-measures-mitigate-water-supply-disruptions-resulting-power-trips) · [Gauteng Provincial Government, 13 February 2026](https://www.gov.za/news/media-statements/gauteng-provincial-government-addresses-water-challenges-13-feb-2026).
 
+
+
+## 8. Architectural addition: an owner-routed stress contract, not a second simulation engine
+
+The new 18-family stress matrix separates scenario stimulus from execution semantics. Sol-Atlas owns candidate geometry, spatial/access constraints and requirement-change impact. Symtropy owns native event identity, clock/sequence, service trajectories and stable recovery. Mycelix owns consent, allocation authority, resource commitments and idempotency. Specialist solvers own building thermal, electrical, hydraulic and other physics. The matrix intentionally supplies no manufactured event IDs, ticks, time offsets or predicted household quantities.
+
+This division is important for scientific validity: one shared exogenous trace must be replayed by the authoritative owner engine, and each system's state transition must be evaluated by an independent oracle. The cross-tool contribution is preservation of evidence identity and household outcome semantics across those owners, not a duplicated simulator.
+
