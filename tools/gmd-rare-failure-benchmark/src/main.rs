@@ -21,18 +21,66 @@ struct Region {
 // normalized four-axis domain: GIC pulse-width, fault phase, CT remanence,
 // and IBR current-limit response. These are not physical thresholds.
 const REGIONS: [Region; REGION_COUNT] = [
-    Region { id: "pulse_ct_01", center: [0.12, 0.14, 0.17, 0.20], radius: [0.055, 0.045, 0.055, 0.060] },
-    Region { id: "phase_ct_02", center: [0.31, 0.28, 0.44, 0.33], radius: [0.045, 0.050, 0.060, 0.050] },
-    Region { id: "weak_grid_03", center: [0.55, 0.18, 0.63, 0.52], radius: [0.050, 0.050, 0.050, 0.055] },
-    Region { id: "nbd_shift_04", center: [0.78, 0.31, 0.72, 0.25], radius: [0.040, 0.045, 0.050, 0.060] },
-    Region { id: "pulse_lag_05", center: [0.18, 0.72, 0.50, 0.62], radius: [0.055, 0.050, 0.055, 0.050] },
-    Region { id: "gfm_limit_06", center: [0.43, 0.60, 0.26, 0.77], radius: [0.050, 0.055, 0.045, 0.050] },
-    Region { id: "scr_fault_07", center: [0.67, 0.77, 0.83, 0.18], radius: [0.045, 0.050, 0.050, 0.055] },
-    Region { id: "ct_burden_08", center: [0.88, 0.85, 0.36, 0.54], radius: [0.040, 0.045, 0.050, 0.050] },
-    Region { id: "backup_n1_09", center: [0.28, 0.46, 0.88, 0.88], radius: [0.050, 0.050, 0.045, 0.045] },
-    Region { id: "phase_limit_10", center: [0.52, 0.92, 0.52, 0.34], radius: [0.045, 0.035, 0.050, 0.055] },
-    Region { id: "clock_alias_11", center: [0.82, 0.55, 0.12, 0.91], radius: [0.045, 0.050, 0.050, 0.040] },
-    Region { id: "interaction_12", center: [0.07, 0.95, 0.93, 0.67], radius: [0.035, 0.030, 0.035, 0.050] },
+    Region {
+        id: "pulse_ct_01",
+        center: [0.12, 0.14, 0.17, 0.20],
+        radius: [0.055, 0.045, 0.055, 0.060],
+    },
+    Region {
+        id: "phase_ct_02",
+        center: [0.31, 0.28, 0.44, 0.33],
+        radius: [0.045, 0.050, 0.060, 0.050],
+    },
+    Region {
+        id: "weak_grid_03",
+        center: [0.55, 0.18, 0.63, 0.52],
+        radius: [0.050, 0.050, 0.050, 0.055],
+    },
+    Region {
+        id: "nbd_shift_04",
+        center: [0.78, 0.31, 0.72, 0.25],
+        radius: [0.040, 0.045, 0.050, 0.060],
+    },
+    Region {
+        id: "pulse_lag_05",
+        center: [0.18, 0.72, 0.50, 0.62],
+        radius: [0.055, 0.050, 0.055, 0.050],
+    },
+    Region {
+        id: "gfm_limit_06",
+        center: [0.43, 0.60, 0.26, 0.77],
+        radius: [0.050, 0.055, 0.045, 0.050],
+    },
+    Region {
+        id: "scr_fault_07",
+        center: [0.67, 0.77, 0.83, 0.18],
+        radius: [0.045, 0.050, 0.050, 0.055],
+    },
+    Region {
+        id: "ct_burden_08",
+        center: [0.88, 0.85, 0.36, 0.54],
+        radius: [0.040, 0.045, 0.050, 0.050],
+    },
+    Region {
+        id: "backup_n1_09",
+        center: [0.28, 0.46, 0.88, 0.88],
+        radius: [0.050, 0.050, 0.045, 0.045],
+    },
+    Region {
+        id: "phase_limit_10",
+        center: [0.52, 0.92, 0.52, 0.34],
+        radius: [0.045, 0.035, 0.050, 0.055],
+    },
+    Region {
+        id: "clock_alias_11",
+        center: [0.82, 0.55, 0.12, 0.91],
+        radius: [0.045, 0.050, 0.050, 0.040],
+    },
+    Region {
+        id: "interaction_12",
+        center: [0.07, 0.95, 0.93, 0.67],
+        radius: [0.035, 0.030, 0.035, 0.050],
+    },
 ];
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -54,7 +102,12 @@ impl Method {
     }
 
     fn all() -> [Self; 4] {
-        [Self::UniformGrid, Self::LatinHypercube, Self::Halton, Self::MarginGuided]
+        [
+            Self::UniformGrid,
+            Self::LatinHypercube,
+            Self::Halton,
+            Self::MarginGuided,
+        ]
     }
 }
 
@@ -146,7 +199,11 @@ fn oracle(point: [f64; DIMENSIONS]) -> Observation {
             best_region = index;
         }
     }
-    Observation { point, margin: best_margin, region_index: best_region }
+    Observation {
+        point,
+        margin: best_margin,
+        region_index: best_region,
+    }
 }
 
 fn in_domain(point: [f64; DIMENSIONS]) -> [f64; DIMENSIONS] {
@@ -163,8 +220,7 @@ fn sample_grid(index: usize) -> [f64; DIMENSIONS] {
 
 fn sample_latin_hypercube(seed: u64) -> Vec<[f64; DIMENSIONS]> {
     let mut rng = SplitMix64::new(seed);
-    let mut permutations: [Vec<usize>; DIMENSIONS] =
-        std::array::from_fn(|_| (0..BUDGET).collect());
+    let mut permutations: [Vec<usize>; DIMENSIONS] = std::array::from_fn(|_| (0..BUDGET).collect());
     for permutation in &mut permutations {
         rng.shuffle(permutation);
     }
@@ -202,7 +258,9 @@ fn sample_margin_guided(seed: u64) -> Vec<[f64; DIMENSIONS]> {
         // exploiting only the single best point.
         let mut ranked: Vec<usize> = (0..observations.len()).collect();
         ranked.sort_unstable_by(|left, right| {
-            observations[*left].margin.total_cmp(&observations[*right].margin)
+            observations[*left]
+                .margin
+                .total_cmp(&observations[*right].margin)
         });
         let pool_size = ranked.len().min(48);
         let rank = ((step - INITIAL_GLOBAL) / 3) % pool_size;
@@ -254,9 +312,8 @@ fn evaluate(method: Method, seed: u64) -> ResultRow {
         }
         best_margin = best_margin.min(observation.margin);
 
-        let bin: [u8; DIMENSIONS] = std::array::from_fn(|dimension| {
-            (point[dimension] * 8.0).floor().clamp(0.0, 7.0) as u8
-        });
+        let bin: [u8; DIMENSIONS] =
+            std::array::from_fn(|dimension| (point[dimension] * 8.0).floor().clamp(0.0, 7.0) as u8);
         occupied.insert(bin);
     }
     let regions_found = found.iter().filter(|found| **found).count();
@@ -360,7 +417,10 @@ mod tests {
         for method in Method::all() {
             let result = evaluate(method, 2026);
             assert_eq!(result.certified_cells, 0);
-            assert_eq!(result.region_recall_ppm, (result.regions_found as u32 * 1_000_000) / REGION_COUNT as u32);
+            assert_eq!(
+                result.region_recall_ppm,
+                (result.regions_found as u32 * 1_000_000) / REGION_COUNT as u32
+            );
         }
     }
 
