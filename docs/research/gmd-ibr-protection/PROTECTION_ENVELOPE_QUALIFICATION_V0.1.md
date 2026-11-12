@@ -52,6 +52,10 @@ The verifier uses separate capability flags for waveform resolution, independent
 
 ## From static parameter points to disturbance trajectories
 
+**Regional frequency and trajectory guardrail:** the idealized 60-Hz CSV fixture in PR #729 is only a generic contract test. Eskom states that the South African power system operates at 50 Hz; Texas and South African profiles must therefore remain explicitly distinct. Nominal AC frequency, waveform sample rate and GIC observation cadence are separate metadata fields. See [GMD-TRAJECTORY-CLOCK-001 #732](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/732) for the follow-on multi-rate clock and event-order contract.
+
+A September 2026 experimental study reports that transformer saturation can lag changes in GIC pulse excitation, using scaled single-phase transformer measurements and EMTP comparison. This is strong support for trajectory-aware model design, but it is not a physical validation of a South African fleet transformer or its CT/relay chain. Historical South African work also describes a 2015 differential-magnetometer campaign at Botrivier, roughly 50 km from Hermanus, with comparison to transformer GIC measured at Bacchus. Treat these as historical evidence and data-access leads, not proof of current monitoring coverage.
+
 The physical experiment should not be reduced to an unordered vector of scalar values. Protection response depends on time history and event ordering:
 
 - GIC magnitude, polarity, waveform shape and duration;
@@ -126,6 +130,10 @@ The next local experiment should be a single, owner-permissioned transformer/CT 
 
 ## References
 
+- [Liu et al. (2026), transformer transient saturation under GIC pulses, DOI 10.1016/j.epsr.2026.113139](https://doi.org/10.1016/j.epsr.2026.113139)
+- [Eskom: South African grid frequency is 50 Hz](https://www.eskom.co.za/about-eskom/company-information/)
+- [Kappenman, Albertson & Mohan (1981), CT and relay performance under GIC, DOI 10.1109/TPAS.1981.316574](https://doi.org/10.1109/TPAS.1981.316574)
+- [South African differential-magnetometer GIC campaign (2015)](https://agupubs.onlinelibrary.wiley.com/doi/full/10.1002/2015SW001289)
 - [NGET AIDPS — NIA2_NGET0068](https://smarter.energynetworks.org/projects/nia2_nget0068/)
 - [Piesciorovsky, Patel & Reno (2026), DOI 10.1016/j.epsr.2025.112190](https://doi.org/10.1016/j.epsr.2025.112190)
 - [NREL/TP-5D00-94430 (2025)](https://doi.org/10.2172/3011876)
