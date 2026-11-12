@@ -13,7 +13,10 @@ fn text_at<'a>(value: &'a Value, key: &str) -> Option<&'a str> {
 }
 
 fn number_at(value: &Value, key: &str) -> Option<f64> {
-    value.get(key).and_then(Value::as_f64).filter(|value| value.is_finite())
+    value
+        .get(key)
+        .and_then(Value::as_f64)
+        .filter(|value| value.is_finite())
 }
 
 fn push_reason(reasons: &mut Vec<String>, reason: &str) {
@@ -44,7 +47,10 @@ fn evaluate(input: &Value) -> Result<Value, Vec<String>> {
     let global_ok = text_at(input, "model_applicability") == Some("IN_DOMAIN")
         && text_at(input, "instrument_state") == Some("QUALIFIED")
         && text_at(input, "local_control_state") == Some("AVAILABLE")
-        && input.get("manual_safe_mode_available").and_then(Value::as_bool) == Some(true);
+        && input
+            .get("manual_safe_mode_available")
+            .and_then(Value::as_bool)
+            == Some(true);
 
     let mut id_counts = std::collections::BTreeMap::<String, usize>::new();
     for path in paths {
@@ -72,7 +78,10 @@ fn evaluate(input: &Value) -> Result<Value, Vec<String>> {
             push_reason(&mut reasons, "UNKNOWN_OR_UNSUPPORTED_SINK_PATH");
         }
         if !global_ok {
-            push_reason(&mut reasons, "GLOBAL_MODEL_INSTRUMENT_OR_LOCAL_CONTROL_GATE_FAILED");
+            push_reason(
+                &mut reasons,
+                "GLOBAL_MODEL_INSTRUMENT_OR_LOCAL_CONTROL_GATE_FAILED",
+            );
         }
         if text_at(path, "qualification_state") != Some("QUALIFIED") {
             push_reason(&mut reasons, "PATH_NOT_QUALIFIED");
@@ -137,7 +146,10 @@ fn evaluate(input: &Value) -> Result<Value, Vec<String>> {
                 (Some(account), Some(committed), Some(reserve), Some(draw))
                     if account - committed - reserve >= draw => {}
                 (Some(_), Some(_), Some(_), Some(_)) => {
-                    push_reason(&mut reasons, "DISCRETIONARY_WATER_WOULD_BREACH_COMMITMENTS_OR_ESSENTIAL_RESERVE");
+                    push_reason(
+                        &mut reasons,
+                        "DISCRETIONARY_WATER_WOULD_BREACH_COMMITMENTS_OR_ESSENTIAL_RESERVE",
+                    );
                 }
                 _ => push_reason(&mut reasons, "WATER_ACCOUNT_OR_DRAW_UNKNOWN"),
             }
@@ -150,10 +162,7 @@ fn evaluate(input: &Value) -> Result<Value, Vec<String>> {
                         "UNDECLARED_WATER_DRAW_ON_NON_EVAPORATIVE_PATH",
                     );
                 }
-                None => push_reason(
-                    &mut reasons,
-                    "NON_EVAPORATIVE_WATER_DRAW_UNKNOWN",
-                ),
+                None => push_reason(&mut reasons, "NON_EVAPORATIVE_WATER_DRAW_UNKNOWN"),
             }
         }
 
@@ -193,11 +202,19 @@ fn main() {
     let args: Vec<String> = env::args().skip(1).collect();
     match args.first().map(String::as_str).unwrap_or("--help") {
         "--self-test" => {
-            let input: Value = serde_json::from_str(SAMPLE).expect("committed governor case JSON");
+            let input: Value =
+                serde_json::from_str(SAMPLE).expect("committed governor case JSON");
             match evaluate(&input) {
-                Ok(output) => println!("{}", serde_json::to_string_pretty(&output).unwrap_or_default()),
+                Ok(output) => println!(
+                    "{}",
+                    serde_json::to_string_pretty(&output).unwrap_or_default()
+                ),
                 Err(errors) => {
-                    eprintln!("{}", serde_json::to_string_pretty(&json!({"errors": errors})).unwrap_or_default());
+                    eprintln!(
+                        "{}",
+                        serde_json::to_string_pretty(&json!({"errors": errors}))
+                            .unwrap_or_default()
+                    );
                     process::exit(1);
                 }
             }
@@ -212,9 +229,16 @@ fn main() {
                 process::exit(2);
             });
             match evaluate(&input) {
-                Ok(output) => println!("{}", serde_json::to_string_pretty(&output).unwrap_or_default()),
+                    Ok(output) => println!(
+                    "{}",
+                    serde_json::to_string_pretty(&output).unwrap_or_default()
+                ),
                 Err(errors) => {
-                    eprintln!("{}", serde_json::to_string_pretty(&json!({"errors": errors})).unwrap_or_default());
+                    eprintln!(
+                        "{}",
+                        serde_json::to_string_pretty(&json!({"errors": errors}))
+                            .unwrap_or_default()
+                    );
                     process::exit(1);
                 }
             }
@@ -243,27 +267,51 @@ mod tests {
     fn qualified_radiative_path_survives_network_partition_with_local_control() {
         let report = evaluate(&sample()).expect("sample case must evaluate");
         assert_eq!(report["network_state"].as_str(), Some("PARTITIONED"));
-        assert!(report["eligible_paths"].as_array().unwrap().iter()
-            .any(|path| path["path_id"] == "RADIATIVE_SKY_PANEL"));
+        assert!(
+            report["eligible_paths"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|path| path["path_id"] == "RADIATIVE_SKY_PANEL")
+        );
     }
 
     #[test]
     fn temperature_approach_blocks_dry_cooler() {
         let report = evaluate(&sample()).expect("sample case must evaluate");
         let blocked = report["blocked_paths"].as_array().unwrap();
-        let dry = blocked.iter().find(|path| path["path_id"] == "DRY_AIR_COOLER").unwrap();
-        assert!(dry["reasons"].as_array().unwrap().iter()
-            .any(|reason| reason == "INSUFFICIENT_TEMPERATURE_HEADROOM"));
+        let dry = blocked
+            .iter()
+            .find(|path| path["path_id"] == "DRY_AIR_COOLER")
+            .unwrap();
+        assert!(
+            dry["reasons"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|reason| reason == "INSUFFICIENT_TEMPERATURE_HEADROOM")
+        );
     }
 
     #[test]
     fn restrictions_and_reserve_block_evaporative_path() {
         let report = evaluate(&sample()).expect("sample case must evaluate");
-        let evap = report["blocked_paths"].as_array().unwrap().iter()
-            .find(|path| path["path_id"] == "CONDITIONAL_EVAPORATIVE_REGENERATION").unwrap();
+        let evap = report["blocked_paths"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|path| path["path_id"] == "CONDITIONAL_EVAPORATIVE_REGENERATION")
+            .unwrap();
         let reasons = evap["reasons"].as_array().unwrap();
-        assert!(reasons.iter().any(|reason| reason == "WATER_RESTRICTION_DOES_NOT_PERMIT_OPERATION"));
-        assert!(reasons.iter().any(|reason| reason == "DISCRETIONARY_WATER_WOULD_BREACH_COMMITMENTS_OR_ESSENTIAL_RESERVE"));
+        assert!(
+            reasons
+                .iter()
+                .any(|reason| reason == "WATER_RESTRICTION_DOES_NOT_PERMIT_OPERATION")
+        );
+        assert!(
+            reasons.iter().any(|reason| reason
+                == "DISCRETIONARY_WATER_WOULD_BREACH_COMMITMENTS_OR_ESSENTIAL_RESERVE")
+        );
     }
 
     #[test]
@@ -275,8 +323,13 @@ mod tests {
         input["water_account"]["essential_reserve_l"] = json!(100.0);
         input["sink_paths"][2]["water_draw_l"] = json!(20.0);
         let report = evaluate(&input).expect("positive control must be evaluable");
-        assert!(report["eligible_paths"].as_array().unwrap().iter()
-            .any(|path| path["path_id"] == "CONDITIONAL_EVAPORATIVE_REGENERATION"));
+        assert!(
+            report["eligible_paths"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|path| path["path_id"] == "CONDITIONAL_EVAPORATIVE_REGENERATION")
+        );
     }
 
     #[test]
@@ -293,12 +346,25 @@ mod tests {
         let mut input = sample();
         input["sink_paths"][0]["id"] = json!("UNKNOWN_SINK");
         let report = evaluate(&input).expect("unknown path should be blocked, not crash");
-        assert!(report["eligible_paths"].as_array().unwrap().iter()
-            .all(|path| path["path_id"] != "UNKNOWN_SINK"));
+        assert!(
+            report["eligible_paths"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .all(|path| path["path_id"] != "UNKNOWN_SINK")
+        );
         let blocked = report["blocked_paths"].as_array().unwrap();
-        let unknown = blocked.iter().find(|path| path["path_id"] == "UNKNOWN_SINK").unwrap();
-        assert!(unknown["reasons"].as_array().unwrap().iter()
-            .any(|reason| reason == "UNKNOWN_OR_UNSUPPORTED_SINK_PATH"));
+        let unknown = blocked
+            .iter()
+            .find(|path| path["path_id"] == "UNKNOWN_SINK")
+            .unwrap();
+        assert!(
+            unknown["reasons"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|reason| reason == "UNKNOWN_OR_UNSUPPORTED_SINK_PATH")
+        );
     }
 
     #[test]
@@ -306,11 +372,13 @@ mod tests {
         let mut input = sample();
         input["sink_paths"][1]["id"] = json!("RADIATIVE_SKY_PANEL");
         let report = evaluate(&input).expect("duplicate path IDs should be blocked");
-        assert!(report["eligible_paths"]
-            .as_array()
-            .unwrap()
-            .iter()
-            .all(|path| path["path_id"] != "RADIATIVE_SKY_PANEL"));
+        assert!(
+            report["eligible_paths"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .all(|path| path["path_id"] != "RADIATIVE_SKY_PANEL")
+        );
         let matching = report["blocked_paths"]
             .as_array()
             .unwrap()
@@ -318,11 +386,13 @@ mod tests {
             .filter(|path| path["path_id"] == "RADIATIVE_SKY_PANEL")
             .collect::<Vec<_>>();
         assert_eq!(matching.len(), 2);
-        assert!(matching.iter().all(|path| path["reasons"]
-            .as_array()
-            .unwrap()
-            .iter()
-            .any(|reason| reason == "DUPLICATE_SINK_PATH_ID")));
+        assert!(matching.iter().all(|path| {
+            path["reasons"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|reason| reason == "DUPLICATE_SINK_PATH_ID")
+        }));
     }
 
     #[test]
@@ -335,17 +405,22 @@ mod tests {
             .iter()
             .find(|path| path["path_id"] == "RADIATIVE_SKY_PANEL")
             .unwrap();
-        assert!(radiative["reasons"]
-            .as_array()
-            .unwrap()
-            .iter()
-            .any(|reason| reason == "UNDECLARED_WATER_DRAW_ON_NON_EVAPORATIVE_PATH"));
+        assert!(
+            radiative["reasons"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|reason| reason == "UNDECLARED_WATER_DRAW_ON_NON_EVAPORATIVE_PATH")
+        );
     }
 
     #[test]
     fn optimizer_cannot_actuate() {
         let report = evaluate(&sample()).expect("sample case must evaluate");
         assert_eq!(report["actuation"].as_str(), Some("NONE"));
-        assert_eq!(report["execution_status"].as_str(), Some("NO_HARDWARE_ACTUATED"));
+        assert_eq!(
+            report["execution_status"].as_str(),
+            Some("NO_HARDWARE_ACTUATED")
+        );
     }
 }
