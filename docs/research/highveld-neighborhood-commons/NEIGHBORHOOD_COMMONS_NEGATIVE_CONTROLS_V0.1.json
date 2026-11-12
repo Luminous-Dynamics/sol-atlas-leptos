@@ -186,6 +186,27 @@
       "expected_code": "HOUSEHOLD_DATA_ACCESS_BEFORE_GRANT",
       "expected_disposition": "BLOCK",
       "evidence_class": "SyntheticNegativeControl"
+    },
+    {
+      "control_id": "invalid_consent_time_order",
+      "description": "Consent revocation timestamp precedes the recorded grant timestamp.",
+      "expected_code": "HOUSEHOLD_DATA_CONSENT_STATE_INVALID",
+      "expected_disposition": "BLOCK",
+      "evidence_class": "SyntheticNegativeControl"
+    },
+    {
+      "control_id": "wrong_service_consent_scope",
+      "description": "A household grant for one service is reused for a different service.",
+      "expected_code": "HOUSEHOLD_DATA_CONSENT_MISSING_OR_AMBIGUOUS",
+      "expected_disposition": "BLOCK",
+      "evidence_class": "SyntheticNegativeControl"
+    },
+    {
+      "control_id": "ambiguous_duplicate_consent",
+      "description": "Two matching consent records make authorization ambiguous.",
+      "expected_code": "HOUSEHOLD_DATA_CONSENT_MISSING_OR_AMBIGUOUS",
+      "expected_disposition": "BLOCK",
+      "evidence_class": "SyntheticNegativeControl"
     }
   ]
 }
