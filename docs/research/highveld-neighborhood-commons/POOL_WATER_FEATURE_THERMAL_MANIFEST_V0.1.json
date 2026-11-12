@@ -1,0 +1,135 @@
+{
+  "format_version": "0.1",
+  "study_id": "HIGHVELD-POOL-WATER-THERMAL-001",
+  "parent_studies": [
+    "HIGHVELD-PASSIVE-COOLING-WATER-001",
+    "HIGHVELD-THERMAL-SINK-CASCADE-001"
+  ],
+  "maturity": "DESIGN_AND_BENCHMARK_CONTRACT_NOT_EXECUTED",
+  "execution_status": "NOT_EXECUTED",
+  "climate_context": "JOHANNESBURG_HIGHVELD",
+  "archetypes": [
+    {
+      "id": "NO_WATER_PASSIVE_BASELINE",
+      "thermal_role": "PRIMARY_NO_WATER_CONTROL",
+      "aerosol_generation": "NO"
+    },
+    {
+      "id": "COVERED_POOL_THERMAL_BUFFER",
+      "thermal_role": "FINITE_THERMAL_BUFFER_ONLY",
+      "aerosol_generation": "NO_DECLARED_SPRAY"
+    },
+    {
+      "id": "SHADED_POOL_WITH_CLOSED_LOOP_HX",
+      "thermal_role": "FINITE_BUFFER_WITH_ISOLATED_LOOP",
+      "aerosol_generation": "NO_DECLARED_SPRAY"
+    },
+    {
+      "id": "OPEN_POOL_EVAPORATIVE_EXCHANGE",
+      "thermal_role": "FINITE_BUFFER_AND_EVAPORATIVE_EXCHANGE",
+      "aerosol_generation": "SURFACE_EVAPORATION_NOT_SPRAY"
+    },
+    {
+      "id": "SHADED_NO_SPRAY_RILL",
+      "thermal_role": "AMENITY_OR_MICROCLIMATE_HYPOTHESIS",
+      "aerosol_generation": "MUST_BE_ASSESSED"
+    },
+    {
+      "id": "AEROSOL_GENERATING_FOUNTAIN",
+      "thermal_role": "AEROSOL_GENERATING_AMENITY",
+      "aerosol_generation": "YES"
+    },
+    {
+      "id": "CLOSED_LOOP_CISTERN_THERMAL_BATTERY",
+      "thermal_role": "FINITE_BUFFER_WITH_REGENERATION_PATH_REQUIRED",
+      "aerosol_generation": "NO_DECLARED_SPRAY"
+    },
+    {
+      "id": "INDIRECT_EVAPORATIVE_HEAT_REJECTION",
+      "thermal_role": "CONDITIONAL_LATENT_HEAT_REJECTION",
+      "aerosol_generation": "MUST_BE_ASSESSED"
+    },
+    {
+      "id": "DIRECT_MISTING_SYSTEM",
+      "thermal_role": "DIRECT_EVAPORATIVE_COOLING",
+      "aerosol_generation": "YES"
+    }
+  ],
+  "scenarios": [
+    "HIGH_SOLAR_HOT_DRY",
+    "HOT_HUMID_LOW_EVAPORATIVE_POTENTIAL",
+    "EXTREME_WATER_CURTAILMENT",
+    "MULTIDAY_HEAT_WAVE_AND_HOT_NIGHTS",
+    "GRID_OUTAGE_AND_PUMP_LOSS",
+    "COLD_CLEAR_NIGHT_AND_OVERCOOLING",
+    "BIOFILM_OR_DISINFECTANT_CONTROL_FAILURE",
+    "STAGNATION_MAINTENANCE_OR_WATER_QUALITY_FAILURE"
+  ],
+  "cover_modes": [
+    "ALWAYS_UNCOVERED",
+    "ALWAYS_COVERED",
+    "DAY_SHADED_NIGHT_EXPOSED",
+    "DAY_SHADED_NIGHT_COVERED",
+    "ADAPTIVE_COVER_BY_WATER_BUDGET_AND_SKY_CONDITIONS"
+  ],
+  "case_expansion": {
+    "archetypes": 9,
+    "scenarios": 8,
+    "cases": 72,
+    "state": "REGISTERED_NOT_EXECUTED"
+  },
+  "required_balance_terms": [
+    "pool_or_cistern_usable_thermal_state_change",
+    "building_to_store_heat_transfer",
+    "heat_rejected_by_each_external_sink",
+    "solar_gain",
+    "longwave_exchange",
+    "convection",
+    "evaporation_latent_heat",
+    "makeup_water_enthalpy",
+    "ground_conduction",
+    "pump_fan_treatment_parasitics",
+    "zone_moisture_balance"
+  ],
+  "required_water_terms": [
+    "initial_fill",
+    "makeup",
+    "evaporation",
+    "bleed_or_purge",
+    "drift",
+    "leakage",
+    "source_class_and_rights",
+    "water_quality_and_treatment_evidence"
+  ],
+  "required_health_gates": [
+    "aerosol_generation_classified",
+    "water_management_program_when_aerosol_generating",
+    "untreated_greywater_prohibited_for_aerosol_path",
+    "maintenance_and_disinfection_state_qualified",
+    "local_authority_and_qualified_water_manager_requirements_admitted"
+  ],
+  "hard_gates": {
+    "sustained_cooling_from_store_without_regeneration": 0,
+    "protected_water_floor_breaches": 0,
+    "aerosol_operation_with_unknown_or_failed_water_management": 0,
+    "untreated_greywater_in_aerosol_path": 0,
+    "indoor_cooling_claim_from_outdoor_or_pool_temp_only": 0,
+    "energy_water_balance_outside_uncertainty": 0,
+    "untraceable_inputs_or_controls": 0
+  },
+  "solver_roles": {
+    "indoor_pool_heat_balance": "ENERGYPLUS_26_2_SWIMMINGPOOL_INDOOR",
+    "pcm_storage": "ENERGYPLUS_26_2_THERMALSTORAGE_PCM",
+    "plant_storage_control": "PINNED_MODELICA_BUILDINGS_LIBRARY_AND_SOLVER",
+    "outdoor_airflow": "QUALIFIED_OUTDOOR_CFD_AND_MEASUREMENTS",
+    "trajectory_accounting": "HIGHVELD_THERMAL_STORE_LEDGER",
+    "water_rights_health": "MYCELIX_AND_COMPETENT_LOCAL_AUTHORITY"
+  },
+  "references": [
+    "https://energyplus.readthedocs.io/en/v26.2.0/guides/engineering-reference/17.3-indoor-swimming-pool.html",
+    "https://www.cdc.gov/control-legionella/php/toolkit/decorative-fountain-module.html",
+    "https://www.ashrae.org/technical-resources/standards-and-guidelines/guidance-for-water-system-risk-management",
+    "https://publications.ibpsa.org/conference/paper/?id=bs2025_1871"
+  ],
+  "claim_ceiling": "72-case design matrix and role contract only; no physical water-feature, water-quality, health, cooling or economic result admitted."
+}
