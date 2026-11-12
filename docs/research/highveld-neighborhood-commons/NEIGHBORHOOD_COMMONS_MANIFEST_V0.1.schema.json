@@ -1,0 +1,427 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/docs/research/highveld-neighborhood-commons/NEIGHBORHOOD_COMMONS_MANIFEST_V0.1.schema.json",
+  "title": "Highveld Neighborhood Resilience Commons reference manifest v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "architecture_id",
+    "maturity",
+    "evidence_class",
+    "claim_ceiling",
+    "households",
+    "assets",
+    "allocation_policies",
+    "service_contracts",
+    "resource_accounts",
+    "resource_transfers"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "architecture_id": {
+      "const": "NEIGHBORHOOD_RESILIENCE_COMMONS"
+    },
+    "maturity": {
+      "const": "PROPOSED_NOT_EVALUATED"
+    },
+    "evidence_class": {
+      "const": "SyntheticControlledDesign"
+    },
+    "claim_ceiling": {
+      "type": "string",
+      "minLength": 30
+    },
+    "households": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/household"
+      }
+    },
+    "assets": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/asset"
+      }
+    },
+    "allocation_policies": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/policy"
+      }
+    },
+    "service_contracts": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/contract"
+      }
+    },
+    "resource_accounts": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/account"
+      }
+    },
+    "resource_transfers": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/transfer"
+      }
+    }
+  },
+  "$defs": {
+    "nonempty": {
+      "type": "string",
+      "minLength": 1
+    },
+    "uint": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "household": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "household_id",
+        "essential_service_floors"
+      ],
+      "properties": {
+        "household_id": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "essential_service_floors": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/floor"
+          }
+        }
+      }
+    },
+    "floor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "service_id",
+        "essential",
+        "must_survive_hub_loss",
+        "maximum_unserved_s",
+        "maximum_wait_s",
+        "local_fallback"
+      ],
+      "properties": {
+        "service_id": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "essential": {
+          "const": true
+        },
+        "must_survive_hub_loss": {
+          "const": true
+        },
+        "maximum_unserved_s": {
+          "$ref": "#/$defs/uint"
+        },
+        "maximum_wait_s": {
+          "$ref": "#/$defs/uint"
+        },
+        "local_fallback": {
+          "$ref": "#/$defs/fallback"
+        }
+      }
+    },
+    "fallback": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "asset_id",
+        "failure_domain_id",
+        "qualification_state",
+        "evidence_id",
+        "depends_on_commons"
+      ],
+      "properties": {
+        "asset_id": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "failure_domain_id": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "qualification_state": {
+          "const": "QUALIFIED"
+        },
+        "evidence_id": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "depends_on_commons": {
+          "const": false
+        }
+      }
+    },
+    "asset": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "asset_id",
+        "asset_kind",
+        "failure_domain_id",
+        "owner_scope"
+      ],
+      "properties": {
+        "asset_id": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "asset_kind": {
+          "enum": [
+            "COMMONS_SHARED_ASSET",
+            "HOUSEHOLD_LOCAL_RESERVE",
+            "LOCAL_DISTRIBUTED_NODE",
+            "MOBILE_SUPPORT_ASSET"
+          ]
+        },
+        "failure_domain_id": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "owner_scope": {
+          "enum": [
+            "HOUSEHOLD",
+            "NEIGHBORHOOD",
+            "THIRD_PARTY"
+          ]
+        }
+      }
+    },
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "policy_id",
+        "approval_state",
+        "approval_record_id",
+        "final_authority",
+        "appeal_path",
+        "resident_oversight",
+        "algorithmic_priority_authority"
+      ],
+      "properties": {
+        "policy_id": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "approval_state": {
+          "enum": [
+            "APPROVED",
+            "PENDING",
+            "DISPUTED",
+            "REVOKED"
+          ]
+        },
+        "approval_record_id": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "final_authority": {
+          "enum": [
+            "HUMAN",
+            "AUTOMATED"
+          ]
+        },
+        "appeal_path": {
+          "type": "boolean"
+        },
+        "resident_oversight": {
+          "type": "boolean"
+        },
+        "algorithmic_priority_authority": {
+          "const": false
+        }
+      }
+    },
+    "contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contract_id",
+        "service_id",
+        "provider_asset_id",
+        "capacity_per_window",
+        "peak_demand_per_window",
+        "capacity_unit",
+        "allocation_enabled",
+        "allocation_policy_id",
+        "access_path",
+        "queue_policy"
+      ],
+      "properties": {
+        "contract_id": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "service_id": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "provider_asset_id": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "capacity_per_window": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "peak_demand_per_window": {
+          "$ref": "#/$defs/uint"
+        },
+        "capacity_unit": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "allocation_enabled": {
+          "type": "boolean"
+        },
+        "allocation_policy_id": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "access_path": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "mode",
+            "qualification_state",
+            "evidence_id",
+            "maximum_access_time_s"
+          ],
+          "properties": {
+            "mode": {
+              "enum": [
+                "ON_SITE",
+                "DELIVERY_OR_ACCESS_POINT",
+                "LOCAL_NETWORK",
+                "MOBILE_SUPPORT"
+              ]
+            },
+            "qualification_state": {
+              "enum": [
+                "QUALIFIED",
+                "UNVERIFIED",
+                "FAILED",
+                "UNKNOWN"
+              ]
+            },
+            "evidence_id": {
+              "type": "string"
+            },
+            "maximum_access_time_s": {
+              "$ref": "#/$defs/uint"
+            }
+          }
+        },
+        "queue_policy": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "enabled",
+            "maximum_wait_s",
+            "overflow_disposition"
+          ],
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "maximum_wait_s": {
+              "$ref": "#/$defs/uint"
+            },
+            "overflow_disposition": {
+              "enum": [
+                "BLOCK_AND_ESCALATE",
+                "RECORD_UNMET_DEMAND"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "account": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "account_id",
+        "asset_id",
+        "resource_id",
+        "unit",
+        "opening_quantity",
+        "external_inflow_quantity",
+        "committed_outflow_quantity",
+        "known_loss_quantity",
+        "reserve_floor_quantity"
+      ],
+      "properties": {
+        "account_id": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "asset_id": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "resource_id": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "unit": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "opening_quantity": {
+          "$ref": "#/$defs/uint"
+        },
+        "external_inflow_quantity": {
+          "$ref": "#/$defs/uint"
+        },
+        "committed_outflow_quantity": {
+          "$ref": "#/$defs/uint"
+        },
+        "known_loss_quantity": {
+          "$ref": "#/$defs/uint"
+        },
+        "reserve_floor_quantity": {
+          "$ref": "#/$defs/uint"
+        }
+      }
+    },
+    "transfer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "transfer_id",
+        "source_event_id",
+        "from_account_id",
+        "to_account_id",
+        "resource_id",
+        "unit",
+        "quantity"
+      ],
+      "properties": {
+        "transfer_id": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "source_event_id": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "from_account_id": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "to_account_id": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "resource_id": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "unit": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "quantity": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    }
+  }
+}
