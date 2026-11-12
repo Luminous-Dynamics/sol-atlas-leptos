@@ -53,6 +53,11 @@
       "id": "DIRECT_MISTING_SYSTEM",
       "thermal_role": "DIRECT_EVAPORATIVE_COOLING",
       "aerosol_generation": "YES"
+    },
+    {
+      "id": "POOL_HEAT_RECOVERY_FROM_COOLING_LOAD",
+      "thermal_role": "USEFUL_POOL_HEATING_WITH_OVERFLOW_SINK_REQUIRED",
+      "aerosol_generation": "NO_DECLARED_SPRAY"
     }
   ],
   "scenarios": [
@@ -73,9 +78,9 @@
     "ADAPTIVE_COVER_BY_WATER_BUDGET_AND_SKY_CONDITIONS"
   ],
   "case_expansion": {
-    "archetypes": 9,
+    "archetypes": 10,
     "scenarios": 8,
-    "cases": 72,
+    "cases": 80,
     "state": "REGISTERED_NOT_EXECUTED"
   },
   "required_balance_terms": [
