@@ -1,0 +1,144 @@
+{
+  "format_version": "0.1",
+  "study_id": "HIGHVELD-PASSIVE-COOLING-WATER-001",
+  "parent_candidate": "NEIGHBORHOOD_RESILIENCE_COMMONS",
+  "maturity": "DESIGN_HYPOTHESES_NOT_PHYSICALLY_EVALUATED",
+  "climate_context": "JOHANNESBURG_HIGHVELD",
+  "municipal_restriction_reference": "JOHANNESBURG_WATER_LEVEL_1_2026-09-01_TO_2027-03-31",
+  "baseline_required": "NO_WATER_PASSIVE_BASELINE",
+  "archetypes": [
+    {
+      "id": "NO_WATER_PASSIVE_BASELINE",
+      "mechanism": "SHADE_VENTILATION_NIGHT_FLUSH_THERMAL_MASS",
+      "water_mode": "NO_ADDED_WATER",
+      "role": "PRIMARY_CONTROL",
+      "expected_claim": "REFERENCE_ONLY"
+    },
+    {
+      "id": "COVERED_POOL_THERMAL_MASS",
+      "mechanism": "COVERED_WATER_THERMAL_STORAGE",
+      "water_mode": "STORAGE_WITH_EVAPORATION_CONTROL",
+      "role": "TEST_ARM",
+      "expected_claim": "NO_COOLING_CREDIT_WITHOUT_HEAT_PATH"
+    },
+    {
+      "id": "SHADED_RECIRCULATING_RILL",
+      "mechanism": "CONTROLLED_DIRECT_EVAPORATIVE",
+      "water_mode": "CLOSED_LOOP_RECIRCULATION",
+      "role": "TEST_ARM",
+      "expected_claim": "LOCAL_MICROCLIMATE_ONLY_UNTIL_MEASURED"
+    },
+    {
+      "id": "EVAPORATIVE_DOWNSHAFT",
+      "mechanism": "DIRECT_EVAPORATIVE_AIR_PATH",
+      "water_mode": "RECIRCULATING_TREATED_WATER",
+      "role": "TEST_ARM",
+      "expected_claim": "WET_BULB_BOUNDED"
+    },
+    {
+      "id": "CLOSED_LOOP_THERMAL_WATER_STORE",
+      "mechanism": "HYDRONIC_SENSIBLE_HEAT_EXCHANGE",
+      "water_mode": "SEALED_CLOSED_LOOP",
+      "role": "TEST_ARM",
+      "expected_claim": "REQUIRES_QUALIFIED_HEAT_REJECTION_PATH"
+    },
+    {
+      "id": "POOL_COURTYARD_HYBRID",
+      "mechanism": "THERMAL_STORAGE_PLUS_CONDITIONAL_EVAPORATIVE_ASSIST",
+      "water_mode": "COVERED_DEFAULT_CONDITIONAL_EXPOSURE",
+      "role": "TEST_ARM",
+      "expected_claim": "SEPARATE_LATENT_AND_SENSIBLE_CREDITS"
+    },
+    {
+      "id": "UNBOUNDED_SPRAY_NEGATIVE_CONTROL",
+      "mechanism": "UNMETERED_HIGH_FLOW_SPRAY_OR_MIST",
+      "water_mode": "UNCONTROLLED",
+      "role": "NEGATIVE_CONTROL",
+      "expected_claim": "MUST_NOT_QUALIFY"
+    }
+  ],
+  "comparison_modes": [
+    "WATER_LIMITED_PRIMARY",
+    "THERMAL_CAPACITY_MATCHED",
+    "ENERGY_BUDGET_MATCHED_SENSITIVITY",
+    "DROUGHT_AND_CURTAILMENT",
+    "HUMID_HOT",
+    "COLD_NIGHT"
+  ],
+  "matched_inputs_required": [
+    "weather_file_digest",
+    "building_geometry_digest",
+    "envelope_and_shading_digest",
+    "occupancy_and_internal_gains_digest",
+    "ventilation_schedule_digest",
+    "comfort_criteria_version",
+    "water_budget_and_reserve_digest",
+    "water_source_quality_contract",
+    "control_policy_digest"
+  ],
+  "metered_water_terms": [
+    "rain_capture",
+    "makeup_by_source_class",
+    "evaporation_estimate_with_method",
+    "splash_out",
+    "purge_and_backwash",
+    "leakage",
+    "overflow",
+    "transfers_in",
+    "transfers_out",
+    "closing_volume"
+  ],
+  "thermal_terms": [
+    "water_volume",
+    "water_temperature_stratification",
+    "heat_exchanger_inlet_outlet",
+    "useful_heat_removed_from_occupied_zone",
+    "latent_heat_at_evaporation_interface",
+    "pump_and_filtration_energy",
+    "heat_rejection_path",
+    "storage_charge_discharge"
+  ],
+  "required_outcomes": [
+    "occupied_hour_operative_temperature",
+    "discomfort_degree_hours",
+    "peak_and_duration_outside_comfort_bounds",
+    "indoor_relative_humidity_and_dew_point",
+    "courtyard_mean_radiant_temperature",
+    "useful_cooling_delivered_to_occupied_zone",
+    "water_litres_per_useful_kwh",
+    "pump_filtration_treatment_kwh",
+    "condensation_and_water_quality_events",
+    "maintenance_labour_and_downtime",
+    "household_access_and_distribution"
+  ],
+  "negative_controls": [
+    "POOL_VOLUME_COUNTED_AS_COOLING_WITHOUT_HEAT_PATH",
+    "LATENT_HEAT_REPORTED_AS_USEFUL_ROOM_COOLING",
+    "MISSING_WATER_METER_INTERPRETED_AS_ZERO_LOSS",
+    "UNTREATED_GREYWATER_USED_IN_POOL_OR_AEROSOL",
+    "HIGH_HUMIDITY_EVAPORATIVE_MODE_NOT_BLOCKED",
+    "STAGNANT_WATER_WITHOUT_VECTOR_CONTROL",
+    "POOL_COVER_SIMULTANEOUSLY_CLAIMED_AS_FULL_EVAPORATIVE_SURFACE",
+    "PUMP_AND_FILTER_ENERGY_OMITTED",
+    "WATER_RESERVE_FLOOR_OR_MUNICIPAL_RESTRICTION_IGNORED",
+    "WATER_SOURCE_CLASS_SILENTLY_CHANGED",
+    "FUTURE_WEATHER_USED_BY_ADAPTIVE_CONTROLLER",
+    "HOUSEHOLD_ESSENTIAL_WATER_FLOOR_DEBITED_FOR_DISCRETIONARY_COOLING"
+  ],
+  "safety_and_governance_gates": [
+    "water_quality_qualified",
+    "aerosol_and_drift_assessed",
+    "mosquito_vector_control_qualified",
+    "drowning_and_child_safety_qualified",
+    "slip_and_electrical_safety_qualified",
+    "maintenance_and_repair_contract_qualified",
+    "source_rights_and_restrictions_current",
+    "household_essential_water_reserve_protected",
+    "resident_authority_and_appeal_preserved"
+  ],
+  "physics_owner": "SPECIALIST_BUILDING_AIRFLOW_HYDRAULIC_SOLVERS",
+  "event_and_trajectory_owner": "SYMTROPHAEA",
+  "geometry_and_configuration_owner": "SOL_ATLAS",
+  "rights_and_water_account_owner": "MYCELIX",
+  "execution_status": "NOT_EXECUTED"
+}
