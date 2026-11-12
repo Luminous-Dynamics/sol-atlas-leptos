@@ -19,7 +19,9 @@
             "failure_domain_id": "fd-household-a-local",
             "qualification_state": "QUALIFIED",
             "evidence_id": "synthetic-fallback-evidence-a",
-            "depends_on_commons": false
+            "depends_on_commons": false,
+            "depends_on_network": false,
+            "manual_mode_available": true
           },
           "maximum_access_time_s": 300
         },
@@ -34,7 +36,9 @@
             "failure_domain_id": "fd-household-a-power",
             "qualification_state": "QUALIFIED",
             "evidence_id": "synthetic-fallback-evidence-b",
-            "depends_on_commons": false
+            "depends_on_commons": false,
+            "depends_on_network": false,
+            "manual_mode_available": true
           },
           "maximum_access_time_s": 0
         }
@@ -54,7 +58,9 @@
             "failure_domain_id": "fd-household-b-local",
             "qualification_state": "QUALIFIED",
             "evidence_id": "synthetic-fallback-evidence-c",
-            "depends_on_commons": false
+            "depends_on_commons": false,
+            "depends_on_network": false,
+            "manual_mode_available": true
           },
           "maximum_access_time_s": 600
         }
@@ -124,7 +130,8 @@
         "enabled": true,
         "maximum_wait_s": 240,
         "overflow_disposition": "BLOCK_AND_ESCALATE"
-      }
+      },
+      "maintenance_contract_id": "maint-commons-water-r0"
     },
     {
       "contract_id": "commons-energy-r0",
@@ -145,7 +152,8 @@
         "enabled": false,
         "maximum_wait_s": 0,
         "overflow_disposition": "BLOCK_AND_ESCALATE"
-      }
+      },
+      "maintenance_contract_id": "maint-commons-energy-r0"
     }
   ],
   "resource_accounts": [
@@ -192,6 +200,26 @@
       "resource_id": "water",
       "unit": "L",
       "quantity": 300
+    }
+  ],
+  "maintenance_contracts": [
+    {
+      "maintenance_contract_id": "maint-commons-water-r0",
+      "asset_id": "commons-water-hub",
+      "maintainer_id": "synthetic-maintainer-water",
+      "spares_state": "AVAILABLE",
+      "repair_access_state": "QUALIFIED",
+      "maximum_repair_time_s": 7200,
+      "requalification_evidence_id": "synthetic-water-requalification-r0"
+    },
+    {
+      "maintenance_contract_id": "maint-commons-energy-r0",
+      "asset_id": "commons-energy-hub",
+      "maintainer_id": "synthetic-maintainer-energy",
+      "spares_state": "AVAILABLE",
+      "repair_access_state": "QUALIFIED",
+      "maximum_repair_time_s": 3600,
+      "requalification_evidence_id": "synthetic-energy-requalification-r0"
     }
   ]
 }
