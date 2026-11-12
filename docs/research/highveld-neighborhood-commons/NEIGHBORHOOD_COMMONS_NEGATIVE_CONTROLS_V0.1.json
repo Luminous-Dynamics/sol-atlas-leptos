@@ -1,0 +1,100 @@
+{
+  "schema_version": "0.1.0",
+  "benchmark_id": "HIGHVELD-NEIGHBORHOOD-COMMONS-QUALIFIER",
+  "maturity": "PROPOSED_NOT_EVALUATED",
+  "evidence_class": "SyntheticNegativeControls",
+  "claim_ceiling": "Known-answer control definitions only; not a neighborhood population sample or evidence of physical service outcomes.",
+  "controls": [
+    {
+      "control_id": "hub_outage_local_floor",
+      "description": "Hub unavailable; household reserve remains independent",
+      "expected_code": "LOCAL_FALLBACK_DEPENDS_ON_COMMONS",
+      "expected_disposition": "BLOCK",
+      "evidence_class": "SyntheticNegativeControl"
+    },
+    {
+      "control_id": "shared_failure_domain",
+      "description": "Commons provider and fallback share one failure domain",
+      "expected_code": "LOCAL_FALLBACK_COMMON_CAUSE",
+      "expected_disposition": "BLOCK",
+      "evidence_class": "SyntheticNegativeControl"
+    },
+    {
+      "control_id": "unqualified_access",
+      "description": "Access path is unknown but service allocation is enabled",
+      "expected_code": "UNQUALIFIED_ACCESS_ALLOCATED",
+      "expected_disposition": "BLOCK",
+      "evidence_class": "SyntheticNegativeControl"
+    },
+    {
+      "control_id": "queue_exceeds_floor",
+      "description": "Queue maximum exceeds one household's declared max wait",
+      "expected_code": "QUEUE_EXCEEDS_RESIDENT_FLOOR",
+      "expected_disposition": "BLOCK",
+      "evidence_class": "SyntheticNegativeControl"
+    },
+    {
+      "control_id": "capacity_overcommit",
+      "description": "Peak demand exceeds provider capacity without queue semantics",
+      "expected_code": "CAPACITY_OVERCOMMIT_UNMODELED",
+      "expected_disposition": "BLOCK",
+      "evidence_class": "SyntheticNegativeControl"
+    },
+    {
+      "control_id": "allocation_capture",
+      "description": "Automated system has final allocation authority",
+      "expected_code": "ALLOCATION_GOVERNANCE_NOT_QUALIFIED",
+      "expected_disposition": "BLOCK",
+      "evidence_class": "SyntheticNegativeControl"
+    },
+    {
+      "control_id": "pending_policy",
+      "description": "Allocation enabled while policy approval remains pending",
+      "expected_code": "ALLOCATION_GOVERNANCE_NOT_QUALIFIED",
+      "expected_disposition": "BLOCK",
+      "evidence_class": "SyntheticNegativeControl"
+    },
+    {
+      "control_id": "reserve_breach",
+      "description": "Committed outflow would breach protected reserve",
+      "expected_code": "RESOURCE_RESERVE_BREACH",
+      "expected_disposition": "BLOCK",
+      "evidence_class": "SyntheticNegativeControl"
+    },
+    {
+      "control_id": "duplicate_source_event",
+      "description": "One meter/notice event is ingested twice",
+      "expected_code": "DUPLICATE_RESOURCE_SOURCE_EVENT",
+      "expected_disposition": "BLOCK",
+      "evidence_class": "SyntheticNegativeControl"
+    },
+    {
+      "control_id": "unit_mismatch",
+      "description": "Transfer unit differs from source/destination ledger units",
+      "expected_code": "RESOURCE_TRANSFER_UNIT_MISMATCH",
+      "expected_disposition": "BLOCK",
+      "evidence_class": "SyntheticNegativeControl"
+    },
+    {
+      "control_id": "unknown_provider",
+      "description": "Service contract points to an unregistered asset",
+      "expected_code": "UNKNOWN_SERVICE_PROVIDER",
+      "expected_disposition": "BLOCK",
+      "evidence_class": "SyntheticNegativeControl"
+    },
+    {
+      "control_id": "commons_fallback",
+      "description": "Shared commons asset is presented as household-local fallback",
+      "expected_code": "FALLBACK_IS_COMMONS_ASSET",
+      "expected_disposition": "BLOCK",
+      "evidence_class": "SyntheticNegativeControl"
+    },
+    {
+      "control_id": "claim_escalation",
+      "description": "Candidate status is changed to EVALUATED without promotion gates",
+      "expected_code": "MATURITY_CLAIM_ESCALATION",
+      "expected_disposition": "BLOCK",
+      "evidence_class": "SyntheticNegativeControl"
+    }
+  ]
+}
