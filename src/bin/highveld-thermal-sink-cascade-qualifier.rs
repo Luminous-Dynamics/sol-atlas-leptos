@@ -43,7 +43,11 @@ fn build_inventory() -> Result<Value, Vec<String>> {
     };
     let radiative: Value = match serde_json::from_str(RADIATIVE_BENCHMARK) {
         Ok(value) => value,
-        Err(error) => return Err(vec![format!("radiative benchmark JSON parse failed: {error}")]),
+        Err(error) => {
+            return Err(vec![format!(
+                "radiative benchmark JSON parse failed: {error}"
+            )]);
+        }
     };
     let radiative_schema: Value = match serde_json::from_str(RADIATIVE_SCHEMA) {
         Ok(value) => value,
@@ -53,8 +57,7 @@ fn build_inventory() -> Result<Value, Vec<String>> {
     if text_at(&schema, "$schema") != Some("https://json-schema.org/draft/2020-12/schema") {
         errors.push("schema must declare JSON Schema Draft 2020-12".to_owned());
     }
-    if text_at(&radiative_schema, "$schema")
-        != Some("https://json-schema.org/draft/2020-12/schema")
+    if text_at(&radiative_schema, "$schema") != Some("https://json-schema.org/draft/2020-12/schema")
     {
         errors.push("radiative benchmark schema must declare JSON Schema Draft 2020-12".to_owned());
     }
@@ -168,9 +171,7 @@ fn build_inventory() -> Result<Value, Vec<String>> {
             && text_at(arm, "role") == Some("NEGATIVE_CONTROL")
     });
     if !infinite_sink {
-        errors.push(
-            "infinite-sink assumption must be registered as a negative control".to_owned(),
-        );
+        errors.push("infinite-sink assumption must be registered as a negative control".to_owned());
     }
 
     let sink_paths = array_at(&manifest, "sink_path_registry")
