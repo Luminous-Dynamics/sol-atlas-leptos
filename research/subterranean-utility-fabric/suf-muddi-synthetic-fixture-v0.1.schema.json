@@ -1,0 +1,411 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/research/suf-muddi-interoperability-v0-1/research/subterranean-utility-fabric/suf-muddi-synthetic-fixture-v0.1.schema.json",
+  "title": "SUF MUDDI synthetic interchange fixture v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "fixture_id",
+    "schema_version",
+    "status",
+    "claim_ceiling",
+    "spatial_reference",
+    "disclosure_policy",
+    "records",
+    "observations",
+    "fixture_rules"
+  ],
+  "properties": {
+    "fixture_id": {
+      "const": "SUF-MUDDI-SYNTH-001"
+    },
+    "schema_version": {
+      "const": "luminous.suf.muddi_fixture.v0.1"
+    },
+    "status": {
+      "const": "synthetic_non_geographic_fixture_only"
+    },
+    "claim_ceiling": {
+      "type": "string",
+      "minLength": 40
+    },
+    "spatial_reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "frame_id",
+        "geographic",
+        "crs",
+        "horizontal_datum",
+        "vertical_datum",
+        "coordinate_epoch",
+        "axis_order",
+        "unit",
+        "note"
+      ],
+      "properties": {
+        "frame_id": {
+          "type": "string"
+        },
+        "geographic": {
+          "const": false
+        },
+        "crs": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "horizontal_datum": {
+          "type": "string"
+        },
+        "vertical_datum": {
+          "type": "string"
+        },
+        "coordinate_epoch": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "axis_order": {
+          "type": "array",
+          "minItems": 2,
+          "items": {
+            "type": "string"
+          }
+        },
+        "unit": {
+          "const": "metre"
+        },
+        "note": {
+          "type": "string"
+        }
+      }
+    },
+    "disclosure_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "fixture_only",
+        "default_class",
+        "classes",
+        "real_world_access_control_implemented"
+      ],
+      "properties": {
+        "fixture_only": {
+          "const": true
+        },
+        "default_class": {
+          "const": "restricted_critical"
+        },
+        "classes": {
+          "type": "array",
+          "minItems": 4,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "public_aggregate",
+              "partner_generalized",
+              "operational",
+              "restricted_critical"
+            ]
+          }
+        },
+        "real_world_access_control_implemented": {
+          "const": false
+        }
+      }
+    },
+    "records": {
+      "type": "array",
+      "minItems": 10,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "record_id",
+          "object_id",
+          "object_owner_namespace",
+          "system_id",
+          "muddi_class",
+          "label",
+          "epistemic_class",
+          "availability_state",
+          "disclosure_class",
+          "geometry",
+          "position_uncertainty_m",
+          "valid_time",
+          "evidence_refs",
+          "links"
+        ],
+        "properties": {
+          "record_id": {
+            "type": "string",
+            "minLength": 5
+          },
+          "object_id": {
+            "type": "string",
+            "minLength": 5
+          },
+          "object_owner_namespace": {
+            "type": "string"
+          },
+          "system_id": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "provider",
+              "id"
+            ],
+            "properties": {
+              "provider": {
+                "type": "string"
+              },
+              "id": {
+                "type": "string"
+              }
+            }
+          },
+          "muddi_class": {
+            "enum": [
+              "MUDDIObject",
+              "MUDDIAsset",
+              "MUDDIEvent",
+              "MUDDISpace",
+              "Network",
+              "NetworkAsset",
+              "NetworkConveyance",
+              "NetworkNode",
+              "NetworkLink",
+              "NetworkAccessory"
+            ]
+          },
+          "label": {
+            "type": "string"
+          },
+          "epistemic_class": {
+            "enum": [
+              "observed",
+              "compiled_secondary",
+              "model_inference",
+              "scenario_assumption",
+              "speculative_hypothesis"
+            ]
+          },
+          "availability_state": {
+            "enum": [
+              "observed",
+              "unknown",
+              "unobserved",
+              "unavailable",
+              "withheld",
+              "stale",
+              "conflicting",
+              "unsupported"
+            ]
+          },
+          "disclosure_class": {
+            "enum": [
+              "public_aggregate",
+              "partner_generalized",
+              "operational",
+              "restricted_critical"
+            ]
+          },
+          "geometry": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "object",
+                "required": [
+                  "type",
+                  "coordinates"
+                ],
+                "properties": {
+                  "type": {
+                    "enum": [
+                      "Point",
+                      "LineString",
+                      "Polygon"
+                    ]
+                  },
+                  "coordinates": {}
+                },
+                "additionalProperties": false
+              }
+            ]
+          },
+          "position_uncertainty_m": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "valid_time": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "start": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "end": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "additionalProperties": false
+          },
+          "evidence_refs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "links": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "relationship",
+                "target_record_id"
+              ],
+              "properties": {
+                "relationship": {
+                  "type": "string"
+                },
+                "target_record_id": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "observations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "observation_id",
+          "feature_of_interest_record_id",
+          "event_record_id",
+          "epistemic_class",
+          "method",
+          "instrument_id",
+          "calibration_ref",
+          "observer_role",
+          "observed_at",
+          "valid_time",
+          "spatial_reference_id",
+          "uncertainty_m",
+          "raw_artifact_ref",
+          "source_digest",
+          "rights_state",
+          "quality_state"
+        ],
+        "properties": {
+          "observation_id": {
+            "type": "string"
+          },
+          "feature_of_interest_record_id": {
+            "type": "string"
+          },
+          "event_record_id": {
+            "type": "string"
+          },
+          "epistemic_class": {
+            "enum": [
+              "observed",
+              "compiled_secondary",
+              "model_inference",
+              "scenario_assumption"
+            ]
+          },
+          "method": {
+            "type": "string"
+          },
+          "instrument_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "calibration_ref": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "observer_role": {
+            "type": "string"
+          },
+          "observed_at": {
+            "type": "string"
+          },
+          "valid_time": {
+            "type": "object",
+            "required": [
+              "start",
+              "end"
+            ],
+            "properties": {
+              "start": {
+                "type": "string"
+              },
+              "end": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          },
+          "spatial_reference_id": {
+            "type": "string"
+          },
+          "uncertainty_m": {
+            "type": "number",
+            "minimum": 0
+          },
+          "raw_artifact_ref": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "source_digest": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "rights_state": {
+            "type": "string"
+          },
+          "quality_state": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "fixture_rules": {
+      "type": "array",
+      "minItems": 5,
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}
