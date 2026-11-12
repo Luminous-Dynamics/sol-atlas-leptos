@@ -15,7 +15,8 @@
     "allocation_policies",
     "service_contracts",
     "resource_accounts",
-    "resource_transfers"
+    "resource_transfers",
+    "maintenance_contracts"
   ],
   "properties": {
     "schema_version": {
@@ -73,6 +74,13 @@
       "type": "array",
       "items": {
         "$ref": "#/$defs/transfer"
+      }
+    },
+    "maintenance_contracts": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/maintenance"
       }
     }
   },
@@ -149,7 +157,9 @@
         "failure_domain_id",
         "qualification_state",
         "evidence_id",
-        "depends_on_commons"
+        "depends_on_commons",
+        "depends_on_network",
+        "manual_mode_available"
       ],
       "properties": {
         "asset_id": {
@@ -166,6 +176,12 @@
         },
         "depends_on_commons": {
           "const": false
+        },
+        "depends_on_network": {
+          "const": false
+        },
+        "manual_mode_available": {
+          "const": true
         }
       }
     },
@@ -259,7 +275,8 @@
         "allocation_enabled",
         "allocation_policy_id",
         "access_path",
-        "queue_policy"
+        "queue_policy",
+        "maintenance_contract_id"
       ],
       "properties": {
         "contract_id": {
@@ -343,6 +360,9 @@
               ]
             }
           }
+        },
+        "maintenance_contract_id": {
+          "$ref": "#/$defs/nonempty"
         }
       }
     },
@@ -424,6 +444,51 @@
         "quantity": {
           "type": "integer",
           "minimum": 1
+        }
+      }
+    },
+    "maintenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "maintenance_contract_id",
+        "asset_id",
+        "maintainer_id",
+        "spares_state",
+        "repair_access_state",
+        "maximum_repair_time_s",
+        "requalification_evidence_id"
+      ],
+      "properties": {
+        "maintenance_contract_id": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "asset_id": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "maintainer_id": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "spares_state": {
+          "enum": [
+            "AVAILABLE",
+            "UNKNOWN",
+            "UNAVAILABLE"
+          ]
+        },
+        "repair_access_state": {
+          "enum": [
+            "QUALIFIED",
+            "UNVERIFIED",
+            "BLOCKED"
+          ]
+        },
+        "maximum_repair_time_s": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "requalification_evidence_id": {
+          "$ref": "#/$defs/nonempty"
         }
       }
     }
