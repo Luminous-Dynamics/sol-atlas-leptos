@@ -1,0 +1,16 @@
+{
+  "schema_version": "0.1.0",
+  "trust_store_id": "GMD-SYNTHETIC-TEST-ROOT-001",
+  "issuers": [
+    {
+      "issuer_id": "synthetic-laboratory-a",
+      "trust_status": "active",
+      "allowed_roles": ["laboratory"],
+      "independence_assessed": true,
+      "public_key_artifact": {
+        "path": "synthetic_issuer_public.der",
+        "sha256": "db494225c5a1bc52b5541b3aeb89f6df34a76fbf53eb0d6fc381d25704dfdf7a"
+      }
+    }
+  ]
+}

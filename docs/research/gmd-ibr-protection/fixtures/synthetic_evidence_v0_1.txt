@@ -1,0 +1,3 @@
+ALL VALUES ARE SYNTHETIC.
+This artifact exists solely to exercise issuer-signature and evidence-reference verification.
+No physical relay, CT, transformer, utility or field observation is represented.

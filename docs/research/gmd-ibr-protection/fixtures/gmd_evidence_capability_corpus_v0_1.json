@@ -1,0 +1,39 @@
+{
+  "schema_version": "0.1.0",
+  "benchmark_id": "GMD-EVIDENCE-CAPABILITY-001",
+  "fixture_notice": "ALL VALUES ARE SYNTHETIC. This Ed25519 signature uses a temporary test key; no physical evidence or real issuer is represented.",
+  "synthetic_only": true,
+  "claim_ceiling": "E2",
+  "evaluation_time_unix_seconds": 1794460000,
+  "trust_store_artifact": {
+    "path": "trust_store.json",
+    "sha256": "9fc5f32b685597879d0264a78c70ff2b2ee27cf8ac91f9ef3980b6d3282f98f1"
+  },
+  "claim": {
+    "claim_id": "claim-waveform",
+    "claim_type": "waveform_resolved",
+    "subject_kind": "signal_chain",
+    "subject_id": "synthetic-ct-relay-chain",
+    "configuration_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+    "scope_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+    "accepted_qualification_classes": [
+      "synthetic_contract"
+    ],
+    "required_issuer_roles": [
+      "laboratory"
+    ],
+    "require_independent": true
+  },
+  "attestation": {
+    "attestation_id": "attestation-waveform-valid",
+    "claim_id": "claim-waveform",
+    "payload_artifact": {
+      "path": "attestation_payload.json",
+      "sha256": "c54e5f859647b9993ef8149e761a39c41e84a19d5e67cfb273b821d2ee870f9f"
+    },
+    "signature_artifact": {
+      "path": "attestation_signature.bin",
+      "sha256": "45c388ea6ada1a39e17008957b89a483cc528d04fc617aa2d2d89b7507854855"
+    }
+  }
+}

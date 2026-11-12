@@ -1,0 +1,25 @@
+{
+  "schema_version": "0.1.0",
+  "attestation_id": "attestation-waveform-valid",
+  "claim_id": "claim-waveform",
+  "issuer_id": "synthetic-laboratory-a",
+  "issuer_role": "laboratory",
+  "claim_type": "waveform_resolved",
+  "qualification_class": "synthetic_contract",
+  "subject": {
+    "subject_kind": "signal_chain",
+    "subject_id": "synthetic-ct-relay-chain",
+    "configuration_sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+  },
+  "scope_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+  "evidence_artifact": {
+    "path": "synthetic_evidence_v0_1.txt",
+    "sha256": "779966f4a653ad653979fbac8ad1eb6e0083152ae781e79640a9702d1de9c984"
+  },
+  "method": "synthetic fixture signature test",
+  "protocol_revision": "gmd-attestation-fixture-v0.1",
+  "issued_at_unix_seconds": 1794000000,
+  "expires_at_unix_seconds": 1810000000,
+  "independent": true,
+  "limitations": ["synthetic contract exercise only; no physical qualification"]
+}
