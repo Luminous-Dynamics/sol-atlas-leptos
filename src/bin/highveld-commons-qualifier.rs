@@ -11,6 +11,18 @@ const SAMPLE: &str = include_str!(
 const STRESS_MATRIX: &str = include_str!(
     "../../docs/research/highveld-neighborhood-commons/NEIGHBORHOOD_COMMONS_STRESS_MATRIX_V0.1.json"
 );
+const MANIFEST_SCHEMA: &str = include_str!(
+    "../../docs/research/highveld-neighborhood-commons/NEIGHBORHOOD_COMMONS_MANIFEST_V0.1.schema.json"
+);
+const STRESS_MATRIX_SCHEMA: &str = include_str!(
+    "../../docs/research/highveld-neighborhood-commons/NEIGHBORHOOD_COMMONS_STRESS_MATRIX_V0.1.schema.json"
+);
+const CONTROL_REGISTRY: &str = include_str!(
+    "../../docs/research/highveld-neighborhood-commons/NEIGHBORHOOD_COMMONS_NEGATIVE_CONTROLS_V0.1.json"
+);
+const CONTROL_SCHEMA: &str = include_str!(
+    "../../docs/research/highveld-neighborhood-commons/NEIGHBORHOOD_COMMONS_NEGATIVE_CONTROLS_V0.1.schema.json"
+);
 
 #[derive(Default)]
 struct Audit {
@@ -1741,6 +1753,43 @@ mod tests {
         let report = audit_manifest(&manifest);
         assert_eq!(report["status"].as_str(), Some("PASS"));
         assert_eq!(report["model_qualification_records"][0]["qualified_for_declared_use"], json!(true));
+    }
+
+    #[test]
+    fn schema_documents_are_valid_json_and_draft_2020_12() {
+        for schema_source in [
+            MANIFEST_SCHEMA,
+            STRESS_MATRIX_SCHEMA,
+            CONTROL_SCHEMA,
+        ] {
+            let schema: Value = serde_json::from_str(schema_source).expect("schema JSON must parse");
+            assert_eq!(
+                schema["$schema"].as_str(),
+                Some("https://json-schema.org/draft/2020-12/schema")
+            );
+        }
+    }
+
+    #[test]
+    fn negative_control_registry_is_unique_and_uses_registered_dispositions() {
+        let registry: Value =
+            serde_json::from_str(CONTROL_REGISTRY).expect("negative control registry JSON");
+        assert_eq!(registry["maturity"].as_str(), Some("PROPOSED_NOT_EVALUATED"));
+        let controls = registry["controls"].as_array().expect("control array");
+        assert!(controls.len() >= 25);
+        let mut ids = BTreeSet::new();
+        for control in controls {
+            let id = control["control_id"].as_str().expect("control id");
+            assert!(ids.insert(id.to_owned()), "duplicate control id: {id}");
+            assert_eq!(
+                control["evidence_class"].as_str(),
+                Some("SyntheticNegativeControl")
+            );
+            assert!(matches!(
+                control["expected_disposition"].as_str(),
+                Some("BLOCK" | "REVIEW" | "PASS")
+            ));
+        }
     }
 
     #[test]
