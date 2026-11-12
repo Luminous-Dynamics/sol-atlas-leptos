@@ -123,6 +123,34 @@
       "expected_code": "MAINTENANCE_CONTRACT_NOT_QUALIFIED",
       "expected_disposition": "BLOCK",
       "evidence_class": "SyntheticNegativeControl"
+    },
+    {
+      "control_id": "missing_household_outcome",
+      "description": "A declared household essential-service floor has no corresponding per-household outcome row.",
+      "expected_code": "ESSENTIAL_FLOOR_OUTCOME_MISSING",
+      "expected_disposition": "BLOCK",
+      "evidence_class": "SyntheticNegativeControl"
+    },
+    {
+      "control_id": "false_satisfied_partial_delivery",
+      "description": "A household service is marked SATISFIED despite partial or unmet delivery.",
+      "expected_code": "HOUSEHOLD_FLOOR_FALSE_SATISFIED",
+      "expected_disposition": "BLOCK",
+      "evidence_class": "SyntheticNegativeControl"
+    },
+    {
+      "control_id": "unit_mismatch_outcome",
+      "description": "A per-household delivered quantity uses a unit different from its service contract.",
+      "expected_code": "OUTCOME_UNIT_MISMATCH",
+      "expected_disposition": "BLOCK",
+      "evidence_class": "SyntheticNegativeControl"
+    },
+    {
+      "control_id": "neighborhood_average_masks_household",
+      "description": "A household floor breach is omitted because neighborhood aggregate availability looks acceptable.",
+      "expected_code": "HOUSEHOLD_FLOOR_FALSE_SATISFIED",
+      "expected_disposition": "BLOCK",
+      "evidence_class": "SyntheticNegativeControl"
     }
   ]
 }
