@@ -9,7 +9,10 @@ const SCHEMA: &str = include_str!(
 );
 
 fn text_at<'a>(value: &'a Value, key: &str) -> Option<&'a str> {
-    value.get(key).and_then(Value::as_str).filter(|s| !s.trim().is_empty())
+    value
+        .get(key)
+        .and_then(Value::as_str)
+        .filter(|s| !s.trim().is_empty())
 }
 
 fn array_at<'a>(value: &'a Value, key: &str) -> Option<&'a Vec<Value>> {
@@ -18,9 +21,9 @@ fn array_at<'a>(value: &'a Value, key: &str) -> Option<&'a Vec<Value>> {
 
 fn unique_ids(items: &[Value]) -> bool {
     let mut seen = BTreeSet::new();
-    items.iter().all(|item| {
-        text_at(item, "id").is_some_and(|id| seen.insert(id.to_owned()))
-    })
+    items
+        .iter()
+        .all(|item| text_at(item, "id").is_some_and(|id| seen.insert(id.to_owned())))
 }
 
 fn contains_id(items: &[Value], id: &str) -> bool {
@@ -48,9 +51,15 @@ fn audit() -> Result<Value, Vec<String>> {
         }
     }
 
-    let archetypes = array_at(&manifest, "archetypes").cloned().unwrap_or_default();
-    let scenarios = array_at(&manifest, "scenarios").cloned().unwrap_or_default();
-    let cover_modes = array_at(&manifest, "cover_modes").cloned().unwrap_or_default();
+    let archetypes = array_at(&manifest, "archetypes")
+        .cloned()
+        .unwrap_or_default();
+    let scenarios = array_at(&manifest, "scenarios")
+        .cloned()
+        .unwrap_or_default();
+    let cover_modes = array_at(&manifest, "cover_modes")
+        .cloned()
+        .unwrap_or_default();
     if archetypes.len() != 9 || !unique_ids(&archetypes) {
         errors.push("nine unique pool/water archetypes are required".to_owned());
     }
@@ -88,9 +97,9 @@ fn audit() -> Result<Value, Vec<String>> {
     let pool_buffer = archetypes
         .iter()
         .find(|item| text_at(item, "id") == Some("COVERED_POOL_THERMAL_BUFFER"));
-    if pool_buffer.is_none_or(|item| {
-        text_at(item, "thermal_role") != Some("FINITE_THERMAL_BUFFER_ONLY")
-    }) {
+    if pool_buffer
+        .is_none_or(|item| text_at(item, "thermal_role") != Some("FINITE_THERMAL_BUFFER_ONLY"))
+    {
         errors.push("pool must remain a finite buffer, not an infinite heat sink".to_owned());
     }
     let aerosol = archetypes
@@ -109,7 +118,9 @@ fn audit() -> Result<Value, Vec<String>> {
         errors.push("pool/water matrix must remain nine by eight, 72 registered cases".to_owned());
     }
 
-    let balances = array_at(&manifest, "required_balance_terms").cloned().unwrap_or_default();
+    let balances = array_at(&manifest, "required_balance_terms")
+        .cloned()
+        .unwrap_or_default();
     for required in [
         "pool_or_cistern_usable_thermal_state_change",
         "heat_rejected_by_each_external_sink",
@@ -139,7 +150,10 @@ fn audit() -> Result<Value, Vec<String>> {
         || text_at(&manifest["solver_roles"], "trajectory_accounting")
             != Some("HIGHVELD_THERMAL_STORE_LEDGER")
     {
-        errors.push("specialist indoor pool physics and independent ledger roles must remain distinct".to_owned());
+        errors.push(
+            "specialist indoor pool physics and independent ledger roles must remain distinct"
+                .to_owned(),
+        );
     }
 
     if !errors.is_empty() {
@@ -163,9 +177,15 @@ fn audit() -> Result<Value, Vec<String>> {
 fn main() {
     match env::args().nth(1).as_deref().unwrap_or("--help") {
         "--self-test" | "--audit" => match audit() {
-            Ok(report) => println!("{}", serde_json::to_string_pretty(&report).unwrap_or_default()),
+            Ok(report) => println!(
+                "{}",
+                serde_json::to_string_pretty(&report).unwrap_or_default()
+            ),
             Err(errors) => {
-                eprintln!("{}", serde_json::to_string_pretty(&json!({"errors":errors})).unwrap_or_default());
+                eprintln!(
+                    "{}",
+                    serde_json::to_string_pretty(&json!({"errors":errors})).unwrap_or_default()
+                );
                 process::exit(1);
             }
         },
@@ -195,14 +215,21 @@ mod tests {
     #[test]
     fn pool_is_a_finite_buffer_not_an_infinite_sink() {
         let report = audit().expect("pool/water programme contract");
-        assert_eq!(report["pool_role"], "FINITE_THERMAL_BUFFER_NOT_INFINITE_SINK");
+        assert_eq!(
+            report["pool_role"],
+            "FINITE_THERMAL_BUFFER_NOT_INFINITE_SINK"
+        );
     }
 
     #[test]
     fn aerosol_features_keep_health_management_gate() {
         let manifest: Value = serde_json::from_str(MANIFEST).unwrap();
         let required = array_at(&manifest, "required_health_gates").unwrap();
-        assert!(required.iter().any(|item| item == "water_management_program_when_aerosol_generating"));
+        assert!(
+            required
+                .iter()
+                .any(|item| item == "water_management_program_when_aerosol_generating")
+        );
         assert_eq!(
             report_aerosol_kind(&manifest, "AEROSOL_GENERATING_FOUNTAIN"),
             Some("YES")
@@ -214,7 +241,11 @@ mod tests {
         let manifest: Value = serde_json::from_str(MANIFEST).unwrap();
         let modes = array_at(&manifest, "cover_modes").unwrap();
         assert!(modes.iter().any(|item| item == "DAY_SHADED_NIGHT_EXPOSED"));
-        assert!(modes.iter().any(|item| item == "ADAPTIVE_COVER_BY_WATER_BUDGET_AND_SKY_CONDITIONS"));
+        assert!(
+            modes
+                .iter()
+                .any(|item| item == "ADAPTIVE_COVER_BY_WATER_BUDGET_AND_SKY_CONDITIONS")
+        );
     }
 
     fn report_aerosol_kind<'a>(manifest: &'a Value, id: &str) -> Option<&'a str> {
