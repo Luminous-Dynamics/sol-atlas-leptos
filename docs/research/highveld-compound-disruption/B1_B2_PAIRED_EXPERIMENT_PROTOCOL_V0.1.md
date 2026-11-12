@@ -47,6 +47,7 @@ Every B1/B2 pair must share:
 - exact event-trace bytes and SHA-256 digest;
 - initial-condition digest and boundary-condition revision;
 - source snapshot and rights revision;
+- engine configuration digest, compute budget and operator-time budget;
 - resource budget, information budget, functional unit and time window;
 - exact specialist tool identities, versions, configurations, licences and exclusions.
 
