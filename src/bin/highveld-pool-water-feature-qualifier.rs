@@ -153,6 +153,24 @@ fn audit() -> Result<Value, Vec<String>> {
             errors.push(format!("pool/water hard gate {key} must equal zero"));
         }
     }
+    let industry_refs = array_at(&manifest, "industry_reference_evidence")
+        .cloned()
+        .unwrap_or_default();
+    let field_reference = industry_refs.iter().any(|item| {
+        text_at(item, "id") == Some("UC_DAVIS_WCEC_SAN_DIEGO_HOTEL_2018")
+            && text_at(item, "evidence_class") == Some("FIELD_DEMONSTRATION")
+            && text_at(item, "transferability")
+                == Some("REFERENCE_ONLY_NOT_HIGHVELD_PREDICTION")
+    });
+    let modeled_reference = industry_refs.iter().any(|item| {
+        text_at(item, "id") == Some("CALIFORNIA_POOL_HEAT_SINK_FEASIBILITY_2013")
+            && text_at(item, "evidence_class") == Some("MODELED_FEASIBILITY_ANALYSIS")
+            && text_at(item, "transferability")
+                == Some("MODELLED_SELECTED_CONDITIONS_NOT_FIELD_RESULT_OR_HIGHVELD_PREDICTION")
+    });
+    if !field_reference || !modeled_reference {
+        errors.push("pool heat recovery must preserve distinct field and modeled industry evidence classes".to_owned());
+    }
     let heat_recovery = &manifest["heat_recovery_contract"];
     for key in [
         "enabled_only_when_pool_heating_demand_exists",
@@ -187,7 +205,11 @@ fn audit() -> Result<Value, Vec<String>> {
         "scenario_count":scenarios.len(),
         "cover_mode_count":cover_modes.len(),
         "registered_case_count":80,
-        "pool_role":"FINITE_THERMAL_BUFFER_NOT_INFINITE_SINK",
+        "pool_heat_recovery_archetype":"POOL_HEAT_RECOVERY_FROM_COOLING_LOAD",
+        "pool_heat_recovery_requires_demand_hx_and_fallback":true,
+        "industry_field_reference_count":industry_refs.iter().filter(|item| text_at(item,"evidence_class")==Some("FIELD_DEMONSTRATION")).count(),
+        "industry_modeled_reference_count":industry_refs.iter().filter(|item| text_at(item,"evidence_class")==Some("MODELED_FEASIBILITY_ANALYSIS")).count(),
+        "pool_role":"FINITE_THERMAL_BUFFER_NOT_AN_INFINITE_SINK",
         "aerosol_water_management_gate":"REQUIRED_WHEN_AEROSOL_GENERATING",
         "execution_status":"NOT_EXECUTED",
         "schema_engine":"NOT_RUN; schema declaration and manifest invariants checked by this Rust qualifier",
@@ -267,6 +289,17 @@ mod tests {
         assert_eq!(contract["excess_condenser_heat_must_be_routed_or_recovery_disabled"], true);
         assert_eq!(manifest["hard_gates"]["pool_heat_recovery_above_temperature_limit"], 0);
         assert_eq!(manifest["hard_gates"]["unqualified_fallback_sink_for_excess_heat"], 0);
+    }
+
+    #[test]
+    fn field_trial_and_modeled_heat_recovery_evidence_are_not_conflated() {
+        let report = audit().expect("pool/water programme contract");
+        assert_eq!(report["industry_field_reference_count"], 1);
+        assert_eq!(report["industry_modeled_reference_count"], 1);
+        assert_eq!(
+            report["pool_heat_recovery_archetype"],
+            "POOL_HEAT_RECOVERY_FROM_COOLING_LOAD"
+        );
     }
 
     #[test]
