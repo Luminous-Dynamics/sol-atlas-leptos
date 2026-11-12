@@ -1,5 +1,4 @@
 use std::collections::BTreeSet;
-use std::env;
 use std::process::ExitCode;
 
 const DIMENSIONS: usize = 4;
@@ -124,6 +123,7 @@ struct ResultRow {
     seed: u64,
     calls: usize,
     regions_found: usize,
+    discovered_region_ids: Vec<String>,
     region_recall_ppm: u32,
     failure_hits: usize,
     occupied_bins: usize,
@@ -189,8 +189,8 @@ fn oracle(point: [f64; DIMENSIONS]) -> Observation {
     let mut best_region = 0;
     for (index, region) in REGIONS.iter().enumerate() {
         let mut normalized_squared_distance = 0.0;
-        for dimension in 0..DIMENSIONS {
-            let delta = (point[dimension] - region.center[dimension]) / region.radius[dimension];
+        for (dimension, coordinate) in point.iter().enumerate() {
+            let delta = (*coordinate - region.center[dimension]) / region.radius[dimension];
             normalized_squared_distance += delta * delta;
         }
         let margin = normalized_squared_distance - 1.0;
@@ -317,11 +317,18 @@ fn evaluate(method: Method, seed: u64) -> ResultRow {
         occupied.insert(bin);
     }
     let regions_found = found.iter().filter(|found| **found).count();
+    let discovered_region_ids = REGIONS
+        .iter()
+        .zip(found.iter())
+        .filter(|(_, discovered)| **discovered)
+        .map(|(region, _)| region.id.to_string())
+        .collect();
     ResultRow {
         method: method.name(),
         seed,
         calls: points.len(),
         regions_found,
+        discovered_region_ids,
         region_recall_ppm: ((regions_found as u64 * 1_000_000) / REGION_COUNT as u64) as u32,
         failure_hits,
         occupied_bins: occupied.len(),
@@ -345,12 +352,19 @@ fn emit(rows: &[ResultRow]) {
     println!("  \"results\": [");
     for (index, row) in rows.iter().enumerate() {
         let comma = if index + 1 == rows.len() { "" } else { "," };
+        let discovered = row
+            .discovered_region_ids
+            .iter()
+            .map(|region_id| format!("\"{region_id}\""))
+            .collect::<Vec<_>>()
+            .join(",");
         println!(
-            "    {{\"method\":\"{}\",\"seed\":{},\"calls\":{},\"regions_found\":{},\"region_recall_ppm\":{},\"failure_hits\":{},\"occupied_bins\":{},\"best_margin_milli\":{},\"certified_cells\":{},\"sample_fingerprint\":\"{:016x}\"}}{}",
+            "    {{\"method\":\"{}\",\"seed\":{},\"calls\":{},\"regions_found\":{},\"discovered_region_ids\":[{}],\"region_recall_ppm\":{},\"failure_hits\":{},\"occupied_bins\":{},\"best_margin_milli\":{},\"certified_cells\":{},\"sample_fingerprint\":\"{:016x}\"}}{}",
             row.method,
             row.seed,
             row.calls,
             row.regions_found,
+            discovered,
             row.region_recall_ppm,
             row.failure_hits,
             row.occupied_bins,
