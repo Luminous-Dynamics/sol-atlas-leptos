@@ -975,6 +975,7 @@ mod tests {
     #[test]
     fn synthetic_household_outcomes_are_reported_without_aggregate_compensation() {
         let report = audit_manifest(&base());
+        println!("synthetic audit errors: {}", report["errors"]);
         assert_eq!(report["status"].as_str(), Some("PASS"));
         assert_eq!(
             report["household_service_outcomes_checked"].as_u64(),
