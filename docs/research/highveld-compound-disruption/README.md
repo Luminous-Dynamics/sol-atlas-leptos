@@ -12,6 +12,7 @@ It is an evidence/benchmark package, not a new event clock, weather archive, res
 - `INDUSTRY_COMPARISON_V0.1.md` — current public capability comparison for Forma, TestFit, EnergyPlus, ASHRAE 140, BOPTEST and building semantics; proposed differentiation and fair head-to-head design.
 - `SOUTH_AFRICA_SOURCE_READINESS_V0.1.md` — South African climate, electricity, water and household-survey source readiness, evidence classes and acquisition gates.
 - `SERVICE_EVENT_HANDOFF_V0.1.md` — proposed evidence-to-service-event projection boundary; prevents upstream utility/hazard/component events from being mistaken for household service loss/restoration.
+- `SERVICE_EVENT_HANDOFF_CONTROLS_V0.1.schema.json` and `SERVICE_EVENT_HANDOFF_CONTROLS_V0.1.json` — closed schema and 12 synthetic known-answer projection controls with 13 per-service expected dispositions and explicit observation-availability time.
 
 ## Synthetic corpus semantics
 
