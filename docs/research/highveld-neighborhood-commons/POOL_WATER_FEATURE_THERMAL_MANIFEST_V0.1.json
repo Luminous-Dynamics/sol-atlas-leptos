@@ -94,7 +94,10 @@
     "makeup_water_enthalpy",
     "ground_conduction",
     "pump_fan_treatment_parasitics",
-    "zone_moisture_balance"
+    "zone_moisture_balance",
+    "recovered_condenser_heat",
+    "displaced_pool_heater_energy",
+    "excess_heat_rejected_by_fallback_sink"
   ],
   "required_water_terms": [
     "initial_fill",
@@ -120,7 +123,11 @@
     "untreated_greywater_in_aerosol_path": 0,
     "indoor_cooling_claim_from_outdoor_or_pool_temp_only": 0,
     "energy_water_balance_outside_uncertainty": 0,
-    "untraceable_inputs_or_controls": 0
+    "untraceable_inputs_or_controls": 0,
+    "pool_heat_recovery_above_temperature_limit": 0,
+    "pool_heat_recovery_without_isolated_heat_exchanger": 0,
+    "unqualified_fallback_sink_for_excess_heat": 0,
+    "heat_recovery_claim_without_measured_displaced_heater_energy": 0
   },
   "solver_roles": {
     "indoor_pool_heat_balance": "ENERGYPLUS_26_2_SWIMMINGPOOL_INDOOR",
@@ -136,5 +143,41 @@
     "https://www.ashrae.org/technical-resources/standards-and-guidelines/guidance-for-water-system-risk-management",
     "https://publications.ibpsa.org/conference/paper/?id=bs2025_1871"
   ],
-  "claim_ceiling": "72-case design matrix and role contract only; no physical water-feature, water-quality, health, cooling or economic result admitted."
+  "claim_ceiling": "72-case design matrix and role contract only; no physical water-feature, water-quality, health, cooling or economic result admitted.",
+  "heat_recovery_contract": {
+    "enabled_only_when_pool_heating_demand_exists": true,
+    "requires_isolated_heat_exchanger": true,
+    "maximum_pool_temperature_is_owner_and_authority_defined": true,
+    "fallback_sink_required_when_pool_has_no_headroom": true,
+    "excess_condenser_heat_must_be_routed_or_recovery_disabled": true,
+    "no_pool_as_infinite_sink": true
+  },
+  "industry_reference_evidence": [
+    {
+      "id": "UC_DAVIS_WCEC_SAN_DIEGO_HOTEL_2018",
+      "evidence_class": "FIELD_DEMONSTRATION",
+      "climate_scope": "SAN_DIEGO_HOTEL_FOUR_WEEK_TRIAL",
+      "reported_metrics": {
+        "average_electricity_savings_percent": 5,
+        "peak_electricity_savings_percent": 12,
+        "pool_heating_natural_gas_savings_percent": 29
+      },
+      "transferability": "REFERENCE_ONLY_NOT_HIGHVELD_PREDICTION"
+    },
+    {
+      "id": "CALIFORNIA_POOL_HEAT_SINK_FEASIBILITY_2013",
+      "evidence_class": "MODELED_FEASIBILITY_ANALYSIS",
+      "modeled_ranges": {
+        "cooling_electricity_savings_percent": [
+          25,
+          30
+        ],
+        "peak_demand_reduction_percent": [
+          30,
+          35
+        ]
+      },
+      "transferability": "MODELLED_SELECTED_CONDITIONS_NOT_FIELD_RESULT_OR_HIGHVELD_PREDICTION"
+    }
+  ]
 }
