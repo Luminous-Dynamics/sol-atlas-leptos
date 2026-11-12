@@ -33,3 +33,19 @@ A duplicate RecordID is a hard failure within the same dataset snapshot. SystemI
 ## Explicit limits
 
 This fixture uses a simplified profile of MUDDI concepts, not the complete normative MUDDI logical model or abstract tests. The fixture's observations and coordinates are synthetic values solely to test representation. It does not implement host access control, signatures, custody validation, real GIS transformation, owner authentication, survey quality, or engineering truth.
+
+
+## Initial structural review (2026-11-12)
+
+Fetched the fixture, schema, negative-case list and this note back from the branch. JSON parsing and authored relationship/state checks passed:
+
+- 14 records;
+- all ten MUDDI core classes represented;
+- three observations with feature-of-interest and event references resolved;
+- 12 negative controls;
+- one intentional duplicate ObjectID with separate RecordIDs and SystemIDs (the legacy and candidate representations of one object);
+- every RecordID unique;
+- every internal link and evidence reference resolved;
+- availability state distinct from epistemic class and currentness/conflict state.
+
+This is not full JSON Schema 2020-12 validation, MUDDI abstract-test execution, an implemented access-control service, a GIS interoperability round-trip, or field-data validation.
