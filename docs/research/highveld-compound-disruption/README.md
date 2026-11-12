@@ -14,6 +14,10 @@ It is an evidence/benchmark package, not a new event clock, weather archive, res
 - `SERVICE_EVENT_HANDOFF_V0.1.md` — proposed evidence-to-service-event projection boundary; prevents upstream utility/hazard/component events from being mistaken for household service loss/restoration.
 - `SERVICE_EVENT_HANDOFF_CONTROLS_V0.1.schema.json` and `SERVICE_EVENT_HANDOFF_CONTROLS_V0.1.json` — closed schema and 12 synthetic known-answer projection controls with 13 per-service expected dispositions and explicit observation-availability time.
 
+- `B1_B2_PAIRED_EXPERIMENT_PROTOCOL_V0.1.md` — preregistration, blinded B1/B2 workflow, matched-input invariants, independent-oracle rules, acceptance gates and proposed neighborhood-scale architecture boundary.
+- `B1_B2_PAIRED_RUN_PACKET_V0.1.schema.json` — closed run-packet schema for matched specialist-engine pairs, composition receipts, per-service decisions and oracle expectations.
+- `src/bin/highveld-paired-audit.rs` — Rust CLI that checks paired engine identity, receipt bindings, per-service oracle agreement, hard-floor false passes and future-information leakage. It does not run specialist tools or implement the native Symtropy service evaluator.
+
 ## Synthetic corpus semantics
 
 - Every event scenario is `SyntheticControlledEvent`. No observation, outage frequency, local hazard occurrence, causal dependency or physical outcome is claimed.
@@ -49,6 +53,26 @@ An infrastructure outage is not automatically a household-service outage. Symtro
 - Symtropy #1892/#1922: finite-state decision impact and adaptive measurement policies.
 
 Do not implement a second timeline, service evaluator, thermal solver, weather database, instrument passport, post-occupancy evaluator or generic value-of-information engine in this package.
+
+
+## B1/B2 paired-run audit
+
+The native CLI validates a submitted paired-run packet; it does not execute Forma, TestFit, EnergyPlus, BOPTEST or Symtropy, and it does not establish physical performance.
+
+Run the built-in synthetic harness self-test:
+
+```sh
+cargo run --bin highveld-paired-audit -- --self-test
+cargo test --bin highveld-paired-audit
+```
+
+Audit an externally generated packet:
+
+```sh
+cargo run --bin highveld-paired-audit -- --input paired-run.json
+```
+
+The audit requires identical specialist engine versions and raw engine input/output digests across B1/B2, checks B2 receipt binding and per-service rights/scope states, compares B2 decisions with the independent oracle, and rejects future information or hard-floor false passes. B1 oracle mismatches are reported as baseline outcomes rather than treated as packet-integrity failures. A PASS means only that this submitted synthetic/experiment packet satisfies the audit contract; it does not mean the industry experiment has been run or that the physical model is qualified.
 
 ## Validation status
 
