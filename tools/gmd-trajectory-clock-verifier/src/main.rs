@@ -977,6 +977,7 @@ mod tests {
     fn untransformed_different_artifact_is_rejected() {
         let (mut experiment, _bytes, root) = fixture();
         experiment.channels[2].transformation_ids.clear();
+        experiment.transformations.clear();
         let error = verify_experiment(&experiment, b"mutated", &root).unwrap_err();
         assert!(error.contains("source/effective artifact differ"));
     }
