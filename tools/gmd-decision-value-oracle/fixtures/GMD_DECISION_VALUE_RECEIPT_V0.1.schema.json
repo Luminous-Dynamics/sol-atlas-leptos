@@ -1,0 +1,203 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/gmd-decision-value-receipt-v0.1.schema.json",
+  "title": "GMD decision-value oracle receipt v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "scenario_id",
+    "manifest_sha256",
+    "decision_deadline_seconds",
+    "observation_id",
+    "observation_arrival_seconds",
+    "observation_disposition",
+    "baseline_action_id",
+    "baseline_expected_service_losses",
+    "observed_expected_service_losses",
+    "outcome_decisions",
+    "baseline_weighted_loss_numerator",
+    "baseline_action_cost_numerator",
+    "observed_weighted_loss_numerator",
+    "observed_action_cost_numerator",
+    "observation_cost_numerator",
+    "net_value_numerator",
+    "expected_value_denominator",
+    "post_observation_has_intervention",
+    "execution_authorized",
+    "recommendation"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "scenario_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "manifest_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "decision_deadline_seconds": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "observation_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "observation_arrival_seconds": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "observation_disposition": {
+      "enum": [
+        "ELIGIBLE",
+        "RIGHTS_INELIGIBLE",
+        "QUALITY_UNQUALIFIED",
+        "COMMON_MODE_UNQUALIFIED",
+        "ARRIVES_AFTER_DEADLINE"
+      ]
+    },
+    "baseline_action_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "baseline_expected_service_losses": {
+      "$ref": "#/$defs/serviceLosses"
+    },
+    "observed_expected_service_losses": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/serviceLosses"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "outcome_decisions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "outcome_id",
+          "action_id"
+        ],
+        "properties": {
+          "outcome_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "action_id": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "baseline_weighted_loss_numerator": {
+      "type": "string",
+      "pattern": "^[0-9]+$"
+    },
+    "observed_weighted_loss_numerator": {
+      "oneOf": [
+        {
+          "type": "string",
+          "pattern": "^[0-9]+$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "observation_cost_numerator": {
+      "oneOf": [
+        {
+          "type": "string",
+          "pattern": "^[0-9]+$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "net_value_numerator": {
+      "oneOf": [
+        {
+          "type": "string",
+          "pattern": "^-?[0-9]+$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "expected_value_denominator": {
+      "type": "string",
+      "const": "1000000000000"
+    },
+    "post_observation_has_intervention": {
+      "type": "boolean"
+    },
+    "execution_authorized": {
+      "const": false
+    },
+    "recommendation": {
+      "enum": [
+        "OBSERVE_THEN_USE_OUTCOME_POLICY",
+        "USE_CURRENT_EVIDENCE"
+      ]
+    },
+    "baseline_action_cost_numerator": {
+      "type": "string",
+      "pattern": "^[0-9]+$"
+    },
+    "observed_action_cost_numerator": {
+      "oneOf": [
+        {
+          "type": "string",
+          "pattern": "^[0-9]+$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "$defs": {
+    "serviceLosses": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "service_id",
+          "loss_unit",
+          "numerator",
+          "denominator"
+        ],
+        "properties": {
+          "service_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "loss_unit": {
+            "type": "string",
+            "minLength": 1
+          },
+          "numerator": {
+            "type": "string",
+            "pattern": "^[0-9]+$"
+          },
+          "denominator": {
+            "type": "string",
+            "const": "1000000000000"
+          }
+        }
+      }
+    }
+  }
+}
