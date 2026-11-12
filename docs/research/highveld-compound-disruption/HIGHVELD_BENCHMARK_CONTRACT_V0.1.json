@@ -434,9 +434,11 @@
       "B2 per-service rights and scope validation",
       "independent-oracle decision and hard-floor agreement",
       "future-information leakage detection",
-      "B2 valid-case coverage and false-rejection gate to prevent an always-BLOCKED degenerate strategy"
+      "B2 valid-case coverage and false-rejection gate to prevent an always-BLOCKED degenerate strategy",
+      "paired engine-configuration digest and frozen source-rights revision binding",
+      "valid-case coverage and false-rejection/overblocking measurement"
     ],
     "claim_ceiling": "The auditor checks submitted experiment packets and synthetic self-tests only. It does not execute specialist tools or establish physical building performance. A B2 PASS requires both zero critical false passes and full preservation of oracle-admissible clean cases; an always-block strategy cannot pass.",
-    "receipt_digest_recomputation": "SHA-256 over the versioned fixed-field, length-prefixed UTF-8 receipt encoding; tamper detection is part of the Rust audit."
+    "receipt_digest_recomputation": "SHA-256 over versioned fixed-field, length-prefixed UTF-8 receipt encoding; binds event, design, requirements, initial state, source snapshot, engine input/output, engine configuration and source-rights revision."
   }
 }
