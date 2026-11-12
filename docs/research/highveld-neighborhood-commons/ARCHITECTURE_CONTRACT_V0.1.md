@@ -37,7 +37,7 @@ A hub being online is not equivalent to a resident receiving a service. Record r
 
 Any resource allocation policy requires explicit resident oversight, a recorded approval state, a human final authority and an appeal/reversal path. An optimizer may produce transparent options; it may not determine moral priority or become the final authority over household essential services.
 
-Maintenance and repair capacity are part of the service contract: operator, spares, access, tooling, expected repair window, fallback and re-verification. Unknown repair capacity is not infinite repair capacity.
+Maintenance and repair capacity are part of the service contract: named maintainer, spares state, qualified access, tooling, bounded repair time, fallback and re-verification evidence. An allocated shared service without a qualified maintenance/spares contract is not an assured service. Unknown repair capacity is not infinite repair capacity.
 
 ## 3. System boundary and interfaces
 
