@@ -124,8 +124,7 @@
             "meets",
             "precedes",
             "follows",
-            "unknown",
-            "not_comparable"
+            "unknown"
           ]
         },
         "rationale": {
@@ -241,7 +240,8 @@
         "events",
         "expected_temporal_relations",
         "semantic_links",
-        "claim_ceiling"
+        "claim_ceiling",
+        "scope_join_guards"
       ],
       "properties": {
         "scenario_id": {
@@ -293,6 +293,41 @@
           }
         },
         "claim_ceiling": {
+          "type": "string",
+          "minLength": 1
+        },
+        "scope_join_guards": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/scope_join_guard"
+          }
+        }
+      }
+    },
+    "scope_join_guard": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "left_event_id",
+        "right_event_id",
+        "expected_disposition",
+        "rationale"
+      ],
+      "properties": {
+        "left_event_id": {
+          "type": "string"
+        },
+        "right_event_id": {
+          "type": "string"
+        },
+        "expected_disposition": {
+          "enum": [
+            "COMPARABLE_WITHIN_DECLARED_SCOPE",
+            "NOT_COMPARABLE",
+            "UNKNOWN"
+          ]
+        },
+        "rationale": {
           "type": "string",
           "minLength": 1
         }
