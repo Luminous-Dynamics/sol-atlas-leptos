@@ -133,8 +133,8 @@ Allocation policies, appeals, consent, rights and resident oversight have measur
 
 ## 6. Next executable work
 
-1. Add offline/manual-degraded-mode and maintenance/spares contracts to the synthetic reference schema and qualifier.
-2. Add household data-rights/consent and explicit revocation controls, preserving no-sharing-by-default.
+1. **Implemented in the current prototype:** local fallback must be independent of external networks and expose manual degraded mode; allocated shared services must reference qualified maintainer, spare-part, repair-access, repair-time and requalification contracts.
+2. Next: add household data-rights/consent and explicit revocation controls, preserving no-sharing-by-default.
 3. Add a deterministic 15-family commons stress trace with matched household/hub outages, queue/load peaks, repair delay, route interruption and repeat fault. Keep all quantities synthetic and include a finite oracle.
 4. Bind its service-event projection to Symtropy's native owner interface; do not duplicate its timeline/recovery engine.
 5. Add a queue/access fairness report that shows every household, not only neighbourhood average.
