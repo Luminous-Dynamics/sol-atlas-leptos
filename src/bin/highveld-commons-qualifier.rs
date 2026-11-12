@@ -1044,7 +1044,10 @@ fn audit_manifest(root: &Value) -> Value {
         let has_domain = text(model, "applicability_domain_id").is_some();
         let has_revision = text(model, "model_revision_id").is_some();
         let has_config = text(model, "configuration_sha256").is_some_and(|digest| {
-            digest.len() == 64 && digest.bytes().all(|b| b.is_ascii_hexdigit() && !b.is_ascii_uppercase())
+            digest.len() == 64
+                && digest
+                    .bytes()
+                    .all(|b| b.is_ascii_hexdigit() && !b.is_ascii_uppercase())
         });
         let review_state = text(model, "independent_review_state");
         let applicability_state = text(model, "applicability_state");
@@ -1633,7 +1636,10 @@ mod tests {
             "independent_review_state":"PENDING",
             "applicability_state":"IN_DOMAIN"
         }]);
-        assert!(has_code(&audit_manifest(&manifest), "MODEL_VVUQ_EVIDENCE_INCOMPLETE"));
+        assert!(has_code(
+            &audit_manifest(&manifest),
+            "MODEL_VVUQ_EVIDENCE_INCOMPLETE"
+        ));
     }
 
     #[test]
@@ -1651,7 +1657,10 @@ mod tests {
             "independent_review_state":"PASSED",
             "applicability_state":"IN_DOMAIN"
         }]);
-        assert!(has_code(&audit_manifest(&manifest), "MODEL_SERVICE_CRITICAL_EVIDENCE_INCOMPLETE"));
+        assert!(has_code(
+            &audit_manifest(&manifest),
+            "MODEL_SERVICE_CRITICAL_EVIDENCE_INCOMPLETE"
+        ));
     }
 
     #[test]
@@ -1669,7 +1678,10 @@ mod tests {
         }]);
         let report = audit_manifest(&manifest);
         assert_eq!(report["status"].as_str(), Some("PASS"));
-        assert_eq!(report["model_qualification_records"][0]["qualified_for_declared_use"], json!(true));
+        assert_eq!(
+            report["model_qualification_records"][0]["qualified_for_declared_use"],
+            json!(true)
+        );
     }
 
     #[test]
