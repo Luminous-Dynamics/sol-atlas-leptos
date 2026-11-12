@@ -3,6 +3,20 @@ use sha2::{Digest, Sha256};
 use std::{env, fs, process};
 
 const CONTRACT_ID: &str = "highveld-cross-tool-household-resilience-benchmark-v0.1";
+const CANDIDATE_IDS: &[&str] = &[
+    "INDEPENDENT_SERVICES",
+    "SHARED_UTILITY",
+    "HYBRID_LOCAL_AUTONOMY",
+];
+const SCENARIO_IDS: &[&str] = &[
+    "hot_grid_water_parts",
+    "cold_grid_heatbank_repair",
+    "air_quality_ventilation_network",
+    "restoration_repeat_fault",
+    "system_notice_no_tap_report",
+    "rain_grid_drainage_repair",
+    "peak_shared_plant_household_change",
+];
 const RECEIPT_FORMAT: &str = "highveld-b2-composition-receipt-v0.1";
 const RECEIPT_FIELDS: &[&str] = &[
     "event_trace_sha256",
@@ -408,12 +422,30 @@ fn audit_manifest(root: &Value) -> Value {
         }
         seen_pair_ids.push(pair_id.to_owned());
 
-        if text_field(pair, "candidate_id").is_none() || text_field(pair, "scenario_id").is_none() {
+        let candidate_id = text_field(pair, "candidate_id");
+        let scenario_id = text_field(pair, "scenario_id");
+        if candidate_id.is_none() || scenario_id.is_none() {
             push_error(
                 &mut errors,
                 pair_id,
                 "PAIR_IDENTITY_MISSING",
                 "candidate_id and scenario_id must be non-empty",
+            );
+        }
+        if candidate_id.is_some_and(|id| !CANDIDATE_IDS.contains(&id)) {
+            push_error(
+                &mut errors,
+                pair_id,
+                "UNREGISTERED_CANDIDATE",
+                "candidate_id is not one of the three Sol-Atlas #694 v0.1 candidates",
+            );
+        }
+        if scenario_id.is_some_and(|id| !SCENARIO_IDS.contains(&id)) {
+            push_error(
+                &mut errors,
+                pair_id,
+                "UNREGISTERED_SCENARIO",
+                "scenario_id is not one of the seven frozen synthetic corpus scenarios",
             );
         }
         let decision_as_of = pair.get("decision_as_of_offset_s").and_then(Value::as_u64);
@@ -636,6 +668,43 @@ fn audit_manifest(root: &Value) -> Value {
                 "at least one independent service expectation is required",
             );
         }
+        let mut oracle_service_ids: Vec<String> = Vec::new();
+        for expected in expectations {
+            let service_id = text_field(expected, "service_id");
+            if let Some(service_id) = service_id {
+                if oracle_service_ids.iter().any(|seen| seen == service_id) {
+                    push_error(
+                        &mut errors,
+                        pair_id,
+                        "DUPLICATE_ORACLE_SERVICE",
+                        "oracle expectations must contain exactly one row per service_id",
+                    );
+                } else {
+                    oracle_service_ids.push(service_id.to_owned());
+                }
+            } else {
+                push_error(
+                    &mut errors,
+                    pair_id,
+                    "ORACLE_SERVICE_ID_MISSING",
+                    "every oracle expectation must name a service_id",
+                );
+            }
+            if !matches!(
+                text_field(expected, "expected_status"),
+                Some("PASS" | "FAIL" | "BLOCKED" | "UNKNOWN")
+            ) || !matches!(
+                text_field(expected, "expected_hard_floor_state"),
+                Some("SATISFIED" | "VIOLATED" | "UNKNOWN" | "NOT_APPLICABLE")
+            ) {
+                push_error(
+                    &mut errors,
+                    pair_id,
+                    "INVALID_ORACLE_EXPECTATION",
+                    "oracle status and hard-floor state must use the declared enums",
+                );
+            }
+        }
 
         b1_oracle_mismatches += audit_arm_decisions(
             b1,
@@ -750,7 +819,7 @@ fn synthetic_pair(
     json!({
         "pair_id": pair_id,
         "candidate_id": "INDEPENDENT_SERVICES",
-        "scenario_id": "synthetic_control_only",
+        "scenario_id": "hot_grid_water_parts",
         "decision_as_of_offset_s": 50,
         "matched_inputs": {
             "design_revision_id": "synthetic-design-r1",
@@ -898,6 +967,26 @@ mod tests {
             result["audit_report"]["b2_valid_case_coverage"].as_f64(),
             Some(1.0)
         );
+    }
+
+    #[test]
+    fn rejects_unapproved_neighborhood_candidate_in_v0_1() {
+        let mut manifest = synthetic_self_test_manifest();
+        manifest["pairs"][0]["candidate_id"] = json!("NEIGHBORHOOD_RESILIENCE_COMMONS");
+        let report = audit_manifest(&manifest);
+        assert!(has_error(&report, "UNREGISTERED_CANDIDATE"));
+    }
+
+    #[test]
+    fn rejects_duplicate_oracle_service_rows() {
+        let mut manifest = synthetic_self_test_manifest();
+        let duplicate = manifest["pairs"][0]["oracle_expectations"][0].clone();
+        manifest["pairs"][0]["oracle_expectations"]
+            .as_array_mut()
+            .unwrap()
+            .push(duplicate);
+        let report = audit_manifest(&manifest);
+        assert!(has_error(&report, "DUPLICATE_ORACLE_SERVICE"));
     }
 
     #[test]
