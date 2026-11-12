@@ -114,7 +114,8 @@
         "must_survive_hub_loss",
         "maximum_unserved_s",
         "maximum_wait_s",
-        "local_fallback"
+        "local_fallback",
+        "maximum_access_time_s"
       ],
       "properties": {
         "service_id": {
@@ -134,6 +135,9 @@
         },
         "local_fallback": {
           "$ref": "#/$defs/fallback"
+        },
+        "maximum_access_time_s": {
+          "$ref": "#/$defs/uint"
         }
       }
     },
