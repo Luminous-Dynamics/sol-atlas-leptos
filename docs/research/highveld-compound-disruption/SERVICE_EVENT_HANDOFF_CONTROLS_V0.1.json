@@ -42,7 +42,8 @@
           "observed_at_offset_s": 30,
           "outcome_state": "above_floor",
           "floor_profile_id": "synthetic_hot_water_floor_r1",
-          "evidence_status": "synthetic_control_only"
+          "evidence_status": "synthetic_control_only",
+          "available_at_offset_s": 30
         }
       ],
       "time_mapping_state": "owner_mapping_not_provided",
@@ -80,7 +81,8 @@
           "observed_at_offset_s": 120,
           "outcome_state": "below_floor",
           "floor_profile_id": "synthetic_hot_water_floor_r1",
-          "evidence_status": "synthetic_control_only"
+          "evidence_status": "synthetic_control_only",
+          "available_at_offset_s": 120
         }
       ],
       "time_mapping_state": "owner_mapping_not_provided",
@@ -118,7 +120,8 @@
           "observed_at_offset_s": 50,
           "outcome_state": "not_observed",
           "floor_profile_id": "synthetic_nonpotable_floor_r1",
-          "evidence_status": "synthetic_control_only"
+          "evidence_status": "synthetic_control_only",
+          "available_at_offset_s": 50
         }
       ],
       "time_mapping_state": "owner_mapping_not_provided",
@@ -156,7 +159,8 @@
           "observed_at_offset_s": 60,
           "outcome_state": "above_floor",
           "floor_profile_id": "synthetic_nonpotable_floor_r1",
-          "evidence_status": "synthetic_control_only"
+          "evidence_status": "synthetic_control_only",
+          "available_at_offset_s": 60
         }
       ],
       "time_mapping_state": "owner_mapping_not_provided",
@@ -191,7 +195,17 @@
         {
           "service_id": "aircare_clean_air",
           "subject_scope": "resident_task",
+          "observed_at_offset_s": 20,
+          "available_at_offset_s": 20,
+          "outcome_state": "above_floor",
+          "floor_profile_id": "synthetic_clean_air_floor_r1",
+          "evidence_status": "synthetic_control_only"
+        },
+        {
+          "service_id": "aircare_clean_air",
+          "subject_scope": "resident_task",
           "observed_at_offset_s": 40,
+          "available_at_offset_s": 40,
           "outcome_state": "below_floor",
           "floor_profile_id": "synthetic_clean_air_floor_r1",
           "evidence_status": "synthetic_control_only"
@@ -216,6 +230,15 @@
       "decision_as_of_offset_s": 80,
       "upstream_conditions": [
         {
+          "event_id": "aircare_fault",
+          "kind": "component_fault",
+          "scope": "component",
+          "start_offset_s": 10,
+          "end_offset_s": 70,
+          "evidence_class": "SyntheticControlledEvent",
+          "available_at_offset_s": 10
+        },
+        {
           "event_id": "repair_complete",
           "kind": "repair_complete",
           "scope": "component",
@@ -229,7 +252,17 @@
         {
           "service_id": "aircare_clean_air",
           "subject_scope": "resident_task",
+          "observed_at_offset_s": 30,
+          "available_at_offset_s": 30,
+          "outcome_state": "below_floor",
+          "floor_profile_id": "synthetic_clean_air_floor_r1",
+          "evidence_status": "synthetic_control_only"
+        },
+        {
+          "service_id": "aircare_clean_air",
+          "subject_scope": "resident_task",
           "observed_at_offset_s": 80,
+          "available_at_offset_s": 80,
           "outcome_state": "above_floor",
           "floor_profile_id": "synthetic_clean_air_floor_r1",
           "evidence_status": "synthetic_control_only"
@@ -270,7 +303,8 @@
           "observed_at_offset_s": 60,
           "outcome_state": "above_floor",
           "floor_profile_id": "synthetic_hot_water_floor_r1",
-          "evidence_status": "synthetic_control_only"
+          "evidence_status": "synthetic_control_only",
+          "available_at_offset_s": 60
         },
         {
           "service_id": "aircare_clean_air",
@@ -278,7 +312,8 @@
           "observed_at_offset_s": 60,
           "outcome_state": "below_floor",
           "floor_profile_id": "synthetic_clean_air_floor_r1",
-          "evidence_status": "synthetic_control_only"
+          "evidence_status": "synthetic_control_only",
+          "available_at_offset_s": 60
         }
       ],
       "time_mapping_state": "owner_mapping_approved",
@@ -323,7 +358,8 @@
           "observed_at_offset_s": 100,
           "outcome_state": "unknown",
           "floor_profile_id": "synthetic_tap_floor_r1",
-          "evidence_status": "synthetic_control_only"
+          "evidence_status": "synthetic_control_only",
+          "available_at_offset_s": 100
         }
       ],
       "time_mapping_state": "owner_mapping_not_provided",
@@ -361,7 +397,8 @@
           "observed_at_offset_s": 120,
           "outcome_state": "below_floor",
           "floor_profile_id": "synthetic_hot_water_floor_r1",
-          "evidence_status": "synthetic_control_only"
+          "evidence_status": "synthetic_control_only",
+          "available_at_offset_s": 120
         }
       ],
       "time_mapping_state": "owner_mapping_approved",
@@ -399,7 +436,8 @@
           "observed_at_offset_s": 60,
           "outcome_state": "below_floor",
           "floor_profile_id": "synthetic_clean_air_floor_r1",
-          "evidence_status": "synthetic_control_only"
+          "evidence_status": "synthetic_control_only",
+          "available_at_offset_s": 60
         }
       ],
       "time_mapping_state": "owner_mapping_approved",
@@ -437,7 +475,8 @@
           "observed_at_offset_s": 60,
           "outcome_state": "below_floor",
           "floor_profile_id": "synthetic_clean_air_floor_r1",
-          "evidence_status": "synthetic_control_only"
+          "evidence_status": "synthetic_control_only",
+          "available_at_offset_s": 60
         }
       ],
       "time_mapping_state": "ambiguous",
@@ -458,6 +497,15 @@
       "title": "A new service loss occurs before the earlier restored interval is stable",
       "decision_as_of_offset_s": 90,
       "upstream_conditions": [
+        {
+          "event_id": "initial_aircare_fault",
+          "kind": "component_fault",
+          "scope": "component",
+          "start_offset_s": 0,
+          "end_offset_s": 20,
+          "evidence_class": "SyntheticControlledEvent",
+          "available_at_offset_s": 0
+        },
         {
           "event_id": "repair_complete",
           "kind": "repair_complete",
@@ -481,7 +529,26 @@
         {
           "service_id": "aircare_clean_air",
           "subject_scope": "resident_task",
+          "observed_at_offset_s": 10,
+          "available_at_offset_s": 10,
+          "outcome_state": "below_floor",
+          "floor_profile_id": "synthetic_clean_air_floor_r1",
+          "evidence_status": "synthetic_control_only"
+        },
+        {
+          "service_id": "aircare_clean_air",
+          "subject_scope": "resident_task",
+          "observed_at_offset_s": 50,
+          "available_at_offset_s": 50,
+          "outcome_state": "above_floor",
+          "floor_profile_id": "synthetic_clean_air_floor_r1",
+          "evidence_status": "synthetic_control_only"
+        },
+        {
+          "service_id": "aircare_clean_air",
+          "subject_scope": "resident_task",
           "observed_at_offset_s": 90,
+          "available_at_offset_s": 90,
           "outcome_state": "below_floor",
           "floor_profile_id": "synthetic_clean_air_floor_r1",
           "evidence_status": "synthetic_control_only"
