@@ -221,5 +221,55 @@
       "maximum_repair_time_s": 3600,
       "requalification_evidence_id": "synthetic-energy-requalification-r0"
     }
+  ],
+  "household_service_outcomes": [
+    {
+      "outcome_id": "outcome-household-a-water-window-1",
+      "household_id": "synthetic-household-a",
+      "service_id": "water-access",
+      "window_id": "synthetic-day-1",
+      "requested_quantity": 1600,
+      "delivered_quantity": 1600,
+      "unit": "L/day",
+      "delivery_state": "DELIVERED",
+      "hard_floor_state": "SATISFIED",
+      "unserved_s": 0,
+      "access_time_s": 240,
+      "queue_wait_s": 240,
+      "evidence_class": "SyntheticKnownAnswer",
+      "evidence_id": "synthetic-outcome-water-a"
+    },
+    {
+      "outcome_id": "outcome-household-a-energy-window-1",
+      "household_id": "synthetic-household-a",
+      "service_id": "energy-essential",
+      "window_id": "synthetic-day-1",
+      "requested_quantity": 3200,
+      "delivered_quantity": 3200,
+      "unit": "Wh/day",
+      "delivery_state": "DELIVERED",
+      "hard_floor_state": "SATISFIED",
+      "unserved_s": 0,
+      "access_time_s": 0,
+      "queue_wait_s": 0,
+      "evidence_class": "SyntheticKnownAnswer",
+      "evidence_id": "synthetic-outcome-energy-a"
+    },
+    {
+      "outcome_id": "outcome-household-b-water-window-1",
+      "household_id": "synthetic-household-b",
+      "service_id": "water-access",
+      "window_id": "synthetic-day-1",
+      "requested_quantity": 2000,
+      "delivered_quantity": 0,
+      "unit": "L/day",
+      "delivery_state": "UNMET",
+      "hard_floor_state": "BREACHED",
+      "unserved_s": 7200,
+      "access_time_s": 600,
+      "queue_wait_s": 600,
+      "evidence_class": "SyntheticKnownAnswer",
+      "evidence_id": "synthetic-outcome-water-b"
+    }
   ]
 }
