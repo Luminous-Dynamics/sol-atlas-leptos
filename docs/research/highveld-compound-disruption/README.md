@@ -7,7 +7,7 @@ It is an input/known-answer corpus, not a new event clock, weather archive, resi
 ## Files
 
 - `HIGHVELD_COMPOUND_EVENT_V0.1.schema.json` — closed Draft 2020-12 JSON Schema.
-- `SYNTHETIC_CORPUS_V0.1.json` — five timeline scenarios plus nine adversarial evidence controls with explicit event windows, scopes, temporal resolutions, expected interval relations and one no-report/scope-mismatch control.
+- `SYNTHETIC_CORPUS_V0.1.json` — seven timeline scenarios plus nine adversarial evidence controls with explicit event windows, scopes, temporal resolutions, expected interval relations and one no-report/scope-mismatch control.
 
 ## Contract semantics
 
