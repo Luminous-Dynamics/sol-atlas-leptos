@@ -16,6 +16,7 @@ It is an evidence/benchmark package, not a new event clock, weather archive, res
 
 - `B1_B2_PAIRED_EXPERIMENT_PROTOCOL_V0.1.md` — preregistration, blinded B1/B2 workflow, matched-input invariants, independent-oracle rules, acceptance gates and proposed neighborhood-scale architecture boundary.
 - `B1_B2_PAIRED_RUN_PACKET_V0.1.schema.json` — closed run-packet schema for matched specialist-engine pairs, composition receipts, per-service decisions and oracle expectations.
+- `B1_B2_CASE_MATRIX_V0.1.json` — a 3-candidate × 7-scenario preregistration matrix (21 planned pairs), explicitly marked NOT_RUN until the experiment is executed.
 - `src/bin/highveld-paired-audit.rs` — Rust CLI that checks paired engine identity, receipt bindings, per-service oracle agreement, hard-floor false passes and future-information leakage. It does not run specialist tools or implement the native Symtropy service evaluator.
 
 ## Synthetic corpus semantics
@@ -72,7 +73,7 @@ Audit an externally generated packet:
 cargo run --bin highveld-paired-audit -- --input paired-run.json
 ```
 
-The audit requires identical specialist engine versions, configuration, and raw engine input/output digests across B1/B2; freezes the paired source-rights, compute and operator-time budgets; recomputes the versioned B2 receipt SHA-256 after checking input bindings; checks per-service rights/scope states; compares B2 decisions with the independent oracle; rejects future information, duplicate oracle rows, unregistered candidates and hard-floor false passes; and reports valid-case coverage and false rejection. The v0.1 packet is intentionally limited to the three registered #694 candidates and seven frozen synthetic scenarios; the proposed neighborhood commons is not silently admitted. B2 cannot pass by blocking every case: oracle-admissible clean cases must remain PASS with SATISFIED hard floors. B1 oracle mismatches are reported as baseline outcomes rather than treated as packet-integrity failures. A PASS means only that this submitted synthetic/experiment packet satisfies the audit contract; it does not mean the industry experiment has been run or that the physical model is qualified.
+The audit requires identical specialist engine versions, an independently declared and matching engine-configuration digest in both arms, and raw engine input/output digests across B1/B2; freezes the paired source-rights, compute and operator-time budgets; recomputes the versioned B2 receipt SHA-256 after checking input bindings; checks per-service rights/scope states; compares B2 decisions with the independent oracle; rejects future information, duplicate oracle rows, unregistered candidates and hard-floor false passes; and reports valid-case coverage and false rejection. The v0.1 packet is intentionally limited to the three registered #694 candidates and seven frozen synthetic scenarios; the proposed neighborhood commons is not silently admitted. B2 cannot pass by blocking every case: oracle-admissible clean cases must remain PASS with SATISFIED hard floors. B1 oracle mismatches are reported as baseline outcomes rather than treated as packet-integrity failures. A PASS means only that this submitted synthetic/experiment packet satisfies the audit contract; it does not mean the industry experiment has been run or that the physical model is qualified.
 
 ## Validation status
 
