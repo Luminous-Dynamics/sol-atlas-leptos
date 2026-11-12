@@ -151,6 +151,41 @@
       "expected_code": "HOUSEHOLD_FLOOR_FALSE_SATISFIED",
       "expected_disposition": "BLOCK",
       "evidence_class": "SyntheticNegativeControl"
+    },
+    {
+      "control_id": "missing_household_consent",
+      "description": "Household telemetry is accessed when no matching consent record exists.",
+      "expected_code": "HOUSEHOLD_DATA_CONSENT_MISSING_OR_AMBIGUOUS",
+      "expected_disposition": "BLOCK",
+      "evidence_class": "SyntheticNegativeControl"
+    },
+    {
+      "control_id": "consent_revoked_before_use",
+      "description": "Household data is accessed after the matching consent has been revoked.",
+      "expected_code": "HOUSEHOLD_DATA_ACCESS_AFTER_REVOCATION",
+      "expected_disposition": "BLOCK",
+      "evidence_class": "SyntheticNegativeControl"
+    },
+    {
+      "control_id": "purpose_mismatch",
+      "description": "Data is reused for a purpose not authorized by the household.",
+      "expected_code": "HOUSEHOLD_DATA_CONSENT_MISSING_OR_AMBIGUOUS",
+      "expected_disposition": "BLOCK",
+      "evidence_class": "SyntheticNegativeControl"
+    },
+    {
+      "control_id": "service_scope_mismatch",
+      "description": "Consent for one service is reused for a different shared service.",
+      "expected_code": "HOUSEHOLD_DATA_CONSENT_MISSING_OR_AMBIGUOUS",
+      "expected_disposition": "BLOCK",
+      "evidence_class": "SyntheticNegativeControl"
+    },
+    {
+      "control_id": "pre_grant_access",
+      "description": "Household data is accessed before the recorded grant time.",
+      "expected_code": "HOUSEHOLD_DATA_ACCESS_BEFORE_GRANT",
+      "expected_disposition": "BLOCK",
+      "evidence_class": "SyntheticNegativeControl"
     }
   ]
 }
