@@ -1019,8 +1019,7 @@ mod tests {
     #[test]
     fn rejects_engine_configuration_mismatch_between_arms() {
         let mut manifest = synthetic_self_test_manifest();
-        manifest["pairs"][0]["b2"]["engine_configuration_sha256"] =
-            json!(repeated_digest('3'));
+        manifest["pairs"][0]["b2"]["engine_configuration_sha256"] = json!(repeated_digest('3'));
         let report = audit_manifest(&manifest);
         assert!(has_error(&report, "ENGINE_CONFIGURATION_MISMATCH"));
     }
