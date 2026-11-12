@@ -1409,9 +1409,14 @@ mod tests {
     #[test]
     fn stress_matrix_is_versioned_unique_and_owner_routed() {
         let matrix: Value = serde_json::from_str(STRESS_MATRIX).expect("valid stress matrix JSON");
-        assert_eq!(matrix["benchmark_id"].as_str(), Some("HIGHVELD-NEIGHBORHOOD-COMMONS-STRESS-MATRIX"));
+        assert_eq!(
+            matrix["benchmark_id"].as_str(),
+            Some("HIGHVELD-NEIGHBORHOOD-COMMONS-STRESS-MATRIX")
+        );
         assert_eq!(matrix["maturity"].as_str(), Some("PROPOSED_NOT_EVALUATED"));
-        let cases = matrix["scenario_families"].as_array().expect("scenario array");
+        let cases = matrix["scenario_families"]
+            .as_array()
+            .expect("scenario array");
         assert!(cases.len() >= 15);
         let mut ids = BTreeSet::new();
         for case in cases {
@@ -1421,7 +1426,11 @@ mod tests {
                 case["owner_system"].as_str(),
                 Some("SOL_ATLAS" | "SYMTROPY" | "MYCELIX" | "SPECIALIST_SOLVER")
             ));
-            assert!(case["required_observations"].as_array().is_some_and(|items| !items.is_empty()));
+            assert!(
+                case["required_observations"]
+                    .as_array()
+                    .is_some_and(|items| !items.is_empty())
+            );
         }
     }
 
