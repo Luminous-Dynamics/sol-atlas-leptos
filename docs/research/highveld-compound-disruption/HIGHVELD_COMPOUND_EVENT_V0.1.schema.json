@@ -9,7 +9,8 @@
     "dataset_id",
     "evidence_class",
     "claim_ceiling",
-    "scenarios"
+    "scenarios",
+    "adversarial_controls"
   ],
   "properties": {
     "schema_version": {
@@ -31,6 +32,14 @@
       "maxItems": 20,
       "items": {
         "$ref": "#/$defs/scenario"
+      }
+    },
+    "adversarial_controls": {
+      "type": "array",
+      "minItems": 9,
+      "maxItems": 100,
+      "items": {
+        "$ref": "#/$defs/adversarial_control"
       }
     }
   },
@@ -326,6 +335,240 @@
             "COMPARABLE_WITHIN_DECLARED_SCOPE",
             "NOT_COMPARABLE",
             "UNKNOWN"
+          ]
+        },
+        "rationale": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "evidence_record": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "record_id",
+        "source_id",
+        "source_revision",
+        "scope",
+        "temporal_resolution_s",
+        "timezone_state",
+        "coverage_state",
+        "rights_state"
+      ],
+      "properties": {
+        "record_id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{2,63}$"
+        },
+        "source_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_revision": {
+          "type": "string",
+          "minLength": 1
+        },
+        "scope": {
+          "$ref": "#/$defs/scope"
+        },
+        "temporal_resolution_s": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "timezone_state": {
+          "enum": [
+            "explicit_utc",
+            "explicit_offset",
+            "missing",
+            "ambiguous",
+            "not_applicable"
+          ]
+        },
+        "timestamp_text": {
+          "type": "string"
+        },
+        "coverage_state": {
+          "enum": [
+            "complete",
+            "left_censored",
+            "right_censored",
+            "both_censored",
+            "no_report",
+            "unknown",
+            "conflicting"
+          ]
+        },
+        "rights_state": {
+          "enum": [
+            "synthetic_control_only",
+            "valid_recorded",
+            "unknown",
+            "rights_evidence_missing",
+            "revoked"
+          ]
+        },
+        "event_id": {
+          "type": "string"
+        },
+        "start_offset_s": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "end_offset_s": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "record_status": {
+          "enum": [
+            "reported_event",
+            "observed_normal",
+            "no_report",
+            "censored",
+            "unknown",
+            "conflicting"
+          ]
+        },
+        "policy_visible": {
+          "type": "boolean"
+        },
+        "available_at_offset_s": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "candidate_arm": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "arm_id",
+        "exogenous_trace_id",
+        "information_budget_id",
+        "initial_state_id"
+      ],
+      "properties": {
+        "arm_id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{2,63}$"
+        },
+        "exogenous_trace_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "information_budget_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "initial_state_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "oracle_upper_bound": {
+          "type": "boolean"
+        }
+      }
+    },
+    "adversarial_link": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "from_event_id",
+        "to_event_id",
+        "relation",
+        "basis"
+      ],
+      "properties": {
+        "from_event_id": {
+          "type": "string"
+        },
+        "to_event_id": {
+          "type": "string"
+        },
+        "relation": {
+          "enum": [
+            "depends_on",
+            "common_cause",
+            "co_occurs_only",
+            "unknown"
+          ]
+        },
+        "basis": {
+          "enum": [
+            "synthetic_declaration",
+            "source_supported",
+            "unresolved"
+          ]
+        }
+      }
+    },
+    "adversarial_control": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "control_id",
+        "family",
+        "records",
+        "expected_disposition",
+        "rationale"
+      ],
+      "properties": {
+        "control_id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{2,63}$"
+        },
+        "family": {
+          "enum": [
+            "timezone_ambiguity",
+            "coarse_fine_resolution",
+            "censored_window",
+            "conflicting_observations",
+            "rights_revocation",
+            "source_revision_change",
+            "future_information_leakage",
+            "unmatched_candidate_trace",
+            "unsupported_common_cause"
+          ]
+        },
+        "records": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/evidence_record"
+          }
+        },
+        "candidate_arms": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/candidate_arm"
+          }
+        },
+        "declared_link": {
+          "$ref": "#/$defs/adversarial_link"
+        },
+        "decision_as_of_offset_s": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "oracle_upper_bound": {
+          "type": "boolean"
+        },
+        "current_source_revision": {
+          "type": "string"
+        },
+        "derived_result_source_revision": {
+          "type": "string"
+        },
+        "expected_disposition": {
+          "enum": [
+            "REJECT_TIME_JOIN",
+            "REQUIRE_ALIGNMENT_REVIEW",
+            "RETAIN_PARTIAL_ONLY",
+            "BLOCK_CONFLICTING_EVIDENCE",
+            "REJECT_AND_INVALIDATE_DEPENDENTS",
+            "INVALIDATE_STALE_DEPENDENTS",
+            "HIDE_FUTURE_INFORMATION",
+            "REJECT_UNMATCHED_COMPARISON",
+            "REFUSE_CAUSAL_LINK"
           ]
         },
         "rationale": {
