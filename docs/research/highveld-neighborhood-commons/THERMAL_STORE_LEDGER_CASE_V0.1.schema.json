@@ -16,7 +16,10 @@
     "initial_store_energy_kwh",
     "cycle_closure_required",
     "cycle_closure_tolerance_u95_kwh",
-    "intervals"
+    "intervals",
+    "source_bundle_ref",
+    "uncertainty_method_ref",
+    "independent_oracle_ref"
   ],
   "properties": {
     "schema_version": {
@@ -73,7 +76,11 @@
           "store_energy_end_kwh",
           "interval_balance_u95_kwh",
           "parasitic_electricity_kwh",
-          "water_makeup_l"
+          "water_makeup_l",
+          "store_state_evidence_ref",
+          "heat_input_evidence_ref",
+          "sink_rejection_evidence_ref",
+          "uncertainty_evidence_ref"
         ],
         "properties": {
           "interval_id": {
@@ -136,9 +143,37 @@
           "water_makeup_l": {
             "type": "number",
             "minimum": 0
+          },
+          "store_state_evidence_ref": {
+            "type": "string",
+            "minLength": 1
+          },
+          "heat_input_evidence_ref": {
+            "type": "string",
+            "minLength": 1
+          },
+          "sink_rejection_evidence_ref": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uncertainty_evidence_ref": {
+            "type": "string",
+            "minLength": 1
           }
         }
       }
+    },
+    "source_bundle_ref": {
+      "type": "string",
+      "minLength": 1
+    },
+    "uncertainty_method_ref": {
+      "type": "string",
+      "minLength": 1
+    },
+    "independent_oracle_ref": {
+      "type": "string",
+      "minLength": 1
     }
   }
 }
