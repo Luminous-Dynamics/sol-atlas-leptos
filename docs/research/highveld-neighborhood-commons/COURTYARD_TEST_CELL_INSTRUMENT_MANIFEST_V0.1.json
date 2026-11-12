@@ -296,6 +296,138 @@
       "uncertainty_record_required": true,
       "raw_data_retention_required": true,
       "evidence_state": "TEMPLATE_ONLY"
+    },
+    {
+      "channel_id": "DOWNWELLING_LONGWAVE_RADIATION",
+      "quantity": "SKY_DOWNWELLING_LONGWAVE_IRRADIANCE",
+      "unit": "W/m2",
+      "group": "WEATHER",
+      "sample_interval_s": 60,
+      "instrument_assignment": null,
+      "calibration_state": "NOT_ADMITTED",
+      "uncertainty_record_required": true,
+      "raw_data_retention_required": true,
+      "evidence_state": "TEMPLATE_ONLY"
+    },
+    {
+      "channel_id": "UPWELLING_LONGWAVE_RADIATION",
+      "quantity": "PANEL_UPWELLING_LONGWAVE_IRRADIANCE",
+      "unit": "W/m2",
+      "group": "THERMAL",
+      "sample_interval_s": 60,
+      "instrument_assignment": null,
+      "calibration_state": "NOT_ADMITTED",
+      "uncertainty_record_required": true,
+      "raw_data_retention_required": true,
+      "evidence_state": "TEMPLATE_ONLY"
+    },
+    {
+      "channel_id": "RADIATIVE_PANEL_SURFACE_TEMPERATURE",
+      "quantity": "RADIATIVE_PANEL_SURFACE_TEMPERATURE",
+      "unit": "degC",
+      "group": "THERMAL",
+      "sample_interval_s": 60,
+      "instrument_assignment": null,
+      "calibration_state": "NOT_ADMITTED",
+      "uncertainty_record_required": true,
+      "raw_data_retention_required": true,
+      "evidence_state": "TEMPLATE_ONLY"
+    },
+    {
+      "channel_id": "RADIATIVE_PANEL_LOOP_SUPPLY_TEMPERATURE",
+      "quantity": "RADIATIVE_PANEL_LOOP_SUPPLY_TEMPERATURE",
+      "unit": "degC",
+      "group": "WATER",
+      "sample_interval_s": 60,
+      "instrument_assignment": null,
+      "calibration_state": "NOT_ADMITTED",
+      "uncertainty_record_required": true,
+      "raw_data_retention_required": true,
+      "evidence_state": "TEMPLATE_ONLY"
+    },
+    {
+      "channel_id": "RADIATIVE_PANEL_LOOP_RETURN_TEMPERATURE",
+      "quantity": "RADIATIVE_PANEL_LOOP_RETURN_TEMPERATURE",
+      "unit": "degC",
+      "group": "WATER",
+      "sample_interval_s": 60,
+      "instrument_assignment": null,
+      "calibration_state": "NOT_ADMITTED",
+      "uncertainty_record_required": true,
+      "raw_data_retention_required": true,
+      "evidence_state": "TEMPLATE_ONLY"
+    },
+    {
+      "channel_id": "RADIATIVE_PANEL_LOOP_FLOW",
+      "quantity": "RADIATIVE_PANEL_LOOP_VOLUME_FLOW",
+      "unit": "L/s",
+      "group": "WATER",
+      "sample_interval_s": 60,
+      "instrument_assignment": null,
+      "calibration_state": "NOT_ADMITTED",
+      "uncertainty_record_required": true,
+      "raw_data_retention_required": true,
+      "evidence_state": "TEMPLATE_ONLY"
+    },
+    {
+      "channel_id": "RADIATIVE_PANEL_PUMP_POWER",
+      "quantity": "RADIATIVE_PANEL_PUMP_ELECTRICAL_POWER",
+      "unit": "W",
+      "group": "ELECTRICAL",
+      "sample_interval_s": 60,
+      "instrument_assignment": null,
+      "calibration_state": "NOT_ADMITTED",
+      "uncertainty_record_required": true,
+      "raw_data_retention_required": true,
+      "evidence_state": "TEMPLATE_ONLY"
+    },
+    {
+      "channel_id": "BAROMETRIC_PRESSURE",
+      "quantity": "AMBIENT_BAROMETRIC_PRESSURE",
+      "unit": "hPa",
+      "group": "WEATHER",
+      "sample_interval_s": 60,
+      "instrument_assignment": null,
+      "calibration_state": "NOT_ADMITTED",
+      "uncertainty_record_required": true,
+      "raw_data_retention_required": true,
+      "evidence_state": "TEMPLATE_ONLY"
+    },
+    {
+      "channel_id": "DIFFUSE_HORIZONTAL_SOLAR_IRRADIANCE",
+      "quantity": "DIFFUSE_HORIZONTAL_SOLAR_IRRADIANCE",
+      "unit": "W/m2",
+      "group": "WEATHER",
+      "sample_interval_s": 60,
+      "instrument_assignment": null,
+      "calibration_state": "NOT_ADMITTED",
+      "uncertainty_record_required": true,
+      "raw_data_retention_required": true,
+      "evidence_state": "TEMPLATE_ONLY"
+    },
+    {
+      "channel_id": "PANEL_PLANE_WIND_SPEED",
+      "quantity": "PANEL_EXPOSURE_WIND_SPEED",
+      "unit": "m/s",
+      "group": "WEATHER",
+      "sample_interval_s": 60,
+      "instrument_assignment": null,
+      "calibration_state": "NOT_ADMITTED",
+      "uncertainty_record_required": true,
+      "raw_data_retention_required": true,
+      "evidence_state": "TEMPLATE_ONLY"
+    },
+    {
+      "channel_id": "PANEL_PLANE_WIND_DIRECTION",
+      "quantity": "PANEL_EXPOSURE_WIND_DIRECTION",
+      "unit": "deg",
+      "group": "WEATHER",
+      "sample_interval_s": 60,
+      "instrument_assignment": null,
+      "calibration_state": "NOT_ADMITTED",
+      "uncertainty_record_required": true,
+      "raw_data_retention_required": true,
+      "evidence_state": "TEMPLATE_ONLY"
     }
   ],
   "required_channel_metadata": [
@@ -310,7 +442,11 @@
     "location_id_and_coordinate_or_geometry_binding",
     "height_and_mounting_orientation",
     "clock_source_and_synchronization_status",
-    "maintenance_and_replacement_history"
+    "maintenance_and_replacement_history",
+    "radiometer_spectral_band_and_calibration_method",
+    "wind_exposure_and_anemometer_mounting",
+    "flow_meter_range_and_calibrated_direction",
+    "panel_orientation_and_sky_view_geometry_binding"
   ],
   "water_balance_terms": [
     "rain_capture",
@@ -330,7 +466,11 @@
     "evaporation_interface_latent_heat_estimate",
     "pump_and_filter_electricity",
     "occupied_zone_thermal_response",
-    "unclosed_residual_with_uncertainty"
+    "unclosed_residual_with_uncertainty",
+    "panel_longwave_radiative_flux_boundary",
+    "panel_loop_heat_transfer_and_pump_energy",
+    "external_sink_cycle_closure",
+    "sky_view_and_panel_exposure_weather"
   ],
   "privacy_controls": {
     "cameras_permitted": false,
