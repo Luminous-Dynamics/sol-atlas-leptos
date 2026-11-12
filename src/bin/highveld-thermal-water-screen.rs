@@ -186,9 +186,16 @@ fn main() {
                 process::exit(2);
             });
             match calculate(&input) {
-                Ok(report) => println!("{}", serde_json::to_string_pretty(&report).unwrap_or_default()),
+                Ok(report) => println!(
+                    "{}",
+                    serde_json::to_string_pretty(&report).unwrap_or_default()
+                ),
                 Err(errors) => {
-                    eprintln!("{}", serde_json::to_string_pretty(&json!({"errors": errors})).unwrap_or_default());
+                    eprintln!(
+                        "{}",
+                        serde_json::to_string_pretty(&json!({"errors": errors}))
+                            .unwrap_or_default()
+                    );
                     process::exit(1);
                 }
             }
@@ -263,6 +270,9 @@ mod tests {
         input["discretionary_water_budget_l"] = json!(3.0);
         let result = calculate(&input).expect("screen should report budget failure");
         assert_eq!(result["water_budget_exceeded"].as_bool(), Some(true));
-        assert_eq!(result["operational_eligibility"].as_str(), Some("BLOCKED_OR_UNKNOWN"));
+        assert_eq!(
+            result["operational_eligibility"].as_str(),
+            Some("BLOCKED_OR_UNKNOWN")
+        );
     }
 }
