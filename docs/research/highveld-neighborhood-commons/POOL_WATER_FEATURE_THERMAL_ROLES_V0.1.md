@@ -19,7 +19,7 @@ A typical pool can be a useful peak-shifting thermal buffer or warm-side heat si
 
 For direct hydronic radiant cooling, verify the actual supply-water temperature, exchanger approach, room dew point/condensation constraints and load profile. Pool water that is too warm to accept heat at a useful temperature cannot be counted as useful cooling capacity.
 
-## 2. Nine comparison archetypes
+## 2. Ten comparison archetypes
 
 | Archetype | Intended thermal role | Key caveat |
 |---|---|---|
@@ -30,6 +30,7 @@ For direct hydronic radiant cooling, verify the actual supply-water temperature,
 | SHADED_NO_SPRAY_RILL | Amenity and possible local microclimate effect | No indoor cooling claim without a measured building-side path; aerosol classification must be explicit |
 | AEROSOL_GENERATING_FOUNTAIN | Amenity / possible evaporative effect | Aerosol and microbial water-management program required; not a default passive-cooling recommendation |
 | CLOSED_LOOP_CISTERN_THERMAL_BATTERY | Finite thermal buffer | Cistern capacity and external regeneration must be qualified; source-water rights/quality are separate |
+| POOL_HEAT_RECOVERY_FROM_COOLING_LOAD | Useful heat recovery for pool heating | Heat demand, pool setpoint/upper limit and overflow heat-rejection path must be metered |
 | INDIRECT_EVAPORATIVE_HEAT_REJECTION | Conditional latent heat rejection through isolated exchanger | Water, approach temperature, drift/aerosols, treatment and water quality constraints |
 | DIRECT_MISTING_SYSTEM | Direct evaporative cooling | Highest scrutiny: aerosols, potable/qualified water, microbial control, humidity and water entitlement |
 
@@ -49,6 +50,24 @@ Compare at least:
 The potential paradigm shift is a **time-varying cover**: reject solar gains during high-sun periods, then expose the pool at night only when the external sky/air/ground conditions make regeneration useful and water loss is acceptable. This is a testable hypothesis, not an established optimum. An opaque cover may prevent the very long-wave/evaporative exchange needed for regeneration; an exposed water surface may lose too much water. Compare the whole 24-hour and seasonal cycle.
 
 A 2025 indoor-pool field study reported up to 70% reduction in evaporation for an unoccupied pool when a movable floor functioned as a cover. That result belongs to its measured indoor facility and operating conditions; it is not a universal outdoor-pool saving factor.
+
+
+## 3.1 Pool heat recovery: a proven industry option that needs local qualification
+
+Recovering building cooling condenser heat for pool heating is an established concept, not a new Highveld invention. A UC Davis / Western Cooling Efficiency Center field demonstration at a San Diego hotel measured average 5% electricity savings, peak reductions up to 12%, and 29% lower natural-gas pool-heating use over its four-week trial. A separate 2013 California feasibility analysis estimated 25–30% cooling-electricity savings and 30–35% peak-demand reduction for selected conditions; those are modelled estimates and are not the same evidence class as the field result.
+
+The matched Highveld experiment compares:
+- conventional building heat rejection to outdoor air plus conventional pool heating;
+- controlled condenser-heat recovery to the pool through an isolated heat exchanger;
+- heat recovery with a qualified overflow dry/radiative/ground sink when the pool has no remaining thermal headroom;
+- heat recovery with the pool at its setpoint or upper operating limit, where no additional heat may be accepted.
+
+Measure recovered heat, displaced pool-heater energy, cooling compressor electricity, condenser temperature/approach, pool temperature trajectory, auxiliary sink rejection, pump electricity and any change in water/air humidity loads. The pool is a useful heat demand only when heat is actually required and the upper water-temperature limit permits transfer. When the pool is warm or demand is absent, the system must revert to a qualified external rejection path. A pool cannot be counted as an infinite sink or continuously accept condenser heat.
+
+References:
+- [UC Davis Western Cooling Efficiency Center: hotel pool heat-recovery field demonstration](https://wcec.ucdavis.edu/swimming-pools-as-heatsinks-for-air-conditioners/)
+- [ETCC / SDG&E project and report record](https://www.etcc-ca.com/reports/waste-heat-recovery-air-conditioner-swimming-pool-heating)
+- [Harrington & Modera: California pool heat-sink feasibility analysis](https://www.sciencedirect.com/science/article/abs/pii/S0378778812006871)
 
 ## 4. Evaporation, moisture and health constraints
 
@@ -78,7 +97,7 @@ EnergyPlus 26.2's ThermalStorage:PCM is a separate useful storage comparator. Mo
 
 ## 6. Matched 72-case benchmark
 
-Nine archetypes × eight scenarios = 72 registered comparisons:
+Ten archetypes × eight scenarios = 80 registered comparisons:
 1. HIGH_SOLAR_HOT_DRY;
 2. HOT_HUMID_LOW_EVAPORATIVE_POTENTIAL;
 3. EXTREME_WATER_CURTAILMENT;
