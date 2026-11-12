@@ -81,3 +81,7 @@ jobs:
         run: cargo test --bin highveld-thermal-water-screen
       - name: Execute thermal water analytical known-answer screen
         run: cargo run --bin highveld-thermal-water-screen -- --self-test
+      - name: Test thermal sink cascade qualifier
+        run: cargo test --bin highveld-thermal-sink-cascade-qualifier
+      - name: Execute thermal sink cascade manifest audit
+        run: cargo run --bin highveld-thermal-sink-cascade-qualifier -- --self-test
