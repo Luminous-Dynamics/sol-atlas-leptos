@@ -1,0 +1,217 @@
+{
+  "profile_id": "luminous.suf.muddi_profile.v0.1",
+  "status": "draft_crosswalk_only",
+  "created_date": "2026-11-12",
+  "standard": {
+    "name": "OGC Model for Underground Data Definition and Integration (MUDDI) Part 1",
+    "version": "1.0",
+    "document": "OGC 23-024",
+    "approval_date": "2024-06-07",
+    "publication_date": "2024-07-05",
+    "url": "https://docs.ogc.org/is/23-024/23-024.html"
+  },
+  "claim_ceiling": "This artifact maps MUDDI concepts to existing Luminous ownership boundaries. It is not a complete logical model, schema implementation, MUDDI conformance result, asset registry, survey validation, engineering approval, or authorization to disclose critical-infrastructure data.",
+  "identifier_contract": [
+    {
+      "muddi_identifier": "ObjectID",
+      "meaning": "Persistent identifier of the real-world object",
+      "owner": "responsible_utility_or_asset_owner",
+      "sol_atlas_role": "preserve_owner_identifier_and_namespace; do_not_mint_canonical_asset_identity"
+    },
+    {
+      "muddi_identifier": "RecordID",
+      "meaning": "Persistent identifier of a representation in a dataset or data product",
+      "owner": "dataset_or_data_product_owner",
+      "sol_atlas_role": "preserve_record_identity_and_revision"
+    },
+    {
+      "muddi_identifier": "SystemID",
+      "meaning": "Identifier assigned by an implementation system",
+      "owner": "issuing_system",
+      "sol_atlas_role": "preserve_with_system_provider_namespace"
+    }
+  ],
+  "core_classes": [
+    {
+      "class": "MUDDIObject",
+      "status": "mapped_by_reference",
+      "owner": "Sol-Atlas evidence/spatial envelope + external object owner",
+      "role": "common object/record geometry and identifier envelope",
+      "caveat": "ObjectID is not a Sol-Atlas-generated canonical asset ID."
+    },
+    {
+      "class": "MUDDIAsset",
+      "status": "externally_owned",
+      "owner": "responsible utility / asset owner",
+      "role": "reference asset identity, asset type and owner-issued attributes",
+      "caveat": "Sol-Atlas is not the authoritative asset registry."
+    },
+    {
+      "class": "MUDDIEvent",
+      "status": "mapped_by_reference",
+      "owner": "Sol-Atlas evidence graph + Mycelix / event owner",
+      "role": "time-bounded lifecycle or observation event references",
+      "caveat": "Event record does not establish that the represented physical event was correctly performed."
+    },
+    {
+      "class": "MUDDISpace",
+      "status": "mapped_by_reference",
+      "owner": "Sol-Atlas spatial core",
+      "role": "site, service area, planning area and spatial scope"
+    },
+    {
+      "class": "Network",
+      "status": "externally_owned",
+      "owner": "utility network owner",
+      "role": "reference a network identity and revision"
+    },
+    {
+      "class": "NetworkAsset",
+      "status": "externally_owned",
+      "owner": "utility network owner",
+      "role": "network membership reference for an asset"
+    },
+    {
+      "class": "NetworkConveyance",
+      "status": "externally_owned",
+      "owner": "utility domain system",
+      "role": "reference commodity/service conveyance with declared type and limits",
+      "caveat": "No engineering ratings are inferred by the crosswalk."
+    },
+    {
+      "class": "NetworkNode",
+      "status": "mapped_by_reference",
+      "owner": "utility network owner + Sol-Atlas geometry view",
+      "role": "topology node reference with spatial evidence"
+    },
+    {
+      "class": "NetworkLink",
+      "status": "mapped_by_reference",
+      "owner": "utility network owner + Sol-Atlas geometry view",
+      "role": "topology edge reference with geometry revision and evidence"
+    },
+    {
+      "class": "NetworkAccessory",
+      "status": "mapped_by_reference",
+      "owner": "utility network owner",
+      "role": "ducts, access chambers, valves, sensors and other supporting asset references",
+      "caveat": "Access details are classified before any display/export."
+    }
+  ],
+  "extended_concepts": [
+    {
+      "class": "Observation",
+      "status": "mapped_as_extension_candidate",
+      "owner": "survey/instrument/inspection provider + Sol-Atlas evidence graph",
+      "role": "record a time-space observation about a feature of interest and bind its supporting evidence",
+      "caveat": "MUDDI Observation is in the Extended Conceptual Model; extensions are optional unless adopted by the logical model."
+    }
+  ],
+  "evidence_envelope": {
+    "required_fields": [
+      "feature_of_interest_ref_or_explicit_unresolved",
+      "observer_or_custodian",
+      "method_revision",
+      "instrument_and_calibration_ref",
+      "observation_time",
+      "valid_time_scope",
+      "spatial_frame",
+      "geometry_uncertainty",
+      "raw_artifact_ref",
+      "source_snapshot_digest_when_available",
+      "rights_and_custody_state",
+      "processing_lineage",
+      "quality_state",
+      "reviewer_or_adjudicator",
+      "disclosure_class"
+    ],
+    "relations": [
+      "supports",
+      "contradicts",
+      "supersedes",
+      "corroborates",
+      "duplicates",
+      "derived_from"
+    ],
+    "integrity_limit": "Digest binding detects changed bytes when bytes are available; it does not authenticate publisher identity or prove scientific/physical truth."
+  },
+  "spatial_temporal_contract": {
+    "required": [
+      "geometry_type",
+      "dimension",
+      "horizontal_crs",
+      "vertical_datum_or_explicit_not_applicable",
+      "coordinate_epoch_or_explicit_not_applicable",
+      "axis_order",
+      "units",
+      "uncertainty_representation",
+      "valid_time",
+      "observation_time",
+      "record_time",
+      "source_revision"
+    ],
+    "dimensions": [
+      "2D",
+      "2.5D",
+      "3D",
+      "topology_only"
+    ],
+    "coordinate_rule": "No transform or merge across incompatible CRS/datum/epoch without a declared transformation and error budget."
+  },
+  "epistemic_and_availability_states": [
+    "observed",
+    "compiled_secondary",
+    "model_inference",
+    "scenario_assumption",
+    "speculative_hypothesis",
+    "unknown",
+    "unobserved",
+    "unavailable",
+    "withheld",
+    "stale",
+    "conflicting",
+    "unsupported"
+  ],
+  "disclosure_classes": [
+    {
+      "class": "public_aggregate",
+      "audience": "public",
+      "geometry": "aggregated service area/status only; no exact access points, topology, high-consequence routes or sensor locations"
+    },
+    {
+      "class": "partner_generalized",
+      "audience": "approved planning partners",
+      "geometry": "generalized geometry and minimum attributes for named purpose"
+    },
+    {
+      "class": "operational",
+      "audience": "authorized utility/contractor role",
+      "geometry": "exact scope-limited geometry for approved work and time window"
+    },
+    {
+      "class": "restricted_critical",
+      "audience": "designated asset-owner/security role",
+      "geometry": "highest-sensitivity geometry, dependencies and security observations; explicit approval and audit"
+    }
+  ],
+  "synthetic_fixture_policy": {
+    "abstract_only": true,
+    "real_coordinates_permitted": false,
+    "secrets_permitted": false,
+    "status": "not_yet_created"
+  },
+  "conformance_status": {
+    "core_concepts_mapped_or_owned": 10,
+    "core_concepts_total": 10,
+    "abstract_tests_executed": false,
+    "logical_model_complete": false,
+    "claim": "draft mapping; not conformant"
+  },
+  "unresolved": [
+    "Choose concrete ISO 19107 geometry encodings and coordinate/reference-frame profile for each asset class.",
+    "Define local jurisdiction and utility-owner mappings without making PAS 128 a South African legal requirement.",
+    "Specify signed actor/credential references and access-control policy integration with Mycelix and utility IAM.",
+    "Prove end-to-end round-trip preservation against the OGC MUDDI core abstract test suite.",
+    "Resolve mapping of network conveyance semantics and topology ownership for each participating utility."
+  ]
+}
