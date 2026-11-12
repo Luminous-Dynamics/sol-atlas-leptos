@@ -18,7 +18,7 @@ struct Corpus {
     synthetic_only: bool,
     claim_ceiling: String,
     parameter_domain: Vec<Axis>,
-    required_service_ids: Vec<String>,
+    required_services: Vec<RequiredService>,
     cells: Vec<Cell>,
 }
 
@@ -35,8 +35,16 @@ struct Axis {
 #[serde(deny_unknown_fields)]
 struct AxisBound {
     axis_id: String,
+    unit: String,
     lower: f64,
     upper: f64,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct RequiredService {
+    service_id: String,
+    unit: String,
 }
 
 #[derive(Debug, Deserialize)]
@@ -68,7 +76,6 @@ struct CoverageEvidence {
 enum CoverageKind {
     PointSamplesOnly,
     IntervalEnclosure,
-    ExhaustiveFiniteGrid,
 }
 
 #[derive(Debug, Deserialize)]
@@ -227,8 +234,8 @@ fn validate_corpus(corpus: &Corpus) -> Result<(), String> {
     if corpus.parameter_domain.is_empty() || corpus.cells.is_empty() {
         return Err("parameter_domain and cells must be non-empty".to_string());
     }
-    if corpus.required_service_ids.is_empty() {
-        return Err("required_service_ids must be non-empty".to_string());
+    if corpus.required_services.is_empty() {
+        return Err("required_services must be non-empty".to_string());
     }
 
     let mut axis_ids = BTreeSet::new();
@@ -245,9 +252,15 @@ fn validate_corpus(corpus: &Corpus) -> Result<(), String> {
     }
 
     let mut service_ids = BTreeSet::new();
-    for service_id in &corpus.required_service_ids {
-        if service_id.trim().is_empty() || !service_ids.insert(service_id.as_str()) {
-            return Err(format!("empty or duplicate required service ID: {service_id}"));
+    for service in &corpus.required_services {
+        if service.service_id.trim().is_empty()
+            || service.unit.trim().is_empty()
+            || !service_ids.insert(service.service_id.as_str())
+        {
+            return Err(format!(
+                "empty or duplicate required service ID/unit: {}",
+                service.service_id
+            ));
         }
     }
 
@@ -266,6 +279,12 @@ fn validate_corpus(corpus: &Corpus) -> Result<(), String> {
             }
             let axis = corpus.parameter_domain.iter().find(|axis| axis.axis_id == bound.axis_id)
                 .ok_or_else(|| format!("{}: unknown axis {}", cell.cell_id, bound.axis_id))?;
+            if bound.unit != axis.unit {
+                return Err(format!(
+                    "{}: unit mismatch for axis {}: expected {}, got {}",
+                    cell.cell_id, bound.axis_id, axis.unit, bound.unit
+                ));
+            }
             if !bound.lower.is_finite()
                 || !bound.upper.is_finite()
                 || bound.lower >= bound.upper
@@ -299,12 +318,22 @@ fn validate_corpus(corpus: &Corpus) -> Result<(), String> {
             }
             let mut local_services = BTreeSet::new();
             for margin in &outcomes.service_floor_margins {
+                let required_service = corpus.required_services.iter()
+                    .find(|service| service.service_id == margin.service_id)
+                    .ok_or_else(|| format!(
+                        "{}: unexpected service-floor margin {}",
+                        cell.cell_id, margin.service_id
+                    ))?;
                 if margin.service_id.trim().is_empty()
                     || margin.unit.trim().is_empty()
+                    || margin.unit != required_service.unit
                     || !margin.minimum_margin.is_finite()
                     || !local_services.insert(margin.service_id.as_str())
                 {
-                    return Err(format!("{}: invalid or duplicate service-floor margin", cell.cell_id));
+                    return Err(format!(
+                        "{}: invalid, unit-mismatched or duplicate service-floor margin {}",
+                        cell.cell_id, margin.service_id
+                    ));
                 }
             }
         }
@@ -354,7 +383,7 @@ fn verify_corpus(corpus: &Corpus, input_bytes: &[u8], artifact_root: &Path) -> R
         let proof_ok = verify_artifact(cell.coverage.proof_artifact.as_ref(), artifact_root)?;
         results.push(assess_cell(
             cell,
-            &corpus.required_service_ids,
+            &corpus.required_services,
             source_ok,
             model_ok,
             proof_ok,
@@ -389,7 +418,7 @@ fn verify_corpus(corpus: &Corpus, input_bytes: &[u8], artifact_root: &Path) -> R
 
 fn assess_cell(
     cell: &Cell,
-    required_service_ids: &[String],
+    required_services: &[RequiredService],
     source_ok: bool,
     model_ok: bool,
     proof_ok: bool,
@@ -494,7 +523,7 @@ fn assess_cell(
 
     let whole_cell_evidence = cell.coverage.covers_entire_cell
         && cell.coverage.uncertainty_set_covered
-        && cell.coverage.coverage_kind != CoverageKind::PointSamplesOnly
+        && cell.coverage.coverage_kind == CoverageKind::IntervalEnclosure
         && outcomes.scope == OutcomeScope::WholeCellBound
         && proof_ok
         && cell.coverage.proof_method.as_deref().is_some_and(|value| !value.trim().is_empty())
@@ -519,9 +548,11 @@ fn assess_cell(
         && outcomes.failure_to_trip_denominator.is_some();
     let coordination_complete = outcomes.minimum_coordination_margin_pu.is_some()
         && outcomes.required_coordination_margin_pu.is_some();
-    let observed_services: BTreeSet<&str> = outcomes.service_floor_margins
-        .iter().map(|margin| margin.service_id.as_str()).collect();
-    let services_complete = required_service_ids.iter().all(|service| observed_services.contains(service.as_str()));
+    let services_complete = required_services.iter().all(|required| {
+        outcomes.service_floor_margins.iter().any(|margin| {
+            margin.service_id == required.service_id && margin.unit == required.unit
+        })
+    });
 
     if !counts_complete || !coordination_complete || !services_complete {
         if !counts_complete { reasons.push("false-trip or failure-to-trip bounds/denominators are incomplete".to_string()); }
@@ -614,11 +645,11 @@ mod tests {
     }
 
     #[test]
-    fn frozen_fixture_has_one_certified_one_point_counterexample_and_three_unknown_cells() {
+    fn frozen_fixture_has_one_certified_three_excluded_and_two_unknown_cells() {
         let (corpus, bytes, root) = fixture();
         let report = verify_corpus(&corpus, &bytes, &root).expect("valid synthetic corpus");
         assert_eq!(report.certified_cell_count, 1);
-        assert_eq!(report.excluded_cell_count, 2);
+        assert_eq!(report.excluded_cell_count, 3);
         assert_eq!(report.unknown_cell_count, 2);
     }
 
@@ -670,5 +701,40 @@ mod tests {
         outcomes.false_trip_denominator = Some(0);
         let error = validate_corpus(&corpus).unwrap_err();
         assert!(error.contains("denominator"));
+    }
+
+    #[test]
+    fn axis_unit_mismatch_is_rejected() {
+        let (mut corpus, _bytes, _root) = fixture();
+        corpus.cells[0].bounds[0].unit = "mA".to_string();
+        let error = validate_corpus(&corpus).unwrap_err();
+        assert!(error.contains("unit mismatch"));
+    }
+
+    #[test]
+    fn service_floor_unit_mismatch_is_rejected() {
+        let (mut corpus, _bytes, _root) = fixture();
+        corpus.cells[0].outcomes.as_mut().unwrap().service_floor_margins[0].unit =
+            "litres_per_second".to_string();
+        let error = validate_corpus(&corpus).unwrap_err();
+        assert!(error.contains("unit-mismatched"));
+    }
+
+    #[test]
+    fn duplicate_axis_bound_is_rejected() {
+        let (mut corpus, _bytes, _root) = fixture();
+        corpus.cells[0].bounds[1].axis_id = corpus.cells[0].bounds[0].axis_id.clone();
+        let error = validate_corpus(&corpus).unwrap_err();
+        assert!(error.contains("duplicate cell bound"));
+    }
+
+    #[test]
+    fn failure_to_trip_counterexample_excludes_the_cell() {
+        let (corpus, bytes, root) = fixture();
+        let report = verify_corpus(&corpus, &bytes, &root).expect("valid synthetic corpus");
+        let cell = report.cells.iter()
+            .find(|cell| cell.cell_id == "cell-006-failure-to-trip-counterexample")
+            .unwrap();
+        assert_eq!(cell.classification, Classification::Excluded);
     }
 }

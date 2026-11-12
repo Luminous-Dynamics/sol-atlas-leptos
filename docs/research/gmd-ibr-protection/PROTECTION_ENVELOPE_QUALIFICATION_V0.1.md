@@ -15,7 +15,7 @@ Let the declared parameter domain be partitioned into cells (C_i). The verifier 
 - **EXCLUDED:** qualified evidence contains a counterexample or bound that violates a protection or service constraint.
 - **UNKNOWN:** the cell lacks full-cell coverage, complete metrics, digest-bound evidence, or a capability required by the claim.
 
-The certified set is therefore only the union of cells that meet the declared contract. Unknown cells are not silently interpolated, labelled safe, or removed from the denominator.
+The certified set is therefore only the union of cells that meet the declared contract. Unknown cells are not silently interpolated, labelled safe, or removed from the denominator. v0.1 deliberately supports only interval enclosures as whole-cell coverage; finite point grids are not accepted as continuous-domain certificates.
 
 ## Why this is more rigorous than a pointwise pass/fail grid
 
@@ -25,15 +25,15 @@ A parameter sweep of 100 points can still miss a narrow failure region between s
 
 The current Rust verifier checks:
 - strict typed JSON parsing with unknown fields rejected;
-- parameter-axis uniqueness, dimensions and cell bounds within the declared domain;
+- parameter-axis uniqueness, dimensions, axis-unit identity and cell bounds within the declared domain;
 - safe relative artifact paths and SHA-256 integrity for source, model and proof artifacts;
 - valid, separately counted false-trip and failure-to-trip bounds;
 - owner-defined coordination margin;
-- individual service-floor margins, in native units;
+- individual service-floor margins, in native units, with required service-unit matching;
 - required versus available evidence capabilities;
 - the three dispositions and deterministic receipt digest.
 
-The tool does not validate the mathematical correctness of an interval proof producer. The synthetic certificate file exists only to exercise digest binding.
+The tool does not validate the mathematical correctness of an interval proof producer, and v0.1 does not accept finite-grid enumeration as proof of a continuous cell. The synthetic certificate file exists only to exercise digest binding.
 
 ## The fidelity breakthrough: capabilities, not a scalar ladder
 

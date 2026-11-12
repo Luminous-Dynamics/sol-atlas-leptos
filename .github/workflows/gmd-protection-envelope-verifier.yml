@@ -31,11 +31,13 @@ jobs:
           components: rustfmt
       - name: Format verifier
         run: cargo fmt --manifest-path tools/gmd-protection-envelope-verifier/Cargo.toml -- --check
-      - name: Run offline locked tests
-        run: cargo test --manifest-path tools/gmd-protection-envelope-verifier/Cargo.toml --locked --offline
+      - name: Run locked Clippy
+        run: cargo clippy --manifest-path tools/gmd-protection-envelope-verifier/Cargo.toml --all-targets --locked -- -D warnings
+      - name: Run locked tests
+        run: cargo test --manifest-path tools/gmd-protection-envelope-verifier/Cargo.toml --locked
       - name: Verify frozen synthetic corpus
         run: |
-          cargo run --manifest-path tools/gmd-protection-envelope-verifier/Cargo.toml --locked --offline -- \
+          cargo run --manifest-path tools/gmd-protection-envelope-verifier/Cargo.toml --locked -- \
             docs/research/gmd-ibr-protection/fixtures/gmd_protection_envelope_corpus_v0_1.json \
             > /tmp/gmd-protection-envelope-report.json
           grep -q '"certified_cell_count": 1' /tmp/gmd-protection-envelope-report.json
