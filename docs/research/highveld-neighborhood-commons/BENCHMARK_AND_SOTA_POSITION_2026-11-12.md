@@ -316,3 +316,26 @@ A credible Highveld result should demonstrate all of the following on the same f
 8. Exact replay by an independent operator.
 
 The advancement is the coupled, evidence-carrying service layer around the best specialist engines. It is not a claim that a new Luminous model outperforms EnergyPlus at heat balance, Modelica at plant dynamics or CFD at outdoor flow. All new matrices remain NOT_EXECUTED until the required model, data-rights, instrument and independent-review gates are met.
+
+
+## 16. Refuge network: static coverage is not service continuity
+
+Recent literature indicates a shift from static cooling-centre coverage toward building-level exposure, access and time-varying supply/demand:
+- A May 2025 geospatial framework ranked potential/available cooling centres in five U.S. cities using physical/social factors and accessibility/population coverage. It reported large gaps in walking access and energy-burden coverage; this is a siting/access baseline, not an operational capacity or outage replay.
+- A September 2026 building-level heat-risk framework applied indoor thermal exposure and cooling-centre accessibility across 214,681 Phoenix residences and showed that building exposure and cooling-centre access can diverge spatially.
+- A September 2026 state/process study explicitly evaluated heatwave-induced cooling-service supply/demand mismatch and functional degradation of fixed-location cooling supply.
+- A 2026 urban-heat systematic review recommends operational twins linked to real-time sensing, outage risk, transit conditions and cooling-site occupancy, as well as interoperable benchmark datasets.
+
+Highveld now has two distinct layers:
+1. **Static snapshot feasibility:** aggregate max-flow across anonymous cohorts and shared refuges, using route accessibility, capacity and safe-water limits.
+2. **Temporal service degradation:** evaluate ordered snapshots and integrate unmet-place-hours and accessible unmet-place-hours, while leaving native event IDs, clock and causal chronology with Symtropy.
+
+These remain synthetic benchmarks. A credible win would show a better worst-cohort service ratio and lower unmet-place-hours under common held-out heat/outage/route/capacity traces—not simply more sites on a map.
+
+Sources:
+- [ORNL, Where to cool off: a geospatial framework for placement of cooling centers, May 2025](https://www.ornl.gov/publication/where-cool-geospatial-framework-placement-cooling-centers)
+- [A two-dimensional framework for building-level heat risk assessment: Refining vulnerability identification and advancing equity, September 2026](https://www.sciencedirect.com/science/article/pii/S2212420926003535)
+- [Urban heat resilience from a state–process perspective: Heatwave-induced cooling service supply–demand mismatch and hierarchical spatial allocation of greening, 15 September 2026](https://www.sciencedirect.com/science/article/pii/S2210670726004762)
+- [Urban heat, vulnerability, and mitigation in U.S. cities: A systematic review, 2026](https://doi.org/10.1016/j.scsadv.2026.100077)
+
+**Claim boundary:** no real refuge location, route, resident demand, operational capacity, outage or heatwave chronology is admitted by these new artifacts. No live allocation or emergency dispatch is implemented.
