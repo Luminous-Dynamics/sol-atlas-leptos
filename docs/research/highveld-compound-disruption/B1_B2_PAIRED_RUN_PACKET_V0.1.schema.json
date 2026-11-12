@@ -132,7 +132,8 @@
         "engine_input_sha256",
         "engine_output_sha256",
         "operator_minutes",
-        "decisions"
+        "decisions",
+        "engine_configuration_sha256"
       ],
       "properties": {
         "engine_tool_versions": {
@@ -244,6 +245,9 @@
               "$ref": "#/$defs/sha256"
             }
           }
+        },
+        "engine_configuration_sha256": {
+          "$ref": "#/$defs/sha256"
         }
       }
     },
