@@ -1,0 +1,109 @@
+{
+  "schema_version": "0.1",
+  "study_id": "HIGHVELD-REFUGE-ALLOCATION-AUDIT-001",
+  "case_id": "SYNTHETIC_MULTI_AREA_REFUGE_PLAN_001",
+  "maturity": "SYNTHETIC_KNOWN_ANSWER",
+  "execution_status": "NO_ALLOCATION_OR_BOOKING",
+  "sites": [
+    {
+      "site_id": "SYNTHETIC_POD_A",
+      "availability_state": "ELIGIBLE_FOR_HUMAN_CAPACITY_PLANNING",
+      "free_total_places": 10,
+      "free_accessible_places": 4,
+      "free_safe_water_l": 100,
+      "site_evidence_ref": "SYNTHETIC_SITE_EVIDENCE_A",
+      "capacity_evidence_ref": "SYNTHETIC_CAPACITY_EVIDENCE_A",
+      "water_evidence_ref": "SYNTHETIC_WATER_EVIDENCE_A"
+    },
+    {
+      "site_id": "SYNTHETIC_POD_B",
+      "availability_state": "ELIGIBLE_FOR_HUMAN_CAPACITY_PLANNING",
+      "free_total_places": 8,
+      "free_accessible_places": 2,
+      "free_safe_water_l": 60,
+      "site_evidence_ref": "SYNTHETIC_SITE_EVIDENCE_B",
+      "capacity_evidence_ref": "SYNTHETIC_CAPACITY_EVIDENCE_B",
+      "water_evidence_ref": "SYNTHETIC_WATER_EVIDENCE_B"
+    }
+  ],
+  "demand_areas": [
+    {
+      "group_id": "SYNTHETIC_AREA_1",
+      "requested_total_places": 6,
+      "requested_accessible_places": 2,
+      "requested_safe_water_l": 20,
+      "allocations": [
+        {
+          "site_id": "SYNTHETIC_POD_A",
+          "total_places": 4,
+          "accessible_places": 2,
+          "safe_water_l": 12,
+          "route_state": "REACHABLE",
+          "route_accessibility_state": "QUALIFIED",
+          "route_evidence_ref": "SYNTHETIC_ROUTE_A1"
+        },
+        {
+          "site_id": "SYNTHETIC_POD_B",
+          "total_places": 2,
+          "accessible_places": 0,
+          "safe_water_l": 8,
+          "route_state": "REACHABLE",
+          "route_accessibility_state": "QUALIFIED",
+          "route_evidence_ref": "SYNTHETIC_ROUTE_B1"
+        }
+      ]
+    },
+    {
+      "group_id": "SYNTHETIC_AREA_2",
+      "requested_total_places": 7,
+      "requested_accessible_places": 3,
+      "requested_safe_water_l": 30,
+      "allocations": [
+        {
+          "site_id": "SYNTHETIC_POD_A",
+          "total_places": 4,
+          "accessible_places": 1,
+          "safe_water_l": 16,
+          "route_state": "REACHABLE",
+          "route_accessibility_state": "QUALIFIED",
+          "route_evidence_ref": "SYNTHETIC_ROUTE_A2"
+        },
+        {
+          "site_id": "SYNTHETIC_POD_B",
+          "total_places": 3,
+          "accessible_places": 2,
+          "safe_water_l": 14,
+          "route_state": "REACHABLE",
+          "route_accessibility_state": "QUALIFIED",
+          "route_evidence_ref": "SYNTHETIC_ROUTE_B2"
+        }
+      ]
+    },
+    {
+      "group_id": "SYNTHETIC_AREA_3",
+      "requested_total_places": 5,
+      "requested_accessible_places": 1,
+      "requested_safe_water_l": 20,
+      "allocations": [
+        {
+          "site_id": "SYNTHETIC_POD_A",
+          "total_places": 2,
+          "accessible_places": 1,
+          "safe_water_l": 10,
+          "route_state": "REACHABLE",
+          "route_accessibility_state": "QUALIFIED",
+          "route_evidence_ref": "SYNTHETIC_ROUTE_A3"
+        },
+        {
+          "site_id": "SYNTHETIC_POD_B",
+          "total_places": 2,
+          "accessible_places": 0,
+          "safe_water_l": 8,
+          "route_state": "REACHABLE",
+          "route_accessibility_state": "QUALIFIED",
+          "route_evidence_ref": "SYNTHETIC_ROUTE_B3"
+        }
+      ]
+    }
+  ]
+}
