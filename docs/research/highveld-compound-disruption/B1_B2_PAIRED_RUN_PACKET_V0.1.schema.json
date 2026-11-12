@@ -4,50 +4,136 @@
   "title": "Highveld B1/B2 paired experiment run packet v0.1",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schema_version", "benchmark_contract_id", "experiment_id", "claim_ceiling", "pairs"],
+  "required": [
+    "schema_version",
+    "benchmark_contract_id",
+    "experiment_id",
+    "claim_ceiling",
+    "pairs"
+  ],
   "properties": {
-    "schema_version": { "const": "0.1.0" },
-    "benchmark_contract_id": { "const": "highveld-cross-tool-household-resilience-benchmark-v0.1" },
-    "experiment_id": { "type": "string", "minLength": 1 },
-    "claim_ceiling": { "type": "string", "minLength": 20 },
-    "pairs": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/pair" } }
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "benchmark_contract_id": {
+      "const": "highveld-cross-tool-household-resilience-benchmark-v0.1"
+    },
+    "experiment_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "claim_ceiling": {
+      "type": "string",
+      "minLength": 20
+    },
+    "pairs": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/pair"
+      }
+    }
   },
   "$defs": {
-    "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
     "evidence": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["evidence_id", "available_at_offset_s", "used_for_decision"],
+      "required": [
+        "evidence_id",
+        "available_at_offset_s",
+        "used_for_decision"
+      ],
       "properties": {
-        "evidence_id": { "type": "string", "minLength": 1 },
-        "available_at_offset_s": { "type": "integer", "minimum": 0 },
-        "used_for_decision": { "type": "boolean" }
+        "evidence_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "available_at_offset_s": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "used_for_decision": {
+          "type": "boolean"
+        }
       }
     },
     "decision": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["service_id", "status", "hard_floor_state", "evidence"],
+      "required": [
+        "service_id",
+        "status",
+        "hard_floor_state",
+        "evidence"
+      ],
       "properties": {
-        "service_id": { "type": "string", "minLength": 1 },
-        "status": { "enum": ["PASS", "FAIL", "BLOCKED", "UNKNOWN"] },
-        "hard_floor_state": { "enum": ["SATISFIED", "VIOLATED", "UNKNOWN", "NOT_APPLICABLE"] },
+        "service_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "enum": [
+            "PASS",
+            "FAIL",
+            "BLOCKED",
+            "UNKNOWN"
+          ]
+        },
+        "hard_floor_state": {
+          "enum": [
+            "SATISFIED",
+            "VIOLATED",
+            "UNKNOWN",
+            "NOT_APPLICABLE"
+          ]
+        },
         "evidence_validation": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["rights_state", "scope_join_state"],
+          "required": [
+            "rights_state",
+            "scope_join_state"
+          ],
           "properties": {
-            "rights_state": { "enum": ["VALID", "STALE", "REVOKED", "UNKNOWN"] },
-            "scope_join_state": { "enum": ["APPROVED", "MISMATCH", "UNKNOWN"] }
+            "rights_state": {
+              "enum": [
+                "VALID",
+                "STALE",
+                "REVOKED",
+                "UNKNOWN"
+              ]
+            },
+            "scope_join_state": {
+              "enum": [
+                "APPROVED",
+                "MISMATCH",
+                "UNKNOWN"
+              ]
+            }
           }
         },
-        "evidence": { "type": "array", "items": { "$ref": "#/$defs/evidence" } }
+        "evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/evidence"
+          }
+        }
       }
     },
     "arm": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["engine_tool_versions", "engine_input_sha256", "engine_output_sha256", "operator_minutes", "decisions"],
+      "required": [
+        "engine_tool_versions",
+        "engine_input_sha256",
+        "engine_output_sha256",
+        "operator_minutes",
+        "decisions"
+      ],
       "properties": {
         "engine_tool_versions": {
           "type": "array",
@@ -55,45 +141,104 @@
           "items": {
             "type": "object",
             "additionalProperties": false,
-            "required": ["tool", "version"],
+            "required": [
+              "tool",
+              "version"
+            ],
             "properties": {
-              "tool": { "type": "string", "minLength": 1 },
-              "version": { "type": "string", "minLength": 1 }
+              "tool": {
+                "type": "string",
+                "minLength": 1
+              },
+              "version": {
+                "type": "string",
+                "minLength": 1
+              }
             }
           }
         },
-        "engine_input_sha256": { "$ref": "#/$defs/sha256" },
-        "engine_output_sha256": { "$ref": "#/$defs/sha256" },
-        "operator_minutes": { "type": "number", "minimum": 0 },
-        "decisions": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/decision" } },
+        "engine_input_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "engine_output_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "operator_minutes": {
+          "type": "number",
+          "minimum": 0
+        },
+        "decisions": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/decision"
+          }
+        },
         "composition_layer": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["name", "version"],
+          "required": [
+            "name",
+            "version"
+          ],
           "properties": {
-            "name": { "type": "string", "minLength": 1 },
-            "version": { "type": "string", "minLength": 1 }
+            "name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "version": {
+              "type": "string",
+              "minLength": 1
+            }
           }
         },
         "composition_receipt": {
           "type": "object",
           "additionalProperties": false,
           "required": [
-            "receipt_format", "event_trace_sha256", "geometry_sha256", "resident_requirements_sha256",
-            "initial_state_sha256", "source_snapshot_sha256", "engine_input_sha256",
-            "engine_output_sha256", "source_rights_revision", "receipt_sha256"
+            "receipt_format",
+            "event_trace_sha256",
+            "geometry_sha256",
+            "resident_requirements_sha256",
+            "initial_state_sha256",
+            "source_snapshot_sha256",
+            "engine_input_sha256",
+            "engine_output_sha256",
+            "source_rights_revision",
+            "receipt_sha256"
           ],
           "properties": {
-            "receipt_format": { "const": "highveld-b2-composition-receipt-v0.1" },
-            "event_trace_sha256": { "$ref": "#/$defs/sha256" },
-            "geometry_sha256": { "$ref": "#/$defs/sha256" },
-            "resident_requirements_sha256": { "$ref": "#/$defs/sha256" },
-            "initial_state_sha256": { "$ref": "#/$defs/sha256" },
-            "source_snapshot_sha256": { "$ref": "#/$defs/sha256" },
-            "engine_input_sha256": { "$ref": "#/$defs/sha256" },
-            "engine_output_sha256": { "$ref": "#/$defs/sha256" },
-            "source_rights_revision": { "type": "string", "minLength": 1 },
-            "receipt_sha256": { "$ref": "#/$defs/sha256" }
+            "receipt_format": {
+              "const": "highveld-b2-composition-receipt-v0.1"
+            },
+            "event_trace_sha256": {
+              "$ref": "#/$defs/sha256"
+            },
+            "geometry_sha256": {
+              "$ref": "#/$defs/sha256"
+            },
+            "resident_requirements_sha256": {
+              "$ref": "#/$defs/sha256"
+            },
+            "initial_state_sha256": {
+              "$ref": "#/$defs/sha256"
+            },
+            "source_snapshot_sha256": {
+              "$ref": "#/$defs/sha256"
+            },
+            "engine_input_sha256": {
+              "$ref": "#/$defs/sha256"
+            },
+            "engine_output_sha256": {
+              "$ref": "#/$defs/sha256"
+            },
+            "source_rights_revision": {
+              "type": "string",
+              "minLength": 1
+            },
+            "receipt_sha256": {
+              "$ref": "#/$defs/sha256"
+            }
           }
         }
       }
@@ -102,49 +247,151 @@
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "design_revision_id", "geometry_sha256", "resident_requirements_sha256",
-        "event_trace_sha256", "initial_state_sha256", "source_snapshot_sha256",
-        "resource_budget_id", "information_budget_id", "functional_unit_id", "time_window_id"
+        "design_revision_id",
+        "geometry_sha256",
+        "resident_requirements_sha256",
+        "event_trace_sha256",
+        "initial_state_sha256",
+        "source_snapshot_sha256",
+        "resource_budget_id",
+        "information_budget_id",
+        "functional_unit_id",
+        "time_window_id",
+        "engine_configuration_sha256",
+        "source_rights_revision",
+        "compute_budget_id",
+        "operator_time_budget_id"
       ],
       "properties": {
-        "design_revision_id": { "type": "string", "minLength": 1 },
-        "geometry_sha256": { "$ref": "#/$defs/sha256" },
-        "resident_requirements_sha256": { "$ref": "#/$defs/sha256" },
-        "event_trace_sha256": { "$ref": "#/$defs/sha256" },
-        "initial_state_sha256": { "$ref": "#/$defs/sha256" },
-        "source_snapshot_sha256": { "$ref": "#/$defs/sha256" },
-        "resource_budget_id": { "type": "string", "minLength": 1 },
-        "information_budget_id": { "type": "string", "minLength": 1 },
-        "functional_unit_id": { "type": "string", "minLength": 1 },
-        "time_window_id": { "type": "string", "minLength": 1 }
+        "design_revision_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "geometry_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "resident_requirements_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "event_trace_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "initial_state_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "source_snapshot_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "resource_budget_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "information_budget_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "functional_unit_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "time_window_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "engine_configuration_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "source_rights_revision": {
+          "type": "string",
+          "minLength": 1
+        },
+        "compute_budget_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "operator_time_budget_id": {
+          "type": "string",
+          "minLength": 1
+        }
       }
     },
     "oracle_expectation": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["service_id", "expected_status", "expected_hard_floor_state"],
+      "required": [
+        "service_id",
+        "expected_status",
+        "expected_hard_floor_state"
+      ],
       "properties": {
-        "service_id": { "type": "string", "minLength": 1 },
-        "expected_status": { "enum": ["PASS", "FAIL", "BLOCKED", "UNKNOWN"] },
-        "expected_hard_floor_state": { "enum": ["SATISFIED", "VIOLATED", "UNKNOWN", "NOT_APPLICABLE"] }
+        "service_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "expected_status": {
+          "enum": [
+            "PASS",
+            "FAIL",
+            "BLOCKED",
+            "UNKNOWN"
+          ]
+        },
+        "expected_hard_floor_state": {
+          "enum": [
+            "SATISFIED",
+            "VIOLATED",
+            "UNKNOWN",
+            "NOT_APPLICABLE"
+          ]
+        }
       }
     },
     "pair": {
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "pair_id", "candidate_id", "scenario_id", "decision_as_of_offset_s",
-        "matched_inputs", "b1", "b2", "oracle_expectations"
+        "pair_id",
+        "candidate_id",
+        "scenario_id",
+        "decision_as_of_offset_s",
+        "matched_inputs",
+        "b1",
+        "b2",
+        "oracle_expectations"
       ],
       "properties": {
-        "pair_id": { "type": "string", "minLength": 1 },
-        "candidate_id": { "type": "string", "minLength": 1 },
-        "scenario_id": { "type": "string", "minLength": 1 },
-        "decision_as_of_offset_s": { "type": "integer", "minimum": 0 },
-        "matched_inputs": { "$ref": "#/$defs/matched_inputs" },
-        "b1": { "$ref": "#/$defs/arm" },
-        "b2": { "$ref": "#/$defs/arm" },
-        "oracle_expectations": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/oracle_expectation" } }
+        "pair_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "candidate_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "scenario_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "decision_as_of_offset_s": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "matched_inputs": {
+          "$ref": "#/$defs/matched_inputs"
+        },
+        "b1": {
+          "$ref": "#/$defs/arm"
+        },
+        "b2": {
+          "$ref": "#/$defs/arm"
+        },
+        "oracle_expectations": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/oracle_expectation"
+          }
+        }
       }
     }
   }
