@@ -118,6 +118,10 @@ fn audit_manifest(root: &Value) -> Value {
 
     let household_ids = unique_ids(households, "household_id", "$.households", &mut audit);
     let asset_ids = unique_ids(assets, "asset_id", "$.assets", &mut audit);
+    let service_ids: BTreeSet<String> = contracts
+        .iter()
+        .filter_map(|contract| text(contract, "service_id").map(ToOwned::to_owned))
+        .collect();
     let contract_ids = unique_ids(contracts, "contract_id", "$.service_contracts", &mut audit);
     let policy_ids = unique_ids(policies, "policy_id", "$.allocation_policies", &mut audit);
     let maintenance_ids = unique_ids(
@@ -919,13 +923,7 @@ fn audit_manifest(root: &Value) -> Value {
                 "data request must reference a registered household",
             );
         }
-        if service_id.is_none_or(|id| !contract_ids.contains(id)) {
-            // A request names a service_id (not a contract_id). Check below
-            // against the declared service IDs, not the contract registry.
-        }
-        let service_exists = service_id.is_some_and(|sid| {
-            contracts.iter().any(|contract| text(contract, "service_id") == Some(sid))
-        });
+        let service_exists = service_id.is_some_and(|sid| service_ids.contains(sid));
         if !service_exists {
             audit.fail(
                 "DATA_REQUEST_SERVICE_UNKNOWN",
@@ -1017,6 +1015,40 @@ fn audit_manifest(root: &Value) -> Value {
             continue;
         }
         authorized_data_requests += 1;
+    }
+
+    for (index, consent) in consent_records.iter().enumerate() {
+        let path = format!("$.consent_records[{index}]");
+        let household_id = text(consent, "household_id");
+        let service_id = text(consent, "service_id");
+        let granted_at = number(consent, "granted_at_offset_s");
+        let revoked_at = consent
+            .get("revoked_at_offset_s")
+            .and_then(Value::as_u64);
+        if household_id.is_none_or(|id| !household_ids.contains(id)) {
+            audit.fail(
+                "CONSENT_HOUSEHOLD_UNKNOWN",
+                &format!("{path}.household_id"),
+                "consent must reference a registered household",
+            );
+        }
+        if service_id.is_none_or(|id| !service_ids.contains(id)) {
+            audit.fail(
+                "CONSENT_SERVICE_UNKNOWN",
+                &format!("{path}.service_id"),
+                "consent must be scoped to a registered service",
+            );
+        }
+        match text(consent, "consent_state") {
+            Some("GRANTED") if granted_at.is_some() && revoked_at.is_none() => {}
+            Some("REVOKED")
+                if granted_at.zip(revoked_at).is_some_and(|(grant, revoke)| revoke >= grant) => {}
+            _ => audit.fail(
+                "HOUSEHOLD_DATA_CONSENT_STATE_INVALID",
+                &path,
+                "GRANTED requires a grant time and null revocation; REVOKED requires ordered grant and revocation times",
+            ),
+        }
     }
 
     let result = json!({
