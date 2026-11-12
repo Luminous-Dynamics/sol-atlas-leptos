@@ -144,7 +144,8 @@
         "observed_at_offset_s",
         "outcome_state",
         "floor_profile_id",
-        "evidence_status"
+        "evidence_status",
+        "available_at_offset_s"
       ],
       "properties": {
         "service_id": {
@@ -177,6 +178,10 @@
         },
         "evidence_status": {
           "const": "synthetic_control_only"
+        },
+        "available_at_offset_s": {
+          "type": "integer",
+          "minimum": 0
         }
       }
     },
