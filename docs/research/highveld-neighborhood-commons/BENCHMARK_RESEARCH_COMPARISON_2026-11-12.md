@@ -188,3 +188,39 @@ This prevents the attractive but dangerous shortcut of treating excellent averag
 ## Topology study extension
 
 A separate matched-comparison plan now defines five topology variants within the same proposed commons family: `CENTRAL_HUB`, `DISTRIBUTED_NODES`, `FEDERATED_PEER_MESH`, `MOBILE_SUPPORT` and `LAYERED_HYBRID`. It specifies capacity-matched and budget-matched experiments, topology-specific adversarial stresses, non-compensatory per-household measures and a staged admission sequence. These remain design hypotheses, not evaluated architecture results. See [TOPOLOGY_VARIANTS_AND_MATCHED_EXPERIMENT_V0.1.md](TOPOLOGY_VARIANTS_AND_MATCHED_EXPERIMENT_V0.1.md).
+
+
+## 10. Second benchmark horizon: long-horizon resilience under non-stationarity
+
+A review published 21 August 2026 in *Nature Reviews Electrical Engineering* argues that event-based power-system resilience is inadequate for long-term climate planning and proposes resilience as a long-horizon property across the range of futures a system may encounter. This is a power-systems review, not a building or Highveld evaluation, but its conceptual challenge transfers directly to compound household-service resilience. [Long-horizon resilience of power systems under climate change](https://www.nature.com/articles/s44287-026-00322-6).
+
+Highveld should therefore maintain two distinct benchmark horizons:
+
+**Horizon A — controlled event resilience.** The current PR #736 and #741 synthetic traces qualify deterministic semantics: event identity, service transitions, access/queue, resource conservation, stable recovery, rights and hard floors.
+
+**Horizon B — long-horizon capability.** A separate future benchmark should test whether a design/adaptation policy remains robust under non-stationary climate, degradation, changing service demand, component aging, maintenance/spares shocks and resident requirement changes over a declared lifecycle. It must not pretend that a 7-day event trace predicts a 30-year outcome.
+
+Proposed long-horizon experiment contract:
+- Freeze a design/service baseline and its exact revision, then define a versioned *scenario ensemble* of plausible weather, demand, resource, supply-chain, maintenance and household-requirement trajectories.
+- Label scenario weights as evidence-backed, expert-elicited or deliberately unweighted. If credible occurrence probabilities are unavailable, report robust feasibility / worst-case / regret across the ensemble rather than fabricating probability-weighted expected resilience.
+- Model physical degradation and replacement only through qualified component/physics models; unknown aging behavior remains unknown.
+- Allow predeclared adaptation actions (retrofit, shade addition, storage replacement, water system revision, local-node deployment, maintenance/spares changes) with cost, lead time, access and downtime.
+- Compare fixed designs and adaptive policies under the same scenario ensemble and information horizon. Policies must not use future climate or failure information unless the arm explicitly declares the oracle upper bound.
+- Track household-level service-floor breach duration and recurrence through the lifecycle. A high lifetime average cannot compensate for one critical household breach.
+- Track adaptation regret: the difference between the chosen policy and the best hindsight policy on the same realized scenario, while clearly identifying the hindsight policy as non-deployable oracle.
+- Require a decision-stability analysis: which additional climate, component-health or household-requirement observation could change the selected adaptation? Reuse Symtropy's decision-impact/adaptive-measurement owner work.
+
+Proposed research metrics (not universal pass thresholds):
+- robust-feasible fraction of declared scenario ensemble, per household/service;
+- worst-case and tail service-floor deficit, reported separately from means;
+- time-to-adaptation and adaptation lead-time coverage;
+- lifecycle reserve depletion, component degradation and replacement events;
+- adaptation regret against finite hindsight oracle;
+- Pareto frontier retention under scenario distribution shift;
+- out-of-domain and unmodelled-degradation detection;
+- lifecycle maintenance burden, technician/spares coverage and affordability range;
+- service continuity after repeated events, not just the first recovery.
+
+The most important paradigm shift is from asking "does this design survive the outage trace?" to asking "does this design and its adaptation policy preserve declared resident capability across an evolving, uncertain future—and can we tell when the evidence no longer supports that claim?"
+
+This long-horizon suite must be a separate versioned benchmark. Do not inject uncertain future scenario probabilities into the current synthetic event corpus or silently combine expected-value scores with hard resident service floors.
