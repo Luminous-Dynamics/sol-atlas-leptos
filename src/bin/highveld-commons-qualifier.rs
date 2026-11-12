@@ -667,6 +667,7 @@ fn audit_manifest(root: &Value) -> Value {
         "assets_checked": asset_ids.len(),
         "service_contracts_checked": contract_ids.len(),
         "allocation_policies_checked": policy_ids.len(),
+        "maintenance_contracts_checked": maintenance_ids.len(),
         "resource_accounts_checked": account_ids.len(),
         "resource_transfers_checked": transfer_ids.len(),
         "error_count": audit.errors.len(),
@@ -795,6 +796,13 @@ mod tests {
         let mut manifest = base();
         manifest["households"][0]["essential_service_floors"][0]["local_fallback"]["manual_mode_available"] = json!(false);
         assert!(has_code(&audit_manifest(&manifest), "LOCAL_FALLBACK_NO_MANUAL_MODE"));
+    }
+
+    #[test]
+    fn allocated_commons_service_requires_maintenance_contract_reference() {
+        let mut manifest = base();
+        manifest["service_contracts"][0]["maintenance_contract_id"] = json!("missing-maintenance-contract");
+        assert!(has_code(&audit_manifest(&manifest), "MAINTENANCE_CONTRACT_NOT_QUALIFIED"));
     }
 
     #[test]
