@@ -224,3 +224,41 @@ Proposed research metrics (not universal pass thresholds):
 The most important paradigm shift is from asking "does this design survive the outage trace?" to asking "does this design and its adaptation policy preserve declared resident capability across an evolving, uncertain future—and can we tell when the evidence no longer supports that claim?"
 
 This long-horizon suite must be a separate versioned benchmark. Do not inject uncertain future scenario probabilities into the current synthetic event corpus or silently combine expected-value scores with hard resident service floors.
+
+
+## 11. Incumbent capability snapshot — verified 12 November 2026
+
+This is a version/date-pinned capability map. It is not a product ranking and does not imply that Highveld replaces any specialist capability.
+
+| Incumbent / reference | Current published capability relevant to the experiment | Highveld comparison boundary |
+|---|---|---|
+| Autodesk Forma Building Design | Autodesk's 4 November 2026 update documents Indoor Daylight public beta over occupied hours in a typical year, plus DXF import, DWG export, parking/access-aisle layout and furniture for schematic workflows. | Do not claim Forma lacks early daylight or design exploration. Test whether a decision and its source/revision/uncertainty scope survives compound disruption, rights changes and cross-owner service handoff. |
+| Autodesk Forma Street Design / Site Design | Autodesk's 14 October 2026 AU announcement describes Street Design as pre-launch, with deeper early corridor/site design and Civil 3D connection on the roadmap. | Pin release/beta status and entitlement. Do not benchmark an announced future capability as though it were generally available. |
+| TestFit Site Solver | Current public product page describes parcel/site selection, massing, road layout, topography, ESRI flood/wetland layers, SSURGO soil data, zoning/code parameters, cut/fill, pro forma and quantity takeoff. | Compare source geography/coverage, licensing, local data rights, assumptions, scope and change propagation. TestFit's public feature list does not establish that its solver is a household-service or long-horizon resilience evaluator. |
+| EnergyPlus | Official update page lists version 26.2.0, released 30 September 2026. | Use EnergyPlus as the building-energy/thermal engine where appropriate; freeze version, weather file, geometry, schedules, model options and output digest. Do not build a competing thermal solver to win a cross-tool benchmark. |
+| BOPTEST | Latest published software remains v0.9.0, released 18 November 2025. Its current testcase page lists nine ready-made emulators: BESTEST Air, BESTEST Hydronic, BESTEST Hydronic Heat Pump, Single Zone Commercial Hydronic, Two Zone Apartment Hydronic, Multizone Residential Hydronic, Multizone Office Simple Air, Multizone Office Simple Hydronic and Multizone Office Complex Air. Its REST runtime controls emulator tests and reports energy, emissions, peak demand, indoor-air/thermal discomfort and computation-time KPIs. | Use eligible cases as standardized building-control baselines. Keep unsupported household water delivery, neighbourhood route access, governance, repair logistics and local fallback outside BOPTEST's claim scope. |
+| ASHRAE Standard 140-2023 | The official ASHRAE addenda page lists addenda c and d for Standard 140-2023, both dated 30 October 2026, in addition to earlier addenda. | Pin the applicable edition and addenda. Reuse the authorized Standard 140 method/resources; do not invent a replacement conformance claim or feed controlled ASHRAE publication content into AI tooling contrary to ASHRAE policy. |
+
+Official source snapshot:
+- Autodesk Forma Building Design, 4 Nov 2026: https://blogs.autodesk.com/forma/2026/11/04/whats-new-in-forma-building-design-indoor-daylight-parking-furniture-and-autocad-workflows/
+- Autodesk Forma AU 2026 announcement, 14 Oct 2026: https://blogs.autodesk.com/forma/2026/10/14/what-autodesk-forma-announced-au-2026/
+- TestFit Site Solver: https://www.testfit.io/product/site-solver
+- EnergyPlus 26.2.0 release: https://energyplus.net/epupdate.htm
+- BOPTEST cases: https://ibpsa.github.io/project1-boptest/testcases/
+- BOPTEST software/releases: https://ibpsa.github.io/project1-boptest/software/
+- BOPTEST KPI API: https://ibpsa.github.io/project1-boptest/docs-userguide/api.html
+- ASHRAE Standard 140 addenda register: https://www.ashrae.org/technical-resources/standards-and-guidelines/standards-addenda
+
+### Implication for competitive positioning
+
+Highveld's plausible differentiator is **not** more schematic design, site massing, thermal physics, HVAC control or microgrid dispatch. Those domains already have specialist tools and established test frameworks.
+
+The research opportunity is in the interstitial assurance problem:
+1. preserve exact candidate/geometry/requirement/model/source/rights revisions across specialist tools;
+2. bind the same exogenous disturbance and declared information horizon across competing arms;
+3. translate upstream infrastructure/resource events into household-specific service outcomes only through the native service evaluator;
+4. preserve access/queue, local fallback, maintenance, consent and resident appeal as constraints;
+5. invalidate only the dependent claims after model/source/requirement/rights changes;
+6. make the entire decision independently replayable.
+
+This contribution is only established if the preregistered B1-vs-B2 experiment demonstrates a measurable benefit at equivalent decision quality and compute/operator/information budgets.
