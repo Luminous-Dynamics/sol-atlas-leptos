@@ -949,10 +949,7 @@ mod tests {
         manifest["pairs"][0]["b2"]["decisions"][0]["status"] = json!("BLOCKED");
         let report = audit_manifest(&manifest);
         assert!(has_error(&report, "B2_VALID_CASE_FALSE_REJECT"));
-        assert_eq!(
-            report["b2_valid_case_false_reject_count"].as_u64(),
-            Some(1)
-        );
+        assert_eq!(report["b2_valid_case_false_reject_count"].as_u64(), Some(1));
     }
 
     #[test]
