@@ -877,4 +877,126 @@ mod tests {
         });
         assert_eq!(disposition, ChangeDisposition::InvalidEvidence);
     }
+
+
+    fn valid_rights_grant() -> DataUseGrant {
+        DataUseGrant {
+            grant_id: "grant-synthetic-001".to_string(),
+            source_id: "source-borehole-archive-001".to_string(),
+            issuer_id: "custodian-synthetic".to_string(),
+            grant_sha256: "d".repeat(64),
+            valid_from_unix_s: 100,
+            expires_at_unix_s: Some(1_000),
+            may_read: true,
+            may_process: true,
+            may_create_derivative: true,
+            may_redistribute: false,
+            conditions_satisfied: true,
+        }
+    }
+
+    #[test]
+    fn exact_source_grant_allows_only_declared_local_processing() {
+        let grant = valid_rights_grant();
+        assert!(authorize_data_use(
+            Some(&grant),
+            "source-borehole-archive-001",
+            DataUseAction::Read,
+            500
+        )
+        .is_ok());
+        assert!(authorize_data_use(
+            Some(&grant),
+            "source-borehole-archive-001",
+            DataUseAction::Process,
+            500
+        )
+        .is_ok());
+        assert_eq!(
+            authorize_data_use(
+                Some(&grant),
+                "source-borehole-archive-001",
+                DataUseAction::Redistribute,
+                500
+            ),
+            Err(DataUseDenial::ActionNotGranted)
+        );
+    }
+
+    #[test]
+    fn missing_or_wrong_source_grant_fails_closed() {
+        let grant = valid_rights_grant();
+        assert_eq!(
+            authorize_data_use(
+                None,
+                "source-borehole-archive-001",
+                DataUseAction::Read,
+                500
+            ),
+            Err(DataUseDenial::MissingGrant)
+        );
+        assert_eq!(
+            authorize_data_use(
+                Some(&grant),
+                "different-source",
+                DataUseAction::Read,
+                500
+            ),
+            Err(DataUseDenial::SourceIdentityMismatch)
+        );
+    }
+
+    #[test]
+    fn expired_and_future_grants_are_not_usable() {
+        let grant = valid_rights_grant();
+        assert_eq!(
+            authorize_data_use(
+                Some(&grant),
+                "source-borehole-archive-001",
+                DataUseAction::Read,
+                1_000
+            ),
+            Err(DataUseDenial::GrantExpired)
+        );
+        assert_eq!(
+            authorize_data_use(
+                Some(&grant),
+                "source-borehole-archive-001",
+                DataUseAction::Read,
+                99
+            ),
+            Err(DataUseDenial::GrantNotYetValid)
+        );
+    }
+
+    #[test]
+    fn unmet_grant_conditions_block_processing() {
+        let mut grant = valid_rights_grant();
+        grant.conditions_satisfied = false;
+        assert_eq!(
+            authorize_data_use(
+                Some(&grant),
+                "source-borehole-archive-001",
+                DataUseAction::Process,
+                500
+            ),
+            Err(DataUseDenial::ConditionsNotSatisfied)
+        );
+    }
+
+    #[test]
+    fn invalid_rights_receipt_digest_is_rejected() {
+        let mut grant = valid_rights_grant();
+        grant.grant_sha256 = "public-page-is-not-a-grant".to_string();
+        assert_eq!(
+            authorize_data_use(
+                Some(&grant),
+                "source-borehole-archive-001",
+                DataUseAction::Read,
+                500
+            ),
+            Err(DataUseDenial::InvalidGrantReceipt)
+        );
+    }
+
 }
