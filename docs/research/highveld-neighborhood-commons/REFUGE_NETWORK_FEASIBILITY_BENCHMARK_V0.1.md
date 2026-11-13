@@ -114,3 +114,53 @@ The contribution is to test cross-site shared constraints and unmet service at d
 ## 7. Claim ceiling
 
 **Status:** SYNTHETIC_AGGREGATE_FLOW_ORACLE_NOT_FIELD_VALIDATED. The input uses synthetic demand, routes, sites and capacities. No actual refuge, resident, route, water allocation, booking, dispatch or emergency recommendation is produced.
+
+
+## 7. Discrete max-min fairness comparator
+
+Maximum flow establishes a throughput upper bound, but it does not specify how service should be distributed among cohorts. A feasible maximum-flow result may leave one area with a very low service ratio while another reaches 100%, even where the same total count can be distributed with a better worst-cohort outcome.
+
+The qualifier therefore reports a second, policy-comparison result:
+
+1. Keep the accessibility-protected stage. Accessible-place demand is first served through qualified accessible routes and bounded by the same effective accessible site capacity.
+2. For remaining general demand, use **discrete progressive filling**. At each step, consider the cohort with the lowest current total coverage ratio:
+   \[
+   \rho_g=\frac{A_g+G_g}{D_g}
+   \]
+   where \(A_g\) is feasible accessible service, \(G_g\) is general service already protected by the fairness quota, and \(D_g\) is total cohort demand.
+3. Tentatively add one general place to that cohort. Keep the increment only when a fresh max-flow feasibility check can still satisfy every cohort's current general-service quota simultaneously.
+4. A quota that cannot be increased is marked blocked; the process moves to the next lowest service ratio. Because quotas only increase, a failed increment cannot become feasible later as more capacity is consumed.
+5. Continue until no cohort can receive another place while preserving all accepted quotas.
+
+The synthetic fixture requires an explicit, unique fairness_tie_break_rank per anonymous cohort. This rank is used **only** when two discrete service ratios are exactly equal. It is visible in the output and must be owner-governed; it is not a moral priority or an identity-derived score. A production temporal policy should test rotating ties and cumulative service debt so the same zone is not repeatedly disadvantaged by a static tie-break.
+
+The oracle reports both the existing accessible-first maximum-throughput result and the max-min comparator side by side:
+- total places feasible under each policy;
+- minimum and maximum cohort service ratios;
+- cohort ratio spread;
+- per-cohort accessible/general/total counts;
+- explicit tie-break policy;
+- no site assignment, reservation or occupant identity.
+
+The benchmark objective is to improve the minimum cohort service ratio **without reducing total feasible throughput**, while preserving the accessible-place floor. Where that cannot be achieved under the same graph and capacity, report the trade-off rather than hiding it in a weighted score. This is a deterministic planning comparator, not an operational allocation policy.
+
+### Known-answer policy comparison target
+
+The synthetic network contains three anonymous cohorts sharing two qualified sites. Under the existing maximum-throughput flow, the service ratios are determined by max-flow traversal rather than a fairness objective. The progressive-fill comparator must:
+- preserve the same maximum total feasible places for this fixture;
+- strictly improve the minimum cohort service ratio;
+- retain all accessible-route, site-eligibility and protected-water constraints;
+- return no named or cohort-to-site assignment.
+
+The unit-step algorithm is intentionally a v0.1 reference for small aggregate benchmark instances. It is not yet a large-network optimizer; runtime and graph-size scaling must be benchmarked separately before any larger deployment claim.
+
+## 8. State-of-the-art comparison: throughput and fairness are different axes
+
+Compare future policies on the same frozen demand cohorts, qualified route graph, water-limited site capacities and outage trace:
+- nearest-open-refuge baseline;
+- capacity-aware maximum-flow feasibility;
+- accessible-first maximum-throughput policy;
+- discrete max-min cohort service policy;
+- any owner-approved lexicographic or rotating service-debt policy.
+
+Report throughput, worst-cohort service, accessible unmet demand, unmet-place-hours, water/seat utilization, route limits and policy runtime separately. Never call one policy "fair" solely because it maximizes a mathematical ratio: the cohort definition, protected classes, tie-break, cumulative history and legitimacy of the governance process all require explicit owner review.
