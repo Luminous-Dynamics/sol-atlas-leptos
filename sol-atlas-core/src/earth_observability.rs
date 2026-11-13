@@ -467,6 +467,110 @@ pub fn validate_challenge_manifest(
     }
 }
 
+/// Independent interpretations can only be compared when they describe the
+/// same explicitly declared spatial support. This is not a model-selection rule.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct InterpretationClaim {
+    pub claim_id: String,
+    pub source_id: String,
+    pub support_id: String,
+    pub value: String,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum InterpretationComparison {
+    InsufficientEvidence,
+    IncomparableSupport,
+    Consistent,
+    Conflicted,
+}
+
+/// Preserve disagreement; never select a winning interpretation implicitly.
+pub fn compare_interpretations(
+    claims: &[InterpretationClaim],
+) -> InterpretationComparison {
+    if claims.len() < 2
+        || claims.iter().any(|claim| {
+            claim.claim_id.trim().is_empty()
+                || claim.source_id.trim().is_empty()
+                || claim.support_id.trim().is_empty()
+                || claim.value.trim().is_empty()
+        })
+    {
+        return InterpretationComparison::InsufficientEvidence;
+    }
+
+    let first_support = &claims[0].support_id;
+    if claims.iter().any(|claim| &claim.support_id != first_support) {
+        return InterpretationComparison::IncomparableSupport;
+    }
+
+    let distinct_values: BTreeSet<&str> =
+        claims.iter().map(|claim| claim.value.as_str()).collect();
+    if distinct_values.len() == 1 {
+        InterpretationComparison::Consistent
+    } else {
+        InterpretationComparison::Conflicted
+    }
+}
+
+/// A DAS event has fibre-relative chainage. This calibration record is required
+/// before a later adapter may project chainage into geographic space.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct FibreRouteCalibration {
+    pub calibration_id: String,
+    pub route_geometry_sha256: String,
+    pub valid_chainage_min_m: f64,
+    pub valid_chainage_max_m: f64,
+    pub horizontal_position_sigma_m: f64,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum FibreGeolocationDisposition {
+    FibreChainageOnly,
+    Unqualified,
+    OutsideCalibratedRoute,
+    GeographicProjectionEligible,
+}
+
+/// Qualifies only whether a route calibration is admissible for this chainage.
+/// It deliberately returns no geographic coordinate and does not solve route
+/// geometry. A separate projection adapter must consume the qualified receipt.
+pub fn qualify_fibre_geolocation(
+    chainage_m: f64,
+    calibration: Option<&FibreRouteCalibration>,
+) -> FibreGeolocationDisposition {
+    if !chainage_m.is_finite() || chainage_m < 0.0 {
+        return FibreGeolocationDisposition::Unqualified;
+    }
+
+    let Some(calibration) = calibration else {
+        return FibreGeolocationDisposition::FibreChainageOnly;
+    };
+
+    if calibration.calibration_id.trim().is_empty()
+        || !is_sha256_hex(&calibration.route_geometry_sha256)
+        || !calibration.valid_chainage_min_m.is_finite()
+        || !calibration.valid_chainage_max_m.is_finite()
+        || calibration.valid_chainage_min_m < 0.0
+        || calibration.valid_chainage_max_m <= calibration.valid_chainage_min_m
+        || !calibration.horizontal_position_sigma_m.is_finite()
+        || calibration.horizontal_position_sigma_m <= 0.0
+    {
+        return FibreGeolocationDisposition::Unqualified;
+    }
+
+    if chainage_m < calibration.valid_chainage_min_m
+        || chainage_m > calibration.valid_chainage_max_m
+    {
+        FibreGeolocationDisposition::OutsideCalibratedRoute
+    } else {
+        FibreGeolocationDisposition::GeographicProjectionEligible
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
