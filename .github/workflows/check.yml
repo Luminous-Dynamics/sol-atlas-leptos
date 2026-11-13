@@ -123,3 +123,7 @@ jobs:
         run: cargo test --bin highveld-pool-passive-regeneration-ledger
       - name: Execute pool passive regeneration ledger
         run: cargo run --bin highveld-pool-passive-regeneration-ledger -- --self-test
+      - name: Test layered pool thermal exergy ledger
+        run: cargo test --bin highveld-pool-thermal-exergy-ledger
+      - name: Execute layered pool thermal exergy ledger
+        run: cargo run --bin highveld-pool-thermal-exergy-ledger -- --self-test
