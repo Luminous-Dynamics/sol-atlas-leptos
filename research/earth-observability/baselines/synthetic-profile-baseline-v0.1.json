@@ -24,6 +24,36 @@
       "interpretation": "Uses only sparse training-transect borehole contacts; evaluates transfer to the shifted blind transect. No blind truth or blind proxy is used to fit this baseline."
     },
     {
+      "method": "training_borehole_nearest_neighbor_cross_transect",
+      "evaluation_site": "synthetic-blind-transect",
+      "metrics": {
+        "prediction_count": 11,
+        "target_count": 11,
+        "coverage_fraction": 1,
+        "mean_absolute_error_m": 1.4263636363636363,
+        "root_mean_squared_error_m": 1.4468680909907692,
+        "signed_bias_m": -1.4263636363636363,
+        "p95_absolute_error_m": 1.959999999999999
+      },
+      "abstained_positions_m": [],
+      "interpretation": "Uses only sparse training-transect borehole contacts and selects the closest contact, breaking equal-distance ties toward the lower x coordinate. No blind truth or blind proxy is used to fit this baseline."
+    },
+    {
+      "method": "training_borehole_idw_power_2_cross_transect",
+      "evaluation_site": "synthetic-blind-transect",
+      "metrics": {
+        "prediction_count": 11,
+        "target_count": 11,
+        "coverage_fraction": 1,
+        "mean_absolute_error_m": 1.2539003805590936,
+        "root_mean_squared_error_m": 1.2576058088027517,
+        "signed_bias_m": -1.2539003805590936,
+        "p95_absolute_error_m": 1.4287554637208935
+      },
+      "abstained_positions_m": [],
+      "interpretation": "Uses only sparse training-transect borehole contacts with inverse-distance-squared weights; no variogram is fitted and this is not kriging. No blind truth or blind proxy is used to fit this baseline."
+    },
+    {
       "method": "blind_transect_surface_wave_interface_proxy_only",
       "evaluation_site": "synthetic-blind-transect",
       "metrics": {
