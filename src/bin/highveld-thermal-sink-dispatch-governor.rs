@@ -57,13 +57,21 @@ fn evaluate_store_charge_path(input: &Value, global_ok: bool) -> Value {
     let temperature_approach = match (source_temperature, store_temperature, minimum_approach) {
         (Some(source), Some(store), Some(minimum)) => {
             let approach = source - store;
-            if approach <= minimum {
-                push_reason(
-                    &mut reasons,
-                    "INSUFFICIENT_LOAD_TO_STORE_TEMPERATURE_APPROACH",
-                );
+            if minimum < 0.0 {
+                push_reason(&mut reasons, "INVALID_NEGATIVE_MINIMUM_TEMPERATURE_APPROACH");
             }
-            Some(approach)
+            if !approach.is_finite() {
+                push_reason(&mut reasons, "LOAD_TO_STORE_TEMPERATURE_APPROACH_NONFINITE");
+                None
+            } else {
+                if approach <= minimum {
+                    push_reason(
+                        &mut reasons,
+                        "INSUFFICIENT_LOAD_TO_STORE_TEMPERATURE_APPROACH",
+                    );
+                }
+                Some(approach)
+            }
         }
         _ => {
             push_reason(
@@ -99,13 +107,18 @@ fn evaluate_store_charge_path(input: &Value, global_ok: bool) -> Value {
         {
             let free = maximum - current;
             let energy = power * hours;
-            if energy > free {
-                push_reason(
-                    &mut reasons,
-                    "INSUFFICIENT_FINITE_STORE_HEADROOM_NO_CONCURRENT_REGENERATION_CREDIT",
-                );
+            if !energy.is_finite() {
+                push_reason(&mut reasons, "LOAD_TO_STORE_TRANSFER_ENERGY_NONFINITE");
+                (Some(free), None)
+            } else {
+                if energy > free {
+                    push_reason(
+                        &mut reasons,
+                        "INSUFFICIENT_FINITE_STORE_HEADROOM_NO_CONCURRENT_REGENERATION_CREDIT",
+                    );
+                }
+                (Some(free), Some(energy))
             }
-            (Some(free), Some(energy))
         }
         (Some(_), Some(_), Some(_), Some(_)) => {
             push_reason(&mut reasons, "LOAD_TO_STORE_STATE_OR_DURATION_INVALID");
@@ -589,6 +602,35 @@ mod tests {
                 .iter()
                 .any(|reason| reason == "INSUFFICIENT_LOAD_TO_STORE_HEAT_EXCHANGER_CAPACITY")
         );
+    }
+
+    #[test]
+    fn negative_minimum_temperature_approach_is_rejected() {
+        let mut input = sample();
+        input["store_charge_path"]["minimum_approach_k"] = json!(-1.0);
+        let report = evaluate(&input).expect("invalid approach is a blocked decision");
+        assert_eq!(report["store_charge_path"]["state"], "BLOCKED");
+        assert!(report["store_charge_path"]["reasons"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|reason| reason == "INVALID_NEGATIVE_MINIMUM_TEMPERATURE_APPROACH"));
+    }
+
+    #[test]
+    fn nonfinite_requested_transfer_energy_is_rejected() {
+        let mut input = sample();
+        input["store_charge_path"]["requested_heat_transfer_kw"] = json!(1.0e308);
+        input["store_charge_path"]["available_heat_transfer_kw"] = json!(1.0e308);
+        input["store_charge_path"]["requested_duration_h"] = json!(1.0e308);
+        let report = evaluate(&input).expect("overflow must become a blocked decision");
+        assert_eq!(report["store_charge_path"]["state"], "BLOCKED");
+        assert!(report["store_charge_path"]["reasons"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|reason| reason == "LOAD_TO_STORE_TRANSFER_ENERGY_NONFINITE"));
+        assert!(report["store_charge_path"]["requested_transfer_energy_kwh"].is_null());
     }
 
     #[test]
