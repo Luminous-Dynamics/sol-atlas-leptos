@@ -171,3 +171,14 @@ Building-side cooling, pool heat recovered and independently measured displaced 
 The committed synthetic known-answer fixture closes both balances (10.0 kWh building heat removed + 3.0 kWh compressor work − 0.2 kWh loss = 12.8 kWh condenser heat; 5.0 kWh pool recovery + 7.5 kWh fallback rejection + 0.3 kWh distribution loss = 12.8 kWh). It is arithmetic only; no heat pump or pool was measured.
 
 **Status:** DESIGN_AND_BENCHMARK_CONTRACT_NOT_EXECUTED. No pool, fountain, water-quality programme, water rights, site measurement, EnergyPlus model run or physical cooling result is admitted.
+
+
+## 10. Pedestrian microclimate attribution: separate the water effect from shade
+
+The separate \`POOL_MICROCLIMATE_ATTRIBUTION_BENCHMARK_V0.1.md\` preregisters a paired field design for the incremental effect of pools and water features on pedestrian thermal conditions. It uses a competent dry-shade control, upwind background, feature-edge, near-field, downwind, occupied-zone and matched dry-control stations, with multiple measurement heights.
+
+The benchmark records dry-bulb air temperature, humidity/dew point, wind, globe/mean-radiant/operative conditions, solar and long-wave boundaries, water state, evaporation, pump energy and water quality. Day or multi-day weather blocks—not minute samples—are the independent replication units. A block-level paired difference-in-differences is the baseline estimate; the dry-shade control preserves attribution to water rather than shade.
+
+A water feature only earns a microclimate benefit where the operative/radiant and humidity outcomes support it. A lower dry-bulb reading alone is not a comfort result. An outdoor effect is not an indoor cooling result. A pool's thermal-buffer ledger remains a separate first-law account.
+
+The pool/water Rust qualifier now structurally checks the six-arm/six-regime/six-station/four-height registration, dry-shade control, paired-block design and aerosol/dry-bulb hard gates. All remain \`NOT_EXECUTED\`; the instrument package is still a template and no field data is admitted.
