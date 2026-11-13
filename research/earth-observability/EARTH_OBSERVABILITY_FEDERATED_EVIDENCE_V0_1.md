@@ -91,7 +91,7 @@ The first fail-closed Rust gate is implemented in:
 - `authorize_data_use(...)`
 - `DataUseGrant`, `DataUseAction`, and `DataUseDenial`
 
-It checks an upstream-issued grant bound to the **exact source, exact asset, requesting subject and declared purpose**, before allowing one of four operations:
+It checks an upstream-issued grant bound to the **exact source, exact asset, requesting subject and declared purpose**, before allowing one of five operations:
 
 1. `Read`
 2. `Process`
@@ -111,7 +111,7 @@ Benchmark federated execution against both a source-local reference and an autho
 
 | Dimension | Metric / test | Hard failure |
 |---|---|---|
-| Grant identity | exact source/asset binding and receipt verification | grant for source A authorizes source B |
+| Grant identity | exact source/asset/subject binding and receipt verification | grant for source A, asset A or subject A authorizes a different source, asset or subject |
 | Purpose/action separation | Read / Process / Derive / RedistributeSource / RedistributeDerivative negative controls | read-only permission authorizes processing; raw-source grant authorizes derivative publication or vice versa |
 | Validity | not-before, expiry and revocation tests | expired or revoked grant continues to authorize new access |
 | Data locality | inspect outbound payloads, caches, logs and artifacts against restricted-source markers | unapproved raw source data leaves the owner boundary |
