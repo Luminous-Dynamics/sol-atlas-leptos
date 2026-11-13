@@ -296,6 +296,23 @@ fn progressive_max_min_flow(
 /// tie-break crossing) and binary-searches the largest feasible jump. Feasibility
 /// is monotone in the selected cohort's target, so the resulting target vector
 /// should match the unit-step reference exactly.
+fn targets_are_feasible(
+    demands: &[(String, u64)],
+    sites: &[(String, u64)],
+    links: &BTreeSet<(String, String)>,
+    targets: &[u64],
+    flow_evaluations: &mut usize,
+) -> bool {
+    let required_flow: u64 = targets.iter().copied().sum();
+    let candidate_demands: Vec<(String, u64)> = demands
+        .iter()
+        .enumerate()
+        .map(|(index, (id, _))| (id.clone(), targets[index]))
+        .collect();
+    *flow_evaluations += 1;
+    run_flow(&candidate_demands, sites, links).total == required_flow
+}
+
 fn progressive_max_min_flow_scaled_with_stats(
     demands: &[(String, u64)],
     sites: &[(String, u64)],
@@ -337,71 +354,113 @@ fn progressive_max_min_flow_scaled_with_stats(
             continue;
         }
 
-        let remaining = demands[selected].1 - targets[selected];
-        let mut batch_limit = remaining;
+        let selected_denominator = fairness_totals[selected].max(1);
+        let selected_numerator =
+            baseline_served[selected].saturating_add(targets[selected]);
+        let minimum_ratio_group: Vec<usize> = order
+            .iter()
+            .copied()
+            .take_while(|index| {
+                let denominator = fairness_totals[*index].max(1);
+                let numerator = baseline_served[*index].saturating_add(targets[*index]);
+                u128::from(numerator) * u128::from(selected_denominator)
+                    == u128::from(selected_numerator) * u128::from(denominator)
+            })
+            .collect();
 
-        if order.len() > 1 {
-            let next = order[1];
-            let selected_denominator = fairness_totals[selected].max(1);
-            let next_denominator = fairness_totals[next].max(1);
-            let selected_numerator =
-                baseline_served[selected].saturating_add(targets[selected]);
-            let next_numerator = baseline_served[next].saturating_add(targets[next]);
+        // When the minimum-ratio cohort group has one common denominator, a
+        // full round (one additional place for every tied cohort) preserves
+        // the exact unit-step ordering until that group's ratio reaches the
+        // next cohort's ratio. We can therefore binary-search multiple complete
+        // rounds at once. Heterogeneous denominator groups use the exact
+        // one-round fallback below.
+        let homogeneous_minimum_group = minimum_ratio_group.len() > 1
+            && minimum_ratio_group.iter().all(|index| {
+                fairness_totals[*index].max(1) == selected_denominator
+                    && baseline_served[*index].saturating_add(targets[*index])
+                        == selected_numerator
+            });
 
-            // Find the first integer increment that changes the ordering between
-            // the selected cohort and the next-lowest cohort. If the selected
-            // cohort wins exact-ratio ties, include the one crossing increment;
-            // otherwise stop at the tie itself.
-            let cross_product = u128::from(next_numerator) * u128::from(selected_denominator);
-            let denominator = u128::from(next_denominator);
-            let floor_ratio = cross_product / denominator;
-            let ceil_ratio = floor_ratio + u128::from(cross_product % denominator != 0);
-            let selected_wins_ties = (
-                tie_break_ranks[selected],
-                demands[selected].0.as_str(),
-            ) < (
-                tie_break_ranks[next],
-                demands[next].0.as_str(),
-            );
-            let first_increment_that_changes_order = if selected_wins_ties {
-                floor_ratio
-                    .saturating_sub(u128::from(selected_numerator))
-                    .saturating_add(1)
-            } else {
-                ceil_ratio.saturating_sub(u128::from(selected_numerator))
-            };
-            let breakpoint_limit = u64::try_from(first_increment_that_changes_order)
-                .unwrap_or(u64::MAX)
-                .max(1);
-            batch_limit = batch_limit.min(breakpoint_limit);
-        }
-
-        let mut low = 0_u64;
-        let mut high = batch_limit;
-        while low < high {
-            let middle = low + (high - low).div_ceil(2);
-            targets[selected] = targets[selected].saturating_add(middle);
-            let required_flow: u64 = targets.iter().sum();
-            let candidate_demands: Vec<(String, u64)> = demands
+        if homogeneous_minimum_group {
+            let mut batch_limit = minimum_ratio_group
                 .iter()
-                .enumerate()
-                .map(|(index, (id, _))| (id.clone(), targets[index]))
-                .collect();
-            flow_evaluations += 1;
-            let feasible = run_flow(&candidate_demands, sites, links).total == required_flow;
-            targets[selected] -= middle;
+                .map(|index| demands[*index].1 - targets[*index])
+                .min()
+                .unwrap_or(0);
 
-            if feasible {
-                low = middle;
-            } else {
-                high = middle - 1;
+            if order.len() > minimum_ratio_group.len() {
+                let next = order[minimum_ratio_group.len()];
+                let next_numerator = baseline_served[next].saturating_add(targets[next]);
+                let next_denominator = fairness_totals[next].max(1);
+                let cross_product =
+                    u128::from(next_numerator) * u128::from(selected_denominator);
+                let denominator = u128::from(next_denominator);
+
+                // Keep the common-ratio group strictly below the next group.
+                // Once it reaches that breakpoint, the exact tie-break ordering
+                // is handled by the single-round fallback.
+                let ceil_ratio = cross_product / denominator
+                    + u128::from(cross_product % denominator != 0);
+                let max_numerator_before_tie = ceil_ratio.saturating_sub(1);
+                let safe_rounds = max_numerator_before_tie
+                    .saturating_sub(u128::from(selected_numerator));
+                batch_limit = batch_limit.min(
+                    u64::try_from(safe_rounds).unwrap_or(u64::MAX),
+                );
+            }
+
+            let mut low = 0_u64;
+            let mut high = batch_limit;
+            while low < high {
+                let middle = low + (high - low).div_ceil(2);
+                for index in &minimum_ratio_group {
+                    targets[*index] = targets[*index].saturating_add(middle);
+                }
+                let feasible = targets_are_feasible(
+                    demands,
+                    sites,
+                    links,
+                    &targets,
+                    &mut flow_evaluations,
+                );
+                for index in &minimum_ratio_group {
+                    targets[*index] -= middle;
+                }
+                if feasible {
+                    low = middle;
+                } else {
+                    high = middle - 1;
+                }
+            }
+
+            if low > 0 {
+                for index in &minimum_ratio_group {
+                    targets[*index] += low;
+                }
+                continue;
             }
         }
 
-        if low == 0 {
-            blocked[selected] = true;
-        } else {
-            targets[selected] += low;
+        // Exact single-seat reference transition for heterogeneous ratio
+        // groups, fairness breakpoints, and capacity bottlenecks. Every member
+        // of the currently tied minimum group is considered in tie-break order.
+        for index in minimum_ratio_group {
+            if targets[index] >= demands[index].1 {
+                blocked[index] = true;
+                continue;
+            }
+            targets[index] += 1;
+            if targets_are_feasible(
+                demands,
+                sites,
+                links,
+                &targets,
+                &mut flow_evaluations,
+            ) {
+                continue;
+            }
+            targets[index] -= 1;
+            blocked[index] = true;
         }
     }
 
@@ -1469,6 +1528,141 @@ mod tests {
 
     fn sample() -> Value {
         serde_json::from_str(CASE).expect("case JSON")
+    }
+
+    #[test]
+    fn scaled_progressive_filling_matches_unit_reference_on_exhaustive_small_graphs() {
+        let cohort_ids = ["A", "B", "C"];
+        let site_ids = ["S0", "S1"];
+        let demands = vec![
+            ("A".to_owned(), 3),
+            ("B".to_owned(), 2),
+            ("C".to_owned(), 4),
+        ];
+        let fairness_totals = vec![3, 2, 4];
+        let tie_break_ranks = vec![1, 2, 3];
+
+        for edge_mask in 0_u32..64 {
+            let mut links = BTreeSet::new();
+            for cohort in 0..3 {
+                for site in 0..2 {
+                    if edge_mask & (1 << (cohort * 2 + site)) != 0 {
+                        links.insert((
+                            cohort_ids[cohort].to_owned(),
+                            site_ids[site].to_owned(),
+                        ));
+                    }
+                }
+            }
+            for capacity_0 in 0_u64..=3 {
+                for capacity_1 in 0_u64..=3 {
+                    let sites = vec![
+                        ("S0".to_owned(), capacity_0),
+                        ("S1".to_owned(), capacity_1),
+                    ];
+                    let baseline = vec![0, 0, 0];
+                    let reference = progressive_max_min_flow_unit_reference(
+                        &demands,
+                        &sites,
+                        &links,
+                        &baseline,
+                        &fairness_totals,
+                        &tie_break_ranks,
+                    );
+                    let (scaled, _) = progressive_max_min_flow_scaled_with_stats(
+                        &demands,
+                        &sites,
+                        &links,
+                        &baseline,
+                        &fairness_totals,
+                        &tie_break_ranks,
+                    );
+                    assert_eq!(scaled.total, reference.total, "edge mask {edge_mask}");
+                    assert_eq!(
+                        scaled.served_by_cohort,
+                        reference.served_by_cohort,
+                        "edge mask {edge_mask}"
+                    );
+                    assert_eq!(
+                        scaled.used_by_site,
+                        reference.used_by_site,
+                        "edge mask {edge_mask}"
+                    );
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn scaled_progressive_filling_preserves_baseline_service_and_tie_breaks() {
+        let demands = vec![
+            ("A".to_owned(), 4),
+            ("B".to_owned(), 3),
+            ("C".to_owned(), 5),
+        ];
+        let sites = vec![("S0".to_owned(), 5), ("S1".to_owned(), 6)];
+        let links = [
+            ("A".to_owned(), "S0".to_owned()),
+            ("A".to_owned(), "S1".to_owned()),
+            ("B".to_owned(), "S0".to_owned()),
+            ("C".to_owned(), "S1".to_owned()),
+        ]
+        .into_iter()
+        .collect::<BTreeSet<_>>();
+        let baseline = vec![1, 0, 1];
+        let fairness_totals = vec![5, 3, 6];
+        let ranks = vec![2, 1, 3];
+        let reference = progressive_max_min_flow_unit_reference(
+            &demands,
+            &sites,
+            &links,
+            &baseline,
+            &fairness_totals,
+            &ranks,
+        );
+        let (scaled, _) = progressive_max_min_flow_scaled_with_stats(
+            &demands,
+            &sites,
+            &links,
+            &baseline,
+            &fairness_totals,
+            &ranks,
+        );
+        assert_eq!(scaled.total, reference.total);
+        assert_eq!(scaled.served_by_cohort, reference.served_by_cohort);
+        assert_eq!(scaled.used_by_site, reference.used_by_site);
+    }
+
+    #[test]
+    fn scaled_progressive_filling_batches_billion_place_equal_ratio_groups() {
+        let billion = 1_000_000_000_u64;
+        let demands = vec![
+            ("A".to_owned(), billion),
+            ("B".to_owned(), billion),
+            ("C".to_owned(), billion),
+        ];
+        let sites = vec![("S0".to_owned(), 1_500_000_000_u64)];
+        let links = [
+            ("A".to_owned(), "S0".to_owned()),
+            ("B".to_owned(), "S0".to_owned()),
+            ("C".to_owned(), "S0".to_owned()),
+        ]
+        .into_iter()
+        .collect::<BTreeSet<_>>();
+        let baseline = vec![0, 0, 0];
+        let totals = vec![billion, billion, billion];
+        let ranks = vec![1, 2, 3];
+        let (scaled, evaluations) = progressive_max_min_flow_scaled_with_stats(
+            &demands,
+            &sites,
+            &links,
+            &baseline,
+            &totals,
+            &ranks,
+        );
+        assert_eq!(scaled.total, 1_500_000_000);
+        assert_eq!(scaled.served_by_cohort, vec![500_000_000; 3]);
+        assert!(evaluations <= 64, "unexpected flow-evaluation count: {evaluations}");
     }
 
     #[test]
