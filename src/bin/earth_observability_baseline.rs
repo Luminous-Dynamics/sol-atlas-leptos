@@ -143,12 +143,12 @@ fn inverse_distance_weighted(
     let mut weighted_sum = 0.0;
     let mut weight_sum = 0.0;
     for (x_m, value) in &ordered {
-        let distance = (target_x_m - x_m).abs();
+        let distance = (target_x_m - *x_m).abs();
         if distance == 0.0 {
             return Some(*value);
         }
         let weight = 1.0 / distance.powf(power);
-        weighted_sum += value * weight;
+        weighted_sum += *value * weight;
         weight_sum += weight;
     }
 
