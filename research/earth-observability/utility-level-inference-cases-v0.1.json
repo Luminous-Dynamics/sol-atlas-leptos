@@ -1,0 +1,208 @@
+{
+  "benchmark_id": "EARTH-OBSERVABILITY-UTILITY-LEVEL-001",
+  "manifest_version": "0.1.0",
+  "status": "planned_synthetic_challenge_definitions_not_generated_measurements",
+  "created": "2026-11-13",
+  "geography": "abstract_non_geographic",
+  "claim_boundary": "Challenge definitions only. No real utility records, physical survey data, verified asset geometry or engineering qualification.",
+  "case_count": 8,
+  "cases": [
+    {
+      "case_id": "MULTI-EVENT-ONE-ASSET-001",
+      "track": "utility_asset_association",
+      "kind": "adversarial",
+      "modalities": [
+        "gpr",
+        "multi_view"
+      ],
+      "scenario": "A single physical utility generates multiple reflection events across adjacent scan lines and antenna views.",
+      "conditions": [
+        "repeated_reflections",
+        "adjacent_scan_overlap",
+        "one_physical_asset"
+      ],
+      "expected_disposition": "associate_events_to_one_candidate_asset",
+      "assertions": [
+        "Event count must not be promoted to asset count.",
+        "Every association retains the event IDs, acquisition IDs and spatial support.",
+        "Unresolved association ambiguity remains explicit."
+      ],
+      "reference": "synthetic_asset_graph_oracle",
+      "split_role": "synthetic_held_out",
+      "data_status": "definition_only"
+    },
+    {
+      "case_id": "CLUTTER-NO-ASSET-001",
+      "track": "utility_asset_association",
+      "kind": "negative_control",
+      "modalities": [
+        "gpr"
+      ],
+      "scenario": "Rocks, rubble, backfill heterogeneity or migration artefacts generate utility-like events where no utility exists.",
+      "conditions": [
+        "non_utility_reflection",
+        "event_utility_mismatch",
+        "negative_asset_truth"
+      ],
+      "expected_disposition": "do_not_promote_to_utility_asset",
+      "assertions": [
+        "A detected event is not itself a utility asset.",
+        "Unsupported asset hypotheses are counted as false assets.",
+        "Alternative explanations and event evidence remain available."
+      ],
+      "reference": "synthetic_asset_graph_oracle",
+      "split_role": "synthetic_held_out",
+      "data_status": "definition_only"
+    },
+    {
+      "case_id": "CONTINUITY-GAP-001",
+      "track": "utility_segment_reconstruction",
+      "kind": "adversarial",
+      "modalities": [
+        "gpr",
+        "em_locator"
+      ],
+      "scenario": "A real utility is intermittently observed because of orientation, attenuation, occlusion or acquisition spacing.",
+      "conditions": [
+        "partial_event_coverage",
+        "orientation_shift",
+        "observation_gap"
+      ],
+      "expected_disposition": "probabilistic_segment_or_explicit_gap",
+      "assertions": [
+        "No unsupported line segment is silently inserted as verified geometry.",
+        "Completeness and unsupported inferred length are reported separately.",
+        "Uncertainty widens across the observation gap."
+      ],
+      "reference": "synthetic_segment_geometry_oracle",
+      "split_role": "synthetic_held_out",
+      "data_status": "definition_only"
+    },
+    {
+      "case_id": "CROSSING-IDENTITY-001",
+      "track": "utility_network_topology",
+      "kind": "adversarial",
+      "modalities": [
+        "gpr",
+        "em_locator",
+        "survey_control"
+      ],
+      "scenario": "Two crossing or closely parallel utilities produce overlapping events that may be falsely merged or split.",
+      "conditions": [
+        "crossing_routes",
+        "close_parallel_assets",
+        "ambiguous_junction"
+      ],
+      "expected_disposition": "preserve_distinct_asset_hypotheses_or_abstain",
+      "assertions": [
+        "Two assets are not merged from visual proximity alone.",
+        "A network junction requires supporting connection evidence.",
+        "Overmerge and oversplit counts are emitted."
+      ],
+      "reference": "synthetic_topology_oracle",
+      "split_role": "synthetic_held_out",
+      "data_status": "definition_only"
+    },
+    {
+      "case_id": "MULTIVIEW-REGISTRATION-001",
+      "track": "utility_spatial_reconstruction",
+      "kind": "negative_control",
+      "modalities": [
+        "gpr_bscan",
+        "gpr_cscan",
+        "gpr_dscan",
+        "gps",
+        "imu"
+      ],
+      "scenario": "Multiple radar views are fused under correlated route/attitude/registration bias.",
+      "conditions": [
+        "correlated_registration_bias",
+        "multi_view_fusion",
+        "control_network_error"
+      ],
+      "expected_disposition": "propagate_registration_uncertainty",
+      "assertions": [
+        "Internal cross-view agreement is not treated as independent absolute accuracy.",
+        "Correlated transform errors cannot be counted as multiple independent confirmations.",
+        "Localization P95 is measured against independent survey truth."
+      ],
+      "reference": "synthetic_registration_oracle",
+      "split_role": "synthetic_held_out",
+      "data_status": "definition_only"
+    },
+    {
+      "case_id": "SYNTHETIC-FIELD-SHIFT-001",
+      "track": "domain_transfer",
+      "kind": "adversarial",
+      "modalities": [
+        "gpr",
+        "physics_forward_model"
+      ],
+      "scenario": "A model trained on simplified synthetic radargrams is evaluated under heterogeneous field media, system artefacts and a different instrument configuration.",
+      "conditions": [
+        "synthetic_to_field_shift",
+        "soil_heterogeneity",
+        "antenna_response_shift",
+        "system_artifacts"
+      ],
+      "expected_disposition": "out_of_domain_or_uncertainty_expansion",
+      "assertions": [
+        "Synthetic accuracy is reported separately from physical-field performance.",
+        "Model confidence cannot remain unchanged under unqualified shift.",
+        "No field capability claim is emitted without independent physical validation."
+      ],
+      "reference": "synthetic_domain_shift_oracle",
+      "split_role": "synthetic_held_out",
+      "data_status": "definition_only"
+    },
+    {
+      "case_id": "ASBUILT-CONFLICT-001",
+      "track": "source_reconciliation",
+      "kind": "adversarial",
+      "modalities": [
+        "legacy_asset_record",
+        "gpr",
+        "em_locator",
+        "excavation_asbuilt"
+      ],
+      "scenario": "A legacy utility record conflicts with an authorized independent locate or open-excavation as-built observation.",
+      "conditions": [
+        "source_disagreement",
+        "different_source_quality",
+        "time_revision"
+      ],
+      "expected_disposition": "preserve_conflicting_versioned_claims",
+      "assertions": [
+        "A sensor result does not overwrite the canonical owner record.",
+        "Source identity, date, support, rights and review remain attached.",
+        "Currentness and supersession are separate from epistemic confidence."
+      ],
+      "reference": "synthetic_evidence_graph_oracle",
+      "split_role": "synthetic_held_out",
+      "data_status": "definition_only"
+    },
+    {
+      "case_id": "ORIENTATION-POD-001",
+      "track": "observability",
+      "kind": "adversarial",
+      "modalities": [
+        "gpr"
+      ],
+      "scenario": "The same utility target is scanned at different angles relative to the antenna path and event detectability changes.",
+      "conditions": [
+        "orientation_dependent_response",
+        "same_target_class",
+        "matched_sensor_configuration"
+      ],
+      "expected_disposition": "orientation_conditional_pod",
+      "assertions": [
+        "POD is stratified by target orientation or scan angle.",
+        "A non-detection outside the tested orientation envelope is not evidence of absence.",
+        "Survey planning may recommend an additional orthogonal view."
+      ],
+      "reference": "synthetic_orientation_detection_curve",
+      "split_role": "synthetic_held_out",
+      "data_status": "definition_only"
+    }
+  ]
+}
