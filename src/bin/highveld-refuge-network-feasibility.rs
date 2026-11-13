@@ -1623,12 +1623,7 @@ mod tests {
             &demands, &sites, &links, &baseline, &totals, &ranks,
         );
         let (scaled, _) = progressive_max_min_flow_scaled_with_stats(
-            &demands,
-            &sites,
-            &links,
-            &baseline,
-            &totals,
-            &ranks,
+            &demands, &sites, &links, &baseline, &totals, &ranks,
         );
         assert_eq!(scaled.total, 13);
         assert_eq!(scaled.served_by_cohort, vec![4, 5, 4]);
@@ -1656,12 +1651,7 @@ mod tests {
         let totals = vec![billion, billion, billion];
         let ranks = vec![1, 2, 3];
         let (scaled, evaluations) = progressive_max_min_flow_scaled_with_stats(
-            &demands,
-            &sites,
-            &links,
-            &baseline,
-            &totals,
-            &ranks,
+            &demands, &sites, &links, &baseline, &totals, &ranks,
         );
         assert_eq!(scaled.total, 1_500_000_000);
         assert_eq!(scaled.served_by_cohort, vec![500_000_000; 3]);
