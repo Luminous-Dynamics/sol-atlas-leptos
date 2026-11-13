@@ -41,7 +41,9 @@ fn validate_manifest_bytes(bytes: &[u8]) -> Result<ValidationReceipt, String> {
         *kinds.entry(case.kind.clone()).or_insert(0) += 1;
     }
 
-    let errors = validate_challenge_manifest(&manifest).err().unwrap_or_default();
+    let errors = validate_challenge_manifest(&manifest)
+        .err()
+        .unwrap_or_default();
     Ok(ValidationReceipt {
         benchmark_id: manifest.benchmark_id,
         manifest_version: manifest.manifest_version,
@@ -64,7 +66,9 @@ fn print_usage(program: &str) {
 
 fn main() {
     let mut args = env::args();
-    let program = args.next().unwrap_or_else(|| "earth-observability-validate".to_string());
+    let program = args
+        .next()
+        .unwrap_or_else(|| "earth-observability-validate".to_string());
     let path = match (args.next(), args.next()) {
         (None, None) => DEFAULT_MANIFEST.to_string(),
         (Some(flag), None) if flag == "--help" || flag == "-h" => {
@@ -87,8 +91,7 @@ fn main() {
             let passed = receipt.contract_validation == "PASS";
             println!(
                 "{}",
-                serde_json::to_string_pretty(&receipt)
-                    .expect("validation receipt must serialize")
+                serde_json::to_string_pretty(&receipt).expect("validation receipt must serialize")
             );
             if !passed {
                 std::process::exit(2);
@@ -105,8 +108,9 @@ fn main() {
 mod tests {
     use super::*;
 
-    const MANIFEST: &str =
-        include_str!("../../research/earth-observability/earth-observability-case-manifest-v0.1.json");
+    const MANIFEST: &str = include_str!(
+        "../../research/earth-observability/earth-observability-case-manifest-v0.1.json"
+    );
 
     #[test]
     fn canonical_manifest_emits_contract_pass_and_18_cases() {
@@ -133,9 +137,15 @@ mod tests {
     #[test]
     fn track_and_case_kind_counts_are_deterministic() {
         let receipt = validate_manifest_bytes(MANIFEST.as_bytes()).expect("manifest parses");
-        assert_eq!(receipt.case_counts_by_kind.get("negative_control"), Some(&9));
+        assert_eq!(
+            receipt.case_counts_by_kind.get("negative_control"),
+            Some(&9)
+        );
         assert_eq!(receipt.case_counts_by_kind.get("adversarial"), Some(&7));
-        assert_eq!(receipt.case_counts_by_kind.get("positive_control"), Some(&2));
+        assert_eq!(
+            receipt.case_counts_by_kind.get("positive_control"),
+            Some(&2)
+        );
         assert_eq!(receipt.case_counts_by_track.get("observability"), Some(&4));
     }
 }
