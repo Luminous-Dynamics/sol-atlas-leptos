@@ -88,7 +88,12 @@ fn audit() -> Result<Value, Vec<String>> {
     }
     for interval in &exergy_intervals {
         let layers = array_at(interval, "layers").cloned().unwrap_or_default();
-        if layers.len() != 3 || !unique_ids(&layers) {
+        let mut layer_ids = BTreeSet::new();
+        let unique_layer_ids = layers.iter().all(|layer| {
+            text_at(layer, "layer_id")
+                .is_some_and(|id| layer_ids.insert(id.to_owned()))
+        });
+        if layers.len() != 3 || !unique_layer_ids {
             errors.push(format!(
                 "{}: three unique water layers are required for exergy",
                 text_at(interval, "interval_id").unwrap_or("<missing-interval-id>")
