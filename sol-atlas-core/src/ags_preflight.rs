@@ -46,8 +46,6 @@ pub enum AgsPreflightError {
     DataWidthMismatch,
     GroupHasNoDataRows,
     UnsupportedDescriptor(String),
-    MissingDeclaredVersion,
-    UnsupportedDeclaredVersion(String),
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -108,6 +106,9 @@ pub enum BgsAgsReceiptError {
     ApiVersionMismatch,
     EndpointMismatch,
     EmptyFilename,
+    EmptySourceFile,
+    SourceSizeExceeded,
+    UnsupportedDictionaryId,
     InvalidSourceDigest,
     SourceDigestMismatch,
     SourceSizeMismatch,
@@ -166,8 +167,20 @@ pub fn validate_bgs_ags_receipt(
     } else if receipt.source_file_sha256 != expected_source_sha256 {
         errors.push(BgsAgsReceiptError::SourceDigestMismatch);
     }
+    if receipt.source_file_bytes == 0 {
+        errors.push(BgsAgsReceiptError::EmptySourceFile);
+    }
+    if receipt.source_file_bytes > AGS4_PREFLIGHT_MAX_BYTES {
+        errors.push(BgsAgsReceiptError::SourceSizeExceeded);
+    }
     if receipt.source_file_bytes != expected_source_bytes {
         errors.push(BgsAgsReceiptError::SourceSizeMismatch);
+    }
+    if !matches!(
+        expected_dictionary_id,
+        "v4_0_3" | "v4_0_4" | "v4_1" | "v4_1_1"
+    ) {
+        errors.push(BgsAgsReceiptError::UnsupportedDictionaryId);
     }
     if !is_sha256_hex(&receipt.response_sha256) {
         errors.push(BgsAgsReceiptError::InvalidResponseDigest);
@@ -353,7 +366,9 @@ pub fn parse_ags4_preflight(bytes: &[u8]) -> Result<AgsDocument, AgsPreflightErr
                     return Err(AgsPreflightError::HeaderOrder);
                 }
                 let headings = fields.into_iter().skip(1).collect::<Vec<_>>();
-                if headings.is_empty() || headings.iter().any(|heading| heading.trim().is_empty()) {
+                if headings.is_empty()
+                    || headings.iter().any(|heading| heading.trim().is_empty())
+                {
                     return Err(AgsPreflightError::EmptyHeading);
                 }
                 let unique: BTreeSet<&str> = headings.iter().map(String::as_str).collect();
@@ -714,6 +729,43 @@ mod tests {
         .expect_err("rejected source must stay rejected");
         assert!(errors.contains(&BgsAgsReceiptError::ValidatorRejectedFile));
         assert!(errors.contains(&BgsAgsReceiptError::ErrorCountNonZero));
+    }
+
+    #[test]
+    fn validator_receipt_rejects_empty_oversized_and_unsupported_inputs() {
+        let mut receipt = valid_bgs_receipt();
+
+        receipt.source_file_bytes = 0;
+        let empty_errors = validate_bgs_ags_receipt(
+            &receipt,
+            &"a".repeat(64),
+            0,
+            "v4_1_1",
+        )
+        .expect_err("empty source cannot pass");
+        assert!(empty_errors.contains(&BgsAgsReceiptError::EmptySourceFile));
+
+        receipt = valid_bgs_receipt();
+        receipt.source_file_bytes = AGS4_PREFLIGHT_MAX_BYTES + 1;
+        let large_errors = validate_bgs_ags_receipt(
+            &receipt,
+            &"a".repeat(64),
+            AGS4_PREFLIGHT_MAX_BYTES + 1,
+            "v4_1_1",
+        )
+        .expect_err("oversized source cannot pass");
+        assert!(large_errors.contains(&BgsAgsReceiptError::SourceSizeExceeded));
+
+        receipt = valid_bgs_receipt();
+        receipt.dictionary_id = "v4_2".to_string();
+        let dictionary_errors = validate_bgs_ags_receipt(
+            &receipt,
+            &"a".repeat(64),
+            SYNTHETIC_AGS.len(),
+            "v4_2",
+        )
+        .expect_err("unknown dictionary must not pass");
+        assert!(dictionary_errors.contains(&BgsAgsReceiptError::UnsupportedDictionaryId));
     }
 
     #[test]
