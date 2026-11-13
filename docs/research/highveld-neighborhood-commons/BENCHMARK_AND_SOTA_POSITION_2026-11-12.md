@@ -399,3 +399,21 @@ Sources:
 - [2026 exergy analysis review](https://www.sciencedirect.com/science/article/pii/S0735193326006408) — turn156304search2
 
 Benchmark target: zero accepted load-to-store transfers below the required temperature approach; zero transfers beyond current free store headroom without explicitly qualified concurrent regeneration; zero sink-side rejection below its own pinch; preserve the positive controls on both sides; 100% traceability to load, store, exchanger, sink and uncertainty evidence.
+
+
+## 19. Pool heat recovery: first-law balance and no-double-count accounting
+
+The pool/water feature programme now has a separate synthetic conservation ledger for heat recovery from a building cooling load. It checks two different control volumes rather than treating "recovered heat" as one undifferentiated number:
+
+- Refrigeration circuit: condenser heat output = building-side heat removed + compressor electrical work − declared compressor-to-ambient loss.
+- Condenser disposition: condenser heat output = pool heat recovered + fallback sink rejection + measured distribution losses.
+
+Building-side cooling, pool heat delivery and independently measured displaced pool-heater input are output as distinct credits. The ledger rejects first-law residual beyond supplied uncertainty, disposition residual beyond uncertainty, pool recovery beyond actual demand/headroom/maximum temperature, unqualified/undersized fallback rejection and heater-displacement claims without a baseline meter/counterfactual.
+
+This addresses a common boundary-accounting error: condenser heat includes compressor electrical work and cannot all be credited as useful building cooling. The pool may consume part of that heat for a real heating demand, but it does not make the building-side cooling credit larger. The remaining condenser heat still needs a qualified rejection path.
+
+The committed case is synthetic and closes the two boundaries exactly at 12.8 kWh. It proves arithmetic only, not refrigeration performance, pool temperature behavior or energy savings.
+
+The parent pool/water benchmark now records 80 cases (10 archetypes × 8 scenarios) and adds explicit condenser first-law, condenser-disposition and heat-double-count gates. The new ledger is wired into native CI and has separate controls for no pool heating demand and inadequate fallback capacity.
+
+**Claim ceiling:** no measured heat recovery, no displaced heater energy, no pool temperature result and no Highveld saving is claimed. The UC Davis field trial and California modeled feasibility study remain reference classes, not local predictions.
