@@ -58,7 +58,10 @@ fn evaluate_store_charge_path(input: &Value, global_ok: bool) -> Value {
         (Some(source), Some(store), Some(minimum)) => {
             let approach = source - store;
             if minimum < 0.0 {
-                push_reason(&mut reasons, "INVALID_NEGATIVE_MINIMUM_TEMPERATURE_APPROACH");
+                push_reason(
+                    &mut reasons,
+                    "INVALID_NEGATIVE_MINIMUM_TEMPERATURE_APPROACH",
+                );
             }
             if !approach.is_finite() {
                 push_reason(&mut reasons, "LOAD_TO_STORE_TEMPERATURE_APPROACH_NONFINITE");
@@ -610,11 +613,13 @@ mod tests {
         input["store_charge_path"]["minimum_approach_k"] = json!(-1.0);
         let report = evaluate(&input).expect("invalid approach is a blocked decision");
         assert_eq!(report["store_charge_path"]["state"], "BLOCKED");
-        assert!(report["store_charge_path"]["reasons"]
-            .as_array()
-            .unwrap()
-            .iter()
-            .any(|reason| reason == "INVALID_NEGATIVE_MINIMUM_TEMPERATURE_APPROACH"));
+        assert!(
+            report["store_charge_path"]["reasons"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|reason| reason == "INVALID_NEGATIVE_MINIMUM_TEMPERATURE_APPROACH")
+        );
     }
 
     #[test]
@@ -625,11 +630,13 @@ mod tests {
         input["store_charge_path"]["requested_duration_h"] = json!(1.0e308);
         let report = evaluate(&input).expect("overflow must become a blocked decision");
         assert_eq!(report["store_charge_path"]["state"], "BLOCKED");
-        assert!(report["store_charge_path"]["reasons"]
-            .as_array()
-            .unwrap()
-            .iter()
-            .any(|reason| reason == "LOAD_TO_STORE_TRANSFER_ENERGY_NONFINITE"));
+        assert!(
+            report["store_charge_path"]["reasons"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|reason| reason == "LOAD_TO_STORE_TRANSFER_ENERGY_NONFINITE")
+        );
         assert!(report["store_charge_path"]["requested_transfer_energy_kwh"].is_null());
     }
 
