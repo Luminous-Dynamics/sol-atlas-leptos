@@ -15,7 +15,9 @@
     "safe_water_l_per_place",
     "cohorts",
     "sites",
-    "routes"
+    "routes",
+    "evaluation_event_id",
+    "freshness_assessment_owner"
   ],
   "properties": {
     "schema_version": {
@@ -115,7 +117,11 @@
           "safe_water_protected_reserve_l",
           "capacity_evidence_ref",
           "service_evidence_ref",
-          "water_evidence_ref"
+          "water_evidence_ref",
+          "site_status_freshness",
+          "capacity_freshness",
+          "service_freshness",
+          "water_freshness"
         ],
         "properties": {
           "site_id": {
@@ -218,6 +224,118 @@
           "water_evidence_ref": {
             "type": "string",
             "minLength": 1
+          },
+          "site_status_freshness": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "source_event_id",
+              "age_elapsed_s",
+              "max_valid_age_s",
+              "max_age_policy_ref"
+            ],
+            "properties": {
+              "source_event_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "age_elapsed_s": {
+                "type": "number",
+                "minimum": 0
+              },
+              "max_valid_age_s": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              },
+              "max_age_policy_ref": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "capacity_freshness": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "source_event_id",
+              "age_elapsed_s",
+              "max_valid_age_s",
+              "max_age_policy_ref"
+            ],
+            "properties": {
+              "source_event_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "age_elapsed_s": {
+                "type": "number",
+                "minimum": 0
+              },
+              "max_valid_age_s": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              },
+              "max_age_policy_ref": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "service_freshness": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "source_event_id",
+              "age_elapsed_s",
+              "max_valid_age_s",
+              "max_age_policy_ref"
+            ],
+            "properties": {
+              "source_event_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "age_elapsed_s": {
+                "type": "number",
+                "minimum": 0
+              },
+              "max_valid_age_s": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              },
+              "max_age_policy_ref": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "water_freshness": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "source_event_id",
+              "age_elapsed_s",
+              "max_valid_age_s",
+              "max_age_policy_ref"
+            ],
+            "properties": {
+              "source_event_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "age_elapsed_s": {
+                "type": "number",
+                "minimum": 0
+              },
+              "max_valid_age_s": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              },
+              "max_age_policy_ref": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
           }
         }
       }
@@ -235,7 +353,9 @@
           "accessibility_state",
           "travel_time_s",
           "route_evidence_ref",
-          "accessibility_evidence_ref"
+          "accessibility_evidence_ref",
+          "route_freshness",
+          "accessibility_freshness"
         ],
         "properties": {
           "cohort_id": {
@@ -271,9 +391,72 @@
           "accessibility_evidence_ref": {
             "type": "string",
             "minLength": 1
+          },
+          "route_freshness": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "source_event_id",
+              "age_elapsed_s",
+              "max_valid_age_s",
+              "max_age_policy_ref"
+            ],
+            "properties": {
+              "source_event_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "age_elapsed_s": {
+                "type": "number",
+                "minimum": 0
+              },
+              "max_valid_age_s": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              },
+              "max_age_policy_ref": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "accessibility_freshness": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "source_event_id",
+              "age_elapsed_s",
+              "max_valid_age_s",
+              "max_age_policy_ref"
+            ],
+            "properties": {
+              "source_event_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "age_elapsed_s": {
+                "type": "number",
+                "minimum": 0
+              },
+              "max_valid_age_s": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              },
+              "max_age_policy_ref": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
           }
         }
       }
+    },
+    "evaluation_event_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "freshness_assessment_owner": {
+      "const": "SYMTROPY"
     }
   }
 }
