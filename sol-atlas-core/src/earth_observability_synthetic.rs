@@ -208,6 +208,10 @@ pub fn generate_synthetic_profile_fixture(seed: u64) -> SyntheticProfileFixture 
 mod tests {
     use super::*;
 
+    const COMMITTED_FIXTURE: &str = include_str!(
+        "../../research/earth-observability/fixtures/earth-observability-profile-synthetic-v0.1.json"
+    );
+
     #[test]
     fn generator_is_deterministic_for_a_frozen_seed() {
         let a = generate_synthetic_profile_fixture(20_261_113);
@@ -292,5 +296,12 @@ mod tests {
             assert!(error <= 0.20, "proxy noise exceeded 0.20 m");
             assert!(observation.standard_uncertainty_m.is_some());
         }
+    }
+
+    #[test]
+    fn committed_fixture_matches_the_seeded_generator() {
+        let fixture: SyntheticProfileFixture =
+            serde_json::from_str(COMMITTED_FIXTURE).expect("fixture must parse");
+        assert_eq!(fixture, generate_synthetic_profile_fixture(20_261_113));
     }
 }
