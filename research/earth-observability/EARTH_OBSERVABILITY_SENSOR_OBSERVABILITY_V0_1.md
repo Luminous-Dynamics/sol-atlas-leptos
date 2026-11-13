@@ -100,17 +100,21 @@ These methods are an excellent statistical foundation, but geophysical field sur
 
 ### 3.2 Next statistical increment
 
-The present v0.1 scorer reports point estimates only. The next scorer must implement:
+The v0.1 scorer now includes an optional deterministic **site-cluster percentile bootstrap** for POD and false alarms/km. It resamples entire independent site blocks rather than treating individual traces as iid. The CLI's pinned analytic receipt sets a preregistered pilot gate of 10 independent site clusters for each rate; the current fixture has four for POD and four for false alarms, so its receipt returns `INSUFFICIENT_SITE_CLUSTERS_POD_4_FAR_4_REQUIRED_10_NOT_RUN` and no confidence intervals.
+
+The value 10 is a transparent, provisional run configuration for this software benchmark, not a statistical standard or a recommended universal sample size. A physical experiment must derive its cluster count through power/precision simulation based on target prevalence, intra-site correlation, acceptable confidence-bound width and the intended deployment population. A small synthetic test exercises deterministic resampling when the configured minimum is met, but does not validate inference for a field campaign.
+
+The next statistical increment must extend beyond the current site-block percentile bootstrap:
 
 - binomial hit/miss POD curves when the detector output is binary;
 - continuous-response `a-hat`/signal-response models where the instrument provides a measurable response;
 - target-size/depth/contrast/environment covariates with monotonicity or physically justified constraints where appropriate;
-- site-, campaign-, target- and acquisition-cluster-aware resampling or hierarchical models;
+- multi-level site/campaign/target/acquisition correlation models where data structure requires them;
 - lower confidence bounds for POD and upper confidence bounds for false-alarm burden;
 - separate calibration, model-selection and blind-test data;
 - model checking, residual diagnostics and sensitivity to the detection threshold.
 
-A pooled iid binomial interval is not acceptable if multiple test records come from the same site, target or acquisition. It would falsely imply more independent evidence than the experiment collected. The current runner therefore says `NOT_RUN_CLUSTER_AWARE_BOOTSTRAP_REQUIRED`.
+A pooled iid binomial interval is not acceptable if multiple test records come from the same site, target or acquisition. The current CLI refuses to produce intervals when its preregistered site-cluster threshold is unmet.
 
 Do not choose a universal POD floor for all Earth targets. The acceptable lower bound and false-alarm ceiling depend on consequence, target type and the cost of misses vs nuisance indications. Freeze those values before the blind test.
 
