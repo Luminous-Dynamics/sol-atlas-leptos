@@ -1,0 +1,68 @@
+{
+  "profile_id": "UKGEOS-GLASGOW-GGC01-FINAL-001",
+  "profile_version": "0.1.0",
+  "status": "publisher_metadata_reviewed_candidate_not_ingested",
+  "reviewed_date": "2026-11-13",
+  "publisher": "British Geological Survey",
+  "data_custodian": "NERC Environmental Data Service / National Geoscience Data Centre",
+  "dataset_title": "UKGEOS Glasgow GGC01 Final Borehole Information Pack",
+  "dataset_doi": "10.5285/e38c58a6-48ec-4ad1-a996-6c6144968d7d",
+  "cited_data_record": "https://www2.bgs.ac.uk/nationalgeosciencedatacentre/citedData/catalogue/e38c58a6-48ec-4ad1-a996-6c6144968d7d.html",
+  "access_route": "https://webapps.bgs.ac.uk/services/ngdc/accessions/index.html#item167252",
+  "data_gov_harvest": "https://www.data.gov.uk/dataset/cac45dbb-eaf3-4378-bd7c-5f890dc2c218/ukgeos-glasgow-ggc01-final-borehole-information-pack",
+  "borehole": {
+    "identifier": "GGC01",
+    "count": 1,
+    "depth_m": 199,
+    "core_diameter_mm": 102,
+    "drilling_period": "2018-11-19 to 2018-12-12",
+    "wireline_logging_period": "2018-12",
+    "core_acquisition_period": "2019",
+    "additional_core_scan_period": "late 2020 to early 2021",
+    "seismometer_installation": "5 seismometers installed 2019-02"
+  },
+  "coverage": "Dalmarnock, Glasgow, United Kingdom",
+  "modalities": [
+    "core optical images (whole and slabbed)",
+    "core radiographic images",
+    "MSCL-S geophysical core scans",
+    "NIR core scans",
+    "XRF mineralogical and chemical core scans",
+    "core-wireline depth integration",
+    "composite and digital wireline/downhole logs",
+    "sedimentology logs",
+    "discontinuity logs",
+    "engineering logs",
+    "drillers' summary logs and prognosis",
+    "sample recovery information",
+    "daily driller borehole records"
+  ],
+  "rights": {
+    "ngdc_cited_data_record_licence": "Open Government Licence",
+    "acknowledgement": "Contains data supplied by permission of the Natural Environment Research Council [YEAR]",
+    "data_gov_harvest_licence_field": "Not set",
+    "reconciliation": "Use the exact BGS/NGDC cited-data record for the final pack as the publisher-level terms source; preserve the data.gov.uk harvest discrepancy in the ingest receipt. Verify package manifest and file-level notices before admitting individual assets.",
+    "linked_packages_do_not_automatically_inherit_this_profile": true
+  },
+  "package_notes": {
+    "main_final_pack": "UKGEOSGlasgow_GGC01_Final.zip; principal mixed-format package, size not stated in source record",
+    "slabbed_high_resolution_core_images": "separate package, approximately 51 GB",
+    "intermediate_part_two_high_resolution_images": "separate prior release, approximately 71 GB; not automatically part of final-pack licence/admission"
+  },
+  "benchmark_fitness": {
+    "best_fit": "single-borehole, within-borehole multimodal interoperability, core-wireline depth alignment, sample/interval lineage, and source/derived evidence provenance",
+    "not_suitable_as_standalone": "multi-site geological generalization, regional stratigraphic accuracy leaderboard, universal geophysical SOTA, or independent field-wide validation",
+    "split_policy": "contiguous depth-block holdouts with buffer gaps; never random-split adjacent depth samples across train and test",
+    "independent_truth_requirement": "identify measurements/logs independent of the target channel; do not use the released depth-integration product as both fitting input and independent evaluation truth"
+  },
+  "admission_gates": {
+    "exact_accession_manifest_and_file_list": false,
+    "exact_file_level_terms_and_notices": false,
+    "download_and_file_sha256_receipts": false,
+    "data_dictionary_units_and_depth_references": false,
+    "sensor_calibration_and_processing_versions": false,
+    "independent_reference_selection": false,
+    "full_file_ingestion_authorized": false
+  },
+  "claim_boundary": "This is publisher metadata for a single borehole dataset candidate. No files have been downloaded or ingested; no geotechnical observations, calibration, modelling, or physical validation is claimed."
+}
