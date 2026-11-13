@@ -66,3 +66,54 @@ The case is intended to prove that the same nominal network may move from partia
 - Report minimum cohort service ratio and accessible unmet-place-hours alongside total served demand.
 
 **Status:** TEMPORAL_SYNTHETIC_BENCHMARK_NOT_FIELD_VALIDATED. No real route, refuge, time series, resident, weather or outage data is admitted.
+
+## 7. Cohort cumulative service-debt ledger
+
+The snapshot and network-wide unmet-place-hour metrics are now reconciled against an independent cohort ledger. For each anonymous cohort and time slice, the evaluator records:
+- requested, served and unmet total places;
+- accessible and general requested/served/unmet places;
+- duration-weighted requested, served and unmet place-hours;
+- accessible and general unmet place-hours;
+- minimum snapshot service ratio and cumulative service ratio across the ordered sequence.
+
+The cumulative service ratio is:
+
+\[
+R_g^{cum}=\frac{\sum_t S_{g,t}\Delta t_t}{\sum_t D_{g,t}\Delta t_t}
+\]
+
+and cumulative service debt is:
+
+\[
+B_g=\sum_t(D_{g,t}-S_{g,t})\Delta t_t
+\]
+
+where \(D_{g,t}\) is requested places, \(S_{g,t}\) is feasible places and \(\Delta t_t\) is the supplied duration. B is measured in place-hours. It is not a count of distinct people and must not be presented as one.
+
+The ledger has two conservation checks:
+- sum of cohort unmet place-hours equals network-wide unmet place-hours;
+- sum of cohort accessible unmet place-hours equals network-wide accessible unmet place-hours.
+
+It reports the cohort with the largest cumulative absolute service debt. It also reports normalized cumulative service ratios so smaller and larger cohorts can be compared without relying on absolute place-hour totals alone.
+
+This is an audit metric, not an optimizer instruction. It does not automatically direct future capacity or priority toward the cohort with the largest debt. Any debt-aware or rotating policy must be separately specified, owner-governed, consent-aware and compared against the static max-min and throughput policies.
+
+## 8. Cross-event fairness research target
+
+A further research increment is to compare:
+1. static accessible-first maximum throughput;
+2. discrete max-min cohort coverage at each snapshot;
+3. cumulative service-debt-aware progressive filling with a declared rotating tie-break;
+4. a no-history baseline that resets service state each event.
+
+The primary tests should use repeated and unequal-duration heat events, changing route/site availability, demand surges and recovery windows. Report both per-event and cumulative place-hour distributions, including the worst cohort and worst timepoint. No synthetic duration or ordering is to be promoted to real chronology; Symtropy supplies native time/event identity for any real replay.
+
+Acceptance targets:
+- 100% conservation between cohort and network-wide place-hour ledgers;
+- zero duplicate cohort/timepoint identities silently merged;
+- preserve accessible unmet-place-hour accounting separately;
+- no snapshot sum represented as unique people;
+- disclose cumulative service-ratio and absolute-debt distributions together;
+- no debt-derived priority or allocation without owner/resident governance.
+
+**Claim ceiling:** this is a synthetic ordered-sequence audit; it does not identify individuals, estimate unique affected people, prove actual refuge operations or allocate future capacity.
