@@ -1275,6 +1275,22 @@ mod tests {
     }
 
     #[test]
+    fn temporal_sequence_reports_unrecovered_service_gap_at_end() {
+        let mut case: Value = serde_json::from_str(TIME_SERIES_CASE).expect("temporal case JSON");
+        case["time_slices"][2]["snapshot"]["sites"][0]["thermal_service_state"] =
+            json!("UNKNOWN");
+        let report = evaluate_time_series(&case).expect("degraded sequence must evaluate");
+        let continuity = report["cohort_service_continuity"]
+            .as_array()
+            .expect("cohort continuity rows");
+        assert!(continuity.iter().any(|row| {
+            row["unrecovered_at_sequence_end"] == true
+                && row["current_unrecovered_episode_duration_h"].as_f64().unwrap_or(0.0) > 0.0
+                && row["time_to_first_baseline_recovery_h"].is_null()
+        }));
+    }
+
+    #[test]
     fn temporal_sequence_rejects_changed_tie_break_rank() {
         let mut case: Value = serde_json::from_str(TIME_SERIES_CASE).expect("temporal case JSON");
         case["time_slices"][1]["snapshot"]["cohorts"][0]["fairness_tie_break_rank"] = json!(4);
