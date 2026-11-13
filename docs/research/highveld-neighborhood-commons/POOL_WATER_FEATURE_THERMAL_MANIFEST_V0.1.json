@@ -97,7 +97,14 @@
     "zone_moisture_balance",
     "recovered_condenser_heat",
     "displaced_pool_heater_energy",
-    "excess_heat_rejected_by_fallback_sink"
+    "excess_heat_rejected_by_fallback_sink",
+    "building_side_heat_removed_from_cooling_load",
+    "compressor_electrical_work_input",
+    "compressor_ambient_heat_loss",
+    "condenser_heat_output",
+    "pool_heat_recovery",
+    "fallback_sink_rejection",
+    "distribution_losses"
   ],
   "required_water_terms": [
     "initial_fill",
@@ -127,7 +134,10 @@
     "pool_heat_recovery_above_temperature_limit": 0,
     "pool_heat_recovery_without_isolated_heat_exchanger": 0,
     "unqualified_fallback_sink_for_excess_heat": 0,
-    "heat_recovery_claim_without_measured_displaced_heater_energy": 0
+    "heat_recovery_claim_without_measured_displaced_heater_energy": 0,
+    "condenser_first_law_balance_outside_uncertainty": 0,
+    "condenser_disposition_balance_outside_uncertainty": 0,
+    "condenser_heat_double_counting": 0
   },
   "solver_roles": {
     "indoor_pool_heat_balance": "ENERGYPLUS_26_2_SWIMMINGPOOL_INDOOR",
@@ -143,7 +153,7 @@
     "https://www.ashrae.org/technical-resources/standards-and-guidelines/guidance-for-water-system-risk-management",
     "https://publications.ibpsa.org/conference/paper/?id=bs2025_1871"
   ],
-  "claim_ceiling": "72-case design matrix and role contract only; no physical water-feature, water-quality, health, cooling or economic result admitted.",
+  "claim_ceiling": "80-case design matrix and role contract only; no physical water-feature, water-quality, health, cooling or economic result admitted.",
   "heat_recovery_contract": {
     "enabled_only_when_pool_heating_demand_exists": true,
     "requires_isolated_heat_exchanger": true,
