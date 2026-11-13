@@ -400,7 +400,7 @@ fn progressive_max_min_flow_scaled_with_stats(
                 // Once it reaches that breakpoint, the exact tie-break ordering
                 // is handled by the single-round fallback.
                 let ceil_ratio = cross_product / denominator
-                    + u128::from(cross_product % denominator != 0);
+                    + if cross_product % denominator != 0 { 1 } else { 0 };
                 let max_numerator_before_tie = ceil_ratio.saturating_sub(1);
                 let safe_rounds = max_numerator_before_tie
                     .saturating_sub(u128::from(selected_numerator));
