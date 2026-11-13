@@ -149,6 +149,14 @@ Uncertainty dimensions must remain distinguishable where material:
 
 Do not add independent variances where errors are correlated. Preserve covariance, ensemble or another declared representation and document assumptions. A confidence score without a calibration domain, target variable, method and validation set is not an uncertainty qualification.
 
+### 5.1 Rights-aware data use and source-local execution
+
+Data discovery, read access, processing, derivative creation, redistribution, retention and publication are separate permissions. Do not infer a right to copy from a public map viewer, API endpoint, catalogue entry or registration-based login.
+
+Where rights do not permit central copying, support owner-approved source-local execution. A grant must bind the exact source/asset, issuer, operation/purpose, validity interval, conditions, and output/disclosure scope. The grant's authoritative signature and issuer trust must be verified by the custody/rights owner (Mycelix); Sol-Atlas may consume the verified receipt and enforce a fail-closed operation gate. Local execution does not itself guarantee privacy or lawful use.
+
+The reference data-use gate is documented in [EARTH-OBSERVABILITY-FEDERATED-EVIDENCE-001](EARTH_OBSERVABILITY_FEDERATED_EVIDENCE_V0_1.md). It distinguishes READ, PROCESS, CREATE_DERIVATIVE and REDISTRIBUTE, rejects missing/expired/mismatched grants, and checks declared capabilities only. It does not interpret licence text, authenticate issuers or replace upstream signature verification.
+
 ## 6. Benchmark tracks
 
 ### Track A — Source and spatial conformance
@@ -199,6 +207,14 @@ Hold the total declared budget or field effort constant. Report expected decisio
 
 Introduce new measurements, corrected source versions, sensor drift, calibration changes, construction/excavation events and genuine physical change. Check that only dependent artifacts are marked for revalidation, old receipts remain historically reproducible, and stale model outputs cannot silently remain current.
 
+### Track G — Rights-aware federation and source-local execution
+
+Compare owner-approved source-local execution with an authorized local reference and centralized execution only where copying is permitted. Measure exact-source grant binding, action/purpose separation (read/process/derive/redistribute), expiry and revocation, source/adapter completeness, numerical parity, reproducibility, output disclosure, egress/cache leakage, owner burden, latency and cost.
+
+Hard negatives include: read-only grants used for processing; process-only grants used to publish; grants for the wrong source; expired/revoked grants; unmet conditions; a source listed as covered but not executed; restricted geometry appearing in logs, outputs or cache; and a grant that expires while a cached derivative is still served. A federated result must bind the source-local code, model/configuration, policy/grant receipt, source version, query support and output digest.
+
+Federated execution is not automatically privacy-preserving. Evaluate query, metadata, timing and derived-output leakage separately. Rights/authorization coverage and scientific observation coverage must be reported as different dimensions.
+
 ## 7. Dataset and split protocol
 
 Use three evidence levels:
@@ -235,6 +251,7 @@ The defensible initial differentiation is cross-tool evidence lineage, uncertain
 - Zero unauthorized disclosure of restricted underground infrastructure details in the frozen access-control corpus.
 - Deterministic replay for frozen inputs, transformations, policy and software identity.
 - Every model output has an applicability domain and explicit abstention path.
+- No source is read, processed, transformed into a derivative, or redistributed without an exact-source, in-scope, currently valid rights grant.
 - Every dependent result affected by a changed evidence digest is marked for revalidation; history is not rewritten.
 
 ### Quantitative targets (proposed, not achieved)
