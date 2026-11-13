@@ -411,6 +411,32 @@ pub fn validate_fixture(
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
+pub struct SiteDetectionMetrics {
+    pub site_id: String,
+    pub positive_targets: usize,
+    pub true_positives: usize,
+    pub false_negatives: usize,
+    pub negative_controls: usize,
+    pub false_positives: usize,
+    pub true_negatives: usize,
+    pub surveyed_negative_route_km: f64,
+    pub probability_of_detection: Option<f64>,
+    pub false_alarms_per_km: Option<f64>,
+}
+
+#[derive(Debug, Default)]
+struct SiteAccumulator {
+    positive_targets: usize,
+    true_positives: usize,
+    false_negatives: usize,
+    negative_controls: usize,
+    false_positives: usize,
+    true_negatives: usize,
+    surveyed_negative_route_km: f64,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct DetectionEvaluationMetrics {
     pub in_domain_blind_trials: usize,
     pub out_of_domain_blind_trials: usize,
@@ -427,6 +453,7 @@ pub struct DetectionEvaluationMetrics {
     pub localization_p95_error_m: Option<f64>,
     pub unique_site_clusters: usize,
     pub unique_acquisition_clusters: usize,
+    pub per_site: Vec<SiteDetectionMetrics>,
     pub clustered_confidence_interval_status: String,
     pub point_estimates_meet_declared_requirements: Option<bool>,
     pub qualification_status: String,
@@ -463,6 +490,7 @@ pub fn evaluate_blind_trials(
     let mut localization_errors = Vec::new();
     let mut sites = BTreeSet::new();
     let mut acquisitions = BTreeSet::new();
+    let mut per_site: BTreeMap<String, SiteAccumulator> = BTreeMap::new();
 
     for trial in fixture
         .trials
@@ -479,11 +507,14 @@ pub fn evaluate_blind_trials(
         in_domain += 1;
         sites.insert(trial.site_id.as_str());
         acquisitions.insert(trial.acquisition_id.as_str());
+        let site = per_site.entry(trial.site_id.clone()).or_default();
 
         if trial.target_present {
+            site.positive_targets += 1;
             positive_targets += 1;
             if trial.detector_detected {
                 true_positives += 1;
+                site.true_positives += 1;
                 localization_errors.push(
                     trial
                         .localization_error_m
@@ -491,14 +522,19 @@ pub fn evaluate_blind_trials(
                 );
             } else {
                 false_negatives += 1;
+                site.false_negatives += 1;
             }
         } else {
             negative_controls += 1;
+            site.negative_controls += 1;
             surveyed_negative_route_km += trial.surveyed_route_km;
+            site.surveyed_negative_route_km += trial.surveyed_route_km;
             if trial.detector_detected {
                 false_positives += 1;
+                site.false_positives += 1;
             } else {
                 true_negatives += 1;
+                site.true_negatives += 1;
             }
         }
     }
@@ -514,6 +550,25 @@ pub fn evaluate_blind_trials(
             pod >= fixture.envelope.minimum_pod_requirement
                 && false_alarms <= fixture.envelope.maximum_false_alarms_per_km
         });
+    let per_site_metrics = per_site
+        .into_iter()
+        .map(|(site_id, site)| SiteDetectionMetrics {
+            site_id,
+            positive_targets: site.positive_targets,
+            true_positives: site.true_positives,
+            false_negatives: site.false_negatives,
+            negative_controls: site.negative_controls,
+            false_positives: site.false_positives,
+            true_negatives: site.true_negatives,
+            surveyed_negative_route_km: site.surveyed_negative_route_km,
+            probability_of_detection: (site.positive_targets > 0).then_some(
+                site.true_positives as f64 / site.positive_targets as f64,
+            ),
+            false_alarms_per_km: (site.surveyed_negative_route_km > 0.0).then_some(
+                site.false_positives as f64 / site.surveyed_negative_route_km,
+            ),
+        })
+        .collect();
 
     Ok(DetectionEvaluationMetrics {
         in_domain_blind_trials: in_domain,
@@ -531,6 +586,7 @@ pub fn evaluate_blind_trials(
         localization_p95_error_m: percentile(&localization_errors, 0.95),
         unique_site_clusters: sites.len(),
         unique_acquisition_clusters: acquisitions.len(),
+        per_site: per_site_metrics,
         clustered_confidence_interval_status: "NOT_RUN_CLUSTER_AWARE_BOOTSTRAP_REQUIRED".to_string(),
         point_estimates_meet_declared_requirements,
         qualification_status: "NOT_QUALIFIED_CLUSTERED_INTERVALS_NOT_RUN".to_string(),
@@ -693,6 +749,14 @@ mod tests {
     fn localization_error_is_scored_separately_from_detection() {
         let result = evaluate_blind_trials(&fixture()).unwrap();
         assert_eq!(result.localization_sample_count, 7);
+        assert_eq!(result.per_site.len(), 4);
+        let site_a = result.per_site.iter().find(|site| site.site_id == "blind-site-a").unwrap();
+        assert_eq!(site_a.positive_targets, 2);
+        assert_eq!(site_a.true_positives, 2);
+        assert_eq!(site_a.negative_controls, 2);
+        assert_eq!(site_a.false_positives, 1);
+        assert_eq!(site_a.probability_of_detection, Some(1.0));
+        assert_eq!(site_a.false_alarms_per_km, Some(2.0));
         assert!(result.localization_median_error_m.is_some());
         assert!(result.localization_p95_error_m.is_some());
         assert_eq!(result.qualification_status, "NOT_QUALIFIED_POINT_ESTIMATES_ONLY");
