@@ -86,6 +86,8 @@ Evidence references establish lineage, not sensor truth. Instrument admission an
 - non-isolated/unqualified heat exchanger;
 - excess heat with unqualified or undersized fallback sink;
 - non-zero recovery when pool demand is zero;
+- a no-pool-demand positive control that routes all condenser heat to a sufficiently qualified fallback path;
+- an undersized fallback-sink negative control, even when the aggregate disposition energy arithmetic closes;
 - missing compressor, condenser, pool, fallback or uncertainty evidence;
 - displaced pool-heater claim without baseline meter and counterfactual evidence.
 
