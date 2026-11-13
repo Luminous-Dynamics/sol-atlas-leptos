@@ -251,7 +251,8 @@
           "weather_evidence_ref",
           "cover_state_evidence_ref",
           "temperature_limit_evidence_ref",
-          "uncertainty_evidence_ref"
+          "uncertainty_evidence_ref",
+          "thermal_energy_end_kwh"
         ],
         "properties": {
           "interval_id": {
@@ -442,6 +443,10 @@
           "uncertainty_evidence_ref": {
             "type": "string",
             "minLength": 1
+          },
+          "thermal_energy_end_kwh": {
+            "type": "number",
+            "minimum": 0
           }
         }
       }
