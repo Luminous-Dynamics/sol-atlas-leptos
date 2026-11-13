@@ -82,7 +82,11 @@
       },
       "evidence_refs": [],
       "links": [],
-      "currentness_state": "current_candidate"
+      "currentness_state": "current_candidate",
+      "concrete_profile_type": "SyntheticUtilityPrecinct",
+      "muddi_attributes": {
+        "extent_ref": "geometry"
+      }
     },
     {
       "record_id": "fixture:record:network-power-01",
@@ -114,7 +118,12 @@
           "target_record_id": "fixture:record:conveyance-electricity-01"
         }
       ],
-      "currentness_state": "current_candidate"
+      "currentness_state": "current_candidate",
+      "concrete_profile_type": "SyntheticElectricityNetwork",
+      "muddi_attributes": {
+        "asset_owner_id": "urn:example-fixture:utility-owner",
+        "commodity_type": "electricity"
+      }
     },
     {
       "record_id": "fixture:record:asset-power-duct-01",
@@ -153,7 +162,11 @@
         "fixture:observation:power-survey-01"
       ],
       "links": [],
-      "currentness_state": "current_candidate"
+      "currentness_state": "current_candidate",
+      "concrete_profile_type": "SyntheticPowerDuct",
+      "muddi_attributes": {
+        "asset_owner_id": "urn:example-fixture:utility-owner"
+      }
     },
     {
       "record_id": "fixture:record:asset-fibre-duct-01",
@@ -192,7 +205,11 @@
         "fixture:observation:fibre-indication-01"
       ],
       "links": [],
-      "currentness_state": "current_candidate"
+      "currentness_state": "current_candidate",
+      "concrete_profile_type": "SyntheticFibreDuct",
+      "muddi_attributes": {
+        "asset_owner_id": "urn:example-fixture:utility-owner"
+      }
     },
     {
       "record_id": "fixture:record:asset-water-main-01",
@@ -229,7 +246,11 @@
       },
       "evidence_refs": [],
       "links": [],
-      "currentness_state": "current_candidate"
+      "currentness_state": "current_candidate",
+      "concrete_profile_type": "SyntheticPotableWaterMain",
+      "muddi_attributes": {
+        "asset_owner_id": "urn:example-fixture:water-owner"
+      }
     },
     {
       "record_id": "fixture:record:asset-stormwater-01",
@@ -266,7 +287,11 @@
       },
       "evidence_refs": [],
       "links": [],
-      "currentness_state": "current_candidate"
+      "currentness_state": "current_candidate",
+      "concrete_profile_type": "SyntheticStormwaterConduit",
+      "muddi_attributes": {
+        "asset_owner_id": "urn:example-fixture:municipal-owner"
+      }
     },
     {
       "record_id": "fixture:record:network-asset-power-01",
@@ -298,7 +323,12 @@
           "target_record_id": "fixture:record:network-power-01"
         }
       ],
-      "currentness_state": "current_candidate"
+      "currentness_state": "current_candidate",
+      "concrete_profile_type": "SyntheticNetworkMembership",
+      "muddi_attributes": {
+        "asset_owner_id": "urn:example-fixture:utility-owner",
+        "utility_type": "electricity"
+      }
     },
     {
       "record_id": "fixture:record:conveyance-electricity-01",
@@ -321,7 +351,12 @@
       },
       "evidence_refs": [],
       "links": [],
-      "currentness_state": "current_candidate"
+      "currentness_state": "current_candidate",
+      "concrete_profile_type": "SyntheticElectricityConveyance",
+      "muddi_attributes": {
+        "asset_owner_id": "urn:example-fixture:utility-owner",
+        "utility_type": "electricity"
+      }
     },
     {
       "record_id": "fixture:record:node-a-01",
@@ -351,7 +386,12 @@
       },
       "evidence_refs": [],
       "links": [],
-      "currentness_state": "current_candidate"
+      "currentness_state": "current_candidate",
+      "concrete_profile_type": "SyntheticNetworkJunction",
+      "muddi_attributes": {
+        "asset_owner_id": "urn:example-fixture:utility-owner",
+        "utility_type": "electricity"
+      }
     },
     {
       "record_id": "fixture:record:node-b-01",
@@ -381,7 +421,12 @@
       },
       "evidence_refs": [],
       "links": [],
-      "currentness_state": "current_candidate"
+      "currentness_state": "current_candidate",
+      "concrete_profile_type": "SyntheticNetworkJunction",
+      "muddi_attributes": {
+        "asset_owner_id": "urn:example-fixture:utility-owner",
+        "utility_type": "electricity"
+      }
     },
     {
       "record_id": "fixture:record:link-power-01",
@@ -433,7 +478,12 @@
           "target_record_id": "fixture:record:asset-power-duct-01"
         }
       ],
-      "currentness_state": "current_candidate"
+      "currentness_state": "current_candidate",
+      "concrete_profile_type": "SyntheticPowerDuctLink",
+      "muddi_attributes": {
+        "asset_owner_id": "urn:example-fixture:utility-owner",
+        "utility_type": "electricity"
+      }
     },
     {
       "record_id": "fixture:record:access-chamber-01",
@@ -463,7 +513,12 @@
       },
       "evidence_refs": [],
       "links": [],
-      "currentness_state": "current_candidate"
+      "currentness_state": "current_candidate",
+      "concrete_profile_type": "SyntheticAccessChamber",
+      "muddi_attributes": {
+        "asset_owner_id": "urn:example-fixture:utility-owner",
+        "utility_type": "supporting_electricity_network_asset"
+      }
     },
     {
       "record_id": "fixture:record:event-survey-01",
@@ -489,7 +544,16 @@
         "fixture:observation:fibre-indication-01"
       ],
       "links": [],
-      "currentness_state": "current_candidate"
+      "currentness_state": "current_candidate",
+      "concrete_profile_type": "SyntheticSurveyEvent",
+      "muddi_attributes": {
+        "target_object": "fixture:record:asset-power-duct-01",
+        "target_property": "geometry",
+        "valid_time": {
+          "start": "2026-11-01T08:00:00Z",
+          "end": "2026-11-01T09:00:00Z"
+        }
+      }
     },
     {
       "record_id": "fixture:record:legacy-power-claim-01",
@@ -499,7 +563,7 @@
         "provider": "urn:example-fixture:legacy-export",
         "id": "legacy-power-duct-row-77"
       },
-      "muddi_class": "MUDDIObject",
+      "muddi_class": "MUDDIAsset",
       "label": "Conflicting legacy representation of the same power duct",
       "epistemic_class": "compiled_secondary",
       "availability_state": "available",
@@ -537,7 +601,11 @@
           "target_record_id": "fixture:record:asset-power-duct-01"
         }
       ],
-      "currentness_state": "conflicting"
+      "currentness_state": "conflicting",
+      "concrete_profile_type": "SyntheticLegacyPowerDuctRecord",
+      "muddi_attributes": {
+        "asset_owner_id": "urn:example-fixture:utility-owner"
+      }
     }
   ],
   "observations": [
