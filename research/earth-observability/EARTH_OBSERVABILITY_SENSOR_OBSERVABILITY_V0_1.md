@@ -51,6 +51,8 @@ The public branch adds:
   - both positive targets and negative controls.
 - `research/earth-observability/baselines/sensor-observability-analytic-baseline-v0.1.json`
   - pinned receipt checked by the workflow.
+- `research/earth-observability/SENSOR_OBSERVABILITY_FIXTURE_V0_1.schema.json`
+  - JSON Schema Draft 2020-12 structural interchange contract. The current CI uses the strict Rust typed contract; full JSON Schema validation remains NOT_RUN until an offline validator/version policy is added.
 
 ### Current analytic fixture result (not sensor evidence)
 
