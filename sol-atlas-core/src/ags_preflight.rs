@@ -769,6 +769,7 @@ mod tests {
             &"a".repeat(64),
             SYNTHETIC_AGS.len(),
             "v4_1_1",
+            TEST_VALIDATOR_LIBRARY,
         )
         .expect_err("rejected source must stay rejected");
         assert!(errors.contains(&BgsAgsReceiptError::ValidatorRejectedFile));
@@ -785,6 +786,7 @@ mod tests {
             &"a".repeat(64),
             0,
             "v4_1_1",
+            TEST_VALIDATOR_LIBRARY,
         )
         .expect_err("empty source cannot pass");
         assert!(empty_errors.contains(&BgsAgsReceiptError::EmptySourceFile));
@@ -796,6 +798,7 @@ mod tests {
             &"a".repeat(64),
             AGS4_PREFLIGHT_MAX_BYTES + 1,
             "v4_1_1",
+            TEST_VALIDATOR_LIBRARY,
         )
         .expect_err("oversized source cannot pass");
         assert!(large_errors.contains(&BgsAgsReceiptError::SourceSizeExceeded));
