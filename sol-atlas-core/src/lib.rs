@@ -31,6 +31,7 @@ pub mod sensor_evsi_bridge;
 pub mod solar_system;
 pub mod timeline;
 pub mod types;
+pub mod utility_inference;
 pub mod visual_validation;
 
 pub use types::*;
