@@ -428,6 +428,7 @@ pub struct DetectionEvaluationMetrics {
     pub unique_site_clusters: usize,
     pub unique_acquisition_clusters: usize,
     pub clustered_confidence_interval_status: String,
+    pub point_estimates_meet_declared_requirements: Option<bool>,
     pub qualification_status: String,
 }
 
@@ -507,6 +508,12 @@ pub fn evaluate_blind_trials(
         .then_some(true_positives as f64 / positive_targets as f64);
     let false_alarms_per_km = (surveyed_negative_route_km > 0.0)
         .then_some(false_positives as f64 / surveyed_negative_route_km);
+    let point_estimates_meet_declared_requirements = probability_of_detection
+        .zip(false_alarms_per_km)
+        .map(|(pod, false_alarms)| {
+            pod >= fixture.envelope.minimum_pod_requirement
+                && false_alarms <= fixture.envelope.maximum_false_alarms_per_km
+        });
 
     Ok(DetectionEvaluationMetrics {
         in_domain_blind_trials: in_domain,
@@ -525,7 +532,8 @@ pub fn evaluate_blind_trials(
         unique_site_clusters: sites.len(),
         unique_acquisition_clusters: acquisitions.len(),
         clustered_confidence_interval_status: "NOT_RUN_CLUSTER_AWARE_BOOTSTRAP_REQUIRED".to_string(),
-        qualification_status: "NOT_QUALIFIED_POINT_ESTIMATES_ONLY".to_string(),
+        point_estimates_meet_declared_requirements,
+        qualification_status: "NOT_QUALIFIED_CLUSTERED_INTERVALS_NOT_RUN".to_string(),
     })
 }
 
