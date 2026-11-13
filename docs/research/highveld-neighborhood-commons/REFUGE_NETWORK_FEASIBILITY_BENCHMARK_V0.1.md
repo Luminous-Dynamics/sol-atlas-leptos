@@ -57,6 +57,8 @@ The synthetic reference uses a declared two-stage feasibility objective:
 
 This is a benchmark policy to preserve the accessible-place floor, not a moral allocation rule or operational booking recommendation. Future variants should compare other declared policy objectives, including max-min cohort service ratios and lexicographic protections, under owner-approved governance.
 
+Each cohort supplies an explicit, unique `fairness_tie_break_rank` under owner-approved policy. The rank is used only when discrete max-min service ratios are equal; it is not a personal priority, vulnerability, health or identity score. The temporal test fixture repeats the same three anonymous cohorts and deterministic ranks at every snapshot, so sequence comparisons are stable.
+
 The oracle returns:
 - requested and feasible accessible places;
 - requested and feasible general places;
