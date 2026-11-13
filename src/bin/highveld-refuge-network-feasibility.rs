@@ -196,8 +196,8 @@ fn progressive_max_min_flow(
         order.sort_by(|left, right| {
             let left_denominator = fairness_totals[*left].max(1);
             let right_denominator = fairness_totals[*right].max(1);
-            let left_numerator = baseline_served[*left] + targets[*left];
-            let right_numerator = baseline_served[*right] + targets[*right];
+            let left_numerator = baseline_served[*left].saturating_add(targets[*left]);
+            let right_numerator = baseline_served[*right].saturating_add(targets[*right]);
 
             (u128::from(left_numerator) * u128::from(right_denominator))
                 .cmp(&(u128::from(right_numerator) * u128::from(left_denominator)))
@@ -730,7 +730,7 @@ fn evaluate_snapshot(case: &Value) -> Result<Value, Vec<String>> {
             "accessible_places_feasible":accessible_fair_flow.total,
             "general_places_feasible":general_fair_flow.total,
             "total_places_feasible":fair_total_feasible,
-            "total_places_delta_vs_max_throughput":fair_total_feasible as i64 - total_feasible as i64,
+            "total_places_delta_vs_max_throughput":i128::from(fair_total_feasible) - i128::from(total_feasible),
             "minimum_cohort_service_ratio":minimum_fair_ratio,
             "maximum_cohort_service_ratio":maximum_fair_ratio,
             "cohort_service_ratio_spread":maximum_fair_ratio - minimum_fair_ratio,
