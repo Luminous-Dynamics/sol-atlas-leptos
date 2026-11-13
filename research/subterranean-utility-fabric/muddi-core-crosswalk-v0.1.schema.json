@@ -412,7 +412,8 @@
           "logical_name",
           "parent_concept_name",
           "parent_logical_name",
-          "implementation_name"
+          "implementation_name",
+          "default_symbol"
         ],
         "properties": {
           "concept_name": {
@@ -429,6 +430,10 @@
           },
           "implementation_name": {
             "type": "string"
+          },
+          "default_symbol": {
+            "type": "string",
+            "minLength": 1
           }
         }
       }
