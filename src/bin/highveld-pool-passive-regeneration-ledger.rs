@@ -551,6 +551,28 @@ mod tests {
     }
 
     #[test]
+    fn missing_end_state_is_rejected_as_unknown() {
+        let mut case = sample();
+        case["intervals"][1]["thermal_energy_end_kwh"] = Value::Null;
+        let report = audit(&case).unwrap();
+        assert_eq!(
+            report["audit_state"],
+            "POOL_PASSIVE_REGENERATION_LEDGER_FAIL"
+        );
+        assert_eq!(report["intervals"][1]["interval_state"], "FAIL");
+        assert!(
+            report["violations"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|value| value
+                    .as_str()
+                    .unwrap_or("")
+                    .contains("thermal state/flux has missing, non-finite or negative terms"))
+        );
+    }
+
+    #[test]
     fn energy_residual_outside_uncertainty_fails() {
         let mut case = sample();
         case["intervals"][0]["longwave_heat_rejected_kwh"] = json!(4.0);
