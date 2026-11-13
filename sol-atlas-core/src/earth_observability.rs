@@ -470,6 +470,102 @@ pub fn validate_challenge_manifest(manifest: &ChallengeManifest) -> Result<(), V
     }
 }
 
+/// Rights are supplied by an authoritative source/custody workflow. This
+/// module checks that a declared grant covers a requested operation; it does
+/// not parse licences, determine legal status, or authenticate the issuer.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum DataUseAction {
+    Read,
+    Process,
+    CreateDerivative,
+    Redistribute,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct DataUseGrant {
+    pub grant_id: String,
+    pub source_id: String,
+    pub issuer_id: String,
+    pub grant_sha256: String,
+    pub valid_from_unix_s: u64,
+    pub expires_at_unix_s: Option<u64>,
+    pub may_read: bool,
+    pub may_process: bool,
+    pub may_create_derivative: bool,
+    pub may_redistribute: bool,
+    pub conditions_satisfied: bool,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum DataUseDenial {
+    MissingGrant,
+    InvalidGrantReceipt,
+    SourceIdentityMismatch,
+    GrantNotYetValid,
+    GrantExpired,
+    ConditionsNotSatisfied,
+    ActionNotGranted,
+}
+
+/// Fail closed unless an exact-source grant receipt explicitly authorizes the
+/// requested action at the supplied clock time. The digest is syntax-checked
+/// here; cryptographic receipt verification and issuer trust remain upstream.
+pub fn authorize_data_use(
+    grant: Option<&DataUseGrant>,
+    source_id: &str,
+    action: DataUseAction,
+    now_unix_s: u64,
+) -> Result<(), DataUseDenial> {
+    let Some(grant) = grant else {
+        return Err(DataUseDenial::MissingGrant);
+    };
+
+    if grant.grant_id.trim().is_empty()
+        || grant.source_id.trim().is_empty()
+        || grant.issuer_id.trim().is_empty()
+        || !is_sha256_hex(&grant.grant_sha256)
+    {
+        return Err(DataUseDenial::InvalidGrantReceipt);
+    }
+    if grant.source_id != source_id {
+        return Err(DataUseDenial::SourceIdentityMismatch);
+    }
+    if now_unix_s < grant.valid_from_unix_s {
+        return Err(DataUseDenial::GrantNotYetValid);
+    }
+    if grant
+        .expires_at_unix_s
+        .is_some_and(|expires_at| now_unix_s >= expires_at)
+    {
+        return Err(DataUseDenial::GrantExpired);
+    }
+    if !grant.conditions_satisfied {
+        return Err(DataUseDenial::ConditionsNotSatisfied);
+    }
+
+    let allowed = match action {
+        DataUseAction::Read => grant.may_read,
+        DataUseAction::Process => grant.may_read && grant.may_process,
+        DataUseAction::CreateDerivative => {
+            grant.may_read && grant.may_process && grant.may_create_derivative
+        }
+        DataUseAction::Redistribute => {
+            grant.may_read
+                && grant.may_process
+                && grant.may_create_derivative
+                && grant.may_redistribute
+        }
+    };
+
+    if allowed {
+        Ok(())
+    } else {
+        Err(DataUseDenial::ActionNotGranted)
+    }
+}
+
 /// Independent interpretations can only be compared when they describe the
 /// same explicitly declared spatial support. This is not a model-selection rule.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
