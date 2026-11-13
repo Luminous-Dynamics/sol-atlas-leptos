@@ -38,6 +38,20 @@ This matrix prevents a case-definition manifest from being mistaken for a comple
 | DAS-CHAINAGE-001 | retain chainage; no geographic fix | `qualify_fibre_geolocation`; `das_chainage_without_route_calibration_is_not_a_geographic_fix` | Contract guard added | Qualification yields no geographic coordinate; a separate route-geometry projection must consume the exact calibration receipt |
 | DAS-COUPLING-001 | stratify and calibrate | Existing Symtropy #4972 owns coupling and DAS observability profile | Delegated / pending | No acoustic signal simulator or DAS coupling model is implemented by Sol-Atlas |
 
+## Additional rights and federation guards (supplemental to the 18 manifest cases)
+
+The Rust core now contains a fail-closed owner-grant predicate. These are additional unit-test controls, not extra rows in the frozen 18-case JSON manifest:
+
+| Supplemental control | Executable guard | Expected result | Coverage ceiling |
+|---|---|---|---|
+| RIGHTS-EXACT-SOURCE-001 | `missing_or_wrong_source_grant_fails_closed` | deny wrong-source or missing grant | Source identity only; grant signature/issuer authentication is upstream |
+| RIGHTS-PURPOSE-001 | `exact_source_grant_allows_only_declared_local_processing` | permit declared read/process; deny ungranted redistribution | Checks declared booleans; does not inspect actual network egress or derivative content |
+| RIGHTS-TIME-001 | `expired_and_future_grants_are_not_usable` | deny before not-before and at/after expiry | Wall-clock trust and revocation are not implemented here |
+| RIGHTS-CONDITIONS-001 | `unmet_grant_conditions_block_processing` | deny when declared conditions are unsatisfied | Does not verify the underlying condition evidence |
+| RIGHTS-RECEIPT-001 | `invalid_rights_receipt_digest_is_rejected` | reject malformed digest | Digest syntax only; Mycelix/custody must verify signature, issuer and revocation |
+
+The grant-gate contract and execution boundary are documented in [EARTH-OBSERVABILITY-FEDERATED-EVIDENCE-001](EARTH_OBSERVABILITY_FEDERATED_EVIDENCE_V0_1.md). This is a policy-consistency predicate over an upstream-qualified grant, not a legal interpreter, signature verifier or privacy-preserving execution environment.
+
 ## Additional deterministic synthetic-profile fixture
 
 The first data fixture now exists at `research/earth-observability/fixtures/earth-observability-profile-synthetic-v0.1.json`. It contains:
@@ -62,12 +76,13 @@ The corresponding Rust generator is in `sol-atlas-core/src/earth_observability_s
 
 The branch adds:
 
-- `sol-atlas-core/src/earth_observability.rs`: renderer-independent frame, non-detection, split, transform, authority, change, interpretation-conflict and fibre-chainage guards.
+- `sol-atlas-core/src/earth_observability.rs`: renderer-independent frame, non-detection, split, transform, survey-authority, change, interpretation-conflict, fibre-chainage and exact-source data-use grant predicates.
 - `sol-atlas-core/src/earth_observability_synthetic.rs`: deterministic abstract profile generator and synthetic-profile tests.
 - `research/earth-observability/fixtures/earth-observability-profile-synthetic-v0.1.json`: pinned generated fixture.
 - `src/earth_observability_tests.rs`: root native tests run by the package's binary test target.
 - `src/bin/earth_observability_validate.rs`: offline challenge-manifest contract validator. Its receipt labels JSON Schema validation, scenario execution and physical validation as `NOT_RUN`.
 - `src/bin/earth_observability_generate.rs`: writes the deterministic profile or verifies a committed fixture using `--check`.
+- `research/earth-observability/EARTH_OBSERVABILITY_FEDERATED_EVIDENCE_V0_1.md`: rights-aware, source-local execution architecture and qualification gates.
 - `.github/workflows/check.yml`: formats/checks the application, builds WASM, runs application and shared-core native tests, verifies the manifest, and verifies the pinned synthetic profile.
 
 Commands from the repository root:
