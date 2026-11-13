@@ -789,8 +789,8 @@ fn evaluate_time_series(case: &Value) -> Result<Value, Vec<String>> {
     {
         errors.push("time-series schema must declare JSON Schema Draft 2020-12".to_owned());
     }
-    let cohort_schema = &time_series_schema["properties"]["time_slices"]["items"]
-        ["properties"]["snapshot"]["properties"]["cohorts"]["items"];
+    let cohort_schema = &time_series_schema["properties"]["time_slices"]["items"]["properties"]["snapshot"]
+        ["properties"]["cohorts"]["items"];
     let cohort_required = cohort_schema["required"].as_array();
     let cohort_properties = &cohort_schema["properties"];
     if !cohort_required.is_some_and(|fields| {
@@ -801,8 +801,7 @@ fn evaluate_time_series(case: &Value) -> Result<Value, Vec<String>> {
         || cohort_properties["fairness_tie_break_rank"]["minimum"] != 1
     {
         errors.push(
-            "time-series schema must require a positive integer fairness_tie_break_rank"
-                .to_owned(),
+            "time-series schema must require a positive integer fairness_tie_break_rank".to_owned(),
         );
     }
     for (key, expected) in [
@@ -992,7 +991,10 @@ fn evaluate_time_series(case: &Value) -> Result<Value, Vec<String>> {
                     continuity.longest_degraded_episode_duration_h = continuity
                         .longest_degraded_episode_duration_h
                         .max(continuity.current_degraded_episode_duration_h);
-                } else if continuity.current_degraded_episode_start_elapsed_h.is_some() {
+                } else if continuity
+                    .current_degraded_episode_start_elapsed_h
+                    .is_some()
+                {
                     if continuity.first_baseline_recovery_elapsed_h.is_none() {
                         continuity.first_baseline_recovery_elapsed_h = Some(sequence_elapsed_h);
                     }
@@ -1353,13 +1355,15 @@ mod tests {
     fn temporal_schema_binds_owner_tie_break_rank() {
         let schema: Value =
             serde_json::from_str(TIME_SERIES_SCHEMA).expect("time-series schema JSON");
-        let cohort = &schema["properties"]["time_slices"]["items"]["properties"]["snapshot"]
-            ["properties"]["cohorts"]["items"];
-        assert!(cohort["required"]
-            .as_array()
-            .unwrap()
-            .iter()
-            .any(|field| field == "fairness_tie_break_rank"));
+        let cohort = &schema["properties"]["time_slices"]["items"]["properties"]["snapshot"]["properties"]
+            ["cohorts"]["items"];
+        assert!(
+            cohort["required"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|field| field == "fairness_tie_break_rank")
+        );
         assert_eq!(
             cohort["properties"]["fairness_tie_break_rank"]["type"],
             "integer"
@@ -1374,18 +1378,22 @@ mod tests {
     fn temporal_schema_without_rank_fails_closed() {
         let mut schema: Value =
             serde_json::from_str(TIME_SERIES_SCHEMA).expect("time-series schema JSON");
-        schema["properties"]["time_slices"]["items"]["properties"]["snapshot"]["properties"]
-            ["cohorts"]["items"]["required"] = json!([
-                "cohort_id",
-                "total_places_requested",
-                "accessible_places_requested",
-                "maximum_route_travel_time_s"
-            ]);
+        schema["properties"]["time_slices"]["items"]["properties"]["snapshot"]["properties"]["cohorts"]
+            ["items"]["required"] = json!([
+            "cohort_id",
+            "total_places_requested",
+            "accessible_places_requested",
+            "maximum_route_travel_time_s"
+        ]);
         let required = schema["properties"]["time_slices"]["items"]["properties"]["snapshot"]
             ["properties"]["cohorts"]["items"]["required"]
             .as_array()
             .unwrap();
-        assert!(!required.iter().any(|field| field == "fairness_tie_break_rank"));
+        assert!(
+            !required
+                .iter()
+                .any(|field| field == "fairness_tie_break_rank")
+        );
     }
 
     #[test]
