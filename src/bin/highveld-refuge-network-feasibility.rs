@@ -966,9 +966,7 @@ fn evaluate_time_series(case: &Value) -> Result<Value, Vec<String>> {
                     continuity.longest_degraded_episode_duration_h = continuity
                         .longest_degraded_episode_duration_h
                         .max(continuity.current_degraded_episode_duration_h);
-                } else if let Some(episode_start) =
-                    continuity.current_degraded_episode_start_elapsed_h
-                {
+                } else if continuity.current_degraded_episode_start_elapsed_h.is_some() {
                     if continuity.first_baseline_recovery_elapsed_h.is_none() {
                         continuity.first_baseline_recovery_elapsed_h = Some(sequence_elapsed_h);
                     }
