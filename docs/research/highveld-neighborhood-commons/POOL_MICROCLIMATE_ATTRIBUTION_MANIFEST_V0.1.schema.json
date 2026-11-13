@@ -1,0 +1,273 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/highveld-pool-microclimate-attribution-v0.1.schema.json",
+  "title": "Highveld pool/water-feature pedestrian microclimate attribution benchmark v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "study_id",
+    "parent_studies",
+    "maturity",
+    "execution_status",
+    "climate_context",
+    "control_arm",
+    "treatment_arms",
+    "weather_scenarios",
+    "spatial_stations",
+    "measurement_heights_m",
+    "required_measurements",
+    "design",
+    "required_outcomes",
+    "negative_controls",
+    "hard_gates",
+    "owners",
+    "claim_ceiling"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1"
+    },
+    "study_id": {
+      "const": "HIGHVELD-POOL-MICROCLIMATE-ATTRIBUTION-001"
+    },
+    "parent_studies": {
+      "type": "array",
+      "minItems": 2,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "maturity": {
+      "const": "BENCHMARK_PROTOCOL_NOT_EXECUTED"
+    },
+    "execution_status": {
+      "const": "NOT_EXECUTED"
+    },
+    "climate_context": {
+      "const": "JOHANNESBURG_HIGHVELD"
+    },
+    "control_arm": {
+      "const": "DRY_SHADE_CONTROL"
+    },
+    "treatment_arms": {
+      "type": "array",
+      "minItems": 6,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "role",
+          "water_surface"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "role": {
+            "type": "string",
+            "minLength": 1
+          },
+          "water_surface": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "weather_scenarios": {
+      "type": "array",
+      "minItems": 6,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "spatial_stations": {
+      "type": "array",
+      "minItems": 6,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "role",
+          "control_pair_required"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "role": {
+            "type": "string",
+            "minLength": 1
+          },
+          "control_pair_required": {
+            "const": true
+          }
+        }
+      }
+    },
+    "measurement_heights_m": {
+      "type": "array",
+      "minItems": 4,
+      "uniqueItems": true,
+      "items": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 3
+      }
+    },
+    "required_measurements": {
+      "type": "array",
+      "minItems": 10,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "design": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "assignment",
+        "independent_replication_unit",
+        "minute_samples_independent",
+        "matched_dry_shade_control_required",
+        "upwind_background_required",
+        "holdout",
+        "practical_effect_threshold"
+      ],
+      "properties": {
+        "type": {
+          "const": "PREREGISTERED_PAIRED_BLOCK_DESIGN"
+        },
+        "assignment": {
+          "type": "string",
+          "minLength": 1
+        },
+        "independent_replication_unit": {
+          "const": "DAY_OR_MULTI_DAY_WEATHER_BLOCK"
+        },
+        "minute_samples_independent": {
+          "const": false
+        },
+        "matched_dry_shade_control_required": {
+          "const": true
+        },
+        "upwind_background_required": {
+          "const": true
+        },
+        "holdout": {
+          "const": "DAY_OR_EVENT_BLOCKED"
+        },
+        "practical_effect_threshold": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "required_outcomes": {
+      "type": "array",
+      "minItems": 8,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "negative_controls": {
+      "type": "array",
+      "minItems": 10,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "hard_gates": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "water_effect_without_dry_shade_control",
+        "comfort_claim_from_dry_bulb_only",
+        "indoor_cooling_claim_without_building_side_measurement",
+        "unqualified_water_or_aerosol_operation",
+        "untraceable_treatment_control_inputs",
+        "post_hoc_holdout_or_block_changes",
+        "essential_water_reserve_violations",
+        "forced_water_feature_win_when_no_water_control_is_better"
+      ],
+      "properties": {
+        "water_effect_without_dry_shade_control": {
+          "const": 0
+        },
+        "comfort_claim_from_dry_bulb_only": {
+          "const": 0
+        },
+        "indoor_cooling_claim_without_building_side_measurement": {
+          "const": 0
+        },
+        "unqualified_water_or_aerosol_operation": {
+          "const": 0
+        },
+        "untraceable_treatment_control_inputs": {
+          "const": 0
+        },
+        "post_hoc_holdout_or_block_changes": {
+          "const": 0
+        },
+        "essential_water_reserve_violations": {
+          "const": 0
+        },
+        "forced_water_feature_win_when_no_water_control_is_better": {
+          "const": 0
+        }
+      }
+    },
+    "owners": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "geometry_and_spatial_station_provenance",
+        "event_time_and_block_chronology",
+        "water_rights_quality_and_meter_admission",
+        "thermal_water_balance",
+        "building_side_physics",
+        "participant_authority"
+      ],
+      "properties": {
+        "geometry_and_spatial_station_provenance": {
+          "const": "SOL_ATLAS"
+        },
+        "event_time_and_block_chronology": {
+          "const": "SYMTROPY"
+        },
+        "water_rights_quality_and_meter_admission": {
+          "const": "MYCELIX"
+        },
+        "thermal_water_balance": {
+          "const": "POOL_PASSIVE_REGENERATION_LEDGER"
+        },
+        "building_side_physics": {
+          "const": "ENERGYPLUS_MODELICA_AND_QUALIFIED_SOLVERS"
+        },
+        "participant_authority": {
+          "const": "RESIDENT_AND_ASSET_OWNER"
+        }
+      }
+    },
+    "claim_ceiling": {
+      "type": "string",
+      "minLength": 40
+    }
+  }
+}
