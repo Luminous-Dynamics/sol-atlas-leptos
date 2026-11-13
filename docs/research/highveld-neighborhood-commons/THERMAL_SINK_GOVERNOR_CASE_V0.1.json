@@ -56,5 +56,21 @@
       "auxiliary_power_required_kw": 0.2,
       "water_draw_l": 20
     }
-  ]
+  ],
+  "store_charge_path": {
+    "id": "BUILDING_LOAD_TO_STORE",
+    "qualification_state": "QUALIFIED",
+    "sensor_state": "QUALIFIED",
+    "source_return_temperature_c": 31,
+    "store_temperature_c": 22,
+    "minimum_approach_k": 3,
+    "available_heat_transfer_kw": 3,
+    "requested_heat_transfer_kw": 1.5,
+    "requested_duration_h": 2,
+    "store_capacity_kwh": 10,
+    "store_energy_kwh": 6,
+    "load_boundary_evidence_ref": "SYNTHETIC_BUILDING_LOAD_BOUNDARY_001",
+    "store_state_evidence_ref": "SYNTHETIC_STORE_STATE_001",
+    "heat_exchanger_evidence_ref": "SYNTHETIC_LOAD_STORE_HX_001"
+  }
 }
