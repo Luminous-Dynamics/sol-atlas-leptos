@@ -58,7 +58,31 @@
             "safe_water_protected_reserve_l": 10,
             "capacity_evidence_ref": "SYNTHETIC_CAPACITY_POD_1",
             "service_evidence_ref": "SYNTHETIC_SERVICE_POD_1",
-            "water_evidence_ref": "SYNTHETIC_WATER_POD_1"
+            "water_evidence_ref": "SYNTHETIC_WATER_POD_1",
+            "site_status_freshness": {
+              "source_event_id": "SYNTHETIC_STATUS_EVT_SYNTHETIC_POD_1_TP-001",
+              "age_elapsed_s": 20,
+              "max_valid_age_s": 300,
+              "max_age_policy_ref": "SYNTHETIC_STATUS_FRESHNESS_POLICY"
+            },
+            "capacity_freshness": {
+              "source_event_id": "SYNTHETIC_CAPACITY_EVT_SYNTHETIC_POD_1_TP-001",
+              "age_elapsed_s": 10,
+              "max_valid_age_s": 120,
+              "max_age_policy_ref": "SYNTHETIC_CAPACITY_FRESHNESS_POLICY"
+            },
+            "service_freshness": {
+              "source_event_id": "SYNTHETIC_SERVICE_EVT_SYNTHETIC_POD_1_TP-001",
+              "age_elapsed_s": 25,
+              "max_valid_age_s": 180,
+              "max_age_policy_ref": "SYNTHETIC_SERVICE_FRESHNESS_POLICY"
+            },
+            "water_freshness": {
+              "source_event_id": "SYNTHETIC_WATER_EVT_SYNTHETIC_POD_1_TP-001",
+              "age_elapsed_s": 30,
+              "max_valid_age_s": 300,
+              "max_age_policy_ref": "SYNTHETIC_WATER_FRESHNESS_POLICY"
+            }
           },
           {
             "site_id": "SYNTHETIC_POD_2",
@@ -80,7 +104,31 @@
             "safe_water_protected_reserve_l": 4,
             "capacity_evidence_ref": "SYNTHETIC_CAPACITY_POD_2",
             "service_evidence_ref": "SYNTHETIC_SERVICE_POD_2",
-            "water_evidence_ref": "SYNTHETIC_WATER_POD_2"
+            "water_evidence_ref": "SYNTHETIC_WATER_POD_2",
+            "site_status_freshness": {
+              "source_event_id": "SYNTHETIC_STATUS_EVT_SYNTHETIC_POD_2_TP-001",
+              "age_elapsed_s": 20,
+              "max_valid_age_s": 300,
+              "max_age_policy_ref": "SYNTHETIC_STATUS_FRESHNESS_POLICY"
+            },
+            "capacity_freshness": {
+              "source_event_id": "SYNTHETIC_CAPACITY_EVT_SYNTHETIC_POD_2_TP-001",
+              "age_elapsed_s": 10,
+              "max_valid_age_s": 120,
+              "max_age_policy_ref": "SYNTHETIC_CAPACITY_FRESHNESS_POLICY"
+            },
+            "service_freshness": {
+              "source_event_id": "SYNTHETIC_SERVICE_EVT_SYNTHETIC_POD_2_TP-001",
+              "age_elapsed_s": 25,
+              "max_valid_age_s": 180,
+              "max_age_policy_ref": "SYNTHETIC_SERVICE_FRESHNESS_POLICY"
+            },
+            "water_freshness": {
+              "source_event_id": "SYNTHETIC_WATER_EVT_SYNTHETIC_POD_2_TP-001",
+              "age_elapsed_s": 30,
+              "max_valid_age_s": 300,
+              "max_age_policy_ref": "SYNTHETIC_WATER_FRESHNESS_POLICY"
+            }
           },
           {
             "site_id": "SYNTHETIC_THERMAL_UNKNOWN_POD_3",
@@ -102,7 +150,31 @@
             "safe_water_protected_reserve_l": 0,
             "capacity_evidence_ref": "SYNTHETIC_CAPACITY_POD_3",
             "service_evidence_ref": "SYNTHETIC_SERVICE_POD_3",
-            "water_evidence_ref": "SYNTHETIC_WATER_POD_3"
+            "water_evidence_ref": "SYNTHETIC_WATER_POD_3",
+            "site_status_freshness": {
+              "source_event_id": "SYNTHETIC_STATUS_EVT_SYNTHETIC_THERMAL_UNKNOWN_POD_3_TP-001",
+              "age_elapsed_s": 20,
+              "max_valid_age_s": 300,
+              "max_age_policy_ref": "SYNTHETIC_STATUS_FRESHNESS_POLICY"
+            },
+            "capacity_freshness": {
+              "source_event_id": "SYNTHETIC_CAPACITY_EVT_SYNTHETIC_THERMAL_UNKNOWN_POD_3_TP-001",
+              "age_elapsed_s": 10,
+              "max_valid_age_s": 120,
+              "max_age_policy_ref": "SYNTHETIC_CAPACITY_FRESHNESS_POLICY"
+            },
+            "service_freshness": {
+              "source_event_id": "SYNTHETIC_SERVICE_EVT_SYNTHETIC_THERMAL_UNKNOWN_POD_3_TP-001",
+              "age_elapsed_s": 25,
+              "max_valid_age_s": 180,
+              "max_age_policy_ref": "SYNTHETIC_SERVICE_FRESHNESS_POLICY"
+            },
+            "water_freshness": {
+              "source_event_id": "SYNTHETIC_WATER_EVT_SYNTHETIC_THERMAL_UNKNOWN_POD_3_TP-001",
+              "age_elapsed_s": 30,
+              "max_valid_age_s": 300,
+              "max_age_policy_ref": "SYNTHETIC_WATER_FRESHNESS_POLICY"
+            }
           }
         ],
         "routes": [
@@ -113,7 +185,19 @@
             "accessibility_state": "QUALIFIED",
             "travel_time_s": 600,
             "route_evidence_ref": "SYNTHETIC_ROUTE_A_P1",
-            "accessibility_evidence_ref": "SYNTHETIC_ACCESS_A_P1"
+            "accessibility_evidence_ref": "SYNTHETIC_ACCESS_A_P1",
+            "route_freshness": {
+              "source_event_id": "SYNTHETIC_ROUTE_EVT_ANON_ZONE_A_SYNTHETIC_POD_1_TP-001",
+              "age_elapsed_s": 10,
+              "max_valid_age_s": 300,
+              "max_age_policy_ref": "SYNTHETIC_ROUTE_FRESHNESS_POLICY"
+            },
+            "accessibility_freshness": {
+              "source_event_id": "SYNTHETIC_ACCESS_EVT_ANON_ZONE_A_SYNTHETIC_POD_1_TP-001",
+              "age_elapsed_s": 15,
+              "max_valid_age_s": 300,
+              "max_age_policy_ref": "SYNTHETIC_ACCESS_FRESHNESS_POLICY"
+            }
           },
           {
             "cohort_id": "ANON_ZONE_A",
@@ -122,7 +206,19 @@
             "accessibility_state": "NOT_ACCESSIBLE",
             "travel_time_s": 700,
             "route_evidence_ref": "SYNTHETIC_ROUTE_A_P2",
-            "accessibility_evidence_ref": "SYNTHETIC_ACCESS_A_P2"
+            "accessibility_evidence_ref": "SYNTHETIC_ACCESS_A_P2",
+            "route_freshness": {
+              "source_event_id": "SYNTHETIC_ROUTE_EVT_ANON_ZONE_A_SYNTHETIC_POD_2_TP-001",
+              "age_elapsed_s": 10,
+              "max_valid_age_s": 300,
+              "max_age_policy_ref": "SYNTHETIC_ROUTE_FRESHNESS_POLICY"
+            },
+            "accessibility_freshness": {
+              "source_event_id": "SYNTHETIC_ACCESS_EVT_ANON_ZONE_A_SYNTHETIC_POD_2_TP-001",
+              "age_elapsed_s": 15,
+              "max_valid_age_s": 300,
+              "max_age_policy_ref": "SYNTHETIC_ACCESS_FRESHNESS_POLICY"
+            }
           },
           {
             "cohort_id": "ANON_ZONE_B",
@@ -131,7 +227,19 @@
             "accessibility_state": "QUALIFIED",
             "travel_time_s": 800,
             "route_evidence_ref": "SYNTHETIC_ROUTE_B_P1",
-            "accessibility_evidence_ref": "SYNTHETIC_ACCESS_B_P1"
+            "accessibility_evidence_ref": "SYNTHETIC_ACCESS_B_P1",
+            "route_freshness": {
+              "source_event_id": "SYNTHETIC_ROUTE_EVT_ANON_ZONE_B_SYNTHETIC_POD_1_TP-001",
+              "age_elapsed_s": 10,
+              "max_valid_age_s": 300,
+              "max_age_policy_ref": "SYNTHETIC_ROUTE_FRESHNESS_POLICY"
+            },
+            "accessibility_freshness": {
+              "source_event_id": "SYNTHETIC_ACCESS_EVT_ANON_ZONE_B_SYNTHETIC_POD_1_TP-001",
+              "age_elapsed_s": 15,
+              "max_valid_age_s": 300,
+              "max_age_policy_ref": "SYNTHETIC_ACCESS_FRESHNESS_POLICY"
+            }
           },
           {
             "cohort_id": "ANON_ZONE_B",
@@ -140,7 +248,19 @@
             "accessibility_state": "QUALIFIED",
             "travel_time_s": 800,
             "route_evidence_ref": "SYNTHETIC_ROUTE_B_P2",
-            "accessibility_evidence_ref": "SYNTHETIC_ACCESS_B_P2"
+            "accessibility_evidence_ref": "SYNTHETIC_ACCESS_B_P2",
+            "route_freshness": {
+              "source_event_id": "SYNTHETIC_ROUTE_EVT_ANON_ZONE_B_SYNTHETIC_POD_2_TP-001",
+              "age_elapsed_s": 10,
+              "max_valid_age_s": 300,
+              "max_age_policy_ref": "SYNTHETIC_ROUTE_FRESHNESS_POLICY"
+            },
+            "accessibility_freshness": {
+              "source_event_id": "SYNTHETIC_ACCESS_EVT_ANON_ZONE_B_SYNTHETIC_POD_2_TP-001",
+              "age_elapsed_s": 15,
+              "max_valid_age_s": 300,
+              "max_age_policy_ref": "SYNTHETIC_ACCESS_FRESHNESS_POLICY"
+            }
           },
           {
             "cohort_id": "ANON_ZONE_C",
@@ -149,7 +269,19 @@
             "accessibility_state": "UNKNOWN",
             "travel_time_s": 700,
             "route_evidence_ref": "SYNTHETIC_ROUTE_C_P1",
-            "accessibility_evidence_ref": "SYNTHETIC_ACCESS_C_P1"
+            "accessibility_evidence_ref": "SYNTHETIC_ACCESS_C_P1",
+            "route_freshness": {
+              "source_event_id": "SYNTHETIC_ROUTE_EVT_ANON_ZONE_C_SYNTHETIC_POD_1_TP-001",
+              "age_elapsed_s": 10,
+              "max_valid_age_s": 300,
+              "max_age_policy_ref": "SYNTHETIC_ROUTE_FRESHNESS_POLICY"
+            },
+            "accessibility_freshness": {
+              "source_event_id": "SYNTHETIC_ACCESS_EVT_ANON_ZONE_C_SYNTHETIC_POD_1_TP-001",
+              "age_elapsed_s": 15,
+              "max_valid_age_s": 300,
+              "max_age_policy_ref": "SYNTHETIC_ACCESS_FRESHNESS_POLICY"
+            }
           },
           {
             "cohort_id": "ANON_ZONE_C",
@@ -158,7 +290,19 @@
             "accessibility_state": "QUALIFIED",
             "travel_time_s": 1200,
             "route_evidence_ref": "SYNTHETIC_ROUTE_C_P2",
-            "accessibility_evidence_ref": "SYNTHETIC_ACCESS_C_P2"
+            "accessibility_evidence_ref": "SYNTHETIC_ACCESS_C_P2",
+            "route_freshness": {
+              "source_event_id": "SYNTHETIC_ROUTE_EVT_ANON_ZONE_C_SYNTHETIC_POD_2_TP-001",
+              "age_elapsed_s": 10,
+              "max_valid_age_s": 300,
+              "max_age_policy_ref": "SYNTHETIC_ROUTE_FRESHNESS_POLICY"
+            },
+            "accessibility_freshness": {
+              "source_event_id": "SYNTHETIC_ACCESS_EVT_ANON_ZONE_C_SYNTHETIC_POD_2_TP-001",
+              "age_elapsed_s": 15,
+              "max_valid_age_s": 300,
+              "max_age_policy_ref": "SYNTHETIC_ACCESS_FRESHNESS_POLICY"
+            }
           },
           {
             "cohort_id": "ANON_ZONE_A",
@@ -167,7 +311,19 @@
             "accessibility_state": "QUALIFIED",
             "travel_time_s": 500,
             "route_evidence_ref": "SYNTHETIC_ROUTE_A_P3",
-            "accessibility_evidence_ref": "SYNTHETIC_ACCESS_A_P3"
+            "accessibility_evidence_ref": "SYNTHETIC_ACCESS_A_P3",
+            "route_freshness": {
+              "source_event_id": "SYNTHETIC_ROUTE_EVT_ANON_ZONE_A_SYNTHETIC_THERMAL_UNKNOWN_POD_3_TP-001",
+              "age_elapsed_s": 10,
+              "max_valid_age_s": 300,
+              "max_age_policy_ref": "SYNTHETIC_ROUTE_FRESHNESS_POLICY"
+            },
+            "accessibility_freshness": {
+              "source_event_id": "SYNTHETIC_ACCESS_EVT_ANON_ZONE_A_SYNTHETIC_THERMAL_UNKNOWN_POD_3_TP-001",
+              "age_elapsed_s": 15,
+              "max_valid_age_s": 300,
+              "max_age_policy_ref": "SYNTHETIC_ACCESS_FRESHNESS_POLICY"
+            }
           },
           {
             "cohort_id": "ANON_ZONE_B",
@@ -176,7 +332,19 @@
             "accessibility_state": "QUALIFIED",
             "travel_time_s": 500,
             "route_evidence_ref": "SYNTHETIC_ROUTE_B_P3",
-            "accessibility_evidence_ref": "SYNTHETIC_ACCESS_B_P3"
+            "accessibility_evidence_ref": "SYNTHETIC_ACCESS_B_P3",
+            "route_freshness": {
+              "source_event_id": "SYNTHETIC_ROUTE_EVT_ANON_ZONE_B_SYNTHETIC_THERMAL_UNKNOWN_POD_3_TP-001",
+              "age_elapsed_s": 10,
+              "max_valid_age_s": 300,
+              "max_age_policy_ref": "SYNTHETIC_ROUTE_FRESHNESS_POLICY"
+            },
+            "accessibility_freshness": {
+              "source_event_id": "SYNTHETIC_ACCESS_EVT_ANON_ZONE_B_SYNTHETIC_THERMAL_UNKNOWN_POD_3_TP-001",
+              "age_elapsed_s": 15,
+              "max_valid_age_s": 300,
+              "max_age_policy_ref": "SYNTHETIC_ACCESS_FRESHNESS_POLICY"
+            }
           },
           {
             "cohort_id": "ANON_ZONE_C",
@@ -185,9 +353,23 @@
             "accessibility_state": "QUALIFIED",
             "travel_time_s": 500,
             "route_evidence_ref": "SYNTHETIC_ROUTE_C_P3",
-            "accessibility_evidence_ref": "SYNTHETIC_ACCESS_C_P3"
+            "accessibility_evidence_ref": "SYNTHETIC_ACCESS_C_P3",
+            "route_freshness": {
+              "source_event_id": "SYNTHETIC_ROUTE_EVT_ANON_ZONE_C_SYNTHETIC_THERMAL_UNKNOWN_POD_3_TP-001",
+              "age_elapsed_s": 10,
+              "max_valid_age_s": 300,
+              "max_age_policy_ref": "SYNTHETIC_ROUTE_FRESHNESS_POLICY"
+            },
+            "accessibility_freshness": {
+              "source_event_id": "SYNTHETIC_ACCESS_EVT_ANON_ZONE_C_SYNTHETIC_THERMAL_UNKNOWN_POD_3_TP-001",
+              "age_elapsed_s": 15,
+              "max_valid_age_s": 300,
+              "max_age_policy_ref": "SYNTHETIC_ACCESS_FRESHNESS_POLICY"
+            }
           }
-        ]
+        ],
+        "evaluation_event_id": "TP-001",
+        "freshness_assessment_owner": "SYMTROPY"
       }
     },
     {
@@ -242,7 +424,31 @@
             "safe_water_protected_reserve_l": 10,
             "capacity_evidence_ref": "SYNTHETIC_CAPACITY_POD_1",
             "service_evidence_ref": "SYNTHETIC_SERVICE_POD_1",
-            "water_evidence_ref": "SYNTHETIC_WATER_POD_1"
+            "water_evidence_ref": "SYNTHETIC_WATER_POD_1",
+            "site_status_freshness": {
+              "source_event_id": "SYNTHETIC_STATUS_EVT_SYNTHETIC_POD_1_TP-002",
+              "age_elapsed_s": 50,
+              "max_valid_age_s": 300,
+              "max_age_policy_ref": "SYNTHETIC_STATUS_FRESHNESS_POLICY"
+            },
+            "capacity_freshness": {
+              "source_event_id": "SYNTHETIC_CAPACITY_EVT_SYNTHETIC_POD_1_TP-002",
+              "age_elapsed_s": 30,
+              "max_valid_age_s": 120,
+              "max_age_policy_ref": "SYNTHETIC_CAPACITY_FRESHNESS_POLICY"
+            },
+            "service_freshness": {
+              "source_event_id": "SYNTHETIC_SERVICE_EVT_SYNTHETIC_POD_1_TP-002",
+              "age_elapsed_s": 55,
+              "max_valid_age_s": 180,
+              "max_age_policy_ref": "SYNTHETIC_SERVICE_FRESHNESS_POLICY"
+            },
+            "water_freshness": {
+              "source_event_id": "SYNTHETIC_WATER_EVT_SYNTHETIC_POD_1_TP-002",
+              "age_elapsed_s": 90,
+              "max_valid_age_s": 300,
+              "max_age_policy_ref": "SYNTHETIC_WATER_FRESHNESS_POLICY"
+            }
           },
           {
             "site_id": "SYNTHETIC_POD_2",
@@ -264,7 +470,31 @@
             "safe_water_protected_reserve_l": 4,
             "capacity_evidence_ref": "SYNTHETIC_CAPACITY_POD_2",
             "service_evidence_ref": "SYNTHETIC_SERVICE_POD_2",
-            "water_evidence_ref": "SYNTHETIC_WATER_POD_2"
+            "water_evidence_ref": "SYNTHETIC_WATER_POD_2",
+            "site_status_freshness": {
+              "source_event_id": "SYNTHETIC_STATUS_EVT_SYNTHETIC_POD_2_TP-002",
+              "age_elapsed_s": 50,
+              "max_valid_age_s": 300,
+              "max_age_policy_ref": "SYNTHETIC_STATUS_FRESHNESS_POLICY"
+            },
+            "capacity_freshness": {
+              "source_event_id": "SYNTHETIC_CAPACITY_EVT_SYNTHETIC_POD_2_TP-002",
+              "age_elapsed_s": 30,
+              "max_valid_age_s": 120,
+              "max_age_policy_ref": "SYNTHETIC_CAPACITY_FRESHNESS_POLICY"
+            },
+            "service_freshness": {
+              "source_event_id": "SYNTHETIC_SERVICE_EVT_SYNTHETIC_POD_2_TP-002",
+              "age_elapsed_s": 55,
+              "max_valid_age_s": 180,
+              "max_age_policy_ref": "SYNTHETIC_SERVICE_FRESHNESS_POLICY"
+            },
+            "water_freshness": {
+              "source_event_id": "SYNTHETIC_WATER_EVT_SYNTHETIC_POD_2_TP-002",
+              "age_elapsed_s": 90,
+              "max_valid_age_s": 300,
+              "max_age_policy_ref": "SYNTHETIC_WATER_FRESHNESS_POLICY"
+            }
           },
           {
             "site_id": "SYNTHETIC_THERMAL_UNKNOWN_POD_3",
@@ -286,7 +516,31 @@
             "safe_water_protected_reserve_l": 0,
             "capacity_evidence_ref": "SYNTHETIC_CAPACITY_POD_3",
             "service_evidence_ref": "SYNTHETIC_SERVICE_POD_3",
-            "water_evidence_ref": "SYNTHETIC_WATER_POD_3"
+            "water_evidence_ref": "SYNTHETIC_WATER_POD_3",
+            "site_status_freshness": {
+              "source_event_id": "SYNTHETIC_STATUS_EVT_SYNTHETIC_THERMAL_UNKNOWN_POD_3_TP-002",
+              "age_elapsed_s": 50,
+              "max_valid_age_s": 300,
+              "max_age_policy_ref": "SYNTHETIC_STATUS_FRESHNESS_POLICY"
+            },
+            "capacity_freshness": {
+              "source_event_id": "SYNTHETIC_CAPACITY_EVT_SYNTHETIC_THERMAL_UNKNOWN_POD_3_TP-002",
+              "age_elapsed_s": 30,
+              "max_valid_age_s": 120,
+              "max_age_policy_ref": "SYNTHETIC_CAPACITY_FRESHNESS_POLICY"
+            },
+            "service_freshness": {
+              "source_event_id": "SYNTHETIC_SERVICE_EVT_SYNTHETIC_THERMAL_UNKNOWN_POD_3_TP-002",
+              "age_elapsed_s": 55,
+              "max_valid_age_s": 180,
+              "max_age_policy_ref": "SYNTHETIC_SERVICE_FRESHNESS_POLICY"
+            },
+            "water_freshness": {
+              "source_event_id": "SYNTHETIC_WATER_EVT_SYNTHETIC_THERMAL_UNKNOWN_POD_3_TP-002",
+              "age_elapsed_s": 90,
+              "max_valid_age_s": 300,
+              "max_age_policy_ref": "SYNTHETIC_WATER_FRESHNESS_POLICY"
+            }
           }
         ],
         "routes": [
@@ -297,7 +551,19 @@
             "accessibility_state": "QUALIFIED",
             "travel_time_s": 600,
             "route_evidence_ref": "SYNTHETIC_ROUTE_A_P1",
-            "accessibility_evidence_ref": "SYNTHETIC_ACCESS_A_P1"
+            "accessibility_evidence_ref": "SYNTHETIC_ACCESS_A_P1",
+            "route_freshness": {
+              "source_event_id": "SYNTHETIC_ROUTE_EVT_ANON_ZONE_A_SYNTHETIC_POD_1_TP-002",
+              "age_elapsed_s": 30,
+              "max_valid_age_s": 300,
+              "max_age_policy_ref": "SYNTHETIC_ROUTE_FRESHNESS_POLICY"
+            },
+            "accessibility_freshness": {
+              "source_event_id": "SYNTHETIC_ACCESS_EVT_ANON_ZONE_A_SYNTHETIC_POD_1_TP-002",
+              "age_elapsed_s": 40,
+              "max_valid_age_s": 300,
+              "max_age_policy_ref": "SYNTHETIC_ACCESS_FRESHNESS_POLICY"
+            }
           },
           {
             "cohort_id": "ANON_ZONE_A",
@@ -306,7 +572,19 @@
             "accessibility_state": "NOT_ACCESSIBLE",
             "travel_time_s": 700,
             "route_evidence_ref": "SYNTHETIC_ROUTE_A_P2",
-            "accessibility_evidence_ref": "SYNTHETIC_ACCESS_A_P2"
+            "accessibility_evidence_ref": "SYNTHETIC_ACCESS_A_P2",
+            "route_freshness": {
+              "source_event_id": "SYNTHETIC_ROUTE_EVT_ANON_ZONE_A_SYNTHETIC_POD_2_TP-002",
+              "age_elapsed_s": 30,
+              "max_valid_age_s": 300,
+              "max_age_policy_ref": "SYNTHETIC_ROUTE_FRESHNESS_POLICY"
+            },
+            "accessibility_freshness": {
+              "source_event_id": "SYNTHETIC_ACCESS_EVT_ANON_ZONE_A_SYNTHETIC_POD_2_TP-002",
+              "age_elapsed_s": 40,
+              "max_valid_age_s": 300,
+              "max_age_policy_ref": "SYNTHETIC_ACCESS_FRESHNESS_POLICY"
+            }
           },
           {
             "cohort_id": "ANON_ZONE_B",
@@ -315,7 +593,19 @@
             "accessibility_state": "QUALIFIED",
             "travel_time_s": 800,
             "route_evidence_ref": "SYNTHETIC_ROUTE_B_P1",
-            "accessibility_evidence_ref": "SYNTHETIC_ACCESS_B_P1"
+            "accessibility_evidence_ref": "SYNTHETIC_ACCESS_B_P1",
+            "route_freshness": {
+              "source_event_id": "SYNTHETIC_ROUTE_EVT_ANON_ZONE_B_SYNTHETIC_POD_1_TP-002",
+              "age_elapsed_s": 30,
+              "max_valid_age_s": 300,
+              "max_age_policy_ref": "SYNTHETIC_ROUTE_FRESHNESS_POLICY"
+            },
+            "accessibility_freshness": {
+              "source_event_id": "SYNTHETIC_ACCESS_EVT_ANON_ZONE_B_SYNTHETIC_POD_1_TP-002",
+              "age_elapsed_s": 40,
+              "max_valid_age_s": 300,
+              "max_age_policy_ref": "SYNTHETIC_ACCESS_FRESHNESS_POLICY"
+            }
           },
           {
             "cohort_id": "ANON_ZONE_B",
@@ -324,7 +614,19 @@
             "accessibility_state": "QUALIFIED",
             "travel_time_s": 800,
             "route_evidence_ref": "SYNTHETIC_ROUTE_B_P2",
-            "accessibility_evidence_ref": "SYNTHETIC_ACCESS_B_P2"
+            "accessibility_evidence_ref": "SYNTHETIC_ACCESS_B_P2",
+            "route_freshness": {
+              "source_event_id": "SYNTHETIC_ROUTE_EVT_ANON_ZONE_B_SYNTHETIC_POD_2_TP-002",
+              "age_elapsed_s": 30,
+              "max_valid_age_s": 300,
+              "max_age_policy_ref": "SYNTHETIC_ROUTE_FRESHNESS_POLICY"
+            },
+            "accessibility_freshness": {
+              "source_event_id": "SYNTHETIC_ACCESS_EVT_ANON_ZONE_B_SYNTHETIC_POD_2_TP-002",
+              "age_elapsed_s": 40,
+              "max_valid_age_s": 300,
+              "max_age_policy_ref": "SYNTHETIC_ACCESS_FRESHNESS_POLICY"
+            }
           },
           {
             "cohort_id": "ANON_ZONE_C",
@@ -333,7 +635,19 @@
             "accessibility_state": "UNKNOWN",
             "travel_time_s": 700,
             "route_evidence_ref": "SYNTHETIC_ROUTE_C_P1",
-            "accessibility_evidence_ref": "SYNTHETIC_ACCESS_C_P1"
+            "accessibility_evidence_ref": "SYNTHETIC_ACCESS_C_P1",
+            "route_freshness": {
+              "source_event_id": "SYNTHETIC_ROUTE_EVT_ANON_ZONE_C_SYNTHETIC_POD_1_TP-002",
+              "age_elapsed_s": 30,
+              "max_valid_age_s": 300,
+              "max_age_policy_ref": "SYNTHETIC_ROUTE_FRESHNESS_POLICY"
+            },
+            "accessibility_freshness": {
+              "source_event_id": "SYNTHETIC_ACCESS_EVT_ANON_ZONE_C_SYNTHETIC_POD_1_TP-002",
+              "age_elapsed_s": 40,
+              "max_valid_age_s": 300,
+              "max_age_policy_ref": "SYNTHETIC_ACCESS_FRESHNESS_POLICY"
+            }
           },
           {
             "cohort_id": "ANON_ZONE_C",
@@ -342,7 +656,19 @@
             "accessibility_state": "QUALIFIED",
             "travel_time_s": 1200,
             "route_evidence_ref": "SYNTHETIC_ROUTE_C_P2",
-            "accessibility_evidence_ref": "SYNTHETIC_ACCESS_C_P2"
+            "accessibility_evidence_ref": "SYNTHETIC_ACCESS_C_P2",
+            "route_freshness": {
+              "source_event_id": "SYNTHETIC_ROUTE_EVT_ANON_ZONE_C_SYNTHETIC_POD_2_TP-002",
+              "age_elapsed_s": 30,
+              "max_valid_age_s": 300,
+              "max_age_policy_ref": "SYNTHETIC_ROUTE_FRESHNESS_POLICY"
+            },
+            "accessibility_freshness": {
+              "source_event_id": "SYNTHETIC_ACCESS_EVT_ANON_ZONE_C_SYNTHETIC_POD_2_TP-002",
+              "age_elapsed_s": 40,
+              "max_valid_age_s": 300,
+              "max_age_policy_ref": "SYNTHETIC_ACCESS_FRESHNESS_POLICY"
+            }
           },
           {
             "cohort_id": "ANON_ZONE_A",
@@ -351,7 +677,19 @@
             "accessibility_state": "QUALIFIED",
             "travel_time_s": 500,
             "route_evidence_ref": "SYNTHETIC_ROUTE_A_P3",
-            "accessibility_evidence_ref": "SYNTHETIC_ACCESS_A_P3"
+            "accessibility_evidence_ref": "SYNTHETIC_ACCESS_A_P3",
+            "route_freshness": {
+              "source_event_id": "SYNTHETIC_ROUTE_EVT_ANON_ZONE_A_SYNTHETIC_THERMAL_UNKNOWN_POD_3_TP-002",
+              "age_elapsed_s": 30,
+              "max_valid_age_s": 300,
+              "max_age_policy_ref": "SYNTHETIC_ROUTE_FRESHNESS_POLICY"
+            },
+            "accessibility_freshness": {
+              "source_event_id": "SYNTHETIC_ACCESS_EVT_ANON_ZONE_A_SYNTHETIC_THERMAL_UNKNOWN_POD_3_TP-002",
+              "age_elapsed_s": 40,
+              "max_valid_age_s": 300,
+              "max_age_policy_ref": "SYNTHETIC_ACCESS_FRESHNESS_POLICY"
+            }
           },
           {
             "cohort_id": "ANON_ZONE_B",
@@ -360,7 +698,19 @@
             "accessibility_state": "QUALIFIED",
             "travel_time_s": 500,
             "route_evidence_ref": "SYNTHETIC_ROUTE_B_P3",
-            "accessibility_evidence_ref": "SYNTHETIC_ACCESS_B_P3"
+            "accessibility_evidence_ref": "SYNTHETIC_ACCESS_B_P3",
+            "route_freshness": {
+              "source_event_id": "SYNTHETIC_ROUTE_EVT_ANON_ZONE_B_SYNTHETIC_THERMAL_UNKNOWN_POD_3_TP-002",
+              "age_elapsed_s": 30,
+              "max_valid_age_s": 300,
+              "max_age_policy_ref": "SYNTHETIC_ROUTE_FRESHNESS_POLICY"
+            },
+            "accessibility_freshness": {
+              "source_event_id": "SYNTHETIC_ACCESS_EVT_ANON_ZONE_B_SYNTHETIC_THERMAL_UNKNOWN_POD_3_TP-002",
+              "age_elapsed_s": 40,
+              "max_valid_age_s": 300,
+              "max_age_policy_ref": "SYNTHETIC_ACCESS_FRESHNESS_POLICY"
+            }
           },
           {
             "cohort_id": "ANON_ZONE_C",
@@ -369,9 +719,23 @@
             "accessibility_state": "QUALIFIED",
             "travel_time_s": 500,
             "route_evidence_ref": "SYNTHETIC_ROUTE_C_P3",
-            "accessibility_evidence_ref": "SYNTHETIC_ACCESS_C_P3"
+            "accessibility_evidence_ref": "SYNTHETIC_ACCESS_C_P3",
+            "route_freshness": {
+              "source_event_id": "SYNTHETIC_ROUTE_EVT_ANON_ZONE_C_SYNTHETIC_THERMAL_UNKNOWN_POD_3_TP-002",
+              "age_elapsed_s": 30,
+              "max_valid_age_s": 300,
+              "max_age_policy_ref": "SYNTHETIC_ROUTE_FRESHNESS_POLICY"
+            },
+            "accessibility_freshness": {
+              "source_event_id": "SYNTHETIC_ACCESS_EVT_ANON_ZONE_C_SYNTHETIC_THERMAL_UNKNOWN_POD_3_TP-002",
+              "age_elapsed_s": 40,
+              "max_valid_age_s": 300,
+              "max_age_policy_ref": "SYNTHETIC_ACCESS_FRESHNESS_POLICY"
+            }
           }
-        ]
+        ],
+        "evaluation_event_id": "TP-002",
+        "freshness_assessment_owner": "SYMTROPY"
       }
     },
     {
@@ -426,7 +790,31 @@
             "safe_water_protected_reserve_l": 10,
             "capacity_evidence_ref": "SYNTHETIC_CAPACITY_POD_1",
             "service_evidence_ref": "SYNTHETIC_SERVICE_POD_1",
-            "water_evidence_ref": "SYNTHETIC_WATER_POD_1"
+            "water_evidence_ref": "SYNTHETIC_WATER_POD_1",
+            "site_status_freshness": {
+              "source_event_id": "SYNTHETIC_STATUS_EVT_SYNTHETIC_POD_1_TP-003",
+              "age_elapsed_s": 80,
+              "max_valid_age_s": 300,
+              "max_age_policy_ref": "SYNTHETIC_STATUS_FRESHNESS_POLICY"
+            },
+            "capacity_freshness": {
+              "source_event_id": "SYNTHETIC_CAPACITY_EVT_SYNTHETIC_POD_1_TP-003",
+              "age_elapsed_s": 50,
+              "max_valid_age_s": 120,
+              "max_age_policy_ref": "SYNTHETIC_CAPACITY_FRESHNESS_POLICY"
+            },
+            "service_freshness": {
+              "source_event_id": "SYNTHETIC_SERVICE_EVT_SYNTHETIC_POD_1_TP-003",
+              "age_elapsed_s": 85,
+              "max_valid_age_s": 180,
+              "max_age_policy_ref": "SYNTHETIC_SERVICE_FRESHNESS_POLICY"
+            },
+            "water_freshness": {
+              "source_event_id": "SYNTHETIC_WATER_EVT_SYNTHETIC_POD_1_TP-003",
+              "age_elapsed_s": 150,
+              "max_valid_age_s": 300,
+              "max_age_policy_ref": "SYNTHETIC_WATER_FRESHNESS_POLICY"
+            }
           },
           {
             "site_id": "SYNTHETIC_POD_2",
@@ -448,7 +836,31 @@
             "safe_water_protected_reserve_l": 4,
             "capacity_evidence_ref": "SYNTHETIC_CAPACITY_POD_2",
             "service_evidence_ref": "SYNTHETIC_SERVICE_POD_2",
-            "water_evidence_ref": "SYNTHETIC_WATER_POD_2"
+            "water_evidence_ref": "SYNTHETIC_WATER_POD_2",
+            "site_status_freshness": {
+              "source_event_id": "SYNTHETIC_STATUS_EVT_SYNTHETIC_POD_2_TP-003",
+              "age_elapsed_s": 80,
+              "max_valid_age_s": 300,
+              "max_age_policy_ref": "SYNTHETIC_STATUS_FRESHNESS_POLICY"
+            },
+            "capacity_freshness": {
+              "source_event_id": "SYNTHETIC_CAPACITY_EVT_SYNTHETIC_POD_2_TP-003",
+              "age_elapsed_s": 50,
+              "max_valid_age_s": 120,
+              "max_age_policy_ref": "SYNTHETIC_CAPACITY_FRESHNESS_POLICY"
+            },
+            "service_freshness": {
+              "source_event_id": "SYNTHETIC_SERVICE_EVT_SYNTHETIC_POD_2_TP-003",
+              "age_elapsed_s": 85,
+              "max_valid_age_s": 180,
+              "max_age_policy_ref": "SYNTHETIC_SERVICE_FRESHNESS_POLICY"
+            },
+            "water_freshness": {
+              "source_event_id": "SYNTHETIC_WATER_EVT_SYNTHETIC_POD_2_TP-003",
+              "age_elapsed_s": 150,
+              "max_valid_age_s": 300,
+              "max_age_policy_ref": "SYNTHETIC_WATER_FRESHNESS_POLICY"
+            }
           },
           {
             "site_id": "SYNTHETIC_THERMAL_UNKNOWN_POD_3",
@@ -470,7 +882,31 @@
             "safe_water_protected_reserve_l": 0,
             "capacity_evidence_ref": "SYNTHETIC_CAPACITY_POD_3",
             "service_evidence_ref": "SYNTHETIC_SERVICE_POD_3",
-            "water_evidence_ref": "SYNTHETIC_WATER_POD_3"
+            "water_evidence_ref": "SYNTHETIC_WATER_POD_3",
+            "site_status_freshness": {
+              "source_event_id": "SYNTHETIC_STATUS_EVT_SYNTHETIC_THERMAL_UNKNOWN_POD_3_TP-003",
+              "age_elapsed_s": 80,
+              "max_valid_age_s": 300,
+              "max_age_policy_ref": "SYNTHETIC_STATUS_FRESHNESS_POLICY"
+            },
+            "capacity_freshness": {
+              "source_event_id": "SYNTHETIC_CAPACITY_EVT_SYNTHETIC_THERMAL_UNKNOWN_POD_3_TP-003",
+              "age_elapsed_s": 50,
+              "max_valid_age_s": 120,
+              "max_age_policy_ref": "SYNTHETIC_CAPACITY_FRESHNESS_POLICY"
+            },
+            "service_freshness": {
+              "source_event_id": "SYNTHETIC_SERVICE_EVT_SYNTHETIC_THERMAL_UNKNOWN_POD_3_TP-003",
+              "age_elapsed_s": 85,
+              "max_valid_age_s": 180,
+              "max_age_policy_ref": "SYNTHETIC_SERVICE_FRESHNESS_POLICY"
+            },
+            "water_freshness": {
+              "source_event_id": "SYNTHETIC_WATER_EVT_SYNTHETIC_THERMAL_UNKNOWN_POD_3_TP-003",
+              "age_elapsed_s": 150,
+              "max_valid_age_s": 300,
+              "max_age_policy_ref": "SYNTHETIC_WATER_FRESHNESS_POLICY"
+            }
           }
         ],
         "routes": [
@@ -481,7 +917,19 @@
             "accessibility_state": "QUALIFIED",
             "travel_time_s": 600,
             "route_evidence_ref": "SYNTHETIC_ROUTE_A_P1",
-            "accessibility_evidence_ref": "SYNTHETIC_ACCESS_A_P1"
+            "accessibility_evidence_ref": "SYNTHETIC_ACCESS_A_P1",
+            "route_freshness": {
+              "source_event_id": "SYNTHETIC_ROUTE_EVT_ANON_ZONE_A_SYNTHETIC_POD_1_TP-003",
+              "age_elapsed_s": 50,
+              "max_valid_age_s": 300,
+              "max_age_policy_ref": "SYNTHETIC_ROUTE_FRESHNESS_POLICY"
+            },
+            "accessibility_freshness": {
+              "source_event_id": "SYNTHETIC_ACCESS_EVT_ANON_ZONE_A_SYNTHETIC_POD_1_TP-003",
+              "age_elapsed_s": 65,
+              "max_valid_age_s": 300,
+              "max_age_policy_ref": "SYNTHETIC_ACCESS_FRESHNESS_POLICY"
+            }
           },
           {
             "cohort_id": "ANON_ZONE_A",
@@ -490,7 +938,19 @@
             "accessibility_state": "NOT_ACCESSIBLE",
             "travel_time_s": 700,
             "route_evidence_ref": "SYNTHETIC_ROUTE_A_P2",
-            "accessibility_evidence_ref": "SYNTHETIC_ACCESS_A_P2"
+            "accessibility_evidence_ref": "SYNTHETIC_ACCESS_A_P2",
+            "route_freshness": {
+              "source_event_id": "SYNTHETIC_ROUTE_EVT_ANON_ZONE_A_SYNTHETIC_POD_2_TP-003",
+              "age_elapsed_s": 50,
+              "max_valid_age_s": 300,
+              "max_age_policy_ref": "SYNTHETIC_ROUTE_FRESHNESS_POLICY"
+            },
+            "accessibility_freshness": {
+              "source_event_id": "SYNTHETIC_ACCESS_EVT_ANON_ZONE_A_SYNTHETIC_POD_2_TP-003",
+              "age_elapsed_s": 65,
+              "max_valid_age_s": 300,
+              "max_age_policy_ref": "SYNTHETIC_ACCESS_FRESHNESS_POLICY"
+            }
           },
           {
             "cohort_id": "ANON_ZONE_B",
@@ -499,7 +959,19 @@
             "accessibility_state": "QUALIFIED",
             "travel_time_s": 800,
             "route_evidence_ref": "SYNTHETIC_ROUTE_B_P1",
-            "accessibility_evidence_ref": "SYNTHETIC_ACCESS_B_P1"
+            "accessibility_evidence_ref": "SYNTHETIC_ACCESS_B_P1",
+            "route_freshness": {
+              "source_event_id": "SYNTHETIC_ROUTE_EVT_ANON_ZONE_B_SYNTHETIC_POD_1_TP-003",
+              "age_elapsed_s": 50,
+              "max_valid_age_s": 300,
+              "max_age_policy_ref": "SYNTHETIC_ROUTE_FRESHNESS_POLICY"
+            },
+            "accessibility_freshness": {
+              "source_event_id": "SYNTHETIC_ACCESS_EVT_ANON_ZONE_B_SYNTHETIC_POD_1_TP-003",
+              "age_elapsed_s": 65,
+              "max_valid_age_s": 300,
+              "max_age_policy_ref": "SYNTHETIC_ACCESS_FRESHNESS_POLICY"
+            }
           },
           {
             "cohort_id": "ANON_ZONE_B",
@@ -508,7 +980,19 @@
             "accessibility_state": "QUALIFIED",
             "travel_time_s": 800,
             "route_evidence_ref": "SYNTHETIC_ROUTE_B_P2",
-            "accessibility_evidence_ref": "SYNTHETIC_ACCESS_B_P2"
+            "accessibility_evidence_ref": "SYNTHETIC_ACCESS_B_P2",
+            "route_freshness": {
+              "source_event_id": "SYNTHETIC_ROUTE_EVT_ANON_ZONE_B_SYNTHETIC_POD_2_TP-003",
+              "age_elapsed_s": 50,
+              "max_valid_age_s": 300,
+              "max_age_policy_ref": "SYNTHETIC_ROUTE_FRESHNESS_POLICY"
+            },
+            "accessibility_freshness": {
+              "source_event_id": "SYNTHETIC_ACCESS_EVT_ANON_ZONE_B_SYNTHETIC_POD_2_TP-003",
+              "age_elapsed_s": 65,
+              "max_valid_age_s": 300,
+              "max_age_policy_ref": "SYNTHETIC_ACCESS_FRESHNESS_POLICY"
+            }
           },
           {
             "cohort_id": "ANON_ZONE_C",
@@ -517,7 +1001,19 @@
             "accessibility_state": "UNKNOWN",
             "travel_time_s": 700,
             "route_evidence_ref": "SYNTHETIC_ROUTE_C_P1",
-            "accessibility_evidence_ref": "SYNTHETIC_ACCESS_C_P1"
+            "accessibility_evidence_ref": "SYNTHETIC_ACCESS_C_P1",
+            "route_freshness": {
+              "source_event_id": "SYNTHETIC_ROUTE_EVT_ANON_ZONE_C_SYNTHETIC_POD_1_TP-003",
+              "age_elapsed_s": 50,
+              "max_valid_age_s": 300,
+              "max_age_policy_ref": "SYNTHETIC_ROUTE_FRESHNESS_POLICY"
+            },
+            "accessibility_freshness": {
+              "source_event_id": "SYNTHETIC_ACCESS_EVT_ANON_ZONE_C_SYNTHETIC_POD_1_TP-003",
+              "age_elapsed_s": 65,
+              "max_valid_age_s": 300,
+              "max_age_policy_ref": "SYNTHETIC_ACCESS_FRESHNESS_POLICY"
+            }
           },
           {
             "cohort_id": "ANON_ZONE_C",
@@ -526,7 +1022,19 @@
             "accessibility_state": "QUALIFIED",
             "travel_time_s": 1200,
             "route_evidence_ref": "SYNTHETIC_ROUTE_C_P2",
-            "accessibility_evidence_ref": "SYNTHETIC_ACCESS_C_P2"
+            "accessibility_evidence_ref": "SYNTHETIC_ACCESS_C_P2",
+            "route_freshness": {
+              "source_event_id": "SYNTHETIC_ROUTE_EVT_ANON_ZONE_C_SYNTHETIC_POD_2_TP-003",
+              "age_elapsed_s": 50,
+              "max_valid_age_s": 300,
+              "max_age_policy_ref": "SYNTHETIC_ROUTE_FRESHNESS_POLICY"
+            },
+            "accessibility_freshness": {
+              "source_event_id": "SYNTHETIC_ACCESS_EVT_ANON_ZONE_C_SYNTHETIC_POD_2_TP-003",
+              "age_elapsed_s": 65,
+              "max_valid_age_s": 300,
+              "max_age_policy_ref": "SYNTHETIC_ACCESS_FRESHNESS_POLICY"
+            }
           },
           {
             "cohort_id": "ANON_ZONE_A",
@@ -535,7 +1043,19 @@
             "accessibility_state": "QUALIFIED",
             "travel_time_s": 500,
             "route_evidence_ref": "SYNTHETIC_ROUTE_A_P3",
-            "accessibility_evidence_ref": "SYNTHETIC_ACCESS_A_P3"
+            "accessibility_evidence_ref": "SYNTHETIC_ACCESS_A_P3",
+            "route_freshness": {
+              "source_event_id": "SYNTHETIC_ROUTE_EVT_ANON_ZONE_A_SYNTHETIC_THERMAL_UNKNOWN_POD_3_TP-003",
+              "age_elapsed_s": 50,
+              "max_valid_age_s": 300,
+              "max_age_policy_ref": "SYNTHETIC_ROUTE_FRESHNESS_POLICY"
+            },
+            "accessibility_freshness": {
+              "source_event_id": "SYNTHETIC_ACCESS_EVT_ANON_ZONE_A_SYNTHETIC_THERMAL_UNKNOWN_POD_3_TP-003",
+              "age_elapsed_s": 65,
+              "max_valid_age_s": 300,
+              "max_age_policy_ref": "SYNTHETIC_ACCESS_FRESHNESS_POLICY"
+            }
           },
           {
             "cohort_id": "ANON_ZONE_B",
@@ -544,7 +1064,19 @@
             "accessibility_state": "QUALIFIED",
             "travel_time_s": 500,
             "route_evidence_ref": "SYNTHETIC_ROUTE_B_P3",
-            "accessibility_evidence_ref": "SYNTHETIC_ACCESS_B_P3"
+            "accessibility_evidence_ref": "SYNTHETIC_ACCESS_B_P3",
+            "route_freshness": {
+              "source_event_id": "SYNTHETIC_ROUTE_EVT_ANON_ZONE_B_SYNTHETIC_THERMAL_UNKNOWN_POD_3_TP-003",
+              "age_elapsed_s": 50,
+              "max_valid_age_s": 300,
+              "max_age_policy_ref": "SYNTHETIC_ROUTE_FRESHNESS_POLICY"
+            },
+            "accessibility_freshness": {
+              "source_event_id": "SYNTHETIC_ACCESS_EVT_ANON_ZONE_B_SYNTHETIC_THERMAL_UNKNOWN_POD_3_TP-003",
+              "age_elapsed_s": 65,
+              "max_valid_age_s": 300,
+              "max_age_policy_ref": "SYNTHETIC_ACCESS_FRESHNESS_POLICY"
+            }
           },
           {
             "cohort_id": "ANON_ZONE_C",
@@ -553,9 +1085,23 @@
             "accessibility_state": "QUALIFIED",
             "travel_time_s": 500,
             "route_evidence_ref": "SYNTHETIC_ROUTE_C_P3",
-            "accessibility_evidence_ref": "SYNTHETIC_ACCESS_C_P3"
+            "accessibility_evidence_ref": "SYNTHETIC_ACCESS_C_P3",
+            "route_freshness": {
+              "source_event_id": "SYNTHETIC_ROUTE_EVT_ANON_ZONE_C_SYNTHETIC_THERMAL_UNKNOWN_POD_3_TP-003",
+              "age_elapsed_s": 50,
+              "max_valid_age_s": 300,
+              "max_age_policy_ref": "SYNTHETIC_ROUTE_FRESHNESS_POLICY"
+            },
+            "accessibility_freshness": {
+              "source_event_id": "SYNTHETIC_ACCESS_EVT_ANON_ZONE_C_SYNTHETIC_THERMAL_UNKNOWN_POD_3_TP-003",
+              "age_elapsed_s": 65,
+              "max_valid_age_s": 300,
+              "max_age_policy_ref": "SYNTHETIC_ACCESS_FRESHNESS_POLICY"
+            }
           }
-        ]
+        ],
+        "evaluation_event_id": "TP-003",
+        "freshness_assessment_owner": "SYMTROPY"
       }
     }
   ]
