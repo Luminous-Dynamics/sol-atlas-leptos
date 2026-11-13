@@ -9,6 +9,7 @@
 //! between rendering backends (web-sys, glam/nalgebra).
 
 pub mod aesthetics;
+pub mod ags_preflight;
 pub mod bgs_sobi;
 pub mod confluence;
 pub mod constants;
