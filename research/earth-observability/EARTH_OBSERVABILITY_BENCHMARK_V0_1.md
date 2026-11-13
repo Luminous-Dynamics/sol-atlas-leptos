@@ -108,6 +108,7 @@ Reuse domain standards and adapters. Do not invent a universal replacement.
 |---|---|---|
 | Underground built space and utilities | OGC MUDDI Part 1 v1.0 | Cross-model concepts for underground assets, spaces, networks and evidence; concrete local logical profile remains use-case-specific |
 | Geological units, structures, boreholes, specimens and analyses | OGC GeoSciML 4.1 | Geological feature and investigation exchange |
+| Geotechnical investigation data | AGS 4.x data format and official AGS/BGS validators | Project/location, geology, strata, samples and test-result exchange; dictionary/version-pinned validation and source-lineage preservation |
 | Groundwater | OGC WaterML 2 Part 4 / GWML2 2.2.1 | Groundwater domain model and exchange |
 | Sensors, systems and observations | OGC API - Connected Systems 1.0; SensorThings API 1.1 | Systems/deployments, procedures, observations, events and sensor metadata |
 | Generic spatial features | OGC API - Features | Read/query access to spatial feature collections |
@@ -117,7 +118,7 @@ Reuse domain standards and adapters. Do not invent a universal replacement.
 | 3D built/urban context | CityGML 3.0 conceptual model | Semantic city objects and their relationships |
 | Data-quality description | ISO 19157-1:2023 | Quality elements, measures and reporting |
 
-Adapters must preserve source semantics and report lossy transformations. MUDDI, GeoSciML, GWML2, SensorThings, Connected Systems, STAC, CityGML and 3D Tiles solve different parts of the problem; none alone is the complete Earth-observability contract.
+Adapters must preserve source semantics and report lossy transformations. AGS4 is an important engineering data-exchange format, but AGS schema/BGS submission validation does not establish physical measurement accuracy or geotechnical design suitability. MUDDI, GeoSciML, GWML2, SensorThings, Connected Systems, STAC, CityGML and 3D Tiles solve different parts of the problem; none alone is the complete Earth-observability contract.
 
 ## 5. Evidence and uncertainty contract
 
