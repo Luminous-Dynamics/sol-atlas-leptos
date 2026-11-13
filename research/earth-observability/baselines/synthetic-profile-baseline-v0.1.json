@@ -1,0 +1,49 @@
+{
+  "benchmark_id": "EARTH-OBSERVABILITY-SYNTHETIC-BASELINES-001",
+  "fixture_id": "EARTH-OBSERVABILITY-PROFILE-SYNTHETIC-001",
+  "fixture_version": "0.1.0",
+  "seed": 20261113,
+  "status": "synthetic_baseline_result_not_field_evidence",
+  "geography": "abstract_non_geographic",
+  "claim_boundary": "Synthetic profile benchmark only; scalar interface proxy values are not physical sensor measurements, waveforms, geological truth or engineering properties.",
+  "target": "interface_depth_m on the held-out synthetic transect",
+  "results": [
+    {
+      "method": "training_borehole_piecewise_linear_cross_transect",
+      "evaluation_site": "synthetic-blind-transect",
+      "metrics": {
+        "prediction_count": 11,
+        "target_count": 11,
+        "coverage_fraction": 1,
+        "mean_absolute_error_m": 1.2518181818181817,
+        "root_mean_squared_error_m": 1.2531959144523255,
+        "signed_bias_m": -1.2518181818181817,
+        "p95_absolute_error_m": 1.3449999999999989
+      },
+      "abstained_positions_m": [],
+      "interpretation": "Uses only sparse training-transect borehole contacts; evaluates transfer to the shifted blind transect. No blind truth or blind proxy is used to fit this baseline."
+    },
+    {
+      "method": "blind_transect_surface_wave_interface_proxy_only",
+      "evaluation_site": "synthetic-blind-transect",
+      "metrics": {
+        "prediction_count": 6,
+        "target_count": 11,
+        "coverage_fraction": 0.5454545454545454,
+        "mean_absolute_error_m": 0.04500000000000052,
+        "root_mean_squared_error_m": 0.053696678978623714,
+        "signed_bias_m": 0.001666666666666335,
+        "p95_absolute_error_m": 0.09999999999999964
+      },
+      "abstained_positions_m": [
+        60,
+        70,
+        80,
+        90,
+        100
+      ],
+      "interpretation": "Scores only observed scalar proxy positions on the blind transect; unobserved positions abstain and are not zero-filled. The proxy is synthetic and does not model sensor physics."
+    }
+  ],
+  "comparison_warning": "The methods have different observation coverage and represent a synthetic transfer/observability stress test, not a matched physical field trial. Report accuracy together with coverage and abstentions; do not infer that one physical modality is superior."
+}
