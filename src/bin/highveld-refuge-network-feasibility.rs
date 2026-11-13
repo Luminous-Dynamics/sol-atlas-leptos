@@ -896,14 +896,15 @@ fn evaluate_time_series(case: &Value) -> Result<Value, Vec<String>> {
                 cohort_fairness_ranks.insert(cohort_id.to_owned(), rank);
             }
         }
-        match &expected_cohort_ids {
-            Some(expected) if expected != &current_cohort_ids => {
-                errors.push(format!(
-                    "{timepoint_id}: cohort set changed within the service sequence"
-                ));
-            }
-            None => expected_cohort_ids = Some(current_cohort_ids),
-            _ => {}
+        if expected_cohort_ids.is_none() {
+            expected_cohort_ids = Some(current_cohort_ids.clone());
+        } else if expected_cohort_ids
+            .as_ref()
+            .is_some_and(|expected| expected != &current_cohort_ids)
+        {
+            errors.push(format!(
+                "{timepoint_id}: cohort set changed within the service sequence"
+            ));
         }
         let sequence_elapsed_h = elapsed_h;
         let report = evaluate_snapshot(&snapshot)?;
@@ -966,7 +967,6 @@ fn evaluate_time_series(case: &Value) -> Result<Value, Vec<String>> {
                     if continuity.first_baseline_recovery_elapsed_h.is_none() {
                         continuity.first_baseline_recovery_elapsed_h = Some(sequence_elapsed_h);
                     }
-                    let _episode_duration = sequence_elapsed_h - episode_start;
                     continuity.recovered_episode_count += 1;
                     continuity.current_degraded_episode_start_elapsed_h = None;
                     continuity.current_degraded_episode_duration_h = 0.0;
