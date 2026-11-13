@@ -378,3 +378,24 @@ The benchmark target is zero false-feasible total/accessibility/water capacity, 
 The Highveld pool/water benchmark contains 10 archetypes × 8 scenarios = 80 registered cases. The tenth arm, POOL_HEAT_RECOVERY_FROM_COOLING_LOAD, follows an established industry pattern: a UC Davis WCEC hotel field trial reported average 5% electricity savings, peak reductions up to 12% and 29% lower pool-heating natural-gas use over four weeks in San Diego. The California feasibility study's 25–30% cooling-electricity / 30–35% peak reductions are modelled selected-condition estimates, not field performance.
 
 The local benchmark must gate recovery by actual pool heating demand, an isolated exchanger and an owner/authority-defined pool temperature ceiling. When the pool is at its ceiling or there is no heating demand, excess condenser heat must move to a separately qualified fallback sink or recovery must stop. Count recovered heat, displaced pool-heater energy and fallback rejection separately. This is not an assumed Highveld saving.
+
+
+## 18. Temperature-grade qualification: two-sided pinch before thermal dispatch
+
+The thermal sink governor now evaluates two separate temperature-grade boundaries:
+- load-return fluid → finite store (charge admission);
+- finite store → external sink (regeneration/rejection).
+
+The load-side gate requires a measured/qualified temperature approach above the declared heat-exchanger minimum, sufficient available heat-transfer power, qualified boundary and instrument evidence, and requested transfer energy within the store's current free headroom. V0.1 gives no credit for simultaneous regeneration when checking the charge request. The sink-side gate independently requires the store to be hot enough relative to the named sink, plus sufficient rejection capacity and auxiliary power. Neither side substitutes for the other.
+
+This is a useful system boundary because thermal storage studies emphasize delivery temperature, charging/discharging power, response time, heat losses and integration complexity—not only energy density. A September 2026 PCM review also finds that continuous occupancy can lead to thermal saturation when the PCM lacks adequate regeneration, while night ventilation's effectiveness varies with heatwave morphology, nighttime minimum temperature, thermal mass and operating schedule. Those results support a schedule- and temperature-grade-aware benchmark, not a fixed opening time or generic nameplate-capacity credit.
+
+Current implementation is a deterministic eligibility screen around qualified measurements/specialist solver outputs. It is not an exergy solver, a PCM constitutive model, an HX design tool or a coupled transient controller. Future v0.2 could compare energy and exergy destruction across the full path using measured temperatures/flows and an explicit reference environment, but only after the physical heat boundary and uncertainty are qualified.
+
+Sources:
+- [2026 industrial TES review: temperature grade, charge/discharge power, response time and integration](https://www.mdpi.com/1996-1073/19/12/2734) — turn156304search3
+- [Occupancy-dependent PCM review and thermal saturation in continuously occupied buildings](https://www.sciencedirect.com/science/article/pii/S0378778826010078) — turn156304search13
+- [Night ventilation during heatwaves: 18,000 EnergyPlus simulations across 36 heatwaves](https://www.mdpi.com/2075-5309/16/17/3555) — turn156304search15
+- [2026 exergy analysis review](https://www.sciencedirect.com/science/article/pii/S0735193326006408) — turn156304search2
+
+Benchmark target: zero accepted load-to-store transfers below the required temperature approach; zero transfers beyond current free store headroom without explicitly qualified concurrent regeneration; zero sink-side rejection below its own pinch; preserve the positive controls on both sides; 100% traceability to load, store, exchanger, sink and uncertainty evidence.
