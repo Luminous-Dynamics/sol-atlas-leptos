@@ -124,11 +124,13 @@ where C(A) is the declared compatible cost/loss burden. Do not monetize non-comp
 The first pinned baseline run uses a two-transect abstract fixture, 6 sparse training borehole contacts, 22 noisy scalar interface-proxy records, 11 blind truth points and a 5-position unobserved blind zone. See the generated receipt at `research/earth-observability/baselines/synthetic-profile-baseline-v0.1.json`.
 
 | Synthetic method | Coverage | MAE (m) | RMSE (m) | Bias (m) | P95 absolute error (m) | Abstentions |
-|---|---:|---:|---:|---:|---:|---:|
+|---|---:|---:|---:|---:|---:|---:|---:|
 | Sparse training-transect borehole piecewise-linear transfer | 100% (11/11) | 1.251818 | 1.253196 | -1.251818 | 1.345000 | 0 |
+| Sparse training-transect borehole nearest-neighbour transfer | 100% (11/11) | 1.426364 | 1.446868 | -1.426364 | 1.960000 | 0 |
+| Sparse training-transect borehole IDW (power 2) transfer | 100% (11/11) | 1.253900 | 1.257606 | -1.253900 | 1.428755 | 0 |
 | Blind-transect scalar proxy-only | 54.55% (6/11) | 0.045000 | 0.053697 | 0.001667 | 0.100000 | 5 |
 
-This intentionally creates a transfer shift between the two abstract transects. The borehole-only model appears to cover all target positions but carries systematic error on the shifted site. The local proxy has lower error where it exists but correctly abstains in five unobserved positions. This is a software-harness demonstration of the coverage/error/abstention trade-off—not evidence that one physical sensor modality is more accurate, not a published SOTA comparison, and not a geological field result. The proxy values are scalar synthetic interface estimates, not GPR/ERT/seismic waveforms or a forward simulation.
+This intentionally creates a transfer shift between the two abstract transects. The three borehole-only baselines all cover every target position but carry systematic transfer error on the shifted site; IDW(p=2) and piecewise linear are close, while nearest-neighbour is worse. The local proxy has lower error where it exists but correctly abstains in five unobserved positions. This is a software-harness demonstration of the coverage/error/abstention trade-off—not evidence that one physical sensor modality is more accurate, not a published SOTA comparison, and not a geological field result. The proxy values are scalar synthetic interface estimates, not GPR/ERT/seismic waveforms or a forward simulation.
 
 ## 7. Cross-domain transfer and adversarial robustness
 
