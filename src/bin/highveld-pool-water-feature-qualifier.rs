@@ -19,6 +19,12 @@ const THERMAL_EXERGY_CASE: &str = include_str!(
 const THERMAL_EXERGY_SCHEMA: &str = include_str!(
     "../../docs/research/highveld-neighborhood-commons/POOL_THERMAL_EXERGY_CASE_V0.1.schema.json"
 );
+const SCALE_TRANSFERABILITY: &str = include_str!(
+    "../../docs/research/highveld-neighborhood-commons/POOL_SCALE_TRANSFERABILITY_MANIFEST_V0.1.json"
+);
+const SCALE_TRANSFERABILITY_SCHEMA: &str = include_str!(
+    "../../docs/research/highveld-neighborhood-commons/POOL_SCALE_TRANSFERABILITY_MANIFEST_V0.1.schema.json"
+);
 
 fn text_at<'a>(value: &'a Value, key: &str) -> Option<&'a str> {
     value
@@ -55,6 +61,11 @@ fn audit() -> Result<Value, Vec<String>> {
         .map_err(|e| vec![format!("pool thermal exergy case JSON parse failed: {e}")])?;
     let exergy_schema: Value = serde_json::from_str(THERMAL_EXERGY_SCHEMA)
         .map_err(|e| vec![format!("pool thermal exergy schema JSON parse failed: {e}")])?;
+    let scale_transferability: Value = serde_json::from_str(SCALE_TRANSFERABILITY)
+        .map_err(|e| vec![format!("pool scale-transferability manifest JSON parse failed: {e}")])?;
+    let scale_transferability_schema: Value =
+        serde_json::from_str(SCALE_TRANSFERABILITY_SCHEMA)
+            .map_err(|e| vec![format!("pool scale-transferability schema JSON parse failed: {e}")])?;
     let mut errors = Vec::new();
 
     if text_at(&schema, "$schema") != Some("https://json-schema.org/draft/2020-12/schema") {
@@ -67,6 +78,96 @@ fn audit() -> Result<Value, Vec<String>> {
     }
     if text_at(&exergy_schema, "$schema") != Some("https://json-schema.org/draft/2020-12/schema") {
         errors.push("pool thermal exergy schema must declare JSON Schema Draft 2020-12".to_owned());
+    }
+    if text_at(&scale_transferability_schema, "$schema")
+        != Some("https://json-schema.org/draft/2020-12/schema")
+    {
+        errors.push(
+            "pool scale-transferability schema must declare JSON Schema Draft 2020-12".to_owned(),
+        );
+    }
+    for (key, expected) in [
+        ("study_id", "HIGHVELD-POOL-SCALE-TRANSFER-001"),
+        ("maturity", "RESEARCH_PROTOCOL_NOT_EXECUTED"),
+        ("execution_status", "NOT_EXECUTED"),
+        ("climate_context", "JOHANNESBURG_HIGHVELD"),
+    ] {
+        if text_at(&scale_transferability, key) != Some(expected) {
+            errors.push(format!("pool scale-transferability {key} must remain {expected}"));
+        }
+    }
+    let scale_tiers = array_at(&scale_transferability, "scale_tiers")
+        .cloned()
+        .unwrap_or_default();
+    if scale_tiers.len() != 5 || !unique_ids(&scale_tiers) {
+        errors.push("pool scale-transferability must preserve five unique evidence tiers".to_owned());
+    }
+    for required in [
+        "COMPONENT_POOL",
+        "COURTYARD_PEDESTRIAN",
+        "BUILDING_OCCUPIED_ZONE",
+        "NEIGHBORHOOD_BLUE_SPACE",
+        "THERMAL_SERVICE_REFUGE",
+    ] {
+        if !contains_id(&scale_tiers, required) {
+            errors.push(format!("pool scale-transferability tier {required} is missing"));
+        }
+    }
+    let promotion_rules = array_at(&scale_transferability, "promotion_rules")
+        .cloned()
+        .unwrap_or_default();
+    if promotion_rules.len() != 4 || !unique_ids(&promotion_rules) {
+        errors.push("exactly four unique non-automatic scale-promotion rules are required".to_owned());
+    }
+    if promotion_rules.iter().any(|rule| rule["automatic"].as_bool() != Some(false)) {
+        errors.push("scale promotion must never be automatic".to_owned());
+    }
+    if promotion_rules.iter().any(|rule| {
+        text_at(rule, "from") == Some("COMPONENT_POOL")
+            && text_at(rule, "to") == Some("THERMAL_SERVICE_REFUGE")
+    }) {
+        errors.push("direct component-to-refuge claim promotion is prohibited".to_owned());
+    }
+
+    let literature = array_at(&scale_transferability, "literature_transferability_controls")
+        .cloned()
+        .unwrap_or_default();
+    let urban_threshold = literature.iter().find(|item| {
+        text_at(item, "id") == Some("DENSE_URBAN_WATER_BODY_2026_3_41_HA")
+    });
+    if urban_threshold.is_none_or(|item| {
+        item["reported_value"].as_f64() != Some(3.41)
+            || text_at(item, "reported_unit") != Some("ha")
+            || text_at(item, "transferability")
+                != Some("NOT_TRANSFERABLE_AS_RESIDENTIAL_POOL_OR_COURTYARD_THRESHOLD")
+    }) {
+        errors.push("the 3.41 ha study-specific threshold must remain non-transferable".to_owned());
+    }
+    let park_context = literature.iter().find(|item| {
+        text_at(item, "id") == Some("MOCHOU_LAKE_PARK_2026")
+    });
+    if park_context.is_none_or(|item| {
+        item["reported_park_mean_air_temperature_difference_c"].as_f64() != Some(1.30)
+            || item["reported_activity_space_air_temperature_range_c"].as_f64() != Some(2.22)
+            || text_at(item, "reported_utci_state")
+                != Some("AT_LEAST_STRONG_HEAT_STRESS_AT_ALL_SAMPLED_INTERNAL_POINTS")
+    }) {
+        errors.push("park-average cooling must remain distinct from activity-space heat stress".to_owned());
+    }
+    for key in [
+        "urban_water_body_area_threshold_transferred_to_residential_pool",
+        "land_surface_temperature_only_promoted_to_pedestrian_comfort",
+        "dry_bulb_only_promoted_to_thermal_comfort_or_safety",
+        "spatial_mean_hiding_activity_space_heat_stress",
+        "courtyard_evidence_promoted_to_building_cooling_without_zone_path",
+        "neighborhood_map_promoted_to_refuge_without_capacity_route_operations",
+        "treatment_without_matched_dry_shade_and_upwind_control",
+        "minute_samples_treated_as_independent_replicates",
+        "untraceable_scale_claims",
+    ] {
+        if scale_transferability["hard_gates"].get(key).and_then(Value::as_u64) != Some(0) {
+            errors.push(format!("pool scale-transferability hard gate {key} must equal zero"));
+        }
     }
     for (key, expected) in [
         ("study_id", "HIGHVELD-POOL-THERMAL-EXERGY-001"),
@@ -430,6 +531,12 @@ fn audit() -> Result<Value, Vec<String>> {
         "thermal_exergy_study_id":"HIGHVELD-POOL-THERMAL-EXERGY-001",
         "thermal_exergy_interval_count":exergy_intervals.len(),
         "thermal_exergy_claim_ceiling":"LAYER_RESOLVED_TEMPERATURE_GRADE_AND_IDEALIZED_HEADROOM_ONLY",
+        "scale_transferability_study_id":"HIGHVELD-POOL-SCALE-TRANSFER-001",
+        "scale_transferability_tier_count":scale_tiers.len(),
+        "scale_promotion_rule_count":promotion_rules.len(),
+        "urban_water_area_threshold_transferability":"NOT_TRANSFERABLE_TO_RESIDENTIAL_POOL_OR_COURTYARD",
+        "park_average_vs_activity_space_stress_boundary":"ENFORCED",
+        "scale_transferability_execution_status":"NOT_EXECUTED",
         "execution_status":"NOT_EXECUTED",
         "schema_engine":"NOT_RUN; schema declaration and manifest invariants checked by this Rust qualifier",
         "claim_ceiling":"Design and benchmark registration only; no water feature or cooling performance admitted"
@@ -482,6 +589,19 @@ mod tests {
         assert_eq!(report["microclimate_spatial_station_count"], 6);
         assert_eq!(report["microclimate_measurement_height_count"], 4);
         assert_eq!(report["microclimate_execution_status"], "NOT_EXECUTED");
+    }
+
+    #[test]
+    fn scale_transferability_manifest_preserves_five_tiers_and_no_automatic_promotion() {
+        let report = audit().expect("pool scale-transferability contract");
+        assert_eq!(report["scale_transferability_tier_count"], 5);
+        assert_eq!(report["scale_promotion_rule_count"], 4);
+        assert_eq!(
+            report["urban_water_area_threshold_transferability"],
+            "NOT_TRANSFERABLE_TO_RESIDENTIAL_POOL_OR_COURTYARD"
+        );
+        assert_eq!(report["park_average_vs_activity_space_stress_boundary"], "ENFORCED");
+        assert_eq!(report["scale_transferability_execution_status"], "NOT_EXECUTED");
     }
 
     #[test]
