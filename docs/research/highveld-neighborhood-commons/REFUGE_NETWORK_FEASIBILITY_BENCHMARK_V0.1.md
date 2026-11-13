@@ -166,3 +166,27 @@ Compare future policies on the same frozen demand cohorts, qualified route graph
 - any owner-approved lexicographic or rotating service-debt policy.
 
 Report throughput, worst-cohort service, accessible unmet demand, unmet-place-hours, water/seat utilization, route limits and policy runtime separately. Never call one policy "fair" solely because it maximizes a mathematical ratio: the cohort definition, protected classes, tie-break, cumulative history and legitimacy of the governance process all require explicit owner review.
+
+
+## 9. Evidence freshness is part of refuge service availability
+
+A site/route snapshot can be syntactically valid and still be operationally stale. Capacity can be consumed, water quality can change, ventilation can fail, opening hours can change and a route can be blocked after its last observation.
+
+Every evaluation snapshot therefore binds an \`evaluation_event_id\` and identifies Symtropy as the owner of elapsed-age assessment. Each site supplies separate freshness records for site status, capacity, service and water; each route supplies separate route and accessibility freshness records. A record binds:
+- the originating source event ID;
+- elapsed age at the evaluation event, calculated using Symtropy's native clock/event ordering;
+- an owner-supplied maximum valid age;
+- the authority/policy reference that set that maximum.
+
+No universal age thresholds are hard-coded. Maximum age is supplied by the responsible asset, route or service owner according to its hazard and update process. The Rust feasibility oracle does not generate timestamps, event IDs or time deltas.
+
+Stale, missing, negative-age or policy-less evidence excludes the relevant site or route edge. A site with stale capacity cannot be treated as available merely because its last known seat count was adequate. A route with stale accessibility evidence cannot be counted as accessible.
+
+Acceptance targets:
+- 0 stale or unknown critical evidence admitted into a feasibility graph;
+- 100% of freshness records tied to source event, evaluation event and max-age policy;
+- 0 locally generated event timestamps or clock IDs;
+- all freshness thresholds owner-supplied and revisioned;
+- stale evidence produces a visible exclusion reason rather than silent substitution or interpolation.
+
+The synthetic fixture uses symbolic event identifiers and invented age values solely as known-answer test data. It does not represent actual event chronology or observation freshness at any real refuge.
