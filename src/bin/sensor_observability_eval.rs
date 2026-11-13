@@ -196,6 +196,14 @@ mod tests {
         assert_eq!(receipt.metrics.localization_median_error_m, Some(0.25));
         assert_eq!(receipt.metrics.localization_p95_error_m, Some(0.28));
         assert_eq!(receipt.metrics.out_of_domain_blind_trials, 1);
+        assert_eq!(receipt.metrics.per_site.len(), 4);
+        let worst_site = receipt
+            .metrics
+            .per_site
+            .iter()
+            .find(|site| site.site_id == "blind-site-d")
+            .expect("blind-site-d is represented");
+        assert_eq!(worst_site.probability_of_detection, Some(0.5));
         assert_eq!(
             receipt.metrics.point_estimates_meet_declared_requirements,
             Some(false)
