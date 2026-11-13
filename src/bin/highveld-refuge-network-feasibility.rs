@@ -50,6 +50,19 @@ struct CohortServiceDebt {
     minimum_snapshot_service_ratio: Option<f64>,
 }
 
+#[derive(Default)]
+struct CohortServiceContinuity {
+    baseline_service_ratio: Option<f64>,
+    first_degradation_elapsed_h: Option<f64>,
+    first_baseline_recovery_elapsed_h: Option<f64>,
+    current_degraded_episode_start_elapsed_h: Option<f64>,
+    current_degraded_episode_duration_h: f64,
+    longest_degraded_episode_duration_h: f64,
+    total_degraded_duration_h: f64,
+    degraded_episode_count: u64,
+    recovered_episode_count: u64,
+}
+
 impl FlowNetwork {
     fn new(node_count: usize) -> Self {
         Self {
@@ -599,6 +612,7 @@ fn evaluate_snapshot(case: &Value) -> Result<Value, Vec<String>> {
             "accessible_route_usable":base_ok && accessible_access_ok,
             "reasons":reasons
         }));
+        elapsed_h += duration;
     }
 
     if !errors.is_empty() {
@@ -797,6 +811,10 @@ fn evaluate_time_series(case: &Value) -> Result<Value, Vec<String>> {
     let mut timepoint_reports = Vec::new();
     let mut cohort_minimum_ratio = BTreeMap::<String, f64>::new();
     let mut cohort_service_debt = BTreeMap::<String, CohortServiceDebt>::new();
+    let mut cohort_service_continuity = BTreeMap::<String, CohortServiceContinuity>::new();
+    let mut cohort_fairness_ranks = BTreeMap::<String, u64>::new();
+    let mut expected_cohort_ids: Option<BTreeSet<String>> = None;
+    let mut elapsed_h = 0.0_f64;
     let mut total_unmet_place_hours = 0.0_f64;
     let mut accessible_unmet_place_hours = 0.0_f64;
     let mut unmet_place_snapshot_sum = 0_u64;
@@ -847,6 +865,47 @@ fn evaluate_time_series(case: &Value) -> Result<Value, Vec<String>> {
             json!("NO_SITE_OR_ROUTE_VALIDATION"),
         );
         let snapshot = Value::Object(snapshot_object);
+        let snapshot_cohorts = snapshot
+            .get("cohorts")
+            .and_then(Value::as_array)
+            .ok_or_else(|| vec![format!("{timepoint_id}: cohorts must be an array")])?;
+        let mut current_cohort_ids = BTreeSet::new();
+        let mut current_tie_break_ranks = BTreeSet::new();
+        for cohort in snapshot_cohorts {
+            let cohort_id = text_at(cohort, "cohort_id").ok_or_else(|| {
+                vec![format!("{timepoint_id}: cohort_id is missing")]
+            })?;
+            if !current_cohort_ids.insert(cohort_id.to_owned()) {
+                errors.push(format!("{timepoint_id}: duplicate cohort identity {cohort_id}"));
+            }
+            let rank = uint_at(cohort, "fairness_tie_break_rank").ok_or_else(|| {
+                vec![format!("{timepoint_id}/{cohort_id}: fairness_tie_break_rank is missing")]
+            })?;
+            if !current_tie_break_ranks.insert(rank) {
+                errors.push(format!(
+                    "{timepoint_id}: duplicate fairness_tie_break_rank {rank}"
+                ));
+            }
+            if let Some(prior_rank) = cohort_fairness_ranks.get(cohort_id) {
+                if *prior_rank != rank {
+                    errors.push(format!(
+                        "{timepoint_id}/{cohort_id}: fairness_tie_break_rank changed within sequence"
+                    ));
+                }
+            } else {
+                cohort_fairness_ranks.insert(cohort_id.to_owned(), rank);
+            }
+        }
+        match &expected_cohort_ids {
+            Some(expected) if expected != &current_cohort_ids => {
+                errors.push(format!(
+                    "{timepoint_id}: cohort set changed within the service sequence"
+                ));
+            }
+            None => expected_cohort_ids = Some(current_cohort_ids),
+            _ => {}
+        }
+        let sequence_elapsed_h = elapsed_h;
         let report = evaluate_snapshot(&snapshot)?;
 
         let total_requested = report["total_places_requested"].as_u64().unwrap_or(0);
@@ -875,6 +934,44 @@ fn evaluate_time_series(case: &Value) -> Result<Value, Vec<String>> {
                 let general_unmet = general_requested.saturating_sub(general_served);
                 let snapshot_ratio = number_at(cohort, "cohort_service_ratio").unwrap_or(0.0);
 
+                let continuity = cohort_service_continuity
+                    .entry(cohort_id.to_owned())
+                    .or_default();
+                let baseline_ratio = *continuity
+                    .baseline_service_ratio
+                    .get_or_insert(snapshot_ratio);
+                if baseline_ratio <= 0.0 {
+                    errors.push(format!(
+                        "{timepoint_id}/{cohort_id}: baseline service ratio must be positive for recovery analysis"
+                    ));
+                }
+                let degraded_vs_baseline = snapshot_ratio + 1e-12 < baseline_ratio;
+                if degraded_vs_baseline {
+                    if continuity.current_degraded_episode_start_elapsed_h.is_none() {
+                        continuity.current_degraded_episode_start_elapsed_h =
+                            Some(sequence_elapsed_h);
+                        continuity.degraded_episode_count += 1;
+                        if continuity.first_degradation_elapsed_h.is_none() {
+                            continuity.first_degradation_elapsed_h = Some(sequence_elapsed_h);
+                        }
+                    }
+                    continuity.current_degraded_episode_duration_h += duration;
+                    continuity.total_degraded_duration_h += duration;
+                    continuity.longest_degraded_episode_duration_h = continuity
+                        .longest_degraded_episode_duration_h
+                        .max(continuity.current_degraded_episode_duration_h);
+                } else if let Some(episode_start) =
+                    continuity.current_degraded_episode_start_elapsed_h
+                {
+                    if continuity.first_baseline_recovery_elapsed_h.is_none() {
+                        continuity.first_baseline_recovery_elapsed_h = Some(sequence_elapsed_h);
+                    }
+                    let _episode_duration = sequence_elapsed_h - episode_start;
+                    continuity.recovered_episode_count += 1;
+                    continuity.current_degraded_episode_start_elapsed_h = None;
+                    continuity.current_degraded_episode_duration_h = 0.0;
+                }
+
                 let debt = cohort_service_debt.entry(cohort_id.to_owned()).or_default();
                 debt.requested_place_hours += requested as f64 * duration;
                 debt.served_place_hours += served as f64 * duration;
@@ -900,7 +997,11 @@ fn evaluate_time_series(case: &Value) -> Result<Value, Vec<String>> {
                     "accessible_unmet_place_hours":accessible_unmet as f64 * duration,
                     "general_unmet_places":general_unmet,
                     "general_unmet_place_hours":general_unmet as f64 * duration,
-                    "snapshot_service_ratio":snapshot_ratio
+                    "snapshot_service_ratio":snapshot_ratio,
+                    "baseline_service_ratio":baseline_ratio,
+                    "below_baseline_service":degraded_vs_baseline,
+                    "degraded_episode_open":continuity.current_degraded_episode_start_elapsed_h.is_some(),
+                    "current_degraded_episode_duration_h":continuity.current_degraded_episode_duration_h
                 }));
             }
         }
@@ -932,6 +1033,8 @@ fn evaluate_time_series(case: &Value) -> Result<Value, Vec<String>> {
             "sequence_index": sequence_index,
             "timepoint_id": timepoint_id,
             "scenario_id": scenario_id,
+            "elapsed_start_h": sequence_elapsed_h,
+            "elapsed_end_h": sequence_elapsed_h + duration,
             "duration_h": duration,
             "total_places_requested": total_requested,
             "total_places_feasible": total_feasible,
@@ -954,6 +1057,33 @@ fn evaluate_time_series(case: &Value) -> Result<Value, Vec<String>> {
             json!({
                 "cohort_id": cohort_id,
                 "minimum_service_ratio_across_sequence": ratio
+            })
+        })
+        .collect();
+    let cohort_service_continuity_rows: Vec<Value> = cohort_service_continuity
+        .iter()
+        .map(|(cohort_id, continuity)| {
+            let time_to_first_baseline_recovery_h = match (
+                continuity.first_degradation_elapsed_h,
+                continuity.first_baseline_recovery_elapsed_h,
+            ) {
+                (Some(first_degradation), Some(first_recovery)) => {
+                    Some(first_recovery - first_degradation)
+                }
+                _ => None,
+            };
+            json!({
+                "cohort_id": cohort_id,
+                "baseline_service_ratio": continuity.baseline_service_ratio,
+                "first_degradation_elapsed_h": continuity.first_degradation_elapsed_h,
+                "first_baseline_recovery_elapsed_h": continuity.first_baseline_recovery_elapsed_h,
+                "time_to_first_baseline_recovery_h": time_to_first_baseline_recovery_h,
+                "degraded_episode_count": continuity.degraded_episode_count,
+                "recovered_episode_count": continuity.recovered_episode_count,
+                "total_degraded_duration_h": continuity.total_degraded_duration_h,
+                "longest_degraded_episode_duration_h": continuity.longest_degraded_episode_duration_h,
+                "unrecovered_at_sequence_end": continuity.current_degraded_episode_start_elapsed_h.is_some(),
+                "current_unrecovered_episode_duration_h": continuity.current_degraded_episode_duration_h
             })
         })
         .collect();
@@ -1026,6 +1156,8 @@ fn evaluate_time_series(case: &Value) -> Result<Value, Vec<String>> {
         "minimum_cohort_service_ratio_any_timepoint": minimum_ratio,
         "cohort_minimum_service_ratios": cohort_minimum_rows,
         "cohort_cumulative_service_debt": cohort_service_debt_rows,
+        "cohort_service_continuity": cohort_service_continuity_rows,
+        "total_sequence_duration_h": elapsed_h,
         "worst_cumulative_service_debt_cohort": worst_service_debt,
         "cohort_debt_matches_total_unmet_place_hours": (summed_cohort_debt - total_unmet_place_hours).abs() <= 1e-9,
         "accessible_cohort_debt_matches_total": (summed_accessible_cohort_debt - accessible_unmet_place_hours).abs() <= 1e-9,
@@ -1122,6 +1254,38 @@ mod tests {
         assert!((unmet_sum - 56.0).abs() <= 1e-9);
         let worst = &report["worst_cumulative_service_debt_cohort"];
         assert!(worst["cohort_id"].as_str().is_some());
+    }
+
+    #[test]
+    fn temporal_sequence_reports_baseline_recovery_time_and_longest_gap() {
+        let case: Value = serde_json::from_str(TIME_SERIES_CASE).expect("temporal case JSON");
+        let report = evaluate_time_series(&case).expect("temporal case must evaluate");
+        assert_eq!(report["total_sequence_duration_h"], 4.0);
+        let continuity = report["cohort_service_continuity"]
+            .as_array()
+            .expect("cohort continuity rows");
+        assert_eq!(continuity.len(), 3);
+        assert!(continuity.iter().any(|row| {
+            row["degraded_episode_count"].as_u64().unwrap_or(0) == 1
+                && row["recovered_episode_count"].as_u64().unwrap_or(0) == 1
+                && (row["longest_degraded_episode_duration_h"].as_f64().unwrap_or(0.0) - 2.0).abs() < 1e-9
+                && (row["time_to_first_baseline_recovery_h"].as_f64().unwrap_or(-1.0) - 2.0).abs() < 1e-9
+                && row["unrecovered_at_sequence_end"] == false
+        }));
+    }
+
+    #[test]
+    fn temporal_sequence_rejects_changed_tie_break_rank() {
+        let mut case: Value = serde_json::from_str(TIME_SERIES_CASE).expect("temporal case JSON");
+        case["time_slices"][1]["snapshot"]["cohorts"][0]["fairness_tie_break_rank"] = json!(4);
+        assert!(evaluate_time_series(&case).is_err());
+    }
+
+    #[test]
+    fn temporal_sequence_rejects_changed_cohort_set() {
+        let mut case: Value = serde_json::from_str(TIME_SERIES_CASE).expect("temporal case JSON");
+        case["time_slices"][1]["snapshot"]["cohorts"].as_array_mut().unwrap().pop();
+        assert!(evaluate_time_series(&case).is_err());
     }
 
     #[test]
