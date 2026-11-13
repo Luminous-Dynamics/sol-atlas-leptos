@@ -530,6 +530,7 @@ mod tests {
     const SYNTHETIC_AGS: &str = include_str!(
         "../../research/earth-observability/fixtures/ags4-synthetic-v0.1.ags"
     );
+    const TEST_VALIDATOR_LIBRARY: &str = "python_ags4 v1.1.0";
 
     #[test]
     fn synthetic_ags4_file_parses_and_declares_version() {
@@ -714,7 +715,8 @@ mod tests {
                 &receipt,
                 &"a".repeat(64),
                 SYNTHETIC_AGS.len(),
-                "v4_1_1"
+                "v4_1_1",
+                TEST_VALIDATOR_LIBRARY,
             ),
             Ok(())
         );
@@ -728,6 +730,7 @@ mod tests {
             &"c".repeat(64),
             SYNTHETIC_AGS.len() + 1,
             "v4_1",
+            TEST_VALIDATOR_LIBRARY,
         )
         .expect_err("receipt must not be reused");
         assert!(errors.contains(&BgsAgsReceiptError::SourceDigestMismatch));
@@ -747,6 +750,7 @@ mod tests {
             &"a".repeat(64),
             SYNTHETIC_AGS.len(),
             "v4_1_1",
+            TEST_VALIDATOR_LIBRARY,
         )
         .expect_err("receipt contract must fail");
         assert!(errors.contains(&BgsAgsReceiptError::ApiVersionMismatch));
@@ -803,9 +807,58 @@ mod tests {
             &"a".repeat(64),
             SYNTHETIC_AGS.len(),
             "v4_2",
+            TEST_VALIDATOR_LIBRARY,
         )
         .expect_err("unknown dictionary must not pass");
         assert!(dictionary_errors.contains(&BgsAgsReceiptError::UnsupportedDictionaryId));
+    }
+
+    #[test]
+    fn validator_library_identity_must_match_the_pinned_reference() {
+        let mut receipt = valid_bgs_receipt();
+        receipt.validator_library = "python_ags4 v1.0.0".to_string();
+        let errors = validate_bgs_ags_receipt(
+            &receipt,
+            &"a".repeat(64),
+            SYNTHETIC_AGS.len(),
+            "v4_1_1",
+            TEST_VALIDATOR_LIBRARY,
+        )
+        .expect_err("a different validator library must not pass");
+        assert!(errors.contains(&BgsAgsReceiptError::ValidatorLibraryMismatch));
+    }
+
+    #[test]
+    fn document_bound_receipt_uses_exact_declared_dictionary() {
+        let doc = parse_ags4_preflight(SYNTHETIC_AGS.as_bytes())
+            .expect("synthetic AGS parses");
+        let receipt = valid_bgs_receipt();
+        assert!(doc
+            .validate_bgs_receipt(
+                &receipt,
+                &"a".repeat(64),
+                SYNTHETIC_AGS.len(),
+                TEST_VALIDATOR_LIBRARY,
+            )
+            .is_ok());
+    }
+
+    #[test]
+    fn document_bound_receipt_rejects_missing_declared_version() {
+        let mut doc = parse_ags4_preflight(SYNTHETIC_AGS.as_bytes())
+            .expect("synthetic AGS parses");
+        let tran = doc.groups.iter_mut().find(|group| group.name == "TRAN").unwrap();
+        tran.rows[0][1].clear();
+        let receipt = valid_bgs_receipt();
+        let errors = doc
+            .validate_bgs_receipt(
+                &receipt,
+                &"a".repeat(64),
+                SYNTHETIC_AGS.len(),
+                TEST_VALIDATOR_LIBRARY,
+            )
+            .expect_err("missing source version cannot be defaulted");
+        assert!(errors.contains(&BgsAgsReceiptError::MissingDeclaredVersion));
     }
 
     #[test]
@@ -816,7 +869,8 @@ mod tests {
             &receipt,
             &"a".repeat(64),
             SYNTHETIC_AGS.len(),
-            "v4_1_1"
+            "v4_1_1",
+            TEST_VALIDATOR_LIBRARY,
         )
         .is_ok());
     }
