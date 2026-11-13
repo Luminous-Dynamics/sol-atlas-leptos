@@ -62,7 +62,8 @@
           "cohort_id",
           "total_places_requested",
           "accessible_places_requested",
-          "maximum_route_travel_time_s"
+          "maximum_route_travel_time_s",
+          "fairness_tie_break_rank"
         ],
         "properties": {
           "cohort_id": {
@@ -80,6 +81,10 @@
           "maximum_route_travel_time_s": {
             "type": "number",
             "exclusiveMinimum": 0
+          },
+          "fairness_tie_break_rank": {
+            "type": "integer",
+            "minimum": 1
           }
         }
       }
