@@ -522,3 +522,30 @@ Against municipal/local practice, compare:
 7. Nominal refuge status vs independently measured occupied-zone thermal service, ventilation, water quality and safe operation.
 
 Targets: 0 false available-refuge claims from stale critical evidence; 0 double-counted capacity/water; 0 accessible demand allocated through unqualified routes; 100% traceability from site/route/source event to the evaluation event. These are proposed acceptance targets, not achieved results.
+
+
+## 17. New 2026 evidence: resilience metric fragmentation and district cooling integration gaps
+
+A 1 November 2026 scoping review of energy resilience in the built environment covers 176 studies/frameworks, finds only 44 operational definitions, identifies 29 indicators (including equivalent formulations not consistently recognized), and reports that fewer than 10% of the reviewed evidence addresses the Global South. It highlights short, single-building/event studies and limited integration of multi-hazard trajectories and equity. This supports a Highveld contribution based on explicit operational definitions, common units, district-to-household trajectories and held-out Global South validation—not another bespoke scalar resilience score.
+
+A 15 June 2026 review screened 106 district-cooling/energy tools and examined 14 more deeply. It finds an integration gap: many detailed district-cooling models do not extend into wider energy-system analysis, while broad energy-system tools simplify district cooling thermodynamics. A 15 September 2026 review of fifth-generation district heating/cooling control strategies emphasizes system-wide thermal flexibility and coupled production/distribution/end-user control. Highveld should therefore expose auditable interfaces between detailed thermal solvers, storage/sink physics, network constraints and occupant service while keeping specialist engines authoritative.
+
+A 25 June 2026 thermal-resilience review frames resilience as time-dependent response to climatic extremes and outages, reinforcing the need for trajectory metrics rather than static capacity or one-time indoor-temperature results.
+
+Sources:
+- [Energy resilience in the built environment under disruptive events: hazard-, climate- and equity-informed systematic scoping review (1 November 2026)](https://www.sciencedirect.com/science/article/pii/S0378778826011710)
+- [Evaluating tools for integrating district cooling models into wider energy systems (15 June 2026)](https://www.sciencedirect.com/science/article/pii/S019689042600436X)
+- [Control strategies in fifth-generation district heating and cooling systems: A review (15 September 2026)](https://www.sciencedirect.com/science/article/pii/S2210670726005731)
+- [Thermal Resilience of Residential Buildings Under Climatic Extremes and Power Outages (25 June 2026)](https://www.mdpi.com/1996-1073/19/13/3006)
+
+### Highveld's defensible SOTA challenge
+
+On matched site/route/service traces, compare:
+1. a competent static nearest-refuge baseline;
+2. conventional maximum-throughput flow;
+3. discrete progressive max-min service;
+4. the capacity-scaled progressive-fill fast path;
+5. a proven lexicographic/max-min operations-research solver;
+6. temporal evidence-freshness + service-debt replay.
+
+Report exact output agreement, worst-cohort service ratio, accessible unmet service, total throughput, unmet-place-hours, water-limited capacity, maximum age of admitted evidence, max-flow evaluation count, wall time and memory. Include South African and Global South test contexts only after licensed local data and owner-approved evidence admission. No SOTA superiority is claimed by registration or synthetic tests.
