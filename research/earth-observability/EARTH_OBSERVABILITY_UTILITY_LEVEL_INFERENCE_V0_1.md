@@ -4,7 +4,7 @@
 **Parent:** #771 — EARTH-OBSERVABILITY-QUAL-002  
 **Related existing owner:** [MUDDI-aligned subterranean utility profile #755](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/755)  
 **Related physical programme:** Symtropy [SUBTERRANEAN-UTILITY-FABRIC #4910](https://github.com/Luminous-Dynamics/symtropy/issues/4910)  
-**Status:** research protocol and challenge cases; utility-association evaluator NOT_IMPLEMENTED  
+**Status:** research protocol, eight challenge definitions and candidate-graph contract implemented; asset/network scoring evaluator NOT_IMPLEMENTED  
 **Date:** 2026-11-13  
 **Claim ceiling:** no real utility asset, network geometry, locate, survey, depth, material or excavation clearance is produced or qualified by this document.
 
@@ -129,6 +129,15 @@ The 2026 review explicitly recommends hybrid simulation and field datasets, phys
 ## 6. Additional challenge cases v0.1
 
 The machine-readable case definitions are in `utility-level-inference-cases-v0.1.json`.
+
+The first candidate-graph contract is now implemented in `sol-atlas-core/src/utility_inference.rs` and exports:
+- observed event identity and source/support/acquisition references;
+- candidate asset hypotheses with a non-authoritative `candidate:` namespace;
+- event-to-asset association probabilities with explicit residual abstention mass;
+- candidate nodes and evidence-backed network connections;
+- unresolved crossing relations that do not imply connectivity.
+
+The deterministic fixture is `research/earth-observability/fixtures/utility-inference-candidate-graph-synthetic-v0.1.json`. The core tests check multiple events per asset, abstention, probability-mass overflow, duplicate associations, source-evidence binding, missing references and unresolved crossings. This is a structural inference contract only: the geometry is referenced by claim ID, not computed, and no asset-level accuracy/topology score is implemented yet.
 
 | Case | Stress | Expected disposition |
 |---|---|---|
