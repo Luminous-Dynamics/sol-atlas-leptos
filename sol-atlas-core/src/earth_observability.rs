@@ -487,8 +487,12 @@ pub enum DataUseAction {
 pub struct DataUseGrant {
     pub grant_id: String,
     pub source_id: String,
+    pub asset_id: String,
+    pub subject_id: String,
     pub issuer_id: String,
     pub grant_sha256: String,
+    #[serde(default)]
+    pub permitted_purposes: Vec<String>,
     pub valid_from_unix_s: u64,
     pub expires_at_unix_s: Option<u64>,
     pub may_read: bool,
@@ -503,18 +507,26 @@ pub enum DataUseDenial {
     MissingGrant,
     InvalidGrantReceipt,
     SourceIdentityMismatch,
+    AssetIdentityMismatch,
+    SubjectIdentityMismatch,
+    MissingPurpose,
+    PurposeNotGranted,
     GrantNotYetValid,
     GrantExpired,
     ConditionsNotSatisfied,
     ActionNotGranted,
 }
 
-/// Fail closed unless an exact-source grant receipt explicitly authorizes the
-/// requested action at the supplied clock time. The digest is syntax-checked
-/// here; cryptographic receipt verification and issuer trust remain upstream.
+/// Fail closed unless an exact source + asset + subject + purpose grant
+/// authorizes the requested action at the supplied clock time. The receipt
+/// digest is syntax-checked here; cryptographic receipt verification and
+/// issuer trust remain upstream.
 pub fn authorize_data_use(
     grant: Option<&DataUseGrant>,
     source_id: &str,
+    asset_id: &str,
+    subject_id: &str,
+    purpose: &str,
     action: DataUseAction,
     now_unix_s: u64,
 ) -> Result<(), DataUseDenial> {
@@ -524,6 +536,8 @@ pub fn authorize_data_use(
 
     if grant.grant_id.trim().is_empty()
         || grant.source_id.trim().is_empty()
+        || grant.asset_id.trim().is_empty()
+        || grant.subject_id.trim().is_empty()
         || grant.issuer_id.trim().is_empty()
         || !is_sha256_hex(&grant.grant_sha256)
     {
@@ -531,6 +545,22 @@ pub fn authorize_data_use(
     }
     if grant.source_id != source_id {
         return Err(DataUseDenial::SourceIdentityMismatch);
+    }
+    if grant.asset_id != asset_id {
+        return Err(DataUseDenial::AssetIdentityMismatch);
+    }
+    if grant.subject_id != subject_id {
+        return Err(DataUseDenial::SubjectIdentityMismatch);
+    }
+    if purpose.trim().is_empty() {
+        return Err(DataUseDenial::MissingPurpose);
+    }
+    if !grant
+        .permitted_purposes
+        .iter()
+        .any(|permitted| permitted == purpose)
+    {
+        return Err(DataUseDenial::PurposeNotGranted);
     }
     if now_unix_s < grant.valid_from_unix_s {
         return Err(DataUseDenial::GrantNotYetValid);
@@ -883,8 +913,11 @@ mod tests {
         DataUseGrant {
             grant_id: "grant-synthetic-001".to_string(),
             source_id: "source-borehole-archive-001".to_string(),
+            asset_id: "asset-borehole-log-001".to_string(),
+            subject_id: "benchmark-worker-001".to_string(),
             issuer_id: "custodian-synthetic".to_string(),
             grant_sha256: "d".repeat(64),
+            permitted_purposes: vec!["benchmark_evaluation".to_string()],
             valid_from_unix_s: 100,
             expires_at_unix_s: Some(1_000),
             may_read: true,
@@ -895,30 +928,29 @@ mod tests {
         }
     }
 
+    fn authorize_valid_grant(
+        grant: Option<&DataUseGrant>,
+        action: DataUseAction,
+        now_unix_s: u64,
+    ) -> Result<(), DataUseDenial> {
+        authorize_data_use(
+            grant,
+            "source-borehole-archive-001",
+            "asset-borehole-log-001",
+            "benchmark-worker-001",
+            "benchmark_evaluation",
+            action,
+            now_unix_s,
+        )
+    }
+
     #[test]
-    fn exact_source_grant_allows_only_declared_local_processing() {
+    fn exact_asset_subject_and_purpose_grant_only_declared_local_processing() {
         let grant = valid_rights_grant();
-        assert!(authorize_data_use(
-            Some(&grant),
-            "source-borehole-archive-001",
-            DataUseAction::Read,
-            500
-        )
-        .is_ok());
-        assert!(authorize_data_use(
-            Some(&grant),
-            "source-borehole-archive-001",
-            DataUseAction::Process,
-            500
-        )
-        .is_ok());
+        assert!(authorize_valid_grant(Some(&grant), DataUseAction::Read, 500).is_ok());
+        assert!(authorize_valid_grant(Some(&grant), DataUseAction::Process, 500).is_ok());
         assert_eq!(
-            authorize_data_use(
-                Some(&grant),
-                "source-borehole-archive-001",
-                DataUseAction::Redistribute,
-                500
-            ),
+            authorize_valid_grant(Some(&grant), DataUseAction::Redistribute, 500),
             Err(DataUseDenial::ActionNotGranted)
         );
     }
@@ -927,22 +959,78 @@ mod tests {
     fn missing_or_wrong_source_grant_fails_closed() {
         let grant = valid_rights_grant();
         assert_eq!(
-            authorize_data_use(
-                None,
-                "source-borehole-archive-001",
-                DataUseAction::Read,
-                500
-            ),
+            authorize_valid_grant(None, DataUseAction::Read, 500),
             Err(DataUseDenial::MissingGrant)
         );
         assert_eq!(
             authorize_data_use(
                 Some(&grant),
                 "different-source",
+                "asset-borehole-log-001",
+                "benchmark-worker-001",
+                "benchmark_evaluation",
                 DataUseAction::Read,
-                500
+                500,
             ),
             Err(DataUseDenial::SourceIdentityMismatch)
+        );
+    }
+
+    #[test]
+    fn wrong_asset_or_subject_cannot_reuse_a_source_level_grant() {
+        let grant = valid_rights_grant();
+        assert_eq!(
+            authorize_data_use(
+                Some(&grant),
+                "source-borehole-archive-001",
+                "different-asset",
+                "benchmark-worker-001",
+                "benchmark_evaluation",
+                DataUseAction::Read,
+                500,
+            ),
+            Err(DataUseDenial::AssetIdentityMismatch)
+        );
+        assert_eq!(
+            authorize_data_use(
+                Some(&grant),
+                "source-borehole-archive-001",
+                "asset-borehole-log-001",
+                "different-worker",
+                "benchmark_evaluation",
+                DataUseAction::Read,
+                500,
+            ),
+            Err(DataUseDenial::SubjectIdentityMismatch)
+        );
+    }
+
+    #[test]
+    fn purpose_must_be_explicitly_granted() {
+        let grant = valid_rights_grant();
+        assert_eq!(
+            authorize_data_use(
+                Some(&grant),
+                "source-borehole-archive-001",
+                "asset-borehole-log-001",
+                "benchmark-worker-001",
+                "",
+                DataUseAction::Read,
+                500,
+            ),
+            Err(DataUseDenial::MissingPurpose)
+        );
+        assert_eq!(
+            authorize_data_use(
+                Some(&grant),
+                "source-borehole-archive-001",
+                "asset-borehole-log-001",
+                "benchmark-worker-001",
+                "public_distribution",
+                DataUseAction::Read,
+                500,
+            ),
+            Err(DataUseDenial::PurposeNotGranted)
         );
     }
 
@@ -950,21 +1038,11 @@ mod tests {
     fn expired_and_future_grants_are_not_usable() {
         let grant = valid_rights_grant();
         assert_eq!(
-            authorize_data_use(
-                Some(&grant),
-                "source-borehole-archive-001",
-                DataUseAction::Read,
-                1_000
-            ),
+            authorize_valid_grant(Some(&grant), DataUseAction::Read, 1_000),
             Err(DataUseDenial::GrantExpired)
         );
         assert_eq!(
-            authorize_data_use(
-                Some(&grant),
-                "source-borehole-archive-001",
-                DataUseAction::Read,
-                99
-            ),
+            authorize_valid_grant(Some(&grant), DataUseAction::Read, 99),
             Err(DataUseDenial::GrantNotYetValid)
         );
     }
@@ -974,12 +1052,7 @@ mod tests {
         let mut grant = valid_rights_grant();
         grant.conditions_satisfied = false;
         assert_eq!(
-            authorize_data_use(
-                Some(&grant),
-                "source-borehole-archive-001",
-                DataUseAction::Process,
-                500
-            ),
+            authorize_valid_grant(Some(&grant), DataUseAction::Process, 500),
             Err(DataUseDenial::ConditionsNotSatisfied)
         );
     }
@@ -989,12 +1062,7 @@ mod tests {
         let mut grant = valid_rights_grant();
         grant.grant_sha256 = "public-page-is-not-a-grant".to_string();
         assert_eq!(
-            authorize_data_use(
-                Some(&grant),
-                "source-borehole-archive-001",
-                DataUseAction::Read,
-                500
-            ),
+            authorize_valid_grant(Some(&grant), DataUseAction::Read, 500),
             Err(DataUseDenial::InvalidGrantReceipt)
         );
     }
