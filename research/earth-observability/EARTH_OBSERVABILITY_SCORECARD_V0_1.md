@@ -154,7 +154,7 @@ Treat discovery, read, processing, derivative creation, redistribution, retentio
 | Measure | Definition | Required negative controls |
 |---|---|---|
 | Exact asset/subject grant binding | fraction of operations bound to a verified grant for the exact source, asset, requesting subject and purpose | grant for source A or asset A used on source/asset B; one worker's grant reused by another |
-| Purpose/action separation | correct enforcement of READ / PROCESS / CREATE_DERIVATIVE / REDISTRIBUTE | read-only used to process; process-only used to publish |
+| Purpose/action separation | correct enforcement of READ / PROCESS / CREATE_DERIVATIVE / REDISTRIBUTE_SOURCE / REDISTRIBUTE_DERIVATIVE | read-only used to process; source-copy grant used to publish a derivative; derivative grant used to redistribute raw source |
 | Grant validity | enforcement of not-before, expiry, conditions and revocation | expired grant, unmet conditions, revocation with stale cache |
 | Authorization coverage | authorized and executed requested sources / all requested sources | inaccessible or unknown sources silently counted as covered |
 | Reproducibility | output digest and exact source, adapter, code, model, config, policy and query receipt | replay drift or missing receipt identity |
@@ -163,7 +163,7 @@ Treat discovery, read, processing, derivative creation, redistribution, retentio
 | Revocation latency | time from verified revocation to denial of new use and invalidation of served derivatives | processing or publication succeeds after revocation acknowledgement |
 | Owner burden / latency / cost | custodian review time, compute cost, data movement, query latency and retry rate | speed claimed by dropping inaccessible sources or reducing review |
 
-Hard acceptance: zero unauthorized read/process/derive/redistribute actions in the frozen negative-control corpus; zero silent promotion of UNKNOWN rights to permission; 100% of executed results bind the exact-source grant and source version. This scorecard does not prove privacy or legal compliance. Query metadata, timing, model updates and derived-output leakage require separate threat-modelled tests.
+Hard acceptance: zero unauthorized read/process/derive/source-redistribute/derivative-redistribute actions in the frozen negative-control corpus; zero silent promotion of UNKNOWN rights to permission; 100% of executed results bind the exact source, asset, requesting subject, purpose and source version. This scorecard does not prove privacy or legal compliance. Query metadata, timing, model updates and derived-output leakage require separate threat-modelled tests.
 
 For source-local operation, the source owner retains raw data and runs a bounded adapter. Sol-Atlas receives only a permitted result plus evidence receipt. Mycelix verifies issuer/grant evidence and revocation; the local predicate only checks declared scope and must not be represented as signature verification or licence interpretation.
 
