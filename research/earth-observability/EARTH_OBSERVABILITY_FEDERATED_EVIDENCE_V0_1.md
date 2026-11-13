@@ -91,14 +91,14 @@ The first fail-closed Rust gate is implemented in:
 - `authorize_data_use(...)`
 - `DataUseGrant`, `DataUseAction`, and `DataUseDenial`
 
-It checks an upstream-issued, exact-source grant declaration before allowing one of four operations:
+It checks an upstream-issued grant bound to the **exact source, exact asset, requesting subject and declared purpose**, before allowing one of four operations:
 
 1. `Read`
 2. `Process`
 3. `CreateDerivative`
 4. `Redistribute`
 
-The gate requires a non-empty grant/source/issuer identity, a syntactically valid SHA-256 receipt digest, matching source identity, an active validity interval, satisfied declared conditions and the operation-specific capability booleans. Missing or invalid grants fail closed.
+The gate requires non-empty grant/source/asset/subject/issuer identity, a syntactically valid SHA-256 receipt digest, exact source+asset+subject binding, explicit purpose membership, an active validity interval, satisfied declared conditions and operation-specific capability booleans. Missing or invalid grants fail closed.
 
 **Important limits:** this code does not authenticate the issuing custodian, verify the grant signature, interpret licence text, prove that conditions were actually satisfied, implement revocation propagation, or enforce storage/network controls. Those responsibilities belong to the authoritative grant/custody and execution layers. The local Rust gate is a policy-consistency check over an already-qualified receipt, not legal advice or a cryptographic authorization service.
 
@@ -150,7 +150,7 @@ Report authorization coverage and scientific coverage separately. A system that 
 
 ## 9. Next implementation gates
 
-**F0 — Contract:** exact source ID, grant digest, issuer identity, purpose, validity and action matrix (initial Rust predicate added).  
+**F0 — Contract:** exact source ID, asset ID, requesting subject, purpose, grant digest, issuer identity, validity and action matrix (Rust predicate added).  
 **F1 — Receipt verification:** signed-grant authentication, issuer trust and revocation evidence through Mycelix.  
 **F2 — Local executor:** one non-sensitive, permissioned source with a bounded query and no raw-data egress.  
 **F3 — Reproducibility:** source-local rerun receipt, output digest, exact code/model/policy identity and independent local comparison.  
