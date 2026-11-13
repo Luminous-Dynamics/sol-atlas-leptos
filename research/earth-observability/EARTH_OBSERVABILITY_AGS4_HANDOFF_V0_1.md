@@ -103,7 +103,7 @@ A file can pass AGS formatting while containing wrong coordinates, swapped depth
 - BGS's validator service says uploaded files are not saved/stored; the exact request still needs source-owner permission, and its current terms/API policy must be followed.
 - BGS's AGS Download Service only exposes records where donors have consented to access; legacy confidentiality restrictions can prevent an AGS Submission Record from being shown.
 - BGS-generated AGS exports may subset original project data and replace project/location IDs with BGS-generated identifiers. Preserve both original and BGS identities, exact export context and original-source references where supplied.
-- GGC01 / UKGEOS is a candidate high-value multidisciplinary example (core scans, wireline logs, MSCL-S, NIR/XRF, geological/discontinuity logs and samples), but its exact asset-level licence and access terms remain unresolved in the current source inventory. Do not ingest it until those exact terms have been reconciled.
+- UKGEOS Glasgow GGC01 Final Borehole Information Pack is a promising single-borehole multimodal source. The exact BGS/NGDC cited-data record states OGL with a Natural Environment Research Council acknowledgement, while a separate data.gov.uk harvest still shows "Licence not set". Preserve the NGDC cited-data record, exact package manifest and attribution with the source receipt; verify the content/terms of each linked asset. The initial/intermediate releases, separate large image packages and other UKGEOS boreholes are distinct source records, not automatically covered by the final-pack admission.
 
 ## 7. Next implementation gates
 
@@ -122,4 +122,5 @@ A file can pass AGS formatting while containing wrong coordinates, swapped depth
 - BGS AGS File Utilities API catalogue: https://www.api.gov.uk/bgs/ags-file-utilities-tool-and-api/
 - Official pyagsapi documentation: https://britishgeologicalsurvey.github.io/pyagsapi/
 - BGS AGS Download Service: https://www.bgs.ac.uk/technologies/geotechnical-data-services/ags-download-service/
+- UKGEOS GGC01 final-pack NGDC cited-data record: https://www2.bgs.ac.uk/nationalgeosciencedatacentre/citedData/catalogue/e38c58a6-48ec-4ad1-a996-6c6144968d7d.html
 - BGS API fair-use policy: https://www.bgs.ac.uk/technologies/web-services/api/
