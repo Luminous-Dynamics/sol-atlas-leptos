@@ -1,0 +1,395 @@
+{
+  "fixture_id": "EARTH-OBSERVABILITY-PROFILE-SYNTHETIC-001",
+  "fixture_version": "0.1.0",
+  "seed": 20261113,
+  "status": "synthetic_generated_not_field_data",
+  "geography": "abstract_non_geographic",
+  "claim_boundary": "Synthetic layered interface and noisy proxy observations only; no field location, sensor physics, engineering properties, or safety determination.",
+  "domain": {
+    "x_min_m": 0,
+    "x_max_m": 100,
+    "depth_min_m": 0,
+    "depth_max_m": 30,
+    "x_step_m": 10,
+    "depth_reference": "synthetic_local_depth_datum"
+  },
+  "borehole_observations": [
+    {
+      "observation_id": "bh-observation-000",
+      "borehole_id": "bh-000",
+      "site_id": "synthetic-training-transect",
+      "x_m": 0,
+      "interface_depth_m": 8.5,
+      "standard_uncertainty_m": 0.03,
+      "split_role": "fit"
+    },
+    {
+      "observation_id": "bh-observation-020",
+      "borehole_id": "bh-020",
+      "site_id": "synthetic-training-transect",
+      "x_m": 20,
+      "interface_depth_m": 9.61,
+      "standard_uncertainty_m": 0.03,
+      "split_role": "fit"
+    },
+    {
+      "observation_id": "bh-observation-040",
+      "borehole_id": "bh-040",
+      "site_id": "synthetic-training-transect",
+      "x_m": 40,
+      "interface_depth_m": 9.98,
+      "standard_uncertainty_m": 0.03,
+      "split_role": "fit"
+    },
+    {
+      "observation_id": "bh-observation-060",
+      "borehole_id": "bh-060",
+      "site_id": "synthetic-training-transect",
+      "x_m": 60,
+      "interface_depth_m": 10.81,
+      "standard_uncertainty_m": 0.03,
+      "split_role": "fit"
+    },
+    {
+      "observation_id": "bh-observation-080",
+      "borehole_id": "bh-080",
+      "site_id": "synthetic-training-transect",
+      "x_m": 80,
+      "interface_depth_m": 12.04,
+      "standard_uncertainty_m": 0.03,
+      "split_role": "fit"
+    },
+    {
+      "observation_id": "bh-observation-100",
+      "borehole_id": "bh-100",
+      "site_id": "synthetic-training-transect",
+      "x_m": 100,
+      "interface_depth_m": 12.34,
+      "standard_uncertainty_m": 0.03,
+      "split_role": "fit"
+    }
+  ],
+  "geophysical_observations": [
+    {
+      "observation_id": "sw-proxy-train-000",
+      "source_id": "synthetic-surface-wave-proxy-train",
+      "site_id": "synthetic-training-transect",
+      "modality": "surface_wave_interface_proxy",
+      "x_m": 0,
+      "interface_depth_estimate_m": 8.61,
+      "standard_uncertainty_m": 0.45,
+      "state": "present",
+      "split_role": "fit"
+    },
+    {
+      "observation_id": "sw-proxy-train-010",
+      "source_id": "synthetic-surface-wave-proxy-train",
+      "site_id": "synthetic-training-transect",
+      "modality": "surface_wave_interface_proxy",
+      "x_m": 10,
+      "interface_depth_estimate_m": 9.07,
+      "standard_uncertainty_m": 0.45,
+      "state": "present",
+      "split_role": "fit"
+    },
+    {
+      "observation_id": "sw-proxy-train-020",
+      "source_id": "synthetic-surface-wave-proxy-train",
+      "site_id": "synthetic-training-transect",
+      "modality": "surface_wave_interface_proxy",
+      "x_m": 20,
+      "interface_depth_estimate_m": 9.68,
+      "standard_uncertainty_m": 0.45,
+      "state": "present",
+      "split_role": "fit"
+    },
+    {
+      "observation_id": "sw-proxy-train-030",
+      "source_id": "synthetic-surface-wave-proxy-train",
+      "site_id": "synthetic-training-transect",
+      "modality": "surface_wave_interface_proxy",
+      "x_m": 30,
+      "interface_depth_estimate_m": 9.68,
+      "standard_uncertainty_m": 0.45,
+      "state": "present",
+      "split_role": "fit"
+    },
+    {
+      "observation_id": "sw-proxy-train-040",
+      "source_id": "synthetic-surface-wave-proxy-train",
+      "site_id": "synthetic-training-transect",
+      "modality": "surface_wave_interface_proxy",
+      "x_m": 40,
+      "interface_depth_estimate_m": 10.05,
+      "standard_uncertainty_m": 0.45,
+      "state": "present",
+      "split_role": "fit"
+    },
+    {
+      "observation_id": "sw-proxy-train-050",
+      "source_id": "synthetic-surface-wave-proxy-train",
+      "site_id": "synthetic-training-transect",
+      "modality": "surface_wave_interface_proxy",
+      "x_m": 50,
+      "interface_depth_estimate_m": 10.36,
+      "standard_uncertainty_m": 0.45,
+      "state": "present",
+      "split_role": "fit"
+    },
+    {
+      "observation_id": "sw-proxy-train-060",
+      "source_id": "synthetic-surface-wave-proxy-train",
+      "site_id": "synthetic-training-transect",
+      "modality": "surface_wave_interface_proxy",
+      "x_m": 60,
+      "interface_depth_estimate_m": 10.92,
+      "standard_uncertainty_m": 0.45,
+      "state": "present",
+      "split_role": "fit"
+    },
+    {
+      "observation_id": "sw-proxy-train-070",
+      "source_id": "synthetic-surface-wave-proxy-train",
+      "site_id": "synthetic-training-transect",
+      "modality": "surface_wave_interface_proxy",
+      "x_m": 70,
+      "interface_depth_estimate_m": 11.48,
+      "standard_uncertainty_m": 0.45,
+      "state": "present",
+      "split_role": "fit"
+    },
+    {
+      "observation_id": "sw-proxy-train-080",
+      "source_id": "synthetic-surface-wave-proxy-train",
+      "site_id": "synthetic-training-transect",
+      "modality": "surface_wave_interface_proxy",
+      "x_m": 80,
+      "interface_depth_estimate_m": 11.99,
+      "standard_uncertainty_m": 0.45,
+      "state": "present",
+      "split_role": "fit"
+    },
+    {
+      "observation_id": "sw-proxy-train-090",
+      "source_id": "synthetic-surface-wave-proxy-train",
+      "site_id": "synthetic-training-transect",
+      "modality": "surface_wave_interface_proxy",
+      "x_m": 90,
+      "interface_depth_estimate_m": 12.26,
+      "standard_uncertainty_m": 0.45,
+      "state": "present",
+      "split_role": "fit"
+    },
+    {
+      "observation_id": "sw-proxy-train-100",
+      "source_id": "synthetic-surface-wave-proxy-train",
+      "site_id": "synthetic-training-transect",
+      "modality": "surface_wave_interface_proxy",
+      "x_m": 100,
+      "interface_depth_estimate_m": 12.36,
+      "standard_uncertainty_m": 0.45,
+      "state": "present",
+      "split_role": "fit"
+    },
+    {
+      "observation_id": "sw-proxy-blind-000",
+      "source_id": "synthetic-surface-wave-proxy-blind",
+      "site_id": "synthetic-blind-transect",
+      "modality": "surface_wave_interface_proxy",
+      "x_m": 0,
+      "interface_depth_estimate_m": 9.85,
+      "standard_uncertainty_m": 0.65,
+      "state": "present",
+      "split_role": "independent_validation"
+    },
+    {
+      "observation_id": "sw-proxy-blind-010",
+      "source_id": "synthetic-surface-wave-proxy-blind",
+      "site_id": "synthetic-blind-transect",
+      "modality": "surface_wave_interface_proxy",
+      "x_m": 10,
+      "interface_depth_estimate_m": 10.29,
+      "standard_uncertainty_m": 0.65,
+      "state": "present",
+      "split_role": "independent_validation"
+    },
+    {
+      "observation_id": "sw-proxy-blind-020",
+      "source_id": "synthetic-surface-wave-proxy-blind",
+      "site_id": "synthetic-blind-transect",
+      "modality": "surface_wave_interface_proxy",
+      "x_m": 20,
+      "interface_depth_estimate_m": 10.86,
+      "standard_uncertainty_m": 0.65,
+      "state": "present",
+      "split_role": "independent_validation"
+    },
+    {
+      "observation_id": "sw-proxy-blind-030",
+      "source_id": "synthetic-surface-wave-proxy-blind",
+      "site_id": "synthetic-blind-transect",
+      "modality": "surface_wave_interface_proxy",
+      "x_m": 30,
+      "interface_depth_estimate_m": 11.15,
+      "standard_uncertainty_m": 0.65,
+      "state": "present",
+      "split_role": "independent_validation"
+    },
+    {
+      "observation_id": "sw-proxy-blind-040",
+      "source_id": "synthetic-surface-wave-proxy-blind",
+      "site_id": "synthetic-blind-transect",
+      "modality": "surface_wave_interface_proxy",
+      "x_m": 40,
+      "interface_depth_estimate_m": 11.19,
+      "standard_uncertainty_m": 0.65,
+      "state": "present",
+      "split_role": "independent_validation"
+    },
+    {
+      "observation_id": "sw-proxy-blind-050",
+      "source_id": "synthetic-surface-wave-proxy-blind",
+      "site_id": "synthetic-blind-transect",
+      "modality": "surface_wave_interface_proxy",
+      "x_m": 50,
+      "interface_depth_estimate_m": 11.44,
+      "standard_uncertainty_m": 0.65,
+      "state": "present",
+      "split_role": "independent_validation"
+    },
+    {
+      "observation_id": "sw-proxy-blind-060",
+      "source_id": "synthetic-surface-wave-proxy-blind",
+      "site_id": "synthetic-blind-transect",
+      "modality": "surface_wave_interface_proxy",
+      "x_m": 60,
+      "interface_depth_estimate_m": null,
+      "standard_uncertainty_m": null,
+      "state": "unobserved",
+      "split_role": "independent_validation"
+    },
+    {
+      "observation_id": "sw-proxy-blind-070",
+      "source_id": "synthetic-surface-wave-proxy-blind",
+      "site_id": "synthetic-blind-transect",
+      "modality": "surface_wave_interface_proxy",
+      "x_m": 70,
+      "interface_depth_estimate_m": null,
+      "standard_uncertainty_m": null,
+      "state": "unobserved",
+      "split_role": "independent_validation"
+    },
+    {
+      "observation_id": "sw-proxy-blind-080",
+      "source_id": "synthetic-surface-wave-proxy-blind",
+      "site_id": "synthetic-blind-transect",
+      "modality": "surface_wave_interface_proxy",
+      "x_m": 80,
+      "interface_depth_estimate_m": null,
+      "standard_uncertainty_m": null,
+      "state": "unobserved",
+      "split_role": "independent_validation"
+    },
+    {
+      "observation_id": "sw-proxy-blind-090",
+      "source_id": "synthetic-surface-wave-proxy-blind",
+      "site_id": "synthetic-blind-transect",
+      "modality": "surface_wave_interface_proxy",
+      "x_m": 90,
+      "interface_depth_estimate_m": null,
+      "standard_uncertainty_m": null,
+      "state": "unobserved",
+      "split_role": "independent_validation"
+    },
+    {
+      "observation_id": "sw-proxy-blind-100",
+      "source_id": "synthetic-surface-wave-proxy-blind",
+      "site_id": "synthetic-blind-transect",
+      "modality": "surface_wave_interface_proxy",
+      "x_m": 100,
+      "interface_depth_estimate_m": null,
+      "standard_uncertainty_m": null,
+      "state": "unobserved",
+      "split_role": "independent_validation"
+    }
+  ],
+  "independent_validation_truth": [
+    {
+      "validation_id": "blind-truth-000",
+      "site_id": "synthetic-blind-transect",
+      "x_m": 0,
+      "true_interface_depth_m": 9.75,
+      "split_role": "independent_validation"
+    },
+    {
+      "validation_id": "blind-truth-010",
+      "site_id": "synthetic-blind-transect",
+      "x_m": 10,
+      "true_interface_depth_m": 10.33,
+      "split_role": "independent_validation"
+    },
+    {
+      "validation_id": "blind-truth-020",
+      "site_id": "synthetic-blind-transect",
+      "x_m": 20,
+      "true_interface_depth_m": 10.86,
+      "split_role": "independent_validation"
+    },
+    {
+      "validation_id": "blind-truth-030",
+      "site_id": "synthetic-blind-transect",
+      "x_m": 30,
+      "true_interface_depth_m": 11.11,
+      "split_role": "independent_validation"
+    },
+    {
+      "validation_id": "blind-truth-040",
+      "site_id": "synthetic-blind-transect",
+      "x_m": 40,
+      "true_interface_depth_m": 11.23,
+      "split_role": "independent_validation"
+    },
+    {
+      "validation_id": "blind-truth-050",
+      "site_id": "synthetic-blind-transect",
+      "x_m": 50,
+      "true_interface_depth_m": 11.49,
+      "split_role": "independent_validation"
+    },
+    {
+      "validation_id": "blind-truth-060",
+      "site_id": "synthetic-blind-transect",
+      "x_m": 60,
+      "true_interface_depth_m": 12.06,
+      "split_role": "independent_validation"
+    },
+    {
+      "validation_id": "blind-truth-070",
+      "site_id": "synthetic-blind-transect",
+      "x_m": 70,
+      "true_interface_depth_m": 12.77,
+      "split_role": "independent_validation"
+    },
+    {
+      "validation_id": "blind-truth-080",
+      "site_id": "synthetic-blind-transect",
+      "x_m": 80,
+      "true_interface_depth_m": 13.29,
+      "split_role": "independent_validation"
+    },
+    {
+      "validation_id": "blind-truth-090",
+      "site_id": "synthetic-blind-transect",
+      "x_m": 90,
+      "true_interface_depth_m": 13.43,
+      "split_role": "independent_validation"
+    },
+    {
+      "validation_id": "blind-truth-100",
+      "site_id": "synthetic-blind-transect",
+      "x_m": 100,
+      "true_interface_depth_m": 13.59,
+      "split_role": "independent_validation"
+    }
+  ]
+}
