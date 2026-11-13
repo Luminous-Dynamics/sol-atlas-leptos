@@ -309,5 +309,3 @@ fn duplicate_coordinate_grid_resources_are_rejected() {
     assert!(validate_transform_receipt(&receipt, "frame-a", "frame-b")
         .contains(&TransformValidationError::DuplicateGridDigest));
 }
-
-}
