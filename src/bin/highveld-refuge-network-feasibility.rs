@@ -203,7 +203,7 @@ fn run_flow(
     }
 }
 
-fn progressive_max_min_flow(
+fn progressive_max_min_flow_unit_reference(
     demands: &[(String, u64)],
     sites: &[(String, u64)],
     links: &BTreeSet<(String, String)>,
@@ -270,6 +270,151 @@ fn progressive_max_min_flow(
         .map(|(index, (id, _))| (id.clone(), targets[index]))
         .collect();
     run_flow(&fair_demands, sites, links)
+}
+
+fn progressive_max_min_flow(
+    demands: &[(String, u64)],
+    sites: &[(String, u64)],
+    links: &BTreeSet<(String, String)>,
+    baseline_served: &[u64],
+    fairness_totals: &[u64],
+    tie_break_ranks: &[u64],
+) -> FlowResult {
+    progressive_max_min_flow_scaled_with_stats(
+        demands,
+        sites,
+        links,
+        baseline_served,
+        fairness_totals,
+        tie_break_ranks,
+    )
+    .0
+}
+
+/// Capacity-scaled discrete progressive filling. Instead of testing one seat at a
+/// time, it jumps to the next exact rational fairness breakpoint (including the
+/// tie-break crossing) and binary-searches the largest feasible jump. Feasibility
+/// is monotone in the selected cohort's target, so the resulting target vector
+/// should match the unit-step reference exactly.
+fn progressive_max_min_flow_scaled_with_stats(
+    demands: &[(String, u64)],
+    sites: &[(String, u64)],
+    links: &BTreeSet<(String, String)>,
+    baseline_served: &[u64],
+    fairness_totals: &[u64],
+    tie_break_ranks: &[u64],
+) -> (FlowResult, usize) {
+    let count = demands.len();
+    assert_eq!(baseline_served.len(), count);
+    assert_eq!(fairness_totals.len(), count);
+    assert_eq!(tie_break_ranks.len(), count);
+
+    let mut targets = vec![0_u64; count];
+    let mut blocked = vec![false; count];
+    let mut flow_evaluations = 0_usize;
+
+    loop {
+        let mut order: Vec<usize> = (0..count)
+            .filter(|index| demands[*index].1 > 0 && !blocked[*index])
+            .collect();
+        order.sort_by(|left, right| {
+            let left_denominator = fairness_totals[*left].max(1);
+            let right_denominator = fairness_totals[*right].max(1);
+            let left_numerator = baseline_served[*left].saturating_add(targets[*left]);
+            let right_numerator = baseline_served[*right].saturating_add(targets[*right]);
+
+            (u128::from(left_numerator) * u128::from(right_denominator))
+                .cmp(&(u128::from(right_numerator) * u128::from(left_denominator)))
+                .then_with(|| tie_break_ranks[*left].cmp(&tie_break_ranks[*right]))
+                .then_with(|| demands[*left].0.cmp(&demands[*right].0))
+        });
+
+        let Some(&selected) = order.first() else {
+            break;
+        };
+        if targets[selected] >= demands[selected].1 {
+            blocked[selected] = true;
+            continue;
+        }
+
+        let remaining = demands[selected].1 - targets[selected];
+        let mut batch_limit = remaining;
+
+        if order.len() > 1 {
+            let next = order[1];
+            let selected_denominator = fairness_totals[selected].max(1);
+            let next_denominator = fairness_totals[next].max(1);
+            let selected_numerator =
+                baseline_served[selected].saturating_add(targets[selected]);
+            let next_numerator = baseline_served[next].saturating_add(targets[next]);
+
+            // Find the first integer increment that changes the ordering between
+            // the selected cohort and the next-lowest cohort. If the selected
+            // cohort wins exact-ratio ties, include the one crossing increment;
+            // otherwise stop at the tie itself.
+            let cross_product = u128::from(next_numerator) * u128::from(selected_denominator);
+            let denominator = u128::from(next_denominator);
+            let floor_ratio = cross_product / denominator;
+            let ceil_ratio = floor_ratio + u128::from(cross_product % denominator != 0);
+            let selected_wins_ties = (
+                tie_break_ranks[selected],
+                demands[selected].0.as_str(),
+            ) < (
+                tie_break_ranks[next],
+                demands[next].0.as_str(),
+            );
+            let first_increment_that_changes_order = if selected_wins_ties {
+                floor_ratio
+                    .saturating_sub(u128::from(selected_numerator))
+                    .saturating_add(1)
+            } else {
+                ceil_ratio.saturating_sub(u128::from(selected_numerator))
+            };
+            let breakpoint_limit = u64::try_from(first_increment_that_changes_order)
+                .unwrap_or(u64::MAX)
+                .max(1);
+            batch_limit = batch_limit.min(breakpoint_limit);
+        }
+
+        let mut low = 0_u64;
+        let mut high = batch_limit;
+        while low < high {
+            let middle = low + (high - low).div_ceil(2);
+            targets[selected] = targets[selected].saturating_add(middle);
+            let required_flow: u64 = targets.iter().sum();
+            let candidate_demands: Vec<(String, u64)> = demands
+                .iter()
+                .enumerate()
+                .map(|(index, (id, _))| (id.clone(), targets[index]))
+                .collect();
+            flow_evaluations += 1;
+            let feasible = run_flow(&candidate_demands, sites, links).total == required_flow;
+            targets[selected] -= middle;
+
+            if feasible {
+                low = middle;
+            } else {
+                high = middle - 1;
+            }
+        }
+
+        if low == 0 {
+            blocked[selected] = true;
+        } else {
+            targets[selected] += low;
+        }
+    }
+
+    let fair_demands: Vec<(String, u64)> = demands
+        .iter()
+        .enumerate()
+        .map(|(index, (id, _))| (id.clone(), targets[index]))
+        .collect();
+    flow_evaluations += 1;
+    (
+        run_flow(&fair_demands, sites, links),
+        flow_evaluations,
+    )
 }
 
 fn text_at<'a>(value: &'a Value, key: &str) -> Option<&'a str> {
