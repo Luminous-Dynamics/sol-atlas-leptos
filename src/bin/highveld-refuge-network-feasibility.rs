@@ -272,7 +272,6 @@ fn progressive_max_min_flow_unit_reference(
     run_flow(&fair_demands, sites, links)
 }
 
-
 /// Capacity-scaled discrete progressive filling. Instead of testing one seat at a
 /// time, it jumps to the next exact rational fairness breakpoint (including the
 /// tie-break crossing) and binary-searches the largest feasible jump. Feasibility
@@ -337,8 +336,7 @@ fn progressive_max_min_flow_scaled_with_stats(
         }
 
         let selected_denominator = fairness_totals[selected].max(1);
-        let selected_numerator =
-            baseline_served[selected].saturating_add(targets[selected]);
+        let selected_numerator = baseline_served[selected].saturating_add(targets[selected]);
         let minimum_ratio_group: Vec<usize> = order
             .iter()
             .copied()
@@ -359,8 +357,7 @@ fn progressive_max_min_flow_scaled_with_stats(
         let homogeneous_minimum_group = minimum_ratio_group.len() > 1
             && minimum_ratio_group.iter().all(|index| {
                 fairness_totals[*index].max(1) == selected_denominator
-                    && baseline_served[*index].saturating_add(targets[*index])
-                        == selected_numerator
+                    && baseline_served[*index].saturating_add(targets[*index]) == selected_numerator
             });
 
         if homogeneous_minimum_group {
@@ -374,21 +371,22 @@ fn progressive_max_min_flow_scaled_with_stats(
                 let next = order[minimum_ratio_group.len()];
                 let next_numerator = baseline_served[next].saturating_add(targets[next]);
                 let next_denominator = fairness_totals[next].max(1);
-                let cross_product =
-                    u128::from(next_numerator) * u128::from(selected_denominator);
+                let cross_product = u128::from(next_numerator) * u128::from(selected_denominator);
                 let denominator = u128::from(next_denominator);
 
                 // Keep the common-ratio group strictly below the next group.
                 // Once it reaches that breakpoint, the exact tie-break ordering
                 // is handled by the single-round fallback.
                 let ceil_ratio = cross_product / denominator
-                    + if cross_product % denominator != 0 { 1 } else { 0 };
+                    + if cross_product % denominator != 0 {
+                        1
+                    } else {
+                        0
+                    };
                 let max_numerator_before_tie = ceil_ratio.saturating_sub(1);
-                let safe_rounds = max_numerator_before_tie
-                    .saturating_sub(u128::from(selected_numerator));
-                batch_limit = batch_limit.min(
-                    u64::try_from(safe_rounds).unwrap_or(u64::MAX),
-                );
+                let safe_rounds =
+                    max_numerator_before_tie.saturating_sub(u128::from(selected_numerator));
+                batch_limit = batch_limit.min(u64::try_from(safe_rounds).unwrap_or(u64::MAX));
             }
 
             let mut low = 0_u64;
@@ -398,13 +396,8 @@ fn progressive_max_min_flow_scaled_with_stats(
                 for index in &minimum_ratio_group {
                     targets[*index] = targets[*index].saturating_add(middle);
                 }
-                let feasible = targets_are_feasible(
-                    demands,
-                    sites,
-                    links,
-                    &targets,
-                    &mut flow_evaluations,
-                );
+                let feasible =
+                    targets_are_feasible(demands, sites, links, &targets, &mut flow_evaluations);
                 for index in &minimum_ratio_group {
                     targets[*index] -= middle;
                 }
@@ -432,13 +425,7 @@ fn progressive_max_min_flow_scaled_with_stats(
                 continue;
             }
             targets[index] += 1;
-            if targets_are_feasible(
-                demands,
-                sites,
-                links,
-                &targets,
-                &mut flow_evaluations,
-            ) {
+            if targets_are_feasible(demands, sites, links, &targets, &mut flow_evaluations) {
                 continue;
             }
             targets[index] -= 1;
@@ -452,10 +439,7 @@ fn progressive_max_min_flow_scaled_with_stats(
         .map(|(index, (id, _))| (id.clone(), targets[index]))
         .collect();
     flow_evaluations += 1;
-    (
-        run_flow(&fair_demands, sites, links),
-        flow_evaluations,
-    )
+    (run_flow(&fair_demands, sites, links), flow_evaluations)
 }
 
 fn text_at<'a>(value: &'a Value, key: &str) -> Option<&'a str> {
@@ -1120,15 +1104,19 @@ fn evaluate_time_series(case: &Value) -> Result<Value, Vec<String>> {
             .and_then(Value::as_object)
             .ok_or_else(|| vec![format!("{timepoint_id}: snapshot must be an object")])?;
         let mut snapshot_object = snapshot_value.clone();
-        if text_at(&Value::Object(snapshot_object.clone()), "evaluation_event_id")
-            != Some(timepoint_id)
+        if text_at(
+            &Value::Object(snapshot_object.clone()),
+            "evaluation_event_id",
+        ) != Some(timepoint_id)
         {
             errors.push(format!(
                 "{timepoint_id}: snapshot evaluation_event_id must match its Symtropy timepoint_id"
             ));
         }
-        if text_at(&Value::Object(snapshot_object.clone()), "freshness_assessment_owner")
-            != Some("SYMTROPY")
+        if text_at(
+            &Value::Object(snapshot_object.clone()),
+            "freshness_assessment_owner",
+        ) != Some("SYMTROPY")
         {
             errors.push(format!(
                 "{timepoint_id}: freshness_assessment_owner must be SYMTROPY"
@@ -1535,19 +1523,13 @@ mod tests {
             for cohort in 0..3 {
                 for site in 0..2 {
                     if edge_mask & (1 << (cohort * 2 + site)) != 0 {
-                        links.insert((
-                            cohort_ids[cohort].to_owned(),
-                            site_ids[site].to_owned(),
-                        ));
+                        links.insert((cohort_ids[cohort].to_owned(), site_ids[site].to_owned()));
                     }
                 }
             }
             for capacity_0 in 0_u64..=3 {
                 for capacity_1 in 0_u64..=3 {
-                    let sites = vec![
-                        ("S0".to_owned(), capacity_0),
-                        ("S1".to_owned(), capacity_1),
-                    ];
+                    let sites = vec![("S0".to_owned(), capacity_0), ("S1".to_owned(), capacity_1)];
                     let baseline = vec![0, 0, 0];
                     let reference = progressive_max_min_flow_unit_reference(
                         &demands,
@@ -1567,13 +1549,11 @@ mod tests {
                     );
                     assert_eq!(scaled.total, reference.total, "edge mask {edge_mask}");
                     assert_eq!(
-                        scaled.served_by_cohort,
-                        reference.served_by_cohort,
+                        scaled.served_by_cohort, reference.served_by_cohort,
                         "edge mask {edge_mask}"
                     );
                     assert_eq!(
-                        scaled.used_by_site,
-                        reference.used_by_site,
+                        scaled.used_by_site, reference.used_by_site,
                         "edge mask {edge_mask}"
                     );
                 }
@@ -1640,12 +1620,7 @@ mod tests {
         let totals = vec![10, 10, 10];
         let ranks = vec![3, 1, 2];
         let reference = progressive_max_min_flow_unit_reference(
-            &demands,
-            &sites,
-            &links,
-            &baseline,
-            &totals,
-            &ranks,
+            &demands, &sites, &links, &baseline, &totals, &ranks,
         );
         let (scaled, _) = progressive_max_min_flow_scaled_with_stats(
             &demands,
@@ -1690,7 +1665,10 @@ mod tests {
         );
         assert_eq!(scaled.total, 1_500_000_000);
         assert_eq!(scaled.served_by_cohort, vec![500_000_000; 3]);
-        assert!(evaluations <= 64, "unexpected flow-evaluation count: {evaluations}");
+        assert!(
+            evaluations <= 64,
+            "unexpected flow-evaluation count: {evaluations}"
+        );
     }
 
     #[test]
@@ -1970,11 +1948,13 @@ mod tests {
             .find(|site| site["site_id"] == "SYNTHETIC_POD_1")
             .unwrap();
         assert_eq!(site["site_eligibility"], "EXCLUDED");
-        assert!(site["reasons"]
-            .as_array()
-            .unwrap()
-            .iter()
-            .any(|reason| reason == "STALE_EVIDENCE_capacity_freshness"));
+        assert!(
+            site["reasons"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|reason| reason == "STALE_EVIDENCE_capacity_freshness")
+        );
     }
 
     #[test]
@@ -1987,17 +1967,18 @@ mod tests {
             .unwrap()
             .iter()
             .find(|route| {
-                route["cohort_id"] == "ANON_ZONE_A"
-                    && route["site_id"] == "SYNTHETIC_POD_1"
+                route["cohort_id"] == "ANON_ZONE_A" && route["site_id"] == "SYNTHETIC_POD_1"
             })
             .unwrap();
         assert_eq!(route["general_route_usable"], false);
         assert_eq!(route["accessible_route_usable"], false);
-        assert!(route["reasons"]
-            .as_array()
-            .unwrap()
-            .iter()
-            .any(|reason| reason == "STALE_EVIDENCE_route_freshness"));
+        assert!(
+            route["reasons"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|reason| reason == "STALE_EVIDENCE_route_freshness")
+        );
     }
 
     #[test]
@@ -2009,8 +1990,7 @@ mod tests {
 
     #[test]
     fn temporal_snapshot_event_id_must_match_native_timepoint() {
-        let mut case: Value =
-            serde_json::from_str(TIME_SERIES_CASE).expect("temporal case JSON");
+        let mut case: Value = serde_json::from_str(TIME_SERIES_CASE).expect("temporal case JSON");
         case["time_slices"][0]["snapshot"]["evaluation_event_id"] =
             json!("NOT_THE_SYMTROPY_TIMEPOINT");
         assert!(evaluate_time_series(&case).is_err());
@@ -2046,7 +2026,10 @@ mod tests {
     #[test]
     fn missing_site_freshness_is_not_treated_as_fresh() {
         let mut case = sample();
-        case["sites"][0].as_object_mut().unwrap().remove("capacity_freshness");
+        case["sites"][0]
+            .as_object_mut()
+            .unwrap()
+            .remove("capacity_freshness");
         let report = evaluate_snapshot(&case).expect("missing freshness excludes site");
         let site = report["site_capacity_evidence"]
             .as_array()
@@ -2055,11 +2038,13 @@ mod tests {
             .find(|site| site["site_id"] == "SYNTHETIC_POD_1")
             .unwrap();
         assert_eq!(site["site_eligibility"], "EXCLUDED");
-        assert!(site["reasons"]
-            .as_array()
-            .unwrap()
-            .iter()
-            .any(|reason| reason == "MISSING_FRESHNESS_capacity_freshness"));
+        assert!(
+            site["reasons"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|reason| reason == "MISSING_FRESHNESS_capacity_freshness")
+        );
     }
 
     #[test]
