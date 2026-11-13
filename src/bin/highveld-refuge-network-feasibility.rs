@@ -612,7 +612,6 @@ fn evaluate_snapshot(case: &Value) -> Result<Value, Vec<String>> {
             "accessible_route_usable":base_ok && accessible_access_ok,
             "reasons":reasons
         }));
-        elapsed_h += duration;
     }
 
     if !errors.is_empty() {
@@ -872,14 +871,17 @@ fn evaluate_time_series(case: &Value) -> Result<Value, Vec<String>> {
         let mut current_cohort_ids = BTreeSet::new();
         let mut current_tie_break_ranks = BTreeSet::new();
         for cohort in snapshot_cohorts {
-            let cohort_id = text_at(cohort, "cohort_id").ok_or_else(|| {
-                vec![format!("{timepoint_id}: cohort_id is missing")]
-            })?;
+            let cohort_id = text_at(cohort, "cohort_id")
+                .ok_or_else(|| vec![format!("{timepoint_id}: cohort_id is missing")])?;
             if !current_cohort_ids.insert(cohort_id.to_owned()) {
-                errors.push(format!("{timepoint_id}: duplicate cohort identity {cohort_id}"));
+                errors.push(format!(
+                    "{timepoint_id}: duplicate cohort identity {cohort_id}"
+                ));
             }
             let rank = uint_at(cohort, "fairness_tie_break_rank").ok_or_else(|| {
-                vec![format!("{timepoint_id}/{cohort_id}: fairness_tie_break_rank is missing")]
+                vec![format!(
+                    "{timepoint_id}/{cohort_id}: fairness_tie_break_rank is missing"
+                )]
             })?;
             if !current_tie_break_ranks.insert(rank) {
                 errors.push(format!(
@@ -948,7 +950,10 @@ fn evaluate_time_series(case: &Value) -> Result<Value, Vec<String>> {
                 }
                 let degraded_vs_baseline = snapshot_ratio + 1e-12 < baseline_ratio;
                 if degraded_vs_baseline {
-                    if continuity.current_degraded_episode_start_elapsed_h.is_none() {
+                    if continuity
+                        .current_degraded_episode_start_elapsed_h
+                        .is_none()
+                    {
                         continuity.current_degraded_episode_start_elapsed_h =
                             Some(sequence_elapsed_h);
                         continuity.degraded_episode_count += 1;
@@ -1046,6 +1051,7 @@ fn evaluate_time_series(case: &Value) -> Result<Value, Vec<String>> {
             "qualified_accessible_route_count": report["qualified_accessible_route_count"],
             "cohort_service_debt_delta": timepoint_cohort_debt
         }));
+        elapsed_h += duration;
     }
 
     if !errors.is_empty() {
@@ -1268,8 +1274,18 @@ mod tests {
         assert!(continuity.iter().any(|row| {
             row["degraded_episode_count"].as_u64().unwrap_or(0) == 1
                 && row["recovered_episode_count"].as_u64().unwrap_or(0) == 1
-                && (row["longest_degraded_episode_duration_h"].as_f64().unwrap_or(0.0) - 2.0).abs() < 1e-9
-                && (row["time_to_first_baseline_recovery_h"].as_f64().unwrap_or(-1.0) - 2.0).abs() < 1e-9
+                && (row["longest_degraded_episode_duration_h"]
+                    .as_f64()
+                    .unwrap_or(0.0)
+                    - 2.0)
+                    .abs()
+                    < 1e-9
+                && (row["time_to_first_baseline_recovery_h"]
+                    .as_f64()
+                    .unwrap_or(-1.0)
+                    - 2.0)
+                    .abs()
+                    < 1e-9
                 && row["unrecovered_at_sequence_end"] == false
         }));
     }
@@ -1277,15 +1293,17 @@ mod tests {
     #[test]
     fn temporal_sequence_reports_unrecovered_service_gap_at_end() {
         let mut case: Value = serde_json::from_str(TIME_SERIES_CASE).expect("temporal case JSON");
-        case["time_slices"][2]["snapshot"]["sites"][0]["thermal_service_state"] =
-            json!("UNKNOWN");
+        case["time_slices"][2]["snapshot"]["sites"][0]["thermal_service_state"] = json!("UNKNOWN");
         let report = evaluate_time_series(&case).expect("degraded sequence must evaluate");
         let continuity = report["cohort_service_continuity"]
             .as_array()
             .expect("cohort continuity rows");
         assert!(continuity.iter().any(|row| {
             row["unrecovered_at_sequence_end"] == true
-                && row["current_unrecovered_episode_duration_h"].as_f64().unwrap_or(0.0) > 0.0
+                && row["current_unrecovered_episode_duration_h"]
+                    .as_f64()
+                    .unwrap_or(0.0)
+                    > 0.0
                 && row["time_to_first_baseline_recovery_h"].is_null()
         }));
     }
@@ -1300,7 +1318,10 @@ mod tests {
     #[test]
     fn temporal_sequence_rejects_changed_cohort_set() {
         let mut case: Value = serde_json::from_str(TIME_SERIES_CASE).expect("temporal case JSON");
-        case["time_slices"][1]["snapshot"]["cohorts"].as_array_mut().unwrap().pop();
+        case["time_slices"][1]["snapshot"]["cohorts"]
+            .as_array_mut()
+            .unwrap()
+            .pop();
         assert!(evaluate_time_series(&case).is_err());
     }
 
