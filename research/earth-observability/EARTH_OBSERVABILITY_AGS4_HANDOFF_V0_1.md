@@ -45,6 +45,7 @@ The branch adds:
 - sol-atlas-core/src/ags_preflight.rs
 - sol-atlas-core::ags_preflight
 - research/earth-observability/fixtures/ags4-synthetic-v0.1.ags
+- src/bin/ags4_preflight.rs — local JSON-reporting command, no network access
 
 The local preflight checks the basic file envelope:
 
@@ -62,7 +63,7 @@ It can read TRAN_AGS and map only the four currently documented BGS dictionary I
 
 This local parser **does not** validate the full AGS dictionary or standard rules, unit semantics, parent/child references, sample uniqueness, coordinate truth, project-specific required headings, geotechnical test results, depth consistency, geological interpretation, BGS/NGDC submission requirements or engineering safety. The basic BGS required-group presence check is only an early warning, not a BGS submission pass.
 
-The parser is deliberately a small Rust preflight, not an attempt to port the official AGS library into a second implementation that will drift.
+The parser is deliberately a small Rust preflight, not an attempt to port the official AGS library into a second implementation that will drift. Run it from the repository root with cargo run --bin ags4_preflight -- path/to/file.ags. The command reports local structural checks and always labels official validation, rights authorization and physical qualification separately.
 
 ## 4. External validator receipt contract
 
