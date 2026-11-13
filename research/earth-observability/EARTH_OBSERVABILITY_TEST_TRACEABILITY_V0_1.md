@@ -72,6 +72,19 @@ The corresponding Rust generator is in `sol-atlas-core/src/earth_observability_s
 | PROFILE-NOISE-001 | `geophysical_proxy_noise_respects_declared_uncertainty_bound` | Noise is synthetic and bounded; uncertainty calibration against field sensors is not tested |
 | PROFILE-REPLAY-001 | `generator_is_deterministic_for_a_frozen_seed`, committed fixture comparison | Deterministic generation only; no independent full-pipeline replay receipt yet |
 
+## First matched synthetic baseline tournament
+
+A deterministic baseline runner now consumes the committed profile fixture and compares two distinct observation strategies on the same 11-point blind transect. This is a harness smoke-test only; it is neither a field benchmark nor a comparison of physical modalities.
+
+Pinned report: `research/earth-observability/baselines/synthetic-profile-baseline-v0.1.json`
+
+| Baseline | Prediction coverage | MAE (m) | RMSE (m) | Signed bias (m) | P95 abs error (m) | Abstentions |
+|---|---:|---:|---:|---:|---:|---:|
+| Training-transect sparse borehole piecewise-linear transfer | 11/11 (100%) | 1.251818 | 1.253196 | -1.251818 | 1.345000 | 0 |
+| Blind-transect scalar proxy-only | 6/11 (54.55%) | 0.045000 | 0.053697 | 0.001667 | 0.100000 | 5 |
+
+Interpretation: the borehole-only baseline has full nominal geometric coverage but transfers poorly to the shifted blind transect; the local proxy has lower error at observed positions but abstains in the blind zone. These numbers deliberately demonstrate why coverage, error and abstention must be reported together. The proxy is an abstract scalar interface estimate with injected noise, not real GPR, ERT, seismic or surface-wave acquisition. No method is inferred to be superior in the physical world.
+
 ## Executable entry points
 
 The branch adds:
@@ -82,6 +95,8 @@ The branch adds:
 - `src/earth_observability_tests.rs`: root native tests run by the package's binary test target.
 - `src/bin/earth_observability_validate.rs`: offline challenge-manifest contract validator. Its receipt labels JSON Schema validation, scenario execution and physical validation as `NOT_RUN`.
 - `src/bin/earth_observability_generate.rs`: writes the deterministic profile or verifies a committed fixture using `--check`.
+- `src/bin/earth_observability_baseline.rs`: runs the first borehole-only transfer versus blind-transect proxy-only baseline and can verify the pinned report.
+- `research/earth-observability/baselines/synthetic-profile-baseline-v0.1.json`: pinned metrics plus coverage and abstention counts.
 - `research/earth-observability/EARTH_OBSERVABILITY_FEDERATED_EVIDENCE_V0_1.md`: rights-aware, source-local execution architecture and qualification gates.
 - `.github/workflows/check.yml`: formats/checks the application, builds WASM, runs application and shared-core native tests, verifies the manifest, and verifies the pinned synthetic profile.
 
@@ -95,6 +110,8 @@ cargo test --bin earth_observability_validate
 cargo run --bin earth_observability_validate -- research/earth-observability/earth-observability-case-manifest-v0.1.json
 cargo test --bin earth_observability_generate
 cargo run --bin earth_observability_generate -- --check research/earth-observability/fixtures/earth-observability-profile-synthetic-v0.1.json
+cargo test --bin earth_observability_baseline
+cargo run --bin earth_observability_baseline -- --check research/earth-observability/baselines/synthetic-profile-baseline-v0.1.json
 ```
 
 The manifest validator checks authored manifest invariants over serde types; it is not a JSON Schema validator, geospatial transformation engine, GIS ingestion layer, geological inference model, or physical validation suite. The synthetic profile generator creates an abstract surface-wave interface *proxy*, not synthetic waveforms or a validated sensor forward model.
