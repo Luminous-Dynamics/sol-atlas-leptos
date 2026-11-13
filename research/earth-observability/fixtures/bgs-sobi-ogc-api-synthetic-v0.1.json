@@ -1,0 +1,86 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "reference": "SYNTHETIC-REC-001",
+        "name": "SYNTHETIC-TEST-BOREHOLE-A",
+        "grid_ref": "SYNTHETIC-GRID-A",
+        "easting": 125,
+        "northing": 250,
+        "precision": "± METRE",
+        "length": 54.2,
+        "year_known": "1970",
+        "sitereport": null,
+        "held_at": "SYNTHETIC-ARCHIVE",
+        "id": 900001,
+        "length_scan_cat": "3_Y",
+        "bgs_id": 900001,
+        "date_updated": "2026-01-01T12:00:00",
+        "scan_url": "https://synthetic.invalid/scans/900001",
+        "ags_log_url": null,
+        "water_well_ref": null,
+        "scan_quality": "not Entered",
+        "future_api_field": "preserve-me"
+      },
+      "id": 900001,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.125,
+          0.25
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "reference": "SYNTHETIC-REC-002",
+        "name": "SYNTHETIC-TEST-NOTIFICATION-ONLY",
+        "grid_ref": "SYNTHETIC-GRID-B",
+        "easting": 500,
+        "northing": 750,
+        "precision": "± 10 METRES",
+        "length": -2,
+        "year_known": null,
+        "sitereport": null,
+        "held_at": "SYNTHETIC-ARCHIVE",
+        "id": 900002,
+        "length_scan_cat": "-2_Y",
+        "bgs_id": 900002,
+        "date_updated": "2026-01-02T12:00:00",
+        "scan_url": null,
+        "ags_log_url": null,
+        "water_well_ref": null,
+        "scan_quality": "not Entered"
+      },
+      "id": 900002,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.5,
+          0.75
+        ]
+      }
+    }
+  ],
+  "numberReturned": 2,
+  "numberMatched": 250,
+  "links": [
+    {
+      "type": "application/geo+json",
+      "rel": "self",
+      "title": "Synthetic fixture page",
+      "href": "https://synthetic.invalid/collections/onshoreboreholeindex/items?f=json"
+    },
+    {
+      "type": "application/geo+json",
+      "rel": "next",
+      "title": "Synthetic next page",
+      "href": "https://synthetic.invalid/collections/onshoreboreholeindex/items?f=json&offset=2"
+    }
+  ],
+  "timeStamp": "2026-01-03T00:00:00Z",
+  "synthetic_fixture_marker": "This entire file is synthetic and non-geographic."
+}
