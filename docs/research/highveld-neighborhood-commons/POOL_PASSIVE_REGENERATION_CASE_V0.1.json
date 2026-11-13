@@ -85,7 +85,8 @@
       "weather_evidence_ref": "SYNTHETIC_POOL_WEATHER_P001",
       "cover_state_evidence_ref": "SYNTHETIC_POOL_COVER_STATE_P001",
       "temperature_limit_evidence_ref": "SYNTHETIC_POOL_TEMP_LIMIT_P001",
-      "uncertainty_evidence_ref": "SYNTHETIC_POOL_UNCERTAINTY_P001"
+      "uncertainty_evidence_ref": "SYNTHETIC_POOL_UNCERTAINTY_P001",
+      "thermal_energy_end_kwh": 101
     },
     {
       "interval_id": "P002",
@@ -132,7 +133,8 @@
       "weather_evidence_ref": "SYNTHETIC_POOL_WEATHER_P002",
       "cover_state_evidence_ref": "SYNTHETIC_POOL_COVER_STATE_P002",
       "temperature_limit_evidence_ref": "SYNTHETIC_POOL_TEMP_LIMIT_P002",
-      "uncertainty_evidence_ref": "SYNTHETIC_POOL_UNCERTAINTY_P002"
+      "uncertainty_evidence_ref": "SYNTHETIC_POOL_UNCERTAINTY_P002",
+      "thermal_energy_end_kwh": 101
     },
     {
       "interval_id": "P003",
@@ -179,7 +181,8 @@
       "weather_evidence_ref": "SYNTHETIC_POOL_WEATHER_P003",
       "cover_state_evidence_ref": "SYNTHETIC_POOL_COVER_STATE_P003",
       "temperature_limit_evidence_ref": "SYNTHETIC_POOL_TEMP_LIMIT_P003",
-      "uncertainty_evidence_ref": "SYNTHETIC_POOL_UNCERTAINTY_P003"
+      "uncertainty_evidence_ref": "SYNTHETIC_POOL_UNCERTAINTY_P003",
+      "thermal_energy_end_kwh": 100
     }
   ]
 }
