@@ -151,6 +151,7 @@ pub enum TrialValidationError {
     InvalidLocalizationError,
     NonBlindEvaluationTrial,
     EmptyFixture,
+    InvalidEnvelope,
     MissingCalibrationPartition,
     MissingBlindTestPartition,
     InvalidFixtureClaimBoundary,
@@ -330,7 +331,7 @@ pub fn validate_fixture(
     }
 
     if !validate_envelope(&fixture.envelope).is_empty() {
-        errors.push(TrialValidationError::InvalidFixtureClaimBoundary);
+        errors.push(TrialValidationError::InvalidEnvelope);
     }
 
     let mut trial_ids = BTreeSet::new();
@@ -711,6 +712,13 @@ mod tests {
         envelope.minimum_pod_requirement = 1.2;
         assert!(validate_envelope(&envelope).contains(&EnvelopeValidationError::InvalidRange("target_depth_m")));
         assert!(validate_envelope(&envelope).contains(&EnvelopeValidationError::InvalidPodRequirement));
+    }
+
+    #[test]
+    fn invalid_envelope_is_reported_as_a_contract_error() {
+        let mut data = fixture();
+        data.envelope.minimum_pod_requirement = 1.5;
+        assert!(validate_fixture(&data).unwrap_err().contains(&TrialValidationError::InvalidEnvelope));
     }
 
     #[test]
