@@ -201,7 +201,8 @@ impl DetectionLikelihoodEvidence {
                     return Err(DetectionLikelihoodError::PoissonProcessNotQualified);
                 }
 
-                let probability = 1.0 - (-false_alarms_per_km * searched_route_km).exp();
+                let probability =
+                    1.0 - (-*false_alarms_per_km * *searched_route_km).exp();
                 (probability, *evidence_status, "qualified_homogeneous_poisson_route_rate".to_string())
             }
         };
