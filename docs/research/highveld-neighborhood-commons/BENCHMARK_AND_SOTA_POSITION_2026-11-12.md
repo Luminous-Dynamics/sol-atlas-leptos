@@ -454,3 +454,18 @@ Sources:
 - [EnergyPlus 26.2 ice thermal-storage engineering reference](https://energyplus.readthedocs.io/en/v26.2.0/guides/engineering-reference/15.1-ice-thermal-storage.html)
 
 A credible SOTA result must show a matched field-validated system improvement and preserved service floors; a higher latent-heat number, a peak cooling-power value or a simulator result under unmatched boundaries is not enough.
+
+
+## 18. From static fairness to cumulative service debt
+
+The network-feasibility qualifier now compares accessible-first maximum throughput with discrete progressive max-min cohort coverage. The temporal degradation evaluator additionally accumulates requested, served, unmet, accessible and general place-hours by anonymous cohort, and checks that the sum of cohort deficits exactly reconciles to the network-wide deficit.
+
+This enables a new comparison not captured by a static max-flow result:
+- Does a policy improve the worst cohort's service ratio at each snapshot?
+- Does the same cohort repeatedly carry the largest unmet-place-hour burden across a multi-day event?
+- Do rotating tie-breaks or cumulative service-debt-aware policies reduce persistent disadvantage without reducing total served capacity?
+- Does the policy preserve accessible-place and protected-water floors under repeated site, route and staffing failures?
+
+The benchmark reports absolute place-hour debt and normalized cumulative service ratio together. It does not count snapshots as unique people, and it does not automatically translate debt into priority or dispatch. A debt-aware policy must be separately preregistered and owner/resident governed.
+
+This is a potential advance over static cooling-center maps or one-shot maximum-flow analysis: it tests whether service disparity persists through an event and whether recovery policies reduce cumulative service gaps. It remains a research target until held-out, rights-cleared and physically/operationally representative data exists.
