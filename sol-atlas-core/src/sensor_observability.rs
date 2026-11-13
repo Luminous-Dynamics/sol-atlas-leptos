@@ -436,6 +436,27 @@ struct SiteAccumulator {
     surveyed_negative_route_km: f64,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ClusterConfidenceInterval {
+    pub lower: f64,
+    pub upper: f64,
+    pub confidence_level: f64,
+    pub independent_site_clusters: usize,
+    pub bootstrap_replicates: usize,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ClusterBootstrapConfig {
+    pub confidence_level: f64,
+    pub bootstrap_replicates: usize,
+    /// Set from a preregistered design / power analysis. This is not a
+    /// universal statistical standard and must not be silently defaulted.
+    pub minimum_independent_site_clusters: usize,
+    pub seed: u64,
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct DetectionEvaluationMetrics {
@@ -455,9 +476,34 @@ pub struct DetectionEvaluationMetrics {
     pub unique_site_clusters: usize,
     pub unique_acquisition_clusters: usize,
     pub per_site: Vec<SiteDetectionMetrics>,
+    pub pod_cluster_bootstrap_interval: Option<ClusterConfidenceInterval>,
+    pub false_alarm_rate_cluster_bootstrap_interval: Option<ClusterConfidenceInterval>,
     pub clustered_confidence_interval_status: String,
     pub point_estimates_meet_declared_requirements: Option<bool>,
     pub qualification_status: String,
+}
+
+#[derive(Debug, Clone, Copy)]
+struct SplitMix64 {
+    state: u64,
+}
+
+impl SplitMix64 {
+    fn new(seed: u64) -> Self {
+        Self { state: seed }
+    }
+
+    fn next_u64(&mut self) -> u64 {
+        self.state = self.state.wrapping_add(0x9e3779b97f4a7c15);
+        let mut value = self.state;
+        value = (value ^ (value >> 30)).wrapping_mul(0xbf58476d1ce4e5b9);
+        value = (value ^ (value >> 27)).wrapping_mul(0x94d049bb133111eb);
+        value ^ (value >> 31)
+    }
+
+    fn index(&mut self, length: usize) -> usize {
+        (self.next_u64() % length as u64) as usize
+    }
 }
 
 fn percentile(sorted: &[f64], quantile: f64) -> Option<f64> {
@@ -588,10 +634,131 @@ pub fn evaluate_blind_trials(
         unique_site_clusters: sites.len(),
         unique_acquisition_clusters: acquisitions.len(),
         per_site: per_site_metrics,
+        pod_cluster_bootstrap_interval: None,
+        false_alarm_rate_cluster_bootstrap_interval: None,
         clustered_confidence_interval_status: "NOT_RUN_CLUSTER_AWARE_BOOTSTRAP_REQUIRED".to_string(),
         point_estimates_meet_declared_requirements,
         qualification_status: "NOT_QUALIFIED_CLUSTERED_INTERVALS_NOT_RUN".to_string(),
     })
+}
+
+/// Recompute descriptive metrics and, when the preregistered independent-site
+/// cluster minimum is met, add percentile cluster-bootstrap intervals for POD
+/// and false alarms/km. The two rates are resampled from their own eligible
+/// site clusters; this does not create a joint distribution or qualify a
+/// physical sensor. The minimum cluster count must come from a design/power
+/// analysis for the intended deployment population.
+pub fn evaluate_blind_trials_with_cluster_bootstrap(
+    fixture: &SensorObservabilityFixture,
+    config: ClusterBootstrapConfig,
+) -> Result<DetectionEvaluationMetrics, Vec<TrialValidationError>> {
+    let mut metrics = evaluate_blind_trials(fixture)?;
+    if !config.confidence_level.is_finite()
+        || !(0.0..1.0).contains(&config.confidence_level)
+        || config.bootstrap_replicates < 100
+        || config.minimum_independent_site_clusters == 0
+    {
+        metrics.clustered_confidence_interval_status =
+            "INVALID_BOOTSTRAP_CONFIGURATION_NOT_RUN".to_string();
+        return Ok(metrics);
+    }
+
+    let pod_clusters: Vec<&SiteDetectionMetrics> = metrics
+        .per_site
+        .iter()
+        .filter(|site| site.positive_targets > 0)
+        .collect();
+    let false_alarm_clusters: Vec<&SiteDetectionMetrics> = metrics
+        .per_site
+        .iter()
+        .filter(|site| site.surveyed_negative_route_km > 0.0)
+        .collect();
+
+    if pod_clusters.len() < config.minimum_independent_site_clusters
+        || false_alarm_clusters.len() < config.minimum_independent_site_clusters
+    {
+        metrics.clustered_confidence_interval_status = format!(
+            "INSUFFICIENT_SITE_CLUSTERS_POD_{}_FAR_{}_REQUIRED_{}_NOT_RUN",
+            pod_clusters.len(),
+            false_alarm_clusters.len(),
+            config.minimum_independent_site_clusters
+        );
+        return Ok(metrics);
+    }
+
+    let alpha = 1.0 - config.confidence_level;
+    let mut rng = SplitMix64::new(config.seed);
+    let mut pod_samples = Vec::with_capacity(config.bootstrap_replicates);
+    let mut false_alarm_samples = Vec::with_capacity(config.bootstrap_replicates);
+
+    for _ in 0..config.bootstrap_replicates {
+        let mut pod_positive = 0usize;
+        let mut pod_hits = 0usize;
+        for _ in 0..pod_clusters.len() {
+            let cluster = pod_clusters[rng.index(pod_clusters.len())];
+            pod_positive += cluster.positive_targets;
+            pod_hits += cluster.true_positives;
+        }
+        if pod_positive > 0 {
+            pod_samples.push(pod_hits as f64 / pod_positive as f64);
+        }
+
+        let mut negative_route_km = 0.0;
+        let mut false_alarms = 0usize;
+        for _ in 0..false_alarm_clusters.len() {
+            let cluster = false_alarm_clusters[rng.index(false_alarm_clusters.len())];
+            negative_route_km += cluster.surveyed_negative_route_km;
+            false_alarms += cluster.false_positives;
+        }
+        if negative_route_km > 0.0 {
+            false_alarm_samples.push(false_alarms as f64 / negative_route_km);
+        }
+    }
+
+    pod_samples.sort_by(f64::total_cmp);
+    false_alarm_samples.sort_by(f64::total_cmp);
+
+    let Some(pod_lower) = percentile(&pod_samples, alpha / 2.0) else {
+        metrics.clustered_confidence_interval_status =
+            "POD_BOOTSTRAP_UNDEFINED_NOT_RUN".to_string();
+        return Ok(metrics);
+    };
+    let Some(pod_upper) = percentile(&pod_samples, 1.0 - alpha / 2.0) else {
+        metrics.clustered_confidence_interval_status =
+            "POD_BOOTSTRAP_UNDEFINED_NOT_RUN".to_string();
+        return Ok(metrics);
+    };
+    let Some(far_lower) = percentile(&false_alarm_samples, alpha / 2.0) else {
+        metrics.clustered_confidence_interval_status =
+            "FALSE_ALARM_BOOTSTRAP_UNDEFINED_NOT_RUN".to_string();
+        return Ok(metrics);
+    };
+    let Some(far_upper) = percentile(&false_alarm_samples, 1.0 - alpha / 2.0) else {
+        metrics.clustered_confidence_interval_status =
+            "FALSE_ALARM_BOOTSTRAP_UNDEFINED_NOT_RUN".to_string();
+        return Ok(metrics);
+    };
+
+    metrics.pod_cluster_bootstrap_interval = Some(ClusterConfidenceInterval {
+        lower: pod_lower,
+        upper: pod_upper,
+        confidence_level: config.confidence_level,
+        independent_site_clusters: pod_clusters.len(),
+        bootstrap_replicates: pod_samples.len(),
+    });
+    metrics.false_alarm_rate_cluster_bootstrap_interval = Some(ClusterConfidenceInterval {
+        lower: far_lower,
+        upper: far_upper,
+        confidence_level: config.confidence_level,
+        independent_site_clusters: false_alarm_clusters.len(),
+        bootstrap_replicates: false_alarm_samples.len(),
+    });
+    metrics.clustered_confidence_interval_status =
+        "COMPUTED_SITE_CLUSTER_PERCENTILE_BOOTSTRAP_RESEARCH_ONLY".to_string();
+    metrics.qualification_status =
+        "NOT_QUALIFIED_SYNTHETIC_OR_UNQUALIFIED_INPUTS".to_string();
+
+    Ok(metrics)
 }
 
 #[cfg(test)]
@@ -768,6 +935,66 @@ mod tests {
         assert!(result.localization_median_error_m.is_some());
         assert!(result.localization_p95_error_m.is_some());
         assert_eq!(result.qualification_status, "NOT_QUALIFIED_POINT_ESTIMATES_ONLY");
+    }
+
+    #[test]
+    fn cluster_bootstrap_runs_deterministically_when_preregistered_cluster_minimum_is_met() {
+        let config = ClusterBootstrapConfig {
+            confidence_level: 0.95,
+            bootstrap_replicates: 2_000,
+            minimum_independent_site_clusters: 4,
+            seed: 20_261_113,
+        };
+        let first = evaluate_blind_trials_with_cluster_bootstrap(&fixture(), config).unwrap();
+        let second = evaluate_blind_trials_with_cluster_bootstrap(&fixture(), config).unwrap();
+        assert_eq!(first, second);
+        let pod = first.pod_cluster_bootstrap_interval.unwrap();
+        let far = first.false_alarm_rate_cluster_bootstrap_interval.unwrap();
+        assert!(pod.lower <= pod.upper);
+        assert!(far.lower <= far.upper);
+        assert_eq!(pod.independent_site_clusters, 4);
+        assert_eq!(far.independent_site_clusters, 4);
+        assert_eq!(
+            first.clustered_confidence_interval_status,
+            "COMPUTED_SITE_CLUSTER_PERCENTILE_BOOTSTRAP_RESEARCH_ONLY"
+        );
+        assert_eq!(
+            first.qualification_status,
+            "NOT_QUALIFIED_SYNTHETIC_OR_UNQUALIFIED_INPUTS"
+        );
+    }
+
+    #[test]
+    fn cluster_bootstrap_refuses_to_report_intervals_below_preregistered_minimum() {
+        let config = ClusterBootstrapConfig {
+            confidence_level: 0.95,
+            bootstrap_replicates: 2_000,
+            minimum_independent_site_clusters: 5,
+            seed: 20_261_113,
+        };
+        let result = evaluate_blind_trials_with_cluster_bootstrap(&fixture(), config).unwrap();
+        assert!(result.pod_cluster_bootstrap_interval.is_none());
+        assert!(result.false_alarm_rate_cluster_bootstrap_interval.is_none());
+        assert_eq!(
+            result.clustered_confidence_interval_status,
+            "INSUFFICIENT_SITE_CLUSTERS_POD_4_FAR_4_REQUIRED_5_NOT_RUN"
+        );
+    }
+
+    #[test]
+    fn cluster_bootstrap_rejects_invalid_configuration_without_fabricating_intervals() {
+        let config = ClusterBootstrapConfig {
+            confidence_level: 1.0,
+            bootstrap_replicates: 10,
+            minimum_independent_site_clusters: 0,
+            seed: 20_261_113,
+        };
+        let result = evaluate_blind_trials_with_cluster_bootstrap(&fixture(), config).unwrap();
+        assert!(result.pod_cluster_bootstrap_interval.is_none());
+        assert_eq!(
+            result.clustered_confidence_interval_status,
+            "INVALID_BOOTSTRAP_CONFIGURATION_NOT_RUN"
+        );
     }
 
     #[test]
