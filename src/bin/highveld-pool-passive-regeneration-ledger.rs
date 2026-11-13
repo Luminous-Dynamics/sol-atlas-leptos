@@ -455,7 +455,7 @@ fn audit(case: &Value) -> Result<Value, Vec<String>> {
             )),
             None => errors.push(
                 "final pool thermal state is missing; cycle closure cannot be assessed".to_owned(),
-            )
+            ),
         }
     }
 
@@ -589,7 +589,10 @@ mod tests {
         let mut case = sample();
         case["intervals"][1]["water_volume_end_l"] = json!(49990.0);
         let report = audit(&case).unwrap();
-        assert_eq!(report["audit_state"], "POOL_PASSIVE_REGENERATION_LEDGER_FAIL");
+        assert_eq!(
+            report["audit_state"],
+            "POOL_PASSIVE_REGENERATION_LEDGER_FAIL"
+        );
         assert_eq!(report["intervals"][1]["interval_state"], "FAIL");
     }
 
