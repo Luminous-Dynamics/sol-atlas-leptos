@@ -19,19 +19,22 @@
             "cohort_id": "ANON_ZONE_A",
             "total_places_requested": 8,
             "accessible_places_requested": 3,
-            "maximum_route_travel_time_s": 1200
+            "maximum_route_travel_time_s": 1200,
+            "fairness_tie_break_rank": 1
           },
           {
             "cohort_id": "ANON_ZONE_B",
             "total_places_requested": 7,
             "accessible_places_requested": 2,
-            "maximum_route_travel_time_s": 900
+            "maximum_route_travel_time_s": 900,
+            "fairness_tie_break_rank": 2
           },
           {
             "cohort_id": "ANON_ZONE_C",
             "total_places_requested": 5,
             "accessible_places_requested": 1,
-            "maximum_route_travel_time_s": 1500
+            "maximum_route_travel_time_s": 1500,
+            "fairness_tie_break_rank": 3
           }
         ],
         "sites": [
@@ -200,19 +203,22 @@
             "cohort_id": "ANON_ZONE_A",
             "total_places_requested": 8,
             "accessible_places_requested": 3,
-            "maximum_route_travel_time_s": 1200
+            "maximum_route_travel_time_s": 1200,
+            "fairness_tie_break_rank": 1
           },
           {
             "cohort_id": "ANON_ZONE_B",
             "total_places_requested": 7,
             "accessible_places_requested": 2,
-            "maximum_route_travel_time_s": 900
+            "maximum_route_travel_time_s": 900,
+            "fairness_tie_break_rank": 2
           },
           {
             "cohort_id": "ANON_ZONE_C",
             "total_places_requested": 5,
             "accessible_places_requested": 1,
-            "maximum_route_travel_time_s": 1500
+            "maximum_route_travel_time_s": 1500,
+            "fairness_tie_break_rank": 3
           }
         ],
         "sites": [
@@ -381,19 +387,22 @@
             "cohort_id": "ANON_ZONE_A",
             "total_places_requested": 8,
             "accessible_places_requested": 3,
-            "maximum_route_travel_time_s": 1200
+            "maximum_route_travel_time_s": 1200,
+            "fairness_tie_break_rank": 1
           },
           {
             "cohort_id": "ANON_ZONE_B",
             "total_places_requested": 7,
             "accessible_places_requested": 2,
-            "maximum_route_travel_time_s": 900
+            "maximum_route_travel_time_s": 900,
+            "fairness_tie_break_rank": 2
           },
           {
             "cohort_id": "ANON_ZONE_C",
             "total_places_requested": 5,
             "accessible_places_requested": 1,
-            "maximum_route_travel_time_s": 1500
+            "maximum_route_travel_time_s": 1500,
+            "fairness_tie_break_rank": 3
           }
         ],
         "sites": [
