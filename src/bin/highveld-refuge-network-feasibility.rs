@@ -906,17 +906,18 @@ fn evaluate_snapshot(case: &Value) -> Result<Value, Vec<String>> {
         .collect();
     let general_flow = run_flow(&general_demands, &residual_sites, &general_links);
 
-    let accessible_fair_flow = progressive_max_min_flow(
-        &accessible_demands,
-        &accessible_sites,
-        &accessible_links,
-        &vec![0; cohort_data.len()],
-        &cohort_data
-            .iter()
-            .map(|(_, _, accessible, _)| *accessible)
-            .collect::<Vec<_>>(),
-        &cohort_tie_break_ranks,
-    );
+    let (accessible_fair_flow, accessible_fair_flow_evaluations) =
+        progressive_max_min_flow_scaled_with_stats(
+            &accessible_demands,
+            &accessible_sites,
+            &accessible_links,
+            &vec![0; cohort_data.len()],
+            &cohort_data
+                .iter()
+                .map(|(_, _, accessible, _)| *accessible)
+                .collect::<Vec<_>>(),
+            &cohort_tie_break_ranks,
+        );
     let fair_residual_sites: Vec<(String, u64)> = site_ids
         .iter()
         .enumerate()
@@ -928,14 +929,15 @@ fn evaluate_snapshot(case: &Value) -> Result<Value, Vec<String>> {
         .collect();
     let general_fair_baseline = accessible_fair_flow.served_by_cohort.clone();
     let general_fair_totals: Vec<u64> = cohort_data.iter().map(|(_, total, _, _)| *total).collect();
-    let general_fair_flow = progressive_max_min_flow(
-        &general_demands,
-        &fair_residual_sites,
-        &general_links,
-        &general_fair_baseline,
-        &general_fair_totals,
-        &cohort_tie_break_ranks,
-    );
+    let (general_fair_flow, general_fair_flow_evaluations) =
+        progressive_max_min_flow_scaled_with_stats(
+            &general_demands,
+            &fair_residual_sites,
+            &general_links,
+            &general_fair_baseline,
+            &general_fair_totals,
+            &cohort_tie_break_ranks,
+        );
 
     let mut fairness_cohort_reports = Vec::new();
     let mut minimum_fair_ratio = 1.0_f64;
@@ -1024,6 +1026,10 @@ fn evaluate_snapshot(case: &Value) -> Result<Value, Vec<String>> {
             "minimum_cohort_service_ratio":minimum_fair_ratio,
             "maximum_cohort_service_ratio":maximum_fair_ratio,
             "cohort_service_ratio_spread":maximum_fair_ratio - minimum_fair_ratio,
+            "algorithm":"CAPACITY_SCALED_PROGRESSIVE_FILL_WITH_UNIT_STEP_FALLBACK",
+            "max_flow_evaluation_count":accessible_fair_flow_evaluations + general_fair_flow_evaluations,
+            "accessible_fill_flow_evaluation_count":accessible_fair_flow_evaluations,
+            "general_fill_flow_evaluation_count":general_fair_flow_evaluations,
             "cohort_service":fairness_cohort_reports,
             "tie_break_policy":"EXPLICIT_OWNER_SUPPLIED_RANK_ONLY_FOR_EQUAL_DISCRETE_SERVICE_RATIOS",
             "assignment":"NONE",
