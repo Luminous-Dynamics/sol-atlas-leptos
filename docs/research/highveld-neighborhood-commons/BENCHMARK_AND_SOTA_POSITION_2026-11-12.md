@@ -550,3 +550,41 @@ On matched site/route/service traces, compare:
 6. temporal evidence-freshness + service-debt replay.
 
 Report exact output agreement, worst-cohort service ratio, accessible unmet service, total throughput, unmet-place-hours, water-limited capacity, maximum age of admitted evidence, max-flow evaluation count, wall time and memory. Include South African and Global South test contexts only after licensed local data and owner-approved evidence admission. No SOTA superiority is claimed by registration or synthetic tests.
+
+
+## 16. Dynamic refuge capacity: moving beyond proximity and static catchments
+
+Three useful comparison points now make the research frontier clearer:
+
+- A September 2026 building-level heat-risk framework evaluated indoor thermal exposure and cooling-center accessibility across **214,681 residential buildings in Phoenix**. It demonstrates why building exposure and cooling access must be assessed jointly, and identifies mismatches missed by coarse aggregate proxies.
+- A September 2026 urban-park cooling-accessibility study applies a physics-informed two-step floating catchment area method and explainable nonlinear analysis; its reported blind-zone share belongs to that study geography and is not a universal urban statistic.
+- A 2025 cooling-center placement framework uses multicriteria ranking and population-coverage analysis in five US cities. This is a relevant static siting/access comparator.
+
+The Highveld aggregate capacity oracle is deliberately a different layer. It does not replace the spatial accessibility model. It takes its route evidence and adds simultaneous group demand, site opening/thermal/ventilation/water/staffing states, accessible places, shared seat limits, protected safe-water reserves, network partitions and bounded exact feasibility.
+
+For a fair benchmark, freeze the same site inventory, route network, anonymous demand cells and time window. Run:
+1. straight-line proximity as a deliberately weak negative/control baseline;
+2. static network accessibility / 2SFCA coverage;
+3. per-site availability without cross-cohort resource accounting;
+4. aggregate capacity oracle with shared seats, accessible capacity, water and service dependencies;
+5. the same oracle under common-cause site loss, blocked links, hot-night service failure and network partition.
+
+Report per-cohort reachable service, total unmet places, accessible unmet places, water headroom, worst-cell service gap, and failure causes. Do not compare only mean travel distance or number of mapped cooling centers.
+
+Sources:
+- [Building-level heat risk and cooling-center accessibility across 214,681 Phoenix residences, September 2026](https://www.sciencedirect.com/science/article/pii/S2212420926003535)
+- [Cooling accessibility of urban parks using improved 2SFCA and explainable ML, 1 September 2026](https://www.sciencedirect.com/science/article/pii/S2210670726004166)
+- [Where to cool off: geospatial framework for cooling-center placement, 2025](https://www.tandfonline.com/doi/full/10.1080/15481603.2025.2500770)
+
+## 17. New bounded aggregate-refuge oracle registered
+
+The PR now contains:
+- REFUGE_CAPACITY_ORACLE_V0.1.md
+- REFUGE_CAPACITY_ORACLE_CASE_V0.1.json
+- REFUGE_CAPACITY_ORACLE_CASE_V0.1.schema.json
+- src/bin/highveld-refuge-capacity-oracle.rs
+- Native CI test and self-test commands.
+
+The oracle performs exact backtracking feasibility over anonymous place-units and shared site resources within a declared envelope (8 sites, 8 cohorts, 32 places, 100,000 search nodes). It emits a planning witness only if all cohort places can be covered; it emits no partial allocation. Limit exhaustion is INDETERMINATE_LIMIT_REACHED, never a pass. The output does not book, reserve or assign any person.
+
+Known-answer tests cover shared-capacity double booking, accessible route/capacity, protected water reserves, common service failure, network partition and search-limit indeterminacy. These are synthetic tests, not real cooling-site or route results.
