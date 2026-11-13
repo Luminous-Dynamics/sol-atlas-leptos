@@ -70,7 +70,7 @@ This is important because pool heat loss is not a single evaporation coefficient
 
 ## 5. Synthetic known-answer case and negative controls
 
-The fixture has three symbolic intervals with different cover states. It balances both the thermal energy store and water volume; the thermal store returns to its initial state at the end of the synthetic cycle.
+The fixture has three symbolic intervals with different cover states. Each interval includes both opening and closing thermal-energy state, with closing states 101, 101 and 100 kWh so the interval balances close and the final cycle returns to the initial 100 kWh. It also balances water volume and retains a known-answer positive control.
 
 Required controls:
 - thermal energy residual outside u95;
