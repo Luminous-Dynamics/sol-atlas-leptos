@@ -138,7 +138,9 @@
           "valid_time",
           "evidence_refs",
           "links",
-          "currentness_state"
+          "currentness_state",
+          "concrete_profile_type",
+          "muddi_attributes"
         ],
         "properties": {
           "record_id": {
@@ -296,8 +298,138 @@
               "conflicting",
               "unknown"
             ]
+          },
+          "concrete_profile_type": {
+            "type": "string",
+            "minLength": 4
+          },
+          "muddi_attributes": {
+            "type": "object"
           }
-        }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "muddi_class": {
+                  "enum": [
+                    "MUDDIAsset",
+                    "Network",
+                    "NetworkAsset",
+                    "NetworkConveyance",
+                    "NetworkNode",
+                    "NetworkLink",
+                    "NetworkAccessory"
+                  ]
+                }
+              },
+              "required": [
+                "muddi_class"
+              ]
+            },
+            "then": {
+              "properties": {
+                "muddi_attributes": {
+                  "required": [
+                    "asset_owner_id"
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "muddi_class": {
+                  "enum": [
+                    "NetworkAsset",
+                    "NetworkConveyance",
+                    "NetworkNode",
+                    "NetworkLink",
+                    "NetworkAccessory"
+                  ]
+                }
+              },
+              "required": [
+                "muddi_class"
+              ]
+            },
+            "then": {
+              "properties": {
+                "muddi_attributes": {
+                  "required": [
+                    "utility_type"
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "muddi_class": {
+                  "const": "Network"
+                }
+              },
+              "required": [
+                "muddi_class"
+              ]
+            },
+            "then": {
+              "properties": {
+                "muddi_attributes": {
+                  "required": [
+                    "commodity_type"
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "muddi_class": {
+                  "const": "MUDDISpace"
+                }
+              },
+              "required": [
+                "muddi_class"
+              ]
+            },
+            "then": {
+              "properties": {
+                "muddi_attributes": {
+                  "required": [
+                    "extent_ref"
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "muddi_class": {
+                  "const": "MUDDIEvent"
+                }
+              },
+              "required": [
+                "muddi_class"
+              ]
+            },
+            "then": {
+              "properties": {
+                "muddi_attributes": {
+                  "required": [
+                    "target_object",
+                    "target_property",
+                    "valid_time"
+                  ]
+                }
+              }
+            }
+          }
+        ]
       }
     },
     "observations": {
