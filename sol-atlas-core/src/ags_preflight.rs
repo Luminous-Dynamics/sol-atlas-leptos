@@ -9,6 +9,7 @@
 //! quantities. Callers must pin a version/dictionary and obtain an authoritative
 //! validator receipt before treating an AGS file as qualified engineering data.
 
+use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
 
 pub const AGS4_PREFLIGHT_MAX_BYTES: usize = 50 * 1024 * 1024;
@@ -45,6 +46,8 @@ pub enum AgsPreflightError {
     DataWidthMismatch,
     GroupHasNoDataRows,
     UnsupportedDescriptor(String),
+    MissingDeclaredVersion,
+    UnsupportedDeclaredVersion(String),
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -62,6 +65,140 @@ struct PendingGroup {
     types: Vec<String>,
     rows: Vec<Vec<String>>,
     next_header: u8,
+}
+
+
+/// Current BGS AGS File Utilities endpoint and API version. A future API
+/// version is not silently accepted as equivalent; callers must update/pin
+/// the expected version and rerun the contract suite.
+pub const BGS_AGS_API_VERSION: &str = "7.0";
+pub const BGS_AGS_VALIDATE_ENDPOINT: &str = "https://agsapi.bgs.ac.uk/v7/validate/";
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct BgsAgsValidationReceipt {
+    pub api_version: String,
+    pub api_endpoint: String,
+    pub filename: String,
+    /// SHA-256 digest of the exact submitted AGS bytes.
+    pub source_file_sha256: String,
+    pub source_file_bytes: usize,
+    /// Normalized dictionary version (e.g. v4_1_1), not a human label.
+    pub dictionary_id: String,
+    /// Required values for the paired AGS-schema and BGS-submission checks.
+    pub checkers: Vec<String>,
+    pub validator_library: String,
+    pub request_time: String,
+    /// SHA-256 digest of the exact JSON response bytes retained by the caller.
+    pub response_sha256: String,
+    pub valid: bool,
+    pub error_count: usize,
+    pub warnings_count: usize,
+    pub fyi_count: usize,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum AgsVersionError {
+    Missing,
+    Unsupported(String),
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum BgsAgsReceiptError {
+    ApiVersionMismatch,
+    EndpointMismatch,
+    EmptyFilename,
+    InvalidSourceDigest,
+    SourceDigestMismatch,
+    SourceSizeMismatch,
+    InvalidResponseDigest,
+    DictionaryMismatch,
+    MissingAgsSchemaChecker,
+    MissingBgsSubmissionChecker,
+    EmptyValidatorLibrary,
+    EmptyRequestTime,
+    ValidatorRejectedFile,
+    ErrorCountNonZero,
+}
+
+fn is_sha256_hex(value: &str) -> bool {
+    value.len() == 64 && value.bytes().all(|byte| byte.is_ascii_hexdigit())
+}
+
+/// Translate a declared TRAN_AGS value into the exact dictionary selector
+/// accepted by the current BGS validator API. Values such as "4" and "4.0"
+/// are not guessed or upgraded.
+pub fn ags_dictionary_id(version: &str) -> Result<&'static str, AgsVersionError> {
+    match version.trim() {
+        "4.0.3" => Ok("v4_0_3"),
+        "4.0.4" => Ok("v4_0_4"),
+        "4.1" => Ok("v4_1"),
+        "4.1.1" => Ok("v4_1_1"),
+        "" => Err(AgsVersionError::Missing),
+        other => Err(AgsVersionError::Unsupported(other.to_string())),
+    }
+}
+
+/// Bind a BGS validation response to the exact submitted file and pinned
+/// validator/dictionary. This checks the *receipt contract*, not the network
+/// origin or signature. A trusted acquisition layer must preserve response
+/// bytes, endpoint, TLS context, request parameters and timestamp; Mycelix or
+/// another custody authority must authenticate the receipt before admission.
+pub fn validate_bgs_ags_receipt(
+    receipt: &BgsAgsValidationReceipt,
+    expected_source_sha256: &str,
+    expected_source_bytes: usize,
+    expected_dictionary_id: &str,
+) -> Result<(), Vec<BgsAgsReceiptError>> {
+    let mut errors = Vec::new();
+
+    if receipt.api_version != BGS_AGS_API_VERSION {
+        errors.push(BgsAgsReceiptError::ApiVersionMismatch);
+    }
+    if receipt.api_endpoint != BGS_AGS_VALIDATE_ENDPOINT {
+        errors.push(BgsAgsReceiptError::EndpointMismatch);
+    }
+    if receipt.filename.trim().is_empty() {
+        errors.push(BgsAgsReceiptError::EmptyFilename);
+    }
+    if !is_sha256_hex(&receipt.source_file_sha256) {
+        errors.push(BgsAgsReceiptError::InvalidSourceDigest);
+    } else if receipt.source_file_sha256 != expected_source_sha256 {
+        errors.push(BgsAgsReceiptError::SourceDigestMismatch);
+    }
+    if receipt.source_file_bytes != expected_source_bytes {
+        errors.push(BgsAgsReceiptError::SourceSizeMismatch);
+    }
+    if !is_sha256_hex(&receipt.response_sha256) {
+        errors.push(BgsAgsReceiptError::InvalidResponseDigest);
+    }
+    if receipt.dictionary_id != expected_dictionary_id {
+        errors.push(BgsAgsReceiptError::DictionaryMismatch);
+    }
+    if !receipt.checkers.iter().any(|checker| checker == "ags") {
+        errors.push(BgsAgsReceiptError::MissingAgsSchemaChecker);
+    }
+    if !receipt.checkers.iter().any(|checker| checker == "bgs") {
+        errors.push(BgsAgsReceiptError::MissingBgsSubmissionChecker);
+    }
+    if receipt.validator_library.trim().is_empty() {
+        errors.push(BgsAgsReceiptError::EmptyValidatorLibrary);
+    }
+    if receipt.request_time.trim().is_empty() {
+        errors.push(BgsAgsReceiptError::EmptyRequestTime);
+    }
+    if !receipt.valid {
+        errors.push(BgsAgsReceiptError::ValidatorRejectedFile);
+    }
+    if receipt.error_count != 0 {
+        errors.push(BgsAgsReceiptError::ErrorCountNonZero);
+    }
+
+    if errors.is_empty() {
+        Ok(())
+    } else {
+        Err(errors)
+    }
 }
 
 impl PendingGroup {
