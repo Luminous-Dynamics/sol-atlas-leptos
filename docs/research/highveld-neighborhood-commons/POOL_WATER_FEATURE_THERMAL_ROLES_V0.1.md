@@ -100,7 +100,7 @@ Use this as the indoor-pool specialist baseline. It is not a ready-made outdoor 
 
 EnergyPlus 26.2's ThermalStorage:PCM is a separate useful storage comparator. Modelica Buildings is appropriate for dynamic plant/storage loops where its pinned library and solver match the model. Highveld should compare the same load/weather/store trajectories through specialist engines and then use the independent finite-store ledger to audit trajectory closure—not replace their physics.
 
-## 6. Matched 72-case benchmark
+## 6. Matched 80-case benchmark
 
 Ten archetypes × eight scenarios = 80 registered comparisons:
 1. HIGH_SOLAR_HOT_DRY;
@@ -156,5 +156,18 @@ Targets:
 - 100% replayable geometry, control, water and instrument provenance.
 
 A meaningful win is a matched reduction in peak indoor heat or discomfort hours with lower water and auxiliary electricity, while preserving pool/service limits and closing the seasonal thermal cycle. Another legitimate win may be showing that a covered pool is only a buffer and that a dry/radiative or ground path is more robust under drought. Do not force a water-feature solution where a no-water or closed-loop design performs better.
+
+
+
+## 9. Pool heat-recovery conservation ledger
+
+The separate HIGHVELD-POOL-HEAT-RECOVERY-LEDGER-001 case and Rust binary audit two boundaries:
+
+1. Refrigeration circuit: condenser heat = building-side heat removed + compressor electrical work − declared compressor-to-ambient loss.
+2. Condenser disposition: condenser heat = pool heat recovered + qualified fallback rejection + measured distribution losses.
+
+Building-side cooling, pool heat recovered and independently measured displaced pool-heater input are reported separately. They are not summed or relabelled as one cooling benefit. Pool recovery is bounded by actual pool heating demand, measured thermal headroom and the owner/authority-defined temperature ceiling. Excess condenser heat must be sent to a qualified fallback sink or recovery must be disabled.
+
+The committed synthetic known-answer fixture closes both balances (10.0 kWh building heat removed + 3.0 kWh compressor work − 0.2 kWh loss = 12.8 kWh condenser heat; 5.0 kWh pool recovery + 7.5 kWh fallback rejection + 0.3 kWh distribution loss = 12.8 kWh). It is arithmetic only; no heat pump or pool was measured.
 
 **Status:** DESIGN_AND_BENCHMARK_CONTRACT_NOT_EXECUTED. No pool, fountain, water-quality programme, water rights, site measurement, EnergyPlus model run or physical cooling result is admitted.
