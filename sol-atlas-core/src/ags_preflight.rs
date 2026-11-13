@@ -633,16 +633,21 @@ mod tests {
     fn ambiguous_or_empty_transfer_version_is_not_defaulted() {
         let mut doc = parse_ags4_preflight(SYNTHETIC_AGS.as_bytes())
             .expect("synthetic AGS parses");
-        let tran = doc.groups.iter_mut().find(|group| group.name == "TRAN").unwrap();
-        tran.rows[0][1].clear();
+        {
+            let tran = doc.groups.iter_mut().find(|group| group.name == "TRAN").unwrap();
+            tran.rows[0][1].clear();
+        }
         assert_eq!(doc.declared_ags_version(), None);
 
-        tran.rows[0][1] = "4.1.1".to_string();
-        tran.rows.push(vec![
-            "SYN-TRAN-002".to_string(),
-            "4.1".to_string(),
-            "conflicting version row".to_string(),
-        ]);
+        {
+            let tran = doc.groups.iter_mut().find(|group| group.name == "TRAN").unwrap();
+            tran.rows[0][1] = "4.1.1".to_string();
+            tran.rows.push(vec![
+                "SYN-TRAN-002".to_string(),
+                "4.1".to_string(),
+                "conflicting version row".to_string(),
+            ]);
+        }
         assert_eq!(doc.declared_ags_version(), None);
     }
 
