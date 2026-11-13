@@ -159,8 +159,7 @@ fn audit() -> Result<Value, Vec<String>> {
     let field_reference = industry_refs.iter().any(|item| {
         text_at(item, "id") == Some("UC_DAVIS_WCEC_SAN_DIEGO_HOTEL_2018")
             && text_at(item, "evidence_class") == Some("FIELD_DEMONSTRATION")
-            && text_at(item, "transferability")
-                == Some("REFERENCE_ONLY_NOT_HIGHVELD_PREDICTION")
+            && text_at(item, "transferability") == Some("REFERENCE_ONLY_NOT_HIGHVELD_PREDICTION")
     });
     let modeled_reference = industry_refs.iter().any(|item| {
         text_at(item, "id") == Some("CALIFORNIA_POOL_HEAT_SINK_FEASIBILITY_2013")
@@ -169,7 +168,10 @@ fn audit() -> Result<Value, Vec<String>> {
                 == Some("MODELLED_SELECTED_CONDITIONS_NOT_FIELD_RESULT_OR_HIGHVELD_PREDICTION")
     });
     if !field_reference || !modeled_reference {
-        errors.push("pool heat recovery must preserve distinct field and modeled industry evidence classes".to_owned());
+        errors.push(
+            "pool heat recovery must preserve distinct field and modeled industry evidence classes"
+                .to_owned(),
+        );
     }
     let heat_recovery = &manifest["heat_recovery_contract"];
     for key in [
@@ -260,7 +262,7 @@ mod tests {
         let report = audit().expect("pool/water programme contract");
         assert_eq!(
             report["pool_role"],
-            "FINITE_THERMAL_BUFFER_NOT_INFINITE_SINK"
+            "FINITE_THERMAL_BUFFER_NOT_AN_INFINITE_SINK"
         );
     }
 
@@ -283,12 +285,27 @@ mod tests {
     fn pool_heat_recovery_requires_headroom_hx_and_overflow_sink() {
         let manifest: Value = serde_json::from_str(MANIFEST).unwrap();
         let contract = &manifest["heat_recovery_contract"];
-        assert_eq!(contract["enabled_only_when_pool_heating_demand_exists"], true);
+        assert_eq!(
+            contract["enabled_only_when_pool_heating_demand_exists"],
+            true
+        );
         assert_eq!(contract["requires_isolated_heat_exchanger"], true);
-        assert_eq!(contract["fallback_sink_required_when_pool_has_no_headroom"], true);
-        assert_eq!(contract["excess_condenser_heat_must_be_routed_or_recovery_disabled"], true);
-        assert_eq!(manifest["hard_gates"]["pool_heat_recovery_above_temperature_limit"], 0);
-        assert_eq!(manifest["hard_gates"]["unqualified_fallback_sink_for_excess_heat"], 0);
+        assert_eq!(
+            contract["fallback_sink_required_when_pool_has_no_headroom"],
+            true
+        );
+        assert_eq!(
+            contract["excess_condenser_heat_must_be_routed_or_recovery_disabled"],
+            true
+        );
+        assert_eq!(
+            manifest["hard_gates"]["pool_heat_recovery_above_temperature_limit"],
+            0
+        );
+        assert_eq!(
+            manifest["hard_gates"]["unqualified_fallback_sink_for_excess_heat"],
+            0
+        );
     }
 
     #[test]
