@@ -123,7 +123,7 @@
     },
     "required_balance_terms": {
       "type": "array",
-      "minItems": 10,
+      "minItems": 17,
       "uniqueItems": true,
       "items": {
         "type": "string"
@@ -159,7 +159,10 @@
         "pool_heat_recovery_above_temperature_limit",
         "pool_heat_recovery_without_isolated_heat_exchanger",
         "unqualified_fallback_sink_for_excess_heat",
-        "heat_recovery_claim_without_measured_displaced_heater_energy"
+        "heat_recovery_claim_without_measured_displaced_heater_energy",
+        "condenser_first_law_balance_outside_uncertainty",
+        "condenser_disposition_balance_outside_uncertainty",
+        "condenser_heat_double_counting"
       ],
       "properties": {
         "sustained_cooling_from_store_without_regeneration": {
@@ -193,6 +196,15 @@
           "const": 0
         },
         "heat_recovery_claim_without_measured_displaced_heater_energy": {
+          "const": 0
+        },
+        "condenser_first_law_balance_outside_uncertainty": {
+          "const": 0
+        },
+        "condenser_disposition_balance_outside_uncertainty": {
+          "const": 0
+        },
+        "condenser_heat_double_counting": {
           "const": 0
         }
       }
