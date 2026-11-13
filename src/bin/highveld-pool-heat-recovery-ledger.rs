@@ -67,34 +67,37 @@ fn audit(case: &Value) -> Result<Value, Vec<String>> {
     let q_ambient_loss = number_at(circuit, "compressor_ambient_loss_kwh");
     let q_condenser = number_at(circuit, "measured_condenser_heat_output_kwh");
     let u95_circuit = number_at(circuit, "balance_u95_kwh");
-    let (circuit_residual, circuit_expected) =
-        match (q_building, w_compressor, q_ambient_loss, q_condenser, u95_circuit) {
-            (Some(building), Some(work), Some(loss), Some(condenser), Some(u95))
-                if building >= 0.0
-                    && work >= 0.0
-                    && loss >= 0.0
-                    && condenser >= 0.0
-                    && u95 >= 0.0 =>
-            {
-                let expected = building + work - loss;
-                let residual = expected - condenser;
-                if expected < 0.0 || !expected.is_finite() || !residual.is_finite() {
-                    errors.push("refrigeration circuit arithmetic is invalid/non-finite".to_owned());
-                    (None, None)
-                } else {
-                    if residual.abs() > u95 {
-                        errors.push(format!(
-                            "condenser first-law residual {residual:.6} kWh exceeds u95 {u95:.6} kWh"
-                        ));
-                    }
-                    (Some(residual), Some(expected))
-                }
-            }
-            _ => {
-                errors.push("refrigeration circuit contains missing, negative or non-finite terms".to_owned());
+    let (circuit_residual, circuit_expected) = match (
+        q_building,
+        w_compressor,
+        q_ambient_loss,
+        q_condenser,
+        u95_circuit,
+    ) {
+        (Some(building), Some(work), Some(loss), Some(condenser), Some(u95))
+            if building >= 0.0 && work >= 0.0 && loss >= 0.0 && condenser >= 0.0 && u95 >= 0.0 =>
+        {
+            let expected = building + work - loss;
+            let residual = expected - condenser;
+            if expected < 0.0 || !expected.is_finite() || !residual.is_finite() {
+                errors.push("refrigeration circuit arithmetic is invalid/non-finite".to_owned());
                 (None, None)
+            } else {
+                if residual.abs() > u95 {
+                    errors.push(format!(
+                        "condenser first-law residual {residual:.6} kWh exceeds u95 {u95:.6} kWh"
+                    ));
+                }
+                (Some(residual), Some(expected))
             }
-        };
+        }
+        _ => {
+            errors.push(
+                "refrigeration circuit contains missing, negative or non-finite terms".to_owned(),
+            );
+            (None, None)
+        }
+    };
 
     let disposition = &case["heat_disposition"];
     let pool_demand = number_at(disposition, "pool_heating_demand_kwh");
@@ -127,10 +130,14 @@ fn audit(case: &Value) -> Result<Value, Vec<String>> {
             errors.push("pool recovery violates the admitted maximum pool temperature".to_owned());
         }
         if demand == 0.0 && recovered > 0.0 {
-            errors.push("pool recovery cannot be enabled when no pool heating demand exists".to_owned());
+            errors.push(
+                "pool recovery cannot be enabled when no pool heating demand exists".to_owned(),
+            );
         }
     } else {
-        errors.push("pool demand/headroom/temperature/recovery input is missing or non-finite".to_owned());
+        errors.push(
+            "pool demand/headroom/temperature/recovery input is missing or non-finite".to_owned(),
+        );
     }
 
     if let (Some(capacity), Some(rejected)) = (fallback_capacity, q_fallback) {
@@ -141,44 +148,56 @@ fn audit(case: &Value) -> Result<Value, Vec<String>> {
             errors.push("fallback heat rejection exceeds qualified sink capacity".to_owned());
         }
         if rejected > 0.0 && text_at(disposition, "fallback_sink_state") != Some("QUALIFIED") {
-            errors.push("excess condenser heat is routed to an unqualified fallback sink".to_owned());
+            errors
+                .push("excess condenser heat is routed to an unqualified fallback sink".to_owned());
         }
     } else {
         errors.push("fallback sink capacity/rejection is missing or non-finite".to_owned());
     }
 
-    let (disposition_residual, disposition_expected) =
-        match (q_cond, q_pool, q_fallback, q_distribution_loss, u95_disposition) {
-            (Some(condenser), Some(pool), Some(fallback), Some(loss), Some(u95))
-                if condenser >= 0.0 && pool >= 0.0 && fallback >= 0.0 && loss >= 0.0 && u95 >= 0.0 =>
-            {
-                let accounted = pool + fallback + loss;
-                let residual = condenser - accounted;
-                if !accounted.is_finite() || !residual.is_finite() {
-                    errors.push("condenser disposition arithmetic is non-finite".to_owned());
-                    (None, None)
-                } else {
-                    if residual.abs() > u95 {
-                        errors.push(format!(
-                            "condenser disposition residual {residual:.6} kWh exceeds u95 {u95:.6} kWh"
-                        ));
-                    }
-                    (Some(residual), Some(accounted))
-                }
-            }
-            _ => {
-                errors.push("condenser disposition has missing, negative or non-finite terms".to_owned());
+    let (disposition_residual, disposition_expected) = match (
+        q_cond,
+        q_pool,
+        q_fallback,
+        q_distribution_loss,
+        u95_disposition,
+    ) {
+        (Some(condenser), Some(pool), Some(fallback), Some(loss), Some(u95))
+            if condenser >= 0.0 && pool >= 0.0 && fallback >= 0.0 && loss >= 0.0 && u95 >= 0.0 =>
+        {
+            let accounted = pool + fallback + loss;
+            let residual = condenser - accounted;
+            if !accounted.is_finite() || !residual.is_finite() {
+                errors.push("condenser disposition arithmetic is non-finite".to_owned());
                 (None, None)
+            } else {
+                if residual.abs() > u95 {
+                    errors.push(format!(
+                        "condenser disposition residual {residual:.6} kWh exceeds u95 {u95:.6} kWh"
+                    ));
+                }
+                (Some(residual), Some(accounted))
             }
-        };
+        }
+        _ => {
+            errors.push("condenser disposition has missing, negative or non-finite terms".to_owned());
+            (None, None)
+        }
+    };
 
     if text_at(&case["displaced_pool_heater"], "evidence_state") != Some("QUALIFIED")
-        || number_at(&case["displaced_pool_heater"], "measured_displaced_heater_input_kwh")
-            .is_none_or(|value| value < 0.0)
+        || number_at(
+            &case["displaced_pool_heater"],
+            "measured_displaced_heater_input_kwh",
+        )
+        .is_none_or(|value| value < 0.0)
         || text_at(refs, "displaced_heater_meter_ref").is_none()
         || text_at(refs, "displaced_heater_counterfactual_ref").is_none()
     {
-        errors.push("displaced pool-heater energy requires its own qualified meter and counterfactual".to_owned());
+        errors.push(
+            "displaced pool-heater energy requires its own qualified meter and counterfactual"
+                .to_owned(),
+        );
     }
 
     let audit_state = if errors.is_empty() {
@@ -214,16 +233,22 @@ fn audit(case: &Value) -> Result<Value, Vec<String>> {
 fn main() {
     match env::args().nth(1).as_deref().unwrap_or("--help") {
         "--self-test" => {
-            let case: Value = serde_json::from_str(CASE).expect("committed pool heat-recovery case JSON");
+            let case: Value =
+                serde_json::from_str(CASE).expect("committed pool heat-recovery case JSON");
             let report = audit(&case).expect("pool heat-recovery case is parseable");
-            println!("{}", serde_json::to_string_pretty(&report).unwrap_or_default());
+            println!(
+                "{}",
+                serde_json::to_string_pretty(&report).unwrap_or_default()
+            );
             if report["audit_state"] != "POOL_HEAT_RECOVERY_LEDGER_PASS" {
                 process::exit(1);
             }
         }
         "--help" | "-h" => {
             println!("highveld-pool-heat-recovery-ledger");
-            println!("  --self-test  audit the synthetic refrigeration and condenser disposition balances");
+            println!(
+                "  --self-test  audit the synthetic refrigeration and condenser disposition balances"
+            );
         }
         _ => {
             eprintln!("invalid argument; use --help");
@@ -258,8 +283,16 @@ mod tests {
         case["refrigeration_circuit"]["measured_condenser_heat_output_kwh"] = json!(12.0);
         let report = audit(&case).unwrap();
         assert_eq!(report["audit_state"], "POOL_HEAT_RECOVERY_LEDGER_FAIL");
-        assert!(report["violations"].as_array().unwrap().iter()
-            .any(|value| value.as_str().unwrap_or("").contains("condenser first-law residual")));
+        assert!(
+            report["violations"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|value| value
+                    .as_str()
+                    .unwrap_or("")
+                    .contains("condenser first-law residual"))
+        );
     }
 
     #[test]
@@ -268,8 +301,16 @@ mod tests {
         case["heat_disposition"]["fallback_heat_rejected_kwh"] = json!(6.0);
         let report = audit(&case).unwrap();
         assert_eq!(report["audit_state"], "POOL_HEAT_RECOVERY_LEDGER_FAIL");
-        assert!(report["violations"].as_array().unwrap().iter()
-            .any(|value| value.as_str().unwrap_or("").contains("condenser disposition residual")));
+        assert!(
+            report["violations"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|value| value
+                    .as_str()
+                    .unwrap_or("")
+                    .contains("condenser disposition residual"))
+        );
     }
 
     #[test]
@@ -277,8 +318,16 @@ mod tests {
         let mut case = sample();
         case["heat_disposition"]["pool_heat_recovered_kwh"] = json!(5.5);
         let report = audit(&case).unwrap();
-        assert!(report["violations"].as_array().unwrap().iter()
-            .any(|value| value.as_str().unwrap_or("").contains("exceeds remaining thermal headroom")));
+        assert!(
+            report["violations"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|value| value
+                    .as_str()
+                    .unwrap_or("")
+                    .contains("exceeds remaining thermal headroom"))
+        );
     }
 
     #[test]
@@ -286,8 +335,16 @@ mod tests {
         let mut case = sample();
         case["heat_disposition"]["fallback_sink_state"] = json!("UNKNOWN");
         let report = audit(&case).unwrap();
-        assert!(report["violations"].as_array().unwrap().iter()
-            .any(|value| value.as_str().unwrap_or("").contains("unqualified fallback sink")));
+        assert!(
+            report["violations"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|value| value
+                    .as_str()
+                    .unwrap_or("")
+                    .contains("unqualified fallback sink"))
+        );
     }
 
     #[test]
@@ -295,8 +352,16 @@ mod tests {
         let mut case = sample();
         case["heat_disposition"]["pool_temperature_c"] = json!(29.0);
         let report = audit(&case).unwrap();
-        assert!(report["violations"].as_array().unwrap().iter()
-            .any(|value| value.as_str().unwrap_or("").contains("maximum pool temperature")));
+        assert!(
+            report["violations"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|value| value
+                    .as_str()
+                    .unwrap_or("")
+                    .contains("maximum pool temperature"))
+        );
     }
 
     #[test]
@@ -330,7 +395,15 @@ mod tests {
         let mut case = sample();
         case["evidence_refs"]["displaced_heater_meter_ref"] = Value::Null;
         let report = audit(&case).unwrap();
-        assert!(report["violations"].as_array().unwrap().iter()
-            .any(|value| value.as_str().unwrap_or("").contains("displaced pool-heater energy")));
+        assert!(
+            report["violations"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|value| value
+                    .as_str()
+                    .unwrap_or("")
+                    .contains("displaced pool-heater energy"))
+        );
     }
 }
