@@ -36,7 +36,7 @@
     "localization_p95_error_m": 0.28,
     "unique_site_clusters": 4,
     "unique_acquisition_clusters": 4,
-    "clustered_confidence_interval_status": "NOT_RUN_CLUSTER_AWARE_BOOTSTRAP_REQUIRED",
+    "clustered_confidence_interval_status": "INSUFFICIENT_SITE_CLUSTERS_POD_4_FAR_4_REQUIRED_10_NOT_RUN",
     "point_estimates_meet_declared_requirements": false,
     "qualification_status": "NOT_QUALIFIED_CLUSTERED_INTERVALS_NOT_RUN",
     "per_site": [
@@ -88,7 +88,15 @@
         "probability_of_detection": 0.5,
         "false_alarms_per_km": 0
       }
-    ]
+    ],
+    "pod_cluster_bootstrap_interval": null,
+    "false_alarm_rate_cluster_bootstrap_interval": null
   },
-  "physical_validation": "NOT_RUN"
+  "physical_validation": "NOT_RUN",
+  "cluster_bootstrap_config": {
+    "confidence_level": 0.95,
+    "bootstrap_replicates": 2000,
+    "minimum_independent_site_clusters": 10,
+    "seed": 20261113
+  }
 }
