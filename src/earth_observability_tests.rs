@@ -5,14 +5,13 @@
 //! These fixtures are abstract and synthetic; they do not qualify field data.
 
 use sol_atlas_core::earth_observability::{
-    ChangeDisposition, ChangeEvidence, ChallengeManifest, DetectionQualification,
-    EvaluationSplit, EvidenceState, FibreGeolocationDisposition, FibreRouteCalibration,
-    InterpretationClaim, InterpretationComparison, NonDetectionDisposition, SpatialFrame,
-    SpatialValidationError, SurveyActionEligibility, TransformReceipt,
-    TransformValidationError, classify_change, classify_non_detection,
-    compare_interpretations, qualify_fibre_geolocation, survey_action_is_eligible,
-    validate_challenge_manifest, validate_evaluation_split, validate_spatial_observation,
-    validate_transform_receipt,
+    ChallengeManifest, ChangeDisposition, ChangeEvidence, DetectionQualification, EvaluationSplit,
+    EvidenceState, FibreGeolocationDisposition, FibreRouteCalibration, InterpretationClaim,
+    InterpretationComparison, NonDetectionDisposition, SpatialFrame, SpatialValidationError,
+    SurveyActionEligibility, TransformReceipt, TransformValidationError, classify_change,
+    classify_non_detection, compare_interpretations, qualify_fibre_geolocation,
+    survey_action_is_eligible, validate_challenge_manifest, validate_evaluation_split,
+    validate_spatial_observation, validate_transform_receipt,
 };
 
 const CASE_MANIFEST: &str =
@@ -45,7 +44,11 @@ fn challenge_manifest_rejects_duplicate_case_ids() {
         serde_json::from_str(CASE_MANIFEST).expect("challenge manifest must parse");
     manifest.cases[1].case_id = manifest.cases[0].case_id.clone();
     let errors = validate_challenge_manifest(&manifest).expect_err("duplicate must fail");
-    assert!(errors.iter().any(|error| error.contains("duplicate case_id")));
+    assert!(
+        errors
+            .iter()
+            .any(|error| error.contains("duplicate case_id"))
+    );
 }
 
 #[test]
@@ -60,12 +63,7 @@ fn challenge_manifest_cannot_be_promoted_to_generated_measurements() {
 fn coordinate_axis_order_must_match_declared_frame() {
     let frame = local_frame();
     let swapped = vec!["north".to_string(), "east".to_string()];
-    let errors = validate_spatial_observation(
-        &frame,
-        &frame.frame_id,
-        &swapped,
-        false,
-    );
+    let errors = validate_spatial_observation(&frame, &frame.frame_id, &swapped, false);
     assert!(errors.contains(&SpatialValidationError::AxisOrderMismatch));
 }
 
@@ -95,10 +93,14 @@ fn coordinate_transform_must_bind_exact_frames_and_digests() {
 
     let mut bad_digest = receipt.clone();
     bad_digest.operation_sha256 = "not-a-digest".to_string();
-    assert!(validate_transform_receipt(&bad_digest, "frame-a", "frame-b")
-        .contains(&TransformValidationError::InvalidOperationDigest));
-    assert!(validate_transform_receipt(&receipt, "frame-x", "frame-b")
-        .contains(&TransformValidationError::FrameIdentityMismatch));
+    assert!(
+        validate_transform_receipt(&bad_digest, "frame-a", "frame-b")
+            .contains(&TransformValidationError::InvalidOperationDigest)
+    );
+    assert!(
+        validate_transform_receipt(&receipt, "frame-x", "frame-b")
+            .contains(&TransformValidationError::FrameIdentityMismatch)
+    );
 }
 
 #[test]
