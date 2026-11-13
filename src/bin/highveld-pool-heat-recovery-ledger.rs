@@ -300,6 +300,32 @@ mod tests {
     }
 
     #[test]
+    fn pool_recovery_is_disabled_when_there_is_no_heating_demand() {
+        let mut case = sample();
+        case["heat_disposition"]["pool_heating_demand_kwh"] = json!(0.0);
+        case["heat_disposition"]["pool_heat_recovered_kwh"] = json!(0.0);
+        case["heat_disposition"]["fallback_heat_rejected_kwh"] = json!(12.5);
+        let report = audit(&case).unwrap();
+        assert_eq!(report["audit_state"], "POOL_HEAT_RECOVERY_LEDGER_PASS");
+        assert_eq!(report["pool_heat_recovered_kwh"], 0.0);
+    }
+
+    #[test]
+    fn undersized_fallback_sink_rejects_the_recovery_case() {
+        let mut case = sample();
+        case["heat_disposition"]["fallback_sink_capacity_kwh"] = json!(7.0);
+        let report = audit(&case).unwrap();
+        assert_eq!(report["audit_state"], "POOL_HEAT_RECOVERY_LEDGER_FAIL");
+        assert!(
+            report["violations"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|value| value == "fallback heat rejection exceeds qualified sink capacity")
+        );
+    }
+
+    #[test]
     fn missing_heater_meter_reference_blocks_displacement_claim() {
         let mut case = sample();
         case["evidence_refs"]["displaced_heater_meter_ref"] = Value::Null;
