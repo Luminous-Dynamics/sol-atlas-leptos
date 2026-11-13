@@ -104,6 +104,10 @@ Pending tests before production adapter admission:
 - test schema drift and version fallback against a recorded source contract;
 - authenticate source responses and preserve HTTP headers, request URL, retrieval time and raw response digest.
 
+## 5A. Linked AGS records and the AGS4 handoff
+
+A populated ags_log_url is a pointer to a separate geotechnical asset, not evidence that the index record itself contains a validated log. The next step is documented in [EARTH-OBSERVABILITY-AGS4-HANDOFF-001](EARTH_OBSERVABILITY_AGS4_HANDOFF_V0_1.md): a local Rust structural preflight followed by the official BGS AGS and BGS/NGDC validation checks, with the exact AGS file digest, byte length, dictionary, checker selection and response digest retained. The index's OGL terms are not automatically inherited by a linked AGS file.
+
 ## 6. Next integration steps
 
 **BGS-1 — Source contract:** capture the collection metadata, queryables, JSON schema and service-policy revision as versioned source-profile evidence.  
@@ -120,3 +124,4 @@ Pending tests before production adapter admission:
 - BGS APIs and fair-use policy: https://www.bgs.ac.uk/technologies/web-services/api/
 - BGS service acknowledgement and terms: https://www.bgs.ac.uk/technologies/web-services/api/
 - BGS data.gov.uk source metadata: https://www.data.gov.uk/dataset/58f48757-fbaf-4e61-af12-c80408aac894/single-onshore-borehole-index
+- BGS AGS4 validator handoff: https://agsapi.bgs.ac.uk/
