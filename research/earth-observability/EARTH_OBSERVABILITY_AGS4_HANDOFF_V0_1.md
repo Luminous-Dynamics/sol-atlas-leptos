@@ -63,7 +63,7 @@ It can read TRAN_AGS and map only the four currently documented BGS dictionary I
 
 This local parser **does not** validate the full AGS dictionary or standard rules, unit semantics, parent/child references, sample uniqueness, coordinate truth, project-specific required headings, geotechnical test results, depth consistency, geological interpretation, BGS/NGDC submission requirements or engineering safety. The basic BGS required-group presence check is only an early warning, not a BGS submission pass.
 
-The parser is deliberately a small Rust preflight, not an attempt to port the official AGS library into a second implementation that will drift. Run it from the repository root with cargo run --bin ags4_preflight -- path/to/file.ags. The command reports local structural checks and always labels official validation, rights authorization and physical qualification separately.
+The parser is deliberately a small Rust preflight, not an attempt to port the official AGS library into a second implementation that will drift. Run it from the repository root with cargo run --bin ags4_preflight -- path/to/file.ags. The CLI performs a bounded read of at most 50 MiB plus one byte before parsing, emits a JSON summary and always labels official validation, rights authorization and physical qualification separately. It does not compute the source digest; the later receipt-producing acquisition layer must hash the exact submitted bytes.
 
 ## 4. External validator receipt contract
 
