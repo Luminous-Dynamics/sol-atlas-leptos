@@ -177,7 +177,7 @@ fn invalid_change_uncertainty_is_rejected() {
         detection_threshold_sigma: 2.0,
     });
     assert_eq!(disposition, ChangeDisposition::InvalidEvidence);
-
+}
 
 #[test]
 fn conflicting_geological_interpretations_are_preserved() {
