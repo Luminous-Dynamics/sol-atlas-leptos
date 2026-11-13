@@ -119,3 +119,7 @@ jobs:
         run: cargo test --bin highveld-pool-heat-recovery-ledger
       - name: Execute pool heat-recovery conservation ledger
         run: cargo run --bin highveld-pool-heat-recovery-ledger -- --self-test
+      - name: Test pool passive regeneration ledger
+        run: cargo test --bin highveld-pool-passive-regeneration-ledger
+      - name: Execute pool passive regeneration ledger
+        run: cargo run --bin highveld-pool-passive-regeneration-ledger -- --self-test
