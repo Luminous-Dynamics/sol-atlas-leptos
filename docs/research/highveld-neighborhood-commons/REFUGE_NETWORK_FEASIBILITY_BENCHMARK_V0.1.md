@@ -215,3 +215,8 @@ The fair comparison for a future production implementation is:
 - Highveld's capacity-scaled path, including its fallback, on matched graph families.
 
 Acceptance requires exact result equivalence to the intended policy, disclosed fairness semantics, throughput and per-cohort distribution, and independent oracle verification. A faster solver that changes who receives the last discrete unit is a different policy, not an optimization.
+
+
+The aggregate feasibility report now exposes \`max_flow_evaluation_count\`, split into accessible-fill and general-fill counts, under the \`max_min_fairness_comparison\` object. These counts are algorithm-work measures; compare them alongside wall time and memory, and do not treat one synthetic graph as a general complexity proof.
+
+The equivalence tests also retain the original one-unit implementation as a test-only reference path. The scaled path's fast case batches only a tied minimum-ratio group with a common fairness denominator. It uses the exact one-step fallback where the group is heterogeneous or a full round is infeasible.
