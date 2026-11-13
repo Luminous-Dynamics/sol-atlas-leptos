@@ -1,0 +1,38 @@
+name: Repair Rust formatting on Earth Observability research branch
+
+on:
+  push:
+    branches:
+      - research/earth-observability-benchmark-v0-1
+
+permissions:
+  contents: write
+
+concurrency:
+  group: rustfmt-repair-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  rustfmt-repair:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+      - name: Install stable Rust formatter
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - name: Apply canonical Rust formatting
+        run: cargo fmt --all
+      - name: Commit formatting changes when needed
+        run: |
+          if git diff --quiet; then
+            echo "Rust formatting is already canonical."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -u
+          git commit -m "style(sol-atlas): apply rustfmt to Earth observability increment"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
