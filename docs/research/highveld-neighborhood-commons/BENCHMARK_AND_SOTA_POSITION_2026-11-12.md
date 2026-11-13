@@ -490,3 +490,35 @@ Sources:
 The pool passive-regeneration ledger is now a separate executable contract from the heat-pump pool recovery ledger. It tracks long-wave, sensible, evaporation, ground and isolated-HX heat rejection separately; a separate mass ledger accounts for make-up, rain, evaporation, withdrawal, leakage, backwash and overflow. Its synthetic case closes the thermal and water balances and requires a layer-resolved pool state or validated equivalent. No physical pool result or Johannesburg coefficient is claimed.
 
 A credible experiment should pair cover/shade schedules under identical weather, geometry and operating windows; instrument top/middle/bottom water temperatures, long-wave radiative boundary, wind, solar, evaporation/make-up and all heat-transfer loops; and close both thermal energy and water volume over a full multi-day / seasonal cycle. It must separately measure local outdoor comfort and occupied-zone outcomes—pool heat rejection alone does not prove building cooling.
+
+
+## 16. Local heat-action practice, cooling-centre evidence and the operational gap
+
+New South African evidence makes Gauteng a particularly appropriate first comparison context. A January 2026 scoping review and benchmarking exercise included 36 studies, 13 with Gauteng data, and identified practical heat-action-plan patterns: district-level activation thresholds (Victoria), graded activation with explicit departmental roles (Maharashtra), and low-cost cooling-camp models (Khyber Pakhtunkhwa). These are adaptable practices, not evidence that a specific Johannesburg refuge network has been validated.
+
+The 2026 World Bank report on Johannesburg and Ekurhuleni recommends greening under-provisioned neighbourhoods, stronger heat-health warning/awareness, cooling strategies for low-cost dwellings and public spaces, community cool spaces, occupational heat measures and reducing building cooling demand. Highveld should complement those city actions, not compete with or replace them.
+
+International siting research also shows why accessibility maps alone are not enough. A May 2025 geospatial framework applied to five U.S. cities reported only 32.2–50.7% of cooling centres within walking distance of the most vulnerable populations and 21.2–49.4% of residents with high energy burden having access in those study cities. Those percentages must not be transferred to Gauteng; they are a reason to measure local access with actual routes, accessibility, operating state and capacity.
+
+Evidence on cooling-centre health outcomes remains weak. A 2025 systematic review found six eligible studies and no conclusive direct measurement of health/wellbeing outcomes following cooling-centre use; identified barriers included accessibility, operating hours and public perceptions. Accordingly, a Highveld “refuge eligible” or “reachable” result is not a health-benefit claim. The field programme must measure indoor/outdoor thermal service and service continuity, and any health outcome work requires a separate ethics-approved, competent public-health protocol.
+
+Sources:
+- [Temperature-Related Health Impacts: A Scoping Review and Benchmarking Exercise to Inform a Heat Action Plan (Gauteng, 22 January 2026)](https://pmc.ncbi.nlm.nih.gov/articles/PMC12829453/)
+- [Urban heat in Johannesburg and Ekurhuleni: impacts and mitigation options (World Bank, 2026)](https://www.preventionweb.net/publication/documents-and-publications/urban-heat-johannesburg-and-ekurhuleni-impacts-and)
+- [Where to cool off: a geospatial framework for placement of cooling centers (May 2025)](https://www.ornl.gov/publication/where-cool-geospatial-framework-placement-cooling-centers)
+- [Public health effectiveness of cooling centres during periods of adverse hot weather: a systematic literature review (16 July 2025)](https://academic.oup.com/oocc/article/5/1/kgaf020/8203398)
+- [Passive radiative cooling in the built environment: A multi-scale review (November 2026)](https://www.sciencedirect.com/science/article/pii/S2213138826006764)
+- [ASHRAE Standards Addenda index — Standard 55-2023 addenda a/b dated 31 August 2026](https://www.ashrae.org/technical-resources/standards-and-guidelines/standards-addenda)
+
+### The next defensible performance comparison
+
+Against municipal/local practice, compare:
+1. District heat-action activation and existing community facilities as the baseline.
+2. Geographic access and route-network access as separate measures.
+3. Static site inventory vs time-specific qualified capacity after commitments.
+4. Last-known availability vs freshness-qualified availability.
+5. Aggregate accessible-first flow vs progressive max-min cohort service.
+6. Static coverage vs unmet-place-hours and accessible unmet-place-hours under the same heat/outage trace.
+7. Nominal refuge status vs independently measured occupied-zone thermal service, ventilation, water quality and safe operation.
+
+Targets: 0 false available-refuge claims from stale critical evidence; 0 double-counted capacity/water; 0 accessible demand allocated through unqualified routes; 100% traceability from site/route/source event to the evaluation event. These are proposed acceptance targets, not achieved results.
