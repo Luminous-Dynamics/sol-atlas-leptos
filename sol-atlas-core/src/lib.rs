@@ -13,6 +13,7 @@ pub mod confluence;
 pub mod constants;
 pub mod data;
 pub mod earth_observability;
+pub mod earth_observability_synthetic;
 pub mod economics;
 pub mod energy_trading;
 pub mod geo;
