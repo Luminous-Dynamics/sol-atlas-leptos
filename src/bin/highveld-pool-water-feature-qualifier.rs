@@ -13,6 +13,12 @@ const MICROCLIMATE_BENCHMARK: &str = include_str!(
 const MICROCLIMATE_SCHEMA: &str = include_str!(
     "../../docs/research/highveld-neighborhood-commons/POOL_MICROCLIMATE_ATTRIBUTION_MANIFEST_V0.1.schema.json"
 );
+const THERMAL_EXERGY_CASE: &str = include_str!(
+    "../../docs/research/highveld-neighborhood-commons/POOL_THERMAL_EXERGY_CASE_V0.1.json"
+);
+const THERMAL_EXERGY_SCHEMA: &str = include_str!(
+    "../../docs/research/highveld-neighborhood-commons/POOL_THERMAL_EXERGY_CASE_V0.1.schema.json"
+);
 
 fn text_at<'a>(value: &'a Value, key: &str) -> Option<&'a str> {
     value
@@ -45,6 +51,10 @@ fn audit() -> Result<Value, Vec<String>> {
         .map_err(|e| vec![format!("pool microclimate manifest JSON parse failed: {e}")])?;
     let microclimate_schema: Value = serde_json::from_str(MICROCLIMATE_SCHEMA)
         .map_err(|e| vec![format!("pool microclimate schema JSON parse failed: {e}")])?;
+    let exergy_case: Value = serde_json::from_str(THERMAL_EXERGY_CASE)
+        .map_err(|e| vec![format!("pool thermal exergy case JSON parse failed: {e}")])?;
+    let exergy_schema: Value = serde_json::from_str(THERMAL_EXERGY_SCHEMA)
+        .map_err(|e| vec![format!("pool thermal exergy schema JSON parse failed: {e}")])?;
     let mut errors = Vec::new();
 
     if text_at(&schema, "$schema") != Some("https://json-schema.org/draft/2020-12/schema") {
@@ -54,6 +64,50 @@ fn audit() -> Result<Value, Vec<String>> {
         != Some("https://json-schema.org/draft/2020-12/schema")
     {
         errors.push("pool microclimate schema must declare JSON Schema Draft 2020-12".to_owned());
+    }
+    if text_at(&exergy_schema, "$schema")
+        != Some("https://json-schema.org/draft/2020-12/schema")
+    {
+        errors.push("pool thermal exergy schema must declare JSON Schema Draft 2020-12".to_owned());
+    }
+    for (key, expected) in [
+        ("study_id", "HIGHVELD-POOL-THERMAL-EXERGY-001"),
+        ("parent_study", "HIGHVELD-POOL-PASSIVE-REGENERATION-LEDGER-001"),
+        ("maturity", "SYNTHETIC_KNOWN_ANSWER"),
+        ("execution_status", "NO_PHYSICAL_SIMULATION"),
+    ] {
+        if text_at(&exergy_case, key) != Some(expected) {
+            errors.push(format!("pool thermal exergy {key} must be {expected}"));
+        }
+    }
+    let exergy_intervals = array_at(&exergy_case, "intervals")
+        .cloned()
+        .unwrap_or_default();
+    if exergy_intervals.len() != 3 {
+        errors.push("pool thermal exergy sidecar must preserve three interval controls".to_owned());
+    }
+    for interval in &exergy_intervals {
+        let layers = array_at(interval, "layers").cloned().unwrap_or_default();
+        if layers.len() != 3 || !unique_ids(&layers) {
+            errors.push(format!(
+                "{}: three unique water layers are required for exergy",
+                text_at(interval, "interval_id").unwrap_or("<missing-interval-id>")
+            ));
+        }
+        if text_at(interval, "environmental_reference_method_ref").is_none()
+            || text_at(interval, "layer_state_evidence_ref").is_none()
+            || text_at(interval, "uncertainty_evidence_ref").is_none()
+        {
+            errors.push(format!(
+                "{}: exergy reference, layer state and uncertainty evidence are required",
+                text_at(interval, "interval_id").unwrap_or("<missing-interval-id>")
+            ));
+        }
+    }
+    if text_at(&exergy_case["property_model"], "specific_heat_method_ref").is_none()
+        || text_at(&exergy_case["property_model"], "density_method_ref").is_none()
+    {
+        errors.push("temperature-grade calculation requires explicit water property methods".to_owned());
     }
     for (key, expected) in [
         ("study_id", "HIGHVELD-POOL-MICROCLIMATE-ATTRIBUTION-001"),
@@ -352,6 +406,9 @@ fn audit() -> Result<Value, Vec<String>> {
         "microclimate_spatial_station_count":micro_stations.len(),
         "microclimate_measurement_height_count":micro_heights.len(),
         "microclimate_execution_status":"NOT_EXECUTED",
+        "thermal_exergy_study_id":"HIGHVELD-POOL-THERMAL-EXERGY-001",
+        "thermal_exergy_interval_count":exergy_intervals.len(),
+        "thermal_exergy_claim_ceiling":"LAYER_RESOLVED_TEMPERATURE_GRADE_AND_IDEALIZED_HEADROOM_ONLY",
         "execution_status":"NOT_EXECUTED",
         "schema_engine":"NOT_RUN; schema declaration and manifest invariants checked by this Rust qualifier",
         "claim_ceiling":"Design and benchmark registration only; no water feature or cooling performance admitted"
@@ -404,6 +461,16 @@ mod tests {
         assert_eq!(report["microclimate_spatial_station_count"], 6);
         assert_eq!(report["microclimate_measurement_height_count"], 4);
         assert_eq!(report["microclimate_execution_status"], "NOT_EXECUTED");
+    }
+
+    #[test]
+    fn thermal_exergy_sidecar_requires_layer_resolved_property_and_reference_evidence() {
+        let report = audit().expect("pool thermal exergy structural contract");
+        assert_eq!(report["thermal_exergy_interval_count"], 3);
+        assert_eq!(
+            report["thermal_exergy_claim_ceiling"],
+            "LAYER_RESOLVED_TEMPERATURE_GRADE_AND_IDEALIZED_HEADROOM_ONLY"
+        );
     }
 
     #[test]
