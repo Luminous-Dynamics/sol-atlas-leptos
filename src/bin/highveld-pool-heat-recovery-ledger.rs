@@ -370,6 +370,7 @@ mod tests {
         case["heat_disposition"]["pool_heating_demand_kwh"] = json!(0.0);
         case["heat_disposition"]["pool_heat_recovered_kwh"] = json!(0.0);
         case["heat_disposition"]["fallback_heat_rejected_kwh"] = json!(12.5);
+        case["heat_disposition"]["fallback_sink_capacity_kwh"] = json!(13.0);
         let report = audit(&case).unwrap();
         assert_eq!(report["audit_state"], "POOL_HEAT_RECOVERY_LEDGER_PASS");
         assert_eq!(report["pool_heat_recovered_kwh"], 0.0);
