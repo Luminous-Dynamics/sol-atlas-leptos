@@ -1,0 +1,120 @@
+{
+  "schema_version": "0.1",
+  "study_id": "HIGHVELD-POOL-THERMAL-EXERGY-001",
+  "case_id": "SYNTHETIC_LAYERED_POOL_EXERGY_001",
+  "parent_study": "HIGHVELD-POOL-PASSIVE-REGENERATION-LEDGER-001",
+  "parent_case_ref": "POOL_PASSIVE_REGENERATION_CASE_V0.1.json",
+  "maturity": "SYNTHETIC_KNOWN_ANSWER",
+  "execution_status": "NO_PHYSICAL_SIMULATION",
+  "property_model": {
+    "specific_heat_kj_kg_k": 4.18,
+    "specific_heat_method_ref": "SYNTHETIC_CONSTANT_CP_SCREENING_METHOD_001",
+    "water_density_kg_l": 0.997,
+    "density_method_ref": "SYNTHETIC_WATER_DENSITY_SCREENING_METHOD_001",
+    "property_uncertainty_u95_kwh": 0.01,
+    "property_evidence_ref": "SYNTHETIC_WATER_PROPERTY_EVIDENCE_001"
+  },
+  "maximum_permitted_temperature_c": 28,
+  "temperature_limit_authority_ref": "SYNTHETIC_POOL_OWNER_LIMIT_001",
+  "intervals": [
+    {
+      "interval_id": "P001",
+      "environmental_reference_temperature_c": 32,
+      "environmental_reference_method_ref": "SYNTHETIC_OUTDOOR_AIR_REFERENCE_P001",
+      "water_volume_start_l": 50000,
+      "water_volume_end_l": 49997,
+      "layers": [
+        {
+          "layer_id": "TOP",
+          "mass_fraction_start": 0.2,
+          "mass_fraction_end": 0.2,
+          "temperature_start_c": 25.1,
+          "temperature_end_c": 25.3
+        },
+        {
+          "layer_id": "MID",
+          "mass_fraction_start": 0.4,
+          "mass_fraction_end": 0.4,
+          "temperature_start_c": 25,
+          "temperature_end_c": 25.2
+        },
+        {
+          "layer_id": "BOTTOM",
+          "mass_fraction_start": 0.4,
+          "mass_fraction_end": 0.4,
+          "temperature_start_c": 24.9,
+          "temperature_end_c": 25.1
+        }
+      ],
+      "layer_state_evidence_ref": "SYNTHETIC_LAYER_STATE_P001",
+      "exergy_uncertainty_u95_kwh": 0.02,
+      "uncertainty_evidence_ref": "SYNTHETIC_EXERGY_UNCERTAINTY_P001"
+    },
+    {
+      "interval_id": "P002",
+      "environmental_reference_temperature_c": 35,
+      "environmental_reference_method_ref": "SYNTHETIC_OUTDOOR_AIR_REFERENCE_P002",
+      "water_volume_start_l": 49997,
+      "water_volume_end_l": 49996.9,
+      "layers": [
+        {
+          "layer_id": "TOP",
+          "mass_fraction_start": 0.2,
+          "mass_fraction_end": 0.2,
+          "temperature_start_c": 25.3,
+          "temperature_end_c": 25.3
+        },
+        {
+          "layer_id": "MID",
+          "mass_fraction_start": 0.4,
+          "mass_fraction_end": 0.4,
+          "temperature_start_c": 25.2,
+          "temperature_end_c": 25.2
+        },
+        {
+          "layer_id": "BOTTOM",
+          "mass_fraction_start": 0.4,
+          "mass_fraction_end": 0.4,
+          "temperature_start_c": 25.1,
+          "temperature_end_c": 25.1
+        }
+      ],
+      "layer_state_evidence_ref": "SYNTHETIC_LAYER_STATE_P002",
+      "exergy_uncertainty_u95_kwh": 0.02,
+      "uncertainty_evidence_ref": "SYNTHETIC_EXERGY_UNCERTAINTY_P002"
+    },
+    {
+      "interval_id": "P003",
+      "environmental_reference_temperature_c": 20,
+      "environmental_reference_method_ref": "SYNTHETIC_OUTDOOR_AIR_REFERENCE_P003",
+      "water_volume_start_l": 49996.9,
+      "water_volume_end_l": 49995.9,
+      "layers": [
+        {
+          "layer_id": "TOP",
+          "mass_fraction_start": 0.2,
+          "mass_fraction_end": 0.2,
+          "temperature_start_c": 25.3,
+          "temperature_end_c": 25.1
+        },
+        {
+          "layer_id": "MID",
+          "mass_fraction_start": 0.4,
+          "mass_fraction_end": 0.4,
+          "temperature_start_c": 25.2,
+          "temperature_end_c": 25
+        },
+        {
+          "layer_id": "BOTTOM",
+          "mass_fraction_start": 0.4,
+          "mass_fraction_end": 0.4,
+          "temperature_start_c": 25.1,
+          "temperature_end_c": 24.9
+        }
+      ],
+      "layer_state_evidence_ref": "SYNTHETIC_LAYER_STATE_P003",
+      "exergy_uncertainty_u95_kwh": 0.02,
+      "uncertainty_evidence_ref": "SYNTHETIC_EXERGY_UNCERTAINTY_P003"
+    }
+  ]
+}
