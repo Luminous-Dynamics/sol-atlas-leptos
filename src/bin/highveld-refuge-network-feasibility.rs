@@ -291,7 +291,9 @@ fn number_at(value: &Value, key: &str) -> Option<f64> {
 }
 
 fn freshness_issue(value: &Value, field: &str) -> Option<String> {
-    let record = value.get(field)?;
+    let Some(record) = value.get(field) else {
+        return Some(format!("MISSING_FRESHNESS_{field}"));
+    };
     let source_event_id = text_at(record, "source_event_id");
     let policy_ref = text_at(record, "max_age_policy_ref");
     let age = number_at(record, "age_elapsed_s");
@@ -1644,13 +1646,39 @@ mod tests {
 
     #[test]
     fn stale_route_in_temporal_snapshot_increases_service_debt() {
+        let baseline_case: Value =
+            serde_json::from_str(TIME_SERIES_CASE).expect("temporal baseline JSON");
+        let baseline =
+            evaluate_time_series(&baseline_case).expect("fresh temporal baseline evaluates");
         let mut case: Value =
             serde_json::from_str(TIME_SERIES_CASE).expect("temporal case JSON");
         case["time_slices"][1]["snapshot"]["routes"][0]["route_freshness"]["age_elapsed_s"] =
             json!(301.0);
         let report = evaluate_time_series(&case).expect("stale route contributes service debt");
-        assert!(report["total_unmet_place_hours"].as_f64().unwrap() > 0.0);
+        assert!(
+            report["total_unmet_place_hours"].as_f64().unwrap()
+                > baseline["total_unmet_place_hours"].as_f64().unwrap()
+        );
         assert_eq!(report["native_event_time_owner"], "SYMTROPY");
+    }
+
+    #[test]
+    fn missing_site_freshness_is_not_treated_as_fresh() {
+        let mut case = sample();
+        case["sites"][0].as_object_mut().unwrap().remove("capacity_freshness");
+        let report = evaluate_snapshot(&case).expect("missing freshness excludes site");
+        let site = report["site_capacity_evidence"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|site| site["site_id"] == "SYNTHETIC_POD_1")
+            .unwrap();
+        assert_eq!(site["site_eligibility"], "EXCLUDED");
+        assert!(site["reasons"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|reason| reason == "MISSING_FRESHNESS_capacity_freshness"));
     }
 
     #[test]
