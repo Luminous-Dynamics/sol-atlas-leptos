@@ -132,6 +132,12 @@ The first pinned baseline run uses a two-transect abstract fixture, 6 sparse tra
 
 This intentionally creates a transfer shift between the two abstract transects. The three borehole-only baselines all cover every target position but carry systematic transfer error on the shifted site; IDW(p=2) and piecewise linear are close, while nearest-neighbour is worse. The local proxy has lower error where it exists but correctly abstains in five unobserved positions. This is a software-harness demonstration of the coverage/error/abstention trade-off—not evidence that one physical sensor modality is more accurate, not a published SOTA comparison, and not a geological field result. The proxy values are scalar synthetic interface estimates, not GPR/ERT/seismic waveforms or a forward simulation.
 
+## 6B. AGS4 and UKGEOS GGC01 source-specific benchmark lanes
+
+**AGS4 format and submission qualification:** use the official AGS 4.x checker and BGS/NGDC submission checker as authoritative comparators. The local Rust AGS4 preflight is a structural fast path only; it does not replace the official library or BGS rules. The receipt must bind the exact AGS file digest/size, explicit TRAN_AGS dictionary, BGS API version/endpoint, selected checkers, validator-library version, timestamp and response digest. Report three distinct outcomes: format/schema validation, BGS submission validation and physical/engineering qualification.
+
+**UKGEOS GGC01:** the 199 m, single-borehole final pack is a good candidate for core/wireline/MSCL-S/NIR/XRF/log/sample depth alignment and evidence lineage. It is not a multi-site geological model leaderboard. Hold out contiguous depth blocks with buffer gaps; use genuinely independent channels for evaluation; a source depth-integration product derived from the same channels is not independent truth. No GGC01 source files have been admitted yet. Its NGDC final-pack record specifies OGL with a NERC acknowledgement; the data.gov.uk harvest's missing licence field must remain visible in the source receipt.
+
 ## 7. Cross-domain transfer and adversarial robustness
 
 Minimum holdouts:
