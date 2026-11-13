@@ -11,6 +11,9 @@ const TIME_SERIES_CASE: &str = include_str!(
 const SCHEMA: &str = include_str!(
     "../../docs/research/highveld-neighborhood-commons/REFUGE_NETWORK_FEASIBILITY_CASE_V0.1.schema.json"
 );
+const TIME_SERIES_SCHEMA: &str = include_str!(
+    "../../docs/research/highveld-neighborhood-commons/REFUGE_SUPPLY_DEMAND_DEGRADATION_CASE_V0.1.schema.json"
+);
 
 #[derive(Clone)]
 struct Edge {
@@ -779,6 +782,29 @@ fn evaluate_snapshot(case: &Value) -> Result<Value, Vec<String>> {
 
 fn evaluate_time_series(case: &Value) -> Result<Value, Vec<String>> {
     let mut errors = Vec::new();
+    let time_series_schema: Value = serde_json::from_str(TIME_SERIES_SCHEMA)
+        .map_err(|error| vec![format!("time-series schema JSON parse failed: {error}")])?;
+    if text_at(&time_series_schema, "$schema")
+        != Some("https://json-schema.org/draft/2020-12/schema")
+    {
+        errors.push("time-series schema must declare JSON Schema Draft 2020-12".to_owned());
+    }
+    let cohort_schema = &time_series_schema["properties"]["time_slices"]["items"]
+        ["properties"]["snapshot"]["properties"]["cohorts"]["items"];
+    let cohort_required = cohort_schema["required"].as_array();
+    let cohort_properties = &cohort_schema["properties"];
+    if !cohort_required.is_some_and(|fields| {
+        fields
+            .iter()
+            .any(|field| field.as_str() == Some("fairness_tie_break_rank"))
+    }) || cohort_properties["fairness_tie_break_rank"]["type"] != "integer"
+        || cohort_properties["fairness_tie_break_rank"]["minimum"] != 1
+    {
+        errors.push(
+            "time-series schema must require a positive integer fairness_tie_break_rank"
+                .to_owned(),
+        );
+    }
     for (key, expected) in [
         ("study_id", "HIGHVELD-REFUGE-SUPPLY-DEMAND-DEGRADATION-001"),
         ("maturity", "SYNTHETIC_KNOWN_ANSWER"),
@@ -1321,6 +1347,45 @@ mod tests {
             .unwrap()
             .pop();
         assert!(evaluate_time_series(&case).is_err());
+    }
+
+    #[test]
+    fn temporal_schema_binds_owner_tie_break_rank() {
+        let schema: Value =
+            serde_json::from_str(TIME_SERIES_SCHEMA).expect("time-series schema JSON");
+        let cohort = &schema["properties"]["time_slices"]["items"]["properties"]["snapshot"]
+            ["properties"]["cohorts"]["items"];
+        assert!(cohort["required"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|field| field == "fairness_tie_break_rank"));
+        assert_eq!(
+            cohort["properties"]["fairness_tie_break_rank"]["type"],
+            "integer"
+        );
+        assert_eq!(
+            cohort["properties"]["fairness_tie_break_rank"]["minimum"],
+            1
+        );
+    }
+
+    #[test]
+    fn temporal_schema_without_rank_fails_closed() {
+        let mut schema: Value =
+            serde_json::from_str(TIME_SERIES_SCHEMA).expect("time-series schema JSON");
+        schema["properties"]["time_slices"]["items"]["properties"]["snapshot"]["properties"]
+            ["cohorts"]["items"]["required"] = json!([
+                "cohort_id",
+                "total_places_requested",
+                "accessible_places_requested",
+                "maximum_route_travel_time_s"
+            ]);
+        let required = schema["properties"]["time_slices"]["items"]["properties"]["snapshot"]
+            ["properties"]["cohorts"]["items"]["required"]
+            .as_array()
+            .unwrap();
+        assert!(!required.iter().any(|field| field == "fairness_tie_break_rank"));
     }
 
     #[test]
