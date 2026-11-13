@@ -6,10 +6,13 @@
 
 use sol_atlas_core::earth_observability::{
     ChangeDisposition, ChangeEvidence, ChallengeManifest, DetectionQualification,
-    EvaluationSplit, NonDetectionDisposition, SpatialFrame, SpatialValidationError,
-    SurveyActionEligibility, TransformReceipt, TransformValidationError, classify_change,
-    classify_non_detection, survey_action_is_eligible, validate_challenge_manifest,
-    validate_evaluation_split, validate_spatial_observation, validate_transform_receipt,
+    EvaluationSplit, EvidenceState, FibreGeolocationDisposition, FibreRouteCalibration,
+    InterpretationClaim, InterpretationComparison, NonDetectionDisposition, SpatialFrame,
+    SpatialValidationError, SurveyActionEligibility, TransformReceipt,
+    TransformValidationError, classify_change, classify_non_detection,
+    compare_interpretations, qualify_fibre_geolocation, survey_action_is_eligible,
+    validate_challenge_manifest, validate_evaluation_split, validate_spatial_observation,
+    validate_transform_receipt,
 };
 
 const CASE_MANIFEST: &str =
@@ -174,4 +177,135 @@ fn invalid_change_uncertainty_is_rejected() {
         detection_threshold_sigma: 2.0,
     });
     assert_eq!(disposition, ChangeDisposition::InvalidEvidence);
+
+
+#[test]
+fn conflicting_geological_interpretations_are_preserved() {
+    let claims = vec![
+        InterpretationClaim {
+            claim_id: "claim-a".to_string(),
+            source_id: "ert-interpretation".to_string(),
+            support_id: "section-17".to_string(),
+            value: "clay-rich-unit".to_string(),
+        },
+        InterpretationClaim {
+            claim_id: "claim-b".to_string(),
+            source_id: "borehole-interpretation".to_string(),
+            support_id: "section-17".to_string(),
+            value: "sandy-gravel-unit".to_string(),
+        },
+    ];
+    assert_eq!(
+        compare_interpretations(&claims),
+        InterpretationComparison::Conflicted
+    );
+}
+
+#[test]
+fn interpretations_on_different_spatial_supports_are_not_comparable() {
+    let claims = vec![
+        InterpretationClaim {
+            claim_id: "claim-a".to_string(),
+            source_id: "geological-map".to_string(),
+            support_id: "map-sheet-1".to_string(),
+            value: "unit-a".to_string(),
+        },
+        InterpretationClaim {
+            claim_id: "claim-b".to_string(),
+            source_id: "borehole".to_string(),
+            support_id: "borehole-interval-4".to_string(),
+            value: "unit-a".to_string(),
+        },
+    ];
+    assert_eq!(
+        compare_interpretations(&claims),
+        InterpretationComparison::IncomparableSupport
+    );
+}
+
+#[test]
+fn das_chainage_without_route_calibration_is_not_a_geographic_fix() {
+    assert_eq!(
+        qualify_fibre_geolocation(120.0, None),
+        FibreGeolocationDisposition::FibreChainageOnly
+    );
+}
+
+#[test]
+fn fibre_route_calibration_must_be_valid_and_cover_chainage() {
+    let valid = FibreRouteCalibration {
+        calibration_id: "route-cal-v1".to_string(),
+        route_geometry_sha256: "c".repeat(64),
+        valid_chainage_min_m: 0.0,
+        valid_chainage_max_m: 5000.0,
+        horizontal_position_sigma_m: 0.35,
+    };
+    assert_eq!(
+        qualify_fibre_geolocation(120.0, Some(&valid)),
+        FibreGeolocationDisposition::GeographicProjectionEligible
+    );
+    assert_eq!(
+        qualify_fibre_geolocation(5200.0, Some(&valid)),
+        FibreGeolocationDisposition::OutsideCalibratedRoute
+    );
+
+    let mut invalid = valid.clone();
+    invalid.route_geometry_sha256 = "not-a-digest".to_string();
+    assert_eq!(
+        qualify_fibre_geolocation(120.0, Some(&invalid)),
+        FibreGeolocationDisposition::Unqualified
+    );
+}
+
+#[test]
+fn invalid_detection_probability_cannot_support_absence() {
+    let disposition = classify_non_detection(DetectionQualification {
+        footprint_covers_target: true,
+        calibration_valid: true,
+        target_in_validated_domain: true,
+        probability_of_detection: None,
+        minimum_required_probability: 0.90,
+    });
+    assert_eq!(disposition, NonDetectionDisposition::Unqualified);
+}
+
+#[test]
+fn fully_authorized_survey_action_passes_hard_gates() {
+    let eligibility = SurveyActionEligibility {
+        land_access_authorized: true,
+        method_authorized: true,
+        required_permits_satisfied: true,
+        custodial_review_required: true,
+        custodial_review_completed: true,
+    };
+    assert!(survey_action_is_eligible(eligibility));
+}
+
+#[test]
+fn evidence_availability_states_serialize_distinctly() {
+    let unknown = serde_json::to_string(&EvidenceState::Unknown).unwrap();
+    let unobserved = serde_json::to_string(&EvidenceState::Unobserved).unwrap();
+    let stale = serde_json::to_string(&EvidenceState::Stale).unwrap();
+    let superseded = serde_json::to_string(&EvidenceState::Superseded).unwrap();
+    assert_eq!(unknown, "\"unknown\"");
+    assert_eq!(unobserved, "\"unobserved\"");
+    assert_eq!(stale, "\"stale\"");
+    assert_eq!(superseded, "\"superseded\"");
+    assert_ne!(unknown, unobserved);
+    assert_ne!(stale, superseded);
+}
+
+#[test]
+fn duplicate_coordinate_grid_resources_are_rejected() {
+    let receipt = TransformReceipt {
+        source_frame_id: "frame-a".to_string(),
+        target_frame_id: "frame-b".to_string(),
+        operation_id: "synthetic-transform-v1".to_string(),
+        operation_sha256: "a".repeat(64),
+        grid_resource_sha256: vec!["b".repeat(64), "b".repeat(64)],
+    };
+    assert!(validate_transform_receipt(&receipt, "frame-a", "frame-b")
+        .contains(&TransformValidationError::DuplicateGridDigest));
+}
+
 }
