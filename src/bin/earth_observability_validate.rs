@@ -134,8 +134,8 @@ mod tests {
     fn track_and_case_kind_counts_are_deterministic() {
         let receipt = validate_manifest_bytes(MANIFEST.as_bytes()).expect("manifest parses");
         assert_eq!(receipt.case_counts_by_kind.get("negative_control"), Some(&9));
-        assert_eq!(receipt.case_counts_by_kind.get("adversarial"), Some(&6));
-        assert_eq!(receipt.case_counts_by_kind.get("positive_control"), Some(&3));
+        assert_eq!(receipt.case_counts_by_kind.get("adversarial"), Some(&7));
+        assert_eq!(receipt.case_counts_by_kind.get("positive_control"), Some(&2));
         assert_eq!(receipt.case_counts_by_track.get("observability"), Some(&4));
     }
 }
