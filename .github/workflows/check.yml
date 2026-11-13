@@ -66,6 +66,6 @@ jobs:
       # `cargo test --lib` fails with "no library targets found".
       - run: cargo test --bin sol-atlas-leptos
       - name: Test Earth observability manifest validator
-        run: cargo test --bin earth-observability-validate
+        run: cargo test --bin earth_observability_validate
       - name: Emit Earth observability contract receipt
-        run: cargo run --bin earth-observability-validate -- research/earth-observability/earth-observability-case-manifest-v0.1.json
+        run: cargo run --bin earth_observability_validate -- research/earth-observability/earth-observability-case-manifest-v0.1.json
