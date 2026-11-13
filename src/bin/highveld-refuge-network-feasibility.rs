@@ -231,9 +231,7 @@ fn progressive_max_min_flow(
             let candidate_demands: Vec<(String, u64)> = demands
                 .iter()
                 .enumerate()
-                .map(|(candidate_index, (id, _))| {
-                    (id.clone(), targets[candidate_index])
-                })
+                .map(|(candidate_index, (id, _))| (id.clone(), targets[candidate_index]))
                 .collect();
 
             if run_flow(&candidate_demands, sites, links).total == required_flow {
@@ -344,7 +342,9 @@ fn evaluate_snapshot(case: &Value) -> Result<Value, Vec<String>> {
                 cohort_tie_break_ranks.push(rank);
             }
             Some(_) => errors.push(format!("{id}: duplicate fairness tie-break rank")),
-            None => errors.push(format!("{id}: fairness_tie_break_rank is missing or invalid")),
+            None => errors.push(format!(
+                "{id}: fairness_tie_break_rank is missing or invalid"
+            )),
         }
         total_requested += total;
         accessible_requested += accessible;
@@ -652,8 +652,7 @@ fn evaluate_snapshot(case: &Value) -> Result<Value, Vec<String>> {
         })
         .collect();
     let general_fair_baseline = accessible_fair_flow.served_by_cohort.clone();
-    let general_fair_totals: Vec<u64> =
-        cohort_data.iter().map(|(_, total, _, _)| *total).collect();
+    let general_fair_totals: Vec<u64> = cohort_data.iter().map(|(_, total, _, _)| *total).collect();
     let general_fair_flow = progressive_max_min_flow(
         &general_demands,
         &fair_residual_sites,
@@ -868,12 +867,9 @@ fn evaluate_time_series(case: &Value) -> Result<Value, Vec<String>> {
                 let served = uint_at(cohort, "total_places_feasible").unwrap_or(0);
                 let accessible_requested =
                     uint_at(cohort, "accessible_places_requested").unwrap_or(0);
-                let accessible_served =
-                    uint_at(cohort, "accessible_places_feasible").unwrap_or(0);
-                let general_requested =
-                    uint_at(cohort, "general_places_requested").unwrap_or(0);
-                let general_served =
-                    uint_at(cohort, "general_places_feasible").unwrap_or(0);
+                let accessible_served = uint_at(cohort, "accessible_places_feasible").unwrap_or(0);
+                let general_requested = uint_at(cohort, "general_places_requested").unwrap_or(0);
+                let general_served = uint_at(cohort, "general_places_feasible").unwrap_or(0);
                 let unmet = requested.saturating_sub(served);
                 let accessible_unmet = accessible_requested.saturating_sub(accessible_served);
                 let general_unmet = general_requested.saturating_sub(general_served);
@@ -994,12 +990,16 @@ fn evaluate_time_series(case: &Value) -> Result<Value, Vec<String>> {
     let worst_service_debt = cohort_service_debt
         .iter()
         .max_by(|left, right| {
-            left.1.unmet_place_hours.total_cmp(&right.1.unmet_place_hours)
+            left.1
+                .unmet_place_hours
+                .total_cmp(&right.1.unmet_place_hours)
         })
-        .map(|(cohort_id, debt)| json!({
-            "cohort_id":cohort_id,
-            "unmet_place_hours":debt.unmet_place_hours
-        }))
+        .map(|(cohort_id, debt)| {
+            json!({
+                "cohort_id":cohort_id,
+                "unmet_place_hours":debt.unmet_place_hours
+            })
+        })
         .unwrap_or(Value::Null);
     let summed_cohort_debt: f64 = cohort_service_debt
         .values()
@@ -1109,10 +1109,7 @@ mod tests {
     fn temporal_service_debt_conserves_place_hours_by_cohort() {
         let case: Value = serde_json::from_str(TIME_SERIES_CASE).expect("temporal case JSON");
         let report = evaluate_time_series(&case).expect("temporal case must evaluate");
-        assert_eq!(
-            report["cohort_debt_matches_total_unmet_place_hours"],
-            true
-        );
+        assert_eq!(report["cohort_debt_matches_total_unmet_place_hours"], true);
         assert_eq!(report["accessible_cohort_debt_matches_total"], true);
         let rows = report["cohort_cumulative_service_debt"]
             .as_array()
@@ -1227,7 +1224,10 @@ mod tests {
         assert!(evaluate(&case).is_err());
 
         let mut missing = sample();
-        missing["cohorts"][0].as_object_mut().unwrap().remove("fairness_tie_break_rank");
+        missing["cohorts"][0]
+            .as_object_mut()
+            .unwrap()
+            .remove("fairness_tie_break_rank");
         assert!(evaluate(&missing).is_err());
     }
 
