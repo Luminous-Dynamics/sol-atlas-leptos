@@ -15,7 +15,12 @@
     "property_model",
     "maximum_permitted_temperature_c",
     "temperature_limit_authority_ref",
-    "intervals"
+    "intervals",
+    "usable_thermal_energy_min_kwh",
+    "usable_thermal_energy_capacity_kwh",
+    "initial_thermal_energy_kwh",
+    "cycle_closure_required",
+    "cycle_closure_tolerance_u95_kwh"
   ],
   "properties": {
     "schema_version": {
@@ -101,7 +106,10 @@
           "layers",
           "layer_state_evidence_ref",
           "exergy_uncertainty_u95_kwh",
-          "uncertainty_evidence_ref"
+          "uncertainty_evidence_ref",
+          "thermal_energy_state_start_kwh",
+          "thermal_energy_state_end_kwh",
+          "thermal_energy_state_evidence_ref"
         ],
         "properties": {
           "interval_id": {
@@ -177,9 +185,40 @@
           "uncertainty_evidence_ref": {
             "type": "string",
             "minLength": 1
+          },
+          "thermal_energy_state_start_kwh": {
+            "type": "number",
+            "minimum": 0
+          },
+          "thermal_energy_state_end_kwh": {
+            "type": "number",
+            "minimum": 0
+          },
+          "thermal_energy_state_evidence_ref": {
+            "type": "string",
+            "minLength": 1
           }
         }
       }
+    },
+    "usable_thermal_energy_min_kwh": {
+      "type": "number",
+      "minimum": 0
+    },
+    "usable_thermal_energy_capacity_kwh": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "initial_thermal_energy_kwh": {
+      "type": "number",
+      "minimum": 0
+    },
+    "cycle_closure_required": {
+      "type": "boolean"
+    },
+    "cycle_closure_tolerance_u95_kwh": {
+      "type": "number",
+      "minimum": 0
     }
   }
 }
