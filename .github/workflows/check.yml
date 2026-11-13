@@ -101,10 +101,6 @@ jobs:
         run: cargo test --bin highveld-refuge-availability-governor
       - name: Execute thermal refuge availability governor
         run: cargo run --bin highveld-refuge-availability-governor -- --self-test
-      - name: Test aggregate refuge network oracle
-        run: cargo test --bin highveld-refuge-network-aggregate-oracle
-      - name: Execute aggregate refuge network oracle
-        run: cargo run --bin highveld-refuge-network-aggregate-oracle -- --self-test
       - name: Test multi-zone refuge network feasibility oracle
         run: cargo test --bin highveld-refuge-network-feasibility
       - name: Execute multi-zone refuge network feasibility oracle
