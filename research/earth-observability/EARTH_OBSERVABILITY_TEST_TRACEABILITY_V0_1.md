@@ -62,6 +62,25 @@ Source profile artifacts:
 
 The BGS OGC API is a beta service with a fair-use policy and is not intended for bulk downloading the entire collection. The public dataset page lists SOBI under OGL, but linked scans/AGS files remain separate assets and must be rights-qualified separately. The parser currently has no HTTP client and has not ingested live source data.
 
+## AGS4 structural and authoritative-validator handoff controls (supplemental)
+
+The branch adds a small offline AGS4 envelope parser and a receipt contract for the external BGS AGS File Utilities API. No real source AGS file has been submitted to BGS.
+
+| Supplemental control | Executable guard | Expected result | Coverage ceiling |
+|---|---|---|---|
+| AGS4-ENVELOPE-001 | `synthetic_ags4_file_parses_and_declares_version` | parse synthetic CRLF AGS file and retain 7 groups | Structural preflight only; no full dictionary validation |
+| AGS4-ROWS-001 | `header_order_is_enforced`, `data_rows_must_match_heading_width`, `duplicate_headings_are_rejected`, `empty_groups_are_rejected` | reject malformed group/header/data structure | Not a replacement for official AGS4 rules |
+| AGS4-QUOTING-001 | `parser_preserves_escaped_quotes_and_commas_inside_values`, `malformed_quotes_are_rejected` | preserve CSV-style quoting and escaped quotes | No semantic interpretation of cell values |
+| AGS4-NULL-001 | `parser_preserves_null_cells_as_empty_strings` | preserve empty cells | Empty string is not silently converted into zero or a physical absence |
+| AGS4-VERSION-001 | `declared_ags_version_maps_to_exact_dictionary_without_fallback`, `ambiguous_or_empty_transfer_version_is_not_defaulted` | map only 4.0.3/4.0.4/4.1/4.1.1; fail missing, ambiguous or short version | Does not prove that dictionary rules pass |
+| AGS4-BGS-GROUPS-001 | `missing_bgs_required_groups_are_reported_separately` | report BGS required-group presence gaps | Group presence only; not field-level BGS submission validation |
+| AGS4-RECEIPT-INPUT-001 | `validator_receipt_binds_file_digest_size_dictionary_and_both_checkers` | bind receipt to exact file digest, size, dictionary, API and both checkers | Contract only; does not authenticate remote origin or independently hash bytes |
+| AGS4-RECEIPT-NO-REUSE-001 | `validator_receipt_rejects_reuse_for_different_file_or_dictionary` | reject source/hash/size/dictionary mismatch | Caller must calculate and preserve original byte digest |
+| AGS4-RECEIPT-PIN-001 | `validator_receipt_requires_pinned_endpoint_checkers_and_response_digest` | reject API-version/endpoint/checker/response-digest mismatch | No HTTP/TLS or signature verification |
+| AGS4-RECEIPT-STATUS-001 | `validator_error_status_cannot_be_promoted_by_zeroed_local_assertions`, `warning_count_is_preserved_but_is_not_automatically_an_error` | preserve rejected status and separate warnings from errors | Policy on warnings must be use-case-specific; receipt does not prove engineering adequacy |
+
+The authoritative handoff is described in `research/earth-observability/EARTH_OBSERVABILITY_AGS4_HANDOFF_V0_1.md`. Official AGS and BGS/NGDC checks remain upstream; the Rust layer is a structural preflight and exact-input receipt consistency guard only.
+
 ## Additional rights and federation guards (supplemental to the 18 manifest cases)
 
 The Rust core now contains a fail-closed owner-grant predicate. These are additional unit-test controls, not extra rows in the frozen 18-case JSON manifest:
@@ -77,6 +96,17 @@ The Rust core now contains a fail-closed owner-grant predicate. These are additi
 | RIGHTS-RECEIPT-001 | `invalid_rights_receipt_digest_is_rejected` | reject malformed digest | Digest syntax only; Mycelix/custody must verify signature, issuer and revocation |
 
 The grant-gate contract and execution boundary are documented in [EARTH-OBSERVABILITY-FEDERATED-EVIDENCE-001](EARTH_OBSERVABILITY_FEDERATED_EVIDENCE_V0_1.md). This is a policy-consistency predicate over an upstream-qualified grant, not a legal interpreter, signature verifier or privacy-preserving execution environment.
+
+## UKGEOS GGC01 benchmark design (metadata only; no data ingested)
+
+A separate source profile and benchmark protocol were added for the UKGEOS Glasgow GGC01 final borehole pack:
+
+- `research/earth-observability/ukgeos-ggc01-source-profile-v0.1.json`
+- `research/earth-observability/EARTH_OBSERVABILITY_UKGEOS_GGC01_V0_1.md`
+
+The publisher/NGDC cited-data record identifies one 199 m borehole with core, MSCL-S, NIR/XRF, wireline/downhole logs, geological/engineering logs, images, samples and a core-wireline depth integration product. The exact NGDC final-pack record lists OGL with a NERC acknowledgement; the data.gov.uk harvest displays "Licence not set". Both source records are preserved and the package manifest/file-level notices must be checked before any asset admission.
+
+This is a within-borehole integration/registration case only. Contiguous depth-block holdouts and buffer gaps are required; one borehole cannot support site-to-site or regional generalization claims. No underlying files have been downloaded or ingested.
 
 ## Additional deterministic synthetic-profile fixture
 
@@ -119,6 +149,7 @@ The branch adds:
 
 - `sol-atlas-core/src/earth_observability.rs`: renderer-independent frame, non-detection, split, transform, survey-authority, change, interpretation-conflict, fibre-chainage and exact-source data-use grant predicates.
 - `sol-atlas-core/src/bgs_sobi.rs`: BGS SOBI OGC API FeatureCollection parser, CRS84 point validation, raw field preservation, index-length code handling, and unqualified related-artifact references.
+- `sol-atlas-core/src/ags_preflight.rs`: AGS4 structural preflight, exact dictionary mapping, BGS-required-group presence check and external validator receipt binding. It is not the official AGS/BGS validator.
 - `sol-atlas-core/src/earth_observability_synthetic.rs`: deterministic abstract profile generator and synthetic-profile tests.
 - `research/earth-observability/fixtures/earth-observability-profile-synthetic-v0.1.json`: pinned generated fixture.
 - `src/earth_observability_tests.rs`: root native tests run by the package's binary test target.
@@ -130,6 +161,9 @@ The branch adds:
 - `research/earth-observability/EARTH_OBSERVABILITY_BGS_SOBI_ADAPTER_V0_1.md`: BGS OGC API source profile, field semantics and acquisition limits.
 - `research/earth-observability/bgs-sobi-source-profile-v0.1.json`: machine-readable BGS source profile.
 - `research/earth-observability/fixtures/bgs-sobi-ogc-api-synthetic-v0.1.json`: two-feature synthetic test page for the BGS adapter.
+- `research/earth-observability/EARTH_OBSERVABILITY_AGS4_HANDOFF_V0_1.md`: official BGS validator handoff and qualification boundaries.
+- `research/earth-observability/fixtures/ags4-synthetic-v0.1.ags`: non-geographic AGS4 structural fixture.
+- `research/earth-observability/EARTH_OBSERVABILITY_UKGEOS_GGC01_V0_1.md` and `ukgeos-ggc01-source-profile-v0.1.json`: single-borehole source admission and benchmark design.
 - `.github/workflows/check.yml`: formats/checks the application, builds WASM, runs application and shared-core native tests, verifies the manifest, and verifies the pinned synthetic profile.
 
 Commands from the repository root:
@@ -146,7 +180,7 @@ cargo test --bin earth_observability_baseline
 cargo run --bin earth_observability_baseline -- --check research/earth-observability/baselines/synthetic-profile-baseline-v0.1.json
 ```
 
-The manifest validator checks authored manifest invariants over serde types; it is not a JSON Schema validator, geospatial transformation engine, GIS ingestion layer, geological inference model, or physical validation suite. The synthetic profile generator creates an abstract surface-wave interface *proxy*, not synthetic waveforms or a validated sensor forward model.
+The manifest validator checks authored manifest invariants over serde types; it is not a JSON Schema validator, geospatial transformation engine, GIS ingestion layer, geological inference model, or physical validation suite. The AGS4 parser checks only a basic structural envelope and receipt field consistency; it does not execute the official AGS or BGS/NGDC validator, validate geotechnical values, or authenticate an external response. The synthetic profile generator creates an abstract surface-wave interface *proxy*, not synthetic waveforms or a validated sensor forward model.
 
 ## Exit criteria for the next tranche
 
