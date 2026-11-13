@@ -38,7 +38,57 @@
     "unique_acquisition_clusters": 4,
     "clustered_confidence_interval_status": "NOT_RUN_CLUSTER_AWARE_BOOTSTRAP_REQUIRED",
     "point_estimates_meet_declared_requirements": false,
-    "qualification_status": "NOT_QUALIFIED_CLUSTERED_INTERVALS_NOT_RUN"
+    "qualification_status": "NOT_QUALIFIED_CLUSTERED_INTERVALS_NOT_RUN",
+    "per_site": [
+      {
+        "site_id": "blind-site-a",
+        "positive_targets": 2,
+        "true_positives": 2,
+        "false_negatives": 0,
+        "negative_controls": 2,
+        "false_positives": 1,
+        "true_negatives": 1,
+        "surveyed_negative_route_km": 0.5,
+        "probability_of_detection": 1,
+        "false_alarms_per_km": 2
+      },
+      {
+        "site_id": "blind-site-b",
+        "positive_targets": 2,
+        "true_positives": 2,
+        "false_negatives": 0,
+        "negative_controls": 2,
+        "false_positives": 0,
+        "true_negatives": 2,
+        "surveyed_negative_route_km": 0.5,
+        "probability_of_detection": 1,
+        "false_alarms_per_km": 0
+      },
+      {
+        "site_id": "blind-site-c",
+        "positive_targets": 2,
+        "true_positives": 2,
+        "false_negatives": 0,
+        "negative_controls": 1,
+        "false_positives": 0,
+        "true_negatives": 1,
+        "surveyed_negative_route_km": 0.25,
+        "probability_of_detection": 1,
+        "false_alarms_per_km": 0
+      },
+      {
+        "site_id": "blind-site-d",
+        "positive_targets": 2,
+        "true_positives": 1,
+        "false_negatives": 1,
+        "negative_controls": 1,
+        "false_positives": 0,
+        "true_negatives": 1,
+        "surveyed_negative_route_km": 0.25,
+        "probability_of_detection": 0.5,
+        "false_alarms_per_km": 0
+      }
+    ]
   },
   "physical_validation": "NOT_RUN"
 }
