@@ -379,4 +379,52 @@ mod tests {
         page.number_returned = Some(99);
         assert!(page.validate().contains(&BgsSobiValidationError::ReturnedCountMismatch));
     }
+
+    #[test]
+    fn matched_count_cannot_be_smaller_than_the_returned_page() {
+        let mut page: BgsSobiFeatureCollection =
+            serde_json::from_str(SYNTHETIC_PAGE).expect("synthetic fixture parses");
+        page.number_matched = Some(1);
+        assert!(
+            page.validate()
+                .contains(&BgsSobiValidationError::MatchedCountLessThanReturned)
+        );
+    }
+
+    #[test]
+    fn malformed_json_is_distinguished_from_contract_failure() {
+        let result = BgsSobiFeatureCollection::parse_and_validate(b"{");
+        assert!(matches!(result, Err(BgsSobiParseError::Json(_))));
+    }
+
+    #[test]
+    fn blank_related_artifact_link_is_not_silently_ignored() {
+        let mut page: BgsSobiFeatureCollection =
+            serde_json::from_str(SYNTHETIC_PAGE).expect("synthetic fixture parses");
+        page.features[0].properties.scan_url = Some("   ".to_string());
+        assert!(
+            page.validate()
+                .contains(&BgsSobiValidationError::EmptyRelatedArtifactUri)
+        );
+    }
+
+    #[test]
+    fn stable_record_key_prefers_bgs_specific_identifier() {
+        let page = BgsSobiFeatureCollection::parse_and_validate(SYNTHETIC_PAGE.as_bytes())
+            .expect("synthetic BGS page parses");
+        assert_eq!(
+            page.features[0].stable_record_key().as_deref(),
+            Some("bgs-id:900001")
+        );
+    }
+
+    #[test]
+    fn source_self_link_is_preserved_without_fetching() {
+        let page = BgsSobiFeatureCollection::parse_and_validate(SYNTHETIC_PAGE.as_bytes())
+            .expect("synthetic BGS page parses");
+        assert!(page
+            .source_self_url()
+            .unwrap()
+            .contains("onshoreboreholeindex/items"));
+    }
 }
