@@ -272,24 +272,6 @@ fn progressive_max_min_flow_unit_reference(
     run_flow(&fair_demands, sites, links)
 }
 
-fn progressive_max_min_flow(
-    demands: &[(String, u64)],
-    sites: &[(String, u64)],
-    links: &BTreeSet<(String, String)>,
-    baseline_served: &[u64],
-    fairness_totals: &[u64],
-    tie_break_ranks: &[u64],
-) -> FlowResult {
-    progressive_max_min_flow_scaled_with_stats(
-        demands,
-        sites,
-        links,
-        baseline_served,
-        fairness_totals,
-        tie_break_ranks,
-    )
-    .0
-}
 
 /// Capacity-scaled discrete progressive filling. Instead of testing one seat at a
 /// time, it jumps to the next exact rational fairness breakpoint (including the
