@@ -75,3 +75,7 @@ jobs:
         run: cargo test --bin earth_observability_generate
       - name: Verify committed synthetic profile fixture
         run: cargo run --bin earth_observability_generate -- --check research/earth-observability/fixtures/earth-observability-profile-synthetic-v0.1.json
+      - name: Test synthetic profile baseline runner
+        run: cargo test --bin earth_observability_baseline
+      - name: Verify pinned synthetic profile baseline report
+        run: cargo run --bin earth_observability_baseline -- --check research/earth-observability/baselines/synthetic-profile-baseline-v0.1.json
