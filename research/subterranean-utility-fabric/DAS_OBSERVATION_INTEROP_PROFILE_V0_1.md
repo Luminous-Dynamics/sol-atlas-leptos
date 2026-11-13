@@ -113,6 +113,23 @@ A no-result interval is not necessarily a negative event observation. It may be 
 
 ## 7. Security and operational boundary
 
+SensorThings API 2.0 includes an authentication conformance class, but its security considerations explicitly leave the authorization mechanism to the implementation and do not define integrity/confidentiality controls for stored data. The standard uses HTTP 401 for authentication-required and 403 for forbidden cases; that is not a complete critical-infrastructure access policy.
+
+For SUF, the serving implementation must additionally satisfy:
+
+- **Deny-by-default authorization:** apply owner IAM and purpose/audience/route scope at the service/data layer, preferably with database-level row/resource policies. Do not rely only on a reverse proxy that checks the visible URL path.
+- **OData relationship closure:** authorization must cover nested relationships and equivalent access paths through `$filter`, `$expand`, navigation properties and related entity collections. A restricted fibre or asset must not leak through an otherwise permitted query.
+- **Write protection:** public and partner-facing observation endpoints are read-only by default. Only explicitly authorized acquisition/ingestion actors may publish, and they cannot mutate canonical utility asset state.
+- **MQTT protection:** anonymous publishing is disabled; broker authentication, per-client publish/subscribe authorization, topic restrictions, message-size/rate quotas and abuse monitoring are mandatory. High-volume observation topics must not become a denial-of-service path.
+- **Query/resource control:** cap time range, spatial extent, page size, aggregation cost, concurrent subscriptions and request rate. Apply bounded streaming and explicit timeouts.
+- **Web boundary:** CORS allowlists are explicit; client applications treat descriptions/results as untrusted data and escape/sanitize before rendering.
+- **Integrity and confidentiality:** protect transport and storage using the utility owner's approved controls. Observation digests do not replace authenticated source identity, access policy, encryption or audit.
+- **Operational separation:** DAS data intake and serving remain read-only relative to SCADA and electrical protection.
+
+Security conformance tests must exercise relation traversal and query-equivalent paths, not merely direct GETs to a single entity URL.
+
+## 8. Interoperability and conformance boundaries
+
 SensorThings API standardizes observation access but does not prescribe the utility owner's authorization model. Enforce authorization through utility-owner IAM and a narrowly scoped service policy. Apply minimum disclosure and least privilege to:
 - exact fibre paths and splice locations;
 - cable and utility asset topology;
@@ -159,7 +176,7 @@ Negative controls:
 
 ## 10. References
 
-- OGC SensorThings API Part 1 v2.0 (OGC 23-019): https://docs.ogc.org/is/23-019/23-019.html
+- OGC SensorThings API Part 1 v2.0 (OGC 23-019), including Annex IV Security Considerations: https://docs.ogc.org/is/23-019/23-019.html
 - OGC SensorThings API v2.0 publication (2026-11-04): https://www.ogc.org/announcement/ogc-publishes-sensorthings-api-version-2-0/
 - OGC MUDDI Part 1 v1.0 (OGC 23-024): https://docs.ogc.org/is/23-024/23-024.html
 - OGC SWE Common Data Model (OGC 24-014): https://docs.ogc.org/is/24-014/24-014.html
