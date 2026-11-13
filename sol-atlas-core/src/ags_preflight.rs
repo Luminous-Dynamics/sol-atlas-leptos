@@ -472,8 +472,6 @@ impl AgsDocument {
         }
     }
 
-    /// Check only the documented BGS required-group set. This is not the full
-    /// BGS validator and does not check coordinates, depth, units or references.
     /// Validate the external receipt against the version actually declared
     /// in this parsed document. This is the preferred admission path because
     /// the expected dictionary is derived from the source file, not supplied
@@ -503,6 +501,8 @@ impl AgsDocument {
         )
     }
 
+    /// Check only the documented BGS required-group set. This is not the full
+    /// BGS validator and does not check coordinates, depth, units or references.
     pub fn bgs_required_group_issues(&self) -> Vec<BgsAgsSubmissionIssue> {
         let names: BTreeSet<&str> = self.groups.iter().map(|group| group.name.as_str()).collect();
         let mut issues = Vec::new();
@@ -704,6 +704,20 @@ mod tests {
                 "conflicting version row".to_string(),
             ]);
         }
+        assert_eq!(doc.declared_ags_version(), None);
+    }
+
+    #[test]
+    fn duplicate_transfer_groups_make_the_declared_version_ambiguous() {
+        let mut doc = parse_ags4_preflight(SYNTHETIC_AGS.as_bytes())
+            .expect("synthetic AGS parses");
+        let transfer = doc
+            .groups
+            .iter()
+            .find(|group| group.name == "TRAN")
+            .unwrap()
+            .clone();
+        doc.groups.push(transfer);
         assert_eq!(doc.declared_ags_version(), None);
     }
 
