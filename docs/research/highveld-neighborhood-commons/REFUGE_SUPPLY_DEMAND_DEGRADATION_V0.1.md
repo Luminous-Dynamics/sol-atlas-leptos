@@ -98,7 +98,41 @@ It reports the cohort with the largest cumulative absolute service debt. It also
 
 This is an audit metric, not an optimizer instruction. It does not automatically direct future capacity or priority toward the cohort with the largest debt. Any debt-aware or rotating policy must be separately specified, owner-governed, consent-aware and compared against the static max-min and throughput policies.
 
-## 8. Cross-event fairness research target
+## 8. Resilience-curve service recovery and continuity
+
+Place-hours quantify cumulative shortfall, but they do not describe when the shortfall occurs or how long service takes to recover. The sequence oracle now emits an independent continuity curve for each anonymous cohort.
+
+For each cohort, the first snapshot defines a pre-disruption baseline service ratio:
+
+\[
+R_g^{base}=\frac{S_{g,0}}{D_{g,0}}
+\]
+
+A cohort is considered degraded in a later interval when its feasible service ratio falls below that baseline. The time axis is relative elapsed duration formed only by summing the supplied interval durations; it does not create native event timestamps.
+
+Reported metrics:
+- baseline service ratio;
+- first degradation start (elapsed hours);
+- first return to baseline (elapsed hours);
+- time from first degradation to first baseline recovery;
+- number of degraded episodes and completed recovery episodes;
+- total hours below baseline;
+- longest continuous degraded episode;
+- whether an episode remains unresolved at sequence end and its elapsed duration.
+
+A return to baseline is not necessarily full service: when a baseline already has unmet demand, recovery means return to that pre-event level. The absolute unmet-place-hour and accessible unmet-place-hour ledgers remain separately reported, so a poor baseline cannot be mistaken for adequate service. This benchmark should compare both the resilience curve and its service floor.
+
+The temporal study requires stable anonymous cohort identities and owner-governed tie-break ranks across snapshots. A changed cohort set or fairness rank fails the comparison rather than silently moving the baseline or changing priority mid-sequence. New demand groups must be represented by a separately versioned benchmark case with an explicit cohort model.
+
+This follows resilience-curve literature that distinguishes performance magnitude, duration, integral impact, recovery rate and threshold adherence; no single scalar captures every resilience property. A review of 273 publications recommends explicit milestones and performance targets and cautions against condensing diverse trajectories into one expected curve. A 2026 urban heat resilience study likewise emphasizes state–process supply/demand mismatch under heatwave perturbations rather than relying solely on static capacity maps.
+
+Sources:
+- [Poulin & Kane, Infrastructure resilience curves: Performance measures and summary metrics (2021)](https://doi.org/10.1016/j.ress.2021.107926)
+- [Urban heat resilience from a state–process perspective: heatwave-induced cooling service supply–demand mismatch (15 September 2026)](https://doi.org/10.1016/j.scs.2026.107593)
+
+**Interpretation rule:** a cohort with no return to baseline within the sequence remains UNRECOVERED_AT_SEQUENCE_END; recovery time is undefined, not zero or extrapolated. These are aggregate service metrics, not unique people, health risk or an instruction to allocate capacity.
+
+## 9. Cross-event fairness research target
 
 A further research increment is to compare:
 1. static accessible-first maximum throughput;
