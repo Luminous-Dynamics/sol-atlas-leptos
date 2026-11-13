@@ -10,6 +10,7 @@
     "case_id",
     "parent_study",
     "parent_case_ref",
+    "parent_case_id",
     "maturity",
     "execution_status",
     "property_model",
@@ -219,6 +220,9 @@
     "cycle_closure_tolerance_u95_kwh": {
       "type": "number",
       "minimum": 0
+    },
+    "parent_case_id": {
+      "const": "SYNTHETIC_THREE_INTERVAL_POOL_BUFFER_CYCLE_001"
     }
   }
 }
