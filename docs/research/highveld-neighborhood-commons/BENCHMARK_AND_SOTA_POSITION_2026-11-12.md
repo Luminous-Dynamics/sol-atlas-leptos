@@ -480,9 +480,9 @@ Three recent studies sharpen the field-test design:
 - An August 2026 water-channel study validated its urban-flow/thermal model using CFD and wind-tunnel evidence and found that wind and canyon configuration strongly affect channel performance; adding multiple channels can worsen daytime comfort through long-wave effects. This cautions against using water area alone as a proxy for local cooling benefit.
 
 Sources:
-- [Open solar PV/T pool heating and cooling seasonal investigation (15 March 2026)](https://www.sciencedirect.com/science/article/pii/S2210670726004762)
-- [Nighttime thermal performance of an outdoor swimming pool: reduced-order thermal-balance validation (16 March 2026)](https://www.sciencedirect.com/science/article/pii/S2210670726004762)
-- [Water channels in urban canyons: wind and radiative interactions (15 August 2026)](https://www.sciencedirect.com/science/article/pii/S2213138826006764)
+- [Integrating experimental and theoretical approaches for seasonal performance analysis of an open solar photovoltaic/thermal pool system (Energy, 2026)](https://doi.org/10.1016/j.energy.2026.140364)
+- [Nighttime Validation and Local Sensitivity of a Reduced-Order Thermal Balance for Above-Ground Outdoor Pools (16 March 2026)](https://www.mdpi.com/2673-9909/6/3/46)
+- [Harnessing ancient wisdom: Investigating the microclimatic cooling effects and evaporative potential of traditional water channels in arid environments (15 August 2026)](https://doi.org/10.1016/j.scs.2026.107516)
 
 The pool passive-regeneration ledger is now a separate executable contract from the heat-pump pool recovery ledger. It tracks long-wave, sensible, evaporation, ground and isolated-HX heat rejection separately; a separate mass ledger accounts for make-up, rain, evaporation, withdrawal, leakage, backwash and overflow. Its synthetic case closes the thermal and water balances and requires a layer-resolved pool state or validated equivalent. No physical pool result or Johannesburg coefficient is claimed.
 
