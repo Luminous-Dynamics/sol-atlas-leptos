@@ -58,23 +58,31 @@ struct BaselineReport {
     comparison_warning: String,
 }
 
-fn interpolate_piecewise_linear(
-    samples: &[(f64, f64)],
-    target_x_m: f64,
-) -> Option<f64> {
-    if samples.is_empty() || !target_x_m.is_finite() {
+fn ordered_samples(samples: &[(f64, f64)]) -> Option<Vec<(f64, f64)>> {
+    if samples.is_empty()
+        || samples
+            .iter()
+            .any(|sample| !sample.0.is_finite() || !sample.1.is_finite())
+    {
         return None;
     }
 
     let mut ordered = samples.to_vec();
     ordered.sort_by(|left, right| left.0.total_cmp(&right.0));
-
-    if ordered.iter().any(|sample| !sample.0.is_finite() || !sample.1.is_finite()) {
-        return None;
-    }
     if ordered.windows(2).any(|pair| pair[0].0 >= pair[1].0) {
         return None;
     }
+    Some(ordered)
+}
+
+fn interpolate_piecewise_linear(
+    samples: &[(f64, f64)],
+    target_x_m: f64,
+) -> Option<f64> {
+    if !target_x_m.is_finite() {
+        return None;
+    }
+    let ordered = ordered_samples(samples)?;
 
     if target_x_m < ordered[0].0 || target_x_m > ordered[ordered.len() - 1].0 {
         return None;
@@ -94,6 +102,61 @@ fn interpolate_piecewise_linear(
     }
 
     None
+}
+
+fn nearest_neighbor(samples: &[(f64, f64)], target_x_m: f64) -> Option<f64> {
+    if !target_x_m.is_finite() {
+        return None;
+    }
+    let ordered = ordered_samples(samples)?;
+    if target_x_m < ordered[0].0 || target_x_m > ordered[ordered.len() - 1].0 {
+        return None;
+    }
+
+    ordered
+        .iter()
+        .min_by(|left, right| {
+            (left.0 - target_x_m)
+                .abs()
+                .total_cmp(&(right.0 - target_x_m).abs())
+                .then_with(|| left.0.total_cmp(&right.0))
+        })
+        .map(|sample| sample.1)
+}
+
+fn inverse_distance_weighted(
+    samples: &[(f64, f64)],
+    target_x_m: f64,
+    power: f64,
+) -> Option<f64> {
+    if !target_x_m.is_finite() || !power.is_finite() || power <= 0.0 {
+        return None;
+    }
+    let ordered = ordered_samples(samples)?;
+    if target_x_m < ordered[0].0 || target_x_m > ordered[ordered.len() - 1].0 {
+        return None;
+    }
+    if let Some((_, value)) = ordered.iter().find(|(x_m, _)| *x_m == target_x_m) {
+        return Some(*value);
+    }
+
+    let mut weighted_sum = 0.0;
+    let mut weight_sum = 0.0;
+    for (x_m, value) in &ordered {
+        let distance = (target_x_m - x_m).abs();
+        if distance == 0.0 {
+            return Some(*value);
+        }
+        let weight = 1.0 / distance.powf(power);
+        weighted_sum += value * weight;
+        weight_sum += weight;
+    }
+
+    if !weight_sum.is_finite() || weight_sum <= 0.0 {
+        None
+    } else {
+        Some(weighted_sum / weight_sum)
+    }
 }
 
 fn metrics(
@@ -166,12 +229,28 @@ fn run_baseline(fixture: &SyntheticProfileFixture) -> Result<BaselineReport, Str
 
     let mut borehole_predictions = Vec::new();
     let mut borehole_abstentions = Vec::new();
+    let mut nearest_predictions = Vec::new();
+    let mut nearest_abstentions = Vec::new();
+    let mut idw_predictions = Vec::new();
+    let mut idw_abstentions = Vec::new();
     for truth in &blind_truth {
         match interpolate_piecewise_linear(&training_boreholes, truth.x_m) {
             Some(prediction) => {
                 borehole_predictions.push((prediction, truth.true_interface_depth_m));
             }
             None => borehole_abstentions.push(truth.x_m),
+        }
+        match nearest_neighbor(&training_boreholes, truth.x_m) {
+            Some(prediction) => {
+                nearest_predictions.push((prediction, truth.true_interface_depth_m));
+            }
+            None => nearest_abstentions.push(truth.x_m),
+        }
+        match inverse_distance_weighted(&training_boreholes, truth.x_m, 2.0) {
+            Some(prediction) => {
+                idw_predictions.push((prediction, truth.true_interface_depth_m));
+            }
+            None => idw_abstentions.push(truth.x_m),
         }
     }
 
@@ -224,6 +303,20 @@ fn run_baseline(fixture: &SyntheticProfileFixture) -> Result<BaselineReport, Str
                 metrics: metrics(&borehole_predictions, blind_truth.len())?,
                 abstained_positions_m: borehole_abstentions,
                 interpretation: "Uses only sparse training-transect borehole contacts; evaluates transfer to the shifted blind transect. No blind truth or blind proxy is used to fit this baseline.".to_string(),
+            },
+            BaselineResult {
+                method: "training_borehole_nearest_neighbor_cross_transect".to_string(),
+                evaluation_site: blind_site.to_string(),
+                metrics: metrics(&nearest_predictions, blind_truth.len())?,
+                abstained_positions_m: nearest_abstentions,
+                interpretation: "Uses only sparse training-transect borehole contacts and selects the closest contact, breaking equal-distance ties toward the lower x coordinate. No blind truth or blind proxy is used to fit this baseline.".to_string(),
+            },
+            BaselineResult {
+                method: "training_borehole_idw_power_2_cross_transect".to_string(),
+                evaluation_site: blind_site.to_string(),
+                metrics: metrics(&idw_predictions, blind_truth.len())?,
+                abstained_positions_m: idw_abstentions,
+                interpretation: "Uses only sparse training-transect borehole contacts with inverse-distance-squared weights; no variogram is fitted and this is not kriging. No blind truth or blind proxy is used to fit this baseline.".to_string(),
             },
             BaselineResult {
                 method: "blind_transect_surface_wave_interface_proxy_only".to_string(),
@@ -335,6 +428,20 @@ mod tests {
     }
 
     #[test]
+    fn nearest_neighbor_breaks_ties_toward_lower_coordinate() {
+        let samples = vec![(20.0, 4.0), (0.0, 2.0)];
+        assert_eq!(nearest_neighbor(&samples, 10.0), Some(2.0));
+    }
+
+    #[test]
+    fn idw_is_exact_at_samples_and_does_not_extrapolate() {
+        let samples = vec![(0.0, 1.0), (10.0, 3.0), (20.0, 5.0)];
+        assert_eq!(inverse_distance_weighted(&samples, 10.0, 2.0), Some(3.0));
+        assert_eq!(inverse_distance_weighted(&samples, 25.0, 2.0), None);
+        assert_eq!(inverse_distance_weighted(&samples, 5.0, 0.0), None);
+    }
+
+    #[test]
     fn duplicate_or_non_finite_interpolation_support_is_rejected() {
         assert_eq!(
             interpolate_piecewise_linear(&[(0.0, 1.0), (0.0, 2.0)], 0.0),
@@ -356,6 +463,10 @@ mod tests {
         assert_eq!(borehole.target_count, 11);
         assert!((borehole.mean_absolute_error_m - 1.2518181818181817).abs() < 1e-12);
         assert!((borehole.signed_bias_m + 1.2518181818181817).abs() < 1e-12);
+        let nearest = &report.results[1].metrics;
+        assert!((nearest.mean_absolute_error_m - 1.4263636363636363).abs() < 1e-12);
+        let idw = &report.results[2].metrics;
+        assert!((idw.mean_absolute_error_m - 1.2539003805590936).abs() < 1e-12);
     }
 
     #[test]
