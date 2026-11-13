@@ -76,16 +76,18 @@ The corresponding Rust generator is in `sol-atlas-core/src/earth_observability_s
 
 ## First matched synthetic baseline tournament
 
-A deterministic baseline runner now consumes the committed profile fixture and compares two distinct observation strategies on the same 11-point blind transect. This is a harness smoke-test only; it is neither a field benchmark nor a comparison of physical modalities.
+A deterministic baseline runner consumes the committed profile fixture and compares three conventional borehole-only estimators against a blind-transect scalar proxy on the same 11-point truth support. This is a harness smoke-test only; it is neither a field benchmark nor a comparison of physical modalities.
 
 Pinned report: `research/earth-observability/baselines/synthetic-profile-baseline-v0.1.json`
 
 | Baseline | Prediction coverage | MAE (m) | RMSE (m) | Signed bias (m) | P95 abs error (m) | Abstentions |
 |---|---:|---:|---:|---:|---:|---:|
 | Training-transect sparse borehole piecewise-linear transfer | 11/11 (100%) | 1.251818 | 1.253196 | -1.251818 | 1.345000 | 0 |
+| Training-transect borehole nearest-neighbour transfer | 11/11 (100%) | 1.426364 | 1.446868 | -1.426364 | 1.960000 | 0 |
+| Training-transect borehole IDW (power 2) transfer | 11/11 (100%) | 1.253900 | 1.257606 | -1.253900 | 1.428755 | 0 |
 | Blind-transect scalar proxy-only | 6/11 (54.55%) | 0.045000 | 0.053697 | 0.001667 | 0.100000 | 5 |
 
-Interpretation: the borehole-only baseline has full nominal geometric coverage but transfers poorly to the shifted blind transect; the local proxy has lower error at observed positions but abstains in the blind zone. These numbers deliberately demonstrate why coverage, error and abstention must be reported together. The proxy is an abstract scalar interface estimate with injected noise, not real GPR, ERT, seismic or surface-wave acquisition. No method is inferred to be superior in the physical world.
+Interpretation: all borehole-only baselines have nominally complete coverage but transfer poorly to the shifted blind transect; the local proxy has lower error at observed positions but abstains in the blind zone. IDW is not kriging; no variogram is fitted. These numbers deliberately demonstrate why coverage, error and abstention must be reported together. The proxy is an abstract scalar interface estimate with injected noise, not real GPR, ERT, seismic or surface-wave acquisition. No physical modality is inferred to be superior.
 
 ## Executable entry points
 
