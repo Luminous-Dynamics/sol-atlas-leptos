@@ -65,14 +65,15 @@ fn audit() -> Result<Value, Vec<String>> {
     {
         errors.push("pool microclimate schema must declare JSON Schema Draft 2020-12".to_owned());
     }
-    if text_at(&exergy_schema, "$schema")
-        != Some("https://json-schema.org/draft/2020-12/schema")
-    {
+    if text_at(&exergy_schema, "$schema") != Some("https://json-schema.org/draft/2020-12/schema") {
         errors.push("pool thermal exergy schema must declare JSON Schema Draft 2020-12".to_owned());
     }
     for (key, expected) in [
         ("study_id", "HIGHVELD-POOL-THERMAL-EXERGY-001"),
-        ("parent_study", "HIGHVELD-POOL-PASSIVE-REGENERATION-LEDGER-001"),
+        (
+            "parent_study",
+            "HIGHVELD-POOL-PASSIVE-REGENERATION-LEDGER-001",
+        ),
         ("maturity", "SYNTHETIC_KNOWN_ANSWER"),
         ("execution_status", "NO_PHYSICAL_SIMULATION"),
     ] {
@@ -90,8 +91,7 @@ fn audit() -> Result<Value, Vec<String>> {
         let layers = array_at(interval, "layers").cloned().unwrap_or_default();
         let mut layer_ids = BTreeSet::new();
         let unique_layer_ids = layers.iter().all(|layer| {
-            text_at(layer, "layer_id")
-                .is_some_and(|id| layer_ids.insert(id.to_owned()))
+            text_at(layer, "layer_id").is_some_and(|id| layer_ids.insert(id.to_owned()))
         });
         if layers.len() != 3 || !unique_layer_ids {
             errors.push(format!(
@@ -112,7 +112,9 @@ fn audit() -> Result<Value, Vec<String>> {
     if text_at(&exergy_case["property_model"], "specific_heat_method_ref").is_none()
         || text_at(&exergy_case["property_model"], "density_method_ref").is_none()
     {
-        errors.push("temperature-grade calculation requires explicit water property methods".to_owned());
+        errors.push(
+            "temperature-grade calculation requires explicit water property methods".to_owned(),
+        );
     }
     for (key, expected) in [
         ("study_id", "HIGHVELD-POOL-MICROCLIMATE-ATTRIBUTION-001"),
@@ -138,10 +140,14 @@ fn audit() -> Result<Value, Vec<String>> {
         .cloned()
         .unwrap_or_default();
     if micro_arms.len() != 6 || !unique_ids(&micro_arms) {
-        errors.push("pool microclimate benchmark must preserve six unique comparison arms".to_owned());
+        errors.push(
+            "pool microclimate benchmark must preserve six unique comparison arms".to_owned(),
+        );
     }
     if !contains_id(&micro_arms, "DRY_SHADE_CONTROL") {
-        errors.push("pool microclimate benchmark must include a dry-shade primary control".to_owned());
+        errors.push(
+            "pool microclimate benchmark must include a dry-shade primary control".to_owned(),
+        );
     }
     if !micro_arms.iter().any(|arm| {
         text_at(arm, "id") == Some("AEROSOL_GENERATING_FOUNTAIN_NEGATIVE_CONTROL")
@@ -172,7 +178,9 @@ fn audit() -> Result<Value, Vec<String>> {
         "MATCHED_DRY_CONTROL",
     ] {
         if !contains_id(&micro_stations, required) {
-            errors.push(format!("pool microclimate spatial station {required} is missing"));
+            errors.push(format!(
+                "pool microclimate spatial station {required} is missing"
+            ));
         }
     }
     if micro_stations
@@ -192,8 +200,13 @@ fn audit() -> Result<Value, Vec<String>> {
         "WATER_EVAPORATION_AND_VOLUME_CHANGE",
         "STATION_LOCATION_HEIGHT_AND_SHADE_GEOMETRY",
     ] {
-        if !micro_measurements.iter().any(|item| item.as_str() == Some(required)) {
-            errors.push(format!("pool microclimate measurement {required} is missing"));
+        if !micro_measurements
+            .iter()
+            .any(|item| item.as_str() == Some(required))
+        {
+            errors.push(format!(
+                "pool microclimate measurement {required} is missing"
+            ));
         }
     }
     if !micro_arms.iter().any(|arm| {
@@ -206,7 +219,10 @@ fn audit() -> Result<Value, Vec<String>> {
         || microclimate["design"]["matched_dry_shade_control_required"].as_bool() != Some(true)
         || microclimate["design"]["upwind_background_required"].as_bool() != Some(true)
     {
-        errors.push("pool microclimate design must retain paired controls and day-block independence".to_owned());
+        errors.push(
+            "pool microclimate design must retain paired controls and day-block independence"
+                .to_owned(),
+        );
     }
     for key in [
         "water_effect_without_dry_shade_control",
