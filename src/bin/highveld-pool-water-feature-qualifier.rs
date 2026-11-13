@@ -7,6 +7,12 @@ const MANIFEST: &str = include_str!(
 const SCHEMA: &str = include_str!(
     "../../docs/research/highveld-neighborhood-commons/POOL_WATER_FEATURE_THERMAL_MANIFEST_V0.1.schema.json"
 );
+const MICROCLIMATE_BENCHMARK: &str = include_str!(
+    "../../docs/research/highveld-neighborhood-commons/POOL_MICROCLIMATE_ATTRIBUTION_MANIFEST_V0.1.json"
+);
+const MICROCLIMATE_SCHEMA: &str = include_str!(
+    "../../docs/research/highveld-neighborhood-commons/POOL_MICROCLIMATE_ATTRIBUTION_MANIFEST_V0.1.schema.json"
+);
 
 fn text_at<'a>(value: &'a Value, key: &str) -> Option<&'a str> {
     value
@@ -35,10 +41,89 @@ fn audit() -> Result<Value, Vec<String>> {
         .map_err(|e| vec![format!("pool/water manifest JSON parse failed: {e}")])?;
     let schema: Value = serde_json::from_str(SCHEMA)
         .map_err(|e| vec![format!("pool/water schema JSON parse failed: {e}")])?;
+    let microclimate: Value = serde_json::from_str(MICROCLIMATE_BENCHMARK)
+        .map_err(|e| vec![format!("pool microclimate manifest JSON parse failed: {e}")])?;
+    let microclimate_schema: Value = serde_json::from_str(MICROCLIMATE_SCHEMA)
+        .map_err(|e| vec![format!("pool microclimate schema JSON parse failed: {e}")])?;
     let mut errors = Vec::new();
 
     if text_at(&schema, "$schema") != Some("https://json-schema.org/draft/2020-12/schema") {
         errors.push("pool/water schema must declare JSON Schema Draft 2020-12".to_owned());
+    }
+    if text_at(&microclimate_schema, "$schema")
+        != Some("https://json-schema.org/draft/2020-12/schema")
+    {
+        errors.push("pool microclimate schema must declare JSON Schema Draft 2020-12".to_owned());
+    }
+    for (key, expected) in [
+        ("study_id", "HIGHVELD-POOL-MICROCLIMATE-ATTRIBUTION-001"),
+        ("maturity", "BENCHMARK_PROTOCOL_NOT_EXECUTED"),
+        ("execution_status", "NOT_EXECUTED"),
+        ("climate_context", "JOHANNESBURG_HIGHVELD"),
+        ("control_arm", "DRY_SHADE_CONTROL"),
+    ] {
+        if text_at(&microclimate, key) != Some(expected) {
+            errors.push(format!("pool microclimate {key} must remain {expected}"));
+        }
+    }
+    let micro_arms = array_at(&microclimate, "treatment_arms")
+        .cloned()
+        .unwrap_or_default();
+    let micro_scenarios = array_at(&microclimate, "weather_scenarios")
+        .cloned()
+        .unwrap_or_default();
+    let micro_stations = array_at(&microclimate, "spatial_stations")
+        .cloned()
+        .unwrap_or_default();
+    let micro_heights = array_at(&microclimate, "measurement_heights_m")
+        .cloned()
+        .unwrap_or_default();
+    if micro_arms.len() != 6 || !unique_ids(&micro_arms) {
+        errors.push("pool microclimate benchmark must preserve six unique comparison arms".to_owned());
+    }
+    if !contains_id(&micro_arms, "DRY_SHADE_CONTROL") {
+        errors.push("pool microclimate benchmark must include a dry-shade primary control".to_owned());
+    }
+    if !micro_arms.iter().any(|arm| {
+        text_at(arm, "id") == Some("AEROSOL_GENERATING_FOUNTAIN_NEGATIVE_CONTROL")
+            && text_at(arm, "role") == Some("NEGATIVE_CONTROL")
+    }) {
+        errors.push("aerosol-generating fountain must remain a negative control".to_owned());
+    }
+    if micro_scenarios.len() != 6 || micro_stations.len() != 6 || micro_heights.len() != 4 {
+        errors.push("pool microclimate benchmark must preserve six weather scenarios, six stations and four measurement heights".to_owned());
+    }
+    for required in [
+        "UPWIND_BACKGROUND",
+        "FEATURE_EDGE",
+        "NEAR_FIELD_1M",
+        "DOWNWIND_3M",
+        "OCCUPIED_ZONE",
+        "MATCHED_DRY_CONTROL",
+    ] {
+        if !contains_id(&micro_stations, required) {
+            errors.push(format!("pool microclimate spatial station {required} is missing"));
+        }
+    }
+    if microclimate["design"]["minute_samples_independent"].as_bool() != Some(false)
+        || microclimate["design"]["matched_dry_shade_control_required"].as_bool() != Some(true)
+        || microclimate["design"]["upwind_background_required"].as_bool() != Some(true)
+    {
+        errors.push("pool microclimate design must retain paired controls and day-block independence".to_owned());
+    }
+    for key in [
+        "water_effect_without_dry_shade_control",
+        "comfort_claim_from_dry_bulb_only",
+        "indoor_cooling_claim_without_building_side_measurement",
+        "unqualified_water_or_aerosol_operation",
+        "untraceable_treatment_control_inputs",
+        "post_hoc_holdout_or_block_changes",
+        "essential_water_reserve_violations",
+        "forced_water_feature_win_when_no_water_control_is_better",
+    ] {
+        if microclimate["hard_gates"].get(key).and_then(Value::as_u64) != Some(0) {
+            errors.push(format!("pool microclimate hard gate {key} must equal zero"));
+        }
     }
     for (key, expected) in [
         ("study_id", "HIGHVELD-POOL-WATER-THERMAL-001"),
@@ -223,6 +308,12 @@ fn audit() -> Result<Value, Vec<String>> {
         "industry_modeled_reference_count":industry_refs.iter().filter(|item| text_at(item,"evidence_class")==Some("MODELED_FEASIBILITY_ANALYSIS")).count(),
         "pool_role":"FINITE_THERMAL_BUFFER_NOT_AN_INFINITE_SINK",
         "aerosol_water_management_gate":"REQUIRED_WHEN_AEROSOL_GENERATING",
+        "microclimate_attribution_study_id":"HIGHVELD-POOL-MICROCLIMATE-ATTRIBUTION-001",
+        "microclimate_comparison_arm_count":micro_arms.len(),
+        "microclimate_weather_scenario_count":micro_scenarios.len(),
+        "microclimate_spatial_station_count":micro_stations.len(),
+        "microclimate_measurement_height_count":micro_heights.len(),
+        "microclimate_execution_status":"NOT_EXECUTED",
         "execution_status":"NOT_EXECUTED",
         "schema_engine":"NOT_RUN; schema declaration and manifest invariants checked by this Rust qualifier",
         "claim_ceiling":"Design and benchmark registration only; no water feature or cooling performance admitted"
@@ -265,6 +356,30 @@ mod tests {
         assert_eq!(report["archetype_count"], 10);
         assert_eq!(report["scenario_count"], 8);
         assert_eq!(report["registered_case_count"], 80);
+    }
+
+    #[test]
+    fn microclimate_benchmark_requires_dry_shade_control_and_spatial_transect() {
+        let report = audit().expect("pool/water and microclimate contracts");
+        assert_eq!(report["microclimate_comparison_arm_count"], 6);
+        assert_eq!(report["microclimate_weather_scenario_count"], 6);
+        assert_eq!(report["microclimate_spatial_station_count"], 6);
+        assert_eq!(report["microclimate_measurement_height_count"], 4);
+        assert_eq!(report["microclimate_execution_status"], "NOT_EXECUTED");
+    }
+
+    #[test]
+    fn microclimate_claim_cannot_be_based_on_dry_bulb_or_aerosol_only() {
+        let manifest: Value =
+            serde_json::from_str(MICROCLIMATE_BENCHMARK).expect("microclimate manifest");
+        assert_eq!(manifest["control_arm"], "DRY_SHADE_CONTROL");
+        assert_eq!(
+            manifest["design"]["matched_dry_shade_control_required"],
+            true
+        );
+        let gates = &manifest["hard_gates"];
+        assert_eq!(gates["comfort_claim_from_dry_bulb_only"], 0);
+        assert_eq!(gates["unqualified_water_or_aerosol_operation"], 0);
     }
 
     #[test]
