@@ -371,77 +371,88 @@
       "logical_name": "object_id",
       "parent_concept_name": "MUDDIObject",
       "parent_logical_name": "MUDDIObject",
-      "implementation_name": "object_id"
+      "implementation_name": "object_id",
+      "default_symbol": "MUDDIObject_objectID"
     },
     {
       "concept_name": "MUDDIObject.recordID",
       "logical_name": "record_id",
       "parent_concept_name": "MUDDIObject",
       "parent_logical_name": "MUDDIObject",
-      "implementation_name": "record_id"
+      "implementation_name": "record_id",
+      "default_symbol": "MUDDIObject_recordID"
     },
     {
       "concept_name": "MUDDIObject.systemID",
       "logical_name": "system_id",
       "parent_concept_name": "MUDDIObject",
       "parent_logical_name": "MUDDIObject",
-      "implementation_name": "system_id"
+      "implementation_name": "system_id",
+      "default_symbol": "MUDDIObject_systemID"
     },
     {
       "concept_name": "MUDDIObject.sf_geometry",
       "logical_name": "geometry",
       "parent_concept_name": "MUDDIObject",
       "parent_logical_name": "MUDDIObject",
-      "implementation_name": "geometry"
+      "implementation_name": "geometry",
+      "default_symbol": "MUDDIObject_sf_geometry"
     },
     {
       "concept_name": "MUDDIAsset.assetOwnerID",
       "logical_name": "asset_owner_id",
       "parent_concept_name": "MUDDIAsset",
       "parent_logical_name": "MUDDIAsset",
-      "implementation_name": "muddi_attributes.asset_owner_id"
+      "implementation_name": "muddi_attributes.asset_owner_id",
+      "default_symbol": "MUDDIAsset_assetOwnerID"
     },
     {
       "concept_name": "MUDDIEvent.targetObject",
       "logical_name": "target_object",
       "parent_concept_name": "MUDDIEvent",
       "parent_logical_name": "MUDDIEvent",
-      "implementation_name": "muddi_attributes.target_object"
+      "implementation_name": "muddi_attributes.target_object",
+      "default_symbol": "MUDDIEvent_targetObject"
     },
     {
       "concept_name": "MUDDIEvent.targetProperty",
       "logical_name": "target_property",
       "parent_concept_name": "MUDDIEvent",
       "parent_logical_name": "MUDDIEvent",
-      "implementation_name": "muddi_attributes.target_property"
+      "implementation_name": "muddi_attributes.target_property",
+      "default_symbol": "MUDDIEvent_targetProperty"
     },
     {
       "concept_name": "MUDDIEvent.validTime",
       "logical_name": "valid_time",
       "parent_concept_name": "MUDDIEvent",
       "parent_logical_name": "MUDDIEvent",
-      "implementation_name": "muddi_attributes.valid_time"
+      "implementation_name": "muddi_attributes.valid_time",
+      "default_symbol": "MUDDIEvent_validTime"
     },
     {
       "concept_name": "MUDDISpace.extent",
       "logical_name": "extent",
       "parent_concept_name": "MUDDISpace",
       "parent_logical_name": "MUDDISpace",
-      "implementation_name": "geometry"
+      "implementation_name": "geometry",
+      "default_symbol": "MUDDISpace_extent"
     },
     {
       "concept_name": "Network.commodityType",
       "logical_name": "commodity_type",
       "parent_concept_name": "Network",
       "parent_logical_name": "Network",
-      "implementation_name": "muddi_attributes.commodity_type"
+      "implementation_name": "muddi_attributes.commodity_type",
+      "default_symbol": "Network_commodityType"
     },
     {
       "concept_name": "NetworkAsset.utilityType",
       "logical_name": "utility_type",
       "parent_concept_name": "NetworkAsset",
       "parent_logical_name": "NetworkAsset",
-      "implementation_name": "muddi_attributes.utility_type"
+      "implementation_name": "muddi_attributes.utility_type",
+      "default_symbol": "NetworkAsset_utilityType"
     }
   ],
   "core_conformance_traceability": {
