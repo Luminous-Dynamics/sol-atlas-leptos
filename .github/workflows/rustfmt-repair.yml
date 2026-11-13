@@ -1,24 +1,26 @@
-name: Repair Rust formatting on Earth Observability research branch
+name: Repair Rust formatting on Earth Observability research PR
 
 on:
-  push:
-    branches:
-      - research/earth-observability-benchmark-v0-1
+  pull_request:
+    types: [opened, synchronize, reopened]
 
 permissions:
   contents: write
 
 concurrency:
-  group: rustfmt-repair-${{ github.ref }}
+  group: rustfmt-repair-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
 jobs:
   rustfmt-repair:
+    if: github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.ref_name }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          ref: ${{ github.event.pull_request.head.ref }}
+          token: ${{ github.token }}
       - name: Install stable Rust formatter
         uses: dtolnay/rust-toolchain@stable
         with:
@@ -26,6 +28,8 @@ jobs:
       - name: Apply canonical Rust formatting
         run: cargo fmt --all
       - name: Commit formatting changes when needed
+        env:
+          BRANCH_NAME: ${{ github.event.pull_request.head.ref }}
         run: |
           if git diff --quiet; then
             echo "Rust formatting is already canonical."
@@ -35,4 +39,4 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -u
           git commit -m "style(sol-atlas): apply rustfmt to Earth observability increment"
-          git push origin "HEAD:${GITHUB_REF_NAME}"
+          git push origin "HEAD:${BRANCH_NAME}"
