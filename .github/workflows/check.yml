@@ -67,6 +67,8 @@ jobs:
       - run: cargo test --bin sol-atlas-leptos
       - name: Test shared Sol Atlas core crate
         run: cargo test --manifest-path sol-atlas-core/Cargo.toml
+      - name: Test detector-to-EVSI likelihood bridge
+        run: cargo test --manifest-path sol-atlas-core/Cargo.toml sensor_evsi_bridge
       - name: Test sensor observability scoring CLI
         run: cargo test --bin sensor_observability_eval
       - name: Verify pinned analytic sensor observability receipt
