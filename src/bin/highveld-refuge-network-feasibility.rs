@@ -2018,18 +2018,27 @@ mod tests {
 
     #[test]
     fn stale_route_in_temporal_snapshot_increases_service_debt() {
-        let baseline_case: Value =
+        // Isolate route freshness: the source fixture also contains a thermal-service
+        // outage at the same timepoint, which would make this route irrelevant.
+        // Both comparison arms therefore restore that site's thermal state, and
+        // differ only in whether the route observation is fresh or stale.
+        let mut baseline_case: Value =
             serde_json::from_str(TIME_SERIES_CASE).expect("temporal baseline JSON");
+        baseline_case["time_slices"][1]["snapshot"]["sites"][0]["thermal_service_state"] =
+            json!("QUALIFIED");
         let baseline =
             evaluate_time_series(&baseline_case).expect("fresh temporal baseline evaluates");
-        let mut case: Value =
-            serde_json::from_str(TIME_SERIES_CASE).expect("temporal case JSON");
+        let mut case = baseline_case.clone();
         case["time_slices"][1]["snapshot"]["routes"][0]["route_freshness"]["age_elapsed_s"] =
             json!(301.0);
         let report = evaluate_time_series(&case).expect("stale route contributes service debt");
         assert!(
             report["total_unmet_place_hours"].as_f64().unwrap()
                 > baseline["total_unmet_place_hours"].as_f64().unwrap()
+        );
+        assert!(
+            report["accessible_unmet_place_hours"].as_f64().unwrap()
+                > baseline["accessible_unmet_place_hours"].as_f64().unwrap()
         );
         assert_eq!(report["native_event_time_owner"], "SYMTROPY");
     }
