@@ -8,7 +8,8 @@
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use sol_atlas_core::sensor_observability::{
-    DetectionEvaluationMetrics, SensorObservabilityFixture, evaluate_blind_trials,
+    ClusterBootstrapConfig, DetectionEvaluationMetrics, SensorObservabilityFixture,
+    evaluate_blind_trials_with_cluster_bootstrap,
 };
 use std::env;
 use std::fs;
@@ -45,6 +46,7 @@ struct DetectionEvaluationReceipt {
     fixture_contract_validation: String,
     json_schema_validation: String,
     requirements: EnvelopeRequirements,
+    cluster_bootstrap_config: ClusterBootstrapConfig,
     metrics: DetectionEvaluationMetrics,
     physical_validation: String,
 }
@@ -57,7 +59,16 @@ fn sha256_hex(bytes: &[u8]) -> String {
 fn build_receipt(bytes: &[u8]) -> Result<DetectionEvaluationReceipt, String> {
     let fixture: SensorObservabilityFixture = serde_json::from_slice(bytes)
         .map_err(|error| format!("fixture JSON parse failed: {error}"))?;
-    let metrics = evaluate_blind_trials(&fixture)
+    let cluster_bootstrap_config = ClusterBootstrapConfig {
+        confidence_level: 0.95,
+        bootstrap_replicates: 2_000,
+        // This is a preregistered pilot gate for the benchmark run, not a
+        // universal statistical standard. The four-site fixture will not
+        // produce inferential intervals under this threshold.
+        minimum_independent_site_clusters: 10,
+        seed: fixture.seed,
+    };
+    let metrics = evaluate_blind_trials_with_cluster_bootstrap(&fixture, cluster_bootstrap_config)
         .map_err(|errors| format!("fixture contract failed: {errors:?}"))?;
 
     Ok(DetectionEvaluationReceipt {
@@ -82,6 +93,7 @@ fn build_receipt(bytes: &[u8]) -> Result<DetectionEvaluationReceipt, String> {
             minimum_pod_requirement: fixture.envelope.minimum_pod_requirement,
             maximum_false_alarms_per_km: fixture.envelope.maximum_false_alarms_per_km,
         },
+        cluster_bootstrap_config,
         metrics,
         physical_validation: "NOT_RUN".to_string(),
     })
@@ -217,9 +229,18 @@ mod tests {
         assert_eq!(receipt.json_schema_validation, "NOT_RUN");
         assert_eq!(
             receipt.metrics.clustered_confidence_interval_status,
-            "NOT_RUN_CLUSTER_AWARE_BOOTSTRAP_REQUIRED"
+            "INSUFFICIENT_SITE_CLUSTERS_POD_4_FAR_4_REQUIRED_10_NOT_RUN"
         );
-        assert_eq!(receipt.metrics.qualification_status, "NOT_QUALIFIED_CLUSTERED_INTERVALS_NOT_RUN");
+        assert_eq!(
+            receipt.cluster_bootstrap_config.minimum_independent_site_clusters,
+            10
+        );
+        assert_eq!(receipt.metrics.pod_cluster_bootstrap_interval, None);
+        assert_eq!(receipt.metrics.false_alarm_rate_cluster_bootstrap_interval, None);
+        assert_eq!(
+            receipt.metrics.qualification_status,
+            "NOT_QUALIFIED_CLUSTERED_INTERVALS_NOT_RUN"
+        );
         assert_eq!(receipt.physical_validation, "NOT_RUN");
     }
 
