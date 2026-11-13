@@ -90,8 +90,19 @@ fn audit() -> Result<Value, Vec<String>> {
     }) {
         errors.push("aerosol-generating fountain must remain a negative control".to_owned());
     }
-    if micro_scenarios.len() != 6 || micro_stations.len() != 6 || micro_heights.len() != 4 {
-        errors.push("pool microclimate benchmark must preserve six weather scenarios, six stations and four measurement heights".to_owned());
+    let unique_micro_scenarios = micro_scenarios
+        .iter()
+        .filter_map(Value::as_str)
+        .collect::<BTreeSet<_>>();
+    if micro_scenarios.len() != 6
+        || unique_micro_scenarios.len() != micro_scenarios.len()
+        || micro_stations.len() != 6
+        || !unique_ids(&micro_stations)
+        || micro_heights.len() != 4
+    {
+        errors.push(
+            "pool microclimate benchmark must preserve six unique weather scenarios, six unique stations and four measurement heights".to_owned(),
+        );
     }
     for required in [
         "UPWIND_BACKGROUND",
@@ -104,6 +115,33 @@ fn audit() -> Result<Value, Vec<String>> {
         if !contains_id(&micro_stations, required) {
             errors.push(format!("pool microclimate spatial station {required} is missing"));
         }
+    }
+    if micro_stations
+        .iter()
+        .any(|station| station["control_pair_required"].as_bool() != Some(true))
+    {
+        errors.push("every microclimate spatial station must bind to a matched control".to_owned());
+    }
+    let micro_measurements = array_at(&microclimate, "required_measurements")
+        .cloned()
+        .unwrap_or_default();
+    for required in [
+        "DRY_BULB_AIR_TEMPERATURE_BY_STATION_AND_HEIGHT",
+        "RELATIVE_HUMIDITY_OR_DEW_POINT_BY_STATION",
+        "WIND_SPEED_AND_DIRECTION_WITH_EXPOSURE",
+        "GLOBE_OR_MEAN_RADIANT_TEMPERATURE",
+        "WATER_EVAPORATION_AND_VOLUME_CHANGE",
+        "STATION_LOCATION_HEIGHT_AND_SHADE_GEOMETRY",
+    ] {
+        if !micro_measurements.iter().any(|item| item.as_str() == Some(required)) {
+            errors.push(format!("pool microclimate measurement {required} is missing"));
+        }
+    }
+    if !micro_arms.iter().any(|arm| {
+        text_at(arm, "id") == Some("DRY_SHADE_CONTROL")
+            && text_at(arm, "role") == Some("PRIMARY_CONTROL")
+    }) {
+        errors.push("DRY_SHADE_CONTROL must be the primary control arm".to_owned());
     }
     if microclimate["design"]["minute_samples_independent"].as_bool() != Some(false)
         || microclimate["design"]["matched_dry_shade_control_required"].as_bool() != Some(true)
@@ -146,7 +184,7 @@ fn audit() -> Result<Value, Vec<String>> {
         .cloned()
         .unwrap_or_default();
     if archetypes.len() != 10 || !unique_ids(&archetypes) {
-        errors.push("nine unique pool/water archetypes are required".to_owned());
+        errors.push("ten unique pool/water archetypes are required".to_owned());
     }
     if scenarios.len() != 8 {
         errors.push("eight pool/water stress scenarios are required".to_owned());
