@@ -7,6 +7,9 @@ const CASE: &str = include_str!(
 const SCHEMA: &str = include_str!(
     "../../docs/research/highveld-neighborhood-commons/POOL_THERMAL_EXERGY_CASE_V0.1.schema.json"
 );
+const PARENT_CASE: &str = include_str!(
+    "../../docs/research/highveld-neighborhood-commons/POOL_PASSIVE_REGENERATION_CASE_V0.1.json"
+);
 
 fn text_at<'a>(value: &'a Value, key: &str) -> Option<&'a str> {
     value
@@ -25,6 +28,98 @@ fn number_at(value: &Value, key: &str) -> Option<f64> {
 /// Specific exergy of a sensible-water layer relative to an environmental
 /// reference state. Returns kWh. Temperatures are absolute Kelvin; the
 /// ln_1p form improves numerical stability near thermal equilibrium.
+fn close_state(left: f64, right: f64) -> bool {
+    left.is_finite() && right.is_finite() && (left - right).abs() <= 1e-9
+}
+
+/// The exergy sidecar must describe the exact same water/thermal trajectory
+/// that passed the first-law passive-regeneration ledger. This deliberately
+/// does not compare environmental reference temperatures: those are the
+/// additional boundary state used only for temperature-grade accounting.
+fn validate_parent_ledger_link(case: &Value, parent: &Value) -> Vec<String> {
+    let mut errors = Vec::new();
+
+    if text_at(case, "parent_case_ref")
+        != Some("POOL_PASSIVE_REGENERATION_CASE_V0.1.json")
+    {
+        errors.push("parent_case_ref must identify the passive-regeneration ledger fixture".to_owned());
+    }
+    if text_at(parent, "study_id")
+        != Some("HIGHVELD-POOL-PASSIVE-REGENERATION-LEDGER-001")
+        || text_at(parent, "maturity") != Some("SYNTHETIC_KNOWN_ANSWER")
+        || text_at(parent, "execution_status") != Some("NO_PHYSICAL_SIMULATION")
+    {
+        errors.push("referenced parent must retain its expected first-law synthetic claim ceiling".to_owned());
+    }
+    if text_at(case, "parent_case_id") != text_at(parent, "case_id") {
+        errors.push("parent_case_id does not match the referenced first-law case".to_owned());
+    }
+
+    let parent_pool = &parent["pool"];
+    for (case_key, parent_key, label) in [
+        ("usable_thermal_energy_min_kwh", "usable_thermal_energy_min_kwh", "minimum usable store energy"),
+        ("usable_thermal_energy_capacity_kwh", "usable_thermal_energy_capacity_kwh", "usable store capacity"),
+        ("initial_thermal_energy_kwh", "initial_thermal_energy_kwh", "initial thermal energy"),
+        ("maximum_permitted_temperature_c", "maximum_permitted_temperature_c", "maximum permitted temperature"),
+    ] {
+        match (number_at(case, case_key), number_at(parent_pool, parent_key)) {
+            (Some(left), Some(right)) if close_state(left, right) => {}
+            _ => errors.push(format!(
+                "exergy sidecar {label} does not match the first-law parent"
+            )),
+        }
+    }
+    if case.get("cycle_closure_required").and_then(Value::as_bool)
+        != parent.get("cycle_closure_required").and_then(Value::as_bool)
+    {
+        errors.push("cycle_closure_required does not match the first-law parent".to_owned());
+    }
+    match (
+        number_at(case, "cycle_closure_tolerance_u95_kwh"),
+        number_at(parent, "cycle_closure_tolerance_u95_kwh"),
+    ) {
+        (Some(left), Some(right)) if close_state(left, right) => {}
+        _ => errors.push("cycle closure tolerance does not match the first-law parent".to_owned()),
+    }
+
+    let sidecar_intervals = case.get("intervals").and_then(Value::as_array);
+    let parent_intervals = parent.get("intervals").and_then(Value::as_array);
+    let (Some(sidecar_intervals), Some(parent_intervals)) = (sidecar_intervals, parent_intervals) else {
+        errors.push("exergy sidecar or first-law parent intervals are missing".to_owned());
+        return errors;
+    };
+    if sidecar_intervals.len() != parent_intervals.len() {
+        errors.push("exergy interval count does not match the first-law parent".to_owned());
+        return errors;
+    }
+
+    for (index, (sidecar, source)) in sidecar_intervals.iter().zip(parent_intervals).enumerate() {
+        let sidecar_id = text_at(sidecar, "interval_id");
+        let parent_id = text_at(source, "interval_id");
+        let label = sidecar_id.unwrap_or("<missing-interval-id>");
+        if sidecar_id.is_none() || sidecar_id != parent_id {
+            errors.push(format!(
+                "exergy interval {index} identity/order does not match first-law parent ({label})"
+            ));
+            continue;
+        }
+        for (sidecar_key, parent_key, quantity) in [
+            ("thermal_energy_state_start_kwh", "thermal_energy_start_kwh", "opening thermal energy"),
+            ("thermal_energy_state_end_kwh", "thermal_energy_end_kwh", "closing thermal energy"),
+            ("water_volume_start_l", "water_volume_start_l", "opening water volume"),
+            ("water_volume_end_l", "water_volume_end_l", "closing water volume"),
+        ] {
+            match (number_at(sidecar, sidecar_key), number_at(source, parent_key)) {
+                (Some(left), Some(right)) if close_state(left, right) => {}
+                _ => errors.push(format!(
+                    "{label}: exergy {quantity} does not match the first-law parent"
+                )),
+            }
+        }
+    }
+    errors
+}
+
 fn sensible_exergy_kwh(
     mass_kg: f64,
     specific_heat_kj_kg_k: f64,
@@ -104,6 +199,9 @@ fn sensible_headroom_kwh(
 
 fn evaluate(case: &Value) -> Result<Value, Vec<String>> {
     let mut errors = Vec::new();
+    let parent: Value = serde_json::from_str(PARENT_CASE)
+        .map_err(|error| vec![format!("parent first-law case JSON parse failed: {error}")])?;
+    errors.extend(validate_parent_ledger_link(case, &parent));
     let schema: Value = serde_json::from_str(SCHEMA)
         .map_err(|error| vec![format!("exergy schema JSON parse failed: {error}")])?;
     if text_at(&schema, "$schema") != Some("https://json-schema.org/draft/2020-12/schema") {
@@ -398,6 +496,9 @@ fn evaluate(case: &Value) -> Result<Value, Vec<String>> {
         "audit_state":state,
         "study_id":"HIGHVELD-POOL-THERMAL-EXERGY-001",
         "case_id":text_at(case,"case_id").unwrap_or_default(),
+        "parent_case_id":text_at(case,"parent_case_id").unwrap_or_default(),
+        "parent_ledger_cross_check_state":"PASS",
+        "parent_ledger_cross_check_scope":"INTERVAL_THERMAL_ENERGY_AND_WATER_VOLUME_PLUS_STORE_AND_CYCLE_POLICY",
         "interval_count":reports.len(),
         "total_start_cold_exergy_kwh":total_start_cold_exergy,
         "total_end_cold_exergy_kwh":total_end_cold_exergy,
@@ -444,6 +545,53 @@ mod tests {
 
     fn sample() -> Value {
         serde_json::from_str(CASE).expect("pool exergy case JSON")
+    }
+
+    #[test]
+    fn parent_first_law_trajectory_matches_exergy_sidecar() {
+        let case = sample();
+        let parent: Value = serde_json::from_str(PARENT_CASE).expect("parent first-law JSON");
+        let errors = validate_parent_ledger_link(&case, &parent);
+        assert!(errors.is_empty(), "unexpected cross-ledger mismatches: {errors:?}");
+        let report = evaluate(&case).expect("linked exergy case qualifies");
+        assert_eq!(report["parent_ledger_cross_check_state"], "PASS");
+        assert_eq!(
+            report["parent_case_id"],
+            "SYNTHETIC_THREE_INTERVAL_POOL_BUFFER_CYCLE_001"
+        );
+    }
+
+    #[test]
+    fn parent_thermal_energy_state_mismatch_is_rejected() {
+        let mut case = sample();
+        case["intervals"][1]["thermal_energy_state_end_kwh"] = json!(100.5);
+        let parent: Value = serde_json::from_str(PARENT_CASE).expect("parent first-law JSON");
+        let errors = validate_parent_ledger_link(&case, &parent);
+        assert!(errors.iter().any(|error| {
+            error.contains("closing thermal energy does not match the first-law parent")
+        }));
+    }
+
+    #[test]
+    fn parent_water_volume_mismatch_is_rejected() {
+        let mut case = sample();
+        case["intervals"][1]["water_volume_end_l"] = json!(49996.8);
+        let parent: Value = serde_json::from_str(PARENT_CASE).expect("parent first-law JSON");
+        let errors = validate_parent_ledger_link(&case, &parent);
+        assert!(errors.iter().any(|error| {
+            error.contains("closing water volume does not match the first-law parent")
+        }));
+    }
+
+    #[test]
+    fn parent_case_identity_and_cycle_policy_must_match() {
+        let mut case = sample();
+        let parent: Value = serde_json::from_str(PARENT_CASE).expect("parent first-law JSON");
+        case["parent_case_id"] = json!("UNRELATED_POOL_CASE");
+        case["cycle_closure_tolerance_u95_kwh"] = json!(0.1);
+        let errors = validate_parent_ledger_link(&case, &parent);
+        assert!(errors.iter().any(|error| error.contains("parent_case_id")));
+        assert!(errors.iter().any(|error| error.contains("cycle closure tolerance")));
     }
 
     #[test]
