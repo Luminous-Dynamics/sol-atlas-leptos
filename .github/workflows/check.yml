@@ -79,3 +79,7 @@ jobs:
         run: cargo test --bin earth_observability_baseline
       - name: Verify pinned synthetic profile baseline report
         run: cargo run --bin earth_observability_baseline -- --check research/earth-observability/baselines/synthetic-profile-baseline-v0.1.json
+      - name: Test AGS4 local preflight
+        run: cargo test --bin ags4_preflight
+      - name: Run synthetic AGS4 preflight fixture
+        run: cargo run --bin ags4_preflight -- research/earth-observability/fixtures/ags4-synthetic-v0.1.ags
