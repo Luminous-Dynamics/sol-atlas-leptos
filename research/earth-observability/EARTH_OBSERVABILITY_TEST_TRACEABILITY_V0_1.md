@@ -38,6 +38,25 @@ This matrix prevents a case-definition manifest from being mistaken for a comple
 | DAS-CHAINAGE-001 | retain chainage; no geographic fix | `qualify_fibre_geolocation`; `das_chainage_without_route_calibration_is_not_a_geographic_fix` | Contract guard added | Qualification yields no geographic coordinate; a separate route-geometry projection must consume the exact calibration receipt |
 | DAS-COUPLING-001 | stratify and calibrate | Existing Symtropy #4972 owns coupling and DAS observability profile | Delegated / pending | No acoustic signal simulator or DAS coupling model is implemented by Sol-Atlas |
 
+## AGS4 structural preflight and validator receipt (supplemental controls)
+
+The local AGS4 preflight and BGS validator receipt contract are implemented in `sol-atlas-core/src/ags_preflight.rs`, exported through `sol-atlas-core/src/lib.rs`. The committed fixture is abstract and synthetic; no real borehole AGS file has been admitted.
+
+| Control | Test | Assertion | Boundary |
+|---|---|---|---|
+| AGS4-CRLF-001 | `line_endings_must_be_crlf` | reject LF-only rows | File envelope only |
+| AGS4-ASCII-001 | `non_ascii_bytes_are_rejected` | reject non-ASCII payload | Does not validate character encoding of external metadata |
+| AGS4-GROUP-001 | `synthetic_ags4_file_parses_and_declares_version`, `empty_groups_are_rejected`, `missing_group_row_is_rejected` | parse group envelope and reject malformed/empty groups | Not full AGS dictionary validation |
+| AGS4-QUOTE-001 | `parser_preserves_escaped_quotes_and_commas_inside_values`, `malformed_quotes_are_rejected` | preserve escaped quoting and reject broken quoting | No value-level semantics |
+| AGS4-HEADER-001 | `header_order_is_enforced`, `duplicate_headings_are_rejected`, `data_rows_must_match_heading_width` | enforce HEADER/UNIT/TYPE ordering and width | Official validator remains authoritative |
+| AGS4-BGS-REQ-GROUPS-001 | `missing_bgs_required_groups_are_reported_separately` | identify missing PROJ/ABBR/TYPE/UNIT/LOCA-or-HOLE/GEOL groups | Presence only, not field-level compliance |
+| AGS4-DICTIONARY-001 | `declared_ags_version_maps_to_exact_dictionary_without_fallback`, `ambiguous_or_empty_transfer_version_is_not_defaulted` | require one explicit supported TRAN_AGS value | No implicit v4.1.1 default |
+| AGS4-RECEIPT-BINDING-001 | `validator_receipt_binds_file_digest_size_dictionary_and_both_checkers`, `validator_receipt_rejects_reuse_for_different_file_or_dictionary` | bind result to exact digest/bytes/dictionary/checker set | Does not itself hash the file or verify the remote origin |
+| AGS4-RECEIPT-ORIGIN-001 | `validator_receipt_requires_pinned_endpoint_checkers_and_response_digest` | require BGS API 7.0 endpoint, both checkers and response digest | No TLS/signature validation |
+| AGS4-RECEIPT-STATUS-001 | `validator_error_status_cannot_be_promoted_by_zeroed_local_assertions`, `warning_count_is_preserved_but_is_not_automatically_an_error` | keep rejected result rejected; preserve warning count | Does not define use-case warning policy |
+
+Official AGS schema and BGS/NGDC submission checks remain upstream. The local parser and receipt check are preflight and exact-input consistency gates, not AGS/BGS qualification.
+
 ## BGS SOBI source-adapter controls (supplemental to the 18 manifest cases)
 
 The branch now contains a source-specific parser for the BGS Single Onshore Borehole Index OGC API Features collection. These tests use a committed synthetic GeoJSON page; no live BGS coordinates or borehole records are copied into the repository.
@@ -96,6 +115,14 @@ The Rust core now contains a fail-closed owner-grant predicate. These are additi
 | RIGHTS-RECEIPT-001 | `invalid_rights_receipt_digest_is_rejected` | reject malformed digest | Digest syntax only; Mycelix/custody must verify signature, issuer and revocation |
 
 The grant-gate contract and execution boundary are documented in [EARTH-OBSERVABILITY-FEDERATED-EVIDENCE-001](EARTH_OBSERVABILITY_FEDERATED_EVIDENCE_V0_1.md). This is a policy-consistency predicate over an upstream-qualified grant, not a legal interpreter, signature verifier or privacy-preserving execution environment.
+
+## GGC01 source-specific benchmark (no underlying files ingested)
+
+- Source profile: `research/earth-observability/ukgeos-ggc01-source-profile-v0.1.json`
+- Protocol: `research/earth-observability/EARTH_OBSERVABILITY_UKGEOS_GGC01_V0_1.md`
+- Admission state: publisher metadata reviewed; no asset-level package manifest or raw file digests have been recorded.
+- The final pack's NGDC cited-data record states OGL with NERC acknowledgement; data.gov.uk's harvest has a blank licence field. Use the exact publisher/NGDC record for the final pack only, and preserve the discrepancy.
+- Single 199 m borehole; useful for depth alignment and multimodal lineage, not cross-site generalization. Contiguous depth-block holdouts with buffer gaps are required.
 
 ## UKGEOS GGC01 benchmark design (metadata only; no data ingested)
 
