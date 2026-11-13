@@ -205,7 +205,7 @@
     "core_concepts_total": 10,
     "abstract_tests_executed": false,
     "logical_model_complete": false,
-    "claim": "draft mapping; not conformant"
+    "claim": "draft crosswalk with partial attribute traceability; not conformant"
   },
   "unresolved": [
     "Choose concrete ISO 19107 geometry encodings and coordinate/reference-frame profile for each asset class.",
@@ -213,5 +213,265 @@
     "Specify signed actor/credential references and access-control policy integration with Mycelix and utility IAM.",
     "Prove end-to-end round-trip preservation against the OGC MUDDI core abstract test suite.",
     "Resolve mapping of network conveyance semantics and topology ownership for each participating utility."
-  ]
+  ],
+  "core_attributes": [
+    {
+      "concept": "MUDDIObject",
+      "inherited_by": "all core feature classes",
+      "attributes": [
+        {
+          "muddi_name": "objectID",
+          "multiplicity": "1",
+          "obligation": "mandatory",
+          "local_mapping": "object_id",
+          "note": "Persistent real-world object identity; multiple records may represent one object."
+        },
+        {
+          "muddi_name": "recordID",
+          "multiplicity": "1",
+          "obligation": "mandatory",
+          "local_mapping": "record_id",
+          "note": "Persistent record identity within at least one dataset/data product."
+        },
+        {
+          "muddi_name": "systemID",
+          "multiplicity": "1",
+          "obligation": "mandatory",
+          "local_mapping": "system_id(provider,id)",
+          "note": "System-issued identity; system/provider namespace is part of uniqueness."
+        },
+        {
+          "muddi_name": "sf_geometry",
+          "multiplicity": "0..*",
+          "obligation": "conditional",
+          "local_mapping": "geometry[]",
+          "note": "Concrete ISO 19107 / Simple Features geometry type must be chosen in the logical model."
+        }
+      ]
+    },
+    {
+      "concept": "MUDDIAsset",
+      "inherited_by": [
+        "Network",
+        "NetworkAsset",
+        "NetworkConveyance",
+        "NetworkNode",
+        "NetworkLink",
+        "NetworkAccessory"
+      ],
+      "attributes": [
+        {
+          "muddi_name": "assetOwnerID",
+          "multiplicity": "1",
+          "obligation": "mandatory",
+          "local_mapping": "muddi_attributes.asset_owner_id",
+          "note": "Reference to current legal asset owner; value semantics and authority namespace remain external."
+        }
+      ]
+    },
+    {
+      "concept": "MUDDIEvent",
+      "inherited_by": [
+        "Observation (extended)",
+        "Action (extended)",
+        "Denotation (extended)"
+      ],
+      "attributes": [
+        {
+          "muddi_name": "targetObject",
+          "multiplicity": "1",
+          "obligation": "mandatory",
+          "local_mapping": "muddi_attributes.target_object"
+        },
+        {
+          "muddi_name": "targetProperty",
+          "multiplicity": "1",
+          "obligation": "mandatory",
+          "local_mapping": "muddi_attributes.target_property"
+        },
+        {
+          "muddi_name": "validTime",
+          "multiplicity": "1",
+          "obligation": "mandatory",
+          "local_mapping": "muddi_attributes.valid_time"
+        }
+      ]
+    },
+    {
+      "concept": "MUDDISpace",
+      "inherited_by": [
+        "PlanningArea (extended)",
+        "Site (extended)",
+        "ServiceArea (extended)"
+      ],
+      "attributes": [
+        {
+          "muddi_name": "extent",
+          "multiplicity": "1",
+          "obligation": "mandatory",
+          "local_mapping": "geometry / muddi_attributes.extent_ref",
+          "note": "Concrete spatial value type required."
+        }
+      ]
+    },
+    {
+      "concept": "Network",
+      "inherited_by": [],
+      "attributes": [
+        {
+          "muddi_name": "commodityType",
+          "multiplicity": "1",
+          "obligation": "mandatory",
+          "local_mapping": "muddi_attributes.commodity_type"
+        }
+      ]
+    },
+    {
+      "concept": "NetworkAsset",
+      "inherited_by": [
+        "NetworkAccessory",
+        "NetworkConveyance"
+      ],
+      "attributes": [
+        {
+          "muddi_name": "utilityType",
+          "multiplicity": "1",
+          "obligation": "mandatory",
+          "local_mapping": "muddi_attributes.utility_type"
+        }
+      ]
+    },
+    {
+      "concept": "NetworkConveyance",
+      "inherited_by": [
+        "NetworkLink",
+        "NetworkNode"
+      ],
+      "attributes": []
+    },
+    {
+      "concept": "NetworkAccessory",
+      "inherited_by": [],
+      "attributes": []
+    },
+    {
+      "concept": "NetworkLink",
+      "inherited_by": [],
+      "attributes": []
+    },
+    {
+      "concept": "NetworkNode",
+      "inherited_by": [],
+      "attributes": []
+    }
+  ],
+  "logical_name_mapping": [
+    {
+      "concept_name": "MUDDIObject.objectID",
+      "logical_name": "object_id",
+      "parent_concept_name": "MUDDIObject",
+      "parent_logical_name": "MUDDIObject",
+      "implementation_name": "object_id"
+    },
+    {
+      "concept_name": "MUDDIObject.recordID",
+      "logical_name": "record_id",
+      "parent_concept_name": "MUDDIObject",
+      "parent_logical_name": "MUDDIObject",
+      "implementation_name": "record_id"
+    },
+    {
+      "concept_name": "MUDDIObject.systemID",
+      "logical_name": "system_id",
+      "parent_concept_name": "MUDDIObject",
+      "parent_logical_name": "MUDDIObject",
+      "implementation_name": "system_id"
+    },
+    {
+      "concept_name": "MUDDIObject.sf_geometry",
+      "logical_name": "geometry",
+      "parent_concept_name": "MUDDIObject",
+      "parent_logical_name": "MUDDIObject",
+      "implementation_name": "geometry"
+    },
+    {
+      "concept_name": "MUDDIAsset.assetOwnerID",
+      "logical_name": "asset_owner_id",
+      "parent_concept_name": "MUDDIAsset",
+      "parent_logical_name": "MUDDIAsset",
+      "implementation_name": "muddi_attributes.asset_owner_id"
+    },
+    {
+      "concept_name": "MUDDIEvent.targetObject",
+      "logical_name": "target_object",
+      "parent_concept_name": "MUDDIEvent",
+      "parent_logical_name": "MUDDIEvent",
+      "implementation_name": "muddi_attributes.target_object"
+    },
+    {
+      "concept_name": "MUDDIEvent.targetProperty",
+      "logical_name": "target_property",
+      "parent_concept_name": "MUDDIEvent",
+      "parent_logical_name": "MUDDIEvent",
+      "implementation_name": "muddi_attributes.target_property"
+    },
+    {
+      "concept_name": "MUDDIEvent.validTime",
+      "logical_name": "valid_time",
+      "parent_concept_name": "MUDDIEvent",
+      "parent_logical_name": "MUDDIEvent",
+      "implementation_name": "muddi_attributes.valid_time"
+    },
+    {
+      "concept_name": "MUDDISpace.extent",
+      "logical_name": "extent",
+      "parent_concept_name": "MUDDISpace",
+      "parent_logical_name": "MUDDISpace",
+      "implementation_name": "geometry"
+    },
+    {
+      "concept_name": "Network.commodityType",
+      "logical_name": "commodity_type",
+      "parent_concept_name": "Network",
+      "parent_logical_name": "Network",
+      "implementation_name": "muddi_attributes.commodity_type"
+    },
+    {
+      "concept_name": "NetworkAsset.utilityType",
+      "logical_name": "utility_type",
+      "parent_concept_name": "NetworkAsset",
+      "parent_logical_name": "NetworkAsset",
+      "implementation_name": "muddi_attributes.utility_type"
+    }
+  ],
+  "core_conformance_traceability": {
+    "conformance_class": "MUDDI Core /conf/core",
+    "tests": [
+      {
+        "id": "A.1",
+        "requirement": "/req/core/classes-concepts",
+        "status": "partial_mapping",
+        "evidence": "Ten core concepts enumerated; abstract-vs-concrete profile classes still require UML review."
+      },
+      {
+        "id": "A.2",
+        "requirement": "/req/core/classes-associations",
+        "status": "not_mapped_exhaustively",
+        "evidence": "Class relationships in local fixture are illustrative only; exact UML roles/directions/multiplicities are not yet fully crosswalked."
+      },
+      {
+        "id": "A.3",
+        "requirement": "/req/core/classes-attributes",
+        "status": "partial_mapping",
+        "evidence": "Core mandatory attributes captured in the crosswalk and fixture; all UML attributes/types/multiplicities still require complete review."
+      },
+      {
+        "id": "A.4",
+        "requirement": "/req/core/concrete-value-types",
+        "status": "not_complete",
+        "evidence": "Local JSON uses draft concrete values; a full ISO 19107 geometry/value-type profile and conformance evidence remain outstanding."
+      }
+    ],
+    "claim": "Not MUDDI Core conformant. This is a draft traceability matrix and partial logical-model design."
+  }
 }
