@@ -39,17 +39,19 @@ fn close_state(left: f64, right: f64) -> bool {
 fn validate_parent_ledger_link(case: &Value, parent: &Value) -> Vec<String> {
     let mut errors = Vec::new();
 
-    if text_at(case, "parent_case_ref")
-        != Some("POOL_PASSIVE_REGENERATION_CASE_V0.1.json")
-    {
-        errors.push("parent_case_ref must identify the passive-regeneration ledger fixture".to_owned());
+    if text_at(case, "parent_case_ref") != Some("POOL_PASSIVE_REGENERATION_CASE_V0.1.json") {
+        errors.push(
+            "parent_case_ref must identify the passive-regeneration ledger fixture".to_owned(),
+        );
     }
-    if text_at(parent, "study_id")
-        != Some("HIGHVELD-POOL-PASSIVE-REGENERATION-LEDGER-001")
+    if text_at(parent, "study_id") != Some("HIGHVELD-POOL-PASSIVE-REGENERATION-LEDGER-001")
         || text_at(parent, "maturity") != Some("SYNTHETIC_KNOWN_ANSWER")
         || text_at(parent, "execution_status") != Some("NO_PHYSICAL_SIMULATION")
     {
-        errors.push("referenced parent must retain its expected first-law synthetic claim ceiling".to_owned());
+        errors.push(
+            "referenced parent must retain its expected first-law synthetic claim ceiling"
+                .to_owned(),
+        );
     }
     if text_at(case, "parent_case_id") != text_at(parent, "case_id") {
         errors.push("parent_case_id does not match the referenced first-law case".to_owned());
@@ -57,12 +59,31 @@ fn validate_parent_ledger_link(case: &Value, parent: &Value) -> Vec<String> {
 
     let parent_pool = &parent["pool"];
     for (case_key, parent_key, label) in [
-        ("usable_thermal_energy_min_kwh", "usable_thermal_energy_min_kwh", "minimum usable store energy"),
-        ("usable_thermal_energy_capacity_kwh", "usable_thermal_energy_capacity_kwh", "usable store capacity"),
-        ("initial_thermal_energy_kwh", "initial_thermal_energy_kwh", "initial thermal energy"),
-        ("maximum_permitted_temperature_c", "maximum_permitted_temperature_c", "maximum permitted temperature"),
+        (
+            "usable_thermal_energy_min_kwh",
+            "usable_thermal_energy_min_kwh",
+            "minimum usable store energy",
+        ),
+        (
+            "usable_thermal_energy_capacity_kwh",
+            "usable_thermal_energy_capacity_kwh",
+            "usable store capacity",
+        ),
+        (
+            "initial_thermal_energy_kwh",
+            "initial_thermal_energy_kwh",
+            "initial thermal energy",
+        ),
+        (
+            "maximum_permitted_temperature_c",
+            "maximum_permitted_temperature_c",
+            "maximum permitted temperature",
+        ),
     ] {
-        match (number_at(case, case_key), number_at(parent_pool, parent_key)) {
+        match (
+            number_at(case, case_key),
+            number_at(parent_pool, parent_key),
+        ) {
             (Some(left), Some(right)) if close_state(left, right) => {}
             _ => errors.push(format!(
                 "exergy sidecar {label} does not match the first-law parent"
@@ -70,7 +91,9 @@ fn validate_parent_ledger_link(case: &Value, parent: &Value) -> Vec<String> {
         }
     }
     if case.get("cycle_closure_required").and_then(Value::as_bool)
-        != parent.get("cycle_closure_required").and_then(Value::as_bool)
+        != parent
+            .get("cycle_closure_required")
+            .and_then(Value::as_bool)
     {
         errors.push("cycle_closure_required does not match the first-law parent".to_owned());
     }
@@ -84,7 +107,8 @@ fn validate_parent_ledger_link(case: &Value, parent: &Value) -> Vec<String> {
 
     let sidecar_intervals = case.get("intervals").and_then(Value::as_array);
     let parent_intervals = parent.get("intervals").and_then(Value::as_array);
-    let (Some(sidecar_intervals), Some(parent_intervals)) = (sidecar_intervals, parent_intervals) else {
+    let (Some(sidecar_intervals), Some(parent_intervals)) = (sidecar_intervals, parent_intervals)
+    else {
         errors.push("exergy sidecar or first-law parent intervals are missing".to_owned());
         return errors;
     };
@@ -104,12 +128,31 @@ fn validate_parent_ledger_link(case: &Value, parent: &Value) -> Vec<String> {
             continue;
         }
         for (sidecar_key, parent_key, quantity) in [
-            ("thermal_energy_state_start_kwh", "thermal_energy_start_kwh", "opening thermal energy"),
-            ("thermal_energy_state_end_kwh", "thermal_energy_end_kwh", "closing thermal energy"),
-            ("water_volume_start_l", "water_volume_start_l", "opening water volume"),
-            ("water_volume_end_l", "water_volume_end_l", "closing water volume"),
+            (
+                "thermal_energy_state_start_kwh",
+                "thermal_energy_start_kwh",
+                "opening thermal energy",
+            ),
+            (
+                "thermal_energy_state_end_kwh",
+                "thermal_energy_end_kwh",
+                "closing thermal energy",
+            ),
+            (
+                "water_volume_start_l",
+                "water_volume_start_l",
+                "opening water volume",
+            ),
+            (
+                "water_volume_end_l",
+                "water_volume_end_l",
+                "closing water volume",
+            ),
         ] {
-            match (number_at(sidecar, sidecar_key), number_at(source, parent_key)) {
+            match (
+                number_at(sidecar, sidecar_key),
+                number_at(source, parent_key),
+            ) {
                 (Some(left), Some(right)) if close_state(left, right) => {}
                 _ => errors.push(format!(
                     "{label}: exergy {quantity} does not match the first-law parent"
@@ -553,7 +596,10 @@ mod tests {
         let case = sample();
         let parent: Value = serde_json::from_str(PARENT_CASE).expect("parent first-law JSON");
         let errors = validate_parent_ledger_link(&case, &parent);
-        assert!(errors.is_empty(), "unexpected cross-ledger mismatches: {errors:?}");
+        assert!(
+            errors.is_empty(),
+            "unexpected cross-ledger mismatches: {errors:?}"
+        );
         let report = evaluate(&case).expect("linked exergy case qualifies");
         assert_eq!(report["parent_ledger_cross_check_state"], "PASS");
         assert_eq!(
@@ -592,7 +638,11 @@ mod tests {
         case["cycle_closure_tolerance_u95_kwh"] = json!(0.1);
         let errors = validate_parent_ledger_link(&case, &parent);
         assert!(errors.iter().any(|error| error.contains("parent_case_id")));
-        assert!(errors.iter().any(|error| error.contains("cycle closure tolerance")));
+        assert!(
+            errors
+                .iter()
+                .any(|error| error.contains("cycle closure tolerance"))
+        );
     }
 
     #[test]
