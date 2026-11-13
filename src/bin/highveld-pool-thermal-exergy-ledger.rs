@@ -189,9 +189,8 @@ fn sensible_headroom_kwh(
     {
         return None;
     }
-    if temperature_c > maximum_temperature_c {
-        return None;
-    }
+    // A layer over the authority ceiling has zero positive headroom, but remains
+    // reportable so the interval can fail on the explicit temperature-limit gate.
     Some(
         mass_kg * specific_heat_kj_kg_k * (maximum_temperature_c - temperature_c).max(0.0) / 3600.0,
     )
@@ -437,6 +436,8 @@ fn evaluate(case: &Value) -> Result<Value, Vec<String>> {
                 "end_water_mass_kg":end_mass,
                 "start_temperature_c":start_temperature,
                 "end_temperature_c":end_temperature,
+                "start_temperature_limit_exceedance_c":(start_temperature - maximum_temperature).max(0.0),
+                "end_temperature_limit_exceedance_c":(end_temperature - maximum_temperature).max(0.0),
                 "start_cold_exergy_kwh":start_cold_layer,
                 "end_cold_exergy_kwh":end_cold_layer,
                 "start_hot_exergy_kwh":start_hot_layer,
