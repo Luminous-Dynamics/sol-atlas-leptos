@@ -1,0 +1,278 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/highveld-refuge-capacity-oracle-v0.1.schema.json",
+  "title": "Highveld aggregate refuge capacity oracle input v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "study_id",
+    "case_id",
+    "maturity",
+    "execution_status",
+    "network_state",
+    "local_refuge_directory_state",
+    "search_node_limit",
+    "demands",
+    "sites"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1"
+    },
+    "study_id": {
+      "const": "HIGHVELD-REFUGE-CAPACITY-ORACLE-001"
+    },
+    "case_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "maturity": {
+      "const": "SYNTHETIC_KNOWN_ANSWER"
+    },
+    "execution_status": {
+      "const": "NO_REAL_REFUGE_OR_DEMAND_DATA"
+    },
+    "network_state": {
+      "enum": [
+        "CONNECTED",
+        "PARTITIONED",
+        "UNKNOWN"
+      ]
+    },
+    "local_refuge_directory_state": {
+      "enum": [
+        "QUALIFIED",
+        "FAILED",
+        "UNKNOWN"
+      ]
+    },
+    "search_node_limit": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 100000
+    },
+    "demands": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "cohort_id",
+          "total_places",
+          "accessible_places",
+          "safe_water_ml_per_place",
+          "maximum_route_travel_time_s",
+          "routes"
+        ],
+        "properties": {
+          "cohort_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "total_places": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 32
+          },
+          "accessible_places": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "safe_water_ml_per_place": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "maximum_route_travel_time_s": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "routes": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "site_id",
+                "route_state",
+                "travel_time_s",
+                "accessible_route_state",
+                "route_evidence_ref",
+                "accessibility_evidence_ref"
+              ],
+              "properties": {
+                "site_id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "route_state": {
+                  "enum": [
+                    "REACHABLE",
+                    "BLOCKED",
+                    "UNKNOWN"
+                  ]
+                },
+                "travel_time_s": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "accessible_route_state": {
+                  "enum": [
+                    "QUALIFIED",
+                    "FAILED",
+                    "UNKNOWN"
+                  ]
+                },
+                "route_evidence_ref": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "accessibility_evidence_ref": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "sites": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "site_id",
+          "operating_window_state",
+          "thermal_service_state",
+          "ventilation_state",
+          "safe_water_service_state",
+          "safe_water_rights_state",
+          "safe_water_quality_state",
+          "staffing_maintenance_state",
+          "total_capacity",
+          "current_occupancy",
+          "committed_reserve",
+          "accessible_capacity",
+          "accessible_occupancy",
+          "accessible_committed_reserve",
+          "safe_water_available_ml",
+          "safe_water_committed_ml",
+          "safe_water_protected_reserve_ml",
+          "capacity_evidence_ref",
+          "service_evidence_ref",
+          "water_evidence_ref"
+        ],
+        "properties": {
+          "site_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "operating_window_state": {
+            "enum": [
+              "OPEN_FOR_REQUIRED_WINDOW",
+              "CLOSED",
+              "UNKNOWN"
+            ]
+          },
+          "thermal_service_state": {
+            "enum": [
+              "QUALIFIED",
+              "FAILED",
+              "UNKNOWN"
+            ]
+          },
+          "ventilation_state": {
+            "enum": [
+              "QUALIFIED",
+              "FAILED",
+              "UNKNOWN"
+            ]
+          },
+          "safe_water_service_state": {
+            "enum": [
+              "QUALIFIED",
+              "FAILED",
+              "UNKNOWN"
+            ]
+          },
+          "safe_water_rights_state": {
+            "enum": [
+              "QUALIFIED",
+              "FAILED",
+              "UNKNOWN"
+            ]
+          },
+          "safe_water_quality_state": {
+            "enum": [
+              "QUALIFIED",
+              "FAILED",
+              "UNKNOWN"
+            ]
+          },
+          "staffing_maintenance_state": {
+            "enum": [
+              "QUALIFIED",
+              "FAILED",
+              "UNKNOWN"
+            ]
+          },
+          "total_capacity": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "current_occupancy": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "committed_reserve": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "accessible_capacity": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "accessible_occupancy": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "accessible_committed_reserve": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "safe_water_available_ml": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "safe_water_committed_ml": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "safe_water_protected_reserve_ml": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "capacity_evidence_ref": {
+            "type": "string",
+            "minLength": 1
+          },
+          "service_evidence_ref": {
+            "type": "string",
+            "minLength": 1
+          },
+          "water_evidence_ref": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    }
+  }
+}
