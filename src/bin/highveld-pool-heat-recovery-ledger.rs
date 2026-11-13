@@ -180,7 +180,8 @@ fn audit(case: &Value) -> Result<Value, Vec<String>> {
             }
         }
         _ => {
-            errors.push("condenser disposition has missing, negative or non-finite terms".to_owned());
+            errors
+                .push("condenser disposition has missing, negative or non-finite terms".to_owned());
             (None, None)
         }
     };
