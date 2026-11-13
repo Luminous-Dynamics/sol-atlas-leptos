@@ -48,7 +48,10 @@
       ],
       "layer_state_evidence_ref": "SYNTHETIC_LAYER_STATE_P001",
       "exergy_uncertainty_u95_kwh": 0.02,
-      "uncertainty_evidence_ref": "SYNTHETIC_EXERGY_UNCERTAINTY_P001"
+      "uncertainty_evidence_ref": "SYNTHETIC_EXERGY_UNCERTAINTY_P001",
+      "thermal_energy_state_start_kwh": 100,
+      "thermal_energy_state_end_kwh": 101,
+      "thermal_energy_state_evidence_ref": "SYNTHETIC_POOL_ENERGY_STATE_P001"
     },
     {
       "interval_id": "P002",
@@ -81,7 +84,10 @@
       ],
       "layer_state_evidence_ref": "SYNTHETIC_LAYER_STATE_P002",
       "exergy_uncertainty_u95_kwh": 0.02,
-      "uncertainty_evidence_ref": "SYNTHETIC_EXERGY_UNCERTAINTY_P002"
+      "uncertainty_evidence_ref": "SYNTHETIC_EXERGY_UNCERTAINTY_P002",
+      "thermal_energy_state_start_kwh": 101,
+      "thermal_energy_state_end_kwh": 101,
+      "thermal_energy_state_evidence_ref": "SYNTHETIC_POOL_ENERGY_STATE_P002"
     },
     {
       "interval_id": "P003",
@@ -114,7 +120,15 @@
       ],
       "layer_state_evidence_ref": "SYNTHETIC_LAYER_STATE_P003",
       "exergy_uncertainty_u95_kwh": 0.02,
-      "uncertainty_evidence_ref": "SYNTHETIC_EXERGY_UNCERTAINTY_P003"
+      "uncertainty_evidence_ref": "SYNTHETIC_EXERGY_UNCERTAINTY_P003",
+      "thermal_energy_state_start_kwh": 101,
+      "thermal_energy_state_end_kwh": 100,
+      "thermal_energy_state_evidence_ref": "SYNTHETIC_POOL_ENERGY_STATE_P003"
     }
-  ]
+  ],
+  "usable_thermal_energy_min_kwh": 0,
+  "usable_thermal_energy_capacity_kwh": 150,
+  "initial_thermal_energy_kwh": 100,
+  "cycle_closure_required": true,
+  "cycle_closure_tolerance_u95_kwh": 0.1
 }
