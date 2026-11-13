@@ -479,7 +479,8 @@ pub enum DataUseAction {
     Read,
     Process,
     CreateDerivative,
-    Redistribute,
+    RedistributeSource,
+    RedistributeDerivative,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -498,7 +499,8 @@ pub struct DataUseGrant {
     pub may_read: bool,
     pub may_process: bool,
     pub may_create_derivative: bool,
-    pub may_redistribute: bool,
+    pub may_redistribute_source: bool,
+    pub may_redistribute_derivative: bool,
     pub conditions_satisfied: bool,
 }
 
@@ -581,11 +583,14 @@ pub fn authorize_data_use(
         DataUseAction::CreateDerivative => {
             grant.may_read && grant.may_process && grant.may_create_derivative
         }
-        DataUseAction::Redistribute => {
+        DataUseAction::RedistributeSource => {
+            grant.may_read && grant.may_redistribute_source
+        }
+        DataUseAction::RedistributeDerivative => {
             grant.may_read
                 && grant.may_process
                 && grant.may_create_derivative
-                && grant.may_redistribute
+                && grant.may_redistribute_derivative
         }
     };
 
@@ -923,7 +928,8 @@ mod tests {
             may_read: true,
             may_process: true,
             may_create_derivative: true,
-            may_redistribute: false,
+            may_redistribute_source: false,
+            may_redistribute_derivative: false,
             conditions_satisfied: true,
         }
     }
@@ -950,8 +956,34 @@ mod tests {
         assert!(authorize_valid_grant(Some(&grant), DataUseAction::Read, 500).is_ok());
         assert!(authorize_valid_grant(Some(&grant), DataUseAction::Process, 500).is_ok());
         assert_eq!(
-            authorize_valid_grant(Some(&grant), DataUseAction::Redistribute, 500),
+            authorize_valid_grant(Some(&grant), DataUseAction::RedistributeDerivative, 500),
             Err(DataUseDenial::ActionNotGranted)
+        );
+    }
+
+    #[test]
+    fn raw_source_and_derivative_redistribution_are_separate_permissions() {
+        let mut grant = valid_rights_grant();
+        grant.may_redistribute_source = true;
+        grant.may_redistribute_derivative = false;
+        assert_eq!(
+            authorize_valid_grant(Some(&grant), DataUseAction::RedistributeSource, 500),
+            Ok(())
+        );
+        assert_eq!(
+            authorize_valid_grant(Some(&grant), DataUseAction::RedistributeDerivative, 500),
+            Err(DataUseDenial::ActionNotGranted)
+        );
+
+        grant.may_redistribute_source = false;
+        grant.may_redistribute_derivative = true;
+        assert_eq!(
+            authorize_valid_grant(Some(&grant), DataUseAction::RedistributeSource, 500),
+            Err(DataUseDenial::ActionNotGranted)
+        );
+        assert_eq!(
+            authorize_valid_grant(Some(&grant), DataUseAction::RedistributeDerivative, 500),
+            Ok(())
         );
     }
 
