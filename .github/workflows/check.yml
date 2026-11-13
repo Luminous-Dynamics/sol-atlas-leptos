@@ -65,3 +65,7 @@ jobs:
       # (renderer::hex, sol-atlas-core). Must target the bin explicitly:
       # `cargo test --lib` fails with "no library targets found".
       - run: cargo test --bin sol-atlas-leptos
+      - name: Test Earth observability manifest validator
+        run: cargo test --bin earth-observability-validate
+      - name: Emit Earth observability contract receipt
+        run: cargo run --bin earth-observability-validate -- research/earth-observability/earth-observability-case-manifest-v0.1.json
