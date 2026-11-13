@@ -1,0 +1,235 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/highveld-pool-heat-recovery-ledger-v0.1.schema.json",
+  "title": "Highveld pool heat-recovery conservation case v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "study_id",
+    "case_id",
+    "maturity",
+    "execution_status",
+    "evidence_refs",
+    "refrigeration_circuit",
+    "heat_disposition",
+    "displaced_pool_heater"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1"
+    },
+    "study_id": {
+      "const": "HIGHVELD-POOL-HEAT-RECOVERY-LEDGER-001"
+    },
+    "case_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "maturity": {
+      "const": "SYNTHETIC_KNOWN_ANSWER"
+    },
+    "execution_status": {
+      "const": "NO_PHYSICAL_SIMULATION"
+    },
+    "evidence_refs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_bundle_ref",
+        "building_heat_meter_ref",
+        "compressor_electric_meter_ref",
+        "compressor_loss_method_ref",
+        "condenser_heat_meter_ref",
+        "pool_demand_headroom_ref",
+        "isolated_heat_exchanger_ref",
+        "pool_heat_transfer_meter_ref",
+        "fallback_sink_meter_ref",
+        "distribution_loss_method_ref",
+        "uncertainty_method_ref",
+        "independent_oracle_ref",
+        "displaced_heater_meter_ref",
+        "displaced_heater_counterfactual_ref"
+      ],
+      "properties": {
+        "source_bundle_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "building_heat_meter_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "compressor_electric_meter_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "compressor_loss_method_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "condenser_heat_meter_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "pool_demand_headroom_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "isolated_heat_exchanger_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "pool_heat_transfer_meter_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "fallback_sink_meter_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "distribution_loss_method_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "uncertainty_method_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "independent_oracle_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "displaced_heater_meter_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "displaced_heater_counterfactual_ref": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "refrigeration_circuit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "building_side_heat_removed_kwh",
+        "compressor_electrical_work_kwh",
+        "compressor_ambient_loss_kwh",
+        "measured_condenser_heat_output_kwh",
+        "balance_u95_kwh"
+      ],
+      "properties": {
+        "building_side_heat_removed_kwh": {
+          "type": "number",
+          "minimum": 0
+        },
+        "compressor_electrical_work_kwh": {
+          "type": "number",
+          "minimum": 0
+        },
+        "compressor_ambient_loss_kwh": {
+          "type": "number",
+          "minimum": 0
+        },
+        "measured_condenser_heat_output_kwh": {
+          "type": "number",
+          "minimum": 0
+        },
+        "balance_u95_kwh": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "heat_disposition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "pool_heating_demand_kwh",
+        "pool_thermal_headroom_kwh",
+        "pool_temperature_c",
+        "pool_maximum_temperature_c",
+        "isolated_heat_exchanger_state",
+        "pool_heat_recovered_kwh",
+        "fallback_sink_state",
+        "fallback_sink_capacity_kwh",
+        "fallback_heat_rejected_kwh",
+        "distribution_losses_kwh",
+        "disposition_balance_u95_kwh"
+      ],
+      "properties": {
+        "pool_heating_demand_kwh": {
+          "type": "number",
+          "minimum": 0
+        },
+        "pool_thermal_headroom_kwh": {
+          "type": "number",
+          "minimum": 0
+        },
+        "pool_temperature_c": {
+          "type": "number"
+        },
+        "pool_maximum_temperature_c": {
+          "type": "number"
+        },
+        "isolated_heat_exchanger_state": {
+          "enum": [
+            "QUALIFIED",
+            "FAILED",
+            "UNKNOWN"
+          ]
+        },
+        "pool_heat_recovered_kwh": {
+          "type": "number",
+          "minimum": 0
+        },
+        "fallback_sink_state": {
+          "enum": [
+            "QUALIFIED",
+            "FAILED",
+            "UNKNOWN"
+          ]
+        },
+        "fallback_sink_capacity_kwh": {
+          "type": "number",
+          "minimum": 0
+        },
+        "fallback_heat_rejected_kwh": {
+          "type": "number",
+          "minimum": 0
+        },
+        "distribution_losses_kwh": {
+          "type": "number",
+          "minimum": 0
+        },
+        "disposition_balance_u95_kwh": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "displaced_pool_heater": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "measured_displaced_heater_input_kwh",
+        "evidence_state"
+      ],
+      "properties": {
+        "measured_displaced_heater_input_kwh": {
+          "type": "number",
+          "minimum": 0
+        },
+        "evidence_state": {
+          "enum": [
+            "QUALIFIED",
+            "FAILED",
+            "UNKNOWN"
+          ]
+        }
+      }
+    }
+  }
+}
