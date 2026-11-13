@@ -15,7 +15,8 @@
     "water_account",
     "aerosol_controls_state",
     "humidity_state",
-    "sink_paths"
+    "sink_paths",
+    "store_charge_path"
   ],
   "properties": {
     "schema_version": {
@@ -189,6 +190,87 @@
             "type": "number",
             "minimum": 0
           }
+        }
+      }
+    },
+    "store_charge_path": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "qualification_state",
+        "sensor_state",
+        "source_return_temperature_c",
+        "store_temperature_c",
+        "minimum_approach_k",
+        "available_heat_transfer_kw",
+        "requested_heat_transfer_kw",
+        "requested_duration_h",
+        "store_capacity_kwh",
+        "store_energy_kwh",
+        "load_boundary_evidence_ref",
+        "store_state_evidence_ref",
+        "heat_exchanger_evidence_ref"
+      ],
+      "properties": {
+        "id": {
+          "const": "BUILDING_LOAD_TO_STORE"
+        },
+        "qualification_state": {
+          "enum": [
+            "QUALIFIED",
+            "FAILED",
+            "UNKNOWN"
+          ]
+        },
+        "sensor_state": {
+          "enum": [
+            "QUALIFIED",
+            "FAILED",
+            "UNKNOWN"
+          ]
+        },
+        "source_return_temperature_c": {
+          "type": "number"
+        },
+        "store_temperature_c": {
+          "type": "number"
+        },
+        "minimum_approach_k": {
+          "type": "number",
+          "minimum": 0
+        },
+        "available_heat_transfer_kw": {
+          "type": "number",
+          "minimum": 0
+        },
+        "requested_heat_transfer_kw": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "requested_duration_h": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "store_capacity_kwh": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "store_energy_kwh": {
+          "type": "number",
+          "minimum": 0
+        },
+        "load_boundary_evidence_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "store_state_evidence_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "heat_exchanger_evidence_ref": {
+          "type": "string",
+          "minLength": 1
         }
       }
     }
