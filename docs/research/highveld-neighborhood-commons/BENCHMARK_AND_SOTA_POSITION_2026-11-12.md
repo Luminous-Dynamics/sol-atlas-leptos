@@ -588,3 +588,50 @@ The PR now contains:
 The oracle performs exact backtracking feasibility over anonymous place-units and shared site resources within a declared envelope (8 sites, 8 cohorts, 32 places, 100,000 search nodes). It emits a planning witness only if all cohort places can be covered; it emits no partial allocation. Limit exhaustion is INDETERMINATE_LIMIT_REACHED, never a pass. The output does not book, reserve or assign any person.
 
 Known-answer tests cover shared-capacity double booking, accessible route/capacity, protected water reserves, common service failure, network partition and search-limit indeterminacy. These are synthetic tests, not real cooling-site or route results.
+
+
+## 18. Field evidence for an integrated water-backed climate refuge
+
+A 2026 large-scale field assessment of the Cartuja Qanat Agora in Seville reports a genuinely integrated outdoor climate-refuge configuration: near-total solar blocking, a water-fed radiant ceiling, ground/water-based heat exchange and nocturnal radiative–evaporative regeneration. During representative extreme heat, outdoor conditions approached 40 °C while the occupied zone was reported around 29 °C, with air-temperature reductions exceeding 15 °C; night regeneration capacity was reported as 152 kW, COP 32.4, and 80% of surveyed users described neutral thermal sensation.
+
+This is a valuable **field reference**, not a directly transferable target. The reported values belong to one project's geometry, climate, operating boundary, scale, occupancy, plant, measurement method and service period. Before matching Highveld to it, reconstruct its denominator and boundary for COP, how "capacity" was measured, indoor/outdoor sensor positions and the amount of area/person-hours served. Do not compare the 152 kW figure to a domestic pool, a single panel or a material coupon.
+
+The actionable design pattern to test in Johannesburg is:
+- stop solar/radiant heat gain first using deep shade;
+- remove occupied-zone heat via an isolated, metered radiant-water heat exchanger;
+- treat the pool/cistern/PCM store as a finite buffer, with top/mid/bottom state;
+- regenerate by ground and/or radiative-dry sinks when weather allows;
+- use evaporative assistance only as an optional, water-rights-governed sink;
+- route excess heat to a separately qualified fallback sink;
+- close the thermal and water balances over consecutive hot days and nights;
+- qualify actual occupied person-hours, not equipment nameplate capacity.
+
+Source: [Thermal comfort and energy performance of a passive urban climate shelter under extreme heat: large-scale measurements at Cartuja Qanat Agora, 2026](https://www.sciencedirect.com/science/article/pii/S0360132326003562).
+
+## 19. Blue-green-grey integration, VPD and why "more water" is not the design rule
+
+A July 2026 comprehensive review of blue, green and grey urban infrastructure finds that combined performance is scale-, morphology- and configuration-dependent; it calls for cross-scale climate-responsive research. A June 2026 review of the radiative-cooling/water nexus highlights low-humidity/clear-sky dependence and the opportunity to couple radiative heat exchangers, dry coolers, night-sky thermal storage and atmospheric-water capture—while warning that field trials should measure water- and power-usage effectiveness across full seasonal cycles. A November 2026 study across 225 large cities finds that VPD relationships with blue-green cooling are nonlinear and climate-region dependent, not governed by one universal latent-heat pathway.
+
+Implications for Highveld:
+1. Record VPD and wet-bulb depression; ambient RH alone is not sufficient to qualify evaporative potential.
+2. Couple blue features with grey geometry and green shade/evapotranspiration; do not assume water area alone predicts pedestrian comfort.
+3. A shaded rill, closed-loop water ceiling and open pool are different interventions with different water/health and thermal boundaries.
+4. Prefer dry regeneration first where the approach temperature and weather permit; reserve evaporative duty for periods where its incremental benefit justifies source-specific water and maintenance cost.
+5. If atmospheric water harvesting is proposed, treat it as a separate source with its own yield, energy, quality and reliability evidence. Do not book hypothetical condensate/dew as available make-up water.
+6. Measure both the microclimate outside and the heat actually removed from the occupied building/refuge. Surface temperature or park-wide mean alone is insufficient.
+
+Sources:
+- [A comprehensive review of blue, green, and grey space studies for improving urban microclimate, 15 July 2026](https://www.sciencedirect.com/science/article/pii/S0360132326005032)
+- [Passive subambient cooling and atmospheric water nexus, Nature Communications, 9 June 2026](https://www.nature.com/articles/s41467-026-74110-z)
+- [Global decline in urban blue-green cooling efficiency driven by vapor pressure deficit, 2026](https://www.nature.com/articles/s44432-026-00019-z)
+- [Cooling potential of stormwater blue-green infrastructure depends on soil type and water availability, 2025/2026](https://www.sciencedirect.com/science/article/pii/S2210670725009539)
+
+## 20. New water-backed refuge benchmark
+
+A separate HIGHVELD-WATER-BACKED-REFUGE-001 study now registers 6 matched system arms × 6 operating scenarios = 36 comparisons. It is checked by the existing pool/water feature qualifier, while preserving the original 10 × 8 pool archetype matrix.
+
+The arms isolate: dry shade/ventilation; mechanical refuge; radiant-water loop with no storage; ground-regenerated finite store; radiative-regenerated finite store; and a layered refuge portfolio. Scenarios cover high-VPD clear heat, humid/cloudy weak sky sink, multi-day heat/hot nights, grid outage, water curtailment and cold-clear overcooling.
+
+The test contract requires occupied-zone operative/radiant conditions, useful heat removed by a real building-side path, layered store state and night recovery, pump/fan electricity, full water source/loss accounting and outdoor spatial microclimate controls. It prohibits automatic aerosol operation, hidden essential-water reserve use, and treating thermal comfort as a health safety guarantee.
+
+**Status:** 36 registered comparisons, not executed. The Qanat field values are stored only as a Seville reference and explicitly marked non-transferable to Highveld.
