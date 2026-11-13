@@ -22,7 +22,7 @@ Each block should be independently versioned, testable and reusable. Dependencie
 |---|---|---|
 | B1 — MUDDI logical core | Feature classes, inheritance, associations, mandatory attributes and logical names | OGC MUDDI Part 1 v1.0; ISO 19107 geometry |
 | B2 — Concrete spatial values | Geometry types, CRS, vertical datum, coordinate epoch, axis order, units, dimensionality and uncertainty | ISO 19107 / OGC Simple Features; GeoJSON for 2D-compatible exchange; JSON-FG / other explicit CRS encoding for extended geometries |
-| B3 — Observation semantics | Sensor, observed property, feature of interest, procedure, result, result time and sampling context | W3C SOSA/SSN; OGC SensorThings where a service API is appropriate; MUDDI Observation extension |
+| B3 — Observation semantics | Sensor, observed property, feature of interest, procedure, result, result time and sampling context | OGC SensorThings API 2.0 (approved 2026-09-14; published 2026-11-04); OGC/ISO OMS; W3C SOSA/SSN; MUDDI Observation extension |
 | B4 — Provenance and derivation | Source snapshot, agent, activity, transformation, exact input/output digest, method and rights | W3C PROV-O, DCAT 3, OGC API Records/STAC catalogue profiles |
 | B5 — Vocabulary and quantities | Meaning of utility type, commodity, units, event classes, methods and epistemic terms | SKOS vocabularies, QUDT quantities/units; stable owner/domain vocabularies |
 | B6 — Validation | Structural, semantic, graph and policy constraints with positive/negative examples | JSON Schema 2020-12 for structure; SHACL for graph constraints; executable independent checks |
@@ -74,7 +74,7 @@ MUDDI extended elements such as Observation, Sensor, Container and Access can be
 
 A DAS event, robot inspection or survey result is an observation, not a canonical asset mutation.
 
-The observation block should carry feature of interest or explicit unresolved target; observed property and result type; source instrument/fibre/interrogator/robot identity; procedure and method revision; calibration and clock/timebase; result time and valid time; chainage/geometry reference frame and uncertainty; raw artifact reference, digest and rights; route/asset revision used to interpret the result; derivation and transformation receipts; currentness, availability, epistemic and disclosure states.
+The observation block should carry feature of interest or explicit unresolved target; observed property and result type; source instrument/fibre/interrogator/robot identity; procedure and method revision; calibration and clock/timebase; result time and valid time; chainage/geometry reference frame and uncertainty; raw artifact reference, digest and rights; route/asset revision used to interpret the result; derivation and transformation receipts; currentness, availability, epistemic and disclosure states. For interoperable observation access, use a declared OGC SensorThings API 2.0 serving profile and OMS/SOSA semantics rather than inventing a competing sensor API. SensorThings is an observation access model, not the canonical asset registry, physical-truth authority or security policy.
 
 For fibre sensing, preserve two different results:
 - fibre_chainage_event: a position along a particular fibre revision;
@@ -100,6 +100,10 @@ A chainage result cannot be silently cast into a geographic location. The second
 - OGC MUDDI Part 1 v1.0, especially §§2, 5, 8.5–8.6, 9.2 and Annex A: https://docs.ogc.org/is/23-024/23-024.html
 - Official OGC MUDDI schema/model directory and v1.0 UML XMI: https://schemas.opengis.net/muddi/ and https://schemas.opengis.net/muddi/1.0/
 - OGC Document 26-050 (12 August 2026), Building Blocks for Interoperable, AI-Ready Geospatial Data: https://docs.ogc.org/techpaper/26-050/26-050.html
+- OGC SensorThings API Part 1 v2.0 (OGC 23-019): https://docs.ogc.org/is/23-019/23-019.html
+- OGC Observations, Measurements and Samples (OMS): https://www.ogc.org/standard/oms/
+- OGC SensorThings API security and authorization requirements: authorization policy is not prescribed by the standard; use utility-owner IAM and least-privilege serving boundaries.
+- DAS observation profile: `DAS_OBSERVATION_INTEROP_PROFILE_V0_1.md`
 - SOSA/SSN: https://www.w3.org/TR/vocab-ssn/
 - PROV-O: https://www.w3.org/TR/prov-o/
 - JSON-LD 1.1: https://www.w3.org/TR/json-ld11/
