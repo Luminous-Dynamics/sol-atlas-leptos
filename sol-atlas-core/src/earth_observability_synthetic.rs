@@ -268,7 +268,6 @@ mod tests {
         assert_eq!(fixture.geography, "abstract_non_geographic");
         assert_eq!(fixture.status, "synthetic_generated_not_field_data");
         assert!(fixture.claim_boundary.contains("no field location"));
-        assert!(fixture.claim_boundary.contains("no field location"));
     }
 
     #[test]
@@ -284,7 +283,6 @@ mod tests {
                     sample.site_id == observation.site_id && sample.x_m == observation.x_m
                 });
             let training_truth_cm = interface_depth_cm(0, X_POSITIONS_M.iter().position(|x| *x as f64 == observation.x_m).unwrap());
-            let blind_truth_cm = interface_depth_cm(125, X_POSITIONS_M.iter().position(|x| *x as f64 == observation.x_m).unwrap());
             let truth_depth = if observation.site_id == "synthetic-training-transect" {
                 training_truth_cm as f64 / 100.0
             } else {
@@ -293,7 +291,6 @@ mod tests {
             let error = (observation.interface_depth_estimate_m.unwrap() - truth_depth).abs();
             assert!(error <= 0.20, "proxy noise exceeded 0.20 m");
             assert!(observation.standard_uncertainty_m.is_some());
-            let _ = blind_truth_cm;
         }
     }
 }
