@@ -60,3 +60,31 @@ Hard targets:
 ## Claim ceiling
 
 The Rust implementation is a deterministic contract/eligibility filter. It is not an MPC solver, CFD model, EnergyPlus model, hydraulic simulation, forecast model, rights authority or equipment controller. It does not actuate hardware or establish the physical truth of the supplied sensor/model state. Operational use requires source-owner admission, independent review and a separately qualified physical control system.
+
+
+## 7. Two-sided thermal pinch: load-to-store admission
+
+The governor now evaluates a separate \`BUILDING_LOAD_TO_STORE\` charge path in addition to store-to-sink regeneration. This prevents a design from qualifying a cold sink while silently assuming that building heat can enter the storage medium at an arbitrary temperature grade.
+
+For the load-to-store fluid boundary:
+
+\[
+\Delta T_{\mathrm{load-store}} =
+T_{\mathrm{load,return}} - T_{\mathrm{store}}
+\]
+
+Admission requires the measured/qualified approach to exceed the declared minimum exchanger approach, the available heat-transfer power to cover the requested transfer rate, and the requested interval energy to fit the currently qualified store headroom:
+
+\[
+Q_{\mathrm{requested}} =
+\dot Q_{\mathrm{requested}}\,\Delta t
+\le E_{\mathrm{capacity}}-E_{\mathrm{state}}
+\]
+
+The v0.1 filter deliberately gives **no credit for concurrent regeneration** when checking this headroom. That is conservative and prevents unverified overlap between load-side charge and sink-side discharge from qualifying an otherwise full store. A future coupled temporal controller can credit simultaneous regeneration only with synchronized, qualified flow/temperature trajectories and independent store-balance closure.
+
+The committed synthetic positive control has a 9 K load-to-store approach, 3 K minimum approach, 1.5 kW requested transfer over 2 hours, 3 kW available exchanger capacity and 4 kWh measured headroom. It is eligible for optimizer review only; the tool does not actuate the exchanger.
+
+Negative controls block insufficient temperature grade, load-side exchanger capacity, sensor qualification and finite store headroom. The result exposes approach, requested transfer energy, remaining headroom and the explicit \`NOT_ASSUMED\` concurrent-regeneration policy.
+
+This check is separate from ASHRAE occupied-zone comfort and from PCM phase-change physics. It is a boundary feasibility gate around a qualified fluid/store model, not a thermal simulation.
