@@ -417,3 +417,40 @@ The committed case is synthetic and closes the two boundaries exactly at 12.8 kW
 The parent pool/water benchmark now records 80 cases (10 archetypes × 8 scenarios) and adds explicit condenser first-law, condenser-disposition and heat-double-count gates. The new ledger is wired into native CI and has separate controls for no pool heating demand and inadequate fallback capacity.
 
 **Claim ceiling:** no measured heat recovery, no displaced heater energy, no pool temperature result and no Highveld saving is claimed. The UC Davis field trial and California modeled feasibility study remain reference classes, not local predictions.
+
+
+## 16. Refuge network fairness: throughput is not distribution
+
+The 2026 U.S.-focused systematic review of 50 urban-heat studies reports that 68% discuss mitigation without empirical evaluation, 66% rely on satellite land-surface temperature, and 54% use census-tract aggregation; it also identifies gaps in cooling access, housing conditions, energy burden and distributional outcomes. Those are findings from that review's U.S. corpus, not a claim about every country or South African practice. The Highveld response is to add anonymous demand-cohort service, time-varying site capacity, accessible-route constraints, water limits and unmet-place-hours rather than assume that mapped proximity equals delivered refuge service.
+
+The new max-min comparator distinguishes two objectives that must not be conflated:
+- **Maximum throughput:** serve the largest total number under a frozen graph/capacity model.
+- **Discrete max-min cohort coverage:** preserve the accessibility-protected stage, then progressively add general-service places to the cohort with the lowest total coverage ratio, accepting each increment only when all current cohort quotas remain jointly feasible.
+
+It reports the throughput delta, minimum/maximum cohort service ratio and spread, with an explicit owner-supplied tie-break rank only for exact discrete ties. It does not label a mathematical max-min solution as morally fair or assign occupants. Future time-series work should test rotating ties and cumulative service debt, because a static cohort tie-break can create persistent disadvantage across repeated events.
+
+Source:
+- [Urban heat, vulnerability, and mitigation in U.S. cities: A systematic review, September 2026](https://doi.org/10.1016/j.scsadv.2026.100077)
+
+## 17. Thermal-storage measurement and application-level baselines
+
+An October 2026 systematic review of PCM characterization compares differential scanning calorimetry (DSC), T-history, heat-flow-meter (HFM) and three-layer calorimetry methods, and identifies standardization, reproducibility and cross-method validation as continuing gaps. A March 2026 review describes low PCM conductivity as a key constraint on latent-store response and heat-transfer rate, motivating matched passive/active enhancement comparisons. A September 2026 application-oriented review emphasizes the disconnect between material-level properties and real deployed-system performance.
+
+For Highveld, a fair PCM/pool comparison therefore needs:
+- independently characterized material properties and method uncertainty;
+- matched component geometry, heat exchanger and flow conditions;
+- metered charge/discharge power and operating temperature grade;
+- degradation / cycling / incomplete regeneration;
+- pool/tank temperature stratification or an independently validated mixed-state assumption;
+- full building-side comfort and system parasitics;
+- end-of-season store closure.
+
+EnergyPlus 26.2 is a useful specialist baseline, not a universal ground truth. Its documented ice thermal-storage model assumes a fully mixed tank, empirical heat-exchanger effectiveness and constant heat-loss rate; it does not resolve axial stratification or the radiative/convective loss breakdown. It also restricts operation to one charge/discharge side per timestep. These are model-boundary facts to disclose and compare against field measurements, not reasons to discard the engine.
+
+Sources:
+- [Thermal property characterization of phase change materials in building applications: a systematic review, 15 October 2026](https://www.sciencedirect.com/science/article/abs/pii/S2352152X2602949X)
+- [Enhancement of thermal performance in latent heat thermal storage systems, 10 March 2026](https://www.sciencedirect.com/science/article/abs/pii/S2352152X26000964)
+- [Phase Change Materials in Energy Systems: Performance, Reliability, Life Cycle Evidence, and Design Guidelines, 12 September 2026](https://onlinelibrary.wiley.com/doi/10.1155/er/2036127)
+- [EnergyPlus 26.2 ice thermal-storage engineering reference](https://energyplus.readthedocs.io/en/v26.2.0/guides/engineering-reference/15.1-ice-thermal-storage.html)
+
+A credible SOTA result must show a matched field-validated system improvement and preserved service floors; a higher latent-heat number, a peak cooling-power value or a simulator result under unmatched boundaries is not enough.
