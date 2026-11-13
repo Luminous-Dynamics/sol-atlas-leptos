@@ -376,6 +376,10 @@ pub fn validate_utility_inference_graph(
 mod tests {
     use super::*;
 
+    const SYNTHETIC_GRAPH: &str = include_str!(
+        "../../research/earth-observability/fixtures/utility-inference-candidate-graph-synthetic-v0.1.json"
+    );
+
     fn valid_graph() -> UtilityInferenceGraph {
         UtilityInferenceGraph {
             graph_id: "utility-inference-synthetic-001".to_string(),
@@ -452,6 +456,18 @@ mod tests {
                 confidence: 0.65,
             }],
         }
+    }
+
+    #[test]
+    fn committed_candidate_graph_fixture_parses_and_validates() {
+        let graph: UtilityInferenceGraph =
+            serde_json::from_str(SYNTHETIC_GRAPH).expect("utility inference fixture parses");
+        assert!(validate_utility_inference_graph(&graph).is_empty());
+        assert_eq!(graph.candidate_assets.len(), 1);
+        assert_eq!(graph.observed_events.len(), 3);
+        assert!(!graph.event_asset_associations.iter().any(|association| {
+            association.event_id == "event-clutter"
+        }));
     }
 
     #[test]
