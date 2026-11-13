@@ -79,21 +79,23 @@ fn search(
 
     let unit = &units[index];
     for &site_index in &unit.candidate_sites {
-        let site = &mut state.sites[site_index];
-        if !site.eligible
-            || site.total_free == 0
-            || (unit.accessible && site.accessible_free == 0)
-            || site.water_free_ml < unit.water_ml
-        {
+        let can_allocate = {
+            let site = &state.sites[site_index];
+            site.eligible
+                && site.total_free > 0
+                && (!unit.accessible || site.accessible_free > 0)
+                && site.water_free_ml >= unit.water_ml
+        };
+        if !can_allocate {
             continue;
         }
 
-        site.total_free -= 1;
+        state.sites[site_index].total_free -= 1;
         if unit.accessible {
-            site.accessible_free -= 1;
+            state.sites[site_index].accessible_free -= 1;
             state.accessible_assignments[unit.group_index][site_index] += 1;
         }
-        site.water_free_ml -= unit.water_ml;
+        state.sites[site_index].water_free_ml -= unit.water_ml;
         state.total_assignments[unit.group_index][site_index] += 1;
 
         match search(index + 1, units, state, visits, limit) {
@@ -105,10 +107,10 @@ fn search(
         state.total_assignments[unit.group_index][site_index] -= 1;
         if unit.accessible {
             state.accessible_assignments[unit.group_index][site_index] -= 1;
-            site.accessible_free += 1;
+            state.sites[site_index].accessible_free += 1;
         }
-        site.total_free += 1;
-        site.water_free_ml += unit.water_ml;
+        state.sites[site_index].total_free += 1;
+        state.sites[site_index].water_free_ml += unit.water_ml;
     }
 
     SearchResult::Exhausted
@@ -170,10 +172,14 @@ fn evaluate(case: &Value) -> Result<Value, Vec<String>> {
 
     let mut group_ids = BTreeSet::new();
     let mut site_ids = BTreeSet::new();
-    let total_places: u64 = groups
-        .iter()
-        .map(|group| u64_at(group, "total_places").unwrap_or(0))
-        .sum();
+    let mut total_places = 0_u64;
+    for group in groups {
+        let places = u64_at(group, "total_places")
+            .ok_or_else(|| vec!["total_places must be an unsigned integer".to_owned()])?;
+        total_places = total_places
+            .checked_add(places)
+            .ok_or_else(|| vec!["total place count overflowed".to_owned()])?;
+    }
     if total_places == 0 || total_places > MAX_PLACES as u64 {
         return Err(vec![format!(
             "total anonymous place count must be 1..={MAX_PLACES}"
