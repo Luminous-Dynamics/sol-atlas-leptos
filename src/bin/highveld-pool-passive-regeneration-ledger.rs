@@ -130,6 +130,10 @@ fn audit(case: &Value) -> Result<Value, Vec<String>> {
     let mut prior_energy = initial_energy;
     let mut prior_volume = initial_volume;
     let mut total_heat_input = 0.0_f64;
+    let mut total_building_heat_input = 0.0_f64;
+    let mut total_solar_heat_input = 0.0_f64;
+    let mut total_other_heat_input = 0.0_f64;
+    let mut total_liquid_enthalpy_in = 0.0_f64;
     let mut total_longwave = 0.0_f64;
     let mut total_sensible = 0.0_f64;
     let mut total_evaporative = 0.0_f64;
@@ -372,6 +376,10 @@ fn audit(case: &Value) -> Result<Value, Vec<String>> {
         }
 
         total_heat_input += thermal_input;
+        total_building_heat_input += building_heat;
+        total_solar_heat_input += solar;
+        total_other_heat_input += other_input;
+        total_liquid_enthalpy_in += liquid_in;
         total_longwave += longwave;
         total_sensible += sensible;
         total_evaporative += evaporative;
@@ -470,6 +478,10 @@ fn audit(case: &Value) -> Result<Value, Vec<String>> {
         "case_id":text_at(case,"case_id").unwrap_or_default(),
         "interval_count":interval_reports.len(),
         "total_heat_input_kwh":total_heat_input,
+        "total_building_heat_input_kwh":total_building_heat_input,
+        "total_solar_heat_input_kwh":total_solar_heat_input,
+        "total_other_heat_input_kwh":total_other_heat_input,
+        "total_liquid_enthalpy_in_kwh":total_liquid_enthalpy_in,
         "total_longwave_heat_rejected_kwh":total_longwave,
         "total_sensible_heat_rejected_kwh":total_sensible,
         "total_evaporative_latent_heat_rejected_kwh":total_evaporative,
@@ -544,7 +556,11 @@ mod tests {
         );
         assert_eq!(report["interval_count"], 3);
         assert_eq!(report["thermal_cycle_closure_error_kwh"], 0.0);
-        assert_eq!(report["total_heat_input_kwh"], 13.0);
+        assert_eq!(report["total_heat_input_kwh"], 13.5);
+        assert_eq!(report["total_building_heat_input_kwh"], 11.0);
+        assert_eq!(report["total_solar_heat_input_kwh"], 2.5);
+        assert_eq!(report["total_other_heat_input_kwh"], 0.0);
+        assert_eq!(report["total_liquid_enthalpy_in_kwh"], 0.0);
         assert_eq!(report["total_evaporation_l"], 4.1);
         assert_eq!(report["initial_water_volume_l"], 50000.0);
         assert_eq!(report["final_water_volume_l"], 49995.9);
