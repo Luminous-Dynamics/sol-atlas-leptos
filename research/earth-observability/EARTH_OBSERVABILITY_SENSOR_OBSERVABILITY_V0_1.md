@@ -71,6 +71,17 @@ The public branch adds:
 
 The synthetic envelope sets a target POD requirement of 0.90 and maximum false alarms of 0.5/km. The analytic point estimates miss both requirements. The receipt therefore records `point_estimates_meet_declared_requirements=false`, `NOT_QUALIFIED_CLUSTERED_INTERVALS_NOT_RUN`, and physical qualification `NOT_RUN`.
 
+The scorer also preserves site-level results rather than hiding them in one pooled number:
+
+| Blind site | POD | False alarms/km |
+|---|---:|---:|
+| blind-site-a | 100% (2/2) | 2.0 |
+| blind-site-b | 100% (2/2) | 0.0 |
+| blind-site-c | 100% (2/2) | 0.0 |
+| blind-site-d | 50% (1/2) | 0.0 |
+
+Four site clusters are only a software fixture. The site rows are deliberately small and unstable; they demonstrate the need for stratification, not site-level performance confidence. The pooled POD is 87.5%, but that value alone conceals the blind-site-d miss and blind-site-a's nuisance indication burden.
+
 This is the intended behavior: a harness should preserve failures and claim limits, not optimise for a green headline. The fixture does not establish any GPR performance and must not be quoted as a field POD or localization result.
 
 ## 3. Statistical method and current limitation
