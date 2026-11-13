@@ -55,13 +55,7 @@ fn sensible_exergy_kwh(
     if !dimensionless.is_finite() || dimensionless < -1e-12 {
         return None;
     }
-    Some(
-        (mass_kg
-            * specific_heat_kj_kg_k
-            * reference_k
-            * dimensionless.max(0.0))
-            / 3600.0,
-    )
+    Some((mass_kg * specific_heat_kj_kg_k * reference_k * dimensionless.max(0.0)) / 3600.0)
 }
 
 fn exergy_by_grade(
@@ -104,10 +98,7 @@ fn sensible_headroom_kwh(
         return None;
     }
     Some(
-        mass_kg
-            * specific_heat_kj_kg_k
-            * (maximum_temperature_c - temperature_c).max(0.0)
-            / 3600.0,
+        mass_kg * specific_heat_kj_kg_k * (maximum_temperature_c - temperature_c).max(0.0) / 3600.0,
     )
 }
 
@@ -120,7 +111,10 @@ fn evaluate(case: &Value) -> Result<Value, Vec<String>> {
     }
     for (key, expected) in [
         ("study_id", "HIGHVELD-POOL-THERMAL-EXERGY-001"),
-        ("parent_study", "HIGHVELD-POOL-PASSIVE-REGENERATION-LEDGER-001"),
+        (
+            "parent_study",
+            "HIGHVELD-POOL-PASSIVE-REGENERATION-LEDGER-001",
+        ),
         ("maturity", "SYNTHETIC_KNOWN_ANSWER"),
         ("execution_status", "NO_PHYSICAL_SIMULATION"),
     ] {
@@ -146,12 +140,15 @@ fn evaluate(case: &Value) -> Result<Value, Vec<String>> {
         errors.push("water property inputs/method/evidence are invalid".to_owned());
     }
 
-    let maximum_temperature = number_at(case, "maximum_permitted_temperature_c")
-        .ok_or_else(|| vec!["maximum_permitted_temperature_c is missing or non-finite".to_owned()])?;
-    if maximum_temperature <= -273.15
-        || text_at(case, "temperature_limit_authority_ref").is_none()
+    let maximum_temperature =
+        number_at(case, "maximum_permitted_temperature_c").ok_or_else(|| {
+            vec!["maximum_permitted_temperature_c is missing or non-finite".to_owned()]
+        })?;
+    if maximum_temperature <= -273.15 || text_at(case, "temperature_limit_authority_ref").is_none()
     {
-        errors.push("owner/authority maximum temperature limit is invalid or unreferenced".to_owned());
+        errors.push(
+            "owner/authority maximum temperature limit is invalid or unreferenced".to_owned(),
+        );
     }
 
     let intervals = case
@@ -188,7 +185,10 @@ fn evaluate(case: &Value) -> Result<Value, Vec<String>> {
         let volume_end = number_at(interval, "water_volume_end_l");
         let uncertainty = number_at(interval, "exergy_uncertainty_u95_kwh");
         for (name, reference) in [
-            ("environmental_reference_method_ref", "environmental reference method"),
+            (
+                "environmental_reference_method_ref",
+                "environmental reference method",
+            ),
             ("layer_state_evidence_ref", "layer state evidence"),
             ("uncertainty_evidence_ref", "exergy uncertainty evidence"),
         ] {
@@ -201,7 +201,8 @@ fn evaluate(case: &Value) -> Result<Value, Vec<String>> {
             || volume_end.is_none()
             || uncertainty.is_none()
         {
-            interval_errors.push("non-finite or missing interval reference/volume/uncertainty".to_owned());
+            interval_errors
+                .push("non-finite or missing interval reference/volume/uncertainty".to_owned());
         }
         if !interval_errors.is_empty() {
             errors.extend(interval_errors.iter().map(|error| format!("{id}: {error}")));
@@ -218,8 +219,15 @@ fn evaluate(case: &Value) -> Result<Value, Vec<String>> {
         let volume_end = volume_end.unwrap();
         let uncertainty = uncertainty.unwrap();
         maximum_uncertainty = maximum_uncertainty.max(uncertainty + property_u95);
-        if reference_temperature <= -273.15 || volume_start <= 0.0 || volume_end <= 0.0 || uncertainty < 0.0 {
-            interval_errors.push("environment reference, water volume or uncertainty is outside valid bounds".to_owned());
+        if reference_temperature <= -273.15
+            || volume_start <= 0.0
+            || volume_end <= 0.0
+            || uncertainty < 0.0
+        {
+            interval_errors.push(
+                "environment reference, water volume or uncertainty is outside valid bounds"
+                    .to_owned(),
+            );
         }
 
         let layers = interval.get("layers").and_then(Value::as_array);
@@ -262,7 +270,9 @@ fn evaluate(case: &Value) -> Result<Value, Vec<String>> {
                 || start_temperature.is_none()
                 || end_temperature.is_none()
             {
-                interval_errors.push(format!("{layer_id}: layer fraction/temperature is missing or non-finite"));
+                interval_errors.push(format!(
+                    "{layer_id}: layer fraction/temperature is missing or non-finite"
+                ));
                 continue;
             }
             let start_fraction = start_fraction.unwrap();
@@ -276,45 +286,46 @@ fn evaluate(case: &Value) -> Result<Value, Vec<String>> {
                 || start_temperature <= -273.15
                 || end_temperature <= -273.15
             {
-                interval_errors.push(format!("{layer_id}: layer fraction or absolute temperature is invalid"));
+                interval_errors.push(format!(
+                    "{layer_id}: layer fraction or absolute temperature is invalid"
+                ));
                 continue;
             }
             if start_temperature > maximum_temperature || end_temperature > maximum_temperature {
-                interval_errors.push(format!("{layer_id}: layer exceeds owner/authority temperature ceiling"));
+                interval_errors.push(format!(
+                    "{layer_id}: layer exceeds owner/authority temperature ceiling"
+                ));
             }
             fraction_start += start_fraction;
             fraction_end += end_fraction;
 
             let start_mass = volume_start * density * start_fraction;
             let end_mass = volume_end * density * end_fraction;
-            let (start_cold_layer, start_hot_layer) = exergy_by_grade(
-                start_mass,
-                cp,
-                start_temperature,
-                reference_temperature,
-            )
-            .ok_or_else(|| vec![format!("{id}/{layer_id}: start exergy cannot be calculated")])?;
-            let (end_cold_layer, end_hot_layer) = exergy_by_grade(
-                end_mass,
-                cp,
-                end_temperature,
-                reference_temperature,
-            )
-            .ok_or_else(|| vec![format!("{id}/{layer_id}: end exergy cannot be calculated")])?;
-            let start_layer_headroom = sensible_headroom_kwh(
-                start_mass,
-                cp,
-                start_temperature,
-                maximum_temperature,
-            )
-            .ok_or_else(|| vec![format!("{id}/{layer_id}: start headroom cannot be calculated")])?;
-            let end_layer_headroom = sensible_headroom_kwh(
-                end_mass,
-                cp,
-                end_temperature,
-                maximum_temperature,
-            )
-            .ok_or_else(|| vec![format!("{id}/{layer_id}: end headroom cannot be calculated")])?;
+            let (start_cold_layer, start_hot_layer) =
+                exergy_by_grade(start_mass, cp, start_temperature, reference_temperature)
+                    .ok_or_else(|| {
+                        vec![format!(
+                            "{id}/{layer_id}: start exergy cannot be calculated"
+                        )]
+                    })?;
+            let (end_cold_layer, end_hot_layer) =
+                exergy_by_grade(end_mass, cp, end_temperature, reference_temperature).ok_or_else(
+                    || vec![format!("{id}/{layer_id}: end exergy cannot be calculated")],
+                )?;
+            let start_layer_headroom =
+                sensible_headroom_kwh(start_mass, cp, start_temperature, maximum_temperature)
+                    .ok_or_else(|| {
+                        vec![format!(
+                            "{id}/{layer_id}: start headroom cannot be calculated"
+                        )]
+                    })?;
+            let end_layer_headroom =
+                sensible_headroom_kwh(end_mass, cp, end_temperature, maximum_temperature)
+                    .ok_or_else(|| {
+                        vec![format!(
+                            "{id}/{layer_id}: end headroom cannot be calculated"
+                        )]
+                    })?;
 
             start_cold += start_cold_layer;
             end_cold += end_cold_layer;
@@ -337,7 +348,11 @@ fn evaluate(case: &Value) -> Result<Value, Vec<String>> {
             }));
         }
 
-        if layer_ids.len() != 3 || !required_layers.iter().all(|required| layer_ids.contains(*required)) {
+        if layer_ids.len() != 3
+            || !required_layers
+                .iter()
+                .all(|required| layer_ids.contains(*required))
+        {
             interval_errors.push("exact TOP/MID/BOTTOM layer records are required".to_owned());
         }
         if (fraction_start - 1.0).abs() > 1e-6 || (fraction_end - 1.0).abs() > 1e-6 {
@@ -435,9 +450,19 @@ mod tests {
     fn hot_weather_layers_report_cold_exergy_and_cool_night_reports_hot_exergy() {
         let report = evaluate(&sample()).expect("synthetic exergy case qualifies");
         assert_eq!(report["audit_state"], "POOL_EXERGY_ACCOUNT_PASS");
-        assert!(report["intervals"][0]["start_cold_exergy_kwh"].as_f64().unwrap() > 0.0);
+        assert!(
+            report["intervals"][0]["start_cold_exergy_kwh"]
+                .as_f64()
+                .unwrap()
+                > 0.0
+        );
         assert_eq!(report["intervals"][0]["start_hot_exergy_kwh"], 0.0);
-        assert!(report["intervals"][2]["start_hot_exergy_kwh"].as_f64().unwrap() > 0.0);
+        assert!(
+            report["intervals"][2]["start_hot_exergy_kwh"]
+                .as_f64()
+                .unwrap()
+                > 0.0
+        );
         assert_eq!(report["intervals"][2]["start_cold_exergy_kwh"], 0.0);
     }
 
@@ -463,7 +488,10 @@ mod tests {
         let report = evaluate(&case).expect("mass fraction gap is a reportable validation failure");
         assert_eq!(report["audit_state"], "POOL_EXERGY_ACCOUNT_FAIL");
         assert!(report["errors"].as_array().unwrap().iter().any(|error| {
-            error.as_str().unwrap_or("").contains("layer mass fractions must close to one")
+            error
+                .as_str()
+                .unwrap_or("")
+                .contains("layer mass fractions must close to one")
         }));
     }
 
@@ -474,7 +502,10 @@ mod tests {
         let report = evaluate(&case).expect("limit breach is a reportable validation failure");
         assert_eq!(report["audit_state"], "POOL_EXERGY_ACCOUNT_FAIL");
         assert!(report["errors"].as_array().unwrap().iter().any(|error| {
-            error.as_str().unwrap_or("").contains("exceeds owner/authority temperature ceiling")
+            error
+                .as_str()
+                .unwrap_or("")
+                .contains("exceeds owner/authority temperature ceiling")
         }));
     }
 
