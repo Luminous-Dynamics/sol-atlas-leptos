@@ -71,3 +71,7 @@ jobs:
         run: cargo test --bin earth_observability_validate
       - name: Emit Earth observability contract receipt
         run: cargo run --bin earth_observability_validate -- research/earth-observability/earth-observability-case-manifest-v0.1.json
+      - name: Test deterministic Earth observability fixture generator
+        run: cargo test --bin earth_observability_generate
+      - name: Verify committed synthetic profile fixture
+        run: cargo run --bin earth_observability_generate -- --check research/earth-observability/fixtures/earth-observability-profile-synthetic-v0.1.json
