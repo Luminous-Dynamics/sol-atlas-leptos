@@ -38,6 +38,30 @@ This matrix prevents a case-definition manifest from being mistaken for a comple
 | DAS-CHAINAGE-001 | retain chainage; no geographic fix | `qualify_fibre_geolocation`; `das_chainage_without_route_calibration_is_not_a_geographic_fix` | Contract guard added | Qualification yields no geographic coordinate; a separate route-geometry projection must consume the exact calibration receipt |
 | DAS-COUPLING-001 | stratify and calibrate | Existing Symtropy #4972 owns coupling and DAS observability profile | Delegated / pending | No acoustic signal simulator or DAS coupling model is implemented by Sol-Atlas |
 
+## BGS SOBI source-adapter controls (supplemental to the 18 manifest cases)
+
+The branch now contains a source-specific parser for the BGS Single Onshore Borehole Index OGC API Features collection. These tests use a committed synthetic GeoJSON page; no live BGS coordinates or borehole records are copied into the repository.
+
+| Supplemental control | Executable guard | Expected result | Coverage ceiling |
+|---|---|---|---|
+| BGS-SOBI-PAGE-001 | `synthetic_collection_parses_and_preserves_page_metadata` | parse FeatureCollection, check numberReturned and retain numberMatched/next link | Parser contract only; no live API request |
+| BGS-SOBI-CRS84-001 | `geojson_coordinates_are_interpreted_as_longitude_then_latitude`, `invalid_coordinate_or_missing_identity_is_rejected` | validate two-dimensional CRS84 lon/lat point ranges | No CRS transform or ground-control accuracy claim |
+| BGS-SOBI-PRECISION-001 | `source_precision_label_is_preserved_not_recast_as_sigma` | preserve source text | Does not calibrate or validate positional accuracy |
+| BGS-SOBI-LENGTH-CODE-001 | `non_positive_length_code_is_not_zero_filled_or_called_depth` | keep -2 as NonPositiveCodeUninterpreted and year_known null | Complete SOBI value dictionary remains unqualified; do not infer the full -2 code meaning |
+| BGS-SOBI-ARTIFACT-RIGHTS-001 | `scan_and_ags_links_remain_separate_unqualified_artifacts`, `blank_related_artifact_link_is_not_silently_ignored` | represent scan/AGS links separately, rights status Unqualified | Does not fetch or license linked documents |
+| BGS-SOBI-SCHEMA-DRIFT-001 | `unknown_future_fields_are_preserved` | retain unrecognised collection/property fields | Does not guarantee semantic handling of new fields |
+| BGS-SOBI-PAGING-001 | `matched_count_cannot_be_smaller_than_the_returned_page`, `source_self_link_is_preserved_without_fetching` | retain response counts and exact next URL without automatic pagination | Does not implement rate limiting, host allow-list or HTTP acquisition |
+| BGS-SOBI-IDENTITY-001 | `stable_record_key_prefers_bgs_specific_identifier` | prefer bgs_id over feature/property fallback IDs | Does not assert reference text is globally unique |
+| BGS-SOBI-PARSE-001 | `malformed_json_is_distinguished_from_contract_failure` | separate JSON parse failure from semantic validation errors | No full JSON Schema/conformance validation |
+
+Source profile artifacts:
+- `research/earth-observability/EARTH_OBSERVABILITY_BGS_SOBI_ADAPTER_V0_1.md`
+- `research/earth-observability/bgs-sobi-source-profile-v0.1.json`
+- `research/earth-observability/fixtures/bgs-sobi-ogc-api-synthetic-v0.1.json`
+- `sol-atlas-core/src/bgs_sobi.rs`
+
+The BGS OGC API is a beta service with a fair-use policy and is not intended for bulk downloading the entire collection. The public dataset page lists SOBI under OGL, but linked scans/AGS files remain separate assets and must be rights-qualified separately. The parser currently has no HTTP client and has not ingested live source data.
+
 ## Additional rights and federation guards (supplemental to the 18 manifest cases)
 
 The Rust core now contains a fail-closed owner-grant predicate. These are additional unit-test controls, not extra rows in the frozen 18-case JSON manifest:
@@ -94,6 +118,7 @@ Interpretation: all borehole-only baselines have nominally complete coverage but
 The branch adds:
 
 - `sol-atlas-core/src/earth_observability.rs`: renderer-independent frame, non-detection, split, transform, survey-authority, change, interpretation-conflict, fibre-chainage and exact-source data-use grant predicates.
+- `sol-atlas-core/src/bgs_sobi.rs`: BGS SOBI OGC API FeatureCollection parser, CRS84 point validation, raw field preservation, index-length code handling, and unqualified related-artifact references.
 - `sol-atlas-core/src/earth_observability_synthetic.rs`: deterministic abstract profile generator and synthetic-profile tests.
 - `research/earth-observability/fixtures/earth-observability-profile-synthetic-v0.1.json`: pinned generated fixture.
 - `src/earth_observability_tests.rs`: root native tests run by the package's binary test target.
@@ -102,6 +127,9 @@ The branch adds:
 - `src/bin/earth_observability_baseline.rs`: runs the first borehole-only transfer versus blind-transect proxy-only baseline and can verify the pinned report.
 - `research/earth-observability/baselines/synthetic-profile-baseline-v0.1.json`: pinned metrics plus coverage and abstention counts.
 - `research/earth-observability/EARTH_OBSERVABILITY_FEDERATED_EVIDENCE_V0_1.md`: rights-aware, source-local execution architecture and qualification gates.
+- `research/earth-observability/EARTH_OBSERVABILITY_BGS_SOBI_ADAPTER_V0_1.md`: BGS OGC API source profile, field semantics and acquisition limits.
+- `research/earth-observability/bgs-sobi-source-profile-v0.1.json`: machine-readable BGS source profile.
+- `research/earth-observability/fixtures/bgs-sobi-ogc-api-synthetic-v0.1.json`: two-feature synthetic test page for the BGS adapter.
 - `.github/workflows/check.yml`: formats/checks the application, builds WASM, runs application and shared-core native tests, verifies the manifest, and verifies the pinned synthetic profile.
 
 Commands from the repository root:
