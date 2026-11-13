@@ -36,6 +36,20 @@ struct FlowResult {
     used_by_site: Vec<u64>,
 }
 
+#[derive(Default)]
+struct CohortServiceDebt {
+    requested_place_hours: f64,
+    served_place_hours: f64,
+    unmet_place_hours: f64,
+    accessible_requested_place_hours: f64,
+    accessible_served_place_hours: f64,
+    accessible_unmet_place_hours: f64,
+    general_requested_place_hours: f64,
+    general_served_place_hours: f64,
+    general_unmet_place_hours: f64,
+    minimum_snapshot_service_ratio: Option<f64>,
+}
+
 impl FlowNetwork {
     fn new(node_count: usize) -> Self {
         Self {
@@ -783,6 +797,7 @@ fn evaluate_time_series(case: &Value) -> Result<Value, Vec<String>> {
     let mut seen_timepoints = BTreeSet::new();
     let mut timepoint_reports = Vec::new();
     let mut cohort_minimum_ratio = BTreeMap::<String, f64>::new();
+    let mut cohort_service_debt = BTreeMap::<String, CohortServiceDebt>::new();
     let mut total_unmet_place_hours = 0.0_f64;
     let mut accessible_unmet_place_hours = 0.0_f64;
     let mut unmet_place_snapshot_sum = 0_u64;
@@ -842,6 +857,58 @@ fn evaluate_time_series(case: &Value) -> Result<Value, Vec<String>> {
         let minimum_cohort_ratio =
             number_at(&report, "minimum_cohort_service_ratio").unwrap_or(0.0);
 
+        let mut timepoint_cohort_debt = Vec::new();
+        if let Some(cohort_rows) = report["cohort_service"].as_array() {
+            for cohort in cohort_rows {
+                let Some(cohort_id) = text_at(cohort, "cohort_id") else {
+                    errors.push(format!("{timepoint_id}: cohort service row has no ID"));
+                    continue;
+                };
+                let requested = uint_at(cohort, "total_places_requested").unwrap_or(0);
+                let served = uint_at(cohort, "total_places_feasible").unwrap_or(0);
+                let accessible_requested =
+                    uint_at(cohort, "accessible_places_requested").unwrap_or(0);
+                let accessible_served =
+                    uint_at(cohort, "accessible_places_feasible").unwrap_or(0);
+                let general_requested =
+                    uint_at(cohort, "general_places_requested").unwrap_or(0);
+                let general_served =
+                    uint_at(cohort, "general_places_feasible").unwrap_or(0);
+                let unmet = requested.saturating_sub(served);
+                let accessible_unmet = accessible_requested.saturating_sub(accessible_served);
+                let general_unmet = general_requested.saturating_sub(general_served);
+                let snapshot_ratio = number_at(cohort, "cohort_service_ratio").unwrap_or(0.0);
+
+                let debt = cohort_service_debt.entry(cohort_id.to_owned()).or_default();
+                debt.requested_place_hours += requested as f64 * duration;
+                debt.served_place_hours += served as f64 * duration;
+                debt.unmet_place_hours += unmet as f64 * duration;
+                debt.accessible_requested_place_hours += accessible_requested as f64 * duration;
+                debt.accessible_served_place_hours += accessible_served as f64 * duration;
+                debt.accessible_unmet_place_hours += accessible_unmet as f64 * duration;
+                debt.general_requested_place_hours += general_requested as f64 * duration;
+                debt.general_served_place_hours += general_served as f64 * duration;
+                debt.general_unmet_place_hours += general_unmet as f64 * duration;
+                debt.minimum_snapshot_service_ratio = Some(
+                    debt.minimum_snapshot_service_ratio
+                        .map_or(snapshot_ratio, |current| current.min(snapshot_ratio)),
+                );
+
+                timepoint_cohort_debt.push(json!({
+                    "cohort_id":cohort_id,
+                    "requested_places":requested,
+                    "served_places":served,
+                    "unmet_places":unmet,
+                    "unmet_place_hours":unmet as f64 * duration,
+                    "accessible_unmet_places":accessible_unmet,
+                    "accessible_unmet_place_hours":accessible_unmet as f64 * duration,
+                    "general_unmet_places":general_unmet,
+                    "general_unmet_place_hours":general_unmet as f64 * duration,
+                    "snapshot_service_ratio":snapshot_ratio
+                }));
+            }
+        }
+
         total_unmet_place_hours += total_unmet as f64 * duration;
         accessible_unmet_place_hours += accessible_unmet as f64 * duration;
         unmet_place_snapshot_sum += total_unmet;
@@ -877,7 +944,8 @@ fn evaluate_time_series(case: &Value) -> Result<Value, Vec<String>> {
             "minimum_cohort_service_ratio": minimum_cohort_ratio,
             "qualified_site_count": report["qualified_site_count"],
             "qualified_general_route_count": report["qualified_general_route_count"],
-            "qualified_accessible_route_count": report["qualified_accessible_route_count"]
+            "qualified_accessible_route_count": report["qualified_accessible_route_count"],
+            "cohort_service_debt_delta": timepoint_cohort_debt
         }));
     }
 
@@ -893,6 +961,54 @@ fn evaluate_time_series(case: &Value) -> Result<Value, Vec<String>> {
             })
         })
         .collect();
+    let cohort_service_debt_rows: Vec<Value> = cohort_service_debt
+        .iter()
+        .map(|(cohort_id, debt)| {
+            let cumulative_service_ratio = if debt.requested_place_hours > 0.0 {
+                debt.served_place_hours / debt.requested_place_hours
+            } else {
+                1.0
+            };
+            let cumulative_unmet_fraction = if debt.requested_place_hours > 0.0 {
+                debt.unmet_place_hours / debt.requested_place_hours
+            } else {
+                0.0
+            };
+            json!({
+                "cohort_id":cohort_id,
+                "requested_place_hours":debt.requested_place_hours,
+                "served_place_hours":debt.served_place_hours,
+                "unmet_place_hours":debt.unmet_place_hours,
+                "accessible_requested_place_hours":debt.accessible_requested_place_hours,
+                "accessible_served_place_hours":debt.accessible_served_place_hours,
+                "accessible_unmet_place_hours":debt.accessible_unmet_place_hours,
+                "general_requested_place_hours":debt.general_requested_place_hours,
+                "general_served_place_hours":debt.general_served_place_hours,
+                "general_unmet_place_hours":debt.general_unmet_place_hours,
+                "cumulative_service_ratio":cumulative_service_ratio,
+                "cumulative_unmet_fraction":cumulative_unmet_fraction,
+                "minimum_snapshot_service_ratio":debt.minimum_snapshot_service_ratio
+            })
+        })
+        .collect();
+    let worst_service_debt = cohort_service_debt
+        .iter()
+        .max_by(|left, right| {
+            left.1.unmet_place_hours.total_cmp(&right.1.unmet_place_hours)
+        })
+        .map(|(cohort_id, debt)| json!({
+            "cohort_id":cohort_id,
+            "unmet_place_hours":debt.unmet_place_hours
+        }))
+        .unwrap_or(Value::Null);
+    let summed_cohort_debt: f64 = cohort_service_debt
+        .values()
+        .map(|debt| debt.unmet_place_hours)
+        .sum();
+    let summed_accessible_cohort_debt: f64 = cohort_service_debt
+        .values()
+        .map(|debt| debt.accessible_unmet_place_hours)
+        .sum();
 
     Ok(json!({
         "audit_state": "REFUGE_SUPPLY_DEMAND_DEGRADATION_COMPLETE",
@@ -909,6 +1025,10 @@ fn evaluate_time_series(case: &Value) -> Result<Value, Vec<String>> {
         "maximum_unmet_timepoint_id": maximum_unmet_timepoint,
         "minimum_cohort_service_ratio_any_timepoint": minimum_ratio,
         "cohort_minimum_service_ratios": cohort_minimum_rows,
+        "cohort_cumulative_service_debt": cohort_service_debt_rows,
+        "worst_cumulative_service_debt_cohort": worst_service_debt,
+        "cohort_debt_matches_total_unmet_place_hours": (summed_cohort_debt - total_unmet_place_hours).abs() <= 1e-9,
+        "accessible_cohort_debt_matches_total": (summed_accessible_cohort_debt - accessible_unmet_place_hours).abs() <= 1e-9,
         "timepoints": timepoint_reports,
         "assignment": "NONE",
         "reservation": "NONE",
@@ -983,6 +1103,28 @@ mod tests {
         assert_eq!(report["minimum_cohort_service_ratio_any_timepoint"], 0.0);
         assert_eq!(report["native_timestamps_or_event_ids_generated"], false);
         assert_eq!(report["assignment"], "NONE");
+    }
+
+    #[test]
+    fn temporal_service_debt_conserves_place_hours_by_cohort() {
+        let case: Value = serde_json::from_str(TIME_SERIES_CASE).expect("temporal case JSON");
+        let report = evaluate_time_series(&case).expect("temporal case must evaluate");
+        assert_eq!(
+            report["cohort_debt_matches_total_unmet_place_hours"],
+            true
+        );
+        assert_eq!(report["accessible_cohort_debt_matches_total"], true);
+        let rows = report["cohort_cumulative_service_debt"]
+            .as_array()
+            .expect("cohort debt rows");
+        assert_eq!(rows.len(), 3);
+        let unmet_sum: f64 = rows
+            .iter()
+            .map(|row| row["unmet_place_hours"].as_f64().unwrap())
+            .sum();
+        assert!((unmet_sum - 56.0).abs() <= 1e-9);
+        let worst = &report["worst_cumulative_service_debt_cohort"];
+        assert!(worst["cohort_id"].as_str().is_some());
     }
 
     #[test]
