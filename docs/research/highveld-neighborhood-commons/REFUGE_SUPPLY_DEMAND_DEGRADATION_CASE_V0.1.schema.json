@@ -67,7 +67,9 @@
               "safe_water_l_per_place",
               "cohorts",
               "sites",
-              "routes"
+              "routes",
+              "evaluation_event_id",
+              "freshness_assessment_owner"
             ],
             "properties": {
               "network_state": {
@@ -127,11 +129,370 @@
               },
               "sites": {
                 "type": "array",
-                "minItems": 1
+                "minItems": 1,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "site_id",
+                    "operating_window_state",
+                    "thermal_service_state",
+                    "ventilation_state",
+                    "safe_water_service_state",
+                    "safe_water_rights_state",
+                    "safe_water_quality_state",
+                    "staffing_maintenance_state",
+                    "total_capacity",
+                    "current_occupancy",
+                    "committed_reserve",
+                    "accessible_capacity",
+                    "accessible_occupancy",
+                    "accessible_committed_reserve",
+                    "safe_water_available_l",
+                    "safe_water_committed_l",
+                    "safe_water_protected_reserve_l",
+                    "capacity_evidence_ref",
+                    "service_evidence_ref",
+                    "water_evidence_ref",
+                    "site_status_freshness",
+                    "capacity_freshness",
+                    "service_freshness",
+                    "water_freshness"
+                  ],
+                  "properties": {
+                    "site_id": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "operating_window_state": {
+                      "enum": [
+                        "OPEN_FOR_REQUIRED_WINDOW",
+                        "CLOSED",
+                        "UNKNOWN"
+                      ]
+                    },
+                    "thermal_service_state": {
+                      "enum": [
+                        "QUALIFIED",
+                        "FAILED",
+                        "UNKNOWN"
+                      ]
+                    },
+                    "ventilation_state": {
+                      "enum": [
+                        "QUALIFIED",
+                        "FAILED",
+                        "UNKNOWN"
+                      ]
+                    },
+                    "safe_water_service_state": {
+                      "enum": [
+                        "QUALIFIED",
+                        "FAILED",
+                        "UNKNOWN"
+                      ]
+                    },
+                    "safe_water_rights_state": {
+                      "enum": [
+                        "QUALIFIED",
+                        "FAILED",
+                        "UNKNOWN"
+                      ]
+                    },
+                    "safe_water_quality_state": {
+                      "enum": [
+                        "QUALIFIED",
+                        "FAILED",
+                        "UNKNOWN"
+                      ]
+                    },
+                    "staffing_maintenance_state": {
+                      "enum": [
+                        "QUALIFIED",
+                        "FAILED",
+                        "UNKNOWN"
+                      ]
+                    },
+                    "total_capacity": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "current_occupancy": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "committed_reserve": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "accessible_capacity": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "accessible_occupancy": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "accessible_committed_reserve": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "safe_water_available_l": {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    "safe_water_committed_l": {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    "safe_water_protected_reserve_l": {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    "capacity_evidence_ref": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "service_evidence_ref": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "water_evidence_ref": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "site_status_freshness": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "source_event_id",
+                        "age_elapsed_s",
+                        "max_valid_age_s",
+                        "max_age_policy_ref"
+                      ],
+                      "properties": {
+                        "source_event_id": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "age_elapsed_s": {
+                          "type": "number",
+                          "minimum": 0
+                        },
+                        "max_valid_age_s": {
+                          "type": "number",
+                          "exclusiveMinimum": 0
+                        },
+                        "max_age_policy_ref": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      }
+                    },
+                    "capacity_freshness": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "source_event_id",
+                        "age_elapsed_s",
+                        "max_valid_age_s",
+                        "max_age_policy_ref"
+                      ],
+                      "properties": {
+                        "source_event_id": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "age_elapsed_s": {
+                          "type": "number",
+                          "minimum": 0
+                        },
+                        "max_valid_age_s": {
+                          "type": "number",
+                          "exclusiveMinimum": 0
+                        },
+                        "max_age_policy_ref": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      }
+                    },
+                    "service_freshness": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "source_event_id",
+                        "age_elapsed_s",
+                        "max_valid_age_s",
+                        "max_age_policy_ref"
+                      ],
+                      "properties": {
+                        "source_event_id": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "age_elapsed_s": {
+                          "type": "number",
+                          "minimum": 0
+                        },
+                        "max_valid_age_s": {
+                          "type": "number",
+                          "exclusiveMinimum": 0
+                        },
+                        "max_age_policy_ref": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      }
+                    },
+                    "water_freshness": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "source_event_id",
+                        "age_elapsed_s",
+                        "max_valid_age_s",
+                        "max_age_policy_ref"
+                      ],
+                      "properties": {
+                        "source_event_id": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "age_elapsed_s": {
+                          "type": "number",
+                          "minimum": 0
+                        },
+                        "max_valid_age_s": {
+                          "type": "number",
+                          "exclusiveMinimum": 0
+                        },
+                        "max_age_policy_ref": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      }
+                    }
+                  }
+                }
               },
               "routes": {
                 "type": "array",
-                "minItems": 1
+                "minItems": 1,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "cohort_id",
+                    "site_id",
+                    "route_state",
+                    "accessibility_state",
+                    "travel_time_s",
+                    "route_evidence_ref",
+                    "accessibility_evidence_ref",
+                    "route_freshness",
+                    "accessibility_freshness"
+                  ],
+                  "properties": {
+                    "cohort_id": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "site_id": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "route_state": {
+                      "enum": [
+                        "REACHABLE",
+                        "BLOCKED",
+                        "UNKNOWN"
+                      ]
+                    },
+                    "accessibility_state": {
+                      "enum": [
+                        "QUALIFIED",
+                        "NOT_ACCESSIBLE",
+                        "UNKNOWN"
+                      ]
+                    },
+                    "travel_time_s": {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    "route_evidence_ref": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "accessibility_evidence_ref": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "route_freshness": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "source_event_id",
+                        "age_elapsed_s",
+                        "max_valid_age_s",
+                        "max_age_policy_ref"
+                      ],
+                      "properties": {
+                        "source_event_id": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "age_elapsed_s": {
+                          "type": "number",
+                          "minimum": 0
+                        },
+                        "max_valid_age_s": {
+                          "type": "number",
+                          "exclusiveMinimum": 0
+                        },
+                        "max_age_policy_ref": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      }
+                    },
+                    "accessibility_freshness": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "source_event_id",
+                        "age_elapsed_s",
+                        "max_valid_age_s",
+                        "max_age_policy_ref"
+                      ],
+                      "properties": {
+                        "source_event_id": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "age_elapsed_s": {
+                          "type": "number",
+                          "minimum": 0
+                        },
+                        "max_valid_age_s": {
+                          "type": "number",
+                          "exclusiveMinimum": 0
+                        },
+                        "max_age_policy_ref": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "evaluation_event_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "freshness_assessment_owner": {
+                "const": "SYMTROPY"
               }
             }
           }
