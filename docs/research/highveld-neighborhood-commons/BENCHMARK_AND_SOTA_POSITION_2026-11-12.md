@@ -469,3 +469,21 @@ This enables a new comparison not captured by a static max-flow result:
 The benchmark reports absolute place-hour debt and normalized cumulative service ratio together. It does not count snapshots as unique people, and it does not automatically translate debt into priority or dispatch. A debt-aware policy must be separately preregistered and owner/resident governed.
 
 This is a potential advance over static cooling-center maps or one-shot maximum-flow analysis: it tests whether service disparity persists through an event and whether recovery policies reduce cumulative service gaps. It remains a research target until held-out, rights-cleared and physically/operationally representative data exists.
+
+
+## 19. Passive pool and water-feature evidence: measure the complete cycle
+
+Three recent studies sharpen the field-test design:
+
+- A March 2026 open solar PV/T pool experiment reports that evaporation dominated heat loss in its tested outdoor system (approximately 70% for that study's conditions), with strong seasonal variation. This is a reason to meter evaporation and separate it from sensible/radiative fluxes—not a transferable Johannesburg coefficient.
+- A March 2026 nighttime outdoor-pool study tested an aggregate reduced-order thermal-balance model on 13 independent nighttime realizations. Its effective-coefficient formulation is useful for system-level prediction but does not independently identify every heat-flux mechanism. For mechanism-specific claims, Highveld needs separate flux measurements and uncertainty.
+- An August 2026 water-channel study validated its urban-flow/thermal model using CFD and wind-tunnel evidence and found that wind and canyon configuration strongly affect channel performance; adding multiple channels can worsen daytime comfort through long-wave effects. This cautions against using water area alone as a proxy for local cooling benefit.
+
+Sources:
+- [Open solar PV/T pool heating and cooling seasonal investigation (15 March 2026)](https://www.sciencedirect.com/science/article/pii/S2210670726004762)
+- [Nighttime thermal performance of an outdoor swimming pool: reduced-order thermal-balance validation (16 March 2026)](https://www.sciencedirect.com/science/article/pii/S2210670726004762)
+- [Water channels in urban canyons: wind and radiative interactions (15 August 2026)](https://www.sciencedirect.com/science/article/pii/S2213138826006764)
+
+The pool passive-regeneration ledger is now a separate executable contract from the heat-pump pool recovery ledger. It tracks long-wave, sensible, evaporation, ground and isolated-HX heat rejection separately; a separate mass ledger accounts for make-up, rain, evaporation, withdrawal, leakage, backwash and overflow. Its synthetic case closes the thermal and water balances and requires a layer-resolved pool state or validated equivalent. No physical pool result or Johannesburg coefficient is claimed.
+
+A credible experiment should pair cover/shade schedules under identical weather, geometry and operating windows; instrument top/middle/bottom water temperatures, long-wave radiative boundary, wind, solar, evaporation/make-up and all heat-transfer loops; and close both thermal energy and water volume over a full multi-day / seasonal cycle. It must separately measure local outdoor comfort and occupied-zone outcomes—pool heat rejection alone does not prove building cooling.
