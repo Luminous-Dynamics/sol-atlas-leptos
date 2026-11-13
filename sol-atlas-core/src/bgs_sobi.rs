@@ -133,6 +133,13 @@ pub enum BgsSobiValidationError {
     NonFiniteCoordinate,
     LongitudeOutOfRange,
     LatitudeOutOfRange,
+    EmptyRelatedArtifactUri,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum BgsSobiParseError {
+    Json(String),
+    Validation(Vec<BgsSobiValidationError>),
 }
 
 impl BgsSobiProperties {
