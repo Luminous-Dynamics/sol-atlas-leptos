@@ -20,16 +20,16 @@ This document is a local profile proposal. It does not claim that the MUDDI logi
 
 ## 2. SensorThings conceptual mapping
 
-Use these mappings as profile defaults; each adapter must declare deviations and source limitations.
+Use these mappings as profile defaults; each adapter must declare deviations and source limitations. In SensorThings, a Thing is a physical or virtual identifiable host/platform; a Sensor is a hardware, human or software observer; and an Observation estimates an ObservedProperty of a FeatureOfInterest, which may be proximate or ultimate. Do not collapse these roles.
 
 | SensorThings concept | SUF/DAS profile meaning | Important constraint |
 |---|---|---|
-| Thing | A bounded sensing deployment / interrogator system or a fibre-monitoring installation | Does not become the canonical utility asset |
+| Thing | The identifiable physical/virtual monitoring host or platform in the SensorThings sense—for example an interrogator installation or monitoring station that hosts sensors/datastreams | It is not the observed fibre route or the canonical owner utility asset; represent those as FeatureOfInterest / external MUDDI asset references as appropriate |
 | Sensor | Exact interrogator measurement source or a declared processing sensor | Keep vendor model, serial, firmware and processing revision where available |
 | Datastream | Measurements with the same sensor, observed property, unit/result type and declared spatial/temporal scope | Do not mix DAS strain, DAS strain-rate, DTS temperature and CAMOS electrical-current measurements in one stream |
 | ObservedProperty | Explicit phenomenon such as axial strain, strain-rate, temperature or electrical current | Quantity, definition and unit are mandatory profile semantics; CAMOS current is not DAS |
 | Observation | One event, aggregate result, or a bounded reference to a measurement artifact | Include phenomenonTime, resultTime and a precise result/resultType representation |
-| FeatureOfInterest | Fibre span/route segment or an explicit unresolved feature reference | A chainage observation may refer to a fibre span before any utility asset is identified |
+| FeatureOfInterest | The proximate observed fibre span/route segment, or an explicit unresolved reference; the ultimate feature may be an owner utility asset only where the relationship is evidenced | Do not equate the monitoring Thing with the observed feature or infer asset attribution from proximity |
 | MultiDatastream | Only where measured properties and result structure genuinely form a jointly defined multivariate record | Do not use as a generic bag for vendor channels with incompatible units/configuration |
 
 Where suitable, SensorThings API 2.0 resultType can describe structured values using the OGC SWE Common Data Model JSON encoding (OGC 24-014). The adapter must preserve the vendor-native artifact and record the exact mapping and conversion method.
