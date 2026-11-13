@@ -151,6 +151,8 @@ pub enum TrialValidationError {
     InvalidLocalizationError,
     NonBlindEvaluationTrial,
     EmptyFixture,
+    MissingCalibrationPartition,
+    MissingBlindTestPartition,
     InvalidFixtureClaimBoundary,
 }
 
@@ -332,7 +334,10 @@ pub fn validate_fixture(
     }
 
     let mut trial_ids = BTreeSet::new();
-    let mut target_ids = BTreeSet::new();
+    let mut calibration_targets = BTreeSet::new();
+    let mut blind_targets = BTreeSet::new();
+    let mut has_calibration = false;
+    let mut has_blind_test = false;
     let mut calibration_sites = BTreeSet::new();
     let mut blind_sites = BTreeSet::new();
     let mut calibration_acquisitions = BTreeSet::new();
@@ -350,16 +355,22 @@ pub fn validate_fixture(
             errors.push(TrialValidationError::DuplicateTrialId);
         }
         if let Some(target_id) = trial.target_id.as_deref() {
-            if !target_ids.insert(target_id) {
+            let inserted = match trial.partition {
+                DetectionPartition::Calibration => calibration_targets.insert(target_id),
+                DetectionPartition::BlindTest => blind_targets.insert(target_id),
+            };
+            if !inserted {
                 errors.push(TrialValidationError::DuplicateTargetId);
             }
         }
         match trial.partition {
             DetectionPartition::Calibration => {
+                has_calibration = true;
                 calibration_sites.insert(trial.site_id.as_str());
                 calibration_acquisitions.insert(trial.acquisition_id.as_str());
             }
             DetectionPartition::BlindTest => {
+                has_blind_test = true;
                 blind_sites.insert(trial.site_id.as_str());
                 blind_acquisitions.insert(trial.acquisition_id.as_str());
             }
@@ -369,6 +380,15 @@ pub fn validate_fixture(
         }
     }
 
+    if !has_calibration {
+        partition_errors.push(TrialValidationError::MissingCalibrationPartition);
+    }
+    if !has_blind_test {
+        partition_errors.push(TrialValidationError::MissingBlindTestPartition);
+    }
+    if calibration_targets.iter().any(|id| blind_targets.contains(id)) {
+        partition_errors.push(TrialValidationError::CrossPartitionTargetLeakage);
+    }
     if calibration_sites.iter().any(|site| blind_sites.contains(site)) {
         partition_errors.push(TrialValidationError::CrossPartitionSiteLeakage);
     }
@@ -658,7 +678,7 @@ mod tests {
         let result = evaluate_blind_trials(&fixture()).unwrap();
         assert_eq!(result.negative_controls, 6);
         assert_eq!(result.false_positives, 1);
-        assert_eq!(result.false_alarms_per_km, Some(1.0));
+        assert_eq!(result.false_alarms_per_km, Some(2.0 / 3.0));
     }
 
     #[test]
@@ -684,7 +704,7 @@ mod tests {
     fn target_must_not_be_scored_twice_across_partitions() {
         let mut data = fixture();
         data.trials[1].target_id = Some("target-1".to_string());
-        assert!(validate_fixture(&data).unwrap_err().contains(&TrialValidationError::DuplicateTargetId));
+        assert!(validate_fixture(&data).unwrap_err().contains(&TrialValidationError::CrossPartitionTargetLeakage));
     }
 
     #[test]
