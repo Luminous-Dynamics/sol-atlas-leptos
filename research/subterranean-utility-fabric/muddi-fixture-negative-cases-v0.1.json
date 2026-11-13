@@ -1,0 +1,79 @@
+{
+  "schema_version": "luminous.suf.muddi_fixture_tests.v0.1",
+  "fixture_id": "SUF-MUDDI-SYNTH-001",
+  "claim_ceiling": "These are expected structural and policy outcomes for synthetic test mutations. They do not prove security of a deployed service or real-world geospatial accuracy.",
+  "cases": [
+    {
+      "id": "MUDDI-NEG-001",
+      "mutation": "duplicate_record_id_on_different_record",
+      "expected": "Rejected",
+      "reason": "RecordID must uniquely identify a record within the declared dataset snapshot."
+    },
+    {
+      "id": "MUDDI-NEG-002",
+      "mutation": "same_object_id_with_two_record_ids_and_declared_same_real_world_object_relation",
+      "expected": "Accepted",
+      "reason": "Multiple records may describe the same real-world object; preserve both records and their provenance."
+    },
+    {
+      "id": "MUDDI-NEG-003",
+      "mutation": "same_object_id_assigned_to_two_declared_distinct_objects_without_reconciliation",
+      "expected": "Indeterminate",
+      "reason": "Object identity collision requires owner reconciliation; do not infer merge or split."
+    },
+    {
+      "id": "MUDDI-NEG-004",
+      "mutation": "system_id_without_provider_namespace",
+      "expected": "Rejected",
+      "reason": "SystemID is scoped to issuing provider and is not globally unique by assumption."
+    },
+    {
+      "id": "MUDDI-NEG-005",
+      "mutation": "incompatible_horizontal_crs_or_vertical_datum_without_declared_transform",
+      "expected": "Rejected",
+      "reason": "No geometry merge or distance comparison across incompatible frames."
+    },
+    {
+      "id": "MUDDI-NEG-006",
+      "mutation": "geometry_missing_position_uncertainty",
+      "expected": "Indeterminate",
+      "reason": "A geometry claim without an uncertainty state cannot satisfy the profile."
+    },
+    {
+      "id": "MUDDI-NEG-007",
+      "mutation": "legacy_conflicting_geometry_promoted_to_current_by_timestamp_only",
+      "expected": "Rejected",
+      "reason": "Valid time, observed time and record time differ; latest timestamp is not a truth rule."
+    },
+    {
+      "id": "MUDDI-NEG-008",
+      "mutation": "withheld_record_rendered_as_absent_or_empty",
+      "expected": "Rejected",
+      "reason": "Withheld is an access state, not proof of asset absence."
+    },
+    {
+      "id": "MUDDI-NEG-009",
+      "mutation": "restricted_critical_geometry_exported_to_public_aggregate_role",
+      "expected": "Rejected",
+      "reason": "Purpose-bound, least-privilege disclosure must be enforced by the host/owner policy."
+    },
+    {
+      "id": "MUDDI-NEG-010",
+      "mutation": "observation_without_feature_of_interest_or_explicit_unresolved_target",
+      "expected": "Rejected",
+      "reason": "Every observation must link to a feature of interest or explicitly retain unresolved linkage."
+    },
+    {
+      "id": "MUDDI-NEG-011",
+      "mutation": "unknown_unobserved_unavailable_conflicting_states_collapsed_into_zero",
+      "expected": "Rejected",
+      "reason": "Missingness and epistemic state are not numeric zero."
+    },
+    {
+      "id": "MUDDI-NEG-012",
+      "mutation": "as_built_claim_not_linked_to_exact_design_revision_and_acceptance_receipt",
+      "expected": "Indeterminate",
+      "reason": "No accepted as-built claim without exact design revision and independent acceptance evidence."
+    }
+  ]
+}

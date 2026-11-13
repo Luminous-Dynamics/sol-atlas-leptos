@@ -1,0 +1,687 @@
+{
+  "fixture_id": "SUF-MUDDI-SYNTH-001",
+  "schema_version": "luminous.suf.muddi_fixture.v0.1",
+  "status": "synthetic_non_geographic_fixture_only",
+  "claim_ceiling": "This fixture is an abstract local-coordinate interchange test. It contains no real utility locations, no valid owner-issued asset identifiers, no real survey observations, no utility operating data and no MUDDI conformance claim.",
+  "spatial_reference": {
+    "frame_id": "SUF_SYNTHETIC_LOCAL_METRES_01",
+    "geographic": false,
+    "crs": null,
+    "horizontal_datum": "SYNTHETIC_LOCAL_ZERO",
+    "vertical_datum": "SYNTHETIC_LOCAL_ZERO",
+    "coordinate_epoch": null,
+    "axis_order": [
+      "x",
+      "y",
+      "z"
+    ],
+    "unit": "metre",
+    "note": "Cartesian coordinates exist only to exercise geometry serialization and are not tied to any geographic location."
+  },
+  "disclosure_policy": {
+    "fixture_only": true,
+    "default_class": "restricted_critical",
+    "classes": [
+      "public_aggregate",
+      "partner_generalized",
+      "operational",
+      "restricted_critical"
+    ],
+    "real_world_access_control_implemented": false
+  },
+  "records": [
+    {
+      "record_id": "fixture:record:space-01",
+      "object_id": "fixture:object:space-01",
+      "object_owner_namespace": "urn:example-fixture:owner",
+      "system_id": {
+        "provider": "urn:luminous:sol-atlas-fixture",
+        "id": "space-01"
+      },
+      "muddi_class": "MUDDISpace",
+      "label": "Abstract underground utility precinct",
+      "epistemic_class": "scenario_assumption",
+      "availability_state": "available",
+      "disclosure_class": "restricted_critical",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              0,
+              0,
+              0
+            ],
+            [
+              30,
+              0,
+              0
+            ],
+            [
+              30,
+              12,
+              0
+            ],
+            [
+              0,
+              12,
+              0
+            ],
+            [
+              0,
+              0,
+              0
+            ]
+          ]
+        ]
+      },
+      "position_uncertainty_m": 0,
+      "valid_time": {
+        "start": "2026-01-01T00:00:00Z",
+        "end": null
+      },
+      "evidence_refs": [],
+      "links": [],
+      "currentness_state": "current_candidate",
+      "concrete_profile_type": "SyntheticUtilityPrecinct",
+      "muddi_attributes": {
+        "extent_ref": "geometry"
+      }
+    },
+    {
+      "record_id": "fixture:record:network-power-01",
+      "object_id": "fixture:object:network-power-01",
+      "object_owner_namespace": "urn:example-fixture:utility-owner",
+      "system_id": {
+        "provider": "urn:example-fixture:network-system",
+        "id": "power-lv-01"
+      },
+      "muddi_class": "Network",
+      "label": "Synthetic low-voltage network",
+      "epistemic_class": "scenario_assumption",
+      "availability_state": "available",
+      "disclosure_class": "restricted_critical",
+      "geometry": null,
+      "position_uncertainty_m": null,
+      "valid_time": {
+        "start": "2026-01-01T00:00:00Z",
+        "end": null
+      },
+      "evidence_refs": [],
+      "links": [
+        {
+          "relationship": "has_network_asset",
+          "target_record_id": "fixture:record:network-asset-power-01"
+        },
+        {
+          "relationship": "has_network_conveyance",
+          "target_record_id": "fixture:record:conveyance-electricity-01"
+        }
+      ],
+      "currentness_state": "current_candidate",
+      "concrete_profile_type": "SyntheticElectricityNetwork",
+      "muddi_attributes": {
+        "asset_owner_id": "urn:example-fixture:utility-owner",
+        "commodity_type": "electricity"
+      }
+    },
+    {
+      "record_id": "fixture:record:asset-power-duct-01",
+      "object_id": "fixture:object:power-duct-01",
+      "object_owner_namespace": "urn:example-fixture:utility-owner",
+      "system_id": {
+        "provider": "urn:example-fixture:asset-system",
+        "id": "power-duct-01"
+      },
+      "muddi_class": "MUDDIAsset",
+      "label": "Synthetic protected power duct",
+      "epistemic_class": "scenario_assumption",
+      "availability_state": "available",
+      "disclosure_class": "restricted_critical",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            1,
+            1,
+            -1.2
+          ],
+          [
+            29,
+            1,
+            -1.2
+          ]
+        ]
+      },
+      "position_uncertainty_m": 0.08,
+      "valid_time": {
+        "start": "2026-01-01T00:00:00Z",
+        "end": null
+      },
+      "evidence_refs": [
+        "fixture:observation:power-survey-01"
+      ],
+      "links": [],
+      "currentness_state": "current_candidate",
+      "concrete_profile_type": "SyntheticPowerDuct",
+      "muddi_attributes": {
+        "asset_owner_id": "urn:example-fixture:utility-owner"
+      }
+    },
+    {
+      "record_id": "fixture:record:asset-fibre-duct-01",
+      "object_id": "fixture:object:fibre-duct-01",
+      "object_owner_namespace": "urn:example-fixture:utility-owner",
+      "system_id": {
+        "provider": "urn:example-fixture:asset-system",
+        "id": "fibre-duct-01"
+      },
+      "muddi_class": "MUDDIAsset",
+      "label": "Synthetic fibre duct",
+      "epistemic_class": "scenario_assumption",
+      "availability_state": "available",
+      "disclosure_class": "operational",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            1,
+            3,
+            -0.8
+          ],
+          [
+            29,
+            3,
+            -0.8
+          ]
+        ]
+      },
+      "position_uncertainty_m": 0.12,
+      "valid_time": {
+        "start": "2026-01-01T00:00:00Z",
+        "end": null
+      },
+      "evidence_refs": [
+        "fixture:observation:fibre-indication-01"
+      ],
+      "links": [],
+      "currentness_state": "current_candidate",
+      "concrete_profile_type": "SyntheticFibreDuct",
+      "muddi_attributes": {
+        "asset_owner_id": "urn:example-fixture:utility-owner"
+      }
+    },
+    {
+      "record_id": "fixture:record:asset-water-main-01",
+      "object_id": "fixture:object:water-main-01",
+      "object_owner_namespace": "urn:example-fixture:water-owner",
+      "system_id": {
+        "provider": "urn:example-fixture:asset-system",
+        "id": "water-main-01"
+      },
+      "muddi_class": "MUDDIAsset",
+      "label": "Synthetic potable water main",
+      "epistemic_class": "scenario_assumption",
+      "availability_state": "available",
+      "disclosure_class": "restricted_critical",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            1,
+            5,
+            -1.8
+          ],
+          [
+            29,
+            5,
+            -1.8
+          ]
+        ]
+      },
+      "position_uncertainty_m": 0.15,
+      "valid_time": {
+        "start": "2026-01-01T00:00:00Z",
+        "end": null
+      },
+      "evidence_refs": [],
+      "links": [],
+      "currentness_state": "current_candidate",
+      "concrete_profile_type": "SyntheticPotableWaterMain",
+      "muddi_attributes": {
+        "asset_owner_id": "urn:example-fixture:water-owner"
+      }
+    },
+    {
+      "record_id": "fixture:record:asset-stormwater-01",
+      "object_id": "fixture:object:stormwater-01",
+      "object_owner_namespace": "urn:example-fixture:municipal-owner",
+      "system_id": {
+        "provider": "urn:example-fixture:asset-system",
+        "id": "stormwater-01"
+      },
+      "muddi_class": "MUDDIAsset",
+      "label": "Synthetic stormwater conduit interface",
+      "epistemic_class": "scenario_assumption",
+      "availability_state": "available",
+      "disclosure_class": "restricted_critical",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            1,
+            7,
+            -1
+          ],
+          [
+            29,
+            7,
+            -1
+          ]
+        ]
+      },
+      "position_uncertainty_m": 0.2,
+      "valid_time": {
+        "start": "2026-01-01T00:00:00Z",
+        "end": null
+      },
+      "evidence_refs": [],
+      "links": [],
+      "currentness_state": "current_candidate",
+      "concrete_profile_type": "SyntheticStormwaterConduit",
+      "muddi_attributes": {
+        "asset_owner_id": "urn:example-fixture:municipal-owner"
+      }
+    },
+    {
+      "record_id": "fixture:record:network-asset-power-01",
+      "object_id": "fixture:object:network-asset-power-01",
+      "object_owner_namespace": "urn:example-fixture:utility-owner",
+      "system_id": {
+        "provider": "urn:example-fixture:network-system",
+        "id": "power-member-01"
+      },
+      "muddi_class": "NetworkAsset",
+      "label": "Power duct membership in synthetic LV network",
+      "epistemic_class": "scenario_assumption",
+      "availability_state": "available",
+      "disclosure_class": "restricted_critical",
+      "geometry": null,
+      "position_uncertainty_m": null,
+      "valid_time": {
+        "start": "2026-01-01T00:00:00Z",
+        "end": null
+      },
+      "evidence_refs": [],
+      "links": [
+        {
+          "relationship": "member_asset",
+          "target_record_id": "fixture:record:asset-power-duct-01"
+        },
+        {
+          "relationship": "member_network",
+          "target_record_id": "fixture:record:network-power-01"
+        }
+      ],
+      "currentness_state": "current_candidate",
+      "concrete_profile_type": "SyntheticNetworkMembership",
+      "muddi_attributes": {
+        "asset_owner_id": "urn:example-fixture:utility-owner",
+        "utility_type": "electricity"
+      }
+    },
+    {
+      "record_id": "fixture:record:conveyance-electricity-01",
+      "object_id": "fixture:object:conveyance-electricity-01",
+      "object_owner_namespace": "urn:example-fixture:utility-owner",
+      "system_id": {
+        "provider": "urn:example-fixture:network-system",
+        "id": "electricity-conveyance-01"
+      },
+      "muddi_class": "NetworkConveyance",
+      "label": "Electricity conveyance reference only",
+      "epistemic_class": "scenario_assumption",
+      "availability_state": "available",
+      "disclosure_class": "restricted_critical",
+      "geometry": null,
+      "position_uncertainty_m": null,
+      "valid_time": {
+        "start": "2026-01-01T00:00:00Z",
+        "end": null
+      },
+      "evidence_refs": [],
+      "links": [],
+      "currentness_state": "current_candidate",
+      "concrete_profile_type": "SyntheticElectricityConveyance",
+      "muddi_attributes": {
+        "asset_owner_id": "urn:example-fixture:utility-owner",
+        "utility_type": "electricity"
+      }
+    },
+    {
+      "record_id": "fixture:record:node-a-01",
+      "object_id": "fixture:object:node-a-01",
+      "object_owner_namespace": "urn:example-fixture:utility-owner",
+      "system_id": {
+        "provider": "urn:example-fixture:network-system",
+        "id": "node-a"
+      },
+      "muddi_class": "NetworkNode",
+      "label": "Synthetic network node A",
+      "epistemic_class": "scenario_assumption",
+      "availability_state": "available",
+      "disclosure_class": "restricted_critical",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          1,
+          1,
+          -1.2
+        ]
+      },
+      "position_uncertainty_m": 0.08,
+      "valid_time": {
+        "start": "2026-01-01T00:00:00Z",
+        "end": null
+      },
+      "evidence_refs": [],
+      "links": [],
+      "currentness_state": "current_candidate",
+      "concrete_profile_type": "SyntheticNetworkJunction",
+      "muddi_attributes": {
+        "asset_owner_id": "urn:example-fixture:utility-owner",
+        "utility_type": "electricity"
+      }
+    },
+    {
+      "record_id": "fixture:record:node-b-01",
+      "object_id": "fixture:object:node-b-01",
+      "object_owner_namespace": "urn:example-fixture:utility-owner",
+      "system_id": {
+        "provider": "urn:example-fixture:network-system",
+        "id": "node-b"
+      },
+      "muddi_class": "NetworkNode",
+      "label": "Synthetic network node B",
+      "epistemic_class": "scenario_assumption",
+      "availability_state": "available",
+      "disclosure_class": "restricted_critical",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          29,
+          1,
+          -1.2
+        ]
+      },
+      "position_uncertainty_m": 0.08,
+      "valid_time": {
+        "start": "2026-01-01T00:00:00Z",
+        "end": null
+      },
+      "evidence_refs": [],
+      "links": [],
+      "currentness_state": "current_candidate",
+      "concrete_profile_type": "SyntheticNetworkJunction",
+      "muddi_attributes": {
+        "asset_owner_id": "urn:example-fixture:utility-owner",
+        "utility_type": "electricity"
+      }
+    },
+    {
+      "record_id": "fixture:record:link-power-01",
+      "object_id": "fixture:object:link-power-01",
+      "object_owner_namespace": "urn:example-fixture:utility-owner",
+      "system_id": {
+        "provider": "urn:example-fixture:network-system",
+        "id": "link-power-01"
+      },
+      "muddi_class": "NetworkLink",
+      "label": "Synthetic link between node A and node B",
+      "epistemic_class": "scenario_assumption",
+      "availability_state": "available",
+      "disclosure_class": "restricted_critical",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            1,
+            1,
+            -1.2
+          ],
+          [
+            29,
+            1,
+            -1.2
+          ]
+        ]
+      },
+      "position_uncertainty_m": 0.08,
+      "valid_time": {
+        "start": "2026-01-01T00:00:00Z",
+        "end": null
+      },
+      "evidence_refs": [
+        "fixture:observation:power-survey-01"
+      ],
+      "links": [
+        {
+          "relationship": "from_node",
+          "target_record_id": "fixture:record:node-a-01"
+        },
+        {
+          "relationship": "to_node",
+          "target_record_id": "fixture:record:node-b-01"
+        },
+        {
+          "relationship": "conveys_asset",
+          "target_record_id": "fixture:record:asset-power-duct-01"
+        }
+      ],
+      "currentness_state": "current_candidate",
+      "concrete_profile_type": "SyntheticPowerDuctLink",
+      "muddi_attributes": {
+        "asset_owner_id": "urn:example-fixture:utility-owner",
+        "utility_type": "electricity"
+      }
+    },
+    {
+      "record_id": "fixture:record:access-chamber-01",
+      "object_id": "fixture:object:access-chamber-01",
+      "object_owner_namespace": "urn:example-fixture:utility-owner",
+      "system_id": {
+        "provider": "urn:example-fixture:asset-system",
+        "id": "access-chamber-01"
+      },
+      "muddi_class": "NetworkAccessory",
+      "label": "Synthetic access chamber",
+      "epistemic_class": "scenario_assumption",
+      "availability_state": "available",
+      "disclosure_class": "restricted_critical",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          1,
+          1,
+          0
+        ]
+      },
+      "position_uncertainty_m": 0.05,
+      "valid_time": {
+        "start": "2026-01-01T00:00:00Z",
+        "end": null
+      },
+      "evidence_refs": [],
+      "links": [],
+      "currentness_state": "current_candidate",
+      "concrete_profile_type": "SyntheticAccessChamber",
+      "muddi_attributes": {
+        "asset_owner_id": "urn:example-fixture:utility-owner",
+        "utility_type": "supporting_electricity_network_asset"
+      }
+    },
+    {
+      "record_id": "fixture:record:event-survey-01",
+      "object_id": "fixture:object:event-survey-01",
+      "object_owner_namespace": "urn:example-fixture:survey-provider",
+      "system_id": {
+        "provider": "urn:example-fixture:survey-system",
+        "id": "event-survey-01"
+      },
+      "muddi_class": "MUDDIEvent",
+      "label": "Synthetic survey event",
+      "epistemic_class": "scenario_assumption",
+      "availability_state": "available",
+      "disclosure_class": "restricted_critical",
+      "geometry": null,
+      "position_uncertainty_m": null,
+      "valid_time": {
+        "start": "2026-11-01T08:00:00Z",
+        "end": "2026-11-01T09:00:00Z"
+      },
+      "evidence_refs": [
+        "fixture:observation:power-survey-01",
+        "fixture:observation:fibre-indication-01"
+      ],
+      "links": [],
+      "currentness_state": "current_candidate",
+      "concrete_profile_type": "SyntheticSurveyEvent",
+      "muddi_attributes": {
+        "target_object": "fixture:record:asset-power-duct-01",
+        "target_property": "geometry",
+        "valid_time": {
+          "start": "2026-11-01T08:00:00Z",
+          "end": "2026-11-01T09:00:00Z"
+        }
+      }
+    },
+    {
+      "record_id": "fixture:record:legacy-power-claim-01",
+      "object_id": "fixture:object:power-duct-01",
+      "object_owner_namespace": "urn:example-fixture:utility-owner",
+      "system_id": {
+        "provider": "urn:example-fixture:legacy-export",
+        "id": "legacy-power-duct-row-77"
+      },
+      "muddi_class": "MUDDIAsset",
+      "label": "Conflicting legacy representation of the same power duct",
+      "epistemic_class": "compiled_secondary",
+      "availability_state": "available",
+      "disclosure_class": "restricted_critical",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            2,
+            1.4,
+            -0.9
+          ],
+          [
+            28,
+            1.4,
+            -0.9
+          ]
+        ]
+      },
+      "position_uncertainty_m": 0.6,
+      "valid_time": {
+        "start": "2020-01-01T00:00:00Z",
+        "end": "2024-01-01T00:00:00Z"
+      },
+      "evidence_refs": [
+        "fixture:observation:legacy-import-01"
+      ],
+      "links": [
+        {
+          "relationship": "same_real_world_object_as",
+          "target_record_id": "fixture:record:asset-power-duct-01"
+        },
+        {
+          "relationship": "conflicts_with",
+          "target_record_id": "fixture:record:asset-power-duct-01"
+        }
+      ],
+      "currentness_state": "conflicting",
+      "concrete_profile_type": "SyntheticLegacyPowerDuctRecord",
+      "muddi_attributes": {
+        "asset_owner_id": "urn:example-fixture:utility-owner"
+      }
+    }
+  ],
+  "observations": [
+    {
+      "observation_id": "fixture:observation:power-survey-01",
+      "feature_of_interest_record_id": "fixture:record:asset-power-duct-01",
+      "event_record_id": "fixture:record:event-survey-01",
+      "epistemic_class": "scenario_assumption",
+      "method": "synthetic_exposed_verification",
+      "instrument_id": "fixture:instrument:total-station-01",
+      "calibration_ref": "fixture:calibration:total-station-01",
+      "observer_role": "synthetic_surveyor",
+      "observed_at": "2026-11-01T08:15:00Z",
+      "valid_time": {
+        "start": "2026-11-01T08:15:00Z",
+        "end": "2026-11-01T08:15:00Z"
+      },
+      "spatial_reference_id": "SUF_SYNTHETIC_LOCAL_METRES_01",
+      "uncertainty_m": 0.08,
+      "raw_artifact_ref": null,
+      "source_digest": null,
+      "rights_state": "synthetic_fixture_only",
+      "quality_state": "synthetic_reference_observation",
+      "availability_state": "available"
+    },
+    {
+      "observation_id": "fixture:observation:fibre-indication-01",
+      "feature_of_interest_record_id": "fixture:record:asset-fibre-duct-01",
+      "event_record_id": "fixture:record:event-survey-01",
+      "epistemic_class": "scenario_assumption",
+      "method": "synthetic_gpr_indication",
+      "instrument_id": "fixture:instrument:gpr-01",
+      "calibration_ref": "fixture:calibration:gpr-01",
+      "observer_role": "synthetic_surveyor",
+      "observed_at": "2026-11-01T08:30:00Z",
+      "valid_time": {
+        "start": "2026-11-01T08:30:00Z",
+        "end": "2026-11-01T08:30:00Z"
+      },
+      "spatial_reference_id": "SUF_SYNTHETIC_LOCAL_METRES_01",
+      "uncertainty_m": 0.12,
+      "raw_artifact_ref": null,
+      "source_digest": null,
+      "rights_state": "synthetic_fixture_only",
+      "quality_state": "synthetic_indication_not_exposed_truth",
+      "availability_state": "available"
+    },
+    {
+      "observation_id": "fixture:observation:legacy-import-01",
+      "feature_of_interest_record_id": "fixture:record:asset-power-duct-01",
+      "event_record_id": "fixture:record:event-survey-01",
+      "epistemic_class": "scenario_assumption",
+      "method": "synthetic_legacy_record_import",
+      "instrument_id": null,
+      "calibration_ref": null,
+      "observer_role": "synthetic_data_custodian",
+      "observed_at": "2020-01-01T00:00:00Z",
+      "valid_time": {
+        "start": "2020-01-01T00:00:00Z",
+        "end": "2024-01-01T00:00:00Z"
+      },
+      "spatial_reference_id": "SUF_SYNTHETIC_LOCAL_METRES_01",
+      "uncertainty_m": 0.6,
+      "raw_artifact_ref": null,
+      "source_digest": null,
+      "rights_state": "synthetic_fixture_only",
+      "quality_state": "historical_conflicting_representation",
+      "availability_state": "available"
+    }
+  ],
+  "fixture_rules": [
+    "The power duct and legacy record intentionally share one ObjectID while retaining distinct RecordIDs and SystemIDs.",
+    "The legacy geometry is historical and conflicting; it must never silently overwrite the current candidate geometry.",
+    "A RecordID must be unique within this dataset snapshot.",
+    "A SystemID is unique only within its provider namespace.",
+    "All geometry is in the named abstract local Cartesian frame, not a real-world CRS.",
+    "All evidence references are synthetic placeholders; no raw data digest is asserted."
+  ]
+}
