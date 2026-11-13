@@ -229,9 +229,7 @@ pub enum NonDetectionDisposition {
 }
 
 /// Classify a non-detection without silently converting it into physical absence.
-pub fn classify_non_detection(
-    qualification: DetectionQualification,
-) -> NonDetectionDisposition {
+pub fn classify_non_detection(qualification: DetectionQualification) -> NonDetectionDisposition {
     if !qualification.target_in_validated_domain {
         return NonDetectionDisposition::OutOfDomain;
     }
@@ -282,7 +280,11 @@ pub fn validate_evaluation_split(split: &EvaluationSplit) -> Vec<SplitValidation
     let mut errors = Vec::new();
     let mut all_ids = BTreeSet::new();
 
-    for partition in [&split.fit_ids, &split.calibration_ids, &split.checkpoint_ids] {
+    for partition in [
+        &split.fit_ids,
+        &split.calibration_ids,
+        &split.checkpoint_ids,
+    ] {
         let mut local_ids = BTreeSet::new();
         for id in partition {
             if id.trim().is_empty() {
@@ -385,9 +387,7 @@ pub struct ChallengeCase {
 
 /// Validate authored challenge-manifest invariants. Full JSON Schema validation
 /// remains a separate gate; this is an offline native Rust guard.
-pub fn validate_challenge_manifest(
-    manifest: &ChallengeManifest,
-) -> Result<(), Vec<String>> {
+pub fn validate_challenge_manifest(manifest: &ChallengeManifest) -> Result<(), Vec<String>> {
     let mut errors = Vec::new();
 
     if manifest.benchmark_id != "EARTH-OBSERVABILITY-QUAL-001" {
@@ -456,7 +456,10 @@ pub fn validate_challenge_manifest(
             errors.push(format!("invalid split_role for {}", case.case_id));
         }
         if case.data_status != "definition_only" {
-            errors.push(format!("case must remain definition_only: {}", case.case_id));
+            errors.push(format!(
+                "case must remain definition_only: {}",
+                case.case_id
+            ));
         }
     }
 
@@ -487,9 +490,7 @@ pub enum InterpretationComparison {
 }
 
 /// Preserve disagreement; never select a winning interpretation implicitly.
-pub fn compare_interpretations(
-    claims: &[InterpretationClaim],
-) -> InterpretationComparison {
+pub fn compare_interpretations(claims: &[InterpretationClaim]) -> InterpretationComparison {
     if claims.len() < 2
         || claims.iter().any(|claim| {
             claim.claim_id.trim().is_empty()
@@ -502,12 +503,14 @@ pub fn compare_interpretations(
     }
 
     let first_support = &claims[0].support_id;
-    if claims.iter().any(|claim| &claim.support_id != first_support) {
+    if claims
+        .iter()
+        .any(|claim| &claim.support_id != first_support)
+    {
         return InterpretationComparison::IncomparableSupport;
     }
 
-    let distinct_values: BTreeSet<&str> =
-        claims.iter().map(|claim| claim.value.as_str()).collect();
+    let distinct_values: BTreeSet<&str> = claims.iter().map(|claim| claim.value.as_str()).collect();
     if distinct_values.len() == 1 {
         InterpretationComparison::Consistent
     } else {
@@ -592,13 +595,10 @@ mod tests {
     fn valid_spatial_observation_passes() {
         let frame = valid_frame();
         let encoded = vec!["east".to_string(), "north".to_string()];
-        assert!(validate_spatial_observation(
-            &frame,
-            "synthetic-local-frame-a",
-            &encoded,
-            true
-        )
-        .is_empty());
+        assert!(
+            validate_spatial_observation(&frame, "synthetic-local-frame-a", &encoded, true)
+                .is_empty()
+        );
     }
 
     #[test]
@@ -606,13 +606,8 @@ mod tests {
         let frame = valid_frame();
         let encoded = vec!["north".to_string(), "east".to_string()];
         assert!(
-            validate_spatial_observation(
-                &frame,
-                "synthetic-local-frame-a",
-                &encoded,
-                false
-            )
-            .contains(&SpatialValidationError::AxisOrderMismatch)
+            validate_spatial_observation(&frame, "synthetic-local-frame-a", &encoded, false)
+                .contains(&SpatialValidationError::AxisOrderMismatch)
         );
     }
 
@@ -623,8 +618,7 @@ mod tests {
         frame.height_type = None;
         frame.vertical_unit = None;
         let encoded = vec!["east".to_string(), "north".to_string()];
-        let errors =
-            validate_spatial_observation(&frame, &frame.frame_id, &encoded, true);
+        let errors = validate_spatial_observation(&frame, &frame.frame_id, &encoded, true);
         assert!(errors.contains(&SpatialValidationError::MissingVerticalDatum));
         assert!(errors.contains(&SpatialValidationError::MissingHeightType));
         assert!(errors.contains(&SpatialValidationError::MissingVerticalUnit));
@@ -635,13 +629,8 @@ mod tests {
         let frame = valid_frame();
         let encoded = vec!["east".to_string(), "north".to_string()];
         assert!(
-            validate_spatial_observation(
-                &frame,
-                "different-frame",
-                &encoded,
-                false
-            )
-            .contains(&SpatialValidationError::FrameIdentityMismatch)
+            validate_spatial_observation(&frame, "different-frame", &encoded, false)
+                .contains(&SpatialValidationError::FrameIdentityMismatch)
         );
     }
 
@@ -654,9 +643,7 @@ mod tests {
             operation_sha256: "a".repeat(64),
             grid_resource_sha256: vec!["b".repeat(64)],
         };
-        assert!(
-            validate_transform_receipt(&receipt, "frame-a", "frame-b").is_empty()
-        );
+        assert!(validate_transform_receipt(&receipt, "frame-a", "frame-b").is_empty());
 
         let mut bad = receipt.clone();
         bad.operation_sha256 = "not-a-digest".to_string();
