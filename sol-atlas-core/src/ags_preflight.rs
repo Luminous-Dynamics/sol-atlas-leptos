@@ -421,7 +421,7 @@ mod tests {
         let doc = parse_ags4_preflight(bytes).expect("structural preflight passes");
         let issues = doc.bgs_required_group_issues();
         assert!(issues.contains(&BgsAgsSubmissionIssue::MissingRequiredGroup("ABBR")));
-        assert!(issues.contains(&BgsAgsSubmissionIssue::MissingRequiredGroup("TYPE")) == false);
+        assert!(issues.contains(&BgsAgsSubmissionIssue::MissingRequiredGroup("TYPE")));
         assert!(issues.contains(&BgsAgsSubmissionIssue::MissingLocationOrHoleGroup));
         assert!(issues.contains(&BgsAgsSubmissionIssue::MissingGeologyGroup));
     }
