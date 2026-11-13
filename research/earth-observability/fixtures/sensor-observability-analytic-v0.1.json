@@ -1,0 +1,414 @@
+{
+  "benchmark_id": "EARTH-OBSERVABILITY-SENSOR-OBSERVABILITY-001",
+  "fixture_id": "SOE-ANALYTIC-UTILITY-DETECTION-001",
+  "fixture_version": "0.1.0",
+  "seed": 20261113,
+  "status": "synthetic_analytic_detection_trials_not_physical_data",
+  "geography": "abstract_non_geographic",
+  "claim_boundary": "Analytic detection scoring fixture only; no sensor physics or field qualification.",
+  "envelope": {
+    "envelope_id": "soe-gpr-utility-v1",
+    "source_evidence_id": "sensor-qualification-source-1",
+    "sensor_id": "gpr-unit-1",
+    "configuration_id": "antenna-400mhz-v2",
+    "calibration_id": "calibration-2026-11-01",
+    "target_class": "buried_utility",
+    "spatial_support_id": "abstract-route-support",
+    "valid_from_unix_s": 1700000000,
+    "valid_until_unix_s": 1800000000,
+    "target_size_m": {
+      "minimum": 0.1,
+      "maximum": 1
+    },
+    "target_depth_m": {
+      "minimum": 0.2,
+      "maximum": 2.5
+    },
+    "target_contrast": {
+      "minimum": 0.1,
+      "maximum": 1
+    },
+    "environmental_domain": {
+      "moisture_fraction": {
+        "minimum": 0,
+        "maximum": 0.3
+      },
+      "conductivity_s_m": {
+        "minimum": 0.001,
+        "maximum": 0.2
+      }
+    },
+    "minimum_pod_requirement": 0.9,
+    "maximum_false_alarms_per_km": 0.5
+  },
+  "trials": [
+    {
+      "trial_id": "cal-1",
+      "partition": "calibration",
+      "target_id": "target-1",
+      "site_id": "cal-site",
+      "acquisition_id": "cal-acq",
+      "observed_at_unix_s": 1750000000,
+      "sensor_id": "gpr-unit-1",
+      "configuration_id": "antenna-400mhz-v2",
+      "calibration_id": "calibration-2026-11-01",
+      "target_class": "buried_utility",
+      "target_present": true,
+      "detector_detected": true,
+      "target_size_m": 0.4,
+      "target_depth_m": 1.2,
+      "target_contrast": 0.6,
+      "environmental_values": {
+        "moisture_fraction": 0.12,
+        "conductivity_s_m": 0.05
+      },
+      "surveyed_route_km": 0.25,
+      "localization_error_m": 0.21000000000000002
+    },
+    {
+      "trial_id": "blind-p1",
+      "partition": "blind_test",
+      "target_id": "target-2",
+      "site_id": "blind-site-a",
+      "acquisition_id": "blind-acq-1",
+      "observed_at_unix_s": 1750000000,
+      "sensor_id": "gpr-unit-1",
+      "configuration_id": "antenna-400mhz-v2",
+      "calibration_id": "calibration-2026-11-01",
+      "target_class": "buried_utility",
+      "target_present": true,
+      "detector_detected": true,
+      "target_size_m": 0.4,
+      "target_depth_m": 1.2,
+      "target_contrast": 0.6,
+      "environmental_values": {
+        "moisture_fraction": 0.12,
+        "conductivity_s_m": 0.05
+      },
+      "surveyed_route_km": 0.25,
+      "localization_error_m": 0.22
+    },
+    {
+      "trial_id": "blind-p2",
+      "partition": "blind_test",
+      "target_id": "target-3",
+      "site_id": "blind-site-a",
+      "acquisition_id": "blind-acq-1",
+      "observed_at_unix_s": 1750000000,
+      "sensor_id": "gpr-unit-1",
+      "configuration_id": "antenna-400mhz-v2",
+      "calibration_id": "calibration-2026-11-01",
+      "target_class": "buried_utility",
+      "target_present": true,
+      "detector_detected": true,
+      "target_size_m": 0.4,
+      "target_depth_m": 1.2,
+      "target_contrast": 0.6,
+      "environmental_values": {
+        "moisture_fraction": 0.12,
+        "conductivity_s_m": 0.05
+      },
+      "surveyed_route_km": 0.25,
+      "localization_error_m": 0.23
+    },
+    {
+      "trial_id": "blind-p3",
+      "partition": "blind_test",
+      "target_id": "target-4",
+      "site_id": "blind-site-b",
+      "acquisition_id": "blind-acq-2",
+      "observed_at_unix_s": 1750000000,
+      "sensor_id": "gpr-unit-1",
+      "configuration_id": "antenna-400mhz-v2",
+      "calibration_id": "calibration-2026-11-01",
+      "target_class": "buried_utility",
+      "target_present": true,
+      "detector_detected": true,
+      "target_size_m": 0.4,
+      "target_depth_m": 1.2,
+      "target_contrast": 0.6,
+      "environmental_values": {
+        "moisture_fraction": 0.12,
+        "conductivity_s_m": 0.05
+      },
+      "surveyed_route_km": 0.25,
+      "localization_error_m": 0.24000000000000002
+    },
+    {
+      "trial_id": "blind-p4",
+      "partition": "blind_test",
+      "target_id": "target-5",
+      "site_id": "blind-site-b",
+      "acquisition_id": "blind-acq-2",
+      "observed_at_unix_s": 1750000000,
+      "sensor_id": "gpr-unit-1",
+      "configuration_id": "antenna-400mhz-v2",
+      "calibration_id": "calibration-2026-11-01",
+      "target_class": "buried_utility",
+      "target_present": true,
+      "detector_detected": true,
+      "target_size_m": 0.4,
+      "target_depth_m": 1.2,
+      "target_contrast": 0.6,
+      "environmental_values": {
+        "moisture_fraction": 0.12,
+        "conductivity_s_m": 0.05
+      },
+      "surveyed_route_km": 0.25,
+      "localization_error_m": 0.25
+    },
+    {
+      "trial_id": "blind-p5",
+      "partition": "blind_test",
+      "target_id": "target-6",
+      "site_id": "blind-site-c",
+      "acquisition_id": "blind-acq-3",
+      "observed_at_unix_s": 1750000000,
+      "sensor_id": "gpr-unit-1",
+      "configuration_id": "antenna-400mhz-v2",
+      "calibration_id": "calibration-2026-11-01",
+      "target_class": "buried_utility",
+      "target_present": true,
+      "detector_detected": true,
+      "target_size_m": 0.4,
+      "target_depth_m": 1.2,
+      "target_contrast": 0.6,
+      "environmental_values": {
+        "moisture_fraction": 0.12,
+        "conductivity_s_m": 0.05
+      },
+      "surveyed_route_km": 0.25,
+      "localization_error_m": 0.26
+    },
+    {
+      "trial_id": "blind-p6",
+      "partition": "blind_test",
+      "target_id": "target-7",
+      "site_id": "blind-site-c",
+      "acquisition_id": "blind-acq-3",
+      "observed_at_unix_s": 1750000000,
+      "sensor_id": "gpr-unit-1",
+      "configuration_id": "antenna-400mhz-v2",
+      "calibration_id": "calibration-2026-11-01",
+      "target_class": "buried_utility",
+      "target_present": true,
+      "detector_detected": true,
+      "target_size_m": 0.4,
+      "target_depth_m": 1.2,
+      "target_contrast": 0.6,
+      "environmental_values": {
+        "moisture_fraction": 0.12,
+        "conductivity_s_m": 0.05
+      },
+      "surveyed_route_km": 0.25,
+      "localization_error_m": 0.27
+    },
+    {
+      "trial_id": "blind-p7",
+      "partition": "blind_test",
+      "target_id": "target-8",
+      "site_id": "blind-site-d",
+      "acquisition_id": "blind-acq-4",
+      "observed_at_unix_s": 1750000000,
+      "sensor_id": "gpr-unit-1",
+      "configuration_id": "antenna-400mhz-v2",
+      "calibration_id": "calibration-2026-11-01",
+      "target_class": "buried_utility",
+      "target_present": true,
+      "detector_detected": true,
+      "target_size_m": 0.4,
+      "target_depth_m": 1.2,
+      "target_contrast": 0.6,
+      "environmental_values": {
+        "moisture_fraction": 0.12,
+        "conductivity_s_m": 0.05
+      },
+      "surveyed_route_km": 0.25,
+      "localization_error_m": 0.28
+    },
+    {
+      "trial_id": "blind-p8",
+      "partition": "blind_test",
+      "target_id": "target-9",
+      "site_id": "blind-site-d",
+      "acquisition_id": "blind-acq-4",
+      "observed_at_unix_s": 1750000000,
+      "sensor_id": "gpr-unit-1",
+      "configuration_id": "antenna-400mhz-v2",
+      "calibration_id": "calibration-2026-11-01",
+      "target_class": "buried_utility",
+      "target_present": true,
+      "detector_detected": false,
+      "target_size_m": 0.4,
+      "target_depth_m": 1.2,
+      "target_contrast": 0.6,
+      "environmental_values": {
+        "moisture_fraction": 0.12,
+        "conductivity_s_m": 0.05
+      },
+      "surveyed_route_km": 0.25,
+      "localization_error_m": null
+    },
+    {
+      "trial_id": "blind-n1",
+      "partition": "blind_test",
+      "target_id": null,
+      "site_id": "blind-site-a",
+      "acquisition_id": "blind-acq-1",
+      "observed_at_unix_s": 1750000000,
+      "sensor_id": "gpr-unit-1",
+      "configuration_id": "antenna-400mhz-v2",
+      "calibration_id": "calibration-2026-11-01",
+      "target_class": "buried_utility",
+      "target_present": false,
+      "detector_detected": true,
+      "target_size_m": null,
+      "target_depth_m": null,
+      "target_contrast": null,
+      "environmental_values": {
+        "moisture_fraction": 0.12,
+        "conductivity_s_m": 0.05
+      },
+      "surveyed_route_km": 0.25,
+      "localization_error_m": null
+    },
+    {
+      "trial_id": "blind-n2",
+      "partition": "blind_test",
+      "target_id": null,
+      "site_id": "blind-site-a",
+      "acquisition_id": "blind-acq-1",
+      "observed_at_unix_s": 1750000000,
+      "sensor_id": "gpr-unit-1",
+      "configuration_id": "antenna-400mhz-v2",
+      "calibration_id": "calibration-2026-11-01",
+      "target_class": "buried_utility",
+      "target_present": false,
+      "detector_detected": false,
+      "target_size_m": null,
+      "target_depth_m": null,
+      "target_contrast": null,
+      "environmental_values": {
+        "moisture_fraction": 0.12,
+        "conductivity_s_m": 0.05
+      },
+      "surveyed_route_km": 0.25,
+      "localization_error_m": null
+    },
+    {
+      "trial_id": "blind-n3",
+      "partition": "blind_test",
+      "target_id": null,
+      "site_id": "blind-site-b",
+      "acquisition_id": "blind-acq-2",
+      "observed_at_unix_s": 1750000000,
+      "sensor_id": "gpr-unit-1",
+      "configuration_id": "antenna-400mhz-v2",
+      "calibration_id": "calibration-2026-11-01",
+      "target_class": "buried_utility",
+      "target_present": false,
+      "detector_detected": false,
+      "target_size_m": null,
+      "target_depth_m": null,
+      "target_contrast": null,
+      "environmental_values": {
+        "moisture_fraction": 0.12,
+        "conductivity_s_m": 0.05
+      },
+      "surveyed_route_km": 0.25,
+      "localization_error_m": null
+    },
+    {
+      "trial_id": "blind-n4",
+      "partition": "blind_test",
+      "target_id": null,
+      "site_id": "blind-site-b",
+      "acquisition_id": "blind-acq-2",
+      "observed_at_unix_s": 1750000000,
+      "sensor_id": "gpr-unit-1",
+      "configuration_id": "antenna-400mhz-v2",
+      "calibration_id": "calibration-2026-11-01",
+      "target_class": "buried_utility",
+      "target_present": false,
+      "detector_detected": false,
+      "target_size_m": null,
+      "target_depth_m": null,
+      "target_contrast": null,
+      "environmental_values": {
+        "moisture_fraction": 0.12,
+        "conductivity_s_m": 0.05
+      },
+      "surveyed_route_km": 0.25,
+      "localization_error_m": null
+    },
+    {
+      "trial_id": "blind-n5",
+      "partition": "blind_test",
+      "target_id": null,
+      "site_id": "blind-site-c",
+      "acquisition_id": "blind-acq-3",
+      "observed_at_unix_s": 1750000000,
+      "sensor_id": "gpr-unit-1",
+      "configuration_id": "antenna-400mhz-v2",
+      "calibration_id": "calibration-2026-11-01",
+      "target_class": "buried_utility",
+      "target_present": false,
+      "detector_detected": false,
+      "target_size_m": null,
+      "target_depth_m": null,
+      "target_contrast": null,
+      "environmental_values": {
+        "moisture_fraction": 0.12,
+        "conductivity_s_m": 0.05
+      },
+      "surveyed_route_km": 0.25,
+      "localization_error_m": null
+    },
+    {
+      "trial_id": "blind-n6",
+      "partition": "blind_test",
+      "target_id": null,
+      "site_id": "blind-site-c",
+      "acquisition_id": "blind-acq-3",
+      "observed_at_unix_s": 1750000000,
+      "sensor_id": "gpr-unit-1",
+      "configuration_id": "antenna-400mhz-v2",
+      "calibration_id": "calibration-2026-11-01",
+      "target_class": "buried_utility",
+      "target_present": false,
+      "detector_detected": false,
+      "target_size_m": null,
+      "target_depth_m": null,
+      "target_contrast": null,
+      "environmental_values": {
+        "moisture_fraction": 0.12,
+        "conductivity_s_m": 0.05
+      },
+      "surveyed_route_km": 0.25,
+      "localization_error_m": null
+    },
+    {
+      "trial_id": "blind-ood-1",
+      "partition": "blind_test",
+      "target_id": "target-16",
+      "site_id": "blind-site-e",
+      "acquisition_id": "blind-acq-5",
+      "observed_at_unix_s": 1750000000,
+      "sensor_id": "gpr-unit-1",
+      "configuration_id": "antenna-400mhz-v2",
+      "calibration_id": "calibration-2026-11-01",
+      "target_class": "buried_utility",
+      "target_present": true,
+      "detector_detected": false,
+      "target_size_m": 0.4,
+      "target_depth_m": 1.2,
+      "target_contrast": 0.6,
+      "environmental_values": {
+        "moisture_fraction": 0.12,
+        "conductivity_s_m": 0.7
+      },
+      "surveyed_route_km": 0.25,
+      "localization_error_m": null
+    }
+  ]
+}
