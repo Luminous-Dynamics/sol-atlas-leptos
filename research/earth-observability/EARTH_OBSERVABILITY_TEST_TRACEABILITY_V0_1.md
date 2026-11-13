@@ -177,6 +177,7 @@ The branch adds:
 - `sol-atlas-core/src/earth_observability.rs`: renderer-independent frame, non-detection, split, transform, survey-authority, change, interpretation-conflict, fibre-chainage and exact-source data-use grant predicates.
 - `sol-atlas-core/src/bgs_sobi.rs`: BGS SOBI OGC API FeatureCollection parser, CRS84 point validation, raw field preservation, index-length code handling, and unqualified related-artifact references.
 - `sol-atlas-core/src/ags_preflight.rs`: AGS4 structural preflight, exact dictionary mapping, BGS-required-group presence check and external validator receipt binding. It is not the official AGS/BGS validator.
+- `src/bin/ags4_preflight.rs`: offline local JSON-reporting command; external validation and physical qualification remain NOT_RUN.
 - `sol-atlas-core/src/earth_observability_synthetic.rs`: deterministic abstract profile generator and synthetic-profile tests.
 - `research/earth-observability/fixtures/earth-observability-profile-synthetic-v0.1.json`: pinned generated fixture.
 - `src/earth_observability_tests.rs`: root native tests run by the package's binary test target.
@@ -205,6 +206,8 @@ cargo test --bin earth_observability_generate
 cargo run --bin earth_observability_generate -- --check research/earth-observability/fixtures/earth-observability-profile-synthetic-v0.1.json
 cargo test --bin earth_observability_baseline
 cargo run --bin earth_observability_baseline -- --check research/earth-observability/baselines/synthetic-profile-baseline-v0.1.json
+cargo test --bin ags4_preflight
+cargo run --bin ags4_preflight -- research/earth-observability/fixtures/ags4-synthetic-v0.1.ags
 ```
 
 The manifest validator checks authored manifest invariants over serde types; it is not a JSON Schema validator, geospatial transformation engine, GIS ingestion layer, geological inference model, or physical validation suite. The AGS4 parser checks only a basic structural envelope and receipt field consistency; it does not execute the official AGS or BGS/NGDC validator, validate geotechnical values, or authenticate an external response. The synthetic profile generator creates an abstract surface-wave interface *proxy*, not synthetic waveforms or a validated sensor forward model.
