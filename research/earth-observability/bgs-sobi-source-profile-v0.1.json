@@ -1,0 +1,109 @@
+{
+  "profile_id": "BGS-SOBI-OGCAPI-001",
+  "profile_version": "0.1.0",
+  "status": "source_profile_observed_adapter_not_production_ingestion",
+  "reviewed_date": "2026-11-13",
+  "owner": "British Geological Survey",
+  "dataset_name": "Single Onshore Borehole Index (SOBI)",
+  "collection_id": "onshoreboreholeindex",
+  "collection_title": "Borehole Records",
+  "geographic_coverage": "Great Britain onshore and near-shore",
+  "source_kind": "borehole_record_index",
+  "claim_ceiling": "Index locations and descriptive metadata only; not a digital lithology log, borehole trajectory survey, calibrated measurement, groundwater time series, or independent geological ground truth.",
+  "api": {
+    "base": "https://ogcapi.bgs.ac.uk",
+    "collection": "https://ogcapi.bgs.ac.uk/collections/onshoreboreholeindex?f=html",
+    "items_geojson": "https://ogcapi.bgs.ac.uk/collections/onshoreboreholeindex/items?f=json",
+    "queryables": "linked_from_collection_metadata",
+    "schema": "linked_from_collection_metadata",
+    "formats": [
+      "GeoJSON",
+      "CSV",
+      "HTML",
+      "JSON-LD"
+    ],
+    "maturity": "beta",
+    "paging": "follow_exact_rel_next_url_only_for_bounded_requests",
+    "bulk_download_allowed_via_api": false
+  },
+  "rights": {
+    "dataset_license": "Open Government Licence",
+    "collection_terms_must_be_checked": true,
+    "acknowledgement": "Contains British Geological Survey materials © UKRI [YEAR].",
+    "linked_scan_or_ags_artifacts_inherit_index_license": false,
+    "source_api_use": "BGS fair-use and rate-limit policy applies; not intended for bulk download of the entire dataset."
+  },
+  "coordinate_profile": {
+    "geometry_type": "Point",
+    "geojson_coordinate_reference": "CRS84",
+    "coordinate_order": [
+      "longitude",
+      "latitude"
+    ],
+    "dimensions_supported_by_adapter": 2,
+    "longitude_range": [
+      -180,
+      180
+    ],
+    "latitude_range": [
+      -90,
+      90
+    ],
+    "projected_easting_northing_are_preserved_separately": true,
+    "transformation_performed": false
+  },
+  "observed_page_snapshot": {
+    "date": "2026-11-13",
+    "returned_count": 10,
+    "matched_count": 1358984,
+    "timestamp_role": "api_response_time_not_borehole_observation_time"
+  },
+  "source_fields": {
+    "identifiers": [
+      "feature.id",
+      "properties.id",
+      "properties.bgs_id",
+      "properties.reference"
+    ],
+    "attributes": [
+      "name",
+      "grid_ref",
+      "easting",
+      "northing",
+      "precision",
+      "length",
+      "year_known",
+      "sitereport",
+      "held_at",
+      "length_scan_cat",
+      "date_updated",
+      "scan_url",
+      "ags_log_url",
+      "water_well_ref",
+      "scan_quality"
+    ],
+    "unknown_fields": "preserve_in_extra_property_maps"
+  },
+  "semantic_rules": {
+    "stable_record_key_preference": [
+      "properties.bgs_id",
+      "properties.id",
+      "feature.id"
+    ],
+    "reference_is_not_assumed_globally_unique": true,
+    "precision_label": "preserve_verbatim_not_a_calibrated_sigma_or_survey_rmse",
+    "length_positive": "provider_reported_index_value_not_automatically_qualified_depth",
+    "length_nonpositive": "preserve_raw_and_classify_nonpositive_code_uninterpreted_until_source_dictionary_confirmed",
+    "year_known_null": "unknown_not_zero",
+    "date_updated": "record_metadata_update_time_not_drilling_or_observation_date",
+    "related_artifact_links": "emit_separate_asset_refs_rights_unqualified_no_automatic_fetch"
+  },
+  "adapter_limits": {
+    "http_client_implemented": false,
+    "real_source_ingestion_performed": false,
+    "full_source_dictionary_qualified": false,
+    "scan_or_ags_retrieval_performed": false,
+    "license_signature_or_grant_authentication_performed": false,
+    "public_fixture_contains_only_synthetic_records": true
+  }
+}
