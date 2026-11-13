@@ -589,4 +589,119 @@ mod tests {
             Err(AgsPreflightError::UnsupportedDescriptor(_))
         ));
     }
+
+
+    fn valid_bgs_receipt() -> BgsAgsValidationReceipt {
+        BgsAgsValidationReceipt {
+            api_version: BGS_AGS_API_VERSION.to_string(),
+            api_endpoint: BGS_AGS_VALIDATE_ENDPOINT.to_string(),
+            filename: "synthetic.ags".to_string(),
+            source_file_sha256: "a".repeat(64),
+            source_file_bytes: SYNTHETIC_AGS.len(),
+            dictionary_id: "v4_1_1".to_string(),
+            checkers: vec!["ags".to_string(), "bgs".to_string()],
+            validator_library: "python_ags4 v1.1.0".to_string(),
+            request_time: "2026-11-13T00:00:00Z".to_string(),
+            response_sha256: "b".repeat(64),
+            valid: true,
+            error_count: 0,
+            warnings_count: 1,
+            fyi_count: 0,
+        }
+    }
+
+    #[test]
+    fn declared_ags_version_maps_to_exact_dictionary_without_fallback() {
+        assert_eq!(ags_dictionary_id("4.1.1"), Ok("v4_1_1"));
+        assert_eq!(ags_dictionary_id("4.0.3"), Ok("v4_0_3"));
+        assert_eq!(ags_dictionary_id(""), Err(AgsVersionError::Missing));
+        assert_eq!(
+            ags_dictionary_id("4"),
+            Err(AgsVersionError::Unsupported("4".to_string()))
+        );
+        let doc = parse_ags4_preflight(SYNTHETIC_AGS.as_bytes()).expect("synthetic AGS parses");
+        assert_eq!(
+            ags_dictionary_id(doc.declared_ags_version().unwrap()),
+            Ok("v4_1_1")
+        );
+    }
+
+    #[test]
+    fn validator_receipt_binds_file_digest_size_dictionary_and_both_checkers() {
+        let receipt = valid_bgs_receipt();
+        assert_eq!(
+            validate_bgs_ags_receipt(
+                &receipt,
+                &"a".repeat(64),
+                SYNTHETIC_AGS.len(),
+                "v4_1_1"
+            ),
+            Ok(())
+        );
+    }
+
+    #[test]
+    fn validator_receipt_rejects_reuse_for_different_file_or_dictionary() {
+        let receipt = valid_bgs_receipt();
+        let errors = validate_bgs_ags_receipt(
+            &receipt,
+            &"c".repeat(64),
+            SYNTHETIC_AGS.len() + 1,
+            "v4_1",
+        )
+        .expect_err("receipt must not be reused");
+        assert!(errors.contains(&BgsAgsReceiptError::SourceDigestMismatch));
+        assert!(errors.contains(&BgsAgsReceiptError::SourceSizeMismatch));
+        assert!(errors.contains(&BgsAgsReceiptError::DictionaryMismatch));
+    }
+
+    #[test]
+    fn validator_receipt_requires_pinned_endpoint_checkers_and_response_digest() {
+        let mut receipt = valid_bgs_receipt();
+        receipt.api_version = "6.9".to_string();
+        receipt.api_endpoint = "https://other.invalid/validate".to_string();
+        receipt.checkers = vec!["ags".to_string()];
+        receipt.response_sha256 = "not-a-hash".to_string();
+        let errors = validate_bgs_ags_receipt(
+            &receipt,
+            &"a".repeat(64),
+            SYNTHETIC_AGS.len(),
+            "v4_1_1",
+        )
+        .expect_err("receipt contract must fail");
+        assert!(errors.contains(&BgsAgsReceiptError::ApiVersionMismatch));
+        assert!(errors.contains(&BgsAgsReceiptError::EndpointMismatch));
+        assert!(errors.contains(&BgsAgsReceiptError::MissingBgsSubmissionChecker));
+        assert!(errors.contains(&BgsAgsReceiptError::InvalidResponseDigest));
+    }
+
+    #[test]
+    fn validator_error_status_cannot_be_promoted_by_zeroed_local_assertions() {
+        let mut receipt = valid_bgs_receipt();
+        receipt.valid = false;
+        receipt.error_count = 3;
+        let errors = validate_bgs_ags_receipt(
+            &receipt,
+            &"a".repeat(64),
+            SYNTHETIC_AGS.len(),
+            "v4_1_1",
+        )
+        .expect_err("rejected source must stay rejected");
+        assert!(errors.contains(&BgsAgsReceiptError::ValidatorRejectedFile));
+        assert!(errors.contains(&BgsAgsReceiptError::ErrorCountNonZero));
+    }
+
+    #[test]
+    fn warning_count_is_preserved_but_is_not_automatically_an_error() {
+        let receipt = valid_bgs_receipt();
+        assert!(receipt.warnings_count > 0);
+        assert!(validate_bgs_ags_receipt(
+            &receipt,
+            &"a".repeat(64),
+            SYNTHETIC_AGS.len(),
+            "v4_1_1"
+        )
+        .is_ok());
+    }
+
 }
