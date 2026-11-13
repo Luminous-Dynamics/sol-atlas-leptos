@@ -130,19 +130,6 @@ Security conformance tests must exercise relation traversal and query-equivalent
 
 ## 8. Interoperability and conformance boundaries
 
-SensorThings API standardizes observation access but does not prescribe the utility owner's authorization model. Enforce authorization through utility-owner IAM and a narrowly scoped service policy. Apply minimum disclosure and least privilege to:
-- exact fibre paths and splice locations;
-- cable and utility asset topology;
-- sensor/interrogator locations;
-- event detections that expose critical-asset security posture;
-- work/maintenance evidence and operator identity.
-
-Public output should normally be aggregated or generalized. Exact critical-asset geometry is restricted by default.
-
-Operational DAS intake must be read-only relative to SCADA and electrical protection. The profile does not authorize control writes, switching, isolation, dispatch, excavation or repair.
-
-## 8. Interoperability and conformance boundaries
-
 - MUDDI A.1–A.4 remain a separate Sol-Atlas logical-model conformance effort. Passing a local JSON Schema or SensorThings API example does not establish MUDDI conformance.
 - SensorThings API conformance requires the applicable normative abstract tests and a real service implementation; this profile is not one.
 - OMS/SOSA semantics and local vocabulary mappings must be versioned and machine-readable.
