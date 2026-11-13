@@ -131,6 +131,13 @@ fn audit() -> Result<Value, Vec<String>> {
         "recovered_condenser_heat",
         "displaced_pool_heater_energy",
         "excess_heat_rejected_by_fallback_sink",
+        "building_side_heat_removed_from_cooling_load",
+        "compressor_electrical_work_input",
+        "compressor_ambient_heat_loss",
+        "condenser_heat_output",
+        "pool_heat_recovery",
+        "fallback_sink_rejection",
+        "distribution_losses",
     ] {
         if !balances.iter().any(|item| item == required) {
             errors.push(format!("thermal balance term {required} is missing"));
@@ -148,6 +155,9 @@ fn audit() -> Result<Value, Vec<String>> {
         "pool_heat_recovery_without_isolated_heat_exchanger",
         "unqualified_fallback_sink_for_excess_heat",
         "heat_recovery_claim_without_measured_displaced_heater_energy",
+        "condenser_first_law_balance_outside_uncertainty",
+        "condenser_disposition_balance_outside_uncertainty",
+        "condenser_heat_double_counting",
     ] {
         if manifest["hard_gates"].get(key).and_then(Value::as_u64) != Some(0) {
             errors.push(format!("pool/water hard gate {key} must equal zero"));
