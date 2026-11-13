@@ -114,6 +114,9 @@ pub enum BgsAgsReceiptError {
     SourceSizeMismatch,
     InvalidResponseDigest,
     DictionaryMismatch,
+    MissingDeclaredVersion,
+    UnsupportedDeclaredVersion(String),
+    ValidatorLibraryMismatch,
     MissingAgsSchemaChecker,
     MissingBgsSubmissionChecker,
     EmptyValidatorLibrary,
@@ -150,6 +153,7 @@ pub fn validate_bgs_ags_receipt(
     expected_source_sha256: &str,
     expected_source_bytes: usize,
     expected_dictionary_id: &str,
+    expected_validator_library: &str,
 ) -> Result<(), Vec<BgsAgsReceiptError>> {
     let mut errors = Vec::new();
 
@@ -196,6 +200,8 @@ pub fn validate_bgs_ags_receipt(
     }
     if receipt.validator_library.trim().is_empty() {
         errors.push(BgsAgsReceiptError::EmptyValidatorLibrary);
+    } else if receipt.validator_library != expected_validator_library {
+        errors.push(BgsAgsReceiptError::ValidatorLibraryMismatch);
     }
     if receipt.request_time.trim().is_empty() {
         errors.push(BgsAgsReceiptError::EmptyRequestTime);
@@ -445,10 +451,15 @@ impl AgsDocument {
         self.groups.iter().find(|group| group.name == name)
     }
 
-    /// Return a declared TRAN_AGS value if present. A missing/ambiguous
-    /// version is not silently rewritten to the BGS validator's default.
+    /// Return a declared TRAN_AGS value only when exactly one TRAN group and
+    /// one non-empty version row exist. A missing/ambiguous version is never
+    /// rewritten to the BGS validator's default.
     pub fn declared_ags_version(&self) -> Option<&str> {
-        let group = self.group("TRAN")?;
+        let mut transfer_groups = self.groups.iter().filter(|group| group.name == "TRAN");
+        let group = transfer_groups.next()?;
+        if transfer_groups.next().is_some() {
+            return None;
+        }
         let values = group.values("TRAN_AGS")?;
         if values.len() != 1 {
             return None;
@@ -463,6 +474,35 @@ impl AgsDocument {
 
     /// Check only the documented BGS required-group set. This is not the full
     /// BGS validator and does not check coordinates, depth, units or references.
+    /// Validate the external receipt against the version actually declared
+    /// in this parsed document. This is the preferred admission path because
+    /// the expected dictionary is derived from the source file, not supplied
+    /// independently by the caller.
+    pub fn validate_bgs_receipt(
+        &self,
+        receipt: &BgsAgsValidationReceipt,
+        expected_source_sha256: &str,
+        expected_source_bytes: usize,
+        expected_validator_library: &str,
+    ) -> Result<(), Vec<BgsAgsReceiptError>> {
+        let declared_version = self
+            .declared_ags_version()
+            .ok_or_else(|| vec![BgsAgsReceiptError::MissingDeclaredVersion])?;
+        let dictionary_id = ags_dictionary_id(declared_version).map_err(|error| match error {
+            AgsVersionError::Missing => vec![BgsAgsReceiptError::MissingDeclaredVersion],
+            AgsVersionError::Unsupported(version) => {
+                vec![BgsAgsReceiptError::UnsupportedDeclaredVersion(version)]
+            }
+        })?;
+        validate_bgs_ags_receipt(
+            receipt,
+            expected_source_sha256,
+            expected_source_bytes,
+            dictionary_id,
+            expected_validator_library,
+        )
+    }
+
     pub fn bgs_required_group_issues(&self) -> Vec<BgsAgsSubmissionIssue> {
         let names: BTreeSet<&str> = self.groups.iter().map(|group| group.name.as_str()).collect();
         let mut issues = Vec::new();
