@@ -45,9 +45,10 @@ The Rust core now contains a fail-closed owner-grant predicate. These are additi
 | Supplemental control | Executable guard | Expected result | Coverage ceiling |
 |---|---|---|---|
 | RIGHTS-EXACT-SOURCE-001 | `missing_or_wrong_source_grant_fails_closed` | deny wrong-source or missing grant | Source identity only; grant signature/issuer authentication is upstream |
-| RIGHTS-PURPOSE-001 | `exact_source_grant_allows_only_declared_local_processing` | permit declared read/process; deny ungranted redistribution | Checks declared booleans; does not inspect actual network egress or derivative content |
+| RIGHTS-ASSET-SUBJECT-001 | `wrong_asset_or_subject_cannot_reuse_a_source_level_grant` | deny an asset or worker mismatch under the same source | Exact asset/subject binding; upstream signature verification still required |
+| RIGHTS-PURPOSE-001 | `purpose_must_be_explicitly_granted`, `exact_asset_subject_and_purpose_grant_only_declared_local_processing` | deny an empty or ungranted purpose; allow only action booleans granted for the exact purpose | Checks declared purpose membership/capabilities; does not inspect actual network egress or derivative content |
 | RIGHTS-TIME-001 | `expired_and_future_grants_are_not_usable` | deny before not-before and at/after expiry | Wall-clock trust and revocation are not implemented here |
-| RIGHTS-CONDITIONS-001 | `unmet_grant_conditions_block_processing` | deny when declared conditions are unsatisfied | Does not verify the underlying condition evidence |
+| RIGHTS-CONDITIONS-001 | `unmet_grant_conditions_block_processing` | deny when declared conditions are unsatisfied | Does not verify underlying condition evidence |
 | RIGHTS-RECEIPT-001 | `invalid_rights_receipt_digest_is_rejected` | reject malformed digest | Digest syntax only; Mycelix/custody must verify signature, issuer and revocation |
 
 The grant-gate contract and execution boundary are documented in [EARTH-OBSERVABILITY-FEDERATED-EVIDENCE-001](EARTH_OBSERVABILITY_FEDERATED_EVIDENCE_V0_1.md). This is a policy-consistency predicate over an upstream-qualified grant, not a legal interpreter, signature verifier or privacy-preserving execution environment.
