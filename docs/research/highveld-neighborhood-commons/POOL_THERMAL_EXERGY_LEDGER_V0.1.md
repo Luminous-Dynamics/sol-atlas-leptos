@@ -71,7 +71,15 @@ Known-answer tests verify:
 - layer mass fractions that do not close to one are rejected;
 - missing property/reference evidence, non-positive absolute temperature or temperature-limit breach cannot qualify.
 
-## 6. How to use this with the existing system
+## 6. Cross-ledger identity and state reconciliation
+
+The exergy sidecar now embeds the parent passive-regeneration case and checks it before calculating temperature-grade results. The parent case ID, thermal/water opening and closing state for every interval, usable store minimum/capacity, initial state, maximum temperature limit, cycle-closure requirement and closure tolerance must match. The interval order and identities must match exactly.
+
+A mismatch fails the cross-ledger gate. It is not repaired by interpolation or by selecting the nearest interval. The environmental reference temperature is intentionally not copied from the parent: it is a separately measured boundary required for exergy, but its measurement method and uncertainty are independently required in this sidecar.
+
+This makes the exergy sidecar an additional analysis of the same first-law trajectory, rather than a second, potentially inconsistent synthetic pool history.
+
+## 7. How to use this with the existing system
 
 - The pool passive-regeneration ledger remains the first-law and water-volume accounting authority.
 - The exergy sidecar provides temperature-grade and idealized headroom metrics for the same kind of stratified water store.
@@ -80,7 +88,7 @@ Known-answer tests verify:
 
 Do not use the exergy number by itself to dispatch a real heat exchanger or claim occupant cooling.
 
-## 7. Acceptance targets and claim ceiling
+## 8. Acceptance targets and claim ceiling
 
 - zero negative/non-finite property inputs accepted;
 - zero layer mass-fraction gaps or double counting;
