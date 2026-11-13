@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "EARTH_OBSERVABILITY_CASE_MANIFEST_V0_1.schema.json",
+  "title": "Earth Observability Synthetic Case Manifest v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["benchmark_id", "manifest_version", "status", "created", "geography", "claim_boundary", "case_count", "cases"],
+  "properties": {
+    "$schema": {"type": "string"},
+    "benchmark_id": {"const": "EARTH-OBSERVABILITY-QUAL-001"},
+    "manifest_version": {"const": "0.1.0"},
+    "status": {"const": "planned_synthetic_cases_not_yet_generated"},
+    "created": {"type": "string", "format": "date"},
+    "geography": {"const": "abstract_non_geographic"},
+    "claim_boundary": {"type": "string", "minLength": 20},
+    "case_count": {"type": "integer", "minimum": 1},
+    "cases": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["case_id", "track", "kind", "modalities", "scenario", "conditions", "expected_disposition", "assertions", "reference", "split_role", "data_status"],
+        "properties": {
+          "case_id": {"type": "string", "pattern": "^[A-Z0-9-]+$"},
+          "track": {"enum": ["spatial_conformance", "survey_geometry", "observability", "subsurface_reconstruction", "evidence_semantics", "uncertainty_and_transfer", "adaptive_investigation", "temporal_revalidation"]},
+          "kind": {"enum": ["positive_control", "negative_control", "adversarial"]},
+          "modalities": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+          "scenario": {"type": "string", "minLength": 20},
+          "conditions": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+          "expected_disposition": {"type": "string", "minLength": 3},
+          "assertions": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 10}},
+          "reference": {"type": "string", "minLength": 3},
+          "split_role": {"const": "synthetic_held_out"},
+          "data_status": {"const": "definition_only"}
+        }
+      }
+    }
+  }
+}
