@@ -38,32 +38,59 @@ This matrix prevents a case-definition manifest from being mistaken for a comple
 | DAS-CHAINAGE-001 | retain chainage; no geographic fix | `qualify_fibre_geolocation`; `das_chainage_without_route_calibration_is_not_a_geographic_fix` | Contract guard added | Qualification yields no geographic coordinate; a separate route-geometry projection must consume the exact calibration receipt |
 | DAS-COUPLING-001 | stratify and calibrate | Existing Symtropy #4972 owns coupling and DAS observability profile | Delegated / pending | No acoustic signal simulator or DAS coupling model is implemented by Sol-Atlas |
 
+## Additional deterministic synthetic-profile fixture
+
+The first data fixture now exists at `research/earth-observability/fixtures/earth-observability-profile-synthetic-v0.1.json`. It contains:
+
+- 6 sparse training borehole contacts on an abstract transect;
+- 22 noisy, deterministic surface-wave *interface proxy* records across two abstract transects;
+- 5 explicit UNOBSERVED records in the held-out transect's blind zone, represented with null estimates and null uncertainty rather than zero;
+- 11 independent validation truth points on a shifted held-out transect;
+- fixed seed `20261113`, declared metre units, and an explicit no-field/no-physics claim boundary.
+
+The corresponding Rust generator is in `sol-atlas-core/src/earth_observability_synthetic.rs`; a binary can write or verify the committed fixture. This is a deterministic benchmark fixture, not a physical forward model, sensor simulation, geological inference result, or field dataset.
+
+| Additional challenge | Executable guard | Coverage ceiling |
+|---|---|---|
+| PROFILE-SPARSE-BOREHOLES-001 | `blind_truth_is_separate_from_training_boreholes` | Split/identity properties only; no geological interpolation benchmark yet |
+| PROFILE-TRANSFER-001 | shifted held-out transect truth | Dataset supports a transfer test; no model or transfer score is implemented yet |
+| PROFILE-BLIND-ZONE-001 | `blind_zone_remains_unobserved_and_is_not_zero_filled` | Checks missingness semantics; does not model GPR/ERT/wave propagation |
+| PROFILE-NOISE-001 | `geophysical_proxy_noise_respects_declared_uncertainty_bound` | Noise is synthetic and bounded; uncertainty calibration against field sensors is not tested |
+| PROFILE-REPLAY-001 | `generator_is_deterministic_for_a_frozen_seed`, committed fixture comparison | Deterministic generation only; no independent full-pipeline replay receipt yet |
+
 ## Executable entry points
 
 The branch adds:
 
-- `sol-atlas-core/src/earth_observability.rs`: renderer-independent contract types and predicates.
+- `sol-atlas-core/src/earth_observability.rs`: renderer-independent frame, non-detection, split, transform, authority, change, interpretation-conflict and fibre-chainage guards.
+- `sol-atlas-core/src/earth_observability_synthetic.rs`: deterministic abstract profile generator and synthetic-profile tests.
+- `research/earth-observability/fixtures/earth-observability-profile-synthetic-v0.1.json`: pinned generated fixture.
 - `src/earth_observability_tests.rs`: root native tests run by the package's binary test target.
-- `src/bin/earth_observability_validate.rs`: offline challenge-manifest contract validator. It emits a JSON receipt and labels JSON Schema validation, synthetic measurement execution and physical validation as `NOT_RUN`.
-- `.github/workflows/check.yml`: runs the native test target, tests the manifest validator and emits its contract receipt.
+- `src/bin/earth_observability_validate.rs`: offline challenge-manifest contract validator. Its receipt labels JSON Schema validation, scenario execution and physical validation as `NOT_RUN`.
+- `src/bin/earth_observability_generate.rs`: writes the deterministic profile or verifies a committed fixture using `--check`.
+- `.github/workflows/check.yml`: formats/checks the application, builds WASM, runs application and shared-core native tests, verifies the manifest, and verifies the pinned synthetic profile.
 
 Commands from the repository root:
 
 ```sh
 cargo fmt --all --check
 cargo test --bin sol-atlas-leptos
-cargo test --bin earth-observability-validate
-cargo run --bin earth-observability-validate -- research/earth-observability/earth-observability-case-manifest-v0.1.json
+cargo test --manifest-path sol-atlas-core/Cargo.toml
+cargo test --bin earth_observability_validate
+cargo run --bin earth_observability_validate -- research/earth-observability/earth-observability-case-manifest-v0.1.json
+cargo test --bin earth_observability_generate
+cargo run --bin earth_observability_generate -- --check research/earth-observability/fixtures/earth-observability-profile-synthetic-v0.1.json
 ```
 
-The manifest validator is an authored Rust contract check over serde types and explicit invariants. It is not a JSON Schema validator, geospatial transformation engine, GIS ingestion layer, geological inference model, sensor simulator or physical validation suite.
+The manifest validator checks authored manifest invariants over serde types; it is not a JSON Schema validator, geospatial transformation engine, GIS ingestion layer, geological inference model, or physical validation suite. The synthetic profile generator creates an abstract surface-wave interface *proxy*, not synthetic waveforms or a validated sensor forward model.
 
 ## Exit criteria for the next tranche
 
 1. Run the new Rust binary tests on the exact PR head and retain the actual workflow receipt.
 2. Add full JSON Schema validation only after a pinned, offline-capable validator and dependency policy are agreed; do not describe serde validation as JSON Schema validation.
-3. Generate small, deterministic synthetic measurement fixtures for frame transforms, registration drift, POD curves and spatially correlated fields.
-4. Implement support-scale identity and conflict-aware adapters for borehole / geological / geophysical interpretation without silently fusing incompatible spatial supports.
-5. Keep the EVSI planner, survey authority and graph revalidation with their current owners; add boundary adapters and integration cases rather than parallel owners.
-6. Do not promote synthetic test success into geological, geotechnical, surveying or construction qualification.
+3. Extend deterministic fixtures to frame/vertical-datum transformations, correlated registration drift, modality-specific probability-of-detection curves and spatial random fields.
+4. Implement a first matched baseline (e.g. borehole-only piecewise/kriging baseline versus the synthetic geophysical proxy) with frozen split and a blind-scoring interface; do not treat the synthetic proxy as real geophysics.
+5. Implement support-scale identity and conflict-aware adapters for borehole / geological / geophysical interpretations without silently fusing incompatible spatial supports.
+6. Keep the EVSI planner, survey authority and graph revalidation with their current owners; add boundary adapters and integration cases rather than parallel owners.
+7. Do not promote synthetic test success into geological, geotechnical, surveying or construction qualification.
 
