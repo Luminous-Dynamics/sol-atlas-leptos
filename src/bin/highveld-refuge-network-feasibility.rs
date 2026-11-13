@@ -1640,6 +1640,46 @@ mod tests {
     }
 
     #[test]
+    fn scaled_equal_ratio_batch_preserves_owner_tie_break_at_capacity_edge() {
+        let demands = vec![
+            ("A".to_owned(), 5),
+            ("B".to_owned(), 5),
+            ("C".to_owned(), 5),
+        ];
+        let sites = vec![("S0".to_owned(), 13)];
+        let links = [
+            ("A".to_owned(), "S0".to_owned()),
+            ("B".to_owned(), "S0".to_owned()),
+            ("C".to_owned(), "S0".to_owned()),
+        ]
+        .into_iter()
+        .collect::<BTreeSet<_>>();
+        let baseline = vec![1, 1, 1];
+        let totals = vec![10, 10, 10];
+        let ranks = vec![3, 1, 2];
+        let reference = progressive_max_min_flow_unit_reference(
+            &demands,
+            &sites,
+            &links,
+            &baseline,
+            &totals,
+            &ranks,
+        );
+        let (scaled, _) = progressive_max_min_flow_scaled_with_stats(
+            &demands,
+            &sites,
+            &links,
+            &baseline,
+            &totals,
+            &ranks,
+        );
+        assert_eq!(scaled.total, 13);
+        assert_eq!(scaled.served_by_cohort, vec![4, 5, 4]);
+        assert_eq!(scaled.served_by_cohort, reference.served_by_cohort);
+        assert_eq!(scaled.used_by_site, reference.used_by_site);
+    }
+
+    #[test]
     fn scaled_progressive_filling_batches_billion_place_equal_ratio_groups() {
         let billion = 1_000_000_000_u64;
         let demands = vec![
@@ -1902,6 +1942,11 @@ mod tests {
             fairness["tie_break_policy"],
             "EXPLICIT_OWNER_SUPPLIED_RANK_ONLY_FOR_EQUAL_DISCRETE_SERVICE_RATIOS"
         );
+        assert_eq!(
+            fairness["algorithm"],
+            "CAPACITY_SCALED_PROGRESSIVE_FILL_WITH_UNIT_STEP_FALLBACK"
+        );
+        assert!(fairness["max_flow_evaluation_count"].as_u64().unwrap() > 0);
         assert_eq!(fairness["assignment"], "NONE");
         assert_eq!(fairness["reservation"], "NONE");
     }
