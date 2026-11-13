@@ -19,7 +19,10 @@
     "disclosure_classes",
     "synthetic_fixture_policy",
     "conformance_status",
-    "unresolved"
+    "unresolved",
+    "core_attributes",
+    "logical_name_mapping",
+    "core_conformance_traceability"
   ],
   "properties": {
     "profile_id": {
@@ -331,6 +334,153 @@
       "minItems": 1,
       "items": {
         "type": "string"
+      }
+    },
+    "core_attributes": {
+      "type": "array",
+      "minItems": 10,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "concept",
+          "inherited_by",
+          "attributes"
+        ],
+        "properties": {
+          "concept": {
+            "enum": [
+              "MUDDIObject",
+              "MUDDIAsset",
+              "MUDDIEvent",
+              "MUDDISpace",
+              "Network",
+              "NetworkAsset",
+              "NetworkConveyance",
+              "NetworkAccessory",
+              "NetworkLink",
+              "NetworkNode"
+            ]
+          },
+          "inherited_by": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "attributes": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": true,
+              "required": [
+                "muddi_name",
+                "multiplicity",
+                "obligation",
+                "local_mapping"
+              ],
+              "properties": {
+                "muddi_name": {
+                  "type": "string"
+                },
+                "multiplicity": {
+                  "type": "string"
+                },
+                "obligation": {
+                  "enum": [
+                    "mandatory",
+                    "conditional"
+                  ]
+                },
+                "local_mapping": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "logical_name_mapping": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "concept_name",
+          "logical_name",
+          "parent_concept_name",
+          "parent_logical_name",
+          "implementation_name"
+        ],
+        "properties": {
+          "concept_name": {
+            "type": "string"
+          },
+          "logical_name": {
+            "type": "string"
+          },
+          "parent_concept_name": {
+            "type": "string"
+          },
+          "parent_logical_name": {
+            "type": "string"
+          },
+          "implementation_name": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "core_conformance_traceability": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "conformance_class",
+        "tests",
+        "claim"
+      ],
+      "properties": {
+        "conformance_class": {
+          "const": "MUDDI Core /conf/core"
+        },
+        "tests": {
+          "type": "array",
+          "minItems": 4,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "requirement",
+              "status",
+              "evidence"
+            ],
+            "properties": {
+              "id": {
+                "enum": [
+                  "A.1",
+                  "A.2",
+                  "A.3",
+                  "A.4"
+                ]
+              },
+              "requirement": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string"
+              },
+              "evidence": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "claim": {
+          "type": "string"
+        }
       }
     }
   }
