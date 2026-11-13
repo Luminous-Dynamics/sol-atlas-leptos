@@ -13,7 +13,8 @@ use sol_atlas_core::ags_preflight::{
     ags_dictionary_id, parse_ags4_preflight,
 };
 use std::env;
-use std::fs;
+use std::fs::File;
+use std::io::Read;
 use std::path::Path;
 
 const DEFAULT_FIXTURE: &str =
@@ -95,6 +96,23 @@ fn build_report(file_name: &str, bytes: &[u8]) -> Result<AgsPreflightReport, Ags
     })
 }
 
+fn read_bounded_file(path: &str) -> Result<Vec<u8>, String> {
+    let file = File::open(Path::new(path))
+        .map_err(|error| format!("cannot open {path}: {error}"))?;
+    let maximum_read = AGS4_PREFLIGHT_MAX_BYTES as u64 + 1;
+    let mut bytes = Vec::new();
+    file.take(maximum_read)
+        .read_to_end(&mut bytes)
+        .map_err(|error| format!("cannot read {path}: {error}"))?;
+    if bytes.len() > AGS4_PREFLIGHT_MAX_BYTES {
+        return Err(format!(
+            "{path} exceeds the {} byte AGS4 preflight limit",
+            AGS4_PREFLIGHT_MAX_BYTES
+        ));
+    }
+    Ok(bytes)
+}
+
 fn usage(program: &str) {
     eprintln!("Usage: {program} [FILE.ags]");
     eprintln!("Default synthetic fixture: {DEFAULT_FIXTURE}");
@@ -122,16 +140,13 @@ fn main() {
         std::process::exit(64);
     }
 
-    let result = fs::read(Path::new(&path))
-        .map_err(|error| format!("cannot read {path}: {error}"))
-        .and_then(|bytes| {
-            build_report(&path, &bytes)
-                .map(|report| (report, bytes.len()))
-                .map_err(|error| format!("AGS4 preflight failed: {error:?}"))
-        });
+    let result = read_bounded_file(&path).and_then(|bytes| {
+        build_report(&path, &bytes)
+            .map_err(|error| format!("AGS4 preflight failed: {error:?}"))
+    });
 
     match result {
-        Ok((report, _)) => {
+        Ok(report) => {
             let ready = report.structural_preflight
                 == "PASS_LOCAL_PREFLIGHT_EXTERNAL_VALIDATION_PENDING";
             println!(
