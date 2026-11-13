@@ -120,6 +120,8 @@ pub enum UtilityInferenceError {
     CandidateAssetWithoutEvents(String),
     UnknownAssociationEvent(String),
     UnknownAssociationAsset(String),
+    DuplicateEventAssetAssociation { event_id: String, candidate_asset_id: String },
+    AssociationEvidenceNotBound { event_id: String, candidate_asset_id: String },
     InvalidAssociationProbability,
     AssociationMassExceedsOne(String),
     InvalidConfidence(String),
@@ -200,7 +202,7 @@ pub fn validate_utility_inference_graph(
         "candidate_node_id",
         &mut errors,
     );
-    let connection_ids = unique_ids(
+    let _connection_ids = unique_ids(
         graph
             .candidate_connections
             .iter()
@@ -211,6 +213,7 @@ pub fn validate_utility_inference_graph(
 
     let mut event_association_mass: BTreeMap<&str, f64> = BTreeMap::new();
     let mut event_association_count: BTreeMap<&str, usize> = BTreeMap::new();
+    let mut association_pairs: BTreeSet<(&str, &str)> = BTreeSet::new();
 
     for event in &graph.observed_events {
         for (field, value) in [
@@ -255,6 +258,15 @@ pub fn validate_utility_inference_graph(
     }
 
     for association in &graph.event_asset_associations {
+        if !association_pairs.insert((
+            association.event_id.as_str(),
+            association.candidate_asset_id.as_str(),
+        )) {
+            errors.push(UtilityInferenceError::DuplicateEventAssetAssociation {
+                event_id: association.event_id.clone(),
+                candidate_asset_id: association.candidate_asset_id.clone(),
+            });
+        }
         if !event_ids.contains(association.event_id.as_str()) {
             errors.push(UtilityInferenceError::UnknownAssociationEvent(
                 association.event_id.clone(),
@@ -264,6 +276,26 @@ pub fn validate_utility_inference_graph(
             errors.push(UtilityInferenceError::UnknownAssociationAsset(
                 association.candidate_asset_id.clone(),
             ));
+        }
+        if let (Some(event), Some(asset)) = (
+            graph
+                .observed_events
+                .iter()
+                .find(|event| event.event_id == association.event_id),
+            graph
+                .candidate_assets
+                .iter()
+                .find(|asset| asset.candidate_asset_id == association.candidate_asset_id),
+        ) {
+            if !asset
+                .supporting_evidence_ids
+                .contains(&event.source_evidence_id)
+            {
+                errors.push(UtilityInferenceError::AssociationEvidenceNotBound {
+                    event_id: association.event_id.clone(),
+                    candidate_asset_id: association.candidate_asset_id.clone(),
+                });
+            }
         }
         if !valid_probability(association.probability) {
             errors.push(UtilityInferenceError::InvalidAssociationProbability);
@@ -337,7 +369,6 @@ pub fn validate_utility_inference_graph(
     }
 
     // Keep deterministic error order for stable qualification receipts.
-    let _ = connection_ids;
     errors
 }
 
@@ -476,6 +507,30 @@ mod tests {
         let errors = validate_utility_inference_graph(&graph);
         assert!(errors.contains(&UtilityInferenceError::UnknownAssociationEvent("missing-event".to_string())));
         assert!(errors.contains(&UtilityInferenceError::UnknownAssociationAsset("candidate:missing".to_string())));
+    }
+
+    #[test]
+    fn duplicate_event_to_asset_association_rows_are_rejected() {
+        let mut graph = valid_graph();
+        graph.event_asset_associations.push(graph.event_asset_associations[0].clone());
+        assert!(validate_utility_inference_graph(&graph).contains(
+            &UtilityInferenceError::DuplicateEventAssetAssociation {
+                event_id: "event-1".to_string(),
+                candidate_asset_id: "candidate:utility-1".to_string(),
+            }
+        ));
+    }
+
+    #[test]
+    fn association_must_bind_the_event_source_into_candidate_evidence() {
+        let mut graph = valid_graph();
+        graph.candidate_assets[0].supporting_evidence_ids.remove(0);
+        assert!(validate_utility_inference_graph(&graph).contains(
+            &UtilityInferenceError::AssociationEvidenceNotBound {
+                event_id: "event-1".to_string(),
+                candidate_asset_id: "candidate:utility-1".to_string(),
+            }
+        ));
     }
 
     #[test]
