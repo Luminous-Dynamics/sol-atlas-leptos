@@ -153,7 +153,7 @@ Treat discovery, read, processing, derivative creation, redistribution, retentio
 
 | Measure | Definition | Required negative controls |
 |---|---|---|
-| Exact-source grant binding | fraction of operations bound to a verified grant for the exact source/asset | grant for source A used on source B |
+| Exact asset/subject grant binding | fraction of operations bound to a verified grant for the exact source, asset, requesting subject and purpose | grant for source A or asset A used on source/asset B; one worker's grant reused by another |
 | Purpose/action separation | correct enforcement of READ / PROCESS / CREATE_DERIVATIVE / REDISTRIBUTE | read-only used to process; process-only used to publish |
 | Grant validity | enforcement of not-before, expiry, conditions and revocation | expired grant, unmet conditions, revocation with stale cache |
 | Authorization coverage | authorized and executed requested sources / all requested sources | inaccessible or unknown sources silently counted as covered |
