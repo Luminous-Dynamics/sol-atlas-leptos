@@ -26,6 +26,7 @@ pub mod geometry;
 pub mod math;
 pub mod picking;
 pub mod simulation;
+pub mod sensor_observability;
 pub mod solar_system;
 pub mod timeline;
 pub mod types;
