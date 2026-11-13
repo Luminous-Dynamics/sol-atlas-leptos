@@ -27,7 +27,10 @@ fn u64_at(value: &Value, key: &str) -> Option<u64> {
 }
 
 fn finite_at(value: &Value, key: &str) -> Option<f64> {
-    value.get(key).and_then(Value::as_f64).filter(|number| number.is_finite())
+    value
+        .get(key)
+        .and_then(Value::as_f64)
+        .filter(|number| number.is_finite())
 }
 
 #[derive(Clone)]
@@ -120,7 +123,9 @@ fn evaluate(case: &Value) -> Result<Value, Vec<String>> {
     let schema: Value = serde_json::from_str(SCHEMA)
         .map_err(|error| vec![format!("schema JSON parse failed: {error}")])?;
     if text_at(&schema, "$schema") != Some("https://json-schema.org/draft/2020-12/schema") {
-        return Err(vec!["schema must declare JSON Schema Draft 2020-12".to_owned()]);
+        return Err(vec![
+            "schema must declare JSON Schema Draft 2020-12".to_owned(),
+        ]);
     }
 
     for (key, expected) in [
@@ -189,8 +194,8 @@ fn evaluate(case: &Value) -> Result<Value, Vec<String>> {
     let mut group_routes = Vec::new();
     let mut total_accessible = 0_u64;
     for group in groups {
-        let id = text_at(group, "cohort_id")
-            .ok_or_else(|| vec!["cohort_id is missing".to_owned()])?;
+        let id =
+            text_at(group, "cohort_id").ok_or_else(|| vec!["cohort_id is missing".to_owned()])?;
         if !group_ids.insert(id.to_owned()) {
             return Err(vec![format!("duplicate demand cohort ID {id}")]);
         }
@@ -215,7 +220,10 @@ fn evaluate(case: &Value) -> Result<Value, Vec<String>> {
         for route in routes {
             let site_id = text_at(route, "site_id")
                 .ok_or_else(|| vec![format!("{id}: route site ID missing")])?;
-            if route_by_site.insert(site_id.to_owned(), route.clone()).is_some() {
+            if route_by_site
+                .insert(site_id.to_owned(), route.clone())
+                .is_some()
+            {
                 return Err(vec![format!("{id}: duplicate route for site {site_id}")]);
             }
         }
@@ -232,20 +240,52 @@ fn evaluate(case: &Value) -> Result<Value, Vec<String>> {
 
         let mut reasons = Vec::new();
         for (key, expected, reason) in [
-            ("operating_window_state", "OPEN_FOR_REQUIRED_WINDOW", "NOT_OPEN_FOR_REQUIRED_WINDOW"),
-            ("thermal_service_state", "QUALIFIED", "THERMAL_SERVICE_NOT_QUALIFIED"),
-            ("ventilation_state", "QUALIFIED", "VENTILATION_NOT_QUALIFIED"),
-            ("safe_water_service_state", "QUALIFIED", "SAFE_WATER_SERVICE_NOT_QUALIFIED"),
-            ("safe_water_rights_state", "QUALIFIED", "SAFE_WATER_RIGHTS_NOT_QUALIFIED"),
-            ("safe_water_quality_state", "QUALIFIED", "SAFE_WATER_QUALITY_NOT_QUALIFIED"),
-            ("staffing_maintenance_state", "QUALIFIED", "STAFFING_OR_MAINTENANCE_NOT_QUALIFIED"),
+            (
+                "operating_window_state",
+                "OPEN_FOR_REQUIRED_WINDOW",
+                "NOT_OPEN_FOR_REQUIRED_WINDOW",
+            ),
+            (
+                "thermal_service_state",
+                "QUALIFIED",
+                "THERMAL_SERVICE_NOT_QUALIFIED",
+            ),
+            (
+                "ventilation_state",
+                "QUALIFIED",
+                "VENTILATION_NOT_QUALIFIED",
+            ),
+            (
+                "safe_water_service_state",
+                "QUALIFIED",
+                "SAFE_WATER_SERVICE_NOT_QUALIFIED",
+            ),
+            (
+                "safe_water_rights_state",
+                "QUALIFIED",
+                "SAFE_WATER_RIGHTS_NOT_QUALIFIED",
+            ),
+            (
+                "safe_water_quality_state",
+                "QUALIFIED",
+                "SAFE_WATER_QUALITY_NOT_QUALIFIED",
+            ),
+            (
+                "staffing_maintenance_state",
+                "QUALIFIED",
+                "STAFFING_OR_MAINTENANCE_NOT_QUALIFIED",
+            ),
         ] {
             if text_at(site, key) != Some(expected) {
                 reasons.push(reason.to_owned());
             }
         }
 
-        for key in ["capacity_evidence_ref", "service_evidence_ref", "water_evidence_ref"] {
+        for key in [
+            "capacity_evidence_ref",
+            "service_evidence_ref",
+            "water_evidence_ref",
+        ] {
             if text_at(site, key).is_none() {
                 reasons.push(format!("MISSING_EVIDENCE_REFERENCE_{key}"));
             }
@@ -310,11 +350,8 @@ fn evaluate(case: &Value) -> Result<Value, Vec<String>> {
         };
 
         let eligible = reasons.is_empty();
-        let (total_free, accessible_free, water_free_ml) = if eligible {
-            resources
-        } else {
-            (0, 0, 0)
-        };
+        let (total_free, accessible_free, water_free_ml) =
+            if eligible { resources } else { (0, 0, 0) };
         site_index.insert(id.to_owned(), site_states.len());
         site_states.push(SiteState {
             id: id.to_owned(),
@@ -361,9 +398,8 @@ fn evaluate(case: &Value) -> Result<Value, Vec<String>> {
                     }
                     candidates.push(index);
                 }
-                candidates.sort_by(|left, right| {
-                    site_states[*left].id.cmp(&site_states[*right].id)
-                });
+                candidates
+                    .sort_by(|left, right| site_states[*left].id.cmp(&site_states[*right].id));
                 candidates.dedup();
                 candidate_edges += candidates.len();
                 units.push(Unit {
@@ -385,8 +421,8 @@ fn evaluate(case: &Value) -> Result<Value, Vec<String>> {
         )
     });
 
-    let requested_limit = u64_at(case, "search_node_limit")
-        .unwrap_or(DEFAULT_NODE_LIMIT as u64) as usize;
+    let requested_limit =
+        u64_at(case, "search_node_limit").unwrap_or(DEFAULT_NODE_LIMIT as u64) as usize;
     let node_limit = requested_limit.clamp(1, DEFAULT_NODE_LIMIT);
     let mut state = SearchState {
         sites: site_states.clone(),
@@ -461,16 +497,24 @@ fn evaluate(case: &Value) -> Result<Value, Vec<String>> {
         }),
     };
 
-    let site_eligibility = site_states.iter().map(|site| json!({
-        "site_id": site.id,
-        "eligible": site.eligible,
-        "reasons": site.reasons
-    })).collect::<Vec<_>>();
+    let site_eligibility = site_states
+        .iter()
+        .map(|site| {
+            json!({
+                "site_id": site.id,
+                "eligible": site.eligible,
+                "reasons": site.reasons
+            })
+        })
+        .collect::<Vec<_>>();
     let mut report = report;
     report["site_eligibility"] = json!(site_eligibility);
     report["network_state"] = json!(network_state);
-    report["schema_engine"] = json!("NOT_RUN; schema declaration and semantic invariants are checked by Rust");
-    report["claim_ceiling"] = json!("Synthetic bounded feasibility only; no actual refuge, booking or occupant assignment");
+    report["schema_engine"] =
+        json!("NOT_RUN; schema declaration and semantic invariants are checked by Rust");
+    report["claim_ceiling"] = json!(
+        "Synthetic bounded feasibility only; no actual refuge, booking or occupant assignment"
+    );
     Ok(report)
 }
 
@@ -516,7 +560,21 @@ mod tests {
             "EXACT_WITHIN_DECLARED_BOUNDED_GRAPH"
         );
         assert_eq!(report["total_places_requested"], 6);
-        assert_eq!(report["allocation_witness"].as_array().unwrap().len(), 4);
+        let witness = report["allocation_witness"].as_array().unwrap();
+        assert_eq!(
+            witness
+                .iter()
+                .map(|row| row["places"].as_u64().unwrap_or(0))
+                .sum::<u64>(),
+            6
+        );
+        assert_eq!(
+            witness
+                .iter()
+                .map(|row| row["accessible_places"].as_u64().unwrap_or(0))
+                .sum::<u64>(),
+            2
+        );
         assert_eq!(report["occupant_assignment"], "NONE");
     }
 
@@ -524,7 +582,10 @@ mod tests {
     fn independent_site_checks_cannot_double_book_shared_capacity() {
         let mut case = sample();
         case["demands"][1]["routes"][0]["site_id"] = json!("POD_A");
-        case["demands"][1]["routes"].as_array_mut().unwrap().truncate(1);
+        case["demands"][1]["routes"]
+            .as_array_mut()
+            .unwrap()
+            .truncate(1);
         case["sites"][0]["total_capacity"] = json!(4);
         case["sites"][0]["current_occupancy"] = json!(0);
         case["sites"][0]["accessible_capacity"] = json!(2);
