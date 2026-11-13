@@ -23,8 +23,11 @@ fn text_at<'a>(value: &'a Value, key: &str) -> Option<&'a str> {
 }
 
 fn audit(case: &Value) -> Result<Value, Vec<String>> {
-    let schema: Value = serde_json::from_str(SCHEMA)
-        .map_err(|error| vec![format!("pool passive regeneration schema parse failed: {error}")])?;
+    let schema: Value = serde_json::from_str(SCHEMA).map_err(|error| {
+        vec![format!(
+            "pool passive regeneration schema parse failed: {error}"
+        )]
+    })?;
     let mut errors = Vec::new();
     if text_at(&schema, "$schema") != Some("https://json-schema.org/draft/2020-12/schema") {
         errors.push("pool passive regeneration schema must declare Draft 2020-12".to_owned());
@@ -78,12 +81,16 @@ fn audit(case: &Value) -> Result<Value, Vec<String>> {
     {
         errors.push("pool thermal energy bounds are invalid".to_owned());
     }
-    if !water_capacity.is_finite() || !initial_volume.is_finite()
-        || water_capacity <= 0.0 || initial_volume < 0.0 || initial_volume > water_capacity
+    if !water_capacity.is_finite()
+        || !initial_volume.is_finite()
+        || water_capacity <= 0.0
+        || initial_volume < 0.0
+        || initial_volume > water_capacity
     {
         errors.push("pool water-volume bounds are invalid".to_owned());
     }
-    if !temperature_limit.is_finite() || text_at(pool, "temperature_limit_authority_ref").is_none() {
+    if !temperature_limit.is_finite() || text_at(pool, "temperature_limit_authority_ref").is_none()
+    {
         errors.push("owner/authority temperature ceiling and evidence are required".to_owned());
     }
 
@@ -94,8 +101,8 @@ fn audit(case: &Value) -> Result<Value, Vec<String>> {
         .get("discretionary_makeup_permitted")
         .and_then(Value::as_bool)
         == Some(true);
-    let makeup_budget = number_at(water_governance, "discretionary_makeup_budget_l")
-        .unwrap_or(f64::NAN);
+    let makeup_budget =
+        number_at(water_governance, "discretionary_makeup_budget_l").unwrap_or(f64::NAN);
     if !makeup_budget.is_finite() || makeup_budget < 0.0 {
         errors.push("discretionary makeup water budget is invalid".to_owned());
     }
@@ -205,36 +212,64 @@ fn audit(case: &Value) -> Result<Value, Vec<String>> {
         let liquid_in = number_at(interval, "liquid_enthalpy_in_kwh").unwrap_or(f64::NAN);
         let longwave = number_at(interval, "longwave_heat_rejected_kwh").unwrap_or(f64::NAN);
         let sensible = number_at(interval, "sensible_heat_rejected_kwh").unwrap_or(f64::NAN);
-        let evaporative = number_at(interval, "evaporative_latent_heat_rejected_kwh").unwrap_or(f64::NAN);
+        let evaporative =
+            number_at(interval, "evaporative_latent_heat_rejected_kwh").unwrap_or(f64::NAN);
         let ground = number_at(interval, "ground_heat_rejected_kwh").unwrap_or(f64::NAN);
         let hx = number_at(interval, "heat_exchanger_heat_rejected_kwh").unwrap_or(f64::NAN);
         let liquid_out = number_at(interval, "liquid_enthalpy_out_kwh").unwrap_or(f64::NAN);
         let thermal_u95 = number_at(interval, "thermal_balance_u95_kwh").unwrap_or(f64::NAN);
         let thermal_terms = [
-            start_energy, end_energy, max_layer_temp, temperature_start, temperature_end,
-            building_heat, solar, other_input, liquid_in, longwave, sensible, evaporative,
-            ground, hx, liquid_out, thermal_u95,
+            start_energy,
+            end_energy,
+            max_layer_temp,
+            temperature_start,
+            temperature_end,
+            building_heat,
+            solar,
+            other_input,
+            liquid_in,
+            longwave,
+            sensible,
+            evaporative,
+            ground,
+            hx,
+            liquid_out,
+            thermal_u95,
         ];
         if thermal_terms.iter().any(|value| !value.is_finite())
             || [
-                building_heat, solar, other_input, liquid_in, longwave, sensible, evaporative,
-                ground, hx, liquid_out, thermal_u95,
+                building_heat,
+                solar,
+                other_input,
+                liquid_in,
+                longwave,
+                sensible,
+                evaporative,
+                ground,
+                hx,
+                liquid_out,
+                thermal_u95,
             ]
             .iter()
             .any(|value| *value < 0.0)
         {
-            interval_errors.push("thermal state/flux has missing, non-finite or negative terms".to_owned());
+            interval_errors
+                .push("thermal state/flux has missing, non-finite or negative terms".to_owned());
         }
         if (start_energy - prior_energy).abs() > 1e-9 {
-            interval_errors.push("thermal energy state is discontinuous from prior interval".to_owned());
+            interval_errors
+                .push("thermal energy state is discontinuous from prior interval".to_owned());
         }
-        if start_energy < energy_min || start_energy > energy_capacity
-            || end_energy < energy_min || end_energy > energy_capacity
+        if start_energy < energy_min
+            || start_energy > energy_capacity
+            || end_energy < energy_min
+            || end_energy > energy_capacity
         {
             interval_errors.push("pool thermal energy exceeds finite usable bounds".to_owned());
         }
         if max_layer_temp > temperature_limit {
-            interval_errors.push("maximum layer temperature exceeds owner/authority ceiling".to_owned());
+            interval_errors
+                .push("maximum layer temperature exceeds owner/authority ceiling".to_owned());
         }
         let thermal_input = building_heat + solar + other_input + liquid_in;
         let thermal_output = longwave + sensible + evaporative + ground + hx + liquid_out;
@@ -256,23 +291,52 @@ fn audit(case: &Value) -> Result<Value, Vec<String>> {
         let volume_end = number_at(interval, "water_volume_end_l").unwrap_or(f64::NAN);
         let water_u95 = number_at(interval, "water_balance_u95_l").unwrap_or(f64::NAN);
         let water_terms = [
-            volume_start, makeup, rain, evaporation, withdrawal, leakage, backwash, overflow,
-            volume_end, water_u95,
+            volume_start,
+            makeup,
+            rain,
+            evaporation,
+            withdrawal,
+            leakage,
+            backwash,
+            overflow,
+            volume_end,
+            water_u95,
         ];
         if water_terms.iter().any(|value| !value.is_finite())
-            || [makeup, rain, evaporation, withdrawal, leakage, backwash, overflow, water_u95]
-                .iter()
-                .any(|value| *value < 0.0)
+            || [
+                makeup,
+                rain,
+                evaporation,
+                withdrawal,
+                leakage,
+                backwash,
+                overflow,
+                water_u95,
+            ]
+            .iter()
+            .any(|value| *value < 0.0)
         {
-            interval_errors.push("water-volume ledger contains missing, non-finite or negative terms".to_owned());
+            interval_errors.push(
+                "water-volume ledger contains missing, non-finite or negative terms".to_owned(),
+            );
         }
         if (volume_start - prior_volume).abs() > 1e-9 {
             interval_errors.push("water volume is discontinuous from prior interval".to_owned());
         }
-        if volume_start < 0.0 || volume_end < 0.0 || volume_start > water_capacity || volume_end > water_capacity {
+        if volume_start < 0.0
+            || volume_end < 0.0
+            || volume_start > water_capacity
+            || volume_end > water_capacity
+        {
             interval_errors.push("pool water volume exceeds declared capacity".to_owned());
         }
-        let water_residual = volume_start + makeup + rain - evaporation - withdrawal - leakage - backwash - overflow - volume_end;
+        let water_residual = volume_start + makeup + rain
+            - evaporation
+            - withdrawal
+            - leakage
+            - backwash
+            - overflow
+            - volume_end;
         if water_residual.abs() > water_u95 {
             interval_errors.push(format!(
                 "water-volume residual {water_residual:.6} L exceeds u95 {water_u95:.6} L"
@@ -281,21 +345,26 @@ fn audit(case: &Value) -> Result<Value, Vec<String>> {
 
         if makeup > 0.0 {
             if water_rights != "QUALIFIED" || water_quality != "QUALIFIED" || !makeup_permitted {
-                interval_errors.push("make-up water lacks qualified rights, quality or discretionary permission".to_owned());
+                interval_errors.push(
+                    "make-up water lacks qualified rights, quality or discretionary permission"
+                        .to_owned(),
+                );
             }
             if text_at(water_governance, "makeup_source_class") == Some("NONE") {
                 interval_errors.push("make-up water source class is NONE".to_owned());
             }
         }
         if total_makeup + makeup > makeup_budget {
-            interval_errors.push("cumulative pool make-up exceeds discretionary water budget".to_owned());
+            interval_errors
+                .push("cumulative pool make-up exceeds discretionary water budget".to_owned());
         }
 
         let expected_evaporative = evaporation * latent_heat_per_l;
         let latent_residual = expected_evaporative - evaporative;
         let latent_u95 = number_at(interval, "evaporation_latent_heat_u95_kwh").unwrap_or(f64::NAN);
         if !latent_u95.is_finite() || latent_u95 < 0.0 {
-            interval_errors.push("evaporation latent-heat uncertainty is missing or invalid".to_owned());
+            interval_errors
+                .push("evaporation latent-heat uncertainty is missing or invalid".to_owned());
         } else if latent_residual.abs() > latent_u95 {
             interval_errors.push(format!(
                 "evaporation latent-heat cross-check residual {latent_residual:.6} kWh exceeds u95 {latent_u95:.6} kWh"
@@ -330,15 +399,24 @@ fn audit(case: &Value) -> Result<Value, Vec<String>> {
         }));
         summary["interval_count"] = json!(summary["interval_count"].as_u64().unwrap_or(0) + 1);
         summary["duration_h"] = json!(summary["duration_h"].as_f64().unwrap_or(0.0) + duration);
-        summary["evaporation_l"] = json!(summary["evaporation_l"].as_f64().unwrap_or(0.0) + evaporation);
-        summary["evaporative_latent_heat_rejected_kwh"] =
-            json!(summary["evaporative_latent_heat_rejected_kwh"].as_f64().unwrap_or(0.0) + evaporative);
+        summary["evaporation_l"] =
+            json!(summary["evaporation_l"].as_f64().unwrap_or(0.0) + evaporation);
+        summary["evaporative_latent_heat_rejected_kwh"] = json!(
+            summary["evaporative_latent_heat_rejected_kwh"]
+                .as_f64()
+                .unwrap_or(0.0)
+                + evaporative
+        );
         summary["total_heat_rejected_kwh"] =
             json!(summary["total_heat_rejected_kwh"].as_f64().unwrap_or(0.0) + thermal_output);
 
         prior_energy = end_energy;
         prior_volume = volume_end;
-        let interval_state = if interval_errors.is_empty() { "BALANCED_WITHIN_UNCERTAINTY" } else { "FAIL" };
+        let interval_state = if interval_errors.is_empty() {
+            "BALANCED_WITHIN_UNCERTAINTY"
+        } else {
+            "FAIL"
+        };
         errors.extend(interval_errors.iter().map(|error| format!("{id}: {error}")));
         interval_reports.push(json!({
             "interval_id":id,
@@ -362,17 +440,30 @@ fn audit(case: &Value) -> Result<Value, Vec<String>> {
         }));
     }
 
-    let final_energy = number_at(intervals.last().unwrap_or(&Value::Null), "thermal_energy_end_kwh");
+    let final_energy = number_at(
+        intervals.last().unwrap_or(&Value::Null),
+        "thermal_energy_end_kwh",
+    );
     let cycle_error = final_energy.map(|value| (value - initial_energy).abs());
     if case.get("cycle_closure_required").and_then(Value::as_bool) == Some(true) {
         match cycle_error {
-            Some(value) if value <= number_at(case, "cycle_closure_tolerance_u95_kwh").unwrap_or(f64::NAN) => {}
-            Some(value) => errors.push(format!("pool thermal cycle closure error {value:.6} kWh exceeds tolerance")),
-            None => errors.push("final pool thermal state is missing; cycle closure cannot be assessed".to_owned())
+            Some(value)
+                if value
+                    <= number_at(case, "cycle_closure_tolerance_u95_kwh").unwrap_or(f64::NAN) => {}
+            Some(value) => errors.push(format!(
+                "pool thermal cycle closure error {value:.6} kWh exceeds tolerance"
+            )),
+            None => errors.push(
+                "final pool thermal state is missing; cycle closure cannot be assessed".to_owned(),
+            )
         }
     }
 
-    let audit_state = if errors.is_empty() { "POOL_PASSIVE_REGENERATION_LEDGER_PASS" } else { "POOL_PASSIVE_REGENERATION_LEDGER_FAIL" };
+    let audit_state = if errors.is_empty() {
+        "POOL_PASSIVE_REGENERATION_LEDGER_PASS"
+    } else {
+        "POOL_PASSIVE_REGENERATION_LEDGER_FAIL"
+    };
     Ok(json!({
         "audit_state":audit_state,
         "study_id":"HIGHVELD-POOL-PASSIVE-REGENERATION-LEDGER-001",
@@ -414,9 +505,13 @@ fn audit(case: &Value) -> Result<Value, Vec<String>> {
 fn main() {
     match env::args().nth(1).as_deref().unwrap_or("--help") {
         "--self-test" => {
-            let case: Value = serde_json::from_str(CASE).expect("pool passive regeneration case JSON");
+            let case: Value =
+                serde_json::from_str(CASE).expect("pool passive regeneration case JSON");
             let report = audit(&case).expect("pool passive regeneration case structure");
-            println!("{}", serde_json::to_string_pretty(&report).unwrap_or_default());
+            println!(
+                "{}",
+                serde_json::to_string_pretty(&report).unwrap_or_default()
+            );
             if report["audit_state"] != "POOL_PASSIVE_REGENERATION_LEDGER_PASS" {
                 process::exit(1);
             }
@@ -443,7 +538,10 @@ mod tests {
     #[test]
     fn synthetic_pool_cycle_balances_heat_water_and_evaporation() {
         let report = audit(&sample()).expect("pool case evaluates");
-        assert_eq!(report["audit_state"], "POOL_PASSIVE_REGENERATION_LEDGER_PASS");
+        assert_eq!(
+            report["audit_state"],
+            "POOL_PASSIVE_REGENERATION_LEDGER_PASS"
+        );
         assert_eq!(report["interval_count"], 3);
         assert_eq!(report["thermal_cycle_closure_error_kwh"], 0.0);
         assert_eq!(report["total_heat_input_kwh"], 13.0);
@@ -457,7 +555,10 @@ mod tests {
         let mut case = sample();
         case["intervals"][0]["longwave_heat_rejected_kwh"] = json!(4.0);
         let report = audit(&case).unwrap();
-        assert_eq!(report["audit_state"], "POOL_PASSIVE_REGENERATION_LEDGER_FAIL");
+        assert_eq!(
+            report["audit_state"],
+            "POOL_PASSIVE_REGENERATION_LEDGER_FAIL"
+        );
         assert_eq!(report["intervals"][0]["interval_state"], "FAIL");
     }
 
@@ -475,10 +576,22 @@ mod tests {
         let mut case = sample();
         case["intervals"][0]["evaporative_latent_heat_rejected_kwh"] = json!(3.0);
         let report = audit(&case).unwrap();
-        assert_eq!(report["audit_state"], "POOL_PASSIVE_REGENERATION_LEDGER_FAIL");
-        assert!(report["violations"].as_array().unwrap().iter().any(|value| {
-            value.as_str().unwrap_or("").contains("evaporation latent-heat cross-check residual")
-        }));
+        assert_eq!(
+            report["audit_state"],
+            "POOL_PASSIVE_REGENERATION_LEDGER_FAIL"
+        );
+        assert!(
+            report["violations"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|value| {
+                    value
+                        .as_str()
+                        .unwrap_or("")
+                        .contains("evaporation latent-heat cross-check residual")
+                })
+        );
     }
 
     #[test]
@@ -486,9 +599,18 @@ mod tests {
         let mut case = sample();
         case["intervals"][1]["maximum_layer_temperature_c"] = json!(29.0);
         let report = audit(&case).unwrap();
-        assert!(report["violations"].as_array().unwrap().iter().any(|value| {
-            value.as_str().unwrap_or("").contains("exceeds owner/authority ceiling")
-        }));
+        assert!(
+            report["violations"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|value| {
+                    value
+                        .as_str()
+                        .unwrap_or("")
+                        .contains("exceeds owner/authority ceiling")
+                })
+        );
     }
 
     #[test]
@@ -501,9 +623,18 @@ mod tests {
         case["intervals"][2]["water_volume_start_l"] = json!(49997.9);
         case["intervals"][2]["water_volume_end_l"] = json!(49996.9);
         let report = audit(&case).unwrap();
-        assert!(report["violations"].as_array().unwrap().iter().any(|value| {
-            value.as_str().unwrap_or("").contains("lacks qualified rights, quality or discretionary permission")
-        }));
+        assert!(
+            report["violations"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|value| {
+                    value
+                        .as_str()
+                        .unwrap_or("")
+                        .contains("lacks qualified rights, quality or discretionary permission")
+                })
+        );
     }
 
     #[test]
@@ -519,8 +650,17 @@ mod tests {
         let mut case = sample();
         case["intervals"][2]["thermal_energy_end_kwh"] = json!(102.0);
         let report = audit(&case).unwrap();
-        assert!(report["violations"].as_array().unwrap().iter().any(|value| {
-            value.as_str().unwrap_or("").contains("thermal cycle closure error")
-        }));
+        assert!(
+            report["violations"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|value| {
+                    value
+                        .as_str()
+                        .unwrap_or("")
+                        .contains("thermal cycle closure error")
+                })
+        );
     }
 }
