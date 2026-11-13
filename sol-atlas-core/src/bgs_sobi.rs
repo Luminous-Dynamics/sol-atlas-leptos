@@ -160,7 +160,11 @@ impl BgsSobiFeature {
         self.properties
             .bgs_id
             .map(|value| format!("bgs-id:{value:.0}"))
-            .or_else(|| self.properties.id.map(|value| format!("sobi-id:{value:.0}")))
+            .or_else(|| {
+                self.properties
+                    .id
+                    .map(|value| format!("sobi-id:{value:.0}"))
+            })
             .or_else(|| {
                 self.id.as_ref().and_then(|value| match value {
                     Value::String(value) if !value.trim().is_empty() => {
@@ -177,8 +181,14 @@ impl BgsSobiFeature {
     pub fn related_artifacts(&self) -> Vec<BgsSobiRelatedArtifact> {
         let mut artifacts = Vec::new();
         for (kind, uri) in [
-            (BgsSobiRelatedArtifactKind::Scan, self.properties.scan_url.as_ref()),
-            (BgsSobiRelatedArtifactKind::AgsLog, self.properties.ags_log_url.as_ref()),
+            (
+                BgsSobiRelatedArtifactKind::Scan,
+                self.properties.scan_url.as_ref(),
+            ),
+            (
+                BgsSobiRelatedArtifactKind::AgsLog,
+                self.properties.ags_log_url.as_ref(),
+            ),
         ] {
             if let Some(uri) = uri.filter(|uri| !uri.trim().is_empty()) {
                 artifacts.push(BgsSobiRelatedArtifact {
@@ -211,7 +221,10 @@ impl BgsSobiFeatureCollection {
         if self.collection_type != "FeatureCollection" {
             errors.push(BgsSobiValidationError::WrongCollectionType);
         }
-        if self.number_returned.is_some_and(|count| count != self.features.len()) {
+        if self
+            .number_returned
+            .is_some_and(|count| count != self.features.len())
+        {
             errors.push(BgsSobiValidationError::ReturnedCountMismatch);
         }
         if self
@@ -223,8 +236,16 @@ impl BgsSobiFeatureCollection {
         }
 
         for feature in &self.features {
-            if feature.properties.scan_url.as_ref().is_some_and(|uri| uri.trim().is_empty())
-                || feature.properties.ags_log_url.as_ref().is_some_and(|uri| uri.trim().is_empty())
+            if feature
+                .properties
+                .scan_url
+                .as_ref()
+                .is_some_and(|uri| uri.trim().is_empty())
+                || feature
+                    .properties
+                    .ags_log_url
+                    .as_ref()
+                    .is_some_and(|uri| uri.trim().is_empty())
             {
                 errors.push(BgsSobiValidationError::EmptyRelatedArtifactUri);
             }
@@ -318,7 +339,10 @@ mod tests {
     fn source_precision_label_is_preserved_not_recast_as_sigma() {
         let page = BgsSobiFeatureCollection::parse_and_validate(SYNTHETIC_PAGE.as_bytes())
             .expect("synthetic BGS page parses");
-        assert_eq!(page.features[0].properties.precision.as_deref(), Some("± METRE"));
+        assert_eq!(
+            page.features[0].properties.precision.as_deref(),
+            Some("± METRE")
+        );
     }
 
     #[test]
@@ -352,7 +376,12 @@ mod tests {
         let page = BgsSobiFeatureCollection::parse_and_validate(SYNTHETIC_PAGE.as_bytes())
             .expect("synthetic BGS page parses");
         assert!(page.extra.contains_key("synthetic_fixture_marker"));
-        assert!(page.features[0].properties.extra.contains_key("future_api_field"));
+        assert!(
+            page.features[0]
+                .properties
+                .extra
+                .contains_key("future_api_field")
+        );
     }
 
     #[test]
@@ -360,7 +389,10 @@ mod tests {
         let mut page: BgsSobiFeatureCollection =
             serde_json::from_str(SYNTHETIC_PAGE).expect("synthetic fixture parses");
         page.features[0].geometry.as_mut().unwrap().coordinates[0] = 181.0;
-        assert!(page.validate().contains(&BgsSobiValidationError::LongitudeOutOfRange));
+        assert!(
+            page.validate()
+                .contains(&BgsSobiValidationError::LongitudeOutOfRange)
+        );
 
         page.features[0].geometry.as_mut().unwrap().coordinates[0] = 0.125;
         page.features[0].properties.bgs_id = None;
@@ -377,7 +409,10 @@ mod tests {
         let mut page: BgsSobiFeatureCollection =
             serde_json::from_str(SYNTHETIC_PAGE).expect("synthetic fixture parses");
         page.number_returned = Some(99);
-        assert!(page.validate().contains(&BgsSobiValidationError::ReturnedCountMismatch));
+        assert!(
+            page.validate()
+                .contains(&BgsSobiValidationError::ReturnedCountMismatch)
+        );
     }
 
     #[test]
@@ -422,9 +457,10 @@ mod tests {
     fn source_self_link_is_preserved_without_fetching() {
         let page = BgsSobiFeatureCollection::parse_and_validate(SYNTHETIC_PAGE.as_bytes())
             .expect("synthetic BGS page parses");
-        assert!(page
-            .source_self_url()
-            .unwrap()
-            .contains("onshoreboreholeindex/items"));
+        assert!(
+            page.source_self_url()
+                .unwrap()
+                .contains("onshoreboreholeindex/items")
+        );
     }
 }

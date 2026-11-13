@@ -75,8 +75,8 @@ fn main() {
             }
         }
     } else {
-        let mut bytes = serde_json::to_vec_pretty(&expected)
-            .expect("synthetic fixture must serialize");
+        let mut bytes =
+            serde_json::to_vec_pretty(&expected).expect("synthetic fixture must serialize");
         bytes.push(b'\n');
 
         if let Some(parent) = Path::new(&path).parent() {
@@ -122,8 +122,10 @@ mod tests {
             .filter(|sample| sample.interface_depth_estimate_m.is_none())
             .collect();
         assert_eq!(unobserved.len(), 5);
-        assert!(unobserved
-            .iter()
-            .all(|sample| sample.standard_uncertainty_m.is_none()));
+        assert!(
+            unobserved
+                .iter()
+                .all(|sample| sample.standard_uncertainty_m.is_none())
+        );
     }
 }

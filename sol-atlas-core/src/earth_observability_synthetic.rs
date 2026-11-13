@@ -112,7 +112,11 @@ pub fn generate_synthetic_profile_fixture(seed: u64) -> SyntheticProfileFixture 
 
     for (site_id, site_offset_cm, role) in [
         ("synthetic-training-transect", 0, SyntheticSplitRole::Fit),
-        ("synthetic-blind-transect", 125, SyntheticSplitRole::IndependentValidation),
+        (
+            "synthetic-blind-transect",
+            125,
+            SyntheticSplitRole::IndependentValidation,
+        ),
     ] {
         for (index, x_m) in X_POSITIONS_M.iter().enumerate() {
             let true_depth_cm = interface_depth_cm(site_offset_cm, index);
@@ -223,10 +227,7 @@ mod tests {
     fn seed_changes_the_generated_observation_noise() {
         let a = generate_synthetic_profile_fixture(20_261_113);
         let b = generate_synthetic_profile_fixture(20_261_114);
-        assert_ne!(
-            a.geophysical_observations,
-            b.geophysical_observations
-        );
+        assert_ne!(a.geophysical_observations, b.geophysical_observations);
     }
 
     #[test]
@@ -234,18 +235,24 @@ mod tests {
         let fixture = generate_synthetic_profile_fixture(20_261_113);
         assert_eq!(fixture.borehole_observations.len(), 6);
         assert_eq!(fixture.independent_validation_truth.len(), 11);
-        assert!(fixture
-            .borehole_observations
-            .iter()
-            .all(|sample| sample.split_role == SyntheticSplitRole::Fit));
-        assert!(fixture
-            .independent_validation_truth
-            .iter()
-            .all(|sample| sample.split_role == SyntheticSplitRole::IndependentValidation));
-        assert!(fixture.independent_validation_truth.iter().all(|truth| !fixture
-            .borehole_observations
-            .iter()
-            .any(|sample| sample.site_id == truth.site_id)));
+        assert!(
+            fixture
+                .borehole_observations
+                .iter()
+                .all(|sample| sample.split_role == SyntheticSplitRole::Fit)
+        );
+        assert!(
+            fixture
+                .independent_validation_truth
+                .iter()
+                .all(|sample| sample.split_role == SyntheticSplitRole::IndependentValidation)
+        );
+        assert!(fixture.independent_validation_truth.iter().all(|truth| {
+            !fixture
+                .borehole_observations
+                .iter()
+                .any(|sample| sample.site_id == truth.site_id)
+        }));
     }
 
     #[test]
@@ -254,9 +261,7 @@ mod tests {
         let blind_zone: Vec<&SyntheticGeophysicalObservation> = fixture
             .geophysical_observations
             .iter()
-            .filter(|sample| {
-                sample.site_id == "synthetic-blind-transect" && sample.x_m >= 60.0
-            })
+            .filter(|sample| sample.site_id == "synthetic-blind-transect" && sample.x_m >= 60.0)
             .collect();
         assert_eq!(blind_zone.len(), 5);
         assert!(blind_zone.iter().all(|sample| {
@@ -277,20 +282,27 @@ mod tests {
     #[test]
     fn geophysical_proxy_noise_respects_declared_uncertainty_bound() {
         let fixture = generate_synthetic_profile_fixture(20_261_113);
-        for observation in fixture.geophysical_observations.iter().filter(|sample| {
-            sample.state == SyntheticObservationState::Present
-        }) {
-            let truth = fixture
-                .independent_validation_truth
-                .iter()
-                .find(|sample| {
-                    sample.site_id == observation.site_id && sample.x_m == observation.x_m
-                });
-            let training_truth_cm = interface_depth_cm(0, X_POSITIONS_M.iter().position(|x| *x as f64 == observation.x_m).unwrap());
+        for observation in fixture
+            .geophysical_observations
+            .iter()
+            .filter(|sample| sample.state == SyntheticObservationState::Present)
+        {
+            let truth = fixture.independent_validation_truth.iter().find(|sample| {
+                sample.site_id == observation.site_id && sample.x_m == observation.x_m
+            });
+            let training_truth_cm = interface_depth_cm(
+                0,
+                X_POSITIONS_M
+                    .iter()
+                    .position(|x| *x as f64 == observation.x_m)
+                    .unwrap(),
+            );
             let truth_depth = if observation.site_id == "synthetic-training-transect" {
                 training_truth_cm as f64 / 100.0
             } else {
-                truth.expect("blind validation truth must exist").true_interface_depth_m
+                truth
+                    .expect("blind validation truth must exist")
+                    .true_interface_depth_m
             };
             let error = (observation.interface_depth_estimate_m.unwrap() - truth_depth).abs();
             assert!(error <= 0.20, "proxy noise exceeded 0.20 m");

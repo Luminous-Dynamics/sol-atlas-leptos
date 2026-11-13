@@ -75,10 +75,7 @@ fn ordered_samples(samples: &[(f64, f64)]) -> Option<Vec<(f64, f64)>> {
     Some(ordered)
 }
 
-fn interpolate_piecewise_linear(
-    samples: &[(f64, f64)],
-    target_x_m: f64,
-) -> Option<f64> {
+fn interpolate_piecewise_linear(samples: &[(f64, f64)], target_x_m: f64) -> Option<f64> {
     if !target_x_m.is_finite() {
         return None;
     }
@@ -124,11 +121,7 @@ fn nearest_neighbor(samples: &[(f64, f64)], target_x_m: f64) -> Option<f64> {
         .map(|sample| sample.1)
 }
 
-fn inverse_distance_weighted(
-    samples: &[(f64, f64)],
-    target_x_m: f64,
-    power: f64,
-) -> Option<f64> {
+fn inverse_distance_weighted(samples: &[(f64, f64)], target_x_m: f64, power: f64) -> Option<f64> {
     if !target_x_m.is_finite() || !power.is_finite() || power <= 0.0 {
         return None;
     }
@@ -159,10 +152,7 @@ fn inverse_distance_weighted(
     }
 }
 
-fn metrics(
-    predictions: &[(f64, f64)],
-    target_count: usize,
-) -> Result<BaselineMetrics, String> {
+fn metrics(predictions: &[(f64, f64)], target_count: usize) -> Result<BaselineMetrics, String> {
     if predictions.is_empty() || target_count == 0 || predictions.len() > target_count {
         return Err("invalid prediction/target count".to_string());
     }
@@ -261,10 +251,14 @@ fn run_baseline(fixture: &SyntheticProfileFixture) -> Result<BaselineReport, Str
 
     let mut proxy_predictions = Vec::new();
     let mut proxy_positions = Vec::new();
-    for observation in fixture.geophysical_observations.iter().filter(|observation| {
-        observation.site_id == blind_site
-            && observation.state == SyntheticObservationState::Present
-    }) {
+    for observation in fixture
+        .geophysical_observations
+        .iter()
+        .filter(|observation| {
+            observation.site_id == blind_site
+                && observation.state == SyntheticObservationState::Present
+        })
+    {
         let Some(prediction) = observation.interface_depth_estimate_m else {
             return Err(format!(
                 "present proxy {} has no estimate",
@@ -372,10 +366,7 @@ fn reports_match(expected: &BaselineReport, actual: &BaselineReport) -> bool {
                     left.metrics.root_mean_squared_error_m,
                     right.metrics.root_mean_squared_error_m,
                 )
-                && approximately_equal(
-                    left.metrics.signed_bias_m,
-                    right.metrics.signed_bias_m,
-                )
+                && approximately_equal(left.metrics.signed_bias_m, right.metrics.signed_bias_m)
                 && approximately_equal(
                     left.metrics.p95_absolute_error_m,
                     right.metrics.p95_absolute_error_m,
@@ -384,8 +375,8 @@ fn reports_match(expected: &BaselineReport, actual: &BaselineReport) -> bool {
 }
 
 fn load_fixture(path: &str) -> Result<SyntheticProfileFixture, String> {
-    let bytes = fs::read(Path::new(path))
-        .map_err(|error| format!("cannot read {path}: {error}"))?;
+    let bytes =
+        fs::read(Path::new(path)).map_err(|error| format!("cannot read {path}: {error}"))?;
     serde_json::from_slice(&bytes).map_err(|error| format!("fixture parse failed: {error}"))
 }
 
@@ -443,7 +434,9 @@ fn main() {
                     }
                 };
                 if !reports_match(&expected, &report) {
-                    eprintln!("FAIL: committed baseline report differs from recomputed metrics (float tolerance: 1e-12)");
+                    eprintln!(
+                        "FAIL: committed baseline report differs from recomputed metrics (float tolerance: 1e-12)"
+                    );
                     std::process::exit(2);
                 }
                 println!(
@@ -453,8 +446,7 @@ fn main() {
             } else {
                 println!(
                     "{}",
-                    serde_json::to_string_pretty(&report)
-                        .expect("baseline report must serialize")
+                    serde_json::to_string_pretty(&report).expect("baseline report must serialize")
                 );
             }
         }
@@ -544,7 +536,10 @@ mod tests {
         assert_eq!(proxy.metrics.prediction_count, 6);
         assert_eq!(proxy.metrics.target_count, 11);
         assert!((proxy.metrics.coverage_fraction - 6.0 / 11.0).abs() < 1e-12);
-        assert_eq!(proxy.abstained_positions_m, vec![60.0, 70.0, 80.0, 90.0, 100.0]);
+        assert_eq!(
+            proxy.abstained_positions_m,
+            vec![60.0, 70.0, 80.0, 90.0, 100.0]
+        );
         assert!((proxy.metrics.mean_absolute_error_m - 0.045).abs() < 1e-12);
     }
 

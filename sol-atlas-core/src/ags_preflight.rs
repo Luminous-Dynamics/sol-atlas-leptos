@@ -65,7 +65,6 @@ struct PendingGroup {
     next_header: u8,
 }
 
-
 /// Current BGS AGS File Utilities endpoint and API version. A future API
 /// version is not silently accepted as equivalent; callers must update/pin
 /// the expected version and rerun the contract suite.
@@ -286,9 +285,7 @@ fn parse_quoted_row(line: &[u8]) -> Result<Vec<String>, AgsPreflightError> {
         if !closed {
             return Err(AgsPreflightError::MalformedQuotedField);
         }
-        fields.push(
-            String::from_utf8(field).map_err(|_| AgsPreflightError::NonAsciiByte)?,
-        );
+        fields.push(String::from_utf8(field).map_err(|_| AgsPreflightError::NonAsciiByte)?);
 
         if index == line.len() {
             break;
@@ -372,9 +369,7 @@ pub fn parse_ags4_preflight(bytes: &[u8]) -> Result<AgsDocument, AgsPreflightErr
                     return Err(AgsPreflightError::HeaderOrder);
                 }
                 let headings = fields.into_iter().skip(1).collect::<Vec<_>>();
-                if headings.is_empty()
-                    || headings.iter().any(|heading| heading.trim().is_empty())
-                {
+                if headings.is_empty() || headings.iter().any(|heading| heading.trim().is_empty()) {
                     return Err(AgsPreflightError::EmptyHeading);
                 }
                 let unique: BTreeSet<&str> = headings.iter().map(String::as_str).collect();
@@ -465,11 +460,7 @@ impl AgsDocument {
             return None;
         }
         let first = values[0].trim();
-        if first.is_empty() {
-            None
-        } else {
-            Some(first)
-        }
+        if first.is_empty() { None } else { Some(first) }
     }
 
     /// Validate the external receipt against the version actually declared
@@ -504,7 +495,11 @@ impl AgsDocument {
     /// Check only the documented BGS required-group set. This is not the full
     /// BGS validator and does not check coordinates, depth, units or references.
     pub fn bgs_required_group_issues(&self) -> Vec<BgsAgsSubmissionIssue> {
-        let names: BTreeSet<&str> = self.groups.iter().map(|group| group.name.as_str()).collect();
+        let names: BTreeSet<&str> = self
+            .groups
+            .iter()
+            .map(|group| group.name.as_str())
+            .collect();
         let mut issues = Vec::new();
 
         for required in ["PROJ", "ABBR", "TYPE", "UNIT"] {
@@ -527,9 +522,8 @@ impl AgsDocument {
 mod tests {
     use super::*;
 
-    const SYNTHETIC_AGS: &str = include_str!(
-        "../../research/earth-observability/fixtures/ags4-synthetic-v0.1.ags"
-    );
+    const SYNTHETIC_AGS: &str =
+        include_str!("../../research/earth-observability/fixtures/ags4-synthetic-v0.1.ags");
     const TEST_VALIDATOR_LIBRARY: &str = "python_ags4 v1.1.0";
 
     #[test]
@@ -577,7 +571,8 @@ mod tests {
 
     #[test]
     fn header_order_is_enforced() {
-        let bytes = b"GROUP,\"PROJ\"\r\nHEADING,\"PROJ_ID\"\r\nTYPE,\"X\"\r\nUNIT,\"\"\r\nDATA,\"P-1\"\r\n";
+        let bytes =
+            b"GROUP,\"PROJ\"\r\nHEADING,\"PROJ_ID\"\r\nTYPE,\"X\"\r\nUNIT,\"\"\r\nDATA,\"P-1\"\r\n";
         assert_eq!(
             parse_ags4_preflight(bytes),
             Err(AgsPreflightError::HeaderOrder)
@@ -613,7 +608,8 @@ mod tests {
 
     #[test]
     fn missing_bgs_required_groups_are_reported_separately() {
-        let bytes = b"GROUP,\"PROJ\"\r\nHEADING,\"PROJ_ID\"\r\nUNIT,\"\"\r\nTYPE,\"X\"\r\nDATA,\"P-1\"\r\n";
+        let bytes =
+            b"GROUP,\"PROJ\"\r\nHEADING,\"PROJ_ID\"\r\nUNIT,\"\"\r\nTYPE,\"X\"\r\nDATA,\"P-1\"\r\n";
         let doc = parse_ags4_preflight(bytes).expect("structural preflight passes");
         let issues = doc.bgs_required_group_issues();
         assert!(issues.contains(&BgsAgsSubmissionIssue::MissingRequiredGroup("ABBR")));
@@ -624,7 +620,8 @@ mod tests {
 
     #[test]
     fn malformed_quotes_are_rejected() {
-        let bytes = b"GROUP,\"PROJ\"\r\nHEADING,\"PROJ_ID\r\nUNIT,\"\"\r\nTYPE,\"X\"\r\nDATA,\"P-1\"\r\n";
+        let bytes =
+            b"GROUP,\"PROJ\"\r\nHEADING,\"PROJ_ID\r\nUNIT,\"\"\r\nTYPE,\"X\"\r\nDATA,\"P-1\"\r\n";
         assert_eq!(
             parse_ags4_preflight(bytes),
             Err(AgsPreflightError::MalformedQuotedField)
@@ -648,7 +645,6 @@ mod tests {
             Err(AgsPreflightError::UnsupportedDescriptor(_))
         ));
     }
-
 
     fn valid_bgs_receipt() -> BgsAgsValidationReceipt {
         BgsAgsValidationReceipt {
@@ -687,16 +683,23 @@ mod tests {
 
     #[test]
     fn ambiguous_or_empty_transfer_version_is_not_defaulted() {
-        let mut doc = parse_ags4_preflight(SYNTHETIC_AGS.as_bytes())
-            .expect("synthetic AGS parses");
+        let mut doc = parse_ags4_preflight(SYNTHETIC_AGS.as_bytes()).expect("synthetic AGS parses");
         {
-            let tran = doc.groups.iter_mut().find(|group| group.name == "TRAN").unwrap();
+            let tran = doc
+                .groups
+                .iter_mut()
+                .find(|group| group.name == "TRAN")
+                .unwrap();
             tran.rows[0][1].clear();
         }
         assert_eq!(doc.declared_ags_version(), None);
 
         {
-            let tran = doc.groups.iter_mut().find(|group| group.name == "TRAN").unwrap();
+            let tran = doc
+                .groups
+                .iter_mut()
+                .find(|group| group.name == "TRAN")
+                .unwrap();
             tran.rows[0][1] = "4.1.1".to_string();
             tran.rows.push(vec![
                 "SYN-TRAN-002".to_string(),
@@ -709,8 +712,7 @@ mod tests {
 
     #[test]
     fn duplicate_transfer_groups_make_the_declared_version_ambiguous() {
-        let mut doc = parse_ags4_preflight(SYNTHETIC_AGS.as_bytes())
-            .expect("synthetic AGS parses");
+        let mut doc = parse_ags4_preflight(SYNTHETIC_AGS.as_bytes()).expect("synthetic AGS parses");
         let transfer = doc
             .groups
             .iter()
@@ -847,24 +849,27 @@ mod tests {
 
     #[test]
     fn document_bound_receipt_uses_exact_declared_dictionary() {
-        let doc = parse_ags4_preflight(SYNTHETIC_AGS.as_bytes())
-            .expect("synthetic AGS parses");
+        let doc = parse_ags4_preflight(SYNTHETIC_AGS.as_bytes()).expect("synthetic AGS parses");
         let receipt = valid_bgs_receipt();
-        assert!(doc
-            .validate_bgs_receipt(
+        assert!(
+            doc.validate_bgs_receipt(
                 &receipt,
                 &"a".repeat(64),
                 SYNTHETIC_AGS.len(),
                 TEST_VALIDATOR_LIBRARY,
             )
-            .is_ok());
+            .is_ok()
+        );
     }
 
     #[test]
     fn document_bound_receipt_rejects_missing_declared_version() {
-        let mut doc = parse_ags4_preflight(SYNTHETIC_AGS.as_bytes())
-            .expect("synthetic AGS parses");
-        let tran = doc.groups.iter_mut().find(|group| group.name == "TRAN").unwrap();
+        let mut doc = parse_ags4_preflight(SYNTHETIC_AGS.as_bytes()).expect("synthetic AGS parses");
+        let tran = doc
+            .groups
+            .iter_mut()
+            .find(|group| group.name == "TRAN")
+            .unwrap();
         tran.rows[0][1].clear();
         let receipt = valid_bgs_receipt();
         let errors = doc
@@ -882,14 +887,15 @@ mod tests {
     fn warning_count_is_preserved_but_is_not_automatically_an_error() {
         let receipt = valid_bgs_receipt();
         assert!(receipt.warnings_count > 0);
-        assert!(validate_bgs_ags_receipt(
-            &receipt,
-            &"a".repeat(64),
-            SYNTHETIC_AGS.len(),
-            "v4_1_1",
-            TEST_VALIDATOR_LIBRARY,
-        )
-        .is_ok());
+        assert!(
+            validate_bgs_ags_receipt(
+                &receipt,
+                &"a".repeat(64),
+                SYNTHETIC_AGS.len(),
+                "v4_1_1",
+                TEST_VALIDATOR_LIBRARY,
+            )
+            .is_ok()
+        );
     }
-
 }

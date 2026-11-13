@@ -306,6 +306,8 @@ fn duplicate_coordinate_grid_resources_are_rejected() {
         operation_sha256: "a".repeat(64),
         grid_resource_sha256: vec!["b".repeat(64), "b".repeat(64)],
     };
-    assert!(validate_transform_receipt(&receipt, "frame-a", "frame-b")
-        .contains(&TransformValidationError::DuplicateGridDigest));
+    assert!(
+        validate_transform_receipt(&receipt, "frame-a", "frame-b")
+            .contains(&TransformValidationError::DuplicateGridDigest)
+    );
 }

@@ -583,9 +583,7 @@ pub fn authorize_data_use(
         DataUseAction::CreateDerivative => {
             grant.may_read && grant.may_process && grant.may_create_derivative
         }
-        DataUseAction::RedistributeSource => {
-            grant.may_read && grant.may_redistribute_source
-        }
+        DataUseAction::RedistributeSource => grant.may_read && grant.may_redistribute_source,
         DataUseAction::RedistributeDerivative => {
             grant.may_read
                 && grant.may_process
@@ -913,7 +911,6 @@ mod tests {
         assert_eq!(disposition, ChangeDisposition::InvalidEvidence);
     }
 
-
     fn valid_rights_grant() -> DataUseGrant {
         DataUseGrant {
             grant_id: "grant-synthetic-001".to_string(),
@@ -1098,5 +1095,4 @@ mod tests {
             Err(DataUseDenial::InvalidGrantReceipt)
         );
     }
-
 }

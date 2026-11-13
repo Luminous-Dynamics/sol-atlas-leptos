@@ -9,16 +9,15 @@
 
 use serde::Serialize;
 use sol_atlas_core::ags_preflight::{
-    AGS4_PREFLIGHT_MAX_BYTES, AgsDocument, AgsPreflightError, AgsVersionError,
-    ags_dictionary_id, parse_ags4_preflight,
+    AGS4_PREFLIGHT_MAX_BYTES, AgsDocument, AgsPreflightError, AgsVersionError, ags_dictionary_id,
+    parse_ags4_preflight,
 };
 use std::env;
 use std::fs::File;
 use std::io::Read;
 use std::path::Path;
 
-const DEFAULT_FIXTURE: &str =
-    "research/earth-observability/fixtures/ags4-synthetic-v0.1.ags";
+const DEFAULT_FIXTURE: &str = "research/earth-observability/fixtures/ags4-synthetic-v0.1.ags";
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 struct AgsGroupSummary {
@@ -97,8 +96,8 @@ fn build_report(file_name: &str, bytes: &[u8]) -> Result<AgsPreflightReport, Ags
 }
 
 fn read_bounded_file(path: &str) -> Result<Vec<u8>, String> {
-    let file = File::open(Path::new(path))
-        .map_err(|error| format!("cannot open {path}: {error}"))?;
+    let file =
+        File::open(Path::new(path)).map_err(|error| format!("cannot open {path}: {error}"))?;
     let maximum_read = AGS4_PREFLIGHT_MAX_BYTES as u64 + 1;
     let mut bytes = Vec::new();
     file.take(maximum_read)
@@ -121,9 +120,7 @@ fn usage(program: &str) {
 
 fn main() {
     let mut args = env::args();
-    let program = args
-        .next()
-        .unwrap_or_else(|| "ags4-preflight".to_string());
+    let program = args.next().unwrap_or_else(|| "ags4-preflight".to_string());
     let first = args.next();
 
     let path = match first.as_deref() {
@@ -141,18 +138,16 @@ fn main() {
     }
 
     let result = read_bounded_file(&path).and_then(|bytes| {
-        build_report(&path, &bytes)
-            .map_err(|error| format!("AGS4 preflight failed: {error:?}"))
+        build_report(&path, &bytes).map_err(|error| format!("AGS4 preflight failed: {error:?}"))
     });
 
     match result {
         Ok(report) => {
-            let ready = report.structural_preflight
-                == "PASS_LOCAL_PREFLIGHT_EXTERNAL_VALIDATION_PENDING";
+            let ready =
+                report.structural_preflight == "PASS_LOCAL_PREFLIGHT_EXTERNAL_VALIDATION_PENDING";
             println!(
                 "{}",
-                serde_json::to_string_pretty(&report)
-                    .expect("preflight report must serialize")
+                serde_json::to_string_pretty(&report).expect("preflight report must serialize")
             );
             if !ready {
                 std::process::exit(2);
@@ -197,23 +192,25 @@ mod tests {
 
     #[test]
     fn unsupported_version_blocks_admission_without_defaulting() {
-        let unsupported = FIXTURE.replace(
-            "\"4.1.1\"",
-            "\"4\"",
-        );
+        let unsupported = FIXTURE.replace("\"4.1.1\"", "\"4\"");
         let report = build_report(DEFAULT_FIXTURE, unsupported.as_bytes()).unwrap();
         assert_eq!(report.version_status, "VERSION_UNSUPPORTED");
         assert_eq!(report.dictionary_id, None);
-        assert_eq!(report.structural_preflight, "PASS_STRUCTURE_BUT_ADMISSION_BLOCKED");
+        assert_eq!(
+            report.structural_preflight,
+            "PASS_STRUCTURE_BUT_ADMISSION_BLOCKED"
+        );
     }
 
     #[test]
     fn fixture_group_counts_are_reported() {
         let report = build_report(DEFAULT_FIXTURE, FIXTURE.as_bytes()).unwrap();
         assert_eq!(report.groups.len(), 7);
-        assert!(report
-            .groups
-            .iter()
-            .any(|group| group.name == "GEOL" && group.row_count == 1));
+        assert!(
+            report
+                .groups
+                .iter()
+                .any(|group| group.name == "GEOL" && group.row_count == 1)
+        );
     }
 }
