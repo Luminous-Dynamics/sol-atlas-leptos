@@ -130,5 +130,6 @@
   "usable_thermal_energy_capacity_kwh": 150,
   "initial_thermal_energy_kwh": 100,
   "cycle_closure_required": true,
-  "cycle_closure_tolerance_u95_kwh": 0.1
+  "cycle_closure_tolerance_u95_kwh": 0.05,
+  "parent_case_id": "SYNTHETIC_THREE_INTERVAL_POOL_BUFFER_CYCLE_001"
 }
