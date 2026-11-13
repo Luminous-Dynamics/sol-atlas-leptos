@@ -23,6 +23,122 @@ fn push_reason(reasons: &mut Vec<String>, reason: &str) {
     reasons.push(reason.to_owned());
 }
 
+fn evaluate_store_charge_path(input: &Value, global_ok: bool) -> Value {
+    let path = &input["store_charge_path"];
+    let mut reasons = Vec::new();
+    if !global_ok {
+        push_reason(
+            &mut reasons,
+            "GLOBAL_MODEL_INSTRUMENT_OR_LOCAL_CONTROL_GATE_FAILED",
+        );
+    }
+    if text_at(path, "id") != Some("BUILDING_LOAD_TO_STORE") {
+        push_reason(&mut reasons, "UNKNOWN_OR_UNSUPPORTED_STORE_CHARGE_PATH");
+    }
+    if text_at(path, "qualification_state") != Some("QUALIFIED") {
+        push_reason(&mut reasons, "LOAD_TO_STORE_PATH_NOT_QUALIFIED");
+    }
+    if text_at(path, "sensor_state") != Some("QUALIFIED") {
+        push_reason(&mut reasons, "LOAD_TO_STORE_SENSOR_NOT_QUALIFIED");
+    }
+    for key in [
+        "load_boundary_evidence_ref",
+        "store_state_evidence_ref",
+        "heat_exchanger_evidence_ref",
+    ] {
+        if text_at(path, key).is_none() {
+            reasons.push(format!("MISSING_LOAD_TO_STORE_EVIDENCE_{key}"));
+        }
+    }
+
+    let source_temperature = number_at(path, "source_return_temperature_c");
+    let store_temperature = number_at(path, "store_temperature_c");
+    let minimum_approach = number_at(path, "minimum_approach_k");
+    let temperature_approach = match (
+        source_temperature,
+        store_temperature,
+        minimum_approach,
+    ) {
+        (Some(source), Some(store), Some(minimum)) => {
+            let approach = source - store;
+            if approach <= minimum {
+                push_reason(
+                    &mut reasons,
+                    "INSUFFICIENT_LOAD_TO_STORE_TEMPERATURE_APPROACH",
+                );
+            }
+            Some(approach)
+        }
+        _ => {
+            push_reason(
+                &mut reasons,
+                "LOAD_TO_STORE_TEMPERATURE_OR_APPROACH_UNKNOWN",
+            );
+            None
+        }
+    };
+
+    let available_power = number_at(path, "available_heat_transfer_kw");
+    let requested_power = number_at(path, "requested_heat_transfer_kw");
+    match (available_power, requested_power) {
+        (Some(available), Some(requested))
+            if available >= requested && requested > 0.0 => {}
+        (Some(_), Some(_)) => {
+            push_reason(
+                &mut reasons,
+                "INSUFFICIENT_LOAD_TO_STORE_HEAT_EXCHANGER_CAPACITY",
+            );
+        }
+        _ => push_reason(
+            &mut reasons,
+            "LOAD_TO_STORE_HEAT_EXCHANGER_CAPACITY_UNKNOWN",
+        ),
+    }
+
+    let duration = number_at(path, "requested_duration_h");
+    let capacity = number_at(path, "store_capacity_kwh");
+    let state = number_at(path, "store_energy_kwh");
+    let (headroom, requested_energy) = match (duration, capacity, state, requested_power) {
+        (Some(hours), Some(maximum), Some(current), Some(power))
+            if hours > 0.0 && maximum > 0.0 && current >= 0.0 && current <= maximum =>
+        {
+            let free = maximum - current;
+            let energy = power * hours;
+            if energy > free {
+                push_reason(
+                    &mut reasons,
+                    "INSUFFICIENT_FINITE_STORE_HEADROOM_NO_CONCURRENT_REGENERATION_CREDIT",
+                );
+            }
+            (Some(free), Some(energy))
+        }
+        (Some(_), Some(_), Some(_), Some(_)) => {
+            push_reason(&mut reasons, "LOAD_TO_STORE_STATE_OR_DURATION_INVALID");
+            (None, None)
+        }
+        _ => {
+            push_reason(&mut reasons, "LOAD_TO_STORE_HEADROOM_OR_DURATION_UNKNOWN");
+            (None, None)
+        }
+    };
+
+    let state = if reasons.is_empty() {
+        "ELIGIBLE_FOR_OPTIMIZER_REVIEW"
+    } else {
+        "BLOCKED"
+    };
+    json!({
+        "path_id": text_at(path, "id").unwrap_or("<missing-id>"),
+        "state": state,
+        "temperature_approach_k": temperature_approach,
+        "store_headroom_kwh": headroom,
+        "requested_transfer_energy_kwh": requested_energy,
+        "simultaneous_regeneration_credit": "NOT_ASSUMED",
+        "actuation": "NOT_ISSUED",
+        "reasons": reasons
+    })
+}
+
 fn evaluate(input: &Value) -> Result<Value, Vec<String>> {
     let mut errors = Vec::new();
     let schema: Value = serde_json::from_str(SCHEMA)
@@ -51,6 +167,7 @@ fn evaluate(input: &Value) -> Result<Value, Vec<String>> {
             .get("manual_safe_mode_available")
             .and_then(Value::as_bool)
             == Some(true);
+    let store_charge_path = evaluate_store_charge_path(input, global_ok);
 
     let mut id_counts = std::collections::BTreeMap::<String, usize>::new();
     for path in paths {
@@ -189,6 +306,7 @@ fn evaluate(input: &Value) -> Result<Value, Vec<String>> {
         "input_id": text_at(input, "input_id").unwrap_or_default(),
         "network_state": text_at(input, "network_state").unwrap_or("UNKNOWN"),
         "local_control_state": text_at(input, "local_control_state").unwrap_or("UNKNOWN"),
+        "store_charge_path": store_charge_path,
         "eligible_paths": eligible,
         "blocked_paths": blocked,
         "optimizer_authority": "MAY_COMPARE_ELIGIBLE_PATHS_ONLY",
@@ -411,6 +529,78 @@ mod tests {
                 .iter()
                 .any(|reason| reason == "UNDECLARED_WATER_DRAW_ON_NON_EVAPORATIVE_PATH")
         );
+    }
+
+    #[test]
+    fn load_to_store_path_passes_when_grade_capacity_and_headroom_are_sufficient() {
+        let report = evaluate(&sample()).expect("sample case must evaluate");
+        assert_eq!(
+            report["store_charge_path"]["state"],
+            "ELIGIBLE_FOR_OPTIMIZER_REVIEW"
+        );
+        assert_eq!(report["store_charge_path"]["temperature_approach_k"], 9.0);
+        assert_eq!(report["store_charge_path"]["store_headroom_kwh"], 4.0);
+        assert_eq!(
+            report["store_charge_path"]["requested_transfer_energy_kwh"],
+            3.0
+        );
+        assert_eq!(
+            report["store_charge_path"]["simultaneous_regeneration_credit"],
+            "NOT_ASSUMED"
+        );
+    }
+
+    #[test]
+    fn inadequate_load_to_store_temperature_grade_blocks_charge() {
+        let mut input = sample();
+        input["store_charge_path"]["source_return_temperature_c"] = json!(24.0);
+        let report = evaluate(&input).expect("case evaluates");
+        assert_eq!(report["store_charge_path"]["state"], "BLOCKED");
+        assert!(report["store_charge_path"]["reasons"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|reason| reason == "INSUFFICIENT_LOAD_TO_STORE_TEMPERATURE_APPROACH"));
+    }
+
+    #[test]
+    fn insufficient_store_headroom_blocks_charge_without_regeneration_credit() {
+        let mut input = sample();
+        input["store_charge_path"]["store_energy_kwh"] = json!(8.0);
+        let report = evaluate(&input).expect("case evaluates");
+        assert_eq!(report["store_charge_path"]["state"], "BLOCKED");
+        assert!(report["store_charge_path"]["reasons"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|reason| reason
+                == "INSUFFICIENT_FINITE_STORE_HEADROOM_NO_CONCURRENT_REGENERATION_CREDIT"));
+    }
+
+    #[test]
+    fn insufficient_load_to_store_exchanger_power_blocks_charge() {
+        let mut input = sample();
+        input["store_charge_path"]["available_heat_transfer_kw"] = json!(1.0);
+        let report = evaluate(&input).expect("case evaluates");
+        assert_eq!(report["store_charge_path"]["state"], "BLOCKED");
+        assert!(report["store_charge_path"]["reasons"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|reason| reason == "INSUFFICIENT_LOAD_TO_STORE_HEAT_EXCHANGER_CAPACITY"));
+    }
+
+    #[test]
+    fn unknown_load_to_store_sensor_blocks_charge() {
+        let mut input = sample();
+        input["store_charge_path"]["sensor_state"] = json!("UNKNOWN");
+        let report = evaluate(&input).expect("case evaluates");
+        assert_eq!(report["store_charge_path"]["state"], "BLOCKED");
+        assert!(report["store_charge_path"]["reasons"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|reason| reason == "LOAD_TO_STORE_SENSOR_NOT_QUALIFIED"));
     }
 
     #[test]
