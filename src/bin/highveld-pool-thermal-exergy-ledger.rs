@@ -700,6 +700,15 @@ mod tests {
         case["intervals"][1]["layers"][0]["temperature_end_c"] = json!(29.0);
         let report = evaluate(&case).expect("limit breach is a reportable validation failure");
         assert_eq!(report["audit_state"], "POOL_EXERGY_ACCOUNT_FAIL");
+        assert_eq!(report["intervals"][1]["interval_state"], "FAIL");
+        assert_eq!(
+            report["intervals"][1]["layers"][0]["end_temperature_limit_exceedance_c"],
+            4.0
+        );
+        assert_eq!(
+            report["intervals"][1]["layers"][0]["end_idealized_heat_headroom_kwh"],
+            0.0
+        );
         assert!(report["errors"].as_array().unwrap().iter().any(|error| {
             error
                 .as_str()
