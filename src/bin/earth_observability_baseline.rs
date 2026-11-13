@@ -474,7 +474,7 @@ mod tests {
         let fixture: SyntheticProfileFixture =
             serde_json::from_str(FIXTURE).expect("fixture parses");
         let report = run_baseline(&fixture).expect("baseline runs");
-        let proxy = &report.results[1];
+        let proxy = &report.results[3];
         assert_eq!(proxy.metrics.prediction_count, 6);
         assert_eq!(proxy.metrics.target_count, 11);
         assert!((proxy.metrics.coverage_fraction - 6.0 / 11.0).abs() < 1e-12);
