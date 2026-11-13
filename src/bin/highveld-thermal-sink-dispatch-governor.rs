@@ -54,11 +54,7 @@ fn evaluate_store_charge_path(input: &Value, global_ok: bool) -> Value {
     let source_temperature = number_at(path, "source_return_temperature_c");
     let store_temperature = number_at(path, "store_temperature_c");
     let minimum_approach = number_at(path, "minimum_approach_k");
-    let temperature_approach = match (
-        source_temperature,
-        store_temperature,
-        minimum_approach,
-    ) {
+    let temperature_approach = match (source_temperature, store_temperature, minimum_approach) {
         (Some(source), Some(store), Some(minimum)) => {
             let approach = source - store;
             if approach <= minimum {
@@ -81,8 +77,7 @@ fn evaluate_store_charge_path(input: &Value, global_ok: bool) -> Value {
     let available_power = number_at(path, "available_heat_transfer_kw");
     let requested_power = number_at(path, "requested_heat_transfer_kw");
     match (available_power, requested_power) {
-        (Some(available), Some(requested))
-            if available >= requested && requested > 0.0 => {}
+        (Some(available), Some(requested)) if available >= requested && requested > 0.0 => {}
         (Some(_), Some(_)) => {
             push_reason(
                 &mut reasons,
@@ -556,11 +551,13 @@ mod tests {
         input["store_charge_path"]["source_return_temperature_c"] = json!(24.0);
         let report = evaluate(&input).expect("case evaluates");
         assert_eq!(report["store_charge_path"]["state"], "BLOCKED");
-        assert!(report["store_charge_path"]["reasons"]
-            .as_array()
-            .unwrap()
-            .iter()
-            .any(|reason| reason == "INSUFFICIENT_LOAD_TO_STORE_TEMPERATURE_APPROACH"));
+        assert!(
+            report["store_charge_path"]["reasons"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|reason| reason == "INSUFFICIENT_LOAD_TO_STORE_TEMPERATURE_APPROACH")
+        );
     }
 
     #[test]
@@ -569,12 +566,14 @@ mod tests {
         input["store_charge_path"]["store_energy_kwh"] = json!(8.0);
         let report = evaluate(&input).expect("case evaluates");
         assert_eq!(report["store_charge_path"]["state"], "BLOCKED");
-        assert!(report["store_charge_path"]["reasons"]
-            .as_array()
-            .unwrap()
-            .iter()
-            .any(|reason| reason
-                == "INSUFFICIENT_FINITE_STORE_HEADROOM_NO_CONCURRENT_REGENERATION_CREDIT"));
+        assert!(
+            report["store_charge_path"]["reasons"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|reason| reason
+                    == "INSUFFICIENT_FINITE_STORE_HEADROOM_NO_CONCURRENT_REGENERATION_CREDIT")
+        );
     }
 
     #[test]
@@ -583,11 +582,13 @@ mod tests {
         input["store_charge_path"]["available_heat_transfer_kw"] = json!(1.0);
         let report = evaluate(&input).expect("case evaluates");
         assert_eq!(report["store_charge_path"]["state"], "BLOCKED");
-        assert!(report["store_charge_path"]["reasons"]
-            .as_array()
-            .unwrap()
-            .iter()
-            .any(|reason| reason == "INSUFFICIENT_LOAD_TO_STORE_HEAT_EXCHANGER_CAPACITY"));
+        assert!(
+            report["store_charge_path"]["reasons"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|reason| reason == "INSUFFICIENT_LOAD_TO_STORE_HEAT_EXCHANGER_CAPACITY")
+        );
     }
 
     #[test]
@@ -596,11 +597,13 @@ mod tests {
         input["store_charge_path"]["sensor_state"] = json!("UNKNOWN");
         let report = evaluate(&input).expect("case evaluates");
         assert_eq!(report["store_charge_path"]["state"], "BLOCKED");
-        assert!(report["store_charge_path"]["reasons"]
-            .as_array()
-            .unwrap()
-            .iter()
-            .any(|reason| reason == "LOAD_TO_STORE_SENSOR_NOT_QUALIFIED"));
+        assert!(
+            report["store_charge_path"]["reasons"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|reason| reason == "LOAD_TO_STORE_SENSOR_NOT_QUALIFIED")
+        );
     }
 
     #[test]
