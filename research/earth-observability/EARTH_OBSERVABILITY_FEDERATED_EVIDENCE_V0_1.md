@@ -96,7 +96,10 @@ It checks an upstream-issued grant bound to the **exact source, exact asset, req
 1. `Read`
 2. `Process`
 3. `CreateDerivative`
-4. `Redistribute`
+4. `RedistributeSource` — permission to redistribute the original source asset.
+5. `RedistributeDerivative` — permission to publish/redistribute a derivative product.
+
+Source redistribution and derivative publication are independent grants; permission for one does not imply the other.
 
 The gate requires non-empty grant/source/asset/subject/issuer identity, a syntactically valid SHA-256 receipt digest, exact source+asset+subject binding, explicit purpose membership, an active validity interval, satisfied declared conditions and operation-specific capability booleans. Missing or invalid grants fail closed.
 
@@ -109,7 +112,7 @@ Benchmark federated execution against both a source-local reference and an autho
 | Dimension | Metric / test | Hard failure |
 |---|---|---|
 | Grant identity | exact source/asset binding and receipt verification | grant for source A authorizes source B |
-| Purpose separation | Read / Process / Derive / Redistribute negative controls | read-only permission authorizes export or derivatives |
+| Purpose/action separation | Read / Process / Derive / RedistributeSource / RedistributeDerivative negative controls | read-only permission authorizes processing; raw-source grant authorizes derivative publication or vice versa |
 | Validity | not-before, expiry and revocation tests | expired or revoked grant continues to authorize new access |
 | Data locality | inspect outbound payloads, caches, logs and artifacts against restricted-source markers | unapproved raw source data leaves the owner boundary |
 | Output disclosure | owner-defined geometry precision, aggregation, minimum cohort and sensitive-field policy | restricted geometry or sensitive attributes are disclosed |
