@@ -133,6 +133,29 @@ Perturbations:
 
 Report both performance degradation and whether the system correctly expands uncertainty or abstains. A model that keeps its confidence while failing under shift is a critical failure even when mean accuracy remains acceptable.
 
+## 7A. Rights-aware federation scorecard
+
+Treat discovery, read, processing, derivative creation, redistribution, retention and publication as distinct operations. Compare:
+- owner-local execution;
+- a centralized copy only where the exact source grant permits copying;
+- an authorized local reference implementation.
+
+| Measure | Definition | Required negative controls |
+|---|---|---|
+| Exact-source grant binding | fraction of operations bound to a verified grant for the exact source/asset | grant for source A used on source B |
+| Purpose/action separation | correct enforcement of READ / PROCESS / CREATE_DERIVATIVE / REDISTRIBUTE | read-only used to process; process-only used to publish |
+| Grant validity | enforcement of not-before, expiry, conditions and revocation | expired grant, unmet conditions, revocation with stale cache |
+| Authorization coverage | authorized and executed requested sources / all requested sources | inaccessible or unknown sources silently counted as covered |
+| Reproducibility | output digest and exact source, adapter, code, model, config, policy and query receipt | replay drift or missing receipt identity |
+| Numerical parity | difference from same computation on authorized local reference | results vary beyond preregistered numerical tolerance |
+| Data egress / disclosure | restricted-source marker leakage into network payloads, logs, caches, artifacts and outputs | restricted coordinates or attributes appear outside owner boundary |
+| Revocation latency | time from verified revocation to denial of new use and invalidation of served derivatives | processing or publication succeeds after revocation acknowledgement |
+| Owner burden / latency / cost | custodian review time, compute cost, data movement, query latency and retry rate | speed claimed by dropping inaccessible sources or reducing review |
+
+Hard acceptance: zero unauthorized read/process/derive/redistribute actions in the frozen negative-control corpus; zero silent promotion of UNKNOWN rights to permission; 100% of executed results bind the exact-source grant and source version. This scorecard does not prove privacy or legal compliance. Query metadata, timing, model updates and derived-output leakage require separate threat-modelled tests.
+
+For source-local operation, the source owner retains raw data and runs a bounded adapter. Sol-Atlas receives only a permitted result plus evidence receipt. Mycelix verifies issuer/grant evidence and revocation; the local predicate only checks declared scope and must not be represented as signature verification or licence interpretation.
+
 ## 8. Relevant 2026 research frontier and what is still missing
 
 The frontier already contains important individual components:
@@ -165,6 +188,7 @@ The differentiating hypothesis is a reusable, open, vendor-neutral qualification
 | Surveying/point-cloud | Specialist survey instruments and registration/adjustment packages | Retain exact frame/transform/calibration and independent checkpoint quality; do not claim instrument superiority |
 | Geophysics / inversion | Modality-specific specialist processors | Treat as reference engines; compare same raw observations and same held-out truth |
 | TBM digital twin / monitoring | OEM and project-specific machine telemetry, physics and prediction systems | Integrate qualified telemetry with actual geology/as-built results and uncertainty; do not claim replacement without matched field trial |
+| Restricted / federated subsurface data | Owner-hosted portals, licensed data rooms and source-local analysis workflows | Execute only within exact owner grants; return reproducible bounded evidence receipts without assuming source-copy or derivative redistribution rights |
 
 A fair SOTA table must record product/version, license/access, exact functions exercised, data contract, task and metric, hardware/runtime, domain, validation population, and independent result. Product pages are capability statements, not proof of accuracy or SOTA.
 
