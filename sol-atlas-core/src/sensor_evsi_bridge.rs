@@ -133,16 +133,24 @@ impl DetectionLikelihoodEvidence {
             ("envelope_id", self.envelope_id.as_str()),
             ("target_class", self.target_class.as_str()),
             ("support_id", self.support_id.as_str()),
-            ("sensor_configuration_id", self.sensor_configuration_id.as_str()),
+            (
+                "sensor_configuration_id",
+                self.sensor_configuration_id.as_str(),
+            ),
             ("domain_id", self.domain_id.as_str()),
-            ("pod_calibration_receipt_id", self.pod_calibration_receipt_id.as_str()),
+            (
+                "pod_calibration_receipt_id",
+                self.pod_calibration_receipt_id.as_str(),
+            ),
         ] {
             if !non_empty(value) {
                 return Err(DetectionLikelihoodError::EmptyIdentifier(field));
             }
         }
         if !valid_probability(self.probability_of_detection) {
-            return Err(DetectionLikelihoodError::InvalidProbability("probability_of_detection"));
+            return Err(DetectionLikelihoodError::InvalidProbability(
+                "probability_of_detection",
+            ));
         }
 
         let (pfa, model_status, false_alarm_model) = match &self.false_alarm_evidence {
@@ -201,9 +209,12 @@ impl DetectionLikelihoodEvidence {
                     return Err(DetectionLikelihoodError::PoissonProcessNotQualified);
                 }
 
-                let probability =
-                    1.0 - (-*false_alarms_per_km * *searched_route_km).exp();
-                (probability, *evidence_status, "qualified_homogeneous_poisson_route_rate".to_string())
+                let probability = 1.0 - (-*false_alarms_per_km * *searched_route_km).exp();
+                (
+                    probability,
+                    *evidence_status,
+                    "qualified_homogeneous_poisson_route_rate".to_string(),
+                )
             }
         };
 
@@ -260,12 +271,16 @@ impl BinaryDetectionLikelihoods {
         target_prevalence: f64,
     ) -> Result<f64, DetectionLikelihoodError> {
         if !valid_probability(target_prevalence) {
-            return Err(DetectionLikelihoodError::InvalidProbability("target_prevalence"));
+            return Err(DetectionLikelihoodError::InvalidProbability(
+                "target_prevalence",
+            ));
         }
         let hit_probability = self.probability_of_detection * target_prevalence
             + self.probability_of_false_alarm * (1.0 - target_prevalence);
         if hit_probability <= f64::EPSILON {
-            return Err(DetectionLikelihoodError::InvalidProbability("zero_probability_hit"));
+            return Err(DetectionLikelihoodError::InvalidProbability(
+                "zero_probability_hit",
+            ));
         }
         Ok(self.probability_of_detection * target_prevalence / hit_probability)
     }
@@ -275,7 +290,11 @@ impl BinaryDetectionLikelihoods {
 mod tests {
     use super::*;
 
-    fn evidence(pod: f64, pfa: f64, status: LikelihoodEvidenceStatus) -> DetectionLikelihoodEvidence {
+    fn evidence(
+        pod: f64,
+        pfa: f64,
+        status: LikelihoodEvidenceStatus,
+    ) -> DetectionLikelihoodEvidence {
         DetectionLikelihoodEvidence {
             evidence_id: "detector-evidence-001".to_string(),
             envelope_id: "soe-envelope-001".to_string(),
@@ -298,7 +317,11 @@ mod tests {
 
     #[test]
     fn binary_likelihoods_produce_complete_evsi_outcome_table() {
-        let model = evidence(0.95, 0.02, LikelihoodEvidenceStatus::IndependentlyQualifiedForDeclaredDomain);
+        let model = evidence(
+            0.95,
+            0.02,
+            LikelihoodEvidenceStatus::IndependentlyQualifiedForDeclaredDomain,
+        );
         let result = model.to_binary_likelihoods().unwrap();
         let table = result.as_evsi_outcome_likelihoods();
         assert_eq!(table["hit"]["target_present"], 0.95);
@@ -315,11 +338,17 @@ mod tests {
     fn synthetic_or_point_estimates_do_not_become_qualified_evsi_evidence() {
         let synthetic = evidence(0.95, 0.02, LikelihoodEvidenceStatus::SyntheticAnalyticOnly);
         let result = synthetic.to_binary_likelihoods().unwrap();
-        assert_eq!(result.evidence_status, LikelihoodEvidenceStatus::SyntheticAnalyticOnly);
+        assert_eq!(
+            result.evidence_status,
+            LikelihoodEvidenceStatus::SyntheticAnalyticOnly
+        );
 
         let point = evidence(0.95, 0.02, LikelihoodEvidenceStatus::ResearchPointEstimate);
         let result = point.to_binary_likelihoods().unwrap();
-        assert_eq!(result.evidence_status, LikelihoodEvidenceStatus::ResearchPointEstimate);
+        assert_eq!(
+            result.evidence_status,
+            LikelihoodEvidenceStatus::ResearchPointEstimate
+        );
     }
 
     #[test]
@@ -344,7 +373,11 @@ mod tests {
 
     #[test]
     fn qualified_poisson_conversion_depends_on_exact_search_length() {
-        let mut model = evidence(0.95, 0.02, LikelihoodEvidenceStatus::IndependentlyQualifiedForDeclaredDomain);
+        let mut model = evidence(
+            0.95,
+            0.02,
+            LikelihoodEvidenceStatus::IndependentlyQualifiedForDeclaredDomain,
+        );
         model.false_alarm_evidence = FalseAlarmEvidence::HomogeneousPoissonRouteRate {
             false_alarms_per_km: 0.5,
             searched_route_km: 1.0,
@@ -353,14 +386,16 @@ mod tests {
             support_id: "route-window-001".to_string(),
             sensor_configuration_id: "gpr-400mhz-configuration".to_string(),
             domain_id: "dry-sand-domain".to_string(),
-            process_model_status: PoissonProcessQualification::IndependentlyQualifiedForDeclaredDomain,
+            process_model_status:
+                PoissonProcessQualification::IndependentlyQualifiedForDeclaredDomain,
             evidence_status: LikelihoodEvidenceStatus::IndependentlyQualifiedForDeclaredDomain,
         };
         let one_km = model.to_binary_likelihoods().unwrap();
         assert!((one_km.probability_of_false_alarm - (1.0 - (-0.5_f64).exp())).abs() < 1e-12);
 
-        if let FalseAlarmEvidence::HomogeneousPoissonRouteRate { searched_route_km, .. } =
-            &mut model.false_alarm_evidence
+        if let FalseAlarmEvidence::HomogeneousPoissonRouteRate {
+            searched_route_km, ..
+        } = &mut model.false_alarm_evidence
         {
             *searched_route_km = 2.0;
         }
@@ -397,7 +432,9 @@ mod tests {
         let model = evidence(1.1, 0.02, LikelihoodEvidenceStatus::ResearchPointEstimate);
         assert_eq!(
             model.to_binary_likelihoods(),
-            Err(DetectionLikelihoodError::InvalidProbability("probability_of_detection"))
+            Err(DetectionLikelihoodError::InvalidProbability(
+                "probability_of_detection"
+            ))
         );
     }
 }

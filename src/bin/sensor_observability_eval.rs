@@ -158,14 +158,13 @@ fn main() {
                 std::process::exit(1);
             }
         };
-        let expected: DetectionEvaluationReceipt =
-            match serde_json::from_slice(&expected_bytes) {
-                Ok(value) => value,
-                Err(error) => {
-                    eprintln!("receipt JSON parse failed: {error}");
-                    std::process::exit(1);
-                }
-            };
+        let expected: DetectionEvaluationReceipt = match serde_json::from_slice(&expected_bytes) {
+            Ok(value) => value,
+            Err(error) => {
+                eprintln!("receipt JSON parse failed: {error}");
+                std::process::exit(1);
+            }
+        };
         if expected != receipt {
             eprintln!("FAIL: pinned detection receipt differs from recomputed fixture metrics");
             std::process::exit(3);
@@ -200,10 +199,7 @@ mod tests {
         assert_eq!(receipt.metrics.probability_of_detection, Some(0.875));
         assert_eq!(receipt.metrics.negative_controls, 6);
         assert_eq!(receipt.metrics.false_positives, 1);
-        assert_eq!(
-            receipt.metrics.false_alarms_per_km,
-            Some(2.0 / 3.0)
-        );
+        assert_eq!(receipt.metrics.false_alarms_per_km, Some(2.0 / 3.0));
         assert_eq!(receipt.metrics.localization_sample_count, 7);
         assert_eq!(receipt.metrics.localization_median_error_m, Some(0.25));
         assert_eq!(receipt.metrics.localization_p95_error_m, Some(0.28));
@@ -225,18 +221,26 @@ mod tests {
     #[test]
     fn synthetic_receipt_does_not_claim_cluster_or_physical_qualification() {
         let receipt = build_receipt(FIXTURE).expect("analytic fixture passes contract");
-        assert_eq!(receipt.status, "synthetic_analytic_scoring_not_physical_evidence");
+        assert_eq!(
+            receipt.status,
+            "synthetic_analytic_scoring_not_physical_evidence"
+        );
         assert_eq!(receipt.json_schema_validation, "NOT_RUN");
         assert_eq!(
             receipt.metrics.clustered_confidence_interval_status,
             "INSUFFICIENT_SITE_CLUSTERS_POD_4_FAR_4_REQUIRED_10_NOT_RUN"
         );
         assert_eq!(
-            receipt.cluster_bootstrap_config.minimum_independent_site_clusters,
+            receipt
+                .cluster_bootstrap_config
+                .minimum_independent_site_clusters,
             10
         );
         assert_eq!(receipt.metrics.pod_cluster_bootstrap_interval, None);
-        assert_eq!(receipt.metrics.false_alarm_rate_cluster_bootstrap_interval, None);
+        assert_eq!(
+            receipt.metrics.false_alarm_rate_cluster_bootstrap_interval,
+            None
+        );
         assert_eq!(
             receipt.metrics.qualification_status,
             "NOT_QUALIFIED_CLUSTERED_INTERVALS_NOT_RUN"
@@ -259,8 +263,10 @@ mod tests {
             serde_json::from_slice(FIXTURE).expect("fixture parses");
         fixture.trials[1].configuration_id = "unqualified-antenna".to_string();
         let changed = serde_json::to_vec(&fixture).expect("fixture serializes");
-        assert!(build_receipt(&changed)
-            .unwrap_err()
-            .contains("WrongSensorOrConfiguration"));
+        assert!(
+            build_receipt(&changed)
+                .unwrap_err()
+                .contains("WrongSensorOrConfiguration")
+        );
     }
 }

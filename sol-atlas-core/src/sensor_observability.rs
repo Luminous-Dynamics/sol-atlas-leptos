@@ -21,16 +21,11 @@ pub struct NumericRange {
 
 impl NumericRange {
     pub fn validate(&self) -> bool {
-        self.minimum.is_finite()
-            && self.maximum.is_finite()
-            && self.minimum <= self.maximum
+        self.minimum.is_finite() && self.maximum.is_finite() && self.minimum <= self.maximum
     }
 
     pub fn contains(&self, value: f64) -> bool {
-        self.validate()
-            && value.is_finite()
-            && value >= self.minimum
-            && value <= self.maximum
+        self.validate() && value.is_finite() && value >= self.minimum && value <= self.maximum
     }
 }
 
@@ -161,9 +156,7 @@ fn non_empty(value: &str) -> bool {
     !value.trim().is_empty()
 }
 
-pub fn validate_envelope(
-    envelope: &SensorObservabilityEnvelope,
-) -> Vec<EnvelopeValidationError> {
+pub fn validate_envelope(envelope: &SensorObservabilityEnvelope) -> Vec<EnvelopeValidationError> {
     let mut errors = Vec::new();
 
     for (field, value) in [
@@ -220,7 +213,8 @@ fn classify_domain(
 ) -> Result<DomainDisposition, Vec<TrialValidationError>> {
     let mut errors = Vec::new();
 
-    if trial.sensor_id != envelope.sensor_id || trial.configuration_id != envelope.configuration_id {
+    if trial.sensor_id != envelope.sensor_id || trial.configuration_id != envelope.configuration_id
+    {
         errors.push(TrialValidationError::WrongSensorOrConfiguration);
     }
     if trial.calibration_id != envelope.calibration_id {
@@ -267,7 +261,11 @@ fn classify_domain(
         }
     }
 
-    match (trial.target_present, trial.detector_detected, trial.localization_error_m) {
+    match (
+        trial.target_present,
+        trial.detector_detected,
+        trial.localization_error_m,
+    ) {
         (true, true, None) => errors.push(TrialValidationError::MissingLocalizationError),
         (true, true, Some(value)) if !value.is_finite() || value < 0.0 => {
             errors.push(TrialValidationError::InvalidLocalizationError)
@@ -284,10 +282,12 @@ fn classify_domain(
     let mut outside = false;
     for (name, range) in &envelope.environmental_domain {
         match trial.environmental_values.get(name) {
-            None => errors.push(TrialValidationError::MissingEnvironmentalVariable(name.clone())),
-            Some(value) if !value.is_finite() => {
-                errors.push(TrialValidationError::InvalidEnvironmentalValue(name.clone()))
-            }
+            None => errors.push(TrialValidationError::MissingEnvironmentalVariable(
+                name.clone(),
+            )),
+            Some(value) if !value.is_finite() => errors.push(
+                TrialValidationError::InvalidEnvironmentalValue(name.clone()),
+            ),
             Some(value) if !range.contains(*value) => outside = true,
             Some(_) => {}
         }
@@ -350,7 +350,9 @@ pub fn validate_fixture(
             || !non_empty(&trial.site_id)
             || !non_empty(&trial.acquisition_id)
         {
-            errors.push(TrialValidationError::EmptyIdentifier("trial/site/acquisition"));
+            errors.push(TrialValidationError::EmptyIdentifier(
+                "trial/site/acquisition",
+            ));
         }
         if !trial_ids.insert(trial.trial_id.as_str()) {
             errors.push(TrialValidationError::DuplicateTrialId);
@@ -387,10 +389,16 @@ pub fn validate_fixture(
     if !has_blind_test {
         partition_errors.push(TrialValidationError::MissingBlindTestPartition);
     }
-    if calibration_targets.iter().any(|id| blind_targets.contains(id)) {
+    if calibration_targets
+        .iter()
+        .any(|id| blind_targets.contains(id))
+    {
         partition_errors.push(TrialValidationError::CrossPartitionTargetLeakage);
     }
-    if calibration_sites.iter().any(|site| blind_sites.contains(site)) {
+    if calibration_sites
+        .iter()
+        .any(|site| blind_sites.contains(site))
+    {
         partition_errors.push(TrialValidationError::CrossPartitionSiteLeakage);
     }
     if calibration_acquisitions
@@ -544,9 +552,7 @@ pub fn evaluate_blind_trials(
         .iter()
         .filter(|trial| trial.partition == DetectionPartition::BlindTest)
     {
-        if classify_domain(&fixture.envelope, trial)?
-            == DomainDisposition::OutOfDomain
-        {
+        if classify_domain(&fixture.envelope, trial)? == DomainDisposition::OutOfDomain {
             out_of_domain += 1;
             continue;
         }
@@ -587,8 +593,8 @@ pub fn evaluate_blind_trials(
     }
 
     localization_errors.sort_by(f64::total_cmp);
-    let probability_of_detection = (positive_targets > 0)
-        .then_some(true_positives as f64 / positive_targets as f64);
+    let probability_of_detection =
+        (positive_targets > 0).then_some(true_positives as f64 / positive_targets as f64);
     let false_alarms_per_km = (surveyed_negative_route_km > 0.0)
         .then_some(false_positives as f64 / surveyed_negative_route_km);
     let point_estimates_meet_declared_requirements = probability_of_detection
@@ -608,12 +614,10 @@ pub fn evaluate_blind_trials(
             false_positives: site.false_positives,
             true_negatives: site.true_negatives,
             surveyed_negative_route_km: site.surveyed_negative_route_km,
-            probability_of_detection: (site.positive_targets > 0).then_some(
-                site.true_positives as f64 / site.positive_targets as f64,
-            ),
-            false_alarms_per_km: (site.surveyed_negative_route_km > 0.0).then_some(
-                site.false_positives as f64 / site.surveyed_negative_route_km,
-            ),
+            probability_of_detection: (site.positive_targets > 0)
+                .then_some(site.true_positives as f64 / site.positive_targets as f64),
+            false_alarms_per_km: (site.surveyed_negative_route_km > 0.0)
+                .then_some(site.false_positives as f64 / site.surveyed_negative_route_km),
         })
         .collect();
 
@@ -636,7 +640,8 @@ pub fn evaluate_blind_trials(
         per_site: per_site_metrics,
         pod_cluster_bootstrap_interval: None,
         false_alarm_rate_cluster_bootstrap_interval: None,
-        clustered_confidence_interval_status: "NOT_RUN_CLUSTER_AWARE_BOOTSTRAP_REQUIRED".to_string(),
+        clustered_confidence_interval_status: "NOT_RUN_CLUSTER_AWARE_BOOTSTRAP_REQUIRED"
+            .to_string(),
         point_estimates_meet_declared_requirements,
         qualification_status: "NOT_QUALIFIED_CLUSTERED_INTERVALS_NOT_RUN".to_string(),
     })
@@ -755,8 +760,7 @@ pub fn evaluate_blind_trials_with_cluster_bootstrap(
     });
     metrics.clustered_confidence_interval_status =
         "COMPUTED_SITE_CLUSTER_PERCENTILE_BOOTSTRAP_RESEARCH_ONLY".to_string();
-    metrics.qualification_status =
-        "NOT_QUALIFIED_SYNTHETIC_OR_UNQUALIFIED_INPUTS".to_string();
+    metrics.qualification_status = "NOT_QUALIFIED_SYNTHETIC_OR_UNQUALIFIED_INPUTS".to_string();
 
     Ok(metrics)
 }
@@ -776,12 +780,33 @@ mod tests {
             spatial_support_id: "abstract-route-support".to_string(),
             valid_from_unix_s: 1_700_000_000,
             valid_until_unix_s: 1_800_000_000,
-            target_size_m: NumericRange { minimum: 0.1, maximum: 1.0 },
-            target_depth_m: NumericRange { minimum: 0.2, maximum: 2.5 },
-            target_contrast: NumericRange { minimum: 0.1, maximum: 1.0 },
+            target_size_m: NumericRange {
+                minimum: 0.1,
+                maximum: 1.0,
+            },
+            target_depth_m: NumericRange {
+                minimum: 0.2,
+                maximum: 2.5,
+            },
+            target_contrast: NumericRange {
+                minimum: 0.1,
+                maximum: 1.0,
+            },
             environmental_domain: BTreeMap::from([
-                ("moisture_fraction".to_string(), NumericRange { minimum: 0.0, maximum: 0.3 }),
-                ("conductivity_s_m".to_string(), NumericRange { minimum: 0.001, maximum: 0.2 }),
+                (
+                    "moisture_fraction".to_string(),
+                    NumericRange {
+                        minimum: 0.0,
+                        maximum: 0.3,
+                    },
+                ),
+                (
+                    "conductivity_s_m".to_string(),
+                    NumericRange {
+                        minimum: 0.001,
+                        maximum: 0.2,
+                    },
+                ),
             ]),
             minimum_pod_requirement: 0.90,
             maximum_false_alarms_per_km: 0.5,
@@ -824,23 +849,143 @@ mod tests {
 
     fn fixture() -> SensorObservabilityFixture {
         let mut trials = vec![
-            trial("cal-1", DetectionPartition::Calibration, "cal-site", "cal-acq", true, true, 1),
-            trial("blind-p1", DetectionPartition::BlindTest, "blind-site-a", "blind-acq-1", true, true, 2),
-            trial("blind-p2", DetectionPartition::BlindTest, "blind-site-a", "blind-acq-1", true, true, 3),
-            trial("blind-p3", DetectionPartition::BlindTest, "blind-site-b", "blind-acq-2", true, true, 4),
-            trial("blind-p4", DetectionPartition::BlindTest, "blind-site-b", "blind-acq-2", true, true, 5),
-            trial("blind-p5", DetectionPartition::BlindTest, "blind-site-c", "blind-acq-3", true, true, 6),
-            trial("blind-p6", DetectionPartition::BlindTest, "blind-site-c", "blind-acq-3", true, true, 7),
-            trial("blind-p7", DetectionPartition::BlindTest, "blind-site-d", "blind-acq-4", true, true, 8),
-            trial("blind-p8", DetectionPartition::BlindTest, "blind-site-d", "blind-acq-4", true, false, 9),
+            trial(
+                "cal-1",
+                DetectionPartition::Calibration,
+                "cal-site",
+                "cal-acq",
+                true,
+                true,
+                1,
+            ),
+            trial(
+                "blind-p1",
+                DetectionPartition::BlindTest,
+                "blind-site-a",
+                "blind-acq-1",
+                true,
+                true,
+                2,
+            ),
+            trial(
+                "blind-p2",
+                DetectionPartition::BlindTest,
+                "blind-site-a",
+                "blind-acq-1",
+                true,
+                true,
+                3,
+            ),
+            trial(
+                "blind-p3",
+                DetectionPartition::BlindTest,
+                "blind-site-b",
+                "blind-acq-2",
+                true,
+                true,
+                4,
+            ),
+            trial(
+                "blind-p4",
+                DetectionPartition::BlindTest,
+                "blind-site-b",
+                "blind-acq-2",
+                true,
+                true,
+                5,
+            ),
+            trial(
+                "blind-p5",
+                DetectionPartition::BlindTest,
+                "blind-site-c",
+                "blind-acq-3",
+                true,
+                true,
+                6,
+            ),
+            trial(
+                "blind-p6",
+                DetectionPartition::BlindTest,
+                "blind-site-c",
+                "blind-acq-3",
+                true,
+                true,
+                7,
+            ),
+            trial(
+                "blind-p7",
+                DetectionPartition::BlindTest,
+                "blind-site-d",
+                "blind-acq-4",
+                true,
+                true,
+                8,
+            ),
+            trial(
+                "blind-p8",
+                DetectionPartition::BlindTest,
+                "blind-site-d",
+                "blind-acq-4",
+                true,
+                false,
+                9,
+            ),
         ];
         trials.extend([
-            trial("blind-n1", DetectionPartition::BlindTest, "blind-site-a", "blind-acq-1", false, true, 10),
-            trial("blind-n2", DetectionPartition::BlindTest, "blind-site-a", "blind-acq-1", false, false, 11),
-            trial("blind-n3", DetectionPartition::BlindTest, "blind-site-b", "blind-acq-2", false, false, 12),
-            trial("blind-n4", DetectionPartition::BlindTest, "blind-site-b", "blind-acq-2", false, false, 13),
-            trial("blind-n5", DetectionPartition::BlindTest, "blind-site-c", "blind-acq-3", false, false, 14),
-            trial("blind-n6", DetectionPartition::BlindTest, "blind-site-d", "blind-acq-4", false, false, 15),
+            trial(
+                "blind-n1",
+                DetectionPartition::BlindTest,
+                "blind-site-a",
+                "blind-acq-1",
+                false,
+                true,
+                10,
+            ),
+            trial(
+                "blind-n2",
+                DetectionPartition::BlindTest,
+                "blind-site-a",
+                "blind-acq-1",
+                false,
+                false,
+                11,
+            ),
+            trial(
+                "blind-n3",
+                DetectionPartition::BlindTest,
+                "blind-site-b",
+                "blind-acq-2",
+                false,
+                false,
+                12,
+            ),
+            trial(
+                "blind-n4",
+                DetectionPartition::BlindTest,
+                "blind-site-b",
+                "blind-acq-2",
+                false,
+                false,
+                13,
+            ),
+            trial(
+                "blind-n5",
+                DetectionPartition::BlindTest,
+                "blind-site-c",
+                "blind-acq-3",
+                false,
+                false,
+                14,
+            ),
+            trial(
+                "blind-n6",
+                DetectionPartition::BlindTest,
+                "blind-site-d",
+                "blind-acq-4",
+                false,
+                false,
+                15,
+            ),
         ]);
         let mut out_of_domain = trial(
             "blind-ood-1",
@@ -851,7 +996,9 @@ mod tests {
             false,
             16,
         );
-        out_of_domain.environmental_values.insert("conductivity_s_m".to_string(), 0.7);
+        out_of_domain
+            .environmental_values
+            .insert("conductivity_s_m".to_string(), 0.7);
         trials.push(out_of_domain);
 
         SensorObservabilityFixture {
@@ -861,7 +1008,9 @@ mod tests {
             seed: 20_261_113,
             status: "synthetic_analytic_detection_trials_not_physical_data".to_string(),
             geography: "abstract_non_geographic".to_string(),
-            claim_boundary: "Analytic detection scoring fixture only; no sensor physics or field qualification.".to_string(),
+            claim_boundary:
+                "Analytic detection scoring fixture only; no sensor physics or field qualification."
+                    .to_string(),
             envelope: valid_envelope(),
             trials,
         }
@@ -875,31 +1024,51 @@ mod tests {
     #[test]
     fn envelope_rejects_invalid_bounds_and_non_probability_pod_requirement() {
         let mut envelope = valid_envelope();
-        envelope.target_depth_m = NumericRange { minimum: 3.0, maximum: 1.0 };
+        envelope.target_depth_m = NumericRange {
+            minimum: 3.0,
+            maximum: 1.0,
+        };
         envelope.minimum_pod_requirement = 1.2;
-        assert!(validate_envelope(&envelope).contains(&EnvelopeValidationError::InvalidRange("target_depth_m")));
-        assert!(validate_envelope(&envelope).contains(&EnvelopeValidationError::InvalidPodRequirement));
+        assert!(
+            validate_envelope(&envelope)
+                .contains(&EnvelopeValidationError::InvalidRange("target_depth_m"))
+        );
+        assert!(
+            validate_envelope(&envelope).contains(&EnvelopeValidationError::InvalidPodRequirement)
+        );
     }
 
     #[test]
     fn invalid_envelope_is_reported_as_a_contract_error() {
         let mut data = fixture();
         data.envelope.minimum_pod_requirement = 1.5;
-        assert!(validate_fixture(&data).unwrap_err().contains(&TrialValidationError::InvalidEnvelope));
+        assert!(
+            validate_fixture(&data)
+                .unwrap_err()
+                .contains(&TrialValidationError::InvalidEnvelope)
+        );
     }
 
     #[test]
     fn calibration_and_blind_test_sites_must_be_disjoint() {
         let mut data = fixture();
         data.trials[0].site_id = "blind-site-a".to_string();
-        assert!(validate_fixture(&data).unwrap_err().contains(&TrialValidationError::CrossPartitionSiteLeakage));
+        assert!(
+            validate_fixture(&data)
+                .unwrap_err()
+                .contains(&TrialValidationError::CrossPartitionSiteLeakage)
+        );
     }
 
     #[test]
     fn calibration_and_blind_test_acquisitions_must_be_disjoint() {
         let mut data = fixture();
         data.trials[0].acquisition_id = "blind-acq-1".to_string();
-        assert!(validate_fixture(&data).unwrap_err().contains(&TrialValidationError::CrossPartitionAcquisitionLeakage));
+        assert!(
+            validate_fixture(&data)
+                .unwrap_err()
+                .contains(&TrialValidationError::CrossPartitionAcquisitionLeakage)
+        );
     }
 
     #[test]
@@ -925,7 +1094,11 @@ mod tests {
         let result = evaluate_blind_trials(&fixture()).unwrap();
         assert_eq!(result.localization_sample_count, 7);
         assert_eq!(result.per_site.len(), 4);
-        let site_a = result.per_site.iter().find(|site| site.site_id == "blind-site-a").unwrap();
+        let site_a = result
+            .per_site
+            .iter()
+            .find(|site| site.site_id == "blind-site-a")
+            .unwrap();
         assert_eq!(site_a.positive_targets, 2);
         assert_eq!(site_a.true_positives, 2);
         assert_eq!(site_a.negative_controls, 2);
@@ -934,7 +1107,10 @@ mod tests {
         assert_eq!(site_a.false_alarms_per_km, Some(2.0));
         assert!(result.localization_median_error_m.is_some());
         assert!(result.localization_p95_error_m.is_some());
-        assert_eq!(result.qualification_status, "NOT_QUALIFIED_POINT_ESTIMATES_ONLY");
+        assert_eq!(
+            result.qualification_status,
+            "NOT_QUALIFIED_POINT_ESTIMATES_ONLY"
+        );
     }
 
     #[test]
@@ -1011,27 +1187,43 @@ mod tests {
     fn target_must_not_be_scored_twice_across_partitions() {
         let mut data = fixture();
         data.trials[1].target_id = Some("target-1".to_string());
-        assert!(validate_fixture(&data).unwrap_err().contains(&TrialValidationError::CrossPartitionTargetLeakage));
+        assert!(
+            validate_fixture(&data)
+                .unwrap_err()
+                .contains(&TrialValidationError::CrossPartitionTargetLeakage)
+        );
     }
 
     #[test]
     fn missing_environmental_covariate_is_rejected_not_zero_filled() {
         let mut data = fixture();
-        data.trials[1].environmental_values.remove("moisture_fraction");
-        assert!(validate_fixture(&data).unwrap_err().contains(&TrialValidationError::MissingEnvironmentalVariable("moisture_fraction".to_string())));
+        data.trials[1]
+            .environmental_values
+            .remove("moisture_fraction");
+        assert!(validate_fixture(&data).unwrap_err().contains(
+            &TrialValidationError::MissingEnvironmentalVariable("moisture_fraction".to_string())
+        ));
     }
 
     #[test]
     fn detected_present_target_requires_localization_error() {
         let mut data = fixture();
         data.trials[1].localization_error_m = None;
-        assert!(validate_fixture(&data).unwrap_err().contains(&TrialValidationError::MissingLocalizationError));
+        assert!(
+            validate_fixture(&data)
+                .unwrap_err()
+                .contains(&TrialValidationError::MissingLocalizationError)
+        );
     }
 
     #[test]
     fn absent_control_cannot_carry_target_identity_or_dimensions() {
         let mut data = fixture();
         data.trials[9].target_id = Some("fabricated-target".to_string());
-        assert!(validate_fixture(&data).unwrap_err().contains(&TrialValidationError::UnexpectedTargetIdentity));
+        assert!(
+            validate_fixture(&data)
+                .unwrap_err()
+                .contains(&TrialValidationError::UnexpectedTargetIdentity)
+        );
     }
 }

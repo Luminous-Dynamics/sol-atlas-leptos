@@ -120,8 +120,14 @@ pub enum UtilityInferenceError {
     CandidateAssetWithoutEvents(String),
     UnknownAssociationEvent(String),
     UnknownAssociationAsset(String),
-    DuplicateEventAssetAssociation { event_id: String, candidate_asset_id: String },
-    AssociationEvidenceNotBound { event_id: String, candidate_asset_id: String },
+    DuplicateEventAssetAssociation {
+        event_id: String,
+        candidate_asset_id: String,
+    },
+    AssociationEvidenceNotBound {
+        event_id: String,
+        candidate_asset_id: String,
+    },
     InvalidAssociationProbability,
     AssociationMassExceedsOne(String),
     InvalidConfidence(String),
@@ -182,7 +188,10 @@ pub fn validate_utility_inference_graph(
     }
 
     let event_ids = unique_ids(
-        graph.observed_events.iter().map(|event| event.event_id.as_str()),
+        graph
+            .observed_events
+            .iter()
+            .map(|event| event.event_id.as_str()),
         "event_id",
         &mut errors,
     );
@@ -221,7 +230,10 @@ pub fn validate_utility_inference_graph(
             ("source_evidence_id", event.source_evidence_id.as_str()),
             ("acquisition_id", event.acquisition_id.as_str()),
             ("spatial_support_id", event.spatial_support_id.as_str()),
-            ("sensor_configuration_id", event.sensor_configuration_id.as_str()),
+            (
+                "sensor_configuration_id",
+                event.sensor_configuration_id.as_str(),
+            ),
         ] {
             if !non_empty(value) {
                 errors.push(UtilityInferenceError::EmptyIdentifier(field));
@@ -241,7 +253,10 @@ pub fn validate_utility_inference_graph(
             errors.push(UtilityInferenceError::EmptyIdentifier("geometry_claim_id"));
         }
         if asset.supporting_evidence_ids.is_empty()
-            || asset.supporting_evidence_ids.iter().any(|id| !non_empty(id))
+            || asset
+                .supporting_evidence_ids
+                .iter()
+                .any(|id| !non_empty(id))
         {
             errors.push(UtilityInferenceError::CandidateAssetWithoutEvidence(
                 asset.candidate_asset_id.clone(),
@@ -327,7 +342,9 @@ pub fn validate_utility_inference_graph(
 
     for node in &graph.candidate_nodes {
         if !non_empty(&node.geometry_claim_id) {
-            errors.push(UtilityInferenceError::EmptyIdentifier("node_geometry_claim_id"));
+            errors.push(UtilityInferenceError::EmptyIdentifier(
+                "node_geometry_claim_id",
+            ));
         }
         if node.supporting_evidence_ids.is_empty()
             || node.supporting_evidence_ids.iter().any(|id| !non_empty(id))
@@ -355,7 +372,10 @@ pub fn validate_utility_inference_graph(
             ));
         }
         if connection.supporting_evidence_ids.is_empty()
-            || connection.supporting_evidence_ids.iter().any(|id| !non_empty(id))
+            || connection
+                .supporting_evidence_ids
+                .iter()
+                .any(|id| !non_empty(id))
         {
             errors.push(UtilityInferenceError::ConnectionWithoutEvidence(
                 connection.connection_id.clone(),
@@ -465,9 +485,12 @@ mod tests {
         assert!(validate_utility_inference_graph(&graph).is_empty());
         assert_eq!(graph.candidate_assets.len(), 1);
         assert_eq!(graph.observed_events.len(), 3);
-        assert!(!graph.event_asset_associations.iter().any(|association| {
-            association.event_id == "event-clutter"
-        }));
+        assert!(
+            !graph
+                .event_asset_associations
+                .iter()
+                .any(|association| { association.event_id == "event-clutter" })
+        );
     }
 
     #[test]
@@ -500,8 +523,9 @@ mod tests {
             candidate_asset_id: "candidate:utility-1".to_string(),
             probability: 0.5,
         });
-        assert!(validate_utility_inference_graph(&graph)
-            .contains(&UtilityInferenceError::AssociationMassExceedsOne("event-1".to_string())));
+        assert!(validate_utility_inference_graph(&graph).contains(
+            &UtilityInferenceError::AssociationMassExceedsOne("event-1".to_string())
+        ));
     }
 
     #[test]
@@ -521,14 +545,24 @@ mod tests {
         graph.event_asset_associations[0].event_id = "missing-event".to_string();
         graph.event_asset_associations[1].candidate_asset_id = "candidate:missing".to_string();
         let errors = validate_utility_inference_graph(&graph);
-        assert!(errors.contains(&UtilityInferenceError::UnknownAssociationEvent("missing-event".to_string())));
-        assert!(errors.contains(&UtilityInferenceError::UnknownAssociationAsset("candidate:missing".to_string())));
+        assert!(
+            errors.contains(&UtilityInferenceError::UnknownAssociationEvent(
+                "missing-event".to_string()
+            ))
+        );
+        assert!(
+            errors.contains(&UtilityInferenceError::UnknownAssociationAsset(
+                "candidate:missing".to_string()
+            ))
+        );
     }
 
     #[test]
     fn duplicate_event_to_asset_association_rows_are_rejected() {
         let mut graph = valid_graph();
-        graph.event_asset_associations.push(graph.event_asset_associations[0].clone());
+        graph
+            .event_asset_associations
+            .push(graph.event_asset_associations[0].clone());
         assert!(validate_utility_inference_graph(&graph).contains(
             &UtilityInferenceError::DuplicateEventAssetAssociation {
                 event_id: "event-1".to_string(),
@@ -553,8 +587,11 @@ mod tests {
     fn candidate_asset_without_event_support_is_rejected() {
         let mut graph = valid_graph();
         graph.candidate_assets[0].candidate_asset_id = "candidate:unsupported".to_string();
-        assert!(validate_utility_inference_graph(&graph)
-            .contains(&UtilityInferenceError::CandidateAssetWithoutEvents("candidate:unsupported".to_string())));
+        assert!(validate_utility_inference_graph(&graph).contains(
+            &UtilityInferenceError::CandidateAssetWithoutEvents(
+                "candidate:unsupported".to_string()
+            )
+        ));
     }
 
     #[test]
@@ -571,12 +608,20 @@ mod tests {
     #[test]
     fn network_connection_requires_evidence_and_known_nodes() {
         let mut graph = valid_graph();
-        graph.candidate_connections[0].supporting_evidence_ids.clear();
+        graph.candidate_connections[0]
+            .supporting_evidence_ids
+            .clear();
         graph.candidate_connections[0].to_node_candidate_id = "missing-node".to_string();
         let errors = validate_utility_inference_graph(&graph);
-        assert!(errors.contains(&UtilityInferenceError::ConnectionWithoutEvidence(
-            "candidate-connection-1".to_string()
-        )));
-        assert!(errors.contains(&UtilityInferenceError::UnknownConnectionNode("missing-node".to_string())));
+        assert!(
+            errors.contains(&UtilityInferenceError::ConnectionWithoutEvidence(
+                "candidate-connection-1".to_string()
+            ))
+        );
+        assert!(
+            errors.contains(&UtilityInferenceError::UnknownConnectionNode(
+                "missing-node".to_string()
+            ))
+        );
     }
 }
