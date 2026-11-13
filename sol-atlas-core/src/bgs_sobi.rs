@@ -124,6 +124,7 @@ pub struct BgsSobiRelatedArtifact {
 pub enum BgsSobiValidationError {
     WrongCollectionType,
     ReturnedCountMismatch,
+    MatchedCountLessThanReturned,
     WrongFeatureType,
     MissingStableRecordIdentity,
     MissingGeometry,
@@ -187,14 +188,14 @@ impl BgsSobiFeature {
 impl BgsSobiFeatureCollection {
     /// Parse a BGS SOBI GeoJSON page and validate structural invariants.
     /// Unknown source properties are retained rather than silently discarded.
-    pub fn parse_and_validate(bytes: &[u8]) -> Result<Self, Vec<BgsSobiValidationError>> {
+    pub fn parse_and_validate(bytes: &[u8]) -> Result<Self, BgsSobiParseError> {
         let collection: Self = serde_json::from_slice(bytes)
-            .map_err(|_| vec![BgsSobiValidationError::WrongCollectionType])?;
+            .map_err(|error| BgsSobiParseError::Json(error.to_string()))?;
         let errors = collection.validate();
         if errors.is_empty() {
             Ok(collection)
         } else {
-            Err(errors)
+            Err(BgsSobiParseError::Validation(errors))
         }
     }
 
@@ -206,8 +207,20 @@ impl BgsSobiFeatureCollection {
         if self.number_returned.is_some_and(|count| count != self.features.len()) {
             errors.push(BgsSobiValidationError::ReturnedCountMismatch);
         }
+        if self
+            .number_returned
+            .zip(self.number_matched)
+            .is_some_and(|(returned, matched)| matched < returned)
+        {
+            errors.push(BgsSobiValidationError::MatchedCountLessThanReturned);
+        }
 
         for feature in &self.features {
+            if feature.properties.scan_url.as_ref().is_some_and(|uri| uri.trim().is_empty())
+                || feature.properties.ags_log_url.as_ref().is_some_and(|uri| uri.trim().is_empty())
+            {
+                errors.push(BgsSobiValidationError::EmptyRelatedArtifactUri);
+            }
             if feature.feature_type != "Feature" {
                 errors.push(BgsSobiValidationError::WrongFeatureType);
             }
