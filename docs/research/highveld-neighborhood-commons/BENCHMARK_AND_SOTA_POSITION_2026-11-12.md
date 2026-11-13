@@ -300,6 +300,7 @@ The following work has been added to PR #741 without changing PR #736's frozen t
 | Refuge availability governor | Site opening, thermal/ventilation/safe-water service, route accessibility, total/accessibility capacity and water reserves | Synthetic eligibility controls only; no real route/site/booking or occupant assignment |
 | Refuge temporal continuity ledger | Baseline service ratio, first degradation, time to baseline recovery, longest degraded episode, total below-baseline hours and unresolved end gaps per anonymous cohort | Synthetic duration-relative sequence only; no native timestamps or real service evidence |
 | Courtyard instrument package | 35 template channels, including long-wave/radiative panel/loop sensors | Instrument identities/calibration remain unassigned; template only |
+| Pool pedestrian microclimate attribution | Six matched arms × six weather regimes, six spatial stations and four heights | Dry-shade matched-control protocol and structural qualifier; no field experiment or microclimate effect admitted |
 
 The refuge network sequence oracle now complements cumulative unmet place-hours with a cohort resilience curve: it fixes first-snapshot baseline ratios and reports time to return to baseline, longest/total degradation duration, episode count and unresolved gaps. Cohort identities and owner-approved tie-break ranks must remain stable across timepoints; elapsed hours come only from the declared interval durations.
 
