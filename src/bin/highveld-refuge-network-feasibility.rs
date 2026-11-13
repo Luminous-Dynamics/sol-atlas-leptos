@@ -173,6 +173,77 @@ fn run_flow(
     }
 }
 
+fn progressive_max_min_flow(
+    demands: &[(String, u64)],
+    sites: &[(String, u64)],
+    links: &BTreeSet<(String, String)>,
+    baseline_served: &[u64],
+    fairness_totals: &[u64],
+    tie_break_ranks: &[u64],
+) -> FlowResult {
+    let count = demands.len();
+    assert_eq!(baseline_served.len(), count);
+    assert_eq!(fairness_totals.len(), count);
+    assert_eq!(tie_break_ranks.len(), count);
+
+    let mut targets = vec![0_u64; count];
+    let mut blocked = vec![false; count];
+
+    loop {
+        let mut order: Vec<usize> = (0..count)
+            .filter(|index| demands[*index].1 > 0 && !blocked[*index])
+            .collect();
+        order.sort_by(|left, right| {
+            let left_denominator = fairness_totals[*left].max(1);
+            let right_denominator = fairness_totals[*right].max(1);
+            let left_numerator = baseline_served[*left] + targets[*left];
+            let right_numerator = baseline_served[*right] + targets[*right];
+
+            (u128::from(left_numerator) * u128::from(right_denominator))
+                .cmp(&(u128::from(right_numerator) * u128::from(left_denominator)))
+                .then_with(|| tie_break_ranks[*left].cmp(&tie_break_ranks[*right]))
+                .then_with(|| demands[*left].0.cmp(&demands[*right].0))
+        });
+
+        let mut advanced = false;
+        for index in order {
+            if targets[index] >= demands[index].1 {
+                blocked[index] = true;
+                continue;
+            }
+
+            targets[index] += 1;
+            let required_flow: u64 = targets.iter().sum();
+            let candidate_demands: Vec<(String, u64)> = demands
+                .iter()
+                .enumerate()
+                .map(|(candidate_index, (id, _))| {
+                    (id.clone(), targets[candidate_index])
+                })
+                .collect();
+
+            if run_flow(&candidate_demands, sites, links).total == required_flow {
+                advanced = true;
+                break;
+            }
+
+            targets[index] -= 1;
+            blocked[index] = true;
+        }
+
+        if !advanced {
+            break;
+        }
+    }
+
+    let fair_demands: Vec<(String, u64)> = demands
+        .iter()
+        .enumerate()
+        .map(|(index, (id, _))| (id.clone(), targets[index]))
+        .collect();
+    run_flow(&fair_demands, sites, links)
+}
+
 fn text_at<'a>(value: &'a Value, key: &str) -> Option<&'a str> {
     value
         .get(key)
@@ -238,6 +309,8 @@ fn evaluate_snapshot(case: &Value) -> Result<Value, Vec<String>> {
     let mut total_requested = 0_u64;
     let mut accessible_requested = 0_u64;
     let mut cohort_data = Vec::<(String, u64, u64, f64)>::new();
+    let mut cohort_tie_break_ranks = Vec::<u64>::new();
+    let mut seen_tie_break_ranks = BTreeSet::new();
     for (index, cohort) in cohorts.iter().enumerate() {
         let id = text_at(cohort, "cohort_id")
             .unwrap_or("<missing-cohort-id>")
@@ -248,8 +321,16 @@ fn evaluate_snapshot(case: &Value) -> Result<Value, Vec<String>> {
         let total = uint_at(cohort, "total_places_requested").unwrap_or(0);
         let accessible = uint_at(cohort, "accessible_places_requested").unwrap_or(0);
         let max_time = number_at(cohort, "maximum_route_travel_time_s").unwrap_or(0.0);
+        let tie_break_rank = uint_at(cohort, "fairness_tie_break_rank");
         if id.starts_with("<missing") || total == 0 || accessible > total || max_time <= 0.0 {
             errors.push(format!("{id}: invalid cohort demand or travel-time limit"));
+        }
+        match tie_break_rank {
+            Some(rank) if seen_tie_break_ranks.insert(rank) => {
+                cohort_tie_break_ranks.push(rank);
+            }
+            Some(_) => errors.push(format!("{id}: duplicate fairness tie-break rank")),
+            None => errors.push(format!("{id}: fairness_tie_break_rank is missing or invalid")),
         }
         total_requested += total;
         accessible_requested += accessible;
@@ -536,6 +617,62 @@ fn evaluate_snapshot(case: &Value) -> Result<Value, Vec<String>> {
         .collect();
     let general_flow = run_flow(&general_demands, &residual_sites, &general_links);
 
+    let accessible_fair_flow = progressive_max_min_flow(
+        &accessible_demands,
+        &accessible_sites,
+        &accessible_links,
+        &vec![0; cohort_data.len()],
+        &cohort_data
+            .iter()
+            .map(|(_, _, accessible, _)| *accessible)
+            .collect::<Vec<_>>(),
+        &cohort_tie_break_ranks,
+    );
+    let fair_residual_sites: Vec<(String, u64)> = site_ids
+        .iter()
+        .enumerate()
+        .map(|(index, id)| {
+            let remaining = site_effective_total[index]
+                .saturating_sub(accessible_fair_flow.used_by_site[index]);
+            (id.clone(), remaining)
+        })
+        .collect();
+    let general_fair_baseline = accessible_fair_flow.served_by_cohort.clone();
+    let general_fair_totals: Vec<u64> =
+        cohort_data.iter().map(|(_, total, _, _)| *total).collect();
+    let general_fair_flow = progressive_max_min_flow(
+        &general_demands,
+        &fair_residual_sites,
+        &general_links,
+        &general_fair_baseline,
+        &general_fair_totals,
+        &cohort_tie_break_ranks,
+    );
+
+    let mut fairness_cohort_reports = Vec::new();
+    let mut minimum_fair_ratio = 1.0_f64;
+    let mut maximum_fair_ratio = 0.0_f64;
+    for (index, (id, total, accessible, _)) in cohort_data.iter().enumerate() {
+        let accessible_served = accessible_fair_flow.served_by_cohort[index];
+        let general_served = general_fair_flow.served_by_cohort[index];
+        let total_served = accessible_served + general_served;
+        let ratio = total_served as f64 / *total as f64;
+        minimum_fair_ratio = minimum_fair_ratio.min(ratio);
+        maximum_fair_ratio = maximum_fair_ratio.max(ratio);
+        fairness_cohort_reports.push(json!({
+            "cohort_id":id,
+            "total_places_requested":total,
+            "accessible_places_requested":accessible,
+            "accessible_places_feasible":accessible_served,
+            "general_places_requested":total - accessible,
+            "general_places_feasible":general_served,
+            "total_places_feasible":total_served,
+            "cohort_service_ratio":ratio,
+            "fairness_tie_break_rank":cohort_tie_break_ranks[index]
+        }));
+    }
+    let fair_total_feasible = accessible_fair_flow.total + general_fair_flow.total;
+
     let mut cohort_reports = Vec::new();
     let mut accessible_unmet = 0_u64;
     let mut general_unmet = 0_u64;
@@ -588,6 +725,20 @@ fn evaluate_snapshot(case: &Value) -> Result<Value, Vec<String>> {
         "total_places_unmet":total_unmet,
         "minimum_cohort_service_ratio":minimum_ratio,
         "cohort_service":cohort_reports,
+        "max_min_fairness_comparison":{
+            "algorithm":"DISCRETE_PROGRESSIVE_FILLING_AFTER_ACCESSIBLE_DEMAND_PROTECTION",
+            "accessible_places_feasible":accessible_fair_flow.total,
+            "general_places_feasible":general_fair_flow.total,
+            "total_places_feasible":fair_total_feasible,
+            "total_places_delta_vs_max_throughput":fair_total_feasible as i64 - total_feasible as i64,
+            "minimum_cohort_service_ratio":minimum_fair_ratio,
+            "maximum_cohort_service_ratio":maximum_fair_ratio,
+            "cohort_service_ratio_spread":maximum_fair_ratio - minimum_fair_ratio,
+            "cohort_service":fairness_cohort_reports,
+            "tie_break_policy":"EXPLICIT_OWNER_SUPPLIED_RANK_ONLY_FOR_EQUAL_DISCRETE_SERVICE_RATIOS",
+            "assignment":"NONE",
+            "reservation":"NONE"
+        },
         "site_capacity_evidence":site_reports,
         "route_edge_audit":route_reports,
         "qualified_site_count":site_reports.iter().filter(|item|item["site_eligibility"]=="ELIGIBLE").count(),
@@ -901,6 +1052,41 @@ mod tests {
         }
         let report = evaluate(&case).unwrap();
         assert_eq!(report["accessible_places_feasible"], 5);
+    }
+
+    #[test]
+    fn max_min_fairness_improves_worst_cohort_ratio_without_losing_throughput() {
+        let report = evaluate(&sample()).expect("case must evaluate");
+        let fairness = &report["max_min_fairness_comparison"];
+        let baseline_minimum = report["minimum_cohort_service_ratio"]
+            .as_f64()
+            .expect("baseline minimum ratio");
+        let fair_minimum = fairness["minimum_cohort_service_ratio"]
+            .as_f64()
+            .expect("fair minimum ratio");
+
+        assert!(fair_minimum > baseline_minimum);
+        assert_eq!(
+            fairness["total_places_feasible"],
+            report["total_places_feasible"]
+        );
+        assert_eq!(
+            fairness["tie_break_policy"],
+            "EXPLICIT_OWNER_SUPPLIED_RANK_ONLY_FOR_EQUAL_DISCRETE_SERVICE_RATIOS"
+        );
+        assert_eq!(fairness["assignment"], "NONE");
+        assert_eq!(fairness["reservation"], "NONE");
+    }
+
+    #[test]
+    fn missing_or_duplicate_fairness_rank_is_rejected() {
+        let mut case = sample();
+        case["cohorts"][1]["fairness_tie_break_rank"] = json!(1);
+        assert!(evaluate(&case).is_err());
+
+        let mut missing = sample();
+        missing["cohorts"][0].as_object_mut().unwrap().remove("fairness_tie_break_rank");
+        assert!(evaluate(&missing).is_err());
     }
 
     #[test]
