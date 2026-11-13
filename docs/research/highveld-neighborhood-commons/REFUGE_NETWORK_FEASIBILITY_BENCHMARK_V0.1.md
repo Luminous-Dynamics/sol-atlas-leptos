@@ -190,3 +190,28 @@ Acceptance targets:
 - stale evidence produces a visible exclusion reason rather than silent substitution or interpolation.
 
 The synthetic fixture uses symbolic event identifiers and invented age values solely as known-answer test data. It does not represent actual event chronology or observation freshness at any real refuge.
+
+
+## 10. Progressive max-min solver scaling benchmark
+
+The original unit-step progressive-fill implementation remains in the binary as a small-instance reference oracle. The production path now has a capacity-scaled fast path for a specific safe case: multiple cohorts are tied at the exact minimum service ratio and have the same denominator. It batches complete tied-group rounds to the next strict fairness breakpoint and binary-searches the largest feasible batch against the same max-flow network. Heterogeneous-denominator groups and capacity bottlenecks retain the exact one-seat transition.
+
+The new known-answer tests are designed to establish:
+- equivalence of total flow, per-cohort served vector and per-site used capacity against the unit-step reference over all 64 two-site/three-cohort route graphs crossed with 16 small capacity pairs (1,024 synthetic graph/capacity instances);
+- equivalence when a non-zero accessible-service baseline and a different tie-break order are supplied;
+- for three equal cohorts with 1,000,000,000 places each and one shared site of capacity 1,500,000,000, the result is exactly 500,000,000 per cohort, with no more than 64 max-flow evaluations.
+
+These are code-level synthetic targets. Wall-clock latency, larger cohort/site/edge matrices, memory use and pathological denominator patterns remain to be measured. The implementation has no blanket polynomial-time guarantee: the fast path is currently specialized to equal-ratio/equal-denominator cohorts; exact fallback remains for other groups.
+
+Report the number of flow evaluations as well as elapsed runtime. Never report runtime alone, since machine and cache effects can obscure algorithmic work.
+
+## 11. Algorithmic state-of-the-art context
+
+Max-min fair multi-commodity flow is a mature operations-research problem. Published work relates it to lexicographic optimization and describes polynomial approaches; later surveys review exact maximum-flow/minimum-cost-flow algorithms and their worst-case running times. Highveld's current progressive-fill policy is a discrete, owner-tie-broken benchmark contract for small group-level service quantities, not a claim to outperform those general algorithms.
+
+The fair comparison for a future production implementation is:
+- the exact unit-step oracle on tractable instances;
+- a proven lexicographic/max-min flow formulation or solver on the same graphs;
+- Highveld's capacity-scaled path, including its fallback, on matched graph families.
+
+Acceptance requires exact result equivalence to the intended policy, disclosed fairness semantics, throughput and per-cohort distribution, and independent oracle verification. A faster solver that changes who receives the last discrete unit is a different policy, not an optimization.
