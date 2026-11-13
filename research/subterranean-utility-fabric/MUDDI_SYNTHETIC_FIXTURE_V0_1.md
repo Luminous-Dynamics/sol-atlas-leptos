@@ -49,3 +49,18 @@ Fetched the fixture, schema, negative-case list and this note back from the bran
 - availability state distinct from epistemic class and currentness/conflict state.
 
 This is not full JSON Schema 2020-12 validation, MUDDI abstract-test execution, an implemented access-control service, a GIS interoperability round-trip, or field-data validation.
+
+
+## MUDDI core-attribute and subtype review (2026-11-13)
+
+The fixture now has an explicit `concrete_profile_type` separate from its `muddi_class`. MUDDI core concepts are conceptual/abstract base classes; fixture records are local synthetic specializations, not assertions that the abstract UML classes are directly instantiable.
+
+The fixture now includes the mandatory attributes relevant to its mapped concepts:
+- objectID, recordID and systemID are represented by the root identity fields;
+- MUDDIAsset.assetOwnerID;
+- MUDDIEvent.targetObject, targetProperty and validTime;
+- MUDDISpace.extent;
+- Network.commodityType;
+- NetworkAsset.utilityType (inherited by NetworkConveyance, NetworkNode, NetworkLink and NetworkAccessory).
+
+The crosswalk includes a LogicalName mapping with implementation names and default symbols. The separate conformance plan correctly marks A.1 and A.3 partial, A.2 not mapped exhaustively and A.4 not complete. This remains a synthetic fixture and not an OGC conformance result.
