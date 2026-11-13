@@ -330,6 +330,59 @@ fn run_baseline(fixture: &SyntheticProfileFixture) -> Result<BaselineReport, Str
     })
 }
 
+fn approximately_equal(left: f64, right: f64) -> bool {
+    left.is_finite() && right.is_finite() && (left - right).abs() <= 1e-12
+}
+
+fn reports_match(expected: &BaselineReport, actual: &BaselineReport) -> bool {
+    if expected.benchmark_id != actual.benchmark_id
+        || expected.fixture_id != actual.fixture_id
+        || expected.fixture_version != actual.fixture_version
+        || expected.seed != actual.seed
+        || expected.status != actual.status
+        || expected.geography != actual.geography
+        || expected.claim_boundary != actual.claim_boundary
+        || expected.target != actual.target
+        || expected.comparison_warning != actual.comparison_warning
+        || expected.results.len() != actual.results.len()
+    {
+        return false;
+    }
+
+    expected
+        .results
+        .iter()
+        .zip(&actual.results)
+        .all(|(left, right)| {
+            left.method == right.method
+                && left.evaluation_site == right.evaluation_site
+                && left.abstained_positions_m == right.abstained_positions_m
+                && left.interpretation == right.interpretation
+                && left.metrics.prediction_count == right.metrics.prediction_count
+                && left.metrics.target_count == right.metrics.target_count
+                && approximately_equal(
+                    left.metrics.coverage_fraction,
+                    right.metrics.coverage_fraction,
+                )
+                && approximately_equal(
+                    left.metrics.mean_absolute_error_m,
+                    right.metrics.mean_absolute_error_m,
+                )
+                && approximately_equal(
+                    left.metrics.root_mean_squared_error_m,
+                    right.metrics.root_mean_squared_error_m,
+                )
+                && approximately_equal(
+                    left.metrics.signed_bias_m,
+                    right.metrics.signed_bias_m,
+                )
+                && approximately_equal(
+                    left.metrics.p95_absolute_error_m,
+                    right.metrics.p95_absolute_error_m,
+                )
+        })
+}
+
 fn load_fixture(path: &str) -> Result<SyntheticProfileFixture, String> {
     let bytes = fs::read(Path::new(path))
         .map_err(|error| format!("cannot read {path}: {error}"))?;
@@ -389,8 +442,8 @@ fn main() {
                         std::process::exit(1);
                     }
                 };
-                if expected != report {
-                    eprintln!("FAIL: committed baseline report differs from recomputed metrics");
+                if !reports_match(&expected, &report) {
+                    eprintln!("FAIL: committed baseline report differs from recomputed metrics (float tolerance: 1e-12)");
                     std::process::exit(2);
                 }
                 println!(
@@ -419,6 +472,19 @@ mod tests {
     const FIXTURE: &str = include_str!(
         "../../research/earth-observability/fixtures/earth-observability-profile-synthetic-v0.1.json"
     );
+
+    #[test]
+    fn baseline_receipt_comparison_tolerates_only_float_rounding() {
+        let fixture: SyntheticProfileFixture =
+            serde_json::from_str(FIXTURE).expect("fixture parses");
+        let report = run_baseline(&fixture).expect("baseline runs");
+        let mut rounded = report.clone();
+        rounded.results[0].metrics.root_mean_squared_error_m += 2e-16;
+        assert!(reports_match(&report, &rounded));
+
+        rounded.results[0].metrics.root_mean_squared_error_m += 1e-6;
+        assert!(!reports_match(&report, &rounded));
+    }
 
     #[test]
     fn piecewise_interpolation_does_not_extrapolate() {
