@@ -61,11 +61,18 @@ fn audit() -> Result<Value, Vec<String>> {
         .map_err(|e| vec![format!("pool thermal exergy case JSON parse failed: {e}")])?;
     let exergy_schema: Value = serde_json::from_str(THERMAL_EXERGY_SCHEMA)
         .map_err(|e| vec![format!("pool thermal exergy schema JSON parse failed: {e}")])?;
-    let scale_transferability: Value = serde_json::from_str(SCALE_TRANSFERABILITY)
-        .map_err(|e| vec![format!("pool scale-transferability manifest JSON parse failed: {e}")])?;
-    let scale_transferability_schema: Value =
-        serde_json::from_str(SCALE_TRANSFERABILITY_SCHEMA)
-            .map_err(|e| vec![format!("pool scale-transferability schema JSON parse failed: {e}")])?;
+    let scale_transferability: Value =
+        serde_json::from_str(SCALE_TRANSFERABILITY).map_err(|e| {
+            vec![format!(
+                "pool scale-transferability manifest JSON parse failed: {e}"
+            )]
+        })?;
+    let scale_transferability_schema: Value = serde_json::from_str(SCALE_TRANSFERABILITY_SCHEMA)
+        .map_err(|e| {
+            vec![format!(
+                "pool scale-transferability schema JSON parse failed: {e}"
+            )]
+        })?;
     let mut errors = Vec::new();
 
     if text_at(&schema, "$schema") != Some("https://json-schema.org/draft/2020-12/schema") {
@@ -93,14 +100,17 @@ fn audit() -> Result<Value, Vec<String>> {
         ("climate_context", "JOHANNESBURG_HIGHVELD"),
     ] {
         if text_at(&scale_transferability, key) != Some(expected) {
-            errors.push(format!("pool scale-transferability {key} must remain {expected}"));
+            errors.push(format!(
+                "pool scale-transferability {key} must remain {expected}"
+            ));
         }
     }
     let scale_tiers = array_at(&scale_transferability, "scale_tiers")
         .cloned()
         .unwrap_or_default();
     if scale_tiers.len() != 5 || !unique_ids(&scale_tiers) {
-        errors.push("pool scale-transferability must preserve five unique evidence tiers".to_owned());
+        errors
+            .push("pool scale-transferability must preserve five unique evidence tiers".to_owned());
     }
     for required in [
         "COMPONENT_POOL",
@@ -110,16 +120,23 @@ fn audit() -> Result<Value, Vec<String>> {
         "THERMAL_SERVICE_REFUGE",
     ] {
         if !contains_id(&scale_tiers, required) {
-            errors.push(format!("pool scale-transferability tier {required} is missing"));
+            errors.push(format!(
+                "pool scale-transferability tier {required} is missing"
+            ));
         }
     }
     let promotion_rules = array_at(&scale_transferability, "promotion_rules")
         .cloned()
         .unwrap_or_default();
     if promotion_rules.len() != 4 || !unique_ids(&promotion_rules) {
-        errors.push("exactly four unique non-automatic scale-promotion rules are required".to_owned());
+        errors.push(
+            "exactly four unique non-automatic scale-promotion rules are required".to_owned(),
+        );
     }
-    if promotion_rules.iter().any(|rule| rule["automatic"].as_bool() != Some(false)) {
+    if promotion_rules
+        .iter()
+        .any(|rule| rule["automatic"].as_bool() != Some(false))
+    {
         errors.push("scale promotion must never be automatic".to_owned());
     }
     if promotion_rules.iter().any(|rule| {
@@ -129,12 +146,15 @@ fn audit() -> Result<Value, Vec<String>> {
         errors.push("direct component-to-refuge claim promotion is prohibited".to_owned());
     }
 
-    let literature = array_at(&scale_transferability, "literature_transferability_controls")
-        .cloned()
-        .unwrap_or_default();
-    let urban_threshold = literature.iter().find(|item| {
-        text_at(item, "id") == Some("DENSE_URBAN_WATER_BODY_2026_3_41_HA")
-    });
+    let literature = array_at(
+        &scale_transferability,
+        "literature_transferability_controls",
+    )
+    .cloned()
+    .unwrap_or_default();
+    let urban_threshold = literature
+        .iter()
+        .find(|item| text_at(item, "id") == Some("DENSE_URBAN_WATER_BODY_2026_3_41_HA"));
     if urban_threshold.is_none_or(|item| {
         item["reported_value"].as_f64() != Some(3.41)
             || text_at(item, "reported_unit") != Some("ha")
@@ -143,16 +163,18 @@ fn audit() -> Result<Value, Vec<String>> {
     }) {
         errors.push("the 3.41 ha study-specific threshold must remain non-transferable".to_owned());
     }
-    let park_context = literature.iter().find(|item| {
-        text_at(item, "id") == Some("MOCHOU_LAKE_PARK_2026")
-    });
+    let park_context = literature
+        .iter()
+        .find(|item| text_at(item, "id") == Some("MOCHOU_LAKE_PARK_2026"));
     if park_context.is_none_or(|item| {
         item["reported_park_mean_air_temperature_difference_c"].as_f64() != Some(1.30)
             || item["reported_activity_space_air_temperature_range_c"].as_f64() != Some(2.22)
             || text_at(item, "reported_utci_state")
                 != Some("AT_LEAST_STRONG_HEAT_STRESS_AT_ALL_SAMPLED_INTERNAL_POINTS")
     }) {
-        errors.push("park-average cooling must remain distinct from activity-space heat stress".to_owned());
+        errors.push(
+            "park-average cooling must remain distinct from activity-space heat stress".to_owned(),
+        );
     }
     for key in [
         "urban_water_body_area_threshold_transferred_to_residential_pool",
@@ -165,8 +187,14 @@ fn audit() -> Result<Value, Vec<String>> {
         "minute_samples_treated_as_independent_replicates",
         "untraceable_scale_claims",
     ] {
-        if scale_transferability["hard_gates"].get(key).and_then(Value::as_u64) != Some(0) {
-            errors.push(format!("pool scale-transferability hard gate {key} must equal zero"));
+        if scale_transferability["hard_gates"]
+            .get(key)
+            .and_then(Value::as_u64)
+            != Some(0)
+        {
+            errors.push(format!(
+                "pool scale-transferability hard gate {key} must equal zero"
+            ));
         }
     }
     for (key, expected) in [
@@ -600,8 +628,14 @@ mod tests {
             report["urban_water_area_threshold_transferability"],
             "NOT_TRANSFERABLE_TO_RESIDENTIAL_POOL_OR_COURTYARD"
         );
-        assert_eq!(report["park_average_vs_activity_space_stress_boundary"], "ENFORCED");
-        assert_eq!(report["scale_transferability_execution_status"], "NOT_EXECUTED");
+        assert_eq!(
+            report["park_average_vs_activity_space_stress_boundary"],
+            "ENFORCED"
+        );
+        assert_eq!(
+            report["scale_transferability_execution_status"],
+            "NOT_EXECUTED"
+        );
     }
 
     #[test]
