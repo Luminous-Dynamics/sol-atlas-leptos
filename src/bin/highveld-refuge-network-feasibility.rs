@@ -290,6 +290,26 @@ fn number_at(value: &Value, key: &str) -> Option<f64> {
         .filter(|number| number.is_finite())
 }
 
+fn freshness_issue(value: &Value, field: &str) -> Option<String> {
+    let record = value.get(field)?;
+    let source_event_id = text_at(record, "source_event_id");
+    let policy_ref = text_at(record, "max_age_policy_ref");
+    let age = number_at(record, "age_elapsed_s");
+    let maximum = number_at(record, "max_valid_age_s");
+    if source_event_id.is_none() || policy_ref.is_none() || age.is_none() || maximum.is_none() {
+        return Some(format!("MISSING_OR_INVALID_FRESHNESS_{field}"));
+    }
+    let age = age.unwrap();
+    let maximum = maximum.unwrap();
+    if age < 0.0 || maximum <= 0.0 {
+        return Some(format!("INVALID_FRESHNESS_BOUNDS_{field}"));
+    }
+    if age > maximum {
+        return Some(format!("STALE_EVIDENCE_{field}"));
+    }
+    None
+}
+
 fn evaluate_snapshot(case: &Value) -> Result<Value, Vec<String>> {
     let schema: Value = serde_json::from_str(SCHEMA)
         .map_err(|error| vec![format!("schema JSON parse failed: {error}")])?;
@@ -305,6 +325,12 @@ fn evaluate_snapshot(case: &Value) -> Result<Value, Vec<String>> {
         if text_at(case, key) != Some(expected) {
             errors.push(format!("{key} must remain {expected}"));
         }
+    }
+    if text_at(case, "evaluation_event_id").is_none() {
+        errors.push("evaluation_event_id is missing".to_owned());
+    }
+    if text_at(case, "freshness_assessment_owner") != Some("SYMTROPY") {
+        errors.push("freshness_assessment_owner must be SYMTROPY".to_owned());
     }
     let local_directory_qualified =
         text_at(case, "local_refuge_directory_state") == Some("QUALIFIED");
@@ -437,6 +463,17 @@ fn evaluate_snapshot(case: &Value) -> Result<Value, Vec<String>> {
             }
         }
 
+        for key in [
+            "site_status_freshness",
+            "capacity_freshness",
+            "service_freshness",
+            "water_freshness",
+        ] {
+            if let Some(reason) = freshness_issue(site, key) {
+                reasons.push(reason);
+            }
+        }
+
         let total_capacity = uint_at(site, "total_capacity");
         let occupancy = uint_at(site, "current_occupancy");
         let committed = uint_at(site, "committed_reserve");
@@ -566,6 +603,20 @@ fn evaluate_snapshot(case: &Value) -> Result<Value, Vec<String>> {
         {
             reasons.push("ROUTE_OR_ACCESSIBILITY_EVIDENCE_REFERENCE_MISSING".to_owned());
         }
+        let route_fresh = match freshness_issue(route, "route_freshness") {
+            Some(reason) => {
+                reasons.push(reason);
+                false
+            }
+            None => true,
+        };
+        let accessibility_fresh = match freshness_issue(route, "accessibility_freshness") {
+            Some(reason) => {
+                reasons.push(reason);
+                false
+            }
+            None => true,
+        };
         let cohort = cohort_index
             .get(&cohort_id)
             .map(|index| &cohort_data[*index]);
@@ -599,6 +650,8 @@ fn evaluate_snapshot(case: &Value) -> Result<Value, Vec<String>> {
         let base_ok = time_ok
             && route_reachable
             && site_ok
+            && route_fresh
+            && accessibility_fresh
             && text_at(route, "route_evidence_ref").is_some()
             && text_at(route, "accessibility_evidence_ref").is_some();
         if base_ok && general_access_ok {
@@ -741,6 +794,8 @@ fn evaluate_snapshot(case: &Value) -> Result<Value, Vec<String>> {
         "study_id":"HIGHVELD-REFUGE-NETWORK-FEASIBILITY-001",
         "case_id":text_at(case,"case_id").unwrap_or_default(),
         "network_state":text_at(case,"network_state").unwrap_or("UNKNOWN"),
+        "evaluation_event_id":text_at(case,"evaluation_event_id").unwrap_or_default(),
+        "freshness_assessment_owner":"SYMTROPY",
         "local_refuge_directory_state":text_at(case,"local_refuge_directory_state").unwrap_or("UNKNOWN"),
         "allocation_policy":"ACCESSIBLE_DEMAND_FIRST_THEN_GENERAL_DEMAND; BENCHMARK_ONLY",
         "total_places_requested":total_requested,
@@ -871,6 +926,20 @@ fn evaluate_time_series(case: &Value) -> Result<Value, Vec<String>> {
             .and_then(Value::as_object)
             .ok_or_else(|| vec![format!("{timepoint_id}: snapshot must be an object")])?;
         let mut snapshot_object = snapshot_value.clone();
+        if text_at(&Value::Object(snapshot_object.clone()), "evaluation_event_id")
+            != Some(timepoint_id)
+        {
+            errors.push(format!(
+                "{timepoint_id}: snapshot evaluation_event_id must match its Symtropy timepoint_id"
+            ));
+        }
+        if text_at(&Value::Object(snapshot_object.clone()), "freshness_assessment_owner")
+            != Some("SYMTROPY")
+        {
+            errors.push(format!(
+                "{timepoint_id}: freshness_assessment_owner must be SYMTROPY"
+            ));
+        }
         snapshot_object.insert(
             "study_id".to_owned(),
             json!("HIGHVELD-REFUGE-NETWORK-FEASIBILITY-001"),
@@ -1179,6 +1248,7 @@ fn evaluate_time_series(case: &Value) -> Result<Value, Vec<String>> {
         "timepoint_count": timepoint_reports.len(),
         "time_order_source": time_order_source,
         "native_event_time_owner": "SYMTROPY",
+        "freshness_assessment_owner": "SYMTROPY",
         "native_timestamps_or_event_ids_generated": false,
         "total_unmet_place_hours": total_unmet_place_hours,
         "accessible_unmet_place_hours": accessible_unmet_place_hours,
@@ -1512,6 +1582,75 @@ mod tests {
             report["execution_status"],
             "AGGREGATE_FEASIBILITY_ONLY_NO_ASSIGNMENT"
         );
+    }
+
+    #[test]
+    fn stale_capacity_evidence_excludes_the_site_from_network_flow() {
+        let mut case = sample();
+        case["sites"][0]["capacity_freshness"]["age_elapsed_s"] = json!(121.0);
+        let report = evaluate_snapshot(&case).expect("stale evidence is a feasibility exclusion");
+        let site = report["site_capacity_evidence"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|site| site["site_id"] == "SYNTHETIC_POD_1")
+            .unwrap();
+        assert_eq!(site["site_eligibility"], "EXCLUDED");
+        assert!(site["reasons"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|reason| reason == "STALE_EVIDENCE_capacity_freshness"));
+    }
+
+    #[test]
+    fn stale_route_evidence_removes_only_that_route_edge() {
+        let mut case = sample();
+        case["routes"][0]["route_freshness"]["age_elapsed_s"] = json!(301.0);
+        let report = evaluate_snapshot(&case).expect("stale route evidence is excluded");
+        let route = report["route_edge_audit"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|route| {
+                route["cohort_id"] == "ANON_ZONE_A"
+                    && route["site_id"] == "SYNTHETIC_POD_1"
+            })
+            .unwrap();
+        assert_eq!(route["general_route_usable"], false);
+        assert_eq!(route["accessible_route_usable"], false);
+        assert!(route["reasons"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|reason| reason == "STALE_EVIDENCE_route_freshness"));
+    }
+
+    #[test]
+    fn missing_freshness_owner_blocks_snapshot_qualification() {
+        let mut case = sample();
+        case["freshness_assessment_owner"] = json!("UNVERIFIED");
+        assert!(evaluate_snapshot(&case).is_err());
+    }
+
+    #[test]
+    fn temporal_snapshot_event_id_must_match_native_timepoint() {
+        let mut case: Value =
+            serde_json::from_str(TIME_SERIES_CASE).expect("temporal case JSON");
+        case["time_slices"][0]["snapshot"]["evaluation_event_id"] =
+            json!("NOT_THE_SYMTROPY_TIMEPOINT");
+        assert!(evaluate_time_series(&case).is_err());
+    }
+
+    #[test]
+    fn stale_route_in_temporal_snapshot_increases_service_debt() {
+        let mut case: Value =
+            serde_json::from_str(TIME_SERIES_CASE).expect("temporal case JSON");
+        case["time_slices"][1]["snapshot"]["routes"][0]["route_freshness"]["age_elapsed_s"] =
+            json!(301.0);
+        let report = evaluate_time_series(&case).expect("stale route contributes service debt");
+        assert!(report["total_unmet_place_hours"].as_f64().unwrap() > 0.0);
+        assert_eq!(report["native_event_time_owner"], "SYMTROPY");
     }
 
     #[test]
