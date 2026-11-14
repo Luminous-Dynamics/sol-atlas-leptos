@@ -1,98 +1,100 @@
-# Highveld refuge network capacity and equitable flow oracle v0.1
+# Highveld refuge network max-throughput reference oracle v0.1
 
 **Study ID:** HIGHVELD-REFUGE-NETWORK-FLOW-001  
 **Parent:** HIGHVELD-THERMAL-SERVICE-REFUGE-001 / HIGHVELD-REFUGE-AVAILABILITY-001  
-**Maturity:** SYNTHETIC_AGGREGATE_FLOW_ORACLE_NOT_FIELD_VALIDATED  
-**Purpose:** measure whether multiple anonymous demand areas can collectively reach enough qualified refuge capacity without double-counting places, accessible capacity or safe water.
+**Maturity:** SYNTHETIC_AGGREGATE_REFERENCE_COMPARATOR_NOT_FIELD_VALIDATED  
+**Purpose:** provide a small, independent Edmonds–Karp max-flow reference for a simple accessible-first, general-second refuge capacity benchmark. This is a comparator, not the primary network policy engine.
 
-## 1. Why per-site eligibility is not enough
+## 1. Scope relative to the existing refuge stack
 
-A refuge may individually appear to have free capacity, while multiple demand areas all depend on those same places. Counting each site's capacity once per demand area creates fictional supply. The network benchmark therefore computes a capacitated bipartite flow between anonymous demand areas and qualified refuge sites.
+The repository already has three more specialized pieces:
 
-The output is aggregate place counts and unmet demand by category. It contains no named occupants, personal route history, booking or site assignment. The flow is a planning oracle, not an evacuation/dispatch system.
+- highveld-refuge-network-feasibility is the primary multi-zone engine. It evaluates site and route state, freshness, shared water/capacity, progressive max-min fairness across anonymous cohorts, and an ordered supply/demand degradation sequence with unmet place-hours and recovery/degradation metrics.
+- highveld-refuge-capacity-oracle is a bounded exact backtracking feasibility oracle for a complete group-level witness. It has a declared envelope and reports search-limit exhaustion as indeterminate.
+- highveld-refuge-shared-capacity-audit checks a proposed aggregate plan against one shared site ledger; it is an audit, not an optimizer.
 
-## 2. Lexicographic allocation policy
+This binary is deliberately smaller. It provides a conventional deterministic maximum-throughput reference against which fairness-aware policies can be compared. It does not replace the primary network engine, the bounded exact witness oracle or the proposed-plan audit. The comparison must use the same frozen sites, demand, route graph and service evidence; the current fixture is a synthetic unit case, not yet a cross-binary parity test.
 
-The synthetic v0.1 policy is explicit:
+## 2. Why retain a simple max-throughput reference
 
-1. **Accessible-place demand first.** Maximize served accessible-place demand over reachable and accessibility-qualified routes, using only accessible refuge capacity.
-2. **General-place demand second.** Use remaining safe-water budget and non-accessible-place capacity for general demand.
-3. **No cross-class substitution by default.** General places are not counted toward accessible demand. Unused accessible places are not silently reclassified as general capacity. A later policy may permit release only through an owner-authorized, time-bounded rule.
-4. **No water reserve borrowing.** Site water is converted into a maximum place capacity using the common declared litres/person for the required period. Existing commitments and protected reserves have already been deducted by the availability evidence owner; no reserve can be spent.
-5. **Deterministic maximum flow.** Demand areas and sites are sorted by stable IDs. Routes are admitted only when their state, travel-time limit and evidence references qualify.
+A fairness-aware service policy and a pure maximum-throughput flow answer different questions. The maximum-throughput reference asks: what is the greatest aggregate number of places that can be served under this one frozen graph and set of capacity limits? It may leave a worse area-level distribution than progressive max-min service. That makes it useful as a baseline, not as a morally preferred allocation policy.
 
-This is a lexicographic policy, not a universal moral allocation rule. Real deployment requires public/asset-owner governance and appeal.
+The v0.1 reference policy is:
 
-## 3. Frozen input contract
+1. **Accessible-place flow first.** Accessible demand can use only sites with a reachable, evidence-backed route and a qualified accessible route, bounded by each site's accessible free capacity.
+2. **General-place flow second.** Remaining general demand can use reachable sites' non-accessible free capacity, bounded by safe water left after the accessible pass.
+3. **No cross-class substitution.** General places do not satisfy accessible demand; unused accessible places are not reclassified as general in v0.1.
+4. **One site edge per capacity pool.** A site appears once in each flow graph, so demand areas cannot count the same seats twice.
+5. **Deterministic graph order.** Areas and sites are sorted by stable IDs before the max-flow graph is constructed.
 
-The case contains:
-- anonymous demand-area IDs with total and accessible place counts;
-- site IDs and prequalified remaining total/accessibility capacity and safe-water litres;
-- one common safe-water litres-per-person requirement for the evaluated time window;
-- per-area route edges to candidate sites, with route state, accessibility state, travel time and evidence references;
-- site availability, capacity and water evidence references;
-- a maximum travel-time rule.
+## 3. Input and finite envelope
 
-The uniform water-per-person quantity is a v0.1 simplifying assumption. The input rejects duplicate demand IDs, duplicate site IDs and duplicate area-to-site edges. It does not assume the same route is usable for all access profiles.
+The input contains:
+- anonymous area IDs and total/accessible place requests;
+- candidate site IDs, eligibility state and free total/accessibility/water capacity;
+- a shared water quantity in litres per place for the specified time window;
+- route reachability and travel-time evidence for each area/site edge;
+- separate accessibility evidence for accessible demand;
+- source evidence references and an independent-oracle reference.
 
-## 4. Flow and accounting
+The implementation envelope is at most 64 demand areas, 64 refuge sites and 1,000,000 aggregate place requests. These are implementation bounds, not claims about community scale. Exceeding them is an input error, not an invitation to return a partial answer.
 
-For each class, the oracle builds a bipartite capacitated graph:
+## 4. Network and accounting
+
+For each class, the oracle builds:
 
 \[
-\text{source}\rightarrow\text{demand area}\rightarrow\text{qualified site}\rightarrow\text{sink}
+source \rightarrow demand\ area \rightarrow qualified\ refuge \rightarrow sink
 \]
 
-The accessible pass is bounded by each site's accessible free places and its water-derived place limit. Its actual output is deducted from site water before the general pass. The general pass is bounded by the site's non-accessible free places and remaining water-derived place limit.
+The site's capacity edge exists exactly once per pass. Accessible flow is subtracted from that site's water before the general pass.
 
-Per site:
+For each site:
 
 \[
 C_{nonaccess,free}=C_{total,free}-C_{accessible,free}
 \]
 
 \[
-C_{water,places}=\left\lfloor\frac{W_{free}}{L_{safe/person}}\right\rfloor
+C_{water,places}=\left\lfloor\frac{W_{free}}{L_{safe/place}}\right\rfloor
 \]
 
-The flow on an area→site edge is an aggregate count only. Every site capacity edge exists once in the network, so two demand areas cannot claim the same place twice.
+The accessible pass is bounded by accessible free places and the water-derived limit. The general pass is bounded by non-accessible free places and the remaining water-derived limit.
 
-## 5. Output metrics
+Route and accessibility exclusions are reported separately. A reachable but inaccessible route can still be considered for general demand, but cannot be counted for accessible demand. Straight-line distance is never used as a substitute for route evidence.
 
-- requested / served / unmet accessible places by demand area;
-- requested / served / unmet general places by demand area;
-- total served and unmet places;
-- accessible and general coverage ratios;
-- per-site accessible/general use and residual water;
-- excluded route/site evidence counts and reasons;
-- exact demand, route, capacity, water and oracle input references;
-- deterministic ordering and oracle revision.
+## 5. Synthetic known answer
 
-Coverage is reported by demand area. A high total coverage rate cannot hide an area with no reachable refuge. Do not compress all area-level gaps into a single weighted score.
+Two demand areas request 15 places total, including four accessible places. Two sites offer 14 total free places, four accessible places and sufficient water for all seats. The shared central hub is the only route option for one general-demand segment; another demand area has a route to a distributed pod that exceeds its declared travel-time bound and fails accessibility qualification.
 
-## 6. Positive and negative controls
+The registered result is:
+- accessible requested: 4; served: 4; unmet: 0;
+- general requested: 11; served: 10; unmet: 1;
+- total requested: 15; served: 14; unmet: 1.
 
-The registered synthetic control has two anonymous demand areas and two sites. Both areas can use the central hub, but only one can use the distributed pod within the route-time bound. The network contains 14 total free places, 4 accessible places and enough water for 14 places, against 15 total demand. The oracle must serve all four accessible requests and no more than ten of eleven general requests.
+These are synthetic expected values, not actual refuge locations/capacities or service observations.
 
-Negative controls include duplicate site/demand/route IDs, unknown site references, route blocked/unknown/over-time, accessibility not qualified, capacity below demand, protected water reserve deducted, and missing evidence references. A site with enough total capacity but no accessible free places must not satisfy accessible demand.
+## 6. Relationship to state-of-the-art and benchmark use
 
-## 7. Acceptance targets
+Recent urban heat network research models heat-risk sources and cooling-buffer sinks, identifies critical nodes/corridors and tests robustness against attack/random disruption. Recent refuge-location research considers time-sensitive accessibility, operating hours and shelter types. Static accessibility baselines such as 2SFCA answer a valuable spatial coverage question but do not by themselves prove time-specific shared capacity or water service.
 
-- zero double-counted seats across demand areas;
-- zero accessible demand served by general capacity;
-- zero water allocation beyond qualified remaining litres;
-- zero route edge accepted when blocked, unknown or beyond the declared travel-time bound;
-- zero missing route/capacity/water evidence accepted;
-- zero duplicate identities accepted;
-- 100% deterministic agreement with the finite max-flow oracle;
-- positive controls preserved and every unserved aggregate count reported.
+Use the stack together:
+- static 2SFCA / route reachability: spatial coverage baseline;
+- this max-throughput oracle: simple aggregate throughput reference;
+- highveld-refuge-network-feasibility: event-time, shared-resource, progressive max-min and time-series service policy engine;
+- highveld-refuge-capacity-oracle: bounded exact complete-witness check;
+- highveld-refuge-shared-capacity-audit: independent validation of a proposed plan.
 
-These are proposed benchmark targets. No field performance or equity outcome is implied.
+The next meaningful benchmark is a same-input cross-comparison across these engines with identical route graphs, site capacities, water commitments, anonymous demand cohorts and disruption chronology. Report total coverage, minimum cohort service ratio, accessible unmet demand, worst-area gap, water headroom, degradation duration, recovery time and common-cause cut sensitivity. Do not call the simple maximum-throughput result the fair allocation or operational answer.
 
-## 8. Industry comparison
+## 7. Acceptance and claim ceiling
 
-Recent urban-heat network work applies circuit/network analysis to heat-risk source and cooling-buffer sink relationships, identifies critical corridors and nodes, and tests robustness to attack/random disruption. Shelter-location research also evaluates time-sensitive accessibility, operating hours and typology. Highveld's narrow contribution is a reproducible *capacity and resource-constrained flow oracle* with explicit accessible-place and water budgets, coupled to the existing evidence-gated site availability filter.
+- zero site capacity double-counting;
+- zero accessible demand served through general capacity;
+- zero water budget overrun;
+- zero blocked, unknown or over-time route accepted;
+- zero accessibility evidence missing for accessible demand;
+- deterministic ordering and 100% known-answer agreement;
+- per-area unmet demand and route/accessibility exclusions visible.
 
-This does not replace Sol-Atlas route calculation, Symtropy event chronology, Mycelix resource commitments, or local public authority decisions. It turns their evidence into an independently checkable aggregate service-coverage result.
-
-**Status:** SYNTHETIC_AGGREGATE_FLOW_ORACLE_NOT_FIELD_VALIDATED. The fixture is fictional. No real demand areas, routes, sites, capacity, water or resident data are admitted.
+**Status:** SYNTHETIC_AGGREGATE_REFERENCE_COMPARATOR_NOT_FIELD_VALIDATED. No real site, demand area, route, capacity, water or resident data is admitted. This is not a reservation, assignment or emergency dispatch system.
