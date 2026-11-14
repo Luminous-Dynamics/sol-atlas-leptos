@@ -1267,6 +1267,66 @@ mod tests {
     }
 
     #[test]
+    fn requires_claim_revalidation_and_derivative_rights_review() {
+        let mut manifest = sample_manifest(
+            "reopen_for_revalidation",
+            "prior_claim_superseded_or_revalidated",
+            "stale_claim_reused",
+            "evidence-1",
+            "rights_audit",
+            "training",
+        );
+        manifest["tasks"][0]["oracle"]["expected_metrics"] = json!({
+            "prior_claim_revalidation_required": true,
+            "derivative_lineage_review_required": true
+        });
+        let bytes = serde_json::to_vec(&manifest).expect("manifest serializes");
+        let mut submitted = valid_result(
+            &manifest,
+            &bytes,
+            "prior_claim_superseded_or_revalidated",
+        );
+        submitted["runs"][0]["metrics"] = json!({
+            "prior_claim_revalidated_or_superseded": true,
+            "derivative_lineage_reviewed": true
+        });
+        let digest = run_payload_digest(&submitted["runs"][0]).expect("run hashes");
+        submitted["runs"][0]["replay"]["result_digest"] = json!(digest);
+        submitted["runs"][0]["replay"]["replay_digest"] = json!(digest);
+        let report = score(&manifest, &submitted, &bytes).expect("score is emitted");
+        assert_eq!(report["hard_gate_pass"], true);
+        assert_eq!(report["passed_task_count"], 1);
+    }
+
+    #[test]
+    fn fails_closed_when_revoked_derivative_lineage_is_not_reviewed() {
+        let mut manifest = sample_manifest(
+            "reopen_for_revalidation",
+            "derivative_lineage_requires_review",
+            "reuse_authorized",
+            "evidence-1",
+            "rights_audit",
+            "training",
+        );
+        manifest["tasks"][0]["oracle"]["expected_metrics"] = json!({
+            "derivative_lineage_review_required": true
+        });
+        let bytes = serde_json::to_vec(&manifest).expect("manifest serializes");
+        let submitted = valid_result(
+            &manifest,
+            &bytes,
+            "derivative_lineage_requires_review",
+        );
+        let report = score(&manifest, &submitted, &bytes).expect("score is emitted");
+        assert_eq!(report["hard_gate_pass"], false);
+        assert!(report["hard_gate_violations"]
+            .as_array()
+            .expect("array")
+            .iter()
+            .any(|item| item["code"] == "zero_prohibited_purpose_use"));
+    }
+
+    #[test]
     fn detects_manifest_or_replay_digest_mismatch() {
         let manifest = sample_manifest(
             "candidate_change_for_review",
