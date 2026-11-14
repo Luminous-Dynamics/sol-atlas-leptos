@@ -126,6 +126,185 @@ fn has_resource_path(
     false
 }
 
+fn has_resource_path_avoiding(
+    start: &str,
+    goal: &str,
+    resource_id: &str,
+    node_records: &BTreeMap<String, (String, String, Option<String>, Option<String>)>,
+    adjacency: &BTreeMap<String, Vec<String>>,
+    unavailable: &BTreeSet<String>,
+) -> bool {
+    if unavailable.contains(start) || unavailable.contains(goal) {
+        return false;
+    }
+    let mut pending = vec![start.to_owned()];
+    let mut visited = BTreeSet::new();
+    while let Some(current) = pending.pop() {
+        if current == goal {
+            return node_records
+                .get(&current)
+                .is_some_and(|record| record.1 == resource_id);
+        }
+        if !visited.insert(current.clone()) {
+            continue;
+        }
+        if let Some(next) = adjacency.get(&current) {
+            pending.extend(next.iter().filter(|id| !unavailable.contains(*id)).cloned());
+        }
+    }
+    false
+}
+
+fn propagate_dependencies(
+    unavailable: &mut BTreeSet<String>,
+    edges: &[Value],
+    relation: &str,
+) {
+    loop {
+        let mut additions = Vec::new();
+        for edge in edges {
+            if text_at(edge, "relation") != Some(relation) {
+                continue;
+            }
+            let from = text_at(edge, "from_node_id").unwrap_or("");
+            let to = text_at(edge, "to_node_id").unwrap_or("");
+            if unavailable.contains(from) && !unavailable.contains(to) {
+                additions.push(to.to_owned());
+            }
+        }
+        if additions.is_empty() {
+            break;
+        }
+        for id in additions {
+            unavailable.insert(id);
+        }
+    }
+}
+
+/// Replays only declared graph disruptions. It does not simulate flow, pressure,
+/// water quality, capacity, duration-based restoration or physical service.
+/// A recovery event never restores a path without separate restoration evidence.
+fn build_stress_impact_preview(
+    corpus: &Value,
+    fixture: &Value,
+    node_records: &BTreeMap<String, (String, String, Option<String>, Option<String>)>,
+    resource_flow: &BTreeMap<String, Vec<String>>,
+) -> Vec<Value> {
+    let mut case_results = Vec::new();
+    let edges = array_at(fixture, "edges").cloned().unwrap_or_default();
+    let services = array_at(fixture, "unit_services").cloned().unwrap_or_default();
+
+    for case in array_at(corpus, "cases").into_iter().flatten() {
+        let case_id = text_at(case, "case_id").unwrap_or("<missing-case>");
+        let expected = text_at(case, "expected_disposition").unwrap_or("<missing-disposition>");
+        let mut unavailable = BTreeSet::<String>::new();
+        let mut event_results = Vec::new();
+
+        for event in array_at(case, "events").into_iter().flatten() {
+            let event_id = text_at(event, "event_id").unwrap_or("<missing-event>");
+            let kind = text_at(event, "event_kind").unwrap_or("<missing-kind>");
+            let start_s = integer_at(event, "start_s").unwrap_or(-1);
+            let affected = array_at(event, "affected_node_ids")
+                .into_iter()
+                .flatten()
+                .filter_map(Value::as_str)
+                .map(str::to_owned)
+                .collect::<Vec<_>>();
+
+            match kind {
+                "baseline" | "recovery" | "quality_evidence_withdrawal" | "allocation_policy_change" => {}
+                _ => unavailable.extend(affected.iter().cloned()),
+            }
+            if kind == "power_interruption" {
+                propagate_dependencies(&mut unavailable, &edges, "power_dependency");
+            }
+            if kind == "communications_failure" || kind == "network_partition" {
+                propagate_dependencies(&mut unavailable, &edges, "control_dependency");
+            }
+
+            let mut service_results = Vec::new();
+            let mut affected_units = BTreeSet::<String>::new();
+            for service in &services {
+                let unit_id = text_at(service, "unit_id").unwrap_or("<missing-unit>");
+                let service_id = text_at(service, "service_id").unwrap_or("<missing-service>");
+                let boundary = text_at(service, "boundary_node_id").unwrap_or("<missing-boundary>");
+                let (start, goal, resource) = match service_id {
+                    "POTABLE-WATER-DELIVERY" => ("SRC-MUNICIPAL-WATER-UNQUALIFIED", boundary, "R-POTABLE-WATER"),
+                    "ELECTRICITY-DELIVERY" => ("SRC-ELECTRICITY", boundary, "R-ELECTRICITY"),
+                    "USEFUL-HOT-WATER" => ("PLANT-HOT-WATER", boundary, "R-USEFUL-THERMAL"),
+                    "WASTEWATER-REMOVAL" => (boundary, "OUTFALL-WASTEWATER-UNKNOWN", "R-WASTEWATER"),
+                    _ => ("", "", ""),
+                };
+                let connected = has_resource_path_avoiding(
+                    start,
+                    goal,
+                    resource,
+                    node_records,
+                    resource_flow,
+                    &unavailable,
+                );
+                let quality_credit = if kind == "quality_evidence_withdrawal"
+                    && matches!(resource, "R-POTABLE-WATER" | "R-NONPOTABLE-WATER")
+                {
+                    "WITHDRAWN_OR_UNKNOWN"
+                } else {
+                    "NO_QUALITY_CREDIT_FROM_TOPOLOGY"
+                };
+                let allocation_state = if kind == "allocation_policy_change" {
+                    "POLICY_REQUIRES_AUTHORITY_AND_RESIDENT_GOVERNANCE"
+                } else {
+                    "UNKNOWN"
+                };
+                if !connected {
+                    affected_units.insert(unit_id.to_owned());
+                }
+                service_results.push(json!({
+                    "unit_id": unit_id,
+                    "service_id": service_id,
+                    "boundary_node_id": boundary,
+                    "topology_connected": connected,
+                    "topology_state": if connected { "CONNECTED_ONLY_NOT_SERVICE_PASS" } else { "DISCONNECTED_BY_DECLARED_EVENT" },
+                    "quality_credit": quality_credit,
+                    "allocation_state": allocation_state
+                }));
+            }
+
+            let recovery_state = if kind == "recovery" {
+                "RESTORATION_NOT_ESTABLISHED_WITHOUT_MEASURED_RECOMMISSIONING"
+            } else {
+                "NOT_APPLICABLE"
+            };
+            let dependency_state = if matches!(kind, "communications_failure" | "network_partition") {
+                "CONTROL_DEPENDENCY_CLOSURE_ONLY; LOCAL_FALLBACK_UNKNOWN"
+            } else {
+                "NOT_APPLICABLE"
+            };
+            event_results.push(json!({
+                "event_id": event_id,
+                "event_kind": kind,
+                "start_s": start_s,
+                "affected_node_ids": affected,
+                "cumulative_unavailable_node_ids": unavailable.iter().cloned().collect::<Vec<_>>(),
+                "affected_unit_ids": affected_units.iter().cloned().collect::<Vec<_>>(),
+                "service_paths": service_results,
+                "recovery_state": recovery_state,
+                "dependency_state": dependency_state,
+                "claim_ceiling": "TOPOLOGY_IMPACT_PREVIEW_ONLY"
+            }));
+        }
+
+        case_results.push(json!({
+            "case_id": case_id,
+            "expected_disposition": expected,
+            "execution_state": "TOPOLOGY_IMPACT_PREVIEW",
+            "event_count": event_results.len(),
+            "events": event_results,
+            "claim_ceiling": "NO_HYDRAULIC_OR_PHYSICAL_SERVICE_RESULT"
+        }));
+    }
+    case_results
+}
+
 fn validate_stress_corpus(
     corpus: &Value,
     known_node_ids: &BTreeSet<String>,
@@ -615,6 +794,18 @@ fn validate(fixture: &Value, building: &Value, stress: &Value) -> Result<Value, 
         }
     }
 
+    let stress_impact_preview = build_stress_impact_preview(
+        stress,
+        fixture,
+        &node_records,
+        &resource_flow,
+    );
+    let topology_impact_event_count = stress_impact_preview
+        .iter()
+        .filter_map(|case| array_at(case, "events"))
+        .map(Vec::len)
+        .sum::<usize>();
+
     let report = json!({
         "audit_state": if errors.is_empty() { "MULTIFAMILY_SERVICE_TOPOLOGY_PASS" } else { "MULTIFAMILY_SERVICE_TOPOLOGY_FAIL" },
         "resource_count": resource_ids.len(),
@@ -625,6 +816,8 @@ fn validate(fixture: &Value, building: &Value, stress: &Value) -> Result<Value, 
         "event_count": event_ids.len(),
         "stress_scenario_count": stress_case_count,
         "stress_event_count": stress_event_count,
+        "topology_impact_event_count": topology_impact_event_count,
+        "stress_impact_preview": stress_impact_preview,
         "physical_delivery": "UNKNOWN",
         "resource_conservation": conservation_state,
         "allocation_policy": policy_state,
@@ -772,6 +965,51 @@ mod tests {
         stress["executed_cases"] = json!(16);
         stress["cases"][1]["events"][0]["probability"] = json!(0.5);
         assert!(validate(&fixture, &building, &stress).is_err());
+    }
+
+    #[test]
+    fn riser_isolation_preview_identifies_only_the_affected_floor_units() {
+        let (fixture, building, stress) = load_fixtures();
+        let report = validate(&fixture, &building, &stress).expect("topology impact preview");
+        let cases = report["stress_impact_preview"].as_array().unwrap();
+        let case = cases.iter().find(|case| case["case_id"] == "MF-SVC-005").unwrap();
+        let event = &case["events"][0];
+        let affected = event["affected_unit_ids"].as_array().unwrap()
+            .iter().filter_map(Value::as_str).collect::<BTreeSet<_>>();
+        assert_eq!(affected, BTreeSet::from(["U-001", "U-002"]));
+    }
+
+    #[test]
+    fn power_outage_propagates_to_electrically_dependent_plant() {
+        let (fixture, building, stress) = load_fixtures();
+        let report = validate(&fixture, &building, &stress).expect("power event preview");
+        let cases = report["stress_impact_preview"].as_array().unwrap();
+        let case = cases.iter().find(|case| case["case_id"] == "MF-SVC-004").unwrap();
+        let event = &case["events"][0];
+        let unavailable = event["cumulative_unavailable_node_ids"].as_array().unwrap()
+            .iter().filter_map(Value::as_str).collect::<BTreeSet<_>>();
+        assert!(unavailable.contains("PLANT-WATER-PUMP"));
+        assert!(unavailable.contains("PLANT-HOT-WATER"));
+    }
+
+    #[test]
+    fn recovery_event_does_not_restore_without_measured_recommissioning() {
+        let (fixture, building, stress) = load_fixtures();
+        let report = validate(&fixture, &building, &stress).expect("recovery event preview");
+        let cases = report["stress_impact_preview"].as_array().unwrap();
+        let case = cases.iter().find(|case| case["case_id"] == "MF-SVC-013").unwrap();
+        let recovery = &case["events"][0];
+        assert_eq!(recovery["recovery_state"], "RESTORATION_NOT_ESTABLISHED_WITHOUT_MEASURED_RECOMMISSIONING");
+    }
+
+    #[test]
+    fn topology_connected_never_becomes_a_service_pass() {
+        let (fixture, building, stress) = load_fixtures();
+        let report = validate(&fixture, &building, &stress).expect("positive topology preview");
+        let cases = report["stress_impact_preview"].as_array().unwrap();
+        let baseline = cases.iter().find(|case| case["case_id"] == "MF-SVC-001").unwrap();
+        let services = baseline["events"][0]["service_paths"].as_array().unwrap();
+        assert!(services.iter().all(|s| s["topology_state"] == "CONNECTED_ONLY_NOT_SERVICE_PASS"));
     }
 
     #[test]
