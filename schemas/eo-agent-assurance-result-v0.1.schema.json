@@ -209,6 +209,12 @@
             },
             "statistical_significance_claimed": {
               "type": "boolean"
+            },
+            "prior_claim_revalidated_or_superseded": {
+              "type": "boolean"
+            },
+            "derivative_lineage_reviewed": {
+              "type": "boolean"
             }
           }
         },
