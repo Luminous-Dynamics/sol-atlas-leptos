@@ -1,86 +1,61 @@
-# Terra Atlas — Planetary Energy Transition Visualization
+# Sol Atlas — application walkthrough
 
-**Live:** [atlas.luminousdynamics.io](https://atlas.luminousdynamics.io)
+Sol Atlas is an interactive planetary data globe built with Rust, Leptos, WebAssembly and WebGL2. The application is a layered visualization and planning prototype; it should not be interpreted as a continuously refreshed digital twin or an authoritative infrastructure registry.
 
-## What You're Looking At
+## Main globe
 
-Terra Atlas is an interactive 3D globe showing the global energy transition in real time. It visualizes three clocks ticking on fossil fuels:
+The root route (`/`) displays a navigable 3D globe with:
+- a WebGL2 globe canvas;
+- a selectable layer dock with source/provenance flyouts;
+- a HUD, item dossier, tooltips and planet navigation;
+- a 0–777-year planning timeline.
 
-### 1. The Geological Clock (Reserves)
-73 major fossil fuel deposits — oil fields, gas formations, coal basins, tar sands — positioned at their real geographic coordinates with reserves data from EIA, USGS, and BP Statistical Review. Marker size scales logarithmically with proven reserves (million barrels of oil equivalent).
+The timeline is a speculative scenario control. Its five epochs—Foundation, Growth, Maturation, Hardening and Deep Time—animate the planning layers. They are not forecasts of actual infrastructure construction, resource depletion or energy-system outcomes.
 
-### 2. The Thermodynamic Clock (EROI)
-Each deposit is color-coded by its **Energy Return on Investment** — the ratio of energy extracted to energy spent extracting:
-- **Green (>12:1)**: Can sustain modern civilization — Saudi Arabia's conventional fields
-- **Amber (5-12:1)**: Basic sustainability — US shale (Permian Basin, Bakken)
-- **Red (3-5:1)**: Marginal — Canadian tar sands (Athabasca, 4:1)
-- **Dark Red (<3:1)**: Thermodynamically unviable — Venezuelan Orinoco Belt
+## Data layers and provenance
 
-Use the **timeline slider** to scrub through time. Watch EROI decline as easy reserves deplete — oil at 2%/year, tar sands at 3%/year. What was green in 1950 turns amber by 2030, red by 2060.
+The application bundles JSON data under `assets/data/` at build time. Layer metadata separates three different relationships to reality:
 
-### 3. The Atmospheric Clock (Carbon)
-Translucent red halos surround each fossil deposit, sized by annual CO2 emissions (production × emission factor per fuel type). The economics module computes:
-- **Breakeven carbon price**: the carbon tax at which a deposit becomes unprofitable
-- **Social cost of carbon**: $51/ton (EPA 2024 central estimate)
-- Deposits that lose money when carbon is priced are **carbon-negative stranded assets**
+| Provenance | Interpretation | Examples |
+|---|---|---|
+| Observed | Source observations or dated source snapshots; not necessarily live | USGS earthquakes, NASA FIRMS active fires, NASA EONET storms/events, energy-site inventory |
+| Curated | Aggregated, estimated, schematic or illustrative content | Earth regions, supply chains, climate projects, fossil-deposit EROI, nuclear sites, critical infrastructure, cities and maritime chokepoints |
+| Scenario | Speculative planning content | Geothermal nodes, maglev corridors, Resontia vaults, Terra Lumina sites and robotics dispatch |
 
-## Data Layers (toggleable)
+The layer flyout is the authoritative in-app provenance cue. Snapshot dates, where supplied, are dates of bundled source material—not refresh guarantees.
 
-| Layer | Count | Source |
-|-------|-------|--------|
-| Energy Sites | 70 | EIA, clustered |
-| Geothermal Nodes | 18 | Global survey |
-| Maglev Corridors | 15 | Planned routes |
-| Terra Lumina Sites | 12 | Renewable mega-sites |
-| Resontia Vaults | 12 | Underground infrastructure |
-| Fossil Deposits | 73 | EIA, USGS, BP |
-| Nuclear / SMR | 50 | IAEA, planned SMR pipeline |
+The **Confluence** overlay is derived from spatial co-location among observed/curated layers. It is not a risk score, causal inference, proof of connection or statement of ownership.
 
-## The Transition Narrative
+## Reactor Twin demo
 
-Scrub the timeline from Year 0 to Year 300:
-- **Year 0**: Fossil deposits glow green (high EROI). Renewables are dim. No vaults or corridors.
-- **Year 50**: US shale turns amber. Tar sands turn red. First maglev corridors appear. Renewable sites brighten.
-- **Year 100**: Saudi oil enters amber zone (EROI ~7:1). Most coal still green. Vaults begin construction. Nuclear/SMR sites at peak brightness.
-- **Year 150**: All oil is amber or red. Renewable sites at full brightness. Full maglev grid. All 12 vaults operational.
-- **Year 300**: Fossil deposits invisible (EROI < 1:1). The globe shows only renewable infrastructure, nuclear, and deep civilization vaults.
+The separate route `/labs/reactor-twin` replays a recorded run of Symthaea's FissionTwin simulator.
 
-## Grid Stress Overlay (FEP)
+It is:
+- a static, pre-recorded simulation replay;
+- not connected to a real nuclear plant;
+- not live telemetry or a plant monitoring system;
+- explicitly labelled where a synthetic capstone value appears in the recorded scenario.
 
-16 major population centers show **allostatic load** — a measure of grid fragility from Symthaea's Free Energy Principle (FEP) engine:
-- **High-stress regions**: Elevated demand, aging infrastructure (0.7-0.8 load)
-- **Lagos / Cairo**: High stress (growing demand, limited infrastructure)
-- **Tokyo / Seoul**: Low stress (diversified, well-maintained grid)
+Keep this demo separate from the globe's Nuclear layer, which contains a different curated operating-plant dataset.
 
-As fossil EROI declines on the timeline, grid stress increases everywhere — but regions with high renewable penetration stabilize faster.
+## Current limitations
 
-## P2P Energy Trading
+- Most content is bundled JSON and may become stale until refreshed and reviewed.
+- Some layers are estimates or schematic representations.
+- Scenario layers and the timeline are speculative, not operational plans.
+- Marker co-location is not proof of physical connection.
+- The application does not provide certified underground utility location, PAS 128 survey quality, owner-accepted network records or excavation clearance.
 
-Animated green arcs show simulated peer-to-peer energy trades between renewable sites — surplus solar kWh flowing between neighborhoods via the Mycelix Holochain DHT. When a conductor is running, these arcs show real trades.
+The Earth Observability programme is active research in draft public PRs. Its sensor qualification, utility inference, asset scoring and field validation capabilities are not yet part of the default-branch application.
 
-## Technical Architecture
+## Development
 
-```
-terra-atlas-core (Rust)     — shared types, math, economics, 51 tests
-terra-atlas-leptos (WASM)   — WebGL2 renderer, live at atlas.luminousdynamics.io
-terra-atlas-bevy (Bevy 0.18) — wgpu renderer, embedded in Symtropy game
-mycelix-atlas (Holochain)   — DHT storage for all data layers
+```bash
+rustup target add wasm32-unknown-unknown
+cargo install trunk --locked
+trunk serve
 ```
 
-The same data flows to both renderers. The Holochain bridge (feature-gated) enables real-time decentralized data.
+The development server uses port 8091, as configured in `Trunk.toml`.
 
-## Economics Engine
-
-Pure Rust module computing per-deposit:
-- Annual revenue, extraction cost, carbon cost
-- ROI with and without carbon pricing
-- Breakeven carbon price ($/ton CO2)
-- IRR via Newton-Raphson
-- Years to depletion
-
-**Key insight**: Athabasca tar sands at $45/boe extraction cost and 0.58 tCO2/boe emission factor becomes **carbon-negative** at just $17/ton carbon price — well below the EPA's $51 social cost.
-
----
-
-*Built with consciousness-first technology serving all beings.*
-*Luminous Dynamics — luminousdynamics.org*
+For architecture, checks, research links and contribution guidance, see [README.md](README.md).
