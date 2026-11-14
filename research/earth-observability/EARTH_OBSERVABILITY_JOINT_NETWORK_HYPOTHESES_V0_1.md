@@ -108,7 +108,7 @@ The benchmark therefore needs multiple independent score layers.
 
 For finite synthetic worlds with unambiguous adjudicated truth, score the complete probability distribution, not only the maximum a-posteriori world.
 
-- Use joint logarithmic score and multiclass Brier score for the mutually exclusive world categories.
+- Use the executable `score_network_hypothesis_set` scorer in `sol-atlas-core/src/network_hypotheses.rs` to compute negative log probability and multiclass Brier score over every listed world plus the residual-unknown category. A zero-probability truth is an explicit scoring error (infinite log loss), not silently clipped or renormalized.
 - Include the residual/other category. If the true world is not represented by a listed hypothesis, it must not be forced onto the nearest listed graph.
 - Score asset existence, event association, edge existence and junction status as separately labelled marginal outcomes.
 - Use geometry-appropriate distributional scores and interval coverage for uncertain positions/depths.
