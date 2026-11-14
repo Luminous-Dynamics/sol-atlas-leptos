@@ -352,8 +352,7 @@ fn adapt_primary_network_case(primary: &Value) -> Result<Value, Vec<String>> {
                     "free_total_places":free_total,
                     "free_accessible_places":free_accessible,
                     "free_safe_water_l":free_water,
-                    "availability_evidence_ref":text_at(site,"site_status_freshness")
-                        .and_then(|f|text_at(f,"source_event_id")).unwrap_or_default(),
+                    "availability_evidence_ref":text_at(&site["site_status_freshness"],"source_event_id").unwrap_or_default(),
                     "capacity_evidence_ref":text_at(site,"capacity_evidence_ref").unwrap_or_default(),
                     "water_evidence_ref":text_at(site,"water_evidence_ref").unwrap_or_default()
                 }));
