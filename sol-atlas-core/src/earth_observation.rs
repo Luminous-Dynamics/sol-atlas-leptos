@@ -1742,6 +1742,27 @@ mod tests {
     }
 
     #[test]
+    fn checked_in_cross_sensor_bridge_fixture_deserializes_and_revalidates() {
+        let fixture = include_str!("../tests/fixtures/earth_observation/cross_sensor_comparability_bundle.json");
+        let bundle: EvidenceBundle = serde_json::from_str(fixture).unwrap();
+        assert_eq!(bundle.observations().len(), 2);
+        assert_eq!(bundle.claims().len(), 1);
+        let claim = &bundle.claims()[0];
+        let receipt = claim.cross_system_comparability_receipt().unwrap();
+        assert_eq!(
+            receipt.observation_ids(),
+            &["obs-2024".to_string(), "obs-2025".to_string()]
+        );
+        assert_eq!(receipt.support_id(), "support-jukskei-synthetic");
+        assert_eq!(receipt.target_class_id(), "vegetation-loss");
+        assert_eq!(receipt.ontology_version(), "fixture-ontology-v1");
+        assert_eq!(
+            bundle.observations()[1].system_signature().platform_id(),
+            "sentinel-2b"
+        );
+    }
+
+    #[test]
     fn checked_in_no_change_fixture_deserializes_and_revalidates() {
         let fixture = include_str!("../tests/fixtures/earth_observation/valid_no_change_bundle.json");
         let bundle: EvidenceBundle = serde_json::from_str(fixture).unwrap();
