@@ -308,6 +308,9 @@
                 },
                 "prior_claim_revalidation_required": {
                   "type": "boolean"
+                },
+                "derivative_lineage_review_required": {
+                  "type": "boolean"
                 }
               }
             }
