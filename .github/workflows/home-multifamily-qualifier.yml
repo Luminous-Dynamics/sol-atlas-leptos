@@ -1,4 +1,4 @@
-name: Home multi-family synthetic qualifiers and stress manifest
+name: Home multi-family geometry, resident, service and room qualifiers
 
 on:
   pull_request:
