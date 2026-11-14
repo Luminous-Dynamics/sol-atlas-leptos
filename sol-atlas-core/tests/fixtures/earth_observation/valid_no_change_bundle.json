@@ -76,7 +76,14 @@
         "value": 0.05,
         "unit": "fraction"
       },
-      "detection_qualification_receipt_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+      "detection_qualification_receipt_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "detection_qualification": {
+        "footprint_covers_target": true,
+        "calibration_valid": true,
+        "target_in_validated_domain": true,
+        "probability_of_detection": 0.99,
+        "minimum_required_probability": 0.95
+      }
     }
   ]
 }
