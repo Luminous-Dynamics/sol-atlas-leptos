@@ -1,0 +1,1218 @@
+{
+  "schema_version": "multifamily-service-distribution/0.1",
+  "profile_id": "SYN-MF-SERVICE-DISTRIBUTION-001",
+  "maturity": "synthetic_contract",
+  "source_binding": {
+    "building_candidate_ref": {
+      "kind": "synthetic_multi_family_building",
+      "id": "SYN-MF-COURTYARD-004",
+      "revision": null,
+      "digest": null
+    },
+    "design_revision_ref": {
+      "kind": "synthetic_design_revision",
+      "id": "urn:synthetic:mf:design-revision:unbound",
+      "revision": null,
+      "digest": null
+    },
+    "jurisdiction_profile_ref": {
+      "kind": "jurisdiction_profile",
+      "id": "urn:synthetic:jurisdiction:unselected",
+      "revision": null,
+      "digest": null
+    }
+  },
+  "resources": [
+    {
+      "resource_id": "R-POTABLE-WATER",
+      "resource_class": "potable_water",
+      "state": "unknown",
+      "quality_state": "unknown",
+      "base_unit": null,
+      "owner_ref": null,
+      "evidence_refs": []
+    },
+    {
+      "resource_id": "R-NONPOTABLE-WATER",
+      "resource_class": "non_potable_water",
+      "state": "unknown",
+      "quality_state": "unknown",
+      "base_unit": null,
+      "owner_ref": null,
+      "evidence_refs": []
+    },
+    {
+      "resource_id": "R-ELECTRICITY",
+      "resource_class": "electricity",
+      "state": "unknown",
+      "quality_state": "not_applicable",
+      "base_unit": null,
+      "owner_ref": null,
+      "evidence_refs": []
+    },
+    {
+      "resource_id": "R-USEFUL-THERMAL",
+      "resource_class": "useful_thermal",
+      "state": "unknown",
+      "quality_state": "not_applicable",
+      "base_unit": null,
+      "owner_ref": null,
+      "evidence_refs": []
+    },
+    {
+      "resource_id": "R-WASTEWATER",
+      "resource_class": "wastewater",
+      "state": "unknown",
+      "quality_state": "unknown",
+      "base_unit": null,
+      "owner_ref": null,
+      "evidence_refs": []
+    }
+  ],
+  "nodes": [
+    {
+      "node_id": "SRC-MUNICIPAL-POTABLE",
+      "node_kind": "source",
+      "resource_id": "R-POTABLE-WATER",
+      "floor_id": null,
+      "unit_id": null,
+      "state": "unknown",
+      "capacity": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      },
+      "measurement_ref": null,
+      "evidence_refs": []
+    },
+    {
+      "node_id": "STORAGE-POTABLE",
+      "node_kind": "storage",
+      "resource_id": "R-POTABLE-WATER",
+      "floor_id": null,
+      "unit_id": null,
+      "state": "unknown",
+      "capacity": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      },
+      "measurement_ref": null,
+      "evidence_refs": []
+    },
+    {
+      "node_id": "PLANT-WATER-PUMP",
+      "node_kind": "plant",
+      "resource_id": "R-POTABLE-WATER",
+      "floor_id": null,
+      "unit_id": null,
+      "state": "unknown",
+      "capacity": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      },
+      "measurement_ref": null,
+      "evidence_refs": []
+    },
+    {
+      "node_id": "ZONE-F0-WATER",
+      "node_kind": "distribution_zone",
+      "resource_id": "R-POTABLE-WATER",
+      "floor_id": "F0",
+      "unit_id": null,
+      "state": "unknown",
+      "capacity": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      },
+      "measurement_ref": null,
+      "evidence_refs": []
+    },
+    {
+      "node_id": "ZONE-F1-WATER",
+      "node_kind": "distribution_zone",
+      "resource_id": "R-POTABLE-WATER",
+      "floor_id": "F1",
+      "unit_id": null,
+      "state": "unknown",
+      "capacity": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      },
+      "measurement_ref": null,
+      "evidence_refs": []
+    },
+    {
+      "node_id": "RISER-F0-WATER",
+      "node_kind": "riser",
+      "resource_id": "R-POTABLE-WATER",
+      "floor_id": "F0",
+      "unit_id": null,
+      "state": "unknown",
+      "capacity": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      },
+      "measurement_ref": null,
+      "evidence_refs": []
+    },
+    {
+      "node_id": "RISER-F1-WATER",
+      "node_kind": "riser",
+      "resource_id": "R-POTABLE-WATER",
+      "floor_id": "F1",
+      "unit_id": null,
+      "state": "unknown",
+      "capacity": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      },
+      "measurement_ref": null,
+      "evidence_refs": []
+    },
+    {
+      "node_id": "SRC-ELECTRICITY",
+      "node_kind": "source",
+      "resource_id": "R-ELECTRICITY",
+      "floor_id": null,
+      "unit_id": null,
+      "state": "unknown",
+      "capacity": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      },
+      "measurement_ref": null,
+      "evidence_refs": []
+    },
+    {
+      "node_id": "METER-BUILDING-ELECTRICITY",
+      "node_kind": "meter",
+      "resource_id": "R-ELECTRICITY",
+      "floor_id": null,
+      "unit_id": null,
+      "state": "unknown",
+      "capacity": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      },
+      "measurement_ref": null,
+      "evidence_refs": []
+    },
+    {
+      "node_id": "PLANT-HOT-WATER",
+      "node_kind": "plant",
+      "resource_id": "R-USEFUL-THERMAL",
+      "floor_id": null,
+      "unit_id": null,
+      "state": "unknown",
+      "capacity": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      },
+      "measurement_ref": null,
+      "evidence_refs": []
+    },
+    {
+      "node_id": "BOUNDARY-U-001-WATER",
+      "node_kind": "unit_boundary",
+      "resource_id": "R-POTABLE-WATER",
+      "floor_id": "F0",
+      "unit_id": "U-001",
+      "state": "unknown",
+      "capacity": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      },
+      "measurement_ref": null,
+      "evidence_refs": []
+    },
+    {
+      "node_id": "BOUNDARY-U-001-ELECTRICITY",
+      "node_kind": "unit_boundary",
+      "resource_id": "R-ELECTRICITY",
+      "floor_id": "F0",
+      "unit_id": "U-001",
+      "state": "unknown",
+      "capacity": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      },
+      "measurement_ref": null,
+      "evidence_refs": []
+    },
+    {
+      "node_id": "BOUNDARY-U-001-THERMAL",
+      "node_kind": "unit_boundary",
+      "resource_id": "R-USEFUL-THERMAL",
+      "floor_id": "F0",
+      "unit_id": "U-001",
+      "state": "unknown",
+      "capacity": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      },
+      "measurement_ref": null,
+      "evidence_refs": []
+    },
+    {
+      "node_id": "BOUNDARY-U-002-WATER",
+      "node_kind": "unit_boundary",
+      "resource_id": "R-POTABLE-WATER",
+      "floor_id": "F0",
+      "unit_id": "U-002",
+      "state": "unknown",
+      "capacity": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      },
+      "measurement_ref": null,
+      "evidence_refs": []
+    },
+    {
+      "node_id": "BOUNDARY-U-002-ELECTRICITY",
+      "node_kind": "unit_boundary",
+      "resource_id": "R-ELECTRICITY",
+      "floor_id": "F0",
+      "unit_id": "U-002",
+      "state": "unknown",
+      "capacity": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      },
+      "measurement_ref": null,
+      "evidence_refs": []
+    },
+    {
+      "node_id": "BOUNDARY-U-002-THERMAL",
+      "node_kind": "unit_boundary",
+      "resource_id": "R-USEFUL-THERMAL",
+      "floor_id": "F0",
+      "unit_id": "U-002",
+      "state": "unknown",
+      "capacity": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      },
+      "measurement_ref": null,
+      "evidence_refs": []
+    },
+    {
+      "node_id": "BOUNDARY-U-003-WATER",
+      "node_kind": "unit_boundary",
+      "resource_id": "R-POTABLE-WATER",
+      "floor_id": "F1",
+      "unit_id": "U-003",
+      "state": "unknown",
+      "capacity": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      },
+      "measurement_ref": null,
+      "evidence_refs": []
+    },
+    {
+      "node_id": "BOUNDARY-U-003-ELECTRICITY",
+      "node_kind": "unit_boundary",
+      "resource_id": "R-ELECTRICITY",
+      "floor_id": "F1",
+      "unit_id": "U-003",
+      "state": "unknown",
+      "capacity": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      },
+      "measurement_ref": null,
+      "evidence_refs": []
+    },
+    {
+      "node_id": "BOUNDARY-U-003-THERMAL",
+      "node_kind": "unit_boundary",
+      "resource_id": "R-USEFUL-THERMAL",
+      "floor_id": "F1",
+      "unit_id": "U-003",
+      "state": "unknown",
+      "capacity": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      },
+      "measurement_ref": null,
+      "evidence_refs": []
+    },
+    {
+      "node_id": "BOUNDARY-U-004-WATER",
+      "node_kind": "unit_boundary",
+      "resource_id": "R-POTABLE-WATER",
+      "floor_id": "F1",
+      "unit_id": "U-004",
+      "state": "unknown",
+      "capacity": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      },
+      "measurement_ref": null,
+      "evidence_refs": []
+    },
+    {
+      "node_id": "BOUNDARY-U-004-ELECTRICITY",
+      "node_kind": "unit_boundary",
+      "resource_id": "R-ELECTRICITY",
+      "floor_id": "F1",
+      "unit_id": "U-004",
+      "state": "unknown",
+      "capacity": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      },
+      "measurement_ref": null,
+      "evidence_refs": []
+    },
+    {
+      "node_id": "BOUNDARY-U-004-THERMAL",
+      "node_kind": "unit_boundary",
+      "resource_id": "R-USEFUL-THERMAL",
+      "floor_id": "F1",
+      "unit_id": "U-004",
+      "state": "unknown",
+      "capacity": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      },
+      "measurement_ref": null,
+      "evidence_refs": []
+    }
+  ],
+  "edges": [
+    {
+      "edge_id": "E-WATER-SOURCE-STORAGE",
+      "from_node_id": "SRC-MUNICIPAL-POTABLE",
+      "to_node_id": "STORAGE-POTABLE",
+      "relation": "resource_flow",
+      "state": "declared",
+      "loss": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      }
+    },
+    {
+      "edge_id": "E-WATER-STORAGE-PUMP",
+      "from_node_id": "STORAGE-POTABLE",
+      "to_node_id": "PLANT-WATER-PUMP",
+      "relation": "resource_flow",
+      "state": "declared",
+      "loss": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      }
+    },
+    {
+      "edge_id": "E-WATER-PUMP-F0",
+      "from_node_id": "PLANT-WATER-PUMP",
+      "to_node_id": "ZONE-F0-WATER",
+      "relation": "resource_flow",
+      "state": "declared",
+      "loss": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      }
+    },
+    {
+      "edge_id": "E-WATER-PUMP-F1",
+      "from_node_id": "PLANT-WATER-PUMP",
+      "to_node_id": "ZONE-F1-WATER",
+      "relation": "resource_flow",
+      "state": "declared",
+      "loss": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      }
+    },
+    {
+      "edge_id": "E-WATER-F0-RISER",
+      "from_node_id": "ZONE-F0-WATER",
+      "to_node_id": "RISER-F0-WATER",
+      "relation": "resource_flow",
+      "state": "declared",
+      "loss": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      }
+    },
+    {
+      "edge_id": "E-WATER-F1-RISER",
+      "from_node_id": "ZONE-F1-WATER",
+      "to_node_id": "RISER-F1-WATER",
+      "relation": "resource_flow",
+      "state": "declared",
+      "loss": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      }
+    },
+    {
+      "edge_id": "E-ELECTRICITY-METER",
+      "from_node_id": "SRC-ELECTRICITY",
+      "to_node_id": "METER-BUILDING-ELECTRICITY",
+      "relation": "resource_flow",
+      "state": "declared",
+      "loss": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      }
+    },
+    {
+      "edge_id": "E-ELECTRICITY-PUMP-DEPENDENCY",
+      "from_node_id": "SRC-ELECTRICITY",
+      "to_node_id": "PLANT-WATER-PUMP",
+      "relation": "power_dependency",
+      "state": "declared",
+      "loss": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      }
+    },
+    {
+      "edge_id": "E-ELECTRICITY-THERMAL-DEPENDENCY",
+      "from_node_id": "SRC-ELECTRICITY",
+      "to_node_id": "PLANT-HOT-WATER",
+      "relation": "power_dependency",
+      "state": "declared",
+      "loss": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      }
+    },
+    {
+      "edge_id": "E-F0-U-001",
+      "from_node_id": "RISER-F0-WATER",
+      "to_node_id": "BOUNDARY-U-001-WATER",
+      "relation": "resource_flow",
+      "state": "declared",
+      "loss": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      }
+    },
+    {
+      "edge_id": "E-F0-U-002",
+      "from_node_id": "RISER-F0-WATER",
+      "to_node_id": "BOUNDARY-U-002-WATER",
+      "relation": "resource_flow",
+      "state": "declared",
+      "loss": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      }
+    },
+    {
+      "edge_id": "E-F1-U-003",
+      "from_node_id": "RISER-F1-WATER",
+      "to_node_id": "BOUNDARY-U-003-WATER",
+      "relation": "resource_flow",
+      "state": "declared",
+      "loss": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      }
+    },
+    {
+      "edge_id": "E-F1-U-004",
+      "from_node_id": "RISER-F1-WATER",
+      "to_node_id": "BOUNDARY-U-004-WATER",
+      "relation": "resource_flow",
+      "state": "declared",
+      "loss": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      }
+    },
+    {
+      "edge_id": "E-POWER-U-001",
+      "from_node_id": "METER-BUILDING-ELECTRICITY",
+      "to_node_id": "BOUNDARY-U-001-ELECTRICITY",
+      "relation": "resource_flow",
+      "state": "declared",
+      "loss": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      }
+    },
+    {
+      "edge_id": "E-POWER-U-002",
+      "from_node_id": "METER-BUILDING-ELECTRICITY",
+      "to_node_id": "BOUNDARY-U-002-ELECTRICITY",
+      "relation": "resource_flow",
+      "state": "declared",
+      "loss": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      }
+    },
+    {
+      "edge_id": "E-POWER-U-003",
+      "from_node_id": "METER-BUILDING-ELECTRICITY",
+      "to_node_id": "BOUNDARY-U-003-ELECTRICITY",
+      "relation": "resource_flow",
+      "state": "declared",
+      "loss": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      }
+    },
+    {
+      "edge_id": "E-POWER-U-004",
+      "from_node_id": "METER-BUILDING-ELECTRICITY",
+      "to_node_id": "BOUNDARY-U-004-ELECTRICITY",
+      "relation": "resource_flow",
+      "state": "declared",
+      "loss": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      }
+    },
+    {
+      "edge_id": "E-THERMAL-U-001",
+      "from_node_id": "PLANT-HOT-WATER",
+      "to_node_id": "BOUNDARY-U-001-THERMAL",
+      "relation": "resource_flow",
+      "state": "declared",
+      "loss": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      }
+    },
+    {
+      "edge_id": "E-THERMAL-U-002",
+      "from_node_id": "PLANT-HOT-WATER",
+      "to_node_id": "BOUNDARY-U-002-THERMAL",
+      "relation": "resource_flow",
+      "state": "declared",
+      "loss": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      }
+    },
+    {
+      "edge_id": "E-THERMAL-U-003",
+      "from_node_id": "PLANT-HOT-WATER",
+      "to_node_id": "BOUNDARY-U-003-THERMAL",
+      "relation": "resource_flow",
+      "state": "declared",
+      "loss": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      }
+    },
+    {
+      "edge_id": "E-THERMAL-U-004",
+      "from_node_id": "PLANT-HOT-WATER",
+      "to_node_id": "BOUNDARY-U-004-THERMAL",
+      "relation": "resource_flow",
+      "state": "declared",
+      "loss": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      }
+    }
+  ],
+  "unit_services": [
+    {
+      "unit_id": "U-001",
+      "service_id": "POTABLE-WATER-DELIVERY",
+      "resource_id": "R-POTABLE-WATER",
+      "boundary_node_id": "BOUNDARY-U-001-WATER",
+      "demand": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      },
+      "delivered": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      },
+      "service_floor": "unknown",
+      "quality_state": "unknown",
+      "evidence_refs": []
+    },
+    {
+      "unit_id": "U-001",
+      "service_id": "ELECTRICITY-DELIVERY",
+      "resource_id": "R-ELECTRICITY",
+      "boundary_node_id": "BOUNDARY-U-001-ELECTRICITY",
+      "demand": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      },
+      "delivered": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      },
+      "service_floor": "unknown",
+      "quality_state": "unknown",
+      "evidence_refs": []
+    },
+    {
+      "unit_id": "U-001",
+      "service_id": "USEFUL-HOT-WATER",
+      "resource_id": "R-USEFUL-THERMAL",
+      "boundary_node_id": "BOUNDARY-U-001-THERMAL",
+      "demand": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      },
+      "delivered": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      },
+      "service_floor": "unknown",
+      "quality_state": "unknown",
+      "evidence_refs": []
+    },
+    {
+      "unit_id": "U-002",
+      "service_id": "POTABLE-WATER-DELIVERY",
+      "resource_id": "R-POTABLE-WATER",
+      "boundary_node_id": "BOUNDARY-U-002-WATER",
+      "demand": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      },
+      "delivered": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      },
+      "service_floor": "unknown",
+      "quality_state": "unknown",
+      "evidence_refs": []
+    },
+    {
+      "unit_id": "U-002",
+      "service_id": "ELECTRICITY-DELIVERY",
+      "resource_id": "R-ELECTRICITY",
+      "boundary_node_id": "BOUNDARY-U-002-ELECTRICITY",
+      "demand": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      },
+      "delivered": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      },
+      "service_floor": "unknown",
+      "quality_state": "unknown",
+      "evidence_refs": []
+    },
+    {
+      "unit_id": "U-002",
+      "service_id": "USEFUL-HOT-WATER",
+      "resource_id": "R-USEFUL-THERMAL",
+      "boundary_node_id": "BOUNDARY-U-002-THERMAL",
+      "demand": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      },
+      "delivered": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      },
+      "service_floor": "unknown",
+      "quality_state": "unknown",
+      "evidence_refs": []
+    },
+    {
+      "unit_id": "U-003",
+      "service_id": "POTABLE-WATER-DELIVERY",
+      "resource_id": "R-POTABLE-WATER",
+      "boundary_node_id": "BOUNDARY-U-003-WATER",
+      "demand": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      },
+      "delivered": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      },
+      "service_floor": "unknown",
+      "quality_state": "unknown",
+      "evidence_refs": []
+    },
+    {
+      "unit_id": "U-003",
+      "service_id": "ELECTRICITY-DELIVERY",
+      "resource_id": "R-ELECTRICITY",
+      "boundary_node_id": "BOUNDARY-U-003-ELECTRICITY",
+      "demand": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      },
+      "delivered": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      },
+      "service_floor": "unknown",
+      "quality_state": "unknown",
+      "evidence_refs": []
+    },
+    {
+      "unit_id": "U-003",
+      "service_id": "USEFUL-HOT-WATER",
+      "resource_id": "R-USEFUL-THERMAL",
+      "boundary_node_id": "BOUNDARY-U-003-THERMAL",
+      "demand": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      },
+      "delivered": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      },
+      "service_floor": "unknown",
+      "quality_state": "unknown",
+      "evidence_refs": []
+    },
+    {
+      "unit_id": "U-004",
+      "service_id": "POTABLE-WATER-DELIVERY",
+      "resource_id": "R-POTABLE-WATER",
+      "boundary_node_id": "BOUNDARY-U-004-WATER",
+      "demand": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      },
+      "delivered": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      },
+      "service_floor": "unknown",
+      "quality_state": "unknown",
+      "evidence_refs": []
+    },
+    {
+      "unit_id": "U-004",
+      "service_id": "ELECTRICITY-DELIVERY",
+      "resource_id": "R-ELECTRICITY",
+      "boundary_node_id": "BOUNDARY-U-004-ELECTRICITY",
+      "demand": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      },
+      "delivered": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      },
+      "service_floor": "unknown",
+      "quality_state": "unknown",
+      "evidence_refs": []
+    },
+    {
+      "unit_id": "U-004",
+      "service_id": "USEFUL-HOT-WATER",
+      "resource_id": "R-USEFUL-THERMAL",
+      "boundary_node_id": "BOUNDARY-U-004-THERMAL",
+      "demand": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      },
+      "delivered": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      },
+      "service_floor": "unknown",
+      "quality_state": "unknown",
+      "evidence_refs": []
+    }
+  ],
+  "events": [
+    {
+      "event_id": "EV-BASELINE-001",
+      "scenario_id": "SCENARIO-BASELINE",
+      "event_kind": "baseline",
+      "start_s": 0,
+      "duration_s": 3600,
+      "affected_node_ids": [],
+      "state": "declared_synthetic",
+      "probability": null
+    },
+    {
+      "event_id": "EV-WATER-OUTAGE-001",
+      "scenario_id": "SCENARIO-MUNICIPAL-WATER-OUTAGE",
+      "event_kind": "source_interruption",
+      "start_s": 3600,
+      "duration_s": 7200,
+      "affected_node_ids": [
+        "SRC-MUNICIPAL-POTABLE"
+      ],
+      "state": "declared_synthetic",
+      "probability": null
+    },
+    {
+      "event_id": "EV-PUMP-FAIL-001",
+      "scenario_id": "SCENARIO-COMMON-PUMP-FAILURE",
+      "event_kind": "plant_failure",
+      "start_s": 7200,
+      "duration_s": 3600,
+      "affected_node_ids": [
+        "PLANT-WATER-PUMP",
+        "ZONE-F0-WATER",
+        "ZONE-F1-WATER"
+      ],
+      "state": "declared_synthetic",
+      "probability": null
+    },
+    {
+      "event_id": "EV-POWER-OUTAGE-001",
+      "scenario_id": "SCENARIO-COMMON-POWER-OUTAGE",
+      "event_kind": "power_interruption",
+      "start_s": 10800,
+      "duration_s": 7200,
+      "affected_node_ids": [
+        "SRC-ELECTRICITY",
+        "METER-BUILDING-ELECTRICITY"
+      ],
+      "state": "declared_synthetic",
+      "probability": null
+    },
+    {
+      "event_id": "EV-F0-RISER-ISOLATION-001",
+      "scenario_id": "SCENARIO-FLOOR-0-RISER-ISOLATION",
+      "event_kind": "riser_isolation",
+      "start_s": 14400,
+      "duration_s": 3600,
+      "affected_node_ids": [
+        "RISER-F0-WATER"
+      ],
+      "state": "declared_synthetic",
+      "probability": null
+    },
+    {
+      "event_id": "EV-QUALITY-WITHDRAWAL-001",
+      "scenario_id": "SCENARIO-WATER-QUALITY-EVIDENCE-WITHDRAWAL",
+      "event_kind": "quality_evidence_withdrawal",
+      "start_s": 18000,
+      "duration_s": null,
+      "affected_node_ids": [
+        "SRC-MUNICIPAL-POTABLE",
+        "STORAGE-POTABLE"
+      ],
+      "state": "declared_synthetic",
+      "probability": null
+    }
+  ],
+  "allocation_policy": {
+    "policy_id": "SYN-ALLOC-POLICY-UNSET",
+    "state": "unknown",
+    "authority_ref": null,
+    "resident_notice_state": "unknown",
+    "rules_ref": null
+  },
+  "accounting": {
+    "resource_id": "R-POTABLE-WATER",
+    "observation_window": null,
+    "source_input": {
+      "state": "unknown",
+      "lower": null,
+      "upper": null,
+      "unit": null,
+      "boundary_ref": null,
+      "evidence_ref": null
+    },
+    "storage_change": {
+      "state": "unknown",
+      "lower": null,
+      "upper": null,
+      "unit": null,
+      "boundary_ref": null,
+      "evidence_ref": null
+    },
+    "unit_delivered": {
+      "state": "unknown",
+      "lower": null,
+      "upper": null,
+      "unit": null,
+      "boundary_ref": null,
+      "evidence_ref": null
+    },
+    "declared_loss": {
+      "state": "unknown",
+      "lower": null,
+      "upper": null,
+      "unit": null,
+      "boundary_ref": null,
+      "evidence_ref": null
+    },
+    "unresolved_residual": {
+      "state": "unknown",
+      "lower": null,
+      "upper": null,
+      "unit": null,
+      "boundary_ref": null,
+      "evidence_ref": null
+    },
+    "conservation_state": "unknown"
+  },
+  "claim_ceiling": "This record establishes only declared synthetic service topology and boundary identities. It does not establish source capacity, water quality/potability, pressure/flow, electrical safety/capacity, useful thermal delivery, apartment service availability, fairness, code compliance or operational resilience."
+}
