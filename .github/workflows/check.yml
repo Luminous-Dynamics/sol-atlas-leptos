@@ -69,6 +69,10 @@ jobs:
         run: cargo test --bin home-spatial-intent-qualifier
       - name: Audit paired symbolic home graphs
         run: cargo run --bin home-spatial-intent-qualifier -- --self-test
+      - name: Test home spatial intent graph qualifier
+        run: cargo test --bin home-spatial-intent-qualifier
+      - name: Audit paired symbolic home graphs
+        run: cargo run --bin home-spatial-intent-qualifier -- --self-test
       - name: Test home-freedom synthetic qualifier
         run: cargo test --bin home-freedom-qualifier
       - name: Audit the paired synthetic home case
