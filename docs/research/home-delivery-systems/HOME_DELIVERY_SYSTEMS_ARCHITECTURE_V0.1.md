@@ -41,6 +41,7 @@ These are not one linear certainty ladder. The compiler should retain parallel a
 | Spatial intent | [Spatial intent graph PR #827](https://github.com/Luminous-Dynamics/sol-atlas-leptos/pull/827); [resident spatial programme #833](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/833) | Activity, relationship, privacy and resident-stated functional constraints |
 | Geometric qualification | [Geometric layout PR #831](https://github.com/Luminous-Dynamics/sol-atlas-leptos/pull/831) | Current scope is synthetic orthogonal 2D geometry, integer millimetres, openings as connectivity portals; not architectural or code approval |
 | Multi-family housing | [Multi-family compiler #840](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/840); [benchmark protocol](MULTIFAMILY_HOUSING_BENCHMARK_V0.1.md); [building schema](multifamily-building.schema.json) | First synthetic multi-floor / multi-unit interface; no fire, accessibility, daylight, acoustic, structural or service-capacity authority |
+| Multi-family resident programme | `multifamily-resident-programme.schema.json` and `multifamily-resident-programme-synthetic-v0.1.json`; [resident spatial programme #833](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/833) | Binds activities, relationships, hard requirements and preferences to each apartment unit; synthetic only, with dimensions/occupancy/access/service demand left unknown |
 | Multi-family shared services | [Per-unit shared-service allocation #844](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/844); Symtropy #1848 and Symthaea #10445/#10474/#10486 | Connects shared plant/riser/zone topology to per-unit service trajectories; no utility, safety or building-controls authority |
 | Whole-home revision impact | [Revision impact #832](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/832) | Typed change events and evidence-specific dependency invalidation |
 | Site / ground / foundations | [Site-to-foundation qualification #836](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/836); [site-investigation EVSI #134](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/134) | Evidence intake, sampling decision support, revision binding and hold-point records; no geotechnical or structural calculation authority |
@@ -193,3 +194,16 @@ The service qualifier currently contains 15 authored tests: one positive control
 The P0 stress cases include municipal source interruption, common pump and power outages, floor-specific riser isolation, quality evidence withdrawal, reserve exhaustion with unknown storage, allocation change without authority, compound failures, optional communications/control uncertainty, repair delay and interrupted recovery. They define conservative expected dispositions; they do not simulate actual service trajectories or assign failure probabilities.
 
 **Claim ceiling:** no positive apartment service result may be inferred from aggregate building capacity or declared topology. Service availability requires exact unit-boundary metering, quality/qualification evidence, common time traces and the owner-native Symtropy/Symthaea evaluators. A topology PASS is not a service PASS.
+
+
+## 13. Resident-authored apartment programme interface
+
+The apartment geometry fixture now binds each of its four unit IDs to an explicit resident-programme identity. The first programme contract is:
+- `multifamily-resident-programme.schema.json`;
+- `multifamily-resident-programme-synthetic-v0.1.json`.
+
+The synthetic fixture contains four unit programmes, 20 activities, six explicit synthetic requirements and eight preferences. Every unit and activity has stable identity; relationships bind only to activities in the same unit. Requirements and preferences preserve provenance, prohibit inferred promotion and remain separate. Occupancy, concurrency, spatial dimensions, equipment envelopes, access requirements, service quantities, water quality and preference priority remain NOT_SUPPLIED or UNKNOWN.
+
+This is a synthetic scenario fixture, not a survey of actual residents and not a demographic or housing-demand model. The Rust multi-family qualifier now binds the aggregate programme and each exact per-unit programme reference, checks all 20 activity identities and relationships, and rejects inferred requirements or fabricated dimensional/access/service values. It does not generate room layouts, assess suitability or prove resident acceptance.
+
+This is the intended bridge from [resident spatial programme #833](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/833) into [multi-family compiler #840](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/840): resident intent becomes a typed apartment-level input before geometry generation, not a room template inferred from a unit label.
