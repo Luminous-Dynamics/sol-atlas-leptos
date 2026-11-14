@@ -22,7 +22,12 @@
       },
       "modality": "optical",
       "quality": "qualified_usable",
-      "source_id": "fixture-source"
+      "source_id": "fixture-source",
+      "platform_id": "fixture-platform",
+      "sensor_id": "fixture-sensor",
+      "instrument_id": "fixture-instrument",
+      "collection_id": "fixture-collection",
+      "processing_baseline": "fixture-baseline"
     },
     {
       "observation_id": "obs-2025",
@@ -45,7 +50,12 @@
       },
       "modality": "optical",
       "quality": "qualified_usable",
-      "source_id": "fixture-source"
+      "source_id": "fixture-source",
+      "platform_id": "fixture-platform",
+      "sensor_id": "fixture-sensor",
+      "instrument_id": "fixture-instrument",
+      "collection_id": "fixture-collection",
+      "processing_baseline": "fixture-baseline"
     }
   ],
   "claims": [
