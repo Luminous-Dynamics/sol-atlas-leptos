@@ -292,13 +292,15 @@ fn is_utc_timestamp(value: Option<&Value>) -> bool {
         return false;
     };
     let bytes = text.as_bytes();
-    if bytes.len() < 20
+    // Canonical second-resolution UTC form keeps interval ordering unambiguous:
+    // YYYY-MM-DDTHH:MM:SSZ (no offsets or fractional seconds).
+    if bytes.len() != 20
         || bytes.get(4) != Some(&b'-')
         || bytes.get(7) != Some(&b'-')
         || bytes.get(10) != Some(&b'T')
         || bytes.get(13) != Some(&b':')
         || bytes.get(16) != Some(&b':')
-        || bytes.last() != Some(&b'Z')
+        || bytes.get(19) != Some(&b'Z')
     {
         return false;
     }
@@ -307,18 +309,14 @@ fn is_utc_timestamp(value: Option<&Value>) -> bool {
             .get(range)
             .is_some_and(|slice| slice.iter().all(u8::is_ascii_digit))
     };
-    if !digits(0..4) || !digits(5..7) || !digits(8..10)
-        || !digits(11..13) || !digits(14..16) || !digits(17..19)
+    if !digits(0..4)
+        || !digits(5..7)
+        || !digits(8..10)
+        || !digits(11..13)
+        || !digits(14..16)
+        || !digits(17..19)
     {
         return false;
-    }
-    if bytes.len() > 20 {
-        if bytes[19] != b'.'
-            || bytes[20..bytes.len() - 1].is_empty()
-            || !bytes[20..bytes.len() - 1].iter().all(u8::is_ascii_digit)
-        {
-            return false;
-        }
     }
     let year = text[0..4].parse::<u16>().ok();
     let month = text[5..7].parse::<u8>().ok();
@@ -326,10 +324,23 @@ fn is_utc_timestamp(value: Option<&Value>) -> bool {
     let hour = text[11..13].parse::<u8>().ok();
     let minute = text[14..16].parse::<u8>().ok();
     let second = text[17..19].parse::<u8>().ok();
-    matches!((year, month, day, hour, minute, second),
-        (Some(year), Some(month), Some(day), Some(hour), Some(minute), Some(second))
-            if year > 0 && (1..=12).contains(&month) && (1..=31).contains(&day)
-                && hour <= 23 && minute <= 59 && second <= 59)
+    let valid_day = match (year, month, day) {
+        (Some(year), Some(month), Some(day)) if year > 0 && (1..=12).contains(&month) => {
+            let leap = year % 4 == 0 && (year % 100 != 0 || year % 400 == 0);
+            let days_in_month = match month {
+                1 | 3 | 5 | 7 | 8 | 10 | 12 => 31,
+                4 | 6 | 9 | 11 => 30,
+                2 if leap => 29,
+                2 => 28,
+                _ => 0,
+            };
+            (1..=days_in_month).contains(&day)
+        }
+        _ => false,
+    };
+    matches!((hour, minute, second),
+        (Some(hour), Some(minute), Some(second))
+            if valid_day && hour <= 23 && minute <= 59 && second <= 59)
 }
 
 fn validate_run_schema(run: &Value) -> Vec<String> {
