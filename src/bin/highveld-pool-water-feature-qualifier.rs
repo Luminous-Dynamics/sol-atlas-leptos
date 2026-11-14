@@ -79,8 +79,12 @@ fn audit() -> Result<Value, Vec<String>> {
                 "pool scale-transferability schema JSON parse failed: {e}"
             )]
         })?;
-    let water_backed_refuge: Value = serde_json::from_str(WATER_BACKED_REFUGE_BENCHMARK)
-        .map_err(|e| vec![format!("water-backed refuge benchmark JSON parse failed: {e}")])?;
+    let water_backed_refuge: Value =
+        serde_json::from_str(WATER_BACKED_REFUGE_BENCHMARK).map_err(|e| {
+            vec![format!(
+                "water-backed refuge benchmark JSON parse failed: {e}"
+            )]
+        })?;
     let water_backed_refuge_schema: Value = serde_json::from_str(WATER_BACKED_REFUGE_SCHEMA)
         .map_err(|e| vec![format!("water-backed refuge schema JSON parse failed: {e}")])?;
     let mut errors = Vec::new();
@@ -106,9 +110,7 @@ fn audit() -> Result<Value, Vec<String>> {
     if text_at(&water_backed_refuge_schema, "$schema")
         != Some("https://json-schema.org/draft/2020-12/schema")
     {
-        errors.push(
-            "water-backed refuge schema must declare JSON Schema Draft 2020-12".to_owned(),
-        );
+        errors.push("water-backed refuge schema must declare JSON Schema Draft 2020-12".to_owned());
     }
     for (key, expected) in [
         ("study_id", "HIGHVELD-WATER-BACKED-REFUGE-001"),
@@ -130,7 +132,11 @@ fn audit() -> Result<Value, Vec<String>> {
         errors.push("water-backed refuge must preserve six unique comparison arms".to_owned());
     }
     if water_refuge_scenarios.len() != 6
-        || water_refuge_scenarios.iter().filter_map(Value::as_str).collect::<BTreeSet<_>>().len()
+        || water_refuge_scenarios
+            .iter()
+            .filter_map(Value::as_str)
+            .collect::<BTreeSet<_>>()
+            .len()
             != water_refuge_scenarios.len()
     {
         errors.push("water-backed refuge must preserve six unique operating scenarios".to_owned());
@@ -144,7 +150,9 @@ fn audit() -> Result<Value, Vec<String>> {
         "LAYERED_WATER_BACKED_REFUGE",
     ] {
         if !contains_id(&water_refuge_arms, required) {
-            errors.push(format!("water-backed refuge comparison arm {required} is missing"));
+            errors.push(format!(
+                "water-backed refuge comparison arm {required} is missing"
+            ));
         }
     }
     let water_expansion = &water_backed_refuge["case_expansion"];
@@ -153,7 +161,9 @@ fn audit() -> Result<Value, Vec<String>> {
         || water_expansion["cases"].as_u64() != Some(36)
         || text_at(water_expansion, "state") != Some("REGISTERED_NOT_EXECUTED")
     {
-        errors.push("water-backed refuge matrix must remain six by six, 36 registered cases".to_owned());
+        errors.push(
+            "water-backed refuge matrix must remain six by six, 36 registered cases".to_owned(),
+        );
     }
     let qanat = &water_backed_refuge["field_reference"];
     if text_at(qanat, "reference_id") != Some("CARTUJA_QANAT_AGORA_SEVILLE_2026")
@@ -162,7 +172,10 @@ fn audit() -> Result<Value, Vec<String>> {
         || qanat["reported_values"]["night_regeneration_capacity_kw"].as_f64() != Some(152.0)
         || qanat["reported_values"]["reported_cop"].as_f64() != Some(32.4)
     {
-        errors.push("Qanat field reference must retain its reported values and non-transferable boundary".to_owned());
+        errors.push(
+            "Qanat field reference must retain its reported values and non-transferable boundary"
+                .to_owned(),
+        );
     }
     for key in [
         "protected_essential_water_reserve_breaches",
@@ -175,8 +188,14 @@ fn audit() -> Result<Value, Vec<String>> {
         "missed_seeded_negative_controls",
         "false_blocks_of_positive_controls",
     ] {
-        if water_backed_refuge["hard_gates"].get(key).and_then(Value::as_u64) != Some(0) {
-            errors.push(format!("water-backed refuge hard gate {key} must equal zero"));
+        if water_backed_refuge["hard_gates"]
+            .get(key)
+            .and_then(Value::as_u64)
+            != Some(0)
+        {
+            errors.push(format!(
+                "water-backed refuge hard gate {key} must equal zero"
+            ));
         }
     }
     if water_backed_refuge["governance"]["aerosol_generating_path_default_enabled"].as_bool()
@@ -188,7 +207,10 @@ fn audit() -> Result<Value, Vec<String>> {
         || water_backed_refuge["governance"]["pool_is_finite_thermal_buffer"].as_bool()
             != Some(true)
     {
-        errors.push("water-backed refuge must preserve aerosol, comfort, water and finite-store governance".to_owned());
+        errors.push(
+            "water-backed refuge must preserve aerosol, comfort, water and finite-store governance"
+                .to_owned(),
+        );
     }
     for (key, expected) in [
         ("study_id", "HIGHVELD-POOL-SCALE-TRANSFER-001"),
@@ -771,7 +793,10 @@ mod tests {
         assert_eq!(report["water_backed_refuge_arm_count"], 6);
         assert_eq!(report["water_backed_refuge_scenario_count"], 6);
         assert_eq!(report["water_backed_refuge_case_count"], 36);
-        assert_eq!(report["water_backed_refuge_execution_status"], "NOT_EXECUTED");
+        assert_eq!(
+            report["water_backed_refuge_execution_status"],
+            "NOT_EXECUTED"
+        );
         assert_eq!(
             report["qanat_reference_transferability"],
             "REFERENCE_ONLY_NOT_HIGHVELD_PREDICTION"
