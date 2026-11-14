@@ -1,0 +1,525 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/research/eo-claim-contract-v0-1/schemas/earth-observation-evidence-v0.1.schema.json",
+  "title": "Sol-Atlas Earth Observation Evidence Bundle",
+  "description": "Structural evidence bundle only. Rights decision receipts are bound by identity and digest but must be authenticated and interpreted by the authoritative rights service. Satellite QA/observability is not physical truth.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "observations",
+    "claims"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "observations": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/observation"
+      }
+    },
+    "claims": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/change_claim"
+      }
+    }
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[A-Fa-f0-9]{64}$"
+    },
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9_.:-]+$"
+    },
+    "time_window": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "start",
+        "end"
+      ],
+      "properties": {
+        "start": {
+          "type": "string",
+          "minLength": 1
+        },
+        "end": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "observation_time": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "datetime",
+        "start",
+        "end"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "unknown",
+            "instant",
+            "interval",
+            "approximate"
+          ]
+        },
+        "datetime": {
+          "oneOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "start": {
+          "oneOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "end": {
+          "oneOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "observation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "observation_id",
+        "asset_id",
+        "source_id",
+        "source_asset_receipt_sha256",
+        "processing_receipt_sha256",
+        "rights",
+        "support_id",
+        "acquisition",
+        "modality",
+        "quality",
+        "platform_id",
+        "sensor_id",
+        "instrument_id",
+        "collection_id",
+        "processing_baseline"
+      ],
+      "properties": {
+        "observation_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "asset_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "source_asset_receipt_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "processing_receipt_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "rights": {
+          "$ref": "#/$defs/rights_receipt_ref"
+        },
+        "support_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "acquisition": {
+          "$ref": "#/$defs/observation_time"
+        },
+        "modality": {
+          "enum": [
+            "optical",
+            "synthetic_aperture_radar",
+            "thermal_infrared",
+            "hyperspectral",
+            "multispectral",
+            "other"
+          ]
+        },
+        "quality": {
+          "enum": [
+            "qualified_usable",
+            "cloud_contaminated",
+            "shadow_contaminated",
+            "haze_or_smoke_contaminated",
+            "saturated",
+            "radiometric_invalid",
+            "geometric_invalid",
+            "incomplete_coverage",
+            "below_detection_limit",
+            "out_of_domain",
+            "conflicted"
+          ]
+        },
+        "source_id": {
+          "$ref": "#/$defs/identifier",
+          "description": "Canonical source registry identity; must match the source identity bound by the rights decision receipt."
+        },
+        "platform_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "sensor_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "instrument_id": {
+          "$ref": "#/$defs/nullableIdentifier"
+        },
+        "collection_id": {
+          "$ref": "#/$defs/nullableIdentifier"
+        },
+        "processing_baseline": {
+          "$ref": "#/$defs/nullableIdentifier"
+        }
+      }
+    },
+    "detection_limit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "metric",
+        "value",
+        "unit"
+      ],
+      "properties": {
+        "metric": {
+          "$ref": "#/$defs/identifier"
+        },
+        "value": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "unit": {
+          "$ref": "#/$defs/identifier"
+        }
+      }
+    },
+    "change_claim": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "claim_id",
+        "target_class_id",
+        "ontology_version",
+        "support_id",
+        "observation_window",
+        "disposition",
+        "event_time_bounds",
+        "observation_ids",
+        "supporting_observation_ids",
+        "contradicting_observation_ids",
+        "coverage",
+        "coverage_receipt_sha256",
+        "detection_limit",
+        "detection_qualification_receipt_sha256",
+        "detection_qualification"
+      ],
+      "properties": {
+        "claim_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "target_class_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "ontology_version": {
+          "$ref": "#/$defs/identifier"
+        },
+        "support_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "observation_window": {
+          "$ref": "#/$defs/time_window"
+        },
+        "disposition": {
+          "enum": [
+            "candidate_change",
+            "supported_change",
+            "no_change_within_envelope",
+            "unresolved"
+          ]
+        },
+        "event_time_bounds": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/time_window"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "observation_ids": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/identifier"
+          },
+          "uniqueItems": true
+        },
+        "supporting_observation_ids": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/identifier"
+          },
+          "uniqueItems": true
+        },
+        "contradicting_observation_ids": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/identifier"
+          },
+          "uniqueItems": true
+        },
+        "coverage": {
+          "enum": [
+            "complete_qualified",
+            "partial",
+            "unknown"
+          ]
+        },
+        "coverage_receipt_sha256": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/sha256"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "detection_limit": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/detection_limit"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "detection_qualification_receipt_sha256": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/sha256"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Reference to an independently qualified target/sensor/configuration detection envelope. This schema validates only its digest shape."
+        },
+        "detection_qualification": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/detection_qualification"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "coverage": {
+                "const": "complete_qualified"
+              }
+            },
+            "required": [
+              "coverage"
+            ]
+          },
+          "then": {
+            "properties": {
+              "coverage_receipt_sha256": {
+                "$ref": "#/$defs/sha256"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "coverage_receipt_sha256": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "disposition": {
+                "const": "no_change_within_envelope"
+              }
+            },
+            "required": [
+              "disposition"
+            ]
+          },
+          "then": {
+            "properties": {
+              "coverage": {
+                "const": "complete_qualified"
+              },
+              "coverage_receipt_sha256": {
+                "$ref": "#/$defs/sha256"
+              },
+              "detection_limit": {
+                "$ref": "#/$defs/detection_limit"
+              },
+              "event_time_bounds": {
+                "type": "null"
+              },
+              "supporting_observation_ids": {
+                "minItems": 2
+              },
+              "contradicting_observation_ids": {
+                "maxItems": 0
+              },
+              "detection_qualification_receipt_sha256": {
+                "$ref": "#/$defs/sha256"
+              },
+              "detection_qualification": {
+                "$ref": "#/$defs/detection_qualification"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "disposition": {
+                "const": "supported_change"
+              }
+            },
+            "required": [
+              "disposition"
+            ]
+          },
+          "then": {
+            "properties": {
+              "supporting_observation_ids": {
+                "minItems": 1
+              },
+              "event_time_bounds": {
+                "$ref": "#/$defs/time_window"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "disposition": {
+                "const": "candidate_change"
+              }
+            },
+            "required": [
+              "disposition"
+            ]
+          },
+          "then": {
+            "properties": {
+              "supporting_observation_ids": {
+                "minItems": 1
+              }
+            }
+          }
+        }
+      ]
+    },
+    "rights_receipt_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "subject_id",
+        "purpose_id",
+        "source_id",
+        "asset_id",
+        "decision_receipt_sha256"
+      ],
+      "properties": {
+        "subject_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "purpose_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "source_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "asset_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "decision_receipt_sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      },
+      "description": "Opaque external decision receipt reference. This schema does not interpret or authenticate the decision; the authoritative rights service must do so."
+    },
+    "detection_qualification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "footprint_covers_target",
+        "calibration_valid",
+        "target_in_validated_domain",
+        "probability_of_detection",
+        "minimum_required_probability"
+      ],
+      "properties": {
+        "footprint_covers_target": {
+          "type": "boolean"
+        },
+        "calibration_valid": {
+          "type": "boolean"
+        },
+        "target_in_validated_domain": {
+          "type": "boolean"
+        },
+        "probability_of_detection": {
+          "oneOf": [
+            {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "minimum_required_probability": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      },
+      "description": "Structured target-conditional POD preconditions; the referenced receipt separately binds sensor, target, configuration, calibration and applicability evidence."
+    }
+  }
+}
