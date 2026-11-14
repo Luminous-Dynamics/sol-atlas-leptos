@@ -395,6 +395,16 @@ fn validate_resident_programme(
                 {
                     errors.push(format!("requirement {id} has invalid provenance or inference state"));
                 }
+                let activity_scope = array_at(requirement, "activity_ids");
+                if activity_scope.is_none_or(Vec::is_empty) {
+                    errors.push(format!("requirement {id} is not scoped to an activity"));
+                }
+                let mut scoped_ids = BTreeSet::new();
+                for activity_id in activity_scope.into_iter().flatten().filter_map(Value::as_str) {
+                    if !local_activity_ids.contains(activity_id) || !scoped_ids.insert(activity_id.to_owned()) {
+                        errors.push(format!("requirement {id} has an invalid or duplicate activity binding {activity_id}"));
+                    }
+                }
             }
 
             for preference in array_at(unit, "preferences").into_iter().flatten() {
@@ -410,6 +420,16 @@ fn validate_resident_programme(
                     || !preference.get("tradeable").is_some_and(Value::is_null)
                 {
                     errors.push(format!("synthetic preference {id} must not invent inference or priority"));
+                }
+                let activity_scope = array_at(preference, "activity_ids");
+                if activity_scope.is_none_or(Vec::is_empty) {
+                    errors.push(format!("preference {id} is not scoped to an activity"));
+                }
+                let mut scoped_ids = BTreeSet::new();
+                for activity_id in activity_scope.into_iter().flatten().filter_map(Value::as_str) {
+                    if !local_activity_ids.contains(activity_id) || !scoped_ids.insert(activity_id.to_owned()) {
+                        errors.push(format!("preference {id} has an invalid or duplicate activity binding {activity_id}"));
+                    }
                 }
             }
 
@@ -972,6 +992,13 @@ mod tests {
         let (fixture, corpus, mut programme) = load_fixture();
         let duplicate_id = programme["unit_programmes"][0]["activities"][0]["activity_id"].clone();
         programme["unit_programmes"][0]["activities"][1]["activity_id"] = duplicate_id;
+        assert!(validate(&fixture, &corpus, &programme).is_err());
+    }
+
+    #[test]
+    fn requirement_activity_scope_must_resolve_within_unit() {
+        let (fixture, corpus, mut programme) = load_fixture();
+        programme["unit_programmes"][0]["requirements"][0]["activity_ids"][0] = json!("UNKNOWN-ACTIVITY");
         assert!(validate(&fixture, &corpus, &programme).is_err());
     }
 
