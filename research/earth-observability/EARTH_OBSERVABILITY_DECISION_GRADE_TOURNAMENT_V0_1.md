@@ -286,3 +286,48 @@ A result should be reported as implemented, structurally checked, synthetically 
 - Seequent Leapfrog Works: https://www.seequent.com/products-solutions/leapfrog-works/ — dynamic implicit geological modelling, drilling/site-investigation data, geophysics extension and engineering / groundwater integration.
 
 The 2026 research examples establish that many of the individual ideas are active research, not unclaimed novelty. Sol-Atlas's defensible differentiator is to test whether a single vendor-neutral evidence and qualification layer can connect them while enforcing observability limits, independent truth, rights, calibration, equal-budget decision value and reproducible revalidation.
+
+
+---
+
+## 2026-11-14 execution addendum — asset identity, negative evidence and project transfer
+
+This addendum connects the existing decision-grade tournament to the newly committed executable components. It does not supersede the v0.1 protocol or claim physical results.
+
+### Asset-level decision inputs
+
+- `sol-atlas-core/src/utility_inference.rs` maintains candidate event-to-asset associations with explicit abstention and evidence lineage.
+- `sol-atlas-core/src/utility_reconstruction_metrics.rs` scores eligible event clustering with B-cubed and pairwise metrics, overmerge/oversplit counts, false candidate assets, missed truth assets, clutter false associations and abstentions.
+- `src/bin/utility_reconstruction_eval.rs` emits an input-SHA256-bound receipt and compares a frozen synthetic baseline.
+- `sol-atlas-core/src/network_hypotheses.rs` represents mutually exclusive candidate network worlds with explicit residual unknown mass and proper log/Brier scoring.
+
+These scores qualify event grouping and candidate-world probability semantics. They do not qualify geometry or topology unless the independent reference truth supports those claims.
+
+### Negative evidence and decision updates
+
+The sensor-to-EVSI bridge includes `posterior_target_probability_given_no_hit(prevalence)`. It requires explicit prevalence and the two no-hit likelihoods. A no-hit posterior is one input to decision loss; it is not a declaration of physical absence.
+
+A non-detection may contribute only when the acquisition footprint, calibration, target envelope, domain and opportunity definition are qualified. Unobserved, out-of-domain, below-limit and unqualified remain separate states. Multimodal likelihoods with common-cause or registration dependence cannot be multiplied as if independent.
+
+### Project-grouped blind evaluation
+
+- `sol-atlas-core/src/project_split.rs` builds deterministic leave-one-project-out folds and rejects project/activity leakage.
+- `src/bin/project_split_eval.rs` emits a split receipt bound to exact input bytes and verifies a pinned synthetic manifest.
+- Its sensitivity mode compares one, two and three calibration projects on a 13-project index: 11/1/1, 10/2/1 and 9/3/1 (fit/calibration/blind).
+- Every project is blind exactly once within each allocation.
+
+The 13-project, 3-calibration configuration is a pilot split, not a power calculation or evidence that three calibration projects are optimal. Model selection must remain nested inside fit projects; calibration projects cannot be used for architecture or hyperparameter tuning unless an additional calibration set is reserved.
+
+### 2026 comparator discipline
+
+The 2026 comparison note now includes:
+- July 2026 Ghost-YOLOv8n/GhostConv object detection: 0.756 mAP@0.5 and 24.3 ms/frame on a multi-source image set, with incomplete acquisition metadata.
+- November 2026 YOLOv12n detector: 0.94 mAP50 on a 20-image independent test set from one industrial site.
+- January 2026 Bayesian pipeline localization: reported interval coverage falls from 97.5% simulated to 77.5% field for the stated configuration.
+- April 2026 Leica DS2000 survey/processing optimization: 128 configurations, three known utility lines, dry/flat conditions and 3.5 cm depth RMSE.
+
+They remain task-specific comparators. No one metric combines object detection, localization uncertainty, asset clustering, topology and decision value into a single SOTA ranking.
+
+### Implementation status
+
+The associated Rust modules, fixtures, schemas, pinned synthetic baselines and CLI checks are authored. The latest combined branch contains a project-split sensitivity sweep and CI steps. Exact-head formatter/native/WASM execution on this expanded branch remains pending; synthetic fixtures are not physical performance evidence.
