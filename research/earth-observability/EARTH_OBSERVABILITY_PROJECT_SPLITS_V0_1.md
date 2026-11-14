@@ -40,7 +40,14 @@ The committed synthetic 13-project pilot uses three calibration projects:
 - 1 blind project;
 - 13 folds, with each project blind exactly once.
 
-The three-calibration setting is a reproducible pilot configuration, not a universal statistical standard or a claim of sufficient calibration sample size. The physical benchmark should preregister a sensitivity analysis over one, two and three calibration projects per fold (and consider nested/rolling calibration where model selection itself requires a validation layer). Report the effect on training-set size, calibration stability, interval coverage and between-project variability before fixing the physical protocol.
+The three-calibration setting is a reproducible pilot configuration, not a universal statistical standard or a claim of sufficient calibration sample size.
+
+The `project_split_eval --sensitivity-sweep` mode now emits SHA-256-bound split-allocation summaries for calibration counts one, two and three. On the 13-project synthetic index these produce:
+- 11 fit / 1 calibration / 1 blind;
+- 10 fit / 2 calibration / 1 blind;
+- 9 fit / 3 calibration / 1 blind.
+
+The sweep verifies role disjointness and that every project is blind exactly once for each allocation. It compares only the partition sizes and deterministic split structure; it does not estimate calibration quality, power or model performance. The physical benchmark should preregister a sensitivity analysis over one, two and three calibration projects per fold (and consider nested/rolling calibration where model selection itself requires a validation layer). Report the effect on training-set size, calibration stability, interval coverage and between-project variability before fixing the physical protocol.
 
 ## 3. Leakage invariants enforced by Rust
 
