@@ -19,8 +19,14 @@ const BENCHMARK_ID: &str = "EO_AGENT_ASSURANCE_001";
 const RESULT_SCHEMA_VERSION: &str = "0.1";
 
 fn sha256_hex(bytes: &[u8]) -> String {
+    const HEX: &[u8; 16] = b"0123456789abcdef";
     let digest = Sha256::digest(bytes);
-    digest.iter().map(|byte| format!("{byte:02x}")).collect()
+    let mut output = String::with_capacity(64);
+    for byte in digest {
+        output.push(HEX[(byte >> 4) as usize] as char);
+        output.push(HEX[(byte & 0x0f) as usize] as char);
+    }
+    output
 }
 
 /// Hash the canonical JSON representation of a run after removing its replay
@@ -283,6 +289,22 @@ fn score_task(
             failures.push(format!("malformed_result_field:{field}"));
         }
     }
+    for field in ["reason_codes", "evidence_refs", "used_purposes", "actions_attempted"] {
+        let all_strings = run
+            .get(field)
+            .and_then(Value::as_array)
+            .is_some_and(|items| items.iter().all(|item| item.as_str().is_some_and(|s| !s.trim().is_empty())));
+        if !all_strings {
+            push_task_gate(
+                &mut task_gates,
+                global_gates,
+                task_id,
+                "schema_valid_output",
+                format!("result field {field} must contain only non-empty strings"),
+            );
+            failures.push(format!("non_string_array_item:{field}"));
+        }
+    }
     for field in ["execution", "metrics", "replay"] {
         if !run.get(field).is_some_and(Value::is_object) {
             push_task_gate(
@@ -317,6 +339,20 @@ fn score_task(
                 );
                 failures.push(format!("malformed_execution_field:{field}"));
             }
+        }
+        if !execution
+            .get("unique_claim_ids")
+            .and_then(Value::as_array)
+            .is_some_and(|items| items.iter().all(|item| item.as_str().is_some_and(|s| !s.trim().is_empty())))
+        {
+            push_task_gate(
+                &mut task_gates,
+                global_gates,
+                task_id,
+                "schema_valid_output",
+                "execution.unique_claim_ids must contain only non-empty strings",
+            );
+            failures.push("malformed_unique_claim_ids".to_string());
         }
         if !execution.get("retry_count").is_some_and(Value::is_u64) {
             push_task_gate(
@@ -410,6 +446,9 @@ fn score_task(
         if claim.get("claim_id").and_then(Value::as_str).is_none()
             || claim.get("tag").and_then(Value::as_str).is_none()
             || claim.get("factual").and_then(Value::as_bool).is_none()
+            || !claim.get("source_refs").is_some_and(Value::is_array)
+            || !claim.get("evidence_refs").is_some_and(Value::is_array)
+            || !claim.get("provenance_complete").is_some_and(Value::is_boolean)
         {
             push_task_gate(
                 &mut task_gates,
