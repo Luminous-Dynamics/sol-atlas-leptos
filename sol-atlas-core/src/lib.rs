@@ -21,6 +21,8 @@ pub mod energy_trading;
 pub mod evidence_revalidation;
 pub mod field_activity_admission;
 pub mod geo;
+pub mod investigation_campaign;
+pub mod investigation_tournament;
 pub mod lod;
 pub mod mycelix_flows;
 // pub mod relativity_viz;

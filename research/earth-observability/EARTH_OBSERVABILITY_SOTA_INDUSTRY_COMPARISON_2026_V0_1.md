@@ -145,7 +145,32 @@ PAS 128's client guide explains that Type B detection includes both EML and GPR 
 
 ---
 
-## 4. What a paradigm shift looks like
+
+## 4.1 Standards nuance that changes the product boundary
+
+**PAS 128:2022 is segment-local and method-specific.** The standard requires the quality level to be applied to each utility segment, not blanket-assigned to an entire route. A Type B detection attempt that fails to detect a suspected utility can be classified QL-B4, which explicitly records that detection was attempted but unsuccessful; it does not permit the system to silently convert the result into physical absence. A Type A verification claim requires exposure/inspection evidence. Sol-Atlas should therefore preserve the distinction between an unobserved segment, an unsuccessful qualified detection attempt and a verified exposed utility. Its posterior likelihoods can inform a decision, but they are not a replacement for PAS survey type or QL declarations.
+
+**ASCE/UESI/CI 38-22 is also a process and professional-judgment comparator.** ASCE describes it as both prescriptive and performance-based, including professional judgment about the timing, sequencing, location and scope of utility investigations. The active survey-policy tournament is complementary: it can make candidate actions and trade-offs explicit, but cannot replace practitioner judgment or the standard's required investigation process.
+
+**ASCE/UESI/CI 75-22 is a recording/exchange target.** It is relevant after evidence and claims have been reviewed, when a utility owner or project authority decides what should be recorded or exchanged. It is not a licence for Sol-Atlas to promote a probabilistic candidate directly into an authoritative owner registry.
+
+**OGC MUDDI Part 1 v1.0 is an integration model, not a detector.** It provides a conceptual model for integrating underground datasets from different information models, including utilities, transport, soil, groundwater and environmental parameters. This aligns with a federated evidence architecture and argues against creating a competing canonical owner-asset registry.
+
+**ArcGIS Utility Network is an authoritative-network incumbent.** Esri documents that edits create dirty areas when the stored network topology no longer reflects current feature edits; topology must be validated before analyses can rely on the updated network. Tracing through dirty areas may yield unexpected results, and its Trace tool offers a validation-consistency check. Sol-Atlas should implement an analogous but evidence-oriented rule: when an observation, coordinate transform, calibration or source record changes, invalidate affected derived claims and block promotion/use until the dependency closure is revalidated. Sol-Atlas should hand reviewed claims to ArcGIS/owner systems rather than replace their topology engine.
+
+**OpenGround and Leapfrog Works solve adjacent, mature problems.** Bentley describes OpenGround as geotechnical data management/collaboration with AGS, DIGGS, CSV/Excel exchange and a web API. Seequent describes Leapfrog Works as 3D ground modelling from site investigation and boring data, including implicit modelling. Sol-Atlas should integrate factual geotechnical data and geological model products, while concentrating on evidence provenance, sensor observability, competing underground utility hypotheses and investigation decision quality.
+
+### Official / primary documentation used for this comparison
+
+- OGC MUDDI: https://www.ogc.org/standards/muddi/
+- Esri Utility Network dirty areas: https://doc.esri.com/en/arcgis-pro/latest/help/data/utility-network/dirty-areas-in-a-utility-network.html
+- Esri topology validation: https://doc.esri.com/en/arcgis-pro/latest/help/data/utility-network/validate-a-network-topology.html
+- Bentley OpenGround: https://www.bentley.com/products/openground
+- Seequent Leapfrog Works: https://www.seequent.com/products-solutions/leapfrog-works/
+- ASCE UESI publications (38-22 and 75-22): https://www.asce.org/communities/institutes-and-technical-groups/utility-engineering-and-surveying-institute/publications
+- PAS 128 client guide: https://www.cices.org/hawkfile/386/original/PAS128%20Client%20Specification%20Guide%20Sep%2022%20final.pdf
+
+## 6. What a paradigm shift looks like
 
 ### 4.1 Evidence-qualified reconstruction, not a better map
 
@@ -169,7 +194,7 @@ Treat simulated-to-field mismatch as an estimand. Retain forward-model version, 
 
 ---
 
-## 5. Recommended execution order
+## 6. Recommended execution order
 
 1. **Reproduce the 2026 detection baseline** on its exact independent test split if the data are legally and technically available. Preserve profile-level split and publish mAP50, mAP50-95, precision, recall, latency and failure cases. Do not treat the 20-image test as broad transfer.
 2. **Use UT-Gold-D for a blind field track** with 13 project-level holdouts and truth tiers. Separately score event detection, event-to-target association and geospatial localization.
@@ -178,7 +203,7 @@ Treat simulated-to-field mismatch as an estimand. Retain forward-model version, 
 5. **Build a physics-validation ladder** with analytical references, convergence studies, inter-code comparisons, backend parity, regression and physical field comparisons.
 6. **Run equal-budget survey-selection experiments** and measure expected/realized decision loss.
 
-## 6. Stretch targets and claim discipline
+## 7. Stretch targets and claim discipline
 
 - Reproduce the 2026 YOLO baseline before claiming detector superiority; then target robust cross-project transfer, not just mAP50.
 - Target nominal 90%/95% field interval coverage with materially narrower intervals than conservative baselines, reported per project/domain. If coverage fails, the system must expand uncertainty or abstain.
