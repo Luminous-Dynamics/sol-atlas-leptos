@@ -317,6 +317,9 @@
                 }
               }
             }
+          },
+          "water_dependency_state": {
+            "const": "NO_DISCRETIONARY_WATER_ASSUMED"
           }
         }
       }
