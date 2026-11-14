@@ -1,0 +1,59 @@
+{
+  "schema_version": "multifamily-unit-layout-option-set/0.1",
+  "option_set_id": "SYN-MF-UNIT-LAYOUT-OPTIONS-004",
+  "maturity": "synthetic_alternative_pair_only",
+  "source_binding": {
+    "building_candidate_ref": {
+      "kind": "synthetic_multi_family_building",
+      "id": "SYN-MF-COURTYARD-004",
+      "revision": "0.1",
+      "digest": null
+    },
+    "resident_programme_ref": {
+      "kind": "synthetic_multi_family_resident_programme",
+      "id": "SYN-MF-RESIDENT-PROGRAMME-001",
+      "revision": "0.1",
+      "digest": null
+    }
+  },
+  "unit_ids": [
+    "U-001",
+    "U-002",
+    "U-003",
+    "U-004"
+  ],
+  "alternatives": [
+    {
+      "candidate_id": "MF-UNIT-LAYOUT-A",
+      "layout_id": "SYN-MF-UNIT-LAYOUT-004",
+      "artifact_path": "multifamily-unit-layout-synthetic-v0.1.json",
+      "layout_revision_ref": {
+        "kind": "synthetic_unit_layout_revision",
+        "id": "SYN-MF-UNIT-LAYOUT-004-v0.1",
+        "revision": "0.1",
+        "digest": null
+      },
+      "maturity": "synthetic_room_rectangles_only"
+    },
+    {
+      "candidate_id": "MF-UNIT-LAYOUT-B",
+      "layout_id": "SYN-MF-UNIT-LAYOUT-ALT-B-004",
+      "artifact_path": "multifamily-unit-layout-alternative-b-synthetic-v0.1.json",
+      "layout_revision_ref": {
+        "kind": "synthetic_unit_layout_revision",
+        "id": "SYN-MF-UNIT-LAYOUT-ALT-B-004-v0.1",
+        "revision": "0.1",
+        "digest": null
+      },
+      "maturity": "synthetic_room_rectangles_only"
+    }
+  ],
+  "comparison_policy": {
+    "ranking_state": "UNRANKED",
+    "scalar_score": null,
+    "resident_choice_required": true,
+    "professional_review_state": "NOT_ASSESSED",
+    "performance_evidence_state": "NOT_ASSESSED"
+  },
+  "claim_ceiling": "This option set demonstrates two distinct synthetic room-rectangle arrangements preserving the same declared apartment unit/activity/relationship identities. It does not rank alternatives or establish resident suitability, room quality, accessibility, fire, structure, daylight, privacy, acoustics, thermal performance, services, cost, buildability or approval."
+}
