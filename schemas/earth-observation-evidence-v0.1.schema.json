@@ -215,7 +215,8 @@
         "coverage",
         "coverage_receipt_sha256",
         "detection_limit",
-        "detection_qualification_receipt_sha256"
+        "detection_qualification_receipt_sha256",
+        "detection_qualification"
       ],
       "properties": {
         "claim_id": {
@@ -309,6 +310,16 @@
             }
           ],
           "description": "Reference to an independently qualified target/sensor/configuration detection envelope. This schema validates only its digest shape."
+        },
+        "detection_qualification": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/detection_qualification"
+            },
+            {
+              "type": "null"
+            }
+          ]
         }
       },
       "allOf": [
@@ -371,6 +382,9 @@
               },
               "detection_qualification_receipt_sha256": {
                 "$ref": "#/$defs/sha256"
+              },
+              "detection_qualification": {
+                "$ref": "#/$defs/detection_qualification"
               }
             }
           }
@@ -446,6 +460,46 @@
         }
       },
       "description": "Opaque external decision receipt reference. This schema does not interpret or authenticate the decision; the authoritative rights service must do so."
+    },
+    "detection_qualification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "footprint_covers_target",
+        "calibration_valid",
+        "target_in_validated_domain",
+        "probability_of_detection",
+        "minimum_required_probability"
+      ],
+      "properties": {
+        "footprint_covers_target": {
+          "type": "boolean"
+        },
+        "calibration_valid": {
+          "type": "boolean"
+        },
+        "target_in_validated_domain": {
+          "type": "boolean"
+        },
+        "probability_of_detection": {
+          "oneOf": [
+            {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "minimum_required_probability": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      },
+      "description": "Structured target-conditional POD preconditions; the referenced receipt separately binds sensor, target, configuration, calibration and applicability evidence."
     }
   }
 }
