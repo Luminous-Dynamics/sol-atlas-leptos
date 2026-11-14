@@ -1,0 +1,465 @@
+{
+  "schema_id": "aeroweift.sa-source-admission.synthetic-fixture.v0",
+  "fixture_id": "AW-SA-SA-001",
+  "revision": "0.1.0",
+  "evidence_class": "synthetic-metadata-fixtures",
+  "operational_use": false,
+  "raw_source_bytes_included": false,
+  "claim_ceiling": "Admission-state and claim-scope regression fixtures only; not actual aeronautical data, a live source adapter, legal opinion, NOTAM briefing, or flight authorization.",
+  "checked_context": {
+    "date": "2026-11-14",
+    "timezone": "Africa/Johannesburg",
+    "note": "Publication metadata and source limitations are grounded in the public-source inventory documented in Sol-Atlas issue #825 / PR #826. All record IDs, payload bytes, hashes and fixture-only values are synthetic."
+  },
+  "expected_admission_states": [
+    "CANDIDATE",
+    "RIGHTS_PENDING",
+    "RIGHTS_CLEARED",
+    "DEVELOPMENT_ONLY",
+    "CONFIRMATORY_ONLY",
+    "OPERATIONAL_INTEGRATION_APPROVED",
+    "REJECTED",
+    "SUMMARY_CONTEXT_ONLY",
+    "SOURCE_VERIFIED_LEGAL_APPLICABILITY_PENDING"
+  ],
+  "records": [
+    {
+      "id": "aip-current-rights-pending",
+      "synthetic_record": true,
+      "source_family": "AIP",
+      "publisher_label": "SACAA",
+      "product_label": "AIP General",
+      "displayed_edition_date": "2026-10-15",
+      "retrieved_at": "2026-11-14T00:00:00+02:00",
+      "publication_state": "edition_displayed",
+      "rights": {
+        "acquisition": "public_page_visible",
+        "archival": "unknown",
+        "extraction": "unknown",
+        "transformation": "unknown",
+        "redistribution": "unknown",
+        "commercial_model_use": "unknown"
+      },
+      "content_digest": {
+        "value": null,
+        "status": "NOT_SUPPLIED_FIXTURE_ONLY"
+      },
+      "expected": {
+        "admission_state": "CANDIDATE",
+        "supported_claims": [
+          "publisher-page-displays-product",
+          "displayed-edition-date"
+        ],
+        "unsupported_claims": [
+          "unrestricted-commercial-reuse",
+          "complete-current-operational-coverage",
+          "flight-preparation-suitability"
+        ],
+        "may_ingest_raw_content": false,
+        "may_use_for_commercial_model_training": false,
+        "may_redistribute": false
+      }
+    },
+    {
+      "id": "superseded-aip-edition",
+      "synthetic_record": true,
+      "source_family": "AIP",
+      "publisher_label": "SYNTHETIC-PUBLISHER",
+      "product_label": "Synthetic AIP Enroute",
+      "displayed_edition_date": "2026-04-01",
+      "superseded_by": "synthetic-aip-enroute-2026-10",
+      "retrieved_at": "2026-11-14T00:00:00+02:00",
+      "validity": {
+        "valid_for_current_context": false,
+        "historical_research_only": true
+      },
+      "rights": {
+        "archival": "unknown",
+        "transformation": "unknown",
+        "redistribution": "unknown",
+        "commercial_model_use": "unknown"
+      },
+      "content_digest": {
+        "value": null,
+        "status": "NOT_SUPPLIED_FIXTURE_ONLY"
+      },
+      "expected": {
+        "admission_state": "REJECTED",
+        "supported_claims": [
+          "historical-publication-existence-only"
+        ],
+        "unsupported_claims": [
+          "current-airspace-state",
+          "current-restriction-set",
+          "flight-preparation-suitability"
+        ],
+        "may_replace_current_edition": false,
+        "may_silently_fallback_when_newer_source_missing": false
+      }
+    },
+    {
+      "id": "notam-summary-snapshot",
+      "synthetic_record": true,
+      "source_family": "NOTAM_SUMMARY",
+      "publisher_label": "SACAA",
+      "product_label": "Public NOTAM Summary",
+      "page_displayed_update_date": "2026-11-12",
+      "retrieved_at": "2026-11-14T00:00:00+02:00",
+      "validity_semantics": "valid_at_creation_only",
+      "explicit_usage_limit": "must_not_be_used_for_flight_preparation",
+      "access_direction": "current briefing through AIMU / authenticated ATNS File2Fly",
+      "rights": {
+        "automated_acquisition": "unknown",
+        "archival": "unknown",
+        "redistribution": "unknown",
+        "commercial_model_use": "unknown"
+      },
+      "content_digest": {
+        "value": null,
+        "status": "NOT_SUPPLIED_FIXTURE_ONLY"
+      },
+      "expected": {
+        "admission_state": "SUMMARY_CONTEXT_ONLY",
+        "supported_claims": [
+          "historical-summary-snapshot-existed",
+          "displayed-update-date"
+        ],
+        "unsupported_claims": [
+          "complete-current-notam-set",
+          "live-flight-briefing",
+          "absence-of-restrictions",
+          "flight-preparation-suitability"
+        ],
+        "may_be_used_for_operational_planning": false,
+        "may_be_promoted_to_current_notam_feed": false
+      }
+    },
+    {
+      "id": "authenticated-briefing-service-rights-pending",
+      "synthetic_record": true,
+      "source_family": "AERONAUTICAL_BRIEFING_SERVICE",
+      "publisher_label": "ATNS_AIMU",
+      "product_label": "Authenticated briefing service",
+      "access": {
+        "authentication_required": true,
+        "credentials_present": false,
+        "access_agreement": "not_established",
+        "api_terms": "unknown"
+      },
+      "rights": {
+        "automated_access": "unknown",
+        "retention": "unknown",
+        "redistribution": "unknown",
+        "commercial_use": "unknown"
+      },
+      "content_digest": {
+        "value": null,
+        "status": "NOT_SUPPLIED_FIXTURE_ONLY"
+      },
+      "expected": {
+        "admission_state": "RIGHTS_PENDING",
+        "supported_claims": [
+          "service-owner-and-authentication-requirement-identified"
+        ],
+        "unsupported_claims": [
+          "permission-to-scrape",
+          "permission-to-automate",
+          "permission-to-store",
+          "permission-to-redistribute"
+        ],
+        "may_attempt_unauthorized_access": false,
+        "may_bypass_authentication": false,
+        "may_assume_access_from_public_page": false
+      }
+    },
+    {
+      "id": "geometry-unknown-vertical-datum",
+      "synthetic_record": true,
+      "source_family": "SPATIAL_GEOMETRY",
+      "publisher_label": "SYNTHETIC-GEOMETRY-PUBLISHER",
+      "geometry": {
+        "horizontal_crs": "SYNTHETIC-LOCAL-ENU",
+        "axis_order": [
+          "east",
+          "north"
+        ],
+        "vertical_datum": null,
+        "horizontal_units": "metres",
+        "vertical_units": "unknown",
+        "geometry_parse_status": "synthetic-parseable"
+      },
+      "rights": {
+        "acquisition": "fixture-only",
+        "transformation": "fixture-only",
+        "redistribution": "not-applicable-fixture"
+      },
+      "content_digest": {
+        "value": null,
+        "status": "NOT_SUPPLIED_FIXTURE_ONLY"
+      },
+      "expected": {
+        "admission_state": "CANDIDATE",
+        "supported_claims": [
+          "horizontal-synthetic-geometry-shape"
+        ],
+        "unsupported_claims": [
+          "3d-altitude-comparison",
+          "vertical-clearance",
+          "vertical-separation",
+          "absence-of-obstacle"
+        ],
+        "may_be_used_for_3d_airspace_claim": false,
+        "missing_vertical_datum_means_unrestricted": false
+      }
+    },
+    {
+      "id": "mapped-site-operational-status-unknown",
+      "synthetic_record": true,
+      "source_family": "AERODROME_OR_LANDING_SITE",
+      "publisher_label": "SYNTHETIC-SITE-PUBLISHER",
+      "geometry": {
+        "horizontal_crs": "SYNTHETIC-LOCAL-ENU",
+        "vertical_datum": "SYNTHETIC-LOCAL-UP",
+        "geometry_parse_status": "synthetic-parseable"
+      },
+      "operations": {
+        "operational_status": "unknown",
+        "usable_hours": "unknown",
+        "capacity": "unknown",
+        "runway_or_pad_suitability": "unknown",
+        "permission_to_use": "unknown"
+      },
+      "rights": {
+        "acquisition": "fixture-only",
+        "transformation": "fixture-only",
+        "redistribution": "not-applicable-fixture"
+      },
+      "content_digest": {
+        "value": null,
+        "status": "NOT_SUPPLIED_FIXTURE_ONLY"
+      },
+      "expected": {
+        "admission_state": "CANDIDATE",
+        "supported_claims": [
+          "mapped-location-exists-in-fixture"
+        ],
+        "unsupported_claims": [
+          "open-now",
+          "operational-capacity",
+          "landing-permission",
+          "vehicle-suitability"
+        ],
+        "geometry_implies_operational_status": false,
+        "unknown_capacity_may_be_treated_as_unlimited": false
+      }
+    },
+    {
+      "id": "regulation-excerpt-applicability-pending",
+      "synthetic_record": true,
+      "source_family": "REGULATORY_PUBLICATION",
+      "publisher_label": "South African Government Gazette",
+      "source_label": "Gazette 55226 / Notice 7844",
+      "publication_date": "2026-08-21",
+      "provision_reference": "Civil Aviation Regulations 2026, Part 101 regulation 101.01.2 amendment",
+      "source_verification": "publication-and-provision-reference-identified",
+      "legal_applicability": {
+        "jurisdiction": "South Africa",
+        "proposed_operation": "commercial-BVLOS-medical-cargo",
+        "applicability_review": "pending",
+        "commencement_and_consolidated_text_review": "pending",
+        "payload_classification_review": "pending"
+      },
+      "content_digest": {
+        "value": null,
+        "status": "NOT_SUPPLIED_FIXTURE_ONLY"
+      },
+      "expected": {
+        "admission_state": "SOURCE_VERIFIED_LEGAL_APPLICABILITY_PENDING",
+        "supported_claims": [
+          "publication-identity",
+          "amendment-date",
+          "provision-reference"
+        ],
+        "unsupported_claims": [
+          "blanket-commercial-permission",
+          "blanket-BVLOS-permission",
+          "medical-payload-eligibility",
+          "route-authorization"
+        ],
+        "may_emit_legal_permission_boolean": false,
+        "may_authorize_flight": false
+      }
+    },
+    {
+      "id": "bvlos-versus-brlos-regulatory-scope",
+      "synthetic_record": true,
+      "source_family": "REGULATORY_OPERATION_SCOPE",
+      "publisher_label": "SACAA and South African Government Gazette",
+      "checked_date": "2026-11-14",
+      "source_claims": [
+        {
+          "locator": "https://www.caa.co.za/industry-information/uas/",
+          "claim": "The SACAA UAS page lists R-VLOS, VLOS, EVLOS and BVLOS under its Radio line-of-sight (RLOS) section; it says current UAS operations are limited to RLOS and BRLOS is reserved for future use.",
+          "authority_scope": "regulator-summary-page",
+          "content_digest": {
+            "value": null,
+            "status": "NOT_SUPPLIED_FIXTURE_ONLY"
+          }
+        },
+        {
+          "locator": "https://www.gov.za/sites/default/files/gcis_document/202303/48228rg11556gon3170.pdf",
+          "claim": "Official Gazette 48228 / Notice R.3170 substitutes Part 101 regulation 101.05.11: B-VLOS requires Director approval in a UASOC operations manual, satisfaction of SA-CATS 101, and approved operations are in VMC below 400 ft AGL unless otherwise approved.",
+          "authority_scope": "official-regulation-amendment",
+          "printed_page": 194,
+          "pdf_page_index": 140,
+          "content_digest": {
+            "value": null,
+            "status": "NOT_SUPPLIED_FIXTURE_ONLY"
+          }
+        },
+        {
+          "locator": "https://www.gov.za/sites/default/files/gcis_document/202608/55226gon7844.pdf",
+          "claim": "The Thirty-Third Amendment / Notice 7844 substitutes Part 101 regulation 101.01.2 for private operations: R-VLOS only, Class 1A or 1B RPA, and no dangerous goods aboard a UA.",
+          "authority_scope": "official-regulation-amendment-private-operation-only",
+          "publication_date": "2026-08-21",
+          "content_digest": {
+            "value": null,
+            "status": "NOT_SUPPLIED_FIXTURE_ONLY"
+          }
+        }
+      ],
+      "semantic_dimensions": {
+        "visual_operation_rule": [
+          "R-VLOS",
+          "VLOS",
+          "EVLOS",
+          "BVLOS",
+          "unknown"
+        ],
+        "radio_link_scope": [
+          "RLOS",
+          "BRLOS",
+          "unknown"
+        ],
+        "operator_category": [
+          "commercial",
+          "corporate",
+          "non-profit",
+          "private",
+          "unknown"
+        ],
+        "aircraft_class": [
+          "Class 1A",
+          "Class 1B",
+          "other",
+          "unknown"
+        ],
+        "uasoc_and_opspec_status": [
+          "valid",
+          "missing",
+          "unknown"
+        ],
+        "director_bvlos_approval": [
+          "present",
+          "absent",
+          "unknown"
+        ],
+        "sa_cats_101_evidence": [
+          "complete",
+          "incomplete",
+          "unknown"
+        ],
+        "payload_dangerous_goods": [
+          "yes",
+          "no",
+          "unknown"
+        ]
+      },
+      "expected": {
+        "admission_state": "SOURCE_VERIFIED_SCOPE_REVIEW_REQUIRED",
+        "core_invariant": "BVLOS and BRLOS are separate dimensions; a BVLOS approval is not a BRLOS approval.",
+        "cases": [
+          {
+            "id": "private-bvlos-with-r-los",
+            "operator_category": "private",
+            "visual_operation_rule": "BVLOS",
+            "radio_link_scope": "RLOS",
+            "aircraft_class": "Class 1A",
+            "director_bvlos_approval": "present",
+            "expected_disposition": "REJECTED_FOR_PRIVATE_SCOPE",
+            "reason": "The 2026 private-operation rule requires R-VLOS; a general BVLOS approval path does not override that private-operation restriction."
+          },
+          {
+            "id": "commercial-bvlos-without-director-approval",
+            "operator_category": "commercial",
+            "visual_operation_rule": "BVLOS",
+            "radio_link_scope": "RLOS",
+            "uasoc_and_opspec_status": "valid",
+            "director_bvlos_approval": "unknown",
+            "sa_cats_101_evidence": "complete",
+            "expected_disposition": "UNRESOLVED",
+            "reason": "The B-VLOS approval is not evidenced; UASOC alone is not an approval."
+          },
+          {
+            "id": "commercial-bvlos-with-director-approval",
+            "operator_category": "commercial",
+            "visual_operation_rule": "BVLOS",
+            "radio_link_scope": "RLOS",
+            "uasoc_and_opspec_status": "valid",
+            "director_bvlos_approval": "present",
+            "sa_cats_101_evidence": "complete",
+            "expected_disposition": "CONDITIONAL_PATH_EVIDENCED_REQUIRES_OPERATION_SPECIFIC_REVIEW",
+            "reason": "The rule describes a conditional approval path; this fixture does not decide any other permissions, payload, airworthiness, site, airspace or operation-specific requirements."
+          },
+          {
+            "id": "brlos-request",
+            "operator_category": "commercial",
+            "visual_operation_rule": "BVLOS",
+            "radio_link_scope": "BRLOS",
+            "expected_disposition": "UNSUPPORTED_OR_UNRESOLVED",
+            "reason": "A visual-BVLOS approval must not be used to infer beyond-radio-line-of-sight support."
+          },
+          {
+            "id": "private-rvlos-dangerous-goods",
+            "operator_category": "private",
+            "visual_operation_rule": "R-VLOS",
+            "radio_link_scope": "RLOS",
+            "aircraft_class": "Class 1A",
+            "payload_dangerous_goods": "yes",
+            "expected_disposition": "REJECTED_FOR_PRIVATE_SCOPE",
+            "reason": "The 2026 private-operation provision prohibits dangerous goods aboard a UA."
+          }
+        ],
+        "may_emit_blanket_bvlos_allowed_boolean": false,
+        "may_infer_brlos_from_bvlos": false,
+        "may_authorize_flight": false
+      }
+    }
+  ],
+  "required_mutations": [
+    "Change the AIP rights field from unknown to rights-cleared without attaching evidence; admission must not be promoted.",
+    "Remove the supersession pointer from an older edition; the evaluator must report missing lineage rather than infer current status.",
+    "Change the NOTAM summary limit to an empty string; the evaluator must treat the flight-preparation restriction as unresolved, not safe.",
+    "Remove the authenticated-service access agreement; no automated acquisition is admitted.",
+    "Replace the unknown vertical datum with a conflicting datum; 3D use remains not-assessable until a qualified transformation is supplied.",
+    "Set a mapped site's geometry to valid while keeping capacity/status unknown; no capacity or landing permission may be inferred.",
+    "Change the regulation's proposed operation from private R-VLOS to commercial BVLOS; legal applicability must remain pending.",
+    "Change a private operator's visual rule from R-VLOS to BVLOS while keeping radio link RLOS; the private-operation case must be rejected.",
+    "Change a BVLOS operation's radio-link scope from RLOS to BRLOS; the evaluator must not reuse the BVLOS approval as BRLOS permission.",
+    "Remove Director approval from a commercial B-VLOS case; disposition must be unresolved/rejected, not approved.",
+    "Change a private payload from non-dangerous to dangerous goods; the private-operation case must be rejected."
+  ],
+  "invariants": [
+    "Public visibility, authenticity, freshness, completeness, reuse rights, geometric validity and operational applicability are separate claims.",
+    "Unknown, missing, stale, superseded, conflicting or rights-pending inputs never become affirmative permission.",
+    "A public NOTAM summary is not a complete current briefing and is not for flight preparation.",
+    "A geometry record does not establish site operations, capacity, suitability or permission.",
+    "A regulatory publication or excerpt does not establish applicability to a specific operation or payload.",
+    "Every derived claim retains exact source identity, retrieval time, validity, coverage, rights and transformation lineage.",
+    "No live or protected source bytes, credentials, personal information or operational data are included.",
+    "BVLOS (visual line-of-sight rule) and BRLOS (radio-link scope) are separate semantic dimensions.",
+    "The conditional Part 101.05.11 B-VLOS approval path does not make all B-VLOS operations permitted.",
+    "The 2026 Part 101.01.2 private-operation restrictions apply to private operations and are not generalized to all commercial or corporate operations.",
+    "A UASOC, B-VLOS Director approval, RLOS link scope, payload eligibility, site permission and airspace permission are separate evidence claims."
+  ]
+}
