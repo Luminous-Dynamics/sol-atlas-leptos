@@ -1,0 +1,29 @@
+{
+  "schema_version": "0.1.0",
+  "study_id": "HOME-MATERIAL-INTELLIGENCE-001",
+  "maturity": "SYNTHETIC_FIXTURE",
+  "mutation_type": "COMPONENT_REVISION_OR_SUBSTITUTION",
+  "invalidates": [
+    "BILL_OF_MATERIALS",
+    "COST_ESTIMATE",
+    "STRUCTURAL_CONNECTION_REVIEW",
+    "FIRE_STRATEGY_REVIEW",
+    "THERMAL_MODEL",
+    "MOISTURE_AND_CONDENSATION_REVIEW",
+    "ACOUSTIC_REVIEW",
+    "CERTIFICATION_SCOPE",
+    "WARRANTY_AND_INSTALLATION_METHOD",
+    "MAINTENANCE_AND_REPAIR_PLAN",
+    "EPD_AND_LIFECYCLE_ASSESSMENT",
+    "CONSTRUCTION_SEQUENCE"
+  ],
+  "required_behavior": [
+    "Component revision changes invalidate every dependent claim unless an exact-scope owner receipt requalifies it.",
+    "Expired quotes and product revision changes invalidate inherited rates.",
+    "Certificates scoped to another revision, licensee, system or use cannot be inherited.",
+    "Public price indices update sensitivity scenarios only; they cannot create quotes or stock records.",
+    "Unknown supplier availability remains UNKNOWN.",
+    "Unknown critical properties block substitution; measured failures reject it."
+  ],
+  "claim_ceiling": "Dependency invalidation contract only."
+}
