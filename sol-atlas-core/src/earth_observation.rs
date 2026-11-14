@@ -1364,6 +1364,10 @@ mod tests {
         assert_eq!(decoded, valid);
         assert_eq!(decoded.observations()[0].platform_id(), "fixture-platform");
         assert_eq!(decoded.observations()[0].sensor_id(), "fixture-sensor");
+        assert_eq!(
+            decoded.observations()[0].sensor_identity_origin(),
+            SensorIdentityOrigin::ProviderDeclared
+        );
         assert_eq!(decoded.observations()[0].instrument_id(), Some("fixture-instrument"));
         assert_eq!(decoded.observations()[0].collection_id(), Some("fixture-collection"));
         assert_eq!(decoded.observations()[0].processing_baseline(), Some("fixture-baseline"));
