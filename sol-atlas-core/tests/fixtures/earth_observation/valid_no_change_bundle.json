@@ -73,7 +73,8 @@
         "metric": "minimum-change-fraction",
         "value": 0.05,
         "unit": "fraction"
-      }
+      },
+      "detection_qualification_receipt_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
     }
   ]
 }
