@@ -20,7 +20,10 @@
       "delivered_at_unix_ms": 3000,
       "assessment": null,
       "coverage_qualification_receipt_sha256": null,
-      "detection_qualification_receipt_sha256": null
+      "detection_qualification_receipt_sha256": null,
+      "assessment_target_class_id": null,
+      "assessment_ontology_version": null,
+      "detection_qualification": null
     },
     {
       "opportunity_id": "s2-cloud-day-005",
@@ -39,7 +42,10 @@
       "delivered_at_unix_ms": 432005000,
       "assessment": null,
       "coverage_qualification_receipt_sha256": null,
-      "detection_qualification_receipt_sha256": null
+      "detection_qualification_receipt_sha256": null,
+      "assessment_target_class_id": null,
+      "assessment_ontology_version": null,
+      "detection_qualification": null
     },
     {
       "opportunity_id": "s1-usable-day-006",
@@ -58,7 +64,10 @@
       "delivered_at_unix_ms": 518404000,
       "assessment": null,
       "coverage_qualification_receipt_sha256": null,
-      "detection_qualification_receipt_sha256": null
+      "detection_qualification_receipt_sha256": null,
+      "assessment_target_class_id": null,
+      "assessment_ontology_version": null,
+      "detection_qualification": null
     },
     {
       "opportunity_id": "s2-no-acquisition-day-010",
@@ -74,7 +83,10 @@
       "delivered_at_unix_ms": null,
       "assessment": null,
       "coverage_qualification_receipt_sha256": null,
-      "detection_qualification_receipt_sha256": null
+      "detection_qualification_receipt_sha256": null,
+      "assessment_target_class_id": null,
+      "assessment_ontology_version": null,
+      "detection_qualification": null
     }
   ]
 }
