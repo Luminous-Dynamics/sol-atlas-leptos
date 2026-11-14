@@ -17,6 +17,7 @@ use crate::geospatial_assets::{
     AssetId, AssetKind, AssetRecord, AssetSource, GeoFootprint, LicenceMetadata, LicenceReview,
     ObservationTime, ObservationTimeKind, SpatialResolution,
 };
+use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use std::collections::BTreeMap;
 
@@ -24,7 +25,8 @@ pub const STAC_EO_SOURCE_PROFILE_VERSION: u32 = 1;
 
 /// STAC Item-level, source-native platform/instrument context. The original
 /// source JSON is retained separately so unknown extensions are not discarded.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct StacSourceProfile {
     profile_version: u32,
     collection_id: Option<String>,
@@ -38,14 +40,16 @@ pub struct StacSourceProfile {
     processing_fields: BTreeMap<String, Value>,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub enum StacSensorIdentityOrigin {
     ProviderDeclared,
     DerivedFromPlatformAndInstrument,
     Unknown,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct StacSensorIdentity {
     value: Option<String>,
     origin: StacSensorIdentityOrigin,
@@ -56,7 +60,8 @@ impl StacSensorIdentity {
     pub fn origin(&self) -> StacSensorIdentityOrigin { self.origin }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct StacObservationIdentity {
     pub platform_id: String,
     pub sensor_id: String,
@@ -158,7 +163,8 @@ impl StacSourceProfile {
 }
 
 /// Source-native asset metadata retained separately for each STAC asset.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct StacAssetProfile {
     asset_key: String,
     extension_fields: BTreeMap<String, Value>,
@@ -171,7 +177,8 @@ impl StacAssetProfile {
 
 
 /// Result of importing one STAC Item.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct StacItemImport {
     item_id: String,
     /// Exact UTF-8 JSON text supplied to the importer, preserving unknown
@@ -210,7 +217,8 @@ impl StacItemImport {
 }
 
 /// A STAC asset excluded from the current model, with an explicit reason.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct SkippedStacAsset {
     key: String,
     reason: String,
@@ -266,7 +274,7 @@ pub fn import_item_json(input: &str) -> Result<StacItemImport, String> {
     let footprint = parse_item_footprint(object.get("bbox"))?;
     let observation_time = parse_observation_time(properties)?;
     let licence = parse_licence(object)?;
-    let source_profile = parse_source_profile(object, properties, &item_id)?;
+    let source_profile = parse_source_profile(object, properties)?;
 
 
     // A BTreeMap is not guaranteed by serde_json's configuration, so sort keys
@@ -365,7 +373,6 @@ pub fn import_item_json(input: &str) -> Result<StacItemImport, String> {
 fn parse_source_profile(
     object: &Map<String, Value>,
     properties: &Map<String, Value>,
-    item_id: &str,
 ) -> Result<StacSourceProfile, String> {
     let collection_id = optional_nonempty_text(object.get("collection"), "collection")?;
     let platform = optional_nonempty_text(properties.get("platform"), "properties.platform")?;
@@ -394,7 +401,6 @@ fn parse_source_profile(
     } else {
         // Multiple instruments are intentionally ambiguous without an explicit
         // provider sensor ID; never pick the first instrument silently.
-        let _ = item_id;
         StacSensorIdentity {
             value: None,
             origin: StacSensorIdentityOrigin::Unknown,
