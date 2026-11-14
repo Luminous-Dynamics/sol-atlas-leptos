@@ -220,7 +220,7 @@ It contains four unit-local layouts, 28 room rectangles, 24 activity assignments
 
 Portal clear widths remain `NOT_COMPUTED`; door swings are `NOT_MODELLED`. A connected everyday graph is not an accessible route, stair/lift qualification or emergency egress graph. Wall thickness, door leaves, windows, shafts, fire compartments and specialist room performance remain outside P0.
 
-The Rust unit-layout qualifier has 15 authored tests (one positive and 14 negative controls). The focused apartment workflow now runs rustfmt, native tests and fixture replay for all three qualifiers: building geometry/resident programme, shared services and unit-interior room geometry. No Rust or CI pass is claimed until exact-head hosted results complete.
+The Rust unit-layout qualifier has 18 authored tests (one positive and 17 negative controls). Its 24-case authored mutation corpus has one positive and 23 adversarial development controls; the qualifier checks registration and claim boundaries but has not yet executed all 23 mutations. The focused apartment workflow now runs rustfmt, native tests and fixture replay for all three qualifiers and validates the unit-layout schema/fixture plus corpus schema/manifest. No Rust or CI pass is claimed until exact-head hosted results complete.
 
 
 ## 15. Apartment shared-service resilience and hydraulic integration
