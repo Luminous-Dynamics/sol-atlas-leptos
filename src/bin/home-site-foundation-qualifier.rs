@@ -28,6 +28,10 @@ fn nonempty(value: Option<&Value>) -> bool {
     value.and_then(Value::as_str).is_some_and(|s| !s.trim().is_empty())
 }
 
+fn one_of(value: Option<&str>, allowed: &[&str]) -> bool {
+    value.is_some_and(|candidate| allowed.contains(&candidate))
+}
+
 fn has_reference(value: Option<&Value>) -> bool {
     let Some(value) = value else { return false };
     value.is_object() && nonempty(value.get("kind")) && nonempty(value.get("id"))
@@ -229,6 +233,28 @@ fn validate(fixture: &Value) -> Result<Value, Vec<String>> {
     if text_at(fixture, "schema_version") != Some("site-foundation-evidence/0.1") {
         errors.push("unsupported site-foundation schema_version".to_owned());
     }
+    if !one_of(
+        text_at(fixture, "maturity"),
+        &["synthetic_contract", "screening_only", "investigation_recorded", "professional_review_recorded", "construction_records_present", "as_built_recorded", "disputed"],
+    ) {
+        errors.push("unsupported site-foundation maturity".to_owned());
+    }
+    let investigation_state = text_at(fixture.get("investigation").unwrap_or(&Value::Null), "state");
+    if !one_of(investigation_state, &["not_provided", "planned", "in_progress", "completed", "disputed", "superseded"]) {
+        errors.push("invalid investigation state".to_owned());
+    }
+    let professional_state = text_at(fixture.get("professional_review").unwrap_or(&Value::Null), "state");
+    if !one_of(professional_state, &["not_requested", "pending", "recorded", "disputed", "superseded"]) {
+        errors.push("invalid professional_review state".to_owned());
+    }
+    let foundation_state = text_at(fixture.get("foundation_design").unwrap_or(&Value::Null), "state");
+    if !one_of(foundation_state, &["not_provided", "draft", "issued_for_review", "review_recorded", "superseded", "disputed"]) {
+        errors.push("invalid foundation_design state".to_owned());
+    }
+    let as_built_state = text_at(fixture.get("as_built").unwrap_or(&Value::Null), "state");
+    if !one_of(as_built_state, &["not_started", "in_progress", "recorded", "disputed"]) {
+        errors.push("invalid as_built state".to_owned());
+    }
     if text_at(fixture, "maturity") == Some("synthetic_contract") {
         // A synthetic empty evidence fixture is expected to remain non-promotable.
         push_if_missing(
@@ -236,11 +262,24 @@ fn validate(fixture: &Value) -> Result<Value, Vec<String>> {
             rows(fixture, "screening_sources").is_some_and(Vec::is_empty),
             "synthetic empty fixture unexpectedly contains screening records",
         );
+        let site = fixture.get("site_binding").unwrap_or(&Value::Null);
+        let coordinate = site.get("coordinate_context").unwrap_or(&Value::Null);
+        push_if_missing(
+            &mut errors,
+            ["horizontal_crs", "axis_order", "vertical_datum", "linear_unit", "coordinate_epoch", "survey_time"]
+                .iter()
+                .all(|field| coordinate.get(*field).is_some_and(Value::is_null))
+                && text_at(coordinate, "coverage_state") == Some("unknown")
+                && text_at(coordinate, "uncertainty_state") == Some("unknown"),
+            "synthetic fixture must retain unknown coordinate reference, datum, survey time and uncertainty",
+        );
         let investigation = fixture.get("investigation").unwrap_or(&Value::Null);
         push_if_missing(
             &mut errors,
             text_at(investigation, "state") == Some("not_provided")
-                && rows(investigation, "observations").is_some_and(Vec::is_empty),
+                && rows(investigation, "observations").is_some_and(Vec::is_empty)
+                && text_at(investigation.get("report_ref").unwrap_or(&Value::Null), "id")
+                    .is_some_and(|id| id.contains("not-provided")),
             "synthetic fixture must keep investigation explicitly not_provided",
         );
         push_if_missing(
@@ -397,7 +436,7 @@ mod tests {
     #[test]
     fn synthetic_fixture_cannot_be_promoted_to_professional_maturity() {
         let mut fixture = load_fixture();
-        fixture["maturity"] = json!("professionally_review_recorded");
+        fixture["maturity"] = json!("professional_review_recorded");
         assert!(validate(&fixture).is_err());
     }
 
@@ -469,11 +508,11 @@ mod tests {
     }
 
     #[test]
-    fn unknown_coordinate_context_is_not_invented() {
+    fn synthetic_coordinate_reference_and_datum_cannot_be_filled_by_guess() {
         let mut fixture = load_fixture();
         fixture["site_binding"]["coordinate_context"]["horizontal_crs"] = json!("EPSG:4326");
-        fixture["site_binding"]["coordinate_context"]["vertical_datum"] = json!("unknown-assumed-datum");
-        assert!(validate(&fixture).is_err() == false);
+        fixture["site_binding"]["coordinate_context"]["vertical_datum"] = json!("assumed-local-datum");
+        assert!(validate(&fixture).is_err());
     }
 
     #[test]
