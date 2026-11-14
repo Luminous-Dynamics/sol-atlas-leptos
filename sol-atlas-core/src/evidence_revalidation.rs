@@ -77,6 +77,7 @@ pub struct RevalidationPlan {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum EvidenceDependencyError {
     EmptyIdentifier(&'static str),
+    EmptyGraph,
     DuplicateNode(String),
     DuplicateDependency(String, String),
     SelfDependency(String),
@@ -100,6 +101,10 @@ fn topological_order(
     }
     if !non_empty(&graph.snapshot_id) {
         errors.push(EvidenceDependencyError::EmptyIdentifier("snapshot_id"));
+    }
+
+    if graph.nodes.is_empty() {
+        errors.push(EvidenceDependencyError::EmptyGraph);
     }
 
     let mut nodes = BTreeMap::new();
@@ -331,6 +336,15 @@ mod tests {
             plan.invalidated_node_ids.iter().map(String::as_str).collect();
         assert_eq!(unique.len(), plan.invalidated_node_ids.len());
         assert!(plan.invalidated_node_ids.contains(&"decision:survey-plan-a".to_string()));
+    }
+
+    #[test]
+    fn empty_dependency_graph_is_rejected() {
+        let mut graph = graph();
+        graph.nodes.clear();
+        assert!(validate_evidence_dependency_graph(&graph)
+            .unwrap_err()
+            .contains(&EvidenceDependencyError::EmptyGraph));
     }
 
     #[test]
