@@ -847,8 +847,8 @@ mod tests {
 
     #[test]
     fn exact_synthetic_multi_floor_fixture_qualifies() {
-        let (fixture, corpus) = load_fixture();
-        let report = validate(&fixture, &corpus).expect("synthetic multi-family fixture");
+        let (fixture, corpus, programme) = load_fixture();
+        let report = validate(&fixture, &corpus, &programme).expect("synthetic multi-family fixture");
         assert_eq!(report["floor_count"], 2);
         assert_eq!(report["space_count"], 14);
         assert_eq!(report["unit_count"], 4);
@@ -866,84 +866,84 @@ mod tests {
     fn duplicate_space_identity_is_rejected() {
         let (mut fixture, corpus, programme) = load_fixture();
         fixture["building"]["spaces"][1]["space_id"] = json!("U-001");
-        assert!(validate(&fixture, &corpus).is_err());
+        assert!(validate(&fixture, &corpus, &programme).is_err());
     }
 
     #[test]
     fn positive_area_overlap_is_rejected() {
-        let (mut fixture, corpus) = load_fixture();
+        let (mut fixture, corpus, programme) = load_fixture();
         fixture["building"]["spaces"][1]["footprint"]["x_mm"] = json!(5900);
-        assert!(validate(&fixture, &corpus).is_err());
+        assert!(validate(&fixture, &corpus, &programme).is_err());
     }
 
     #[test]
     fn out_of_envelope_space_is_rejected() {
-        let (mut fixture, corpus) = load_fixture();
+        let (mut fixture, corpus, programme) = load_fixture();
         fixture["building"]["spaces"][0]["footprint"]["x_mm"] = json!(11900);
-        assert!(validate(&fixture, &corpus).is_err());
+        assert!(validate(&fixture, &corpus, &programme).is_err());
     }
 
     #[test]
     fn unallocated_floor_region_is_rejected() {
-        let (mut fixture, corpus) = load_fixture();
+        let (mut fixture, corpus, programme) = load_fixture();
         fixture["building"]["spaces"][6]["footprint"]["width_mm"] = json!(4000);
-        assert!(validate(&fixture, &corpus).is_err());
+        assert!(validate(&fixture, &corpus, &programme).is_err());
     }
 
     #[test]
     fn opening_not_on_shared_boundary_is_rejected() {
-        let (mut fixture, corpus) = load_fixture();
+        let (mut fixture, corpus, programme) = load_fixture();
         fixture["building"]["everyday_connections"][0]["portal"]["coordinate_mm"] = json!(7999);
-        assert!(validate(&fixture, &corpus).is_err());
+        assert!(validate(&fixture, &corpus, &programme).is_err());
     }
 
     #[test]
     fn unit_to_space_identity_mismatch_is_rejected() {
-        let (mut fixture, corpus) = load_fixture();
+        let (mut fixture, corpus, programme) = load_fixture();
         fixture["building"]["spaces"][0]["unit_id"] = json!("U-OTHER");
-        assert!(validate(&fixture, &corpus).is_err());
+        assert!(validate(&fixture, &corpus, &programme).is_err());
     }
 
     #[test]
     fn unknown_shared_service_unit_is_rejected() {
-        let (mut fixture, corpus) = load_fixture();
+        let (mut fixture, corpus, programme) = load_fixture();
         fixture["shared_services"][0]["served_unit_ids"][0] = json!("U-999");
-        assert!(validate(&fixture, &corpus).is_err());
+        assert!(validate(&fixture, &corpus, &programme).is_err());
     }
 
     #[test]
     fn vertical_core_floor_mismatch_is_rejected() {
-        let (mut fixture, corpus) = load_fixture();
+        let (mut fixture, corpus, programme) = load_fixture();
         fixture["building"]["vertical_cores"][0]["floor_ids"][1] = json!("F9");
-        assert!(validate(&fixture, &corpus).is_err());
+        assert!(validate(&fixture, &corpus, &programme).is_err());
     }
 
     #[test]
     fn professional_promotion_of_synthetic_fixture_is_rejected() {
-        let (mut fixture, corpus) = load_fixture();
+        let (mut fixture, corpus, programme) = load_fixture();
         fixture["maturity"] = json!("professionally_reviewed");
-        assert!(validate(&fixture, &corpus).is_err());
+        assert!(validate(&fixture, &corpus, &programme).is_err());
     }
 
     #[test]
     fn specialist_assessment_promotion_is_rejected() {
-        let (mut fixture, corpus) = load_fixture();
+        let (mut fixture, corpus, programme) = load_fixture();
         fixture["assessment_register"][0]["status"] = json!("qualified");
-        assert!(validate(&fixture, &corpus).is_err());
+        assert!(validate(&fixture, &corpus, &programme).is_err());
     }
 
     #[test]
     fn shared_service_capacity_without_evidence_is_rejected() {
-        let (mut fixture, corpus) = load_fixture();
+        let (mut fixture, corpus, programme) = load_fixture();
         fixture["shared_services"][0]["capacity_state"] = json!("measured");
-        assert!(validate(&fixture, &corpus).is_err());
+        assert!(validate(&fixture, &corpus, &programme).is_err());
     }
 
     #[test]
     fn undeclared_everyday_connection_is_rejected() {
-        let (mut fixture, corpus) = load_fixture();
+        let (mut fixture, corpus, programme) = load_fixture();
         fixture["building"]["everyday_connections"][0]["state"] = json!("unknown");
-        assert!(validate(&fixture, &corpus).is_err());
+        assert!(validate(&fixture, &corpus, &programme).is_err());
     }
 
     #[test]
@@ -986,6 +986,6 @@ mod tests {
     fn duplicate_manifest_case_identity_is_rejected() {
         let (fixture, mut corpus, programme) = load_fixture();
         corpus["cases"][1]["case_id"] = corpus["cases"][0]["case_id"].clone();
-        assert!(validate(&fixture, &corpus).is_err());
+        assert!(validate(&fixture, &corpus, &programme).is_err());
     }
 }
