@@ -217,8 +217,7 @@ pub fn validate_investigation_tournament(
         }
     }
 
-    if !valid_non_negative(case.budget.max_cost)
-        || !valid_non_negative(case.budget.max_crew_hours)
+    if !valid_non_negative(case.budget.max_cost) || !valid_non_negative(case.budget.max_crew_hours)
     {
         errors.push(InvestigationTournamentError::InvalidBudget);
     }
@@ -240,10 +239,7 @@ pub fn validate_investigation_tournament(
                 "action_identity_or_support",
             ));
         }
-        if actions
-            .insert(action.action_id.as_str(), action)
-            .is_some()
-        {
+        if actions.insert(action.action_id.as_str(), action).is_some() {
             errors.push(InvestigationTournamentError::DuplicateAction(
                 action.action_id.clone(),
             ));
@@ -576,12 +572,16 @@ mod tests {
         case.policy_plans[0].selected_action_ids = vec!["not-in-catalogue".to_string()];
         case.policy_plans[0].chosen_decision_id = "not-in-loss-table".to_string();
         let errors = validate_investigation_tournament(&case);
-        assert!(errors.contains(&InvestigationTournamentError::UnknownAction(
-            "entropy-greedy".to_string(),
-            "not-in-catalogue".to_string()
-        )));
-        assert!(errors.contains(&InvestigationTournamentError::MissingDecisionLoss(
-            "not-in-loss-table".to_string()
-        )));
+        assert!(
+            errors.contains(&InvestigationTournamentError::UnknownAction(
+                "entropy-greedy".to_string(),
+                "not-in-catalogue".to_string()
+            ))
+        );
+        assert!(
+            errors.contains(&InvestigationTournamentError::MissingDecisionLoss(
+                "not-in-loss-table".to_string()
+            ))
+        );
     }
 }

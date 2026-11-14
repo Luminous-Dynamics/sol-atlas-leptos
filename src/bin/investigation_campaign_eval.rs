@@ -4,8 +4,8 @@
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use sol_atlas_core::investigation_campaign::{
-    score_investigation_campaign, CampaignPolicyMetrics, InvestigationCampaignReceipt,
-    InvestigationTournamentCampaign,
+    CampaignPolicyMetrics, InvestigationCampaignReceipt, InvestigationTournamentCampaign,
+    score_investigation_campaign,
 };
 use std::env;
 use std::fs;
@@ -108,7 +108,10 @@ mod tests {
     #[test]
     fn campaign_receipt_preserves_project_level_outcomes() {
         let receipt = build_receipt(FIXTURE).expect("campaign fixture scores");
-        assert_eq!(receipt.benchmark_id, "EARTH-OBSERVABILITY-INVESTIGATION-CAMPAIGN-001");
+        assert_eq!(
+            receipt.benchmark_id,
+            "EARTH-OBSERVABILITY-INVESTIGATION-CAMPAIGN-001"
+        );
         assert_eq!(receipt.input_sha256, sha256_hex(FIXTURE));
         assert_eq!(receipt.receipt.project_count, 3);
         assert_eq!(receipt.receipt.project_results.len(), 15);

@@ -4,8 +4,8 @@
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use sol_atlas_core::investigation_tournament::{
-    score_investigation_tournament, InvestigationPolicyMetrics, InvestigationTournamentCase,
-    InvestigationTournamentReceipt,
+    InvestigationPolicyMetrics, InvestigationTournamentCase, InvestigationTournamentReceipt,
+    score_investigation_tournament,
 };
 use std::env;
 use std::fs;

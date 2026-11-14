@@ -4,7 +4,7 @@
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use sol_atlas_core::field_activity_admission::{
-    assess_field_activity, ActivityTrackAdmissibility, FieldActivityAdmission,
+    ActivityTrackAdmissibility, FieldActivityAdmission, assess_field_activity,
 };
 use std::env;
 use std::fs;
@@ -58,8 +58,8 @@ fn build_receipt(input: &[u8]) -> Result<FieldActivityAdmissionReceipt, String> 
 
 fn check_pinned() -> Result<(), String> {
     let receipt = build_receipt(FIXTURE)?;
-    let expected: Vec<ActivityTrackAdmissibility> =
-        serde_json::from_str(EXPECTED).map_err(|error| format!("pinned eligibility JSON: {error}"))?;
+    let expected: Vec<ActivityTrackAdmissibility> = serde_json::from_str(EXPECTED)
+        .map_err(|error| format!("pinned eligibility JSON: {error}"))?;
     if receipt.assessments != expected {
         return Err(format!(
             "pinned activity eligibility differs\nexpected: {expected:#?}\nobserved: {:#?}",
@@ -138,27 +138,64 @@ mod tests {
     #[test]
     fn positionless_and_wheel_compromised_activities_remain_event_eligible_only() {
         let receipt = build_receipt(FIXTURE).unwrap();
-        let wheel = receipt.assessments.iter().find(|item| item.activity_id == "activity-wheel-compromised").unwrap();
-        let positionless = receipt.assessments.iter().find(|item| item.activity_id == "activity-positionless-radargram").unwrap();
-        assert_eq!(wheel.signal_event_detection, positionless.signal_event_detection);
-        assert!(matches!(wheel.localization, sol_atlas_core::field_activity_admission::TrackEligibility::Ineligible(_)));
-        assert!(matches!(positionless.localization, sol_atlas_core::field_activity_admission::TrackEligibility::Ineligible(_)));
+        let wheel = receipt
+            .assessments
+            .iter()
+            .find(|item| item.activity_id == "activity-wheel-compromised")
+            .unwrap();
+        let positionless = receipt
+            .assessments
+            .iter()
+            .find(|item| item.activity_id == "activity-positionless-radargram")
+            .unwrap();
+        assert_eq!(
+            wheel.signal_event_detection,
+            positionless.signal_event_detection
+        );
+        assert!(matches!(
+            wheel.localization,
+            sol_atlas_core::field_activity_admission::TrackEligibility::Ineligible(_)
+        ));
+        assert!(matches!(
+            positionless.localization,
+            sol_atlas_core::field_activity_admission::TrackEligibility::Ineligible(_)
+        ));
     }
 
     #[test]
     fn owner_record_only_truth_is_excluded_from_physical_scoring() {
         let receipt = build_receipt(FIXTURE).unwrap();
-        let owner_record = receipt.assessments.iter().find(|item| item.activity_id == "activity-owner-record-only").unwrap();
-        assert!(matches!(owner_record.signal_event_detection, sol_atlas_core::field_activity_admission::TrackEligibility::Ineligible(_)));
+        let owner_record = receipt
+            .assessments
+            .iter()
+            .find(|item| item.activity_id == "activity-owner-record-only")
+            .unwrap();
+        assert!(matches!(
+            owner_record.signal_event_detection,
+            sol_atlas_core::field_activity_admission::TrackEligibility::Ineligible(_)
+        ));
     }
 
     #[test]
     fn inspected_negative_is_scoped_and_admitted_only_for_supported_tracks() {
         let receipt = build_receipt(FIXTURE).unwrap();
-        let negative = receipt.assessments.iter().find(|item| item.activity_id == "activity-inspected-negative-support").unwrap();
-        assert_eq!(negative.signal_event_detection, sol_atlas_core::field_activity_admission::TrackEligibility::Eligible);
-        assert_eq!(negative.localization, sol_atlas_core::field_activity_admission::TrackEligibility::Eligible);
-        assert!(matches!(negative.network_topology_3d, sol_atlas_core::field_activity_admission::TrackEligibility::Ineligible(_)));
+        let negative = receipt
+            .assessments
+            .iter()
+            .find(|item| item.activity_id == "activity-inspected-negative-support")
+            .unwrap();
+        assert_eq!(
+            negative.signal_event_detection,
+            sol_atlas_core::field_activity_admission::TrackEligibility::Eligible
+        );
+        assert_eq!(
+            negative.localization,
+            sol_atlas_core::field_activity_admission::TrackEligibility::Eligible
+        );
+        assert!(matches!(
+            negative.network_topology_3d,
+            sol_atlas_core::field_activity_admission::TrackEligibility::Ineligible(_)
+        ));
     }
 
     #[test]

@@ -9,8 +9,8 @@
 //! statistically independent replications of a universal population.
 
 use crate::investigation_tournament::{
-    score_investigation_tournament, InvestigationBudget, InvestigationPolicyKind,
-    InvestigationTournamentCase, InvestigationTournamentError,
+    InvestigationBudget, InvestigationPolicyKind, InvestigationTournamentCase,
+    InvestigationTournamentError, score_investigation_tournament,
 };
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
@@ -220,8 +220,8 @@ pub fn score_investigation_campaign(
     > = BTreeMap::new();
 
     for project_case in &campaign.project_cases {
-        let case_receipt = score_investigation_tournament(&project_case.case)
-            .map_err(|errors| {
+        let case_receipt =
+            score_investigation_tournament(&project_case.case).map_err(|errors| {
                 vec![InvestigationCampaignError::InvalidProjectCase(
                     project_case.project_id.clone(),
                     errors,
@@ -239,10 +239,11 @@ pub fn score_investigation_campaign(
                 submitted_information_gain_sum: metrics.submitted_information_gain_sum,
             };
             project_results.push(result.clone());
-            per_policy
-                .entry(metrics.policy_id)
-                .or_default()
-                .push((metrics.policy_kind, metrics.is_oracle_upper_bound, result));
+            per_policy.entry(metrics.policy_id).or_default().push((
+                metrics.policy_kind,
+                metrics.is_oracle_upper_bound,
+                result,
+            ));
         }
     }
 
@@ -269,8 +270,11 @@ pub fn score_investigation_campaign(
             / project_count;
         let macro_mean_cost =
             rows.iter().map(|(_, _, row)| row.total_cost).sum::<f64>() / project_count;
-        let macro_mean_crew_hours =
-            rows.iter().map(|(_, _, row)| row.total_crew_hours).sum::<f64>() / project_count;
+        let macro_mean_crew_hours = rows
+            .iter()
+            .map(|(_, _, row)| row.total_crew_hours)
+            .sum::<f64>()
+            / project_count;
 
         let (worst_loss_id, worst_loss) = rows
             .iter()
@@ -295,9 +299,8 @@ pub fn score_investigation_campaign(
             .iter()
             .filter_map(|(_, _, row)| row.submitted_information_gain_sum)
             .collect();
-        let macro_mean_information_gain = (information_gain_values.len() == rows.len()).then(|| {
-            information_gain_values.iter().sum::<f64>() / project_count
-        });
+        let macro_mean_information_gain = (information_gain_values.len() == rows.len())
+            .then(|| information_gain_values.iter().sum::<f64>() / project_count);
 
         policy_metrics.push(CampaignPolicyMetrics {
             policy_id,
@@ -368,16 +371,25 @@ mod tests {
     #[test]
     fn project_macro_average_weights_projects_not_event_counts() {
         let mut campaign = fixture();
-        let truth_state_id = campaign.project_cases[1].case.adjudicated_truth_state_id.clone();
-        campaign.project_cases[1].case.decision_losses
+        let truth_state_id = campaign.project_cases[1]
+            .case
+            .adjudicated_truth_state_id
+            .clone();
+        campaign.project_cases[1]
+            .case
+            .decision_losses
             .iter_mut()
-            .find(|entry| entry.truth_state_id == truth_state_id
-                && entry.decision_id == "declare-junction")
+            .find(|entry| {
+                entry.truth_state_id == truth_state_id && entry.decision_id == "declare-junction"
+            })
             .unwrap()
             .loss = 10.0;
         let receipt = score_investigation_campaign(&campaign).unwrap();
-        let entropy = receipt.policy_metrics.iter()
-            .find(|metric| metric.policy_id == "entropy-greedy").unwrap();
+        let entropy = receipt
+            .policy_metrics
+            .iter()
+            .find(|metric| metric.policy_id == "entropy-greedy")
+            .unwrap();
         assert!((entropy.macro_mean_decision_loss - (170.0 / 3.0)).abs() < 1e-12);
     }
 
@@ -385,23 +397,38 @@ mod tests {
     fn campaigns_reject_different_budgets() {
         let mut campaign = fixture();
         campaign.project_cases[0].case.budget.max_cost = 151.0;
-        assert!(validate_investigation_campaign(&campaign).unwrap_err()
-            .contains(&InvestigationCampaignError::BudgetMismatch("project-a".to_string())));
+        assert!(
+            validate_investigation_campaign(&campaign)
+                .unwrap_err()
+                .contains(&InvestigationCampaignError::BudgetMismatch(
+                    "project-a".to_string()
+                ))
+        );
     }
 
     #[test]
     fn campaigns_reject_policy_set_drift() {
         let mut campaign = fixture();
         campaign.project_cases[0].case.policy_plans.pop();
-        assert!(validate_investigation_campaign(&campaign).unwrap_err()
-            .contains(&InvestigationCampaignError::PolicySetMismatch("project-a".to_string())));
+        assert!(
+            validate_investigation_campaign(&campaign)
+                .unwrap_err()
+                .contains(&InvestigationCampaignError::PolicySetMismatch(
+                    "project-a".to_string()
+                ))
+        );
     }
 
     #[test]
     fn campaign_requires_distinct_project_and_evaluation_identities() {
         let mut campaign = fixture();
         campaign.project_cases[1].project_id = "project-a".to_string();
-        assert!(validate_investigation_campaign(&campaign).unwrap_err()
-            .contains(&InvestigationCampaignError::DuplicateProject("project-a".to_string())));
+        assert!(
+            validate_investigation_campaign(&campaign)
+                .unwrap_err()
+                .contains(&InvestigationCampaignError::DuplicateProject(
+                    "project-a".to_string()
+                ))
+        );
     }
 }

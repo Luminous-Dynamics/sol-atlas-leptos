@@ -163,8 +163,7 @@ fn valid_sha256(value: &str) -> bool {
 fn independent_truth(tier: ActivityTruthTier) -> bool {
     matches!(
         tier,
-        ActivityTruthTier::StructuredIndependentSurvey
-            | ActivityTruthTier::TrenchImageInterpreted
+        ActivityTruthTier::StructuredIndependentSurvey | ActivityTruthTier::TrenchImageInterpreted
     )
 }
 
@@ -231,9 +230,10 @@ pub fn validate_field_activity_admission(
     {
         errors.push(FieldActivityAdmissionError::InvalidPositioningCalibration);
     }
-    if activity.horizontal_position_sigma_m.is_some_and(|sigma| {
-        !sigma.is_finite() || sigma <= 0.0
-    }) {
+    if activity
+        .horizontal_position_sigma_m
+        .is_some_and(|sigma| !sigma.is_finite() || sigma <= 0.0)
+    {
         errors.push(FieldActivityAdmissionError::InvalidPositionSigma);
     }
     if activity
@@ -335,9 +335,7 @@ fn localization_reason(activity: &FieldActivityAdmission) -> Option<TrackIneligi
     None
 }
 
-fn eligibility(
-    reason: Option<TrackIneligibilityReason>,
-) -> TrackEligibility {
+fn eligibility(reason: Option<TrackIneligibilityReason>) -> TrackEligibility {
     reason.map_or(TrackEligibility::Eligible, TrackEligibility::Ineligible)
 }
 
@@ -419,7 +417,11 @@ mod tests {
     fn field_activity_fixture_parses_and_assesses() {
         let activities = fixture();
         assert_eq!(activities.len(), 5);
-        assert!(activities.iter().all(|activity| validate_field_activity_admission(activity).is_empty()));
+        assert!(
+            activities
+                .iter()
+                .all(|activity| validate_field_activity_admission(activity).is_empty())
+        );
     }
 
     #[test]
@@ -427,9 +429,10 @@ mod tests {
         let activity = &fixture()[1];
         let result = assess_field_activity(activity).unwrap();
         assert_eq!(result.signal_event_detection, TrackEligibility::Eligible);
-        assert_eq!(result.localization, TrackEligibility::Ineligible(
-            TrackIneligibilityReason::WheelContactNotVerified
-        ));
+        assert_eq!(
+            result.localization,
+            TrackEligibility::Ineligible(TrackIneligibilityReason::WheelContactNotVerified)
+        );
         assert_eq!(result.geometry_2d, result.localization);
         assert_eq!(result.network_topology_3d, result.localization);
     }
@@ -439,10 +442,14 @@ mod tests {
         let activity = &fixture()[2];
         let result = assess_field_activity(activity).unwrap();
         assert_eq!(result.signal_event_detection, TrackEligibility::Eligible);
-        assert_eq!(result.event_to_target_association, TrackEligibility::Eligible);
-        assert_eq!(result.localization, TrackEligibility::Ineligible(
-            TrackIneligibilityReason::SpatialSupportMissing
-        ));
+        assert_eq!(
+            result.event_to_target_association,
+            TrackEligibility::Eligible
+        );
+        assert_eq!(
+            result.localization,
+            TrackEligibility::Ineligible(TrackIneligibilityReason::SpatialSupportMissing)
+        );
     }
 
     #[test]
@@ -460,21 +467,28 @@ mod tests {
     #[test]
     fn record_only_truth_is_not_a_negative_example() {
         let result = assess_field_activity(&fixture()[3]).unwrap();
-        assert_eq!(result.signal_event_detection, TrackEligibility::Ineligible(
-            TrackIneligibilityReason::TruthNotIndependent
-        ));
+        assert_eq!(
+            result.signal_event_detection,
+            TrackEligibility::Ineligible(TrackIneligibilityReason::TruthNotIndependent)
+        );
     }
 
     #[test]
     fn trench_image_truth_needs_registered_geometry_and_cannot_establish_3d_topology() {
         let activity = &fixture()[0];
         let result = assess_field_activity(activity).unwrap();
-        assert_eq!(result.geometry_2d, TrackEligibility::Ineligible(
-            TrackIneligibilityReason::TrenchGeometryRegistrationMissing
-        ));
-        assert_eq!(result.network_topology_3d, TrackEligibility::Ineligible(
-            TrackIneligibilityReason::StructuredIndependentTopologyTruthRequired
-        ));
+        assert_eq!(
+            result.geometry_2d,
+            TrackEligibility::Ineligible(
+                TrackIneligibilityReason::TrenchGeometryRegistrationMissing
+            )
+        );
+        assert_eq!(
+            result.network_topology_3d,
+            TrackEligibility::Ineligible(
+                TrackIneligibilityReason::StructuredIndependentTopologyTruthRequired
+            )
+        );
     }
 
     #[test]
@@ -484,9 +498,12 @@ mod tests {
         let result = assess_field_activity(&activity).unwrap();
         assert_eq!(result.localization, TrackEligibility::Eligible);
         assert_eq!(result.geometry_2d, TrackEligibility::Eligible);
-        assert_eq!(result.network_topology_3d, TrackEligibility::Ineligible(
-            TrackIneligibilityReason::ConnectedTopologyReferenceMissing
-        ));
+        assert_eq!(
+            result.network_topology_3d,
+            TrackEligibility::Ineligible(
+                TrackIneligibilityReason::ConnectedTopologyReferenceMissing
+            )
+        );
     }
 
     #[test]
@@ -494,9 +511,10 @@ mod tests {
         let mut activity = fixture()[4].clone();
         activity.target_truth = ActivityTargetTruth::Conflicted;
         let result = assess_field_activity(&activity).unwrap();
-        assert_eq!(result.signal_event_detection, TrackEligibility::Ineligible(
-            TrackIneligibilityReason::TruthStateUnknownOrConflicted
-        ));
+        assert_eq!(
+            result.signal_event_detection,
+            TrackEligibility::Ineligible(TrackIneligibilityReason::TruthStateUnknownOrConflicted)
+        );
     }
 
     #[test]
@@ -517,19 +535,24 @@ mod tests {
         let activity = fixture()[5].clone();
         let result = assess_field_activity(&activity).unwrap();
         assert_eq!(result.signal_event_detection, TrackEligibility::Eligible);
-        assert_eq!(result.event_to_target_association, TrackEligibility::Eligible);
+        assert_eq!(
+            result.event_to_target_association,
+            TrackEligibility::Eligible
+        );
         assert_eq!(result.localization, TrackEligibility::Eligible);
-        assert_eq!(result.network_topology_3d, TrackEligibility::Ineligible(
-            TrackIneligibilityReason::Structured3dGeometryMissing
-        ));
+        assert_eq!(
+            result.network_topology_3d,
+            TrackEligibility::Ineligible(TrackIneligibilityReason::Structured3dGeometryMissing)
+        );
     }
 
     #[test]
     fn invalid_position_uncertainty_is_rejected() {
         let mut activity = fixture()[4].clone();
         activity.horizontal_position_sigma_m = Some(f64::NAN);
-        assert!(validate_field_activity_admission(&activity).contains(
-            &FieldActivityAdmissionError::InvalidPositionSigma
-        ));
+        assert!(
+            validate_field_activity_admission(&activity)
+                .contains(&FieldActivityAdmissionError::InvalidPositionSigma)
+        );
     }
 }
