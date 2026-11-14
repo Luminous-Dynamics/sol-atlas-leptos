@@ -1290,6 +1290,7 @@ mod tests {
             "prior_claim_revalidated_or_superseded": true,
             "derivative_lineage_reviewed": true
         });
+        submitted["runs"][0]["used_purposes"] = json!(["rights_audit"]);
         let digest = run_payload_digest(&submitted["runs"][0]).expect("run hashes");
         submitted["runs"][0]["replay"]["result_digest"] = json!(digest);
         submitted["runs"][0]["replay"]["replay_digest"] = json!(digest);
@@ -1312,11 +1313,15 @@ mod tests {
             "derivative_lineage_review_required": true
         });
         let bytes = serde_json::to_vec(&manifest).expect("manifest serializes");
-        let submitted = valid_result(
+        let mut submitted = valid_result(
             &manifest,
             &bytes,
             "derivative_lineage_requires_review",
         );
+        submitted["runs"][0]["used_purposes"] = json!(["rights_audit"]);
+        let digest = run_payload_digest(&submitted["runs"][0]).expect("run hashes");
+        submitted["runs"][0]["replay"]["result_digest"] = json!(digest);
+        submitted["runs"][0]["replay"]["replay_digest"] = json!(digest);
         let report = score(&manifest, &submitted, &bytes).expect("score is emitted");
         assert_eq!(report["hard_gate_pass"], false);
         assert!(report["hard_gate_violations"]
