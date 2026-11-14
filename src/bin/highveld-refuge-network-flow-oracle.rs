@@ -298,7 +298,9 @@ fn evaluate(case: &Value) -> Result<Value, Vec<String>> {
             "availability_evidence_ref",
             "capacity_evidence_ref",
             "water_evidence_ref",
-        ].iter().all(|key| text_at(site, key).is_some());
+        ]
+        .iter()
+        .all(|key| text_at(site, key).is_some());
         if text_at(site, "availability_state") != Some("ELIGIBLE")
             || accessible > total
             || water < 0.0
